@@ -414,6 +414,22 @@ def check_01_schema(b: Bundle) -> list[Finding]:
         resources[f.name] = Resource.from_contents(json.loads(f.read_text()))
     registry = Registry().with_resources(resources.items())
 
+    cap_schema_path = CONTRACTS / "capabilities" / "capabilities.schema.json"
+    if cap_schema_path.exists():
+        cap_schema = json.loads(cap_schema_path.read_text())
+        cv = jsonschema.Draft202012Validator(cap_schema, registry=registry)
+        for f in sorted((CONTRACTS / "capabilities").glob("*.json")):
+            if f.name == "capabilities.schema.json":
+                continue
+            try:
+                cap = json.loads(f.read_text())
+            except json.JSONDecodeError as exc:
+                out.append(Finding(1, FAIL, f"unreadable capability table: {exc}", str(f.relative_to(REPO))))
+                continue
+            for err in sorted(cv.iter_errors(cap), key=lambda e: list(e.path)):
+                loc = "/".join(str(x) for x in err.path) or "(root)"
+                out.append(Finding(1, FAIL, f"{loc}: {err.message}", str(f.relative_to(REPO))))
+
     obs_path = CONTRACTS / "observables.json"
     if obs_path.exists():
         obs_schema = json.loads((CONTRACTS / "schemas" / "observable.schema.json").read_text())
@@ -458,7 +474,7 @@ def check_01_schema(b: Bundle) -> list[Finding]:
             loc = "/".join(str(x) for x in err.path) or "(root)"
             out.append(Finding(1, FAIL, f"{loc}: {err.message}", c.rel))
     if not out:
-        out.append(Finding(1, PASS, f"{len(cards)} cards and {len(b.artifacts)} thread ledgers conform to their schema"))
+        out.append(Finding(1, PASS, f"{len(cards)} cards, {len(b.artifacts)} thread ledgers and the capability tables conform to their schema"))
     return out
 
 
@@ -943,7 +959,7 @@ def check_12_synthesis_closure(b: Bundle) -> list[Finding]:
 
 ALLOWED_PATHS = [
     r"^(plan\.md|CLAUDE\.md|README\.md|\.gitignore|\.mcp\.json)$",
-    r"^contracts/(units\.md|units\.json|observables\.json|validate\.py|validation_limits\.json)$",
+    r"^contracts/(units\.md|units\.json|observables\.json|seats\.json|validate\.py|validation_limits\.json)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",
@@ -1454,6 +1470,25 @@ SHARED_PATHS = re.compile(r"^(plan\.md|CLAUDE\.md|README\.md|\.gitignore|\.mcp\.
 DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|bridge)/(CLAUDE\.md|\.claude/)")
 
 
+def seat_boundary_of(path: str) -> str:
+    """Whose territory a path is in (6.2.1).
+
+    The same split check 35 counts, named instead of counted. One table, so a
+    seat's boundary and a commit's boundary cannot drift apart.
+    """
+    if SHARED_PATHS.match(path) or DESIGN_OWNED.match(path) or path.startswith("contracts/"):
+        return "design"
+    for rx, agent in AGENT_OF_PATH:
+        if rx.match(path):
+            return agent
+    return "unattributable"
+
+
+def load_seats() -> dict:
+    p = CONTRACTS / "seats.json"
+    return json.loads(p.read_text()) if p.exists() else {}
+
+
 def check_35_session_boundary(b: Bundle, commit_range: str | None = None, staged: bool = False) -> list[Finding]:
     """One session writes inside one agent (6.2).
 
@@ -1715,6 +1750,84 @@ def check_40_window_condition(b: Bundle) -> list[Finding]:
     return out or [Finding(40, PASS, f"{checked} plans carry the window their observable depends on")]
 
 
+def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged: bool = False) -> list[Finding]:
+    """A commit says which seat made it (6.2.1).
+
+    git records no session, so a seat declares itself: the committer identity is
+    the seat and the author stays the person. Check 35 counts boundaries and so
+    passes a commit that stays inside one -- the wrong one. This check knows
+    which one is the committer's.
+
+    It cannot separate two sessions that share an identity. Two design seats
+    both answer to the root, so they need two entries here with `paths`
+    divided; until that is filled the registry says so rather than implying a
+    protection it does not give.
+    """
+    reg = load_seats()
+    if not reg:
+        return [Finding(41, PENDING, "contracts/seats.json is absent; no seat has an identity")]
+    if not commit_range and not staged:
+        return [Finding(41, PENDING, "pass --commit-range or --staged; the pre-commit hook passes --staged (6.2.1)")]
+
+    import subprocess
+
+    def git(*args: str) -> str:
+        return subprocess.run(["git", "-C", str(REPO), *args],
+                              capture_output=True, text=True, check=True).stdout
+
+    by_email = {s["committer_email"]: s for s in reg.get("seats", [])}
+    unknown_status = FAIL if reg.get("unknown_committer") == "refuse" else PENDING
+
+    def judge(email: str, paths: list[str], label: str = "") -> list[Finding]:
+        pre = f"{label}: " if label else ""
+        seat = by_email.get(email)
+        if seat is None:
+            return [Finding(41, unknown_status,
+                            f"{pre}committer {email!r} is not a seat in contracts/seats.json, so these "
+                            f"{len(paths)} paths carry no attribution")]
+        owns, narrow = set(seat.get("owns", [])), seat.get("paths")
+        out: list[Finding] = []
+        for path in paths:
+            where = seat_boundary_of(path)
+            if where not in owns:
+                out.append(Finding(41, FAIL, f"{pre}seat {seat['seat']!r} owns {sorted(owns)}; this path is "
+                                             f"{where}'s (6.2.1)", path))
+            elif narrow and not any(path.startswith(x) for x in narrow):
+                out.append(Finding(41, FAIL, f"{pre}seat {seat['seat']!r} is narrowed to {narrow}, which does "
+                                             f"not cover this path (6.2.1)", path))
+        return out
+
+    if staged:
+        ident = git("var", "GIT_COMMITTER_IDENT")
+        m = re.search(r"<([^>]*)>", ident)
+        paths = [x for x in git("diff", "--cached", "--name-only").splitlines() if x.strip()]
+        if not paths:
+            return [Finding(41, NA, "nothing staged")]
+        email = m.group(1) if m else ""
+        out = judge(email, paths)
+        return out or [Finding(41, PASS, f"the staged set is {by_email[email]['seat']!r}'s "
+                                         f"({len(paths)} paths)")]
+
+    # Per commit, for the same reason check 35 is: a range holds several seats'
+    # commits, and aggregating them would fail a history that is well behaved.
+    try:
+        rows = [x for x in git("log", "--reverse", "--format=%H%x00%ce", commit_range or "").splitlines() if x.strip()]
+    except (OSError, subprocess.CalledProcessError) as exc:
+        return [Finding(41, FAIL, f"cannot read commit range {commit_range!r}: {exc}")]
+    if not rows:
+        return [Finding(41, NA, f"no commits in {commit_range}")]
+    out, clean = [], 0
+    for row in rows:
+        sha, _, email = row.partition("\x00")
+        paths = [x for x in git("diff-tree", "--no-commit-id", "--name-only", "-r", sha).splitlines() if x.strip()]
+        if not paths:
+            continue
+        found = judge(email, paths, sha[:7])
+        out.extend(found) if found else None
+        clean += 0 if found else 1
+    return out or [Finding(41, PASS, f"{clean} commits stay inside the seat that made them")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -1726,7 +1839,7 @@ CHECKS = [
     check_28_precision, check_29_failure_record, check_30_lessons, check_31_candidate_preservation,
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
-    check_40_window_condition,
+    check_40_window_condition, check_41_seat_attribution,
 ]
 
 
@@ -1741,7 +1854,7 @@ def run(roots: list[Path], include_rejected: bool = False, commit_range: str | N
     findings: list[Finding] = []
     for fn in CHECKS:
         try:
-            if fn is check_35_session_boundary:
+            if fn in (check_35_session_boundary, check_41_seat_attribution):
                 findings.extend(fn(bundle, commit_range, staged))
             else:
                 findings.extend(fn(bundle))

@@ -1,0 +1,47 @@
+{
+  "schema_version": "0.1",
+  "note": "Which committer identity owns which paths (plan.md 6.2.1). git records no session, so a seat declares itself: the committer is the seat and the author stays the person. Read by check 41.",
+  "adopt": "Prefix the commit with the seat's identity. Only the committer is overridden, so the author stays whoever the person is: GIT_COMMITTER_NAME='seat:design' GIT_COMMITTER_EMAIL=design@seat.invalid git commit -m ...",
+  "addresses": "seat.invalid is reserved by RFC 2606 and can never route. A seat identity is a label, not a mailbox.",
+  "boundaries": "owns holds boundary names as check 41 derives them from the path, using the same table check 35 counts: design, microscope_agent, simulation_agent, librarian_agent, bridge. An agent's CLAUDE.md and .claude/ are the design seat's, and so is all of contracts/.",
+
+  "unknown_committer": "report",
+  "unknown_committer_note": "report: a committer absent from this list is reported rather than refused, so a seat that has not adopted an identity is not blocked. refuse: fail-closed. The precondition for switching is that every seat has adopted one, the person included -- a person committing by hand would otherwise be refused on the first day, and that bypass is what becomes the habit. Note also what report costs: an unattributed commit gets no checking at all, because nothing says whose paths those were.",
+
+  "seats": [
+    {
+      "seat": "microscope",
+      "committer_email": "microscope@seat.invalid",
+      "owns": ["microscope_agent"]
+    },
+    {
+      "seat": "simulation",
+      "committer_email": "simulation@seat.invalid",
+      "owns": ["simulation_agent"]
+    },
+    {
+      "seat": "librarian",
+      "committer_email": "librarian@seat.invalid",
+      "owns": ["librarian_agent"]
+    },
+    {
+      "seat": "bridge",
+      "committer_email": "bridge@seat.invalid",
+      "owns": ["bridge"]
+    },
+    {
+      "seat": "design",
+      "committer_email": "design@seat.invalid",
+      "owns": ["design"],
+      "note": "One design seat at a time (6.2.1). Two sessions at the root are both the design seat by definition, and while they share this identity check 41 passes their mixture -- which is what c13e742 was. Separating them takes two entries here with `paths` divided between them; nothing is divided yet, and this note is here so the registry does not imply a protection it does not give."
+    },
+    {
+      "seat": "human",
+      "committer_email": "human@seat.invalid",
+      "owns": ["design", "microscope_agent", "simulation_agent", "librarian_agent", "bridge"],
+      "note": "The person writes approvals/ and envelope/safety.json, which no seat may (2.1 rule 7, 6.1), so this seat owns every boundary. It is deliberately an opt-in identity rather than the git default: if the default were listed here, every session would pass check 41 by inheriting it and the check would mean nothing."
+    }
+  ],
+
+  "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole."
+}
