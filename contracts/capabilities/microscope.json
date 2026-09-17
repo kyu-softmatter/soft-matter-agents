@@ -1,8 +1,8 @@
 {
   "schema_version": "0.1",
   "agent": "microscope_agent",
-  "status": "provisional",
-  "pending": "The judgement is made and the declaration is not. 2026-09-17, from the operator: single-particle tracking is possible in every configuration. What that leaves open is trapping, which the optical path table gives no detector of its own -- it composes with an imaging configuration rather than replacing one, so the observable comes from whichever imaging configuration it rides on. Reading the answer as the four imaging configurations, with trapping producing nothing by itself, is the reading this file expects, but the declaration belongs to the microscope session and it has not made it yet. produces therefore stays empty here and S3.0 screens on nothing until it does.",
+  "status": "populated",
+  "pending": "Declared 2026-09-17 by the microscope session, on the operator's statement that single-particle tracking is possible in every configuration. Read as the four imaging configurations: trapping has no detector of its own in the optical path table, it composes with an imaging configuration rather than replacing one, and the schema forbids produces on a perturbation -- so reading the answer as five is not even expressible. A diffusivity measured while a trap is on was produced by the imaging configuration the trap rides on. What remains open is the rest of the vocabulary: more observables arrive one at a time as questions need them (11-1).",
   "configurations": [
     {
       "config": "transmitted",
@@ -16,7 +16,9 @@
         "camera_blue",
         "camera_splitter"
       ],
-      "produces": []
+      "produces": [
+        "tracer_diffusivity"
+      ]
     },
     {
       "config": "widefield_inline",
@@ -32,7 +34,9 @@
         "widefield_source_a",
         "dmd"
       ],
-      "produces": []
+      "produces": [
+        "tracer_diffusivity"
+      ]
     },
     {
       "config": "widefield_side",
@@ -47,7 +51,9 @@
         "camera_splitter",
         "widefield_source_b"
       ],
-      "produces": []
+      "produces": [
+        "tracer_diffusivity"
+      ]
     },
     {
       "config": "confocal",
@@ -61,7 +67,9 @@
         "camera_blue",
         "laser_combiner"
       ],
-      "produces": []
+      "produces": [
+        "tracer_diffusivity"
+      ]
     },
     {
       "config": "trapping",
@@ -77,8 +85,7 @@
         "widefield_inline",
         "widefield_side",
         "confocal"
-      ],
-      "produces": []
+      ]
     }
   ]
 }
