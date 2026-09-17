@@ -18,10 +18,21 @@
     "inputs": { "type": "array", "items": { "type": "string" } },
     "validity_conditions": { "type": "string", "minLength": 10, "description": "under what conditions the claim holds; a claim without them is not reusable" },
     "validity": { "$ref": "common.schema.json#/$defs/condition_range", "description": "the machine-readable half of validity_conditions (4.3.1). Where the two disagree this one wins (P3): prose cannot be matched against a query condition_range. An entry without it is returned flagged unconstrained rather than matching silently." },
+    "source": { "$ref": "common.schema.json#/$defs/source", "description": "Where the claim came from, in the same form a card's number uses (5.3), so that an entry's grade is DERIVED and not self-reported (check 43). source_ref says which document; this says what kind of evidence it is, and only the second one fixes a grade. Optional while the store catches up: entries written before the field existed are counted rather than failed." },
     "grade": { "$ref": "common.schema.json#/$defs/grade" },
     "grade_tag": {
-      "enum": ["peer_reviewed", "preprint", "vendor_spec", "textbook", "measured_here", "calibration"],
-      "description": "the sub-rank inside a grade, mostly to separate the kinds of E3 (4.3)"
+      "enum": ["peer_reviewed", "preprint", "vendor_spec", "textbook", "measured_here", "calibration", "operator_read", "operator_recall", "computed"],
+      "description": "the sub-rank inside a grade, mostly to separate the kinds of E3 (4.3). Its load-bearing use is the citation order among literature: peer_reviewed -> textbook -> vendor_spec -> preprint. The other values exist so the enum is not silently incomplete -- an operator reading is E3 by 5.3 and had no value here, so every such entry left this null and a null read as an omission rather than a kind."
+    },
+    "identifiers": {
+      "type": "object",
+      "description": "Exact names for the thing the claim is about: part_number, lot, catalog_number, position, slot. A nominal designation is exact by definition and carries no uncertainty (5.3), so it belongs here and never in numbers[]. Until this existed a table with part numbers could not become an entry at all, which is why the objective and particle registries stayed in staging.",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" },
+      "additionalProperties": {
+        "type": "string",
+        "description": "a string even when it looks like a number. A position stored as 0 invites arithmetic on positions and a magnification stored as 20 invites a decimal point; the driver converts at the call site."
+      },
+      "minProperties": 1
     },
     "source_ref": { "type": "string", "description": "id in kb/sources/" },
     "date": { "type": "string", "format": "date" },

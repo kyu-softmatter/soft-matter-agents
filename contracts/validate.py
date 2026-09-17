@@ -1781,6 +1781,78 @@ def check_39_estimate_justified(b: Bundle) -> list[Finding]:
     return [Finding(39, PASS, f"{n} estimates each name the gap they stand on")]
 
 
+def check_43_entry_grade(b: Bundle) -> list[Finding]:
+    """An entry's grade follows from its source kind, the way a card's does (5.3).
+
+    Check 21 derives grades for cards and never looks at the store, and the
+    entry schema had no `source` field at all -- so every grade in kb/entries/
+    was self-reported, which is the one thing 5.3 forbids on the card side. 4.3
+    refuses a separate scale for the librarian because two scales become two
+    truths; two derivations of one scale do the same.
+
+    `source` is optional while the store catches up, so entries written before
+    the field existed are counted rather than failed. Whatever is present is
+    derived, and this check reports how much is not yet covered instead of
+    passing as though it were.
+    """
+    if not KB_DIR.exists():
+        return [Finding(43, NA, "no knowledge store")]
+    files = sorted((KB_DIR / "entries").glob("*.json"))
+    if not files:
+        return [Finding(43, NA, "no entries in the store")]
+
+    index_grades: dict[str, str] = {}
+    if KB_INDEX is not None:
+        index_grades = {k: v.get("grade") for k, v in (KB_INDEX.get("entries") or {}).items()}
+
+    out: list[Finding] = []
+    without: list[str] = []
+    derived = 0
+    for p in files:
+        try:
+            rel = str(p.relative_to(REPO))
+        except ValueError:
+            rel = str(p)                    # a store outside the repo: a self-test
+        try:
+            e = json.loads(p.read_text())
+        except json.JSONDecodeError:
+            continue                        # check 1 reports an unreadable entry
+        eid = e.get("entry_id") or p.stem
+        declared = e.get("grade")
+        if declared == "E6":
+            out.append(Finding(43, FAIL, f"{eid}: E6 is a value a model produced and may not enter the store (4.3)", rel))
+        src = str(e.get("source") or "")
+        if ":" not in src:
+            without.append(eid)
+            continue
+        derived += 1
+        prefix, ref = src.split(":", 1)
+        expected = SOURCE_GRADE.get(prefix, "missing")
+        if expected == "missing":
+            out.append(Finding(43, FAIL, f"{eid}: unknown source kind {prefix!r}", rel))
+        elif expected is not None:
+            if declared != expected:
+                out.append(Finding(43, FAIL, f"{eid}: source {prefix}: derives {expected}, the entry says {declared} (self-reported grades fail)", rel))
+        elif prefix == "computed":
+            # the formula is itself an assumption, so a computed value is E4 at
+            # best and follows its worst input down (5.3)
+            if declared not in ("E4", "E5"):
+                out.append(Finding(43, FAIL, f"{eid}: computed: is E4 at best and never better, the entry says {declared}", rel))
+        elif prefix == "kb":
+            if ref not in index_grades:
+                out.append(Finding(43, FAIL, f"{eid}: cites kb:{ref}, which the index has no grade for to inherit", rel))
+            elif declared != index_grades[ref]:
+                out.append(Finding(43, FAIL, f"{eid}: inherits kb:{ref}, graded {index_grades[ref]} in the store, and says {declared}", rel))
+
+    if out:
+        return out
+    if without:
+        shown = ", ".join(sorted(without)[:5])
+        more = f" and {len(without) - 5} more" if len(without) > 5 else ""
+        return [Finding(43, PENDING, f"{derived} entry grades derive from their source; {len(without)} carry no `source` yet, so those grades are still self-reported ({shown}{more}). The librarian seat fills the field, and then it becomes required")]
+    return [Finding(43, PASS, f"{derived} entry grades follow from their source kind")]
+
+
 def check_42_check_registry(b: Bundle) -> list[Finding]:
     """A check is registered in three places, and they have to agree.
 
@@ -1942,7 +2014,7 @@ CHECKS = [
     check_28_precision, check_29_failure_record, check_30_lessons, check_31_candidate_preservation,
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
-    check_40_window_condition, check_42_check_registry, check_41_seat_attribution,
+    check_40_window_condition, check_43_entry_grade, check_42_check_registry, check_41_seat_attribution,
 ]
 
 
