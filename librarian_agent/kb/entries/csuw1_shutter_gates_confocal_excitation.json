@@ -1,0 +1,13 @@
+{
+  "entry_id": "csuw1_shutter_gates_confocal_excitation",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The shutter inside the confocal unit gates the confocal laser into the unit, and it must be open while the confocal laser is in use for excitation to reach the sample.",
+  "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. This entry says what the shutter gates and stops there. Which shutter an abort closes is policy, not knowledge: it belongs to a person and to microscope_agent/envelope/safety.json (4.3.2, 10.3 rule 4). Falsified by a re-plumbing of the excitation path.",
+  "grade": "E3",
+  "source_ref": "src_operator_read_20260917",
+  "date": "2026-09-17",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

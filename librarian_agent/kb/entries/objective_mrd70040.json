@@ -1,0 +1,21 @@
+{
+  "entry_id": "objective_mrd70040",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Nikon CFI Plan Apo Lambda D 4X, part number MRD70040: a dry 4x objective of numerical aperture 0.20 with a working distance of 20 mm, specified for coverglass from 0 to 170 micrometres, which is to say with or without one.",
+  "numbers": [
+    { "name": "na", "value": 0.20, "unit": "1", "source": "spec:MRD70040", "grade": "E3", "precision": "significant_figures", "note": "as designated by the catalog, to two figures; 0.20 is not 0.2 rounded" },
+    { "name": "working_distance", "value": 20, "unit": "mm", "source": "spec:MRD70040", "grade": "E3", "precision": "significant_figures" }
+  ],
+  "validity_conditions": "Catalog specification for this part number, capped at E3 because a published specification is not a measurement taken here. The magnification 4x is a nominal designation and a string identifier, not a number, and it is never back-derived from a calibrated pixel size. Transmission at 1064 nm is not part of this entry: the catalog publishes a curve and no numeric table, and a number a model reads off a rendered curve is E6, which may enter nothing.",
+  "validity": {
+    "coverslip_um": { "min": 0, "max": 170, "unit": "um" }
+  },
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_nikon_objective_catalog",
+  "date": "2026-09-17",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

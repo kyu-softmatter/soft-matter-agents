@@ -1,0 +1,13 @@
+{
+  "entry_id": "csuw1_disk_speed_exposure_constraint",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "An exposure taken through the spinning disk must last an integer multiple of the disk period, or stripes remain in the image, and nothing may be acquired while the disk is still spinning up to speed.",
+  "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. The disk period itself is not in the store: this entry states the relation the exposure must satisfy, not the number it must be a multiple of, and a plan needs the period from the device before it can apply this. Falsified by a disk or controller change.",
+  "grade": "E3",
+  "source_ref": "src_operator_read_20260917",
+  "date": "2026-09-17",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

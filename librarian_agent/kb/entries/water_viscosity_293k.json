@@ -7,6 +7,9 @@
     { "name": "viscosity", "value": 0.001, "unit": "Pa*s", "source": "kb:water_viscosity_293k", "grade": "E3" }
   ],
   "validity_conditions": "pure water, 288 to 298 K, atmospheric pressure. Not valid for the buffer or glycerol mixtures, and not valid without stating the temperature: the value carries a temperature dependence steep enough to matter in confirm mode.",
+  "validity": {
+    "temperature": { "min": 288, "max": 298, "unit": "K" }
+  },
   "grade": "E3",
   "grade_tag": "textbook",
   "source_ref": "src_water_properties",

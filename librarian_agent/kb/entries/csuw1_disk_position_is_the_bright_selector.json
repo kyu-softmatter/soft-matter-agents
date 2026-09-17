@@ -1,0 +1,13 @@
+{
+  "entry_id": "csuw1_disk_position_is_the_bright_selector",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The element the configuration calls csuw1_bright, offered as confocal or bright field, and the element it calls csuw1_disk_position, offered as in or out, are one mechanism recorded twice under two names. Moving the disk in or out is the only thing either name selects.",
+  "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. Which of the two names micromanager actually addresses is not settled by this claim and is recorded as a gap: setting one property and reading back the other would show an agreement that means nothing. Falsified by the two names proving independently settable.",
+  "grade": "E3",
+  "source_ref": "src_operator_read_20260917",
+  "date": "2026-09-17",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

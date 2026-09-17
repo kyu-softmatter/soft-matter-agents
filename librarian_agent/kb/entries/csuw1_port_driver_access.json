@@ -1,0 +1,13 @@
+{
+  "entry_id": "csuw1_port_driver_access",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The port/splitter is drivable and readable through micromanager: it can be set without a human and its position can be read back. It is an element of a channel that is automatable in full with read-back, and the earlier record of a manual-only splitter with no programming interface was wrong on every field it asserted.",
+  "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. Drivable and readable is not the same as verifiable: read-back returns a position, and which element that position holds is exactly what is unknown (see csuw1_port_slots). Falsified by a driver or configuration change that drops the property.",
+  "grade": "E3",
+  "source_ref": "src_operator_read_20260917",
+  "date": "2026-09-17",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

@@ -61,9 +61,25 @@ Two things were **not** extracted at all:
 
 ## Gaps are part of the content
 
-Both files end in a `gaps` list. Three entries in them are things the operator
-named that the dossier does not contain — a motorised xy stage, the spinning
-disk's speed and in/out position, and whether a separate laser shutter exists.
-They are recorded as gaps rather than guessed, which is the same rule the cards
-follow: an unknown that is written down can be filled, and one that is inferred
-cannot be found again.
+Both files end in a `gaps` list, and both now also carry `resolved_gaps`. The
+three the operator originally named — a motorised xy stage, the spinning disk's
+speed and in/out position, and whether a separate laser shutter exists — were
+recorded as gaps rather than guessed, and all three were answered on 2026-09-17.
+That is the rule working: an unknown that is written down can be filled, and one
+that is inferred cannot be found again.
+
+## What the verification pass of 2026-09-17 did to these files
+
+The operator read every row at the instrument. The confirmed claims are now
+atomic entries in `kb/entries/`, cited from these tables as `entry_ref`, and the
+tables kept the structure the entry schema has no slot for: part numbers, slot
+positions, per-element ids. `kb/distilled/operator_verification_20260917.md` is
+the record of what changed and why.
+
+Two rows left `channels[]`. `camera_splitter` was never a device — it is the
+confocal unit's port, and it was absent from the device list under that name
+because it was already there under another. `temperature_stage` has never been
+connected, so nothing actuates the sample temperature and it is not a control
+channel. Neither fact was deleted: both are in `retired_rows`, with what the row
+had claimed and why it was wrong, because a row that vanishes silently is
+indistinguishable from one that was never there.

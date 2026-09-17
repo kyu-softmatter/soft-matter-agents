@@ -1,0 +1,13 @@
+{
+  "entry_id": "stand_ti2e_lock_groups",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The coarse motorised xy stage is an element of the microscope body channel, on the body hub. The body's optical elements belong to the optical_path lock group while the motor stage belongs to the stage lock group, because the piezo rides on the motor stage. One channel therefore carries two lock groups, and a lock group is a property of an element rather than only of a channel.",
+  "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. What is confirmed here is the hardware arrangement and the group each element belongs to. What follows from it under one-channel-one-worker -- that stage moves serialise with port and filter changes, and that the lock a worker waits on is chosen per command rather than per channel -- is a design consequence, not a reading, and is not stamped as one. Falsified by the stage being moved off the body hub or the piezo being mounted elsewhere.",
+  "grade": "E3",
+  "source_ref": "src_operator_read_20260917",
+  "date": "2026-09-17",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

@@ -1,0 +1,13 @@
+{
+  "entry_id": "csuw1_dichroic_slots",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The unit's excitation dichroic turret carries three slots. One dichroic is fitted, in slot 1; slots 2 and 3 are empty. The fitted dichroic stays in the path whatever the disk does, which is why this instrument has no unfiltered white-light path.",
+  "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. Slot 1 is as the operator identified it at the instrument; the dichroic's own spectral bands are not part of this claim and are not in the store. Falsified by fitting a second dichroic or moving the fitted one.",
+  "grade": "E3",
+  "source_ref": "src_operator_read_20260917",
+  "date": "2026-09-17",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

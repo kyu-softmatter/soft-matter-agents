@@ -1,16 +1,23 @@
 {
   "schema_version": "0.1-provisional",
-  "storage_form": "PROVISIONAL, same as devices.v0.json. See README.md.",
+  "storage_form": "PROVISIONAL, same as devices.v0.json. The atomic claims confirmed on 2026-09-17 live in kb/entries/ and are cited here as entry_ref. See README.md.",
   "extracted_from": "kyu-softmatter/agentic-microscope @ e59e904, kb/systems/current.md (light_paths, optical_path_nis, confocal_scanner, light_path)",
   "extracted_at": "2026-09-17",
+  "verified_at": "2026-09-17",
+  "verification": {
+    "who": "the operator (kyuhwan), row by row at the instrument",
+    "source_id": "src_operator_read_20260917",
+    "record": "kb/distilled/operator_verification_20260917.md",
+    "what_it_changed": "camera_splitter was never a device: it is the confocal unit's port, which is drivable and readable. Three of the five configurations therefore stop requiring a human in the loop, and csuw1_bright merges into csuw1_disk_position."
+  },
   "grade_cap": "E3",
-  "kept_fields_only": "id, label, sources, detectors, required_selectors, excludes, automatable_gaps, grade. Spectral band tables, part numbers and the correction history were dropped: screening needs to know whether a path delivers light to a detector and what must be set for it, not which filter is in position 3.",
+  "kept_fields_only": "id, label, sources, detectors, required_selectors, excludes, automatable_gaps, grade, entry_ref. Spectral band tables, part numbers and the correction history were dropped: screening needs to know whether a path delivers light to a detector and what must be set for it, not which filter is in position 3.",
   "consumers": {
     "s3_0": "screens configurations; contracts/capabilities/microscope.json points at these ids",
     "a4": "checks that the plan's configuration is one of these and that its selectors are reachable",
     "orchestrator": "compiles required_selectors into a path lock; nothing acquires while it is held"
   },
-  "one_table_rule": "This list and the configuration list in contracts/capabilities/microscope.json are the same table (plan.md 4.6.7). Two tables drift, and the drift shows up as a plan that is valid on paper while no light reaches the detector.",
+  "one_table_rule": "This list and the configuration list in contracts/capabilities/microscope.json are the same table (plan.md 4.6.7). Two tables drift, and the drift shows up as a plan that is valid on paper while no light reaches the detector. OPEN DRIFT as of 2026-09-17: that file still lists camera_splitter in the devices[] of transmitted, widefield_inline and widefield_side. It is not a device. Only the design session may edit contracts/, so the removal is theirs to make; no check currently compares those device lists against the channel table, so nothing will fail while the drift stands.",
   "configurations": [
     {
       "id": "widefield_inline",
@@ -25,21 +32,19 @@
       ],
       "required_selectors": {
         "light_path_port": "the imaging port",
-        "csuw1_port": "which camera the unit feeds",
+        "csuw1_port": "the slot that reaches the camera being used: empty reaches red only, the 561 dichroic reaches both, the 100/0 mirror reaches blue only",
         "csuw1_disk_position": "out",
         "filter_turret_1": "the multiband cube",
-        "lapp_branch": "inline",
-        "camera_splitter": "one of: single camera, or split"
+        "lapp_branch": "inline"
       },
       "excludes": [
         "confocal"
       ],
-      "automatable_gaps": [
-        "camera_splitter"
-      ],
+      "automatable_gaps": [],
       "grade": "E3",
-      "note": "the confocal unit is in this path as well, so its dichroic is unavoidable and its port still selects the camera. A configuration that leaves the port unset gets whatever it physically was, and the unselected camera reads a dark frame with nothing raising an error.",
-      "confirmed_by": "operator_read:kyuhwan_20260917"
+      "note": "the confocal unit is in this path as well, so its dichroic is unavoidable and its port still selects the camera. A configuration that leaves the port unset gets whatever it physically was, and the unselected camera reads a dark frame with nothing raising an error -- which now has a mechanism: two of the port's three slots send zero light to one camera.",
+      "confirmed_by": "operator_read:kyuhwan_20260917",
+      "entry_ref": ["csuw1_port_slots", "csuw1_disk_position_states"]
     },
     {
       "id": "widefield_side",
@@ -53,21 +58,19 @@
       ],
       "required_selectors": {
         "light_path_port": "the imaging port",
-        "csuw1_port": "which camera the unit feeds",
+        "csuw1_port": "the slot that reaches the camera being used: empty reaches red only, the 561 dichroic reaches both, the 100/0 mirror reaches blue only",
         "csuw1_disk_position": "out",
         "filter_turret_1": "the multiband cube",
-        "lapp_branch": "side",
-        "camera_splitter": "one of: single camera, or split"
+        "lapp_branch": "side"
       },
       "excludes": [
         "confocal"
       ],
-      "automatable_gaps": [
-        "camera_splitter"
-      ],
+      "automatable_gaps": [],
       "grade": "E3",
       "note": "the confocal unit is in this path as well, so its dichroic is unavoidable and its port still selects the camera. A configuration that leaves the port unset gets whatever it physically was, and the unselected camera reads a dark frame with nothing raising an error.",
-      "confirmed_by": "operator_read:kyuhwan_20260917"
+      "confirmed_by": "operator_read:kyuhwan_20260917",
+      "entry_ref": ["csuw1_port_slots", "csuw1_disk_position_states"]
     },
     {
       "id": "confocal",
@@ -81,10 +84,10 @@
       ],
       "required_selectors": {
         "light_path_port": "the imaging port",
-        "csuw1_dichroic": "the multiband dichroic",
-        "csuw1_bright": "confocal",
-        "csuw1_port": "which camera",
+        "csuw1_dichroic": "the fitted dichroic, in slot 1",
         "csuw1_disk_position": "in",
+        "csuw1_port": "the slot that reaches the camera being used",
+        "csuw1_shutter": "open",
         "filter_wheel_em1": "matched to the excitation line",
         "filter_wheel_em2": "matched to the excitation line"
       },
@@ -96,7 +99,9 @@
         "laser_combiner power, which is write-only and uncalibrated here"
       ],
       "grade": "E3",
-      "confirmed_by": "operator_read:kyuhwan_20260917"
+      "confirmed_by": "operator_read:kyuhwan_20260917",
+      "entry_ref": ["csuw1_disk_position_is_the_bright_selector", "csuw1_dichroic_slots", "csuw1_shutter_gates_confocal_excitation", "csuw1_disk_speed_exposure_constraint"],
+      "selector_note": "csuw1_bright is gone from this list: it is the same mechanism as csuw1_disk_position, and requiring both named one selector twice. csuw1_shutter is named because the confocal laser reaches the sample only through it. Which emission filter belongs to which camera rests on a recalled mapping at E5 (emission_wheel_camera_mapping), so a two-colour plan on this configuration carries that as its weakest link."
     },
     {
       "id": "transmitted",
@@ -110,17 +115,15 @@
       ],
       "required_selectors": {
         "light_path_port": "the imaging port",
-        "csuw1_port": "which camera the unit feeds",
-        "csuw1_disk_position": "out",
-        "camera_splitter": "one of: single camera, or split"
+        "csuw1_port": "the slot that reaches the camera being used",
+        "csuw1_disk_position": "out"
       },
       "excludes": [],
-      "note": "the confocal dichroic sits in this path too, so there is no unfiltered white-light path on this instrument the confocal unit is in this path as well, so its dichroic is unavoidable and its port still selects the camera. A configuration that leaves the port unset gets whatever it physically was, and the unselected camera reads a dark frame with nothing raising an error.",
-      "automatable_gaps": [
-        "camera_splitter"
-      ],
+      "note": "the confocal dichroic sits in this path too, so there is no unfiltered white-light path on this instrument. The unit's port still chooses the camera: brightfield on the blue camera requires the 100/0 mirror, and brightfield through the 561 dichroic is white light split spectrally between the two arms rather than one image on each. Neither of those is a separate configuration; both are consequences of which port slot is selected, and neither was recorded before 2026-09-17.",
+      "automatable_gaps": [],
       "grade": "E3",
-      "confirmed_by": "operator_read:kyuhwan_20260917"
+      "confirmed_by": "operator_read:kyuhwan_20260917",
+      "entry_ref": ["csuw1_port_slots", "csuw1_dichroic_slots", "csuw1_disk_position_states"]
     },
     {
       "id": "trapping",
@@ -138,7 +141,8 @@
       "automatable_gaps": [
         "optical_tweezers calibration, which is GUI-only"
       ],
-      "grade": "E3"
+      "grade": "E3",
+      "selector_note": "the six objectives and their numerical apertures are now known (nosepiece_objective_assignment and the six objective_* entries), but which of them passes 1064 nm is not. S3.0 cannot screen this configuration until that is answered for at least one position -- see the objective_transmission_1064nm gap."
     }
   ],
   "exclusions": [
@@ -169,33 +173,75 @@
     {
       "what": "the port position that actually carries the detection path",
       "why_it_matters": "any other value sends emission where no camera sees it, and a dark frame then has two possible causes",
-      "status": "the prior project recorded one specific position as correct. The value is deliberately not copied: it is a single integer that would be wrong silently if the stand were re-cabled. Confirm it at the instrument and write it into envelope/ at M1."
+      "kind": "absent",
+      "searched": ["the prior project recorded one specific position; deliberately not copied"],
+      "status": "the value is deliberately not copied: it is a single integer that would be wrong silently if the stand were re-cabled. Confirm it at the instrument and write it into envelope/."
     },
     {
       "what": "observables per configuration",
       "why_it_matters": "S3.0 screens on exactly this",
+      "kind": "absent",
+      "searched": ["contracts/observables.json, which holds one entry so far"],
       "status": "empty on purpose. It needs the shared observable vocabulary (plan.md 11-1), which is a decision, not an extraction."
     },
     {
       "what": "switch_cost per configuration",
       "why_it_matters": "axis A5 pays for turret rotation and disk spin-up in the time budget",
-      "status": "not in the extracted dossier. Measure at M1."
+      "kind": "absent",
+      "searched": ["not in the extracted dossier"],
+      "status": "not extracted. Measure at the instrument. The device-level half of this -- the port slots and the disk in/out move -- is a gap in devices.v0.json."
     },
     {
       "what": "selector value lists (turret, wheel and port positions)",
       "why_it_matters": "axis A4 checks whether a required selector value is reachable, which needs the list",
-      "status": "deferred with the observable vocabulary (plan.md 11-1). The source dossier has them, but several wheel positions are blocked and several filter identities in it are inferred from position labels rather than read off the hardware, so copying the lists now would import an unresolved question instead of a fact."
+      "kind": "absent",
+      "searched": ["the source dossier has them, but several wheel positions are blocked and several filter identities in it are inferred from position labels rather than read off the hardware"],
+      "status": "deferred with the observable vocabulary (plan.md 11-1). Copying the lists now would import an unresolved question instead of a fact. Partly narrowed on 2026-09-17: the port has three slots and the dichroic turret three, with contents known for both and order known for neither, and the objective positions are now fully known (0 through 5). What is still missing is the emission wheel and filter turret positions."
+    },
+    {
+      "what": "transmission at 1064 nm, per objective",
+      "gap_id": "objective_transmission_1064nm",
+      "why_it_matters": "trapping needs an objective that passes 1064 nm at a working numerical aperture, and S3.0 cannot screen the trapping configuration until it is answered for at least one position",
+      "kind": "condition_mismatch",
+      "searched": ["the vendor catalog publishes a transmittance curve and no numeric table, and the curves run to roughly 1000 nm at best", "a number a model reads off a rendered curve is E6 and may enter nothing (5.3), so those curves were not read here"],
+      "nearest": [
+        { "entry_id": "objective_mrd70040", "overlap": "partial", "uncovered": "wavelength above the published curve's endpoint, up to 1064 nm" },
+        { "entry_id": "objective_mrd70270", "overlap": "partial", "uncovered": "wavelength above the published curve's endpoint, up to 1064 nm" },
+        { "entry_id": "objective_mrd77400", "overlap": "partial", "uncovered": "wavelength above the published curve's endpoint, up to 1064 nm" },
+        { "entry_id": "objective_mrd71670", "overlap": "partial", "uncovered": "wavelength above the published curve's endpoint, up to 1064 nm" },
+        { "entry_id": "objective_mrd71970", "overlap": "partial", "uncovered": "wavelength above the published curve's endpoint, up to 1064 nm" }
+      ],
+      "status": "open, with three routes and an order of preference. (1) The cheapest and the strongest: whichever objective the operator actually traps with demonstrably passes 1064 nm at a working numerical aperture, which is a functional observation -- operator_read, E3, and not E1, since E1 needs a run_id from this system. Nobody has said which objective that is; that is a question for the operator. (2) An endpoint value read off the published curve BY THE OPERATOR is operator_read at E3, at decade precision only, and it is a fact about the endpoint wavelength rather than about 1064 nm. (3) A caller that needs 1064 nm anyway records its own extrapolation as an assumption at E5, naming this gap, with the authorisation for it recorded on the assumption rather than on any entry -- being told to use a value is not evidence for it, and if an authorisation could lift E5 to E3 the grade scale would become a permission scale. No route allows a curve to be extrapolated past its endpoint inside the store.",
+      "note": "MRD70170 (10x) is absent from nearest[] because no transmittance curve has been supplied for it at all -- for that part the gap is absent rather than condition_mismatch."
+    },
+    {
+      "what": "which port slot brightfield should use, and what a spectrally split white-light image means for an observable",
+      "kind": "absent",
+      "searched": ["operator pass of 2026-09-17, which established the slot contents but not a practice for brightfield"],
+      "status": "open. It follows from csuw1_port_slots that brightfield on the blue camera requires the 100/0 mirror and that brightfield through the 561 dichroic reaches both cameras in different bands. Which of the three a brightfield plan should ask for is a decision for the plan, not knowledge, and the store does not choose it."
     }
   ],
-  "label_warning": "Selector labels in the vendor configuration are not authoritative. In the source project one branch selector's label-to-state mapping was inverted in the configuration file and stayed wrong for weeks, because both the label and the state read back consistently -- only an image showed which position passed light. O1 preflight therefore verifies state by read-back and, where a selector decides whether light arrives at all, by acquiring.",
+  "label_warning": "Selector labels in the vendor configuration are not authoritative. Three known traps on this instrument, in increasing order of how quietly they fail. (1) In the source project one branch selector's label-to-state mapping was inverted in the configuration file and stayed wrong for weeks, because both the label and the state read back consistently -- only an image showed which position passed light. (2) csuw1_disk_position's two labels are confocal and bright field, but the bright-field position also serves widefield fluorescence, so the configuration id cannot be recovered from the label and a read-back that agrees with the label confirms nothing about which configuration is loaded. (3) csuw1_port has three slots whose order is unknown, and two of the three send zero light to one camera: commanding position 2 for the dichroic may land the mirror, and read-back will confirm position 2 and tell you nothing. O1 preflight therefore verifies state by read-back and, where a selector decides whether light arrives at all, by acquiring. Drivable and readable is not the same as verifiable, and those are two properties rather than one field.",
   "resolved_gaps": [
     {
       "what": "the disk-out configuration",
       "answer": "not a configuration of its own. The disk is a required selector on the configurations that already exist: out for widefield fluorescence and brightfield, in for confocal.",
       "resolved_by": "operator_read:kyuhwan_20260917",
       "resolved_at": "2026-09-17",
-      "grade": "E3"
+      "grade": "E3",
+      "entry_ref": "csuw1_disk_position_states",
+      "note": "csuw1_disk_position's element note in devices.v0.json used to say the opposite -- that disk-out is a separate configuration id -- and the two files disagreed. The element note was the stale one and now matches."
+    },
+    {
+      "what": "the manual splitter that forced a human into three of the five configurations",
+      "answer": "there is no such device. It is csuw1_port, an element of a channel that is automatable in full with read-back, and it is drivable and readable through micromanager. automatable_gaps: [camera_splitter] is gone from widefield_inline, widefield_side and transmitted, and with it the 2.1 rule 5 manual instruction sheet on those three.",
+      "resolved_by": "operator_read:kyuhwan_20260917",
+      "resolved_at": "2026-09-17",
+      "grade": "E3",
+      "entry_ref": ["csuw1_port_is_the_camera_splitter", "csuw1_port_driver_access"],
+      "consequence_for_a4": "axis A4 screens configurations on automatable and read_back, so it was rejecting or downgrading three of the five on a field that was false.",
+      "what_it_does_not_resolve": "the element can now be SET without a human, but it still cannot be VERIFIED by read-back alone, because two of its three states starve one camera. The old automatable_gaps field bundled setting and verifying together and only one of them is gone."
     }
   ],
-  "note_on_the_confocal_unit_in_every_path": "The unit's dichroic stays in the path whatever the disk does, which is why this instrument has no unfiltered white-light path, and its port still chooses the camera. What the disk position selects is whether the light is confocally sectioned on the way through. Two separate facts about one unit, and conflating them was the first reading of the extracted dossier."
+  "note_on_the_confocal_unit_in_every_path": "The unit's dichroic stays in the path whatever the disk does, which is why this instrument has no unfiltered white-light path, and its port still chooses the camera. What the disk position selects is whether the light is confocally sectioned on the way through. Two separate facts about one unit, and conflating them was the first reading of the extracted dossier -- the third such conflation, after the port with the splitter and the bright-field selector with the disk position."
 }

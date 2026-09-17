@@ -1,0 +1,22 @@
+{
+  "entry_id": "objective_mrd77400",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Nikon CFI Apo Lambda S 40XC WI, part number MRD77400: a water-immersion 40x objective of numerical aperture 1.25 with a correction collar, specified for coverglass from 150 to 190 micrometres. Its working distance is quoted as a range, 0.16 to 0.2 mm, because it depends on where the correction collar is set.",
+  "numbers": [
+    { "name": "na", "value": 1.25, "unit": "1", "source": "spec:MRD77400", "grade": "E3", "precision": "significant_figures" },
+    { "name": "working_distance_min", "value": 0.16, "unit": "mm", "source": "spec:MRD77400", "grade": "E3", "precision": "significant_figures", "note": "the quoted range is carried as its two ends; compressing a range into one value would stop it being a quotation" },
+    { "name": "working_distance_max", "value": 0.2, "unit": "mm", "source": "spec:MRD77400", "grade": "E3", "precision": "significant_figures" }
+  ],
+  "validity_conditions": "Catalog specification for this part number, capped at E3 because a published specification is not a measurement taken here. The working distance is collar-dependent, and the collar setting is determined once the coverglass thickness is fixed -- so at the 170 micrometres this laboratory uses (coverslip_thickness_in_use) the working distance is a single value rather than a range. The catalog does not publish that value, and the librarian does not interpolate within a quoted range, so it is recorded as a condition_mismatch gap rather than derived. This is the one lens on this nosepiece with a real correction collar.",
+  "validity": {
+    "coverslip_um": { "min": 150, "max": 190, "unit": "um" }
+  },
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_nikon_objective_catalog",
+  "date": "2026-09-17",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

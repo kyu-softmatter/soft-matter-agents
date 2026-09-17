@@ -1,15 +1,24 @@
 {
   "schema_version": "0.1-provisional",
-  "storage_form": "PROVISIONAL. A flat table, deliberately. Decomposing this into atomic KB entries is deferred until the librarian agent exists (M3), because the right decomposition depends on how it will be queried. See README.md in this folder.",
+  "storage_form": "PROVISIONAL. A flat table, deliberately. The atomic claims confirmed on 2026-09-17 now live in kb/entries/ and are cited from the rows below as entry_ref; this table stays as the machine-readable index the microscope agent reads directly (plan.md 4.3.0), because the entry schema has no structured slot for identifiers such as a part number or a slot position. See README.md in this folder.",
   "extracted_from": "kyu-softmatter/agentic-microscope @ e59e904, kb/systems/current.md",
   "extracted_at": "2026-09-17",
+  "verified_at": "2026-09-17",
+  "verification": {
+    "who": "the operator (kyuhwan), row by row at the instrument",
+    "source_id": "src_operator_read_20260917",
+    "record": "kb/distilled/operator_verification_20260917.md",
+    "standing_decision": "every confirmed_by stamp that predated that pass was treated as unverified until re-affirmed item by item. A stamp applied in bulk records less than it claims.",
+    "what_it_changed": "one channel was a phantom and is gone (camera_splitter), one was never connected and is not a control channel (temperature_stage), two pairs of elements were one mechanism each, and the six objectives are now on the nosepiece."
+  },
   "grade_cap": "E3",
-  "grade_cap_reason": "plan.md 10.3 rule 1: a measurement taken in another project is not a measurement taken here. Confirming any of these on the instrument promotes it to E1.",
-  "kept_fields_only": "id, role, driver, automatable, read_back, lock_group, elements, exclusive_with, source, grade. Everything else in the source dossier -- part numbers, serials, firmware versions, verification dates, and the narrative of how each fact was corrected -- was dropped: no consumer reads it.",
+  "grade_cap_reason": "plan.md 10.3 rule 1: a measurement taken in another project is not a measurement taken here. An operator reading is capped there too -- there is no run_id and no reproducible calibration state. Confirming any of these with a run promotes it to E1.",
+  "kept_fields_only": "id, role, driver, automatable, read_back, lock_group, elements, exclusive_with, source, grade, entry_ref. Everything else in the source dossier -- serials, firmware versions, verification dates, and the narrative of how each fact was corrected -- was dropped: no consumer reads it.",
   "consumers": {
     "a4": "axis A4 screens configurations on automatable and read_back",
     "o1_preflight": "reads back every element it is about to set; read_back false means the element cannot be verified and goes to a manual instruction sheet (2.1 rule 5)",
-    "orchestrator": "one worker per channel; lock_group compiles into the locks"
+    "orchestrator": "one worker per channel; lock_group compiles into the locks",
+    "a6": "reads working distance and immersion off the nosepiece rows"
   },
   "channels": [
     {
@@ -22,7 +31,89 @@
       "elements": [
         {
           "id": "nosepiece",
-          "positions": 6
+          "positions": 6,
+          "position_index_base": 0,
+          "entry_ref": ["nosepiece_position_indexing", "nosepiece_objective_assignment"],
+          "index_note": "positions run 0 through 5, not 1 through 6. Any command or preflight check that assumes 1-6 is off by one on every position.",
+          "id_note": "each objective's id IS its nominal magnification, a string identifier that is exact by definition (5.3). There is deliberately no numeric magnification field: a field for it is where a value back-derived from a calibrated pixel size ends up wearing a nominal name, which is what happened in the prior project's 20.078x.",
+          "objectives": [
+            {
+              "position": 0,
+              "id": "4x",
+              "product": "CFI Plan Apo Lambda D 4X",
+              "part_number": "MRD70040",
+              "immersion": "air",
+              "na": 0.20,
+              "wd_mm": 20,
+              "coverglass_um": { "min": 0, "max": 170 },
+              "entry_ref": "objective_mrd70040"
+            },
+            {
+              "position": 1,
+              "id": "10x",
+              "product": "CFI Plan Apo Lambda D 10X",
+              "part_number": "MRD70170",
+              "immersion": "air",
+              "na": 0.45,
+              "wd_mm": 4,
+              "coverglass_um": { "min": 170, "max": 170 },
+              "entry_ref": "objective_mrd70170"
+            },
+            {
+              "position": 2,
+              "id": "20x",
+              "product": "CFI Plan Apo Lambda D 20X",
+              "part_number": "MRD70270",
+              "immersion": "air",
+              "na": 0.80,
+              "wd_mm": 0.8,
+              "coverglass_um": { "min": 170, "max": 170 },
+              "entry_ref": "objective_mrd70270"
+            },
+            {
+              "position": 3,
+              "id": "40x-WI",
+              "product": "CFI Apo Lambda S 40XC WI",
+              "part_number": "MRD77400",
+              "immersion": "water",
+              "na": 1.25,
+              "wd_mm": null,
+              "wd_mm_range": { "min": 0.16, "max": 0.2 },
+              "wd_note": "quoted as a range because it depends on the correction collar. wd_mm is null rather than a midpoint: with the coverslip fixed at 170 um the collar setting is determined and the working distance IS a single value, but the catalog does not publish it and the librarian does not interpolate inside a quotation (4.3). A null is loud; an interpolated number would be silent. See the gap objective_40x_wd_at_170um.",
+              "coverglass_um": { "min": 150, "max": 190 },
+              "correction_collar": true,
+              "entry_ref": "objective_mrd77400"
+            },
+            {
+              "position": 4,
+              "id": "60x-oil",
+              "product": "CFI Plan Apo Lambda D 60X Oil",
+              "part_number": "MRD71670",
+              "immersion": "oil",
+              "na": 1.42,
+              "wd_mm": 0.15,
+              "coverglass_um": { "min": 170, "max": 170 },
+              "entry_ref": "objective_mrd71670"
+            },
+            {
+              "position": 5,
+              "id": "100x-oil",
+              "product": "CFI Plan Apo Lambda D 100X Oil",
+              "part_number": "MRD71970",
+              "immersion": "oil",
+              "na": 1.45,
+              "wd_mm": 0.13,
+              "coverglass_um": { "min": 170, "max": 170 },
+              "entry_ref": "objective_mrd71970"
+            }
+          ],
+          "objectives_source": {
+            "position_to_lens": "operator_read:kyuhwan_20260917, confirmed at the instrument",
+            "na_wd_coverglass": "spec:<part_number>, Nikon catalog (src_nikon_objective_catalog), accessed 2026-08-10",
+            "grade": "E3",
+            "two_coverslip_facts": "coverglass_um here is what the lens ACCEPTS. What this laboratory actually mounts is 170 um (entry coverslip_thickness_in_use). They answer different questions and are not merged.",
+            "not_here": "transmission at 1064 nm. The catalog publishes a curve and no numeric table, and a number a model reads off a rendered curve is E6, which may enter nothing (5.3). See the gap objective_transmission_1064nm."
+          }
         },
         {
           "id": "filter_turret_1"
@@ -36,10 +127,8 @@
         },
         {
           "id": "intermediate_magnification",
-          "values": [
-            1.0,
-            1.5
-          ]
+          "values": ["1x", "1.5x"],
+          "values_note": "nominal designations, so string identifiers rather than numbers (5.3). They were written 1.0 and 1.5, which gave a nominal name a decimal point and an implied precision it does not have."
         },
         {
           "id": "pfs",
@@ -57,62 +146,101 @@
           "lock_group": "stage",
           "source": "operator_read:kyuhwan_20260917",
           "grade": "E3",
-          "note": "coarse xy. On the body hub, so stage moves serialise with port and filter changes: one channel, one worker (4.6.8)."
+          "entry_ref": "stand_ti2e_lock_groups",
+          "note": "coarse xy, on the body hub. Stage moves therefore serialise with port and filter changes under one channel, one worker (4.6.8) -- that consequence is design, not a hardware reading, and is not stamped as one."
         }
       ],
       "source": "mm_config + nis_device_manager",
       "grade": "E3",
       "confirmed_by": "operator_read:kyuhwan_20260917",
-      "lock_note": "The channel carries two lock groups. Its optical elements belong to optical_path; the motor stage belongs to stage, because the piezo rides on it. A lock group is therefore a property of an element, not only of a channel."
+      "lock_note": "The channel carries two lock groups. Its optical elements belong to optical_path; the motor stage belongs to stage, because the piezo rides on it. A lock group is therefore a property of an element, not only of a channel, and one worker for this channel can be blocked by two different locks: the lock a worker waits on is chosen per command, not per channel.",
+      "entry_ref": "stand_ti2e_lock_groups"
     },
     {
       "id": "confocal_csuw1",
-      "role": "spinning-disk confocal unit: dichroic, two emission wheels, camera port, shutter",
+      "role": "spinning-disk confocal unit: excitation dichroic, disk in/out, spectral port to the two cameras, two emission wheels, shutter",
       "driver": "micromanager",
       "automatable": "full",
       "read_back": true,
       "lock_group": "optical_path",
       "elements": [
         {
-          "id": "csuw1_dichroic"
-        },
-        {
-          "id": "csuw1_bright",
-          "note": "confocal or bright field"
+          "id": "csuw1_dichroic",
+          "slots": 3,
+          "slot_contents": "one dichroic fitted, in slot 1; slots 2 and 3 empty",
+          "source": "operator_read:kyuhwan_20260917",
+          "grade": "E3",
+          "entry_ref": "csuw1_dichroic_slots",
+          "note": "stays in the path whatever the disk does, which is why this instrument has no unfiltered white-light path. Its own spectral bands are not in the store."
         },
         {
           "id": "csuw1_port",
-          "note": "which camera the unit feeds"
+          "aliases_in_config": ["camera_splitter"],
+          "slots": 3,
+          "slot_contents": [
+            { "content": "empty", "reaches": ["camera_red"], "starves": ["camera_blue"] },
+            { "content": "561 dichroic", "reaches": ["camera_red", "camera_blue"], "starves": [] },
+            { "content": "100/0 mirror", "reaches": ["camera_blue"], "starves": ["camera_red"] }
+          ],
+          "slot_order": null,
+          "automatable": "full",
+          "read_back": true,
+          "verify_by": "acquisition",
+          "source": "operator_read:kyuhwan_20260917",
+          "grade": "E3",
+          "entry_ref": ["csuw1_port_is_the_camera_splitter", "csuw1_port_slots", "csuw1_port_driver_access"],
+          "note": "the port IS the splitter: one mechanism that the configuration named twice. The split is spectral, not by intensity -- the two cameras see different bands, not the same image at half brightness. Two of the three states send zero light to one camera, so this is a selector that decides whether light arrives at all, and read-back cannot verify it: slot_order is null and commanding position 2 may land the mirror while read-back confirms position 2 and tells you nothing. Verify by acquiring (see label_warning in optical_paths.v0.json).",
+          "not_entered": "which arm is straight-through and which is reflected. That is a model's inference from the slot contents, which is E6 and may enter nothing (P2, 5.3). Read the dichroic's orientation or acquire a known emitter."
         },
         {
-          "id": "csuw1_shutter"
+          "id": "csuw1_shutter",
+          "source": "operator_read:kyuhwan_20260917",
+          "grade": "E3",
+          "entry_ref": "csuw1_shutter_gates_confocal_excitation",
+          "note": "gates the confocal laser into the unit; must be open while the confocal laser is in use. Which shutter an abort closes is policy, not knowledge: it belongs to a person in microscope_agent/envelope/safety.json (4.3.2, 10.3 rule 4). There are two shutters in this chain -- see laser_combiner/laser_shutter."
         },
         {
-          "id": "filter_wheel_em1"
+          "id": "filter_wheel_em1",
+          "serves": "camera_red",
+          "source": "operator_recall:kyuhwan_20260917",
+          "grade": "E5",
+          "entry_ref": "emission_wheel_camera_mapping",
+          "note": "the operator said probably. Recalled, not read, so E5 while its neighbours are E3 -- and not promoted by the spectral splitter being consistent with it. If inverted, two-colour data is labelled wrong and nothing errors. One acquisition settles it: move one wheel and see which camera's image changes."
         },
         {
-          "id": "filter_wheel_em2"
+          "id": "filter_wheel_em2",
+          "serves": "camera_blue",
+          "source": "operator_recall:kyuhwan_20260917",
+          "grade": "E5",
+          "entry_ref": "emission_wheel_camera_mapping",
+          "note": "the complementary half of the same recalled claim, so it carries the same grade."
         },
         {
           "id": "csuw1_disk_speed",
           "source": "operator_read:kyuhwan_20260917",
           "grade": "E3",
-          "note": "exposure must be an integer multiple of the disk period or stripes remain (axis A1); nothing acquires while the disk is still spinning up"
+          "entry_ref": "csuw1_disk_speed_exposure_constraint",
+          "note": "exposure must be an integer multiple of the disk period or stripes remain (axis A1); nothing acquires while the disk is still spinning up. The period itself is not in the store."
         },
         {
           "id": "csuw1_disk_position",
+          "aliases_in_config": ["csuw1_bright"],
+          "states": { "in": "confocal", "out": "widefield fluorescence and brightfield" },
           "source": "operator_read:kyuhwan_20260917",
           "grade": "E3",
-          "note": "in or out. With the disk out the same hardware becomes a widefield path, which is a separate configuration id"
+          "entry_ref": ["csuw1_disk_position_is_the_bright_selector", "csuw1_disk_position_states"],
+          "note": "one mechanism, two names in the configuration: the confocal/bright-field selector and the disk in/out selector are the same thing. Disk-out is not a configuration of its own -- it is a required selector value on configurations that already exist. The position labelled bright field is also the widefield-fluorescence position, so the configuration id cannot be recovered from this label."
         }
       ],
       "source": "mm_config + nis_device_manager + operator_read:kyuhwan_20260917",
       "grade": "E3",
-      "confirmed_by": "operator_read:kyuhwan_20260917"
+      "confirmed_by": "operator_read:kyuhwan_20260917",
+      "element_count_note": "seven elements. It was nine: two pairs were one mechanism each (port = splitter, disk position = bright), and the extractor had recorded each pair under both of its configuration names."
     },
     {
       "id": "camera_red",
-      "role": "primary detector",
+      "role": "detector on one arm of the spectral port. Named for the arm it sits on, not for a hardware difference.",
+      "model": "Kinetix 22",
       "driver": "micromanager_pvcam",
       "automatable": "full",
       "read_back": true,
@@ -123,11 +251,13 @@
       "exclusive_reason": "the driver hands a camera to one process at a time, and the tweezers GUI opens the same body. Whoever opens first locks the other out, in both directions.",
       "source": "mm_config, confirmed there by loading it",
       "grade": "E3",
-      "confirmed_by": "operator_read:kyuhwan_20260917"
+      "confirmed_by": "operator_read:kyuhwan_20260917",
+      "entry_ref": "cameras_both_kinetix22"
     },
     {
       "id": "camera_blue",
-      "role": "second detector",
+      "role": "detector on the other arm of the spectral port. Same model as camera_red; primary and second were wiring and naming, not a hardware difference, and neither camera is the better one.",
+      "model": "Kinetix 22",
       "driver": "micromanager_pvcam",
       "automatable": "full",
       "read_back": true,
@@ -137,7 +267,9 @@
       ],
       "source": "mm_config, confirmed there by loading it",
       "grade": "E3",
-      "confirmed_by": "operator_read:kyuhwan_20260917"
+      "confirmed_by": "operator_read:kyuhwan_20260917",
+      "entry_ref": "cameras_both_kinetix22",
+      "note": "identical models, so pixel size, quantum efficiency, read noise and full-well are the same on both arms and the two are photometrically comparable without a cross-calibration term. The 561 dichroic in the port is the only thing making the arms differ, which is why nothing about the cameras themselves can disambiguate the emission-wheel mapping."
     },
     {
       "id": "widefield_source_a",
@@ -176,7 +308,8 @@
           "id": "laser_shutter",
           "source": "operator_read:kyuhwan_20260917",
           "grade": "E3",
-          "note": "abort closes this before ramping power down (2.1 interlock 1): a shutter is faster than a ramp"
+          "entry_ref": "laser_shutter_on_the_combiner",
+          "note": "a shutter at the source, distinct from csuw1_shutter at the unit's entrance. This row records where it sits and what it gates. Which shutter an abort closes (2.1 interlock 1) is policy and is written by a person in envelope/safety.json -- the store cannot answer it and should not appear to."
         },
         {
           "id": "line_select"
@@ -184,7 +317,7 @@
         {
           "id": "line_power",
           "read_back": false,
-          "note": "commanded power is calibrated against a power meter, so the command maps to a known output. It is still open loop: the device reports nothing back, so the calibration is the only link and it needs a validity window like any E2 value. Abort never relies on a commanded power -- it closes the shutter (2.1 interlock 1).",
+          "note": "commanded power is calibrated against a power meter, so the command maps to a known output. It is still open loop: the device reports nothing back, so the calibration is the only link and it needs a validity window like any E2 value. Abort never relies on a commanded power -- it closes a shutter, and which one is policy.",
           "calibrated": true,
           "source": "operator_read:kyuhwan_20260917",
           "grade": "E3",
@@ -239,35 +372,110 @@
       "note": "write-only. Several essentials, including its own calibration, are reachable only through the vendor GUI, so anything that needs them goes to a manual instruction sheet.",
       "source": "driven partially in the prior project",
       "grade": "E3"
-    },
+    }
+  ],
+  "retired_rows": [
     {
       "id": "camera_splitter",
-      "role": "sends emission to one camera or splits it between both",
-      "driver": "none",
-      "automatable": "none",
-      "read_back": false,
-      "lock_group": "optical_path",
-      "note": "no programming interface at all, and its position cannot be read. Every configuration that depends on it needs a human to set it and confirm (2.1 rule 5).",
-      "source": "absent from every configuration file and from the loaded device list",
-      "grade": "E3"
+      "retired_at": "2026-09-17",
+      "why": "it was never a channel. It is one element of confocal_csuw1, under the name csuw1_port. The extractor found a splitter mentioned, failed to find it in the loaded device list, and created a device to hold the fact -- it was absent under that name because it was already present under another.",
+      "what_it_had_claimed": "driver none, automatable none, read_back false, no programming interface at all, sourced as absent from every configuration file and from the loaded device list.",
+      "every_field_was_wrong": "the mechanism belongs to a channel that is automatable in full with read-back, and it is drivable and readable through micromanager.",
+      "consequences": [
+        "automatable_gaps: [camera_splitter] is gone from widefield_inline, widefield_side and transmitted, and with it the 2.1 rule 5 manual instruction sheet on three of the five configurations",
+        "axis A4 was screening those three configurations on automatable and read_back values that were false",
+        "no separate orchestrator worker and no separate lock: it was already in lock_group optical_path, which is the unit's group, so the lock is unchanged and the element now sits behind the unit's worker",
+        "the old description -- one of: single camera, or split -- did not constrain WHICH camera got the light. There are three states and the two single-camera states are different cameras."
+      ],
+      "resolved_by": "operator_read:kyuhwan_20260917",
+      "entry_ref": "csuw1_port_is_the_camera_splitter"
     },
     {
       "id": "temperature_stage",
-      "role": "sample temperature control",
-      "driver": "unknown",
-      "automatable": "unknown",
-      "read_back": "unknown",
-      "lock_group": "environment",
-      "note": "existence is the only thing established. It controls the quantity that dominates the diffusive time through the viscosity, so it is listed rather than omitted.",
-      "source": "operator statement",
-      "grade": "E5"
+      "retired_at": "2026-09-17",
+      "why": "it has never been connected. Nothing controls the sample temperature, so it is not a control channel. Listing it as one with driver, automatable and read_back all unknown claimed a channel that does not exist.",
+      "what_it_had_claimed": "a channel at grade E5 sourced to an operator statement, justified as existence being the only thing established.",
+      "the_fact_is_not_deleted": "it moved to the entry sample_temperature_not_actuated and to the gaps below. Omitting it from the channel list and erasing it are different things.",
+      "resolved_by": "operator_read:kyuhwan_20260917",
+      "entry_ref": "sample_temperature_not_actuated"
     }
   ],
   "gaps": [
     {
       "what": "per-device safety limits",
       "why_it_matters": "every Tier 2 action is compared against them",
+      "kind": "inaccessible",
+      "searched": ["deliberately not extracted from the prior dossier"],
       "status": "deliberately not extracted. plan.md 10.3 rule 4: limits are policy, not knowledge, and a person writes them after confirming them physically."
+    },
+    {
+      "what": "csuw1_port slot order: which of the three slots is at which position number",
+      "why_it_matters": "two of the three states send zero light to one camera, so commanding a position without knowing its content can produce a dark frame with read-back confirming the command",
+      "kind": "absent",
+      "searched": ["operator, 2026-09-17 -- contents confirmed, order not remembered", "the configuration file names the mechanism but not what is in each slot"],
+      "status": "open. Not estimated: there is no value to grade. One acquisition settles it with no ambiguity -- illuminate, step the three slots, record which camera sees signal: empty gives red only, the 561 dichroic gives both, the 100/0 mirror gives blue only. Three distinguishable outcomes for three slots, which also confirms the contents independently of their labels."
+    },
+    {
+      "what": "which configuration id micromanager actually addresses for each of the two merged pairs (csuw1_port vs camera_splitter, csuw1_disk_position vs csuw1_bright)",
+      "why_it_matters": "if the configuration file carries two properties for one mechanism, O1 preflight could set one property and read back the other and see an agreement that means nothing",
+      "kind": "absent",
+      "searched": ["the merge itself was confirmed by the operator on 2026-09-17; which name the driver exposes was not checked"],
+      "status": "open. Read the loaded device list, not the label. This is a reading, not a decision."
+    },
+    {
+      "what": "the emission wheel to camera mapping, read or acquired rather than recalled",
+      "why_it_matters": "it decides which emission filter is attributed to which camera's image. If inverted, two-colour data is labelled wrong and nothing raises an error",
+      "kind": "absent",
+      "searched": ["operator, 2026-09-17 -- stated from memory with the word probably, which is E5 and stays E5"],
+      "status": "open at E5 (entry emission_wheel_camera_mapping). Settled by moving one wheel during an acquisition and seeing which camera's image changes -- cheapest in the same session as the slot-order test. Identical cameras mean nothing about the detectors can disambiguate it."
+    },
+    {
+      "what": "switch_cost for the csuw1_port slots and for moving the disk in or out",
+      "why_it_matters": "axis A5 pays for every mechanical move in the time budget",
+      "kind": "absent",
+      "searched": ["not in the extracted dossier"],
+      "status": "open. Measure at the instrument. The per-configuration switch_cost gap in optical_paths.v0.json is the same quantity one level up."
+    },
+    {
+      "what": "calibrated pixel size, per objective and intermediate magnification and binning",
+      "why_it_matters": "every length read off an image depends on it, and it is the input an observable's estimator needs to turn pixels into micrometres",
+      "kind": "absent",
+      "searched": ["not extracted: a calibration taken in another project migrates capped at E3 and its calibration state cannot be reproduced here (10.3 rule 1)"],
+      "status": "open. It is one number per (objective, intermediate_magnification, binning) triple, and one number for both cameras rather than two, because both are the same model (entry cameras_both_kinetix22). Measured here it is E2 and needs a validity window like any calibration. THE FAILURE TO AVOID: never back-derive a nominal magnification from a calibrated pixel size. The prior project's dossier contains exactly that artifact -- a real 20.078x objective, which is 6.5 um divided by a calibrated um/px -- and it is a calibrated quantity wearing a nominal name. The nominal magnification is 20x, an identifier; the pixel size is a separate measured value. They do not share a name."
+    },
+    {
+      "what": "working distance of MRD77400 (40x-WI) at a coverslip thickness of exactly 170 um",
+      "gap_id": "objective_40x_wd_at_170um",
+      "why_it_matters": "axis A6 wants a working distance, and for this lens the catalog gives an interval where fixing the coverslip determines a single value",
+      "kind": "condition_mismatch",
+      "searched": ["Nikon catalog row for MRD77400 -- quotes 0.16 to 0.2 mm, correction-collar dependent, for coverglass 150 to 190 um"],
+      "nearest": [
+        { "entry_id": "objective_mrd77400", "overlap": "partial", "uncovered": "the collar setting that 170 um implies, and therefore which value inside 0.16 to 0.2 mm applies" }
+      ],
+      "status": "open. The condition is known (coverslip_um = 170, entry coverslip_thickness_in_use) and the interval is known; the value inside it is not published, and the librarian does not interpolate inside a quotation (4.3). A caller that needs one number takes the interval and records its own choice as an assumption in its plan, naming this gap."
+    },
+    {
+      "what": "the URL of the Nikon objective catalog",
+      "why_it_matters": "a source record should let the next person reach the document; part numbers identify it but do not locate it",
+      "kind": "absent",
+      "searched": ["the objective table arrived with an access date of 2026-08-10 and part numbers, but no URL"],
+      "status": "open, and not filled by guessing. A plausible-looking catalog URL that nobody opened is worse than an absent one. Whoever has it adds it to kb/sources/src_nikon_objective_catalog.json."
+    },
+    {
+      "what": "whether the sample temperature stage will be connected, and what would drive it",
+      "gap_id": "sample_temperature_control",
+      "why_it_matters": "temperature enters every plan twice, through the thermal energy and through the viscosity, and without an actuator confirm mode has nothing to appeal to",
+      "kind": "absent",
+      "searched": ["operator, 2026-09-17: the stage exists but has never been connected, and the instruction was to leave it out for now"],
+      "status": "open by decision, not by ignorance. The fact itself is the entry sample_temperature_not_actuated; what is open is whether it changes."
+    },
+    {
+      "what": "the ambient sample temperature: its value, its drift band, and where it is read (room or near the sample)",
+      "gap_id": "sample_temperature_value",
+      "why_it_matters": "water's viscosity moves by roughly two percent per kelvin, so a drift band of a kelvin moves the diffusive time by the same amount -- invisible in explore mode, decisive in confirm mode",
+      "kind": "absent",
+      "searched": ["plan.md 12 records 20 C with setpoint-or-measurement left undecided", "operator pass of 2026-09-17, which settled that nothing actuates it"],
+      "status": "open, and half-answered. With nothing controlling the sample temperature it CANNOT be a setpoint, so the 20 C in plan.md 12 is an ambient value of the room. What remains is whether that 20 C was read off a thermometer (operator_read, E3) or stated from memory (operator_recall, E5) -- nobody has said which, so no value is entered here -- plus the drift band and the reading location. Without control that band is not a tolerance to be chosen but a property of the room to be measured."
     }
   ],
   "resolved_gaps": [
@@ -275,19 +483,38 @@
       "what": "motorised xy stage",
       "resolved_by": "operator_read:kyuhwan_20260917",
       "resolved_at": "2026-09-17",
-      "grade": "E3"
+      "grade": "E3",
+      "entry_ref": "stand_ti2e_lock_groups"
     },
     {
       "what": "spinning-disk speed and in/out position",
       "resolved_by": "operator_read:kyuhwan_20260917",
       "resolved_at": "2026-09-17",
-      "grade": "E3"
+      "grade": "E3",
+      "entry_ref": ["csuw1_disk_speed_exposure_constraint", "csuw1_disk_position_states"]
     },
     {
       "what": "dedicated laser shutter",
       "resolved_by": "operator_read:kyuhwan_20260917",
       "resolved_at": "2026-09-17",
-      "grade": "E3"
+      "grade": "E3",
+      "entry_ref": "laser_shutter_on_the_combiner"
+    },
+    {
+      "what": "the objective table: magnification, NA, immersion, working distance and coverglass correction per position",
+      "resolved_by": "operator_read:kyuhwan_20260917 for the position mapping; spec:<part_number> for the numbers",
+      "resolved_at": "2026-09-17",
+      "grade": "E3",
+      "entry_ref": ["nosepiece_position_indexing", "nosepiece_objective_assignment", "objective_mrd70040", "objective_mrd70170", "objective_mrd70270", "objective_mrd77400", "objective_mrd71670", "objective_mrd71970"],
+      "note": "the table came from the prior dossier as an index, under explicit operator authorisation, and every row was then confirmed at the instrument. The numbers cite the catalog part numbers; the dossier is not a source."
+    },
+    {
+      "what": "which camera model is on each arm",
+      "resolved_by": "operator_read:kyuhwan_20260917",
+      "resolved_at": "2026-09-17",
+      "grade": "E3",
+      "entry_ref": "cameras_both_kinetix22",
+      "note": "both Kinetix 22. This closes a discrepancy the prior dossier left open between a purchase quote and the current state: a swap did happen against the quote, and the record now matches the hardware. The general lesson survives the specific resolution -- this instrument's paper record has drifted from its hardware before, which is why a position or model claim is re-read rather than inherited."
     }
   ],
   "confirmed_meaning": "confirmed_by means the fact no longer rests only on the prior project: the operator checked it here. The grade stays E3, since an operator reading is not a measurement by this system (10.3 rule 1), but the dependency on the other repository is gone and the row can survive that repository disappearing."

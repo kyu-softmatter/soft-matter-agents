@@ -1,0 +1,11 @@
+{
+  "source_id": "src_nikon_objective_catalog",
+  "kind": "vendor_spec",
+  "identifier": "Nikon CFI objective catalog, rows for part numbers MRD70040, MRD70170, MRD70270, MRD77400, MRD71670, MRD71970.",
+  "accessed": "2026-08-10",
+  "grade_rule": "E3, grade_tag vendor_spec. A published specification, not a measurement taken here.",
+  "url": null,
+  "url_note": "NOT RECORDED, and not invented here. The part numbers identify the document and the access date came with the table; the URL itself did not. Whoever holds it should add it -- see the catalog_url gap in kb/staging/devices.v0.json.",
+  "license_note": "Identifiers and numeric specifications only; no catalog text or figure is reproduced (4.3).",
+  "note": "The catalog pages carry a transmittance graph and no numeric table. A number read off a rendered curve by a model is E6 and may enter nothing (5.3), which is why no transmission value is entered from this source."
+}

@@ -1,0 +1,10 @@
+{
+  "source_id": "src_operator_read_20260917",
+  "kind": "operator_read",
+  "identifier": "Instrument verification pass of 2026-09-17: the operator (kyuhwan) went row by row over kb/staging/{devices,optical_paths}.v0.json at the instrument and reported what he read off it.",
+  "accessed": "2026-09-17",
+  "grade_rule": "E3. An operator reading is not a measurement by this system -- there is no run_id and no calibration state to reproduce -- so it is capped at E3 (plan.md 10.3 rule 1, 5.3). Confirming one of these with a run promotes it to E1 and supersedes the entry.",
+  "record": "kb/distilled/operator_verification_20260917.md",
+  "license_note": "Identifier and distilled claims only; the pass's own transcript is not reproduced here (4.3).",
+  "note": "The standing decision of that pass: every pre-existing confirmed_by stamp was treated as unverified until re-affirmed item by item. A stamp applied in bulk records less than it claims."
+}

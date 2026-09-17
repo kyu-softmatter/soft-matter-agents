@@ -1,0 +1,19 @@
+{
+  "entry_id": "coverslip_thickness_in_use",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "This laboratory mounts samples on 170 micrometre coverslips. This is what is actually put on the instrument, which is a different fact from what each objective's catalog tolerance accepts, and the two are kept apart because they answer different questions.",
+  "numbers": [
+    { "name": "coverslip_thickness", "value": 170, "unit": "um", "source": "operator_read:kyuhwan_20260917", "grade": "E3", "precision": "significant_figures", "note": "the nominal thickness of the coverslips in use, as the operator stated at the instrument; not a measurement of any individual coverslip" }
+  ],
+  "validity_conditions": "Current laboratory practice as of 2026-09-17, operator read. It is a practice, not a property of the hardware: it holds until someone buys a different box, and it says nothing about the spread within a box. Each objective's accepted range is carried by that objective's own entry as validity.",
+  "validity": {
+    "coverslip_um": { "min": 170, "max": 170, "unit": "um" }
+  },
+  "grade": "E3",
+  "source_ref": "src_operator_read_20260917",
+  "date": "2026-09-17",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

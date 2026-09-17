@@ -1,0 +1,21 @@
+{
+  "entry_id": "objective_mrd70270",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Nikon CFI Plan Apo Lambda D 20X, part number MRD70270: a dry 20x objective of numerical aperture 0.80 with a working distance of 0.8 mm, specified for 170 micrometre coverglass.",
+  "numbers": [
+    { "name": "na", "value": 0.80, "unit": "1", "source": "spec:MRD70270", "grade": "E3", "precision": "significant_figures", "note": "0.80 as designated, to two figures" },
+    { "name": "working_distance", "value": 0.8, "unit": "mm", "source": "spec:MRD70270", "grade": "E3", "precision": "significant_figures" }
+  ],
+  "validity_conditions": "Catalog specification for this part number, capped at E3 because a published specification is not a measurement taken here. The magnification 20x is a nominal designation and a string identifier, not a number. It is specifically this lens whose nominal name an earlier project overwrote with a figure back-derived from a calibrated pixel size; nothing here does that, and the calibrated pixel size is a separate quantity with its own validity window.",
+  "validity": {
+    "coverslip_um": { "min": 170, "max": 170, "unit": "um" }
+  },
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_nikon_objective_catalog",
+  "date": "2026-09-17",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

@@ -1,0 +1,10 @@
+{
+  "source_id": "src_operator_recall_20260917",
+  "kind": "operator_recall",
+  "identifier": "Same verification pass of 2026-09-17, but the items the operator stated from memory rather than read off the instrument.",
+  "accessed": "2026-09-17",
+  "grade_rule": "E5. What was seen and what was remembered do not take the same grade (5.3), and only the person speaking knows which it was. This source exists separately from src_operator_read_20260917 so that the grade follows from the source a caller cites, rather than from prose inside the entry.",
+  "record": "kb/distilled/operator_verification_20260917.md",
+  "license_note": "Identifier only.",
+  "note": "One entry cites this so far: emission_wheel_camera_mapping. The operator said 'probably' for the red wheel, and the blue one is the complementary half of the same claim."
+}
