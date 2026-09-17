@@ -1210,6 +1210,12 @@ AGENT_OF_PATH = [
 ]
 SHARED_PATHS = re.compile(r"^(plan\.md|CLAUDE\.md|README\.md|\.gitignore|\.mcp\.json|\.claude/)")
 
+# An agent's CLAUDE.md and .claude/ belong to the design seat, not to the agent
+# (6.2). Counting them as the agent's made every ordinary design commit look
+# like a boundary crossing, which is the fastest way to teach someone to ignore
+# a check.
+DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|bridge)/(CLAUDE\.md|\.claude/)")
+
 
 def check_35_session_boundary(b: Bundle, commit_range: str | None = None) -> list[Finding]:
     """One session writes inside one agent (6.2).
@@ -1230,7 +1236,11 @@ def check_35_session_boundary(b: Bundle, commit_range: str | None = None) -> lis
         return [Finding(35, NA, f"no files changed in {commit_range}")]
     touched: dict[str, list[str]] = {}
     contracts_touched = []
+    design_paths = []
     for p in paths:
+        if SHARED_PATHS.match(p) or DESIGN_OWNED.match(p):
+            design_paths.append(p)
+            continue
         if p.startswith("contracts/"):
             contracts_touched.append(p)
         for rx, agent in AGENT_OF_PATH:
@@ -1241,7 +1251,11 @@ def check_35_session_boundary(b: Bundle, commit_range: str | None = None) -> lis
         out.append(Finding(35, FAIL, f"one commit writes into {sorted(touched)}; a session writes inside one agent (6.2)"))
     if contracts_touched and touched:
         out.append(Finding(35, FAIL, f"the same commit edits contracts/ and {sorted(touched)}; contracts are read by agent sessions, not written by them"))
-    return out or [Finding(35, PASS, f"{len(paths)} changed paths stay inside one boundary")]
+    if out:
+        return out
+    where = "the design seat" if (design_paths or contracts_touched) and not touched else (
+        sorted(touched)[0] if touched else "no agent")
+    return [Finding(35, PASS, f"{len(paths)} changed paths stay inside one boundary ({where})")]
 
 
 def check_36_symbol_collision(b: Bundle) -> list[Finding]:
@@ -1290,6 +1304,74 @@ def check_37_time_base(b: Bundle) -> list[Finding]:
     if not list(REPO.glob("*_agent/runs/*/log.json")):
         out.append(Finding(37, PENDING, "per-event offsets need run logs from M1"))
     return out or [Finding(37, PASS, f"{len(results)} results rest on a hardware time base")]
+
+
+def _optical_path_table() -> tuple[dict | None, str]:
+    """The optical path table, from wherever the librarian last published it.
+
+    Prefers kb/exports/, which is where the librarian publishes (4.3.2), and
+    falls back to the flat staging table it has not decomposed yet (11.1).
+    """
+    for cand in sorted((KB_DIR / "exports").glob("optical_paths*.json")):
+        return json.loads(cand.read_text()), str(cand.relative_to(REPO))
+    staged = KB_DIR / "staging" / "optical_paths.v0.json"
+    if staged.exists():
+        return json.loads(staged.read_text()), str(staged.relative_to(REPO))
+    return None, ""
+
+
+def check_38_one_table(b: Bundle) -> list[Finding]:
+    """A configuration list and an optical path list are one table (4.6.7).
+
+    Two tables drift, and the drift shows up as a plan that is valid on paper
+    while no light reaches the detector.
+    """
+    caps = sorted((CONTRACTS / "capabilities").glob("*.json"))
+    caps = [c for c in caps if c.name != "capabilities.schema.json"]
+    if not caps:
+        return [Finding(38, NA, "no capability tables")]
+
+    known_obs = {o["id"] for o in json.loads((CONTRACTS / "observables.json").read_text()).get("observables", [])}
+    table, table_rel = _optical_path_table()
+    out: list[Finding] = []
+    checked = 0
+
+    for f in caps:
+        cap = json.loads(f.read_text())
+        rel = str(f.relative_to(REPO))
+        configs = cap.get("configurations", []) or []
+
+        for conf in configs:
+            for oid in conf.get("produces", []) or []:
+                if oid not in known_obs:
+                    out.append(Finding(38, FAIL, f"configuration {conf.get('config')!r} produces {oid!r}, which contracts/observables.json does not define", rel))
+
+        if cap.get("agent") != "microscope_agent":
+            continue                      # only the instrument has an optical path table
+        if table is None:
+            out.append(Finding(38, PENDING, "no optical path table published or staged yet", rel))
+            continue
+
+        table_ids = {c["id"] for c in table.get("configurations", [])}
+        cap_ids = {c["config"] for c in configs}
+        checked += len(cap_ids)
+        if cap_ids != table_ids:
+            only_cap, only_table = sorted(cap_ids - table_ids), sorted(table_ids - cap_ids)
+            out.append(Finding(38, FAIL, f"the two tables disagree: only in capabilities {only_cap}, only in {table_rel} {only_table}", rel))
+        for conf in configs:
+            ref = conf.get("optical_path")
+            if ref is None:
+                out.append(Finding(38, FAIL, f"configuration {conf.get('config')!r} declares no optical_path", rel))
+            elif ref not in table_ids:
+                out.append(Finding(38, FAIL, f"configuration {conf.get('config')!r} points at optical path {ref!r}, which {table_rel} does not have", rel))
+
+    for oid in known_obs:
+        entry = next(o for o in json.loads((CONTRACTS / "observables.json").read_text())["observables"] if o["id"] == oid)
+        for u in entry.get("units", []):
+            if unit_entry(u) is None:
+                out.append(Finding(38, FAIL, f"observable {oid!r} admits unit {u!r}, which units.json does not define", "contracts/observables.json"))
+
+    return out or [Finding(38, PASS, f"{checked} configurations match the optical path table, and every produced id is in the vocabulary")]
 
 
 def check_39_estimate_justified(b: Bundle) -> list[Finding]:
@@ -1343,7 +1425,7 @@ CHECKS = [
     check_24_calibration_validity, check_25_kb_refs, check_26_snapshot, check_27_knowledge_ownership,
     check_28_precision, check_29_failure_record, check_30_lessons, check_31_candidate_preservation,
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
-    check_36_symbol_collision, check_37_time_base, check_39_estimate_justified,
+    check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
 ]
 
 

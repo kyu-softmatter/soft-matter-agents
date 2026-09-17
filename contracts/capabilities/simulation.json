@@ -2,6 +2,6 @@
   "schema_version": "0.1",
   "agent": "simulation_agent",
   "status": "skeleton",
-  "pending": "plan.md 11-2 (observable vocabulary). The engine side has a single backend, so the configuration list is short, but the observable names must be agreed with the microscope side before either can be declared (1.1 S4).",
+  "pending": "plan.md 11-1 (the shared observable vocabulary). The configuration list here is short because one engine is one backend, but the observable names have to be agreed with the microscope side before either can declare anything.",
   "configurations": []
 }

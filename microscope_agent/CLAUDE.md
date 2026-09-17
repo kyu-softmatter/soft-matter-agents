@@ -5,7 +5,12 @@ measured on this instrument, and carries out the measurement under approval.
 `plan.md` §4.1 and §4.5–4.6 are the specification; this file is the session's
 standing orders.
 
-**Milestone M1.** This directory is a skeleton. Nothing here runs yet.
+**Milestone M1, second in the order.** The librarian (M3) goes first as of
+2026-09-17, so by the time this work starts there is a service to query. The
+milestone names are fixed and the order is §9's first column — a reference to
+"what M3 produces" means the librarian wherever it sits in the queue.
+
+This directory is a skeleton. Nothing here runs yet.
 
 ## What this session may write
 
@@ -19,18 +24,30 @@ that crosses the line.
 Not from here. This agent keeps **records** (`questions/`, `runs/`) and
 **policy** (`envelope/safety.json`), never a knowledge store of its own (P14).
 
-Until the librarian agent exists at M3, read the store directly:
+**The normal path.** The librarian publishes to `librarian_agent/kb/exports/`
+and cannot write here (D11), so **this session copies the export into its own
+`envelope/snapshot.json`**. The copy is deliberate: which KB version entered
+this agent's envelope, and when, is then a fact in this agent's own commit
+history. Check 26 compares each entry against the store by hash, so the copy
+cannot silently diverge.
 
-- `librarian_agent/kb/entries/` — atomic claims, cite them as `kb:<entry_id>`
-  and copy the grade the store gives, never a better one (check 21)
-- `librarian_agent/kb/staging/devices.v0.json` — control channels: how each is
-  driven, whether it can be automated, whether its state can be read back
-- `librarian_agent/kb/staging/optical_paths.v0.json` — which configurations
-  deliver light to a detector, and what must be set for each
+Query the service for anything a plan needs, and record both halves of the
+answer. `kb_refs` holds what came back. **`kb_gaps` holds what was asked for and
+did not** — with where it was looked for. An estimate made while the librarian
+was reachable must name the gap it stands on (check 39), because
+looked-for-and-absent and nobody-checked are not the same number.
 
-Every card written here carries `degraded: ["librarian_agent"]` while that is
-true, and it means *we do not know what we missed* — no gap detection, no
-conflict detection, no external search.
+**The degraded path, which must be walked at least once.** When the service is
+unreachable, read the store's files directly — `kb/entries/` for atomic claims,
+cited as `kb:<entry_id>` with the grade the store gives and never a better one
+(check 21), and `kb/staging/` for the flat device and optical-path tables the
+librarian has not decomposed yet (§11.1). Cards then carry
+`degraded: ["librarian_agent"]`, which means *we do not know what we missed*:
+no gap detection, no conflict detection, no external search.
+
+§9 makes one such pass a completion condition for this milestone rather than an
+accident of ordering. A degraded path nobody walks is a branch that stops
+working without anyone noticing.
 
 ## The pipeline, in order
 
