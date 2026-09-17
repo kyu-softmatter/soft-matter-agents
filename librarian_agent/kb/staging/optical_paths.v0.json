@@ -1,0 +1,132 @@
+{
+  "schema_version": "0.1-provisional",
+  "storage_form": "PROVISIONAL, same as devices.v0.json. See README.md.",
+  "extracted_from": "kyu-softmatter/agentic-microscope @ e59e904, kb/systems/current.md (light_paths, optical_path_nis, confocal_scanner, light_path)",
+  "extracted_at": "2026-09-17",
+  "grade_cap": "E3",
+  "kept_fields_only": "id, label, sources, detectors, required_selectors, excludes, automatable_gaps, grade. Spectral band tables, part numbers and the correction history were dropped: screening needs to know whether a path delivers light to a detector and what must be set for it, not which filter is in position 3.",
+  "consumers": {
+    "s3_0": "screens configurations; contracts/capabilities/microscope.json points at these ids",
+    "a4": "checks that the plan's configuration is one of these and that its selectors are reachable",
+    "orchestrator": "compiles required_selectors into a path lock; nothing acquires while it is held"
+  },
+  "one_table_rule": "This list and the configuration list in contracts/capabilities/microscope.json are the same table (plan.md 4.6.7). Two tables drift, and the drift shows up as a plan that is valid on paper while no light reaches the detector.",
+
+  "configurations": [
+    {
+      "id": "widefield_inline",
+      "label": "widefield epi-fluorescence, inline source, patterned illumination available",
+      "sources": ["widefield_source_a", "dmd"],
+      "detectors": ["camera_red", "camera_blue"],
+      "required_selectors": {
+        "light_path_port": "the imaging port",
+        "filter_turret_1": "the multiband cube",
+        "lapp_branch": "inline",
+        "camera_splitter": "one of: single camera, or split"
+      },
+      "excludes": ["confocal"],
+      "automatable_gaps": ["camera_splitter"],
+      "grade": "E3"
+    },
+    {
+      "id": "widefield_side",
+      "label": "widefield epi-fluorescence, side-coupled source, no patterning",
+      "sources": ["widefield_source_b"],
+      "detectors": ["camera_red", "camera_blue"],
+      "required_selectors": {
+        "light_path_port": "the imaging port",
+        "filter_turret_1": "the multiband cube",
+        "lapp_branch": "side",
+        "camera_splitter": "one of: single camera, or split"
+      },
+      "excludes": ["confocal"],
+      "automatable_gaps": ["camera_splitter"],
+      "grade": "E3"
+    },
+    {
+      "id": "confocal",
+      "label": "spinning-disk confocal, laser excitation, filtered downstream of the disk",
+      "sources": ["laser_combiner"],
+      "detectors": ["camera_red", "camera_blue"],
+      "required_selectors": {
+        "light_path_port": "the imaging port",
+        "csuw1_dichroic": "the multiband dichroic",
+        "csuw1_bright": "confocal",
+        "csuw1_port": "which camera",
+        "filter_wheel_em1": "matched to the excitation line",
+        "filter_wheel_em2": "matched to the excitation line"
+      },
+      "excludes": ["widefield_inline", "widefield_side"],
+      "automatable_gaps": ["laser_combiner power, which is write-only and uncalibrated here"],
+      "grade": "E3"
+    },
+    {
+      "id": "transmitted",
+      "label": "transmitted light (brightfield)",
+      "sources": ["dia_lamp"],
+      "detectors": ["camera_red", "camera_blue"],
+      "required_selectors": {
+        "light_path_port": "the imaging port",
+        "camera_splitter": "one of: single camera, or split"
+      },
+      "excludes": [],
+      "note": "the confocal dichroic sits in this path too, so there is no unfiltered white-light path on this instrument",
+      "automatable_gaps": ["camera_splitter"],
+      "grade": "E3"
+    },
+    {
+      "id": "trapping",
+      "label": "optical trapping at 1064 nm",
+      "sources": ["optical_tweezers"],
+      "detectors": [],
+      "required_selectors": {
+        "filter_turret_2": "the near-infrared dichroic and its blocking emission filter",
+        "nosepiece": "an objective that passes 1064 nm at the needed numerical aperture"
+      },
+      "excludes": [],
+      "note": "the detection path is blocked at 1064 nm throughout, so trapping composes with an imaging configuration rather than replacing one: the trap light is invisible to the cameras.",
+      "automatable_gaps": ["optical_tweezers calibration, which is GUI-only"],
+      "grade": "E3"
+    }
+  ],
+
+  "exclusions": [
+    {
+      "between": ["confocal", "widefield_inline", "widefield_side"],
+      "rule": "not simultaneously",
+      "reason": "the widefield paths are filtered by the cube in the first filter turret while the confocal path is filtered after the disk. The two schemes are built for different excitation bands and cannot both pass and block correctly in one exposure. It is the cube in the path, not an interlock, that forces this.",
+      "grade": "E3"
+    }
+  ],
+
+  "composable": [
+    {
+      "with": "trapping",
+      "and": ["widefield_inline", "widefield_side", "confocal", "transmitted"],
+      "reason": "trap light is blocked from every detector, so trapping and imaging share the sample without sharing the detection path"
+    }
+  ],
+
+  "gaps": [
+    {
+      "what": "the port position that actually carries the detection path",
+      "why_it_matters": "any other value sends emission where no camera sees it, and a dark frame then has two possible causes",
+      "status": "the prior project recorded one specific position as correct. The value is deliberately not copied: it is a single integer that would be wrong silently if the stand were re-cabled. Confirm it at the instrument and write it into envelope/ at M1."
+    },
+    {
+      "what": "observables per configuration",
+      "why_it_matters": "S3.0 screens on exactly this",
+      "status": "empty on purpose. It needs the shared observable vocabulary (plan.md 11-1), which is a decision, not an extraction."
+    },
+    {
+      "what": "switch_cost per configuration",
+      "why_it_matters": "axis A5 pays for turret rotation and disk spin-up in the time budget",
+      "status": "not in the extracted dossier. Measure at M1."
+    },
+    {
+      "what": "spinning-disk in/out as a path selector",
+      "why_it_matters": "with the disk out, the same hardware becomes a widefield path, which would be a separate configuration id",
+      "status": "named by the operator, absent from the dossier. Not inferred here."
+    }
+  ]
+}

@@ -8,6 +8,5 @@
   "max_subagents_per_question": 21,
   "order_of_magnitude_sig_figs": 1,
   "computed_value_tolerance_rel": 0.02,
-  "bridge_round_cap": null,
-  "bridge_round_cap_open_question": "plan.md 11-5"
+  "bridge_escalation": "repetition, not a count: the same (reason_code, parameter) pair twice in one thread calls the human (plan.md 4.4 rule 6)"
 }
