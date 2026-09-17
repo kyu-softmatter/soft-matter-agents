@@ -6,18 +6,17 @@ If work would violate one of them, the work is wrong, not the principle —
 changing a principle means editing `plan.md` first, in the same commit, with
 the reason.
 
-## Injected knowledge is out of scope for this repository
+## The prior repositories are out of scope
 
-A SessionStart hook registered in `~/.claude/settings.json` injects
-`~/.claude/knowledge/` into every session on this machine. That directory is a
-read-only mirror of `kyu-softmatter/agentic-microscope` and
-`kyu-softmatter/Brownian-Dynamics-Agent`, synced by
-`~/.claude/knowledge/sync.sh`.
+**Do not consult the four prior repositories** — `agentic-microscope`,
+`Brownian-Dynamics-Agent`, `librarian-agent`, `sim-exp-bridge` — nor any
+mirror, export or summary of them. This covers filenames, not just contents:
+a filename carries vocabulary, and vocabulary carries design.
 
-**Do not use it for work in this repository — neither its contents nor its
-filenames.** The same applies to the four prior repositories themselves
-(`agentic-microscope`, `Brownian-Dynamics-Agent`, `librarian-agent`,
-`sim-exp-bridge`) and to any summary of them.
+Until 2026-09-16 a SessionStart hook injected `~/.claude/knowledge/`, a
+read-only mirror of the first two, into every session on this machine, and its
+filenames did leak terminology into this design. The mirror and the hook entry
+have since been removed. If either returns, this rule still applies.
 
 The point of this rebuild is to re-derive the role boundaries, the permission
 model and the vocabulary from scratch. Borrowing the earlier projects' terms
