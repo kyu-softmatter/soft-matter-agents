@@ -127,6 +127,10 @@
         "falsifier": {
           "type": "string",
           "description": "what observation would retire this assumption"
+        },
+        "gap_ref": {
+          "type": "string",
+          "description": "gap_id in kb_gaps: the librarian was asked and could not supply it (check 39). Required when the card reached the librarian at all; degraded says when it did not."
         }
       },
       "required": [
@@ -156,6 +160,85 @@
       "required": [
         "entry_id",
         "grade",
+        "kb_version"
+      ],
+      "additionalProperties": false
+    },
+    "kb_gap": {
+      "type": "object",
+      "description": "What the librarian was asked for and could not supply (4.3.1). kb_refs records what came back; without this, what did not come back is recorded nowhere and the discovery of a gap dies with the server.",
+      "properties": {
+        "gap_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "what an assumption's gap_ref points at"
+        },
+        "observable": {
+          "type": "string"
+        },
+        "condition_range": {
+          "$ref": "#/$defs/condition_range"
+        },
+        "kind": {
+          "enum": [
+            "absent",
+            "condition_mismatch",
+            "inaccessible",
+            "unqualified_source"
+          ],
+          "description": "four kinds because the next action differs for each: search / find other conditions / ask a person / do not enter it (4.3.1)"
+        },
+        "searched": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "where it was looked for. A gap with nothing here is not a gap: not-looked-for and not-there are different claims."
+        },
+        "nearest": {
+          "type": "array",
+          "description": "entries that came close, so that 'nothing like it exists' and 'it exists at another temperature' stay distinguishable",
+          "items": {
+            "type": "object",
+            "properties": {
+              "entry_id": {
+                "type": "string"
+              },
+              "overlap": {
+                "enum": [
+                  "partial",
+                  "unconstrained"
+                ]
+              },
+              "uncovered": {
+                "$ref": "#/$defs/condition_range"
+              }
+            },
+            "required": [
+              "entry_id",
+              "overlap"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "kb_version": {
+          "type": "string"
+        },
+        "asked_by": {
+          "type": "string",
+          "description": "the caller_id the fan-out executor issued (4.3.1)"
+        },
+        "asked_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "gap_id",
+        "observable",
+        "kind",
+        "searched",
         "kb_version"
       ],
       "additionalProperties": false
@@ -236,6 +319,48 @@
       ],
       "additionalProperties": false
     },
+    "condition_bound": {
+      "type": "object",
+      "description": "One quantity's interval in canonical physical units (D7). min or max may be absent (one-sided), but not both.",
+      "properties": {
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit"
+      ],
+      "anyOf": [
+        {
+          "required": [
+            "min"
+          ]
+        },
+        {
+          "required": [
+            "max"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "condition_range": {
+      "type": "object",
+      "description": "A map from quantity name to interval (4.3.1). Both sides of a condition query use this shape -- a query's condition_range and an entry's validity -- because one has to be compared against the other, and prose cannot be compared. That is why validity_conditions stays separate and human.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/condition_bound"
+      },
+      "minProperties": 1
+    },
     "common_head": {
       "type": "object",
       "properties": {
@@ -297,6 +422,13 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/kb_ref"
+          }
+        },
+        "kb_gaps": {
+          "type": "array",
+          "description": "the other side of kb_refs: asked for and not supplied. Not empty is normal (4.3). Every assumed: number points at one of these unless degraded says the librarian was never reached (check 39).",
+          "items": {
+            "$ref": "#/$defs/kb_gap"
           }
         },
         "degraded": {

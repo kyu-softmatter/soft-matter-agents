@@ -718,7 +718,7 @@ ALLOWED_PATHS = [
     r"^(microscope|simulation)_agent/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
     r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
     r"^librarian_agent/CLAUDE\.md$",
-    r"^librarian_agent/kb/(index\.json|(sources|distilled|entries|lessons|staging)/[A-Za-z0-9_.-]+)$",
+    r"^librarian_agent/kb/(index\.json|(sources|distilled|entries|lessons|staging|exports)/[A-Za-z0-9_.-]+)$",
     r"^librarian_agent/src/[A-Za-z0-9_.-]+$",
     r"^bridge/CLAUDE\.md$",
     r"^bridge/threads/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
@@ -1292,6 +1292,47 @@ def check_37_time_base(b: Bundle) -> list[Finding]:
     return out or [Finding(37, PASS, f"{len(results)} results rest on a hardware time base")]
 
 
+def check_39_estimate_justified(b: Bundle) -> list[Finding]:
+    """An estimate is legitimate only when someone looked (4.3.1).
+
+    kb_refs records what the librarian supplied; kb_gaps records what it could
+    not. Without the second, the service's actual output -- the discovery of a
+    gap -- leaves no trace on disk, and an estimate standing on a real absence
+    looks exactly like one nobody checked. A card that never reached the
+    librarian says so in degraded, and this check does not apply to it: not
+    reached and looked-for-and-absent are different claims.
+    """
+    out: list[Finding] = []
+    n = 0
+    for c in b.cards:
+        if "__unreadable__" in c.data:
+            continue
+        if any("librarian" in str(d) for d in c.data.get("degraded") or []):
+            continue
+        assumed = {name for name, num in c.numbers().items()
+                   if str(num.get("source", "")).startswith("assumed:")}
+        if not assumed:
+            continue
+        gap_ids = {str(g.get("gap_id")) for g in (c.data.get("kb_gaps") or []) if isinstance(g, dict)}
+        for a in c.data.get("assumptions") or []:
+            if not isinstance(a, dict):
+                continue
+            covered = sorted(assumed.intersection(a.get("numbers") or []))
+            if not covered:
+                continue
+            n += len(covered)
+            ref = a.get("gap_ref")
+            if not ref:
+                out.append(Finding(39, FAIL, f"assumption {a.get('rationale_id')!r} explains {covered} but names no gap_ref; with the librarian reachable an estimate has to say what was looked for and not found (4.3.1)", c.rel))
+            elif ref not in gap_ids:
+                out.append(Finding(39, FAIL, f"assumption {a.get('rationale_id')!r} points at gap {ref!r}, which is not in this card's kb_gaps {sorted(gap_ids)}", c.rel))
+    if out:
+        return out
+    if n == 0:
+        return [Finding(39, NA, "no card estimated while the librarian was reachable")]
+    return [Finding(39, PASS, f"{n} estimates each name the gap they stand on")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -1302,7 +1343,7 @@ CHECKS = [
     check_24_calibration_validity, check_25_kb_refs, check_26_snapshot, check_27_knowledge_ownership,
     check_28_precision, check_29_failure_record, check_30_lessons, check_31_candidate_preservation,
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
-    check_36_symbol_collision, check_37_time_base,
+    check_36_symbol_collision, check_37_time_base, check_39_estimate_justified,
 ]
 
 

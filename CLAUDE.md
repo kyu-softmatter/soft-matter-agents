@@ -12,17 +12,31 @@ commit, with the reason.
 
 ## Status
 
-**M0 landed; M1 (the microscope agent) is next.** Implementation order is
-microscope, simulation, librarian, bridge (`plan.md` §9) — so the first two
-agents run without a librarian, with every card marked
-`degraded: ["librarian_agent"]`. That is deliberate: independence bolted on
-later is usually not independence.
+**M0 landed; the librarian (M3) is next — the order changed on 2026-09-17.**
+Implementation order is now librarian, microscope, simulation, bridge
+(`plan.md` §9). **Milestone names are not the order**: M0–M5 name bodies of
+work and the order is the first column of §9's table, so that every "what M3
+produces" reference scattered through this repo keeps pointing at the same
+thing.
+
+The librarian went first for two reasons. It is the only agent with no
+collaboration dependency at all (§4.3.2), so it needs no stub and no mock
+counterpart. And the thing currently blocked is on its side: the two flat
+tables in `kb/staging/` have been waiting for a querying side to decide how to
+decompose them (§11.1), and that querying side is the librarian.
+
+What the old order gave for free is now a completion condition instead: **M1
+and M2 each require one pass with the librarian switched off**, producing a card
+that carries `degraded: ["librarian_agent"]` and still validates. Without that,
+the degraded path becomes a branch nobody walks — independence bolted on later
+is usually not independence. What the old order gave that is simply lost: the
+backlog of M1–M2 estimates that gap detection would later have re-examined.
 
 `contracts/` exists and is the only shared code. `librarian_agent/kb/` exists
-too, but as a **plain store**: a person curates the entries, agents read the
-files, and the librarian agent itself — MCP server, gap detection, distillation,
-external search — waits for M3 (§4.3.0). The other three agent directories are
-still empty.
+as a **plain store**: a person curates the entries and agents read the files.
+The service on top of it — MCP server (four read-only tools), gap detection,
+distillation, external search, snapshot publishing — is M3 and is not built
+yet (§4.3.0). The other three agent directories are still empty.
 
 ```bash
 python3 contracts/validate.py                                    # the repository
@@ -30,17 +44,18 @@ python3 contracts/validate.py --strict                           # undecided and
 python3 contracts/validate.py --expect-fail contracts/examples/rejected
 ```
 
-The first must end `0 failed`. The second must end `8/8 cards rejected as
+The first must end `0 failed`. The last must end `10/10 cards rejected as
 intended` — a card that stops failing means a check stopped working.
 
 One check reports UNDECIDED rather than passing, and that is the point: the
-per-plan E5 cap is unchosen (§11-2), deferred until gap detection exists,
-because an estimate count taken while nothing reports what was never looked up
-is not a sample of normal operation. A threshold nobody has chosen is not a
-threshold that is satisfied.
+per-plan E5 cap is unchosen (§11-2). It needs two things, not one — gap
+detection running, and enough plans made while it ran to be a sample. Moving
+the librarian first satisfies the first early and the second not at all, since
+no plan exists yet. A threshold nobody has chosen is not a threshold that is
+satisfied.
 
 Eight checks report PENDING: they need artifacts a later milestone produces
-(`envelope/safety.json`, run logs, agent code under `src/`). Four report N/A:
+(`envelope/safety.json`, run logs, agent code under `src/`). Five report N/A:
 no card of that kind exists yet. Neither is counted as a pass.
 
 After editing knowledge entries, rebuild the index:
@@ -80,6 +95,12 @@ both, the JSON wins. Hand-editing generated Markdown has no effect.
 **Knowledge lives in one place (P14).** The librarian owns it. Execution
 agents keep records and a hash-checked snapshot, never their own knowledge
 store. New facts leave as result cards for the librarian to enter. See §4.3.2.
+
+**What the librarian could not supply is recorded too.** `kb_refs` holds what
+came back; `kb_gaps` holds what was asked for and did not, with where it was
+looked for. An estimate made while the librarian was reachable has to name the
+gap it stands on (check 39) — looked-for-and-absent and nobody-checked are not
+the same number. See §4.3.1.
 
 **Explore is the default (P15).** Most questions here examine a system that is
 not yet understood, so targets and constraints are stated in decades and

@@ -17,6 +17,7 @@
     "formula": { "type": "string", "description": "dimensionless_group only" },
     "inputs": { "type": "array", "items": { "type": "string" } },
     "validity_conditions": { "type": "string", "minLength": 10, "description": "under what conditions the claim holds; a claim without them is not reusable" },
+    "validity": { "$ref": "common.schema.json#/$defs/condition_range", "description": "the machine-readable half of validity_conditions (4.3.1). Where the two disagree this one wins (P3): prose cannot be matched against a query condition_range. An entry without it is returned flagged unconstrained rather than matching silently." },
     "grade": { "$ref": "common.schema.json#/$defs/grade" },
     "grade_tag": {
       "enum": ["peer_reviewed", "preprint", "vendor_spec", "textbook", "measured_here", "calibration"],

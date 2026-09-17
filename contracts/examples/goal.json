@@ -58,5 +58,5 @@
     }
   ],
   "kb_refs": [],
-  "degraded": []
+  "degraded": ["librarian_agent"]
 }

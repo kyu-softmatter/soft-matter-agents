@@ -74,7 +74,7 @@ without rebuilding `kb/index.json` fails check 25.
 
 ## The cards that must fail
 
-`rejected/` holds eight cards, each breaking one check on purpose:
+`rejected/` holds ten cards, each breaking one check on purpose:
 
 | card | check | what it does |
 |---|---|---|
@@ -86,6 +86,7 @@ without rebuilding `kb/index.json` fails check 25.
 | `bad_md_number.json` | 9 | markdown that drifted from its JSON |
 | `bad_sibling_a.json`, `bad_sibling_b.json` | 11 | two axes reading each other |
 | `bad_kb_grade.json` | 21, 25 | promotes a stored E3 to E1 on the way in |
+| `bad_unjustified_estimate.json` | 39 | estimates with the librarian reachable and no gap to stand on |
 
 A normal sweep steps over this folder. To run the gate on it:
 

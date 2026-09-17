@@ -21,5 +21,5 @@
   "assumptions": [
     { "rationale_id": "a_bleach", "statement": "Bleaching is of order tens of milliseconds for this dye at this power, from nothing but experience.", "numbers": ["bleach_time_constant"] }
   ],
-  "degraded": []
+  "degraded": ["librarian_agent"]
 }
