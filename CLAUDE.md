@@ -38,13 +38,21 @@ The service on top of it — MCP server (four read-only tools), gap detection,
 distillation, external search, snapshot publishing — is M3 and is not built
 yet (§4.3.0). The other three agent directories are still empty.
 
+The bridge's **wire contract** landed with M0's cards rather than with the
+bridge itself: the `ask` envelope, the two thread ledgers (`status.json` and
+`r<N>_hashes.json`, which are not cards) and check 8 are in place, and one
+example round sits in `contracts/examples/` — **held**, because whether the
+engine side can produce the observable is undeclared, not impossible (§11-1).
+No bridge code exists and §7 gives the bridge none: it is instructions plus
+`contracts/`.
+
 ```bash
 python3 contracts/validate.py                                    # the repository
 python3 contracts/validate.py --strict                           # undecided and pending count as failures
 python3 contracts/validate.py --expect-fail contracts/examples/rejected
 ```
 
-The first must end `0 failed`. The last must end `10/10 cards rejected as
+The first must end `0 failed`. The last must end `17/17 cards rejected as
 intended` — a card that stops failing means a check stopped working.
 
 One check reports UNDECIDED rather than passing, and that is the point: the
@@ -55,7 +63,7 @@ no plan exists yet. A threshold nobody has chosen is not a threshold that is
 satisfied.
 
 Eight checks report PENDING: they need artifacts a later milestone produces
-(`envelope/safety.json`, run logs, agent code under `src/`). Five report N/A:
+(`envelope/safety.json`, run logs, agent code under `src/`). Four report N/A:
 no card of that kind exists yet. Neither is counted as a pass.
 
 After editing knowledge entries, rebuild the index:

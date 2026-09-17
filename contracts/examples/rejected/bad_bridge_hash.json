@@ -1,0 +1,45 @@
+{
+  "card": "ask_simulation",
+  "schema_version": "0.1",
+  "id": "ask-thr-bad-hash-r1",
+  "qid": "mic-20260917-013",
+  "thread": "thr-bad-hash",
+  "round": 1,
+  "revision": 1,
+  "author": "bridge",
+  "created_at": "2026-09-17T10:20:00Z",
+  "status": "DRAFT",
+  "direction": "experiment_to_simulation",
+  "trigger": "human",
+  "payload_card": {
+    "card": "result",
+    "schema_version": "0.1",
+    "id": "result-mic-20260917-013-r1",
+    "qid": "mic-20260917-013",
+    "thread": "solo-mic-20260917-013",
+    "round": 0,
+    "revision": 1,
+    "author": "microscope_agent",
+    "created_at": "2026-09-17T10:20:00Z",
+    "status": "DONE",
+    "numbers": [],
+    "degraded": [
+      "librarian_agent"
+    ]
+  },
+  "payload_hash": "sha256:d441267cf8e02d7318fab3408a9042fea64ffa467691fedd6acb4ca615ba61d1",
+  "answerability": {
+    "observable": "tracer_diffusivity",
+    "checked_against": "simulation.json",
+    "producible": "undeclared",
+    "substitutes": []
+  },
+  "unit_consistency": {
+    "verdict": "no_counterpart",
+    "compared_against": null
+  },
+  "numbers": [],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

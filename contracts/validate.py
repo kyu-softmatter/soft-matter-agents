@@ -89,9 +89,14 @@ class Bundle:
     cards: list[Card] = field(default_factory=list)
     md_files: list[Path] = field(default_factory=list)
     all_files: list[Path] = field(default_factory=list)
+    artifacts: list[Card] = field(default_factory=list)
 
     def of_kind(self, *kinds: str) -> list[Card]:
         return [c for c in self.cards if c.kind in kinds]
+
+    def of_artifact(self, *kinds: str) -> list[Card]:
+        """Thread ledgers are not cards: they carry no numbers, so no grades."""
+        return [a for a in self.artifacts if a.data.get("artifact") in kinds]
 
     def by_qid(self) -> dict[str, list[Card]]:
         out: dict[str, list[Card]] = {}
@@ -159,6 +164,13 @@ CARD_SCHEMA = {
     "synthesis": "synthesis.schema.json",
     "ask_simulation": "ask.schema.json",
     "ask_experiment": "ask.schema.json",
+}
+
+# Thread bookkeeping, not cards (4.4, 5.1). The discriminator is "artifact" so
+# that a stray status.json cannot validate as one by sitting in the right place.
+ARTIFACT_SCHEMA = {
+    "thread_status": "thread_status.schema.json",
+    "round_hashes": "round_hashes.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]
@@ -355,6 +367,8 @@ def collect(roots: Iterable[Path], include_rejected: bool = False) -> Bundle:
                 continue
             if isinstance(data, dict) and "card" in data:
                 b.cards.append(Card(p, data, raw))
+            elif isinstance(data, dict) and "artifact" in data:
+                b.artifacts.append(Card(p, data, raw))
     return b
 
 
@@ -389,6 +403,9 @@ def check_01_schema(b: Bundle) -> list[Finding]:
         for c in cards:
             if c.kind not in CARD_SCHEMA:
                 out.append(Finding(1, FAIL, f"unknown card kind {c.kind!r}", c.rel))
+        for a in b.artifacts:
+            if a.data.get("artifact") not in ARTIFACT_SCHEMA:
+                out.append(Finding(1, FAIL, f"unknown artifact kind {a.data.get('artifact')!r}", a.rel))
         out.append(Finding(1, PENDING, "jsonschema not installed: only the card discriminator was checked"))
         return out
 
@@ -419,6 +436,17 @@ def check_01_schema(b: Bundle) -> list[Finding]:
                 loc = "/".join(str(x) for x in err.path) or "(root)"
                 out.append(Finding(1, FAIL, f"{loc}: {err.message}", str(p.relative_to(REPO))))
 
+    for a in b.artifacts:
+        name = ARTIFACT_SCHEMA.get(a.data.get("artifact"))
+        if name is None:
+            out.append(Finding(1, FAIL, f"unknown artifact kind {a.data.get('artifact')!r}", a.rel))
+            continue
+        schema = json.loads((CONTRACTS / "schemas" / name).read_text())
+        validator = jsonschema.Draft202012Validator(schema, registry=registry)
+        for err in sorted(validator.iter_errors(a.data), key=lambda e: list(e.path)):
+            loc = "/".join(str(x) for x in err.path) or "(root)"
+            out.append(Finding(1, FAIL, f"{loc}: {err.message}", a.rel))
+
     for c in cards:
         name = CARD_SCHEMA.get(c.kind)
         if name is None:
@@ -430,7 +458,7 @@ def check_01_schema(b: Bundle) -> list[Finding]:
             loc = "/".join(str(x) for x in err.path) or "(root)"
             out.append(Finding(1, FAIL, f"{loc}: {err.message}", c.rel))
     if not out:
-        out.append(Finding(1, PASS, f"{len(cards)} cards conform to their schema"))
+        out.append(Finding(1, PASS, f"{len(cards)} cards and {len(b.artifacts)} thread ledgers conform to their schema"))
     return out
 
 
@@ -564,31 +592,239 @@ def check_07_state_and_approval(b: Bundle) -> list[Finding]:
     return out
 
 
+def canon_sha(obj: dict) -> str:
+    """sha256 of a card in canonical form: sorted keys, no spaces.
+
+    Not the raw bytes. The bridge re-serialises the card it carries inside the
+    envelope, so byte equality is impossible; semantic equality is what "not a
+    character changed" means about a number.
+    """
+    blob = json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return "sha256:" + hashlib.sha256(blob.encode()).hexdigest()
+
+
+def load_observables() -> dict[str, dict]:
+    p = CONTRACTS / "observables.json"
+    if not p.exists():
+        return {}
+    return {o["id"]: o for o in json.loads(p.read_text()).get("observables", []) if "id" in o}
+
+
+WIRE = {
+    "ask_simulation": ("experiment_to_simulation", "microscope_agent", "simulation_agent"),
+    "ask_experiment": ("simulation_to_experiment", "simulation_agent", "microscope_agent"),
+}
+SIDE_OF_AGENT = {"microscope_agent": "experiment", "simulation_agent": "simulation"}
+
+
+def derive_producible(cap: dict, observable: str, vocab: dict[str, dict]) -> tuple[str, list[str]]:
+    """What the tables say, not what the envelope claims (4.4 rule 3).
+
+    The same move as check 21 makes on grades: the verdict is derived from the
+    declaration, so a card cannot claim more than its source supports. Three
+    outcomes, because "nobody has declared it" is not "it cannot be done":
+
+      yes         a configuration of the receiving side produces it
+      no          the vocabulary says that side cannot, or the table is
+                  populated and none of its configurations produces it
+      undeclared  the table is a skeleton or provisional and silent on it
+    """
+    side = SIDE_OF_AGENT.get(cap.get("agent", ""), "")
+    entry = vocab.get(observable)
+    if entry and side and side not in entry.get("producible_by", []):
+        return "no", []
+    producers = [conf.get("config") for conf in cap.get("configurations", [])
+                 if observable in (conf.get("produces") or [])]
+    if producers:
+        return "yes", [p for p in producers if p]
+    if cap.get("status") == "populated":
+        return "no", []
+    return "undeclared", []
+
+
 def check_08_bridge(b: Bundle) -> list[Finding]:
+    """The wire (4.4). Every rule here is a way of not authoring.
+
+    The bridge moves a card and says what the gates said about it. Each gate has
+    three outcomes rather than two, and the third is the one that matters: a gate
+    that failed belongs in a refusal card, and a gate that could not be resolved
+    belongs in a held round whose turn is a person's. Collapsing those two makes
+    the bridge record an impossibility nobody established.
+    """
     asks = b.of_kind("ask_simulation", "ask_experiment")
-    if not asks:
-        return [Finding(8, NA, "no ask cards")]
+    ledgers = b.of_artifact("round_hashes")
+    statuses = b.of_artifact("thread_status")
+    if not (asks or ledgers or statuses):
+        return [Finding(8, NA, "no bridge threads")]
+
     out: list[Finding] = []
+    # Answerability reads the vocabulary and a capabilities table together. That
+    # a table may not claim a name the vocabulary does not define is check 38's
+    # rule, over every table and whether or not a round exists; what belongs
+    # here is narrower -- the observable this round asks for.
+    vocab = load_observables()
+    by_thread: dict[str, list[Card]] = {}
     for c in asks:
+        by_thread.setdefault(str(c.data.get("thread")), []).append(c)
+
+    for c in asks:
+        expect_dir, sender, receiver = WIRE[c.kind]
         payload = c.data.get("payload_card") or {}
-        blob = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-        expect = "sha256:" + hashlib.sha256(blob.encode()).hexdigest()
+
+        expect = canon_sha(payload)
         if c.data.get("payload_hash") != expect:
-            out.append(Finding(8, FAIL, f"payload_hash mismatch: expected {expect}", c.rel))
+            out.append(Finding(8, FAIL, f"payload_hash does not match payload_card: expected {expect} (4.4 rule 4)", c.rel))
+
+        if c.data.get("author") != "bridge":
+            out.append(Finding(8, FAIL, f"author is {c.data.get('author')!r}; an envelope is the bridge's and nobody else's (4.4)", c.rel))
+        for fld in ("numbers", "assumptions", "kb_refs"):
+            if c.data.get(fld):
+                out.append(Finding(8, FAIL, f"{fld} is not empty: the bridge carries, it does not author. The payload's numbers keep their own sources and grades (4.4, 5.3)", c.rel))
+        if payload.get("card") not in ("plan", "result"):
+            out.append(Finding(8, FAIL, f"payload is a {payload.get('card')!r} card; a plan and a result cross, nothing else does (4.4)", c.rel))
+        if payload.get("qid") != c.data.get("qid"):
+            out.append(Finding(8, FAIL, f"envelope qid {c.data.get('qid')!r} is not the payload's {payload.get('qid')!r}; the envelope belongs to the question it carries (5.2)", c.rel))
+        if c.data.get("direction") != expect_dir:
+            out.append(Finding(8, FAIL, f"an {c.kind} card carries direction {c.data.get('direction')!r}, not {expect_dir!r}", c.rel))
+        if payload.get("author") != sender:
+            out.append(Finding(8, FAIL, f"an {c.kind} card carries a card {sender} wrote; this one is {payload.get('author')!r}'s (4.4)", c.rel))
+
+        m = re.match(r"^r(\d+)_", c.path.name)
+        if m and int(m.group(1)) != c.data.get("round"):
+            out.append(Finding(8, FAIL, f"the filename says round {int(m.group(1))} and the card says {c.data.get('round')} (7.1 rule 3)", c.rel))
+
         ans = c.data.get("answerability") or {}
+        obs = str(ans.get("observable", ""))
+        claimed = ans.get("producible")
         capfile = CONTRACTS / "capabilities" / str(ans.get("checked_against", ""))
         if not capfile.exists():
             out.append(Finding(8, FAIL, f"answerability cites {ans.get('checked_against')!r}, which does not exist", c.rel))
+        else:
+            cap = json.loads(capfile.read_text())
+            if cap.get("agent") != receiver:
+                out.append(Finding(8, FAIL, f"answerability was checked against {cap.get('agent')!r}, which is not the receiving side ({receiver})", c.rel))
+            derived, producers = derive_producible(cap, obs, vocab)
+            if claimed == "no":
+                out.append(Finding(8, FAIL, f"the envelope carries a refused gate: it says {receiver} cannot produce {obs!r}. A gate that says no belongs in a refusal card with counterexample numbers, and then the round is never spent (4.4 rule 3)", c.rel))
+            elif claimed != derived:
+                out.append(Finding(8, FAIL, f"answerability claims {claimed!r} for {obs!r}; {capfile.name} and the vocabulary give {derived!r}. The verdict is derived, never declared (4.4 rule 3)", c.rel))
+            elif claimed == "yes" and sorted(ans.get("producing_configs") or []) != sorted(producers):
+                out.append(Finding(8, FAIL, f"producing_configs is {sorted(ans.get('producing_configs') or [])} and {capfile.name} lists {sorted(producers)}", c.rel))
+            if obs and vocab and obs not in vocab:
+                out.append(Finding(8, FAIL, f"the round asks for {obs!r}, which contracts/observables.json does not define", c.rel))
+
+        uc = c.data.get("unit_consistency") or {}
+        verdict, against = uc.get("verdict"), uc.get("compared_against")
+        rnd = c.data.get("round") or 0
+        if verdict == "inconsistent":
+            out.append(Finding(8, FAIL, "the unit check failed, so this is a refusal card and not an envelope: reason_code unit_mapping_ambiguous, and a person defines the mapping (4.4 failure table)", c.rel))
+        elif verdict == "no_counterpart" and rnd > 1:
+            out.append(Finding(8, FAIL, f"round {rnd} has a counterpart, so no_counterpart is a comparison that was not made (4.4 rule 2)", c.rel))
+        elif verdict == "no_counterpart" and against is not None:
+            out.append(Finding(8, FAIL, f"no_counterpart names {against!r} as the counterpart", c.rel))
+        elif verdict == "consistent" and not against:
+            out.append(Finding(8, FAIL, "consistent against nothing: compared_against must name the counterpart card (4.4 rule 2)", c.rel))
+
+    for thread, cards in sorted(by_thread.items()):
+        seen: dict[tuple, int] = {}
+        for c in sorted(cards, key=lambda x: x.data.get("round") or 0):
+            key = (c.data.get("direction"), (c.data.get("answerability") or {}).get("observable"))
+            if key in seen:
+                out.append(Finding(8, FAIL, f"round {c.data.get('round')} asks {key[1]!r} in the same direction as round {seen[key]}; a repeat is a knowledge reference recorded in status.json, not another round (4.4 rule 5)", c.rel))
+            else:
+                seen[key] = c.data.get("round") or 0
+        delivered = [c for c in cards if c.data.get("status") == "VALIDATED"]
+        if delivered and not any(str(s.data.get("thread")) == thread for s in statuses):
+            out.append(Finding(8, FAIL, f"thread {thread} has a delivered envelope and no thread ledger; without one line saying whose turn it is, four windows are four windows nobody follows (6.2)", delivered[0].rel))
+
+    ledger_of: dict[tuple, Card] = {}
+    for h in ledgers:
+        key = (str(h.data.get("thread")), h.data.get("round"))
+        if key in ledger_of:
+            out.append(Finding(8, FAIL, f"two ledgers for {key[0]} round {key[1]}", h.rel))
+        ledger_of[key] = h
+    verified = 0
+    for c in asks:
+        if c.data.get("status") != "VALIDATED":
             continue
-        cap = json.loads(capfile.read_text())
-        known = {o["id"] for o in json.loads((CONTRACTS / "observables.json").read_text()).get("observables", [])}
-        for conf in cap.get("configurations", []):
-            for o in conf.get("observables", []):
-                if o.get("name") not in known:
-                    out.append(Finding(8, FAIL, f"{capfile.name} claims observable {o.get('name')!r}, which contracts/observables.json does not define", c.rel))
-        if cap.get("status") == "skeleton":
-            out.append(Finding(8, PENDING, f"{capfile.name} is a skeleton; answerability cannot be verified until 11-10 lands", c.rel))
-    return out or [Finding(8, PASS, f"{len(asks)} ask cards hash and check out")]
+        key = (str(c.data.get("thread")), c.data.get("round"))
+        h = ledger_of.get(key)
+        if h is None:
+            out.append(Finding(8, FAIL, f"no r{key[1]}_hashes.json for this round: the envelope's own hash proves only that it agrees with itself (4.4 rule 4)", c.rel))
+            continue
+        payload = c.data.get("payload_card") or {}
+        src = h.data.get("source") or {}
+        if h.data.get("payload_sha256") != c.data.get("payload_hash"):
+            out.append(Finding(8, FAIL, "the ledger's payload_sha256 is not the envelope's payload_hash", h.rel))
+        if h.data.get("ask_card") != c.path.name:
+            out.append(Finding(8, FAIL, f"the ledger covers {h.data.get('ask_card')!r} and this envelope is {c.path.name}", h.rel))
+        if src.get("card_id") != payload.get("id") or src.get("revision") != payload.get("revision"):
+            out.append(Finding(8, FAIL, f"the ledger records {src.get('card_id')!r} revision {src.get('revision')} and the payload is {payload.get('id')!r} revision {payload.get('revision')}", h.rel))
+        if src.get("path") is None:
+            if src.get("sha256") != h.data.get("payload_sha256"):
+                out.append(Finding(8, FAIL, "a hand-fed card has no path to recompute from, so the recorded source hash must be the payload's", h.rel))
+            continue
+        f = REPO / str(src.get("path"))
+        if not f.exists():
+            out.append(Finding(8, FAIL, f"the source card {src.get('path')!r} is not on disk, so the transport cannot be recomputed. A hash nobody can recompute is not integrity (4.4 rule 4)", h.rel))
+            continue
+        try:
+            on_disk = json.loads(f.read_text())
+        except (OSError, json.JSONDecodeError) as exc:
+            out.append(Finding(8, FAIL, f"the source card cannot be read: {exc}", h.rel))
+            continue
+        if on_disk.get("revision") != src.get("revision"):
+            continue          # the source moved on; the round is not comparable, and saying so beats a false pass
+        if canon_sha(on_disk) != src.get("sha256"):
+            out.append(Finding(8, FAIL, "the source card at the recorded revision does not hash to the recorded value: either it was edited without a revision bump, or the payload is not what was sent. Stop the round; do not repair it (4.4 failure table)", h.rel))
+        else:
+            verified += 1
+
+    pairs_seen: dict[str, dict[tuple, set]] = {}
+    for r in b.of_kind("refusal"):
+        thread = str(r.data.get("thread"))
+        if not thread.startswith("thr-"):
+            continue
+        for ce in r.data.get("counterexample", []) or []:
+            key = (r.data.get("reason_code"), ce.get("parameter"))
+            pairs_seen.setdefault(thread, {}).setdefault(key, set()).add(r.data.get("round") or 0)
+
+    for s in statuses:
+        thread = str(s.data.get("thread"))
+        state, turn = s.data.get("state"), s.data.get("turn")
+        if state == "open" and turn == "human":
+            out.append(Finding(8, FAIL, "the state is open but the turn is a person's; open means an agent owes the next card (4.4 rule 4)", s.rel))
+        if state in ("held", "escalated", "closed") and turn != "human":
+            out.append(Finding(8, FAIL, f"the state is {state} and the turn is {turn!r}; only a person moves a thread out of {state} (4.4)", s.rel))
+        if state == "held" and not s.data.get("open_question"):
+            out.append(Finding(8, FAIL, "a held round must name what a person has to answer (4.4 failure table)", s.rel))
+        rounds = [c.data.get("round") or 0 for c in by_thread.get(thread, [])]
+        if rounds and (s.data.get("round") or 0) < max(rounds):
+            out.append(Finding(8, FAIL, f"the ledger says round {s.data.get('round')} and there is an envelope for round {max(rounds)}", s.rel))
+
+        recorded = {(p.get("reason_code"), p.get("parameter")): set(p.get("rounds") or [])
+                    for p in s.data.get("blocked_pairs") or []}
+        repeated = {k: v for k, v in recorded.items() if len(v) >= 2}
+        if repeated and state != "escalated":
+            k, v = sorted(repeated.items())[0]
+            out.append(Finding(8, FAIL, f"({k[0]}, {k[1]}) came back in rounds {sorted(v)}, so this thread owes a person and no further round opens (4.4 rule 6)", s.rel))
+        if repeated:
+            ceiling = max(r for v in repeated.values() for r in v)
+            for c in by_thread.get(thread, []):
+                if (c.data.get("round") or 0) > ceiling:
+                    out.append(Finding(8, FAIL, f"round {c.data.get('round')} was opened after the repetition in round {ceiling} called the human (4.4 rule 6)", c.rel))
+        for k, v in sorted(pairs_seen.get(thread, {}).items()):
+            if len(v) >= 2 and len(recorded.get(k, set())) < 2:
+                out.append(Finding(8, FAIL, f"({k[0]}, {k[1]}) was refused in rounds {sorted(v)} and the ledger does not record the repeat; a repetition nobody records is a round cap nobody enforces (4.4 rule 6)", s.rel))
+        for sub in s.data.get("substitutions") or []:
+            key = (sub.get("direction"), sub.get("observable"))
+            if not any((c.data.get("direction"), (c.data.get("answerability") or {}).get("observable")) == key
+                       for c in by_thread.get(thread, [])):
+                out.append(Finding(8, FAIL, f"a substitution for {sub.get('observable')!r} that never crossed in this thread; rule 5 replaces a repeat, not a first ask (4.4 rule 5)", s.rel))
+
+    if not any(f.status == FAIL for f in out):
+        out.insert(0, Finding(8, PASS, f"{len(asks)} bridge rounds carry their cards unchanged; {verified} of them recompute against the source on disk"))
+    return out
 
 
 def check_09_md_vs_json(b: Bundle) -> list[Finding]:
@@ -1472,7 +1708,8 @@ def main(argv: list[str] | None = None) -> int:
         print()
 
     if args.expect_fail:
-        cards = collect(roots, True).cards
+        collected = collect(roots, True)
+        cards = collected.cards + collected.artifacts
         failing_paths = {f.path for f in findings if f.status == FAIL}
         unbroken = [c.rel for c in cards if c.rel not in failing_paths]
         print(f"expect-fail: {len(cards) - len(unbroken)}/{len(cards)} cards rejected as intended")

@@ -72,9 +72,48 @@ it, agents read the files, and there is no librarian agent until M3
 validator compares that against what the store actually says. Editing an entry
 without rebuilding `kb/index.json` fails check 25.
 
+## The bridge thread
+
+One round, and it is held rather than completed — which is the honest state of
+this repository rather than a placeholder:
+
+```
+r1_ask_simulation.json   the microscope's result card, wrapped and carried
+r1_ask_simulation.md     the same round for a person, with no number in it
+r1_hashes.json           the source card's id, revision and hash
+status.json              whose turn it is, and what is blocking
+```
+
+`capabilities/simulation.json` declares no configuration and
+`contracts/observables.json` defines no entry, so whether the engine side can
+produce `tracer_diffusivity` is **undeclared** — and undeclared is not
+impossible. Refusing would record an impossibility nobody established; answering
+yes would claim a capability nobody declared. So the round is held, the turn is a
+person's, and `status.json` names the open question (plan.md 11-1).
+
+Three things here are worth looking at:
+
+**The verdict is derived, not declared.** The validator recomputes
+`answerability.producible` from the vocabulary and the receiving side's
+capabilities table, and rejects a card claiming more than the two of them say. It
+is the move check 21 makes on grades: give the bridge a boolean it can fill in
+itself and the gate becomes a formality.
+
+**The envelope's own hash proves only that it agrees with itself.** A bridge that
+changed a number could change the hash with it, so `r1_hashes.json` records the
+source card as it stood in the sender's directory, with its revision. If that
+card later moves to a new revision the round is no longer comparable, and check 8
+says so by counting zero rounds verified rather than passing quietly.
+
+**The markdown restates none of the payload's numbers.** The envelope's
+`numbers[]` is empty because the bridge authors no numbers, and check 9 requires
+every number in a markdown file to appear in its card. The constraint arrived by
+itself and it is the right one: a courier that recites the values puts one
+quantity in two places (P3).
+
 ## The cards that must fail
 
-`rejected/` holds ten cards, each breaking one check on purpose:
+`rejected/` holds seventeen cards, each breaking one check on purpose:
 
 | card | check | what it does |
 |---|---|---|
@@ -87,6 +126,17 @@ without rebuilding `kb/index.json` fails check 25.
 | `bad_sibling_a.json`, `bad_sibling_b.json` | 11 | two axes reading each other |
 | `bad_kb_grade.json` | 21, 25 | promotes a stored E3 to E1 on the way in |
 | `bad_unjustified_estimate.json` | 39 | estimates with the librarian reachable and no gap to stand on |
+| `bad_bridge_authored.json` | 1, 8 | the bridge adds a number of its own |
+| `bad_bridge_direction.json` | 8 | an envelope for the engine carrying a card the engine wrote |
+| `bad_bridge_hash.json` | 8 | the payload and its hash disagree |
+| `bad_bridge_claimed_capability.json` | 8 | claims an observable the tables have not declared |
+| `bad_bridge_not_producible.json` | 8 | a refused gate delivered as an envelope instead of a refusal |
+| `bad_bridge_unit_skip.json` | 8 | round two with the unit comparison skipped |
+| `bad_bridge_escalation.json` | 8 | a pair that came back twice, with the thread still open |
+
+The last of those is a thread ledger rather than a card (`artifact:
+thread_status`), and `--expect-fail` counts it the same way: a ledger nobody
+checks is a ledger that quietly stops saying whose turn it is.
 
 A normal sweep steps over this folder. To run the gate on it:
 

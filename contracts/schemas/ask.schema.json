@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "ask.schema.json",
   "title": "ask — the bridge's transport envelope. It carries; it does not author (4.4).",
+  "description": "An envelope asserts three things and creates none of them: this is the card the other side sent, this is what the gates said about it, and this is the round it belongs to. Each gate has three outcomes rather than two -- it passed, it failed, or the tables do not say -- because a boolean forces the bridge to claim it knows something a skeleton table cannot tell it, and inventing that is the one thing 4.4 forbids. A failed gate produces a refusal card instead of an envelope; a gate that cannot be resolved holds the round and gives the turn to a person.",
   "allOf": [
     {
       "$ref": "common.schema.json#/$defs/common_head"
@@ -13,6 +14,29 @@
         "ask_simulation",
         "ask_experiment"
       ]
+    },
+    "thread": {
+      "pattern": "^thr-[a-z0-9-]+$",
+      "description": "a solo- thread has no bridge round in it by definition (5.2)"
+    },
+    "round": {
+      "minimum": 1,
+      "description": "round 0 means no bridge round is involved, so it cannot be an envelope"
+    },
+    "author": {
+      "const": "bridge"
+    },
+    "status": {
+      "enum": [
+        "DRAFT",
+        "VALIDATED",
+        "REFUSED"
+      ],
+      "description": "the bridge executes nothing, so an envelope never reaches APPROVED, RUNNING or DONE. VALIDATED means wrapped and gated, which is not the same as actionable: whether the other side may act is in the thread ledger's turn, not here."
+    },
+    "numbers": {
+      "maxItems": 0,
+      "description": "the bridge authors no numbers. The payload's numbers stay in the payload where they keep their own sources and grades; copying them up here would re-declare them, and a re-declared grade is a laundered grade (5.3, check 21)."
     },
     "direction": {
       "enum": [
@@ -30,23 +54,37 @@
     },
     "answerability": {
       "type": "object",
-      "description": "can the other side produce this observable at all? Refuse before spending a round (4.4).",
+      "description": "can the other side produce this observable at all? Refuse before spending a round (4.4 rule 3). The verdict is derived from contracts/observables.json and the other side's capabilities table, never declared here: the validator recomputes it and rejects a card that claims more than the tables say.",
       "properties": {
         "observable": {
-          "type": "string"
+          "type": "string",
+          "description": "an id in contracts/observables.json"
         },
         "checked_against": {
           "type": "string",
           "description": "capabilities file consulted"
         },
         "producible": {
-          "type": "boolean"
+          "enum": [
+            "yes",
+            "no",
+            "undeclared"
+          ],
+          "description": "yes: a configuration in that table produces it. no: the vocabulary or a populated table says that side cannot, and then this must be a refusal card rather than an envelope. undeclared: the table has not declared it, which is not the same as impossible -- the round is held and a person names the observable first."
+        },
+        "producing_configs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "required when producible is yes: which configurations of the receiving side produce it"
         },
         "substitutes": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "description": "observables the other side does declare, taken from its capabilities table. Attached to a no so the refusal carries somewhere to go (4.4 failure table)."
         }
       },
       "required": [
@@ -54,25 +92,51 @@
         "checked_against",
         "producible"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "producible": {
+            "const": "yes"
+          }
+        },
+        "required": [
+          "producible"
+        ]
+      },
+      "then": {
+        "required": [
+          "producing_configs"
+        ],
+        "properties": {
+          "producing_configs": {
+            "minItems": 1
+          }
+        }
+      }
     },
     "unit_consistency": {
       "type": "object",
-      "description": "the bridge checks; it does not convert (4.4, 5.7)",
+      "description": "the bridge checks; it does not convert (4.4 rule 2, 5.7). Reduced units never appear in a card, so there is no mapping to apply.",
       "properties": {
-        "physical_units_match": {
-          "type": "boolean"
+        "verdict": {
+          "enum": [
+            "consistent",
+            "inconsistent",
+            "no_counterpart"
+          ],
+          "description": "no_counterpart is the opening round: there is nothing on the other side to compare against yet. From round two on it means the comparison was skipped, which is a failure."
         },
-        "dimensionless_groups_consistent": {
-          "type": "boolean"
+        "compared_against": {
+          "type": ["string", "null"],
+          "description": "id of the counterpart card the units were compared with; null only with no_counterpart"
         },
         "note": {
           "type": "string"
         }
       },
       "required": [
-        "physical_units_match",
-        "dimensionless_groups_consistent"
+        "verdict",
+        "compared_against"
       ],
       "additionalProperties": false
     },
@@ -80,7 +144,8 @@
       "enum": [
         "human",
         "plan_completion"
-      ]
+      ],
+      "description": "the bridge never opens a round by itself (4.4)"
     }
   },
   "required": [

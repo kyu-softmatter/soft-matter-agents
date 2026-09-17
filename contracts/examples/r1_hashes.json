@@ -1,0 +1,16 @@
+{
+  "artifact": "round_hashes",
+  "schema_version": "0.1",
+  "thread": "thr-diffusivity-crosscheck",
+  "round": 1,
+  "ask_card": "r1_ask_simulation.json",
+  "source": {
+    "path": "contracts/examples/result.json",
+    "card_id": "result-mic-20260917-001-r1",
+    "revision": 1,
+    "sha256": "sha256:4e89126aab4e04277e2a5f7c9b360e2345dbd8a7392da95e4a22a3493fa7f607"
+  },
+  "payload_sha256": "sha256:4e89126aab4e04277e2a5f7c9b360e2345dbd8a7392da95e4a22a3493fa7f607",
+  "verified_at": "2026-09-17T10:20:00Z",
+  "note": "In the real tree the source path is the sender's own questions/<qid>/result.json; here it is the hand-written example card the round carries."
+}

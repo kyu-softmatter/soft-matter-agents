@@ -1,0 +1,47 @@
+{
+  "card": "ask_simulation",
+  "schema_version": "0.1",
+  "id": "ask-thr-bad-producible-r1",
+  "qid": "mic-20260917-015",
+  "thread": "thr-bad-producible",
+  "round": 1,
+  "revision": 1,
+  "author": "bridge",
+  "created_at": "2026-09-17T10:20:00Z",
+  "status": "DRAFT",
+  "direction": "experiment_to_simulation",
+  "trigger": "human",
+  "payload_card": {
+    "card": "result",
+    "schema_version": "0.1",
+    "id": "result-mic-20260917-015-r1",
+    "qid": "mic-20260917-015",
+    "thread": "solo-mic-20260917-015",
+    "round": 0,
+    "revision": 1,
+    "author": "microscope_agent",
+    "created_at": "2026-09-17T10:20:00Z",
+    "status": "DONE",
+    "numbers": [],
+    "degraded": [
+      "librarian_agent"
+    ]
+  },
+  "payload_hash": "sha256:ca8bd9bdf2660251e6ce3be4466db4b4fb77e108cf7c2d7a9a82e7aa0fd47a62",
+  "answerability": {
+    "observable": "tracer_diffusivity",
+    "checked_against": "simulation.json",
+    "producible": "no",
+    "substitutes": [
+      "msd_slope"
+    ]
+  },
+  "unit_consistency": {
+    "verdict": "no_counterpart",
+    "compared_against": null
+  },
+  "numbers": [],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

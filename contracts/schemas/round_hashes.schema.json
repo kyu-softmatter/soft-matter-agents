@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "round_hashes.schema.json",
+  "title": "r<N>_hashes.json — the card that arrived is the card that was sent (4.4 rule 4)",
+  "description": "Not a card: a round ledger. The envelope's own payload_hash proves only that the envelope agrees with itself, and a bridge that changed a number could change both together. This file records the source card as it stood in the sender's own directory at transport time, which is the comparison that catches it. Hashes are over the canonical form of the parsed card (sorted keys, no spaces), not the raw bytes: the bridge re-serialises the card inside the envelope, so byte equality is impossible and semantic equality is what 'not a character changed' means for a number.",
+  "type": "object",
+  "properties": {
+    "artifact": { "const": "round_hashes" },
+    "schema_version": { "const": "0.1" },
+    "thread": { "$ref": "common.schema.json#/$defs/thread" },
+    "round": { "type": "integer", "minimum": 1 },
+    "ask_card": {
+      "type": "string",
+      "description": "filename of the envelope this ledger covers, in the same directory"
+    },
+    "source": {
+      "type": "object",
+      "description": "the card the payload was read from",
+      "properties": {
+        "path": {
+          "type": ["string", "null"],
+          "description": "repository-relative path, or null when a person handed the card over and it has no path here. Null is the asynchronous case (D3) and the case after the microscope moves to its own machine (7.2); then this file records only what the bridge received, and it says so."
+        },
+        "card_id": { "type": "string" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      },
+      "required": ["path", "card_id", "revision", "sha256"],
+      "additionalProperties": false
+    },
+    "payload_sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "verified_at": { "type": "string", "format": "date-time" },
+    "note": { "type": "string" }
+  },
+  "required": ["artifact", "schema_version", "thread", "round", "ask_card", "source", "payload_sha256", "verified_at"],
+  "additionalProperties": false
+}

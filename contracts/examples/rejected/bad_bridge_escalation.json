@@ -1,0 +1,21 @@
+{
+  "artifact": "thread_status",
+  "schema_version": "0.1",
+  "thread": "thr-bad-escalation",
+  "round": 3,
+  "turn": "simulation_agent",
+  "state": "open",
+  "updated_at": "2026-09-17T10:20:00Z",
+  "blocked_pairs": [
+    {
+      "reason_code": "target_unreachable",
+      "parameter": "trap_stiffness",
+      "rounds": [
+        1,
+        3
+      ]
+    }
+  ],
+  "substitutions": [],
+  "note": "the same reason and the same parameter came back twice, so this thread owes a person, not another round"
+}
