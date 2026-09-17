@@ -62,7 +62,8 @@
 | **P9** | **로그는 append-only.** 수정은 새 리비전(`r1`, `r2`, …)이고 덮어쓰기는 없다. | 무엇이 언제 바뀌었는지가 곧 실험 기록이다. | 편향을 추적할 수 없다. |
 | **P10** | **범위는 축소가 기본값.** 새 능력은 "지금 이 질문에 필요한가"를 통과해야 들어온다. | 이전 구조가 커진 이유가 이것이다. | 다시 범용 워크플로 엔진이 된다. |
 | **P11** | **각 에이전트는 혼자서도 완결된다.** 협업은 능력을 더할 뿐, 작동의 전제가 아니다. | 실험은 시뮬레이션을 기다릴 수 없고, 시뮬레이션은 장비 일정을 기다릴 수 없다. | 하나가 멈추면 넷이 멈춘다. |
-| **P12** | **파일트리는 얕게 유지한다.** 에이전트당 최상위 폴더 5개 이내, 경로 깊이 3단 이내, 한 질문의 산출물은 한 폴더에 평평하게(§7.1). | 트리가 깊어지면 사람은 파일을 못 찾고, 에이전트는 경로를 틀리게 쓴다. 구조의 복잡도는 곧 오류율이다. | 산출물이 어디 있는지 grep해야 알게 되고, 폴더가 폴더를 부른다. |
+| **P12** | **산출물 트리는 질문 단위로 평평하다.** 한 질문의 모든 파일이 한 폴더에, 단계별 폴더 없이, 라운드·리비전은 파일명 접두사로(§7.1). | 산출물은 무한히 쌓이고 지우지 않는다(P9). 사람은 "그 질문" 단위로 찾는다. | 석 달 뒤 자기 실험 기록을 grep으로 뒤지게 된다. |
+| **P13** | **코드는 개수가 아니라 의존 방향으로 규율한다.** 에이전트 코드는 `src/` 한 곳에 모으고, 의존은 단방향, 형제 import 금지(§7.2). | 파일 개수 상한은 설계를 규율하지 못하고 설계에 밀려난다 — 이 문서에서 이미 한 번 그랬다(4개 → 5개). 구조를 지키는 것은 의존 그래프다. | 장치 하나를 고치면 다른 장치가 깨진다. |
 
 ---
 
@@ -412,10 +413,10 @@ kb/
                         │  고정 인터페이스: preflight / apply / read / abort
         ┌───────────────┴───────────────────┐
    [시뮬레이션]                        [현미경]
-   backends/hoomd.py               backends/orchestrator.py
-   backends/mock.py                   단일 진입점 · 병렬 · 락 · 동기 · abort fan-out
+   src/hoomd_backend.py            src/orchestrator.py
+   src/mock_backend.py                단일 진입점 · 병렬 · 락 · 동기 · abort fan-out
      (HOOMD-blue 잡 하나)               │
-                                       └─ 종속 장치 스크립트 (자기 장치만 안다)
+                                       └─ src/devices/ (자기 장치만 안다)
                                           dev_body · dev_camera1 · dev_camera2
                                           dev_fluor1 · dev_fluor2 · dev_dmd
                                           dev_confocal_laser · dev_confocal
@@ -482,10 +483,10 @@ kb/
 #### 4.6.5 backend 경계
 
 - 고정 인터페이스 하나: `preflight() / apply(params) / read() / abort()`. HOOMD-blue든 카메라든 operator에게는 같은 모양으로 보인다.
-- **`backends/mock.py`는 1급 백엔드다.** 하드웨어와 HOOMD 없이 파이프라인 전체가 돌아야 하며, M2–M3의 검증은 mock으로 한다(§9).
+- **`src/devices/mock.py`는 1급 백엔드다.** 하드웨어와 HOOMD 없이 파이프라인 전체가 돌아야 하며, M2–M3의 검증은 mock으로 한다(§9).
 - **백엔드는 정책을 갖지 않는다.** 한계 판정은 envelope과 operator의 일이고, 백엔드는 명령을 전달하고 상태를 돌려줄 뿐이다. 백엔드에 조건 판단이 들어가면 envelope이 두 곳에 생긴다.
 - 백엔드 교체가 계획을 바꾸지 않는다. 같은 plan.json이 mock에서도 실장비에서도 그대로 실행된다 — 이것이 재현성의 실무적 정의다(S3).
-- 백엔드는 장치 하나에 파일 하나다: `backends/<device>.py` + `manual.py` + `mock.py`.
+- 백엔드는 장치 하나에 파일 하나다: `src/devices/dev_<device>.py` + `manual.py` + `mock.py`.
 
 #### 4.6.6 이질적 제어 채널 (현미경의 실제 조건)
 
@@ -495,7 +496,7 @@ kb/
    `{id, role, control: sdk | daq | gui_manual | file_watch, automatable: full | partial | none, exclusive_with: [...], sync: hw_trigger | sw_sequence | none, limits: {...}}`
    계획 단계(S3 축 A4)와 실행 단계(O1 preflight)가 같은 파일을 본다.
 
-2. **자동화되지 않는 장치를 자동인 척하지 않는다.** GUI로만 조작되는 장치는 `backends/manual.py`가 담당한다 — operator가 **지시서를 내고 사람의 확인을 받는다.** 지시서와 확인 기록은 `runs/<run_id>/manual_steps.md`에 남고, **확인 없이는 다음 모듈로 넘어가지 않는다.** 절반만 자동인 시스템을 완전 자동인 척하면 로그 전체가 거짓이 된다(P2, P9).
+2. **자동화되지 않는 장치를 자동인 척하지 않는다.** GUI로만 조작되는 장치는 `src/devices/manual.py`가 담당한다 — operator가 **지시서를 내고 사람의 확인을 받는다.** 지시서와 확인 기록은 `runs/<run_id>/manual_steps.md`에 남고, **확인 없이는 다음 모듈로 넘어가지 않는다.** 절반만 자동인 시스템을 완전 자동인 척하면 로그 전체가 거짓이 된다(P2, P9).
 
 3. **광경로 배타성을 선언한다.** 동시에 성립할 수 없는 장치 조합(같은 광경로를 점유하는 구성, 검출기 공유 등)을 `exclusive_with`에 적는다. S3의 축 A4가 계획 시점에 검사하고, O1 preflight가 실행 시점에 **실제 상태를 다시 확인한다.** 선언만으로는 부족하다 — 광경로는 사람이 손으로 바꿔놓을 수 있다.
 
@@ -505,7 +506,7 @@ kb/
 
 #### 4.6.7 현미경 orchestrator — 하나의 병렬 진입점
 
-현미경 쪽에는 **모든 하드웨어를 조작하는 병렬 Python 스크립트 하나**(`backends/orchestrator.py`)를 두고, 장치별 스크립트(`dev_*.py`)는 **그것에 종속**된다.
+현미경 쪽에는 **모든 하드웨어를 조작하는 병렬 Python 스크립트 하나**(`src/orchestrator.py`)를 두고, 장치별 스크립트(`src/devices/dev_*.py`)는 **그것에 종속**된다.
 
 **orchestrator가 쥐는 것** — 장치 스크립트가 절대 손대지 않는 것:
 
@@ -532,7 +533,7 @@ kb/
 > orchestrator의 병렬성은 **대기시간을 겹치기 위한 것**이다 (광원 워밍업, 스테이지 이동, 온도 안정화, 카메라 준비). **타이밍 정밀도를 얻기 위한 것이 아니다.**
 > 정밀한 동시성이 필요한 조합(광원·DMD·카메라)은 **하드웨어 트리거**로 묶는다. 소프트웨어 병렬로 마이크로초를 맞추려는 시도는 조용히 틀린 데이터를 만든다.
 
-**단일 진입점 규칙**: 장비로 나가는 모든 명령은 orchestrator를 통과한다. 우회 호출을 허용하면 로그가 갈라지고 인터록이 무의미해진다. `manual.py`와 `mock.py`도 같은 인터페이스로 orchestrator 아래에 들어간다.
+**단일 진입점 규칙**: 장비로 나가는 모든 명령은 orchestrator를 통과한다. 우회 호출을 허용하면 로그가 갈라지고 인터록이 무의미해진다. `devices/manual.py`와 `devices/mock.py`도 같은 인터페이스로 orchestrator 아래에 들어간다.
 
 **시뮬레이션 쪽에는 orchestrator를 두지 않는다.** HOOMD 잡 하나가 단일 백엔드이므로 병렬 조율 대상이 없다. 대칭을 위해 없는 계층을 만들지 않는다(P10).
 
@@ -630,7 +631,7 @@ JSON이 정본, MD는 JSON에서 생성되는 사람용 산출물. MD를 손으�
 ```
 rebuild/
   plan.md                  이 문서
-  CLAUDE.md                모노레포 공통 규칙 (P1–P12, 카드 규약 요약)
+  CLAUDE.md                모노레포 공통 규칙 (P1–P13, 카드 규약 요약)
   contracts/               ★ 유일한 공유 코드. 4 에이전트가 모두 의존.
     schemas/               goal/plan/approval/result/refusal/ask 스키마
     units.md               실험 단위 ↔ 환원 단위 사상표 (정본)
@@ -648,17 +649,23 @@ rebuild/
                                       plan_microscope_<qid>.md        (S5, 생성물)
                                       refusal.json                    (있을 때만)
     runs/<run_id>/                  raw/, log.json, deviations.json
-    backends/                       orchestrator.py  (단일 진입점, 병렬, §4.6.7)
-                                    dev_*.py ×10 (종속), manual.py, mock.py
-    .claude/skills/                 S2 정교화 / system_designer(S3·S4·S5) / system_operator / 편차 기록
+    src/                            결정론적 코드 (§7.2)
+                                      axis_a1_snr.py … axis_a5_stability.py  (S3)
+                                      synthesis.py                           (S4)
+                                      operator.py                            (S6)
+                                      orchestrator.py   단일 진입점·병렬 (§4.6.7)
+                                      devices/          dev_*.py ×10, manual.py, mock.py
+    .claude/skills/                 S2 정교화 / system_designer / system_operator / 편차 기록
   simulation_agent/                 위와 같은 구조, 축 목록만 다름 (§4.5.3)
     CLAUDE.md
     envelope/                       자원 예산, 안정성 한계
     questions/<qid>/                question_…md, goal.json, axis_A1–A5.json,
                                     synthesis.json, plan_simulation_<qid>.{json,md}
     runs/<run_id>/                  config, trajectory_meta, observables, log.json
-    backends/                       hoomd.py, mock.py     (orchestrator 없음, §4.6.7)
-    .claude/skills/                 S2 정교화 / system_designer(S3·S4·S5) / system_operator / 수렴 판정
+    src/                            axis_a1_stability.py … axis_a5_budget.py, synthesis.py,
+                                    operator.py, hoomd_backend.py, mock_backend.py
+                                    (orchestrator·devices 없음 — 조율 대상이 하나다, §4.6.7)
+    .claude/skills/                 S2 정교화 / system_designer / system_operator / 수렴 판정
   librarian_agent/
     CLAUDE.md
     kb/sources/  kb/distilled/  kb/entries/   + kb/index.json
@@ -673,14 +680,40 @@ rebuild/
     agents/                공용 subagent 정의
 ```
 
-### 7.1 트리 규칙 (P12)
+### 7.1 산출물 트리 규칙 (P12)
 
-1. **깊이 상한 3단** (에이전트 디렉터리 기준). 유일한 예외는 `runs/<run_id>/raw/` — 원시데이터는 장비가 뱉는 구조를 따른다.
-2. **에이전트당 최상위 폴더는 5개까지.** 지금은 `envelope/`, `questions/`, `runs/`, `backends/`, `.claude/` 다섯이며, 이것이 상한이다. 여섯 번째가 필요해지면 그것은 폴더를 더할 신호가 아니라 **책임이 하나 더 생겼다는 신호**이므로, 새 에이전트인지 먼저 따진다(P6).
-3. **폴더는 종류가 아니라 질문으로 묶는다.** 단계별 폴더(`stage3/`, `system_designer/`)를 만들지 않는다. 한 질문의 중간물과 산출물이 `questions/<qid>/` 한 곳에 평평하게 놓이므로, 폴더 하나만 열면 그 질문의 전말이 보인다.
-4. **새 폴더를 만드는 것은 이 문서를 고치는 일이다.** §7에 선언되지 않은 경로에 쓰면 검증기가 실패시킨다(§8 검사 13).
-5. **이름 규약**: 에이전트 **밖으로 나가는 산출물**(`question_…`, `plan_…`)만 파일명에 `<agent>_<qid>`를 박는다. 내부 중간물은 `goal.json`, `axis_A1.json`, `synthesis.json`처럼 짧게 쓴다 — 경로가 이미 누구의 어느 질문인지 말해주므로 반복은 잡음이다.
-6. **라운드·리비전은 폴더가 아니라 파일명 접두사로** 표현한다(`r1_…`, `r2_…`). 폴더를 파면 깊이만 늘고 목록이 한눈에 안 보인다.
+1. **한 질문 = 한 폴더.** `questions/<qid>/`에 question·goal·축별 제약·synthesis·plan이 평평하게 놓인다. 폴더 하나만 열면 그 질문의 전말이 보인다.
+2. **단계별 폴더를 만들지 않는다** (`stage3/`, `system_designer/` 같은 것). 어느 단계의 산출물인지는 **파일명이** 말한다.
+3. **라운드·리비전은 파일명 접두사로** 표현한다(`r1_…`, `r2_…`). 폴더를 파면 깊이만 늘고 목록이 한눈에 안 보인다.
+4. **식별자는 밖으로 나가는 산출물의 파일명에만** 박는다(`question_…`, `plan_…`). 내부 중간물은 `goal.json`, `axis_A1.json`처럼 짧게 — 경로가 이미 누구의 어느 질문인지 말해준다.
+5. **깊이 상한 3단** (에이전트 디렉터리 기준). 유일한 예외는 `runs/<run_id>/raw/` — 원시데이터는 장비가 뱉는 구조를 따른다.
+6. **새 폴더는 이 문서를 고쳐야 생긴다.** §7에 선언되지 않은 경로에 쓰면 검증기가 실패시킨다(§8 검사 13). **개수 상한은 두지 않는다** — 숫자는 폴더 안에 폴더를 파는 것으로 우회되지만, 선언 의무는 우회할 수 없다.
+
+### 7.2 코드 규칙 (P13)
+
+**의존은 한 방향으로만 흐른다.** 이 다섯 줄이 코드 구조의 전부이며, 파일이 몇 개든 변하지 않는다:
+
+```
+contracts/                  아무것도 import하지 않는다 (leaf)
+      ▲
+src/axis_*.py, synthesis.py  contracts만 import. 장치를 모른다.
+      ▲
+src/operator.py              contracts + orchestrator(또는 시뮬 백엔드)만
+      ▲
+src/orchestrator.py          devices/를 import할 수 있는 유일한 곳 (현미경)
+      ▲
+src/devices/dev_*.py         형제도, 상위도 import하지 않는다
+```
+
+1. **`contracts/`는 아무것도 import하지 않는다.** 계약이 구현에 의존하면 계약이 아니다.
+2. **계획 단계 코드(`axis_*`, `synthesis`)는 장치를 모른다.** 장치 API에 묶이면 하드웨어 없이 계획을 만들 수 없게 되고, mock 검증(§4.6.5)이 무의미해진다.
+3. **`operator.py`는 장치를 직접 import하지 않는다.** 현미경에서는 orchestrator만, 시뮬레이션에서는 백엔드 모듈만 본다.
+4. **`orchestrator.py`만 `devices/`를 import한다.** 단일 진입점(§4.6.7)의 코드 수준 표현이다.
+5. **`devices/dev_*.py`는 서로를, 그리고 상위를 import하지 않는다.** 역방향 의존은 실패다(§8 검사 16).
+
+**폴더는 성장하는 것에만 준다.** `devices/`가 유일한 서브폴더인 이유는 장치가 교체·추가되며 계속 늘어나는 유일한 축이기 때문이다. `axis_*.py`는 5개로 고정이므로(§4.5.3) 폴더를 주면 빈 계층만 생긴다. 파일이 20개인 평평한 `src/`는 접두사(`dev_`, `axis_`)로 충분히 읽힌다.
+
+**LLM과 Python의 자리**: 판단하는 단계는 `.claude/skills/`에, 검사·계산·명령 유도는 `src/`에 둔다. 같은 단계를 두 곳에 쪼개는 것이 아니라, **판단은 skills, 결정론은 src**라는 P4의 파일 배치판이다.
 
 **분리 경로 (D1 후속)**: 나중에 현미경 PC로 물리 분리할 때는 `microscope_agent/` + `contracts/`만 떼어내면 되도록, 현미경 에이전트는 다른 에이전트의 디렉터리를 직접 읽지 않는다. 읽는 것은 `contracts/`와 자기 디렉터리, 그리고 브리지가 자기 쪽에 놓아준 카드뿐이다.
 
@@ -706,7 +739,7 @@ rebuild/
 13. 경로 적법성 — §7에 선언되지 않은 폴더나 깊이 4단 이상의 경로에 쓰였는지 (§7.1)
 14. 명령 추적 — `log.json`의 모든 명령 파라미터에 출처 필드 `from`(plan.json의 필드 경로)이 있는지 (§4.6.1)
 15. 승인 선행 — `runs/<run_id>`가 존재하는데 해당 `(plan_id, revision)`의 approval 카드가 없으면 실패 (§6 Tier 2)
-16. 장치 격리 — `dev_*.py`가 다른 `dev_*.py`를 import하지 않는지, orchestrator를 우회한 장비 호출이 없는지 (§4.6.7)
+16. 의존 방향 — §7.2의 다섯 줄을 지키는지: `contracts/`의 import 0개, `axis_*`가 장치를 모르는지, `devices/` 내부의 형제·역방향 import가 없는지, orchestrator를 우회한 장비 호출이 없는지
 
 **hooks**: 카드 파일이 쓰이면 자동 검증, 실패 시 커밋을 막는다. 검증기의 종료 코드가 유일한 진실이다.
 
@@ -723,7 +756,7 @@ rebuild/
 | **M4** | **브리지 왕복 1라운드.** 해시, 단위 사상 검사, 대응 가능성 검사 | 한쪽 result → 반대쪽 plan → 결과가 같은 관측량으로 비교된다(S4). |
 | **M5** | **회고 루프.** 편차·거절·gaps를 모아 KB와 envelope에 되먹임 | 같은 질문의 두 번째 왕복이 더 빠르고 모순이 없다(S5). |
 
-M2–M3의 검증은 `backends/mock.py`로 한다. 실제 HOOMD-blue와 하드웨어 연결은 각 단계의 **마지막** 항목이며, mock으로 파이프라인이 통과한 뒤에만 붙인다(§4.6.5).
+M2–M3의 검증은 mock 백엔드로 한다. 실제 HOOMD-blue와 하드웨어 연결은 각 단계의 **마지막** 항목이며, mock으로 파이프라인이 통과한 뒤에만 붙인다(§4.6.5).
 
 M1–M3은 각각 **단독으로 쓸 수 있는 에이전트**를 하나씩 완성한다(D5). 브리지(M4)는 이미 혼자 돌아가는 것들을 잇는 단계이며, 앞 단계의 전제가 아니다.
 
