@@ -1,0 +1,60 @@
+#!/bin/sh
+# Refuse a commit that breaks a contract (plan.md 8) or crosses a session
+# boundary (6.2).
+#
+# This exists because the boundary was a convention rather than a gate. Each
+# agent's .claude/settings.json denies Write and Edit on another agent's files,
+# but it does not deny `python3 - <<PY` or `sed`, and both were used -- by every
+# session, including the design one. A rule enforced only where it is
+# convenient to enforce is P4 in reverse: the model deciding whether the check
+# applies.
+#
+# Install once per working copy:
+#     git config core.hooksPath contracts/hooks
+#
+# `git commit --no-verify` still bypasses this, and leaves no trace that it did.
+# The durable catch is running check 35 over a pushed range after the fact. A
+# hook makes the right thing easy, not the wrong thing impossible.
+
+set -e
+
+REPO=$(git rev-parse --show-toplevel)
+cd "$REPO"
+
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "pre-commit: python3 not found; cannot run the gate" >&2
+    exit 1
+fi
+
+STAGED=$(git diff --cached --name-only)
+if [ -z "$STAGED" ]; then
+    exit 0
+fi
+
+# Show what is going in, grouped by who owns it. The hook cannot tell whose
+# work a staged file is -- `git add -A` in one session sweeps up another's
+# uncommitted edits, and that is how one commit came to carry three sessions'
+# work under a message describing one. It can at least make the set visible
+# before the commit rather than after.
+echo "pre-commit: staging"
+echo "$STAGED" | sed 's#^#  #'
+echo
+
+echo "pre-commit: contracts"
+if ! python3 contracts/validate.py --staged --quiet; then
+    echo >&2
+    echo "pre-commit: refused. Fix the failures above, or commit with --no-verify" >&2
+    echo "            and say in the message why the gate was bypassed." >&2
+    exit 1
+fi
+
+echo "pre-commit: the cards that must fail"
+if ! python3 contracts/validate.py --expect-fail contracts/examples/rejected >/dev/null 2>&1; then
+    echo >&2
+    echo "pre-commit: refused. A card in contracts/examples/rejected/ stopped failing," >&2
+    echo "            which means a check stopped working. Run:" >&2
+    echo "            python3 contracts/validate.py --expect-fail contracts/examples/rejected" >&2
+    exit 1
+fi
+
+exit 0

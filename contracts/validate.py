@@ -945,6 +945,7 @@ ALLOWED_PATHS = [
     r"^(plan\.md|CLAUDE\.md|README\.md|\.gitignore|\.mcp\.json)$",
     r"^contracts/(units\.md|units\.json|observables\.json|validate\.py|validation_limits\.json)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
+    r"^contracts/hooks/[a-z-]+$",
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/examples/(rejected/)?[A-Za-z0-9_.-]+\.(json|md|jsonl)$",
     r"^(microscope|simulation)_agent/CLAUDE\.md$",
@@ -1453,23 +1454,29 @@ SHARED_PATHS = re.compile(r"^(plan\.md|CLAUDE\.md|README\.md|\.gitignore|\.mcp\.
 DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|bridge)/(CLAUDE\.md|\.claude/)")
 
 
-def check_35_session_boundary(b: Bundle, commit_range: str | None = None) -> list[Finding]:
+def check_35_session_boundary(b: Bundle, commit_range: str | None = None, staged: bool = False) -> list[Finding]:
     """One session writes inside one agent (6.2).
 
     A commit touching two agent directories came from a session that could see
     both, which is the thing the session split exists to prevent.
+
+    --staged is the mode the pre-commit hook uses: there is no commit to range
+    over yet, and refusing at commit time is the only refusal that arrives
+    before the damage is in history.
     """
-    if not commit_range:
-        return [Finding(35, PENDING, "pass --commit-range to inspect commits; hooks enforce this at commit time (6.2)")]
+    if not commit_range and not staged:
+        return [Finding(35, PENDING, "pass --commit-range or --staged; the pre-commit hook passes --staged (6.2)")]
     import subprocess
+    args = ["git", "-C", str(REPO), "diff", "--name-only"]
+    args += ["--cached"] if staged else [commit_range]
     try:
-        proc = subprocess.run(["git", "-C", str(REPO), "diff", "--name-only", commit_range],
-                              capture_output=True, text=True, check=True)
+        proc = subprocess.run(args, capture_output=True, text=True, check=True)
     except (OSError, subprocess.CalledProcessError) as exc:
-        return [Finding(35, FAIL, f"cannot read commit range {commit_range!r}: {exc}")]
+        what = "the staged set" if staged else f"commit range {commit_range!r}"
+        return [Finding(35, FAIL, f"cannot read {what}: {exc}")]
     paths = [p for p in proc.stdout.splitlines() if p.strip()]
     if not paths:
-        return [Finding(35, NA, f"no files changed in {commit_range}")]
+        return [Finding(35, NA, "nothing staged" if staged else f"no files changed in {commit_range}")]
     touched: dict[str, list[str]] = {}
     contracts_touched = []
     design_paths = []
@@ -1670,13 +1677,14 @@ CHECKS = [
 # --------------------------------------------------------------------------- #
 
 
-def run(roots: list[Path], include_rejected: bool = False, commit_range: str | None = None) -> list[Finding]:
+def run(roots: list[Path], include_rejected: bool = False, commit_range: str | None = None,
+        staged: bool = False) -> list[Finding]:
     bundle = collect(roots, include_rejected)
     findings: list[Finding] = []
     for fn in CHECKS:
         try:
             if fn is check_35_session_boundary:
-                findings.extend(fn(bundle, commit_range))
+                findings.extend(fn(bundle, commit_range, staged))
             else:
                 findings.extend(fn(bundle))
         except Exception as exc:                      # a broken check must not pass silently
@@ -1691,13 +1699,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--strict", action="store_true", help="UNDECIDED and PENDING count as failures")
     ap.add_argument("--expect-fail", action="store_true", help="every card given must fail at least one check")
     ap.add_argument("--commit-range", help="git range for check 35, e.g. HEAD~1..HEAD")
+    ap.add_argument("--staged", action="store_true", help="run check 35 against the staged set; used by the pre-commit hook")
     ap.add_argument("--quiet", action="store_true", help="only print the verdict")
     args = ap.parse_args(argv)
 
     roots = args.paths or [REPO]
     roots = [r if r.is_absolute() else Path.cwd() / r for r in roots]
     include_rejected = args.expect_fail or any(REJECTED in r.parts for r in roots)
-    findings = run(roots, include_rejected, args.commit_range)
+    findings = run(roots, include_rejected, args.commit_range, args.staged)
 
     counts = {s: sum(1 for f in findings if f.status == s) for s in (PASS, FAIL, UNDECIDED, PENDING, NA)}
     if not args.quiet:

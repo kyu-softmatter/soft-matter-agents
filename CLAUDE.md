@@ -72,6 +72,21 @@ After editing knowledge entries, rebuild the index:
 python3 librarian_agent/src/kb_index.py
 ```
 
+Install the commit gate once per working copy:
+
+```bash
+git config core.hooksPath contracts/hooks
+```
+
+It shows the staged set, runs the validator against it, and checks that the
+cards which must fail still fail. `--no-verify` bypasses it and leaves no
+trace, so a bypass is something to say in the commit message.
+
+**The working copy and the git index are shared between sessions.** One
+session's `git add` is picked up by another session's `git commit`. Name paths
+rather than using `-A`, and use `git commit -- <paths>` to commit without
+disturbing what someone else has staged. See §6.2.
+
 ## Rules that bind every session here
 
 **Safety outranks everything (P0).** People first, then instruments, then
