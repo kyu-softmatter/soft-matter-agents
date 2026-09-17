@@ -1640,10 +1640,24 @@ def check_38_one_table(b: Bundle) -> list[Finding]:
         rel = str(f.relative_to(REPO))
         configs = cap.get("configurations", []) or []
 
+        by_config = {c.get("config"): c for c in configs}
         for conf in configs:
-            for oid in conf.get("produces", []) or []:
+            for item in conf.get("produces", []) or []:
+                oid = item if isinstance(item, str) else item.get("id")
                 if oid not in known_obs:
                     out.append(Finding(38, FAIL, f"configuration {conf.get('config')!r} produces {oid!r}, which contracts/observables.json does not define", rel))
+                if isinstance(item, str):
+                    continue
+                # "composes with anything" is a sentence a table can hold and an
+                # instrument cannot. The perturbation has to name this side back.
+                for need in item.get("requires_composition", []):
+                    other = by_config.get(need)
+                    if other is None:
+                        out.append(Finding(38, FAIL, f"{conf.get('config')!r} needs {need!r} composed in for {oid!r}, and no such configuration is declared here", rel))
+                    elif other.get("role") != "perturbation":
+                        out.append(Finding(38, FAIL, f"{conf.get('config')!r} needs {need!r} composed in for {oid!r}, but {need!r} is {other.get('role')!r}; only a perturbation composes in", rel))
+                    elif conf.get("config") not in (other.get("composes_with") or []):
+                        out.append(Finding(38, FAIL, f"{conf.get('config')!r} claims {need!r} composes in for {oid!r}, but {need!r}'s composes_with is {sorted(other.get('composes_with') or [])}", rel))
 
         if cap.get("agent") != "microscope_agent":
             continue                      # only the instrument has an optical path table

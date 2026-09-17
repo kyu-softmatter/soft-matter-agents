@@ -27,6 +27,23 @@
       ],
       "comparable": false,
       "note": "The first entry, and not a speculative seed: fifteen committed cards already cite this name -- the M0 round trip, the bridge's r1_ask_simulation, and six rejected/ cards. comparable stays false until the same estimator has demonstrably run on both sides (rule 4). The estimator is written to be identical on both; the only difference is where the positions come from, tracked centroids on the microscope and trajectory frames in the engine."
+    },
+    {
+      "id": "trapped_position_distribution",
+      "definition": "The in-plane distribution of a trapped particle's centre about the trap. The scalar reported is the per-axis standard deviation of that position relative to the trap centre; the full histogram stays with the raw data.",
+      "units": [
+        "um",
+        "nm"
+      ],
+      "estimator": "Track the particle centre in every frame, take the mean position as the trap centre and subtract it, and report the per-axis standard deviation over the declared record length. A particle counts as trapped when the distribution stays bounded about that centre for the whole record; drifting away is not trapped.",
+      "window_required": true,
+      "window_parameter": "record_length",
+      "producible_by": [
+        "experiment",
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "Deliberately the width and not the stiffness. sigma^2 = k_BT/k assumes a harmonic trap, and that assumption is not confirmed here -- sigma is measured without it, and a stiffness can be derived later with the assumption written down (P15). Whether the particle is trapped at all is not a separate observable but this distribution's success criterion: bounded or not. window_required is true because sigma converges from below: a short record undersamples the tails and understates it, and exposure-time averaging shaves it again, so a sigma written without its window is not one number."
     }
   ]
 }

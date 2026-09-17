@@ -78,9 +78,35 @@
           "type": "array",
           "minItems": 0,
           "items": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "an id this configuration produces on its own"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "requires_composition": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "perturbation configurations that must be composed in for this to be producible. Check 38 requires each to be a perturbation whose composes_with names this configuration."
+                  }
+                },
+                "required": [
+                  "id",
+                  "requires_composition"
+                ],
+                "additionalProperties": false
+              }
+            ]
           },
-          "description": "ids from contracts/observables.json. Empty is the honest state while the vocabulary is empty: a configuration cannot claim to produce a quantity nobody has defined yet."
+          "description": "ids from contracts/observables.json, plain when the configuration produces them alone and objects when a perturbation has to be composed in. The composition requirement lives on the observable rather than in a new path id: envelope/optical_paths.json's composable block already says which configurations compose, and a second id saying it again is two tables that will drift (4.6.7)."
         },
         "composes_with": {
           "type": "array",

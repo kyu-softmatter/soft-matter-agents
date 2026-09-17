@@ -17,7 +17,13 @@
         "camera_splitter"
       ],
       "produces": [
-        "tracer_diffusivity"
+        "tracer_diffusivity",
+        {
+          "id": "trapped_position_distribution",
+          "requires_composition": [
+            "trapping"
+          ]
+        }
       ]
     },
     {
@@ -35,7 +41,13 @@
         "dmd"
       ],
       "produces": [
-        "tracer_diffusivity"
+        "tracer_diffusivity",
+        {
+          "id": "trapped_position_distribution",
+          "requires_composition": [
+            "trapping"
+          ]
+        }
       ]
     },
     {
@@ -52,7 +64,13 @@
         "widefield_source_b"
       ],
       "produces": [
-        "tracer_diffusivity"
+        "tracer_diffusivity",
+        {
+          "id": "trapped_position_distribution",
+          "requires_composition": [
+            "trapping"
+          ]
+        }
       ]
     },
     {
@@ -68,7 +86,13 @@
         "laser_combiner"
       ],
       "produces": [
-        "tracer_diffusivity"
+        "tracer_diffusivity",
+        {
+          "id": "trapped_position_distribution",
+          "requires_composition": [
+            "trapping"
+          ]
+        }
       ]
     },
     {
