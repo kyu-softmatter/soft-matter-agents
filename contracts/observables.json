@@ -1,0 +1,16 @@
+{
+  "schema_version": "0.1",
+  "note": "The shared observable vocabulary. Each entry is checked against schemas/observable.schema.json. capabilities/*.json declare which configurations can produce which id, and the bridge resolves answerability against both.",
+  "status": "rules_fixed_content_open",
+  "why_open": "plan.md 1 leaves the measured subject open on purpose, so this list cannot be enumerated in advance. What is fixed is the shape an entry must have. The list grows one entry at a time, when a question needs one.",
+
+  "rules": [
+    "An entry is added when a question needs it, never speculatively. An unused vocabulary entry is a definition nobody has tested against data.",
+    "The estimator is part of the identity. Two sides agreeing on a word while disagreeing on how the number is extracted is worse than disagreeing openly: the values get compared and the discrepancy has no visible cause.",
+    "If the value depends on a lag, a window or an interval, window_required is true and the plan must carry that window as a condition. A window-dependent quantity is not one number, and recording it as one is how a short-lag and a long-lag result end up in the same column.",
+    "comparable is false until the same estimator demonstrably runs on both sides. Claiming it early makes a bridge round trip compare two different quantities under one name.",
+    "An id is never redefined. Changing an estimator means a new id, because plans and results already cite the old one (P9)."
+  ],
+
+  "observables": []
+}

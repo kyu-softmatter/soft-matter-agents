@@ -397,6 +397,15 @@ def check_01_schema(b: Bundle) -> list[Finding]:
         resources[f.name] = Resource.from_contents(json.loads(f.read_text()))
     registry = Registry().with_resources(resources.items())
 
+    obs_path = CONTRACTS / "observables.json"
+    if obs_path.exists():
+        obs_schema = json.loads((CONTRACTS / "schemas" / "observable.schema.json").read_text())
+        ov = jsonschema.Draft202012Validator(obs_schema, registry=registry)
+        for entry in json.loads(obs_path.read_text()).get("observables", []):
+            for err in sorted(ov.iter_errors(entry), key=lambda e: list(e.path)):
+                loc = "/".join(str(x) for x in err.path) or "(root)"
+                out.append(Finding(1, FAIL, f"observable {entry.get('id')!r}: {loc}: {err.message}", "contracts/observables.json"))
+
     if KB_DIR.exists():
         entry_schema = json.loads((CONTRACTS / "schemas" / "kb_entry.schema.json").read_text())
         ev = jsonschema.Draft202012Validator(entry_schema, registry=registry)
@@ -572,6 +581,11 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
             out.append(Finding(8, FAIL, f"answerability cites {ans.get('checked_against')!r}, which does not exist", c.rel))
             continue
         cap = json.loads(capfile.read_text())
+        known = {o["id"] for o in json.loads((CONTRACTS / "observables.json").read_text()).get("observables", [])}
+        for conf in cap.get("configurations", []):
+            for o in conf.get("observables", []):
+                if o.get("name") not in known:
+                    out.append(Finding(8, FAIL, f"{capfile.name} claims observable {o.get('name')!r}, which contracts/observables.json does not define", c.rel))
         if cap.get("status") == "skeleton":
             out.append(Finding(8, PENDING, f"{capfile.name} is a skeleton; answerability cannot be verified until 11-10 lands", c.rel))
     return out or [Finding(8, PASS, f"{len(asks)} ask cards hash and check out")]
@@ -693,7 +707,7 @@ def check_12_synthesis_closure(b: Bundle) -> list[Finding]:
 
 ALLOWED_PATHS = [
     r"^(plan\.md|CLAUDE\.md|README\.md|\.gitignore|\.mcp\.json)$",
-    r"^contracts/(units\.md|units\.json|validate\.py|validation_limits\.json)$",
+    r"^contracts/(units\.md|units\.json|observables\.json|validate\.py|validation_limits\.json)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/examples/(rejected/)?[A-Za-z0-9_.-]+\.(json|md|jsonl)$",

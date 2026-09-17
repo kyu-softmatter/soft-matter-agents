@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "thread_status.schema.json",
+  "title": "status.json — whose turn it is, and what has already repeated (4.4 rule 4, 6.2)",
+  "description": "Not a card: a thread ledger. It carries no numbers, so it needs no grades. It says who owes the next move, what pair of (reason_code, parameter) has already come back twice, and which round trips were replaced by a knowledge reference instead of reopened. Four sessions and no such line is four windows nobody can follow (6.2).",
+  "type": "object",
+  "properties": {
+    "artifact": { "const": "thread_status" },
+    "schema_version": { "const": "0.1" },
+    "thread": { "$ref": "common.schema.json#/$defs/thread" },
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "the highest round on disk for this thread. A thread with no round is not a thread."
+    },
+    "turn": {
+      "enum": ["microscope_agent", "simulation_agent", "human"],
+      "description": "never the bridge: it moves cards, so it never owes a move. Never the librarian either: the librarian answers, it does not take turns."
+    },
+    "state": {
+      "enum": ["open", "held", "escalated", "closed"],
+      "description": "open means an agent owes the next card. held means a gate could not be resolved and a person has to resolve it (4.4 failure table). escalated means a (reason_code, parameter) pair came back twice and no further round may open (4.4 rule 6). closed means the thread is done."
+    },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "blocked_pairs": {
+      "type": "array",
+      "description": "The repetition ledger. There is no fixed round cap: a number cuts off round trips that are making progress, and ones going in circles are already waste before they reach it (4.4 rule 6).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "reason_code": { "$ref": "refusal.schema.json#/properties/reason_code" },
+          "parameter": { "type": "string" },
+          "rounds": {
+            "type": "array",
+            "items": { "type": "integer", "minimum": 1 },
+            "minItems": 1,
+            "description": "the rounds this pair was refused in. Two entries call the human."
+          }
+        },
+        "required": ["reason_code", "parameter", "rounds"],
+        "additionalProperties": false
+      }
+    },
+    "substitutions": {
+      "type": "array",
+      "description": "A round that was not opened because the same observable and conditions had already crossed, and a knowledge entry answers it (4.4 rule 5). Needs the librarian: with no knowledge store to point at there is nothing to substitute, which is why a degraded bridge reopens the round instead.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "observable": { "type": "string" },
+          "direction": { "$ref": "ask.schema.json#/properties/direction" },
+          "kb_entry": { "type": "string" },
+          "first_round": { "type": "integer", "minimum": 1 }
+        },
+        "required": ["observable", "direction", "kb_entry", "first_round"],
+        "additionalProperties": false
+      }
+    },
+    "open_question": {
+      "type": ["string", "null"],
+      "description": "required when state is held: what a person has to answer, and where it is recorded (e.g. plan.md 11-1)"
+    },
+    "note": { "type": "string" }
+  },
+  "required": [
+    "artifact", "schema_version", "thread", "round", "turn", "state",
+    "updated_at", "blocked_pairs", "substitutions"
+  ],
+  "additionalProperties": false
+}

@@ -1,50 +1,92 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "capabilities.schema.json",
-  "title": "capabilities — which configurations can produce which observables (4.5.3, 4.6.7)",
-  "description": "Read by S3.0 to screen configurations and by the bridge to test answerability. On the microscope side each configuration corresponds to one entry in envelope/optical_paths.json: one table, two consumers.",
+  "title": "capabilities — the observable vocabulary, and which configurations produce which of it (4.5.3, 4.6.7)",
+  "description": "Read by S3.0 to screen configurations and by the bridge to test answerability. The vocabulary sits at the top level and the configurations point into it by name: a definition written once cannot drift between two configurations that claim the same observable. On the microscope side every configuration is one entry in the optical-path table, and check 38 holds the two id sets equal.",
   "type": "object",
   "properties": {
     "schema_version": { "const": "0.1" },
     "agent": { "enum": ["microscope_agent", "simulation_agent"] },
     "status": {
-      "enum": ["skeleton", "populated"],
-      "description": "skeleton means the configuration list is not yet declared; S3.0 refuses rather than guessing"
+      "enum": ["skeleton", "provisional", "populated"],
+      "description": "skeleton: no configuration is declared and S3.0 refuses rather than guessing. provisional: the configurations are declared but the vocabulary is a first slice (plan.md 11-1), so an observable's absence is not an impossibility and the bridge must hold rather than refuse. populated: the vocabulary is fixed and absence means the other side cannot produce it."
     },
     "pending": { "type": "string", "description": "which open question fills this" },
-    "configurations": {
-      "type": "array",
-      "items": {
+    "observables": {
+      "type": "object",
+      "description": "the vocabulary: one name, one definition, one set of admissible units. Names are shared with the other agent, which is what makes a bridge round comparable (plan.md 11-1).",
+      "additionalProperties": {
         "type": "object",
         "properties": {
-          "config": { "type": "string", "pattern": "^[a-z0-9_]+$" },
-          "label": { "type": "string" },
-          "optical_path": { "type": ["string", "null"] },
-          "devices": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-          "observables": {
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": { "type": "string" },
-                "definition": { "type": "string", "minLength": 20 },
-                "units": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
-              },
-              "required": ["name", "definition", "units"],
-              "additionalProperties": false
-            }
-          },
-          "axes_applicable": {
-            "type": "array",
-            "items": { "enum": ["a1", "a2", "a3", "a4", "a5", "a6", "a7"] }
-          }
+          "definition": { "type": "string", "minLength": 20 },
+          "units": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "note": { "type": "string" }
         },
-        "required": ["config", "devices", "observables"],
+        "required": ["definition", "units"],
         "additionalProperties": false
       }
+    },
+    "configurations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/configuration" }
     }
   },
-  "required": ["schema_version", "agent", "status", "configurations"],
-  "additionalProperties": false
+  "required": ["schema_version", "agent", "status", "observables", "configurations"],
+  "additionalProperties": false,
+  "$defs": {
+    "configuration": {
+      "type": "object",
+      "properties": {
+        "config": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "label": { "type": "string" },
+        "role": {
+          "enum": ["imaging", "perturbation"],
+          "default": "imaging",
+          "description": "imaging produces observables. perturbation drives the system and produces none of its own -- optical trapping is blocked from every detector -- so it overlays an imaging configuration instead of replacing one (4.5.3)."
+        },
+        "optical_path": {
+          "type": ["string", "null"],
+          "description": "the id of this configuration in the optical-path table. Null on the simulation side, which has no such table."
+        },
+        "devices": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "control channels a plan in this configuration may have to drive, at the granularity of one worker per channel (4.6.8). A4 screens these on automatable and read_back."
+        },
+        "produces": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "names from the top-level observables. Check 38 rejects a name that is not declared there."
+        },
+        "composes_with": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "description": "for a perturbation configuration: the imaging configurations it can overlay. The combination has to be a valid tuple in the optical-path table as well."
+        },
+        "axes_applicable": {
+          "type": "array",
+          "items": { "enum": ["a1", "a2", "a3", "a4", "a5", "a6", "a7"] },
+          "description": "optional and normally omitted. The axis list is fixed and an axis that does not apply abstains (4.5.3); pruning axes here would drop a constraint where nothing records that it was dropped."
+        }
+      },
+      "required": ["config", "devices"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "properties": { "role": { "const": "perturbation" } }, "required": ["role"] },
+          "then": {
+            "required": ["composes_with"],
+            "not": { "required": ["produces"] }
+          },
+          "else": {
+            "required": ["produces"],
+            "not": { "required": ["composes_with"] }
+          }
+        }
+      ]
+    }
+  }
 }

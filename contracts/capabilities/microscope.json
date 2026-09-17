@@ -1,7 +1,55 @@
 {
   "schema_version": "0.1",
   "agent": "microscope_agent",
-  "status": "skeleton",
-  "pending": "plan.md 11-9 (valid optical paths) and 11-10 (configuration list). The instrument has nine kinds of device and roughly fourteen discrete path selectors; which tuples actually deliver light to a detector has to be checked on the instrument, not guessed here (4.6.7, 10.3 rule 3).",
-  "configurations": []
+  "status": "provisional",
+  "pending": "plan.md 11-1. The configuration list is complete and extracted (11.1); the vocabulary is not. One observable is carried here because one question needs it. An observable that is absent from this file is undecided, not impossible: S3.0 screens only on what is listed, and a request for anything else comes back as 'name this observable first', never as a refusal.",
+  "observables": {
+    "tracer_diffusivity": {
+      "definition": "Short-time translational diffusion coefficient of dilute tracer spheres in the sample, read from the mean squared displacement of tracked centroids over lag times below the trap-free drift time.",
+      "units": ["um^2/s", "m^2/s"],
+      "note": "Every imaging configuration here claims it, which is the point: the choice between them is a trade-off, not a capability question. What separates them is whether the tracers have to fluoresce and what that costs the sample (A3)."
+    }
+  },
+  "configurations": [
+    {
+      "config": "transmitted",
+      "label": "transmitted light, brightfield. Label-free: the tracers need no fluorophore, so there is nothing to bleach and nothing to excite",
+      "role": "imaging",
+      "optical_path": "transmitted",
+      "devices": ["stand_ti2e", "confocal_csuw1", "camera_red", "camera_blue", "camera_splitter"],
+      "produces": ["tracer_diffusivity"]
+    },
+    {
+      "config": "widefield_inline",
+      "label": "widefield epi-fluorescence, inline source, patterned illumination available. The tracers must fluoresce",
+      "role": "imaging",
+      "optical_path": "widefield_inline",
+      "devices": ["stand_ti2e", "confocal_csuw1", "camera_red", "camera_blue", "camera_splitter", "widefield_source_a", "dmd"],
+      "produces": ["tracer_diffusivity"]
+    },
+    {
+      "config": "widefield_side",
+      "label": "widefield epi-fluorescence, side-coupled source, no patterning. The tracers must fluoresce",
+      "role": "imaging",
+      "optical_path": "widefield_side",
+      "devices": ["stand_ti2e", "confocal_csuw1", "camera_red", "camera_blue", "camera_splitter", "widefield_source_b"],
+      "produces": ["tracer_diffusivity"]
+    },
+    {
+      "config": "confocal",
+      "label": "spinning-disk confocal, laser excitation. The tracers must fluoresce, and the exposure must be an integer multiple of the disk period or stripes remain (A1)",
+      "role": "imaging",
+      "optical_path": "confocal",
+      "devices": ["stand_ti2e", "confocal_csuw1", "camera_red", "camera_blue", "laser_combiner"],
+      "produces": ["tracer_diffusivity"]
+    },
+    {
+      "config": "trapping",
+      "label": "optical trapping at 1064 nm. The detection path is blocked at that wavelength throughout, so the trap is invisible to both cameras and adds to an imaging configuration rather than replacing one",
+      "role": "perturbation",
+      "optical_path": "trapping",
+      "devices": ["stand_ti2e", "optical_tweezers"],
+      "composes_with": ["transmitted", "widefield_inline", "widefield_side", "confocal"]
+    }
+  ]
 }
