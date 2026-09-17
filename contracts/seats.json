@@ -30,10 +30,26 @@
       "owns": ["bridge"]
     },
     {
+      "seat": "architecture",
+      "committer_email": "architecture@seat.invalid",
+      "owns": ["design"],
+      "paths": ["plan.md", "CLAUDE.md", "README.md", ".claude/", "contracts/seats.json"],
+      "note": "The top tier of D12 (6.2). It writes what the rules are: plan.md, the repository's own instructions, and this registry. It owns this file because the tier being constrained must not own the file that says what it may touch -- a manager that could edit its own `paths` has no boundary, only a preference."
+    },
+    {
+      "seat": "manager",
+      "committer_email": "manager@seat.invalid",
+      "owns": ["design"],
+      "paths": ["contracts/", "microscope_agent/CLAUDE.md", "microscope_agent/.claude/", "simulation_agent/CLAUDE.md", "simulation_agent/.claude/", "librarian_agent/CLAUDE.md", "librarian_agent/.claude/", "bridge/CLAUDE.md", "bridge/.claude/"],
+      "excludes": ["contracts/seats.json"],
+      "note": "The middle tier of D12 (6.2). It carries the rules into contracts and into each agent's instructions, and it reviews the sub-sessions' worktrees at merge. It does not commit an agent's own artifacts: that would put a false seat on the attribution check 41 exists to make honest. Instead it checks that the sub-session committed, and sends it back if not.",
+      "excludes_note": "DECLARED, NOT ENFORCED. Check 41 matches `paths` by prefix and has no exclusion, so `contracts/` here still covers contracts/seats.json and a manager commit touching it would pass. Honouring `excludes` is a change to check 41, which is the manager's own file -- so it is requested rather than written here. Until it lands, this line is a statement of intent and the registry says so rather than implying a protection it does not give."
+    },
+    {
       "seat": "design",
       "committer_email": "design@seat.invalid",
       "owns": ["design"],
-      "note": "One design seat at a time (6.2.1). Two sessions at the root are both the design seat by definition, and while they share this identity check 41 passes their mixture -- which is what c13e742 was. Separating them takes two entries here with `paths` divided between them; nothing is divided yet, and this note is here so the registry does not imply a protection it does not give."
+      "note": "The pre-D12 identity, kept valid through the migration. It is the undivided seat that architecture and manager replace: two sessions at the root were both the design seat by definition, and while they shared this identity check 41 passed their mixture -- which is what c13e742 was. 6.2.1 prescribed dividing `paths` before opening a second one; D12 is that division. Retire this entry once every top-tier session has adopted its own identity, and not before -- an identity removed while a session still uses it turns every commit from that session into an unknown committer."
     },
     {
       "seat": "human",
