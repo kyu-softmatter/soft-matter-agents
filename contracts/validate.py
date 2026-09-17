@@ -132,9 +132,11 @@ SOURCE_GRADE = {
     "measured": "E1",
     "calibration": "E2",
     "spec": "E3",
-    "computed": None,   # max(E4, worst input)
+    "operator_read": "E3",    # the operator read it off the instrument
+    "operator_recall": "E5",  # the operator stated it from memory
+    "computed": None,         # max(E4, worst input)
     "assumed": "E5",
-    "kb": None,         # inherited from kb_refs
+    "kb": None,               # inherited from kb_refs
 }
 
 PURPOSE_DEFAULT_INTENT = {

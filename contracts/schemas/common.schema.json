@@ -14,129 +14,312 @@
       "description": "solo-<qid> when no bridge round is involved (5.2)"
     },
     "agent": {
-      "enum": ["microscope_agent", "simulation_agent", "librarian_agent", "bridge", "human"]
+      "enum": [
+        "microscope_agent",
+        "simulation_agent",
+        "librarian_agent",
+        "bridge",
+        "human"
+      ]
     },
     "grade": {
-      "enum": ["E1", "E2", "E3", "E4", "E5", "E6"],
+      "enum": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6"
+      ],
       "description": "Evidence grade (5.3). E6 may not appear in any card; the validator rejects it."
     },
     "source": {
       "type": "string",
-      "pattern": "^(measured|calibration|kb|spec|computed|assumed):[A-Za-z0-9_.:-]+$",
-      "description": "Where the number came from. The grade is derived from this prefix, never self-reported (check 21)."
+      "pattern": "^(measured|calibration|kb|spec|computed|assumed|operator_read|operator_recall):[A-Za-z0-9_.:-]+$",
+      "description": "Where the number came from. The grade is derived from this prefix, never self-reported (check 21). operator_read is a value the operator read off the instrument; operator_recall is one they stated from memory, and the two do not deserve the same grade."
     },
     "precision": {
-      "enum": ["order_of_magnitude", "significant_figures"],
+      "enum": [
+        "order_of_magnitude",
+        "significant_figures"
+      ],
       "description": "order_of_magnitude means at most one significant figure is claimed (5.8, P15)"
     },
     "number": {
       "type": "object",
       "description": "A value only means something with its unit, its source and its grade (P2).",
       "properties": {
-        "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
-        "value": { "type": "number" },
-        "unit": { "type": "string", "description": "must appear in units.json" },
-        "source": { "$ref": "#/$defs/source" },
-        "grade": { "$ref": "#/$defs/grade" },
-        "precision": { "$ref": "#/$defs/precision" },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "description": "must appear in units.json"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "grade": {
+          "$ref": "#/$defs/grade"
+        },
+        "precision": {
+          "$ref": "#/$defs/precision"
+        },
         "formula": {
           "type": "string",
           "description": "required when source is computed:. Arithmetic over other number names in this card."
         },
         "inputs": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "required when source is computed:. Names this formula reads."
         },
         "derived": {
           "type": "boolean",
           "description": "true marks a dimensionless group (5.7). Uses a computed: source; not a separate source kind."
         },
-        "symbol": { "type": "string", "description": "symbol of a dimensionless group, e.g. k_star" },
+        "symbol": {
+          "type": "string",
+          "description": "symbol of a dimensionless group, e.g. k_star"
+        },
         "origin": {
           "type": "string",
           "description": "for synthesis cards: <file>#<name> the value was carried from (check 12)"
         },
-        "note": { "type": "string" }
+        "note": {
+          "type": "string"
+        }
       },
-      "required": ["name", "value", "unit", "source", "grade"],
+      "required": [
+        "name",
+        "value",
+        "unit",
+        "source",
+        "grade"
+      ],
       "additionalProperties": false
     },
     "assumption": {
       "type": "object",
       "description": "Every assumed: number must be explained here (check 4).",
       "properties": {
-        "rationale_id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
-        "statement": { "type": "string", "minLength": 10 },
-        "numbers": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-        "falsifier": { "type": "string", "description": "what observation would retire this assumption" }
+        "rationale_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_-]+$"
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 10
+        },
+        "numbers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "falsifier": {
+          "type": "string",
+          "description": "what observation would retire this assumption"
+        }
       },
-      "required": ["rationale_id", "statement", "numbers"],
+      "required": [
+        "rationale_id",
+        "statement",
+        "numbers"
+      ],
       "additionalProperties": false
     },
     "kb_ref": {
       "type": "object",
       "description": "What the librarian returned, and the grade it returned it with (4.3.1).",
       "properties": {
-        "entry_id": { "type": "string" },
-        "grade": { "$ref": "#/$defs/grade" },
-        "kb_version": { "type": "string" },
-        "claim": { "type": "string" }
+        "entry_id": {
+          "type": "string"
+        },
+        "grade": {
+          "$ref": "#/$defs/grade"
+        },
+        "kb_version": {
+          "type": "string"
+        },
+        "claim": {
+          "type": "string"
+        }
       },
-      "required": ["entry_id", "grade", "kb_version"],
+      "required": [
+        "entry_id",
+        "grade",
+        "kb_version"
+      ],
       "additionalProperties": false
     },
     "criterion": {
       "type": "object",
       "description": "Machine-readable stop/success criterion, declared before execution (5.4).",
       "properties": {
-        "id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
-        "metric": { "type": "string" },
-        "comparator": { "enum": ["<", "<=", ">", ">=", "==", "!="] },
-        "number": { "type": "string", "description": "name of the threshold in numbers[]" },
-        "window": { "type": "string", "description": "optional: over what interval the metric is evaluated" },
-        "statement": { "type": "string" }
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_-]+$"
+        },
+        "metric": {
+          "type": "string"
+        },
+        "comparator": {
+          "enum": [
+            "<",
+            "<=",
+            ">",
+            ">=",
+            "==",
+            "!="
+          ]
+        },
+        "number": {
+          "type": "string",
+          "description": "name of the threshold in numbers[]"
+        },
+        "window": {
+          "type": "string",
+          "description": "optional: over what interval the metric is evaluated"
+        },
+        "statement": {
+          "type": "string"
+        }
       },
-      "required": ["id", "metric", "comparator", "number"],
+      "required": [
+        "id",
+        "metric",
+        "comparator",
+        "number"
+      ],
       "additionalProperties": false
     },
     "interval": {
       "type": "object",
       "description": "An allowed range on one parameter. min or max may be absent (one-sided).",
       "properties": {
-        "parameter": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
-        "unit": { "type": "string" },
-        "min": { "type": "number" },
-        "max": { "type": "number" },
+        "parameter": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
         "basis": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "names in numbers[] this bound rests on"
         },
-        "precision": { "$ref": "#/$defs/precision" }
+        "precision": {
+          "$ref": "#/$defs/precision"
+        }
       },
-      "required": ["parameter", "unit", "basis"],
+      "required": [
+        "parameter",
+        "unit",
+        "basis"
+      ],
       "additionalProperties": false
     },
     "common_head": {
       "type": "object",
       "properties": {
-        "card": { "type": "string" },
-        "schema_version": { "const": "0.1" },
-        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_.:-]*$" },
-        "qid": { "$ref": "#/$defs/qid" },
-        "thread": { "$ref": "#/$defs/thread" },
-        "round": { "type": "integer", "minimum": 0 },
-        "revision": { "type": "integer", "minimum": 1 },
-        "author": { "$ref": "#/$defs/agent" },
-        "created_at": { "type": "string", "format": "date-time" },
-        "status": { "enum": ["DRAFT", "VALIDATED", "APPROVED", "RUNNING", "DONE", "FAILED", "REFUSED"] },
-        "numbers": { "type": "array", "items": { "$ref": "#/$defs/number" } },
-        "assumptions": { "type": "array", "items": { "$ref": "#/$defs/assumption" } },
-        "kb_refs": { "type": "array", "items": { "$ref": "#/$defs/kb_ref" } },
-        "degraded": { "type": "array", "items": { "$ref": "#/$defs/agent" } }
+        "card": {
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.1"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.:-]*$"
+        },
+        "qid": {
+          "$ref": "#/$defs/qid"
+        },
+        "thread": {
+          "$ref": "#/$defs/thread"
+        },
+        "round": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "author": {
+          "$ref": "#/$defs/agent"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "enum": [
+            "DRAFT",
+            "VALIDATED",
+            "APPROVED",
+            "RUNNING",
+            "DONE",
+            "FAILED",
+            "REFUSED"
+          ]
+        },
+        "numbers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/number"
+          }
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/assumption"
+          }
+        },
+        "kb_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/kb_ref"
+          }
+        },
+        "degraded": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/agent"
+          }
+        }
       },
-      "required": ["card", "schema_version", "id", "qid", "thread", "round", "revision", "author", "created_at", "status", "numbers", "degraded"]
+      "required": [
+        "card",
+        "schema_version",
+        "id",
+        "qid",
+        "thread",
+        "round",
+        "revision",
+        "author",
+        "created_at",
+        "status",
+        "numbers",
+        "degraded"
+      ]
     }
   }
 }
