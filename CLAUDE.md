@@ -1,50 +1,92 @@
 # CLAUDE.md — soft-matter-agents
 
-The design lives in `plan.md`. Read it before changing anything structural:
-principles P0–P16 and decisions D1–D10 there override habit and convenience.
-If work would violate one of them, the work is wrong, not the principle —
-changing a principle means editing `plan.md` first, in the same commit, with
-the reason.
+Four agents for soft-matter research: a microscope agent and a simulation
+agent that design and run experiments, a librarian that owns all knowledge,
+and a bridge that carries cards between the two executing agents.
 
-## The prior repositories are out of scope
+The design lives in **`plan.md`** (Korean). Read it before changing anything
+structural. Principles **P0–P16** and decisions **D1–D11** there override
+habit and convenience: if work would violate one, the work is wrong, not the
+principle. Changing a principle means editing `plan.md` first, in the same
+commit, with the reason.
 
-**Do not consult the four prior repositories** — `agentic-microscope`,
-`Brownian-Dynamics-Agent`, `librarian-agent`, `sim-exp-bridge` — nor any
-mirror, export or summary of them. This covers filenames, not just contents:
-a filename carries vocabulary, and vocabulary carries design.
+## Status
+
+**Pre-M0.** Only `plan.md` and this file exist. `contracts/` comes first — the
+six card schemas, `units.md`, `validate.py` and the `capabilities/` skeleton —
+before any agent code (`plan.md` §9). This file will grow as the contracts
+land; it does not yet describe working code.
+
+## Rules that bind every session here
+
+**Safety outranks everything (P0).** People first, then instruments, then
+samples and data. Safety decisions are made by deterministic code, never by a
+model, and ambiguity stops rather than proceeds. `plan.md` §2.1 lists the
+seven enforced rules.
+
+**One agent, one session (D11).** The four agents always run as four separate
+Claude Code sessions. A session writes only inside its own agent directory,
+reads `contracts/` without writing it, and never touches another agent's
+directory. Sessions communicate only through file cards and read-only
+librarian MCP calls, so every transfer leaves a trace on disk. See §6.2.
+
+**Numbers carry four parts (P2).** `{value, unit, source, grade}`. The grade
+E1–E6 is derived from the source, never self-reported. E6 — a value a model
+made up — may not enter any card or the KB. See §5.3.
+
+**JSON is authoritative, Markdown is generated (P3).** If a number appears in
+both, the JSON wins. Hand-editing generated Markdown has no effect.
+
+**Knowledge lives in one place (P14).** The librarian owns it. Execution
+agents keep records and a hash-checked snapshot, never their own knowledge
+store. New facts leave as result cards for the librarian to enter. See §4.3.2.
+
+**Explore is the default (P15).** Most questions here examine a system that is
+not yet understood, so targets and constraints are stated in decades and
+differences under 10x are ties. A computed value inherits the worst precision
+of its inputs; one estimate in the chain means the answer is an order of
+magnitude. See §5.8.
+
+## The prior repositories are out of scope — for now
+
+**Do not consult** `agentic-microscope`, `Brownian-Dynamics-Agent`,
+`librarian-agent` or `sim-exp-bridge`, nor any mirror, export or summary of
+them. This covers filenames, not just contents: a filename carries vocabulary,
+and vocabulary carries design.
 
 Until 2026-09-16 a SessionStart hook injected `~/.claude/knowledge/`, a
 read-only mirror of the first two, into every session on this machine, and its
 filenames did leak terminology into this design. The mirror and the hook entry
 have since been removed. If either returns, this rule still applies.
 
-The point of this rebuild is to re-derive the role boundaries, the permission
-model and the vocabulary from scratch. Borrowing the earlier projects' terms
-smuggles in their accumulated scope, which is exactly what the rebuild exists
-to shed. `plan.md` §10.2 fixes the milestone at which each prior repository
-may be consulted; nothing earlier is allowed, however convenient.
-
-When a design question appears to need them: answer it from `plan.md`
-principles, or record it in `plan.md` §11 as an open question for the user.
-Do not fill the gap early.
-
 They do hold useful material — hardware control paths, device specs, concrete
 values such as NA, axis calculation logic, and a record of what went wrong.
-`plan.md` §10.2 says when each may be opened and §10.3 governs how numbers
+`plan.md` §10.2 says when each may be opened, and §10.3 governs how numbers
 cross over: through the librarian as graded KB entries, never pasted into code
 or `envelope/`, capped at E3 because a measurement taken elsewhere is not a
 measurement taken here, and never for safety limits.
+
+When a design question seems to need them before their milestone: answer from
+`plan.md` principles, or record it in §11 as an open question. Do not fill the
+gap early.
 
 ## Language
 
 - Everything inside this repository is written in **English**: code, schemas,
   comments, filenames, commit messages, agent instructions.
 - `plan.md` is the one exception and stays in **Korean**.
-- Numbers in prose are not numbers (P2). A quantity needs a unit and a source,
-  and the JSON is authoritative over the Markdown (P3).
 
-## Status
+## Where to look in plan.md
 
-Pre-M0. Only `plan.md` and this file exist; `contracts/` comes first (see
-`plan.md` §9). This file grows as the contracts land — it is not yet a
-description of working code.
+| | |
+|---|---|
+| §0.1 | the eleven fixed decisions D1–D11 |
+| §2, §2.1 | principles P0–P16, and the safety rules |
+| §4.1–4.4 | the four agents: what each does and does not do |
+| §4.5 | the five-stage pipeline; S3–S5 are the "system designer" |
+| §4.6 | the system operator, devices, optical paths, orchestrator, clocks |
+| §5 | card contracts, evidence grades, units, precision modes |
+| §6 | permission tiers, the two approval cards, session boundaries |
+| §7 | repository layout and the dependency graph |
+| §8 | the validator's checks, the failure record, and bias |
+| §9–§12 | milestones, scope, open questions, facts awaiting a KB |
