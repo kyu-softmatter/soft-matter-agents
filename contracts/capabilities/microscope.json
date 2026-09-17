@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "agent": "microscope_agent",
   "status": "provisional",
-  "pending": "plan.md 11-1. The vocabulary in contracts/observables.json is empty by choice: an entry is added when a question needs it, never speculatively, because an unused entry is a definition nobody has tested against data. Until then produces is empty and S3.0 has nothing to screen on -- which is why the microscope milestone is blocked on 11-1 and not on this file.",
+  "pending": "A judgement, not a missing fact. contracts/observables.json now defines tracer_diffusivity, and check 38 already passes: the five configurations match the optical path table and each points at an entry in it. What is undecided is which of the four imaging configurations can actually produce single-particle tracking well enough to claim it -- and filling in the selector value lists will not answer that on its own. Until it is decided, produces stays empty and S3.0 screens on nothing here.",
   "configurations": [
     {
       "config": "transmitted",

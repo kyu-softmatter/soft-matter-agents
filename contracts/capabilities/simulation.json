@@ -2,6 +2,6 @@
   "schema_version": "0.1",
   "agent": "simulation_agent",
   "status": "skeleton",
-  "pending": "plan.md 11-1 (the shared observable vocabulary). The configuration list here is short because one engine is one backend, but the observable names have to be agreed with the microscope side before either can declare anything.",
+  "pending": "Openable now. The earlier note said the observable names had to be agreed with the microscope side before either could declare anything, which overstated the coupling: check 38 checks produces against contracts/observables.json only, and skips the optical path table for any agent that is not the microscope. With tracer_diffusivity in the vocabulary, declaring a configuration here is blocked on nothing but the decision to declare it.",
   "configurations": []
 }
