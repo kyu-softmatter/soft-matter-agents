@@ -1,7 +1,14 @@
-# bridge
+# bridge — simulation to real and back
 
 Moves a plan or result from one executing agent to the other as a card the other
 side can act on, and manages the rounds. **It authors nothing.** `plan.md` §4.4.
+
+The two sides are **simulation and the real experiment**, and the relationship is
+symmetric. The directory keeps the name `bridge`; names like `sim2real` are
+avoided for two reasons — the direction reads one way, and the `2` implies a
+conversion this agent does not perform. It checks correspondence; it never
+converts (§4.4 rule 2). A single round does have a direction; what is
+bidirectional is the thread.
 
 **Milestone M4 — but the wire contract is already in place.** No bridge code
 exists, and §7 gives the bridge none: this agent is instructions plus

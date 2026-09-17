@@ -5,12 +5,16 @@ measured on this instrument, and carries out the measurement under approval.
 `plan.md` §4.1 and §4.5–4.6 are the specification; this file is the session's
 standing orders.
 
-**Milestone M1, second in the order.** The librarian (M3) goes first as of
-2026-09-17, so by the time this work starts there is a service to query. The
-milestone names are fixed and the order is §9's first column — a reference to
-"what M3 produces" means the librarian wherever it sits in the queue.
+**Milestone M1, built concurrently with the other three** (§9, changed
+2026-09-17). There is no order, so do not wait for the librarian. This agent is
+blocked on the observable vocabulary (§11-1) for screening and on a
+human-written `envelope/safety.json` for execution, and on nothing else.
 
-This directory is a skeleton. Nothing here runs yet.
+Two consequences. The librarian's service may arrive at any point, so both the
+degraded and the normal path have to work from the start. And one pass with the
+librarian **on** is a completion condition — `kb_refs` filled, `kb_gaps` filled,
+`degraded` empty — because built concurrently it is the normal path, not the
+degraded one, that risks never being walked (§9.1).
 
 ## What this session may write
 

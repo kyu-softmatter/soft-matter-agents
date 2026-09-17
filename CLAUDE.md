@@ -12,49 +12,40 @@ commit, with the reason.
 
 ## Status
 
-**M0 landed; the librarian (M3) is next — the order changed on 2026-09-17.**
-Implementation order is now librarian, microscope, simulation, bridge
-(`plan.md` §9). **Milestone names are not the order**: M0–M5 name bodies of
-work and the order is the first column of §9's table, so that every "what M3
-produces" reference scattered through this repo keeps pointing at the same
-thing.
+**M0 landed. The four agents are built concurrently** — changed 2026-09-17,
+after a day that tried microscope-first and then librarian-first. **Milestone
+names are not an order**: M0–M5 name bodies of work, there is no sequence, and
+the names stay fixed so every "what M3 produces" reference scattered through
+this repo keeps pointing at the same thing.
 
-The librarian went first for two reasons. It is the only agent with no
-collaboration dependency at all (§4.3.2), so it needs no stub and no mock
-counterpart. And the thing currently blocked is on its side: the two flat
-tables in `kb/staging/` have been waiting for a querying side to decide how to
-decompose them (§11.1), and that querying side is the librarian.
+Concurrency removes the fiction of an order, not the dependencies. What
+actually blocks what is a column in `plan.md` §9, and reading it gives the one
+fact worth acting on: **§11-1, the observable vocabulary, blocks three of the
+four agents.** It is a decision, not a build, and only the user can make it. An
+order would have hidden that behind "not its turn yet".
 
-What the old order gave for free is now a completion condition instead: **M1
-and M2 each require one pass with the librarian switched off**, producing a card
-that carries `degraded: ["librarian_agent"]` and still validates. Without that,
-the degraded path becomes a branch nobody walks — independence bolted on later
-is usually not independence. What the old order gave that is simply lost: the
-backlog of M1–M2 estimates that gap detection would later have re-examined.
+The librarian depends on nothing — the only agent with no collaboration
+dependency (§4.3.2). The microscope is blocked on the vocabulary for screening
+and on a human-written `envelope/safety.json` for execution, but **not** on the
+librarian. The bridge needs both sides' capabilities populated and one card on
+each side.
 
-`contracts/` exists and is the only shared code. `librarian_agent/kb/` exists
-as a **plain store**: a person curates the entries and agents read the files.
-The service on top of it — MCP server (four read-only tools), gap detection,
-distillation, external search, snapshot publishing — is M3 and is not built
-yet (§4.3.0).
+**One completion condition is inverted by concurrency** (§9.1). While an order
+existed the design required a pass with the librarian **off**, or nobody would
+walk the degraded branch. Built concurrently that branch is walked whether or
+not anyone asks — everyone's counterpart is unfinished for a while — and the
+branch at risk becomes the **normal** one. So M1 and M2 each require one pass
+with the librarian **on**: `kb_refs` filled, `kb_gaps` filled, `degraded` empty.
 
-**The stated order and the built order diverge right now.** The microscope
-agent has an execution layer under `microscope_agent/src/` while the librarian
-service has not started, so what §9 says is next is not what is furthest along.
-That is a decision waiting on the user, not a fact to work around: whether the
-microscope keeps going without a librarian, or the librarian catches up first.
-`simulation_agent/` and `bridge/` hold instructions and settings only.
+`contracts/` exists and is the only shared code. `librarian_agent/kb/` exists as
+a **plain store**: a person curates the entries and agents read the files. The
+service on top of it — MCP server (four read-only tools), gap detection,
+distillation, external search, snapshot publishing — is M3 and is not built yet
+(§4.3.0). `microscope_agent/src/` holds an execution layer; the other two agent
+directories hold instructions and settings only.
 
 Counts in prose go stale — three of them were wrong on 2026-09-17. Read them
 from the validator's `verdict:` line instead of restating them here.
-
-The bridge's **wire contract** landed with M0's cards rather than with the
-bridge itself: the `ask` envelope, the two thread ledgers (`status.json` and
-`r<N>_hashes.json`, which are not cards) and check 8 are in place, and one
-example round sits in `contracts/examples/` — **held**, because whether the
-engine side can produce the observable is undeclared, not impossible (§11-1).
-No bridge code exists and §7 gives the bridge none: it is instructions plus
-`contracts/`.
 
 ```bash
 python3 contracts/validate.py                                    # the repository
