@@ -26,7 +26,14 @@ may be consulted; nothing earlier is allowed, however convenient.
 
 When a design question appears to need them: answer it from `plan.md`
 principles, or record it in `plan.md` §11 as an open question for the user.
-Do not fill the gap from the mirror.
+Do not fill the gap early.
+
+They do hold useful material — hardware control paths, device specs, concrete
+values such as NA, axis calculation logic, and a record of what went wrong.
+`plan.md` §10.2 says when each may be opened and §10.3 governs how numbers
+cross over: through the librarian as graded KB entries, never pasted into code
+or `envelope/`, capped at E3 because a measurement taken elsewhere is not a
+measurement taken here, and never for safety limits.
 
 ## Language
 
