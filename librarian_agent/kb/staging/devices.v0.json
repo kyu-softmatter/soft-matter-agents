@@ -11,6 +11,14 @@
     "standing_decision": "every confirmed_by stamp that predated that pass was treated as unverified until re-affirmed item by item. A stamp applied in bulk records less than it claims.",
     "what_it_changed": "one channel was a phantom and is gone (camera_splitter), one was never connected and is not a control channel (temperature_stage), two pairs of elements were one mechanism each, and the six objectives are now on the nosepiece."
   },
+  "stamp_audit": {
+    "why": "The pass of 2026-09-17 decided that every confirmed_by stamp predating it was unverified until re-affirmed item by item, because a stamp applied in bulk records less than it claims. The first version of this table carried that stamp on nine channels while the pass had actually gone through five of them. The other four kept a confirmation nobody had given -- which is the same defect as a self-reported grade, one level up.",
+    "re_affirmed": ["stand_ti2e", "confocal_csuw1", "camera_red", "camera_blue"],
+    "bulk_stamp_removed": ["widefield_source_a", "widefield_source_b", "laser_combiner", "dmd", "piezo_stage"],
+    "what_changes_and_what_does_not": "No grade moves: a prior-project fact and an operator reading are both capped at E3. What changes is the dependency. confirmed_meaning below says a stamped row can survive the other repository disappearing; an unstamped one cannot, and these five cannot. Re-reading any of them at the instrument restores the stamp one row at a time.",
+    "not_a_retraction": "widefield_source_a and widefield_source_b are a stronger case than the other three: their stamp is removed AND the claim it covered is demoted to a gap, because the prior project recorded that its own measurement cannot distinguish the two assignments. The other three are simply unconfirmed here.",
+    "audited_at": "2026-09-17"
+  },
   "grade_cap": "E3",
   "grade_cap_reason": "plan.md 10.3 rule 1: a measurement taken in another project is not a measurement taken here. An operator reading is capped there too -- there is no run_id and no reproducible calibration state. Confirming any of these with a run promotes it to E1.",
   "kept_fields_only": "id, role, driver, automatable, read_back, lock_group, elements, exclusive_with, source, grade, entry_ref. Everything else in the source dossier -- serials, firmware versions, verification dates, and the narrative of how each fact was corrected -- was dropped: no consumer reads it.",
@@ -139,7 +147,8 @@
         },
         {
           "id": "lapp_branch",
-          "note": "which widefield source reaches the sample"
+          "gap_ref": "lapp_branch_assignment",
+          "note": "selects which widefield source reaches the sample. WHICH engine each state selects is not confirmed. This is also the one element on this instrument with a recorded history of an inverted label-to-state mapping -- see label_warning in optical_paths.v0.json, where a branch selector read back consistently wrong for weeks and only an image showed which position passed light. The element with that history is the element whose engine assignment is unverified, and those two facts are worth reading together rather than one at a time."
         },
         {
           "id": "motor_stage",
@@ -273,25 +282,31 @@
     },
     {
       "id": "widefield_source_a",
-      "role": "widefield epi-illumination source, inline on the branch",
+      "role": "widefield epi-illumination source on the Lapp branch. WHICH branch -- inline or side-coupled -- is not confirmed.",
       "driver": "micromanager",
       "automatable": "full",
       "read_back": true,
       "lock_group": "illumination",
       "source": "mm_config",
       "grade": "E3",
-      "confirmed_by": "operator_read:kyuhwan_20260917"
+      "confirmed_by": null,
+      "unconfirmed": ["branch_assignment"],
+      "gap_ref": "lapp_branch_assignment",
+      "note": "the role said inline until 2026-09-17 and carried the bulk stamp. The prior project's own record says the asymmetric geometry came from the same dictation as a transmission figure that turned out inverted, and that its measurement fits the two engines being the other way round equally well. An assignment that the measurement cannot distinguish is not a reading."
     },
     {
       "id": "widefield_source_b",
-      "role": "widefield epi-illumination source, side-coupled on the branch",
+      "role": "widefield epi-illumination source on the Lapp branch. WHICH branch -- inline or side-coupled -- is not confirmed.",
       "driver": "micromanager",
       "automatable": "full",
       "read_back": true,
       "lock_group": "illumination",
       "source": "mm_config",
       "grade": "E3",
-      "confirmed_by": "operator_read:kyuhwan_20260917"
+      "confirmed_by": null,
+      "unconfirmed": ["branch_assignment"],
+      "gap_ref": "lapp_branch_assignment",
+      "note": "the complementary half of the same unconfirmed assignment: if a is not inline then b is not side-coupled, so the two rows are wrong together and share one gap."
     },
     {
       "id": "laser_combiner",
@@ -324,7 +339,9 @@
           "grade_note": "the calibration was taken in the prior project, so it migrates capped at E3 (10.3 rule 1). Re-measuring it here makes it E2."
         }
       ],
-      "confirmed_by": "operator_read:kyuhwan_20260917"
+      "confirmed_by": null,
+      "confirmed_by_note": "bulk stamp removed at the channel level; see stamp_audit. The element laser_shutter keeps its stamp, because V5 of the pass did re-affirm that shutter.",
+      "elements_note": "what the pass confirmed here is that a shutter exists at the source and what it gates -- not this channel's driver split, automation or read-back."
     },
     {
       "id": "dmd",
@@ -333,12 +350,14 @@
       "automatable": "full",
       "read_back": true,
       "lock_group": "illumination",
-      "note": "on the inline widefield branch only",
+      "note": "on the inline widefield branch only -- which is a fact about where the DMD is mounted, not about which engine shares that branch. Since the engine assignment is unconfirmed (gap lapp_branch_assignment), WHICH source the DMD patterns is unknown, and this is what makes that gap load-bearing rather than cosmetic: every patterned-illumination plan names a source.",
+      "gap_ref": "lapp_branch_assignment",
       "source": "mm_config",
       "grade": "E3",
       "sync": "sw_sequence",
       "sync_note": "patterns are advanced in software, not by an electrical trigger, so per-pattern timing carries OS jitter. Anything needing tight coincidence between pattern and exposure cannot use this path (4.6.8, 4.6.9).",
-      "confirmed_by": "operator_read:kyuhwan_20260917"
+      "confirmed_by": null,
+      "confirmed_by_note": "bulk stamp removed; see stamp_audit"
     },
     {
       "id": "piezo_stage",
@@ -360,7 +379,8 @@
         "the motor must have settled before a piezo move means anything, which orders the two rather than parallelising them",
         "the two sit on different control channels but one mechanical chain, so the lock spans channels"
       ],
-      "confirmed_by": "operator_read:kyuhwan_20260917"
+      "confirmed_by": null,
+      "confirmed_by_note": "bulk stamp removed; see stamp_audit"
     },
     {
       "id": "optical_tweezers",
@@ -407,6 +427,15 @@
       "kind": "inaccessible",
       "searched": ["deliberately not extracted from the prior dossier"],
       "status": "deliberately not extracted. plan.md 10.3 rule 4: limits are policy, not knowledge, and a person writes them after confirming them physically."
+    },
+    {
+      "what": "which widefield engine is on the inline branch and which is side-coupled",
+      "gap_id": "lapp_branch_assignment",
+      "why_it_matters": "the DMD is mounted on the inline branch only, so the assignment decides which source a patterned-illumination plan is actually patterning. If it is inverted, every such plan names the wrong engine, the configuration still screens as valid, and the light that arrives is unpatterned",
+      "kind": "absent",
+      "searched": ["the prior project's own record, which states that the asymmetric geometry came from the same 2026-08-10 dictation as a transmission figure later found inverted, and that its measurement agrees equally well with the two engines being the other way round", "the pass of 2026-09-17, which did not go through these two rows"],
+      "status": "open, and it was previously recorded as confirmed -- the stamp is removed and the claim demoted rather than left standing. Settled by acquiring, not by read-back, and this selector is the reason that rule exists: it is the branch selector whose label-to-state mapping was inverted in the configuration file for weeks while both label and state read back consistently. Block one engine, switch the branch, and see which state goes dark; or pattern with the DMD and see which engine's light carries the pattern. The engines' identities are a separate question from their branches, and the session holding the prior dossier is entering those.",
+      "not_entered_here": "this session did not read the prior dossier, so the engine model names and the measured LappMainBranch1 state mapping are not written here. Removing an unsupported claim needs no new source; adding one does."
     },
     {
       "what": "csuw1_port slot order: which of the three slots is at which position number",

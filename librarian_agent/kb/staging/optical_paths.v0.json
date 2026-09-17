@@ -26,6 +26,9 @@
         "widefield_source_a",
         "dmd"
       ],
+      "sources_unconfirmed": ["widefield_source_a"],
+      "sources_gap_ref": "lapp_branch_assignment",
+      "sources_note": "naming widefield_source_a here asserts that it is the engine on the inline branch, and that assignment is not confirmed (see the lapp_branch_assignment gap in devices.v0.json). The configuration id is sound -- the inline branch exists and lapp_branch selects it -- and what is unresolved is which engine sits on it. A plan that only needs widefield illumination is unaffected; a plan that names a source, sets its power, or patterns it with the DMD stands on this gap.",
       "detectors": [
         "camera_red",
         "camera_blue"
@@ -52,6 +55,9 @@
       "sources": [
         "widefield_source_b"
       ],
+      "sources_unconfirmed": ["widefield_source_b"],
+      "sources_gap_ref": "lapp_branch_assignment",
+      "sources_note": "the complementary half of the same unconfirmed assignment: the two configurations are wrong together or right together.",
       "detectors": [
         "camera_red",
         "camera_blue"
@@ -221,7 +227,7 @@
       "status": "open. It follows from csuw1_port_slots that brightfield on the blue camera requires the 100/0 mirror and that brightfield through the 561 dichroic reaches both cameras in different bands. Which of the three a brightfield plan should ask for is a decision for the plan, not knowledge, and the store does not choose it."
     }
   ],
-  "label_warning": "Selector labels in the vendor configuration are not authoritative. Three known traps on this instrument, in increasing order of how quietly they fail. (1) In the source project one branch selector's label-to-state mapping was inverted in the configuration file and stayed wrong for weeks, because both the label and the state read back consistently -- only an image showed which position passed light. (2) csuw1_disk_position's two labels are confocal and bright field, but the bright-field position also serves widefield fluorescence, so the configuration id cannot be recovered from the label and a read-back that agrees with the label confirms nothing about which configuration is loaded. (3) csuw1_port has three slots whose order is unknown, and two of the three send zero light to one camera: commanding position 2 for the dichroic may land the mirror, and read-back will confirm position 2 and tell you nothing. O1 preflight therefore verifies state by read-back and, where a selector decides whether light arrives at all, by acquiring. Drivable and readable is not the same as verifiable, and those are two properties rather than one field.",
+  "label_warning": "Selector labels in the vendor configuration are not authoritative. Three known traps on this instrument, in increasing order of how quietly they fail. (1) In the source project one branch selector's label-to-state mapping was inverted in the configuration file and stayed wrong for weeks, because both the label and the state read back consistently -- only an image showed which position passed light. That selector is lapp_branch, and as of 2026-09-17 it carries a second unresolved question of the same shape: which widefield engine each of its states selects is not confirmed, and the prior project's own measurement fits either assignment. The element with a history of an inverted mapping is the element whose assignment is unverified; read those two together. (2) csuw1_disk_position's two labels are confocal and bright field, but the bright-field position also serves widefield fluorescence, so the configuration id cannot be recovered from the label and a read-back that agrees with the label confirms nothing about which configuration is loaded. (3) csuw1_port has three slots whose order is unknown, and two of the three send zero light to one camera: commanding position 2 for the dichroic may land the mirror, and read-back will confirm position 2 and tell you nothing. O1 preflight therefore verifies state by read-back and, where a selector decides whether light arrives at all, by acquiring. Drivable and readable is not the same as verifiable, and those are two properties rather than one field.",
   "resolved_gaps": [
     {
       "what": "the disk-out configuration",
