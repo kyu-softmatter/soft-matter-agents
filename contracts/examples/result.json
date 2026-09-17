@@ -11,7 +11,7 @@
   "status": "DONE",
   "plan_id": "plan-mic-20260917-001-r1",
   "plan_revision": 1,
-  "plan_hash": "sha256:be4833e6c0c187f31b1c8701a582406bf5b65f3c4c9130885ba2975b78f8d989",
+  "plan_hash": "sha256:7cf8b6fba0e9c53544f5d8c990692e3abf4709152dc51056d0b9668d103653c1",
   "approval_id": "appr-mic-20260917-001-r1",
   "run_id": "run-20260917-001",
   "observable": {

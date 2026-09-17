@@ -1,0 +1,84 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "id": "plan-mic-20260917-002-r1",
+  "qid": "mic-20260917-002",
+  "thread": "solo-mic-20260917-002",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T10:20:00Z",
+  "status": "VALIDATED",
+  "goal_id": "goal-mic-20260917-002-r1",
+  "synthesis_id": "synthesis-mic-20260917-002-r1",
+  "purpose": "compare",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_diffusivity",
+    "definition": "Short-time translational diffusion coefficient of dilute tracer spheres, read from the mean squared displacement of tracked centroids, measured at two sample temperatures."
+  },
+  "system_configuration": {
+    "config": "brightfield",
+    "optical_path": null,
+    "devices": ["dia_lamp", "objective_turret", "camera1", "motor_stage"],
+    "model": null
+  },
+  "conditions": [
+    { "parameter": "exposure_time", "number": "exposure_time", "device": "camera1" },
+    { "parameter": "record_length", "number": "record_length", "device": "camera1" }
+  ],
+  "compare_variable": "temperature",
+  "compare_arms": [
+    {
+      "arm": "cool",
+      "conditions": [
+        { "parameter": "temperature", "number": "temperature_cool" },
+        { "parameter": "exposure_time", "number": "exposure_time" },
+        { "parameter": "record_length", "number": "record_length" }
+      ]
+    },
+    {
+      "arm": "warm",
+      "conditions": [
+        { "parameter": "temperature", "number": "temperature_warm" },
+        { "parameter": "exposure_time", "number": "exposure_time" },
+        { "parameter": "record_length", "number": "record_length" }
+      ]
+    }
+  ],
+  "actions": [
+    { "id": "act_acquire_cool", "device": "camera1", "action": "acquire_series", "reversible": true, "parameters": ["exposure_time", "record_length"], "tier": 1 },
+    { "id": "act_acquire_warm", "device": "camera1", "action": "acquire_series", "reversible": true, "parameters": ["exposure_time", "record_length"], "tier": 1 }
+  ],
+  "envelope_check": { "checked_against": [], "status": "unavailable", "note": "envelope/safety.json arrives with M1" },
+  "cost": { "wall_clock": "two records back to back plus thermal settling", "numbers": ["total_time_estimate"] },
+  "stop_criteria": [
+    { "id": "sc_settle", "metric": "temperature_drift_during_record", "comparator": "<=", "number": "temperature_tolerance", "statement": "abort if the sample temperature moves during a record: the arm would no longer be at one temperature" }
+  ],
+  "success_criteria": [
+    { "id": "ok_ratio", "metric": "diffusivity_ratio_decades_resolved", "comparator": ">=", "number": "target_decade_resolution", "statement": "the ratio between the arms is placed within one decade" }
+  ],
+  "alternatives_rejected": [],
+  "open_risks": [
+    "the two arms share one chamber, so any slow drift in the sample appears as a temperature effect",
+    "the exposure is held fixed across arms on purpose; optimising each arm separately would make the comparison meaningless"
+  ],
+  "numbers": [
+    { "name": "exposure_time", "value": 0.007, "unit": "s", "source": "computed:geometric_middle", "grade": "E5", "precision": "order_of_magnitude", "origin": "synthesis_compare.json#exposure_time_chosen" },
+    { "name": "record_length", "value": 200, "unit": "s", "source": "assumed:a_record", "grade": "E5", "precision": "order_of_magnitude" },
+    { "name": "temperature_cool", "value": 293, "unit": "K", "source": "spec:lab_air_setpoint", "grade": "E3" },
+    { "name": "temperature_warm", "value": 303, "unit": "K", "source": "spec:stage_heater_setpoint", "grade": "E3" },
+    { "name": "temperature_tolerance", "value": 0.5, "unit": "K", "source": "assumed:a_temp_tol", "grade": "E5", "precision": "order_of_magnitude" },
+    { "name": "target_decade_resolution", "value": 1, "unit": "count", "source": "assumed:a_target", "grade": "E5", "precision": "order_of_magnitude", "origin": "goal_compare.json#target_decade_resolution" },
+    { "name": "total_time_estimate", "value": 900, "unit": "s", "source": "assumed:a_cost", "grade": "E5", "precision": "order_of_magnitude" }
+  ],
+  "assumptions": [
+    { "rationale_id": "a_exp_min", "statement": "Carried from the brightfield signal axis: the exposure window is set by read noise and blur, and it is held identical across both arms.", "numbers": ["exposure_time"], "falsifier": "a usable centroid outside the window" },
+    { "rationale_id": "a_record", "statement": "Two hundred seconds is about ten diffusive times at the expected diffusivity, the same in both arms.", "numbers": ["record_length"], "falsifier": "a converged mean squared displacement from a shorter record" },
+    { "rationale_id": "a_temp_tol", "statement": "Half a kelvin of drift during a record is the largest that keeps the arms separable, given the viscosity moves about two percent per kelvin.", "numbers": ["temperature_tolerance"], "falsifier": "arm-to-arm scatter larger than the drift effect" },
+    { "rationale_id": "a_target", "statement": "Carried from the goal: one decade of ratio resolution answers the question.", "numbers": ["target_decade_resolution"], "falsifier": "a ratio change smaller than the arm-to-arm scatter" },
+    { "rationale_id": "a_cost", "statement": "Fifteen minutes covers two records plus thermal settling between them.", "numbers": ["total_time_estimate"], "falsifier": "a measured settling time beyond the estimate" }
+  ],
+  "kb_refs": [],
+  "degraded": ["librarian_agent"]
+}

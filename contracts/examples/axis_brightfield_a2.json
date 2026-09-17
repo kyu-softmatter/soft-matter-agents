@@ -12,7 +12,7 @@
   "caller_id": "mic-20260917-001:brightfield:a2",
   "config": "brightfield",
   "axis": "a2",
-  "kb_version": "kbv-00000000",
+  "kb_version": "kbv-6757e8d916c5",
   "method": "deterministic",
   "verdict": "feasible",
   "constraints": [
@@ -87,7 +87,7 @@
     {
       "entry_id": "water_viscosity_293k",
       "grade": "E3",
-      "kb_version": "kbv-00000000",
+      "kb_version": "kbv-6757e8d916c5",
       "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second."
     }
   ],

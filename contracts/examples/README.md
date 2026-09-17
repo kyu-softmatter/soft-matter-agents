@@ -18,7 +18,22 @@ plan_microscope_mic-20260917-001.json  the plan, and its generated .md
 plan_approval.json                     a human clears that revision
 result.json                            0.18 um^2/s, one decade resolved
 failures.jsonl                         the refusal, a deviation, the success
+scope_approval.json                    an operating licence over the same range
 ```
+
+A second question, `mic-20260917-002`, exists to exercise the comparison path:
+
+```
+goal_compare.json                      purpose compare, compare_variable temperature
+axis_compare_a1.json                   the exposure window, re-derived
+axis_compare_a5.json                   temperature drift tolerance
+synthesis_compare.json                 one configuration, exposure fixed across arms
+plan_microscope_mic-20260917-002.json  two arms differing only in temperature
+```
+
+The exposure is deliberately **not** optimised per arm. Optimising each arm
+separately would give each a different systematic error and destroy the
+comparison, which is what purpose `compare` exists to prevent (check 34).
 
 Run it:
 
@@ -48,6 +63,15 @@ fewer inputs.
 than literature values, which is why they are E5 and why the plan says so in its
 open risks. The system works alone and admits what is missing (D5, section 3.1).
 
+## The store
+
+`librarian_agent/kb/` exists as a plain store from the start — a person curates
+it, agents read the files, and there is no librarian agent until M3
+(`plan.md` §4.3.0). That is already enough to make grade inheritance checkable:
+`axis_brightfield_a2.json` cites `kb:water_viscosity_293k` as E3, and the
+validator compares that against what the store actually says. Editing an entry
+without rebuilding `kb/index.json` fails check 25.
+
 ## The cards that must fail
 
 `rejected/` holds eight cards, each breaking one check on purpose:
@@ -61,6 +85,7 @@ open risks. The system works alone and admits what is missing (D5, section 3.1).
 | `bad_unknown_unit.json` | 2 | a unit outside the registry |
 | `bad_md_number.json` | 9 | markdown that drifted from its JSON |
 | `bad_sibling_a.json`, `bad_sibling_b.json` | 11 | two axes reading each other |
+| `bad_kb_grade.json` | 21, 25 | promotes a stored E3 to E1 on the way in |
 
 A normal sweep steps over this folder. To run the gate on it:
 

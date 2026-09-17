@@ -1,0 +1,44 @@
+{
+  "card": "scope_approval",
+  "schema_version": "0.1",
+  "id": "scope-mic-brightfield-20260917",
+  "qid": "mic-20260917-001",
+  "thread": "solo-mic-20260917-001",
+  "round": 0,
+  "revision": 1,
+  "author": "human",
+  "created_at": "2026-09-17T09:05:00Z",
+  "status": "APPROVED",
+  "agent": "microscope_agent",
+  "config": "brightfield",
+  "range": [
+    { "parameter": "exposure_time", "unit": "s", "min": 0.001, "max": 0.05, "basis": ["exposure_time_min", "exposure_time_max"] },
+    { "parameter": "record_length", "unit": "s", "min": 100, "max": 600, "basis": ["record_length_floor", "record_length_ceiling"] },
+    { "parameter": "illumination_power", "unit": "mW", "max": 1, "basis": ["illumination_power_ceiling"] }
+  ],
+  "devices": ["dia_lamp", "objective_turret", "camera1", "motor_stage"],
+  "valid_until": "2026-10-17T00:00:00Z",
+  "max_runs": 20,
+  "runs_used": 1,
+  "calibration_refs": ["dia_lamp_20260910"],
+  "max_grade": "E3",
+  "voided": null,
+  "approved_by": "kyuhwan",
+  "approved_at": "2026-09-17T09:05:00Z",
+  "note": "Repeated brightfield screening on this holder. The licence covers parameter sweeps inside these ranges and nothing else: an optical path change, a manual device or an irreversible action still needs an individual approval (6.1). It dies on its own at the end of the window, at twenty runs, if the lamp calibration is redone, or the first time a run breaches its stop criteria.",
+  "numbers": [
+    { "name": "exposure_time_min", "value": 0.001, "unit": "s", "source": "assumed:a_exp_min", "grade": "E5", "precision": "order_of_magnitude" },
+    { "name": "exposure_time_max", "value": 0.05, "unit": "s", "source": "assumed:a_exp_max", "grade": "E5", "precision": "order_of_magnitude" },
+    { "name": "record_length_floor", "value": 100, "unit": "s", "source": "assumed:a_rec_floor", "grade": "E5", "precision": "order_of_magnitude" },
+    { "name": "record_length_ceiling", "value": 600, "unit": "s", "source": "assumed:a_rec_ceiling", "grade": "E5", "precision": "order_of_magnitude" },
+    { "name": "illumination_power_ceiling", "value": 1, "unit": "mW", "source": "calibration:dia_lamp_20260910", "grade": "E2" }
+  ],
+  "assumptions": [
+    { "rationale_id": "a_exp_min", "statement": "The licence inherits the exposure window that the brightfield axes allowed for this holder.", "numbers": ["exposure_time_min"], "falsifier": "a usable centroid outside the window" },
+    { "rationale_id": "a_exp_max", "statement": "As above, upper end of the same window.", "numbers": ["exposure_time_max"], "falsifier": "a usable centroid outside the window" },
+    { "rationale_id": "a_rec_floor", "statement": "Shorter than a hundred seconds stops resolving the diffusive time for tracers of this size.", "numbers": ["record_length_floor"], "falsifier": "a converged mean squared displacement from a shorter record" },
+    { "rationale_id": "a_rec_ceiling", "statement": "Beyond ten minutes the stage drift stops being correctable on this holder.", "numbers": ["record_length_ceiling"], "falsifier": "a drift inside tolerance over a longer record" }
+  ],
+  "kb_refs": [],
+  "degraded": ["librarian_agent"]
+}

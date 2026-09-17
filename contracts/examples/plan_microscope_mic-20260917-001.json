@@ -105,7 +105,7 @@
     { "rationale_id": "a_cost", "statement": "Five minutes covers the record plus stage settling; no scheduling data exists for this holder yet.", "numbers": ["total_time_estimate"], "falsifier": "a measured setup time beyond the estimate" }
   ],
   "kb_refs": [
-    { "entry_id": "water_viscosity_293k", "grade": "E3", "kb_version": "kbv-00000000", "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second." }
+    { "entry_id": "water_viscosity_293k", "grade": "E3", "kb_version": "kbv-6757e8d916c5", "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second." }
   ],
   "degraded": ["librarian_agent"]
 }

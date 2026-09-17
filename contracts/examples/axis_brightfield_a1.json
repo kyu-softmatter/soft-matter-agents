@@ -12,7 +12,7 @@
   "caller_id": "mic-20260917-001:brightfield:a1",
   "config": "brightfield",
   "axis": "a1",
-  "kb_version": "kbv-00000000",
+  "kb_version": "kbv-6757e8d916c5",
   "method": "llm_estimate",
   "verdict": "feasible",
   "constraints": [

@@ -94,6 +94,9 @@
     "approved_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "note": {
+      "type": "string"
     }
   },
   "required": [

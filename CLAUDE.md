@@ -18,8 +18,11 @@ agents run without a librarian, with every card marked
 `degraded: ["librarian_agent"]`. That is deliberate: independence bolted on
 later is usually not independence.
 
-`contracts/` exists and is the only shared code. Nothing else does: the four
-agent directories are still empty.
+`contracts/` exists and is the only shared code. `librarian_agent/kb/` exists
+too, but as a **plain store**: a person curates the entries, agents read the
+files, and the librarian agent itself — MCP server, gap detection, distillation,
+external search — waits for M3 (§4.3.0). The other three agent directories are
+still empty.
 
 ```bash
 python3 contracts/validate.py                                    # the repository
@@ -30,10 +33,21 @@ python3 contracts/validate.py --expect-fail contracts/examples/rejected
 The first must end `0 failed`. The second must end `8/8 cards rejected as
 intended` — a card that stops failing means a check stopped working.
 
-Two checks report UNDECIDED rather than passing, and that is the point: the
-per-plan E5 cap is unchosen (§11-3, deferred until the librarian exists) and the
-envelope comparison needs `envelope/safety.json` from M1. A threshold nobody has
-chosen is not a threshold that is satisfied.
+One check reports UNDECIDED rather than passing, and that is the point: the
+per-plan E5 cap is unchosen (§11-2), deferred until gap detection exists,
+because an estimate count taken while nothing reports what was never looked up
+is not a sample of normal operation. A threshold nobody has chosen is not a
+threshold that is satisfied.
+
+Eight checks report PENDING: they need artifacts a later milestone produces
+(`envelope/safety.json`, run logs, agent code under `src/`). Four report N/A:
+no card of that kind exists yet. Neither is counted as a pass.
+
+After editing knowledge entries, rebuild the index:
+
+```bash
+python3 librarian_agent/src/kb_index.py
+```
 
 ## Rules that bind every session here
 

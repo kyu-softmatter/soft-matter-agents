@@ -12,7 +12,7 @@
   "caller_id": "mic-20260917-001:darkfield:a2",
   "config": "darkfield",
   "axis": "a2",
-  "kb_version": "kbv-00000000",
+  "kb_version": "kbv-6757e8d916c5",
   "method": "deterministic",
   "verdict": "feasible",
   "constraints": [

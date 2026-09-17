@@ -1,0 +1,33 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-mic-20260917-002-r1",
+  "qid": "mic-20260917-002",
+  "thread": "solo-mic-20260917-002",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T10:00:00Z",
+  "status": "VALIDATED",
+  "purpose": "compare",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_diffusivity",
+    "definition": "Short-time translational diffusion coefficient of dilute tracer spheres, read from the mean squared displacement of tracked centroids, measured at two sample temperatures."
+  },
+  "targets": [
+    { "metric": "diffusivity_ratio", "number": "target_decade_resolution", "kind": "decade_resolution" }
+  ],
+  "constraint_notes": ["the two arms run back to back on the same chamber, since remounting changes the wall distance"],
+  "priority": ["physical_feasibility", "target_accuracy", "evidence_grade", "cost"],
+  "compare_variable": "temperature",
+  "requested_by": "human",
+  "numbers": [
+    { "name": "target_decade_resolution", "value": 1, "unit": "count", "source": "assumed:a_target", "grade": "E5", "precision": "order_of_magnitude" }
+  ],
+  "assumptions": [
+    { "rationale_id": "a_target", "statement": "The comparison only has to show whether the ratio moves by a decade; the absolute coefficients are not the question.", "numbers": ["target_decade_resolution"], "falsifier": "a ratio change smaller than the arm-to-arm scatter" }
+  ],
+  "kb_refs": [],
+  "degraded": ["librarian_agent"]
+}

@@ -107,6 +107,27 @@ class Bundle:
 UNITS = json.loads((CONTRACTS / "units.json").read_text())
 LIMITS = json.loads((CONTRACTS / "validation_limits.json").read_text())
 
+KB_DIR = REPO / "librarian_agent" / "kb"
+KB_INDEX_PATH = KB_DIR / "index.json"
+
+
+def load_kb() -> dict | None:
+    """The knowledge store, if it exists.
+
+    A store is not a librarian agent: until M3 a person curates it and agents
+    read the files. What the store buys immediately is that a grade a card
+    claims to have inherited can be checked instead of trusted (check 21).
+    """
+    if not KB_INDEX_PATH.exists():
+        return None
+    try:
+        return json.loads(KB_INDEX_PATH.read_text())
+    except json.JSONDecodeError:
+        return None
+
+
+KB_INDEX = load_kb()
+
 SOURCE_GRADE = {
     "measured": "E1",
     "calibration": "E2",
@@ -374,6 +395,19 @@ def check_01_schema(b: Bundle) -> list[Finding]:
         resources[f.name] = Resource.from_contents(json.loads(f.read_text()))
     registry = Registry().with_resources(resources.items())
 
+    if KB_DIR.exists():
+        entry_schema = json.loads((CONTRACTS / "schemas" / "kb_entry.schema.json").read_text())
+        ev = jsonschema.Draft202012Validator(entry_schema, registry=registry)
+        for p in sorted((KB_DIR / "entries").glob("*.json")):
+            try:
+                entry = json.loads(p.read_text())
+            except json.JSONDecodeError as exc:
+                out.append(Finding(1, FAIL, f"unreadable kb entry: {exc}", str(p.relative_to(REPO))))
+                continue
+            for err in sorted(ev.iter_errors(entry), key=lambda e: list(e.path)):
+                loc = "/".join(str(x) for x in err.path) or "(root)"
+                out.append(Finding(1, FAIL, f"{loc}: {err.message}", str(p.relative_to(REPO))))
+
     for c in cards:
         name = CARD_SCHEMA.get(c.kind)
         if name is None:
@@ -471,7 +505,7 @@ def check_04_assumptions_explained(b: Bundle) -> list[Finding]:
 def check_05_envelope(b: Bundle) -> list[Finding]:
     envs = list(REPO.glob("*_agent/envelope/safety.json"))
     if not envs:
-        return [Finding(5, PENDING, "needs envelope/safety.json, which M3 produces (10.2)")]
+        return [Finding(5, PENDING, "needs envelope/safety.json, which M1 produces (section 9)")]
     return [Finding(5, PENDING, "envelope comparison not implemented yet")]
 
 
@@ -605,7 +639,10 @@ def check_11_axis_independence(b: Bundle) -> list[Finding]:
     return out or [Finding(11, PASS, f"{len(axes)} axis cards reference no sibling")]
 
 
-ORIGIN_RE = re.compile(r"^(axis_[a-z0-9_]+\.json|goal\.json|synthesis\.json|plan_[a-z0-9_.-]+\.json)#[a-z][a-z0-9_]*$")
+# In an agent directory one question owns one flat folder, so the names are
+# goal.json and synthesis.json. contracts/examples/ holds several questions side
+# by side, so a suffix is allowed here too.
+ORIGIN_RE = re.compile(r"^(axis_[a-z0-9_]+\.json|goal[a-z0-9_]*\.json|synthesis[a-z0-9_]*\.json|plan_[a-z0-9_.-]+\.json)#[a-z][a-z0-9_]*$")
 
 
 def check_12_synthesis_closure(b: Bundle) -> list[Finding]:
@@ -699,7 +736,7 @@ def check_13_paths(b: Bundle) -> list[Finding]:
 def check_14_command_provenance(b: Bundle) -> list[Finding]:
     logs = list(REPO.glob("*_agent/runs/*/log.json"))
     if not logs:
-        return [Finding(14, PENDING, "needs runs/<run_id>/log.json, which M3 produces")]
+        return [Finding(14, PENDING, "needs runs/<run_id>/log.json, which M1 produces")]
     return [Finding(14, PENDING, "log provenance not implemented yet")]
 
 
@@ -711,10 +748,17 @@ def check_15_approval_precedes_run(b: Bundle) -> list[Finding]:
 
 
 def check_16_dependency_direction(b: Bundle) -> list[Finding]:
-    src = list(REPO.glob("*_agent/src/*.py"))
-    if not src:
-        return [Finding(16, PENDING, "needs agent code under src/, which M2 produces (7.2)")]
     out: list[Finding] = []
+    for f in CONTRACTS.glob("*.py"):
+        bad = [m for m in re.findall(r"^\s*(?:from|import)\s+([A-Za-z0-9_.]+)", f.read_text(), re.M)
+               if m.split(".")[0] in {"microscope_agent", "simulation_agent", "librarian_agent", "bridge"}]
+        if bad:
+            out.append(Finding(16, FAIL, f"contracts imports {bad}; contracts must import nothing (7.2 rule 1)", str(f.relative_to(REPO))))
+    src = list(REPO.glob("*_agent/src/*.py")) + list(REPO.glob("*_agent/src/devices/*.py"))
+    if not src:
+        out.append(Finding(16, PASS, "contracts imports no agent (7.2 rule 1)"))
+        out.append(Finding(16, PENDING, "the other four rules need agent code under src/, which M1 produces"))
+        return out
     for f in src:
         rel = str(f.relative_to(REPO))
         text = f.read_text()
@@ -726,12 +770,6 @@ def check_16_dependency_direction(b: Bundle) -> list[Finding]:
             if rel.endswith(("synthesis.py",)) or "/axis_" in rel:
                 if "device" in mod or "orchestrator" in mod:
                     out.append(Finding(16, FAIL, f"planning code imports {mod!r}; it must not know about devices (7.2 rule 2)", rel))
-    for f in (CONTRACTS).glob("*.py"):
-        text = f.read_text()
-        bad = [m for m in re.findall(r"^\s*(?:from|import)\s+([A-Za-z0-9_.]+)", text, re.M)
-               if m.split(".")[0] in {"microscope_agent", "simulation_agent", "librarian_agent", "bridge"}]
-        if bad:
-            out.append(Finding(16, FAIL, f"contracts imports {bad}; contracts must import nothing (7.2 rule 1)", str(f.relative_to(REPO))))
     return out or [Finding(16, PASS, f"{len(src)} source files respect the dependency direction")]
 
 
@@ -886,6 +924,12 @@ def check_21_grade_derivation(b: Bundle) -> list[Finding]:
                     out.append(Finding(21, FAIL, f"{name}: kb source {ref!r} has no matching kb_refs entry to inherit a grade from", c.rel))
                 elif declared != kb_grades[ref]:
                     out.append(Finding(21, FAIL, f"{name}: kb entry {ref} was returned as {kb_grades[ref]}, card claims {declared}", c.rel))
+                elif KB_INDEX is not None:
+                    stored = (KB_INDEX.get("entries") or {}).get(ref)
+                    if stored is None:
+                        out.append(Finding(21, FAIL, f"{name}: kb entry {ref!r} is not in the store", c.rel))
+                    elif stored.get("grade") != declared:
+                        out.append(Finding(21, FAIL, f"{name}: the store grades {ref} as {stored.get('grade')}, card claims {declared}", c.rel))
             elif prefix == "computed":
                 inputs = num.get("inputs") or []
                 grades = [nums[i]["grade"] for i in inputs if i in nums]
@@ -919,7 +963,7 @@ def check_22_irreversible(b: Bundle) -> list[Finding]:
 
 def check_23_manual_lockout(b: Bundle) -> list[Finding]:
     if not list(REPO.glob("*_agent/runs/*/manual_steps.md")):
-        return [Finding(23, PENDING, "needs run logs and manual instruction sheets, which M3 produces")]
+        return [Finding(23, PENDING, "needs run logs and manual instruction sheets, which M1 produces")]
     return [Finding(23, PENDING, "lockout reconstruction not implemented yet")]
 
 
@@ -928,7 +972,7 @@ def check_24_calibration_validity(b: Bundle) -> list[Finding]:
             for n in c.data.get("numbers", []) if str(n.get("source", "")).startswith("calibration:")]
     if not used:
         return [Finding(24, NA, "no calibration-derived numbers")]
-    return [Finding(24, PENDING, f"{len(used)} calibration numbers found; validity windows need the KB (M1) and envelope snapshot (M3)")]
+    return [Finding(24, PENDING, f"{len(used)} calibration numbers found; validity windows need envelope/snapshot.json (M1) and the KB behind it (M3)")]
 
 
 def check_25_kb_refs(b: Bundle) -> list[Finding]:
@@ -948,13 +992,39 @@ def check_25_kb_refs(b: Bundle) -> list[Finding]:
         for r in c.data.get("kb_refs", []) or []:
             if not r.get("kb_version"):
                 out.append(Finding(25, FAIL, f"kb_ref {r.get('entry_id')} has no kb_version", c.rel))
-    return out or [Finding(25, PASS, f"{n} librarian values are recorded with their grade and kb_version")]
+                continue
+            if KB_INDEX is None:
+                continue
+            if r["kb_version"] != KB_INDEX.get("kb_version"):
+                out.append(Finding(25, PENDING, f"kb_ref {r.get('entry_id')} pins {r['kb_version']}, which is not the store's current {KB_INDEX.get('kb_version')}; confirming an older version needs the store's git history", c.rel))
+                continue
+            stored = (KB_INDEX.get("entries") or {}).get(r.get("entry_id"))
+            if stored is None:
+                out.append(Finding(25, FAIL, f"kb_ref cites {r.get('entry_id')!r}, which the store does not have", c.rel))
+            elif stored.get("grade") != r.get("grade"):
+                out.append(Finding(25, FAIL, f"kb_ref {r.get('entry_id')} claims {r.get('grade')} but the store says {stored.get('grade')}", c.rel))
+
+    if KB_INDEX is not None:
+        entries = {}
+        for p in sorted((KB_DIR / "entries").glob("*.json")):
+            try:
+                entries[json.loads(p.read_text())["entry_id"]] = hashlib.sha256(p.read_bytes()).hexdigest()
+            except (json.JSONDecodeError, KeyError):
+                continue
+        stale = [eid for eid, digest in entries.items()
+                 if (KB_INDEX.get("entries") or {}).get(eid, {}).get("sha256") != digest]
+        missing = set((KB_INDEX.get("entries") or {})) - set(entries)
+        if stale or missing:
+            out.append(Finding(25, FAIL, f"kb/index.json is stale: changed {sorted(stale)}, gone {sorted(missing)}. Rebuild it with librarian_agent/src/kb_index.py", "librarian_agent/kb/index.json"))
+    if not any(f.status == FAIL for f in out):
+        out.insert(0, Finding(25, PASS, f"{n} librarian values match the store's grade and pinned version"))
+    return out
 
 
 def check_26_snapshot(b: Bundle) -> list[Finding]:
     snaps = list(REPO.glob("*_agent/envelope/snapshot.json"))
     if not snaps:
-        return [Finding(26, PENDING, "needs envelope/snapshot.json and the KB it is exported from (M1, M3)")]
+        return [Finding(26, PENDING, "needs envelope/snapshot.json (M1) and the KB it is exported from (M3)")]
     return [Finding(26, PENDING, "snapshot hash comparison not implemented yet")]
 
 
@@ -1116,8 +1186,46 @@ def check_34_compare_arms(b: Bundle) -> list[Finding]:
     return out or [Finding(34, PASS, f"{len(plans)} comparison plans hold every condition but the compared variable")]
 
 
-def check_35_session_boundary(b: Bundle) -> list[Finding]:
-    return [Finding(35, PENDING, "needs a commit range to inspect; enforced by hooks at commit time (6.2)")]
+AGENT_OF_PATH = [
+    (re.compile(r"^microscope_agent/"), "microscope_agent"),
+    (re.compile(r"^simulation_agent/"), "simulation_agent"),
+    (re.compile(r"^librarian_agent/"), "librarian_agent"),
+    (re.compile(r"^bridge/"), "bridge"),
+]
+SHARED_PATHS = re.compile(r"^(plan\.md|CLAUDE\.md|README\.md|\.gitignore|\.mcp\.json|\.claude/)")
+
+
+def check_35_session_boundary(b: Bundle, commit_range: str | None = None) -> list[Finding]:
+    """One session writes inside one agent (6.2).
+
+    A commit touching two agent directories came from a session that could see
+    both, which is the thing the session split exists to prevent.
+    """
+    if not commit_range:
+        return [Finding(35, PENDING, "pass --commit-range to inspect commits; hooks enforce this at commit time (6.2)")]
+    import subprocess
+    try:
+        proc = subprocess.run(["git", "-C", str(REPO), "diff", "--name-only", commit_range],
+                              capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError) as exc:
+        return [Finding(35, FAIL, f"cannot read commit range {commit_range!r}: {exc}")]
+    paths = [p for p in proc.stdout.splitlines() if p.strip()]
+    if not paths:
+        return [Finding(35, NA, f"no files changed in {commit_range}")]
+    touched: dict[str, list[str]] = {}
+    contracts_touched = []
+    for p in paths:
+        if p.startswith("contracts/"):
+            contracts_touched.append(p)
+        for rx, agent in AGENT_OF_PATH:
+            if rx.match(p):
+                touched.setdefault(agent, []).append(p)
+    out: list[Finding] = []
+    if len(touched) > 1:
+        out.append(Finding(35, FAIL, f"one commit writes into {sorted(touched)}; a session writes inside one agent (6.2)"))
+    if contracts_touched and touched:
+        out.append(Finding(35, FAIL, f"the same commit edits contracts/ and {sorted(touched)}; contracts are read by agent sessions, not written by them"))
+    return out or [Finding(35, PASS, f"{len(paths)} changed paths stay inside one boundary")]
 
 
 def check_36_symbol_collision(b: Bundle) -> list[Finding]:
@@ -1139,9 +1247,15 @@ def check_36_symbol_collision(b: Bundle) -> list[Finding]:
                 out.append(Finding(36, FAIL, f"symbol {sym!r} is {formula!r} here but {defs[sym][0]!r} in {defs[sym][1]} (5.7)", c.rel))
             else:
                 defs[sym] = (formula, c.rel)
-    kb = list(REPO.glob("librarian_agent/kb/entries/*.json"))
-    if not kb and n:
-        out.append(Finding(36, PENDING, f"{n} ad-hoc groups checked against each other; the KB comparison needs M1"))
+    if KB_INDEX is not None:
+        for eid, e in (KB_INDEX.get("entries") or {}).items():
+            if e.get("kind") != "dimensionless_group" or not e.get("symbol"):
+                continue
+            sym, formula = e["symbol"], e.get("formula")
+            if sym in defs and defs[sym][0] != formula:
+                out.append(Finding(36, FAIL, f"symbol {sym!r} is {defs[sym][0]!r} in {defs[sym][1]} but the store defines it as {formula!r} (5.7)", "librarian_agent/kb/index.json"))
+    elif n:
+        out.append(Finding(36, PENDING, f"{n} ad-hoc groups checked against each other; comparing them with the store needs kb/index.json"))
     return out or [Finding(36, PASS if n else NA, f"{n} dimensionless group definitions do not collide" if n else "no dimensionless groups")]
 
 
@@ -1158,7 +1272,7 @@ def check_37_time_base(b: Bundle) -> list[Finding]:
         if not tb.get("t0_wall"):
             out.append(Finding(37, FAIL, "no t0_wall: events cannot be placed on a common axis", c.rel))
     if not list(REPO.glob("*_agent/runs/*/log.json")):
-        out.append(Finding(37, PENDING, "per-event offsets need run logs from M3"))
+        out.append(Finding(37, PENDING, "per-event offsets need run logs from M1"))
     return out or [Finding(37, PASS, f"{len(results)} results rest on a hardware time base")]
 
 
@@ -1181,12 +1295,15 @@ CHECKS = [
 # --------------------------------------------------------------------------- #
 
 
-def run(roots: list[Path], include_rejected: bool = False) -> list[Finding]:
+def run(roots: list[Path], include_rejected: bool = False, commit_range: str | None = None) -> list[Finding]:
     bundle = collect(roots, include_rejected)
     findings: list[Finding] = []
     for fn in CHECKS:
         try:
-            findings.extend(fn(bundle))
+            if fn is check_35_session_boundary:
+                findings.extend(fn(bundle, commit_range))
+            else:
+                findings.extend(fn(bundle))
         except Exception as exc:                      # a broken check must not pass silently
             no = int(fn.__name__.split("_")[1])
             findings.append(Finding(no, FAIL, f"check raised {type(exc).__name__}: {exc}"))
@@ -1198,13 +1315,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("paths", nargs="*", type=Path, default=None)
     ap.add_argument("--strict", action="store_true", help="UNDECIDED and PENDING count as failures")
     ap.add_argument("--expect-fail", action="store_true", help="every card given must fail at least one check")
+    ap.add_argument("--commit-range", help="git range for check 35, e.g. HEAD~1..HEAD")
     ap.add_argument("--quiet", action="store_true", help="only print the verdict")
     args = ap.parse_args(argv)
 
     roots = args.paths or [REPO]
     roots = [r if r.is_absolute() else Path.cwd() / r for r in roots]
     include_rejected = args.expect_fail or any(REJECTED in r.parts for r in roots)
-    findings = run(roots, include_rejected)
+    findings = run(roots, include_rejected, args.commit_range)
 
     counts = {s: sum(1 for f in findings if f.status == s) for s in (PASS, FAIL, UNDECIDED, PENDING, NA)}
     if not args.quiet:

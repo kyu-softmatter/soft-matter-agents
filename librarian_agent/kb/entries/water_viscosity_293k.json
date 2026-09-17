@@ -1,0 +1,17 @@
+{
+  "entry_id": "water_viscosity_293k",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood.",
+  "numbers": [
+    { "name": "viscosity", "value": 0.001, "unit": "Pa*s", "source": "kb:water_viscosity_293k", "grade": "E3" }
+  ],
+  "validity_conditions": "pure water, 288 to 298 K, atmospheric pressure. Not valid for the buffer or glycerol mixtures, and not valid without stating the temperature: the value carries a temperature dependence steep enough to matter in confirm mode.",
+  "grade": "E3",
+  "grade_tag": "textbook",
+  "source_ref": "src_water_properties",
+  "date": "2026-09-17",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

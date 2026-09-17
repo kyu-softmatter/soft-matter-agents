@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "kb_entry.schema.json",
+  "title": "kb entry — one atomic claim (4.3)",
+  "description": "One claim per file. The store is authoritative for knowledge (P14) whether or not a librarian agent exists to serve it.",
+  "type": "object",
+  "properties": {
+    "entry_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "schema_version": { "const": "0.1" },
+    "kind": {
+      "enum": ["claim", "dimensionless_group", "calibration"],
+      "description": "a dimensionless_group carries a formula instead of a value (5.7)"
+    },
+    "claim": { "type": "string", "minLength": 20 },
+    "numbers": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/number" } },
+    "symbol": { "type": "string", "description": "dimensionless_group only" },
+    "formula": { "type": "string", "description": "dimensionless_group only" },
+    "inputs": { "type": "array", "items": { "type": "string" } },
+    "validity_conditions": { "type": "string", "minLength": 10, "description": "under what conditions the claim holds; a claim without them is not reusable" },
+    "grade": { "$ref": "common.schema.json#/$defs/grade" },
+    "grade_tag": {
+      "enum": ["peer_reviewed", "preprint", "vendor_spec", "textbook", "measured_here", "calibration"],
+      "description": "the sub-rank inside a grade, mostly to separate the kinds of E3 (4.3)"
+    },
+    "source_ref": { "type": "string", "description": "id in kb/sources/" },
+    "date": { "type": "string", "format": "date" },
+    "supersedes": { "type": ["string", "null"] },
+    "conflict_with": { "type": "array", "items": { "type": "string" }, "description": "contradictory entries are both kept and marked, never merged (4.3)" },
+    "curated_by": { "type": "string", "description": "who put it here. Until M3 that is a person, not the librarian agent." }
+  },
+  "required": ["entry_id", "schema_version", "kind", "claim", "validity_conditions", "grade", "source_ref", "date", "curated_by"],
+  "unevaluatedProperties": false
+}
