@@ -1,0 +1,16 @@
+{
+  "entry_id": "lab_ambient_temperature",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. Because nothing actuates the sample temperature on this instrument, this is an ambient value of the room rather than a setpoint -- which is what makes it an operator reading at E3 and not a calibration at E2.",
+  "numbers": [
+    { "name": "ambient_temperature", "value": 293, "unit": "K", "source": "operator_read:kyuhwan_20260917", "grade": "E3", "precision": "significant_figures", "note": "the reading was reported as 20 degrees Celsius. The store carries kelvin because the unit registry is multiplicative -- si_factor and a dimension vector cannot express an offset unit, so Celsius cannot enter it at all. 293 K rather than 293.15 K: the exact conversion would claim five figures from a reading given to the nearest degree, and the 0.15 K it drops is far inside the resolution of the reading." }
+  ],
+  "validity_conditions": "The room as of 2026-09-17, operator read off a thermometer. Two things are still open and neither may be assumed. WHERE the thermometer is -- room air or close to the sample -- is not recorded, so this is the laboratory's ambient temperature and it is not established to be the sample's; a plan that needs the viscosity or the thermal energy AT THE SAMPLE stands on that gap rather than on this entry. And the drift band is unmeasured: with no actuator, that band is not a tolerance anyone chooses but a property of the room somebody has to measure. Water's viscosity moves by roughly two percent per kelvin, so in explore mode a drift of about a kelvin does not move a decade and can be ignored, while in confirm mode it cannot. The date the reading was taken is not recorded either -- what is dated 2026-09-17 is the operator's statement that it is a reading.",
+  "grade": "E3",
+  "source_ref": "src_operator_read_20260917",
+  "date": "2026-09-17",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

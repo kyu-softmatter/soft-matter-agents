@@ -1,7 +1,7 @@
 {
   "source_id": "src_operator_read_20260917",
   "kind": "operator_read",
-  "identifier": "Instrument verification pass of 2026-09-17: the operator (kyuhwan) went row by row over kb/staging/{devices,optical_paths}.v0.json at the instrument and reported what he read off it.",
+  "identifier": "Instrument verification pass of 2026-09-17: the operator (kyuhwan) went row by row over kb/staging/{devices,optical_paths}.v0.json at the instrument and reported what he read off it. The same pass answered the one question plan.md 12 left open about the laboratory temperature: it is a thermometer reading, not a setpoint and not a recollection.",
   "accessed": "2026-09-17",
   "grade_rule": "E3. An operator reading is not a measurement by this system -- there is no run_id and no calibration state to reproduce -- so it is capped at E3 (plan.md 10.3 rule 1, 5.3). Confirming one of these with a run promotes it to E1 and supersedes the entry.",
   "record": "kb/distilled/operator_verification_20260917.md",

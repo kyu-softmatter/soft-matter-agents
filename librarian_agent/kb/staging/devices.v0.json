@@ -475,7 +475,7 @@
       "why_it_matters": "water's viscosity moves by roughly two percent per kelvin, so a drift band of a kelvin moves the diffusive time by the same amount -- invisible in explore mode, decisive in confirm mode",
       "kind": "absent",
       "searched": ["plan.md 12 records 20 C with setpoint-or-measurement left undecided", "operator pass of 2026-09-17, which settled that nothing actuates it"],
-      "status": "open, and half-answered. With nothing controlling the sample temperature it CANNOT be a setpoint, so the 20 C in plan.md 12 is an ambient value of the room. What remains is whether that 20 C was read off a thermometer (operator_read, E3) or stated from memory (operator_recall, E5) -- nobody has said which, so no value is entered here -- plus the drift band and the reading location. Without control that band is not a tolerance to be chosen but a property of the room to be measured."
+      "status": "open, and narrowed twice. With nothing controlling the sample temperature the 20 C in plan.md 12 CANNOT be a setpoint, so it is an ambient value of the room; and the operator stated on 2026-09-17 that he read it off a thermometer rather than recalling it, which settles the grade at E3 and puts the value in the store as entry lab_ambient_temperature. Two parts are still missing. WHERE the thermometer sits -- room air or close to the sample -- is unrecorded, so the entered value is the room's and nothing establishes it as the sample's. And the drift band is unmeasured: without an actuator that band is not a tolerance to be chosen but a property of the room to be measured, and it is what confirm mode would need."
     }
   ],
   "resolved_gaps": [
