@@ -1,7 +1,19 @@
 {
   "schema_version": "0.1",
   "agent": "simulation_agent",
-  "status": "skeleton",
-  "pending": "Openable now. The earlier note said the observable names had to be agreed with the microscope side before either could declare anything, which overstated the coupling: check 38 checks produces against contracts/observables.json only, and skips the optical path table for any agent that is not the microscope. With tracer_diffusivity in the vocabulary, declaring a configuration here is blocked on nothing but the decision to declare it.",
-  "configurations": []
+  "status": "provisional",
+  "pending": "plan.md 11-1. The vocabulary is open by design and grows one entry per question, so a name absent from contracts/observables.json is undecided rather than impossible: a request for one comes back as name-this-observable-first, never as a refusal. Two shape notes. The configuration list is short because the model is a human decision (4.2): the agent may only select a model already declared here, and adding one is a write to contracts/, which an agent session cannot make (6.2) -- so this file is where that prohibition becomes a permission boundary rather than advice. And `devices` fits the instrument, not the engine; minItems is 1, so it names the module that executes. A4 is sampling on this side, not device screening, so nothing reads it for automatable or read_back.",
+  "configurations": [
+    {
+      "config": "bd_overdamped",
+      "label": "overdamped Brownian dynamics of spherical tracers in an implicit solvent, undriven. Mass-based time units do not enter: in the overdamped limit they are absent from the physics and have no experimental counterpart (5.7). A7 abstains here rather than being pruned -- this configuration drives nothing, and the a7 card says so (4.5.3)",
+      "optical_path": null,
+      "devices": [
+        "hoomd_backend"
+      ],
+      "produces": [
+        "tracer_diffusivity"
+      ]
+    }
+  ]
 }

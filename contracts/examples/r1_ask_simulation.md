@@ -11,7 +11,7 @@ would be two quantities (P3, check 9).
 | gate | verdict |
 |---|---|
 | payload integrity | the canonical hash of the carried card matches `r1_hashes.json` |
-| answerability | **undeclared** — checked against `capabilities/simulation.json` |
+| answerability | **yes** — `bd_overdamped` produces it, checked against `capabilities/simulation.json` |
 | unit consistency | **no counterpart** — the opening round has nothing to compare against |
 
 ## Why the round is held rather than refused

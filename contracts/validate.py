@@ -1679,6 +1679,42 @@ def check_39_estimate_justified(b: Bundle) -> list[Finding]:
     return [Finding(39, PASS, f"{n} estimates each name the gap they stand on")]
 
 
+def check_40_window_condition(b: Bundle) -> list[Finding]:
+    """A window-dependent observable is not one number (5.7).
+
+    When the vocabulary marks an observable window_required, the plan has to
+    carry that window as a condition. Without it a short-lag and a long-lag
+    result land in one column under one name, and nothing in the record says
+    they were different measurements.
+    """
+    plans = b.of_kind("plan")
+    if not plans:
+        return [Finding(40, NA, "no plan cards")]
+    vocab = load_observables()
+    out: list[Finding] = []
+    checked = 0
+    for c in plans:
+        obs = (c.data.get("observable") or {}).get("name")
+        entry = vocab.get(obs)
+        if entry is None:
+            out.append(Finding(40, PENDING, f"observable {obs!r} is not in the vocabulary, so its window requirement is unknown", c.rel))
+            continue
+        if not entry.get("window_required"):
+            continue
+        checked += 1
+        want = entry.get("window_parameter")
+        if not want:
+            out.append(Finding(40, FAIL, f"the vocabulary marks {obs!r} window_required but names no window_parameter", "contracts/observables.json"))
+            continue
+        conditions = {d.get("parameter"): d.get("number") for d in c.data.get("conditions", []) or []}
+        if want not in conditions:
+            out.append(Finding(40, FAIL, f"{obs!r} depends on a window, so the plan must carry {want!r} as a condition (5.7); it carries {sorted(conditions)}", c.rel))
+            continue
+        if conditions[want] not in c.numbers():
+            out.append(Finding(40, FAIL, f"condition {want!r} points at {conditions[want]!r}, which is not in numbers[]", c.rel))
+    return out or [Finding(40, PASS, f"{checked} plans carry the window their observable depends on")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -1690,6 +1726,7 @@ CHECKS = [
     check_28_precision, check_29_failure_record, check_30_lessons, check_31_candidate_preservation,
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
+    check_40_window_condition,
 ]
 
 

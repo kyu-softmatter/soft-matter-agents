@@ -24,7 +24,7 @@
     "status": "DONE",
     "plan_id": "plan-mic-20260917-001-r1",
     "plan_revision": 1,
-    "plan_hash": "sha256:7cf8b6fba0e9c53544f5d8c990692e3abf4709152dc51056d0b9668d103653c1",
+    "plan_hash": "sha256:0ea6db8e9b28147d78507089882c56076c962e23c1bb122c80597fb774c03fb9",
     "approval_id": "appr-mic-20260917-001-r1",
     "run_id": "run-20260917-001",
     "observable": {
@@ -205,11 +205,14 @@
       "librarian_agent"
     ]
   },
-  "payload_hash": "sha256:4e89126aab4e04277e2a5f7c9b360e2345dbd8a7392da95e4a22a3493fa7f607",
+  "payload_hash": "sha256:2e8b3d47892f395fd4792a0ade25f3ce10e034ff425301f16e3ae55832848a81",
   "answerability": {
     "observable": "tracer_diffusivity",
     "checked_against": "simulation.json",
-    "producible": "undeclared",
+    "producible": "yes",
+    "producing_configs": [
+      "bd_overdamped"
+    ],
     "substitutes": []
   },
   "unit_consistency": {
