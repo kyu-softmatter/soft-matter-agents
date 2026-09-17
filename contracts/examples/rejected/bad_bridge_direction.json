@@ -31,7 +31,10 @@
   "answerability": {
     "observable": "tracer_diffusivity",
     "checked_against": "simulation.json",
-    "producible": "undeclared",
+    "producible": "yes",
+    "producing_configs": [
+      "bd_overdamped"
+    ],
     "substitutes": []
   },
   "unit_consistency": {

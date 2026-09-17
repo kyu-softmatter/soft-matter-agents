@@ -3,11 +3,11 @@
   "schema_version": "0.1",
   "thread": "thr-diffusivity-crosscheck",
   "round": 1,
-  "turn": "human",
-  "state": "held",
-  "updated_at": "2026-09-17T10:20:00Z",
+  "turn": "simulation_agent",
+  "state": "open",
+  "updated_at": "2026-09-17T11:05:00Z",
   "blocked_pairs": [],
   "substitutions": [],
-  "open_question": "plan.md 11-1: the observable vocabulary. contracts/observables.json defines no entry yet and capabilities/simulation.json declares no configuration, so whether the engine side can produce tracer_diffusivity is undecided, not impossible.",
-  "note": "Held, not refused. The envelope stays on disk so the attempt is on the record (P1), and the turn is a person's because only a person can answer what the tables have not declared."
+  "open_question": null,
+  "note": "Held until 2026-09-17, when contracts/observables.json got its first entry and capabilities/simulation.json declared bd_overdamped. The gate resolved to yes without anything in this thread being re-argued, so the turn passed from a person to the engine side. The envelope from the held period stays on disk: the attempt is on the record (P1)."
 }

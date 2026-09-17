@@ -84,12 +84,18 @@ r1_hashes.json           the source card's id, revision and hash
 status.json              whose turn it is, and what is blocking
 ```
 
-`capabilities/simulation.json` declares no configuration and
-`contracts/observables.json` defines no entry, so whether the engine side can
-produce `tracer_diffusivity` is **undeclared** — and undeclared is not
-impossible. Refusing would record an impossibility nobody established; answering
-yes would claim a capability nobody declared. So the round is held, the turn is a
-person's, and `status.json` names the open question (plan.md 11-1).
+`contracts/observables.json` defines `tracer_diffusivity` and
+`capabilities/simulation.json` declares `bd_overdamped` as producing it, so the
+derived verdict is **yes** and `status.json` puts the turn on the engine side.
+
+Until 2026-09-17 both tables were empty and the verdict was **undeclared**, so
+this round was held with the turn on a person — and undeclared is not
+impossible. Refusing would have recorded an impossibility nobody established;
+answering yes would have claimed a capability nobody declared. What is worth
+looking at is how it moved: two other files changed, and the verdict stored in
+this envelope then failed check 8 until it was brought into line. The envelope
+records what the gate said, and the gate is recomputed from the tables rather
+than trusted.
 
 Three things here are worth looking at:
 
