@@ -1,0 +1,47 @@
+{
+  "$comment": "The design seat (plan.md 6.2, 7). The repository root is the design session's working directory: it owns plan.md, contracts/, and each agent's CLAUDE.md and .claude/, and it specifies rather than implements. Everything else inside an agent directory belongs to that agent's own session, whose cwd is that directory. Claude Code loads .claude/settings.json from the working directory only and never from a subdirectory, so an agent session launched at the root gets THIS file instead of its own and is refused here. That refusal is the point -- a misplaced seat should be loud rather than silent. Write and Edit are not the whole boundary: deny does not reach `sed -i` or a python heredoc, and both have been used here by every session. The gate that actually holds is contracts/hooks/pre-commit (check 35), installed with `git config core.hooksPath contracts/hooks`.",
+  "permissions": {
+    "deny": [
+      "Write(microscope_agent/envelope/**)",
+      "Edit(microscope_agent/envelope/**)",
+      "Write(microscope_agent/approvals/**)",
+      "Edit(microscope_agent/approvals/**)",
+      "Write(microscope_agent/questions/**)",
+      "Edit(microscope_agent/questions/**)",
+      "Write(microscope_agent/runs/**)",
+      "Edit(microscope_agent/runs/**)",
+      "Write(microscope_agent/src/**)",
+      "Edit(microscope_agent/src/**)",
+      "Write(simulation_agent/envelope/**)",
+      "Edit(simulation_agent/envelope/**)",
+      "Write(simulation_agent/approvals/**)",
+      "Edit(simulation_agent/approvals/**)",
+      "Write(simulation_agent/questions/**)",
+      "Edit(simulation_agent/questions/**)",
+      "Write(simulation_agent/runs/**)",
+      "Edit(simulation_agent/runs/**)",
+      "Write(simulation_agent/src/**)",
+      "Edit(simulation_agent/src/**)",
+      "Write(librarian_agent/kb/**)",
+      "Edit(librarian_agent/kb/**)",
+      "Write(librarian_agent/src/**)",
+      "Edit(librarian_agent/src/**)",
+      "Write(bridge/threads/**)",
+      "Edit(bridge/threads/**)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/contracts/validate.py\" --quiet",
+            "$comment": "the validator's exit code is the only truth (plan.md 8)"
+          }
+        ]
+      }
+    ]
+  }
+}
