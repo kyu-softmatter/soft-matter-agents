@@ -3,7 +3,6 @@
   "note": "The shared observable vocabulary. Each entry is checked against schemas/observable.schema.json. capabilities/*.json declare which configurations can produce which id, and the bridge resolves answerability against both.",
   "status": "rules_fixed_content_open",
   "why_open": "plan.md 1 leaves the measured subject open on purpose, so this list cannot be enumerated in advance. What is fixed is the shape an entry must have. The list grows one entry at a time, when a question needs one.",
-
   "rules": [
     "An entry is added when a question needs it, never speculatively. An unused vocabulary entry is a definition nobody has tested against data.",
     "The estimator is part of the identity. Two sides agreeing on a word while disagreeing on how the number is extracted is worse than disagreeing openly: the values get compared and the discrepancy has no visible cause.",
@@ -11,6 +10,23 @@
     "comparable is false until the same estimator demonstrably runs on both sides. Claiming it early makes a bridge round trip compare two different quantities under one name.",
     "An id is never redefined. Changing an estimator means a new id, because plans and results already cite the old one (P9)."
   ],
-
-  "observables": []
+  "observables": [
+    {
+      "id": "tracer_diffusivity",
+      "definition": "The short-time translational self-diffusion coefficient of dilute spherical tracers in the sample: the proportionality between mean squared displacement and lag time in the free regime, before hindrance by walls or by neighbouring particles sets in.",
+      "units": [
+        "um^2/s",
+        "m^2/s"
+      ],
+      "estimator": "Least-squares fit of the mean squared displacement of single-particle positions against lag time, over lags strictly below the diffusive time tau_d, with the intercept left free so that localisation error stays out of the slope. D = slope / (2 * spatial_dimensions).",
+      "window_required": true,
+      "window_parameter": "max_lag_time",
+      "producible_by": [
+        "experiment",
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "The first entry, and not a speculative seed: fifteen committed cards already cite this name -- the M0 round trip, the bridge's r1_ask_simulation, and six rejected/ cards. comparable stays false until the same estimator has demonstrably run on both sides (rule 4). The estimator is written to be identical on both; the only difference is where the positions come from, tracked centroids on the microscope and trajectory frames in the engine."
+    }
+  ]
 }
