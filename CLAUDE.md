@@ -1,7 +1,7 @@
 # CLAUDE.md — soft-matter-agents
 
 The design lives in `plan.md`. Read it before changing anything structural:
-principles P1–P13 and decisions D1–D8 there override habit and convenience.
+principles P0–P16 and decisions D1–D10 there override habit and convenience.
 If work would violate one of them, the work is wrong, not the principle —
 changing a principle means editing `plan.md` first, in the same commit, with
 the reason.
