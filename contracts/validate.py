@@ -1115,7 +1115,7 @@ def check_18_scope_range(b: Bundle) -> list[Finding]:
             out.append(Finding(18, FAIL, "scope_approval without max_runs", c.rel))
     envs = list(REPO.glob("*_agent/envelope/safety.json"))
     if not envs:
-        out.append(Finding(18, PENDING, "subset-of-envelope test needs envelope/safety.json from M3"))
+        out.append(Finding(18, PENDING, "subset-of-envelope test needs envelope/safety.json, which M1 produces"))
     return out
 
 
@@ -1714,6 +1714,42 @@ def check_39_estimate_justified(b: Bundle) -> list[Finding]:
     return [Finding(39, PASS, f"{n} estimates each name the gap they stand on")]
 
 
+def check_42_check_registry(b: Bundle) -> list[Finding]:
+    """A check is registered in three places, and they have to agree.
+
+    plan.md section 8 declares it, a def check_NN_ implements it, and the CHECKS
+    list runs it. Twice on 2026-09-17 they disagreed: check 38 was declared and
+    not implemented, check 40 implemented and not declared. Either way a number
+    in the document pointed at nothing, which is the failure this repository
+    calls decoration.
+    """
+    src = (CONTRACTS / "validate.py").read_text()
+    implemented = {int(m) for m in re.findall(r"^def check_(\d+)_", src, re.M)}
+    listed_block = re.search(r"^CHECKS = \[(.*?)^\]", src, re.S | re.M)
+    listed = {int(m) for m in re.findall(r"check_(\d+)_", listed_block.group(1))} if listed_block else set()
+
+    plan = REPO / "plan.md"
+    if not plan.exists():
+        return [Finding(42, PENDING, "plan.md is not in this tree, so the declarations cannot be read")]
+    body = plan.read_text()
+    try:
+        section = body.split("## 8. 검증 계층")[1].split("### 8.1")[0]
+    except IndexError:
+        return [Finding(42, FAIL, "cannot find section 8's check list in plan.md", "plan.md")]
+    declared = {int(m) for m in re.findall(r"^(\d+)\. ", section, re.M)}
+
+    out: list[Finding] = []
+    for label, missing, where in (
+        ("declared but not implemented", declared - implemented, "plan.md"),
+        ("implemented but not declared", implemented - declared, "contracts/validate.py"),
+        ("implemented but never run", implemented - listed, "contracts/validate.py"),
+        ("run but not implemented", listed - implemented, "contracts/validate.py"),
+    ):
+        if missing:
+            out.append(Finding(42, FAIL, f"{label}: {sorted(missing)}", where))
+    return out or [Finding(42, PASS, f"{len(implemented)} checks are declared, implemented and run")]
+
+
 def check_40_window_condition(b: Bundle) -> list[Finding]:
     """A window-dependent observable is not one number (5.7).
 
@@ -1839,7 +1875,7 @@ CHECKS = [
     check_28_precision, check_29_failure_record, check_30_lessons, check_31_candidate_preservation,
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
-    check_40_window_condition, check_41_seat_attribution,
+    check_40_window_condition, check_42_check_registry, check_41_seat_attribution,
 ]
 
 
