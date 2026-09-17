@@ -1,0 +1,31 @@
+{
+  "$comment": "Session boundary for the librarian (plan.md 6.2). The session boundary is the permission boundary: this session can only write inside its own agent. contracts/ and plan.md are read here and written by the design session.",
+  "permissions": {
+    "deny": [
+      "Write(microscope_agent/**)",
+      "Edit(microscope_agent/**)",
+      "Write(simulation_agent/**)",
+      "Edit(simulation_agent/**)",
+      "Write(bridge/**)",
+      "Edit(bridge/**)",
+      "Write(contracts/**)",
+      "Edit(contracts/**)",
+      "Write(plan.md)",
+      "Edit(plan.md)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/contracts/validate.py\" --quiet",
+            "$comment": "the validator's exit code is the only truth (plan.md 8)"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -11,7 +11,6 @@
     "o1_preflight": "reads back every element it is about to set; read_back false means the element cannot be verified and goes to a manual instruction sheet (2.1 rule 5)",
     "orchestrator": "one worker per channel; lock_group compiles into the locks"
   },
-
   "channels": [
     {
       "id": "stand_ti2e",
@@ -21,17 +20,50 @@
       "read_back": true,
       "lock_group": "optical_path",
       "elements": [
-        { "id": "nosepiece", "positions": 6 },
-        { "id": "filter_turret_1" },
-        { "id": "filter_turret_2" },
-        { "id": "light_path_port", "note": "cameras and the confocal unit are on one position only; any other value sends emission where no detector sees it" },
-        { "id": "intermediate_magnification", "values": [1.0, 1.5] },
-        { "id": "pfs", "note": "focus stabilisation; disabled across turret and path changes (2.1 interlock 3)" },
-        { "id": "dia_lamp" },
-        { "id": "lapp_branch", "note": "which widefield source reaches the sample" }
+        {
+          "id": "nosepiece",
+          "positions": 6
+        },
+        {
+          "id": "filter_turret_1"
+        },
+        {
+          "id": "filter_turret_2"
+        },
+        {
+          "id": "light_path_port",
+          "note": "cameras and the confocal unit are on one position only; any other value sends emission where no detector sees it"
+        },
+        {
+          "id": "intermediate_magnification",
+          "values": [
+            1.0,
+            1.5
+          ]
+        },
+        {
+          "id": "pfs",
+          "note": "focus stabilisation; disabled across turret and path changes (2.1 interlock 3)"
+        },
+        {
+          "id": "dia_lamp"
+        },
+        {
+          "id": "lapp_branch",
+          "note": "which widefield source reaches the sample"
+        },
+        {
+          "id": "motor_stage",
+          "lock_group": "stage",
+          "source": "operator_read:kyuhwan_20260917",
+          "grade": "E3",
+          "note": "coarse xy. On the body hub, so stage moves serialise with port and filter changes: one channel, one worker (4.6.8)."
+        }
       ],
       "source": "mm_config + nis_device_manager",
-      "grade": "E3"
+      "grade": "E3",
+      "confirmed_by": "operator_read:kyuhwan_20260917",
+      "lock_note": "The channel carries two lock groups. Its optical elements belong to optical_path; the motor stage belongs to stage, because the piezo rides on it. A lock group is therefore a property of an element, not only of a channel."
     },
     {
       "id": "confocal_csuw1",
@@ -41,15 +73,42 @@
       "read_back": true,
       "lock_group": "optical_path",
       "elements": [
-        { "id": "csuw1_dichroic" },
-        { "id": "csuw1_bright", "note": "confocal or bright field" },
-        { "id": "csuw1_port", "note": "which camera the unit feeds" },
-        { "id": "csuw1_shutter" },
-        { "id": "filter_wheel_em1" },
-        { "id": "filter_wheel_em2" }
+        {
+          "id": "csuw1_dichroic"
+        },
+        {
+          "id": "csuw1_bright",
+          "note": "confocal or bright field"
+        },
+        {
+          "id": "csuw1_port",
+          "note": "which camera the unit feeds"
+        },
+        {
+          "id": "csuw1_shutter"
+        },
+        {
+          "id": "filter_wheel_em1"
+        },
+        {
+          "id": "filter_wheel_em2"
+        },
+        {
+          "id": "csuw1_disk_speed",
+          "source": "operator_read:kyuhwan_20260917",
+          "grade": "E3",
+          "note": "exposure must be an integer multiple of the disk period or stripes remain (axis A1); nothing acquires while the disk is still spinning up"
+        },
+        {
+          "id": "csuw1_disk_position",
+          "source": "operator_read:kyuhwan_20260917",
+          "grade": "E3",
+          "note": "in or out. With the disk out the same hardware becomes a widefield path, which is a separate configuration id"
+        }
       ],
-      "source": "mm_config + nis_device_manager",
-      "grade": "E3"
+      "source": "mm_config + nis_device_manager + operator_read:kyuhwan_20260917",
+      "grade": "E3",
+      "confirmed_by": "operator_read:kyuhwan_20260917"
     },
     {
       "id": "camera_red",
@@ -58,10 +117,13 @@
       "automatable": "full",
       "read_back": true,
       "lock_group": "camera_red",
-      "exclusive_with": ["optical_tweezers_gui"],
+      "exclusive_with": [
+        "optical_tweezers_gui"
+      ],
       "exclusive_reason": "the driver hands a camera to one process at a time, and the tweezers GUI opens the same body. Whoever opens first locks the other out, in both directions.",
       "source": "mm_config, confirmed there by loading it",
-      "grade": "E3"
+      "grade": "E3",
+      "confirmed_by": "operator_read:kyuhwan_20260917"
     },
     {
       "id": "camera_blue",
@@ -70,9 +132,12 @@
       "automatable": "full",
       "read_back": true,
       "lock_group": "camera_blue",
-      "exclusive_with": ["optical_tweezers_gui"],
+      "exclusive_with": [
+        "optical_tweezers_gui"
+      ],
       "source": "mm_config, confirmed there by loading it",
-      "grade": "E3"
+      "grade": "E3",
+      "confirmed_by": "operator_read:kyuhwan_20260917"
     },
     {
       "id": "widefield_source_a",
@@ -82,7 +147,8 @@
       "read_back": true,
       "lock_group": "illumination",
       "source": "mm_config",
-      "grade": "E3"
+      "grade": "E3",
+      "confirmed_by": "operator_read:kyuhwan_20260917"
     },
     {
       "id": "widefield_source_b",
@@ -92,7 +158,8 @@
       "read_back": true,
       "lock_group": "illumination",
       "source": "mm_config",
-      "grade": "E3"
+      "grade": "E3",
+      "confirmed_by": "operator_read:kyuhwan_20260917"
     },
     {
       "id": "laser_combiner",
@@ -101,9 +168,30 @@
       "automatable": "partial",
       "read_back": false,
       "lock_group": "illumination",
-      "note": "not one device in the acquisition software. Power writes reach the converter but the word format is not pinned down, so a commanded power is not a known power until it is calibrated here.",
-      "source": "traced in the prior project, driven partially",
-      "grade": "E3"
+      "note": "not one device in the acquisition software: blanking and line select over DAQ, per-line power over SPI. Power is open loop but calibrated.",
+      "source": "traced in the prior project, driven partially + operator_read:kyuhwan_20260917",
+      "grade": "E3",
+      "elements": [
+        {
+          "id": "laser_shutter",
+          "source": "operator_read:kyuhwan_20260917",
+          "grade": "E3",
+          "note": "abort closes this before ramping power down (2.1 interlock 1): a shutter is faster than a ramp"
+        },
+        {
+          "id": "line_select"
+        },
+        {
+          "id": "line_power",
+          "read_back": false,
+          "note": "commanded power is calibrated against a power meter, so the command maps to a known output. It is still open loop: the device reports nothing back, so the calibration is the only link and it needs a validity window like any E2 value. Abort never relies on a commanded power -- it closes the shutter (2.1 interlock 1).",
+          "calibrated": true,
+          "source": "operator_read:kyuhwan_20260917",
+          "grade": "E3",
+          "grade_note": "the calibration was taken in the prior project, so it migrates capped at E3 (10.3 rule 1). Re-measuring it here makes it E2."
+        }
+      ],
+      "confirmed_by": "operator_read:kyuhwan_20260917"
     },
     {
       "id": "dmd",
@@ -114,7 +202,10 @@
       "lock_group": "illumination",
       "note": "on the inline widefield branch only",
       "source": "mm_config",
-      "grade": "E3"
+      "grade": "E3",
+      "sync": "sw_sequence",
+      "sync_note": "patterns are advanced in software, not by an electrical trigger, so per-pattern timing carries OS jitter. Anything needing tight coincidence between pattern and exposure cannot use this path (4.6.8, 4.6.9).",
+      "confirmed_by": "operator_read:kyuhwan_20260917"
     },
     {
       "id": "piezo_stage",
@@ -123,11 +214,20 @@
       "automatable": "full",
       "read_back": true,
       "lock_group": "stage",
-      "exclusive_with": ["piezo_vendor_gui"],
+      "exclusive_with": [
+        "piezo_vendor_gui"
+      ],
       "exclusive_reason": "the serial port is exclusive; the vendor GUI holds it while a session is open and the connection then fails",
       "note": "three axes, travel and command quantisation were measured in the prior project and need re-measuring here before use as E1",
-      "source": "driven end to end in the prior project",
-      "grade": "E3"
+      "source": "driven end to end in the prior project + operator_read:kyuhwan_20260917",
+      "grade": "E3",
+      "mounted_on": "stand_ti2e/motor_stage",
+      "mount_consequences": [
+        "a piezo position is relative to wherever the motor left it, so a recorded position needs both numbers or it cannot be reproduced",
+        "the motor must have settled before a piezo move means anything, which orders the two rather than parallelising them",
+        "the two sit on different control channels but one mechanical chain, so the lock spans channels"
+      ],
+      "confirmed_by": "operator_read:kyuhwan_20260917"
     },
     {
       "id": "optical_tweezers",
@@ -163,27 +263,32 @@
       "grade": "E5"
     }
   ],
-
   "gaps": [
-    {
-      "what": "motorised xy stage",
-      "why_it_matters": "coarse positioning and field selection; axis A7 needs its speed, acceleration and repeatability",
-      "status": "named by the operator, absent from the extracted dossier. Not inferred here."
-    },
-    {
-      "what": "spinning-disk speed and in/out position",
-      "why_it_matters": "exposure must be an integer multiple of the disk period or stripes remain (axis A1), and in/out separates two configurations",
-      "status": "named by the operator, absent from the extracted dossier's element list. Not inferred here."
-    },
-    {
-      "what": "dedicated laser shutter",
-      "why_it_matters": "abort closes shutters before ramping power down (2.1 interlock 1), so which shutters exist decides the abort order",
-      "status": "the confocal unit has a shutter; whether a separate laser shutter exists is unconfirmed"
-    },
     {
       "what": "per-device safety limits",
       "why_it_matters": "every Tier 2 action is compared against them",
       "status": "deliberately not extracted. plan.md 10.3 rule 4: limits are policy, not knowledge, and a person writes them after confirming them physically."
     }
-  ]
+  ],
+  "resolved_gaps": [
+    {
+      "what": "motorised xy stage",
+      "resolved_by": "operator_read:kyuhwan_20260917",
+      "resolved_at": "2026-09-17",
+      "grade": "E3"
+    },
+    {
+      "what": "spinning-disk speed and in/out position",
+      "resolved_by": "operator_read:kyuhwan_20260917",
+      "resolved_at": "2026-09-17",
+      "grade": "E3"
+    },
+    {
+      "what": "dedicated laser shutter",
+      "resolved_by": "operator_read:kyuhwan_20260917",
+      "resolved_at": "2026-09-17",
+      "grade": "E3"
+    }
+  ],
+  "confirmed_meaning": "confirmed_by means the fact no longer rests only on the prior project: the operator checked it here. The grade stays E3, since an operator reading is not a measurement by this system (10.3 rule 1), but the dependency on the other repository is gone and the row can survive that repository disappearing."
 }

@@ -57,10 +57,18 @@ model, and ambiguity stops rather than proceeds. `plan.md` §2.1 lists the
 seven enforced rules.
 
 **One agent, one session (D11).** The four agents always run as four separate
-Claude Code sessions. A session writes only inside its own agent directory,
-reads `contracts/` without writing it, and never touches another agent's
-directory. Sessions communicate only through file cards and read-only
+Claude Code sessions, plus a fifth seat — the **design session** — which owns
+`plan.md`, `contracts/` and the agents' `CLAUDE.md` files, and touches no
+instrument. A session writes only inside its own agent directory, reads
+`contracts/` without writing it, and never touches another agent's directory.
+Each agent's `.claude/settings.json` enforces that; check 35 catches a commit
+that crosses it. Sessions communicate only through file cards and read-only
 librarian MCP calls, so every transfer leaves a trace on disk. See §6.2.
+
+**Which session am I?** The working directory says it. If it is an agent
+directory, read that agent's `CLAUDE.md` and stay inside it. If it is the
+repository root and the work is `plan.md` or `contracts/`, this is the design
+session: specify, do not implement.
 
 **Numbers carry four parts (P2).** `{value, unit, source, grade}`. The grade
 E1–E6 is derived from the source, never self-reported. E6 — a value a model

@@ -26,6 +26,7 @@
       "required_selectors": {
         "light_path_port": "the imaging port",
         "csuw1_port": "which camera the unit feeds",
+        "csuw1_disk_position": "out",
         "filter_turret_1": "the multiband cube",
         "lapp_branch": "inline",
         "camera_splitter": "one of: single camera, or split"
@@ -37,7 +38,8 @@
         "camera_splitter"
       ],
       "grade": "E3",
-      "note": "the confocal unit is in this path as well, so its dichroic is unavoidable and its port still selects the camera. A configuration that leaves the port unset gets whatever it physically was, and the unselected camera reads a dark frame with nothing raising an error."
+      "note": "the confocal unit is in this path as well, so its dichroic is unavoidable and its port still selects the camera. A configuration that leaves the port unset gets whatever it physically was, and the unselected camera reads a dark frame with nothing raising an error.",
+      "confirmed_by": "operator_read:kyuhwan_20260917"
     },
     {
       "id": "widefield_side",
@@ -52,6 +54,7 @@
       "required_selectors": {
         "light_path_port": "the imaging port",
         "csuw1_port": "which camera the unit feeds",
+        "csuw1_disk_position": "out",
         "filter_turret_1": "the multiband cube",
         "lapp_branch": "side",
         "camera_splitter": "one of: single camera, or split"
@@ -63,7 +66,8 @@
         "camera_splitter"
       ],
       "grade": "E3",
-      "note": "the confocal unit is in this path as well, so its dichroic is unavoidable and its port still selects the camera. A configuration that leaves the port unset gets whatever it physically was, and the unselected camera reads a dark frame with nothing raising an error."
+      "note": "the confocal unit is in this path as well, so its dichroic is unavoidable and its port still selects the camera. A configuration that leaves the port unset gets whatever it physically was, and the unselected camera reads a dark frame with nothing raising an error.",
+      "confirmed_by": "operator_read:kyuhwan_20260917"
     },
     {
       "id": "confocal",
@@ -80,6 +84,7 @@
         "csuw1_dichroic": "the multiband dichroic",
         "csuw1_bright": "confocal",
         "csuw1_port": "which camera",
+        "csuw1_disk_position": "in",
         "filter_wheel_em1": "matched to the excitation line",
         "filter_wheel_em2": "matched to the excitation line"
       },
@@ -90,7 +95,8 @@
       "automatable_gaps": [
         "laser_combiner power, which is write-only and uncalibrated here"
       ],
-      "grade": "E3"
+      "grade": "E3",
+      "confirmed_by": "operator_read:kyuhwan_20260917"
     },
     {
       "id": "transmitted",
@@ -105,6 +111,7 @@
       "required_selectors": {
         "light_path_port": "the imaging port",
         "csuw1_port": "which camera the unit feeds",
+        "csuw1_disk_position": "out",
         "camera_splitter": "one of: single camera, or split"
       },
       "excludes": [],
@@ -112,7 +119,8 @@
       "automatable_gaps": [
         "camera_splitter"
       ],
-      "grade": "E3"
+      "grade": "E3",
+      "confirmed_by": "operator_read:kyuhwan_20260917"
     },
     {
       "id": "trapping",
@@ -174,15 +182,20 @@
       "status": "not in the extracted dossier. Measure at M1."
     },
     {
-      "what": "spinning-disk in/out as a path selector",
-      "why_it_matters": "with the disk out, the same hardware becomes a widefield path, which would be a separate configuration id",
-      "status": "named by the operator, absent from the dossier. Not inferred here."
-    },
-    {
       "what": "selector value lists (turret, wheel and port positions)",
       "why_it_matters": "axis A4 checks whether a required selector value is reachable, which needs the list",
       "status": "deferred with the observable vocabulary (plan.md 11-1). The source dossier has them, but several wheel positions are blocked and several filter identities in it are inferred from position labels rather than read off the hardware, so copying the lists now would import an unresolved question instead of a fact."
     }
   ],
-  "label_warning": "Selector labels in the vendor configuration are not authoritative. In the source project one branch selector's label-to-state mapping was inverted in the configuration file and stayed wrong for weeks, because both the label and the state read back consistently -- only an image showed which position passed light. O1 preflight therefore verifies state by read-back and, where a selector decides whether light arrives at all, by acquiring."
+  "label_warning": "Selector labels in the vendor configuration are not authoritative. In the source project one branch selector's label-to-state mapping was inverted in the configuration file and stayed wrong for weeks, because both the label and the state read back consistently -- only an image showed which position passed light. O1 preflight therefore verifies state by read-back and, where a selector decides whether light arrives at all, by acquiring.",
+  "resolved_gaps": [
+    {
+      "what": "the disk-out configuration",
+      "answer": "not a configuration of its own. The disk is a required selector on the configurations that already exist: out for widefield fluorescence and brightfield, in for confocal.",
+      "resolved_by": "operator_read:kyuhwan_20260917",
+      "resolved_at": "2026-09-17",
+      "grade": "E3"
+    }
+  ],
+  "note_on_the_confocal_unit_in_every_path": "The unit's dichroic stays in the path whatever the disk does, which is why this instrument has no unfiltered white-light path, and its port still chooses the camera. What the disk position selects is whether the light is confocally sectioned on the way through. Two separate facts about one unit, and conflating them was the first reading of the extracted dossier."
 }
