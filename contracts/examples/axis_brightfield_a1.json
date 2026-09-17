@@ -1,0 +1,65 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260917-001-brightfield-a1",
+  "qid": "mic-20260917-001",
+  "thread": "solo-mic-20260917-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T08:10:00Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260917-001:brightfield:a1",
+  "config": "brightfield",
+  "axis": "a1",
+  "kb_version": "kbv-00000000",
+  "method": "llm_estimate",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "exposure_time",
+      "unit": "s",
+      "min": 0.001,
+      "max": 0.05,
+      "basis": ["exposure_time_min", "exposure_time_max"],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "exposure_time_min",
+      "value": 0.001,
+      "unit": "s",
+      "source": "assumed:a_exp_min",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "below this the centroid signal falls under the read noise"
+    },
+    {
+      "name": "exposure_time_max",
+      "value": 0.05,
+      "unit": "s",
+      "source": "assumed:a_exp_max",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "above this a freely diffusing tracer smears across more than a pixel during one frame"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_exp_min",
+      "statement": "Read noise of an uncooled camera puts a floor of order one millisecond on a useful brightfield exposure; no measurement on this camera exists yet.",
+      "numbers": ["exposure_time_min"],
+      "falsifier": "a usable centroid at a shorter exposure retires this bound"
+    },
+    {
+      "rationale_id": "a_exp_max",
+      "statement": "Motion blur grows as the square root of exposure; at the expected diffusivity a tracer crosses a pixel in tens of milliseconds.",
+      "numbers": ["exposure_time_max"],
+      "falsifier": "a measured blur below one pixel at a longer exposure retires this bound"
+    }
+  ],
+  "kb_refs": [],
+  "degraded": ["librarian_agent"],
+  "note": "The librarian was unreachable, so both bounds are estimates rather than literature values."
+}

@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "refusal.schema.json",
+  "title": "refusal — why it cannot be done, with counterexample numbers (P5)",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/$defs/common_head"
+    }
+  ],
+  "properties": {
+    "card": {
+      "const": "refusal"
+    },
+    "stage": {
+      "enum": [
+        "S2",
+        "S3.0",
+        "S3",
+        "S4",
+        "O1",
+        "bridge"
+      ]
+    },
+    "refused_what": {
+      "type": "string",
+      "minLength": 5
+    },
+    "reason_code": {
+      "enum": [
+        "outside_envelope",
+        "target_unreachable",
+        "missing_calibration",
+        "no_capable_configuration",
+        "empty_intersection",
+        "observable_not_producible",
+        "unit_mapping_ambiguous",
+        "budget_exceeded",
+        "purpose_missing"
+      ]
+    },
+    "counterexample": {
+      "type": "array",
+      "minItems": 1,
+      "description": "A refusal without numbers is an opinion (P5).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "parameter": {
+            "type": "string"
+          },
+          "required_number": {
+            "type": "string"
+          },
+          "limit_number": {
+            "type": "string"
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 10
+          }
+        },
+        "required": [
+          "parameter",
+          "required_number",
+          "limit_number",
+          "statement"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "alternatives": {
+      "type": "array",
+      "description": "the nearest thing that could be done, if any",
+      "items": {
+        "type": "object",
+        "properties": {
+          "what": {
+            "type": "string"
+          },
+          "requires": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "what"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "stage",
+    "refused_what",
+    "reason_code",
+    "counterexample"
+  ],
+  "unevaluatedProperties": false
+}

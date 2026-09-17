@@ -12,10 +12,28 @@ commit, with the reason.
 
 ## Status
 
-**Pre-M0.** Only `plan.md` and this file exist. `contracts/` comes first — the
-six card schemas, `units.md`, `validate.py` and the `capabilities/` skeleton —
-before any agent code (`plan.md` §9). This file will grow as the contracts
-land; it does not yet describe working code.
+**M0 landed; M1 (the microscope agent) is next.** Implementation order is
+microscope, simulation, librarian, bridge (`plan.md` §9) — so the first two
+agents run without a librarian, with every card marked
+`degraded: ["librarian_agent"]`. That is deliberate: independence bolted on
+later is usually not independence.
+
+`contracts/` exists and is the only shared code. Nothing else does: the four
+agent directories are still empty.
+
+```bash
+python3 contracts/validate.py                                    # the repository
+python3 contracts/validate.py --strict                           # undecided and pending count as failures
+python3 contracts/validate.py --expect-fail contracts/examples/rejected
+```
+
+The first must end `0 failed`. The second must end `8/8 cards rejected as
+intended` — a card that stops failing means a check stopped working.
+
+Two checks report UNDECIDED rather than passing, and that is the point: the
+per-plan E5 cap is unchosen (§11-3, deferred until the librarian exists) and the
+envelope comparison needs `envelope/safety.json` from M1. A threshold nobody has
+chosen is not a threshold that is satisfied.
 
 ## Rules that bind every session here
 

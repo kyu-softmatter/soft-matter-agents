@@ -1,0 +1,95 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260917-001-brightfield-a2",
+  "qid": "mic-20260917-001",
+  "thread": "solo-mic-20260917-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T08:10:00Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260917-001:brightfield:a2",
+  "config": "brightfield",
+  "axis": "a2",
+  "kb_version": "kbv-00000000",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "record_length",
+      "unit": "s",
+      "min": 200,
+      "basis": ["record_length_min"],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 2,
+      "unit": "um",
+      "source": "spec:bead_lot_ds01",
+      "grade": "E3"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "spec:lab_air_setpoint",
+      "grade": "E3",
+      "note": "setpoint, not a measurement at the sample; plan.md section 12 records what is still unknown about it"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.2,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": ["temperature", "viscosity", "bead_diameter"],
+      "note": "bulk Stokes-Einstein: sphere, bulk, no slip. Those assumptions stay in the value, which is why a computed number cannot be better than E4."
+    },
+    {
+      "name": "tau_d",
+      "value": 20,
+      "unit": "s",
+      "source": "computed:diffusive_time",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "derived": true,
+      "symbol": "tau_d",
+      "formula": "bead_diameter**2/diffusivity",
+      "inputs": ["bead_diameter", "diffusivity"]
+    },
+    {
+      "name": "record_length_min",
+      "value": 200,
+      "unit": "s",
+      "source": "computed:ten_diffusive_times",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "10*tau_d",
+      "inputs": ["tau_d"],
+      "note": "ten diffusive times give a mean squared displacement with a statistical error of order ten percent, which is inside one decade"
+    }
+  ],
+  "assumptions": [],
+  "kb_refs": [
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-00000000",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second."
+    }
+  ],
+  "degraded": []
+}

@@ -1,0 +1,149 @@
+{
+  "card": "synthesis",
+  "schema_version": "0.1",
+  "id": "synthesis-mic-20260917-001-r1",
+  "qid": "mic-20260917-001",
+  "thread": "solo-mic-20260917-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T08:20:00Z",
+  "status": "VALIDATED",
+  "configs_screened": ["brightfield", "darkfield"],
+  "per_config": [
+    {
+      "config": "brightfield",
+      "empty": false,
+      "intersection": [
+        {
+          "parameter": "exposure_time",
+          "unit": "s",
+          "min": 0.001,
+          "max": 0.05,
+          "basis": ["exposure_time_min", "exposure_time_max"],
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "record_length",
+          "unit": "s",
+          "min": 200,
+          "basis": ["record_length_min"],
+          "precision": "order_of_magnitude"
+        }
+      ],
+      "axis_files": ["axis_brightfield_a1.json", "axis_brightfield_a2.json"]
+    },
+    {
+      "config": "darkfield",
+      "empty": true,
+      "conflict": {
+        "axes": ["a1", "a2"],
+        "parameter": "exposure_time",
+        "statement": "a1 needs at least 0.5 s to reach the signal to noise target from scattered light, while a2 caps the exposure at 0.02 s to keep motion blur inside one pixel. The allowed sets do not overlap, so darkfield cannot produce this observable at this tracer size."
+      },
+      "axis_files": ["axis_darkfield_a1.json", "axis_darkfield_a2.json"]
+    }
+  ],
+  "chosen_config": "brightfield",
+  "operating_point": [
+    { "parameter": "exposure_time", "number": "exposure_time_chosen" },
+    { "parameter": "record_length", "number": "record_length_min" }
+  ],
+  "priority_used": ["physical_feasibility", "target_accuracy", "evidence_grade", "cost"],
+  "priority_source": "goal_card",
+  "rejected": [
+    {
+      "what": "darkfield",
+      "kind": "configuration",
+      "reason": "empty intersection between the detection floor and the blur ceiling on exposure time",
+      "grounds": ["exposure_floor_darkfield", "exposure_ceiling_darkfield"]
+    }
+  ],
+  "tie_break": "no tie: only one configuration survived the intersection",
+  "numbers": [
+    {
+      "name": "exposure_time_min",
+      "value": 0.001,
+      "unit": "s",
+      "source": "assumed:a_exp_min",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "axis_brightfield_a1.json#exposure_time_min"
+    },
+    {
+      "name": "exposure_time_max",
+      "value": 0.05,
+      "unit": "s",
+      "source": "assumed:a_exp_max",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "axis_brightfield_a1.json#exposure_time_max"
+    },
+    {
+      "name": "record_length_min",
+      "value": 200,
+      "unit": "s",
+      "source": "computed:ten_diffusive_times",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "origin": "axis_brightfield_a2.json#record_length_min"
+    },
+    {
+      "name": "exposure_floor_darkfield",
+      "value": 0.5,
+      "unit": "s",
+      "source": "assumed:a_dark_floor",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "axis_darkfield_a1.json#exposure_floor"
+    },
+    {
+      "name": "exposure_ceiling_darkfield",
+      "value": 0.02,
+      "unit": "s",
+      "source": "computed:blur_limit",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "axis_darkfield_a2.json#exposure_ceiling"
+    },
+    {
+      "name": "exposure_time_chosen",
+      "value": 0.007,
+      "unit": "s",
+      "source": "computed:geometric_middle",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "(exposure_time_min*exposure_time_max)**0.5",
+      "inputs": ["exposure_time_min", "exposure_time_max"],
+      "note": "the geometric middle of the allowed decade. Picking a point deterministically keeps S4 from introducing a number nobody can trace."
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_exp_min",
+      "statement": "Carried from axis_brightfield_a1: read noise puts a floor of order one millisecond on a useful brightfield exposure.",
+      "numbers": ["exposure_time_min", "exposure_time_chosen"],
+      "falsifier": "a usable centroid at a shorter exposure retires this bound"
+    },
+    {
+      "rationale_id": "a_exp_max",
+      "statement": "Carried from axis_brightfield_a1: motion blur crosses a pixel at tens of milliseconds for the expected diffusivity.",
+      "numbers": ["exposure_time_max", "exposure_time_chosen"],
+      "falsifier": "a measured blur below one pixel at a longer exposure retires this bound"
+    },
+    {
+      "rationale_id": "a_dark_floor",
+      "statement": "Carried from axis_darkfield_a1: darkfield scattering from a two micrometre tracer needs an exposure of order half a second to reach the signal to noise target.",
+      "numbers": ["exposure_floor_darkfield"],
+      "falsifier": "a centroid at the target signal to noise ratio with a shorter darkfield exposure retires the rejection of darkfield"
+    },
+    {
+      "rationale_id": "a_dark_diff",
+      "statement": "Carried from axis_darkfield_a2: the tracer diffusivity used for the blur ceiling is a bulk order of magnitude, not a measurement.",
+      "numbers": ["exposure_ceiling_darkfield"],
+      "falsifier": "a measured diffusivity outside this decade retires the ceiling computed from it"
+    }
+  ],
+  "kb_refs": [],
+  "degraded": ["librarian_agent"]
+}

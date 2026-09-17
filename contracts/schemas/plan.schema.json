@@ -1,0 +1,307 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "plan.schema.json",
+  "title": "plan — the execution plan (5.4)",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/$defs/common_head"
+    }
+  ],
+  "properties": {
+    "card": {
+      "const": "plan"
+    },
+    "goal_id": {
+      "type": "string"
+    },
+    "synthesis_id": {
+      "type": "string"
+    },
+    "purpose": {
+      "enum": [
+        "screen",
+        "characterize",
+        "compare",
+        "verify",
+        "troubleshoot",
+        "feed"
+      ]
+    },
+    "intent": {
+      "enum": [
+        "explore",
+        "confirm"
+      ]
+    },
+    "observable": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "definition": {
+          "type": "string",
+          "minLength": 20
+        }
+      },
+      "required": [
+        "name",
+        "definition"
+      ],
+      "additionalProperties": false
+    },
+    "system_configuration": {
+      "type": "object",
+      "description": "What it is measured with, not only how (4.5.3, 4.6.7)",
+      "properties": {
+        "config": {
+          "type": "string"
+        },
+        "optical_path": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "id in envelope/optical_paths.json"
+        },
+        "devices": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "simulation side: physical model / engine"
+        }
+      },
+      "required": [
+        "config",
+        "devices"
+      ],
+      "additionalProperties": false
+    },
+    "conditions": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Every condition points at numbers[] by name; it never restates a value (5.2)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "parameter": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "device": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "parameter",
+          "number"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "description": "What will be done to the instrument. reversible: false forces individual approval when it rests on E4/E5 (2.1 rule 3, check 22).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "device": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "reversible": {
+            "type": "boolean"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tier": {
+            "enum": [
+              0,
+              1,
+              2
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "device",
+          "action",
+          "reversible",
+          "parameters",
+          "tier"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "envelope_check": {
+      "type": "object",
+      "properties": {
+        "checked_against": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "enum": [
+            "inside",
+            "outside",
+            "unavailable"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "checked_against",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "cost": {
+      "type": "object",
+      "properties": {
+        "wall_clock": {
+          "type": "string"
+        },
+        "numbers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "numbers"
+      ],
+      "additionalProperties": false
+    },
+    "stop_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/criterion"
+      },
+      "description": "Declared before execution. Chosen afterwards they are narration, not results (5.4)."
+    },
+    "success_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/criterion"
+      }
+    },
+    "alternatives_rejected": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "what": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 10
+          },
+          "grounds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "what",
+          "reason",
+          "grounds"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "open_risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "compare_arms": {
+      "type": "array",
+      "description": "required when purpose is compare: arms may differ only in the compared variable (check 34)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "arm": {
+            "type": "string"
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "parameter": {
+                  "type": "string"
+                },
+                "number": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "parameter",
+                "number"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "arm",
+          "conditions"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "compare_variable": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "goal_id",
+    "purpose",
+    "intent",
+    "observable",
+    "system_configuration",
+    "conditions",
+    "actions",
+    "envelope_check",
+    "cost",
+    "stop_criteria",
+    "success_criteria",
+    "open_risks"
+  ],
+  "unevaluatedProperties": false
+}

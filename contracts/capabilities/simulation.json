@@ -1,0 +1,7 @@
+{
+  "schema_version": "0.1",
+  "agent": "simulation_agent",
+  "status": "skeleton",
+  "pending": "plan.md 11-2 (observable vocabulary). The engine side has a single backend, so the configuration list is short, but the observable names must be agreed with the microscope side before either can be declared (1.1 S4).",
+  "configurations": []
+}

@@ -1,0 +1,25 @@
+{
+  "card": "axis",
+  "id": "bad-false-precision",
+  "schema_version": "0.1",
+  "qid": "mic-99999999-001",
+  "thread": "solo-mic-99999999-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T00:00:00Z",
+  "status": "DRAFT",
+  "kb_version": "kbv-00000000",
+  "method": "llm_estimate",
+  "verdict": "feasible",  "caller_id": "mic-99999999-001:brightfield:a3",
+  "config": "brightfield",
+  "axis": "a3",
+  "note": "MUST FAIL check 28: an estimate written to three significant figures in explore mode. 0.0431 s is a claim the input cannot support.",
+  "numbers": [
+    { "name": "bleach_time_constant", "value": 0.0431, "unit": "s", "source": "assumed:a_bleach", "grade": "E5" }
+  ],
+  "assumptions": [
+    { "rationale_id": "a_bleach", "statement": "Bleaching is of order tens of milliseconds for this dye at this power, from nothing but experience.", "numbers": ["bleach_time_constant"] }
+  ],
+  "degraded": []
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "plan_approval.schema.json",
+  "title": "plan_approval — a human clears one plan revision (6.1)",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/$defs/common_head"
+    }
+  ],
+  "properties": {
+    "card": {
+      "const": "plan_approval"
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "plan_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "plan_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "sha256 of the plan card with status removed. Status moves along the state machine on the same file, so hashing it would void the approval the moment it was granted (5.5)."
+    },
+    "approved_by": {
+      "type": "string",
+      "minLength": 2
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "plan_id",
+    "plan_revision",
+    "plan_hash",
+    "approved_by",
+    "approved_at"
+  ],
+  "unevaluatedProperties": false
+}

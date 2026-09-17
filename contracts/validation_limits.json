@@ -1,0 +1,13 @@
+{
+  "schema_version": "0.1",
+  "note": "Thresholds the validator needs. null means nobody has chosen it yet, and an unchosen threshold is not a satisfied threshold: the check reports UNDECIDED rather than passing. --strict turns UNDECIDED into failure.",
+  "max_e5_per_plan": null,
+  "max_e5_per_plan_open_question": "plan.md 11-3",
+  "max_configs_after_screening": 3,
+  "max_axes": 7,
+  "max_subagents_per_question": 21,
+  "order_of_magnitude_sig_figs": 1,
+  "computed_value_tolerance_rel": 0.02,
+  "bridge_round_cap": null,
+  "bridge_round_cap_open_question": "plan.md 11-5"
+}

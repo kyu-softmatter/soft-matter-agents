@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "result.schema.json",
+  "title": "result — what came out, with its uncertainty and its deviation (5.1)",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/$defs/common_head"
+    }
+  ],
+  "properties": {
+    "card": {
+      "const": "result"
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "plan_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "plan_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "approval_id": {
+      "type": "string",
+      "description": "the plan_approval or scope_approval this run stood on (check 15)"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^run-[0-9]{8}-[0-9]{3}$"
+    },
+    "observable": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "definition": {
+          "type": "string",
+          "minLength": 20
+        }
+      },
+      "required": [
+        "name",
+        "definition"
+      ],
+      "additionalProperties": false
+    },
+    "outcome": {
+      "enum": [
+        "DONE",
+        "FAILED",
+        "NOT_CONVERGED"
+      ]
+    },
+    "values": {
+      "type": "array",
+      "minItems": 1,
+      "description": "the measured or computed answer; every entry names a number in numbers[]",
+      "items": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "uncertainty": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "name of the uncertainty number"
+          }
+        },
+        "required": [
+          "metric",
+          "number",
+          "uncertainty"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "criteria_evaluation": {
+      "type": "array",
+      "minItems": 1,
+      "description": "every stop and success criterion of the plan, evaluated",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "stop",
+              "success"
+            ]
+          },
+          "met": {
+            "type": "boolean"
+          },
+          "observed_number": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "met"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "deviations": {
+      "type": "array",
+      "description": "planned versus actual, per run. An empty list is a claim, not a default.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "parameter": {
+            "type": "string"
+          },
+          "planned_number": {
+            "type": "string"
+          },
+          "actual_number": {
+            "type": "string"
+          },
+          "within_tolerance": {
+            "type": "boolean"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "parameter",
+          "planned_number",
+          "actual_number",
+          "within_tolerance"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "time_base": {
+      "type": "object",
+      "description": "Which clock the physics rests on (4.6.9, check 37)",
+      "properties": {
+        "t0_wall": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "t0_mono": {
+          "type": "number"
+        },
+        "alignment": {
+          "enum": [
+            "trigger_counter",
+            "device_timestamp",
+            "software_monotonic"
+          ]
+        }
+      },
+      "required": [
+        "t0_wall",
+        "alignment"
+      ],
+      "additionalProperties": false
+    },
+    "new_facts": {
+      "type": "array",
+      "description": "Facts for the librarian to enter. Execution agents never write the KB themselves (4.3.2, P14).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "claim": {
+            "type": "string",
+            "minLength": 10
+          },
+          "numbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "validity_conditions": {
+            "type": "string"
+          },
+          "proposed_grade": {
+            "$ref": "common.schema.json#/$defs/grade"
+          }
+        },
+        "required": [
+          "claim",
+          "numbers",
+          "validity_conditions",
+          "proposed_grade"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "ad_hoc_groups": {
+      "type": "array",
+      "description": "Dimensionless groups defined on the spot, proposed to the librarian (5.7)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string"
+          },
+          "formula": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "validity_conditions": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "formula",
+          "number",
+          "validity_conditions"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "plan_id",
+    "plan_revision",
+    "plan_hash",
+    "approval_id",
+    "run_id",
+    "observable",
+    "outcome",
+    "values",
+    "criteria_evaluation",
+    "deviations",
+    "time_base"
+  ],
+  "unevaluatedProperties": false
+}

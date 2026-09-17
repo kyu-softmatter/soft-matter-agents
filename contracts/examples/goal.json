@@ -1,0 +1,62 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-mic-20260917-001-r1",
+  "qid": "mic-20260917-001",
+  "thread": "solo-mic-20260917-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T08:00:00Z",
+  "status": "VALIDATED",
+  "purpose": "screen",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_diffusivity",
+    "definition": "Short-time translational diffusion coefficient of dilute tracer spheres in the sample, read from the mean squared displacement of tracked centroids over lag times below the trap-free drift time."
+  },
+  "targets": [
+    { "metric": "tracer_diffusivity", "number": "target_decade_resolution", "kind": "decade_resolution" }
+  ],
+  "constraint_notes": [
+    "sample is consumed by the measurement and cannot be remounted",
+    "no calibration of the stage is available for this sample holder"
+  ],
+  "priority": ["physical_feasibility", "target_accuracy", "evidence_grade", "cost"],
+  "requested_by": "human",
+  "numbers": [
+    {
+      "name": "target_decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "source": "assumed:a_target",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "one decade is enough to tell whether the tracers are free or hindered"
+    },
+    {
+      "name": "snr_target",
+      "value": 5,
+      "unit": "count",
+      "source": "assumed:a_snr",
+      "grade": "E5",
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_target",
+      "statement": "Screening only needs to place the diffusivity within one decade; the question is which regime the sample is in, not what the coefficient is.",
+      "numbers": ["target_decade_resolution"],
+      "falsifier": "if two candidate regimes fall inside the same decade, one decade is not enough and the goal must be restated"
+    },
+    {
+      "rationale_id": "a_snr",
+      "statement": "A centroid fit needs a signal to noise ratio of order five to keep the localisation error below a pixel; no measurement on this sample exists yet.",
+      "numbers": ["snr_target"],
+      "falsifier": "a localisation error above one pixel at this signal to noise ratio retires the assumption"
+    }
+  ],
+  "kb_refs": [],
+  "degraded": []
+}

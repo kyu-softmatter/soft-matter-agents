@@ -1,0 +1,7 @@
+{
+  "schema_version": "0.1",
+  "agent": "microscope_agent",
+  "status": "skeleton",
+  "pending": "plan.md 11-9 (valid optical paths) and 11-10 (configuration list). The instrument has nine kinds of device and roughly fourteen discrete path selectors; which tuples actually deliver light to a detector has to be checked on the instrument, not guessed here (4.6.7, 10.3 rule 3).",
+  "configurations": []
+}

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ask.schema.json",
+  "title": "ask — the bridge's transport envelope. It carries; it does not author (4.4).",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/$defs/common_head"
+    }
+  ],
+  "properties": {
+    "card": {
+      "enum": [
+        "ask_simulation",
+        "ask_experiment"
+      ]
+    },
+    "direction": {
+      "enum": [
+        "experiment_to_simulation",
+        "simulation_to_experiment"
+      ]
+    },
+    "payload_card": {
+      "type": "object",
+      "description": "the plan or result card, carried without a character changed"
+    },
+    "payload_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "answerability": {
+      "type": "object",
+      "description": "can the other side produce this observable at all? Refuse before spending a round (4.4).",
+      "properties": {
+        "observable": {
+          "type": "string"
+        },
+        "checked_against": {
+          "type": "string",
+          "description": "capabilities file consulted"
+        },
+        "producible": {
+          "type": "boolean"
+        },
+        "substitutes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "observable",
+        "checked_against",
+        "producible"
+      ],
+      "additionalProperties": false
+    },
+    "unit_consistency": {
+      "type": "object",
+      "description": "the bridge checks; it does not convert (4.4, 5.7)",
+      "properties": {
+        "physical_units_match": {
+          "type": "boolean"
+        },
+        "dimensionless_groups_consistent": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "physical_units_match",
+        "dimensionless_groups_consistent"
+      ],
+      "additionalProperties": false
+    },
+    "trigger": {
+      "enum": [
+        "human",
+        "plan_completion"
+      ]
+    }
+  },
+  "required": [
+    "direction",
+    "payload_card",
+    "payload_hash",
+    "answerability",
+    "unit_consistency",
+    "trigger"
+  ],
+  "unevaluatedProperties": false
+}

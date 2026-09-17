@@ -1,0 +1,22 @@
+{
+  "card": "axis",
+  "id": "bad-sibling-b",
+  "schema_version": "0.1",
+  "qid": "mic-99999999-001",
+  "thread": "solo-mic-99999999-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T00:00:00Z",
+  "status": "DRAFT",
+  "kb_version": "kbv-00000000",
+  "method": "llm_estimate",
+  "verdict": "feasible",  "caller_id": "mic-99999999-001:darkfield:a7",
+  "config": "darkfield",
+  "axis": "a7",
+  "note": "MUST FAIL check 11: this card reads mic-99999999-001:brightfield:a7 in turn, so the pair is a channel in both directions.",
+  "numbers": [
+    { "name": "trap_spacing", "value": 5, "unit": "um", "source": "spec:tweezer", "grade": "E3" }
+  ],
+  "degraded": []
+}

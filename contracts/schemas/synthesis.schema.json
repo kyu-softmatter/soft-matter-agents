@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "synthesis.schema.json",
+  "title": "synthesis — intersect per configuration, then choose (4.5.4)",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/$defs/common_head"
+    }
+  ],
+  "properties": {
+    "card": {
+      "const": "synthesis"
+    },
+    "configs_screened": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "what S3.0 left, capped at three (4.5.3)"
+    },
+    "per_config": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string"
+          },
+          "intersection": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/interval"
+            }
+          },
+          "empty": {
+            "type": "boolean"
+          },
+          "conflict": {
+            "type": "object",
+            "description": "required when empty: which two axes collide, in numbers",
+            "properties": {
+              "axes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "parameter": {
+                "type": "string"
+              },
+              "statement": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "axes",
+              "parameter",
+              "statement"
+            ],
+            "additionalProperties": false
+          },
+          "axis_files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "config",
+          "empty",
+          "axis_files"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "chosen_config": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "operating_point": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "parameter": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "parameter",
+          "number"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "priority_used": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "priority_source": {
+      "enum": [
+        "goal_card",
+        "default_policy"
+      ]
+    },
+    "rejected": {
+      "type": "array",
+      "description": "configurations and operating points dropped, with numeric grounds (S6, check 20)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "what": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "configuration",
+              "operating_point"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 10
+          },
+          "grounds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "what",
+          "kind",
+          "reason",
+          "grounds"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "tie_break": {
+      "type": "string",
+      "description": "how a same-decade tie was broken (5.8, P16)"
+    }
+  },
+  "required": [
+    "configs_screened",
+    "per_config",
+    "chosen_config",
+    "priority_used",
+    "priority_source"
+  ],
+  "unevaluatedProperties": false
+}

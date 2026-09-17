@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "goal.schema.json",
+  "title": "goal — why we are asking, and what we want to know (4.5.1, 5.1)",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/$defs/common_head"
+    }
+  ],
+  "properties": {
+    "card": {
+      "const": "goal"
+    },
+    "purpose": {
+      "enum": [
+        "screen",
+        "characterize",
+        "compare",
+        "verify",
+        "troubleshoot",
+        "feed"
+      ],
+      "description": "Cannot be inferred; a missing purpose is a question for the human (4.5.1)"
+    },
+    "intent": {
+      "enum": [
+        "explore",
+        "confirm"
+      ],
+      "description": "Defaults from purpose. Differing from the default requires intent_rationale (check 32)."
+    },
+    "intent_rationale": {
+      "type": "string",
+      "minLength": 10
+    },
+    "observable": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "definition": {
+          "type": "string",
+          "minLength": 20,
+          "description": "a name alone is insufficient (5.4)"
+        }
+      },
+      "required": [
+        "name",
+        "definition"
+      ],
+      "additionalProperties": false
+    },
+    "targets": {
+      "type": "array",
+      "description": "What accuracy is wanted. In explore mode, stated in decades.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "uncertainty",
+              "decade_resolution",
+              "detection"
+            ]
+          }
+        },
+        "required": [
+          "metric",
+          "number",
+          "kind"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "priority": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Ordered. Safety is deliberately absent: it is a constraint, not a tradeable item (2.1)."
+    },
+    "compare_variable": {
+      "type": "string",
+      "description": "required when purpose is compare: the one parameter allowed to differ between arms (check 34)"
+    },
+    "requested_by": {
+      "$ref": "common.schema.json#/$defs/agent"
+    },
+    "constraint_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Free-text limits from the human. Named apart from the interval lists elsewhere: same word, different kind of thing."
+    }
+  },
+  "required": [
+    "purpose",
+    "intent",
+    "observable",
+    "requested_by"
+  ],
+  "unevaluatedProperties": false
+}

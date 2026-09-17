@@ -1,0 +1,22 @@
+{
+  "card": "axis",
+  "id": "bad-unknown-unit",
+  "schema_version": "0.1",
+  "qid": "mic-99999999-001",
+  "thread": "solo-mic-99999999-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T00:00:00Z",
+  "status": "DRAFT",
+  "kb_version": "kbv-00000000",
+  "method": "llm_estimate",
+  "verdict": "feasible",  "caller_id": "mic-99999999-001:brightfield:a5",
+  "config": "brightfield",
+  "axis": "a5",
+  "note": "MUST FAIL check 2: a unit that is not in the registry. An unregistered unit cannot be checked for dimension, so it cannot be compared with anything.",
+  "numbers": [
+    { "name": "stage_travel", "value": 2, "unit": "furlong", "source": "spec:motor_stage", "grade": "E3" }
+  ],
+  "degraded": []
+}

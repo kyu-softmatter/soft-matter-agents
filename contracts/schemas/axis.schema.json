@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "axis.schema.json",
+  "title": "axis — one (configuration, axis) constraint from S3 (4.5.2)",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/$defs/common_head"
+    }
+  ],
+  "properties": {
+    "card": {
+      "const": "axis"
+    },
+    "caller_id": {
+      "type": "string",
+      "pattern": "^(mic|sim)-[0-9]{8}-[0-9]{3}:[a-z0-9_]+:a[1-7]$",
+      "description": "<qid>:<config>:<axis>, issued by the fan-out launcher, never chosen by the sub-agent (4.3.1)"
+    },
+    "config": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "axis": {
+      "enum": [
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7"
+      ]
+    },
+    "kb_version": {
+      "type": "string",
+      "description": "pinned by S3.0; every sibling cites the same one (check 33)"
+    },
+    "method": {
+      "enum": [
+        "deterministic",
+        "llm_estimate"
+      ],
+      "description": "deterministic output takes computed: sources, an estimate takes assumed: (4.5.2)"
+    },
+    "verdict": {
+      "enum": [
+        "feasible",
+        "infeasible",
+        "abstain"
+      ]
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/interval"
+      }
+    },
+    "counterexample": {
+      "type": "array",
+      "description": "required when verdict is infeasible: which value exceeds which limit (P5)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "parameter": {
+            "type": "string"
+          },
+          "required_number": {
+            "type": "string"
+          },
+          "limit_number": {
+            "type": "string"
+          },
+          "statement": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "parameter",
+          "required_number",
+          "limit_number"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "abstain_reason": {
+      "type": "string",
+      "minLength": 10
+    },
+    "note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "caller_id",
+    "config",
+    "axis",
+    "kb_version",
+    "method",
+    "verdict"
+  ],
+  "unevaluatedProperties": false
+}
