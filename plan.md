@@ -62,6 +62,7 @@
 | **P9** | **로그는 append-only.** 수정은 새 리비전(`r1`, `r2`, …)이고 덮어쓰기는 없다. | 무엇이 언제 바뀌었는지가 곧 실험 기록이다. | 편향을 추적할 수 없다. |
 | **P10** | **범위는 축소가 기본값.** 새 능력은 "지금 이 질문에 필요한가"를 통과해야 들어온다. | 이전 구조가 커진 이유가 이것이다. | 다시 범용 워크플로 엔진이 된다. |
 | **P11** | **각 에이전트는 혼자서도 완결된다.** 협업은 능력을 더할 뿐, 작동의 전제가 아니다. | 실험은 시뮬레이션을 기다릴 수 없고, 시뮬레이션은 장비 일정을 기다릴 수 없다. | 하나가 멈추면 넷이 멈춘다. |
+| **P12** | **파일트리는 얕게 유지한다.** 에이전트당 최상위 폴더 4개 이내, 경로 깊이 3단 이내, 한 질문의 산출물은 한 폴더에 평평하게(§7.1). | 트리가 깊어지면 사람은 파일을 못 찾고, 에이전트는 경로를 틀리게 쓴다. 구조의 복잡도는 곧 오류율이다. | 산출물이 어디 있는지 grep해야 알게 되고, 폴더가 폴더를 부른다. |
 
 ---
 
@@ -139,7 +140,7 @@
 - 실패한 런을 지우거나 조용히 재실행하지 않는다(P9).
 
 **입력**: goal 카드(사람) 또는 ask_experiment 카드(브리지), `envelope/*.json`, 사서 entries
-**출력**: `plans/<plan_id>.json`(정본) + `.md`(사람용), `runs/<run_id>/{raw/, log.json, deviations.json}`, result 카드 또는 refusal 카드
+**출력**: `questions/<qid>/plan_microscope_<qid>.json`(정본) + `.md`(사람용), `runs/<run_id>/{raw/, log.json, deviations.json}`, result 또는 refusal 카드
 
 **권한**: Tier 0 자율 / Tier 1 envelope 내 저위험 단발 측정 / Tier 2 사람 승인 / Tier 3 금지 (§6)
 
@@ -179,7 +180,7 @@
 - 예산을 넘는 잡을 스스로 제출하지 않는다.
 
 **입력**: goal 카드 또는 ask_simulation 카드, `envelope/budget.json`(자원 한계), 사서 entries
-**출력**: `plans/<plan_id>.json` + `.md`, `runs/<run_id>/{config, trajectory_meta, observables, log.json}`, result 카드 또는 refusal 카드
+**출력**: `questions/<qid>/plan_simulation_<qid>.json` + `.md`, `runs/<run_id>/{config, trajectory_meta, observables, log.json}`, result 또는 refusal 카드
 
 **권한**: Tier 0 자율 / Tier 1 스모크런·소규모 검증런 / Tier 2 예산 초과 잡·모델 변경 / Tier 3 금지
 
@@ -246,7 +247,7 @@ kb/
 1. **수송**: plan/result 카드 → `ask_simulation.json` / `ask_experiment.json` 봉투로 감싸 전달.
 2. **단위·무차원화 사상 검사**: 실험 단위(µm, s, pN, K, …) ↔ 시뮬레이션 환원 단위(σ, τ, kT, …). 사상표는 `contracts/units.md`에 고정하고 변환은 코드가 검사한다. **브리지는 변환하지 않고 검사한다** — 변환 결과를 받는 쪽이 자기 단위로 명시 선언한다.
 3. **대응 가능성 검사**: 요청한 관측량을 상대편이 산출할 수 있는가? 없으면 왕복을 낭비하기 전에 즉시 거절한다.
-4. **라운드 상태기계 + 무결성**: `threads/<thread>/r<N>/`, `hashes.json`으로 "받은 카드 = 보낸 카드"를 확인한다.
+4. **라운드 상태기계 + 무결성**: `threads/<thread>/`의 `r<N>_hashes.json`으로 "받은 카드 = 보낸 카드"를 확인한다.
 5. **중복 차단**: 같은 관측량·조건이 이미 왕복했으면 새 라운드 대신 KB 참조로 대체한다.
 
 **하지 않는 일**
@@ -257,7 +258,7 @@ kb/
 - 라운드를 스스로 열지 않는다. 라운드 개시는 사람 또는 계획서 완료 이벤트가 트리거한다.
 
 **입력**: 한쪽의 plan/result 카드
-**출력**: `threads/<thread>/r<N>/{ask_*.json, ask_*.md, hashes.json, status.json}`
+**출력**: `threads/<thread>/{r<N>_ask_*.json, r<N>_ask_*.md, r<N>_hashes.json, status.json}`
 
 **권한**: Tier 0 (수송·검사·거절) 전부. **Tier 1 이상 없음** — 브리지는 아무것도 실행하지 않는다.
 
@@ -293,12 +294,12 @@ kb/
 │ [S3] 축별 병렬 독립 해석  ←── 사서 pull              LLM + Python
 │   │   축마다 서브에이전트 1개, 형제의 출력을 볼 수 없음
 │   │   각자 "제약(허용 구간)"을 낸다 — 결정하지 않는다
-│   │   → stage3/<axis>.json  × N
+│   │   → axis_A1.json … axis_A5.json
 │   │
 │ [S4] 종합 · 트레이드오프 정리                        LLM + Python
 │   │   제약의 교집합 + 우선순위 → 동작점 1개
 │   │   새 숫자 생성 금지, 새 사실 조회 금지
-│   │   → synthesis_<qid>.json
+│   │   → synthesis.json
 │   │
 │ [S5] 산출
 │       → plan_<agent>_<qid>.json  (정본) ──검증기──> VALIDATED
@@ -312,7 +313,7 @@ kb/
 | | 내용 |
 |---|---|
 | 입력 | goal 카드 1개 (S2 산출물) + 사서 entries. 그 밖의 것은 읽지 않는다. |
-| 출력 | `plan_<agent>_<qid>.json` + `.md`, 또는 refusal 카드. 중간 산출물(stage3, synthesis)은 감사 기록으로 남는다. |
+| 출력 | `plan_<agent>_<qid>.json` + `.md`, 또는 refusal 카드. 중간 산출물(`axis_*.json`, `synthesis.json`)은 같은 폴더에 감사 기록으로 남는다. |
 | 권한 | Tier 0만. **system designer는 아무것도 실행하지 않는다** — 실행은 승인 이후의 별개 단계다(§6). |
 | 금지 | 질문 자체를 바꾸는 것. 목표가 틀렸다고 판단되면 계획이 아니라 **refusal + 되물음**으로 S2에 돌려보낸다. |
 
@@ -342,7 +343,7 @@ kb/
 독립성의 구조적 보장 — 요청이 아니라 구조로 막는다:
 1. 서브에이전트는 각자 **별개 호출**로 실행되고, 출력은 각자의 파일에만 쓴다.
 2. 형제 파일 경로에 대한 읽기 권한이 없다.
-3. 검증기가 `stage3/<axis>.json` 사이의 상호 참조를 실패로 처리한다(§8).
+3. 검증기가 `axis_*.json` 사이의 상호 참조를 실패로 처리한다(§8 검사 11).
 
 #### 4.5.3 축 목록 — 두 에이전트가 갈리는 유일한 지점
 
@@ -369,8 +370,9 @@ kb/
 
 - `plan_<agent>_<qid>.json` — 정본. §5.4의 필수 항목을 전부 갖는다. 검증기를 통과해야 `VALIDATED`(§5.5).
 - `plan_<agent>_<qid>.md` — **JSON에서 생성한다.** 손으로 고쳐도 시스템은 읽지 않는다(§5.6).
+- 한 질문의 모든 파일은 `questions/<qid>/` **한 폴더에 평평하게** 놓인다(§7.1).
 - `qid` 규약: `<agent>-<YYYYMMDD>-<NNN>` (예: `mic-20260916-001`, `sim-20260916-003`). 한 질문의 모든 산출물이 같은 qid를 공유하므로 grep 한 번으로 이력 전체가 모인다.
-- 재실행은 qid를 재사용하고 `revision`을 올린다. 이전 S3 산출물은 지우지 않는다(P9).
+- 재실행은 qid를 재사용하고 `revision`을 올린다. 이전 산출물은 지우지 않고 `r2_` 접두사로 나란히 둔다(P9, §7.1 규칙 6).
 - 파일명은 §0 언어 규약에 따라 영어로 쓴다 (`question_…`, `goal_…`, `plan_…`).
 
 #### 4.5.6 각 단계의 정지 조건
@@ -476,39 +478,54 @@ JSON이 정본, MD는 JSON에서 생성되는 사람용 산출물. MD를 손으�
 ```
 rebuild/
   plan.md                  이 문서
-  CLAUDE.md                모노레포 공통 규칙 (P1–P11, 카드 규약 요약)
+  CLAUDE.md                모노레포 공통 규칙 (P1–P12, 카드 규약 요약)
   contracts/               ★ 유일한 공유 코드. 4 에이전트가 모두 의존.
     schemas/               goal/plan/approval/result/refusal/ask 스키마
     units.md               실험 단위 ↔ 환원 단위 사상표 (정본)
     validate.py            결정론적 검증기
     capabilities/          각 에이전트가 선언한 "산출 가능한 관측량" 표
-  microscope_agent/
-    CLAUDE.md              역할 / 하지 않는 일 / 권한
-    .claude/skills/        S2 정교화 / system_designer(S3 축별 해석·S4 종합·S5 산출) / 실행 / 편차 기록
-    envelope/              동작 한계 + 캘리브레이션 상수 (기계 판독, Tier 3 보호)
-    questions/<qid>/       question_*.md, goal_*.json,
-                           system_designer/{stage3/<axis>.json, synthesis_*.json}
-    plans/                 plan_microscope_<qid>.{json,md}
-    runs/                  <run_id>/{raw/, log.json, deviations.json}
-  simulation_agent/
+  microscope_agent/                 최상위 폴더 3개 + CLAUDE.md
+    CLAUDE.md                       역할 / 하지 않는 일 / 권한
+    envelope/                       동작 한계 + 캘리브레이션 상수 (기계 판독, Tier 3 보호)
+    questions/<qid>/                한 질문의 모든 것이 이 한 폴더에 평평하게
+                                      question_microscope_<qid>.md    (S2, 사람용)
+                                      goal.json                       (S2, 정본)
+                                      axis_A1.json … axis_A5.json     (S3, 축별 제약)
+                                      synthesis.json                  (S4)
+                                      plan_microscope_<qid>.json      (S5, 정본)
+                                      plan_microscope_<qid>.md        (S5, 생성물)
+                                      refusal.json                    (있을 때만)
+    runs/<run_id>/                  raw/, log.json, deviations.json
+    .claude/skills/                 S2 정교화 / system_designer(S3·S4·S5) / 실행 / 편차 기록
+  simulation_agent/                 위와 같은 구조, 축 목록만 다름 (§4.5.3)
     CLAUDE.md
-    .claude/skills/        S2 정교화 / system_designer(S3 축별 해석·S4 종합·S5 산출) / 실행 / 수렴 판정
-    envelope/              자원 예산, 안정성 한계
-    questions/<qid>/       question_*.md, goal_*.json,
-                           system_designer/{stage3/<axis>.json, synthesis_*.json}
-    plans/                 plan_simulation_<qid>.{json,md}
-    runs/                  <run_id>/{config, trajectory_meta, observables, log.json}
+    envelope/                       자원 예산, 안정성 한계
+    questions/<qid>/                question_…md, goal.json, axis_A1–A5.json,
+                                    synthesis.json, plan_simulation_<qid>.{json,md}
+    runs/<run_id>/                  config, trajectory_meta, observables, log.json
+    .claude/skills/                 S2 정교화 / system_designer(S3·S4·S5) / 실행 / 수렴 판정
   librarian_agent/
     CLAUDE.md
-    .claude/skills/        질의 응답, 증류, 충돌 처리, 외부 검색
-    kb/{sources,distilled,entries}/  index.json
+    kb/sources/  kb/distilled/  kb/entries/   + kb/index.json
+    .claude/skills/                 질의 응답, 증류, 충돌 처리, 외부 검색
   bridge/
     CLAUDE.md
-    threads/<thread>/r<N>/ ask_*.json, ask_*.md, hashes.json, status.json
+    threads/<thread>/               라운드는 폴더가 아니라 파일명 접두사로 구분
+                                      r1_ask_simulation.json, r1_ask_simulation.md,
+                                      r1_hashes.json, r2_…, status.json
   .claude/
     settings.json          hooks (검증·권한 게이트)
     agents/                공용 subagent 정의
 ```
+
+### 7.1 트리 규칙 (P12)
+
+1. **깊이 상한 3단** (에이전트 디렉터리 기준). 유일한 예외는 `runs/<run_id>/raw/` — 원시데이터는 장비가 뱉는 구조를 따른다.
+2. **에이전트당 최상위 폴더는 4개까지.** 지금은 `envelope/`, `questions/`, `runs/`, `.claude/` 넷이며, 이것이 상한이다.
+3. **폴더는 종류가 아니라 질문으로 묶는다.** 단계별 폴더(`stage3/`, `system_designer/`)를 만들지 않는다. 한 질문의 중간물과 산출물이 `questions/<qid>/` 한 곳에 평평하게 놓이므로, 폴더 하나만 열면 그 질문의 전말이 보인다.
+4. **새 폴더를 만드는 것은 이 문서를 고치는 일이다.** §7에 선언되지 않은 경로에 쓰면 검증기가 실패시킨다(§8 검사 13).
+5. **이름 규약**: 에이전트 **밖으로 나가는 산출물**(`question_…`, `plan_…`)만 파일명에 `<agent>_<qid>`를 박는다. 내부 중간물은 `goal.json`, `axis_A1.json`, `synthesis.json`처럼 짧게 쓴다 — 경로가 이미 누구의 어느 질문인지 말해주므로 반복은 잡음이다.
+6. **라운드·리비전은 폴더가 아니라 파일명 접두사로** 표현한다(`r1_…`, `r2_…`). 폴더를 파면 깊이만 늘고 목록이 한눈에 안 보인다.
 
 **분리 경로 (D1 후속)**: 나중에 현미경 PC로 물리 분리할 때는 `microscope_agent/` + `contracts/`만 떼어내면 되도록, 현미경 에이전트는 다른 에이전트의 디렉터리를 직접 읽지 않는다. 읽는 것은 `contracts/`와 자기 디렉터리, 그리고 브리지가 자기 쪽에 놓아준 카드뿐이다.
 
@@ -529,8 +546,9 @@ rebuild/
 8. 브리지: 해시 일치, 관측량 대응 가능성(`capabilities/`와 대조)
 9. MD ↔ JSON 숫자 불일치 (있으면 실패, JSON이 정본)
 10. `degraded` 전파 — plan의 `degraded`가 그 plan에서 나온 result에도 있는지 (§3.1 규칙 2)
-11. S3 독립성 — `stage3/<axis>.json`끼리 서로를 참조하지 않는지 (§4.5.2)
+11. S3 독립성 — `axis_*.json`끼리 서로를 참조하지 않는지 (§4.5.2)
 12. S4 폐쇄성 — synthesis의 모든 숫자가 S3 출력 또는 goal 카드에서 유래하는지. 출처 없는 신규 숫자는 실패 (§4.5.4)
+13. 경로 적법성 — §7에 선언되지 않은 폴더나 깊이 4단 이상의 경로에 쓰였는지 (§7.1)
 
 **hooks**: 카드 파일이 쓰이면 자동 검증, 실패 시 커밋을 막는다. 검증기의 종료 코드가 유일한 진실이다.
 
