@@ -972,6 +972,7 @@ ALLOWED_PATHS = [
     r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
     r"^librarian_agent/CLAUDE\.md$",
     r"^librarian_agent/kb/(index\.json|(sources|distilled|entries|lessons|staging|exports)/[A-Za-z0-9_.-]+)$",
+    r"^librarian_agent/queries/[A-Za-z0-9_.-]+$",
     r"^librarian_agent/src/[A-Za-z0-9_.-]+$",
     r"^bridge/CLAUDE\.md$",
     r"^bridge/threads/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
