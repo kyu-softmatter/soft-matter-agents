@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "agent": "microscope_agent",
   "status": "provisional",
-  "pending": "A judgement, not a missing fact. contracts/observables.json now defines tracer_diffusivity, and check 38 already passes: the five configurations match the optical path table and each points at an entry in it. What is undecided is which of the four imaging configurations can actually produce single-particle tracking well enough to claim it -- and filling in the selector value lists will not answer that on its own. Until it is decided, produces stays empty and S3.0 screens on nothing here.",
+  "pending": "The judgement is made and the declaration is not. 2026-09-17, from the operator: single-particle tracking is possible in every configuration. What that leaves open is trapping, which the optical path table gives no detector of its own -- it composes with an imaging configuration rather than replacing one, so the observable comes from whichever imaging configuration it rides on. Reading the answer as the four imaging configurations, with trapping producing nothing by itself, is the reading this file expects, but the declaration belongs to the microscope session and it has not made it yet. produces therefore stays empty here and S3.0 screens on nothing until it does.",
   "configurations": [
     {
       "config": "transmitted",
