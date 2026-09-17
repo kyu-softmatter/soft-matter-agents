@@ -83,6 +83,12 @@ It shows the staged set, runs the validator against it, and checks that the
 cards which must fail still fail. `--no-verify` bypasses it and leaves no
 trace, so a bypass is something to say in the commit message.
 
+It checks **the tree the commit would create**, not the working copy: the index
+is unpacked into a scratch directory and the validator runs there. So another
+session's half-finished edit no longer refuses your commit -- and a green gate
+means the commit is green, not the working copy. The hook lists separately
+whatever differs from what is going in, because nothing checked that.
+
 **The working copy and the git index are shared between sessions.** One
 session's `git add` is picked up by another session's `git commit`. Name paths
 rather than using `-A`, and use `git commit -- <paths>` to commit without

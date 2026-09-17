@@ -9,6 +9,19 @@
 # convenient to enforce is P4 in reverse: the model deciding whether the check
 # applies.
 #
+# It checks the tree the commit would create, not the working copy. Five
+# sessions share one working copy (6.2.1), so the working copy is nobody's
+# commit: it holds everyone's half-finished edits at once. The first version of
+# this hook validated it anyway, and on 2026-09-17 one session's in-progress KB
+# entries left check 25 red for hours, which refused every other session's
+# commit -- including commits that would have produced a green HEAD. The way
+# out was `--no-verify`, twice. A gate that refuses correct work does not get
+# fixed, it gets bypassed, and then it is not a gate.
+#
+# So: unpack the index into a scratch directory and run the validator there.
+# The index is what is about to be committed, which is the only state a commit
+# can be judged on.
+#
 # Install once per working copy:
 #     git config core.hooksPath contracts/hooks
 #
@@ -31,25 +44,58 @@ if [ -z "$STAGED" ]; then
     exit 0
 fi
 
-# Show what is going in, grouped by who owns it. The hook cannot tell whose
-# work a staged file is -- `git add -A` in one session sweeps up another's
-# uncommitted edits, and that is how one commit came to carry three sessions'
-# work under a message describing one. It can at least make the set visible
-# before the commit rather than after.
-echo "pre-commit: staging"
+# Show what is going in. The hook cannot tell whose work a staged file is --
+# `git add -A` in one session sweeps up another's uncommitted edits, and that is
+# how one commit came to carry three sessions' work under a message describing
+# one. It can at least make the set visible before the commit rather than after.
+echo "pre-commit: committing"
 echo "$STAGED" | sed 's#^#  #'
+
+# And say what is being left behind, because this hook no longer looks at it. A
+# green gate now means the commit is green, not that the working copy is.
+#
+# `git diff --name-only` is worktree against the index being committed, which is
+# already the right set: another session's uncommitted edits, and also a file
+# staged and then edited further -- where the version on disk is not the version
+# going in. Filtering the staged names out of it would hide that second case.
+DIRTY=$(git diff --name-only)
+if [ -n "$DIRTY" ]; then
+    echo "pre-commit: differs from what is being committed, and not checked"
+    echo "$DIRTY" | sed 's#^#  #'
+fi
 echo
 
-echo "pre-commit: contracts"
-if ! python3 contracts/validate.py --staged --quiet; then
+# `git commit -- <paths>` and `git commit -a` each build a temporary index and
+# point GIT_INDEX_FILE at it before running this hook. checkout-index reads
+# that, so what lands here is exactly the tree the commit would create --
+# neither the working copy nor the plain index.
+EXPORT=$(mktemp -d "${TMPDIR:-/tmp}/sma-pre-commit-XXXXXXXX")
+trap 'rm -rf "$EXPORT"' EXIT HUP INT TERM
+if ! git checkout-index -a -f --prefix="$EXPORT/"; then
     echo >&2
-    echo "pre-commit: refused. Fix the failures above, or commit with --no-verify" >&2
-    echo "            and say in the message why the gate was bypassed." >&2
+    echo "pre-commit: refused. The index could not be unpacked, so there is" >&2
+    echo "            nothing to check. Ambiguity stops (P0)." >&2
+    exit 1
+fi
+
+# The content checks read the export -- they resolve every path from the
+# validator's own location. Checks 35 and 41 cannot: they have to ask the real
+# repository what is staged and who is committing, and the export has no .git.
+# SMA_GIT_REPO is how the two are told apart.
+export SMA_GIT_REPO="$REPO"
+
+echo "pre-commit: contracts"
+if ! python3 "$EXPORT/contracts/validate.py" --staged --quiet; then
+    echo >&2
+    echo "pre-commit: refused. The failures above are in the tree this commit" >&2
+    echo "            would create, so they are this commit's. Fix them, or" >&2
+    echo "            commit with --no-verify and say in the message why the" >&2
+    echo "            gate was bypassed." >&2
     exit 1
 fi
 
 echo "pre-commit: the cards that must fail"
-if ! python3 contracts/validate.py --expect-fail contracts/examples/rejected >/dev/null 2>&1; then
+if ! python3 "$EXPORT/contracts/validate.py" --expect-fail "$EXPORT/contracts/examples/rejected" >/dev/null 2>&1; then
     echo >&2
     echo "pre-commit: refused. A card in contracts/examples/rejected/ stopped failing," >&2
     echo "            which means a check stopped working. Run:" >&2

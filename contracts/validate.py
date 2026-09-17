@@ -34,6 +34,7 @@ import ast
 import hashlib
 import json
 import math
+import os
 import re
 import sys
 from dataclasses import dataclass, field
@@ -43,6 +44,16 @@ from typing import Any, Iterable
 
 CONTRACTS = Path(__file__).resolve().parent
 REPO = CONTRACTS.parent
+
+# Where the content being checked lives, and where git is asked about it, are
+# not always the same directory. The pre-commit hook validates the tree the
+# commit would create by unpacking the index into a scratch directory and
+# running this file from there, so REPO is that export -- while checks 35 and
+# 41 have to ask the real repository what is staged and who is committing. An
+# export has no .git, and `git -C` inside one would either fail or, if TMPDIR
+# happens to sit inside some other repository, answer confidently about that
+# one instead. So the hook names the repository and only the git checks use it.
+GIT_REPO = Path(os.environ.get("SMA_GIT_REPO") or REPO)
 
 PASS, FAIL, UNDECIDED, PENDING, NA = "PASS", "FAIL", "UNDECIDED", "PENDING", "N/A"
 
@@ -1505,7 +1516,7 @@ def check_35_session_boundary(b: Bundle, commit_range: str | None = None, staged
     import subprocess
 
     def git(*args: str) -> str:
-        return subprocess.run(["git", "-C", str(REPO), *args],
+        return subprocess.run(["git", "-C", str(GIT_REPO), *args],
                               capture_output=True, text=True, check=True).stdout
 
     # The rule is per commit. Diffing the endpoints of a range would aggregate
@@ -1864,7 +1875,7 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
     import subprocess
 
     def git(*args: str) -> str:
-        return subprocess.run(["git", "-C", str(REPO), *args],
+        return subprocess.run(["git", "-C", str(GIT_REPO), *args],
                               capture_output=True, text=True, check=True).stdout
 
     by_email = {s["committer_email"]: s for s in reg.get("seats", [])}
