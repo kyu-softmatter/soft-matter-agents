@@ -13,8 +13,7 @@
         "stand_ti2e",
         "confocal_csuw1",
         "camera_red",
-        "camera_blue",
-        "camera_splitter"
+        "camera_blue"
       ],
       "produces": [
         "tracer_diffusivity",
@@ -36,7 +35,6 @@
         "confocal_csuw1",
         "camera_red",
         "camera_blue",
-        "camera_splitter",
         "widefield_source_a",
         "dmd"
       ],
@@ -60,7 +58,6 @@
         "confocal_csuw1",
         "camera_red",
         "camera_blue",
-        "camera_splitter",
         "widefield_source_b"
       ],
       "produces": [

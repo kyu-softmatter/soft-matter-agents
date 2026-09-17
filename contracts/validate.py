@@ -1620,11 +1620,31 @@ def _optical_path_table() -> tuple[dict | None, str]:
     return None, ""
 
 
+def _device_table() -> tuple[dict | None, str]:
+    """The channel table, from wherever the librarian last published it.
+
+    Same preference as the optical path table: exports first, then the flat
+    staging table it has not decomposed yet (11.1).
+    """
+    for cand in sorted((KB_DIR / "exports").glob("devices*.json")):
+        return json.loads(cand.read_text()), str(cand.relative_to(REPO))
+    staged = KB_DIR / "staging" / "devices.v0.json"
+    if staged.exists():
+        return json.loads(staged.read_text()), str(staged.relative_to(REPO))
+    return None, ""
+
+
 def check_38_one_table(b: Bundle) -> list[Finding]:
-    """A configuration list and an optical path list are one table (4.6.7).
+    """A configuration list, an optical path list and a channel table are one (4.6.7).
 
     Two tables drift, and the drift shows up as a plan that is valid on paper
     while no light reaches the detector.
+
+    Configuration ids were compared here from the start; the `devices[]` lists
+    were not, so a configuration could name hardware the channel table does not
+    have and nothing failed. That is how `camera_splitter` -- a row retired on
+    2026-09-17 because it was never a channel -- stayed named by three
+    configurations after the table dropped it.
     """
     caps = sorted((CONTRACTS / "capabilities").glob("*.json"))
     caps = [c for c in caps if c.name != "capabilities.schema.json"]
@@ -1672,6 +1692,27 @@ def check_38_one_table(b: Bundle) -> list[Finding]:
         if cap_ids != table_ids:
             only_cap, only_table = sorted(cap_ids - table_ids), sorted(table_ids - cap_ids)
             out.append(Finding(38, FAIL, f"the two tables disagree: only in capabilities {only_cap}, only in {table_rel} {only_table}", rel))
+        # The devices[] side of the same table. One direction only: a channel
+        # may exist without appearing in any configuration (the piezo stage
+        # appears in none), but a configuration may not name hardware that is
+        # not there.
+        devices, dev_rel = _device_table()
+        if devices is None:
+            out.append(Finding(38, PENDING, "no channel table published or staged yet, so the devices[] lists are unchecked", rel))
+        else:
+            live = {c["id"] for c in devices.get("channels", []) if "id" in c}
+            retired = {r["id"]: r for r in devices.get("retired_rows", []) or [] if "id" in r}
+            for conf in configs:
+                for dev in conf.get("devices", []) or []:
+                    if dev in live:
+                        continue
+                    if dev in retired:
+                        row = retired[dev]
+                        why = str(row.get("why", "")).split(".")[0].strip()
+                        out.append(Finding(38, FAIL, f"configuration {conf.get('config')!r} names device {dev!r}, which {dev_rel} retired on {row.get('retired_at')}: {why}", rel))
+                    else:
+                        out.append(Finding(38, FAIL, f"configuration {conf.get('config')!r} names device {dev!r}, which is not a channel in {dev_rel}", rel))
+
         for conf in configs:
             ref = conf.get("optical_path")
             if ref is None:
