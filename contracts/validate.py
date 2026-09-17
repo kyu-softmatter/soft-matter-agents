@@ -1467,14 +1467,35 @@ def check_35_session_boundary(b: Bundle, commit_range: str | None = None, staged
     if not commit_range and not staged:
         return [Finding(35, PENDING, "pass --commit-range or --staged; the pre-commit hook passes --staged (6.2)")]
     import subprocess
-    args = ["git", "-C", str(REPO), "diff", "--name-only"]
+
+    def git(*args: str) -> str:
+        return subprocess.run(["git", "-C", str(REPO), *args],
+                              capture_output=True, text=True, check=True).stdout
+
+    # The rule is per commit. Diffing the endpoints of a range would aggregate
+    # several sessions' commits into one set and fail a history that is
+    # perfectly well behaved -- and a check that fails correct work teaches
+    # people to stop reading it.
+    if not staged:
+        try:
+            shas = [x for x in git("rev-list", "--reverse", commit_range or "").splitlines() if x.strip()]
+        except (OSError, subprocess.CalledProcessError) as exc:
+            return [Finding(35, FAIL, f"cannot read commit range {commit_range!r}: {exc}")]
+        if len(shas) > 1:
+            out: list[Finding] = []
+            for sha in shas:
+                for f in check_35_session_boundary(b, f"{sha}~1..{sha}"):
+                    if f.status == FAIL:
+                        out.append(Finding(35, FAIL, f"{sha[:7]}: {f.message}", f.path))
+            return out or [Finding(35, PASS, f"{len(shas)} commits each stay inside one boundary")]
+
+    args = ["diff", "--name-only"]
     args += ["--cached"] if staged else [commit_range]
     try:
-        proc = subprocess.run(args, capture_output=True, text=True, check=True)
+        paths = [p for p in git(*args).splitlines() if p.strip()]
     except (OSError, subprocess.CalledProcessError) as exc:
         what = "the staged set" if staged else f"commit range {commit_range!r}"
         return [Finding(35, FAIL, f"cannot read {what}: {exc}")]
-    paths = [p for p in proc.stdout.splitlines() if p.strip()]
     if not paths:
         return [Finding(35, NA, "nothing staged" if staged else f"no files changed in {commit_range}")]
     touched: dict[str, list[str]] = {}

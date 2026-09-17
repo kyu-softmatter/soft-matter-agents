@@ -36,7 +36,17 @@ backlog of M1–M2 estimates that gap detection would later have re-examined.
 as a **plain store**: a person curates the entries and agents read the files.
 The service on top of it — MCP server (four read-only tools), gap detection,
 distillation, external search, snapshot publishing — is M3 and is not built
-yet (§4.3.0). The other three agent directories are still empty.
+yet (§4.3.0).
+
+**The stated order and the built order diverge right now.** The microscope
+agent has an execution layer under `microscope_agent/src/` while the librarian
+service has not started, so what §9 says is next is not what is furthest along.
+That is a decision waiting on the user, not a fact to work around: whether the
+microscope keeps going without a librarian, or the librarian catches up first.
+`simulation_agent/` and `bridge/` hold instructions and settings only.
+
+Counts in prose go stale — three of them were wrong on 2026-09-17. Read them
+from the validator's `verdict:` line instead of restating them here.
 
 The bridge's **wire contract** landed with M0's cards rather than with the
 bridge itself: the `ask` envelope, the two thread ledgers (`status.json` and
