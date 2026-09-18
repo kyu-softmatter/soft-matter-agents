@@ -328,6 +328,22 @@ that uses them.
 **Drop** — their orchestrator, and the per-device GUI-session management. We
 have our own single entry point and it is already written.
 
+## What the operator still owes, and what each one unlocks
+
+Kept here rather than in a card because these are not missing values -- a
+missing value is a `kb_gap` and the axis cards already carry seven of them.
+These are questions only the person can answer, and a session that clears
+between tasks would otherwise carry them in context, which is where they
+would quietly become nobody's.
+
+| | unlocks |
+|---|---|
+| **Target relative error on the trap displacement** | A7's floor, `x_min = sigma_loc / target`. The goal's decade resolution and SNR target are neither: SNR is about detecting the bead, `x_min` about resolving how far it moved |
+| **Bead lot number** | Not a value -- a source. The diameter is E5 on recall; a lot number makes it `spec:<lot>` at E3, and `gamma` rises with it |
+| **Working height above the coverslip** | The wall correction scales with it. The +16% quoted in A7 is true only at 10 um, and nothing has said what the height is |
+
+Take one off this list when it lands in a card with a source and a grade.
+
 ## Safety here is not advice
 
 `plan.md` §2.1 is enforced by code, not by care. In this directory that means:
