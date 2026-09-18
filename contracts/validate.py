@@ -1788,14 +1788,18 @@ def check_36_symbol_collision(b: Bundle) -> list[Finding]:
                 defs[sym] = (formula, c.rel)
     if KB_INDEX is not None:
         for eid, e in (KB_INDEX.get("entries") or {}).items():
-            if e.get("kind") != "dimensionless_group" or not e.get("symbol"):
+            # By symbol, not by kind. A symbol means one definition whatever its
+            # dimension, and filtering on dimensionless_group dropped every
+            # derived_quantity out of the collision check the moment that kind
+            # existed -- silently, since a check that stops looking still passes.
+            if not e.get("symbol"):
                 continue
             sym, formula = e["symbol"], e.get("formula")
             if sym in defs and defs[sym][0] != formula:
                 out.append(Finding(36, FAIL, f"symbol {sym!r} is {defs[sym][0]!r} in {defs[sym][1]} but the store defines it as {formula!r} (5.7)", "librarian_agent/kb/index.json"))
     elif n:
         out.append(Finding(36, PENDING, f"{n} ad-hoc groups checked against each other; comparing them with the store needs kb/index.json"))
-    return out or [Finding(36, PASS if n else NA, f"{n} dimensionless group definitions do not collide" if n else "no dimensionless groups")]
+    return out or [Finding(36, PASS if n else NA, f"{n} symbol definitions do not collide" if n else "no symbols defined")]
 
 
 def check_37_time_base(b: Bundle) -> list[Finding]:

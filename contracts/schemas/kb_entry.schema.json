@@ -8,13 +8,14 @@
     "entry_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
     "schema_version": { "const": "0.1" },
     "kind": {
-      "enum": ["claim", "dimensionless_group", "calibration"],
-      "description": "a dimensionless_group carries a formula instead of a value (5.7)"
+      "enum": ["claim", "dimensionless_group", "derived_quantity", "calibration"],
+      "description": "A dimensionless_group and a derived_quantity both carry a formula instead of a value (5.7); what separates them is a claim, not a filing convenience. dimensionless_group asserts the formula evaluates to a pure number. derived_quantity is a named quantity computed from others that KEEPS a dimension, and it states that dimension in `unit`. Until derived_quantity existed there was no kind for the second, so it was filed as the first -- tau_d, whose formula is a length squared over a diffusivity and therefore a TIME, sat under dimensionless_group with no unit anywhere on it."
     },
     "claim": { "type": "string", "minLength": 20 },
     "numbers": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/number" } },
-    "symbol": { "type": "string", "description": "dimensionless_group only" },
-    "formula": { "type": "string", "description": "dimensionless_group only" },
+    "symbol": { "type": "string", "description": "dimensionless_group and derived_quantity. One symbol means one definition across the store and every card (check 36), whatever its dimension." },
+    "formula": { "type": "string", "description": "dimensionless_group and derived_quantity" },
+    "unit": { "type": "string", "description": "derived_quantity only: the unit the formula yields, from contracts/units.json. A dimensionless_group must not carry one -- being dimensionless is the claim it makes, and a unit beside it would contradict the kind rather than annotate it." },
     "inputs": { "type": "array", "items": { "type": "string" } },
     "validity_conditions": { "type": "string", "minLength": 10, "description": "under what conditions the claim holds; a claim without them is not reusable" },
     "validity": { "$ref": "common.schema.json#/$defs/condition_range", "description": "the machine-readable half of validity_conditions (4.3.1). Where the two disagree this one wins (P3): prose cannot be matched against a query condition_range. An entry without it is returned flagged unconstrained rather than matching silently." },
@@ -41,5 +42,15 @@
     "curated_by": { "type": "string", "description": "who put it here. Until M3 that is a person, not the librarian agent." }
   },
   "required": ["entry_id", "schema_version", "kind", "claim", "validity_conditions", "grade", "source_ref", "date", "curated_by"],
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "derived_quantity" } }, "required": ["kind"] },
+      "then": { "required": ["symbol", "formula", "unit"] }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "dimensionless_group" } }, "required": ["kind"] },
+      "then": { "required": ["symbol", "formula"], "not": { "required": ["unit"] } }
+    }
+  ],
   "unevaluatedProperties": false
 }
