@@ -53,19 +53,22 @@ python3 contracts/validate.py --strict                           # undecided and
 python3 contracts/validate.py --expect-fail contracts/examples/rejected
 ```
 
-The first must end `0 failed`. The last must end `17/17 cards rejected as
-intended` — a card that stops failing means a check stopped working.
+The first must end `0 failed`. The last must end with **every** card rejected
+as intended — a card that stops failing means a check stopped working. Read
+both totals off the run, not off this sentence: `17/17` was written here and
+was `19/19` within the day.
 
-One check reports UNDECIDED rather than passing, and that is the point: the
+A check reports UNDECIDED rather than passing, and that is the point: the
 per-plan E5 cap is unchosen (§11-2). It needs two things, not one — gap
 detection running, and enough plans made while it ran to be a sample. Moving
 the librarian first satisfies the first early and the second not at all, since
 no plan exists yet. A threshold nobody has chosen is not a threshold that is
 satisfied.
 
-Eight checks report PENDING: they need artifacts a later milestone produces
-(`envelope/safety.json`, run logs, agent code under `src/`). Four report N/A:
-no card of that kind exists yet. Neither is counted as a pass.
+Other checks report PENDING — they need artifacts a later milestone produces
+(`envelope/safety.json`, run logs, agent code under `src/`) — or N/A, because
+no card of that kind exists yet. Neither is counted as a pass, and the
+`verdict:` line says how many of each there are today.
 
 After editing knowledge entries, rebuild the index:
 
