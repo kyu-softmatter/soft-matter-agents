@@ -17,10 +17,13 @@ name bodies of work, not an order. What actually blocks what is the column in
 `plan.md` §9, and the one fact worth acting on is that **§11-1, the observable
 vocabulary, blocks three of the four agents** — a decision only the user makes.
 
-`contracts/` is the only shared code. `librarian_agent/kb/` is a **plain
-store**: a person curates the entries and agents read the files; the service on
-top of it is M3 and unbuilt (§4.3.0). Why the order was dropped, and the
-completion condition concurrency inverts, are §9 and §9.1 — not restated here.
+`contracts/` is the only shared code. `librarian_agent/kb/` is the store, and
+**the read-only MCP server over it exists as of 2026-09-18** (`a9df017`, four
+tools). So §9.1's completion condition — one pass with the librarian **on**,
+`kb_refs` and `kb_gaps` filled and `degraded` empty — is reachable rather than
+hypothetical. **Nothing has gone through it yet**: `queries/log.jsonl` does not
+exist, so every card so far read the files directly and belongs on the degraded
+path. Reading the files is not the service answering (§0.3).
 
 ```bash
 python3 contracts/validate.py                                    # the repository
