@@ -153,6 +153,9 @@ class Screening:
     kb_version: str | None
     cap: int
     cap_unresolved: bool = False
+    cap_resolved_by: str | None = None
+    preference_honoured: str | None = None
+    preference_refused: list[dict] = field(default_factory=list)
     undiscriminating: list[str] = field(default_factory=list)
     degraded: list[str] = field(default_factory=list)
 
@@ -234,6 +237,7 @@ def screen(goal: dict, capabilities: dict | None = None) -> Screening:
         result.degraded.append("librarian_agent")
     if len(candidates) > cap:
         apply_cap(result, goal, by_id)
+    apply_preference(result, goal, by_id)
     return result
 
 
@@ -322,8 +326,65 @@ def apply_cap(result: Screening, goal: dict, by_id: dict[str, dict]) -> None:
 
         result.candidates = kept
         usable.append(term)
+        result.cap_resolved_by = "discriminator"
     if not usable:
         result.cap_unresolved = True
+
+
+def apply_preference(result: Screening, goal: dict, by_id: dict[str, dict]) -> None:
+    """The person's tie-break, honoured only where there is a tie to break.
+
+    4.5.1 branch (c) resolves an unresolvable cap by asking the person once,
+    and the answer rides on the goal card as `configuration_preference`, in
+    order. It is a tie-break and not an instruction, so two limits hold.
+
+    It is consulted only while the cap is unresolved. Where a discriminator
+    already cut, there is nothing for a preference to settle, and letting it
+    speak anyway would let a goal card overrule a decision made on capability.
+
+    A configuration the screen rejected stays rejected. If a preference names
+    one of those -- or names nothing in the table at all -- it is not honoured,
+    the refusal is recorded with the reason the screen gave, and the cap stays
+    unresolved so nothing fans out. Honouring it would let a goal card route
+    around the one stage whose whole job is to say what this instrument cannot
+    do, which is the difference between a tie-break and an override. The list
+    stops at the first entry that cannot be honoured rather than sliding to the
+    next: a card that asked for an incapable configuration is a card to fix,
+    and quietly granting its second choice would hide that.
+
+    A shape that cannot be read stops loudly, the way a malformed
+    sample_contrast does. Content that names something unusable is recorded
+    instead, because the field was readable and what it asked for is simply not
+    available -- and that distinction is worth a record rather than a traceback.
+
+    What this function does not do is add evidence. A preference raises no
+    grade, supports no number, and is not an assumption, because a preference
+    has nothing to falsify. S4 may not cite it.
+    """
+    preference = goal.get("configuration_preference")
+    if preference is None:
+        return
+    if not isinstance(preference, list) or not all(isinstance(x, str) for x in preference):
+        raise ScreeningError(
+            f"the goal card's configuration_preference is {preference!r}; "
+            "it must be an ordered list of configuration ids"
+        )
+    if not result.cap_unresolved:
+        return
+
+    standing = {c.config: c for c in result.candidates}
+    for name in preference:
+        if name in standing:
+            result.candidates = [standing[name]]
+            result.cap_unresolved = False
+            result.cap_resolved_by = "preference"
+            result.preference_honoured = name
+            return
+        reason = next((r.reason for r in result.rejected if r.config == name), None)
+        if reason is None:
+            reason = "not a configuration in the capability table"
+        result.preference_refused.append({"config": name, "reason": reason})
+        return
 
 
 # --------------------------------------------------------------------------- #
@@ -368,10 +429,19 @@ def to_configs(result: Screening, goal: dict, qid: str) -> dict:
         "candidates": [c.as_dict() for c in result.candidates],
         "rejected": [{"config": r.config, "reason": r.reason} for r in result.rejected],
         "cap_unresolved": result.cap_unresolved,
+        "cap_resolved_by": result.cap_resolved_by,
+        "preference_honoured": result.preference_honoured,
+        "preference_refused": result.preference_refused,
         "priority_terms_not_evaluable_here": result.undiscriminating,
         "fan_out": fan_out(result, qid) if not result.cap_unresolved and result.candidates else [],
         "degraded": result.degraded,
         "screened_against": "contracts/capabilities/microscope.json and contracts/observables.json only; no lessons (P16)",
+        **({"preference_is_not_evidence":
+            "a human tie-break settles which capable configuration to spend the "
+            "fan-out on and justifies nothing in the plan: no grade, no number, "
+            "not an assumption, and S4 may not cite it. The reason for this pick "
+            "was not given, and none was invented (4.5.1 c)."}
+           if result.preference_honoured else {}),
     }
 
 

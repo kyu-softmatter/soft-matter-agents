@@ -67,6 +67,9 @@
     }
   ],
   "cap_unresolved": true,
+  "cap_resolved_by": null,
+  "preference_honoured": null,
+  "preference_refused": [],
   "priority_terms_not_evaluable_here": [
     "physical_feasibility",
     "target_accuracy",
