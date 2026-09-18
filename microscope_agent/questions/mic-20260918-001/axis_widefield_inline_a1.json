@@ -1,0 +1,175 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260918-001-widefield_inline-a1",
+  "qid": "mic-20260918-001",
+  "thread": "solo-mic-20260918-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-18T18:50:09Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260918-001:widefield_inline:a1",
+  "config": "widefield_inline",
+  "axis": "a1",
+  "kb_version": "kbv-9bc3910f1886",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "disk_period_multiple",
+      "parameter": "exposure_time",
+      "state": "abstained",
+      "kind": "not_constraining",
+      "reason": "this configuration's optical path is 'widefield_inline' and the disk is out of it: the store records that disk-in is the confocal path while disk-out serves widefield fluorescence and brightfield, and the exposure rule applies to an exposure taken through the disk. So the rule was evaluated and does not bite here. On the confocal configuration the same inequality would abstain with kind no_input instead, because the disk period itself is not in the store -- which is why the two cannot be one word"
+    },
+    {
+      "inequality": "snr_floor",
+      "parameter": "exposure_time",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the camera entry enters no sensor number, and says so explicitly; same entry, same absence; nothing describes the fluorophore on these beads -- not the dye, not a photon rate, not a labelling density",
+      "missing": [
+        "read_noise",
+        "quantum_efficiency",
+        "tracer_brightness"
+      ]
+    },
+    {
+      "inequality": "detection_limit",
+      "parameter": "tracer_signal_per_frame",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the camera entry enters no sensor number, and says so explicitly; nothing describes the fluorophore on these beads -- not the dye, not a photon rate, not a labelling density",
+      "missing": [
+        "read_noise",
+        "tracer_brightness"
+      ]
+    },
+    {
+      "inequality": "background_budget",
+      "parameter": "background_rate",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no background measurement exists on this instrument; nothing describes the fluorophore on these beads -- not the dye, not a photon rate, not a labelling density",
+      "missing": [
+        "background_rate",
+        "tracer_brightness"
+      ]
+    },
+    {
+      "inequality": "motion_blur",
+      "parameter": "exposure_time",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no pixel size exists: it needs the camera's sensor pitch, which the camera entry does not carry, and the magnification actually in use; no expected diffusivity is in the store. It is computable -- Stokes-Einstein on the viscosity, the diameter and the ambient temperature, all three of which exist -- and that is why it belongs in the store as an entry rather than here: knowledge lives in one place (P14), and computing it in this axis would also put the drag in two files, which 4.5.2.1 forbids because the two would eventually disagree",
+      "missing": [
+        "pixel_size_in_sample",
+        "tracer_diffusivity_expected"
+      ]
+    },
+    {
+      "inequality": "snr_sustained_over_window",
+      "parameter": "record_duration",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no bleaching rate exists for this fluorophore. The coupling is what makes this bound matter on this configuration rather than in general: widefield fluorescence bleaches while the record runs, and the observable is a diffusivity read from the mean squared displacement over the whole window. Falling signal-to-noise raises the localisation error, so the displacement variance is inflated in the later part of the record and the fitted slope is biased. A bleaching rate is what turns that from a direction into a bound",
+      "missing": [
+        "bleaching_rate"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [
+    {
+      "entry_id": "csuw1_disk_position_states",
+      "grade": "E3",
+      "kb_version": "kbv-9bc3910f1886",
+      "claim": "With the spinning disk in, the path is confocal. With the disk out, the same hardware serves both widefield fluorescence and brightfield. Disk-out is therefore not a configuration of its own but a req"
+    },
+    {
+      "entry_id": "csuw1_disk_speed_exposure_constraint",
+      "grade": "E3",
+      "kb_version": "kbv-9bc3910f1886",
+      "claim": "An exposure taken through the spinning disk must last an integer multiple of the disk period, or stripes remain in the image, and nothing may be acquired while the disk is still spinning up to speed."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "camera_sensor_numbers",
+      "observable": "read_noise",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/entries/",
+        "librarian_agent/kb/staging/",
+        "contracts/capabilities/microscope.json"
+      ],
+      "kb_version": "kbv-9bc3910f1886",
+      "asked_by": "mic-20260918-001:widefield_inline:a1",
+      "nearest": [
+        {
+          "entry_id": "cameras_both_kinetix22",
+          "overlap": "partial"
+        }
+      ]
+    },
+    {
+      "gap_id": "tracer_photophysics",
+      "observable": "tracer_brightness",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/entries/",
+        "librarian_agent/kb/staging/",
+        "contracts/capabilities/microscope.json"
+      ],
+      "kb_version": "kbv-9bc3910f1886",
+      "asked_by": "mic-20260918-001:widefield_inline:a1"
+    },
+    {
+      "gap_id": "expected_diffusivity",
+      "observable": "tracer_diffusivity_expected",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/entries/",
+        "librarian_agent/kb/staging/",
+        "contracts/capabilities/microscope.json"
+      ],
+      "kb_version": "kbv-9bc3910f1886",
+      "asked_by": "mic-20260918-001:widefield_inline:a1",
+      "nearest": [
+        {
+          "entry_id": "water_viscosity_293k",
+          "overlap": "partial"
+        },
+        {
+          "entry_id": "lab_ambient_temperature",
+          "overlap": "partial"
+        }
+      ]
+    },
+    {
+      "gap_id": "disk_period",
+      "observable": "disk_period",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/entries/",
+        "librarian_agent/kb/staging/",
+        "contracts/capabilities/microscope.json"
+      ],
+      "kb_version": "kbv-9bc3910f1886",
+      "asked_by": "mic-20260918-001:widefield_inline:a1",
+      "nearest": [
+        {
+          "entry_id": "csuw1_disk_speed_exposure_constraint",
+          "overlap": "partial"
+        }
+      ]
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "note": "Every bound here abstains, and five of the six abstain for want of a number rather than because they do not apply. Read as a list of measurements, that is: the camera's read noise and quantum efficiency, the pixel size in the sample, the tracers' brightness and bleaching rate, and a background rate. None of them is exotic and none can be guessed (P2), which is the whole content of this card. The sixth is different and the difference is the point: the disk rule was evaluated against this configuration's optical path and does not constrain it. That is an answer, not a missing one, and recording it with the same word as the other five would lose it.",
+  "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
+}
