@@ -2054,11 +2054,36 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
         return subprocess.run(["git", "-C", str(GIT_REPO), *args],
                               capture_output=True, text=True, check=True).stdout
 
-    by_email = {s["committer_email"]: s for s in reg.get("seats", [])}
-    unknown_status = FAIL if reg.get("unknown_committer") == "refuse" else PENDING
+    def seats_at(ref: str) -> dict:
+        """The registry as it stood at `ref`.
 
-    def judge(email: str, paths: list[str], label: str = "", merge: bool = False) -> list[Finding]:
+        A commit is judged against the boundaries that existed when it was
+        made, not today's. Otherwise moving a path between seats turns old
+        history red, and a sweep that reddens whenever a boundary moves is a
+        sweep nobody runs. The question this check asks is whether a seat was
+        inside its boundary *then* (6.2.1, section 8).
+
+        The parent's registry, not the commit's own: read from its own tree, a
+        commit that widens a seat is judged by the widening it just made. Read
+        from the parent, widening seats.json has to be a legitimate commit by
+        whoever owns that file, and the new boundary takes effect from the next
+        commit on. A merge takes its first parent; a root commit has none and
+        falls back to its own tree.
+        """
+        try:
+            return json.loads(git("show", f"{ref}:contracts/seats.json"))
+        except (OSError, subprocess.CalledProcessError, json.JSONDecodeError):
+            return {}
+
+    def judge(email: str, paths: list[str], label: str = "", merge: bool = False,
+              reg: dict | None = None) -> list[Finding]:
+        reg = reg if reg is not None else load_seats()
+        by_email = {s["committer_email"]: s for s in reg.get("seats", [])}
+        unknown_status = FAIL if reg.get("unknown_committer") == "refuse" else PENDING
         pre = f"{label}: " if label else ""
+        if not reg:
+            return [Finding(41, PENDING, f"{pre}contracts/seats.json did not exist yet, so these "
+                                         f"{len(paths)} paths carry no attribution")]
         seat = by_email.get(email)
         if seat is None:
             # On a plain commit, report is partial coverage: check 35 still
@@ -2103,8 +2128,10 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
         if not paths:
             return [Finding(41, NA, "nothing staged")]
         email = m.group(1) if m else ""
-        out = judge(email, paths)
-        return out or [Finding(41, PASS, f"the staged set is {by_email[email]['seat']!r}'s "
+        staged_reg = seats_at("HEAD")
+        out = judge(email, paths, reg=staged_reg)
+        seat = next((s for s in staged_reg.get("seats", []) if s.get("committer_email") == email), None)
+        return out or [Finding(41, PASS, f"the staged set is {(seat or {}).get('seat')!r}'s "
                                          f"({len(paths)} paths)")]
 
     # Per commit, for the same reason check 35 is: a range holds several seats'
@@ -2130,7 +2157,8 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
             # attribute. That is an answer, not a gap.
             quiet_merges += 1 if merge else 0
             continue
-        found = judge(ce, paths, sha[:7], merge)
+        base = f"{sha}^" if parents.split() else sha
+        found = judge(ce, paths, sha[:7], merge, seats_at(base))
         out.extend(found) if found else None
         clean += 0 if found else 1
     if out:
