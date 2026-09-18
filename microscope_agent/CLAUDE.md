@@ -231,6 +231,65 @@ The sample's contrast is a fact about the experiment, not about the
 instrument: it belongs in the goal card's `sample_contrast` with a source and a
 grade, not in this file and not in the knowledge store.
 
+## The control paths, ruled (§10.2.1)
+
+That row of §10.2 is open and does not wait for `envelope/`: rewrapping a call
+needs no safety limit. Numbers are a different row and still closed.
+
+`agentic-microscope` `hardware/` is **byte-identical on `main` and
+`version2`**. The layer that changed between attempts was the lens layer above
+it, not this one — so this is the settled part of that project, and the part
+worth reading.
+
+**Only three channels have a driver of their own.** Cameras, the confocal
+unit, the DMD and the widefield sources are all reached through Micro-Manager
+configuration files, not Python. That is an independent corroboration of our
+registry: the channels we record as `read_back: false` are exactly the ones
+that escape Micro-Manager.
+
+| our channel | theirs | wraps into |
+|---|---|---|
+| `stand_ti2e` | `microscope.py`, `focus.py` | Micro-Manager; read-back is real |
+| `piezo_stage` | `piezo_stage.py`, `piezo_waveform.py`, vendor DLL | its own driver, readable |
+| `optical_tweezers` | `optical_tweezers.py`, `tweezers_drive.py` | TCP text to a GUI, **not readable** |
+| `laser_combiner` | `lunf_power.py` | its own driver, **not readable** |
+| cameras · `confocal_csuw1` · `dmd` · widefield | `config/micromanager/*.cfg` | Micro-Manager; no wrapper to write |
+
+**Two rules transfer, and both are P0-class.**
+
+**A return code is not a verification.** On the tweezers a `0` means the GUI
+accepted the text, not that the instrument did anything; the interface has
+**no query command of any kind**, so readiness can only be inferred by sending
+something and reading the code back. §2.1 already says an unreadable selector
+is unverified — this is the sharper case, where a reply exists and still does
+not answer the question asked.
+
+**A missing reply is never retried. An explicit rejection may be.** Their
+"busy" code is a refusal: the GUI answered, and its answer was *I did not run
+this*, so re-sending is safe. A missing reply leaves the command's fate
+unknown, and several trap commands are **relative** — re-sending one that did
+land moves the trap twice. Our `orchestrator.py` has a timeout that aborts and
+says nothing about retries; it must not grow one that treats those two cases
+alike. Relative commands are the reason, and the reason belongs next to the
+rule.
+
+**Their readiness probe is worth copying as a shape, not as a list.** They
+treat three codes as "up" and five as "up but unusable", and the second set
+splits into *keep waiting* and *go fix it by hand* — which is precisely our
+manual-sheet routing. One of the three "up" codes is there **on measurement,
+not on the manual**: the vendor's reference implies one code and the
+instrument answers another, and without that correction a healthy GUI reads as
+absent. Take the shape; re-measure the codes here before trusting any of them.
+
+**Downgrade — every constant in that file.** The command gap, the retry count,
+the backoff and the reply timeout are all measured numbers with dates. They go
+through §10.3 to the librarian at E3, cited to that measurement, and they do
+**not** arrive as constants in our code. What arrives in code is the structure
+that uses them.
+
+**Drop** — their orchestrator, and the per-device GUI-session management. We
+have our own single entry point and it is already written.
+
 ## Safety here is not advice
 
 `plan.md` §2.1 is enforced by code, not by care. In this directory that means:
