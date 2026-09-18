@@ -186,6 +186,36 @@ mock passes (§4.6.5, §9). The same `plan.json` runs on both — that is the
 working definition of reproducibility. **The backend holds no policy**: limits
 belong to the envelope and the operator.
 
+## What this agent's cards must say
+
+**Every stop criterion declares `on_met`.** `common.schema.json` offers
+`continue`, `complete` and `fault`. The plan schema does not *require* it, and
+the reason is not oversight: the cards that would have to gain it are pinned by
+a signed `plan_approval`, and adding a field changes the hash and voids it
+(§5.5). That constrains the contract, not this agent — nothing here is signed
+yet, so declare it and let the operator read the distinction instead of
+inferring it from whether a criterion fired earlier than the last planned chunk.
+
+Without it `met: true` is not comparable between cards. `result.json` records
+`sc_drift` as met with outcome `DONE`, where met says the guard held;
+`step_displacement_diverged` is met exactly when the run broke. Same field,
+opposite meaning, and `outcome` is derived from it.
+
+**Temperature is the same number on both sides and not the same kind of
+number.** The engine realises the declared value exactly: it is a coordinate of
+the model, the way simulated time is, and not a measurement. Citing
+`kb:lab_ambient_temperature` records *why that value was chosen* — to match the
+lab so a round trip compares like with like — and is not evidence about the
+model, which cannot be wrong about its own thermostat.
+
+The experiment's side is not exact. That entry leaves open where the
+thermometer was, room air or near the sample, and
+`kb:sample_temperature_not_actuated` says nothing controls the sample at all.
+So when the bridge puts two `tracer_diffusivity` values side by side, **the
+temperature uncertainty lives entirely on the experiment side.** Treating both
+as equally certain, or both as equally uncertain, puts it in the wrong place —
+and the gap is already named: `sample_adjacent_temperature` in `kb_gaps`.
+
 ## Axes
 
 A1 integration stability, A2 statistics, A3 finite size, A4 sampling, A5

@@ -250,7 +250,7 @@
     },
     "criterion": {
       "type": "object",
-      "description": "Machine-readable stop/success criterion, declared before execution (5.4).",
+      "description": "Machine-readable stop/success criterion, declared before execution (5.4). A stop criterion also declares what being met means (on_met); a success criterion does not need to, because a success criterion being met is what success is.",
       "properties": {
         "id": {
           "type": "string",
@@ -279,6 +279,14 @@
         },
         "statement": {
           "type": "string"
+        },
+        "on_met": {
+          "enum": [
+            "continue",
+            "complete",
+            "fault"
+          ],
+          "description": "What it means for this criterion to be met. Without it `met: true` is not comparable between cards: result.json records sc_drift as met with outcome DONE, where met says the guard held, while a simulation's step_displacement_diverged is met exactly when the run broke. Same field, opposite meaning, and outcome is derived from it. continue: the condition still holds and the run proceeds; the stop is the violation. complete: the run has reached its planned end. fault: something broke and the run stops short of that end."
         }
       },
       "required": [

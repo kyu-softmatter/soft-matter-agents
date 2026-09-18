@@ -206,7 +206,7 @@
       "items": {
         "$ref": "common.schema.json#/$defs/criterion"
       },
-      "description": "Declared before execution. Chosen afterwards they are narration, not results (5.4)."
+      "description": "Declared before execution. Chosen afterwards they are narration, not results (5.4). Each one should say what being met means (on_met), so result.outcome is read rather than inferred -- an operator today tells a planned ending from a fault by whether the criterion fired earlier than the last planned chunk, and a distinction drawn by inference is one the schema should draw. It is not required yet, and the reason is not oversight: the plan cards that would have to gain it are pinned by a signed plan_approval, and adding a field changes the hash and voids it (5.5). Requiring it takes a corrected revision, which only a person can approve. Until then an agent's own standing orders can require what this schema cannot."
     },
     "success_criteria": {
       "type": "array",
