@@ -1961,12 +1961,20 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
                             f"{pre}committer {email!r} is not a seat in contracts/seats.json, so these "
                             f"{len(paths)} paths carry no attribution")]
         owns, narrow = set(seat.get("owns", [])), seat.get("paths")
+        # excludes subtracts from whatever owns and paths grant. It exists so a
+        # tier cannot hold the file that says what it may touch: a manager able
+        # to edit its own `paths` has no boundary, only a preference (6.2.1).
+        excludes = seat.get("excludes") or []
         out: list[Finding] = []
         for path in paths:
             where = seat_boundary_of(path)
+            hit = next((x for x in excludes if path.startswith(x)), None)
             if where not in owns:
                 out.append(Finding(41, FAIL, f"{pre}seat {seat['seat']!r} owns {sorted(owns)}; this path is "
                                              f"{where}'s (6.2.1)", path))
+            elif hit is not None:
+                out.append(Finding(41, FAIL, f"{pre}seat {seat['seat']!r} is excluded from {hit!r}; another seat "
+                                             f"owns it so that this one cannot widen itself (6.2.1)", path))
             elif narrow and not any(path.startswith(x) for x in narrow):
                 out.append(Finding(41, FAIL, f"{pre}seat {seat['seat']!r} is narrowed to {narrow}, which does "
                                              f"not cover this path (6.2.1)", path))
