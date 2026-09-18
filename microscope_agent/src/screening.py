@@ -254,13 +254,35 @@ def apply_cap(result: Screening, goal: dict, by_id: dict[str, dict]) -> None:
     prose in `label`, where deterministic code cannot read it.
 
     Both halves of that field are contracts/, which this seat reads and does
-    not write: `contrast` on each configuration in capabilities/microscope.json,
-    and the sample's contrast on the goal card as `sample.contrast`. This
-    function reads them where they will be and stops while they are absent, so
-    it is correct before the schema declares them and after. Reading a field
-    that may not exist is not the same as inventing its value (P2).
+    not write: `requires_contrast` on each configuration in
+    capabilities/microscope.json, and `sample_contrast` on the goal card -- a
+    list, because a sample offers a set of mechanisms rather than one. The
+    goal card's field is not declared in goal.schema.json yet, so this reads it
+    where it will be and stops while it is absent. Reading a field that may not
+    exist is not the same as inventing its value (P2).
+
+    On this instrument the field cuts only for a label-free sample. One
+    configuration is label_free and three need fluorescence, and a fluorescent
+    bead offers both mechanisms, so a fluorescent sample leaves all four
+    standing and the cap stays unresolved. That is the correct outcome rather
+    than a disappointing one: a cut that appears for the wrong reason is worse
+    than no cut.
     """
-    sample_contrast = (goal.get("sample") or {}).get("contrast")
+    sample_contrast = goal.get("sample_contrast")
+    if sample_contrast is not None and (
+        not isinstance(sample_contrast, list)
+        or not all(isinstance(m, str) for m in sample_contrast)
+    ):
+        # A scalar would still satisfy `in` by substring, so "label_free" would
+        # match the string "label_free,fluorescence" and a configuration would
+        # survive on spelling. Stopping loudly beats a discriminator that reads
+        # as working: a malformed goal card is S2's to fix, and the screen may
+        # not repair the question it was given (4.5).
+        raise ScreeningError(
+            f"the goal card's sample_contrast is {sample_contrast!r}; "
+            "it must be a list of contrast mechanisms the sample offers"
+        )
+
     usable: list[str] = []
     for term in goal.get("priority", []) or []:
         if term != "contrast":
@@ -268,14 +290,22 @@ def apply_cap(result: Screening, goal: dict, by_id: dict[str, dict]) -> None:
             continue
 
         # Two halves, and either one missing leaves the cap unresolved: which
-        # contrast a configuration requires, and which contrast the sample has.
-        declared = all("contrast" in by_id[c.config] for c in result.candidates)
+        # contrast a configuration requires, and which the sample offers.
+        declared = all("requires_contrast" in by_id[c.config] for c in result.candidates)
         if not declared or not sample_contrast:
             result.undiscriminating.append(term)
             continue
 
+        # Membership, not equality. A sample offers a set: a fluorescent bead
+        # still has refractive contrast, so it satisfies label_free too, and
+        # equality against "fluorescence" would drop transmitted -- leaving
+        # three, inside the cap, so the cap would read as resolved and the
+        # fan-out would go out one candidate short. A configuration removed on
+        # a comparison that was never about capability is the failure P16 names
+        # arriving as a bug rather than a decision, and in that shape nobody
+        # argues with it.
         kept = [c for c in result.candidates
-                if by_id[c.config].get("contrast") == sample_contrast]
+                if by_id[c.config].get("requires_contrast") in sample_contrast]
 
         # A term counts as usable only if it actually cut the list to within
         # the cap and left something. Saying otherwise was this function's
