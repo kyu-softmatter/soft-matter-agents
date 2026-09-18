@@ -1,0 +1,20 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "sim-20260918-901-r1",
+  "plan_id": "plan-sim-20260918-901-r1",
+  "revision": 1,
+  "approval": { "id": null, "kind": null },
+  "safety_policy_version": null,
+  "stop_criteria": ["sc_wall_clock"],
+  "t0_wall": "2026-09-18T00:00:00+00:00",
+  "t0_mono": 4211.0,
+  "backend": "mock_backend",
+  "time_base_note": "REJECTED FIXTURE. The second event carries an offset and does not say where the offset came from. A run log exists to put every event on one timeline and to say which of those times a physical value may depend on (4.6.9); an offset with no time_base answers the first and silently drops the second, so a software offset carrying OS jitter becomes indistinguishable from a trigger count. Check 1 refuses it against run_log.schema.json.",
+  "events": [
+    { "t_mono": 0.0, "time_base": "software", "event": "preflight" },
+    { "t_mono": 0.4, "event": "dispatch", "from": "actions[0]" },
+    { "t_mono": 9.1, "time_base": "software", "event": "finished" }
+  ],
+  "finished_at": "2026-09-18T00:00:09+00:00"
+}

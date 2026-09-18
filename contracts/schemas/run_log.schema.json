@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "run_log.schema.json",
+  "title": "runs/<run_id>/log.json — what an execution left behind (4.6, 4.6.9)",
+  "description": "Not a card: the operator's record of one run. Derived from the artifact microscope_agent/src/operator.py already writes, not invented alongside it. Until this existed the file carried neither `card` nor `artifact`, so the collector skipped it and every check that names a run log -- 14, 15, 23, 37 -- had nothing to read and reported PENDING forever. The cost of that is specific: command provenance and the time base are the two things a run log exists to prove, and neither was being checked. The simulation side has no orchestrator and no device registry (4.6.8), so the fields that come from one are optional here; what is required is what both sides must answer for.",
+  "type": "object",
+  "properties": {
+    "artifact": { "const": "run_log" },
+    "schema_version": { "const": "0.1" },
+
+    "run_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "plan_id": {
+      "type": "string",
+      "description": "the plan this run carried out. A run exists because a plan did (4.6)"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "the plan revision. An approval names (plan_id, revision), so a run that cannot say which revision it ran cannot be matched to one (6.1)"
+    },
+    "approval": {
+      "type": "object",
+      "description": "null id and kind is the honest state of a Tier 0-1 run: it needed no approval card, and saying so is different from failing to record one (6).",
+      "properties": {
+        "id": { "type": ["string", "null"] },
+        "kind": { "enum": ["plan_approval", "scope_approval", null] }
+      },
+      "required": ["id", "kind"],
+      "additionalProperties": false
+    },
+    "safety_policy_version": {
+      "type": ["string", "null"],
+      "description": "which envelope/safety.json was in force. Policy changes, and a run has to say which policy it ran under or the record cannot be read back later (2.1)"
+    },
+    "stop_criteria": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "ids of the monitors compiled from the plan. Stopping is a comparison against these, not a judgement (4.6.1)"
+    },
+
+    "t0_wall": {
+      "type": "string",
+      "description": "wall-clock at t0, ISO 8601. Places the run in history; it does not order events"
+    },
+    "t0_mono": {
+      "type": "number",
+      "description": "the monotonic origin every event offset is measured from (4.6.9)"
+    },
+    "time_base_note": { "type": "string" },
+
+    "backend": {
+      "type": "string",
+      "description": "which backend ran it. mock is a first-class value: a plan runs unchanged on mock and on the engine, and that is the working definition of reproducibility (4.6.5)"
+    },
+    "registry_source": {
+      "type": "string",
+      "description": "instrument side only: where the device registry was read from. Absent on the simulation side, which has no devices/ (4.6.8)"
+    },
+
+    "events": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/event" }
+    },
+    "finished_at": { "type": "string" }
+  },
+  "required": [
+    "artifact", "schema_version", "run_id", "plan_id", "revision",
+    "approval", "t0_wall", "t0_mono", "backend", "events", "finished_at"
+  ],
+  "additionalProperties": false,
+
+  "$defs": {
+    "event": {
+      "type": "object",
+      "description": "One thing that happened, offset against the run's own t0.",
+      "properties": {
+        "t_mono": {
+          "type": "number",
+          "description": "offset from t0_mono. Every event carries one, or the log cannot be put on a single timeline (check 37)"
+        },
+        "time_base": {
+          "enum": ["software", "device", "trigger"],
+          "description": "where this offset came from. software orders the log and nothing else: it carries OS scheduling jitter of milliseconds. A time a physical value depends on comes from a trigger counter or a device timestamp, and check 37 is what holds that line (4.6.9)"
+        },
+        "event": { "type": "string" },
+        "channel": { "type": "string" },
+        "action": { "type": "string" },
+        "from": {
+          "type": "string",
+          "description": "the plan.json field path this event was derived from. Commands are derived, never composed (4.6.1)"
+        },
+        "params": {
+          "type": "object",
+          "description": "parameters as sent. Each one names the field it came from, so a number in a command can be traced to the card that justified it (check 14).",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "value": {},
+              "unit": { "type": "string" },
+              "grade": { "$ref": "common.schema.json#/$defs/grade" },
+              "from": {
+                "type": "string",
+                "description": "field path in plan.json, e.g. numbers[exposure_time]. A parameter that cannot name its origin does not go out"
+              }
+            },
+            "required": ["from"]
+          }
+        }
+      },
+      "required": ["t_mono", "time_base"]
+    }
+  }
+}
