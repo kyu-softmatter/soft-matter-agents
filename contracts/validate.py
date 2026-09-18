@@ -1597,10 +1597,24 @@ def check_35_session_boundary(b: Bundle, commit_range: str | None = None, staged
     # perfectly well behaved -- and a check that fails correct work teaches
     # people to stop reading it.
     if not staged:
+        # --no-merges, and not for tidiness. A merge holding several boundaries
+        # is the definition of a merge, not a violation: the commits it holds
+        # were each checked on their own branch. Without this, rev-list on
+        # M~1..M returns the merge and the commits it brought, the count
+        # exceeds one, and the decomposition re-enters on the identical range
+        # forever -- which surfaced as `check raised RecursionError` and
+        # refused every merge (6.2.1). What a merge contributes of its own is
+        # check 41's, through --cc.
         try:
-            shas = [x for x in git("rev-list", "--reverse", commit_range or "").splitlines() if x.strip()]
+            shas = [x for x in git("rev-list", "--reverse", "--no-merges", commit_range or "").splitlines() if x.strip()]
         except (OSError, subprocess.CalledProcessError) as exc:
             return [Finding(35, FAIL, f"cannot read commit range {commit_range!r}: {exc}")]
+        if not shas:
+            return [Finding(35, NA, f"{commit_range} holds only merges; what a merge itself contributes is check 41's (6.2.1)")]
+        if len(shas) == 1:
+            # Diff that commit rather than the range: the range may also span
+            # merges, and its endpoints would aggregate what they brought.
+            commit_range = f"{shas[0]}~1..{shas[0]}"
         if len(shas) > 1:
             out: list[Finding] = []
             for sha in shas:
@@ -2067,21 +2081,33 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
     # Per commit, for the same reason check 35 is: a range holds several seats'
     # commits, and aggregating them would fail a history that is well behaved.
     try:
-        rows = [x for x in git("log", "--reverse", "--format=%H%x00%ce", commit_range or "").splitlines() if x.strip()]
+        rows = [x for x in git("log", "--reverse", "--format=%H%x00%ce%x00%P", commit_range or "").splitlines() if x.strip()]
     except (OSError, subprocess.CalledProcessError) as exc:
         return [Finding(41, FAIL, f"cannot read commit range {commit_range!r}: {exc}")]
     if not rows:
         return [Finding(41, NA, f"no commits in {commit_range}")]
-    out, clean = [], 0
+    out, clean, quiet_merges = [], 0, 0
     for row in rows:
-        sha, _, email = row.partition("\x00")
-        paths = [x for x in git("diff-tree", "--no-commit-id", "--name-only", "-r", sha).splitlines() if x.strip()]
+        sha, ce, parents = (row.split("\x00") + ["", ""])[:3]
+        # A merge is read with --cc: what belongs to the merging seat is what
+        # is in no parent, which is a conflict resolution or an edit slipped in
+        # while merging (6.2.1). Plain -r prints nothing for a merge, so
+        # skipping on an empty list let exactly that edit through unattributed.
+        merge = len(parents.split()) > 1
+        shape = ["--cc"] if merge else ["-r"]
+        paths = [x for x in git("diff-tree", "--no-commit-id", "--name-only", *shape, sha).splitlines() if x.strip()]
         if not paths:
+            # A clean merge contributes nothing, so there is nothing to
+            # attribute. That is an answer, not a gap.
+            quiet_merges += 1 if merge else 0
             continue
-        found = judge(email, paths, sha[:7])
+        found = judge(ce, paths, sha[:7])
         out.extend(found) if found else None
         clean += 0 if found else 1
-    return out or [Finding(41, PASS, f"{clean} commits stay inside the seat that made them")]
+    if out:
+        return out
+    tail = f", and {quiet_merges} merges contributed nothing of their own" if quiet_merges else ""
+    return [Finding(41, PASS, f"{clean} commits stay inside the seat that made them{tail}")]
 
 
 CHECKS = [
