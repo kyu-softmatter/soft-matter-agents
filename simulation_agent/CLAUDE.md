@@ -134,11 +134,15 @@ coordinate, and symmetry is not a reason to add a layer (§4.6.8).
   planned. The value was right to one part in 1e14 and the decision it drove
   was wrong, because a comparison at a boundary is a decision and not a
   measurement.
-  What makes it worse than an ordinary bug is that it moves with `dt`: summing
-  0.001 or 0.003 lands above the target and 0.002, 0.007 or 0.0001 land below.
-  `dt` is chosen by S4 inside A1's interval, so whether the criterion worked
-  depended on where in that interval the plan landed. And do not reach for an
-  epsilon — that is the operator widening a limit the plan fixed.
+  What makes it worse than an ordinary bug is that the sign is not predictable
+  from anything a person would think to check. Over eleven ordinary timesteps,
+  summed to their own `n*dt`, four fall short: 0.0001, 0.0005, 0.002 and 0.02.
+  The rest overshoot. And it is not a property of `dt` alone — 0.007 lands
+  short over 1000 additions and long over 2857 — so it turns on the timestep
+  and the step count together. `dt` is chosen by S4 inside A1's interval, so
+  whether the criterion fired depended on where in that interval the plan
+  happened to land. And do not reach for an epsilon — that is the operator
+  widening a limit the plan fixed.
 
 Done means: a result card carrying the observable, its statistical error and
 the convergence evidence, and a config hash that allows the run to be repeated.
