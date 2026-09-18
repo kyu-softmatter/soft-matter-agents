@@ -18,7 +18,7 @@
     "unit": { "type": "string", "description": "derived_quantity only: the unit the formula yields, from contracts/units.json. A dimensionless_group must not carry one -- being dimensionless is the claim it makes, and a unit beside it would contradict the kind rather than annotate it." },
     "inputs": { "type": "array", "items": { "type": "string" } },
     "validity_conditions": { "type": "string", "minLength": 10, "description": "under what conditions the claim holds; a claim without them is not reusable" },
-    "validity": { "$ref": "common.schema.json#/$defs/condition_range", "description": "the machine-readable half of validity_conditions (4.3.1). Where the two disagree this one wins (P3): prose cannot be matched against a query condition_range. An entry without it is returned flagged unconstrained rather than matching silently." },
+    "validity": { "$ref": "common.schema.json#/$defs/condition_range", "description": "the machine-readable half of validity_conditions (4.3.1). Where the two disagree this one wins (P3): prose cannot be matched against a query condition_range. An entry without it comes back as `overlap: no_overlap` rather than matching silently." },
     "source": { "$ref": "common.schema.json#/$defs/source", "description": "Where the claim came from, in the same form a card's number uses (5.3), so that an entry's grade is DERIVED and not self-reported (check 43). source_ref says which document; this says what kind of evidence it is, and only the second one fixes a grade. Optional while the store catches up: entries written before the field existed are counted rather than failed." },
     "grade": { "$ref": "common.schema.json#/$defs/grade" },
     "grade_tag": {

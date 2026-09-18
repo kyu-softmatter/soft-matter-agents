@@ -213,8 +213,10 @@
               "overlap": {
                 "enum": [
                   "partial",
+                  "no_overlap",
                   "unconstrained"
-                ]
+                ],
+                "description": "How the near-miss entry stood against the query. `no_overlap` was called `unconstrained` until 2026-09-18, when that word was needed for a field meaning something else in the same response object (4.3.1 rule 3). **`unconstrained` is accepted only while the rename crosses seats and will be removed.** It cannot be dropped in the same commit that adds `no_overlap`: a card already on disk carries the old value, that card belongs to another seat, and until this enum accepts the new value that seat cannot write it -- so removing first deadlocks. Expand, migrate, contract. Holder as of 2026-09-18: microscope_agent/questions/mic-20260918-001/goal.json."
               },
               "uncovered": {
                 "$ref": "#/$defs/condition_range"
