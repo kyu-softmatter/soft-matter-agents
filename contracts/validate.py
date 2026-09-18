@@ -148,6 +148,8 @@ SOURCE_GRADE = {
     "measured": "E1",
     "calibration": "E2",
     "spec": "E3",
+    "prior_run": "E3",        # another project ran it; 10.3 rule 1 caps it here
+    "literature": "E3",       # published, and not a vendor specification
     "operator_read": "E3",    # the operator read it off the instrument
     "operator_recall": "E5",  # the operator stated it from memory
     "computed": None,         # max(E4, worst input)
@@ -1095,6 +1097,7 @@ ALLOWED_PATHS = [
     r"^(microscope|simulation)_agent/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
     r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
     r"^librarian_agent/CLAUDE\.md$",
+    r"^((microscope|simulation|librarian)_agent|bridge)/failures\.jsonl$",
     r"^librarian_agent/kb/(index\.json|(sources|distilled|entries|lessons|staging|exports)/[A-Za-z0-9_.-]+)$",
     r"^librarian_agent/queries/[A-Za-z0-9_.-]+$",
     r"^librarian_agent/tasks/[A-Za-z0-9_.-]+$",
