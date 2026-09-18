@@ -117,9 +117,9 @@ carries a `plan` or a `result` (§4.4), so the first round trip needs no
 execution, no `envelope/safety.json` and no approval. S5's output is enough,
 and that is the shortest path to a working round.
 
-**0. Fix the contrast discriminator in `src/screening.py` first.** It is three
-mismatches, and the middle one is the dangerous kind — it would pass tests and
-lose a configuration.
+**0. Done (`ace46ff`) — the contrast discriminator.** Kept here as the record
+of what was wrong, because the middle one is the kind that would have passed
+review: three mismatches, and only one of them visible.
 
 - The code tests `"contrast" in configuration` and reads
   `configuration.get("contrast")`. The field capabilities actually declares is
@@ -143,8 +143,7 @@ outcome and it is worth stating plainly: on this instrument the contrast field
 cuts only for label-free samples. It was never going to cut for every question,
 and a cut that appears for the wrong reason is worse than no cut.
 
-**0b. Record the operator's tie-break, and keep it out of the evidence.**
-The cap stops on a fluorescent sample because all four configurations stay
+**0b. Done (`693ce13`, `5500639`) — the operator's tie-break.** The cap stops on a fluorescent sample because all four configurations stay
 valid, and §4.5.1 branch (c) resolves that by asking the person once. It has
 been asked: **`widefield_inline`**.
 
@@ -165,7 +164,7 @@ cite it. What it does deserve is a record — the reason behind this particular
 pick was not given, and `configs.json` should say that the cap was resolved by
 preference rather than by a discriminator, so M5 can tell the two apart later.
 
-**1. S3, the seven axes.** §4.5.3 defines A1–A7; read it there rather than
+**Start here → 1. S3, the seven axes.** §4.5.3 defines A1–A7; read it there rather than
 from a copy. Each axis states a **range** and never a point — choosing inside
 it is S4's, and an axis that chose would produce as many plans as there are
 axes, none combinable. An axis with no grounds abstains and says why (P5); it
