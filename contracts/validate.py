@@ -637,6 +637,27 @@ def load_observables() -> dict[str, dict]:
     return {o["id"]: o for o in json.loads(p.read_text()).get("observables", []) if "id" in o}
 
 
+def produced_id(item: object) -> str | None:
+    """The observable id in a `produces` entry, plain or composite.
+
+    A table may declare a name outright or as {"id": ..., "requires_composition":
+    [...]} when the production needs a perturbation overlaid (4.5.3). One
+    normalisation with two readers: check 38, which holds the table against the
+    vocabulary, and answerability below. They were separate once, and the
+    composite form read as a dict here -- so an observable the instrument
+    declares it can produce derived as "cannot".
+    """
+    if isinstance(item, str):
+        return item
+    if isinstance(item, dict):
+        return item.get("id")
+    return None
+
+
+def produced_ids(conf: dict) -> list[str]:
+    return [i for i in (produced_id(x) for x in conf.get("produces") or []) if i]
+
+
 WIRE = {
     "ask_simulation": ("experiment_to_simulation", "microscope_agent", "simulation_agent"),
     "ask_experiment": ("simulation_to_experiment", "simulation_agent", "microscope_agent"),
@@ -654,14 +675,27 @@ def derive_producible(cap: dict, observable: str, vocab: dict[str, dict]) -> tup
       yes         a configuration of the receiving side produces it
       no          the vocabulary says that side cannot, or the table is
                   populated and none of its configurations produces it
-      undeclared  the table is a skeleton or provisional and silent on it
+      undeclared  nobody has named the observable, or the table is a skeleton
+                  or provisional and silent on it
+
+    A name the vocabulary does not define resolves to undeclared and never to
+    no. The round still fails -- on the vocabulary, which is the true statement
+    -- but "nobody has named this" must not be reported as "that side cannot
+    produce it", and a populated table used to turn one into the other.
+
+    A composite declaration counts as production. What the overlay requires
+    stays in the table, where whoever plans the configuration reads it; the
+    envelope names the configurations and does not restate the requirement,
+    because one fact in two places is two facts by next week (P3).
     """
-    side = SIDE_OF_AGENT.get(cap.get("agent", ""), "")
     entry = vocab.get(observable)
-    if entry and side and side not in entry.get("producible_by", []):
+    if entry is None:
+        return "undeclared", []
+    side = SIDE_OF_AGENT.get(cap.get("agent", ""), "")
+    if side and side not in entry.get("producible_by", []):
         return "no", []
     producers = [conf.get("config") for conf in cap.get("configurations", [])
-                 if observable in (conf.get("produces") or [])]
+                 if observable in produced_ids(conf)]
     if producers:
         return "yes", [p for p in producers if p]
     if cap.get("status") == "populated":
@@ -1675,7 +1709,7 @@ def check_38_one_table(b: Bundle) -> list[Finding]:
         by_config = {c.get("config"): c for c in configs}
         for conf in configs:
             for item in conf.get("produces", []) or []:
-                oid = item if isinstance(item, str) else item.get("id")
+                oid = produced_id(item)
                 if oid not in known_obs:
                     out.append(Finding(38, FAIL, f"configuration {conf.get('config')!r} produces {oid!r}, which contracts/observables.json does not define", rel))
                 if isinstance(item, str):

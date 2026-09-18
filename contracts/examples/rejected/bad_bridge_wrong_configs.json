@@ -1,9 +1,9 @@
 {
   "card": "ask_simulation",
   "schema_version": "0.1",
-  "id": "ask-thr-bad-capability-r1",
-  "qid": "mic-20260917-014",
-  "thread": "thr-bad-capability",
+  "id": "ask-thr-bad-configs-r1",
+  "qid": "mic-20260917-018",
+  "thread": "thr-bad-configs",
   "round": 1,
   "revision": 1,
   "author": "bridge",
@@ -14,9 +14,9 @@
   "payload_card": {
     "card": "result",
     "schema_version": "0.1",
-    "id": "result-mic-20260917-014-r1",
-    "qid": "mic-20260917-014",
-    "thread": "solo-mic-20260917-014",
+    "id": "result-mic-20260917-018-r1",
+    "qid": "mic-20260917-018",
+    "thread": "solo-mic-20260917-018",
     "round": 0,
     "revision": 1,
     "author": "microscope_agent",
@@ -27,13 +27,13 @@
       "librarian_agent"
     ]
   },
-  "payload_hash": "sha256:58b72e9a59880d3b98de978517fe376539a20c29e8ce427091129bccc91349e1",
+  "payload_hash": "sha256:c8d176adac928c3a1101b43d080e0c6282866c4609fac0bb645a535f85187882",
   "answerability": {
-    "observable": "trapped_position_distribution",
+    "observable": "tracer_diffusivity",
     "checked_against": "simulation.json",
     "producible": "yes",
     "producing_configs": [
-      "bd_overdamped"
+      "brownian_dynamics"
     ]
   },
   "unit_consistency": {

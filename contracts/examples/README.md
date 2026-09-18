@@ -119,7 +119,7 @@ quantity in two places (P3).
 
 ## The cards that must fail
 
-`rejected/` holds seventeen cards, each breaking one check on purpose:
+`rejected/` holds nineteen cards, each breaking one check on purpose:
 
 | card | check | what it does |
 |---|---|---|
@@ -139,6 +139,8 @@ quantity in two places (P3).
 | `bad_bridge_not_producible.json` | 8 | a refused gate delivered as an envelope instead of a refusal |
 | `bad_bridge_unit_skip.json` | 8 | round two with the unit comparison skipped |
 | `bad_bridge_escalation.json` | 8 | a pair that came back twice, with the thread still open |
+| `bad_bridge_wrong_configs.json` | 8 | the right verdict, naming configurations the table does not list |
+| `bad_bridge_unknown_observable.json` | 8 | asks for an observable the vocabulary does not define |
 
 The last of those is a thread ledger rather than a card (`artifact:
 thread_status`), and `--expect-fail` counts it the same way: a ledger nobody

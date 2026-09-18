@@ -1,25 +1,25 @@
 {
-  "card": "ask_simulation",
+  "card": "ask_experiment",
   "schema_version": "0.1",
-  "id": "ask-thr-bad-capability-r1",
-  "qid": "mic-20260917-014",
-  "thread": "thr-bad-capability",
+  "id": "ask-thr-bad-unknown-observable-r1",
+  "qid": "sim-20260917-019",
+  "thread": "thr-bad-unknown-observable",
   "round": 1,
   "revision": 1,
   "author": "bridge",
   "created_at": "2026-09-17T10:20:00Z",
   "status": "DRAFT",
-  "direction": "experiment_to_simulation",
+  "direction": "simulation_to_experiment",
   "trigger": "human",
   "payload_card": {
     "card": "result",
     "schema_version": "0.1",
-    "id": "result-mic-20260917-014-r1",
-    "qid": "mic-20260917-014",
-    "thread": "solo-mic-20260917-014",
+    "id": "result-sim-20260917-019-r1",
+    "qid": "sim-20260917-019",
+    "thread": "solo-sim-20260917-019",
     "round": 0,
     "revision": 1,
-    "author": "microscope_agent",
+    "author": "simulation_agent",
     "created_at": "2026-09-17T10:20:00Z",
     "status": "DONE",
     "numbers": [],
@@ -27,14 +27,12 @@
       "librarian_agent"
     ]
   },
-  "payload_hash": "sha256:58b72e9a59880d3b98de978517fe376539a20c29e8ce427091129bccc91349e1",
+  "payload_hash": "sha256:2d61b67cefa9a26bdee5d9bdb8815ab9902d818b8581d3192ddefe95c23068ca",
   "answerability": {
-    "observable": "trapped_position_distribution",
-    "checked_against": "simulation.json",
-    "producible": "yes",
-    "producing_configs": [
-      "bd_overdamped"
-    ]
+    "observable": "shear_stress",
+    "checked_against": "microscope.json",
+    "producible": "undeclared",
+    "substitutes": []
   },
   "unit_consistency": {
     "verdict": "no_counterpart",
