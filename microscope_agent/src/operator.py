@@ -300,6 +300,11 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None) -> di
 
     o = orch.Orchestrator(backend=backend)
     record: dict = {
+        # The collector picks up a json file only when it carries `card` or
+        # `artifact`, so a run log without this pair is not rejected -- it is
+        # ignored, and a log nothing reads is a log that proves nothing (P4).
+        "artifact": "run_log",
+        "schema_version": "0.1",
         "run_id": run_id,
         "plan_id": plan.get("id"),
         "revision": plan.get("revision"),

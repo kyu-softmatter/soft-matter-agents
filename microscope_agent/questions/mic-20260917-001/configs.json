@@ -1,6 +1,6 @@
 {
+  "artifact": "screening",
   "schema_version": "0.1",
-  "unvalidated": "no schema is registered for this artifact yet; contracts/ is the design seat's",
   "qid": "mic-20260917-001",
   "stage": "S3.0",
   "observable": "tracer_diffusivity",

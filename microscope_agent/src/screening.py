@@ -413,14 +413,16 @@ def fan_out(result: Screening, qid: str, limits: dict | None = None) -> list[dic
 def to_configs(result: Screening, goal: dict, qid: str) -> dict:
     """questions/<qid>/configs.json -- the audit record of what survived.
 
-    It carries no `card` or `artifact` discriminator on purpose: the validator
-    fails an artifact kind it does not know, and no schema for this one exists
-    yet. That makes this file unchecked, which is a gap and not a design -- a
-    contract nobody checks is decoration (P4).
+    `artifact: "screening"` is what makes the validator read this file at all:
+    a json file with neither `card` nor `artifact` is collected and checked
+    against nothing, which is how this record spent its first day (P4). The
+    schema now holds two invariants that were both defects here first -- an
+    empty fan_out whenever the cap is unresolved, and preference_honoured with
+    preference_is_not_evidence whenever a preference resolved it.
     """
     return {
+        "artifact": "screening",
         "schema_version": "0.1",
-        "unvalidated": "no schema is registered for this artifact yet; contracts/ is the design seat's",
         "qid": qid,
         "stage": "S3.0",
         "observable": result.observable,
