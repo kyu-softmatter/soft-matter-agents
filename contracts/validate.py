@@ -1628,7 +1628,7 @@ SHARED_PATHS = re.compile(r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.git
 # (6.2). Counting them as the agent's made every ordinary design commit look
 # like a boundary crossing, which is the fastest way to teach someone to ignore
 # a check.
-DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|bridge)/(CLAUDE\.md|\.claude/)")
+DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|bridge)/(CLAUDE\.md|\.claude/|tasks/)")
 
 
 def seat_boundary_of(path: str) -> str:
