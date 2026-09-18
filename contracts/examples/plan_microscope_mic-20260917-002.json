@@ -22,8 +22,8 @@
     "optical_path": null,
     "devices": [
       "dia_lamp",
-      "objective_turret",
-      "camera1",
+      "nosepiece",
+      "camera_red",
       "motor_stage"
     ],
     "model": null
@@ -32,12 +32,12 @@
     {
       "parameter": "exposure_time",
       "number": "exposure_time",
-      "device": "camera1"
+      "device": "camera_red"
     },
     {
       "parameter": "record_length",
       "number": "record_length",
-      "device": "camera1"
+      "device": "camera_red"
     },
     {
       "parameter": "max_lag_time",
@@ -84,7 +84,7 @@
   "actions": [
     {
       "id": "act_acquire_cool",
-      "device": "camera1",
+      "device": "camera_red",
       "action": "acquire_series",
       "reversible": true,
       "parameters": [
@@ -95,7 +95,7 @@
     },
     {
       "id": "act_acquire_warm",
-      "device": "camera1",
+      "device": "camera_red",
       "action": "acquire_series",
       "reversible": true,
       "parameters": [

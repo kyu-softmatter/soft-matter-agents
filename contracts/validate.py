@@ -1874,6 +1874,41 @@ def check_38_one_table(b: Bundle) -> list[Finding]:
             elif ref not in table_ids:
                 out.append(Finding(38, FAIL, f"configuration {conf.get('config')!r} points at optical path {ref!r}, which {table_rel} does not have", rel))
 
+    # A plan writes device names too, and nothing compared them until now: the
+    # capability table was taught to match the channel table, the cards were
+    # not. So a plan validates green and then stops at preflight, which is the
+    # worst place to learn a name is wrong -- the gate has already passed it.
+    #
+    # A plan may name a channel OR an element. "set the dia lamp" is the true
+    # statement; "set stand_ti2e" would lose which of that channel's ten
+    # elements was meant. Resolving element to channel is the orchestrator's
+    # job, not the card's.
+    devices, dev_rel = _device_table()
+    if devices is not None:
+        known_names = {c["id"] for c in devices.get("channels", [])}
+        known_names |= {e["id"] for c in devices.get("channels", [])
+                        for e in (c.get("elements") or [])}
+        approved_hashes = {a.data.get("plan_hash"): a.data.get("approved_by")
+                           for a in b.of_kind("plan_approval")}
+        for card in b.of_kind("plan"):
+            if card.data.get("author") != "microscope_agent":
+                continue                      # only the instrument has a channel table
+            named = {a.get("device") for a in card.data.get("actions", []) or []}
+            named |= {c.get("device") for c in card.data.get("conditions", []) or []}
+            named |= set((card.data.get("system_configuration") or {}).get("devices") or [])
+            unknown = sorted(n for n in named if n and n not in known_names)
+            if not unknown:
+                continue
+            signer = approved_hashes.get(plan_hash(card.data))
+            if signer:
+                # Correcting the card would change its hash and void an approval
+                # a person signed (5.5). Only that person can issue a corrected
+                # revision, so this reports who is blocking rather than failing
+                # work nobody inside the system is allowed to do.
+                out.append(Finding(38, PENDING, f"{card.data.get('id')} names {unknown}, which {dev_rel} does not list; its hash is pinned by an approval signed by {signer}, so only a person can issue a corrected revision (5.5)", card.rel))
+            else:
+                out.append(Finding(38, FAIL, f"{card.data.get('id')} names device(s) {unknown}, which {dev_rel} lists as neither a channel nor an element", card.rel))
+
     for oid in known_obs:
         entry = next(o for o in json.loads((CONTRACTS / "observables.json").read_text())["observables"] if o["id"] == oid)
         for u in entry.get("units", []):
