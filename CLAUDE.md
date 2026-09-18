@@ -153,12 +153,21 @@ differences under 10x are ties. A computed value inherits the worst precision
 of its inputs; one estimate in the chain means the answer is an order of
 magnitude. See §5.8.
 
-## The prior repositories are out of scope — for now
+## The prior repositories — three closed, one open under rules
 
-**Do not consult** `agentic-microscope`, `Brownian-Dynamics-Agent`,
-`librarian-agent` or `sim-exp-bridge`, nor any mirror, export or summary of
-them. This covers filenames, not just contents: a filename carries vocabulary,
-and vocabulary carries design.
+**Do not consult** `Brownian-Dynamics-Agent`, `librarian-agent` or
+`sim-exp-bridge`, nor any mirror, export or summary of them. This covers
+filenames, not just contents: a filename carries vocabulary, and vocabulary
+carries design.
+
+**`agentic-microscope` was opened on 2026-09-17**, by the person, with the
+condition that nothing is transplanted as-is and that anything over-claimed is
+downgraded or dropped. That condition is §10.2.1: every item coming across is
+ruled **transfer**, **downgrade** or **discard** before it is used, and a
+transferred item **names the A1–A7 slot it went into and the §10.3 rule it
+passed**. An item that cannot name its slot is discarded. Which rows of §10.2
+are open is a separate question from whether the repository is — read the
+table, not this paragraph.
 
 Until 2026-09-16 a SessionStart hook injected `~/.claude/knowledge/`, a
 read-only mirror of the first two, into every session on this machine, and its
