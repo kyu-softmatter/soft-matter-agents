@@ -1,8 +1,17 @@
 # queries — who asked the store for what, and why
 
 `log.jsonl`, one JSON object per line, appended by
-`librarian_agent/src/query_log.py`. Empty until the MCP server exists; the
-module is written first so the format is not invented per-caller later.
+`librarian_agent/src/query_log.py`. `src/mcp_server.py` writes a line for every
+call it answers, and treats a logging failure as worse than no answer: if the
+record cannot be written the call fails, because a silent hole in the trail is
+the thing the trail exists to prevent.
+
+**It counts answers, not attempts.** A call refused before it was answered leaves
+no line, and for a malformed `caller_id` it *cannot* leave one — every record
+needs an attributable asker and an unattributable attempt has none. So a
+sub-agent guessing at a sibling's id shows up nowhere here. If attempts need
+recording, that is a different record with a different shape, and it is raised
+with the manager rather than bolted onto this one.
 
 ## Why it is beside `kb/` and not inside it
 
