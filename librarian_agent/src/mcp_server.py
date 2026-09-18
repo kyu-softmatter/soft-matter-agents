@@ -53,8 +53,10 @@ actually runs -- until now it was a sentence no code read.
 ## Matching says whether it covers, never what to do about it
 
 Full containment is `full`; a partial intersection is `partial` with the
-uncovered part named; a quantity the query did not mention comes back flagged
-rather than assumed satisfied. Nothing is clipped, interpolated, extrapolated or
+uncovered part named; nothing in common at all is `no_overlap`, a value that
+carries its own subject so it cannot be read as the FIELD `unconstrained`,
+which means something else. A quantity the query did not mention comes back
+flagged rather than assumed satisfied. Nothing is clipped, interpolated, extrapolated or
 averaged here -- that judgement belongs to the caller and gets recorded in their
 plan (4.3).
 
@@ -209,7 +211,7 @@ def match(entry: dict, condition_range: dict | None) -> dict:
     unasked = sorted(set(validity) - set(query))         # the query was silent
 
     if not shared:
-        return {"overlap": "unconstrained", "uncovered": {},
+        return {"overlap": "no_overlap", "uncovered": {},
                 "unconstrained": unconstrained, "unasked": unasked}
 
     uncovered: dict[str, dict] = {}
@@ -303,7 +305,7 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
                "source_ref": e["source_ref"], **m}
         returned.append(row)
         if m["overlap"] != "full":
-            nearest.append({"entry_id": eid, "overlap": "partial" if m["uncovered"] else "unconstrained",
+            nearest.append({"entry_id": eid, "overlap": "partial" if m["uncovered"] else "no_overlap",
                              **({"uncovered": m["uncovered"]} if m["uncovered"] else {})})
 
     gaps = []
@@ -461,7 +463,7 @@ def _self_test() -> int:                                    # noqa: C901
         # 4. silence is reported, never read as satisfaction
         r = kb_query(store, cid, v, "viscosity", {"bead_diameter": {"min": 1, "max": 2, "unit": "um"}})
         e0 = r["entries"][0]
-        if e0["overlap"] != "unconstrained" or "bead_diameter" not in e0["unconstrained"]:
+        if e0["overlap"] != "no_overlap" or "bead_diameter" not in e0["unconstrained"]:
             bad(f"an entry with no opinion on bead_diameter should say so: {e0['overlap']}, {e0['unconstrained']}")
         if "temperature" not in e0["unasked"]:
             bad(f"the temperature the entry constrains and the query skipped should be flagged: {e0['unasked']}")

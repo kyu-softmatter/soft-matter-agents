@@ -60,7 +60,14 @@ CONTRACTS = AGENT.parent / "contracts"
 DEFAULT_LOG = AGENT / "queries" / "log.jsonl"
 
 TOOLS = ("kb_query", "kb_get", "kb_conflicts", "kb_group")
-OVERLAP = ("full", "partial", "unconstrained")
+# Expand, migrate, contract -- the same transition the schema is in. The
+# overlap value `unconstrained` became `no_overlap` because one word was
+# naming both a value and a field; a card belonging to another seat still
+# carries the old one, so both are accepted until the last holder moves.
+# This tuple is not cosmetic: `coverage` verdicts are checked against it and
+# a rejected record fails the call, so renaming the server without renaming
+# here would have stopped every query that found no overlap.
+OVERLAP = ("full", "partial", "no_overlap", "unconstrained")
 FIELDS = ("asked_at", "caller_id", "kb_version", "tool", "purpose",
           "observable", "condition_range", "returned", "gaps", "coverage")
 
