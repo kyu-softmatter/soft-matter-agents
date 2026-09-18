@@ -49,6 +49,48 @@
         "abstain"
       ]
     },
+    "inequalities": {
+      "type": "array",
+      "description": "One entry per inequality this axis owns, derived from 4.5.3 rather than declared here. It exists because `abstain_reason` is one string and an axis owns several inequalities: folding seven verdicts into one sentence makes prose, and prose is what 4.5.2.1 replaced. The failure it prevents is specific -- an axis that says nothing about two of its five inequalities reads as 'this axis does not constrain there', and S4 cannot tell that from 'this axis could not compute'. An interval with neither min nor max is not a way around it; that is the silence itself.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "inequality": { "type": "string", "minLength": 3 },
+          "parameter": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "state": {
+            "enum": ["returned", "abstained", "not_run", "failed"],
+            "description": "Four, and never folded into fewer. Merging `abstained` with `failed` makes an axis that honestly reported no grounds (P5) look like one that died, and the first is normal while the second must stop the plan."
+          },
+          "kind": {
+            "enum": ["no_input", "not_constraining", "not_requested"],
+            "description": "Why there is no interval, and the three are a field rather than a sentence because the next action differs: measure something, write down that it does not bind here, or nothing at all. A sentence loses that distinction and the reader has to guess it back."
+          },
+          "reason": { "type": "string", "minLength": 10 },
+          "missing": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Named inputs that were absent. Required when kind is no_input: naming them is the difference between a gap someone can close and a shrug."
+          },
+          "interval": { "$ref": "common.schema.json#/$defs/interval" }
+        },
+        "required": ["inequality", "parameter", "state"],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": { "properties": { "state": { "const": "returned" } }, "required": ["state"] },
+            "then": { "required": ["interval"] }
+          },
+          {
+            "if": { "properties": { "state": { "const": "abstained" } }, "required": ["state"] },
+            "then": { "required": ["kind", "reason"] }
+          },
+          {
+            "if": { "properties": { "kind": { "const": "no_input" } }, "required": ["kind"] },
+            "then": { "properties": { "missing": { "minItems": 1 } }, "required": ["missing"] }
+          }
+        ]
+      }
+    },
     "constraints": {
       "type": "array",
       "items": {
