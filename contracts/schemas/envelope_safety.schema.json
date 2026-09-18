@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "envelope_safety.schema.json",
+  "title": "envelope/safety.json — the ceilings, written by a person (2.1 rule 7, 10.3 rule 4)",
+  "description": "Not a card and not knowledge: policy. A person writes it after confirming the limits outside the system, no agent may edit it (Tier 3), and nothing in it is transferred from anywhere else -- a safety limit written for another setup is reference material, not grounds. This schema exists because the file would otherwise be invisible: a JSON object with neither `card` nor `artifact` is skipped by the collector, so a mistyped key would leave check_budget returning `unavailable`, every run falling to Tier 2, and nothing reporting an error. The same silence held run logs until run_log.schema.json. The shape here is not invented: it is what simulation_agent/src/operator.py and axis_a5_budget.py already read.",
+  "type": "object",
+  "properties": {
+    "artifact": { "const": "envelope_safety" },
+    "schema_version": { "const": "0.1" },
+
+    "policy_version": {
+      "type": "string",
+      "description": "Recorded into every run log as safety_policy_version. Policy changes, so a run has to say which one it ran under; raise this whenever a ceiling moves, or the record cannot be read back."
+    },
+    "written_by": {
+      "type": "string",
+      "description": "The person who confirmed these limits. Not machine-read, and kept anyway: P0 rule 7 makes the confirmation the point, and a policy nobody signed is a preference."
+    },
+    "written_at": { "type": "string" },
+    "basis": {
+      "type": "string",
+      "description": "What the ceilings were chosen against -- which machine, what else it has to keep doing. A number without this cannot be revisited, only replaced."
+    },
+
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "description": "One row per place a run may execute. A second target is a data change here and not a code change: the cost model picks the smallest target that fits, and `intent` on the goal card decides between those that do (4.5.1). The target is deliberately not a capabilities/ configuration -- local and cluster run the same model and produce the same observable.",
+      "items": { "$ref": "#/$defs/target" }
+    }
+  },
+  "required": ["artifact", "schema_version", "policy_version", "targets"],
+  "additionalProperties": false,
+
+  "$defs": {
+    "limit": {
+      "type": "object",
+      "description": "A ceiling. value and unit only: this is a decision, not a measurement, so it carries no source and no grade -- P2's four parts describe a claim about the world, and a policy is not one.",
+      "properties": {
+        "value": { "type": "number", "exclusiveMinimum": 0 },
+        "unit": { "type": "string", "description": "must be in units.json with a fixed SI factor, or si() refuses it" },
+        "note": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$",
+          "description": "the id the operator is invoked with; `local` is its default"
+        },
+        "label": { "type": "string" },
+        "wall_clock_max": { "$ref": "#/$defs/limit" },
+        "storage_max": { "$ref": "#/$defs/limit" },
+        "smoke_budget": {
+          "type": "object",
+          "description": "Separate on purpose. A smoke run allowed the full budget tells you nothing before the run it precedes, and its second job is to replace the estimated cost-per-step with one measured on this machine -- so the budget comparison for the full run stops resting on an E5.",
+          "properties": {
+            "wall_clock_max": { "$ref": "#/$defs/limit" },
+            "storage_max": { "$ref": "#/$defs/limit" }
+          },
+          "required": ["wall_clock_max", "storage_max"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["target", "wall_clock_max", "storage_max", "smoke_budget"],
+      "additionalProperties": false
+    }
+  }
+}

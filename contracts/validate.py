@@ -184,6 +184,7 @@ ARTIFACT_SCHEMA = {
     "round_hashes": "round_hashes.schema.json",
     "screening": "screening.schema.json",
     "run_log": "run_log.schema.json",
+    "envelope_safety": "envelope_safety.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]
@@ -598,10 +599,44 @@ def check_04_assumptions_explained(b: Bundle) -> list[Finding]:
 
 
 def check_05_envelope(b: Bundle) -> list[Finding]:
-    envs = list(REPO.glob("*_agent/envelope/safety.json"))
+    """The ceilings a person wrote, and whether a run could read them (2.1 rule 7).
+
+    The shape is envelope_safety.schema.json's business and check 1 holds it.
+    What a schema cannot hold is the unit: it would have to name the units it
+    allows, and a second list of units drifts from units.json. So the one thing
+    checked here is that every ceiling converts -- because the alternative is
+    that it does not, at run time, inside si(), long after the person wrote it.
+    """
+    envs = sorted(REPO.glob("*_agent/envelope/safety.json"))
     if not envs:
-        return [Finding(5, PENDING, "needs envelope/safety.json, which M1 produces (section 9)")]
-    return [Finding(5, PENDING, "envelope comparison not implemented yet")]
+        return [Finding(5, PENDING, "no envelope/safety.json yet; a person writes it (2.1 rule 7, 10.3 rule 4)")]
+    out: list[Finding] = []
+    n = 0
+    for env in envs:
+        rel = str(env.relative_to(REPO))
+        try:
+            doc = json.loads(env.read_text())
+        except (OSError, json.JSONDecodeError) as exc:
+            out.append(Finding(5, FAIL, f"cannot be read: {exc}", rel))
+            continue
+        for target in doc.get("targets", []) or []:
+            where = f"targets[{target.get('target')!r}]"
+            rows = [(where, target)] + [
+                (f"{where}.smoke_budget", target.get("smoke_budget") or {})
+            ]
+            for label, row in rows:
+                for key, limit in row.items():
+                    if not isinstance(limit, dict) or "unit" not in limit:
+                        continue
+                    n += 1
+                    entry = unit_entry(limit["unit"])
+                    if entry is None:
+                        out.append(Finding(5, FAIL, f"{label}.{key} is in {limit['unit']!r}, which units.json does not define", rel))
+                    elif entry.get("si_factor") is None:
+                        out.append(Finding(5, FAIL, f"{label}.{key} is in {limit['unit']!r}, which has no fixed SI factor, so a run cannot compare against it", rel))
+    if out:
+        return out
+    return [Finding(5, PENDING, f"{n} ceilings convert; comparing a plan's conditions against them is not implemented yet")]
 
 
 def check_06_criteria(b: Bundle) -> list[Finding]:
