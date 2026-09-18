@@ -126,6 +126,19 @@ coordinate, and symmetry is not a reason to add a layer (§4.6.8).
   discarded.
 - Commands are derived from `plan.json` fields, each logged with a `from`
   provenance (check 14), on a common `t0` (check 37).
+- **A quantity a criterion compares against is derived, never accumulated.**
+  Simulated time is `steps_taken * dt`, read off an integer step count, not a
+  running sum of `dt`. This is not fastidiousness: summing `dt` ten thousand
+  times left 19.999999999999794 against a planned end of 20 s, so
+  `planned_duration_reached` was false on a run that finished exactly as
+  planned. The value was right to one part in 1e14 and the decision it drove
+  was wrong, because a comparison at a boundary is a decision and not a
+  measurement.
+  What makes it worse than an ordinary bug is that it moves with `dt`: summing
+  0.001 or 0.003 lands above the target and 0.002, 0.007 or 0.0001 land below.
+  `dt` is chosen by S4 inside A1's interval, so whether the criterion worked
+  depended on where in that interval the plan landed. And do not reach for an
+  epsilon — that is the operator widening a limit the plan fixed.
 
 Done means: a result card carrying the observable, its statistical error and
 the convergence evidence, and a config hash that allows the run to be repeated.
