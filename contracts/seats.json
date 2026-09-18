@@ -43,7 +43,7 @@
       "paths": ["contracts/", "microscope_agent/CLAUDE.md", "microscope_agent/.claude/", "simulation_agent/CLAUDE.md", "simulation_agent/.claude/", "librarian_agent/CLAUDE.md", "librarian_agent/.claude/", "bridge/CLAUDE.md", "bridge/.claude/"],
       "excludes": ["contracts/seats.json"],
       "note": "The middle tier of D12 (6.2). It carries the rules into contracts and into each agent's instructions, and it reviews the sub-sessions' worktrees at merge. It does not commit an agent's own artifacts: that would put a false seat on the attribution check 41 exists to make honest. Instead it checks that the sub-session committed, and sends it back if not.",
-      "excludes_note": "DECLARED, NOT ENFORCED. Check 41 matches `paths` by prefix and has no exclusion, so `contracts/` here still covers contracts/seats.json and a manager commit touching it would pass. Honouring `excludes` is a change to check 41, which is the manager's own file -- so it is requested rather than written here. Until it lands, this line is a statement of intent and the registry says so rather than implying a protection it does not give."
+      "excludes_note": "Enforced by check 41 since 607c3e9, which the manager seat wrote against its own boundary. It subtracts from what owns and paths grant, and is tested before the narrowing so the refusal names the real reason. Verified in a throwaway clone in both directions: manager is refused on contracts/seats.json and allowed elsewhere under contracts/, architecture is the reverse. This note said DECLARED, NOT ENFORCED while that was true; a registry that understates its protection is the same error as one that overstates it, so it is corrected here rather than left to age."
     },
     {
       "seat": "design",
