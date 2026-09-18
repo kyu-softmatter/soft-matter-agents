@@ -51,11 +51,12 @@
       "paths": [
         "plan.md",
         "CLAUDE.md",
+        "ARCHITECT.md",
         "README.md",
         ".claude/",
         "contracts/seats.json"
       ],
-      "note": "The top tier of D12 (6.2). It writes what the rules are: plan.md, the repository's own instructions, and this registry. It owns this file because the tier being constrained must not own the file that says what it may touch -- a manager that could edit its own `paths` has no boundary, only a preference."
+      "note": "The top tier of D12 (6.2). It writes what the rules are: plan.md, the repository's own instructions, ARCHITECT.md (this seat's own standing orders, deliberately out of CLAUDE.md because that file is loaded by all six sessions), and this registry. It owns this file because the tier being constrained must not own the file that says what it may touch -- a manager that could edit its own `paths` has no boundary, only a preference."
     },
     {
       "seat": "manager-microscope",

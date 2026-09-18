@@ -1350,7 +1350,8 @@ GIT_COMMITTER_NAME='seat:design' GIT_COMMITTER_EMAIL=design@seat.invalid git com
 ```
 rebuild/
   plan.md                  이 문서
-  CLAUDE.md                모노레포 공통 규칙 (P0–P16, 카드 규약 요약)
+  CLAUDE.md                모노레포 공통 규칙 (P0–P16, 카드 규약 요약). **여섯 세션이 모두 읽으므로 길이가 6배로 곱해진다**
+  ARCHITECT.md             아키텍처 자리의 상비 명령. 한 자리에만 걸리므로 CLAUDE.md에 두지 않는다
   contracts/               ★ 유일한 공유 코드. 4 에이전트가 모두 의존.
     schemas/               goal/plan/plan_approval/scope_approval/result/refusal/ask
                            + axis/synthesis/common/kb_entry

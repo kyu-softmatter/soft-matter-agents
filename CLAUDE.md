@@ -12,92 +12,41 @@ commit, with the reason.
 
 ## Status
 
-**M0 landed. The four agents are built concurrently** — changed 2026-09-17,
-after a day that tried microscope-first and then librarian-first. **Milestone
-names are not an order**: M0–M5 name bodies of work, there is no sequence, and
-the names stay fixed so every "what M3 produces" reference scattered through
-this repo keeps pointing at the same thing.
+**M0 landed. The four agents are built concurrently.** Milestone names M0–M5
+name bodies of work, not an order. What actually blocks what is the column in
+`plan.md` §9, and the one fact worth acting on is that **§11-1, the observable
+vocabulary, blocks three of the four agents** — a decision only the user makes.
 
-Concurrency removes the fiction of an order, not the dependencies. What
-actually blocks what is a column in `plan.md` §9, and reading it gives the one
-fact worth acting on: **§11-1, the observable vocabulary, blocks three of the
-four agents.** It is a decision, not a build, and only the user can make it. An
-order would have hidden that behind "not its turn yet".
-
-The librarian depends on nothing — the only agent with no collaboration
-dependency (§4.3.2). The microscope is blocked on the vocabulary for screening
-and on a human-written `envelope/safety.json` for execution, but **not** on the
-librarian. The bridge needs both sides' capabilities populated and one card on
-each side.
-
-**One completion condition is inverted by concurrency** (§9.1). While an order
-existed the design required a pass with the librarian **off**, or nobody would
-walk the degraded branch. Built concurrently that branch is walked whether or
-not anyone asks — everyone's counterpart is unfinished for a while — and the
-branch at risk becomes the **normal** one. So M1 and M2 each require one pass
-with the librarian **on**: `kb_refs` filled, `kb_gaps` filled, `degraded` empty.
-
-`contracts/` exists and is the only shared code. `librarian_agent/kb/` exists as
-a **plain store**: a person curates the entries and agents read the files. The
-service on top of it — MCP server (four read-only tools), gap detection,
-distillation, external search, snapshot publishing — is M3 and is not built yet
-(§4.3.0). `microscope_agent/src/` holds an execution layer; the other two agent
-directories hold instructions and settings only.
-
-Counts in prose go stale — three of them were wrong on 2026-09-17. Read them
-from the validator's `verdict:` line instead of restating them here.
+`contracts/` is the only shared code. `librarian_agent/kb/` is a **plain
+store**: a person curates the entries and agents read the files; the service on
+top of it is M3 and unbuilt (§4.3.0). Why the order was dropped, and the
+completion condition concurrency inverts, are §9 and §9.1 — not restated here.
 
 ```bash
 python3 contracts/validate.py                                    # the repository
 python3 contracts/validate.py --strict                           # undecided and pending count as failures
 python3 contracts/validate.py --expect-fail contracts/examples/rejected
+python3 librarian_agent/src/kb_index.py                          # after editing kb entries
+git config core.hooksPath contracts/hooks                        # once per working copy
 ```
 
 The first must end `0 failed`. The last prints two totals, cards and groups,
-and **every** one of both must be rejected as intended — a fixture that stops
-failing means a check stopped working. A group is a folder whose name says
-which check it is for, used when one file cannot hold the defect (§11-7). Read
-the totals off the run, not off this sentence: it said `17/17` when the run
-said `19/19`, and by the next hour the run said `20/20` and `2/2`.
+and every one of both must still be rejected — a fixture that stops failing
+means a check stopped working. **Read every count off the run, never off
+prose**: three counts written into this file were wrong within a day.
 
-A check reports UNDECIDED rather than passing, and that is the point: the
-per-plan E5 cap is unchosen (§11-2). It needs two things, not one — gap
-detection running, and enough plans made while it ran to be a sample. Moving
-the librarian first satisfies the first early and the second not at all, since
-no plan exists yet. A threshold nobody has chosen is not a threshold that is
-satisfied.
+UNDECIDED and PENDING are not passes. UNDECIDED means a threshold nobody has
+chosen (§11-2); PENDING means an artifact a later milestone produces.
 
-Other checks report PENDING — they need artifacts a later milestone produces
-(`envelope/safety.json`, run logs, agent code under `src/`) — or N/A, because
-no card of that kind exists yet. Neither is counted as a pass, and the
-`verdict:` line says how many of each there are today.
+The commit gate checks **the tree the commit would create**, not the working
+copy — the index is unpacked to a scratch directory and the validator runs
+there, so another session's half-finished edit no longer refuses your commit.
+It lists separately whatever differs from what is going in, because nothing
+checked that. `--no-verify` bypasses it and leaves no trace, so say so in the
+message.
 
-After editing knowledge entries, rebuild the index:
-
-```bash
-python3 librarian_agent/src/kb_index.py
-```
-
-Install the commit gate once per working copy:
-
-```bash
-git config core.hooksPath contracts/hooks
-```
-
-It shows the staged set, runs the validator against it, and checks that the
-cards which must fail still fail. `--no-verify` bypasses it and leaves no
-trace, so a bypass is something to say in the commit message.
-
-It checks **the tree the commit would create**, not the working copy: the index
-is unpacked into a scratch directory and the validator runs there. So another
-session's half-finished edit no longer refuses your commit -- and a green gate
-means the commit is green, not the working copy. The hook lists separately
-whatever differs from what is going in, because nothing checked that.
-
-**The working copy and the git index are shared between sessions.** One
-session's `git add` is picked up by another session's `git commit`. Name paths
-rather than using `-A`, and use `git commit -- <paths>` to commit without
-disturbing what someone else has staged. See §6.2.
+**The working copy and the git index are shared between sessions.** Name paths
+rather than using `-A`, and use `git commit -- <paths>`. See §6.2.
 
 ## Rules that bind every session here
 
