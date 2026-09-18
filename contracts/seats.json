@@ -67,7 +67,8 @@
       "paths": [
         "contracts/",
         "microscope_agent/CLAUDE.md",
-        "microscope_agent/.claude/"
+        "microscope_agent/.claude/",
+        "microscope_agent/tasks/"
       ],
       "excludes": [
         "contracts/seats.json",
@@ -93,7 +94,8 @@
       "paths": [
         "contracts/",
         "simulation_agent/CLAUDE.md",
-        "simulation_agent/.claude/"
+        "simulation_agent/.claude/",
+        "simulation_agent/tasks/"
       ],
       "excludes": [
         "contracts/seats.json",
@@ -119,7 +121,8 @@
       "paths": [
         "contracts/",
         "librarian_agent/CLAUDE.md",
-        "librarian_agent/.claude/"
+        "librarian_agent/.claude/",
+        "librarian_agent/tasks/"
       ],
       "excludes": [
         "contracts/seats.json",
@@ -145,7 +148,8 @@
       "paths": [
         "contracts/",
         "bridge/CLAUDE.md",
-        "bridge/.claude/"
+        "bridge/.claude/",
+        "bridge/tasks/"
       ],
       "excludes": [
         "contracts/seats.json",
@@ -177,7 +181,11 @@
         "librarian_agent/CLAUDE.md",
         "librarian_agent/.claude/",
         "bridge/CLAUDE.md",
-        "bridge/.claude/"
+        "bridge/.claude/",
+        "microscope_agent/tasks/",
+        "simulation_agent/tasks/",
+        "librarian_agent/tasks/",
+        "bridge/tasks/"
       ],
       "excludes": [
         "contracts/seats.json"
