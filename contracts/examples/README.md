@@ -144,6 +144,7 @@ wrong on 2026-09-17.
 | `bad_bridge_escalation.json` | 8 | a pair that came back twice, with the thread still open |
 | `bad_bridge_wrong_configs.json` | 8 | the right verdict, naming configurations the table does not list |
 | `bad_bridge_unknown_observable.json` | 8 | asks for an observable the vocabulary does not define |
+| `r2_ask_simulation.json` | 13 | a filename naming a round the card does not claim |
 
 The last of those is a thread ledger rather than a card (`artifact:
 thread_status`), and `--expect-fail` counts it the same way: a ledger nobody
@@ -156,6 +157,10 @@ rule is never the reason it failed — the rule could break and the card would g
 on failing. `assumptions` has no cap in the schema, so authoring one leaves
 exactly one check to fail. The two layers both stay: the schema states the shape
 and the check states the reason.
+
+The one fixture not named `bad_…` is `r2_ask_simulation.json`, and it cannot
+be: the rule it breaks is read off the filename (7.1 rule 3), so the filename is
+the defect. It says round two and the card says round one.
 
 ## Fixtures that need two files
 
@@ -171,6 +176,7 @@ So a folder one level down is one fixture:
 ```
 check08_ledger_payload_mismatch/   envelope + ledger + status, and only the ledger is wrong
 check08_unrecorded_repeat/         two well-formed refusals + a ledger that omits the repeat
+                                   (r1_refusal.json, r3_refusal.json: the round leads, 7.1 rule 3)
 ```
 
 **The folder names the check it is a fixture for, and the count requires a FAIL

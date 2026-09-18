@@ -777,10 +777,6 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
         if payload.get("author") != sender:
             out.append(Finding(8, FAIL, f"an {c.kind} card carries a card {sender} wrote; this one is {payload.get('author')!r}'s (4.4)", c.rel))
 
-        m = re.match(r"^r(\d+)_", c.path.name)
-        if m and int(m.group(1)) != c.data.get("round"):
-            out.append(Finding(8, FAIL, f"the filename says round {int(m.group(1))} and the card says {c.data.get('round')} (7.1 rule 3)", c.rel))
-
         ans = c.data.get("answerability") or {}
         obs = str(ans.get("observable", ""))
         claimed = ans.get("producible")
@@ -1073,7 +1069,22 @@ def check_13_paths(b: Bundle) -> list[Finding]:
         if parts[0].endswith("_agent") or parts[0] == "bridge":
             if "raw" not in parts and len(parts) > 4:
                 out.append(Finding(13, FAIL, f"depth {len(parts) - 1} exceeds the limit of 3 inside an agent (7.1 rule 6)", rel))
-    return out or [Finding(13, PASS, f"{n} files sit in declared paths")]
+
+    # A round or a revision is a filename prefix (7.1 rule 3), and the prefix has
+    # to agree with the card. This reads every card and ledger rather than the
+    # envelopes alone: while it lived in check 8 it bit only the files whose
+    # writer had already chosen the prefix form, so whoever wrote r1_refusal.json
+    # was checked and whoever wrote refusal_r1.json was not. A rule enforced only
+    # where it is convenient is P4 in reverse.
+    prefixed = 0
+    for c in b.cards + b.artifacts:
+        m = re.match(r"^r(\d+)_", c.path.name)
+        if m is None or "__unreadable__" in c.data:
+            continue
+        prefixed += 1
+        if int(m.group(1)) != c.data.get("round"):
+            out.append(Finding(13, FAIL, f"the filename says round {int(m.group(1))} and the card says {c.data.get('round')} (7.1 rule 3)", c.rel))
+    return out or [Finding(13, PASS, f"{n} files sit in declared paths, {prefixed} of them naming their round")]
 
 
 def check_14_command_provenance(b: Bundle) -> list[Finding]:
