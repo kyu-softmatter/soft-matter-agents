@@ -1,11 +1,11 @@
 {
   "card": "goal",
   "schema_version": "0.1",
-  "id": "goal-mic-20260917-001-r3",
+  "id": "goal-mic-20260917-001-r4",
   "qid": "mic-20260917-001",
   "thread": "solo-mic-20260917-001",
   "round": 0,
-  "revision": 3,
+  "revision": 4,
   "author": "microscope_agent",
   "created_at": "2026-09-18T14:24:58Z",
   "status": "VALIDATED",
@@ -39,7 +39,7 @@
   "constraint_notes": [
     "sample is consumed by the measurement and cannot be remounted",
     "no calibration of the stage is available for this sample holder",
-    "The tracer diameter is stated nowhere, so this card does not supply it; it is kb_gap tracer_geometry. A7 needs it for the Stokes drag and cannot have it from here."
+    "The tracer diameter is here as a number now, but it is still kb_gap tracer_geometry: it is knowledge and belongs in the librarian's store as an entry (P14), not only on this card."
   ],
   "numbers": [
     {
@@ -58,6 +58,15 @@
       "source": "assumed:a_snr",
       "grade": "E5",
       "precision": "order_of_magnitude"
+    },
+    {
+      "name": "tracer_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "operator_recall:kyuhwan_20260918",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "Nominal diameter of the main species, which 5.3 rule 5 makes the reference length. Nominal is what the operator stated and all that is claimed: no polydispersity figure exists here, so no distribution is asserted, and one significant figure is the whole of it. A lot number would make this spec: at E3; there is none yet."
     }
   ],
   "assumptions": [

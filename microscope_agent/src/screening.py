@@ -446,6 +446,12 @@ def to_configs(result: Screening, goal: dict, qid: str) -> dict:
         "artifact": "screening",
         "schema_version": "0.1",
         "qid": qid,
+        # Which revision of the question this screened. Without it the record is
+        # byte-identical across a revision of the goal card, so a later reader
+        # cannot tell whether a fan-out reflects the question as it now stands
+        # -- the ledger's (card_id, revision, hash) rule, one layer down.
+        "goal_id": goal.get("id"),
+        "goal_revision": goal.get("revision"),
         "stage": "S3.0",
         "observable": result.observable,
         "kb_version": result.kb_version,

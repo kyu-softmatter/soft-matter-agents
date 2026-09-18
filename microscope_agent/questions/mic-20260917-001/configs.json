@@ -2,6 +2,8 @@
   "artifact": "screening",
   "schema_version": "0.1",
   "qid": "mic-20260917-001",
+  "goal_id": "goal-mic-20260917-001-r4",
+  "goal_revision": 4,
   "stage": "S3.0",
   "observable": "tracer_diffusivity",
   "kb_version": "kbv-9bc3910f1886",
