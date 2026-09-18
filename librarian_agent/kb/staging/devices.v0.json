@@ -346,18 +346,46 @@
     {
       "id": "dmd",
       "role": "patterned illumination",
-      "driver": "micromanager",
+      "model": "Mightex Polygon1000, 912x1140 SLM",
+      "driver": "micromanager, device adapter MightexPolygon1000 (Mightex vendor package V1.0-202103)",
       "automatable": "full",
+      "automatable_condition": "core_requirement",
+      "automatable_note": "full ONLY on a core pinned to device interface 71. The row previously said automatable: full and named no core, and the property is core-dependent -- so a plan screened on it passes while the preflight that opens the device fails. The value stays full rather than becoming a new word like conditional, because A4 reads this field and no consumer knows a fourth value; an unknown value would fall through in an undefined direction, which is worse than a flagged one. That `automatable` has no way to say TRUE UNDER A PRECONDITION is raised with manager-librarian -- it is the same shape as automatable_gaps bundling can-be-set with can-be-verified.",
       "read_back": true,
       "lock_group": "illumination",
+      "core_requirement": {
+        "device_interface_version": 71,
+        "loads_with": "raw pymmcore pinned to device interface 71 (pymmcore==11.1.1.71.2), against the v71 Micro-Manager tree",
+        "refuses_with": "pymmcore-plus, which floors at pymmcore>=11.10.0.74.0 and therefore at device interface 75",
+        "error_verbatim": "Incompatible device interface version (MMCore requires 75; device adapter has 71)",
+        "match_rule": "the check is EXACT MATCH, not a floor: a core requiring 75 refuses an adapter at 71 rather than accepting the older one. So this is not fixed by upgrading anything -- it is fixed by pinning the core down.",
+        "whole_config_loads": "with the v71 core the prior project's full configuration loaded complete at 31 devices, the DMD included. The claim that this is the one device that does not load is true OF pymmcore-plus and false in general, and which of the two is the whole content of this row.",
+        "no_split_process_needed": "a two-process design (DMD on v71, the rest on v75) was validated and works, and is unnecessary, because the full configuration loads on v71 in one process.",
+        "ruling": "transfer (10.2.1)",
+        "slot": "A4 -- configuration suitability, which owns automatability (4.5.3). Second consumer: O1 preflight, which opens the device.",
+        "rule_passed": "10.3 rule 1: a run taken in another project is not a run taken here, so this caps at E3 however cleanly it was measured.",
+        "source": "prior project run record, measured on the microscope PC 2026-09-07",
+        "grade": "E3"
+      },
+      "spectral_role": {
+        "selects_wavelength": false,
+        "sets": ["intensity", "pattern"],
+        "claim": "the DMD chooses no colour. Its control surface takes an image -- an intensity per micromirror -- and has no wavelength parameter at all, so the band is chosen upstream by which light-engine line is lit. A plan that expects the DMD to pick a colour is asking a device to do something it exposes no way to do.",
+        "what_this_is_NOT": "it is not a claim that the DMD passes every wavelength equally. Transmission through it is unmeasured -- see the dmd_spectral_transmission gap. Spectrally neutral conflates the two, and only the first half is established: no wavelength SELECTION, unknown wavelength-dependent LOSS.",
+        "ruling": "transfer (10.2.1)",
+        "slot": "A4 -- device combination: the DMD cannot stand in for a line selector, which is a screening fact.",
+        "rule_passed": "10.3 rule 1",
+        "source": "prior project run record 2026-09-07: the device is driven by writing an image to the SLM, and the per-line measurements were made by changing the light engine's line while a DMD pattern stayed displayed",
+        "grade": "E3"
+      },
       "note": "on the inline widefield branch only -- which is a fact about where the DMD is mounted, not about which engine shares that branch. Since the engine assignment is unconfirmed (gap lapp_branch_assignment), WHICH source the DMD patterns is unknown, and this is what makes that gap load-bearing rather than cosmetic: every patterned-illumination plan names a source.",
       "gap_ref": "lapp_branch_assignment",
-      "source": "mm_config",
+      "source": "mm_config; the core requirement and the spectral role from the prior project's run record of 2026-09-07",
       "grade": "E3",
       "sync": "sw_sequence",
       "sync_note": "patterns are advanced in software, not by an electrical trigger, so per-pattern timing carries OS jitter. Anything needing tight coincidence between pattern and exposure cannot use this path (4.6.8, 4.6.9).",
       "confirmed_by": null,
-      "confirmed_by_note": "bulk stamp removed; see stamp_audit"
+      "confirmed_by_note": "bulk stamp removed; see stamp_audit. Nothing here was re-read at the instrument: this row rests on the prior project's run record, which is why it caps at E3."
     },
     {
       "id": "piezo_stage",
@@ -438,6 +466,14 @@
       "not_entered_here": "this session did not read the prior dossier, so the engine model names and the measured LappMainBranch1 state mapping are not written here. Removing an unsupported claim needs no new source; adding one does."
     },
     {
+      "what": "the DMD's transmission, and whether it varies with wavelength",
+      "gap_id": "dmd_spectral_transmission",
+      "why_it_matters": "a patterned-illumination plan budgets excitation power through this device, and an unmeasured loss is not a zero loss. If the loss also varies with wavelength, two lines patterned at one setting do not arrive at one intensity",
+      "kind": "absent",
+      "searched": ["the prior project's run record of 2026-09-07, which drove the device and measured per-line crosstalk but never measured throughput through it"],
+      "status": "open. What IS established is narrower and is on the dmd row: the device selects no wavelength. That it therefore passes all of them equally does not follow and is not recorded. Closing this is a power measurement with the DMD in and out of the path, per line."
+    },
+    {
       "what": "csuw1_port slot order: which of the three slots is at which position number",
       "why_it_matters": "two of the three states send zero light to one camera, so commanding a position without knowing its content can produce a dark frame with read-back confirming the command",
       "kind": "absent",
@@ -462,8 +498,8 @@
       "what": "switch_cost for the csuw1_port slots and for moving the disk in or out",
       "why_it_matters": "axis A5 pays for every mechanical move in the time budget",
       "kind": "absent",
-      "searched": ["not in the extracted dossier"],
-      "status": "open. Measure at the instrument. The per-configuration switch_cost gap in optical_paths.v0.json is the same quantity one level up."
+      "searched": ["not in the staging extraction of 2026-09-17", "the prior project's run record of 2026-09-07 DOES carry a measured pattern-submit cost for the DMD, found 2026-09-18"],
+      "status": "open, and narrower than it was. The DMD half has a measured value in the prior project; it is NOT entered here, because 10.2.1 requires a ruling before an item crosses and that ruling is manager-librarian's, not this seat's. Recorded as looked-for-and-found-unruled rather than not-there, which are different claims. The csuw1 port and disk halves are still unmeasured anywhere. The per-configuration switch_cost gap in optical_paths.v0.json is the same quantity one level up."
     },
     {
       "what": "calibrated pixel size, per objective and intermediate magnification and binning",
