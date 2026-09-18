@@ -131,6 +131,13 @@
             ]
           },
           "description": "optional and normally omitted. The axis list is fixed and an axis that does not apply abstains (4.5.3); pruning axes here would drop a constraint where nothing records that it was dropped."
+        },
+        "requires_contrast": {
+          "enum": [
+            "label_free",
+            "fluorescence"
+          ],
+          "description": "What the sample has to provide for this configuration to see anything. S3.0 reads it as the discriminator for the goal's `contrast` priority, which is the one priority term it can evaluate before S3 runs (4.5.3). The fact was already in `label` as a sentence, where deterministic code could not reach it, and the fan-out cap went unresolved for want of it. An imaging configuration that omits it is not screened on contrast and the cap stays unresolved; a perturbation configuration produces nothing and needs none."
         }
       },
       "required": [

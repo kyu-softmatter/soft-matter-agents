@@ -23,7 +23,8 @@
             "trapping"
           ]
         }
-      ]
+      ],
+      "requires_contrast": "label_free"
     },
     {
       "config": "widefield_inline",
@@ -46,7 +47,8 @@
             "trapping"
           ]
         }
-      ]
+      ],
+      "requires_contrast": "fluorescence"
     },
     {
       "config": "widefield_side",
@@ -68,7 +70,8 @@
             "trapping"
           ]
         }
-      ]
+      ],
+      "requires_contrast": "fluorescence"
     },
     {
       "config": "confocal",
@@ -90,7 +93,8 @@
             "trapping"
           ]
         }
-      ]
+      ],
+      "requires_contrast": "fluorescence"
     },
     {
       "config": "trapping",
