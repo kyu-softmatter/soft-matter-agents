@@ -11,6 +11,13 @@
   "validity": {
     "coverslip_um": { "min": 170, "max": 170, "unit": "um" }
   },
+  "identifiers": {
+    "part_number": "MRD70170",
+    "product": "CFI Plan Apo Lambda D 10X",
+    "nominal_magnification": "10x",
+    "immersion": "air"
+  },
+  "source": "spec:MRD70170",
   "grade": "E3",
   "grade_tag": "vendor_spec",
   "source_ref": "src_nikon_objective_catalog",

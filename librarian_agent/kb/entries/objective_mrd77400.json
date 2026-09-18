@@ -12,6 +12,13 @@
   "validity": {
     "coverslip_um": { "min": 150, "max": 190, "unit": "um" }
   },
+  "identifiers": {
+    "part_number": "MRD77400",
+    "product": "CFI Apo Lambda S 40XC WI",
+    "nominal_magnification": "40x",
+    "immersion": "water"
+  },
+  "source": "spec:MRD77400",
   "grade": "E3",
   "grade_tag": "vendor_spec",
   "source_ref": "src_nikon_objective_catalog",

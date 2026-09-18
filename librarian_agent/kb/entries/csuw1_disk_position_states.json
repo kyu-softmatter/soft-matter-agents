@@ -4,6 +4,8 @@
   "kind": "claim",
   "claim": "With the spinning disk in, the path is confocal. With the disk out, the same hardware serves both widefield fluorescence and brightfield. Disk-out is therefore not a configuration of its own but a required selector value on configurations that already exist, and one selector position serves two different configurations.",
   "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. The consequence worth carrying: the position labelled bright field is also the widefield-fluorescence position, so the configuration id cannot be recovered from this selector's label, and a read-back that confirms the label confirms nothing about which configuration is loaded. Falsified by a mechanical change to the disk carrier.",
+  "source": "operator_read:kyuhwan_20260917",
+  "grade_tag": "operator_read",
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

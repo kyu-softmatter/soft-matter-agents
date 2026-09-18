@@ -10,6 +10,8 @@
   "validity": {
     "coverslip_um": { "min": 170, "max": 170, "unit": "um" }
   },
+  "source": "operator_read:kyuhwan_20260917",
+  "grade_tag": "operator_read",
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

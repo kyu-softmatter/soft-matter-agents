@@ -11,6 +11,13 @@
   "validity": {
     "coverslip_um": { "min": 170, "max": 170, "unit": "um" }
   },
+  "identifiers": {
+    "part_number": "MRD71670",
+    "product": "CFI Plan Apo Lambda D 60X Oil",
+    "nominal_magnification": "60x",
+    "immersion": "oil"
+  },
+  "source": "spec:MRD71670",
   "grade": "E3",
   "grade_tag": "vendor_spec",
   "source_ref": "src_nikon_objective_catalog",

@@ -7,6 +7,11 @@
     { "name": "nosepiece_positions", "value": 6, "unit": "count", "source": "operator_read:kyuhwan_20260917", "grade": "E3", "note": "a count of slots, exact; the index base is 0, which is not a number but part of the claim" }
   ],
   "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. The count is separate from which lens sits in which position (nosepiece_objective_assignment) on purpose: a lens swap falsifies the assignment and leaves the count standing. Falsified by fitting or removing a turret.",
+  "identifiers": {
+    "position_index_base": "0"
+  },
+  "source": "operator_read:kyuhwan_20260917",
+  "grade_tag": "operator_read",
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

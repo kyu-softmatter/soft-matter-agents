@@ -11,6 +11,13 @@
   "validity": {
     "coverslip_um": { "min": 0, "max": 170, "unit": "um" }
   },
+  "identifiers": {
+    "part_number": "MRD70040",
+    "product": "CFI Plan Apo Lambda D 4X",
+    "nominal_magnification": "4x",
+    "immersion": "air"
+  },
+  "source": "spec:MRD70040",
   "grade": "E3",
   "grade_tag": "vendor_spec",
   "source_ref": "src_nikon_objective_catalog",

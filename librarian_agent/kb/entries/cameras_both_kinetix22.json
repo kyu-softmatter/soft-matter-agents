@@ -4,6 +4,11 @@
   "kind": "claim",
   "claim": "Both cameras are Kinetix 22. They are the same model, so pixel size, quantum efficiency, read noise and full-well capacity are the same on both arms, and the two arms of the splitter are photometrically comparable without a cross-calibration term. The names red and blue, and the roles primary and second detector, are wiring and naming rather than a hardware difference: neither camera is the better one.",
   "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. This closes an older discrepancy in which a purchase quote listed one Kinetix 22 and one Prime95B against a current state recorded as two Kinetix, unconfirmed: a swap did happen against the quote. Sensor properties are shared because the model is shared; no sensor number is entered here, and the calibrated pixel size remains a per-configuration gap. Falsified by either camera being replaced.",
+  "identifiers": {
+    "model": "Kinetix 22"
+  },
+  "source": "operator_read:kyuhwan_20260917",
+  "grade_tag": "operator_read",
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

@@ -4,6 +4,16 @@
   "kind": "claim",
   "claim": "The six nosepiece positions hold, in order from 0 to 5: MRD70040 (CFI Plan Apo Lambda D 4X), MRD70170 (10X), MRD70270 (20X), MRD77400 (CFI Apo Lambda S 40XC WI), MRD71670 (60X Oil) and MRD71970 (100X Oil). The operator confirmed the whole assignment at the instrument.",
   "validity_conditions": "This instrument on 2026-09-17, operator read at the instrument. The table arrived as an index from an earlier project's dossier under explicit operator authorisation, and every row was then confirmed here; the specifications of each lens are separate entries citing the catalog part number, never the dossier. Position-to-lens mapping is the one claim on this nosepiece that a single lens swap falsifies, and this instrument's paper record has drifted from its hardware before, so it is re-read rather than inherited. A magnification written here -- 4x, 20x -- is a nominal designation and a string identifier, not a number, and nothing may back-derive it from a calibrated pixel size.",
+  "identifiers": {
+    "position_0": "MRD70040",
+    "position_1": "MRD70170",
+    "position_2": "MRD70270",
+    "position_3": "MRD77400",
+    "position_4": "MRD71670",
+    "position_5": "MRD71970"
+  },
+  "source": "operator_read:kyuhwan_20260917",
+  "grade_tag": "operator_read",
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

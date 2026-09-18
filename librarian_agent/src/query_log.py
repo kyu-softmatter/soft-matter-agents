@@ -33,6 +33,15 @@ The enforcement is structural rather than a comment: this module offers `record`
 (write) and `verify` (offline audit) and NO function that reads the log by
 caller, observable or count. There is nothing here for answering code to call.
 
+**Where it sits, and why not in the store.** `librarian_agent/queries/`, beside
+`kb/` rather than inside it. 4.3.2 sorts material into three genres -- knowledge,
+records, policy -- and a query log is a record, the same genre as
+`microscope_agent/runs/`. The mechanical reason is sharper than the taxonomy:
+`kb_version` hashes the entries and a card cites the store with `kb:<entry_id>`,
+so everything inside `kb/` is either citable or noise in the hash. A log can be
+neither cited nor hashed, and putting it there would blur the boundary that
+`kb_version` exists to draw.
+
     python3 librarian_agent/src/query_log.py --verify
     python3 librarian_agent/src/query_log.py --self-test
 """
@@ -48,7 +57,7 @@ from pathlib import Path
 
 AGENT = Path(__file__).resolve().parent.parent
 CONTRACTS = AGENT.parent / "contracts"
-DEFAULT_LOG = AGENT / "kb" / "queries" / "log.jsonl"
+DEFAULT_LOG = AGENT / "queries" / "log.jsonl"
 
 TOOLS = ("kb_query", "kb_get", "kb_conflicts", "kb_group")
 OVERLAP = ("full", "partial", "unconstrained")
@@ -105,11 +114,12 @@ def record(log: Path = DEFAULT_LOG, **rec) -> dict:
     check(rec)
     if not log.parent.exists():
         raise Rejected(
-            f"{log.parent} does not exist, and this module will not create it: "
-            "librarian_agent/kb/ admits only index.json and the declared "
-            "subdirectories (check 13 in contracts/validate.py). A log written "
-            "to an undeclared path fails the repository rather than recording "
-            "anything. The path is the design seat's to declare."
+            f"{log.parent} does not exist, and this module will not create it. "
+            "librarian_agent/queries/ is a declared path (check 13 in "
+            "contracts/validate.py) and is kept in git by its README; a "
+            "directory missing here means something removed it, and writing to "
+            "a path the repository does not admit fails the repository rather "
+            "than recording anything."
         )
     with log.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(rec, sort_keys=True, ensure_ascii=False) + "\n")
