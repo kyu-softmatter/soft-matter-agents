@@ -4,60 +4,162 @@
   "adopt": "Prefix the commit with the seat's identity. Only the committer is overridden, so the author stays whoever the person is: GIT_COMMITTER_NAME='seat:design' GIT_COMMITTER_EMAIL=design@seat.invalid git commit -m ...",
   "addresses": "seat.invalid is reserved by RFC 2606 and can never route. A seat identity is a label, not a mailbox.",
   "boundaries": "owns holds boundary names as check 41 derives them from the path, using the same table check 35 counts: design, microscope_agent, simulation_agent, librarian_agent, bridge. An agent's CLAUDE.md and .claude/ are the design seat's, and so is all of contracts/.",
-
   "unknown_committer": "report",
   "unknown_committer_note": "report: a committer absent from this list is reported rather than refused, so a seat that has not adopted an identity is not blocked. refuse: fail-closed. The precondition for switching is that every seat has adopted one, the person included -- a person committing by hand would otherwise be refused on the first day, and that bypass is what becomes the habit. Note also what report costs: an unattributed commit gets no checking at all, because nothing says whose paths those were.",
-
   "seats": [
     {
       "seat": "microscope",
       "committer_email": "microscope@seat.invalid",
-      "owns": ["microscope_agent"]
+      "owns": [
+        "microscope_agent"
+      ]
     },
     {
       "seat": "simulation",
       "committer_email": "simulation@seat.invalid",
-      "owns": ["simulation_agent"]
+      "owns": [
+        "simulation_agent"
+      ]
     },
     {
       "seat": "librarian",
       "committer_email": "librarian@seat.invalid",
-      "owns": ["librarian_agent"]
+      "owns": [
+        "librarian_agent"
+      ]
     },
     {
       "seat": "bridge",
       "committer_email": "bridge@seat.invalid",
-      "owns": ["bridge"]
+      "owns": [
+        "bridge"
+      ]
     },
     {
       "seat": "architecture",
       "committer_email": "architecture@seat.invalid",
-      "owns": ["design"],
-      "paths": ["plan.md", "CLAUDE.md", "README.md", ".claude/", "contracts/seats.json"],
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "plan.md",
+        "CLAUDE.md",
+        "README.md",
+        ".claude/",
+        "contracts/seats.json"
+      ],
       "note": "The top tier of D12 (6.2). It writes what the rules are: plan.md, the repository's own instructions, and this registry. It owns this file because the tier being constrained must not own the file that says what it may touch -- a manager that could edit its own `paths` has no boundary, only a preference."
+    },
+    {
+      "seat": "manager-microscope",
+      "committer_email": "manager-microscope@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "contracts/",
+        "microscope_agent/CLAUDE.md",
+        "microscope_agent/.claude/"
+      ],
+      "excludes": [
+        "contracts/seats.json"
+      ],
+      "note": "One of four manager seats (D12, 6.2). It carries the rules into contracts and into microscope_agent's instructions, and reviews that agent's worktree at merge. It does not commit that agent's own artifacts: a manager wearing the agent's identity would make check 41's attribution false, which is the one thing the check exists to prevent."
+    },
+    {
+      "seat": "manager-simulation",
+      "committer_email": "manager-simulation@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "contracts/",
+        "simulation_agent/CLAUDE.md",
+        "simulation_agent/.claude/"
+      ],
+      "excludes": [
+        "contracts/seats.json"
+      ],
+      "note": "One of four manager seats (D12, 6.2). It carries the rules into contracts and into simulation_agent's instructions, and reviews that agent's worktree at merge. It does not commit that agent's own artifacts: a manager wearing the agent's identity would make check 41's attribution false, which is the one thing the check exists to prevent."
+    },
+    {
+      "seat": "manager-librarian",
+      "committer_email": "manager-librarian@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "contracts/",
+        "librarian_agent/CLAUDE.md",
+        "librarian_agent/.claude/"
+      ],
+      "excludes": [
+        "contracts/seats.json"
+      ],
+      "note": "One of four manager seats (D12, 6.2). It carries the rules into contracts and into librarian_agent's instructions, and reviews that agent's worktree at merge. It does not commit that agent's own artifacts: a manager wearing the agent's identity would make check 41's attribution false, which is the one thing the check exists to prevent."
+    },
+    {
+      "seat": "manager-bridge",
+      "committer_email": "manager-bridge@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "contracts/",
+        "bridge/CLAUDE.md",
+        "bridge/.claude/"
+      ],
+      "excludes": [
+        "contracts/seats.json"
+      ],
+      "note": "One of four manager seats (D12, 6.2). It carries the rules into contracts and into bridge's instructions, and reviews that agent's worktree at merge. It does not commit that agent's own artifacts: a manager wearing the agent's identity would make check 41's attribution false, which is the one thing the check exists to prevent."
     },
     {
       "seat": "manager",
       "committer_email": "manager@seat.invalid",
-      "owns": ["design"],
-      "paths": ["contracts/", "microscope_agent/CLAUDE.md", "microscope_agent/.claude/", "simulation_agent/CLAUDE.md", "simulation_agent/.claude/", "librarian_agent/CLAUDE.md", "librarian_agent/.claude/", "bridge/CLAUDE.md", "bridge/.claude/"],
-      "excludes": ["contracts/seats.json"],
-      "note": "The middle tier of D12 (6.2). It carries the rules into contracts and into each agent's instructions, and it reviews the sub-sessions' worktrees at merge. It does not commit an agent's own artifacts: that would put a false seat on the attribution check 41 exists to make honest. Instead it checks that the sub-session committed, and sends it back if not.",
-      "excludes_note": "Enforced by check 41 since 607c3e9, which the manager seat wrote against its own boundary. It subtracts from what owns and paths grant, and is tested before the narrowing so the refusal names the real reason. Verified in a throwaway clone in both directions: manager is refused on contracts/seats.json and allowed elsewhere under contracts/, architecture is the reverse. This note said DECLARED, NOT ENFORCED while that was true; a registry that understates its protection is the same error as one that overstates it, so it is corrected here rather than left to age."
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "contracts/",
+        "microscope_agent/CLAUDE.md",
+        "microscope_agent/.claude/",
+        "simulation_agent/CLAUDE.md",
+        "simulation_agent/.claude/",
+        "librarian_agent/CLAUDE.md",
+        "librarian_agent/.claude/",
+        "bridge/CLAUDE.md",
+        "bridge/.claude/"
+      ],
+      "excludes": [
+        "contracts/seats.json"
+      ],
+      "note": "The undivided manager identity, kept valid through the migration and used by three commits made before the tier was known to hold four sessions. Retire it once each manager session has adopted its own manager-<agent> identity; removing it while one is still in use turns that session's commits into unknown-committer.",
+      "excludes_note": "Enforced by check 41 since 607c3e9, which the manager seat wrote against its own boundary. It subtracts from what owns and paths grant, and is tested before the narrowing so the refusal names the real reason. Verified in a throwaway clone in both directions: manager is refused on contracts/seats.json and allowed elsewhere under contracts/, architecture is the reverse. This note said DECLARED, NOT ENFORCED while that was true; a registry that understates its protection is the same error as one that overstates it, so it is corrected here rather than left to age.",
+      "why_divided": "On 2026-09-17 four sessions each reported being the manager seat and the person confirmed that all four are. Sharing one identity made check 41 decorative for the whole tier: three commits stand under manager@seat.invalid and git cannot say which session made any of them. 6.2.1 prescribes dividing paths before opening a second seat at one position; this is that division, four ways.",
+      "what_is_not_divided": "contracts/ itself. Each manager needs the schemas, the vocabulary, the units registry and the validator, and no path split expresses that. Giving the core to one seat was proposed and refused: it serialises every schema and validator change through one session, which is the opposite of what the tier was built for. So all four hold contracts/, and there check 41 gives attribution rather than refusal -- the commit still says which session, but no crossing can be refused. On each agent's CLAUDE.md and .claude/ the division is real and the check refuses.",
+      "what_protects_the_core": "The worktree merge, not this file. Two managers editing validate.py in separate worktrees produce a conflict at merge -- visible and resolvable -- where today they silently overwrite each other, which happened twice on 2026-09-17. That makes the merge the only thing guarding the shared core, and it makes the merge-awareness fix in checks 35 and 41 load-bearing rather than tidy: until it lands, the first merge crashes the gate (6.2.1). By convention contracts/capabilities/<agent>.json belongs to that agent's manager. It is convention, not a check, and this line says so rather than implying a boundary that is not there."
     },
     {
       "seat": "design",
       "committer_email": "design@seat.invalid",
-      "owns": ["design"],
+      "owns": [
+        "design"
+      ],
       "note": "The pre-D12 identity, kept valid through the migration. It is the undivided seat that architecture and manager replace: two sessions at the root were both the design seat by definition, and while they shared this identity check 41 passed their mixture -- which is what c13e742 was. 6.2.1 prescribed dividing `paths` before opening a second one; D12 is that division. Retire this entry once every top-tier session has adopted its own identity, and not before -- an identity removed while a session still uses it turns every commit from that session into an unknown committer."
     },
     {
       "seat": "human",
       "committer_email": "human@seat.invalid",
-      "owns": ["design", "microscope_agent", "simulation_agent", "librarian_agent", "bridge"],
+      "owns": [
+        "design",
+        "microscope_agent",
+        "simulation_agent",
+        "librarian_agent",
+        "bridge"
+      ],
       "note": "The person writes approvals/ and envelope/safety.json, which no seat may (2.1 rule 7, 6.1), so this seat owns every boundary. It is deliberately an opt-in identity rather than the git default: if the default were listed here, every session would pass check 41 by inheriting it and the check would mean nothing."
     }
   ],
-
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole."
 }
