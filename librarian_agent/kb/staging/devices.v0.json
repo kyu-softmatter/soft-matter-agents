@@ -28,6 +28,51 @@
     "orchestrator": "one worker per channel; lock_group compiles into the locks",
     "a6": "reads working distance and immersion off the nosepiece rows"
   },
+  "light_engines": {
+    "keyed_by": "model designation, NOT channel id",
+    "why": "which of widefield_source_a and widefield_source_b is which engine is the open lapp_branch_assignment gap. Attaching these facts to a channel id would make them inherit that dispute; attached to a designation they are usable today.",
+    "installed": [
+      {
+        "model": "Spectra III 8-NII-XS",
+        "channels": 8,
+        "channels_from": "the vendor designation itself: 8-NII-XS. Read off the loaded device list, not counted from icons.",
+        "firmware": "3.5.4",
+        "serial": "28145"
+      },
+      {
+        "model": "Aura III 5-NII-WA",
+        "channels": 5,
+        "channels_from": "the vendor designation itself: 5-NII-WA"
+      }
+    ],
+    "what_this_settles": "a three-way disagreement about the Aura. A distributor page claiming 3 independently selectable channels is wrong for THIS unit; the dossier's icon count of 5 agrees with the designation. The designation wins because it is the device document (10.3 rule 2) and the icon count and the distributor page are not.",
+    "what_this_does_NOT_settle": "the wavelengths. 8-NII-XS agrees with the datasheet on the NUMBER of channels while the icon-read wavelength list disagrees with the datasheet's standard set on 7 of 8. So this is an 8-channel engine whose channel set is unread -- see the light_engine_channel_sets gap. A count is not a list, and having the count makes it tempting to assume the standard set fills it.",
+    "ruling": "transfer (10.2.1)",
+    "slot": "A4 -- configuration suitability. Consumer: S3.0 screening and A4.",
+    "rule_passed": "10.3 rule 2 (the vendor designation is the source) and rule 1",
+    "grade": "E3"
+  },
+  "serial_ports": {
+    "ruling": "downgrade (10.2.1)",
+    "why_downgraded": "a COM number is one integer that re-cabling or a driver reinstall falsifies silently -- the same class as the detection port position the staging README deliberately did not extract. It crosses with a validity naming the machine and the date, not as a stable fact.",
+    "validity": {
+      "machine": "the microscope PC",
+      "as_of": "2026-09-07",
+      "falsified_by": "re-cabling, a driver reinstall, or a USB device enumerating in a different order"
+    },
+    "map": {
+      "COM3": "Spectra III (Model = GEN3)",
+      "COM4": "the piezo",
+      "COM7": "a Lumencor device",
+      "COM8": "the LUN-F's USB-B port (FT232R)"
+    },
+    "the_half_that_does_not_rot": "every Lumencor is FTDI. So a Microsoft CDC port is NOT a Lumencor, whatever the number. That discriminator survives every re-cabling the map above does not, which is why it is written separately rather than left implicit in the table.",
+    "what_it_cost_when_wrong": "a configuration pointing the Lumencor adapter at COM4 hung about thirty minutes waiting for a reply that cannot come -- the piezo is not going to answer a Lumencor probe. A wrong COM number does not fail fast.",
+    "slot": "A4 -- device combination. Consumer: the orchestrator.",
+    "rule_passed": "10.3 rule 1",
+    "source": "prior project run record, microscope PC, 2026-09-07",
+    "grade": "E3"
+  },
   "channels": [
     {
       "id": "stand_ti2e",
@@ -367,6 +412,17 @@
         "source": "prior project run record, measured on the microscope PC 2026-09-07",
         "grade": "E3"
       },
+      "paired_with": {
+        "light_engine": "Spectra III",
+        "evidence": "the prior project drove Spectra -> DMD -> sample and measured excitation crosstalk per Spectra line with a DMD pattern displayed. A run, not a dictation.",
+        "named_by_model_on_purpose": "NOT by channel id. Which of widefield_source_a and widefield_source_b is the Spectra is the open lapp_branch_assignment gap, and this fact does not wait on it: a patterned-illumination plan can name the Spectra correctly while the branch label stays unconfirmed. That is what closing the RISK without closing the LABEL means -- the risk V11.1 named was a plan naming the wrong source, and a name that does not depend on the disputed mapping removes it.",
+        "why_the_two_do_not_share_a_source": "the dossier's geometry sentence and the path name widefield-spectra3 both come from the 2026-08-10 dictation; this comes from a run. One source being distrusted does not touch the other.",
+        "ruling": "transfer (10.2.1)",
+        "slot": "A4 -- device combination. Second consumer: S3.0 screening.",
+        "rule_passed": "10.3 rule 1",
+        "source": "prior project run record, microscope PC, 2026-09-07",
+        "grade": "E3"
+      },
       "spectral_role": {
         "selects_wavelength": false,
         "sets": ["intensity", "pattern"],
@@ -398,6 +454,16 @@
         "piezo_vendor_gui"
       ],
       "exclusive_reason": "the serial port is exclusive; the vendor GUI holds it while a session is open and the connection then fails",
+      "vendor_gui": {
+        "name": "NanoBench 6000",
+        "what_it_is": "the vendor GUI, and the counterparty of exclusive_with: [piezo_vendor_gui] -- the thing that holds COM4. It is NOT a hardware model, and it was recorded as one in the verification log's V14 before V19 corrected it. This store never carried that error; what it lacked was the name of the process the orchestrator has to see closed.",
+        "operational_form": "close the NanoBench 6000 session if one is open, before opening the port",
+        "ruling": "transfer (10.2.1)",
+        "slot": "A4 -- device combination and automatability. Consumer: the orchestrator's exclusivity check.",
+        "rule_passed": "10.3 rule 1",
+        "source": "prior project control-path record",
+        "grade": "E3"
+      },
       "note": "three axes, travel and command quantisation were measured in the prior project and need re-measuring here before use as E1",
       "source": "driven end to end in the prior project + operator_read:kyuhwan_20260917",
       "grade": "E3",
@@ -462,8 +528,35 @@
       "why_it_matters": "the DMD is mounted on the inline branch only, so the assignment decides which source a patterned-illumination plan is actually patterning. If it is inverted, every such plan names the wrong engine, the configuration still screens as valid, and the light that arrives is unpatterned",
       "kind": "absent",
       "searched": ["the prior project's own record, which states that the asymmetric geometry came from the same 2026-08-10 dictation as a transmission figure later found inverted, and that its measurement agrees equally well with the two engines being the other way round", "the pass of 2026-09-17, which did not go through these two rows"],
-      "status": "open, and it was previously recorded as confirmed -- the stamp is removed and the claim demoted rather than left standing. Settled by acquiring, not by read-back, and this selector is the reason that rule exists: it is the branch selector whose label-to-state mapping was inverted in the configuration file for weeks while both label and state read back consistently. Block one engine, switch the branch, and see which state goes dark; or pattern with the DMD and see which engine's light carries the pattern. The engines' identities are a separate question from their branches, and the session holding the prior dossier is entering those.",
+      "status": "open as a LABEL and no longer open as a risk. The actionable half closed on 2026-09-18: the prior project ran Spectra -> DMD -> sample, so a patterned-illumination plan names the Spectra (see paired_with on the dmd row) whatever the branch turns out to be called. What is still unknown is which channel id, widefield_source_a or widefield_source_b, is which engine. It was previously recorded as confirmed -- the stamp is removed and the claim demoted rather than left standing. Settled by acquiring, not by read-back, and this selector is the reason that rule exists: it is the branch selector whose label-to-state mapping was inverted in the configuration file for weeks while both label and state read back consistently. Block one engine, switch the branch, and see which state goes dark; or pattern with the DMD and see which engine's light carries the pattern. The engines' identities are a separate question from their branches, and the session holding the prior dossier is entering those.",
       "not_entered_here": "this session did not read the prior dossier, so the engine model names and the measured LappMainBranch1 state mapping are not written here. Removing an unsupported claim needs no new source; adding one does."
+    },
+    {
+      "what": "which wavelengths the eight Spectra III channels and the five Aura III channels actually are",
+      "gap_id": "light_engine_channel_sets",
+      "why_it_matters": "A4 checks whether a required selector value is reachable, and a fluorescence plan picks an excitation line by wavelength. A channel COUNT does not give a channel SET",
+      "kind": "absent",
+      "searched": ["the vendor designations, which give the counts and not the wavelengths", "the prior project's icon-read list, which disagrees with the datasheet's standard set on 7 of 8 channels"],
+      "status": "open, and the count being settled makes this MORE dangerous rather than less: knowing there are eight invites filling them with the datasheet's standard eight, which is exactly the list that disagrees. Closed by reading the channel set off the engine, not off a datasheet for the family."
+    },
+    {
+      "what": "per-line excitation crosstalk between the Spectra's lines on the two cameras",
+      "gap_id": "spectra_line_crosstalk",
+      "why_it_matters": "two-colour species assignment depends on it; the prior project strobes its lines for this reason",
+      "kind": "absent",
+      "searched": ["the prior project's run record of 2026-09-07, which MEASURED it per line on both cameras at fixed intensity, exposure and binning"],
+      "status": "HELD, which is not the same as absent and not the same as discarded. The measurements exist and are good; they attach to LINE LABELS, and the line labels are exactly what light_engine_channel_sets leaves unread. Entering them now would pin measurements to channels nobody has read. They also want an A1 or A2 slot that does not exist until the observable vocabulary does (11-1), and 10.2.1 discards an item that cannot name its slot -- holding is the honest third answer where discard would lose a good measurement and transfer would invent a slot. Released when the channel set is read.",
+      "released_by": "light_engine_channel_sets"
+    },
+    {
+      "what": "the piezo stage's travel range, and the stage model that would determine it",
+      "gap_id": "piezo_travel_range",
+      "why_it_matters": "A7 owns motion, and a move command needs to know what is reachable",
+      "kind": "inaccessible",
+      "searched": ["the prior project, where the number exists -- as the heading of section 3 of that project's SAFETY.md, and reading stopped at the heading", "the vendor designation we hold, which does not determine it: NPC-D is the CONTROLLER, and travel is a property of the stage"],
+      "status": "DISCARDED as a transfer, and open as a question for a person. 10.3 rule 4 makes safety limits non-transferable and 10.2's device-spec row stays shut until a human writes envelope/safety.json. The reason is not procedural: the prior project put that number in its safety document BECAUSE it was using it as a limit, and a travel range read as a permission is the exact failure the rule names. kind is inaccessible because the next action is the right one -- ask a person -- even though the barrier is a rule of this project rather than a paywall.",
+      "do_not": "do not fetch it from the prior project, and do not infer the stage model. Queensgate's series is offered at 200, 400, 600 and 800 um, and 600 appearing in both that series and that SAFETY.md heading is a consistency, not a source. Picking the 600 because the number matches is inference, which is E6 and enters nothing.",
+      "what_is_known": "NPC-D is the controller. The STAGE model is not recorded anywhere here, and it is what a vendor lookup would need."
     },
     {
       "what": "the DMD's transmission, and whether it varies with wavelength",
