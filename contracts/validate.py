@@ -1554,14 +1554,28 @@ def check_33_caller_isolation(b: Bundle) -> list[Finding]:
     if not axes:
         return [Finding(33, NA, "no axis cards")]
     out: list[Finding] = []
-    for qid, group in {q: [c for c in axes if c.data.get("qid") == q] for q in {c.data.get("qid") for c in axes}}.items():
+
+    # Siblings are the cards of one fan-out, and a fan-out lives in one
+    # directory. Grouping by qid alone made a fixture in contracts/examples/ a
+    # sibling of a real card in an agent's questions/ the moment the two shared
+    # an id -- and they did, because the fixtures wear plausible qids. The
+    # symptom was "siblings cite different kb_version", which was true of the
+    # two sets and meaningless between them. Scope is the directory.
+    def scope(card) -> str:
+        return str(Path(card.rel).parent)
+
+    groups: dict[tuple[str, str], list] = {}
+    for c in axes:
+        groups.setdefault((scope(c), c.data.get("qid")), []).append(c)
+
+    for (where, qid), group in sorted(groups.items()):
         callers = [c.data.get("caller_id") for c in group]
         if len(set(callers)) != len(callers):
             dupes = {x for x in callers if callers.count(x) > 1}
-            out.append(Finding(33, FAIL, f"qid {qid}: caller_id reused {sorted(dupes)}; each sub-agent gets its own (4.3.1)"))
+            out.append(Finding(33, FAIL, f"qid {qid} in {where}: caller_id reused {sorted(dupes)}; each sub-agent gets its own (4.3.1)"))
         versions = {c.data.get("kb_version") for c in group}
         if len(versions) > 1:
-            out.append(Finding(33, FAIL, f"qid {qid}: siblings cite different kb_version {sorted(versions)}; S3.0 pins one"))
+            out.append(Finding(33, FAIL, f"qid {qid} in {where}: siblings cite different kb_version {sorted(versions)}; S3.0 pins one"))
         for c in group:
             want = f"{c.data.get('qid')}:{c.data.get('config')}:{c.data.get('axis')}"
             if c.data.get("caller_id") != want:

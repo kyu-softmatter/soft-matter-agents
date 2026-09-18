@@ -199,3 +199,21 @@ python3 contracts/validate.py --expect-fail contracts/examples/rejected
 The exit code inverts: every card must fail, and **a card that stops failing
 breaks the run.** A check nobody tests is a check that quietly stopped working,
 and the way it stops working is that someone loosens it to make a real card pass.
+
+## Give a new fixture an obviously fictional qid
+
+The fixtures here wear plausible ids — `mic-20260917-001` — and on
+2026-09-18 a real question was opened under that same id. Nothing had
+reserved it. Eleven fixtures and a live fan-out became one group, and the
+collision surfaced in check 33, which compares siblings and had no way to
+know these were not siblings. Check 33 now groups by directory as well as
+qid, so the false relation is gone.
+
+The convention still matters, because the next collision will surface
+somewhere else. **A new fixture gets a qid no real question would take** —
+`mic-fixture-001`. The existing ones stay where they are: two of them are a
+`plan_approval` and a `result` whose hashes a person signed, and changing a
+qid changes the hash, which would void an approval nobody here may reissue
+(§5.5).
+
+So this reads as a rule for what comes next, not a cleanup that was skipped.
