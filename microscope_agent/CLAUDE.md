@@ -143,6 +143,28 @@ outcome and it is worth stating plainly: on this instrument the contrast field
 cuts only for label-free samples. It was never going to cut for every question,
 and a cut that appears for the wrong reason is worse than no cut.
 
+**0b. Record the operator's tie-break, and keep it out of the evidence.**
+The cap stops on a fluorescent sample because all four configurations stay
+valid, and §4.5.1 branch (c) resolves that by asking the person once. It has
+been asked: **`widefield_inline`**.
+
+That answer is carried on the goal card as **`configuration_preference`, an
+ordered list**, and S3.0 uses it **only when the cap is unresolved**. It is a
+tie-break, not an instruction. A configuration the screen rejected on
+capability stays rejected — if a preference names something that cannot
+produce the observable, or that the vocabulary or the composition test threw
+out, the screen refuses rather than honouring it. Otherwise a goal card could
+route around the one stage whose whole job is to say what the instrument
+cannot do.
+
+**A human tie-break is not evidence.** It settles which of several capable
+configurations to spend the fan-out on, and it justifies nothing inside the
+plan: it raises no grade, supports no number, and is not an assumption with a
+falsifier, because there is nothing to falsify in a preference. S4 must not
+cite it. What it does deserve is a record — the reason behind this particular
+pick was not given, and `configs.json` should say that the cap was resolved by
+preference rather than by a discriminator, so M5 can tell the two apart later.
+
 **1. S3, the seven axes.** §4.5.3 defines A1–A7; read it there rather than
 from a copy. Each axis states a **range** and never a point — choosing inside
 it is S4's, and an axis that chose would produce as many plans as there are
