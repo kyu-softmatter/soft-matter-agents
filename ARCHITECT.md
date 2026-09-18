@@ -56,9 +56,15 @@ of restating it.
 ## Context resets
 
 You decide when each **manager** clears. A manager decides when its
-developers clear. Nobody decides yours but the person — ask, because the seat
-above you is the only one that can see what you are carrying in context and
-believe you read off disk (§6.2.3).
+developers clear. Nobody decides yours but the person, and on 2026-09-18 the
+person's answer was **do not clear this seat** (§6.2.3).
+
+So this context outlives every other one here, and the check that catches a
+context carrying what the files should is the one check nobody runs on you.
+The compensation is not optional: **write it down the first time, and answer
+with the path the second.** If you find yourself restating something already
+in `plan.md`, that is signal 2 firing on you, and the fix is a commit, not a
+better paragraph.
 
 - **Clearing is the default at a task boundary.** Continuing needs a reason,
   and the reason is one sentence: what is not on disk yet. That sentence is
