@@ -11,9 +11,14 @@ testable only if answering does not require a running server. `--self-test`
 exercises them with no transport at all.
 
 **Four tools, and no fifth.** `kb_group` is separate from `kb_query` because a
-dimensionless group is looked up by SYMBOL, wants a formula rather than a value,
-and takes no condition range. Folding it in would make the return shape depend
-on the arguments, and every caller would grow a branch (4.3.1).
+formula is looked up by SYMBOL, wants a definition rather than a value, and
+takes no condition range. Folding it in would make the return shape depend on
+the arguments, and every caller would grow a branch (4.3.1). It serves BOTH
+formula-carrying kinds -- a `dimensionless_group`, which asserts a pure number,
+and a `derived_quantity`, which keeps a dimension and names it in `unit`. The
+tool is keyed on the symbol, not on the kind: a caller asking what `tau_d` means
+is asking the same question whichever of the two it turns out to be, and the
+answer carries `dimensionless` so nobody has to infer it from a missing field.
 
 **No write tool exists.** External search, distillation, and writing or retiring
 entries happen in the librarian session only. A sub-agent that could write to
@@ -373,25 +378,31 @@ def kb_conflicts(store: Store, caller_id: str, kb_version: str, topic: str = "",
 def kb_group(store: Store, caller_id: str, kb_version: str, symbol: str,
              purpose: str = "screen") -> dict:
     _preflight(store, caller_id, kb_version, "kb_group")
+    formula_kinds = ("dimensionless_group", "derived_quantity")
     hits = sorted((eid for eid, e in store.entries.items()
-                   if e.get("kind") == "dimensionless_group" and e.get("symbol") == symbol),
+                   if e.get("kind") in formula_kinds and e.get("symbol") == symbol),
                   key=store.sort_key)
     _log(store, caller_id=caller_id, kb_version=kb_version, tool="kb_group", purpose=purpose,
          observable=symbol,
          returned=[{"entry_id": i, "grade": store.entries[i]["grade"]} for i in hits],
          gaps=[] if hits else ["absent"], coverage={})
     if not hits:
-        raise Refused(f"no dimensionless group with symbol {symbol!r} at {store.kb_version}")
+        raise Refused(f"no formula carries the symbol {symbol!r} at {store.kb_version}")
     if len(hits) > 1:
         raise Refused(f"symbol {symbol!r} is defined by {hits}; a symbol defining two formulas is "
                       "a collision the store must resolve, not a choice for a caller (5.7, check 36)")
     e = store.entries[hits[0]]
     return {"entry_id": e["entry_id"], "symbol": e["symbol"], "formula": e.get("formula"),
             "inputs": e.get("inputs") or [], "grade": e["grade"],
+            "kind": e["kind"],
+            "dimensionless": e["kind"] == "dimensionless_group",
+            "unit": e.get("unit"),
             "validity_conditions": e["validity_conditions"], "validity": e.get("validity"),
             "kb_version": store.kb_version,
-            "note": "a group is a definition, not a value: it carries a formula and takes no "
-                    "condition range (4.3.1)"}
+            "note": "a definition, not a value: it carries a formula and takes no condition "
+                    "range (4.3.1). `dimensionless` is stated rather than left to be inferred "
+                    "from a missing unit -- absent and pure-number are different claims, and "
+                    "tau_d spent its first day filed as the second while being the first"}
 
 
 # --------------------------------------------------------------------------- #
@@ -488,10 +499,17 @@ def _self_test() -> int:                                    # noqa: C901
             except Refused:
                 pass
 
-        # 9. a group is looked up by symbol and returns a formula, not a value
+        # 9. a symbol returns a definition, and says whether it is dimensionless.
+        # tau_d is a derived_quantity, not a group: kb_group keys on the symbol
+        # and must serve both formula-carrying kinds, or re-filing an entry
+        # silently removes it from the only tool that looks formulas up.
         g = kb_group(store, cid, v, "tau_d")
         if g["formula"] != "bead_diameter**2/diffusivity" or g["grade"] != "E4":
             bad(f"kb_group returned {g}")
+        if g["kind"] != "derived_quantity" or g["dimensionless"] or g["unit"] != "s":
+            bad(f"a length squared over a diffusivity is a time: {g['kind']}, {g['unit']}")
+        if any(e.get("kind") == "dimensionless_group" and e.get("unit") for e in store.entries.values()):
+            bad("a dimensionless_group carries a unit, which contradicts its kind")
         try:
             kb_group(store, cid, v, "not_a_symbol")
             bad("invented a group")
@@ -640,7 +658,7 @@ def _build_app(store: Store):
     app.add_tool(tool_kb_get, name="kb_get", description="one entry verbatim, with its digest")
     app.add_tool(tool_kb_conflicts, name="kb_conflicts", description="pairs of entries that disagree")
     app.add_tool(tool_kb_group, name="kb_group",
-                 description="one dimensionless group by symbol: formula, inputs, validity")
+                 description="one symbol's definition: formula, inputs, unit, validity")
     return app
 
 
