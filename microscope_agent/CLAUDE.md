@@ -105,6 +105,67 @@ Two boundaries inside that are not negotiable:
   with a `from` provenance field. The model interprets what the plan did not
   foresee, and writes the deviation report, after the abort has happened.
 
+## What is unbuilt, and in what order
+
+Both ends of the pipeline stand and the middle is empty. `src/` holds
+`screening.py` (S3.0) and `operator.py` / `orchestrator.py` / `devices/`
+(S6). **S3, S4 and S5 do not exist.** `questions/` is empty, so no card has
+ever been produced here.
+
+**The bridge is waiting on one `plan` card**, not a result. An envelope
+carries a `plan` or a `result` (§4.4), so the first round trip needs no
+execution, no `envelope/safety.json` and no approval. S5's output is enough,
+and that is the shortest path to a working round.
+
+**0. Fix the contrast discriminator in `src/screening.py` first.** It is three
+mismatches, and the middle one is the dangerous kind — it would pass tests and
+lose a configuration.
+
+- The code tests `"contrast" in configuration` and reads
+  `configuration.get("contrast")`. The field capabilities actually declares is
+  **`requires_contrast`**. Today that mismatch is inert: the test is always
+  false, the term is recorded as not evaluable, and the cap stays unresolved.
+- It reads the sample's side from `goal["sample"]["contrast"]`. What the goal
+  card should carry is **`sample_contrast`, a list**, because a sample offers a
+  set rather than a single mechanism.
+- **It compares with `==`, and that is wrong in a way that hides itself.** A
+  fluorescent bead still has refractive contrast, so it satisfies
+  `label_free` too. Equality against `"fluorescence"` keeps the three
+  fluorescence configurations and drops `transmitted` — three, inside the cap,
+  so the cap reads as resolved and the fan-out proceeds one candidate short.
+  A configuration was removed on a comparison that was never about capability.
+  The rule is **membership**: a configuration survives when its
+  `requires_contrast` is in the sample's set.
+
+With membership and a fluorescent sample all four survive, the cap stays
+unresolved, and a person picks once (§4.5.1 branch c). That is the correct
+outcome and it is worth stating plainly: on this instrument the contrast field
+cuts only for label-free samples. It was never going to cut for every question,
+and a cut that appears for the wrong reason is worse than no cut.
+
+**1. S3, the seven axes.** §4.5.3 defines A1–A7; read it there rather than
+from a copy. Each axis states a **range** and never a point — choosing inside
+it is S4's, and an axis that chose would produce as many plans as there are
+axes, none combinable. An axis with no grounds abstains and says why (P5); it
+does not guess. A1 and A7 have the most already available: the disk-period
+constraint is an entry, the objectives carry NA and working distance, and A7's
+escape inequality is the one row §10.2 leaves open for transfer.
+
+**2. S4, the intersection.** Per configuration, intersect the axis ranges and
+choose inside the result, recording why. An empty intersection is a refusal
+with the numbers that emptied it, not a shrug.
+
+**3. S5, the plan.** One card. Its `observable.name` must be an id in
+`contracts/observables.json`, and because both current observables have
+`window_required`, the plan carries the window as a condition or check 40
+rejects it. `thread` is `solo-<qid>`; the bridge adds its own prefix. Raise
+`revision` on any edit — the ledger matches on `(card_id, revision, hash)` and
+an edit under the same revision stops a round that has already gone out.
+
+The sample's contrast is a fact about the experiment, not about the
+instrument: it belongs in the goal card's `sample_contrast` with a source and a
+grade, not in this file and not in the knowledge store.
+
 ## Safety here is not advice
 
 `plan.md` §2.1 is enforced by code, not by care. In this directory that means:
