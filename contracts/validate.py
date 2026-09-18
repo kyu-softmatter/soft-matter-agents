@@ -1491,7 +1491,13 @@ def check_29_failure_record(b: Bundle) -> list[Finding]:
         return [Finding(29, NA, "no failures.jsonl")]
     out: list[Finding] = []
     required = {"at", "kind", "qid", "detail"}
-    kinds = {"validator_failure", "refusal", "deviation", "scope_voided", "success"}
+    # plan.md 8.1 lists six kinds; this set held five. The missing one was
+    # abandoned_attempt -- the attempt folded without producing a card, which
+    # 6.2.3 calls the record that exists nowhere else and makes a completion
+    # condition for clearing a session. A seat trying to write it was refused,
+    # so the one record the discipline depends on was the one the gate blocked.
+    kinds = {"validator_failure", "refusal", "deviation", "scope_voided", "success",
+             "abandoned_attempt"}
     for p in files:
         for i, line in enumerate(p.read_text().splitlines(), 1):
             if not line.strip():
