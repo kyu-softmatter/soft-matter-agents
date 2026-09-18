@@ -1,0 +1,136 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260917-001-bd_overdamped-a1",
+  "qid": "sim-20260917-001",
+  "thread": "solo-sim-20260917-001",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-17T12:10:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260917-001:bd_overdamped:a1",
+  "config": "bd_overdamped",
+  "axis": "a1",
+  "kb_version": "kbv-9bc3910f1886",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "max": 0.2,
+      "basis": [
+        "integration_timestep_max"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 2,
+      "unit": "um",
+      "source": "assumed:a_sample",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the tracer the question is about. No bead lot is on hand, so this is the intended size rather than a specification",
+      "origin": "goal.json#bead_diameter"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.2,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "bulk Stokes-Einstein: sphere, bulk, no slip. Those assumptions stay in the value. This is the expectation the run is checked against, and the engine derives its own from the same bath rather than being handed this number",
+      "origin": "goal.json#diffusivity"
+    },
+    {
+      "name": "tau_d",
+      "value": 20,
+      "unit": "s",
+      "source": "computed:diffusive_time",
+      "grade": "E5",
+      "formula": "bead_diameter**2/diffusivity",
+      "inputs": [
+        "bead_diameter",
+        "diffusivity"
+      ],
+      "precision": "order_of_magnitude",
+      "derived": true,
+      "symbol": "tau_d",
+      "note": "kb:tau_d. The grade follows the inputs, not the entry: a formula applied to estimates yields an estimate"
+    },
+    {
+      "name": "dt_resolution_factor",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_dt_factor",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how far below the diffusive time the step must sit: two decades"
+    },
+    {
+      "name": "integration_timestep_max",
+      "value": 0.2,
+      "unit": "s",
+      "source": "computed:resolution_of_shortest_time",
+      "grade": "E5",
+      "formula": "dt_resolution_factor * tau_d",
+      "inputs": [
+        "dt_resolution_factor",
+        "tau_d"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "upper bound only; nothing in A1 bounds the step from below"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_sample",
+      "statement": "The tracer size is a property of the question rather than a result. No bead lot exists to quote, so a micron-scale sphere is the intended size and not a specification.",
+      "numbers": [
+        "bead_diameter"
+      ],
+      "falsifier": "a bead lot specification replaces this with an E3 value and every interval resting on it moves"
+    },
+    {
+      "rationale_id": "a_dt_factor",
+      "statement": "Two decades below the shortest resolved time is the usual margin for an overdamped integrator, but it is a convention rather than a derivation: no convergence scan on this model has been run.",
+      "numbers": [
+        "dt_resolution_factor"
+      ],
+      "falsifier": "a timestep scan showing the diffusivity flat over a wider range of steps replaces this factor with a measured one"
+    },
+    {
+      "rationale_id": "a_non_interacting",
+      "statement": "The tracers do not interact. No pair potential is part of this configuration and none is declared in capabilities/simulation.json, so the diffusive time is the shortest time in the system. This premise is what the bound rests on: with interactions the curvature time of the potential, gamma over k, is usually far shorter, and a step set from the diffusive time would be wrong by decades rather than by a factor.",
+      "numbers": [
+        "tau_d",
+        "integration_timestep_max"
+      ],
+      "falsifier": "any interaction parameter entering the model retires this bound and the axis has to be re-run against the curvature time"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tau_d",
+      "grade": "E4",
+      "kb_version": "kbv-9bc3910f1886",
+      "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
+    }
+  ],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "note": "The form of the bound is the librarian's definition and its prefactor is an estimate, so S4 should weight it accordingly (4.5.2). The premise that matters most is not a number at all: the tracers do not interact, and a_non_interacting records it."
+}

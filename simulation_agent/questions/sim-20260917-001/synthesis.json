@@ -1,0 +1,405 @@
+{
+  "card": "synthesis",
+  "schema_version": "0.1",
+  "id": "synthesis-sim-20260917-001",
+  "qid": "sim-20260917-001",
+  "thread": "solo-sim-20260917-001",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-17T12:20:00Z",
+  "status": "VALIDATED",
+  "configs_screened": [
+    "bd_overdamped"
+  ],
+  "per_config": [
+    {
+      "config": "bd_overdamped",
+      "empty": false,
+      "axis_files": [
+        "axis_bd_overdamped_a1.json",
+        "axis_bd_overdamped_a2.json",
+        "axis_bd_overdamped_a3.json",
+        "axis_bd_overdamped_a4.json",
+        "axis_bd_overdamped_a5.json",
+        "axis_bd_overdamped_a7.json"
+      ],
+      "intersection": [
+        {
+          "parameter": "box_length",
+          "unit": "um",
+          "basis": [
+            "box_length_min_dilution"
+          ],
+          "min": 100,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "integration_timestep",
+          "unit": "s",
+          "basis": [
+            "integration_timestep_max"
+          ],
+          "max": 0.2,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "lag_to_record_ratio",
+          "unit": "1",
+          "basis": [
+            "lag_to_record_ratio_max"
+          ],
+          "max": 0.1,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "max_lag_time",
+          "unit": "s",
+          "basis": [
+            "tau_d"
+          ],
+          "max": 20,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "save_interval",
+          "unit": "s",
+          "basis": [
+            "save_interval_max"
+          ],
+          "max": 0.02,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "total_simulated_time",
+          "unit": "s",
+          "basis": [
+            "total_simulated_time_min"
+          ],
+          "min": 0.2,
+          "precision": "order_of_magnitude"
+        }
+      ]
+    }
+  ],
+  "chosen_config": "bd_overdamped",
+  "operating_point": [
+    {
+      "parameter": "integration_timestep",
+      "number": "integration_timestep_point"
+    },
+    {
+      "parameter": "total_simulated_time",
+      "number": "total_simulated_time_point"
+    },
+    {
+      "parameter": "save_interval",
+      "number": "save_interval_max"
+    },
+    {
+      "parameter": "box_length",
+      "number": "box_length_min_dilution"
+    },
+    {
+      "parameter": "max_lag_time",
+      "number": "max_lag_time"
+    },
+    {
+      "parameter": "n_particles",
+      "number": "n_particles"
+    }
+  ],
+  "priority_used": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "priority_source": "goal_card",
+  "rejected": [
+    {
+      "what": "integration_timestep at A1's ceiling",
+      "kind": "operating_point",
+      "reason": "A1 allows a far coarser step, set from the diffusive time, but a saved frame would then fall between steps; the step is set a decade below the save interval instead",
+      "grounds": [
+        "integration_timestep_max",
+        "save_interval_max"
+      ]
+    },
+    {
+      "what": "box_length at the periodic-image bound",
+      "kind": "operating_point",
+      "reason": "the image bound is cleared by a much smaller box, but that box puts a thousand tracers about a diameter apart, which is not the dilute limit the observable is defined in; the dilution bound binds instead",
+      "grounds": [
+        "box_length_min_images",
+        "box_length_min_dilution"
+      ]
+    }
+  ],
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 2,
+      "unit": "um",
+      "source": "assumed:a_sample",
+      "grade": "E5",
+      "origin": "goal.json#bead_diameter",
+      "precision": "order_of_magnitude",
+      "note": "the tracer the question is about. No bead lot is on hand, so this is the intended size rather than a specification"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "goal.json#temperature",
+      "precision": "significant_figures",
+      "note": "the operator's thermometer reading of the room. It is not established to be the sample's temperature -- see the gap"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "goal.json#viscosity",
+      "precision": "significant_figures",
+      "note": "pure water. The entry's validity runs 288 to 298 K, and the temperature above is inside it"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.2,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E5",
+      "origin": "goal.json#diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "bulk Stokes-Einstein: sphere, bulk, no slip. Those assumptions stay in the value. This is the expectation the run is checked against, and the engine derives its own from the same bath rather than being handed this number"
+    },
+    {
+      "name": "max_lag_time",
+      "value": 2,
+      "unit": "s",
+      "source": "assumed:a_window",
+      "grade": "E5",
+      "origin": "goal.json#max_lag_time",
+      "precision": "order_of_magnitude",
+      "note": "the window the estimator is evaluated over, set below tau_d so the free regime is what is sampled. tracer_diffusivity is window_required, so this travels with the plan as a condition"
+    },
+    {
+      "name": "tau_d",
+      "value": 20,
+      "unit": "s",
+      "source": "computed:diffusive_time",
+      "grade": "E5",
+      "origin": "goal.json#tau_d",
+      "precision": "order_of_magnitude",
+      "note": "the librarian's definition (kb:tau_d), not a second one. Its validity -- spherical tracer, bulk fluid, no slip, overdamped -- is this configuration exactly"
+    },
+    {
+      "name": "n_particles",
+      "value": 1000,
+      "unit": "count",
+      "source": "assumed:a_ensemble",
+      "grade": "E5",
+      "origin": "goal.json#n_particles",
+      "precision": "order_of_magnitude",
+      "note": "tracers per box. Non-interacting, so the ensemble is a statistics knob rather than a physical density -- but the box still has to hold them dilutely (A3)"
+    },
+    {
+      "name": "integration_timestep_max",
+      "value": 0.2,
+      "unit": "s",
+      "source": "computed:resolution_of_shortest_time",
+      "grade": "E5",
+      "origin": "axis_bd_overdamped_a1.json#integration_timestep_max",
+      "precision": "order_of_magnitude",
+      "note": "upper bound only; nothing in A1 bounds the step from below"
+    },
+    {
+      "name": "total_simulated_time_min",
+      "value": 0.2,
+      "unit": "s",
+      "source": "computed:independent_samples_over_ensemble",
+      "grade": "E5",
+      "origin": "axis_bd_overdamped_a2.json#total_simulated_time_min",
+      "precision": "order_of_magnitude",
+      "note": "floor only. A2 does not bound the run from above; that is A5's"
+    },
+    {
+      "name": "lag_to_record_ratio_max",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_window_statistics",
+      "grade": "E5",
+      "origin": "axis_bd_overdamped_a2.json#lag_to_record_ratio_max",
+      "precision": "order_of_magnitude",
+      "note": "the largest share of the record one lag may span. At a ratio of one the longest lag has a single displacement per tracer"
+    },
+    {
+      "name": "box_length_min_images",
+      "value": 9,
+      "unit": "um",
+      "source": "computed:margin_over_rms_displacement",
+      "grade": "E5",
+      "origin": "axis_bd_overdamped_a3.json#box_length_min_images",
+      "precision": "order_of_magnitude",
+      "note": "a tracer must not reach its own periodic image within the fit window"
+    },
+    {
+      "name": "box_length_min_dilution",
+      "value": 100,
+      "unit": "um",
+      "source": "computed:spacing_times_particles_per_edge",
+      "grade": "E5",
+      "origin": "axis_bd_overdamped_a3.json#box_length_min_dilution",
+      "precision": "order_of_magnitude",
+      "note": "the binding bound here: dilution costs a hundred microns, images only nine"
+    },
+    {
+      "name": "save_interval_max",
+      "value": 0.02,
+      "unit": "s",
+      "source": "computed:two_decades_below_the_window",
+      "grade": "E5",
+      "origin": "axis_bd_overdamped_a4.json#save_interval_max",
+      "precision": "order_of_magnitude",
+      "note": "upper bound. Saving more often costs storage, which is A5's, not A4's"
+    },
+    {
+      "name": "integration_timestep_point",
+      "value": 0.002,
+      "unit": "s",
+      "source": "computed:operating_point_of_bd_overdamped",
+      "grade": "E5",
+      "formula": "save_interval_max / 10",
+      "inputs": [
+        "save_interval_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "ten steps per saved frame, so every frame lands on a step. Well inside A1's ceiling, which A1 set from the diffusive time rather than from the sampling"
+    },
+    {
+      "name": "total_simulated_time_point",
+      "value": 20,
+      "unit": "s",
+      "source": "computed:operating_point_of_bd_overdamped",
+      "grade": "E5",
+      "formula": "100 * total_simulated_time_min",
+      "inputs": [
+        "total_simulated_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "two decades above the statistical floor. A decade was not enough: it made the record as long as the window, and then the longest lag carries one displacement per tracer"
+    },
+    {
+      "name": "lag_to_record_ratio",
+      "value": 0.1,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped",
+      "grade": "E5",
+      "formula": "max_lag_time / total_simulated_time_point",
+      "inputs": [
+        "max_lag_time",
+        "total_simulated_time_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the window as a share of the record. The vocabulary requires the window to satisfy a statistical bound as well as the physical one, and this is the number that shows it"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_sample",
+      "statement": "The tracer size is a property of the question rather than a result. No bead lot exists to quote, so a micron-scale sphere is the intended size and not a specification.",
+      "numbers": [
+        "bead_diameter"
+      ],
+      "falsifier": "a bead lot specification replaces this with an E3 value and every interval resting on it moves"
+    },
+    {
+      "rationale_id": "a_ensemble",
+      "statement": "One thousand tracers is a round ensemble that makes the statistics cheap and keeps the cube root exact at ten per edge. Nothing physical picks this number.",
+      "numbers": [
+        "n_particles"
+      ],
+      "falsifier": "a statistics interval this ensemble cannot satisfy inside budget replaces it"
+    },
+    {
+      "rationale_id": "a_window",
+      "statement": "The fit window sits below the diffusive time so the free regime is what is sampled. The exact upper end is an estimate until A4 constrains it.",
+      "numbers": [
+        "max_lag_time"
+      ],
+      "falsifier": "an A4 interval that excludes this value replaces it"
+    },
+    {
+      "rationale_id": "a_window_statistics",
+      "statement": "A lag may span at most about a tenth of the record, so that every lag in the fit is determined by many displacements rather than by one. The vocabulary requires the window to satisfy this statistical bound as well as the physical one but deliberately fixes no fraction -- a number chosen in the contract would be a threshold nobody measured -- so the value is declared here and carried into the plan.",
+      "numbers": [
+        "lag_to_record_ratio_max"
+      ],
+      "falsifier": "a weighted fit whose slope is unchanged when the longest lag is shortened retires this fraction"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-9bc3910f1886",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator."
+    },
+    {
+      "entry_id": "sample_temperature_not_actuated",
+      "grade": "E3",
+      "kb_version": "kbv-9bc3910f1886",
+      "claim": "Sample temperature is not under control on this instrument, so any temperature a plan uses is an ambient value of the room rather than a commanded one."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-9bc3910f1886",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    },
+    {
+      "entry_id": "tau_d",
+      "grade": "E4",
+      "kb_version": "kbv-9bc3910f1886",
+      "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "sample_adjacent_temperature",
+      "observable": "temperature at the sample rather than in the room",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/entries, read directly while the MCP service is down (4.3.0)",
+        "librarian_agent/kb/distilled"
+      ],
+      "nearest": [
+        {
+          "entry_id": "lab_ambient_temperature",
+          "overlap": "partial"
+        },
+        {
+          "entry_id": "sample_temperature_not_actuated",
+          "overlap": "partial"
+        }
+      ],
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "gap_id": "tracer_diffusivity_measured",
+      "observable": "tracer_diffusivity",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/entries, read directly while the MCP service is down (4.3.0)"
+      ],
+      "kb_version": "kbv-9bc3910f1886"
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

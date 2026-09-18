@@ -1,0 +1,376 @@
+"""S5 -- the plan and its identifiers (plan.md 4.5.5, 5.4).
+
+The plan is assembly, not judgement: everything in it was decided in S3 and
+S4, and this stage puts it where a person can read it and where the operator
+can execute it. So every number is carried with an `origin` and nothing new
+is introduced.
+
+Three things here are worth knowing before reading the code.
+
+**The stop and success criteria are declared now, before the run.** That is
+the single most important line in this design (5.4): chosen afterwards they
+would be narration rather than results. Each one points at a number the card
+already carries, so there is nothing to negotiate later.
+
+**Every stop criterion also declares `on_met`.** Without it `met: true` is not
+comparable between cards -- a drift guard is met when it held, a divergence
+monitor is met when the run broke -- and `outcome` is derived from exactly that
+distinction. The plan schema cannot require the field, because the cards that
+would gain it are pinned by a signed approval and a new field changes the hash
+(5.5); that constrains the contract and not this agent, since nothing here is
+signed. Declaring it lets the operator read the difference instead of guessing
+it from when a criterion fired.
+
+**The envelope check reports `unavailable`, not `inside`.** There is no
+resource envelope to compare against -- A5 abstained for the same reason --
+and reporting `inside` would be a claim nobody checked. `unavailable` is a
+declared value of that field precisely so this case does not have to lie.
+
+**The plan is for the declared engine, and it cannot run without a person.**
+`hoomd_backend` is what `contracts/capabilities/simulation.json` says this
+configuration executes with. A smoke run on the mock backend is a substituted
+backend and the run log records it as such (4.6.5); either way check 15 refuses
+a run directory that no approval card precedes, and only a person writes one
+(6.1).
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+
+from . import cards
+from . import synthesis
+
+MODEL = (
+    "overdamped Brownian dynamics of spherical tracers in an implicit solvent, "
+    "no pair interactions, periodic boundaries in all three directions"
+)
+
+
+def build(qid: str, created_at: str) -> dict:
+    goal = cards.load_goal(qid)
+    syn = json.loads((cards.question_dir(qid) / "synthesis.json").read_text())
+    config = syn["chosen_config"]
+
+    point = {p["parameter"]: p["number"] for p in syn["operating_point"]}
+    # tracer_diffusivity_expected is carried because a success criterion
+    # compares the fitted value against it: a criterion whose comparand the
+    # card does not hold cannot be evaluated, which would make it narration
+    # after the fact -- the one thing 5.4 is written to prevent.
+    extra = [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "diffusivity",
+        "target_decade_resolution",
+        # The window's two bounds. contracts/observables.json requires
+        # max_lag_time to satisfy both -- below the diffusive time so the
+        # tracer is still free, and short enough against the record that every
+        # lag in the fit is determined -- and requires the plan to show them.
+        # A value with one of its bounds invisible is a value a reader cannot
+        # check.
+        "tau_d",
+        "lag_to_record_ratio",
+        "lag_to_record_ratio_max",
+    ]
+
+    # Everything the plan states was produced upstream, so all of it is
+    # carried. target_relative_error comes from A2 rather than the synthesis
+    # because the synthesis had no reason to hold a success threshold.
+    wanted = [("synthesis.json", n) for n in dict.fromkeys(point.values())]
+    wanted += [("synthesis.json", n) for n in extra if n != "target_decade_resolution"]
+    wanted += [("goal.json", "target_decade_resolution")]
+    wanted += [("axis_bd_overdamped_a2.json", "target_relative_error")]
+    wanted += [
+        ("axis_bd_overdamped_a5.json", "storage_estimate"),
+        ("axis_bd_overdamped_a5.json", "wall_clock_estimate"),
+    ]
+    # The grounds of every rejection, so that `alternatives_rejected` resolves
+    # to numbers this card holds rather than to names only it remembers. It is
+    # also what keeps the generated Markdown honest: check 9 refuses a figure
+    # in the prose that the card cannot back.
+    wanted += [
+        ("synthesis.json", "integration_timestep_max"),
+        ("synthesis.json", "box_length_min_images"),
+    ]
+    numbers = synthesis.carry_from(qid, config, wanted)
+    assumptions = synthesis.assumptions_for(qid, numbers)
+
+    conditions = [{"parameter": p, "number": n} for p, n in point.items()]
+    conditions += [
+        {"parameter": "temperature", "number": "temperature"},
+        {"parameter": "viscosity", "number": "viscosity"},
+        {"parameter": "bead_diameter", "number": "bead_diameter"},
+    ]
+
+    card = cards.head(
+        "plan",
+        f"plan-{qid}",
+        qid,
+        created_at,
+        goal_id=goal["id"],
+        synthesis_id=syn["id"],
+        purpose=goal["purpose"],
+        intent=goal["intent"],
+        observable=goal["observable"],
+        system_configuration={
+            "config": config,
+            "optical_path": None,
+            "devices": ["hoomd_backend"],
+            "model": MODEL,
+        },
+        conditions=conditions,
+        actions=[
+            {
+                "id": "integrate",
+                "device": "hoomd_backend",
+                "action": "integrate the declared configuration for the planned duration, saving frames at the planned interval",
+                "reversible": True,
+                "parameters": [c["parameter"] for c in conditions],
+                "tier": 1,
+            },
+            {
+                "id": "estimate_diffusivity",
+                "device": "hoomd_backend",
+                "action": "fit the mean squared displacement against lag over lags below the window and report the slope with its spread",
+                "reversible": True,
+                "parameters": ["max_lag_time", "n_particles"],
+                "tier": 0,
+            },
+        ],
+        envelope_check={
+            "checked_against": ["simulation_agent/envelope/safety.json"],
+            "status": "unavailable",
+            "note": (
+                "The file is absent and no schema in contracts/schemas/ declares its shape, so "
+                "there is no allowance to compare the estimated cost against. A5 abstained for "
+                "the same reason. This is not a claim that the run is inside budget; it is the "
+                "record that nothing was available to check it against."
+            ),
+        },
+        cost={
+            "wall_clock": "under a second of compute; the job is a million particle-steps with no pair interactions",
+            "numbers": ["wall_clock_estimate", "storage_estimate"],
+            "note": "estimates of an unrun job, from A5. The smoke run's own log replaces them with measured values",
+        },
+        stop_criteria=[
+            {
+                "id": "planned_duration_reached",
+                "metric": "simulated_time",
+                "comparator": ">=",
+                "number": "total_simulated_time_point",
+                "on_met": "complete",
+                "statement": "stop when the run reaches the planned duration; running longer would be a different plan",
+            },
+            {
+                "id": "step_displacement_diverged",
+                "metric": "max_single_step_displacement",
+                "comparator": ">",
+                "number": "box_length_min_dilution",
+                "on_met": "fault",
+                "statement": "a tracer moving more than the box in one step is a diverged integration; stop and keep the run, because divergence is a result",
+            },
+        ],
+        success_criteria=[
+            {
+                "id": "within_target_decade",
+                "metric": "log10_ratio_of_measured_to_expected_diffusivity",
+                "comparator": "<=",
+                "number": "target_decade_resolution",
+                "window": "lags below max_lag_time",
+                "statement": "the fitted diffusivity sits within the target decade of the free Stokes-Einstein expectation",
+            },
+            {
+                "id": "statistics_met",
+                "metric": "relative_standard_error_of_fitted_diffusivity",
+                "comparator": "<=",
+                "number": "target_relative_error",
+                "window": "lags below max_lag_time",
+                "statement": "the spread across tracers is small enough that the decade is decided by the physics and not by the sampling",
+            },
+        ],
+        alternatives_rejected=[
+            {
+                "what": r["what"],
+                "reason": r["reason"],
+                "grounds": r["grounds"],
+            }
+            for r in syn.get("rejected", [])
+        ],
+        open_risks=[
+            "No resource envelope exists, so nothing in this plan says the run is affordable. A5 abstained rather than passing, and the envelope check reports unavailable.",
+            "The librarian was never reached, so temperature, viscosity and the expected diffusivity are all estimates. Every interval in this plan rests on them, and one estimate in the chain makes the answer an order of magnitude (P15).",
+            "The expected diffusivity is what the run is checked against, and it was derived from the same Stokes-Einstein relation the engine is expected to reproduce. Agreement therefore tests the integration and the sampling, not the physical model.",
+            "Nothing here is fitted to experimental data, and no experimental counterpart has been measured. A bridge round would be the first comparison, and comparable is still false for this observable.",
+            "The temperature is the same number on both sides and not the same kind of number. Here the thermostat realises it exactly: it is a coordinate of the model, carrying no uncertainty of its own. The entry it was chosen from is an operator reading whose validity leaves the thermometer's position open, and nothing on the instrument actuates the sample temperature. So in a comparison the whole temperature uncertainty sits on the experimental side, and treating the two as equally certain -- or equally uncertain -- would misplace it.",
+        ],
+    )
+    card["status"] = "DRAFT"
+    card.update(cards.tail(
+        numbers,
+        assumptions=assumptions,
+        kb_refs=synthesis.kb_refs_for(qid, numbers),
+        kb_gaps=synthesis.kb_gaps_for(qid),
+        degraded=["librarian_agent"],
+    ))
+    return card
+
+
+def emit(qid: str, created_at: str) -> tuple[Path, str]:
+    """Write the pair, then let the validator decide the status (5.5).
+
+    The state machine is goal -> plan(DRAFT) -> validate(code) -> VALIDATED,
+    and the middle arrow is deterministic code rather than an assertion by
+    whoever wrote the card. So the card is written as a DRAFT, the validator is
+    run, and only its exit code promotes it. A model saying "this looks valid"
+    is not a transition (P4).
+    """
+    import subprocess
+
+    directory = cards.question_dir(qid)
+    card = build(qid, created_at)
+    json_path = directory / f"plan_simulation_{qid}.json"
+    md_path = directory / f"plan_simulation_{qid}.md"
+    cards.write(json_path, card)
+    md_path.write_text(render(card))
+
+    verdict = subprocess.run(
+        [sys.executable, str(cards.CONTRACTS / "validate.py"), "--quiet"],
+        capture_output=True,
+        text=True,
+    )
+    if verdict.returncode == 0:
+        card["status"] = "VALIDATED"
+        cards.write(json_path, card)
+        md_path.write_text(render(card))
+        return json_path, "VALIDATED"
+    return json_path, f"DRAFT (validator exit {verdict.returncode}; {verdict.stdout.strip().splitlines()[-1] if verdict.stdout.strip() else 'see validate.py'})"
+
+
+
+
+def fmt(value: float) -> str:
+    return "%g" % value
+
+
+def render(card: dict) -> str:
+    """The human-readable twin, generated from the JSON (P3, 5.6).
+
+    Hand-editing this file has no effect: the system reads the JSON. Every
+    quantity printed here is taken from `numbers[]` rather than retyped, which
+    is what keeps check 9 from finding a figure in the prose that the card
+    does not hold.
+    """
+    nums = {n["name"]: n for n in card["numbers"]}
+
+    def quantity(name: str) -> str:
+        n = nums[name]
+        return f"{fmt(n['value'])} {n['unit']}"
+
+    lines: list[str] = []
+    add = lines.append
+
+    add(f"# Plan {card['id']}")
+    add("")
+    add(f"*Generated from `plan_simulation_{card['qid']}.json`. The JSON is authoritative;")
+    add("editing this file changes nothing (P3).*")
+    add("")
+    add(f"- **question** `{card['qid']}`, revision {card['revision']}, status `{card['status']}`")
+    add(f"- **purpose** {card['purpose']} · **intent** {card['intent']}")
+    add(f"- **from** goal `{card['goal_id']}` via synthesis `{card['synthesis_id']}`")
+    if card.get("degraded"):
+        add(f"- **degraded** {', '.join(card['degraded'])} — see the open risks")
+    add("")
+
+    add("## What is computed")
+    add("")
+    add(f"**{card['observable']['name']}** — {card['observable']['definition']}")
+    add("")
+    sc = card["system_configuration"]
+    add(f"Configuration `{sc['config']}` on `{', '.join(sc['devices'])}`.")
+    add(f"Model: {sc['model']}.")
+    add("")
+
+    add("## Conditions")
+    add("")
+    add("| parameter | value | source | grade |")
+    add("|---|---|---|---|")
+    for cond in card["conditions"]:
+        n = nums[cond["number"]]
+        add(f"| `{cond['parameter']}` | {quantity(cond['number'])} | `{n['source']}` | {n['grade']} |")
+    add("")
+
+    add("## Declared before the run")
+    add("")
+    add("Stop and success criteria are fixed now. Chosen afterwards they would be narration,")
+    add("not results (5.4).")
+    add("")
+    for kind, title in (("stop_criteria", "Stop"), ("success_criteria", "Success")):
+        add(f"**{title}**")
+        add("")
+        for cr in card[kind]:
+            add(f"- `{cr['metric']}` {cr['comparator']} {quantity(cr['number'])} — {cr.get('statement', '')}")
+        add("")
+
+    add("## The window, and both of its bounds")
+    add("")
+    add("`tracer_diffusivity` is window-dependent, so the fit window is a condition and not a")
+    add("detail. The vocabulary requires it to clear two bounds at once:")
+    add("")
+    add(f"- **physical** — below the diffusive time, so the tracer is still free: "
+        f"window {quantity('max_lag_time')} against `tau_d` {quantity('tau_d')}")
+    add(f"- **statistical** — short enough against the record that every lag in the fit is")
+    add(f"  determined: ratio {quantity('lag_to_record_ratio')} against a ceiling of "
+        f"{quantity('lag_to_record_ratio_max')}")
+    add("")
+    add("At a ratio of one the longest lag carries a single displacement per tracer, and an")
+    add("equally weighted fit then hands the slope to its noisiest point.")
+    add("")
+
+    env = card["envelope_check"]
+    add("## Envelope")
+    add("")
+    add(f"Status **{env['status']}**, checked against {', '.join(f'`{p}`' for p in env['checked_against'])}.")
+    add("")
+    add(env.get("note", ""))
+    add("")
+
+    add("## Cost")
+    add("")
+    for name in card["cost"]["numbers"]:
+        add(f"- `{name}` {quantity(name)}")
+    add("")
+    add(card["cost"].get("note", ""))
+    add("")
+
+    if card.get("alternatives_rejected"):
+        add("## Rejected")
+        add("")
+        for alt in card["alternatives_rejected"]:
+            grounds = ", ".join(f"`{g}` {quantity(g)}" for g in alt["grounds"] if g in nums)
+            add(f"- **{alt['what']}** — {alt['reason']}" + (f" ({grounds})" if grounds else ""))
+        add("")
+
+    add("## Open risks")
+    add("")
+    for risk in card["open_risks"]:
+        add(f"- {risk}")
+    add("")
+
+    add("## Assumptions")
+    add("")
+    for a in card.get("assumptions", []):
+        add(f"- **`{a['rationale_id']}`** {a['statement']}")
+        if a.get("falsifier"):
+            add(f"  - retired by: {a['falsifier']}")
+    add("")
+
+    return "\n".join(lines) + "\n"
+
+
+if __name__ == "__main__":
+    qid = sys.argv[1] if len(sys.argv) > 1 else "sim-20260917-001"
+    created_at = sys.argv[2] if len(sys.argv) > 2 else "2026-09-17T12:30:00Z"
+    path, status = emit(qid, created_at)
+    print(f"{path.relative_to(cards.REPO)} -> {status}")

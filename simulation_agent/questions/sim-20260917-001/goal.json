@@ -1,0 +1,229 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-sim-20260917-001-r2",
+  "qid": "sim-20260917-001",
+  "thread": "solo-sim-20260917-001",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-18T09:00:00Z",
+  "status": "VALIDATED",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_diffusivity",
+    "definition": "The short-time translational self-diffusion coefficient of dilute spherical tracers, read from the slope of the mean squared displacement against lag time over lags strictly below the diffusive time, with the intercept left free."
+  },
+  "targets": [
+    {
+      "metric": "tracer_diffusivity",
+      "number": "target_decade_resolution",
+      "kind": "decade_resolution"
+    }
+  ],
+  "constraint_notes": [
+    "the engine runs on one workstation; no cluster allocation is available",
+    "no experimental counterpart has been measured, so nothing here is fitted to data",
+    "temperature is an uncontrolled condition, not a setpoint: nothing on the instrument actuates it (kb:sample_temperature_not_actuated)",
+    "the tracers do not interact: no pair potential is part of this configuration and none is declared in capabilities/simulation.json. A1's timestep bound rests on this premise and records it as an assumption"
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "requested_by": "human",
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 2,
+      "unit": "um",
+      "source": "assumed:a_sample",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the tracer the question is about. No bead lot is on hand, so this is the intended size rather than a specification"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the operator's thermometer reading of the room. It is not established to be the sample's temperature -- see the gap"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "pure water. The entry's validity runs 288 to 298 K, and the temperature above is inside it"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.2,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "bulk Stokes-Einstein: sphere, bulk, no slip. Those assumptions stay in the value. This is the expectation the run is checked against, and the engine derives its own from the same bath rather than being handed this number"
+    },
+    {
+      "name": "tau_d",
+      "value": 20,
+      "unit": "s",
+      "source": "computed:diffusive_time",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "derived": true,
+      "symbol": "tau_d",
+      "formula": "bead_diameter**2/diffusivity",
+      "inputs": [
+        "bead_diameter",
+        "diffusivity"
+      ],
+      "note": "the librarian's definition (kb:tau_d), not a second one. Its validity -- spherical tracer, bulk fluid, no slip, overdamped -- is this configuration exactly"
+    },
+    {
+      "name": "n_particles",
+      "value": 1000,
+      "unit": "count",
+      "source": "assumed:a_ensemble",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "tracers per box. Non-interacting, so the ensemble is a statistics knob rather than a physical density -- but the box still has to hold them dilutely (A3)"
+    },
+    {
+      "name": "particles_per_edge",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_ensemble",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "cube root of n_particles, carried as its own number because the cube root of a count is not a count dimensionally"
+    },
+    {
+      "name": "target_decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "source": "assumed:a_target",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "one decade is enough: the question is whether the engine reproduces the free value at all"
+    },
+    {
+      "name": "max_lag_time",
+      "value": 2,
+      "unit": "s",
+      "source": "assumed:a_window",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the window the estimator is evaluated over, set below tau_d so the free regime is what is sampled. tracer_diffusivity is window_required, so this travels with the plan as a condition"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_sample",
+      "statement": "The tracer size is a property of the question rather than a result. No bead lot exists to quote, so a micron-scale sphere is the intended size and not a specification.",
+      "numbers": [
+        "bead_diameter"
+      ],
+      "falsifier": "a bead lot specification replaces this with an E3 value and every interval resting on it moves"
+    },
+    {
+      "rationale_id": "a_ensemble",
+      "statement": "One thousand tracers is a round ensemble that makes the statistics cheap and keeps the cube root exact at ten per edge. Nothing physical picks this number.",
+      "numbers": [
+        "n_particles",
+        "particles_per_edge"
+      ],
+      "falsifier": "a statistics interval this ensemble cannot satisfy inside budget replaces it"
+    },
+    {
+      "rationale_id": "a_target",
+      "statement": "Screening accuracy is one decade. The run answers whether the engine reproduces free diffusion, not what the coefficient is to three figures.",
+      "numbers": [
+        "target_decade_resolution"
+      ],
+      "falsifier": "a question needing the coefficient rather than its decade restates this target and switches the intent to confirm"
+    },
+    {
+      "rationale_id": "a_window",
+      "statement": "The fit window sits below the diffusive time so the free regime is what is sampled. The exact upper end is an estimate until A4 constrains it.",
+      "numbers": [
+        "max_lag_time"
+      ],
+      "falsifier": "an A4 interval that excludes this value replaces it"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-9bc3910f1886",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator."
+    },
+    {
+      "entry_id": "sample_temperature_not_actuated",
+      "grade": "E3",
+      "kb_version": "kbv-9bc3910f1886",
+      "claim": "Sample temperature is not under control on this instrument, so any temperature a plan uses is an ambient value of the room rather than a commanded one."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-9bc3910f1886",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    },
+    {
+      "entry_id": "tau_d",
+      "grade": "E4",
+      "kb_version": "kbv-9bc3910f1886",
+      "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "sample_adjacent_temperature",
+      "observable": "temperature at the sample rather than in the room",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/entries, read directly while the MCP service is down (4.3.0)",
+        "librarian_agent/kb/distilled"
+      ],
+      "nearest": [
+        {
+          "entry_id": "lab_ambient_temperature",
+          "overlap": "partial"
+        },
+        {
+          "entry_id": "sample_temperature_not_actuated",
+          "overlap": "partial"
+        }
+      ],
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "gap_id": "tracer_diffusivity_measured",
+      "observable": "tracer_diffusivity",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/entries, read directly while the MCP service is down (4.3.0)"
+      ],
+      "kb_version": "kbv-9bc3910f1886"
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

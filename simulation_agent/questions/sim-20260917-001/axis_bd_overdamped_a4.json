@@ -1,0 +1,154 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260917-001-bd_overdamped-a4",
+  "qid": "sim-20260917-001",
+  "thread": "solo-sim-20260917-001",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-17T12:10:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260917-001:bd_overdamped:a4",
+  "config": "bd_overdamped",
+  "axis": "a4",
+  "kb_version": "kbv-9bc3910f1886",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "save_interval",
+      "unit": "s",
+      "max": 0.02,
+      "basis": [
+        "save_interval_max"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "parameter": "max_lag_time",
+      "unit": "s",
+      "max": 20,
+      "basis": [
+        "tau_d"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "max_lag_time",
+      "value": 2,
+      "unit": "s",
+      "source": "assumed:a_window",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the window the estimator is evaluated over, set below tau_d so the free regime is what is sampled. tracer_diffusivity is window_required, so this travels with the plan as a condition",
+      "origin": "goal.json#max_lag_time"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 2,
+      "unit": "um",
+      "source": "assumed:a_sample",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the tracer the question is about. No bead lot is on hand, so this is the intended size rather than a specification",
+      "origin": "goal.json#bead_diameter"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.2,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "bulk Stokes-Einstein: sphere, bulk, no slip. Those assumptions stay in the value. This is the expectation the run is checked against, and the engine derives its own from the same bath rather than being handed this number",
+      "origin": "goal.json#diffusivity"
+    },
+    {
+      "name": "lag_coverage_factor",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_lag_coverage",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "save interval as a fraction of the longest lag: two decades of coverage"
+    },
+    {
+      "name": "save_interval_max",
+      "value": 0.02,
+      "unit": "s",
+      "source": "computed:two_decades_below_the_window",
+      "grade": "E5",
+      "formula": "lag_coverage_factor * max_lag_time",
+      "inputs": [
+        "lag_coverage_factor",
+        "max_lag_time"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "upper bound. Saving more often costs storage, which is A5's, not A4's"
+    },
+    {
+      "name": "tau_d",
+      "value": 20,
+      "unit": "s",
+      "source": "computed:diffusive_time",
+      "grade": "E5",
+      "formula": "bead_diameter**2/diffusivity",
+      "inputs": [
+        "bead_diameter",
+        "diffusivity"
+      ],
+      "precision": "order_of_magnitude",
+      "derived": true,
+      "symbol": "tau_d",
+      "note": "kb:tau_d, applied to this card's own inputs rather than read from A1 (4.5.3 rule b). The entry says this time sets the shortest record an MSD can be read from, which is exactly what this axis needs it for"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_sample",
+      "statement": "The tracer size is a property of the question rather than a result. No bead lot exists to quote, so a micron-scale sphere is the intended size and not a specification.",
+      "numbers": [
+        "bead_diameter"
+      ],
+      "falsifier": "a bead lot specification replaces this with an E3 value and every interval resting on it moves"
+    },
+    {
+      "rationale_id": "a_window",
+      "statement": "The fit window sits below the diffusive time so the free regime is what is sampled. The exact upper end is an estimate until A4 constrains it.",
+      "numbers": [
+        "max_lag_time"
+      ],
+      "falsifier": "an A4 interval that excludes this value replaces it"
+    },
+    {
+      "rationale_id": "a_lag_coverage",
+      "statement": "Two decades of lag below the window is enough to see whether the mean squared displacement is linear in lag at all, which is what a free-diffusion claim rests on. Fewer decades would fit a slope through a line nobody checked was straight.",
+      "numbers": [
+        "lag_coverage_factor"
+      ],
+      "falsifier": "a fit whose residuals are flat over one decade retires the second decade"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tau_d",
+      "grade": "E4",
+      "kb_version": "kbv-9bc3910f1886",
+      "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
+    }
+  ],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "note": "The window the goal chose sits an order of magnitude inside the diffusive time. That is a pass on this axis, not a coincidence worth keeping quiet about: had the goal asked for a longer window the observable's own definition would have refused it."
+}
