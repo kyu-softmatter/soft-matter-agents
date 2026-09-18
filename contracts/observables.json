@@ -18,7 +18,7 @@
         "um^2/s",
         "m^2/s"
       ],
-      "estimator": "Least-squares fit of the mean squared displacement of single-particle positions against lag time, over lags strictly below the diffusive time tau_d, with the intercept left free so that localisation error stays out of the slope. D = slope / (2 * spatial_dimensions).",
+      "estimator": "Weighted least-squares fit of the mean squared displacement of single-particle positions against lag time, with the intercept left free so that localisation error stays out of the slope. D = slope / (2 * spatial_dimensions). Fit range: lags from one save interval up to max_lag_time, which must satisfy both bounds -- below the diffusive time tau_d, so the tracer is still free, and short enough against the record that every lag in the fit is determined. The plan declares the value and shows both. Weighting: by the number of independent displacements at each lag. A record of length T yields about T/tau of them at lag tau, so the variance of the MSD estimate grows sharply with lag, and equal weights hand the slope to the points that have the fewest samples. This is not a refinement: measured on the simulation side, equal weights over whole-record lags gave a 7 percent bias at 0.16 percent relative standard error -- a number that looks precise and is wrong, which is the failure a shared estimator exists to prevent.",
       "window_required": true,
       "window_parameter": "max_lag_time",
       "producible_by": [
@@ -26,7 +26,7 @@
         "simulation"
       ],
       "comparable": false,
-      "note": "The first entry, and not a speculative seed: fifteen committed cards already cite this name -- the M0 round trip, the bridge's r1_ask_simulation, and six rejected/ cards. comparable stays false until the same estimator has demonstrably run on both sides (rule 4). The estimator is written to be identical on both; the only difference is where the positions come from, tracked centroids on the microscope and trajectory frames in the engine."
+      "note": "The first entry, and not a speculative seed: the M0 round trip, the bridge's r1_ask_simulation and six rejected/ cards already cite this name. comparable stays false until the same estimator has demonstrably run on both sides (rule 4). The estimator is written to be identical on both; the only difference is where the positions come from, tracked centroids on the microscope and trajectory frames in the engine. The fit range and the weighting were left open in the first version and are pinned here, because two sides can both fit 'the MSD below tau_d' and differ by more than the error either one reports."
     },
     {
       "id": "trapped_position_distribution",
