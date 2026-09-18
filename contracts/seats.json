@@ -54,6 +54,7 @@
         "ARCHITECT.md",
         "README.md",
         ".claude/",
+        ".mcp.json",
         "contracts/seats.json"
       ],
       "note": "The top tier of D12 (6.2). It writes what the rules are: plan.md, the repository's own instructions, ARCHITECT.md (this seat's own standing orders, deliberately out of CLAUDE.md because that file is loaded by all six sessions), and this registry. It owns this file because the tier being constrained must not own the file that says what it may touch -- a manager that could edit its own `paths` has no boundary, only a preference."
@@ -71,12 +72,13 @@
         "microscope_agent/tasks/"
       ],
       "excludes": [
-        "contracts/seats.json",
         "contracts/capabilities/simulation.json",
+        "contracts/librarian_tools.json",
         "contracts/schemas/ask.schema.json",
         "contracts/schemas/kb_entry.schema.json",
         "contracts/schemas/round_hashes.schema.json",
-        "contracts/schemas/thread_status.schema.json"
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
       ],
       "note": "One of four manager seats (D12, 6.2). It carries the rules into contracts and into microscope_agent's instructions, and reviews that agent's worktree at merge. It does not commit that agent's own artifacts: a manager wearing the agent's identity would make check 41's attribution false, which is the one thing the check exists to prevent.",
       "owns_in_contracts": [
@@ -98,12 +100,13 @@
         "simulation_agent/tasks/"
       ],
       "excludes": [
-        "contracts/seats.json",
         "contracts/capabilities/microscope.json",
+        "contracts/librarian_tools.json",
         "contracts/schemas/ask.schema.json",
         "contracts/schemas/kb_entry.schema.json",
         "contracts/schemas/round_hashes.schema.json",
-        "contracts/schemas/thread_status.schema.json"
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
       ],
       "note": "One of four manager seats (D12, 6.2). It carries the rules into contracts and into simulation_agent's instructions, and reviews that agent's worktree at merge. It does not commit that agent's own artifacts: a manager wearing the agent's identity would make check 41's attribution false, which is the one thing the check exists to prevent.",
       "owns_in_contracts": [
@@ -134,7 +137,8 @@
       ],
       "note": "One of four manager seats (D12, 6.2). It carries the rules into contracts and into librarian_agent's instructions, and reviews that agent's worktree at merge. It does not commit that agent's own artifacts: a manager wearing the agent's identity would make check 41's attribution false, which is the one thing the check exists to prevent.",
       "owns_in_contracts": [
-        "contracts/schemas/kb_entry.schema.json"
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/librarian_tools.json"
       ],
       "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
       "why_not_more": "Moving validate.py and the shared schemas up to the architecture seat was proposed on 2026-09-17 and refused. The argument for it was sound -- a seat that can edit the code that checks it is the same shape excludes was written against -- but it does not survive being followed through. Architecture would then implement checks, against 6.2's 'specify, do not implement' and against the check-42 order that has the manager implement and architecture declare; and architecture writing the gate is still a seat checked by code it wrote, one tier up. The regress does not end inside the repository. It ends at an enforcement point no seat controls: a required status check on the remote. That is unavailable here -- branch protection needs a paid plan on a private repository -- so the honest state is that the shared core is guarded by review at merge, and this note says so."
@@ -152,10 +156,11 @@
         "bridge/tasks/"
       ],
       "excludes": [
-        "contracts/seats.json",
         "contracts/capabilities/microscope.json",
         "contracts/capabilities/simulation.json",
-        "contracts/schemas/kb_entry.schema.json"
+        "contracts/librarian_tools.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/seats.json"
       ],
       "note": "One of four manager seats (D12, 6.2). It carries the rules into contracts and into bridge's instructions, and reviews that agent's worktree at merge. It does not commit that agent's own artifacts: a manager wearing the agent's identity would make check 41's attribution false, which is the one thing the check exists to prevent.",
       "owns_in_contracts": [
@@ -217,5 +222,6 @@
       "note": "The person writes approvals/ and envelope/safety.json, which no seat may (2.1 rule 7, 6.1), so this seat owns every boundary. It is deliberately an opt-in identity rather than the git default: if the default were listed here, every session would pass check 41 by inheriting it and the check would mean nothing."
     }
   ],
-  "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole."
+  "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
+  "dividing_a_boundary": "When a boundary is split, the parts must still cover the whole. On 2026-09-18 they did not: .mcp.json sits in the design boundary and is declared in section 7, and after contracts/ and the agent instruction files were divided among architecture and four managers, no live seat's paths reached it -- only the retiring `design` identity and `human` could write it. A file nobody owns is not protected, it is stranded, and this one strands M1, M2 and M4: without the MCP registration no session can call the librarian, so the librarian-on completion condition cannot be met. The growth note says adding a seat touches this file alone; this is its mirror image, and the missing habit is to check the complement after every division. That is checkable -- every path section 7 declares inside a boundary should be reachable by some live seat -- and no check does it yet."
 }
