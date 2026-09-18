@@ -1,22 +1,22 @@
 {
   "card": "ask_simulation",
   "schema_version": "0.1",
-  "id": "ask-thr-bad-authored-r1",
-  "qid": "mic-20260917-011",
-  "thread": "thr-bad-authored",
+  "id": "ask-thr-bad-ledger-r1",
+  "qid": "mic-20260917-020",
+  "thread": "thr-bad-ledger",
   "round": 1,
   "revision": 1,
   "author": "bridge",
   "created_at": "2026-09-17T10:20:00Z",
-  "status": "DRAFT",
+  "status": "VALIDATED",
   "direction": "experiment_to_simulation",
   "trigger": "human",
   "payload_card": {
     "card": "result",
     "schema_version": "0.1",
-    "id": "result-mic-20260917-011-r1",
-    "qid": "mic-20260917-011",
-    "thread": "solo-mic-20260917-011",
+    "id": "result-mic-20260917-020-r1",
+    "qid": "mic-20260917-020",
+    "thread": "solo-mic-20260917-020",
     "round": 0,
     "revision": 1,
     "author": "microscope_agent",
@@ -27,15 +27,14 @@
       "librarian_agent"
     ]
   },
-  "payload_hash": "sha256:cb4b68701ed49b99b0ed0c1f9c74b13fd9b904a18ec389b977277b07b57cc9a4",
+  "payload_hash": "sha256:2fd7ebfc2a8c190fd19130ef3a5cddb6fe7af1cd661c9c5ce0906ae8e8a70c63",
   "answerability": {
     "observable": "tracer_diffusivity",
     "checked_against": "simulation.json",
     "producible": "yes",
     "producing_configs": [
       "bd_overdamped"
-    ],
-    "substitutes": []
+    ]
   },
   "unit_consistency": {
     "verdict": "no_counterpart",
@@ -44,14 +43,5 @@
   "numbers": [],
   "degraded": [
     "librarian_agent"
-  ],
-  "assumptions": [
-    {
-      "rationale_id": "a_carried",
-      "statement": "The carried result looks like the bulk estimate, so the engine side can start from it.",
-      "numbers": [
-        "diffusivity_carried"
-      ]
-    }
   ]
 }

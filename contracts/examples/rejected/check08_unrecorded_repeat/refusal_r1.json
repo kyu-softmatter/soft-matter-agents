@@ -1,0 +1,27 @@
+{
+  "card": "refusal",
+  "schema_version": "0.1",
+  "id": "refusal-mic-20260917-021-r1",
+  "qid": "mic-20260917-021",
+  "thread": "thr-bad-repeat",
+  "round": 1,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T10:20:00Z",
+  "status": "REFUSED",
+  "stage": "S3",
+  "refused_what": "the requested trap stiffness",
+  "reason_code": "target_unreachable",
+  "counterexample": [
+    {
+      "parameter": "trap_stiffness",
+      "required_number": "0.5 pN/nm",
+      "limit_number": "0.05 pN/nm",
+      "statement": "The requested stiffness is a decade above what this trap reaches at the permitted power."
+    }
+  ],
+  "numbers": [],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

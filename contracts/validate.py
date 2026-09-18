@@ -352,6 +352,33 @@ SKIP_DIRS = {".git", "__pycache__", ".venv", "node_modules"}
 
 
 REJECTED = "rejected"
+GROUP_DIR = re.compile(r"^check([0-9]{2})_[a-z0-9_]+$")
+
+
+def fixture_group(rel: str) -> tuple[str, int] | None:
+    """The group a rejected fixture belongs to, and the check it is a fixture for.
+
+    Some defects need two files: a ledger disagreeing with its envelope, or two
+    refusals repeating a pair the thread ledger does not record. Neither fits a
+    rule that every file must fail on its own -- the envelope and the refusals
+    are individually correct, which is the point. So a folder one level under
+    rejected/ is one fixture (plan.md 11-7).
+
+    The folder names the check, and the count requires a FAIL from that check.
+    Without that, a group would stay green on any unrelated failure long after
+    the defect it claims to hold had gone -- a fixture no longer testing what it
+    says it tests, which is the one thing this folder exists to prevent.
+    """
+    parts = rel.split("/")
+    if REJECTED not in parts:
+        return None
+    i = parts.index(REJECTED)
+    if len(parts) <= i + 2:
+        return None                       # a flat file: its own unit, as before
+    m = GROUP_DIR.match(parts[i + 1])
+    if m is None:
+        return ("/".join(parts[: i + 2]), -1)
+    return ("/".join(parts[: i + 2]), int(m.group(1)))
 
 
 def collect(roots: Iterable[Path], include_rejected: bool = False) -> Bundle:
@@ -1009,6 +1036,7 @@ ALLOWED_PATHS = [
     r"^contracts/hooks/[a-z-]+$",
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/examples/(rejected/)?[A-Za-z0-9_.-]+\.(json|md|jsonl)$",
+    r"^contracts/examples/rejected/check[0-9]{2}_[a-z0-9_]+/[A-Za-z0-9_.-]+\.(json|md|jsonl)$",
     r"^(microscope|simulation)_agent/CLAUDE\.md$",
     r"^(microscope|simulation)_agent/envelope/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/approvals/[A-Za-z0-9_.-]+$",
@@ -2108,11 +2136,36 @@ def main(argv: list[str] | None = None) -> int:
         collected = collect(roots, True)
         cards = collected.cards + collected.artifacts
         failing_paths = {f.path for f in findings if f.status == FAIL}
-        unbroken = [c.rel for c in cards if c.rel not in failing_paths]
-        print(f"expect-fail: {len(cards) - len(unbroken)}/{len(cards)} cards rejected as intended")
-        if unbroken:
+
+        groups: dict[str, int] = {}
+        flat: list[Card] = []
+        for c in cards:
+            g = fixture_group(c.rel)
+            if g is None:
+                flat.append(c)
+            else:
+                groups[g[0]] = g[1]
+
+        unbroken = [c.rel for c in flat if c.rel not in failing_paths]
+        print(f"expect-fail: {len(flat) - len(unbroken)}/{len(flat)} cards rejected as intended")
+
+        ungrouped: list[str] = []
+        for gdir, want in sorted(groups.items()):
+            fails = [f for f in findings if f.status == FAIL and f.path.startswith(gdir + "/")]
+            if want < 0:
+                ungrouped.append(f"{gdir} does not name the check it is a fixture for (11-7)")
+            elif not any(f.check == want for f in fails):
+                got = sorted({f.check for f in fails})
+                ungrouped.append(f"{gdir} is a fixture for check {want} and check {want} did not fail"
+                                 + (f" (only {got})" if got else " (nothing failed)"))
+        if groups:
+            print(f"expect-fail: {len(groups) - len(ungrouped)}/{len(groups)} groups rejected as intended")
+
+        if unbroken or ungrouped:
             for rel in unbroken:
                 print(f"  NOT REJECTED  {rel}")
+            for msg in ungrouped:
+                print(f"  NOT REJECTED  {msg}")
             print("a card that stopped failing means a check stopped working")
             return 1
         return 0

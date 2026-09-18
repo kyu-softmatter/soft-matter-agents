@@ -119,7 +119,10 @@ quantity in two places (P3).
 
 ## The cards that must fail
 
-`rejected/` holds nineteen cards, each breaking one check on purpose:
+`rejected/` holds one card per defect that a single card can carry, and the
+table says which check each one breaks. The totals come from the run rather
+than from this sentence: three hand-counted numbers in this repository were
+wrong on 2026-09-17.
 
 | card | check | what it does |
 |---|---|---|
@@ -132,7 +135,7 @@ quantity in two places (P3).
 | `bad_sibling_a.json`, `bad_sibling_b.json` | 11 | two axes reading each other |
 | `bad_kb_grade.json` | 21, 25 | promotes a stored E3 to E1 on the way in |
 | `bad_unjustified_estimate.json` | 39 | estimates with the librarian reachable and no gap to stand on |
-| `bad_bridge_authored.json` | 1, 8 | the bridge adds a number of its own |
+| `bad_bridge_authored.json` | 8 | the bridge adds an assumption of its own |
 | `bad_bridge_direction.json` | 8 | an envelope for the engine carrying a card the engine wrote |
 | `bad_bridge_hash.json` | 8 | the payload and its hash disagree |
 | `bad_bridge_claimed_capability.json` | 8 | claims an observable the tables have not declared |
@@ -145,6 +148,41 @@ quantity in two places (P3).
 The last of those is a thread ledger rather than a card (`artifact:
 thread_status`), and `--expect-fail` counts it the same way: a ledger nobody
 checks is a ledger that quietly stops saying whose turn it is.
+
+`bad_bridge_authored.json` authors an *assumption* rather than a number, and
+that is deliberate. The schema caps the envelope's `numbers` at zero and check 8
+reads the same field, so a fixture carrying a number fails twice and check 8's
+rule is never the reason it failed — the rule could break and the card would go
+on failing. `assumptions` has no cap in the schema, so authoring one leaves
+exactly one check to fail. The two layers both stay: the schema states the shape
+and the check states the reason.
+
+## Fixtures that need two files
+
+Some defects cannot be put in one file. A ledger that disagrees with its
+envelope leaves the envelope correct; two refusals repeating one
+`(reason_code, parameter)` that the thread ledger does not record leave both
+refusals correct. Requiring every file to fail on its own excluded exactly those
+cases, and check 8's ledger rules went untested because of it — testability was
+deciding the shape of the contract, which is the wrong way round (plan.md 11-7).
+
+So a folder one level down is one fixture:
+
+```
+check08_ledger_payload_mismatch/   envelope + ledger + status, and only the ledger is wrong
+check08_unrecorded_repeat/         two well-formed refusals + a ledger that omits the repeat
+```
+
+**The folder names the check it is a fixture for, and the count requires a FAIL
+from that check.** Without that condition a group would stay green on any
+unrelated failure long after the defect it claims to hold had gone. A flat file
+is nailed to its own line in the table above; widening the unit pulls that nail
+out, and the folder name puts it back. A group naming a check that did not fail
+is reported with what did:
+
+```
+NOT REJECTED  …/check99_ledger_payload_mismatch is a fixture for check 99 and check 99 did not fail (only [8])
+```
 
 A normal sweep steps over this folder. To run the gate on it:
 

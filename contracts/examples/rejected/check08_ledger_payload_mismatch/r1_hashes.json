@@ -1,0 +1,16 @@
+{
+  "artifact": "round_hashes",
+  "schema_version": "0.1",
+  "thread": "thr-bad-ledger",
+  "round": 1,
+  "ask_card": "r1_ask_simulation.json",
+  "source": {
+    "path": null,
+    "card_id": "result-mic-20260917-020-r1",
+    "revision": 1,
+    "sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "payload_sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "verified_at": "2026-09-17T10:20:00Z",
+  "note": "The envelope is correct and the ledger is not, which is why this needs two files."
+}

@@ -1,0 +1,12 @@
+{
+  "artifact": "thread_status",
+  "schema_version": "0.1",
+  "thread": "thr-bad-repeat",
+  "round": 3,
+  "turn": "microscope_agent",
+  "state": "open",
+  "updated_at": "2026-09-17T10:20:00Z",
+  "blocked_pairs": [],
+  "substitutions": [],
+  "note": "Both refusals are well formed on their own, so neither file can carry this defect alone."
+}
