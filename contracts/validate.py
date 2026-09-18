@@ -797,6 +797,12 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
             if obs and vocab and obs not in vocab:
                 out.append(Finding(8, FAIL, f"the round asks for {obs!r}, which contracts/observables.json does not define", c.rel))
 
+        dropped = sorted(set(payload.get("degraded") or []) - set(c.data.get("degraded") or []))
+        if dropped:
+            out.append(Finding(8, FAIL, f"the payload was made without {dropped} and the envelope does not say so; "
+                                        f"a plan built in reduced mode must not read as normal on the other side "
+                                        f"(3.1 rule 2)", c.rel))
+
         uc = c.data.get("unit_consistency") or {}
         verdict, against = uc.get("verdict"), uc.get("compared_against")
         rnd = c.data.get("round") or 0
@@ -820,6 +826,17 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
         delivered = [c for c in cards if c.data.get("status") == "VALIDATED"]
         if delivered and not any(str(s.data.get("thread")) == thread for s in statuses):
             out.append(Finding(8, FAIL, f"thread {thread} has a delivered envelope and no thread ledger; without one line saying whose turn it is, four windows are four windows nobody follows (6.2)", delivered[0].rel))
+
+    # A thread owns its directory, so the two names have to agree. Without this
+    # the (thread, round) key is global with nothing keeping it unique, and a
+    # thread that borrows another's id collides with it from across the
+    # repository -- which is how the example thread and the first real one met.
+    for c in asks + ledgers + statuses:
+        parts = c.rel.split("/")
+        if len(parts) > 3 and parts[0] == "bridge" and parts[1] == "threads":
+            if parts[2] != str(c.data.get("thread")):
+                out.append(Finding(8, FAIL, f"this sits in threads/{parts[2]}/ and says thread "
+                                            f"{c.data.get('thread')!r}; a thread owns its directory (7.1)", c.rel))
 
     ledger_of: dict[tuple, Card] = {}
     for h in ledgers:

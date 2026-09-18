@@ -1,7 +1,7 @@
 {
   "artifact": "thread_status",
   "schema_version": "0.1",
-  "thread": "thr-diffusivity-crosscheck",
+  "thread": "thr-example-crosscheck",
   "round": 1,
   "turn": "simulation_agent",
   "state": "open",

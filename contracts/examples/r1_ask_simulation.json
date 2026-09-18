@@ -1,9 +1,9 @@
 {
   "card": "ask_simulation",
   "schema_version": "0.1",
-  "id": "ask-thr-diffusivity-crosscheck-r1",
+  "id": "ask-thr-example-crosscheck-r1",
   "qid": "mic-20260917-001",
-  "thread": "thr-diffusivity-crosscheck",
+  "thread": "thr-example-crosscheck",
   "round": 1,
   "revision": 1,
   "author": "bridge",

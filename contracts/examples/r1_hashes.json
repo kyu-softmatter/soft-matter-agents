@@ -1,7 +1,7 @@
 {
   "artifact": "round_hashes",
   "schema_version": "0.1",
-  "thread": "thr-diffusivity-crosscheck",
+  "thread": "thr-example-crosscheck",
   "round": 1,
   "ask_card": "r1_ask_simulation.json",
   "source": {
