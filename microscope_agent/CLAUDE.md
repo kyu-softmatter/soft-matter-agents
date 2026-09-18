@@ -173,6 +173,49 @@ does not guess. A1 and A7 have the most already available: the disk-period
 constraint is an entry, the objectives carry NA and working distance, and A7's
 escape inequality is the one row §10.2 leaves open for transfer.
 
+**1b. A7's formulas, already ruled (§10.2.1).** `agentic-microscope`
+`version2` was read for the axis row only. Every item below names the slot it
+lands in and the §10.3 rule it passed; anything that could not name a slot was
+dropped, and the dropped list is as much of the result as the kept one.
+
+| | item | slot / rule |
+|---|---|---|
+| transfer | `gamma = 6*pi*eta*a`, Stokes drag, unbounded medium | A7 — a formula, no number crosses |
+| transfer | `x_eq = gamma*v/kappa`, and its inverse `v = x_eq*kappa/gamma` | A7 — **this is our escape relation**, generalised |
+| transfer | `x_min = sigma_loc / target_relative_error` | A7 — the floor, derived from the target, not chosen |
+| transfer | `settling = ln(1/target)` time constants | A7 → feeds A5 as an input, not as A5's own bound |
+| transfer | `f_c = kappa/(2*pi*gamma)`; sampling needs `f_s >= 10*f_c` | A7 — rule (a): `kappa` ties it to the escape inequality |
+| downgrade | `U/kT >~ 10` for stable trapping | A7, **E5 with a falsifier**. Its own source calls it a rule of thumb; it is not a gate constant |
+| downgrade | water viscosity, CRC table 0–40 C | knowledge, not code (P14). Cite the CRC Handbook, not the prior repo (§10.3 rule 2), capped E3. `water_viscosity_293k` already holds it |
+| drop | the seven parallel `gate.py` / `checks.py` / `cli.py` / `setup.py` packages, `LIMITS`, `TrapSetup` | no slot in A1–A7. Our axes are functions that emit a card, not lenses with their own gate and CLI |
+| drop | trap-heating and room-vs-focus temperature decisions | already ours: `lab_ambient_temperature` and `sample_temperature_not_actuated` |
+
+**What version2 added over main is the whole point.** `velocity/` does not
+exist on `main`; it was written second. So the thing the first attempt lacked
+was **motion**, and adding it turned a one-sided escape bound into a window:
+
+```
+   x_min * kappa / gamma   <=   v   <=   x_max * kappa / gamma
+   └ offset must be resolvable      └ beyond this the bead leaves
+```
+
+That is what an axis is supposed to emit — a range, not a point — and it
+arrives already in that shape. Keep the shape.
+
+**Two limits come across with it, and both must be said out loud in the card.**
+The drag is the unbounded-medium value: near the coverslip the real `gamma` is
+larger, and the prior project decided not to correct it by formula but to
+absorb it by calibrating in situ, because a measured corner frequency returns
+`kappa` and the wall-corrected `gamma` together. And `x_max` is bounded by
+where the ray-optics model stops being defined, not by where a bead actually
+escapes — so it is a **lower** bound on the true limit.
+
+**Not taken, and worth knowing it exists**: the ray-optics `trap_force` model
+that predicts `kappa` from beam geometry. It would let A7 state a `kappa`
+where the store has none, at E5 with a falsifier. It is a whole model and the
+first plan card does not need it. Decide it separately rather than letting it
+arrive as a side effect.
+
 **2. S4, the intersection.** Per configuration, intersect the axis ranges and
 choose inside the result, recording why. An empty intersection is a refusal
 with the numbers that emptied it, not a shrug.
