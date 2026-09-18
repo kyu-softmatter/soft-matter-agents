@@ -53,10 +53,12 @@ python3 contracts/validate.py --strict                           # undecided and
 python3 contracts/validate.py --expect-fail contracts/examples/rejected
 ```
 
-The first must end `0 failed`. The last must end with **every** card rejected
-as intended — a card that stops failing means a check stopped working. Read
-both totals off the run, not off this sentence: `17/17` was written here and
-was `19/19` within the day.
+The first must end `0 failed`. The last prints two totals, cards and groups,
+and **every** one of both must be rejected as intended — a fixture that stops
+failing means a check stopped working. A group is a folder whose name says
+which check it is for, used when one file cannot hold the defect (§11-7). Read
+the totals off the run, not off this sentence: it said `17/17` when the run
+said `19/19`, and by the next hour the run said `20/20` and `2/2`.
 
 A check reports UNDECIDED rather than passing, and that is the point: the
 per-plan E5 cap is unchosen (§11-2). It needs two things, not one — gap
