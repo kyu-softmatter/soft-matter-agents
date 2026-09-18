@@ -254,6 +254,37 @@ that escape Micro-Manager.
 | `laser_combiner` | `lunf_power.py` | its own driver, **not readable** |
 | cameras · `confocal_csuw1` · `dmd` · widefield | `config/micromanager/*.cfg` | Micro-Manager; no wrapper to write |
 
+**Never accumulate a duration to compare against a planned limit.** The
+simulation seat found this in its own loop: adding a timestep ten thousand
+times gave 19.999999999999794 against a planned 20, and a run that finished
+correctly reported that it had not reached its planned duration. The error is
+1e-14 and no physics cares -- but the number was not being used as a value,
+it was sitting on the left of a `>=`, and **a comparison at a boundary is a
+decision, not a measurement.** The size of the error and the size of the
+consequence are unrelated.
+
+It is worse than a bug that always fires, because it moves with the
+parameters. Their measurements: a 0.002 s step lands low, 0.001 and 0.003
+land high, 0.0001 lands low -- the direction flips with the step, and
+`steps * dt` is exact in every case, because that rounds once instead of ten
+thousand times. So whether the stop criterion works depends on where in the
+axis interval S4 happened to choose.
+
+Two rules follow, and the second matters more here.
+
+**Derive from integer counts** -- frames, triggers, steps -- and multiply.
+Never keep a running sum. **And do not add an epsilon**: the limit came from
+the plan, and an operator that widens it is changing an approved number at
+run time.
+
+**On this instrument the accumulated software time was never the right source
+anyway.** §4.6.9 already makes trigger counters and hardware timestamps
+authoritative for any quantity physics depends on, and software offsets order
+the log and nothing else. `orchestrator.Clock.offset()` is a subtraction from
+one `t0`, so it rounds once and is correct as written -- the trap is not there
+today. It is waiting in the acquisition loop nobody has written yet, which is
+the natural place to total up exposures and compare against `record_length`.
+
 **A plan names a channel or an element, and the orchestrator resolves which.**
 "Set the dia lamp" is the true statement; "set `stand_ti2e`" would lose which
 of that channel's ten elements was meant. Check 38 accepts both against the
