@@ -1087,6 +1087,7 @@ ALLOWED_PATHS = [
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/examples/(rejected/)?[A-Za-z0-9_.-]+\.(json|md|jsonl)$",
     r"^contracts/examples/rejected/check[0-9]{2}_[a-z0-9_]+/[A-Za-z0-9_.-]+\.(json|md|jsonl)$",
+    r"^microscope_agent/tasks/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/CLAUDE\.md$",
     r"^(microscope|simulation)_agent/envelope/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/approvals/[A-Za-z0-9_.-]+$",
