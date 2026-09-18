@@ -82,6 +82,14 @@ fi
 # validator's own location. Checks 35 and 41 cannot: they have to ask the real
 # repository what is staged and who is committing, and the export has no .git.
 # SMA_GIT_REPO is how the two are told apart.
+#
+# When a refusal here does not reproduce by hand, suspect the identity before
+# the staging. `git commit -- <paths>` builds its own index, so another
+# session's staged work is already excluded from what is checked; what differs
+# is that this hook runs with GIT_COMMITTER_* set to a seat and a run by hand
+# does not. Check 41 then takes the unknown-committer path, returns early, and
+# never reaches the code that failed here -- which is how a NameError in it
+# survived every manual verification on 2026-09-17.
 export SMA_GIT_REPO="$REPO"
 
 # --quiet on the way through, verbose on the way out. A passing commit does not

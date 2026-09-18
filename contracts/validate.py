@@ -1591,6 +1591,36 @@ def load_seats() -> dict:
     return json.loads(p.read_text()) if p.exists() else {}
 
 
+def before_enforcement(sha: str) -> bool:
+    """True when this commit is at or before the line the boundary became a gate.
+
+    `enforced_from` in seats.json names that commit. Before it, section 6.2 was
+    written and nothing refused a crossing, so checks 35 and 41 report rather
+    than fail: a commit made under a convention did not break a gate that did
+    not exist. Without this, moving a path between seats reddens history that
+    was correct when it was written, and a sweep that reddens on every boundary
+    move is a sweep nobody runs.
+
+    It costs something, and the registry says so: a real crossing from before
+    the line is hidden too. That was acceptable once, for a span small enough to
+    read commit by commit. Moving this line forward again would not be -- it
+    would turn a gate away from the work it was built to catch.
+    """
+    line = (load_seats() or {}).get("enforced_from")
+    if not line:
+        return False
+    import subprocess
+    try:
+        subprocess.run(["git", "-C", str(GIT_REPO), "merge-base", "--is-ancestor", sha, line],
+                       check=True, capture_output=True)
+        return True
+    except (OSError, subprocess.CalledProcessError):
+        return False
+
+
+WAS_CONVENTION = "the boundary was a convention here, before seats.json's enforced_from"
+
+
 def check_35_session_boundary(b: Bundle, commit_range: str | None = None, staged: bool = False) -> list[Finding]:
     """One session writes inside one agent (6.2).
 
@@ -1603,6 +1633,7 @@ def check_35_session_boundary(b: Bundle, commit_range: str | None = None, staged
     """
     if not commit_range and not staged:
         return [Finding(35, PENDING, "pass --commit-range or --staged; the pre-commit hook passes --staged (6.2)")]
+    lax = False
     import subprocess
 
     def git(*args: str) -> str:
@@ -1631,13 +1662,19 @@ def check_35_session_boundary(b: Bundle, commit_range: str | None = None, staged
         if len(shas) == 1:
             # Diff that commit rather than the range: the range may also span
             # merges, and its endpoints would aggregate what they brought.
+            # Falling through rather than recursing: the inner call would see
+            # one commit again and land right back here.
+            lax = before_enforcement(shas[0])
             commit_range = f"{shas[0]}~1..{shas[0]}"
         if len(shas) > 1:
             out: list[Finding] = []
             for sha in shas:
+                lax = before_enforcement(sha)
                 for f in check_35_session_boundary(b, f"{sha}~1..{sha}"):
                     if f.status == FAIL:
-                        out.append(Finding(35, FAIL, f"{sha[:7]}: {f.message}", f.path))
+                        out.append(Finding(35, PENDING if lax else FAIL,
+                                           f"{sha[:7]}: {f.message}"
+                                           + (f" -- {WAS_CONVENTION}" if lax else ""), f.path))
             return out or [Finding(35, PASS, f"{len(shas)} commits each stay inside one boundary")]
 
     args = ["diff", "--name-only"]
@@ -1667,7 +1704,7 @@ def check_35_session_boundary(b: Bundle, commit_range: str | None = None, staged
     if contracts_touched and touched:
         out.append(Finding(35, FAIL, f"the same commit edits contracts/ and {sorted(touched)}; contracts are read by agent sessions, not written by them"))
     if out:
-        return out
+        return [Finding(35, PENDING, f.message + f" -- {WAS_CONVENTION}", f.path) for f in out] if lax else out
     where = "the design seat" if (design_paths or contracts_touched) and not touched else (
         sorted(touched)[0] if touched else "no agent")
     return [Finding(35, PASS, f"{len(paths)} changed paths stay inside one boundary ({where})")]
@@ -2159,6 +2196,10 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
             continue
         base = f"{sha}^" if parents.split() else sha
         found = judge(ce, paths, sha[:7], merge, seats_at(base))
+        if found and before_enforcement(sha):
+            found = [Finding(41, PENDING if f.status == FAIL else f.status,
+                             f.message + (f" -- {WAS_CONVENTION}" if f.status == FAIL else ""), f.path)
+                     for f in found]
         out.extend(found) if found else None
         clean += 0 if found else 1
     if out:
