@@ -9,6 +9,15 @@
     "schema_version": { "const": "0.1" },
 
     "qid": { "type": "string", "pattern": "^(mic|sim)-[0-9]{8}-[0-9]{3}$" },
+    "goal_id": {
+      "type": "string",
+      "description": "the goal card this screen read. Without it the record cannot say which question it answered"
+    },
+    "goal_revision": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "and which revision of it. Re-running the screen after the goal changed produced a byte-identical record, because nothing inside named the revision -- so a fan-out issued against r2 and a card now at r3 are indistinguishable in the artefact. The ledger rule is (card_id, revision, hash); this is the same rule applied one layer down. Optional for one step only: making it required today would fail a configs.json already committed in the execution seat's path, and check 35 forbids one commit from spanning both boundaries, so the producer fills it first and this tightens after."
+    },
     "stage": { "const": "S3.0" },
     "observable": {
       "type": "string",
