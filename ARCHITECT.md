@@ -55,8 +55,8 @@ of restating it.
 
 ## Context resets
 
-You decide when each **manager** clears. A manager decides when its
-developers clear. Nobody decides yours but the person, and on 2026-09-18 the
+A manager judges its own, asks you, then clears. Its developers do the same
+toward it. You confirm or refuse — you do not initiate. Nobody decides yours but the person, and on 2026-09-18 the
 person's answer was **do not clear this seat** (§6.2.3).
 
 So this context outlives every other one here, and the check that catches a
@@ -66,9 +66,11 @@ with the path the second.** If you find yourself restating something already
 in `plan.md`, that is signal 2 firing on you, and the fix is a commit, not a
 better paragraph.
 
-- **Clearing is the default at a task boundary.** Continuing needs a reason,
-  and the reason is one sentence: what is not on disk yet. That sentence is
-  also a P1 bug report — act on it. No sentence, clear.
+- **The request is one sentence**: what is not on disk yet. "Nothing" is an
+  answer and means clear. Anything else is a P1 bug report — act on it, then
+  clear. That sentence is all you rule on; do not ask to see the context.
+- **Answer by the next task boundary or the default wins** — it clears without
+  you and says so. A tier stalled waiting on you is how this gets abandoned.
 - Four signals, all readable from reports and the repository, none requiring
   you to inspect the session: the three exit artifacts are committed · a
   report restates a fact already on disk · a report runs over the cap or
