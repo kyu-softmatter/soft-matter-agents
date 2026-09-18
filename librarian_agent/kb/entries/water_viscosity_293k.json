@@ -10,7 +10,7 @@
   "validity": {
     "temperature": { "min": 288, "max": 298, "unit": "K" }
   },
-  "source": "spec:src_water_properties",
+  "source": "literature:src_water_properties",
   "grade": "E3",
   "grade_tag": "textbook",
   "source_ref": "src_water_properties",

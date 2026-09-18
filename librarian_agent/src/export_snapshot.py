@@ -1,0 +1,277 @@
+#!/usr/bin/env python3
+"""Publish the store as a snapshot each execution agent copies into its envelope.
+
+Why a copy exists at all is P0 rule 2, fail-closed: **a safety judgement must
+not depend on a live server call** (4.3.2). Preflight needs the device registry
+and the calibrations every time it runs, and "the librarian was up" is not an
+acceptable precondition for deciding whether a move is allowed.
+
+Why it is published rather than written: this session cannot write into another
+agent's directory (D11, 6.2). So the librarian publishes to
+`kb/exports/snapshot_<agent>.json` and each agent copies it into its own
+`envelope/snapshot.json`. That the copy passes through the other session's hand
+is the point, not a cost -- when an agent took which KB version into its
+envelope ends up in that agent's own commit.
+
+Two copies cannot drift into two values, because both carry entry hashes and
+the validator compares them against the store (check 26).
+
+## What goes in, and the one judgement made here
+
+Everything. The same entry set goes to every agent, because selecting a subset
+needs a relevance judgement nothing in an entry supports -- there is no field
+saying which agent an entry is for -- and a subset missing an entry fails in
+the worst direction: the consumer does not find a value, falls back to an
+assumption, and records an E5 where an E3 was sitting in the store.
+
+The per-agent difference is only the two instrument tables. 4.3.2 names the
+device registry and the valid optical-path table as knowledge that belongs in
+the snapshot, and they go to the agent that has the instrument they describe.
+A simulation of Brownian motion does not need a COM port map.
+
+## Raw text, not parsed objects, and the hash is why
+
+Each entry is embedded as the **bytes of its file** plus the sha256 of those
+bytes -- the same digest `kb/index.json` records, so the two agree by
+construction. A parsed copy would need its own canonical form and its own
+hash, and then one entry would have two digests that can disagree; worse, a
+copy sitting in an agent's envelope could not be checked at all without
+reaching back to the original file. Embedded text is self-verifying: hash what
+is there and compare it with what is claimed.
+
+`load()` is provided so no consumer hand-rolls that.
+
+## No timestamp
+
+Nothing here records when it was published, deliberately. A timestamp would
+make the output differ on every run, and `--check` -- the thing that catches a
+stale export -- would report staleness that is only the clock. The commit
+carries the date.
+
+    python3 librarian_agent/src/export_snapshot.py            # publish
+    python3 librarian_agent/src/export_snapshot.py --check    # fail if stale
+    python3 librarian_agent/src/export_snapshot.py --verify <file>
+    python3 librarian_agent/src/export_snapshot.py --self-test
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+AGENT = Path(__file__).resolve().parent.parent
+KB = AGENT / "kb"
+EXPORTS = KB / "exports"
+
+# 4.3.2 names these two as knowledge that belongs in the snapshot. They live in
+# staging until they are decomposed; exporting changes where they are read,
+# not who owns them.
+TABLES = {"devices": "staging/devices.v0.json",
+          "optical_paths": "staging/optical_paths.v0.json"}
+
+# Which agents get the instrument tables, and which get entries only.
+AGENTS = {"microscope_agent": True, "simulation_agent": False, "bridge": False}
+
+SNAPSHOT_VERSION = "0.1"
+
+
+class Stale(Exception):
+    """The published snapshot no longer matches the store."""
+
+
+def _digest(text: str) -> str:
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
+def _canonical(obj) -> str:
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def build(agent: str) -> dict:
+    """The snapshot for one agent. Deterministic: same store, same bytes."""
+    if agent not in AGENTS:
+        raise ValueError(f"{agent!r} is not an agent this store publishes to: {sorted(AGENTS)}")
+    index = json.loads((KB / "index.json").read_text())
+
+    entries = {}
+    for p in sorted((KB / "entries").glob("*.json")):
+        text = p.read_text()
+        eid = json.loads(text)["entry_id"]
+        entries[eid] = {"text": text, "sha256": _digest(text)}
+
+    stored = {k: v.get("sha256") for k, v in (index.get("entries") or {}).items()}
+    disagree = sorted(e for e in entries if stored.get(e) != entries[e]["sha256"])
+    if disagree or set(stored) != set(entries):
+        raise Stale(f"kb/index.json does not match entries/ ({disagree or 'set differs'}); "
+                    "rebuild it with src/kb_index.py before publishing")
+
+    body = {
+        "snapshot_version": SNAPSHOT_VERSION,
+        "agent": agent,
+        "kb_version": index["kb_version"],
+        "entry_count": len(entries),
+        "entries": entries,
+        "tables": {},
+        "not_included": [],
+    }
+    if AGENTS[agent]:
+        for name, rel in TABLES.items():
+            text = (KB / rel).read_text()
+            body["tables"][name] = {"text": text, "sha256": _digest(text), "from": f"kb/{rel}"}
+    else:
+        body["not_included"] = [
+            f"{n} -- this agent has no instrument for it to describe (4.3.2)" for n in sorted(TABLES)
+        ]
+
+    body["how_to_verify"] = (
+        "sha256 of each entry's `text` must equal its `sha256`, and sha256 over the canonical "
+        "JSON of this object without `snapshot_hash` must equal `snapshot_hash`. A hand-edited "
+        "copy fails both. Do not edit a copy: fix the KB and re-export (4.3.2)."
+    )
+    body["snapshot_hash"] = _digest(_canonical(body))
+    return body
+
+
+def load(snapshot: dict) -> dict:
+    """Parse the embedded texts. Consumers call this instead of hand-rolling it."""
+    return {
+        "kb_version": snapshot["kb_version"],
+        "entries": {eid: json.loads(e["text"]) for eid, e in snapshot["entries"].items()},
+        "tables": {n: json.loads(t["text"]) for n, t in (snapshot.get("tables") or {}).items()},
+    }
+
+
+def verify(snapshot: dict) -> list[str]:
+    """Check a copy on its own terms. Empty means it is intact."""
+    problems: list[str] = []
+    claimed = snapshot.get("snapshot_hash")
+    body = {k: v for k, v in snapshot.items() if k != "snapshot_hash"}
+    if _digest(_canonical(body)) != claimed:
+        problems.append("snapshot_hash does not cover this content: the copy was edited, or it "
+                        "was written by something that does not build it the same way")
+    for eid, e in (snapshot.get("entries") or {}).items():
+        if _digest(e.get("text", "")) != e.get("sha256"):
+            problems.append(f"entry {eid}: the embedded text does not hash to the recorded sha256")
+        try:
+            if json.loads(e["text"])["entry_id"] != eid:
+                problems.append(f"entry {eid}: the embedded entry calls itself something else")
+        except (json.JSONDecodeError, KeyError):
+            problems.append(f"entry {eid}: the embedded text is not a readable entry")
+    for name, t in (snapshot.get("tables") or {}).items():
+        if _digest(t.get("text", "")) != t.get("sha256"):
+            problems.append(f"table {name}: the embedded text does not hash to the recorded sha256")
+    return problems
+
+
+def publish() -> list[Path]:
+    EXPORTS.mkdir(parents=True, exist_ok=True)
+    written = []
+    for agent in sorted(AGENTS):
+        target = EXPORTS / f"snapshot_{agent}.json"
+        target.write_text(json.dumps(build(agent), indent=2, ensure_ascii=False) + "\n")
+        written.append(target)
+    return written
+
+
+def check() -> list[str]:
+    """Is what is published still what the store says? Stale exports are worse than none."""
+    problems = []
+    for agent in sorted(AGENTS):
+        target = EXPORTS / f"snapshot_{agent}.json"
+        if not target.exists():
+            problems.append(f"{target.name} has not been published")
+            continue
+        fresh = json.dumps(build(agent), indent=2, ensure_ascii=False) + "\n"
+        if target.read_text() != fresh:
+            current = json.loads(target.read_text()).get("kb_version")
+            problems.append(f"{target.name} is stale: it pins {current}, the store is at "
+                            f"{json.loads((KB / 'index.json').read_text())['kb_version']}")
+    return problems
+
+
+def _self_test() -> int:
+    ok = True
+
+    def bad(why: str) -> None:
+        nonlocal ok
+        print(f"FAIL: {why}")
+        ok = False
+
+    mic = build("microscope_agent")
+    sim = build("simulation_agent")
+
+    if verify(mic) or verify(sim):
+        bad(f"a freshly built snapshot did not verify: {verify(mic) or verify(sim)}")
+    if build("microscope_agent") != mic:
+        bad("two builds of one store differ; the export is not deterministic")
+    if set(mic["tables"]) != set(TABLES) or sim["tables"]:
+        bad(f"the instrument tables went to the wrong agents: {sorted(mic['tables'])}, {sorted(sim['tables'])}")
+    if not sim["not_included"]:
+        bad("an agent that does not get the tables should be told which ones and why")
+    if mic["entries"].keys() != sim["entries"].keys():
+        bad("the entry set differs between agents; selecting a subset needs a basis no entry carries")
+
+    # the hash has to catch an edit, which is the only reason it is there
+    tampered = json.loads(json.dumps(mic))
+    eid = sorted(tampered["entries"])[0]
+    tampered["entries"][eid]["text"] = tampered["entries"][eid]["text"].replace('"E3"', '"E1"', 1)
+    found = verify(tampered)
+    if not any("does not hash" in p for p in found):
+        bad(f"an edited entry passed verification: {found}")
+
+    relabelled = json.loads(json.dumps(mic))
+    relabelled["kb_version"] = "kbv-000000000000"
+    if not any("snapshot_hash" in p for p in verify(relabelled)):
+        bad("a copy claiming a different kb_version passed verification")
+
+    # the embedded text must parse back to what the store holds
+    loaded = load(mic)
+    live = {p.stem: json.loads(p.read_text()) for p in (KB / "entries").glob("*.json")}
+    if {e["entry_id"] for e in loaded["entries"].values()} != set(live):
+        bad("load() did not round-trip the store")
+    if loaded["tables"]["devices"]["schema_version"] != "0.1-provisional":
+        bad("the device table did not survive the round trip")
+
+    try:
+        build("envelope")
+        bad("published to something that is not an agent")
+    except ValueError:
+        pass
+
+    print("self-test: ok" if ok else "self-test: FAILED")
+    return 0 if ok else 1
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--check", action="store_true", help="fail if a published snapshot is stale")
+    ap.add_argument("--verify", type=Path, help="verify a snapshot file on its own terms")
+    ap.add_argument("--self-test", action="store_true")
+    args = ap.parse_args(argv)
+
+    if args.self_test:
+        return _self_test()
+    if args.verify:
+        problems = verify(json.loads(args.verify.read_text()))
+        for p in problems:
+            print(p)
+        print(f"{args.verify}: {'intact' if not problems else str(len(problems)) + ' problems'}")
+        return 1 if problems else 0
+    if args.check:
+        problems = check()
+        for p in problems:
+            print(p)
+        print("exports are current" if not problems else "exports are stale")
+        return 1 if problems else 0
+    for t in publish():
+        snap = json.loads(t.read_text())
+        print(f"wrote {t.name}: {snap['kb_version']}, {snap['entry_count']} entries, "
+              f"{len(snap['tables'])} tables")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
