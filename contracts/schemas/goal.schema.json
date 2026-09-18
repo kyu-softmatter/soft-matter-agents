@@ -99,6 +99,14 @@
         "type": "string"
       },
       "description": "Free-text limits from the human. Named apart from the interval lists elsewhere: same word, different kind of thing."
+    },
+    "sample_contrast": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/contrast"
+      },
+      "description": "What this sample offers, as a set. A configuration survives the contrast screen when its requires_contrast is one of these -- membership, not equality. A set because a fluorescent tracer still has refractive-index contrast and so provides both, which is why equality would drop brightfield from a fluorescent question. S3.0 can evaluate this before S3 runs, which none of the priority terms can (4.5.3)."
     }
   },
   "required": [

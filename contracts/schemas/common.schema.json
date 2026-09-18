@@ -457,6 +457,13 @@
         "numbers",
         "degraded"
       ]
+    },
+    "contrast": {
+      "enum": [
+        "label_free",
+        "fluorescence"
+      ],
+      "description": "What a sample provides and a configuration requires. One list, two readers: a goal's sample_contrast and a capability's requires_contrast. Declared once because two parsers of one vocabulary drift, and the one that drifts says something false without erroring (0.4-6)."
     }
   }
 }

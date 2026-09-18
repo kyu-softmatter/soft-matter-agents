@@ -133,11 +133,8 @@
           "description": "optional and normally omitted. The axis list is fixed and an axis that does not apply abstains (4.5.3); pruning axes here would drop a constraint where nothing records that it was dropped."
         },
         "requires_contrast": {
-          "enum": [
-            "label_free",
-            "fluorescence"
-          ],
-          "description": "What the sample has to provide for this configuration to see anything. S3.0 reads it as the discriminator for the goal's `contrast` priority, which is the one priority term it can evaluate before S3 runs (4.5.3). The fact was already in `label` as a sentence, where deterministic code could not reach it, and the fan-out cap went unresolved for want of it. An imaging configuration that omits it is not screened on contrast and the cap stays unresolved; a perturbation configuration produces nothing and needs none."
+          "$ref": "common.schema.json#/$defs/contrast",
+          "description": "What the sample has to provide for this configuration to see anything. A configuration survives the screen when this value is in the goal's sample_contrast: membership, not equality. Comparing with == drops brightfield from a fluorescent question, which leaves exactly three candidates against a cap of three -- a resolved cap and a fan-out at the ceiling, both produced by the comparison rather than by the instrument. A cut that appears for the wrong reason is worse than no cut. The fact was prose in `label`, where deterministic code could not reach it; a perturbation configuration produces nothing and needs none."
         }
       },
       "required": [

@@ -6,7 +6,7 @@
   "configurations": [
     {
       "config": "transmitted",
-      "label": "transmitted light, brightfield. Label-free: the tracers need no fluorophore, so there is nothing to bleach and nothing to excite",
+      "label": "transmitted light, brightfield. Nothing to bleach and nothing to excite",
       "role": "imaging",
       "optical_path": "transmitted",
       "devices": [
@@ -28,7 +28,7 @@
     },
     {
       "config": "widefield_inline",
-      "label": "widefield epi-fluorescence, inline source, patterned illumination available. The tracers must fluoresce",
+      "label": "widefield epi-fluorescence, inline source, patterned illumination available",
       "role": "imaging",
       "optical_path": "widefield_inline",
       "devices": [
@@ -52,7 +52,7 @@
     },
     {
       "config": "widefield_side",
-      "label": "widefield epi-fluorescence, side-coupled source, no patterning. The tracers must fluoresce",
+      "label": "widefield epi-fluorescence, side-coupled source, no patterning",
       "role": "imaging",
       "optical_path": "widefield_side",
       "devices": [
@@ -75,7 +75,7 @@
     },
     {
       "config": "confocal",
-      "label": "spinning-disk confocal, laser excitation. The tracers must fluoresce, and the exposure must be an integer multiple of the disk period or stripes remain (A1)",
+      "label": "spinning-disk confocal, laser excitation. The exposure must be an integer multiple of the disk period or stripes remain (A1)",
       "role": "imaging",
       "optical_path": "confocal",
       "devices": [
