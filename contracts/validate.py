@@ -2040,10 +2040,22 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
     by_email = {s["committer_email"]: s for s in reg.get("seats", [])}
     unknown_status = FAIL if reg.get("unknown_committer") == "refuse" else PENDING
 
-    def judge(email: str, paths: list[str], label: str = "") -> list[Finding]:
+    def judge(email: str, paths: list[str], label: str = "", merge: bool = False) -> list[Finding]:
         pre = f"{label}: " if label else ""
         seat = by_email.get(email)
         if seat is None:
+            # On a plain commit, report is partial coverage: check 35 still
+            # counts boundaries and the paths are visible. On a merge it is zero
+            # coverage -- check 35 does not decompose merges by design (6.2.1),
+            # so with no attribution nothing looks at what the merge itself
+            # contributed. The same policy means two different things, so the
+            # default splits. A person merging adopts human@seat.invalid for the
+            # one line it costs; merges are far rarer than commits.
+            if merge:
+                return [Finding(41, FAIL,
+                                f"{pre}a merge by {email!r}, which is not a seat in contracts/seats.json: "
+                                f"check 35 does not read merges, so these {len(paths)} paths the merge "
+                                f"contributed would be checked by nothing (6.2.1)")]
             return [Finding(41, unknown_status,
                             f"{pre}committer {email!r} is not a seat in contracts/seats.json, so these "
                             f"{len(paths)} paths carry no attribution")]
@@ -2101,7 +2113,7 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
             # attribute. That is an answer, not a gap.
             quiet_merges += 1 if merge else 0
             continue
-        found = judge(ce, paths, sha[:7])
+        found = judge(ce, paths, sha[:7], merge)
         out.extend(found) if found else None
         clean += 0 if found else 1
     if out:
