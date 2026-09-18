@@ -252,13 +252,46 @@ def apply_cap(result: Screening, goal: dict, by_id: dict[str, dict]) -> None:
     discriminator that would settle this case is not missing knowledge but a
     missing field: which contrast mechanism a configuration needs is written in
     prose in `label`, where deterministic code cannot read it.
+
+    Both halves of that field are contracts/, which this seat reads and does
+    not write: `contrast` on each configuration in capabilities/microscope.json,
+    and the sample's contrast on the goal card as `sample.contrast`. This
+    function reads them where they will be and stops while they are absent, so
+    it is correct before the schema declares them and after. Reading a field
+    that may not exist is not the same as inventing its value (P2).
     """
+    sample_contrast = (goal.get("sample") or {}).get("contrast")
     usable: list[str] = []
     for term in goal.get("priority", []) or []:
-        if term == "contrast" and all("contrast" in by_id[c.config] for c in result.candidates):
-            usable.append(term)          # honoured once capabilities declares it
-        else:
+        if term != "contrast":
             result.undiscriminating.append(term)
+            continue
+
+        # Two halves, and either one missing leaves the cap unresolved: which
+        # contrast a configuration requires, and which contrast the sample has.
+        declared = all("contrast" in by_id[c.config] for c in result.candidates)
+        if not declared or not sample_contrast:
+            result.undiscriminating.append(term)
+            continue
+
+        kept = [c for c in result.candidates
+                if by_id[c.config].get("contrast") == sample_contrast]
+
+        # A term counts as usable only if it actually cut the list to within
+        # the cap and left something. Saying otherwise was this function's
+        # earlier shape and it was worse than stopping: the cap read as
+        # resolved, every candidate survived, and to_configs handed fan_out
+        # more (candidate, axis) pairs than the ceiling allows -- so the stage
+        # raised instead of writing the record a person needs to read. A cut
+        # that empties the list is a stop rather than a refusal: a refusal is
+        # an answer about the instrument, and this is an answer about one
+        # priority term.
+        if not kept or len(kept) > result.cap:
+            result.undiscriminating.append(term)
+            continue
+
+        result.candidates = kept
+        usable.append(term)
     if not usable:
         result.cap_unresolved = True
 
@@ -438,10 +471,16 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    if result.refused:
-        record = to_refusal(result, goal, qid, created_at)
-    else:
-        record = to_configs(result, goal, qid)
+    try:
+        if result.refused:
+            record = to_refusal(result, goal, qid, created_at)
+        else:
+            record = to_configs(result, goal, qid)
+    except ScreeningError as exc:
+        # to_configs calls fan_out, which refuses to issue more sub-agents than
+        # the ceiling allows. That is the absence of a record, not a record.
+        print(f"S3.0 produced no record: {exc}", file=sys.stderr)
+        return 2
     blob = json.dumps(record, ensure_ascii=False, indent=2) + "\n"
 
     print(f"S3.0 {result.observable}: {len(result.candidates)} candidates, "
