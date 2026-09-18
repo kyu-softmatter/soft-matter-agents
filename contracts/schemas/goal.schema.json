@@ -100,6 +100,12 @@
       },
       "description": "Free-text limits from the human. Named apart from the interval lists elsewhere: same word, different kind of thing."
     },
+    "configuration_preference": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+      "description": "An ordered tie-break from the person, read by S3.0 ONLY when the cap is unresolved (4.5.1 branch c). It settles which of several capable configurations to spend the fan-out on. It never overrides a capability refusal: a preference naming a configuration the screen rejected, or one absent from the table, is recorded and refused rather than honoured, and screening stops at that entry instead of sliding to the next -- a card asking for a configuration the instrument cannot use is a card to fix, and quietly granting its second choice hides that. It is not evidence: it raises no grade, supports no number, is not an assumption with a falsifier, and S4 may not cite it."
+    },
     "sample_contrast": {
       "type": "array",
       "minItems": 1,
