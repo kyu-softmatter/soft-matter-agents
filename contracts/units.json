@@ -1,6 +1,7 @@
 {
   "schema_version": "0.1",
   "note": "Authoritative unit registry (P3: JSON wins over units.md). dim is the dimension vector: L length, T time, M mass, Th temperature, A angle, N count. si_factor converts the unit to SI base units.",
+  "offset_units": "The registry is multiplicative. si_factor and dim express a scale and a dimension, and neither can express an ORIGIN, so an offset unit -- Celsius, Fahrenheit -- cannot be registered here and no entry for one should be added: an offset unit does not survive the operations a multiplicative one does, and a degC that scaled like a K would be wrong silently. Temperature is carried in kelvin everywhere. The consequence worth writing down is not the absent unit but the absent provenance: a person says 20 C, a card stores 293 K, and nothing in the number records that the reading arrived in Celsius. That goes in the number's note, beside the rounding -- 293 rather than 293.15, because the exact conversion would claim five figures from a reading given to the nearest degree. Found 2026-09-17 while entering lab_ambient_temperature.",
   "units": {
     "1":       { "si_factor": 1.0,      "dim": {} },
     "count":   { "si_factor": 1.0,      "dim": { "N": 1 } },

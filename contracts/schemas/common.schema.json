@@ -131,6 +131,11 @@
         "gap_ref": {
           "type": "string",
           "description": "gap_id in kb_gaps: the librarian was asked and could not supply it (check 39). Required when the card reached the librarian at all; degraded says when it did not."
+        },
+        "authorised_by": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_[0-9]{8}$",
+          "description": "<person>_<yyyymmdd>, when a person directed that a value be carried past the range its source covers -- a curve's endpoint used for a wavelength beyond it, a spec read at one condition applied at another. It does NOT change the grade: being told to use a value is not evidence for it, and the moment an authorisation could lift E5 to E3 the grade scale becomes a permission scale and stops measuring anything. What it buys is the E5/E6 boundary. Once an extrapolation is written down as a number it looks identical whether a person directed it or a model invented it, and E5 may enter a card while E6 may enter nothing; without this field an auditor cannot tell them apart. A model may never fill it -- that would be a laundering path from E6 into a card. It belongs on the assumption and never on a KB entry: the entry says what is true at the condition its source covers, and who stretched it is a property of the plan that stretched it."
         }
       },
       "required": [
