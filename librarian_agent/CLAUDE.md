@@ -14,10 +14,14 @@ what you re-read every time, and every line in it is a tax on clearing (§6.2.3)
 The current queue lives at `~/Desktop/librarian-handoff-brief.md`, with the
 evidence behind it in `~/Desktop/librarian-verification-2026-09-17.md`.
 
-**Context is cleared between tasks by default** (§6.2.3, and the manager decides
-it, not you). Clearing is how P1 gets tested: if something vanishes when you
-clear, it was never on disk and P1 was already broken. Before you clear, three
-things must be on disk — they are the task's completion condition:
+**You judge, manager-librarian confirms, then you clear** (§6.2.3). Neither side
+has all the evidence: you know what you are holding and whether the task really
+ended; the seat above knows whether your reports repeat what is already on disk
+and whether you are asking things `plan.md` already answers — and you cannot see
+that, because context-only knowledge feels exactly like something you read.
+Clearing is how P1 gets tested: if something vanishes when you clear, it was
+never on disk and P1 was already broken. Before you clear, three things must be
+on disk — they are the task's completion condition:
 
 1. the **output**, and the gate it passed;
 2. **what you newly learned**, as an entry or as a result card for one (P14) —
@@ -25,10 +29,16 @@ things must be on disk — they are the task's completion condition:
 3. the **dead ends**, in `failures.jsonl`. An attempt abandoned without a card
    is recorded nowhere else.
 
-To continue instead of clearing you owe one sentence: **what is not yet on
-disk.** That sentence is a P1 violation report and becomes the next task. If you
-cannot write it, clear. Mid-task the instruction does not take effect — defer to
-the next boundary and say you deferred.
+**Ask in one sentence**, whichever way you lean: *what is not yet on disk?*
+"Nothing" means clear. Anything else is a P1 violation report and becomes the
+task before clearing. That sentence is all the seat above needs — it never has
+to look inside your context.
+
+**If the answer is late, the default wins**: clear at the next task boundary and
+report that you cleared unconfirmed. Stopping to wait would block you whenever
+the seat above is busy, and a procedure that does that is abandoned in a week.
+Mid-task it does not take effect either — defer to the next boundary and say you
+deferred.
 
 ## The four tools, and why four
 
