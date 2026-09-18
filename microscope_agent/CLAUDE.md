@@ -254,6 +254,14 @@ that escape Micro-Manager.
 | `laser_combiner` | `lunf_power.py` | its own driver, **not readable** |
 | cameras · `confocal_csuw1` · `dmd` · widefield | `config/micromanager/*.cfg` | Micro-Manager; no wrapper to write |
 
+**A plan names a channel or an element, and the orchestrator resolves which.**
+"Set the dia lamp" is the true statement; "set `stand_ti2e`" would lose which
+of that channel's ten elements was meant. Check 38 accepts both against the
+registry as of `f78d339`. `orchestrator.py` does **not** — `preflight` looks
+names up in `self.channels` only, so a plan naming `dia_lamp` or `nosepiece`
+raises `GapError` on a perfectly good card. Resolving element to channel is
+this layer's job and it is missing.
+
 **Two rules transfer, and both are P0-class.**
 
 **A return code is not a verification.** On the tweezers a `0` means the GUI
