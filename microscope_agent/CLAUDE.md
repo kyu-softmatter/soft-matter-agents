@@ -53,6 +53,43 @@ no gap detection, no conflict detection, no external search.
 accident of ordering. A degraded path nobody walks is a branch that stops
 working without anyone noticing.
 
+## Taking anything from the prior project
+
+`agentic-microscope` has two branches, `main` and `version2`. The operator
+asked for both, and attached the condition that makes it safe: **nothing is
+transplanted as it stands.** Anything that claimed more than it knew is
+trusted less here, and anything that does not help is dropped.
+
+**Read the difference between the branches before reading either branch.**
+What changed from `main` to `version2` is a record of what did not work the
+first time, and it is the one reading that gives the most while inheriting the
+least. A structure read whole is a structure adopted.
+
+**`plan.md` §10.2 says which rows are open.** Go and read it; it is not copied
+here, because two copies of a table drift and the drift is silent. A row is
+open when our counterpart is frozen, not when a milestone arrives.
+
+Every item that crosses is judged before it is written anywhere, into one of
+three:
+
+| | |
+|---|---|
+| **transfer** | It is a formula or a decision criterion that A1–A7 has a slot for. It is **rearranged into that slot**, not pasted. Numbers attached to it pass §10.3. |
+| **downgrade** | Useful, but stated over there with more confidence than its source carries. A bare assertion becomes E5 and gains a falsifier. A calibration constant with no `run_id` of ours is E3 at best (§10.3 rule 1). A value a model produced is E6 and **enters nothing** (P2). An action whose state cannot be read back here is not automated here, whatever it was there — it goes to a manual sheet and needs an individual approval (§4.6.6 rule 5, §6.1). |
+| **drop** | No slot in A1–A7; or it exists only as prose (§10.3 rule 3); or it is a safety limit, which never transfers at all (§10.3 rule 4). |
+
+**The discriminator: a transferred item names the A1–A7 slot it lands in and
+the §10.3 rule it passed.** An item that cannot name a slot is dropped. That
+is what "not transplanted as it stands" means in a form a reviewer can check,
+and it is why our decomposition has to be the thing that survives: an item
+that will not fit it does not come.
+
+One precedent, already caught: the prior project's `20.078x`. A nominal
+magnification wearing a value back-derived from a calibrated pixel size — a
+designation given a precision it never had. §5.3's nominal-designation rule
+now refuses it, and the device registry records why. Expect more of that
+shape, and downgrade rather than argue with it.
+
 ## The pipeline, in order
 
 S2 refines the question (LLM alone, **no numbers invented**) → S3.0 screens
