@@ -372,3 +372,20 @@ python3 contracts/validate.py
 
 Zero failures, and understand every UNDECIDED and PENDING line rather than
 reading past it. An unchosen threshold is not a satisfied threshold.
+
+**Commit under this seat's identity, read from `contracts/seats.json`.** This
+seat is `microscope`, and the row there gives the committer address. The
+author stays the person; only the committer is the seat, and check 41 reads
+it.
+
+```bash
+GIT_COMMITTER_NAME='seat:microscope' GIT_COMMITTER_EMAIL=microscope@seat.invalid git commit -F msg -- <paths>
+```
+
+**Do not put that in the repository's git config.** §6.2.3 prescribes writing
+it into a worktree's own config, and that prescription assumes D12's
+per-session worktrees, which do not exist yet -- `git worktree list` reports
+one shared checkout. An identity written there would be read by every other
+session as its own, and a simulation session committing as `seat:microscope`
+is worse than no attribution at all: check 41 would pass it. Set it per
+command until each session has its own worktree.
