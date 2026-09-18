@@ -1,0 +1,108 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-mic-20260917-001-r2",
+  "qid": "mic-20260917-001",
+  "thread": "solo-mic-20260917-001",
+  "round": 0,
+  "revision": 2,
+  "author": "microscope_agent",
+  "created_at": "2026-09-18T14:24:58Z",
+  "status": "VALIDATED",
+  "purpose": "screen",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_diffusivity",
+    "definition": "Short-time translational diffusion coefficient of dilute tracer spheres in the sample, read from the mean squared displacement of tracked centroids over lag times below the trap-free drift time."
+  },
+  "targets": [
+    {
+      "metric": "tracer_diffusivity",
+      "number": "target_decade_resolution",
+      "kind": "decade_resolution"
+    }
+  ],
+  "priority": [
+    "contrast",
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "sample_contrast": [
+    "label_free",
+    "fluorescence"
+  ],
+  "configuration_preference": [
+    "widefield_inline"
+  ],
+  "constraint_notes": [
+    "sample is consumed by the measurement and cannot be remounted",
+    "no calibration of the stage is available for this sample holder",
+    "The tracers are fluorescently labelled, so the sample offers both mechanisms: a labelled bead keeps its refractive-index contrast. Stated by the operator and recorded in microscope_agent/CLAUDE.md at 693ce13, authored by kyuhwan on 2026-09-17.",
+    "widefield_inline is the operator's tie-break, asked once under 4.5.1 branch (c) and recorded in the same commit. It is not evidence: it raises no grade, supports no number, is not an assumption with a falsifier, and S4 may not cite it.",
+    "sample_contrast and configuration_preference carry no source or grade, because goal.schema.json gives neither field a slot for one. Both are the operator's statements and the provenance is this prose until the contract can hold it; raised with the seat that owns contracts/.",
+    "The tracer diameter is not stated anywhere, so nothing here supplies it. It is recorded as a gap rather than assumed: A7 needs it for the Stokes drag and cannot have it from this card."
+  ],
+  "numbers": [
+    {
+      "name": "target_decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "source": "assumed:a_target",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "one decade is enough to tell whether the tracers are free or hindered"
+    },
+    {
+      "name": "snr_target",
+      "value": 5,
+      "unit": "count",
+      "source": "assumed:a_snr",
+      "grade": "E5",
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_target",
+      "statement": "Screening only needs to place the diffusivity within one decade; the question is which regime the sample is in, not what the coefficient is.",
+      "numbers": [
+        "target_decade_resolution"
+      ],
+      "falsifier": "if two candidate regimes fall inside the same decade, one decade is not enough and the goal must be restated"
+    },
+    {
+      "rationale_id": "a_snr",
+      "statement": "A centroid fit needs a signal to noise ratio of order five to keep the localisation error below a pixel; no measurement on this sample exists yet.",
+      "numbers": [
+        "snr_target"
+      ],
+      "falsifier": "a localisation error above one pixel at this signal to noise ratio retires the assumption"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "tracer_geometry",
+      "observable": "tracer_radius",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/entries/",
+        "librarian_agent/kb/staging/",
+        "microscope_agent/CLAUDE.md"
+      ],
+      "kb_version": "kbv-9bc3910f1886",
+      "nearest": [
+        {
+          "entry_id": "tau_d",
+          "overlap": "unconstrained"
+        }
+      ]
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "requested_by": "human"
+}

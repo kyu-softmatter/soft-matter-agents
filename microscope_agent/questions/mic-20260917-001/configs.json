@@ -8,31 +8,6 @@
   "cap": 3,
   "candidates": [
     {
-      "config": "confocal",
-      "optical_path": "confocal",
-      "devices": [
-        "stand_ti2e",
-        "confocal_csuw1",
-        "camera_red",
-        "camera_blue",
-        "laser_combiner"
-      ],
-      "composed_with": [],
-      "grounds": "declares 'tracer_diffusivity'"
-    },
-    {
-      "config": "transmitted",
-      "optical_path": "transmitted",
-      "devices": [
-        "stand_ti2e",
-        "confocal_csuw1",
-        "camera_red",
-        "camera_blue"
-      ],
-      "composed_with": [],
-      "grounds": "declares 'tracer_diffusivity'"
-    },
-    {
       "config": "widefield_inline",
       "optical_path": "widefield_inline",
       "devices": [
@@ -45,19 +20,6 @@
       ],
       "composed_with": [],
       "grounds": "declares 'tracer_diffusivity'"
-    },
-    {
-      "config": "widefield_side",
-      "optical_path": "widefield_side",
-      "devices": [
-        "stand_ti2e",
-        "confocal_csuw1",
-        "camera_red",
-        "camera_blue",
-        "widefield_source_b"
-      ],
-      "composed_with": [],
-      "grounds": "declares 'tracer_diffusivity'"
     }
   ],
   "rejected": [
@@ -66,17 +28,64 @@
       "reason": "perturbation: it drives the sample and produces no observable of its own"
     }
   ],
-  "cap_unresolved": true,
-  "cap_resolved_by": null,
-  "preference_honoured": null,
+  "cap_unresolved": false,
+  "cap_resolved_by": "preference",
+  "preference_honoured": "widefield_inline",
   "preference_refused": [],
   "priority_terms_not_evaluable_here": [
+    "contrast",
     "physical_feasibility",
     "target_accuracy",
     "evidence_grade",
     "cost"
   ],
-  "fan_out": [],
-  "degraded": [],
-  "screened_against": "contracts/capabilities/microscope.json and contracts/observables.json only; no lessons (P16)"
+  "fan_out": [
+    {
+      "caller_id": "mic-20260917-001:widefield_inline:a1",
+      "config": "widefield_inline",
+      "axis": "a1",
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "caller_id": "mic-20260917-001:widefield_inline:a2",
+      "config": "widefield_inline",
+      "axis": "a2",
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "caller_id": "mic-20260917-001:widefield_inline:a3",
+      "config": "widefield_inline",
+      "axis": "a3",
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "caller_id": "mic-20260917-001:widefield_inline:a4",
+      "config": "widefield_inline",
+      "axis": "a4",
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "caller_id": "mic-20260917-001:widefield_inline:a5",
+      "config": "widefield_inline",
+      "axis": "a5",
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "caller_id": "mic-20260917-001:widefield_inline:a6",
+      "config": "widefield_inline",
+      "axis": "a6",
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "caller_id": "mic-20260917-001:widefield_inline:a7",
+      "config": "widefield_inline",
+      "axis": "a7",
+      "kb_version": "kbv-9bc3910f1886"
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "screened_against": "contracts/capabilities/microscope.json and contracts/observables.json only; no lessons (P16)",
+  "preference_is_not_evidence": "a human tie-break settles which capable configuration to spend the fan-out on and justifies nothing in the plan: no grade, no number, not an assumption, and S4 may not cite it. The reason for this pick was not given, and none was invented (4.5.1 c)."
 }

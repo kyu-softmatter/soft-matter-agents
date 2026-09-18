@@ -97,6 +97,24 @@ def pin_kb_version() -> str | None:
         return None
 
 
+def librarian_service_available() -> bool:
+    """Whether the store was reached through the librarian, or read off disk.
+
+    False, and not by accident: the service is M3 and does not exist (4.3.0),
+    so everything this stage knows it read out of the store's own files. That
+    is the degraded path as 4.3.2 defines it -- no gap detection, no conflict
+    detection, no external search -- and `degraded` means exactly that, we do
+    not know what we missed.
+
+    This is the one line to change when the MCP server exists. Until then a
+    card claiming otherwise claims a pass that never happened: M1's completion
+    condition is one pass with the librarian **on**, with degraded empty (9.1),
+    and an empty list written while nothing was asked is that condition
+    reported as met.
+    """
+    return False
+
+
 def produced_ids(configuration: dict) -> dict[str, list[str]]:
     """Normalise `produces` to {observable_id: [compositions required]}.
 
@@ -233,7 +251,11 @@ def screen(goal: dict, capabilities: dict | None = None) -> Screening:
         ))
 
     result = Screening(observable, candidates, rejected, pin_kb_version(), cap)
-    if result.kb_version is None:
+    if not librarian_service_available():
+        # Keyed on a missing kb_version this said the opposite of the truth: a
+        # store that read fine left degraded empty, which is the claim that the
+        # librarian answered. A store that cannot be read at all is a different
+        # fact and stays visible as a null kb_version.
         result.degraded.append("librarian_agent")
     if len(candidates) > cap:
         apply_cap(result, goal, by_id)
