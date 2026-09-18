@@ -1,0 +1,125 @@
+{
+  "artifact": "screening",
+  "schema_version": "0.1",
+  "qid": "mic-20260917-001",
+  "stage": "S3.0",
+  "observable": "tracer_diffusivity",
+  "kb_version": "kbv-9bc3910f1886",
+  "cap": 3,
+  "candidates": [
+    {
+      "config": "confocal",
+      "optical_path": "confocal",
+      "devices": [
+        "stand_ti2e",
+        "confocal_csuw1",
+        "camera_red",
+        "camera_blue",
+        "laser_combiner"
+      ],
+      "composed_with": [],
+      "grounds": "declares 'tracer_diffusivity'"
+    },
+    {
+      "config": "transmitted",
+      "optical_path": "transmitted",
+      "devices": [
+        "stand_ti2e",
+        "confocal_csuw1",
+        "camera_red",
+        "camera_blue"
+      ],
+      "composed_with": [],
+      "grounds": "declares 'tracer_diffusivity'"
+    },
+    {
+      "config": "widefield_inline",
+      "optical_path": "widefield_inline",
+      "devices": [
+        "stand_ti2e",
+        "confocal_csuw1",
+        "camera_red",
+        "camera_blue",
+        "widefield_source_a",
+        "dmd"
+      ],
+      "composed_with": [],
+      "grounds": "declares 'tracer_diffusivity'"
+    },
+    {
+      "config": "widefield_side",
+      "optical_path": "widefield_side",
+      "devices": [
+        "stand_ti2e",
+        "confocal_csuw1",
+        "camera_red",
+        "camera_blue",
+        "widefield_source_b"
+      ],
+      "composed_with": [],
+      "grounds": "declares 'tracer_diffusivity'"
+    }
+  ],
+  "rejected": [
+    {
+      "config": "trapping",
+      "reason": "perturbation: it drives the sample and produces no observable of its own"
+    }
+  ],
+  "cap_unresolved": true,
+  "cap_resolved_by": null,
+  "preference_honoured": null,
+  "preference_refused": [],
+  "priority_terms_not_evaluable_here": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "fan_out": [
+    {
+      "caller_id": "mic-20260917-001:transmitted:a1",
+      "config": "transmitted",
+      "axis": "a1",
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "caller_id": "mic-20260917-001:transmitted:a2",
+      "config": "transmitted",
+      "axis": "a2",
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "caller_id": "mic-20260917-001:transmitted:a3",
+      "config": "transmitted",
+      "axis": "a3",
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "caller_id": "mic-20260917-001:transmitted:a4",
+      "config": "transmitted",
+      "axis": "a4",
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "caller_id": "mic-20260917-001:transmitted:a5",
+      "config": "transmitted",
+      "axis": "a5",
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "caller_id": "mic-20260917-001:transmitted:a6",
+      "config": "transmitted",
+      "axis": "a6",
+      "kb_version": "kbv-9bc3910f1886"
+    },
+    {
+      "caller_id": "mic-20260917-001:transmitted:a7",
+      "config": "transmitted",
+      "axis": "a7",
+      "kb_version": "kbv-9bc3910f1886"
+    }
+  ],
+  "degraded": [],
+  "screened_against": "contracts/capabilities/microscope.json and contracts/observables.json only; no lessons (P16)"
+}

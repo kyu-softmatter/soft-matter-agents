@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "screening.schema.json",
+  "title": "questions/<qid>/configs.json — what S3.0 kept, and what it refused to decide (4.5.3)",
+  "description": "Not a card: the screen's own record. Derived from what microscope_agent/src/screening.py already writes, not invented beside it. Until this existed the file carried neither `card` nor `artifact`, so the collector skipped it and the stage that decides how much compute a question costs left a record nobody checked. It also drops the `unvalidated` note that file carries: the note says no schema is registered, and this is that schema. Two invariants are the reason this is a schema and not a description -- an unresolved cap must not emit a fan-out, and a cap resolved by a person's preference must say that a preference is not evidence. Both were live defects before they were rules.",
+  "type": "object",
+  "properties": {
+    "artifact": { "const": "screening" },
+    "schema_version": { "const": "0.1" },
+
+    "qid": { "type": "string", "pattern": "^(mic|sim)-[0-9]{8}-[0-9]{3}$" },
+    "stage": { "const": "S3.0" },
+    "observable": {
+      "type": "string",
+      "description": "an id in contracts/observables.json. A name outside the vocabulary never reaches this record -- the screen refuses first (4.5)"
+    },
+    "kb_version": {
+      "type": ["string", "null"],
+      "description": "pinned here for the whole fan-out, so siblings read one store (4.3.1). null means no store was reachable, and `degraded` then says so"
+    },
+    "cap": { "type": "integer", "minimum": 1 },
+
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "config": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "optical_path": { "type": ["string", "null"] },
+          "devices": { "type": "array", "items": { "type": "string" } },
+          "composed_with": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "perturbation configurations this one rides with. A trap puts no light on a detector, so an observable needing one is produced by the imaging configuration it is composed onto (4.5.3)"
+          },
+          "grounds": { "type": "string", "minLength": 1 }
+        },
+        "required": ["config", "devices", "composed_with", "grounds"],
+        "additionalProperties": false
+      }
+    },
+    "rejected": {
+      "type": "array",
+      "description": "kept rather than dropped: a configuration that was never a candidate and one that was refused are different facts, and only the second leaves a reason (P1)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "config": { "type": "string" },
+          "reason": { "type": "string", "minLength": 1 }
+        },
+        "required": ["config", "reason"],
+        "additionalProperties": false
+      }
+    },
+
+    "cap_unresolved": { "type": "boolean" },
+    "cap_resolved_by": {
+      "enum": [null, "discriminator", "preference"],
+      "description": "how the cap was met. The outcome looks the same either way -- one configuration, a fan-out, a plan -- and they are not the same event. Flattening both into `resolved` makes 'how often could the screen not discriminate on its own' unrecoverable (M5)"
+    },
+    "preference_honoured": {
+      "type": ["string", "null"],
+      "description": "the configuration a person's tie-break selected, read only when the cap was unresolved (4.5.1 c)"
+    },
+    "preference_refused": {
+      "type": "array",
+      "description": "preference entries that named something the screen had rejected, or that the table does not hold. A preference never overrides a capability refusal, and screening stops at the entry rather than sliding to the next",
+      "items": {
+        "type": "object",
+        "properties": {
+          "config": { "type": "string" },
+          "reason": { "type": "string", "minLength": 1 }
+        },
+        "required": ["config", "reason"],
+        "additionalProperties": false
+      }
+    },
+    "priority_terms_not_evaluable_here": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "goal priorities that need numbers S3 produces, and so cannot cut the list that decides whether S3 runs (4.5.3)"
+    },
+    "preference_is_not_evidence": { "type": "string", "minLength": 40 },
+
+    "fan_out": {
+      "type": "array",
+      "description": "one sub-agent per (candidate, axis). The ids are issued here because a sub-agent that chose its own could impersonate a sibling's (4.3.1 rule 3)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "caller_id": { "type": "string", "pattern": "^(mic|sim)-[0-9]{8}-[0-9]{3}:[a-z0-9_]+:a[1-7]$" },
+          "config": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "axis": { "pattern": "^a[1-7]$" },
+          "kb_version": { "type": ["string", "null"] }
+        },
+        "required": ["caller_id", "config", "axis", "kb_version"],
+        "additionalProperties": false
+      }
+    },
+
+    "degraded": { "type": "array", "items": { "type": "string" } },
+    "screened_against": { "type": "string", "minLength": 1 }
+  },
+  "required": [
+    "artifact", "schema_version", "qid", "stage", "observable", "kb_version",
+    "cap", "candidates", "rejected", "cap_unresolved", "cap_resolved_by",
+    "fan_out", "degraded", "screened_against"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "cap_unresolved": { "const": true } }, "required": ["cap_unresolved"] },
+      "then": {
+        "properties": { "fan_out": { "maxItems": 0 } },
+        "description": "An unresolved cap emits nothing. The defect this prevents already happened: a discriminator was counted as usable without cutting, the cap read as resolved, and the fan-out went out over the sub-agent ceiling."
+      }
+    },
+    {
+      "if": { "properties": { "cap_resolved_by": { "const": "preference" } }, "required": ["cap_resolved_by"] },
+      "then": {
+        "required": ["preference_is_not_evidence", "preference_honoured"],
+        "description": "A human tie-break settles which capable configuration to spend the fan-out on and justifies nothing in the plan. The record has to carry that sentence, because the next reader sees only one configuration and a plan."
+      }
+    }
+  ]
+}

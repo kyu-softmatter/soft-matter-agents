@@ -182,6 +182,7 @@ CARD_SCHEMA = {
 ARTIFACT_SCHEMA = {
     "thread_status": "thread_status.schema.json",
     "round_hashes": "round_hashes.schema.json",
+    "screening": "screening.schema.json",
     "run_log": "run_log.schema.json",
 }
 
