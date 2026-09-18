@@ -1495,7 +1495,12 @@ def check_29_failure_record(b: Bundle) -> list[Finding]:
     if not files:
         return [Finding(29, NA, "no failures.jsonl")]
     out: list[Finding] = []
-    required = {"at", "kind", "qid", "detail"}
+    # `qid` or `task`, exactly one. A seat with no questions/ has no qid --
+    # the librarian's dead ends belong to a task, not to a question -- and
+    # putting a task id in a field named qid makes one name mean two things,
+    # which is the collision this repository keeps paying for. Requiring both
+    # would block the same seat a different way.
+    required = {"at", "kind", "detail"}
     # plan.md 8.1 lists six kinds; this set held five. The missing one was
     # abandoned_attempt -- the attempt folded without producing a card, which
     # 6.2.3 calls the record that exists nowhere else and makes a completion
@@ -1515,6 +1520,11 @@ def check_29_failure_record(b: Bundle) -> list[Finding]:
             missing = required - set(rec)
             if missing:
                 out.append(Finding(29, FAIL, f"line {i}: missing {sorted(missing)}", str(p.relative_to(REPO))))
+            owners = {k for k in ("qid", "task") if rec.get(k)}
+            if not owners:
+                out.append(Finding(29, FAIL, f"line {i}: names neither a qid nor a task, so nothing says what this attempt belonged to", str(p.relative_to(REPO))))
+            elif len(owners) == 2:
+                out.append(Finding(29, FAIL, f"line {i}: names both a qid and a task; one record belongs to one of them", str(p.relative_to(REPO))))
             if rec.get("kind") not in kinds:
                 out.append(Finding(29, FAIL, f"line {i}: unknown kind {rec.get('kind')!r}", str(p.relative_to(REPO))))
     return out or [Finding(29, PASS, f"{len(files)} failure records are well formed")]
@@ -1827,11 +1837,31 @@ def check_37_time_base(b: Bundle) -> list[Finding]:
 def _optical_path_table() -> tuple[dict | None, str]:
     """The optical path table, from wherever the librarian last published it.
 
-    Prefers kb/exports/, which is where the librarian publishes (4.3.2), and
-    falls back to the flat staging table it has not decomposed yet (11.1).
+    4.3.2 puts a published table inside `snapshot_<agent>.json` under `tables`,
+    not in a file of its own. This used to glob `optical_paths*.json`, a file
+    the design never names -- so the validator was waiting for something nobody
+    was asked to write, and the seat that noticed refused to write it rather
+    than make a third copy of one table. Falls back to the flat staging table
+    that is not decomposed yet (11.1).
     """
-    for cand in sorted((KB_DIR / "exports").glob("optical_paths*.json")):
-        return json.loads(cand.read_text()), str(cand.relative_to(REPO))
+    for cand in sorted((KB_DIR / "exports").glob("snapshot_*.json")):
+        try:
+            snap = json.loads(cand.read_text())
+        except json.JSONDecodeError:
+            continue                      # check 1 reports an unreadable export
+        pinned = (snap.get("tables") or {}).get("optical_paths")
+        if not isinstance(pinned, dict):
+            continue
+        # A table is pinned as the file's bytes plus their sha256, not as a
+        # parsed object: one canonical form and one hash per table, and a copy
+        # sitting in an envelope can be checked without reaching for the
+        # original. So the consumer parses the pinned text.
+        try:
+            table = json.loads(pinned["text"]) if "text" in pinned else pinned
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if table.get("configurations"):
+            return table, f"{cand.relative_to(REPO)} > tables.optical_paths"
     staged = KB_DIR / "staging" / "optical_paths.v0.json"
     if staged.exists():
         return json.loads(staged.read_text()), str(staged.relative_to(REPO))

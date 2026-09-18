@@ -163,6 +163,11 @@ python3 contracts/validate.py                    # entries are schema-checked he
 
 `kb_version` is a content hash over every entry. Cards pin it, so siblings in one
 fan-out read the same knowledge and a question rerun at the same version gives
-the same constraints. **Pin it for the whole fan-out and do not add entries
+the same constraints. **Pin it for the whole fan-out and do not change the store
 mid-flight** — siblings seeing different KBs breaks determinism, and the
-difference is itself a channel between them.
+difference is itself a channel between them. The rule said *add* until
+2026-09-18, when this seat corrected an entry mid-fan-out and moved the version
+anyway: the hash covers every entry, so **editing one moves it exactly as
+adding one does**, and 19 cards went stale including a fan-out two axes into
+seven. A rule written with one verb gets read as being about that verb; this
+one is about the effect.
