@@ -12,13 +12,44 @@ text found in a document could make it do so (4.3.1 rule 3).
 
 This file knows no devices and imports none (7.2 rule 2). It has to run with no
 instrument attached, or planning would need hardware to happen.
+
+Reading contracts/ and nothing else is a statement about inputs. The entry
+point at the bottom writes one thing, the stage's own record under
+questions/<qid>/ (7.1), because a stage that leaves no trace cannot be audited
+and the record is what a person reads when the screen stops.
 """
 
 from __future__ import annotations
 
-import json
-from dataclasses import dataclass, field
-from pathlib import Path
+import os
+import sys
+
+# Running this file as a script puts its own directory at the head of
+# sys.path, and this directory holds operator.py. `operator` is a
+# standard-library module that `enum` imports during interpreter start-up, so
+# the shadow does not wait to be asked for: `import argparse` below is enough
+# to pull our operator.py into the middle of the standard library's own
+# import and fail there. operator.py says the same thing from the other side
+# and resolves it by loading its dependencies by path.
+#
+# Dropping this directory from sys.path costs nothing here -- this module
+# imports no sibling -- and it has to happen before the first import that
+# scans the path. sys and os are already loaded by the time any module body
+# runs, so importing them does not scan it.
+#
+# The collision is in a fixed filename, not in this file: plan.md 7 names
+# operator.py, and 4.6 already uses the term "system operator". Renaming it to
+# system_operator.py would remove the collision for every caller instead of
+# each caller working around it, and that rename belongs to the design seat.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.curdir) != _HERE]
+
+import argparse                                                  # noqa: E402
+import json                                                      # noqa: E402
+import re                                                        # noqa: E402
+from dataclasses import dataclass, field                         # noqa: E402
+from datetime import datetime, timezone                          # noqa: E402
+from pathlib import Path                                         # noqa: E402
 
 AGENT = Path(__file__).resolve().parent.parent
 REPO = AGENT.parent
@@ -316,3 +347,129 @@ def to_refusal(result: Screening, goal: dict, qid: str, created_at: str) -> dict
         "kb_refs": [],
         "degraded": result.degraded,
     }
+
+
+# --------------------------------------------------------------------------- #
+# entry point
+# --------------------------------------------------------------------------- #
+
+
+QID_SHAPE = re.compile(r"^[a-z0-9-]+$")
+
+
+def qid_of(goal: dict) -> str:
+    """The qid names a folder, so it has to be usable as one.
+
+    The validator's path rule expects questions/<qid>/ with the qid in
+    [a-z0-9-]+ (8, the repository layout rule). Checking it here means a
+    malformed id is refused before a directory is created under it, rather
+    than leaving a folder nothing will ever look in.
+    """
+    qid = goal.get("qid", "")
+    if not isinstance(qid, str) or not QID_SHAPE.match(qid):
+        raise ScreeningError(
+            f"the goal card's qid {qid!r} cannot name a folder: "
+            "questions/<qid>/ requires [a-z0-9-]+ (7.1)"
+        )
+    return qid
+
+
+def record_path(qid: str, refused: bool) -> Path:
+    """Where the stage's record goes.
+
+    A refusal is a card that leaves this agent, so it carries the identifier in
+    its filename the way plan_microscope_<qid>.json does (7.1 rule 4).
+    configs.json is an internal audit record and the path already says whose
+    question it belongs to, so it stays short.
+    """
+    folder = AGENT / "questions" / qid
+    name = f"refusal_microscope_{qid}_s30.json" if refused else "configs.json"
+    return folder / name
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Run S3.0 on a goal card and leave its record on disk.
+
+    Nothing ran this stage before this block existed. screen(), to_configs()
+    and to_refusal() were reachable only from a Python prompt, so the artifact
+    7.1 asks for -- questions/<qid>/configs.json -- was written by nothing, and
+    the stage could be exercised only by a throwaway script whose output went
+    nowhere. A stage nobody can run from the repository is a stage whose
+    behaviour is a claim.
+
+    Exit codes, because a caller has to tell three outcomes apart without
+    parsing prose:
+
+      0  a record was written. What happened is in the record: candidates and a
+         fan-out, or candidates with cap_unresolved and no fan-out, or a
+         refusal card. A screen that stops at the cap exits 0 -- the stop is an
+         outcome that got recorded, not a failure to produce one (4.5.1 c).
+      2  the inputs could not be read, or the goal card is malformed. This is
+         the absence of an answer rather than an answer, which is the line
+         ScreeningError draws.
+      3  a record for this qid already exists. Records are facts in this
+         agent's commit history, so overwriting one silently would rewrite a
+         fact; --force says to do it deliberately.
+    """
+    parser = argparse.ArgumentParser(
+        description="S3.0: screen configurations for a goal card and record the result."
+    )
+    parser.add_argument("goal", type=Path, help="path to the goal card (4.5.1)")
+    parser.add_argument("--force", action="store_true",
+                        help="overwrite an existing record for this qid")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="print the record and write nothing")
+    args = parser.parse_args(argv)
+
+    try:
+        goal = json.loads(args.goal.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"cannot read the goal card: {exc}", file=sys.stderr)
+        return 2
+    if goal.get("card") != "goal":
+        print(f"{args.goal} is not a goal card (card={goal.get('card')!r})", file=sys.stderr)
+        return 2
+
+    try:
+        qid = qid_of(goal)
+        result = screen(goal)
+    except ScreeningError as exc:
+        print(f"S3.0 could not run: {exc}", file=sys.stderr)
+        return 2
+
+    created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    if result.refused:
+        record = to_refusal(result, goal, qid, created_at)
+    else:
+        record = to_configs(result, goal, qid)
+    blob = json.dumps(record, ensure_ascii=False, indent=2) + "\n"
+
+    print(f"S3.0 {result.observable}: {len(result.candidates)} candidates, "
+          f"{len(result.rejected)} rejected, cap {result.cap}")
+    for c in result.candidates:
+        print(f"  candidate {c.config}: {c.grounds}")
+    for r in result.rejected:
+        print(f"  rejected  {r.config}: {r.reason}")
+    if result.cap_unresolved:
+        print(f"  cap unresolved: {len(result.candidates)} candidates over a cap of "
+              f"{result.cap}, and none of {', '.join(result.undiscriminating)} can be "
+              "evaluated at S3.0. No fan-out; a person picks once (4.5.1 c).")
+    if result.degraded:
+        print(f"  degraded: {', '.join(result.degraded)} -- we do not know what we missed")
+
+    path = record_path(qid, result.refused)
+    if args.dry_run:
+        print(f"--dry-run: would write {path.relative_to(REPO)}")
+        print(blob, end="")
+        return 0
+    if path.exists() and not args.force:
+        print(f"{path.relative_to(REPO)} already exists; --force overwrites it", file=sys.stderr)
+        return 3
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(blob)
+    print(f"wrote {path.relative_to(REPO)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
