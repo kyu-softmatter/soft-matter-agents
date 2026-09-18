@@ -1,7 +1,7 @@
 {
   "schema_version": "0.1",
   "note": "Which committer identity owns which paths (plan.md 6.2.1). git records no session, so a seat declares itself: the committer is the seat and the author stays the person. Read by check 41.",
-  "adopt": "Prefix the commit with the seat's identity. Only the committer is overridden, so the author stays whoever the person is: GIT_COMMITTER_NAME='seat:design' GIT_COMMITTER_EMAIL=design@seat.invalid git commit -m ...",
+  "adopt": "Prefix the commit with the seat's identity. Only the committer is overridden, so the author stays whoever the person is: GIT_COMMITTER_NAME='seat:design' GIT_COMMITTER_EMAIL=design@seat.invalid git commit -m ... . Record the same pair in the worktree's own git config as committer.name and committer.email -- git does not read those keys, so they change nothing by themselves, but a session whose context was cleared can then read its own seat off disk instead of being re-seated by hand (6.2.3). Without that, every context reset silently downgrades the next commit to the person's identity and check 41 reports it as unattributed.",
   "addresses": "seat.invalid is reserved by RFC 2606 and can never route. A seat identity is a label, not a mailbox.",
   "boundaries": "owns holds boundary names as check 41 derives them from the path, using the same table check 35 counts: design, microscope_agent, simulation_agent, librarian_agent, bridge. An agent's CLAUDE.md and .claude/ are the design seat's, and so is all of contracts/.",
   "unknown_committer": "report",
