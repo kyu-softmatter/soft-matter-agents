@@ -1,11 +1,11 @@
 {
   "card": "goal",
   "schema_version": "0.1",
-  "id": "goal-mic-20260917-001-r2",
+  "id": "goal-mic-20260917-001-r3",
   "qid": "mic-20260917-001",
   "thread": "solo-mic-20260917-001",
   "round": 0,
-  "revision": 2,
+  "revision": 3,
   "author": "microscope_agent",
   "created_at": "2026-09-18T14:24:58Z",
   "status": "VALIDATED",
@@ -39,10 +39,7 @@
   "constraint_notes": [
     "sample is consumed by the measurement and cannot be remounted",
     "no calibration of the stage is available for this sample holder",
-    "The tracers are fluorescently labelled, so the sample offers both mechanisms: a labelled bead keeps its refractive-index contrast. Stated by the operator and recorded in microscope_agent/CLAUDE.md at 693ce13, authored by kyuhwan on 2026-09-17.",
-    "widefield_inline is the operator's tie-break, asked once under 4.5.1 branch (c) and recorded in the same commit. It is not evidence: it raises no grade, supports no number, is not an assumption with a falsifier, and S4 may not cite it.",
-    "sample_contrast and configuration_preference carry no source or grade, because goal.schema.json gives neither field a slot for one. Both are the operator's statements and the provenance is this prose until the contract can hold it; raised with the seat that owns contracts/.",
-    "The tracer diameter is not stated anywhere, so nothing here supplies it. It is recorded as a gap rather than assumed: A7 needs it for the Stokes drag and cannot have it from this card."
+    "The tracer diameter is stated nowhere, so this card does not supply it; it is kb_gap tracer_geometry. A7 needs it for the Stokes drag and cannot have it from here."
   ],
   "numbers": [
     {
@@ -104,5 +101,13 @@
   "degraded": [
     "librarian_agent"
   ],
-  "requested_by": "human"
+  "requested_by": "human",
+  "sample_contrast_provenance": {
+    "source": "operator_recall:kyuhwan_20260917",
+    "grade": "E5"
+  },
+  "configuration_preference_by": {
+    "who": "kyuhwan",
+    "at": "2026-09-17T21:07:15-07:00"
+  }
 }
