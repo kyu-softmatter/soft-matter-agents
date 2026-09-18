@@ -1,11 +1,11 @@
 {
   "card": "goal",
   "schema_version": "0.1",
-  "id": "goal-mic-20260917-001-r4",
-  "qid": "mic-20260917-001",
-  "thread": "solo-mic-20260917-001",
+  "id": "goal-mic-20260918-001-r5",
+  "qid": "mic-20260918-001",
+  "thread": "solo-mic-20260918-001",
   "round": 0,
-  "revision": 4,
+  "revision": 5,
   "author": "microscope_agent",
   "created_at": "2026-09-18T14:24:58Z",
   "status": "VALIDATED",
@@ -39,7 +39,8 @@
   "constraint_notes": [
     "sample is consumed by the measurement and cannot be remounted",
     "no calibration of the stage is available for this sample holder",
-    "The tracer diameter is here as a number now, but it is still kb_gap tracer_geometry: it is knowledge and belongs in the librarian's store as an entry (P14), not only on this card."
+    "The tracer diameter is here as a number now, but it is still kb_gap tracer_geometry: it is knowledge and belongs in the librarian's store as an entry (P14), not only on this card.",
+    "Renumbered from mic-20260917-001 on 2026-09-18. contracts/examples/ uses that qid for eleven fixtures, two of them a human-signed plan_approval and a result, so the fixtures cannot move and a real question sharing the id made siblings of two unrelated sets: check 33 caught it as axis cards citing two kb_versions under one qid. Revisions 1 to 4 are under the old qid in this agent's history."
   ],
   "numbers": [
     {

@@ -171,6 +171,22 @@ def kb_version() -> str | None:
         return None
 
 
+def kb_ref(entry_id: str, version: str | None) -> dict:
+    """A reference carries the grade the store gave it, and never a better one.
+
+    Check 21 is the rule and this is the one place to get it right: the grade is
+    read out of the entry rather than restated here, so a card cannot quietly
+    promote what it cites.
+    """
+    entry = kb_entry(entry_id) or {}
+    return {
+        "entry_id": entry_id,
+        "grade": entry.get("grade"),
+        "kb_version": version,
+        "claim": (entry.get("claim") or "")[:200],
+    }
+
+
 def goal_number(goal: dict, name: str) -> dict | None:
     return next((n for n in goal.get("numbers", []) if n.get("name") == name), None)
 
@@ -307,11 +323,11 @@ def evaluate(goal: dict, config: str, caller_id: str) -> AxisRun:
         radius_m = diameter["value"] * 1e-6 / 2
         if eta is not None:
             gamma = stokes_drag(eta, radius_m)
-            run.kb_refs.append("kb:water_viscosity_293k")
+            run.kb_refs.append(kb_ref("water_viscosity_293k", run.kb_version))
             window = (viscosity.get("validity") or {}).get("temperature") or {}
             if ambient:
-                run.kb_refs.append("kb:lab_ambient_temperature")
-                run.kb_refs.append("kb:sample_temperature_not_actuated")
+                run.kb_refs.append(kb_ref("lab_ambient_temperature", run.kb_version))
+                run.kb_refs.append(kb_ref("sample_temperature_not_actuated", run.kb_version))
                 run.notes.append(
                     f"The viscosity holds between {window.get('min')} and {window.get('max')} "
                     f"{window.get('unit')} and the laboratory reads 293 K, so the value is used "
@@ -319,13 +335,36 @@ def evaluate(goal: dict, config: str, caller_id: str) -> AxisRun:
                     "actuated here, so the ambient reading is the best statement of it, and that "
                     "is a claim about the room rather than about the sample."
                 )
-            run.notes.append(
-                f"Stokes drag, unbounded medium: 6*pi*eta*a = {gamma:.2e} N*s/m "
-                f"({gamma * 1e6:.3f} pN*s/um), one significant figure at 5e-8 N*s/m. It is in "
-                "prose and not in numbers[] because units.json registers no unit of drag -- "
-                "neither N*s/m nor pN*s/um -- and a number's unit has to be in that registry. "
-                "Requested from the seat that owns contracts/."
-            )
+            # Carried so the computed number's inputs resolve inside this card.
+            # Neither grade improves on its way here (check 21): the store's E3
+            # stays E3 and the operator's recall stays E5.
+            run.numbers.append({
+                "name": "viscosity", "value": eta, "unit": "Pa*s",
+                "source": "kb:water_viscosity_293k", "grade": "E3",
+                "precision": "order_of_magnitude",
+                "note": "the entry states it as of order one mPa*s, so one figure is all of it",
+            })
+            run.numbers.append(dict(diameter))
+            run.numbers.append({
+                "name": "stokes_drag",
+                "symbol": "gamma_drag",
+                "derived": True,
+                "value": float(f"{gamma:.0e}"),
+                "unit": "N*s/m",
+                "source": "computed:stokes_drag",
+                "grade": "E5",
+                "precision": "order_of_magnitude",
+                "formula": "3*pi*viscosity*tracer_diameter",
+                "inputs": ["viscosity", "tracer_diameter"],
+                "note": f"6*pi*eta*a with a = d/2, written on the diameter so no radius has to be "
+                        f"invented as an intermediate. Unrounded it is {gamma:.3e} N*s/m "
+                        f"({gamma * 1e6:.4f} pN*s/um); the value carries one figure because the "
+                        "diameter is a nominal designation at E5 and a computed number inherits "
+                        "the worst precision of its inputs (5.8). The symbol is gamma_drag and "
+                        "not gamma on purpose: simulation's A7 owns shear rate (4.5.3), one "
+                        "symbol has to mean one formula across both agents (5.7, check 36), and "
+                        "the bridge compares the two A7 cards side by side.",
+            })
             run.notes.append(
                 "That drag is the unbounded-medium value and it is biased low near the "
                 "coverslip. Faxen parallel to a wall gives +16.4% at a = 2.5 um and h = 10 um "
@@ -335,7 +374,12 @@ def evaluate(goal: dict, config: str, caller_id: str) -> AxisRun:
                 "is also why correcting by formula buys little next to a calibration in situ, "
                 "where a measured corner frequency returns kappa and the wall-corrected drag "
                 "together. h is not stated anywhere, so +16.4% stands on h = 10 um and nothing "
-                "else."
+                "else. That argument has a condition and does not outlive it: it holds while "
+                "this question is in explore mode, where 5.8 claims one figure and differences "
+                "under 10x are ties. In confirm mode a 16% bias is inside what the answer "
+                "claims, and calibrating in situ stops being the cheaper route and becomes the "
+                "only correct one. Whoever reads this later should not carry away '16% is "
+                "ignorable' without the mode it was ignorable in."
             )
 
     absent = {
