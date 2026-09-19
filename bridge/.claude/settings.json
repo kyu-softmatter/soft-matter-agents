@@ -1,7 +1,16 @@
 {
-  "$comment": "Session boundary for the bridge (plan.md 6.2). READ THE NEXT TWO COMMENTS BEFORE TRUSTING THIS FILE: as of 2026-09-19 the deny list enforces nothing for a session rooted at bridge/, and what has actually held this boundary all day is the commit gate (checks 35 and 41) and the seat reading its own rules.",
+  "$comment": "Session boundary for the bridge (plan.md 6.2). What enforces the boundary is the commit gate, checks 35 and 41; this file states it, and only part of it is enforced at write time. Read the three comments in permissions before trusting any single line: the entries are in three groups and they do not all do the same amount.",
   "permissions": {
     "deny": [
+      "Write(CLAUDE.md)",
+      "Edit(CLAUDE.md)",
+      "Write(README.md)",
+      "Edit(README.md)",
+      "Write(tasks/**)",
+      "Edit(tasks/**)",
+      "Write(.claude/**)",
+      "Edit(.claude/**)",
+      "Bash(python3*hardware*)",
       "Write(microscope_agent/**)",
       "Edit(microscope_agent/**)",
       "Write(simulation_agent/**)",
@@ -12,11 +21,13 @@
       "Edit(contracts/**)",
       "Write(plan.md)",
       "Edit(plan.md)",
-      "Bash(python3*hardware*)",
       "Write(*/runs/**)",
       "Edit(*/runs/**)"
     ],
-    "$comment": "INERT FROM AN AGENT-ROOTED SESSION, and wrong if it ever resolves. A path pattern resolves against the session's root, which for this seat is bridge/ -- so Write(microscope_agent/**) means bridge/microscope_agent/**, a path that cannot exist, and every sibling-naming entry below is the same. That is the defect class section 7 documents at length for .mcp.json: the interpretation point must not be the session's cwd. An absolute path is not the fix either, for the reason given there -- it is the same string in every worktree. Kept because it is correct for a session rooted at the repository root, and because deleting it would remove the statement of intent. Note the second problem if it ever does resolve: Write(microscope_agent/**) would block the one write outside bridge/ this seat is required to make -- the delivery into <agent>/inbox/ that 7.1 rule 8 mandates."
+    "$comment": "INERT FROM AN AGENT-ROOTED SESSION, and wrong if it ever resolves. A path pattern resolves against the session's root, which for this seat is bridge/ -- so Write(microscope_agent/**) means bridge/microscope_agent/**, a path that cannot exist, and every sibling-naming entry below is the same. That is the defect class section 7 documents at length for .mcp.json: the interpretation point must not be the session's cwd. An absolute path is not the fix either, for the reason given there -- it is the same string in every worktree. Kept because it is correct for a session rooted at the repository root, and because deleting it would remove the statement of intent. Note the second problem if it ever does resolve: Write(microscope_agent/**) would block the one write outside bridge/ this seat is required to make -- the delivery into <agent>/inbox/ that 7.1 rule 8 mandates.",
+    "$comment_1_reachable": "THE FIRST EIGHT ENFORCE. A path pattern resolves against the session's root, which for this seat is bridge/, so a pattern naming something inside bridge/ does resolve: Write(tasks/**) means bridge/tasks/**. All four are manager-owned (seats.json, manager-bridge) and all four are reachable from an execution session, which until 2026-09-19 left the descending instructions, the standing orders and this file itself writable by the seat they constrain. tasks/ is the home of what comes down (6.2-2); a seat that can edit its own instructions has none. This is the shape architecture ruled for the execution agents, where the two reachable paths are envelope/safety.json and inbox/**; the bridge has neither, and its manager-owned files are the equivalent. Not a constraint on the manager seat: manager sessions sit at the repository root (D12), so this file is not theirs to load. threads/ and failures.jsonl are this seat's own and are not denied.",
+    "$comment_2_command": "THE COMMAND PATTERN ENFORCES, and for a different reason: a command is not a path and has no root to resolve against. Tool denies are the part of this file that has worked all along -- the bridge having no instrument tools is enforced today. Do not read the group below and conclude the file is decorative.",
+    "$comment_3_outward": "THE REST ARE INERT, and wrong if they ever resolve. Write(microscope_agent/**) from this root means bridge/microscope_agent/**, a path that cannot exist, and every entry naming a sibling, contracts/ or plan.md is the same. That is the defect class section 7 documents for .mcp.json -- the interpretation point must not be the session's cwd -- but here there is no portable way to say it: a permission pattern is a literal, so there is no $(git rev-parse), and an absolute path is the answer section 7 already rejected because it is the same string in every worktree. Kept because they are correct for a session rooted at the repository root and because deleting them would delete the statement of intent. If a bridge session is ever rooted there, remove <agent>/inbox/ from these first: as written they would block the delivery 7.1 rule 8 requires of this seat."
   },
   "hooks": {
     "PostToolUse": [
