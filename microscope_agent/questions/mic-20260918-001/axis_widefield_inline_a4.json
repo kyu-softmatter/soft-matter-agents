@@ -1,0 +1,176 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260918-001-widefield_inline-a4",
+  "qid": "mic-20260918-001",
+  "thread": "solo-mic-20260918-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-19T18:25:02Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260918-001:v1:widefield_inline:a4",
+  "config": "widefield_inline",
+  "axis": "a4",
+  "kb_version": "kbv-49feb73662b7",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "devices_present",
+      "parameter": "device_set",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the service was asked for device_registry, control_channel at kbv-49feb73662b7 and answered absent. The service reported this absent and said in the gap itself what it looked in: it searched kb/entries only, and it does not search outside the store -- external search happens in the librarian session (4.3.1). The flat table in kb/staging/ is therefore not reachable through it, and the pin does not change that: the gap came back at the pinned version naming the same search. This is asked-and-absent from the service, not nobody-checked, and what closes it is the librarian decomposing the staging tables into entries (11.1).",
+      "missing": [
+        "device_registry",
+        "control_channel"
+      ]
+    },
+    {
+      "inequality": "path_tuple_valid",
+      "parameter": "selector_states",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the service was asked for optical_path_valid_tuples at kbv-49feb73662b7 and answered absent. The service reported this absent and said in the gap itself what it looked in: it searched kb/entries only, and it does not search outside the store -- external search happens in the librarian session (4.3.1). The flat table in kb/staging/ is therefore not reachable through it, and the pin does not change that: the gap came back at the pinned version naming the same search. This is asked-and-absent from the service, not nobody-checked, and what closes it is the librarian decomposing the staging tables into entries (11.1). What the entries do give is one required value rather than the tuple: disk-out is a required selector value on this configuration rather than a configuration of its own. A required value is not a validated combination, and the combination is what this bound is about.",
+      "missing": [
+        "optical_path_valid_tuples"
+      ]
+    },
+    {
+      "inequality": "selector_exclusivity",
+      "parameter": "lock_group",
+      "state": "returned",
+      "reason": "Exclusivity on this configuration has to be evaluated per element and cannot be evaluated per channel. stand_ti2e carries two lock groups at once -- its optical elements in optical_path, the motor stage in stage, because the piezo rides on the motor stage -- so a plan that names the channel has not said which lock its command takes. The constraint is therefore on the plan's form: a selector this configuration holds is named as an element. Note what is NOT claimed here: the entry's own validity_conditions mark the scheduling consequence -- that stage moves serialise with port and filter changes -- as a design consequence rather than a reading, and it is not stamped as one, so this axis does not return it as a bound.",
+      "allowed_set": {
+        "parameter": "lock_group",
+        "values": [
+          "optical_path",
+          "stage"
+        ],
+        "basis": [
+          "kb:stand_ti2e_lock_groups"
+        ]
+      }
+    },
+    {
+      "inequality": "selector_automatable",
+      "parameter": "commanded_selectors",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the service was asked for device_registry, automatable_condition at kbv-49feb73662b7 and answered absent. The service reported this absent and said in the gap itself what it looked in: it searched kb/entries only, and it does not search outside the store -- external search happens in the librarian session (4.3.1). The flat table in kb/staging/ is therefore not reachable through it, and the pin does not change that: the gap came back at the pinned version naming the same search. This is asked-and-absent from the service, not nobody-checked, and what closes it is the librarian decomposing the staging tables into entries (11.1). One selector is answered and it is not enough: the port is automatable in full with read-back at E3. The bound is over every selector the plan commands, and which selectors those are comes from the optical-path table, which is the same absent table. An automatable field also carries a condition in the registry -- the DMD's full automatability holds only on a core pinned to device interface 71 -- and screening on the bare field would pass a plan whose preflight then fails when it opens the device.",
+      "missing": [
+        "device_registry",
+        "automatable_condition"
+      ]
+    },
+    {
+      "inequality": "selector_verifiable",
+      "parameter": "verified_selectors",
+      "state": "returned",
+      "reason": "None of the three selectors that define this configuration is verifiable by read-back, and each fails differently. (1) The port is drivable and readable in full, and read-back returns a position number while which element that position holds is not known -- two of its three states send zero light to one camera, so the position does not say which. (2) csuw1_bright and csuw1_disk_position are one mechanism under two names, so setting one and reading the other shows an agreement that means nothing, and which name micromanager addresses is unsettled. (3) The disk-out position serves widefield fluorescence and brightfield alike, so a read-back confirming the label confirms nothing about which configuration is loaded. 2.1 makes an unverified state one that does not proceed, so the bound is: on this configuration the loaded state is established by acquiring, not by read-back, and a plan that treats a returned position as a verification is refused. Readable-but-not-verifiable is a sharper case than unreadable -- a reply exists and does not answer the question asked -- and it is the reason this returns instead of abstaining.",
+      "precondition": {
+        "parameter": "verified_selectors",
+        "requires": "establish the loaded state by acquiring an image, not by reading a selector back; a plan that treats a returned position as a verification is refused",
+        "basis": [
+          "kb:csuw1_port_slots",
+          "kb:csuw1_disk_position_is_the_bright_selector",
+          "kb:csuw1_disk_position_states"
+        ]
+      }
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [
+    {
+      "entry_id": "csuw1_disk_position_is_the_bright_selector",
+      "grade": "E3",
+      "kb_version": "kbv-49feb73662b7",
+      "claim": "The element the configuration calls csuw1_bright, offered as confocal or bright field, and the element it calls csuw1_disk_position, offered as in or out, are one mechanism recorded twice under two na"
+    },
+    {
+      "entry_id": "csuw1_disk_position_states",
+      "grade": "E3",
+      "kb_version": "kbv-49feb73662b7",
+      "claim": "With the spinning disk in, the path is confocal. With the disk out, the same hardware serves both widefield fluorescence and brightfield. Disk-out is therefore not a configuration of its own but a req"
+    },
+    {
+      "entry_id": "csuw1_port_driver_access",
+      "grade": "E3",
+      "kb_version": "kbv-49feb73662b7",
+      "claim": "The port/splitter is drivable and readable through micromanager: it can be set without a human and its position can be read back. It is an element of a channel that is automatable in full with read-ba"
+    },
+    {
+      "entry_id": "csuw1_port_slots",
+      "grade": "E3",
+      "kb_version": "kbv-49feb73662b7",
+      "claim": "The port/splitter carries three slots, and the split is spectral rather than by intensity: one slot is empty and sends light to the red camera only, one holds a 561 nm dichroic and sends light to both"
+    },
+    {
+      "entry_id": "stand_ti2e_lock_groups",
+      "grade": "E3",
+      "kb_version": "kbv-49feb73662b7",
+      "claim": "The coarse motorised xy stage is an element of the microscope body channel, on the body hub. The body's optical elements belong to the optical_path lock group while the motor stage belongs to the stag"
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "automatable_condition_not_an_entry",
+      "observable": "automatable_condition",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=automatable_condition, caller_id=mic-20260918-001:v1:widefield_inline:a4, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:v1:widefield_inline:a4",
+      "asked_at": "2026-09-19T18:23:21+00:00"
+    },
+    {
+      "gap_id": "control_channel_not_an_entry",
+      "observable": "control_channel",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=control_channel, caller_id=mic-20260918-001:v1:widefield_inline:a4, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:v1:widefield_inline:a4",
+      "asked_at": "2026-09-19T18:23:20+00:00"
+    },
+    {
+      "gap_id": "device_registry_not_an_entry",
+      "observable": "device_registry",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=device_registry, caller_id=mic-20260918-001:v1:widefield_inline:a4, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:v1:widefield_inline:a4",
+      "asked_at": "2026-09-19T18:23:19+00:00"
+    },
+    {
+      "gap_id": "optical_path_table_not_an_entry",
+      "observable": "optical_path_valid_tuples",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=optical_path_valid_tuples, caller_id=mic-20260918-001:v1:widefield_inline:a4, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:v1:widefield_inline:a4",
+      "asked_at": "2026-09-19T18:23:21+00:00"
+    },
+    {
+      "gap_id": "read_back_not_an_entry",
+      "observable": "read_back",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=read_back, caller_id=mic-20260918-001:v1:widefield_inline:a4, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:v1:widefield_inline:a4",
+      "asked_at": "2026-09-19T18:23:20+00:00"
+    }
+  ],
+  "degraded": [],
+  "note": "Four entries that bear on this axis exist in the store and cannot be cited here, because they were entered after the version this fan-out is pinned to and the pin does not move while its siblings hold it (check 33). Named so the absence is visible rather than silent: nosepiece_write_runs_no_escape, which says a Micro-Manager write to the nosepiece does NOT run the stand's objective escape, so the retract is a step a plan issues and verifies rather than a property it may assume -- that is a precondition this axis would otherwise return; objective_change_invalidates_trap_calibration; tweez300_reports_nothing_back, which would strengthen the verifiability precondition though the tweezers are not in this configuration; and trap_laser_power_has_no_software_path. At kbv-49feb73662b7 the store holds 25 entries and the current version holds 49, so this card is answering against two thirds of what is now known. That is the cost of the pin, and it is worth paying only while the siblings need it. Answered by the librarian service rather than by reading the store, which is what makes degraded empty here: five entries came back with their own grades and five questions came back absent, all at the pinned kbv-49feb73662b7, and every call is in librarian_agent/queries/log.jsonl under this caller_id. The served digests were checked byte for byte against the pinned commit's blobs. Two of five bounds return and three abstain, and the split is not about physics. The three that abstain all want the device registry or the optical-path table, which live in kb/staging/; the server's Store loads index.json and entries/ only, so no version of the service can serve them. 001 picked A4 first because the registry is the one table with real content -- and that content is in the half of the store the service does not carry. The fix is the librarian decomposing staging into entries (11.1), not a different pin. constraints[] is empty while two bounds returned, and that is the contract rather than the axis: interval requires {parameter, unit, basis} with numeric min/max, and A4's answers are discrete and per-selector. The ledger item forbids additional properties, so the constraint is carried in reason where S4 can read it and cannot intersect it. Raised with manager-microscope."
+}

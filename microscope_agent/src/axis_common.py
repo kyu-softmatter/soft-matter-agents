@@ -205,6 +205,8 @@ class Outcome:
     reason: str = ""
     missing: list[str] = field(default_factory=list)
     interval: dict | None = None
+    allowed_set: dict | None = None      # a discrete set; intersects, like an interval
+    precondition: dict | None = None     # a requirement on the plan; propagates, never intersected
 
     def as_dict(self) -> dict:
         out = {"inequality": self.inequality_id, "parameter": self.parameter,
@@ -217,6 +219,10 @@ class Outcome:
             out["missing"] = self.missing
         if self.interval is not None:
             out["interval"] = self.interval
+        if self.allowed_set is not None:
+            out["allowed_set"] = self.allowed_set
+        if self.precondition is not None:
+            out["precondition"] = self.precondition
         return out
 
 
@@ -272,28 +278,32 @@ def ledger_has_a_home() -> bool:
     return LEDGER_FIELD in (schema.get("properties") or {})
 
 
-def returned_needs_numeric_interval() -> bool:
-    """Whether the contract makes `returned` require an interval it can only state numerically.
+def returned_shapes() -> set[str]:
+    """The fields the contract accepts on a `returned` bound, read off the schema.
 
-    Read off the schema rather than assumed, so that the refusal below clears
-    itself the day a slot for a discrete constraint exists -- the same shape as
-    ledger_has_a_home().
-
-    A4 is where this bites. The three axis states are a numeric range, an
-    abstention with a kind, or a failure, and a bound that has grounds and
-    constrains something other than a number is none of the three: `interval`
-    requires {parameter, unit, basis} with numeric min/max, `basis` names
-    entries in numbers[], and both the interval and the ledger item forbid
-    additional properties. So the contract cannot hold "this configuration's
-    selectors are readable but not verifiable" in any shape, well or badly.
+    Named here rather than hardcoded so this keeps working when a fourth shape
+    arrives, the same reason ledger_has_a_home() reads the schema. Until
+    2026-09-19 the answer was `interval` alone, and A4 could not be written:
+    its bounds constrain plan form and a selector name has no unit. What
+    actually blocked it was narrower than "discrete versus numeric" -- an
+    interval's `basis` could only name entries in numbers[], and A4's numbers[]
+    is empty, so any new field would have failed at the same place. `basis`
+    now also takes `kb:<entry_id>`, and that reference resolves against the
+    card's own kb_refs.
     """
     schema = json.loads((CONTRACTS / "schemas" / "axis.schema.json").read_text())
     item = ((schema.get("properties") or {}).get("inequalities") or {}).get("items") or {}
     for rule in item.get("allOf") or []:
-        if (((rule.get("if") or {}).get("properties") or {}).get("state") or {}).get("const") == "returned":
-            if "interval" in ((rule.get("then") or {}).get("required") or []):
-                return True
-    return False
+        if (((rule.get("if") or {}).get("properties") or {}).get("state") or {}).get("const") != "returned":
+            continue
+        then = rule.get("then") or {}
+        shapes = set()
+        for branch in then.get("oneOf") or then.get("anyOf") or []:
+            shapes.update(branch.get("required") or [])
+        shapes.update(then.get("required") or [])
+        if shapes:
+            return shapes
+    return set()
 
 
 def to_card(run: AxisRun, goal: dict, qid: str, created_at: str, revision: int = 1) -> dict:
@@ -310,18 +320,15 @@ def to_card(run: AxisRun, goal: dict, qid: str, created_at: str, revision: int =
             f"properties, so this card cannot carry the {len(run.outcomes)} per-inequality "
             "outcomes 4.5.2.1 requires"
         )
-    discrete = [o.inequality_id for o in run.outcomes
-                if o.state == "returned" and o.interval is None]
-    if discrete and returned_needs_numeric_interval():
+    shapes = returned_shapes()
+    speechless = [o.inequality_id for o in run.outcomes
+                  if o.state == "returned" and not any(getattr(o, s, None) is not None for s in shapes)]
+    if speechless:
         raise AxisError(
-            f"{len(discrete)} bounds have grounds and constrain something that is not a number: "
-            f"{', '.join(discrete)}. axis.schema.json makes `interval` required when state is "
-            "`returned`, and interval requires {parameter, unit, basis} with numeric min/max -- "
-            "so the card cannot say it. The three ways out are all worse than stopping: a made-up "
-            "interval would be a fabricated bound resting on an empty `basis`, and each of the "
-            "three abstention kinds is false here -- the inputs were present (not no_input), the "
-            "bound does bite (not not_constraining), and it was asked for (not not_requested). "
-            "A discrete constraint needs a slot in the contract, which is the manager's (6.2)"
+            f"{len(speechless)} bounds are `returned` and say nothing: {', '.join(speechless)}. The "
+            f"contract accepts {sorted(shapes)} there, and this axis filled none of them. A bound "
+            "with grounds and no shape to put them in is the silence 4.5.2.1 refuses, and the way "
+            "out is a shape in the contract, not a wrong word here"
         )
     card = {
         "card": "axis",

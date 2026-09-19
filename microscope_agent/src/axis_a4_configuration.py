@@ -39,12 +39,21 @@ What the pass found, and it is the content of the card rather than a caveat:
   answer, which was a 6.2 rule 3 crossing and is recorded as one in
   failures.jsonl. The answer says the same thing and is inside the boundary.
 
-A4 has no numeric output and `constraints` stays empty. That is a contract
-finding and not an oversight: common.schema.json's `interval` requires
-{parameter, unit, basis} with numeric min/max, the ledger item is closed to
-additional properties, and this axis's answers are per-selector and discrete.
-The constraint is therefore carried in `reason`, where S4 can read it but not
-intersect it. Raised with manager-microscope rather than worked around.
+A4 has no numeric output, and for a day it had no card either: `returned`
+required an `interval`, and an interval needs a unit that means nothing for a
+selector name. The axis refused rather than misreport, and the refusal is in
+failures.jsonl. `4cc39a0` opened the slot, and what had actually been blocking
+was narrower than discrete-versus-numeric -- an interval's `basis` could only
+name entries in numbers[], and this axis's numbers[] is empty, so a new field
+alone would have failed in the same place. `basis` now also takes
+`kb:<entry_id>`, resolving against this card's own kb_refs.
+
+The two bounds take different shapes on purpose. Exclusivity is an
+`allowed_set` because S4 **intersects** it with other axes' ranges and sets.
+Verifiability is a `precondition` because it restricts no value and instead
+requires something of the plan, so it **propagates**: folded into a set it
+would be dropped the first time an intersection was taken, and "establish the
+loaded state by acquiring" would vanish from the plan without a trace.
 
 It reads contracts/ and the recorded responses, and imports no device
 (7.2 rule 2).
@@ -98,7 +107,7 @@ OWNED = (
     ),
     axc.Inequality(
         id="selector_exclusivity",
-        parameter="concurrent_selector_holds",
+        parameter="lock_group",
         statement="no two selectors this configuration must hold at once contend for one "
                   "exclusive resource",
         needs=("lock_groups",),
@@ -161,6 +170,11 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
             # name a selector, and that is what is returned.
             run.outcomes.append(axc.Outcome(
                 inequality_id=ineq.id, parameter=ineq.parameter, state="returned",
+                allowed_set={
+                    "parameter": "lock_group",
+                    "values": ["optical_path", "stage"],
+                    "basis": ["kb:stand_ti2e_lock_groups"],
+                },
                 reason="Exclusivity on this configuration has to be evaluated per element and "
                        "cannot be evaluated per channel. stand_ti2e carries two lock groups at "
                        "once -- its optical elements in optical_path, the motor stage in stage, "
@@ -180,6 +194,15 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
             # axis has grounds and the grounds say the bound bites.
             run.outcomes.append(axc.Outcome(
                 inequality_id=ineq.id, parameter=ineq.parameter, state="returned",
+                precondition={
+                    "parameter": "verified_selectors",
+                    "requires": ("establish the loaded state by acquiring an image, not by reading "
+                                 "a selector back; a plan that treats a returned position as a "
+                                 "verification is refused"),
+                    "basis": ["kb:csuw1_port_slots",
+                              "kb:csuw1_disk_position_is_the_bright_selector",
+                              "kb:csuw1_disk_position_states"],
+                },
                 reason="None of the three selectors that define this configuration is verifiable "
                        "by read-back, and each fails differently. (1) The port is drivable and "
                        "readable in full, and read-back returns a position number while which "
@@ -232,6 +255,21 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                    "that is a gap in this file, not an abstention (4.5.2.1)",
         ))
 
+    run.notes.append(
+        "Four entries that bear on this axis exist in the store and cannot be cited here, "
+        "because they were entered after the version this fan-out is pinned to and the pin does "
+        "not move while its siblings hold it (check 33). Named so the absence is visible rather "
+        "than silent: nosepiece_write_runs_no_escape, which says a Micro-Manager write to the "
+        "nosepiece does NOT run the stand's objective escape, so the retract is a step a plan "
+        "issues and verifies rather than a property it may assume -- that is a precondition this "
+        "axis would otherwise return; objective_change_invalidates_trap_calibration; "
+        "tweez300_reports_nothing_back, which would strengthen the verifiability precondition "
+        "though the tweezers are not in this configuration; and "
+        "trap_laser_power_has_no_software_path. At kbv-49feb73662b7 the store holds 25 entries "
+        "and the current version holds 49, so this card is answering against two thirds of what "
+        "is now known. That is the cost of the pin, and it is worth paying only while the "
+        "siblings need it."
+    )
     run.notes.append(
         "Answered by the librarian service rather than by reading the store, which is what makes "
         "degraded empty here: five entries came back with their own grades and five questions "
