@@ -93,6 +93,24 @@ unable to tell the two variants apart. It lives in the worktree's own config
 worktree writes to the shared config and leaks your seat to every session,
 which §6.2.3 prescribed by mistake until `44f368b`.
 
+**A contract-compliance fix is not under the ban, and still must not happen
+here.** When a schema or the vocabulary moves and the cards have to follow,
+that is neither variant's design, so §9.3 does not forbid it (`7ed85cd`). But
+a neutral change made on one branch only is still a difference, and the
+comparison measures differences — it cannot tell a design choice from a
+housekeeping commit one side happened to make. **Shared fixes land on `main`
+ahead of the branch point**, and both variants take them by branching from the
+SHA that already contains them.
+
+One such fix is pending as of this card. `d6999e5` takes the definition of an
+observable out of the cards and leaves only its name, to be read from the
+vocabulary. Across the repository eight cards carry a `definition` and six of
+them disagree with the vocabulary; **one of those is ours** —
+`questions/mic-20260918-001/goal.json`, on `diffusivity`. It will be corrected
+on `main` under its own card. **If you find it while reading, leave it.** A
+card you fix here is a card the other variant did not fix, and that is the
+whole of what went wrong.
+
 ## When the gate opens
 
 Both variants get the same card, with the same `qid`, the same goal card and
