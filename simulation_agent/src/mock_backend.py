@@ -25,12 +25,22 @@ its own unit system starts (5.7 rule 4, D7).
 from __future__ import annotations
 
 import json
+import threading
 from pathlib import Path
 
 import numpy as np
 
 NAME = "mock_backend"
 DIMENSIONS = 3
+
+# The states `read()` may report. SUBMITTED is the one worth naming: it is
+# neither running nor failed, it is nearly instant locally and real in a
+# queue, and leaving the slot out now is how `read()` comes to report it as an
+# error later.
+SUBMITTED, RUNNING, COMPLETE, ABORTED, FAILED = (
+    "submitted", "running", "complete", "aborted", "failed",
+)
+TERMINAL = (COMPLETE, ABORTED, FAILED)
 
 # k_B from the authoritative registry rather than retyped here (D7). A
 # constant is not policy, so reading it does not put an envelope in the
@@ -65,6 +75,12 @@ class MockBackend:
         self.simulated_time = 0.0
         self.steps_taken = 0
         self.aborted: str | None = None
+        self.state = None
+        self.failure: str | None = None
+        self.handle: str | None = None
+        self._worker: threading.Thread | None = None
+        self._stop = threading.Event()
+        self._lock = threading.Lock()
 
     # -- the fixed interface ------------------------------------------------
 
@@ -111,67 +127,134 @@ class MockBackend:
         }
 
     def apply(self, params: dict) -> dict:
-        """Take the commanded number of steps. The first call initialises."""
-        if self.aborted:
-            raise RuntimeError(f"backend aborted: {self.aborted}")
-        if self.params is None:
-            self.params = dict(params)
-            n = int(params["n_particles"])
-            box = float(params["box_length"])
-            self.unwrapped = self.rng.uniform(0.0, box, size=(n, DIMENSIONS))
-            self.wrapped = self.unwrapped.copy()
-            self.frames = [self.unwrapped.copy()]
-            self.frame_times = [0.0]
+        """Submit the run and return. **Does not block until it finishes.**
 
-        dt = float(self.params["integration_timestep"])
-        diffusivity = stokes_einstein(
-            float(self.params["temperature"]),
-            float(self.params["viscosity"]),
-            float(self.params["bead_diameter"]),
-        )
-        box = float(self.params["box_length"])
-        steps = int(params["steps"])
-        step_scale = float(np.sqrt(2.0 * diffusivity * dt))
+        The reason is not a scheduler someday: a run that blocks inside
+        `apply()` can be neither aborted nor observed while it lasts, so the
+        monitors compiled from the plan would have nothing to watch and the
+        stop criteria could only be evaluated after the fact. `read()` polls,
+        `abort()` interrupts, and a later scheduler replaces this file rather
+        than the operator.
 
-        for _ in range(steps):
-            kick = self.rng.normal(0.0, step_scale, size=self.unwrapped.shape)
-            self.unwrapped = self.unwrapped + kick
-            self.steps_taken += 1
+        Returns a handle and the state `submitted`. Locally the worker starts
+        at once, so the first `read()` may already say `running` -- both are
+        correct answers, and that is the point of the state existing.
+        """
+        if self._worker is not None:
+            raise RuntimeError("this backend has already been given a run")
+        required = self.preflight(params)
+        if required["missing_parameters"]:
+            raise ValueError(f"missing {required['missing_parameters']}")
 
-        # Derived from the integer step count, never accumulated. Adding dt ten
-        # thousand times drifts downward -- it landed 2e-13 short of a 20 s
-        # planned end, and the completion criterion `simulated_time >= planned`
-        # then never fired on a run that had finished exactly as planned. The
-        # step count is the integer truth and the time is a coordinate read off
-        # it, which is the same reason this side's log keeps simulated time out
-        # of its time base: it is declared, not measured.
-        #
-        # The fix belongs here and not in the criterion. Widening a declared
-        # threshold by an epsilon would be the operator loosening a limit the
-        # plan fixed, which is the one thing it may not do.
-        self.simulated_time = self.steps_taken * dt
-        self.wrapped = np.mod(self.unwrapped, box)
-        self.frames.append(self.unwrapped.copy())
-        self.frame_times.append(self.simulated_time)
-        return {"steps_taken": self.steps_taken, "simulated_time": self.simulated_time}
+        self.params = dict(params)
+        n = int(params["n_particles"])
+        box = float(params["box_length"])
+        self.unwrapped = self.rng.uniform(0.0, box, size=(n, DIMENSIONS))
+        self.wrapped = self.unwrapped.copy()
+        self.frames = [self.unwrapped.copy()]
+        self.frame_times = [0.0]
+        self.state = SUBMITTED
+        self.handle = f"{NAME}:{self.seed}:{id(self):x}"
+
+        self._worker = threading.Thread(target=self._integrate, name=self.handle, daemon=True)
+        # The state reported is the state it was submitted in, captured before
+        # the worker can move it. Reading `self.state` after starting the
+        # thread would report whatever happened in the microseconds since,
+        # which is how a real state becomes one nobody ever observes.
+        submitted_as = self.state
+        self._worker.start()
+        return {"handle": self.handle, "state": submitted_as}
+
+    def _integrate(self) -> None:
+        """The run itself. Nothing here decides whether it may continue.
+
+        The stop flag is read but not interpreted: the operator sets it, on a
+        comparison the plan declared. A backend that judged its own conditions
+        would put the envelope in two places (4.6.5).
+        """
+        try:
+            dt = float(self.params["integration_timestep"])
+            diffusivity = stokes_einstein(
+                float(self.params["temperature"]),
+                float(self.params["viscosity"]),
+                float(self.params["bead_diameter"]),
+            )
+            box = float(self.params["box_length"])
+            step_scale = float(np.sqrt(2.0 * diffusivity * dt))
+            pre = self.preflight(self.params)
+            per_frame, frames = int(pre["steps_per_frame"]), int(pre["frames_expected"])
+            with self._lock:
+                self.state = RUNNING
+
+            for _ in range(frames):
+                if self._stop.is_set():
+                    with self._lock:
+                        self.state = ABORTED
+                    return
+                positions = self.unwrapped
+                for _ in range(per_frame):
+                    positions = positions + self.rng.normal(
+                        0.0, step_scale, size=positions.shape
+                    )
+                with self._lock:
+                    self.unwrapped = positions
+                    self.steps_taken += per_frame
+                    # Derived from the integer step count, never accumulated:
+                    # summing dt ten thousand times landed 2e-13 below a 20 s
+                    # planned end, and the completion criterion was then false
+                    # on a run that finished exactly as planned. The drift also
+                    # moves with dt, so whether the criterion worked depended on
+                    # where in A1's interval the plan landed.
+                    self.simulated_time = self.steps_taken * dt
+                    self.wrapped = np.mod(self.unwrapped, box)
+                    self.frames.append(self.unwrapped.copy())
+                    self.frame_times.append(self.simulated_time)
+            with self._lock:
+                self.state = COMPLETE
+        except Exception as exc:                       # noqa: BLE001
+            with self._lock:
+                self.failure = f"{type(exc).__name__}: {exc}"
+                self.state = FAILED
 
     def read(self) -> dict:
-        """Current state. The monitor's input; no judgement attached."""
-        if self.unwrapped is None:
-            return {"initialised": False}
-        last = self.frames[-1] - self.frames[-2] if len(self.frames) > 1 else np.zeros(1)
-        return {
-            "initialised": True,
-            "steps_taken": self.steps_taken,
-            "simulated_time": self.simulated_time,
-            "frames_saved": len(self.frames),
-            "max_single_step_displacement": float(np.abs(last).max()),
-            "max_absolute_coordinate": float(np.abs(self.unwrapped).max()),
-        }
+        """Poll the submitted run. The monitor's input; no judgement attached."""
+        with self._lock:
+            if self.state is None:
+                return {"state": None, "initialised": False}
+            last = (
+                self.frames[-1] - self.frames[-2] if len(self.frames) > 1 else np.zeros(1)
+            )
+            return {
+                "state": self.state,
+                "initialised": True,
+                "handle": self.handle,
+                "steps_taken": self.steps_taken,
+                "simulated_time": self.simulated_time,
+                "frames_saved": len(self.frames),
+                "max_single_step_displacement": float(np.abs(last).max()),
+                "max_absolute_coordinate": float(np.abs(self.unwrapped).max()),
+                "failure": self.failure,
+            }
 
     def abort(self, reason: str) -> dict:
+        """Interrupt a submitted or running job and wait for it to stop.
+
+        Waiting matters: the trajectory is read after the abort, and reading it
+        while the worker is still appending would report a record nobody ran.
+        """
         self.aborted = reason
-        return {"aborted": True, "reason": reason, "steps_taken": self.steps_taken}
+        self._stop.set()
+        if self._worker is not None:
+            self._worker.join(timeout=30)
+        with self._lock:
+            if self.state not in TERMINAL:
+                self.state = ABORTED
+            return {
+                "aborted": True,
+                "reason": reason,
+                "state": self.state,
+                "steps_taken": self.steps_taken,
+            }
 
     # -- trajectory output -------------------------------------------------
 

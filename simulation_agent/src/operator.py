@@ -61,6 +61,25 @@ ENVELOPE = cards.AGENT / "envelope" / "safety.json"
 # two are separate ceilings rather than one.
 SMOKE, FULL = "smoke", "full"
 
+# How the operator watches a submitted job. The budget is a guard against a
+# backend that never reaches a terminal state, not a limit on the run: a run
+# too long for it is over budget, which is the envelope's judgement and not
+# this loop's.
+#
+# Polling buys observability at the price of latency: between two polls the
+# job keeps going, so a stop criterion fires a poll-interval late. On a
+# multi-hour engine run that is nothing; on the mock, which outruns any sane
+# interval, a divergence monitor caught a run at frame 164 where the old
+# synchronous loop caught it at frame 2. The trade is the right way round --
+# an unobservable run cannot be stopped at all -- and the cost is put in the
+# record rather than hidden: trajectory_meta reports how far the run actually
+# got before it was stopped. Shrinking the interval further would spend CPU
+# spinning, and the backend cannot close the gap itself because a backend that
+# judged its own conditions would hold policy (4.6.5).
+POLL_INTERVAL_S = 0.02
+POLL_BUDGET_S = 600.0
+PROGRESS_EVERY = 200
+
 COMPARATORS = {
     "<": lambda a, b: a < b,
     "<=": lambda a, b: a <= b,
@@ -408,13 +427,14 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             "between steps and the lag axis would be wrong"
         )
 
-    # O2 -- dispatch, in chunks of one saved frame.
-    steps_per_frame = int(pre["steps_per_frame"])
-    frames = int(pre["frames_expected"])
+    # O2 -- dispatch. One submission, and it returns before the run finishes.
+    submission = backend.apply(params)
     record(
         "dispatch",
         action="integrate",
         **{"from": "actions[integrate]"},
+        handle=submission.get("handle"),
+        state=submission.get("state"),
         params={
             entry["parameter"]: {
                 "value": entry["value_si"],
@@ -428,18 +448,19 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     record("monitors_compiled", monitors=[m["id"] for m in monitors],
            **{"from": "stop_criteria"})
 
+    # O3 -- watch. The monitors are evaluated against a running job rather
+    # than between synchronous chunks, which is the whole reason apply() does
+    # not block: a stop criterion that can only be checked after the run has
+    # returned is not a stop criterion.
     stopped_by, stopped_early = None, False
-    for frame in range(frames):
-        backend.apply({**params, "steps": steps_per_frame})
+    polls, last_progress = 0, -1
+    deadline = time.monotonic() + POLL_BUDGET_S
+    while True:
         state = backend.read()
         fired = evaluate(monitors, state)
         if fired:
-            # O3 -- the stop is taken here, deterministically, before anything
-            # interprets it. Writing up what happened is a later, human-facing
-            # job and does not gate the stop (4.6.1).
-            #
-            # A fault is preferred over a completion when both fire in the same
-            # chunk: a run that broke on its last step did not finish.
+            # A fault beats a completion when both fire on the same poll: a run
+            # that broke on its last step did not finish.
             stopped_by = next((f for f in fired if f["outcome"] == "fault"), fired[0])
             stopped_early = stopped_by["outcome"] == "fault"
             if stopped_early:
@@ -448,12 +469,28 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             else:
                 record("complete", monitor=stopped_by, state=state,
                        note="the criterion that fired declares on_met complete")
+                backend.abort("planned end reached")
             break
-        if frame % 20 == 0 or frame == frames - 1:
-            record("progress", frame=frame, state=state)
-    else:
-        record("complete", monitor=None, state=backend.read(),
-               note="every planned chunk ran and no stop criterion fired")
+        if state.get("state") in mock_backend.TERMINAL:
+            record(
+                "failed" if state.get("state") == mock_backend.FAILED else "complete",
+                monitor=None, state=state,
+                note=f"the backend reports {state.get('state')} and no stop criterion fired",
+            )
+            break
+        if time.monotonic() > deadline:
+            record("abort", monitor=None, state=state,
+                   reason=backend.abort(
+                       f"no terminal state within {POLL_BUDGET_S} s of polling"
+                   )["reason"])
+            stopped_early = True
+            break
+        frames = state.get("frames_saved", 0)
+        if frames - last_progress >= PROGRESS_EVERY:
+            record("progress", state=state)
+            last_progress = frames
+        polls += 1
+        time.sleep(POLL_INTERVAL_S)
 
     # O4 -- record. The run directory is only created once a run happened.
     out = RUNS / run_id
