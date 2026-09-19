@@ -661,8 +661,17 @@ def check_06_criteria(b: Bundle) -> list[Finding]:
             items = c.data.get(kind) or []
             if not items:
                 out.append(Finding(6, FAIL, f"{kind} is empty; it must be declared before execution", c.rel))
+            targets = {t.get("metric") for t in c.data.get("targets") or []}
             for cr in items:
-                if cr.get("number") not in nums:
+                # A threshold is either a claim about the world or a decision
+                # (5.3.1). Both are resolved: when the target left numbers[]
+                # this check would otherwise have stopped covering the
+                # criteria that compare against one.
+                if "target" in cr:
+                    if cr["target"] not in targets:
+                        out.append(Finding(6, FAIL, f"{kind}[{cr.get('id')}] is measured against the target on "
+                                                    f"{cr['target']!r}, which this card does not state", c.rel))
+                elif cr.get("number") not in nums:
                     out.append(Finding(6, FAIL, f"{kind}[{cr.get('id')}] points at {cr.get('number')!r}, which is not in numbers[]", c.rel))
     return out or [Finding(6, PASS, f"{len(plans)} plans declare machine-readable stop and success criteria")]
 
@@ -1193,6 +1202,12 @@ ALLOWED_PATHS = [
     r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
     r"^librarian_agent/CLAUDE\.md$",
     r"^((microscope|simulation|librarian)_agent|bridge)/failures\.jsonl$",
+    # 7.1 rule 9. Beside failures.jsonl and deliberately the same idiom -- a
+    # seat-level append-only ledger -- for a different thing: what was
+    # abandoned, against what was ruled. 9.3 criterion 2 counts the drops,
+    # and a drop produces no other artefact, so until this path existed the
+    # count of them was 0 for want of anywhere to write one.
+    r"^((microscope|simulation|librarian)_agent|bridge)/rulings\.jsonl$",
     r"^librarian_agent/kb/(index\.json|(sources|distilled|entries|lessons|staging|exports)/[A-Za-z0-9_.-]+)$",
     r"^librarian_agent/queries/[A-Za-z0-9_.-]+$",
     r"^librarian_agent/tasks/[A-Za-z0-9_.-]+$",
@@ -3353,6 +3368,70 @@ def check_52_target_is_a_decision(b: Bundle) -> list[Finding]:
     return [Finding(52, PASS, f"{n_inline} targets are stated as decisions{tail}{legacy_tail}")]
 
 
+def check_53_deny_rules_do_not_block_reading(b: Bundle) -> list[Finding]:
+    """A settings file in this repository may deny writing and never reading.
+
+    6.2 rule 3: reading `contracts/` is refused at no seat. The reason is not
+    access but what a refused seat does next -- it stops reading and starts
+    guessing. A contract is a contract because the consumer need not read the
+    producer's source; a consumer that cannot read the contract itself has
+    nothing left but guesswork, and 2026-09-19 was spent paying for that.
+
+    `Read`, `Grep` and `Glob` are read tools, so denying them is the rule's
+    opposite whatever the pattern says. `Bash` is not: a deny that stops a
+    hardware script from *running* is legitimate and P0 may require one. What
+    is refused is a `Bash` pattern that would catch a *read* -- one naming a
+    reading utility, or naming `contracts/` itself. The first draft of this
+    check failed every `Bash` deny and would have refused
+    `Bash(python3*hardware*)`, which blocks execution and nothing else; a gate
+    that refuses correct work is one that gets bypassed.
+
+    **This sees only settings files inside the repository.** A refusal can
+    come from user-level settings or from the harness, and this check cannot
+    see either: on 2026-09-19 an execution seat was refused a `sed` of
+    `contracts/validate.py` while every deny entry in this repository named
+    `Write` or `Edit`. A pass here therefore means the repository is clean,
+    not that no refusal can happen -- and a seat that meets one it cannot
+    find the source of should report it rather than work around it, which is
+    the contract-defect report 6.2 rule 3 already describes.
+    """
+    out: list[Finding] = []
+    files = sorted(REPO.glob("*/.claude/settings.json")) + sorted(REPO.glob(".claude/settings.json"))
+    if not files:
+        return [Finding(53, NA, "no settings files in this repository")]
+    n = 0
+    for p in files:
+        rel = str(p.relative_to(REPO))
+        try:
+            doc = json.loads(p.read_text())
+        except json.JSONDecodeError as exc:
+            out.append(Finding(53, FAIL, f"is not readable JSON: {exc}", rel))
+            continue
+        for entry in (doc.get("permissions") or {}).get("deny") or []:
+            if not isinstance(entry, str):
+                continue
+            n += 1
+            tool, _, pattern = entry.partition("(")
+            why = None
+            if tool in ("Read", "Grep", "Glob"):
+                why = f"{tool} is a read tool, so this denies reading whatever the pattern matches"
+            elif tool == "Bash":
+                low = pattern.lower()
+                hit = [c for c in ("cat", "sed", "head", "tail", "less", "awk", "grep", "read")
+                       if c in low]
+                if "contracts" in low:
+                    why = "it names contracts/, which 6.2 rule 3 says is readable at every seat"
+                elif hit:
+                    why = f"its pattern names {hit[0]!r}, which reads rather than runs"
+            if why:
+                out.append(Finding(53, FAIL,
+                    f"denies {entry!r}: {why}. A refused seat stops reading and starts guessing, "
+                    "which is what 6.2 rule 3 is about rather than access", rel))
+    return out or [Finding(53, PASS,
+        f"{n} deny entries across {len(files)} settings files block no reading "
+        "(repository settings only; a user-level or harness refusal is invisible here)")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -3367,7 +3446,8 @@ CHECKS = [
     check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood,
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
-    check_52_target_is_a_decision, check_45_undegraded_is_backed_by_the_log,
+    check_52_target_is_a_decision, check_53_deny_rules_do_not_block_reading,
+    check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,
     check_42_check_registry, check_41_seat_attribution,
 ]

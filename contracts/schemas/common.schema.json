@@ -87,7 +87,7 @@
         },
         "derived": {
           "type": "boolean",
-          "description": "This computed value is a NAMED quantity: it carries a `symbol`, and one symbol means one definition across every card and the store (check 36). **It does not mean dimensionless.** A census on 2026-09-18 found 6 uses, all six carrying a unit (five `s`, one `N*s/m`), against 20 numbers with the dimensionless unit `1`, none of them derived \u2014 zero overlap. The documented meaning had never once been used, and six authors had independently read it as written here. Uses a computed: source; not a separate source kind."
+          "description": "This computed value is a NAMED quantity: it carries a `symbol`, and one symbol means one definition across every card and the store (check 36). **It does not mean dimensionless.** A census on 2026-09-18 found 6 uses, all six carrying a unit (five `s`, one `N*s/m`), against 20 numbers with the dimensionless unit `1`, none of them derived — zero overlap. The documented meaning had never once been used, and six authors had independently read it as written here. Uses a computed: source; not a separate source kind."
         },
         "symbol": {
           "type": "string",
@@ -369,7 +369,7 @@
         },
         "number": {
           "type": "string",
-          "description": "name of the threshold in numbers[]"
+          "description": "name of the threshold in numbers[]. Exactly one of number and target: a threshold is either a claim about the world, graded and sourced, or a decision (5.3.1)."
         },
         "window": {
           "type": "string",
@@ -385,6 +385,10 @@
             "fault"
           ],
           "description": "What it means for this criterion to be met. Without it `met: true` is not comparable between cards: result.json records sc_drift as met with outcome DONE, where met says the guard held, while a simulation's step_displacement_diverged is met exactly when the run broke. Same field, opposite meaning, and outcome is derived from it. continue: the condition still holds and the run proceeds; the stop is the violation. complete: the run has reached its planned end. fault: something broke and the run stops short of that end."
+        },
+        "target": {
+          "type": "string",
+          "description": "metric of the threshold in targets[], when the threshold is a decision rather than a number. Added 2026-09-19: a success criterion compared against the accuracy target, and when the target left numbers[] the criterion had nothing to point at. Check 6 resolves either, so the guarantee moves to the new container rather than being dropped."
         }
       },
       "required": [
@@ -393,7 +397,29 @@
         "comparator",
         "number"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "number"
+          ],
+          "not": {
+            "required": [
+              "target"
+            ]
+          }
+        },
+        {
+          "required": [
+            "target"
+          ],
+          "not": {
+            "required": [
+              "number"
+            ]
+          }
+        }
+      ]
     },
     "interval": {
       "type": "object",
