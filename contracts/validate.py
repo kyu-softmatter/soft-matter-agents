@@ -1498,6 +1498,36 @@ def check_24_calibration_validity(b: Bundle) -> list[Finding]:
 _KB_HISTORY: dict | None = None
 
 
+# Fields that carry what a card read. Everything else in an entry is how the
+# store organises itself, and a store reorganising is not a claim changing.
+# `subject` is the case that forced the distinction: its own schema says it is
+# there "so a query can find it without already knowing its id" -- a discovery
+# pointer with a registry and an id, no number, no grade, no validity. It was
+# filled in store-wide as one migration, and that migration alone put 19 of
+# check 25's 34 pending findings on the board, every one of them saying an
+# entry had changed when nothing a card could have read had.
+#
+# Naming the claim-bearing fields is reading the entry schema, not choosing a
+# subset of it. The earlier comment here refused to choose one for a good
+# reason -- which fields reach a card was not written down -- and what changed
+# is that `subject` now says in its own description what it is for.
+CLAIM_FIELDS = {"value", "unit", "kind", "grade", "source", "claim",
+                "validity", "valid_until", "validity_conditions", "symbol",
+                "formula", "inputs", "uncertainty"}
+
+
+def kb_entry_at(sha: str, entry_id: str) -> dict | None:
+    """One entry's bytes as of a commit, parsed. None if it was not there."""
+    import subprocess
+    try:
+        blob = subprocess.run(["git", "-C", str(GIT_REPO), "show",
+                               f"{sha}:librarian_agent/kb/entries/{entry_id}.json"],
+                              capture_output=True, text=True, check=True).stdout
+        return json.loads(blob)
+    except (subprocess.CalledProcessError, json.JSONDecodeError, OSError):
+        return None
+
+
 def kb_index_at(version: str) -> tuple[dict | None, str | None]:
     """The store's index as it stood at a pinned version, from its own history.
 
@@ -1530,6 +1560,7 @@ def kb_index_at(version: str) -> tuple[dict | None, str | None]:
 
 def check_25_kb_refs(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
+    moved_pending: dict[tuple, list[str]] = {}
     cards = [c for c in b.cards if "__unreadable__" not in c.data]
     n = 0
     for c in cards:
@@ -1566,18 +1597,54 @@ def check_25_kb_refs(b: Bundle) -> list[Finding]:
                     continue
                 now = (KB_INDEX.get("entries") or {}).get(eid)
                 if now and now.get("sha256") == then.get("sha256"):
-                    # Compared by content hash, not field by field. Which
-                    # fields reach a card is not written down anywhere, so
-                    # choosing a subset would invent a contract; over-reporting
-                    # is the safe direction until one exists.
                     continue
-                out.append(Finding(25, PENDING, f"kb_ref {eid} pins {r['kb_version']} ({sha[:7]}) and the entry has changed since; the grade it claims held then, and what moved needs reading", c.rel))
+                # The entry moved. Say WHAT moved, and separate the two kinds.
+                # Every one of these used to read the same sentence -- "what
+                # moved needs reading" -- 34 times, which is a warning nobody
+                # reads and so a warning that is not one. Collected per
+                # (entry, version) below and reported once, because the same
+                # correction under five cards is one fact (11-11).
+                before = kb_entry_at(sha, eid)
+                after_p = KB_DIR / "entries" / f"{eid}.json"
+                after = json.loads(after_p.read_text()) if after_p.exists() else None
+                if before is None or after is None:
+                    moved_pending.setdefault((eid, r["kb_version"], sha, None), []).append(c.rel)
+                else:
+                    moved = tuple(sorted(k for k in set(before) | set(after)
+                                         if before.get(k) != after.get(k)))
+                    moved_pending.setdefault((eid, r["kb_version"], sha, moved), []).append(c.rel)
                 continue
             stored = (KB_INDEX.get("entries") or {}).get(r.get("entry_id"))
             if stored is None:
                 out.append(Finding(25, FAIL, f"kb_ref cites {r.get('entry_id')!r}, which the store does not have", c.rel))
             elif stored.get("grade") != r.get("grade"):
                 out.append(Finding(25, FAIL, f"kb_ref {r.get('entry_id')} claims {r.get('grade')} but the store says {stored.get('grade')}", c.rel))
+
+    bookkeeping = 0
+    for (eid, ver, sha, moved), rels in sorted(moved_pending.items(), key=lambda kv: str(kv[0])):
+        if moved is not None and not (set(moved) & CLAIM_FIELDS):
+            # Only organisational fields moved -- nothing a card could have
+            # read is different. Counted rather than reported, so the number
+            # stays visible without 19 findings saying nothing happened.
+            bookkeeping += len(rels)
+            continue
+        where = f"{rels[0]} and {len(rels) - 1} more" if len(rels) > 1 else rels[0]
+        if moved is None:
+            out.append(Finding(25, PENDING, f"kb_ref {eid} pins {ver} ({sha[:7]}) and the entry has changed "
+                                            f"since; its bytes at that commit could not be read back, so what "
+                                            f"moved is unknown. {len(rels)} cards: {where}", rels[0]))
+            continue
+        claims = sorted(set(moved) & CLAIM_FIELDS)
+        out.append(Finding(25, PENDING,
+            f"kb_ref {eid} pins {ver} ({sha[:7]}) and the store has since corrected {', '.join(claims)}"
+            + (f" (also {', '.join(k for k in moved if k not in claims)})" if set(moved) - set(claims) else "")
+            + f". The grade held, so this is a correction under a live pin and not a regrade: the pin is still "
+              f"an honest record of what was read, and the question is whether the {len(rels)} card(s) resting "
+              f"on it should be revised. {where}", rels[0]))
+    if bookkeeping:
+        out.append(Finding(25, PASS, f"{bookkeeping} pinned refs sit on entries that changed only in fields "
+                                     f"no card reads -- `subject` and the like, filled in store-wide -- so "
+                                     f"what each card read is unmoved"))
 
     if KB_INDEX is not None:
         entries = {}
