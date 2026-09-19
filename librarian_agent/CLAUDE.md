@@ -48,6 +48,19 @@ the seat above is busy, and a procedure that does that is abandoned in a week.
 Mid-task it does not take effect either — defer to the next boundary and say you
 deferred.
 
+**Re-read the section from disk before you report on it.** Six seats commit
+here hourly, so what is in your context is a memory and a memory is not
+evidence — including this file, which you are reading from the copy loaded when
+your session started. On 2026-09-18 one seat hit this twice in an hour: a
+`validate.py` line number that was true when taken and false an hour later
+because another seat inserted 120 lines above it, and a report that §6.2.3
+prescribes `git config --local`, reproduced in a scratch repository and then
+dropped on re-reading, because the section had since been rewritten to
+`--worktree`. Neither was careless. Both were a reference that was correct when
+taken and wrong when used. The first has a fix — pin the sha, `validate.py:2376
+@47ee3b2` — and the second does not, because a copy in context never looked
+like a citation in the first place.
+
 ## The four tools, and why four
 
 | tool | returns |
