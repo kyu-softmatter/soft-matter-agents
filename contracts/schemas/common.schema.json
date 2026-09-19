@@ -200,9 +200,22 @@
             "absent",
             "condition_mismatch",
             "inaccessible",
-            "unqualified_source"
+            "unqualified_source",
+            "in_published_table"
           ],
-          "description": "four kinds because the next action differs for each: search / find other conditions / ask a person / do not enter it (4.3.1)"
+          "description": "five kinds because the next action differs for each: search / find other conditions / ask a person / do not enter it / read it from your own snapshot (4.3.1). The fifth was added 2026-09-19 after the service's first real use answered `absent` to device_registry, control_channel and read_back -- a table name and two of its column names, all three sitting in the caller's own snapshot under tables.devices, published by the librarian and pinned by sha256. `absent` is not merely unhelpful there: its next action is search-outside-then-ask-a-person, so it sends the caller out of the building for what it already holds."
+        },
+        "published_in": {
+          "type": "object",
+          "description": "Which published table holds it. Required when kind is in_published_table, because two of the three names that found this defect were COLUMN names -- a caller told only that it is 'in a table' guesses which. Carrying the sha256 is what makes the next action checkable rather than advisory: read tables.<table> and confirm it is the version the store published.",
+          "properties": {
+            "snapshot": { "type": "string", "description": "the kb/exports/snapshot_<agent>.json it was published into" },
+            "table": { "type": "string", "description": "the key under `tables`, e.g. devices" },
+            "column": { "type": "string", "description": "set when the caller asked for a column rather than the table" },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          },
+          "required": ["table"],
+          "additionalProperties": false
         },
         "searched": {
           "type": "array",
@@ -258,6 +271,18 @@
         "kind",
         "searched",
         "kb_version"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "in_published_table" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["published_in"],
+            "$comment": "Conditionally required rather than advised. The alternative rejected for this kind -- put the next action in `nearest` and leave `kind` alone -- failed because nothing branches on a field nobody has to fill. A gap that says only in_published_table repeats that mistake one level down: it names the shelf and not the book, and the caller who asked for a column guesses."
+          }
+        }
       ],
       "additionalProperties": false
     },
