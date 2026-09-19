@@ -23,6 +23,49 @@ by the design session (§6.2). The permission rules in `.claude/settings.json`
 enforce that rather than relying on restraint, and check 35 catches a commit
 that crosses the line.
 
+**Two paths inside this tree are not yours**, and they are the two that matter
+most because they are the ones a session here can actually reach:
+`envelope/safety.json`, which only the person writes (P0 rule 7), and
+`inbox/**`, which only the bridge writes (§7.1 rule 8). The rest of the deny
+list points outside this tree, where nothing would resolve anyway.
+
+## A round arrives in `inbox/`, and the envelope is the turn
+
+**`microscope_agent/inbox/<thread>/` is where the bridge delivers.** It holds
+`r<N>_ask_*.{json,md}` and nothing else. You **read** it; you never write it.
+By the boundary classifier that folder is the `bridge`'s, not this agent's —
+only its location is in your tree — and an agent writing its own inbox is
+forging a delivery.
+
+**An envelope sitting there is the turn. There is nothing else to check.**
+Deliberately no status copy is delivered: `status.json` is the one file in a
+thread that changes, so a copy of it goes stale the moment the turn moves, and
+that drift is what left the example thread reading "the human's turn" for a
+day. **And do not go read `bridge/threads/` for the turn instead.** That
+breaks §7's separation path — detaching to the microscope PC takes
+`microscope_agent/` and `contracts/` and leaves `bridge/` behind, so a round
+read from there becomes invisible the moment the instrument is separated.
+
+**Taking a round is S2, and it is assigned by a task card like an axis is.**
+Do not start one because you saw it. Two seats share this tree and a round
+that both might assume the other took is worse than one nobody took, because
+it looks staffed. Seeing an envelope you have no card for, report it up;
+`manager-microscope` cards it.
+
+**How the bridge learns you took it**: the goal card's `from_round`,
+`thr-…:r<N>`. The bridge already reads this agent's `questions/`, so nothing
+is written back toward it.
+
+**Nothing is deleted from the inbox.** The delivery happened and that file is
+the record of it (P1).
+
+This section exists because it did not. On 2026-09-19 the first real
+cross-agent round was written, delivered, and sat unread — not from
+inattention but because **no document told any seat that the folder existed**.
+A chat message rescued it, which is the §6.2 rule 2 failure exactly: the
+notice worked and left no trace, so a session reset would have lost the fact
+that a round was waiting.
+
 ## Where knowledge comes from
 
 Not from here. This agent keeps **records** (`questions/`, `runs/`) and

@@ -2,6 +2,10 @@
   "$comment": "Session boundary for the microscope agent (plan.md 6.2). The session boundary is the permission boundary: this session can only write inside its own agent. contracts/ and plan.md are read here and written by the design session.",
   "permissions": {
     "deny": [
+      "Write(microscope_agent/inbox/**)",
+      "Edit(microscope_agent/inbox/**)",
+      "Write(microscope_agent/envelope/safety.json)",
+      "Edit(microscope_agent/envelope/safety.json)",
       "Write(simulation_agent/**)",
       "Edit(simulation_agent/**)",
       "Write(librarian_agent/**)",
@@ -12,7 +16,8 @@
       "Edit(contracts/**)",
       "Write(plan.md)",
       "Edit(plan.md)"
-    ]
+    ],
+    "$comment": "The first four are the only entries that enforce anything from a session opened in this directory: inbox/** is the bridge's (7.1 rule 8) and envelope/safety.json is the person's (P0 rule 7), and both sit inside this tree where a path resolves. The rest point outside this tree, where nothing resolves from here -- they are a statement of intent, not a guard. Kept rather than deleted so the intent survives, labelled rather than left so the next reader does not mistake them for protection. If a session is ever seated at the repository root, they become live and the bridge's own deny on <agent>/inbox/ has to come out first, or it blocks the one outside write that seat is required to make."
   },
   "hooks": {
     "PostToolUse": [
