@@ -457,10 +457,23 @@ def _preflight(store: Store, caller_id: str, kb_version: str, tool: str) -> Stor
     if tool not in TOOLS:
         raise Refused(f"{tool!r} is not one of the four read-only tools {TOOLS}")
     if not isinstance(caller_id, str) or not re.match(CALLER_ID, caller_id):
+        # Name every form the pattern takes. This said "<qid>:<config>:<axis>"
+        # while the pattern accepted four, so a bridge caller -- whose id looks
+        # nothing like that one -- was told its id was the wrong shape and had
+        # no way to see which shapes were right. It guessed correctly that the
+        # message was abridged rather than the pattern narrow, and had to
+        # escalate to find out, because reading this file would have crossed a
+        # seat boundary. Same defect as 008: the string a caller reads drifting
+        # from what the code does, and here the string was the only thing it
+        # could see.
         raise Refused(
-            f"caller_id {caller_id!r} is not <qid>:<config>:<axis>. The launcher issues it and a "
-            "sub-agent may not choose it (4.3.1 rule 3); a malformed one is refused here, and "
-            "that an issued-looking id really came from the launcher is enforced there, not here"
+            f"caller_id {caller_id!r} is not one the launcher issues. Four forms: "
+            "<qid>:v<N>:<config>:<axis>, <qid>:v<N>:s2, <qid>:v<N>:operator, and "
+            "bridge:<thread>:r<N>, where <qid> is (mic|sim)-YYYYMMDD-NNN. The revision "
+            "is part of the id; the form without v<N> is accepted while cards migrate. "
+            "A sub-agent may not choose its own id (4.3.1 rule 3) -- a malformed one is "
+            "refused here, and that an issued-looking one really came from the launcher "
+            "is enforced at the launcher, not here."
         )
     return store.at(kb_version)
 
@@ -574,6 +587,34 @@ def _provenance(store: Store) -> dict:
     }
 
 
+def _recording_refusals(fn):
+    """Record a refusal before re-raising it.
+
+    Every refusal path goes through here rather than through each tool,
+    because the ones that were invisible were the ones raised somewhere other
+    than where the logging happened -- preflight, a dimension mismatch inside
+    matching, a symbol defined twice. A wrapper cannot miss a path the way a
+    call site can.
+
+    A failure to record a refusal fails the call, the same way a failure to
+    record an answer does, and the original refusal is chained so the caller
+    still sees why it was turned away.
+    """
+    @functools.wraps(fn)
+    def guard(store, caller_id=None, kb_version=None, *a, **kw):
+        try:
+            return fn(store, caller_id, kb_version, *a, **kw)
+        except Refused as exc:
+            query_log.record_refusal(
+                store.log, tool=fn.__name__, reason=str(exc),
+                caller_id=caller_id, kb_version=kb_version,
+                arguments={k: v for k, v in kw.items()} or None,
+            )
+            raise
+    return guard
+
+
+@_recording_refusals
 def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
              condition_range: dict | None = None, purpose: str = "screen") -> dict:
     store = _preflight(store, caller_id, kb_version, "kb_query")
@@ -658,6 +699,7 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
     return answer
 
 
+@_recording_refusals
 def kb_get(store: Store, caller_id: str, kb_version: str, entry_id: str,
            purpose: str = "screen") -> dict:
     store = _preflight(store, caller_id, kb_version, "kb_get")
@@ -672,6 +714,7 @@ def kb_get(store: Store, caller_id: str, kb_version: str, entry_id: str,
             "kb_version": store.kb_version, "answered_from": _provenance(store)}
 
 
+@_recording_refusals
 def kb_conflicts(store: Store, caller_id: str, kb_version: str, topic: str = "",
                  purpose: str = "troubleshoot") -> dict:
     store = _preflight(store, caller_id, kb_version, "kb_conflicts")
@@ -700,6 +743,7 @@ def kb_conflicts(store: Store, caller_id: str, kb_version: str, topic: str = "",
                     "which one applies is decided by the conditions, by the caller"}
 
 
+@_recording_refusals
 def kb_group(store: Store, caller_id: str, kb_version: str, symbol: str,
              purpose: str = "screen") -> dict:
     store = _preflight(store, caller_id, kb_version, "kb_group")
@@ -1041,22 +1085,36 @@ def _self_test() -> int:                                    # noqa: C901
         if {x["tool"] for x in lines} != set(TOOLS):
             bad(f"not every tool reached the log: {sorted({x['tool'] for x in lines})}")
 
-        # The log counts ANSWERS, not attempts. A call refused in preflight
-        # leaves no line, and for the malformed-id case it cannot leave one:
-        # every record needs an attributable caller_id, and an unattributable
-        # attempt has none. Asserting it here keeps the behaviour deliberate
-        # rather than incidental -- if attempts need recording, that is a
-        # different record with a different shape.
+        # A refused call is recorded too, and the shape is the point. Until
+        # 2026-09-19 the log held answers only, so how often the service
+        # refused was written nowhere. What a refusal must not do is write a
+        # caller_id the launcher never issued into the field that means one.
         before = len(lines)
+        # Earlier cases refuse too -- a bad dimension, three bad ids, an
+        # unresolvable pin -- so what is asserted here is the delta.
         for attempt in [lambda: kb_query(store, "librarian", v, "viscosity", {}),
                         lambda: kb_query(store, cid, "kbv-000000000000", "viscosity", {})]:
             try:
                 attempt()
             except Refused:
                 pass
-        after = len([x for x in log.read_text().splitlines() if x.strip()])
-        if after != before:
-            bad(f"a refused call left {after - before} lines; the log records answers, not attempts")
+        after = [json.loads(x) for x in log.read_text().splitlines() if x.strip()]
+        if len(after) != before + 2:
+            bad(f"two refusals produced {len(after) - before} records")
+        refusals = [r for r in after[before:] if r.get("outcome") == "refused"]
+        if len(refusals) != 2:
+            bad(f"{len(refusals)} refusals recorded for two refused calls")
+        for r in refusals:
+            if "caller_id" in r or "kb_version" in r:
+                bad(f"a refusal asserted what the server rejected: {sorted(r)}")
+            if not r.get("reason") or not isinstance(r.get("claimed"), dict):
+                bad(f"a refusal recorded that something failed and not what: {r}")
+        if not any(r["claimed"].get("caller_id") == "librarian" for r in refusals):
+            bad("the claimed id was not kept; a refusal nobody can attribute is still evidence")
+        if any(r.get("claimed", {}).get("caller_id") == r.get("caller_id") for r in refusals):
+            bad("a claimed id leaked into the validated field")
+        if query_log.verify(log):
+            bad(f"refusal records do not audit clean: {query_log.verify(log)}")
 
         # 14. an unlogged answer fails rather than returning quietly
         broken = Store(log=Path(d) / "gone" / "log.jsonl")

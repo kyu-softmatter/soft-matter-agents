@@ -75,7 +75,23 @@ OVERLAP = ("full", "partial", "no_overlap", "unstated", "unconstrained")
 # server and not here stops every query that produces it. The first time it
 # was found by a test; this time by the first run after the change.
 FIELDS = ("asked_at", "caller_id", "kb_version", "tool", "purpose",
-          "observable", "condition_range", "returned", "gaps", "coverage")
+          "observable", "condition_range", "returned", "gaps", "coverage",
+          "outcome", "reason", "claimed")
+
+# A refused call is a record too. Until 2026-09-19 the log held answers only,
+# so how often the service refused was written nowhere -- "nine of ten queries
+# came back empty" was countable because empty is an answer, and refusals were
+# not. It also left the check 0.3-4 will want unable to tell a card that never
+# called from one that called and was turned away. Those are different claims,
+# the same way `searched` separates not-looked-for from not-there.
+#
+# The trap, and the shape exists for it: a refusal may be OF a caller_id that
+# the launcher never issued. Writing that string into `caller_id` would put an
+# invented id into the audit trail -- the reason this seat refused to fabricate
+# the log's first line. So a refusal records nothing as validated: every
+# argument as given goes under `claimed`, whose name says what it is, and no
+# field asserts a property the server just rejected.
+REFUSAL_FIELDS = ("asked_at", "tool", "outcome", "reason", "claimed")
 
 
 def _contract(path: str, *keys):
@@ -141,6 +157,23 @@ def check(rec: dict) -> dict:
     unknown = sorted(set(rec) - set(FIELDS))
     if unknown:
         raise Rejected(f"unknown fields {unknown}; the record shape is fixed so the log stays countable")
+
+    if rec.get("outcome") == "refused":
+        missing = sorted(set(REFUSAL_FIELDS) - set(rec))
+        if missing:
+            raise Rejected(f"a refusal is missing {missing}")
+        asserted = sorted(set(rec) - set(REFUSAL_FIELDS))
+        if asserted:
+            raise Rejected(
+                f"a refusal carries {asserted}, which assert what the server refused to accept. "
+                "Everything as given goes under `claimed`, so a caller_id the launcher never "
+                "issued is never recorded as one that it did."
+            )
+        if not isinstance(rec.get("claimed"), dict):
+            raise Rejected("`claimed` is the arguments as given and has to be an object")
+        if not str(rec.get("reason") or "").strip():
+            raise Rejected("a refusal without a reason records that something failed and not what")
+        return rec
     for f in ("asked_at", "caller_id", "kb_version", "tool", "purpose"):
         if not rec.get(f):
             raise Rejected(f"{f} is required: a line without it cannot be attributed or replayed")
@@ -161,6 +194,12 @@ def check(rec: dict) -> dict:
         if verdict not in OVERLAP:
             raise Rejected(f"coverage of {quantity!r} is {verdict!r}, not one of {OVERLAP}: matching says whether it covers, never what to do (4.3.1)")
     return rec
+
+
+def record_refusal(log: Path, tool: str, reason: str, **claimed) -> dict:
+    """Append a refusal. Nothing in `claimed` is validated, and its name says so."""
+    return record(log, tool=tool, outcome="refused", reason=reason,
+                  claimed={k: v for k, v in claimed.items() if v is not None})
 
 
 def record(log: Path = DEFAULT_LOG, **rec) -> dict:
@@ -228,6 +267,8 @@ def verify(log: Path = DEFAULT_LOG) -> list[str]:
         if rec["asked_at"] < last:
             problems.append(f"line {n}: asked_at {rec['asked_at']} precedes line above; an append-only log does not go backwards")
         last = rec["asked_at"]
+        if rec.get("outcome") == "refused":
+            continue      # nothing was answered, so there is no answer to compare
         qk, ak = _query_key(rec), _answer_key(rec)
         if qk in seen and seen[qk][1] != ak:
             # Name the query and both answers. A violation that says only

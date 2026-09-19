@@ -317,18 +317,44 @@ def publish() -> list[Path]:
 
 
 def check() -> list[str]:
-    """Is what is published still what the store says? Stale exports are worse than none."""
+    """Has the KNOWLEDGE moved since this was published?
+
+    Not "was it built at the current HEAD". Every commit by any of six seats
+    moves HEAD, and rebuilding to compare made every snapshot read as stale
+    the moment anybody committed anything -- including commits that touched
+    no entry and no table. A staleness report that fires on normal activity
+    is one people stop reading, which is the same failure as not having it,
+    and it had already cost one broken command chain.
+
+    So `built_from_commit` is held constant for the comparison and the rest
+    of the content is compared. A snapshot built two hours and forty commits
+    ago is current if the entries and tables it carries are the ones the store
+    has now. What is checked about the commit instead is that it still exists.
+    """
     problems = []
     for agent in sorted(AGENTS):
         target = EXPORTS / f"snapshot_{agent}.json"
         if not target.exists():
             problems.append(f"{target.name} has not been published")
             continue
-        fresh = json.dumps(build(agent), indent=2, ensure_ascii=False) + "\n"
-        if target.read_text() != fresh:
-            current = json.loads(target.read_text()).get("kb_version")
-            problems.append(f"{target.name} is stale: it pins {current}, the store is at "
-                            f"{json.loads((KB / 'index.json').read_text())['kb_version']}")
+        published = json.loads(target.read_text())
+        body = build(agent)
+        body["built_from_commit"] = published.get("built_from_commit")
+        body.pop("snapshot_hash")
+        body["snapshot_hash"] = _digest(_canonical(body))
+        if json.dumps(body, indent=2, ensure_ascii=False) + "\n" != target.read_text():
+            differing = sorted(k for k in set(body) | set(published)
+                               if body.get(k) != published.get(k))
+            problems.append(f"{target.name} is stale: {differing} differ from the store "
+                            f"(published at {published.get('kb_version')}, store at "
+                            f"{body.get('kb_version')})")
+            continue
+        commit = published.get("built_from_commit")
+        try:
+            _git("cat-file", "-e", f"{commit}^{{commit}}")
+        except (OSError, subprocess.CalledProcessError):
+            problems.append(f"{target.name} names built_from_commit {commit}, which this "
+                            "repository does not have -- nothing can read its bytes back")
     return problems
 
 

@@ -6,12 +6,19 @@ call it answers, and treats a logging failure as worse than no answer: if the
 record cannot be written the call fails, because a silent hole in the trail is
 the thing the trail exists to prevent.
 
-**It counts answers, not attempts.** A call refused before it was answered leaves
-no line, and for a malformed `caller_id` it *cannot* leave one — every record
-needs an attributable asker and an unattributable attempt has none. So a
-sub-agent guessing at a sibling's id shows up nowhere here. If attempts need
-recording, that is a different record with a different shape, and it is raised
-with the manager rather than bolted onto this one.
+**It records refusals too, since 2026-09-19.** A refused call is an ask, and
+holding only answers meant the service's refusal rate was written nowhere —
+"nine of ten queries came back empty" was countable because empty is an
+answer, and refusals were not. It also left a card claiming `degraded`
+indistinguishable from one that called and was turned away, which is the same
+distinction `searched` draws between not-looked-for and not-there.
+
+A refusal asserts nothing. Every argument as given goes under `claimed`, and
+no field states a property the server just rejected — because a refusal may be
+*of* a `caller_id` the launcher never issued, and writing that string into
+`caller_id` would put an invented id into the audit trail. That is the reason
+this seat declined to fabricate the log's first line, applied to its own
+records.
 
 ## Why it is beside `kb/` and not inside it
 
