@@ -175,11 +175,20 @@ class Store:
         entries answered only to an id the caller had to learn by reading the
         staging table first.
 
-        A `subject` name comes from a namespace that already exists: an
-        observable id from contracts/observables.json, or a channel or element
-        id from the device table. Not a third namespace invented here -- a
-        third would need a rule joining it to the other two, and a join nobody
-        writes is a join that does not hold.
+        A subject names its registry rather than being a bare string:
+        `{"kind": "device", "id": "csuw1_port"}`. Two entries calling one thing
+        by different words would make matching a coincidence, which is the
+        defect `subject` exists to remove, so a free list of strings would only
+        have moved it one level. Four registries, all of which already exist --
+        device (channel, element, or RETIRED row), configuration, observable,
+        and quantity, which is the weakest because it is a de facto registry of
+        names used in numbers[] rather than a declared one.
+
+        What is matched here is the `id`. The `kind` says where that id is
+        checkable, and nothing checks it yet: the check that every subject
+        resolves is declared in section 8 and does not exist, so filling this
+        field is useful and unverified, and saying so is cheaper than finding
+        out in six months that it drifted.
 
         The set is a union, not a replacement: an entry without `subject` still
         answers to everything it answered to before, which is what makes
@@ -191,7 +200,7 @@ class Store:
         for n in e.get("numbers") or []:
             if n.get("name"):
                 names.add(n["name"])
-        names.update(e.get("subject") or [])
+        names.update(s["id"] for s in (e.get("subject") or []) if s.get("id"))
         return names
 
     # -- ordering ---------------------------------------------------------- #
@@ -482,11 +491,16 @@ def _self_test() -> int:                                    # noqa: C901
         # handle it had. Asserted on the function rather than through the store
         # so it holds before any entry carries the field.
         probe = {"entry_id": "e", "numbers": [{"name": "n"}], "symbol": "s",
-                 "subject": ["csuw1_port", "tracer_diffusivity"]}
+                 "subject": [{"kind": "device", "id": "csuw1_port"},
+                             {"kind": "observable", "id": "tracer_diffusivity"}]}
         if store.subjects(probe) != {"e", "n", "s", "csuw1_port", "tracer_diffusivity"}:
             bad(f"subject is not a handle, or it replaced the others: {store.subjects(probe)}")
         if store.subjects({"entry_id": "e"}) != {"e"}:
             bad("an entry with no subject stopped answering to its own id")
+        # the shape is an object and was a bare string for one commit; a list
+        # of strings must not silently half-work by iterating characters
+        if store.subjects({"entry_id": "e", "subject": [{"kind": "device"}]}) != {"e"}:
+            bad("a subject with no id contributed something")
 
         # 5. ordering is grade, then the rank inside E3, then entry_id
         r = kb_query(store, cid, v, "na", {})
