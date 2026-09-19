@@ -76,10 +76,16 @@ the bridge form was added. Two causes were found and both are real:
   works, and the launcher reports the connection healthy throughout. Connected
   is not working.
 
-So if a call is refused with that message: retest after a reconnect before
-reporting a contract defect. If a fresh process still refuses, it is the
-contract and goes to the librarian side. If it succeeds, the session was
-simply older than the fix.
+So if a call is refused with that message: **get a fresh process and retest**
+before reporting a contract defect. A fresh process that still refuses is the
+contract and goes to the librarian side; one that succeeds means the session
+was older than the fix.
+
+"Reconnect" is not the way to get one. The reconnect tool re-dials connectors
+whose status is `failed`, and a stale server reports `connected` with its four
+tools present — it is serving correctly, from old code. For a project-scoped
+stdio server the only fresh process is **a new window, which the person
+opens.** A seat cannot clear this from inside itself.
 
 So the rungs are three, not two: **visible is not callable, and
 schema-accepted is not server-accepted.** Item 5 still cannot be performed.
@@ -97,14 +103,27 @@ all. That is now open. What it means in practice:
   is in `queries/log.jsonl`. Reading the store's files is not the service
   answering (§0.3), and a refused call leaves no line at all — so an empty log
   is indistinguishable from never having asked.
-- `degraded: ["librarian_agent"]` is the right entry in both of the states
-  this seat can be in, and they are not the same state. **Absent**: the tools
-  are not in the session, which is a fact about how the window was launched and
-  is fixed by relaunching it. **Present and refusing**: the tools are there and
-  the server rejects this seat's id, which is a contract that does not line up
-  and is not fixed by anything this seat does. Same entry, different cause —
-  say which in the round's note, or the next reader restarts a window that was
-  never the problem.
+- `degraded: ["librarian_agent"]` is the right entry in three states, and they
+  are not the same state. **Absent**: the tools are not in the session — how
+  the window was launched, fixed by relaunching it. **Present and refusing on
+  the contract**: the server rejects a form the contract declares, which no
+  seat fixes from inside and goes to the librarian side. **Present and serving
+  old code**: the tools answer, correctly, from a process that started before
+  the contract moved. The third is the one that looks like nothing is wrong.
+  Say which in the round's note, or the next reader restarts a window that was
+  never the problem — or worse, does not restart the one that was.
+
+- **A round may not rest `degraded: []` on a log line it cannot claim as its
+  own.** The log is keyed by `caller_id`, and a round's id is
+  `bridge:<thread>:r<N>` — so a line written by anyone holding that string,
+  including a service verifying its own fix, is indistinguishable from the
+  round's own query. On 2026-09-19 exactly that happened: a query answered at
+  08:01:01Z under `bridge:thr-tracer-diffusivity-001:r1`, made by the librarian
+  side to test a fix, while this seat's two calls were both refused. A round
+  pointing at it would claim a service answered it when the service never did.
+  Raised: the grammar has no form for a verification call, and the refusal path
+  already solves the same problem by keeping an un-issued id out of the
+  `caller_id` field entirely.
 
 Do not invent an id to see what the server accepts. A fabricated `caller_id` in
 the query log is the impersonation §4.3.1 rule 3 exists to prevent.
