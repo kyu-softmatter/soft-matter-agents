@@ -595,11 +595,32 @@
       "status": "open, and narrower than it was. The DMD half has a measured value in the prior project; it is NOT entered here, because 10.2.1 requires a ruling before an item crosses and that ruling is manager-librarian's, not this seat's. Recorded as looked-for-and-found-unruled rather than not-there, which are different claims. The csuw1 port and disk halves are still unmeasured anywhere. The per-configuration switch_cost gap in optical_paths.v0.json is the same quantity one level up."
     },
     {
-      "what": "calibrated pixel size, per objective and intermediate magnification and binning",
-      "why_it_matters": "every length read off an image depends on it, and it is the input an observable's estimator needs to turn pixels into micrometres",
+      "what": "the Kinetix 22 sensor's pixel pitch, from the vendor datasheet",
+      "gap_id": "sensor_pixel_pitch",
+      "why_it_matters": "it is the fixed physical fact the other two rest on, and the store does not have it. Of nine empty answers on the service's first day this was the only honest absent -- the other eight were the store holding its own knowledge under another name",
       "kind": "absent",
-      "searched": ["not extracted: a calibration taken in another project migrates capped at E3 and its calibration state cannot be reproduced here (10.3 rule 1)"],
-      "status": "open. It is one number per (objective, intermediate_magnification, binning) triple, and one number for both cameras rather than two, because both are the same model (entry cameras_both_kinetix22). Measured here it is E2 and needs a validity window like any calibration. THE FAILURE TO AVOID: never back-derive a nominal magnification from a calibrated pixel size. The prior project's dossier contains exactly that artifact -- a real 20.078x objective, which is 6.5 um divided by a calibrated um/px -- and it is a calibrated quantity wearing a nominal name. The nominal magnification is 20x, an identifier; the pixel size is a separate measured value. They do not share a name."
+      "searched": [
+        "kb/entries and kb/staging: not there",
+        "the prior project: RULED CLOSED 2026-09-19. 10.2's device-registry row is about control channels, automatability and read-back, not sensor specifications, so a pixel pitch has no slot to name and 10.2.1 discards what cannot name one",
+        "having the manager seat fetch it: REFUSED 2026-09-19. A value passed down through a seat is a number in a conversation rather than a value in a document, which is the shape rule 5 exists to stop",
+        "the vendor datasheet, read by this seat: the right path, and it is an action that leaves the repository, so it is with the person"
+      ],
+      "status": "open, and open on a decision rather than on ignorance. Two of the three routes are closed with reasons; the third is waiting. When it lands the entry is one, not two: cameras_both_kinetix22 says the arms are the same model, which is what licenses a single pitch to answer for camera_red and camera_blue both. spec: takes the order number if the sheet has one, otherwise the model normalised to the source pattern, which forbids a space -- and identifiers keeps what the sheet actually wrote.",
+      "one_other_route": "the operator can read what MicroManager reports. It carries a trap worth naming before anyone takes it: the reported value may already have binning folded in, in which case it is an effective pitch and not the sensor's. That route is usable only if validity_conditions says which of the two was read."
+    },
+    {
+      "what": "pixel size at the sample plane, per objective and intermediate magnification and binning",
+      "gap_id": "pixel_size_at_sample_plane",
+      "why_it_matters": "every length read off an image depends on it, and it is what an observable's estimator needs to turn pixels into micrometres. Axis A6 is resolution, so this is the one A6 actually asked for",
+      "kind": "absent",
+      "searched": [
+        "not extracted from the prior project: a calibration taken elsewhere migrates capped at E3 and its calibration state cannot be reproduced here (10.3 rule 1)",
+        "not derivable from the sensor pitch: see must_not_derive"
+      ],
+      "status": "open, and it does not close when the sensor pitch arrives. Saying so is the point of this record: something called pixel_size will exist in the store soon and this gap is not the one it answers. A gap that closes for the wrong reason is worse than one left open, because nobody returns to it. A6 stays open.",
+      "must_not_derive": "do not produce this by dividing the sensor pitch by a nominal magnification. The prior project's dossier holds exactly that artifact -- a 20.078x objective, which is 6.5 um over a calibrated um/px -- a calibrated quantity wearing a nominal name. 5.3's nominal rule refuses it from one side (a nominal designation is a string, not a number) and task 009's ruling from the other (nominal_magnification is an identifier, and identifiers do not enter numbers[]).",
+      "three_facts_one_name": "sensor pitch, fixed, a vendor spec. Effective pitch, which is the sensor pitch times the binning factor, and nothing here records what binning this instrument runs. Sample-plane pixel size, which only a measurement on this instrument gives and which is E2 with a validity window when it comes. They are three and the word pixel_size covers all three.",
+      "measured_here_is_E2": "when a person measures it, it arrives as a result card and this session turns it into an entry (rule 9). Nothing else is a path for it."
     },
     {
       "what": "working distance of MRD77400 (40x-WI) at a coverslip thickness of exactly 170 um",
