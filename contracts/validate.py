@@ -2811,6 +2811,53 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
     return [Finding(41, PASS, f"{clean} commits stay inside the seat that made them{tail}")]
 
 
+def check_50_delivery_has_a_reader(b: Bundle) -> list[Finding]:
+    """A delivered envelope has a receiver with a reason to read it.
+
+    The delivery path and a seat that knows the path exists are two facts, and
+    on 2026-09-19 only the first was written down. Round 1 of
+    thr-tracer-diffusivity-001 was delivered into microscope_agent/inbox/
+    correctly -- checks 8, 13 and 41 all passed on it, the payload hash
+    recomputed -- and the receiving seat had no reason to look: neither its
+    standing orders nor any of its six task cards contained the word. It read
+    the round only because one session told another in chat. That notification
+    worked and left no record, which is the 6.2 rule 2 shape: if the session
+    resets, nothing on disk says a round is waiting.
+
+    The check is on the delivery, not on the tree. It refuses the bridge for
+    delivering into a tree that cannot receive, rather than refusing an agent
+    for the contents of a file it does not own -- get that backwards and the
+    seat that cannot fix the problem is the one that is blocked.
+
+    Like check 48 it reads for a declaration and cannot read for comprehension:
+    standing orders that name the inbox may still describe it wrongly. What it
+    forecloses is the case that actually happened, where the word is absent
+    altogether.
+    """
+    delivered = [c for c in b.of_kind("ask_simulation", "ask_experiment") if "/inbox/" in c.rel]
+    if not delivered:
+        return [Finding(50, NA, "nothing has been delivered")]
+
+    out: list[Finding] = []
+    for c in delivered:
+        agent = c.rel.split("/inbox/")[0]
+        orders = REPO / agent / "CLAUDE.md"
+        if not orders.exists():
+            out.append(Finding(50, FAIL, f"delivered into {agent}/, which has no CLAUDE.md -- there is no seat "
+                                         f"here to have been told anything (7.1 rule 8)", c.rel))
+        elif "inbox/" not in orders.read_text():
+            out.append(Finding(50, FAIL, f"{agent}/CLAUDE.md never names the inbox, so this envelope is a dead "
+                                         f"letter: delivered, valid, and addressed to a seat with no reason to "
+                                         f"look. The bridge may not deliver into a tree that cannot receive "
+                                         f"(7.1 rule 8); the section belongs to that agent's manager",
+                               c.rel))
+    if out:
+        return out
+    agents = sorted({c.rel.split("/inbox/")[0] for c in delivered})
+    return [Finding(50, PASS, f"{len(delivered)} delivered envelopes, in {len(agents)} trees whose standing "
+                              f"orders name the inbox")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -2823,6 +2870,7 @@ CHECKS = [
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
     check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood,
+    check_50_delivery_has_a_reader,
     check_42_check_registry, check_41_seat_attribution,
 ]
 
