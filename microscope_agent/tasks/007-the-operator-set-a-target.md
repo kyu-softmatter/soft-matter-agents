@@ -29,18 +29,35 @@ one decade the goal asks for"*. If A2 here derives a statistical requirement,
 which half the axis chose. Statistics go as 1/ε², so the margin is the
 expensive half and it is the axis's to justify.
 
-**Do not choose a source kind yet.** This seat added `operator_set:` at
-`b47dc3d` and graded it E5 to match the targets already on the card. The
-bridge manager's objection is better than that compromise and matches what
-the schema text already admits: a target is not unreliable, it is correct by
-being made, and E5 says the person might be misremembering their own goal.
-`envelope/safety.json` settled this shape once already — value and unit, no
-source, no grade. Three options are with architecture and §5.3 is theirs.
+**The shape is ruled and the schema cannot yet express it.** Architecture has
+settled that a target is carried with **neither source nor grade**, the way a
+ceiling in `envelope/safety.json` is. A `decision:` source kind was rejected,
+and the reason is worth carrying: `SOURCE_GRADE` is a function from source to
+grade and P2 derives the grade from the source, so a source that yields no
+grade is a hole in that invariant — and its content would be *this is not a
+source*, written as a source kind.
 
-**So mark the field provisional rather than encoding it.** Say in the card
-that the person stated one decade on 2026-09-19 and that the encoding awaits
-§5.3. The goal is usable in reasoning now; the representation is not settled,
-and writing a source kind that gets rewritten is worse than writing none.
+But `targets[]` is `{metric, number, kind}` where `number` names an entry in
+`numbers[]`, and those require source and grade. **The only slot that exists
+for a target guarantees what the ruling forbids.** An inline form is proposed
+and architecture has not answered.
+
+**So write nothing into the schema-shaped fields yet.** Record in prose that
+the person stated one decade on 2026-09-19 and that the encoding awaits
+§5.3. This seat added `operator_set:` at `b47dc3d` for exactly this and the
+ruling supersedes it; do not use it.
+
+**And the split is not between target-ish and not.** If A2 derives a
+statistical requirement from the decade, **that derived number stays a
+graded, sourced `numbers[]` entry.** It is a claim about what the statistics
+need, not a decision. The line runs between the person's goal and everything
+computed from it — not between numbers that feel like targets and numbers
+that do not.
+
+**The value is not confirmed to architecture yet.** It reached them relayed,
+and they will not write *the person decided* into `plan.md` on a relayed
+answer — §6.2.2 applied to themselves. Treat the **shape** as ruled and the
+**value** as pending.
 
 ## What it unblocks, and what it does not
 
