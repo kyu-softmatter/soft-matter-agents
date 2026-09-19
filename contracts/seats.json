@@ -15,11 +15,32 @@
   "what_an_epoch_costs": "It hides real crossings made before it. That is acceptable only because the period is fully accounted for -- three commits, all the person's, all inspected. Moving this forward again would not be: it would be pointing the gate away from work it should have caught. If history before an epoch ever needs auditing, audit it by hand rather than by moving the line.",
   "seats": [
     {
+      "seat": "microscope-1",
+      "committer_email": "microscope-1@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "worktree_branch": "microscope-from-version2",
+      "variant_reference": "agentic-microscope@version2",
+      "note": "One of two microscope execution seats running the A/B decided on 2026-09-18 (9.2). It builds on branch microscope-from-version2, reading agentic-microscope@version2 under 10.2.1 like any other transfer. The seat is the worktree rather than the session: one session works it at a time, and a replacement session inherits the identity because it inherits the branch. Two seats writing microscope_agent/ in one working copy would overwrite each other, which is why the worktree comes first."
+    },
+    {
+      "seat": "microscope-2",
+      "committer_email": "microscope-2@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "worktree_branch": "microscope-from-main",
+      "variant_reference": "agentic-microscope@main",
+      "note": "One of two microscope execution seats running the A/B decided on 2026-09-18 (9.2). It builds on branch microscope-from-main, reading agentic-microscope@main under 10.2.1 like any other transfer. The seat is the worktree rather than the session: one session works it at a time, and a replacement session inherits the identity because it inherits the branch. Two seats writing microscope_agent/ in one working copy would overwrite each other, which is why the worktree comes first."
+    },
+    {
       "seat": "microscope",
       "committer_email": "microscope@seat.invalid",
       "owns": [
         "microscope_agent"
-      ]
+      ],
+      "note": "The single microscope execution identity, kept valid for work that is not part of the A/B. While the two variants run, commits belong to microscope-1 or microscope-2 so that a comparison can be read off the history rather than reconstructed."
     },
     {
       "seat": "simulation",
