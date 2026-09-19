@@ -86,7 +86,7 @@ that will not fit it does not come.
 
 **Every ruling is written down, including the ones that produce nothing.**
 A dropped item leaves no artifact by definition, so unless it is recorded the
-drops cannot be counted — and §9.2 asks exactly that of the two variants. As
+drops cannot be counted — and §9.3 asks exactly that of the two variants. As
 of 2026-09-18 the store held five transfers and one downgrade, no drops at
 all, and only two of those six named a slot. Both halves of that are the same
 omission.

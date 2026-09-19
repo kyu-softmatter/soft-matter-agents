@@ -25,14 +25,23 @@ the defect, not the fix.
 project's branches and rule on what crosses, and do not write
 `tasks/NNN-rulings.md`, until the gate opens.
 
-The gate has two conditions, both observable on disk (§9.2, `9ebd137`):
+The gate has two conditions, both observable on disk (§9.3, `9ebd137`):
 
 1. `.mcp.json` registers the librarian server. Registration is met
    (`2bfc229`) and it is inherited downward, so one entry at the root covers
-   a session opened in a subdirectory. **Registration is not enough.** The
-   person must approve the server, approval is stored per project path in
-   `~/.claude.json`, and a worktree is its own path — so **each worktree is
-   approved separately** and as of `1d35fec` this is `Pending approval`.
+   a session opened in a subdirectory. **Registration is not enough, and the
+   shortfall is larger than a worktree question.** The person must approve
+   the server; approval lives in `~/.claude.json` as that path's
+   `enabledMcpjsonServers`, and as of 2026-09-18 that list is **empty at
+   every path** — the shared copy, `microscope_agent/`, and the worktrees
+   alike. So the server has never been approved anywhere, not merely not
+   inherited into a worktree. (`microscope-1` has no entry at all, which is
+   simply what a path no session has ever opened in looks like.)
+
+   `hasTrustDialogAccepted` is `true` everywhere and is **a different
+   setting**. Passing the trust dialog is not approving the server, and
+   reading it as though it were is the easiest way to believe you are served
+   when you are not.
 2. `librarian_agent/queries/log.jsonl` exists and holds at least one record
    carrying the `caller_id` of a real question. **Check this yourself**; as of
    this card the directory holds only `README.md`.
@@ -54,12 +63,12 @@ either obeying it or ignoring it.
 ## Why the hold exists
 
 The microscope execution is being built **twice**, as two variants on two
-worktrees, and the better one is chosen afterwards (§9.2). Two things follow
+worktrees, and the better one is chosen afterwards (§9.3). Two things follow
 and both are the reason you are being stopped.
 
 **A comparison measures what differs.** If one variant starts the axes or
 banks §10.2.1 rulings while the other has nobody sitting at it, the thing the
-comparison measures is which worktree had a session first. §9.2's second
+comparison measures is which worktree had a session first. §9.3's second
 criterion counts exactly the rulings file, so that tilt lands directly on the
 score. As of this card there is a session on one variant and none on the
 other, which is why the answer is *neither starts* rather than *both hurry*.
@@ -72,7 +81,7 @@ cards being compared.
 
 ## What you may do while held
 
-Read. `microscope_agent/CLAUDE.md` first, then `plan.md` §9.2, §10.2.1 and
+Read. `microscope_agent/CLAUDE.md` first, then `plan.md` §9.3, §10.2.1 and
 §4.5. Reading is not ruling: form no judgement on paper about what transfers
 until the gate opens, because that judgement is the thing being counted.
 
