@@ -3,10 +3,11 @@
   "schema_version": "0.1",
   "thread": "thr-tracer-diffusivity-001",
   "round": 1,
-  "turn": "microscope_agent",
-  "state": "open",
-  "updated_at": "2026-09-19T07:30:45Z",
+  "turn": "human",
+  "state": "held",
+  "updated_at": "2026-09-19T17:28:16Z",
   "blocked_pairs": [],
   "substitutions": [],
-  "note": "Opened on the simulation seat's request, whose user reversed an earlier hold. The bridge opened nothing by itself. The round was written only after the ledger's hash stopped covering status (af5353b): before that, the approval this plan is due to receive would have made a correctly transported round report tampering."
+  "note": "Opened on the simulation seat's request, whose user reversed an earlier hold. The bridge opened nothing by itself. The round was written only after the ledger's hash stopped covering status (af5353b): before that, the approval this plan is due to receive would have made a correctly transported round report tampering. Delivered to microscope_agent/inbox/ on 2026-09-19 under 7.1 rule 8; until that path existed the turn pointed at a side with no way to see the round. Held the same day: the microscope seat read the delivery, found the sample mismatch and declined to reconcile it, which is right -- taking either number would have one side silently measuring a different sample, and the bridge may not choose between them either (4.4). The diffusivity difference is inside explore's tie band and the diffusive time is not, and the diffusive time is what sets record length, so the two sides would run for different durations. Values stay in the two cards named in open_question; this ledger does not restate them.",
+  "open_question": "Which bead lot is the sample? The two sides are planning different tracer sizes -- tracer_diameter in microscope_agent/questions/mic-20260918-001/goal.json against bead_diameter in the carried plan-sim-20260917-001. Both are E5, so neither outranks the other, and the sources differ in kind: an operator's recall against an assumption. A lot number ends it by making both sides spec:<lot> at E3, so what a person has to supply is the lot, not a choice between the two numbers. Not yet recorded in plan.md 11; raised with manager-bridge."
 }
