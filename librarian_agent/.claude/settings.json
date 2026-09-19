@@ -1,7 +1,8 @@
 {
   "$comment": "Session boundary for the librarian (plan.md 6.2). What ENFORCES the boundary is the commit gate -- check 35 refuses a commit that crosses it, against the tree the commit would create. This file states the boundary; since 2026-09-19 it no longer claims to hold it.",
   "permissions": {
-    "$comment_deny": "INERT AS WRITTEN, AND KEPT ON PURPOSE. A path pattern resolves against the session root, and this session is started in librarian_agent/ -- so `Write(bridge/**)` means `librarian_agent/bridge/**`, a path that cannot exist. All ten entries name a sibling directory, contracts/ or plan.md, so all ten are outside this root and none of them can ever match. They are not deleted because deleting them deletes the intent, and they are labelled because an unlabelled inert rule reads as protection to the next person -- that is the failure, not the rule. Nothing can be aimed inside this tree instead: unlike the executing agents, this seat has no envelope/ or inbox/ that another seat writes. A tool denial WOULD still work here -- tool names do not resolve against a root -- and there are none in this file, so do not read the label as covering a kind of rule this file does not contain.",
+    "$comment_deny_outside": "THE TEN BELOW ARE INERT, AND KEPT ON PURPOSE. A path pattern resolves against the session root, and this session starts in librarian_agent/ -- so `Write(bridge/**)` means `librarian_agent/bridge/**`, which cannot exist. All ten name a sibling directory, contracts/ or plan.md, so none can ever match. Not deleted, because deleting them deletes the intent; labelled, because an unlabelled inert rule reads as protection to the next person, and that is the failure rather than the rule. What enforces this boundary is the commit gate and check 35. A tool denial WOULD work here -- tool names do not resolve against a root -- and this file contains none, so do not read this label as covering a kind of rule that is not here.",
+    "$comment_deny_inside": "THE FOUR BELOW ARE LIVE. They resolve inside this root and they fire. The rule that picks them is ownership, not a list: anything inside this agent's own tree that ANOTHER seat owns. contracts/seats.json gives manager-librarian exactly these four -- CLAUDE.md, README.md, tasks/ and .claude/ -- and the executing seat owns kb/, queries/, src/ and failures.jsonl. This file claimed on 2026-09-19 that nothing could be aimed inward, reasoning from the absence of envelope/ and inbox/; that was a list where a rule was needed, and manager-simulation found the same error in its own file from the same relay. `tasks/` is the one that mattered: 6.2 rule 2 makes it the home of instructions that come DOWN, and until now the seat receiving them could edit them. A seat that can edit its own instructions has preferences, not instructions. `.claude/**` covers this file, which is correct and is why the manager writes it.",
     "deny": [
       "Write(microscope_agent/**)",
       "Edit(microscope_agent/**)",
@@ -12,7 +13,15 @@
       "Write(contracts/**)",
       "Edit(contracts/**)",
       "Write(plan.md)",
-      "Edit(plan.md)"
+      "Edit(plan.md)",
+      "Write(CLAUDE.md)",
+      "Edit(CLAUDE.md)",
+      "Write(README.md)",
+      "Edit(README.md)",
+      "Write(tasks/**)",
+      "Edit(tasks/**)",
+      "Write(.claude/**)",
+      "Edit(.claude/**)"
     ]
   },
   "hooks": {
