@@ -1,0 +1,15 @@
+{
+  "source_id": "src_abvigen_red_ps_cooh_datasheet",
+  "kind": "vendor_spec",
+  "identifier": "Abvigen Inc, \"Red PS Fluorescent Particles-COOH -- PRODUCT DATA SHEET\", 4 pages. PDF metadata: Title Price-Quotation, Author dean wei, created 2024-12-24T14:18:51+08:00, producer WPS.",
+  "accessed": "2026-09-19",
+  "grade_rule": "E3, grade_tag vendor_spec. A published specification from the supplier, not a measurement taken here. Nothing from this document can exceed E3 however precisely it is printed.",
+  "url": null,
+  "url_note": "No URL is recorded because the document arrived as a file, not a link. It does not need one: the PDF itself is stored beside this record as src_abvigen_red_ps_cooh_datasheet.pdf, sha256 ea3de6e93fb6d11bc4c8d5ea1db38bc5fcd333355c6727543e2d182b1408c793, so the citation resolves without the vendor's website staying up. This is the first source here whose document is held rather than referenced -- compare src_nikon_objective_catalog, whose own note records that its URL was never captured and asks whoever holds it to supply one.",
+  "license_note": "Numeric specifications and identifiers only. The descriptive prose and the marketing claims on pages 1 and 3 are not reproduced in any entry (4.3).",
+  "provenance": "Handed to this seat by the person on 2026-09-19 as material the microscope manager needs. Not from any prior repository, so 10.2 and 10.2.1 do not apply and no transfer ruling is required.",
+  "held_at": "kb/sources/src_abvigen_red_ps_cooh_datasheet.pdf",
+  "sha256": "ea3de6e93fb6d11bc4c8d5ea1db38bc5fcd333355c6727543e2d182b1408c793",
+  "note": "THE DOCUMENT DOES NOT SAY WHICH PARTICLE WAS BOUGHT. It is a product-family sheet: the Particles/mg and Particles/ml tables run from 0.05 um to 3000 um, sixty diameters, and every diameter-dependent quantity is a column rather than a value. So this source alone answers nothing about the tracers actually in use, and the open question it creates -- which diameter, which lot -- is the one thing blocking tracer_number_density and tracer_diffusivity for the caller who asked for both today. Recorded as the gap tracer_diameter_unknown, which only a person can close.",
+  "not_entered": "Three things in this document are deliberately left out. (1) The centrifugation-parameter table on page 3 is sample-preparation procedure, not knowledge about the sample, and no seat here has asked for it. (2) 'Strong resistance to photobleaching' and 'high fluorescence intensity' on page 3 are unquantified marketing prose; the microscope seat asked for bleaching_rate today and got absent, and it stays absent, because a number that is not printed cannot be inferred from an adjective. (3) The refractive index is NOT in this document. Polystyrene has a well-known value but this sheet does not state it, so it is not entered from here -- the gap refractive_index stays open and is now findable rather than merely absent, because the material is established."
+}

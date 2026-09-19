@@ -1,0 +1,31 @@
+{
+  "entry_id": "tracer_emission_peak",
+  "schema_version": "0.1",
+  "source": "spec:abvigen_red_ps_cooh",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_abvigen_red_ps_cooh_datasheet",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "kind": "claim",
+  "claim": "The tracer particles emit at 680 nm, as specified by the supplier for the product family.",
+  "numbers": [
+    {
+      "name": "emission_wavelength",
+      "value": 680,
+      "unit": "nm",
+      "source": "spec:abvigen_red_ps_cooh",
+      "grade": "E3",
+      "precision": "significant_figures"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "emission_wavelength"
+    }
+  ],
+  "validity_conditions": "A single number where the physical object is a band: the sheet prints 'Emission: 680 nm' and gives no width, so the bandwidth is unstated rather than narrow, and a filter chosen as if 680 were the whole emission is a choice made on missing information. Diameter-independent, so this holds before the tracer_diameter_unknown gap closes. Entered separately from the excitation peak deliberately -- the two are one product specification but not one claim, and a caller picking a dichroic can be wrong about one while right about the other. mic-20260918-001:v2:widefield_inline:a6 asked for emission_wavelength at 18:45 today and got `absent`; that answer stands at its pin and this entry does not reach back to it."
+}

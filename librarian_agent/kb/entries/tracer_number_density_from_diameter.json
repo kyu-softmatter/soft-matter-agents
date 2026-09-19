@@ -1,0 +1,23 @@
+{
+  "entry_id": "tracer_number_density_from_diameter",
+  "schema_version": "0.1",
+  "kind": "derived_quantity",
+  "symbol": "tracer_number_density",
+  "claim": "The number of tracer particles per millilitre of the as-supplied 10 mg/ml suspension is 6*C/(pi*rho*d**3), where C is the mass concentration, rho the particle density 1.03 g/cm3 and d the particle diameter.",
+  "formula": "6*tracer_stock_concentration/(3.141592653589793*tracer_particle_density*tracer_diameter**3)",
+  "inputs": [
+    "tracer_stock_concentration",
+    "tracer_particle_density",
+    "tracer_diameter"
+  ],
+  "unit": "1/ml",
+  "source": "spec:abvigen_red_ps_cooh",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_abvigen_red_ps_cooh_datasheet",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "validity_conditions": "WHY A FORMULA AND NOT SIXTY ROWS. The data sheet prints Particles/mg and Particles/ml for sixty diameters from 0.05 um to 3000 um, and the obvious filing is sixty calibration entries. That would be false: the table is not sixty measurements. Checked against 6/(pi*rho*d**3) at 0.05, 0.5, 1, 10, 100 and 3000 um, the ratio is 1.0023 at every one of them and 0.9996 at the last -- a constant offset over five decades, which is rounding, not physics. The vendor computed the table from the density and the geometry of a sphere, so what is actually known is the relation, and entering it as data would dress an arithmetic identity as sixty independent facts that could each be refuted separately. THE GRADE IS E3 AND IT IS INHERITED, NOT EARNED BY THE ARITHMETIC. The geometry is exact, but rho is a vendor specification, so the result can be no better than E3 -- and a caller supplying its own measured diameter does not thereby get an E1 answer, because rho is still in the denominator. IT DOES NOT ANSWER WHAT THE CALLER ASKED. Two separate things stand between this and the number density in anybody's sample. First, d is unknown: this is a product-family sheet and nothing records which diameter was bought (gap tracer_diameter_unknown). Until a person says which, the formula has an unbound input and yields nothing. Second, C here is the stock concentration in the bottle, and any dilution the operator made is an unrecorded fact standing between the stock and the coverslip. mic-20260918-001:v1:widefield_inline:a2 and :a3 both asked for tracer_number_density today and both got `absent`; this entry does not make that answer wrong, and it does not on its own make the next one right. NO SUBJECT, AND THAT IS THE HONEST STATE. Check 44 resolves a `quantity` subject against the names actually used in numbers[] somewhere, and refused an earlier draft of this entry with the right instruction attached -- a subject names a registry so that it can be wrong, do not add the id to make this pass. There is no registry id for the tracer particle: `device` is drawn from the channels and elements of kb/staging/devices.v0.json and a sample is not hardware, `configuration` is an optical path, and contracts/observables.json holds two ids, neither of them this. So the field is left off rather than filled with something adjacent. This is the third instance of one structural gap, after `at` having nowhere to point for 'the room' (lab_ambient_temperature) and the per-lens handle in the pixel-size calibrations; it is raised with manager-librarian, who owns contracts/observables.json. Reachability does not depend on the subject here: the server's handles include an entry's `symbol`, so a query for tracer_number_density finds this entry anyway."
+}

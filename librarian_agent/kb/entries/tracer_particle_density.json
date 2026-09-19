@@ -1,0 +1,9 @@
+{
+  "entry_id": "tracer_particle_density",
+  "schema_version":"0.1","source":"spec:abvigen_red_ps_cooh","grade":"E3","grade_tag":"vendor_spec","source_ref":"src_abvigen_red_ps_cooh_datasheet","date":"2026-09-19","supersedes":null,"conflict_with":[],"curated_by":"kyuhwan",
+  "kind": "claim",
+  "claim": "The tracer particle material has a density of 1.03 g/cm3, which is independent of the diameter supplied.",
+  "numbers": [{"name": "tracer_particle_density", "value": 1.03, "unit": "g/cm^3", "source": "spec:abvigen_red_ps_cooh", "grade": "E3", "precision": "significant_figures"}],
+  "subject": [{"kind": "quantity", "id": "tracer_particle_density"}],
+  "validity_conditions": "A bulk material property of the particle, so unlike almost everything else on this data sheet it does NOT depend on which diameter was bought and is usable before that gap closes. Three significant figures as printed; the sheet gives no tolerance and none is invented. Load-bearing twice over: it sets how fast a particle sediments against the diffusion being measured, and it is the rho in the number-density formula (tracer_number_density_from_diameter), whose agreement with the vendor's own table to 0.2 percent over five decades is the evidence that the table was computed from this value rather than measured."
+}

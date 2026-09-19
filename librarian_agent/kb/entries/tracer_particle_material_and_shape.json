@@ -1,0 +1,19 @@
+{
+  "entry_id": "tracer_particle_material_and_shape",
+  "schema_version": "0.1",
+  "source": "spec:abvigen_red_ps_cooh",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_abvigen_red_ps_cooh_datasheet",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "kind": "claim",
+  "claim": "The red fluorescent tracer particles are spherical polystyrene, surface-functionalised with carboxyl (-COOH) groups, supplied as a suspension in deionised water.",
+  "identifiers": {
+    "product": "Red PS Fluorescent Particles-COOH",
+    "supplier": "Abvigen Inc"
+  },
+  "validity_conditions": "Applies to the product family as supplied, at every diameter it is sold in, and says nothing about which diameter is in use here (gap tracer_diameter_unknown). WHY THIS IS AN ENTRY AND NOT FILING. Spherical and polystyrene are the two premises a Stokes-Einstein estimate rests on, and a caller that assumes them without a source has made an assumption it cannot cite; carboxyl surface is what governs whether the particles stick to glass or to each other, which is an imaging outcome and not chemistry trivia. THE REFRACTIVE INDEX IS NOT HERE. Polystyrene has a well-known one and this document does not print it, so nothing is entered for it from this source -- but the gap changes character: refractive_index was `absent` and is now findable, because the material is established and a real optical reference can be cited against it. Filling it from memory would be E6 and would enter nothing. NO SUBJECT, AND THAT IS THE HONEST STATE. Check 44 resolves a `quantity` subject against the names actually used in numbers[] somewhere, and refused an earlier draft of this entry with the right instruction attached -- a subject names a registry so that it can be wrong, do not add the id to make this pass. There is no registry id for the tracer particle: `device` is drawn from the channels and elements of kb/staging/devices.v0.json and a sample is not hardware, `configuration` is an optical path, and contracts/observables.json holds two ids, neither of them this. So the field is left off rather than filled with something adjacent. This is the third instance of one structural gap, after `at` having nowhere to point for 'the room' (lab_ambient_temperature) and the per-lens handle in the pixel-size calibrations; it is raised with manager-librarian, who owns contracts/observables.json."
+}

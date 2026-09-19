@@ -1,0 +1,9 @@
+{
+  "entry_id": "tracer_stock_concentration",
+  "schema_version":"0.1","source":"spec:abvigen_red_ps_cooh","grade":"E3","grade_tag":"vendor_spec","source_ref":"src_abvigen_red_ps_cooh_datasheet","date":"2026-09-19","supersedes":null,"conflict_with":[],"curated_by":"kyuhwan",
+  "kind": "claim",
+  "claim": "The tracer particles are supplied as a suspension at a mass concentration of 10 mg/ml, in volumes of 10 ml or 20 ml.",
+  "numbers": [{"name": "tracer_stock_concentration", "value": 10, "unit": "mg/ml", "source": "spec:abvigen_red_ps_cooh", "grade": "E3", "precision": "significant_figures"}],
+  "subject": [{"kind": "quantity", "id": "tracer_stock_concentration"}],
+  "validity_conditions": "AS SUPPLIED, IN THE BOTTLE. This is the stock, not what is under the objective: any dilution the operator makes stands between this number and the sample, and no dilution is recorded anywhere here. So a caller asking for tracer_number_density in its own sample is not answered by this entry even once the diameter is known -- it is answered by this entry times a dilution factor that is a separate, unrecorded fact. The vendor's Particles/ml table is headed 'For 10 mg/ml', which is this number, and that heading is the only reason the /ml column means anything."
+}

@@ -1,0 +1,12 @@
+{
+  "entry_id": "tracer_storage_conditions",
+  "schema_version":"0.1","source":"spec:abvigen_red_ps_cooh","grade":"E3","grade_tag":"vendor_spec","source_ref":"src_abvigen_red_ps_cooh_datasheet","date":"2026-09-19","supersedes":null,"conflict_with":[],"curated_by":"kyuhwan",
+  "kind": "claim",
+  "claim": "The supplier specifies storage of the particle suspension at 2-8 degrees Celsius and states that it must not be frozen.",
+  "numbers": [
+    {"name": "tracer_storage_temperature_min", "value": 2, "unit": "degC", "source": "spec:abvigen_red_ps_cooh", "grade": "E3", "precision": "significant_figures"},
+    {"name": "tracer_storage_temperature_max", "value": 8, "unit": "degC", "source": "spec:abvigen_red_ps_cooh", "grade": "E3", "precision": "significant_figures"}
+  ],
+  "subject": [{"kind": "quantity", "id": "tracer_storage_temperature_min"}],
+  "validity_conditions": "A SUPPLIER SPECIFICATION, NOT A LABORATORY LIMIT, and the distinction is the same one that governs the trapping laser's rated power (see trapping_laser_identity). 'The supplier says 2-8 degC and do not freeze' is knowledge and belongs here; 'we keep the tracers at 4 degC' is policy, belongs to a person, and is not written by this seat. Nothing here may be read as a ceiling any mechanism enforces. Note the sheet contradicts itself mildly and both halves are kept rather than reconciled: the Characteristics block says 2-8 degC and the Storage block says 4 degC, which is inside that interval, so the interval is entered and the point value is not. Whether the particles in this laboratory have ever been frozen is unrecorded, and a frozen-and-thawed suspension is a different sample from this one."
+}
