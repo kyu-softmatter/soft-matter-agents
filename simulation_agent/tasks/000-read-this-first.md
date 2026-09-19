@@ -71,24 +71,29 @@ above for who commits it.
 - `caller_id` is issued by the fan-out runner as `<qid>:<config>:<axis>`
   (§4.3.1). An axis module never chooses its own — the rule exists so a
   sibling's id cannot be worn, including by text arriving from a search.
-- The cards of `sim-20260917-001` pin `kbv-49feb73662b7` — one version across
-  all twenty references — and **stay pinned**. A pin records what was read;
-  rewriting it claims a reading that never happened. The store has moved on
-  since, and check 25 reports that as PENDING, and the report is correct.
+- **The cards of `sim-20260917-001` read `kbv-9bc3910f1886`.** That is what
+  `e36b6f7` (2026-09-18 07:44) was built against — checked against the store's
+  own history, not against the cards — and `failures.jsonl` records the same
+  value at 11:45. Any other value in those cards is a re-stamp, not a reading.
 
-  This line said `kbv-9bc3910f1886` when it was written, and was already wrong
-  then. The cause is worth more than the correction: the fan-out re-read
-  `kb/index.json` on **every** run, and with the store moving several times in
-  an afternoon the pin came to record *when the fan-out was last regenerated*
-  rather than what S3.0 read — the opposite of what `axis.schema.json` means
-  by "pinned by S3.0". Session 1 found it while checking this file and fixed
-  it in `0711717`: one read per question, the goal's version is the pin if it
-  has one, regeneration idempotent, and a goal citing two versions is refused
-  rather than quietly accepted.
+  **This line was right, then this seat corrected it to a wrong value, and the
+  correction is reverted.** The mistake is worth more than the value. Session 1
+  reported the cards no longer held `9bc3910f1886`; that was true, and this
+  seat checked it — by looking at what the cards say **now**. All twenty
+  references read `49feb73662b7`, so the file looked stale and was "fixed".
 
-  So: do not re-pin to an older version to make a document agree, including
-  this one. A document that has gone stale is corrected against the cards; the
-  cards are not corrected against the document.
+  **That is the wrong question.** A pin does not mean "what does this card say";
+  it means "what did this question read", and only the history answers that.
+  Checking the cards to validate a pin is checking the subscription to validate
+  the record. Session 2 went to the history and found four silent moves:
+  `898241c` stamped `49feb`, `d1364e5` stamped a value the store had left
+  twenty seconds earlier, `4a754c2` stamped `67f9ad` in a commit whose message
+  is about observables, and a fifth was in progress.
+
+  So the rule, stated twice because it has now been broken in both directions:
+  a document that has gone stale is corrected against **the history**, never
+  against the cards, and the cards are never corrected against the document.
+
 - The validator is green. An earlier report of a red check 13 on
   `microscope_agent/.mcp.json` is stale: that file is gone and the tree reads
   `0 failed`.
