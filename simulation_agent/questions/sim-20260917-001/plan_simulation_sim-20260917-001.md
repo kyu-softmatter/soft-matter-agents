@@ -62,7 +62,7 @@ equally weighted fit then hands the slope to its noisiest point.
 
 Status **unavailable**, checked against `simulation_agent/envelope/safety.json`.
 
-The file is absent and no schema in contracts/schemas/ declares its shape, so there is no allowance to compare the estimated cost against. A5 abstained for the same reason. This is not a claim that the run is inside budget; it is the record that nothing was available to check it against.
+The file is absent, so there is no allowance to compare the estimated cost against, and A5 abstained for the same reason. Its shape is declared -- contracts/schemas/envelope_safety.schema.json landed fifteen seconds before this question's first cards were written -- so what is missing is the person's file and not the contract. This is not a claim that the run is inside budget; it is the record that nothing was available to check it against.
 
 ## Cost
 
