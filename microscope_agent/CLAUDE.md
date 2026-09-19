@@ -84,6 +84,28 @@ is what "not transplanted as it stands" means in a form a reviewer can check,
 and it is why our decomposition has to be the thing that survives: an item
 that will not fit it does not come.
 
+**Every ruling is written down, including the ones that produce nothing.**
+A dropped item leaves no artifact by definition, so unless it is recorded the
+drops cannot be counted — and §9.2 asks exactly that of the two variants. As
+of 2026-09-18 the store held five transfers and one downgrade, no drops at
+all, and only two of those six named a slot. Both halves of that are the same
+omission.
+
+So: for each task that crosses anything, write a sibling file next to the
+card, `tasks/NNN-rulings.md`, one line per item considered, in this shape:
+
+```
+transfer  | <item>            | slot A4 | 10.3 rule 1
+downgrade | <item>            | E5      | 10.3 rule 2
+drop      | <item>            | no slot in A1-A7
+```
+
+It is a sibling and not the card itself because the card is the manager's and
+you do not edit it (6.2-2); this file is yours. One line, greppable, so a
+count is a count and not a reading. **An item you looked at and did not take
+is a line here** — that is the whole point of the file, and the line costs
+less than the argument about why the drop was invisible.
+
 One precedent, already caught: the prior project's `20.078x`. A nominal
 magnification wearing a value back-derived from a calibrated pixel size — a
 designation given a precision it never had. §5.3's nominal-designation rule
