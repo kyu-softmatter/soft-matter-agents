@@ -111,6 +111,15 @@ on `main` under its own card. **If you find it while reading, leave it.** A
 card you fix here is a card the other variant did not fix, and that is the
 whole of what went wrong.
 
+**Fast-forward freely; carry no work.** The two variants sitting on
+different commits of `main` is not the tilt this card is about — inherited
+commits are inherited by both eventually, and a worktree left behind stops
+seeing corrections to this very card, which has already misled a seat twice
+today. So take `main` when it moves. What must not accumulate here is *work*:
+an axis, a ruling, a card. When the gate opens both variants are moved to the
+start SHA together, in one action, so that whatever either of them inherited
+in the meantime is identical.
+
 ## When the gate opens
 
 Both variants get the same card, with the same `qid`, the same goal card and
