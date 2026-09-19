@@ -27,6 +27,55 @@ queries to the librarian, so every transfer leaves a trace.
 sentence has been earned several times over, and most of the design's hard
 edges exist to keep refusals aimed at the thing actually wrong.
 
+## How it is laid out
+
+A question enters one executing agent and leaves as a plan that a gate has
+already accepted. Both executing agents run the **same five stages**; only
+their axis list differs.
+
+```
+  [S1] the person's question
+  [S2] refine it            LLM alone, forbidden to produce numbers
+        |                   -> goal card. Or: already known -> hand to the librarian, stop.
+        |                       Or: only a person can answer -> ask once.
+   - - - - - - - - - - - - - - - - - - - - - -  the pipeline's sharpest line:
+  [S3] axes, in parallel    a question may not enter here unspecified
+  [S4] synthesis            trade-offs; the goal card says which way to yield
+  [S5] the plan             identifiers, and the card a human approves
+   - - - - - - - - - - - - - - - - - - - - - -  S3-S5 = the "system designer"
+  [S6] execution            deterministic operator, safety in code
+```
+
+| | |
+|---|---|
+| **microscope** / **simulation** | the two that execute. Same pipeline, seven axes vs six |
+| **librarian** | the only knowledge store. Answers read-only, and records what it could **not** answer |
+| **bridge** | carries cards between the two executing agents. Reads their `questions/`, writes their `inbox/`, and touches no number |
+| `contracts/` | the only shared code: card schemas, units, the observable vocabulary, `validate.py` |
+
+Each agent directory is self-contained on purpose: taking `microscope_agent/`
+plus `contracts/` to the microscope PC has to be the whole move.
+
+## How it is run
+
+**Seats, in three tiers.** One **architecture** seat writes `plan.md`,
+`CLAUDE.md` and `contracts/seats.json`. Four **manager** seats write the rest
+of `contracts/` and their agent's instructions. Below them the executing
+sessions do the work. Instructions go down, reports come up, and **the tiers
+hold no extra permission** — the top two touch no instrument.
+
+A seat is assigned by the person, never by another session. Each commit says
+which seat made it through the committer identity, and `contracts/seats.json`
+is the registry the gate reads.
+
+**Milestones M0–M5 are bodies of work, not an order.** The four agents are
+built concurrently; what actually blocks what is a column in `plan.md` §9, and
+that column is the thing to read before picking up work.
+
+**Everything lands through the gate.** `validate.py` runs on the tree a commit
+would create, and a check that cannot yet decide says UNDECIDED or PENDING
+rather than passing.
+
 ## Where to look
 
 | | |
