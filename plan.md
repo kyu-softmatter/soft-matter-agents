@@ -1507,10 +1507,22 @@ rebuild/
     threads/<thread>/               라운드는 폴더가 아니라 파일명 접두사로 구분
                                       r1_ask_simulation.json, r1_ask_simulation.md,
                                       r1_hashes.json, r2_…, status.json
-  .mcp.json                사서 MCP 서버 등록. **경로는 절대 경로다** — `${CLAUDE_PROJECT_DIR}`은 이 맥락에서
-                             설정되지 않아 fallback이 세션 cwd로 풀렸고, 2026-09-18에 같은 버그를 두 번 냈다.
-                             **대가는 머신 고정**이다: 다른 사본에서는 이 한 줄을 고쳐야 한다. 상대 경로는
-                             에이전트 디렉터리마다 깊이가 달라 성립하지 않고, 에이전트별 등록은 다섯으로 갈라진다.
+  .mcp.json                사서 MCP 서버 등록. **해석 기준점은 자기 worktree의 루트다** —
+                             `sh -c 'exec python3 "$(git rev-parse --show-toplevel)/…"'`.
+                             세 번 틀린 끝에 나온 제약이다: 기준점이 **세션의 cwd이면 안 되고**(좌석마다 다르다)
+                             **특정 체크아웃의 절대경로여도 안 된다**(worktree마다 같아진다). `.mcp.json`은
+                             추적되므로 worktree마다 자기 사본이 자기 루트에 있고, **worktree마다 다르면서
+                             좌석과 무관한 값은 그것뿐이다.**
+                             상대경로(`librarian_agent/src/…`)는 런처 cwd가 **좌석 하위 디렉터리**라 깨졌고 —
+                             런처 로그가 스스로 그렇게 적었다 — `${CLAUDE_PROJECT_DIR:-.}`은 변수가 unset이라
+                             같은 자리로 떨어졌다. 절대경로는 뜨기는 하지만 **worktree 격리를 깬다**: 2026-09-18에
+                             `microscope-1`의 체크아웃이 `kbv-fdef964aca56`인데 공유 사본이 답한 값은
+                             `kbv-67f9ad766d92`였다. 그러면 검사 26이 대조할 상대(자기 worktree의 snapshot)와
+                             서버가 말한 것이 다르고, **카드가 자기 커밋 이력에 바이트가 없는 `kb_version`을
+                             인용한다** — P14가 "어느 KB 버전이 이 envelope에 들어왔는가는 이 에이전트의 커밋
+                             이력의 사실"이라고 한 것이 성립하지 않는다. 현미경 좌석 둘이 재서 올렸다.
+                             저장소 밖에서는 **폴백하지 않고 실패한다**(§8.2: 조용한 폴백은 시험을 통과시키면서
+                             현장에서 실패한다).
                              **아키텍처 소유** — `.claude/`의 형제이고 넷이 공유하는 진입점이라 어느 에이전트의 것도 아니다
                              **`.claude/settings.json`과 달리 상위로 상속된다** — 하위 디렉터리에서 띄운
                              세션도 이 등록을 읽는다(2026-09-18 실증: `librarian_agent/`에서 보이고,
