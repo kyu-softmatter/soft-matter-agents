@@ -132,6 +132,7 @@ wrong on 2026-09-17.
 | `bad_missing_assumption.json` | 4 | an assumed number with no rationale |
 | `bad_unknown_unit.json` | 2 | a unit outside the registry |
 | `bad_md_number.json` | 9 | markdown that drifted from its JSON |
+| `bad_md_thread.json` | 9 | prose naming a thread the card does not |
 | `bad_sibling_a.json`, `bad_sibling_b.json` | 11 | two axes reading each other |
 | `bad_kb_grade.json` | 21, 25 | promotes a stored E3 to E1 on the way in |
 | `bad_unjustified_estimate.json` | 39 | estimates with the librarian reachable and no gap to stand on |

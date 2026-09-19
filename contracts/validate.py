@@ -1038,6 +1038,21 @@ def check_09_md_vs_json(b: Bundle) -> list[Finding]:
         pairs += 1
         known = {(round(float(n["value"]), 12), n["unit"]) for n in c.data.get("numbers", [])}
         text = md.read_text()
+
+        # The same rule for the two identifiers a reader would act on. Numbers
+        # were covered and prose was not, so the example round named a thread
+        # that existed nowhere in the repository for a day -- in the file a
+        # bridge seat copies when writing its first round, and one did. This is
+        # not an attempt to check prose: it is one token, held to the card the
+        # way a number is (5.6).
+        for field, id_rx in (("thread", r"\bthr-[a-z0-9-]+"), ("qid", r"\b(?:mic|sim)-[0-9]{8}-[0-9]{3}\b")):
+            want = c.data.get(field)
+            if not want:
+                continue
+            for found in sorted(set(re.findall(id_rx, text))):
+                if found != want:
+                    out.append(Finding(9, FAIL, f"{md.name} names {field} {found!r} and the card is {want!r} "
+                                                f"(JSON is authoritative, P3)", c.rel))
         for m in pattern.finditer(text):
             val, unit = float(m.group(1)), m.group(2)
             if not any(u == unit and (v == round(val, 12) or (v != 0 and abs(v - val) / abs(v) < 1e-9)) for v, u in known):
