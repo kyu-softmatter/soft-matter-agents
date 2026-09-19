@@ -1,0 +1,19 @@
+{
+  "entry_id": "room_temperature_is_controlled",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The room is held continuously by air conditioning. There is a setpoint on this instrument's environment -- it is the room's, not the sample's.",
+  "subject": [
+    { "kind": "quantity", "id": "temperature" },
+    { "kind": "quantity", "id": "ambient_temperature" }
+  ],
+  "source": "operator_read:kyuhwan_20260919",
+  "grade": "E3",
+  "grade_tag": "operator_read",
+  "source_ref": "src_operator_read_20260919",
+  "validity_conditions": "This laboratory as of 2026-09-19, read by the operator. It runs opposite to how it sounds, and that is the reason it is worth an entry: holding the room does not shrink the sample question, it ISOLATES it. With the room held, whatever still moves at the sample is local -- illumination, a contacting objective, the stage, the trapping laser -- and each of those has its own gap. Do not read 'the room is controlled' as 'temperature is handled'. It also corrected a sentence in this store: lab_ambient_temperature argued that 20 C could not be a setpoint because nothing actuates the temperature, which collapsed 'nothing actuates the SAMPLE' into 'nothing actuates'. That grade never rested on the argument and did not move; the reasoning did. What this entry does NOT say: what the setpoint is, how tightly the room holds it, and how well the sample follows the room. The third is the one that matters and all three are open -- a controlled room is not a controlled sample, and the distance between them is still unmeasured.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

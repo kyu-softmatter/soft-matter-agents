@@ -1,0 +1,50 @@
+{
+  "entry_id": "pixel_size_100x_zoom_1_5x",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "With the 100x objective at 1.5x intermediate magnification and 1x1 binning, one pixel spans 0.04333 micrometres at the sample plane, measured by the operator on this instrument.",
+  "identifiers": {
+    "nominal_magnification": "100x",
+    "intermediate_magnification": "1.5x"
+  },
+  "numbers": [
+    {
+      "name": "pixel_size",
+      "value": 0.04333,
+      "unit": "um",
+      "source": "calibration:cal-pixel-size-20260919",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the table was headed um/px. A pixel size is a length -- the per-pixel is carried by the quantity's name, not the unit, and units.json has no per-pixel unit to carry it"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "device",
+      "id": "nosepiece"
+    },
+    {
+      "kind": "quantity",
+      "id": "pixel_size"
+    }
+  ],
+  "source": "calibration:cal-pixel-size-20260919",
+  "grade": "E2",
+  "grade_tag": "calibration",
+  "source_ref": "src_operator_calibration_20260919",
+  "validity": {
+    "binning": {
+      "min": 1,
+      "max": 1,
+      "unit": "count"
+    }
+  },
+  "valid_until": {
+    "date": "2041-09-19"
+  },
+  "validity_conditions": "This instrument, the 100x objective at 1.5x intermediate magnification, at 1x1 binning. The binning is in `validity` and not only here, because it is the one condition of this calibration that is a quantity: at 2x2 the value doubles, so a caller at another binning gets `partial` with the miss named rather than a number that is wrong by a factor. The objective and the zoom are nominal designations, exact by definition, so they are identifiers and not conditions. Valid for fifteen years as the operator stated, anchored to 2026-09-19 because the day the measurement was taken was not recorded -- the anchor is the report, not the event. What actually falsifies a pixel size is not elapsed time but a change to the optical chain: swapping this objective, changing the camera, altering the intermediate magnification. This instrument's paper record has diverged from its hardware before, so the period is the operator's statement and the falsifier is the thing to watch. What the set relates by, recorded because it is checkable and the next reader will find it. Every 1.5x value is the 1x value of the same objective divided by exactly 1.5, to the digits given, and five of the six 1x values equal 6.5 um over the nominal magnification. The exception is the 20x, whose 0.32373 implies 6.5/0.32373 = 20.078 -- the figure plan.md 1950 names as the prior project's artifact, a calibrated quantity stored wearing a nominal name. The operator was shown this and confirmed all twelve are direct measurements. Both facts are recorded: what the numbers relate by, and that they were measured independently. Nothing here back-derives a magnification -- 20x is the nominal designation, a string identifier, and 20.078 is not stored as one.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

@@ -1,0 +1,11 @@
+{
+  "source_id": "src_operator_calibration_20260919",
+  "kind": "calibration",
+  "identifier": "cal-pixel-size-20260919 -- the operator's own measurement of pixel size at the sample plane, for six objectives at both intermediate magnifications, at 1x1 binning, reported to this store on 2026-09-19.",
+  "accessed": "2026-09-19",
+  "grade_rule": "E2 via a `calibration:` source, which 12 routes for a calibration the operator performed on this instrument, with a validity period AND a condition range both required rather than optional -- the period stands in for the traceability a result card would carry (rule 9, corrected 2026-09-19). Not E1: E1 needs a run_id from this system.",
+  "validity_period": "fifteen years, stated by the operator. Anchored to 2026-09-19 because that is the date the store has; the day the measurements were taken was not recorded, so the anchor is the report and not the event.",
+  "condition": "1x1 binning, stated by the operator on 2026-09-19. It is the one condition of this calibration that is a quantity rather than a nominal designation, which is why it is the one that reaches `validity` -- the objective and the zoom are exact identifiers and live in `identifiers`.",
+  "license_note": "The values are the operator's own; nothing is reproduced from elsewhere.",
+  "note": "The operator confirmed, after being shown the arithmetic, that all twelve are direct measurements rather than one measurement scaled to the others. Each entry records both that confirmation and what the numbers relate by, because the second is a checkable property of the set and the next reader will find it whether or not it is written down."
+}
