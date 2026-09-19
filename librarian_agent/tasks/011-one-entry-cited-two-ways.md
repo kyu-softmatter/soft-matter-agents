@@ -85,6 +85,40 @@ degree.
 Ask the person directly if you need the wording tightened for an entry — they
 are the source and you are the seat that files it.
 
+### A fourth statement, and it falsifies a line already on disk
+
+**The room is under active control — a building air conditioner holds it, always.**
+
+`lab_ambient_temperature` currently reasons:
+
+> Because nothing actuates the sample temperature on this instrument, this is
+> an ambient value of the room **rather than a setpoint** — which is what makes
+> it an operator reading at E3 and not a calibration at E2.
+
+**The conclusion survives and the reason does not.** There *is* a setpoint; it
+is the room's, not the sample's. The entry collapsed "nothing actuates the
+sample" into "nothing actuates", and the second is now false. E3 still holds,
+for two reasons that were always the real ones: 20 °C is a **reading** and not
+the setpoint (§12 is explicit that those grade differently and that a bare
+"20 °C" cannot say which it is), and a room value applied to a sample is not a
+measurement of the sample. Fix the reason. A right answer resting on a wrong
+reason is the thing that rots, and this one now reads as a claim that the room
+is uncontrolled.
+
+**Control of the room does not shrink the sample question — it isolates it.**
+If the room is held and the sample still drifts, everything left is local:
+illumination, the objective in contact, the stage. That term already has a
+name and an open gap — A3's `optical_heating`, `observable:
+sample_heating_rate`, still `absent` at `kbv-49feb73662b7`. So this fact makes
+that gap **sharper**, not smaller, and anything you file should not let "the
+room is managed" read as "temperature is handled".
+
+Two things it also does not establish, and do not assume either: **a managed
+room is not a constant room** — a thermostat has a band and cycles, and the
+width of that band is a different number nobody has given; and **the setpoint
+is a different fact from the reading**, so if the person knows what the AC is
+set to, that is its own entry and not a correction to this one.
+
 ## CONSTRAINTS
 
 - The thermometer's position was a question for a person and has now been
