@@ -2,6 +2,7 @@
   "snapshot_version": "0.1",
   "agent": "microscope_agent",
   "kb_version": "kbv-67f9ad766d92",
+  "built_from_commit": "9b2bb2c976df1c8ef5878682a18dabbe3d1366bf",
   "entry_count": 25,
   "entries": {
     "cameras_both_kinetix22": {
@@ -248,6 +249,6 @@
     }
   },
   "not_included": [],
-  "how_to_verify": "sha256 of each entry's `text` must equal its `sha256`, and sha256 over the canonical JSON of this object without `snapshot_hash` must equal `snapshot_hash`. A hand-edited copy fails both. Do not edit a copy: fix the KB and re-export (4.3.2).",
-  "snapshot_hash": "a9cfe3b4ec6077d68c2ffa3f249210d1a2ee1b6ba3cf3d03b3c9024553e50ff3"
+  "how_to_verify": "sha256 of each entry's `text` must equal its `sha256`, and sha256 over the canonical JSON of this object without `snapshot_hash` must equal `snapshot_hash`. A hand-edited copy fails both. `built_from_commit` names the commit this was built from, so every byte here is readable back with `git show <commit>:<path>` -- a kb_version identifies the knowledge and this identifies the packaging. Do not edit a copy: fix the KB and re-export (4.3.2).",
+  "snapshot_hash": "372f0ae43a5a6944595bc4de0fb58fd22ee068b0ee2059aa33ecbb88d43774de"
 }

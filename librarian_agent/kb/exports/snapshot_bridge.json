@@ -2,6 +2,7 @@
   "snapshot_version": "0.1",
   "agent": "bridge",
   "kb_version": "kbv-67f9ad766d92",
+  "built_from_commit": "9b2bb2c976df1c8ef5878682a18dabbe3d1366bf",
   "entry_count": 25,
   "entries": {
     "cameras_both_kinetix22": {
@@ -110,6 +111,6 @@
     "devices -- this agent has no instrument for it to describe (4.3.2)",
     "optical_paths -- this agent has no instrument for it to describe (4.3.2)"
   ],
-  "how_to_verify": "sha256 of each entry's `text` must equal its `sha256`, and sha256 over the canonical JSON of this object without `snapshot_hash` must equal `snapshot_hash`. A hand-edited copy fails both. Do not edit a copy: fix the KB and re-export (4.3.2).",
-  "snapshot_hash": "9f04a9db9388baab0062dba20e21bb67571feacefe7a88d02c5f09c05749d1f3"
+  "how_to_verify": "sha256 of each entry's `text` must equal its `sha256`, and sha256 over the canonical JSON of this object without `snapshot_hash` must equal `snapshot_hash`. A hand-edited copy fails both. `built_from_commit` names the commit this was built from, so every byte here is readable back with `git show <commit>:<path>` -- a kb_version identifies the knowledge and this identifies the packaging. Do not edit a copy: fix the KB and re-export (4.3.2).",
+  "snapshot_hash": "9d7d44d63461f30eb0c9bda139e7bcfa393ef02f52e1570602982073888e08a0"
 }
