@@ -106,12 +106,38 @@
       "allOf": [
         {
           "$comment": "derived and symbol require each other: a named quantity is one that is named. Deliberately NOT tied to `formula` -- 18 numbers compute from a formula without being named quantities (diffusivity, exposure_time_chosen, box_length_min_dilution), and requiring the flag of them would fail correct work in three boundaries at once.",
-          "if": { "properties": { "derived": { "const": true } }, "required": ["derived"] },
-          "then": { "required": ["symbol"] }
+          "if": {
+            "properties": {
+              "derived": {
+                "const": true
+              }
+            },
+            "required": [
+              "derived"
+            ]
+          },
+          "then": {
+            "required": [
+              "symbol"
+            ]
+          }
         },
         {
-          "if": { "required": ["symbol"] },
-          "then": { "properties": { "derived": { "const": true } }, "required": ["derived"] }
+          "if": {
+            "required": [
+              "symbol"
+            ]
+          },
+          "then": {
+            "properties": {
+              "derived": {
+                "const": true
+              }
+            },
+            "required": [
+              "derived"
+            ]
+          }
         }
       ],
       "additionalProperties": false
@@ -209,12 +235,26 @@
           "type": "object",
           "description": "Which published table holds it. Required when kind is in_published_table, because two of the three names that found this defect were COLUMN names -- a caller told only that it is 'in a table' guesses which. Carrying the sha256 is what makes the next action checkable rather than advisory: read tables.<table> and confirm it is the version the store published.",
           "properties": {
-            "snapshot": { "type": "string", "description": "the kb/exports/snapshot_<agent>.json it was published into" },
-            "table": { "type": "string", "description": "the key under `tables`, e.g. devices" },
-            "column": { "type": "string", "description": "set when the caller asked for a column rather than the table" },
-            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+            "snapshot": {
+              "type": "string",
+              "description": "the kb/exports/snapshot_<agent>.json it was published into"
+            },
+            "table": {
+              "type": "string",
+              "description": "the key under `tables`, e.g. devices"
+            },
+            "column": {
+              "type": "string",
+              "description": "set when the caller asked for a column rather than the table"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
           },
-          "required": ["table"],
+          "required": [
+            "table"
+          ],
           "additionalProperties": false
         },
         "searched": {
@@ -275,11 +315,19 @@
       "allOf": [
         {
           "if": {
-            "properties": { "kind": { "const": "in_published_table" } },
-            "required": ["kind"]
+            "properties": {
+              "kind": {
+                "const": "in_published_table"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
           "then": {
-            "required": ["published_in"],
+            "required": [
+              "published_in"
+            ],
             "$comment": "Conditionally required rather than advised. The alternative rejected for this kind -- put the next action in `nearest` and leave `kind` alone -- failed because nothing branches on a field nobody has to fill. A gap that says only in_published_table repeats that mistake one level down: it names the shelf and not the book, and the caller who asked for a column guesses."
           }
         }
@@ -510,6 +558,11 @@
         "fluorescence"
       ],
       "description": "What a sample provides and a configuration requires. One list, two readers: a goal's sample_contrast and a capability's requires_contrast. Declared once because two parsers of one vocabulary drift, and the one that drifts says something false without erroring (0.4-6)."
+    },
+    "caller_id": {
+      "type": "string",
+      "pattern": "^((mic|sim)-[0-9]{8}-[0-9]{3}(:v[0-9]+)?:(s2|operator|[a-z0-9_]+:a[1-7])|bridge:[a-z0-9-]+:r[0-9]+)$",
+      "description": "Who is asking, and the server's isolation unit (4.3.1). Four forms: <qid>:v<N>:s2, <qid>:v<N>:<config>:<axis>, <qid>:v<N>:operator, and bridge:<thread>:r<N>. The bridge hangs off a thread and a round rather than a question, because one thread crosses two qids -- one per side -- and the bridge: prefix lets a parser split the id without knowing the namespace. The revision is part of it because without it a re-run's a1 shares a session context with the attempt it exists to replace; revision 1 writes v1 rather than omitting it. The axis form without v<N> is still accepted while the cards that predate a6dca6a migrate, and stops being accepted after. Declared in 4.3.1 and repeated nowhere: while this pattern held the axis form alone, s2, operator and bridge: were declared and the server refused them, and a refused call leaves no line in queries/log.jsonl -- so the only visible symptom was a seat that stayed degraded."
     }
   }
 }

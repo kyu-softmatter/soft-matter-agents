@@ -97,7 +97,7 @@
       "items": {
         "type": "object",
         "properties": {
-          "caller_id": { "type": "string", "pattern": "^(mic|sim)-[0-9]{8}-[0-9]{3}:[a-z0-9_]+:a[1-7]$" },
+          "caller_id": { "$ref": "common.schema.json#/$defs/caller_id" },
           "config": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
           "axis": { "pattern": "^a[1-7]$" },
           "kb_version": { "type": ["string", "null"] }

@@ -12,8 +12,7 @@
       "const": "axis"
     },
     "caller_id": {
-      "type": "string",
-      "pattern": "^(mic|sim)-[0-9]{8}-[0-9]{3}(:v[0-9]+)?:[a-z0-9_]+:a[1-7]$",
+      "$ref": "common.schema.json#/$defs/caller_id",
       "description": "<qid>:v<N>:<config>:<axis>, issued by the fan-out launcher, never chosen by the sub-agent (4.3.1). The revision is part of the id because the id is also the server's isolation unit: without it the same axis at two revisions shares one session context, and a re-run inherits the attempt it exists to replace. Revision 1 writes v1 rather than omitting it -- an implicit default is the shape that has already caught five rules here. The form without v<N> is accepted while the cards that predate a6dca6a migrate, and stops being accepted after."
     },
     "config": {
