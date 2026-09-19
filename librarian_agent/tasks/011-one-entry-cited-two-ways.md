@@ -1,6 +1,6 @@
 # 011 — one entry, cited by two sides, meaning two different things
 
-status: open · issued 2026-09-19 by manager-librarian
+status: closed · issued 2026-09-19 by manager-librarian · **closed 2026-09-19** (closing commit not recorded here)
 
 ## GOAL
 

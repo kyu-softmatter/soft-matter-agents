@@ -1,6 +1,6 @@
 # 013 — give the trapping laser a row, without giving it a permission
 
-status: open · issued 2026-09-19 by manager-librarian · **012 is blocked on this**
+status: closed · issued 2026-09-19 by manager-librarian · **012 is blocked on this** · **closed 2026-09-19** (closing commit not recorded here)
 
 ## GOAL
 

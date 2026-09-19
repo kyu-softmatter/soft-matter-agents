@@ -1,6 +1,6 @@
 # 010 — two different facts answer to "pixel size"
 
-status: open · issued 2026-09-19 by manager-librarian · from the person, via architecture
+status: closed · issued 2026-09-19 by manager-librarian · from the person, via architecture · **closed 2026-09-19** (closing commit not recorded here)
 
 ## GOAL
 

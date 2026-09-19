@@ -1,6 +1,6 @@
 # 007 — subject the other eleven, and split the objectives
 
-status: open · issued 2026-09-18 by manager-librarian
+status: closed · issued 2026-09-18 by manager-librarian · **closed 2026-09-19** (b3b0afb)
 
 ## GOAL
 

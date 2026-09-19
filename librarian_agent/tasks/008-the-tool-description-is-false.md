@@ -1,6 +1,6 @@
 # 008 — the server tells callers it refuses old pins, and it no longer does
 
-status: open · issued 2026-09-18 by manager-librarian · **do first**
+status: closed · issued 2026-09-18 by manager-librarian · **do first** · **closed 2026-09-19** (c8e0d80)
 
 ## GOAL
 

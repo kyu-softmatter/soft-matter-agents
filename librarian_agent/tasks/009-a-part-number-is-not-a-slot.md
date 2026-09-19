@@ -1,6 +1,6 @@
 # 009 — the part number is the one field nothing can find
 
-status: open · issued 2026-09-18 by manager-librarian · **reassigned 2026-09-19 to seat:librarian**
+status: closed · issued 2026-09-18 by manager-librarian · **reassigned 2026-09-19 to seat:librarian** · **closed 2026-09-19** (006677d)
 
 > Issued for librarian-2, whose home was a worktree. Worktrees were reverted to
 > one working copy on 2026-09-18 (`328176f`) and the person deleted them, so

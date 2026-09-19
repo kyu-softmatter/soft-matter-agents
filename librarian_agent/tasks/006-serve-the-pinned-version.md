@@ -1,6 +1,6 @@
 # 006 — serve an old `kb_version` instead of refusing it
 
-status: open · issued 2026-09-18 by manager-librarian
+status: closed · issued 2026-09-18 by manager-librarian · **closed 2026-09-19** (closing commit not recorded here)
 
 ## GOAL
 

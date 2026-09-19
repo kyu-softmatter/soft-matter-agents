@@ -1,6 +1,6 @@
 # 005 — four rulings, and what they leave to do
 
-status: open · reissued 2026-09-18 by manager-librarian
+status: closed · reissued 2026-09-18 by manager-librarian · **closed 2026-09-19** (closing commit not recorded here)
 supersedes the first issue of 005, which told you to decompose `kb/staging/`
 
 ## GOAL

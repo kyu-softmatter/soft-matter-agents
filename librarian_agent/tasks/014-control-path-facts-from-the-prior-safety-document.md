@@ -1,6 +1,6 @@
 # 014 — control-path facts and open questions from the prior SAFETY.md
 
-status: open · issued 2026-09-19 by manager-librarian · authorised by the person
+status: closed · issued 2026-09-19 by manager-librarian · authorised by the person · **closed 2026-09-19** (aac5f38)
 
 ## GOAL
 

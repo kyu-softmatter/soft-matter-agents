@@ -1,6 +1,6 @@
 # 012 — an observed bound on sample heating, which is not a safety limit
 
-status: open · issued 2026-09-19 by manager-librarian · **read the hazard first**
+status: closed · issued 2026-09-19 by manager-librarian · **read the hazard first** · **closed 2026-09-19** (closing commit not recorded here)
 
 ## GOAL
 
