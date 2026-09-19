@@ -482,6 +482,21 @@ Take one off this list when it lands in a card with a source and a grade.
 - Shutters close before any power ramps down, and the laser shutter is one of
   them.
 - z retracts before a turret rotates. The objective can reach the sample.
+  **Nothing does this for you on the path we will use.** The stand runs its
+  own escape when a person rotates at the stand or in NIS; a Micro-Manager
+  write to the nosepiece does not, so Z stays where it was and the incoming
+  objective arrives at the outgoing one's height
+  (`nosepiece_write_runs_no_escape`, E3). The retract is a step a plan issues
+  and verifies, not a property it may assume. The same rotation silently
+  invalidates two trap calibrations and neither is readable over TCP
+  (`objective_change_invalidates_trap_calibration`).
+- **A zero from the Tweez 300 is not a confirmation.** Its TCP interface has
+  no read-back of any kind — no position, no force, no trap list, no
+  calibration — and a return code of 0 means the GUI accepted the command,
+  not that anything happened; six distinct ways a command can be ignored all
+  return 0 (`tweez300_reports_nothing_back`, E3). This is what `read_back:
+  false` means in the device table, and it is why the rule above about
+  unverified state is not a formality here.
 - PFS is disabled across turret and path changes, and re-acquired after.
 - Nothing acquires while the optical-path lock is held, or while the spinning
   disk is still coming up to speed.
