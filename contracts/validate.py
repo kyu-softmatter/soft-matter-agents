@@ -3084,9 +3084,8 @@ def check_47_registry_prose_names_real_seats(b: Bundle) -> list[Finding]:
 
     A HISTORICAL CITATION IS NOT A DEFECT, and the fix to simulation-1 is the
     proof: correcting the note meant writing the dead name down and saying it
-    was never real. A check that reads declarations and not comprehension --
-    the class section 8 names for 47, 48, 50 and 51 -- cannot tell that from a
-    live reference. So it does not guess. A name the registry lists in
+    was never real. Reads a declaration and not comprehension; section 8 states
+    that limit for the kind. So it does not guess. A name the registry lists in
     `retired_names` is a citation; one it does not is a dangler. Recording it
     is the registry owner's call, which is the architecture seat's: this check
     reports until the key exists and refuses after, so the first entry arms it
