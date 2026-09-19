@@ -1,0 +1,19 @@
+{
+  "entry_id": "no_thermometer_at_the_sample",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "There is no thermometer beside the sample. The only thermometer in the laboratory reads the room, so any temperature attributed to the sample is a room reading applied to it.",
+  "subject": [
+    { "kind": "quantity", "id": "temperature" },
+    { "kind": "quantity", "id": "ambient_temperature" }
+  ],
+  "source": "operator_read:kyuhwan_20260919",
+  "grade": "E3",
+  "grade_tag": "operator_read",
+  "source_ref": "src_operator_read_20260919",
+  "validity_conditions": "This laboratory as of 2026-09-19, read by the operator. It REPLACES an inference: lab_ambient_temperature reasoned that its value could only be the room's, from the fact that nothing actuates the sample. The same conclusion is now stated, which is a stronger claim than a consequence of an absence, and it is why the sample-adjacent reading stops being an open question. What it does NOT say is how far the room thermometer is from the sample or how well the two track -- neither is known, and an unknown distance is not a small one. Falsified by putting a thermometer at the sample, which is also what would close the two questions it leaves open.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

@@ -1,0 +1,9 @@
+{
+  "source_id": "src_operator_read_20260919",
+  "kind": "operator_read",
+  "identifier": "Statements the operator (kyuhwan) made on 2026-09-19 about the instrument as it stands, and confirmed should be filed as readings rather than recollections.",
+  "accessed": "2026-09-19",
+  "grade_rule": "E3. What the operator sees at the instrument is capped there -- there is no run_id and no reproducible calibration state (10.3 rule 1, 5.3). E5 is the grade for what is stated from memory, and which of the two a statement is, is a question for the person rather than an inference from how confident it sounds.",
+  "license_note": "Identifier only.",
+  "note": "The first entry citing it records an ABSENCE -- that no thermometer sits beside the sample. An absence is readable: it is what the operator sees when looking at the stage. This is the same distinction the 2026-09-17 pass turned on, asked again rather than carried over, because a source kind is not inherited from a previous session's answer."
+}
