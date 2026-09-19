@@ -27,7 +27,7 @@
     },
     "identifiers": {
       "type": "object",
-      "description": "Exact names for the thing the claim is about: part_number, lot, catalog_number, position, slot. A nominal designation is exact by definition and carries no uncertainty (5.3), so it belongs here and never in numbers[]. Until this existed a table with part numbers could not become an entry at all, which is why the objective and particle registries stayed in staging.",
+      "description": "Exact names for the thing the claim is about: part_number, lot, catalog_number, position, slot. A nominal designation is exact by definition and carries no uncertainty (5.3), so it belongs here and never in numbers[]. Until this existed a table with part numbers could not become an entry at all, which is why the objective and particle registries stayed in staging. Keys here are split by `addressable_identifiers` below: some may be looked up, most may not.",
       "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" },
       "additionalProperties": {
         "type": "string",
@@ -57,6 +57,14 @@
     "supersedes": { "type": ["string", "null"] },
     "conflict_with": { "type": "array", "items": { "type": "string" }, "description": "contradictory entries are both kept and marked, never merged (4.3)" },
     "curated_by": { "type": "string", "description": "who put it here. Until M3 that is a person, not the librarian agent." }
+  },
+  "addressable_identifiers": {
+    "description": "Which `identifiers` keys a caller may look an entry up BY. This is a registry the server reads, not a constraint on entries: any key matching propertyNames may be stored, but only these join the names an entry answers to. It exists because the part number -- the string on the barrel, the title of the vendor sheet, the thing an operator would type -- was the one field in an entry that nothing could find. Verified on 2026-09-18 at 25 entries: kb_query('MRD71670') returned 0 and kb_query('Kinetix 22') returned 0, while kb_query('na') returned six objectives that all named subject device:nosepiece and so could not be told apart by address at all.",
+    "criterion": "Does reconfiguring the instrument change this value? If yes it is never addressable. A part number survives a lens swap; a slot number is falsified by one, and nothing in the store records that someone turned the nosepiece. An addressable placement would hand back a stale answer at full confidence, which is worse than not finding it. The curator had already written this argument into nosepiece_objective_assignment: position-to-lens is the one claim on that device a single swap falsifies.",
+    "closed": "The list is closed and the default is not-addressable, so a key invented later does not silently become a query surface. Growing it is a deliberate edit with a reason, the way observables.json and goal.schema.json's purposes grow.",
+    "class_handles": "Some of these name a class rather than an item -- `model` is Kinetix 22 for both cameras, `product` is a product line, `immersion` is shared by every oil lens. That is not a reason to exclude them: kb_query already returns sets and a caller reads `identifiers` on each row. It is recorded here so a hit's kind is not mistaken for uniqueness.",
+    "addressable": ["part_number", "catalog_number", "model", "product", "serial", "lot", "nominal_magnification", "immersion"],
+    "not_addressable_examples": ["position", "position_0", "slot", "fitted_slot", "port", "channel", "position_index_base"]
   },
   "required": ["entry_id", "schema_version", "kind", "claim", "validity_conditions", "grade", "source_ref", "date", "curated_by"],
   "allOf": [
