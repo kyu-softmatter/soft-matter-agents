@@ -2,9 +2,22 @@
 
 Written by `manager-simulation`. You read this; you do not edit it (§6.2-2).
 
-**Startable now.** This card said *do not start* until 2026-09-19 and the two
-things it was waiting on have landed. Both halves of that wait are gone, and
-the rest of this card is the procedure.
+**HELD until this question is at revision 2.** Lifted by the seat that makes
+revision 2 — you, not this one. The two things this card originally waited on
+did land, and then a third turned up that neither seat had looked for. The
+procedure below is correct and is what revision 2 does; what is wrong is doing
+it in place.
+
+```bash
+# The hold is real while this prints a mismatch at revision 1:
+python3 -c "
+import sys,json; sys.path.insert(0,'contracts')
+from validate import card_sha
+h = json.load(open('bridge/threads/thr-tracer-diffusivity-001/r1_hashes.json'))
+c = json.load(open(h['source']['path']))
+print('ledger rev', h['source']['revision'], '| card rev', c['revision'],
+      '| hash matches', card_sha(c) == h['source']['sha256'])"
+```
 
 `goal.schema.json` now carries the inline target, and its `$comment` on the
 superseded branch names **this agent's `goal.json`** as one of exactly two
@@ -27,19 +40,50 @@ A `decision:` source kind was proposed and **rejected**, because `SOURCE_GRADE`
 is a function from source to grade and a source yielding no grade punches a
 hole in P2.
 
-## Why this card may move when an approved one may not
+## Why this group is stuck, and it is not the approval
 
-`3646fb7` found the wall: a card pinned by a signed `plan_approval` can neither
-gain nor lose a field (§5.5), so the `plan_hash` moves and the approval stops
-covering it. **That is not should-not, it is cannot** — short of asking a
-person to re-approve work they already approved. So the contract migrates
-forward: new cards inline, pinned cards keep the legacy form while their
-approval stands.
+`3646fb7` found a wall: a card pinned by a signed `plan_approval` can neither
+gain nor lose a field (§5.5), because the `plan_hash` moves and the approval
+stops covering it. Not should-not — **cannot**, short of asking a person to
+re-approve work they already approved.
 
-**Checked, and this card is on the free side of that wall**:
-`sim-20260917-001/goal.json` has `approval_id: null` and `status: VALIDATED`.
-Nothing pins it. The plan card beside it is the one to check the same way
-before touching — do not take this paragraph as covering it.
+`sim-20260917-001` has no approval. `goal.json` reads `approval_id: null`,
+`status: VALIDATED`, and no `plan_approval` names the plan. `manager-bridge`
+surveyed for exactly that and reported this group free.
+
+**It is not free. A delivered round pins the plan, and a round is a hash too.**
+`bridge/threads/thr-tracer-diffusivity-001/r1_hashes.json` records
+`plan_simulation_sim-20260917-001.json` at `revision: 1` with
+`sha256:e3ab814b…`, and it **matches today** — checked with the validator's own
+`card_sha`. Check 8 reads that pair:
+
+```python
+if on_disk.get("revision") != src.get("revision"):
+    continue          # the source moved on; the round is not comparable
+if card_sha(on_disk) != src.get("sha256"):
+    ... FAIL "Stop the round; do not repair it (4.4 failure table)"
+```
+
+Migrate in place at revision 1 and the hash moves, check 8 fails, **and the
+finding is filed against `r1_hashes.json` — `manager-bridge`'s tree.** The seat
+that caused it cannot fix it there, the seat that owns it did not cause it, and
+the message tells whoever finds it not to repair the round. The gate runs the
+whole validator, so every session stops meanwhile.
+
+**The escape is in the code's own first line: a revision bump makes the round
+non-comparable and the check skips it.** Verified by simulating both. So this
+migration happens at **revision 2**, which `000` already has scheduled as the
+librarian re-run — nothing extra is being asked for.
+
+`goal.json` is pinned by nothing. It still cannot move alone: checks 12 and 52
+tie a plan's carried number and carried target to the goal's, so **both cards
+or neither, one commit**. The unit of migration is the qid group.
+
+**The general shape, which is worth more than this instance:** the
+approval-pins-a-card argument was attached to approvals, and a hash does not
+care what wrote it. Anything that records a card's hash pins that card —
+approvals, round ledgers, and whatever records one next. Ask *what holds a hash
+of this card*, not *is there an approval*.
 
 ## The four places, and the one that is a judgement
 
