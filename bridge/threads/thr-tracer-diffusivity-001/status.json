@@ -1,0 +1,12 @@
+{
+  "artifact": "thread_status",
+  "schema_version": "0.1",
+  "thread": "thr-tracer-diffusivity-001",
+  "round": 1,
+  "turn": "microscope_agent",
+  "state": "open",
+  "updated_at": "2026-09-19T07:30:45Z",
+  "blocked_pairs": [],
+  "substitutions": [],
+  "note": "Opened on the simulation seat's request, whose user reversed an earlier hold. The bridge opened nothing by itself. The round was written only after the ledger's hash stopped covering status (af5353b): before that, the approval this plan is due to receive would have made a correctly transported round report tampering."
+}
