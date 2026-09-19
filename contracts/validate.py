@@ -1621,10 +1621,12 @@ def check_29_failure_record(b: Bundle) -> list[Finding]:
     # so the one record the discipline depends on was the one the gate blocked.
     kinds = {"validator_failure", "refusal", "deviation", "scope_voided", "success",
              "abandoned_attempt"}
+    n_records = 0
     for p in files:
         for i, line in enumerate(p.read_text().splitlines(), 1):
             if not line.strip():
                 continue
+            n_records += 1
             try:
                 rec = json.loads(line)
             except json.JSONDecodeError as exc:
@@ -1640,7 +1642,7 @@ def check_29_failure_record(b: Bundle) -> list[Finding]:
                 out.append(Finding(29, FAIL, f"line {i}: names both a qid and a task; one record belongs to one of them", str(p.relative_to(REPO))))
             if rec.get("kind") not in kinds:
                 out.append(Finding(29, FAIL, f"line {i}: unknown kind {rec.get('kind')!r}", str(p.relative_to(REPO))))
-    return out or [Finding(29, PASS, f"{len(files)} failure records are well formed")]
+    return out or [Finding(29, PASS, f"{n_records} failure records in {len(files)} files are well formed")]
 
 
 def check_30_lessons(b: Bundle) -> list[Finding]:

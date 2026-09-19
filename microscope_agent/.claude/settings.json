@@ -21,8 +21,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/contracts/validate.py\" --quiet",
-            "$comment": "the validator's exit code is the only truth (plan.md 8)"
+            "command": "python3 \"$(git rev-parse --show-toplevel)/contracts/validate.py\" --quiet",
+            "$comment": "the validator's exit code is the only truth (plan.md 8). Resolved from the worktree root, not CLAUDE_PROJECT_DIR: in a session opened in this directory that variable is this directory, so the hook looked for microscope_agent/contracts/validate.py and failed on every write. Same bug .mcp.json had until 8d4a604, and the same fix."
           }
         ]
       }

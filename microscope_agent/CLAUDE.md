@@ -395,38 +395,47 @@ python3 contracts/validate.py
 Zero failures, and understand every UNDECIDED and PENDING line rather than
 reading past it. An unchosen threshold is not a satisfied threshold.
 
-**Commit under this seat's identity, read from `contracts/seats.json`.** This
-seat is `microscope`, and the row there gives the committer address. The
-author stays the person; only the committer is the seat, and check 41 reads
-it.
+**Your identity is not written in this file. Read it from
+`contracts/seats.json`.** More than one row there owns `microscope_agent` —
+`microscope`, `microscope-1`, `microscope-2`, `microscope-3` — and which is
+yours does not follow from anything here. It follows from the person having
+seated you (§6.2.2); another session cannot tell you, and neither can this
+file. Take the row, use its `committer_email`, and check the row is not
+marked deferred.
+
+**This file names no seat on purpose.** It is read by every microscope
+session at once, so a name written here hands the same identity to all of
+them — which is `one_identity_per_session`'s hole arriving by configuration
+rather than by accident. Check 41 cannot tell two sessions apart under one
+address and passes their mixture; that happened twice on 2026-09-17, and both
+times the pass was the defect. This paragraph replaces two earlier ones that
+named `microscope` and `microscope-1`, which between them were already giving
+different answers to the same question.
+
+The author stays the person. Only the committer is the seat, and check 41
+reads it. With no worktree, set it per command:
 
 ```bash
-GIT_COMMITTER_NAME='seat:microscope' GIT_COMMITTER_EMAIL=microscope@seat.invalid git commit -F msg -- <paths>
+GIT_COMMITTER_NAME='seat:<your-seat>' GIT_COMMITTER_EMAIL=<your-seat>@seat.invalid git commit -F msg -- <paths>
 ```
 
-**This seat is `microscope-1`.** §9.3 split it in two for the A/B, and
-`58064da` deferred the second variant and removed the worktrees, so there is
-one microscope execution seat again. It keeps the divided identity rather than
-falling back to the undivided `microscope`: the seat outlives its worktree,
-and `microscope` stays valid only for the commits already made under it.
-
-With one checkout there is nothing for a worktree config to attach to, so set
-it per command:
+**If a worktree is made, move the identity into it** — there it survives a
+context reset, and it is what §6.2.3 prescribes:
 
 ```bash
-GIT_COMMITTER_NAME='seat:microscope-1' GIT_COMMITTER_EMAIL=microscope-1@seat.invalid git commit -F msg -- <paths>
-```
-
-**If a worktree is made again, move the identity into it** — that is where it
-survives a context reset, and it is the mechanism §6.2.3 now prescribes:
-
-```bash
-git config --worktree committer.name  'seat:microscope-1'
-git config --worktree committer.email microscope-1@seat.invalid
+git config --worktree committer.name  'seat:<your-seat>'
+git config --worktree committer.email <your-seat>@seat.invalid
 git var GIT_COMMITTER_IDENT        # confirm before you rely on it
 ```
 
-**Never `--local`.** In a linked worktree `--local` writes to the shared
+**Never `--local`.** In a linked worktree it writes to the shared
 `.git/config`, where every other session reads it as its own — a simulation
-session committing as `seat:microscope` is worse than no attribution, because
+session committing as a microscope seat is worse than no attribution, because
 check 41 passes it. §6.2.3 prescribed `--local` by mistake until `44f368b`.
+
+**More than one microscope session may be running.** Nothing refuses a
+collision on the surfaces you share — `src/axis_common.py` and
+`questions/<qid>/failures.jsonl` — so the division comes from the task cards
+in `tasks/`, not from the tooling. Do not take an axis that a card has not
+given you, and put helpers your axis needs in your own axis module rather
+than in `axis_common.py` unless a card says otherwise.
