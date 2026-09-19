@@ -1,0 +1,17 @@
+{
+  "artifact": "round_hashes",
+  "schema_version": "0.1",
+  "thread": "thr-bad-status",
+  "round": 1,
+  "ask_card": "r1_ask_simulation.json",
+  "source": {
+    "path": null,
+    "card_id": "plan-mic-20260919-025",
+    "revision": 1,
+    "status": "VALIDATED",
+    "sha256": "sha256:038dd75742b37fd0fc9dd8d2ee837c06da5bd43be5ede40f32c009388f817cac"
+  },
+  "payload_sha256": "sha256:18b05e16e99e24bb3f0fa80ff86d44b423826091cf12b41f003f3683a121c7a4",
+  "verified_at": "2026-09-19T09:00:00Z",
+  "note": "The hash agrees -- it leaves status out -- and the status it records does not. Both files are well formed on their own, which is why this needs two."
+}

@@ -177,6 +177,7 @@ So a folder one level down is one fixture:
 ```
 check08_ledger_payload_mismatch/   envelope + ledger + status, and only the ledger is wrong
 check08_unrecorded_repeat/         two well-formed refusals + a ledger that omits the repeat
+check08_status_advanced/           a hash that agrees and a status that does not
                                    (r1_refusal.json, r3_refusal.json: the round leads, 7.1 rule 3)
 ```
 

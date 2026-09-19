@@ -416,15 +416,23 @@ def collect(roots: Iterable[Path], include_rejected: bool = False) -> Bundle:
     return b
 
 
-def plan_hash(plan: dict) -> str:
-    """sha256 of a plan card with status removed.
+def card_sha(card: dict) -> str:
+    """sha256 of a card with status removed.
 
     Status moves along the state machine on the same file (5.5), so hashing it
-    would void an approval at the instant it was granted.
+    would void an approval at the instant it was granted. That was learned once
+    for approvals (0.2-3) and had to be learned again for the bridge's ledger,
+    where an approval would have made a correctly transported round report that
+    its source had been tampered with. One implementation now, two readers.
     """
-    body = {k: v for k, v in plan.items() if k != "status"}
+    body = {k: v for k, v in card.items() if k != "status"}
     blob = json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return "sha256:" + hashlib.sha256(blob.encode()).hexdigest()
+
+
+def plan_hash(plan: dict) -> str:
+    """What a plan_approval signs (5.5). The same hash, named for its use."""
+    return card_sha(plan)
 
 
 # --------------------------------------------------------------------------- #
@@ -908,10 +916,18 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
             out.append(Finding(8, FAIL, "the ledger's payload_sha256 is not the envelope's payload_hash", h.rel))
         if h.data.get("ask_card") != c.path.name:
             out.append(Finding(8, FAIL, f"the ledger covers {h.data.get('ask_card')!r} and this envelope is {c.path.name}", h.rel))
+        if src.get("status") != payload.get("status"):
+            out.append(Finding(8, FAIL, f"the ledger records the source at {src.get('status')!r} and the payload "
+                                        f"says {payload.get('status')!r}. The hash leaves status out so a legitimate "
+                                        f"transition does not read as tampering (5.5), so the status is pinned here "
+                                        f"instead -- otherwise the bridge could advance it and nothing would see", h.rel))
         if src.get("card_id") != payload.get("id") or src.get("revision") != payload.get("revision"):
             out.append(Finding(8, FAIL, f"the ledger records {src.get('card_id')!r} revision {src.get('revision')} and the payload is {payload.get('id')!r} revision {payload.get('revision')}", h.rel))
         if src.get("path") is None:
-            if src.get("sha256") != h.data.get("payload_sha256"):
+            # Nothing on disk to recompute from, so the ledger's record of the
+            # source must at least agree with the payload it wrapped -- in the
+            # same hash, which leaves status out; the status is pinned above.
+            if src.get("sha256") != card_sha(payload):
                 out.append(Finding(8, FAIL, "a hand-fed card has no path to recompute from, so the recorded source hash must be the payload's", h.rel))
             continue
         f = REPO / str(src.get("path"))
@@ -925,7 +941,7 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
             continue
         if on_disk.get("revision") != src.get("revision"):
             continue          # the source moved on; the round is not comparable, and saying so beats a false pass
-        if canon_sha(on_disk) != src.get("sha256"):
+        if card_sha(on_disk) != src.get("sha256"):
             out.append(Finding(8, FAIL, "the source card at the recorded revision does not hash to the recorded value: either it was edited without a revision bump, or the payload is not what was sent. Stop the round; do not repair it (4.4 failure table)", h.rel))
         else:
             verified += 1
@@ -1404,6 +1420,39 @@ def check_24_calibration_validity(b: Bundle) -> list[Finding]:
     return [Finding(24, PENDING, f"{len(used)} calibration numbers found; validity windows need envelope/snapshot.json (M1) and the KB behind it (M3)")]
 
 
+_KB_HISTORY: dict | None = None
+
+
+def kb_index_at(version: str) -> tuple[dict | None, str | None]:
+    """The store's index as it stood at a pinned version, from its own history.
+
+    check 25's message has always said that confirming an older pin needs the
+    store's git history. It said it instead of doing it, and the cost was not
+    noise: the branch that reported it also skipped the grade comparison, so a
+    card pinning anything but today's version was not checked at all. Moving a
+    pin forward then made the check quieter and restored the grade check at the
+    same time -- the record became less true and the report got better, which
+    is the wrong way round for a gate to point.
+    """
+    global _KB_HISTORY
+    if _KB_HISTORY is None:
+        _KB_HISTORY = {}
+        import subprocess
+        rel = "librarian_agent/kb/index.json"
+        try:
+            shas = subprocess.run(["git", "-C", str(REPO), "log", "--format=%H", "--", rel],
+                                  capture_output=True, text=True, check=True).stdout.split()
+            for sha in shas:
+                blob = subprocess.run(["git", "-C", str(REPO), "show", f"{sha}:{rel}"],
+                                      capture_output=True, text=True, check=True).stdout
+                doc = json.loads(blob)
+                _KB_HISTORY.setdefault(doc.get("kb_version"), (doc, sha))
+        except (OSError, subprocess.CalledProcessError, json.JSONDecodeError):
+            pass
+    found = _KB_HISTORY.get(version)
+    return found if found else (None, None)
+
+
 def check_25_kb_refs(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     cards = [c for c in b.cards if "__unreadable__" not in c.data]
@@ -1425,7 +1474,29 @@ def check_25_kb_refs(b: Bundle) -> list[Finding]:
             if KB_INDEX is None:
                 continue
             if r["kb_version"] != KB_INDEX.get("kb_version"):
-                out.append(Finding(25, PENDING, f"kb_ref {r.get('entry_id')} pins {r['kb_version']}, which is not the store's current {KB_INDEX.get('kb_version')}; confirming an older version needs the store's git history", c.rel))
+                past, sha = kb_index_at(r["kb_version"])
+                eid = r.get("entry_id")
+                if past is None:
+                    # Absence of evidence is not confirmation. A version that
+                    # was never committed hashes a working tree and has nowhere
+                    # to be read back from.
+                    out.append(Finding(25, PENDING, f"kb_ref {eid} pins {r['kb_version']}, which is in no committed index; a version that never landed cannot be confirmed", c.rel))
+                    continue
+                then = (past.get("entries") or {}).get(eid)
+                if then is None:
+                    out.append(Finding(25, FAIL, f"kb_ref {eid} pins {r['kb_version']} ({sha[:7]}), where the store had no such entry", c.rel))
+                    continue
+                if then.get("grade") != r.get("grade"):
+                    out.append(Finding(25, FAIL, f"kb_ref {eid} claims {r.get('grade')} and the store said {then.get('grade')} at {r['kb_version']} ({sha[:7]})", c.rel))
+                    continue
+                now = (KB_INDEX.get("entries") or {}).get(eid)
+                if now and now.get("sha256") == then.get("sha256"):
+                    # Compared by content hash, not field by field. Which
+                    # fields reach a card is not written down anywhere, so
+                    # choosing a subset would invent a contract; over-reporting
+                    # is the safe direction until one exists.
+                    continue
+                out.append(Finding(25, PENDING, f"kb_ref {eid} pins {r['kb_version']} ({sha[:7]}) and the entry has changed since; the grade it claims held then, and what moved needs reading", c.rel))
                 continue
             stored = (KB_INDEX.get("entries") or {}).get(r.get("entry_id"))
             if stored is None:

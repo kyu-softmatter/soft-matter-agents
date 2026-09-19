@@ -1,0 +1,11 @@
+{
+  "artifact": "thread_status",
+  "schema_version": "0.1",
+  "thread": "thr-bad-status",
+  "round": 1,
+  "turn": "simulation_agent",
+  "state": "open",
+  "updated_at": "2026-09-19T09:00:00Z",
+  "blocked_pairs": [],
+  "substitutions": []
+}
