@@ -20,7 +20,6 @@
       "owns": [
         "microscope_agent"
       ],
-      "worktree_branch": "seat/microscope-1",
       "variant_reference": "agentic-microscope@version2",
       "note": "Opened as one of two microscope execution seats for the A/B (9.3). Since microscope-2 was deferred on 2026-09-18 this is the microscope execution seat plainly, and the A/B constraints do not bind it. It builds on branch microscope-from-version2, reading agentic-microscope@version2 under 10.2.1 like any other transfer. The seat is the worktree rather than the session: one session works it at a time, and a replacement session inherits the identity because it inherits the branch. Two seats writing microscope_agent/ in one working copy would overwrite each other, which is why the worktree comes first."
     },
@@ -30,7 +29,6 @@
       "owns": [
         "microscope_agent"
       ],
-      "worktree_branch": "seat/microscope-2",
       "variant_reference": "agentic-microscope@main",
       "note": "Deferred by the person on 2026-09-18: this variant does not work yet, and its session and worktree were removed. The seat and the branch stay because the record is the point (P16) -- seat/microscope-2 still holds what it built, and deleting the entry would make a future commit under this identity an unknown committer. Nothing commits under it while deferred.",
       "status": "deferred 2026-09-18"
@@ -48,8 +46,7 @@
       "committer_email": "simulation@seat.invalid",
       "owns": [
         "simulation_agent"
-      ],
-      "worktree_branch": "seat/simulation-1"
+      ]
     },
     {
       "seat": "simulation-2",
@@ -57,7 +54,6 @@
       "owns": [
         "simulation_agent"
       ],
-      "worktree_branch": "seat/simulation-2",
       "note": "The second simulation execution seat, seated 2026-09-18. Same shape as librarian-2 and for the same reason: two sessions sharing one identity is what one_identity_per_session calls a hole, and it happened twice on 2026-09-17 with the check passing both times. The first simulation session takes seat/simulation-1; neither cuts its own branch, because switching branches in a shared working copy moves files under every other session (6.2.1)."
     },
     {
@@ -73,8 +69,7 @@
       "owns": [
         "librarian_agent"
       ],
-      "worktree_branch": "seat/librarian-2",
-      "note": "The second librarian execution seat, seated by the person on 2026-09-18. First real use of the `growth` rule outside the microscope example: a new session gets a new identity with the same `owns` and no `paths`, because librarian_agent/ cannot honestly be divided between two seats doing the same agent's work. What that costs is refusal on that surface; what it buys is that a commit still says which session made it, and the worktree merge is what catches two seats editing one file (6.2.1)."
+      "note": "The second librarian execution seat, seated by the person on 2026-09-18. First real use of the `growth` rule outside the microscope example: a new session gets a new identity with the same `owns` and no `paths`, because librarian_agent/ cannot honestly be divided between two seats doing the same agent's work. What that costs is refusal on that surface; what it buys is that a commit still says which session made it, and there is no refusal-level guard there since worktrees were reverted on 2026-09-18 (6.2.1)."
     },
     {
       "seat": "bridge",
@@ -236,7 +231,7 @@
       "excludes_note": "Enforced by check 41 since 607c3e9, which the manager seat wrote against its own boundary. It subtracts from what owns and paths grant, and is tested before the narrowing so the refusal names the real reason. Verified in a throwaway clone in both directions: manager is refused on contracts/seats.json and allowed elsewhere under contracts/, architecture is the reverse. This note said DECLARED, NOT ENFORCED while that was true; a registry that understates its protection is the same error as one that overstates it, so it is corrected here rather than left to age.",
       "why_divided": "On 2026-09-17 four sessions each reported being the manager seat and the person confirmed that all four are. Sharing one identity made check 41 decorative for the whole tier: three commits stand under manager@seat.invalid and git cannot say which session made any of them. 6.2.1 prescribes dividing paths before opening a second seat at one position; this is that division, four ways.",
       "what_is_not_divided": "contracts/ itself. Each manager needs the schemas, the vocabulary, the units registry and the validator, and no path split expresses that. Giving the core to one seat was proposed and refused: it serialises every schema and validator change through one session, which is the opposite of what the tier was built for. So all four hold contracts/, and there check 41 gives attribution rather than refusal -- the commit still says which session, but no crossing can be refused. On each agent's CLAUDE.md and .claude/ the division is real and the check refuses.",
-      "what_protects_the_core": "The worktree merge, not this file. Two managers editing validate.py in separate worktrees produce a conflict at merge -- visible and resolvable -- where today they silently overwrite each other, which happened twice on 2026-09-17. That makes the merge the only thing guarding the shared core, and it makes the merge-awareness fix in checks 35 and 41 load-bearing rather than tidy: until it lands, the first merge crashes the gate (6.2.1). By convention contracts/capabilities/<agent>.json belongs to that agent's manager. It is convention, not a check, and this line says so rather than implying a boundary that is not there."
+      "what_protects_the_core": "Nothing, at refusal level, since worktrees were reverted on 2026-09-18. This line said the worktree merge guarded it: two managers editing validate.py in separate worktrees would collide visibly at merge. With one working copy they overwrite each other silently again, which happened twice on 2026-09-17. What remains is attribution -- the commit says which session -- plus the convention not to use git add -A and the commit gate. The merge-awareness in checks 35 and 41 stays correct and currently guards nothing."
     },
     {
       "seat": "design",
