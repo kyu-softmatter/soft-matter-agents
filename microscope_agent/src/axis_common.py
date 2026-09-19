@@ -96,6 +96,76 @@ def kb_ref(entry_id: str, version: str | None) -> dict:
             "kb_version": version, "claim": (entry.get("claim") or "")[:200]}
 
 
+def load_responses(path: Path, pin: str, caller_id: str) -> dict:
+    """What the librarian returned, and a refusal if any of it answered elsewhere.
+
+    The normal path (4.3.2). kb_entry() above is the degraded one: it opens the
+    store's files, and reading the files is not the service answering (0.3), so
+    an axis that uses it cannot honestly write an empty `degraded` whatever it
+    puts in the field. An axis that uses this one can.
+
+    Three refusals, and each is a claim the card would otherwise make silently.
+    A pin mismatch means the answer is to a different question and check 33
+    exists to catch the mixture. A caller_id mismatch means another axis's
+    answers, and isolation is by caller_id (4.3.1). Both stop here, where the
+    reason is legible, rather than in a card someone has to unpick.
+    """
+    data = json.loads(path.read_text())
+    if data.get("pin") != pin:
+        raise AxisError(
+            f"the responses were obtained at {data.get('pin')!r} and this axis is answering at "
+            f"{pin!r}; re-ask rather than re-label"
+        )
+    if data.get("caller_id") != caller_id:
+        raise AxisError(
+            f"the responses were asked by {data.get('caller_id')!r}, not {caller_id!r}. Isolation "
+            "is by caller_id (4.3.1), so another caller's answers are not this axis's input"
+        )
+    for eid, rec in (data.get("entries") or {}).items():
+        got = (rec.get("answered_from") or {}).get("kb_version")
+        if got != pin:
+            raise AxisError(f"{eid} was answered from {got!r}, not the pinned {pin!r}")
+    for gap in data.get("gaps") or []:
+        got = (gap.get("answered_from") or {}).get("kb_version")
+        if got != pin:
+            raise AxisError(
+                f"the gap on {gap.get('observable')!r} was answered from {got!r}, not {pin!r}"
+            )
+    return data
+
+
+def refs_from(responses: dict, pin: str) -> list[dict]:
+    """Refs carrying the grade the service returned, never a restated one (check 21)."""
+    served = responses["entries"]
+    return [{"entry_id": eid, "grade": served[eid]["grade"], "kb_version": pin,
+             "claim": served[eid]["claim"][:200]}
+            for eid in sorted(served)]
+
+
+def gaps_from(responses: dict, pin: str, caller_id: str, gap_ids: dict[str, str]) -> list[dict]:
+    """Gaps that name the call that came back empty, not a directory that was listed.
+
+    `searched` held directory paths while there was no service to ask. Now it
+    holds the call, because asked-and-absent and nobody-checked are different
+    claims (4.3.1) and only the first one is available once the librarian
+    answers.
+    """
+    out = []
+    for gap in sorted(responses["gaps"], key=lambda g: g["observable"]):
+        observable = gap["observable"]
+        out.append({
+            "gap_id": gap_ids[observable],
+            "observable": observable,
+            "kind": gap["kind"],
+            "searched": [f"{gap['tool']}(observable={observable}, caller_id={caller_id}, "
+                         f"kb_version={pin}) -> {gap['kind']}, searched {gap['searched']}"],
+            "kb_version": pin,
+            "asked_by": caller_id,
+            "asked_at": gap["asked_at"],
+        })
+    return out
+
+
 def goal_number(goal: dict, name: str) -> dict | None:
     return next((n for n in goal.get("numbers", []) if n.get("name") == name), None)
 

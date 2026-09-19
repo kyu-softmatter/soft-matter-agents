@@ -134,64 +134,14 @@ STAGING_NOTE = (
 )
 
 
-def load_responses(path: Path, pin: str, caller_id: str) -> dict:
-    """The librarian's answers, and a refusal if any of them answered elsewhere.
-
-    The pin check is the point. A response stamped with another kb_version is
-    an answer to a different question, and a card that mixes two versions is
-    the thing check 33 exists to catch -- better to stop here, where the reason
-    is legible, than to emit a card that has to be unpicked.
-    """
-    data = json.loads(path.read_text())
-    if data.get("pin") != pin:
-        raise axc.AxisError(
-            f"the responses were obtained at {data.get('pin')!r} and this axis is answering at "
-            f"{pin!r}; re-ask rather than re-label"
-        )
-    if data.get("caller_id") != caller_id:
-        raise axc.AxisError(
-            f"the responses were asked by {data.get('caller_id')!r}, not {caller_id!r}. Isolation "
-            "is by caller_id (4.3.1), so another caller's answers are not this axis's input"
-        )
-    for eid, rec in data.get("entries", {}).items():
-        got = (rec.get("answered_from") or {}).get("kb_version")
-        if got != pin:
-            raise axc.AxisError(f"{eid} was answered from {got!r}, not the pinned {pin!r}")
-    for gap in data.get("gaps", []):
-        got = (gap.get("answered_from") or {}).get("kb_version")
-        if got != pin:
-            raise axc.AxisError(
-                f"the gap on {gap.get('observable')!r} was answered from {got!r}, not {pin!r}"
-            )
-    return data
-
-
 def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str) -> axc.AxisRun:
     """Every inequality A4 owns, each with a constraint or a reason it has none."""
     run = axc.AxisRun(axis=AXIS, caller_id=caller_id, config=config, kb_version=pin,
                       owned=OWNED, degraded=[])
 
-    served = responses["entries"]
     absent = {g["observable"]: g for g in responses["gaps"]}
-
-    # Refs carry the grade the service returned, never a restated one (check 21).
-    for eid in sorted(served):
-        rec = served[eid]
-        run.kb_refs.append({"entry_id": eid, "grade": rec["grade"], "kb_version": pin,
-                            "claim": rec["claim"][:200]})
-
-    # A gap names the call that came back empty, not a directory that was listed.
-    for observable, gap in sorted(absent.items()):
-        run.kb_gaps.append({
-            "gap_id": GAP_IDS[observable],
-            "observable": observable,
-            "kind": gap["kind"],
-            "searched": [f"{gap['tool']}(observable={observable}, caller_id={caller_id}, "
-                         f"kb_version={pin}) -> {gap['kind']}, searched {gap['searched']}"],
-            "kb_version": pin,
-            "asked_by": caller_id,
-            "asked_at": gap["asked_at"],
-        })
+    run.kb_refs = axc.refs_from(responses, pin)
+    run.kb_gaps = axc.gaps_from(responses, pin, caller_id, GAP_IDS)
 
     for ineq in OWNED:
         missing = [n for n in ineq.needs if n in absent]
@@ -318,7 +268,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{args.goal} is not a goal card", file=sys.stderr)
         return 2
     try:
-        responses = load_responses(args.responses, args.kb_version, args.caller_id)
+        responses = axc.load_responses(args.responses, args.kb_version, args.caller_id)
     except axc.AxisError as exc:
         print(f"no card written: {exc}", file=sys.stderr)
         return 3

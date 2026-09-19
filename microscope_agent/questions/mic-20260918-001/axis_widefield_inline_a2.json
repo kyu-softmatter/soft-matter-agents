@@ -1,0 +1,121 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260918-001-widefield_inline-a2",
+  "qid": "mic-20260918-001",
+  "thread": "solo-mic-20260918-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-19T07:46:05Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260918-001:widefield_inline:a2",
+  "config": "widefield_inline",
+  "axis": "a2",
+  "kb_version": "kbv-49feb73662b7",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "record_length_vs_diffusive_time",
+      "parameter": "record_duration",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no expected diffusivity is in the store. The service was asked and answered absent. What is served is the relation and not the value: tau_d came back at E4 -- the diffusive time is what a sphere needs to diffuse its own diameter, and it sets the shortest record length an MSD can be read from. So this bound returns the moment a diffusivity exists, and the diffusivity is computable from three entries that already do: the water viscosity, the tracer diameter and the ambient temperature. It is not computed here. Knowledge lives in one place (P14), and a diffusivity derived inside this axis would sit in this file and in every other axis that needs it, which 4.5.2.1 forbids because the copies eventually disagree. The entry also carries its own warning for whoever does compute it: near a wall the drag is corrected separately rather than absorbed into this time, or the time unit moves with stage position and nothing can be compared",
+      "missing": [
+        "tracer_diffusivity_expected"
+      ]
+    },
+    {
+      "inequality": "displacement_samples_per_lag",
+      "parameter": "frame_count",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no target relative error exists anywhere. It is not the goal's decade resolution and not its signal-to-noise target: a decade says how coarsely the answer may land, SNR says whether the tracer is detectable, and neither says how precisely a displacement has to be resolved. Only the operator can state it; no localisation error has been measured on this instrument, and it cannot be derived here either, since it needs the pixel size and the signal-to-noise actually achieved",
+      "missing": [
+        "target_relative_error",
+        "localisation_error"
+      ]
+    },
+    {
+      "inequality": "ensemble_size",
+      "parameter": "tracer_count",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "nothing states how many tracers are in the sample or in a field: no concentration, no count, no dilution record",
+      "missing": [
+        "tracer_number_density"
+      ]
+    },
+    {
+      "inequality": "independent_repeats",
+      "parameter": "repeat_count",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no target relative error exists anywhere. It is not the goal's decade resolution and not its signal-to-noise target: a decade says how coarsely the answer may land, SNR says whether the tracer is detectable, and neither says how precisely a displacement has to be resolved. Only the operator can state it; no localisation error has been measured on this instrument, and it cannot be derived here either, since it needs the pixel size and the signal-to-noise actually achieved. And this bound is blocked a second time, by the goal rather than by the store: 'sample is consumed by the measurement and cannot be remounted'. So the repeat count is capped at one independent mount whatever the statistics turn out to need. That is a coupling S4 has to see rather than a bound this axis states -- how many repeats are POSSIBLE is the goal's constraint, how many are NEEDED is A2's -- and if the requirement ever exceeds one mount the question is infeasible as posed rather than merely expensive",
+      "missing": [
+        "target_relative_error",
+        "localisation_error"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [
+    {
+      "entry_id": "tau_d",
+      "grade": "E4",
+      "kb_version": "kbv-49feb73662b7",
+      "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "localisation_error",
+      "observable": "localisation_error",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=localisation_error, caller_id=mic-20260918-001:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:widefield_inline:a2",
+      "asked_at": "2026-09-19T07:43:35+00:00"
+    },
+    {
+      "gap_id": "target_relative_error_never_stated",
+      "observable": "target_relative_error",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=target_relative_error, caller_id=mic-20260918-001:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:widefield_inline:a2",
+      "asked_at": "2026-09-19T07:44:03+00:00"
+    },
+    {
+      "gap_id": "expected_diffusivity",
+      "observable": "tracer_diffusivity_expected",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_diffusivity_expected, caller_id=mic-20260918-001:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:widefield_inline:a2",
+      "asked_at": "2026-09-19T07:43:31+00:00"
+    },
+    {
+      "gap_id": "tracer_loading",
+      "observable": "tracer_number_density",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_number_density, caller_id=mic-20260918-001:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:widefield_inline:a2",
+      "asked_at": "2026-09-19T07:44:07+00:00"
+    }
+  ],
+  "degraded": [],
+  "note": "Answered by the librarian service rather than by reading the store, which is what makes degraded empty: one entry came back with its own grade and four questions came back absent, all at the pinned kbv-49feb73662b7, and every call is in librarian_agent/queries/log.jsonl under this caller_id. The served digest was checked byte for byte against the pinned commit's blob. All four bounds abstain and the four missing inputs are not alike. Two are measurements nobody has taken here -- the localisation error and the tracer loading. One is derivable and deliberately not derived: the expected diffusivity, which belongs in the store as an entry because two axes already need it. The fourth is not a measurement at all: the target relative error is a decision only the operator can make, and the goal's decade resolution and SNR target are neither substitute. Read as a to-do list, that is two experiments, one KB entry and one question for a person. The repeats bound carries the sharpest thing in this card and it is not a number: the sample cannot be remounted, so one mount is all there is. Every statistical demand this axis cannot yet compute has to fit inside a single record on a single mount, and if it does not, no amount of instrument time buys the difference.",
+  "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
+}
