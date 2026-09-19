@@ -8,8 +8,7 @@
     "The estimator is part of the identity. Two sides agreeing on a word while disagreeing on how the number is extracted is worse than disagreeing openly: the values get compared and the discrepancy has no visible cause.",
     "If the value depends on a lag, a window or an interval, window_required is true and the plan must carry that window as a condition. A window-dependent quantity is not one number, and recording it as one is how a short-lag and a long-lag result end up in the same column.",
     "comparable is false until the same estimator demonstrably runs on both sides. Claiming it early makes a bridge round trip compare two different quantities under one name.",
-    "An id is never redefined. Changing an estimator means a new id, because plans and results already cite the old one (P9).",
-    "Adding is cheap and changing is not. A new id reinterprets nothing. But a card carries the name only and reads the definition from here (5.1), so editing an entry silently changes what every card that already used that name meant. definition, estimator and window_parameter are therefore append-only: correct them by standing a new id with supersedes and leaving the old one readable. units, producible_by, comparable and note may be edited in place, because none of them changes what a past number meant."
+    "An id is never redefined, and adding is cheap while changing is not. A new id reinterprets nothing. But plans and results already cite the old one (P9), and a card carries the name only and reads the definition from here (5.1) -- so editing an entry silently changes what every card that already used that name meant, with no trace. definition, estimator and window_parameter are therefore append-only: correct them by standing a new id with supersedes and leaving the old one readable. units, producible_by, comparable and note may be edited in place, because none of them changes what a past number meant."
   ],
   "observables": [
     {
