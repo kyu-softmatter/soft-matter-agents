@@ -5,14 +5,14 @@
   "qid": "mic-20260918-001",
   "thread": "solo-mic-20260918-001",
   "round": 0,
-  "revision": 1,
+  "revision": 2,
   "author": "microscope_agent",
   "created_at": "2026-09-18T18:51:24Z",
   "status": "VALIDATED",
   "caller_id": "mic-20260918-001:widefield_inline:a7",
   "config": "widefield_inline",
   "axis": "a7",
-  "kb_version": "kbv-9bc3910f1886",
+  "kb_version": "kbv-49feb73662b7",
   "method": "deterministic",
   "verdict": "abstain",
   "constraints": [],
@@ -135,19 +135,19 @@
     {
       "entry_id": "water_viscosity_293k",
       "grade": "E3",
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
     },
     {
       "entry_id": "lab_ambient_temperature",
       "grade": "E3",
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. Because nothing actuates the sample temperature on this instrument, this is an ambient value of the "
     },
     {
       "entry_id": "sample_temperature_not_actuated",
       "grade": "E3",
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "claim": "Sample temperature is not under control on this instrument. A temperature stage exists but has never been connected, so nothing actuates the sample temperature and there is no setpoint to appeal to: a"
     }
   ],
@@ -161,7 +161,7 @@
         "librarian_agent/kb/staging/",
         "contracts/capabilities/microscope.json"
       ],
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:widefield_inline:a7"
     },
     {
@@ -173,7 +173,7 @@
         "librarian_agent/kb/staging/",
         "contracts/capabilities/microscope.json"
       ],
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:widefield_inline:a7"
     },
     {
@@ -185,7 +185,7 @@
         "librarian_agent/kb/staging/",
         "contracts/capabilities/microscope.json"
       ],
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:widefield_inline:a7"
     }
   ],

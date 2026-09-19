@@ -5,14 +5,14 @@
   "qid": "mic-20260918-001",
   "thread": "solo-mic-20260918-001",
   "round": 0,
-  "revision": 1,
+  "revision": 2,
   "author": "microscope_agent",
   "created_at": "2026-09-18T18:50:09Z",
   "status": "VALIDATED",
   "caller_id": "mic-20260918-001:widefield_inline:a1",
   "config": "widefield_inline",
   "axis": "a1",
-  "kb_version": "kbv-9bc3910f1886",
+  "kb_version": "kbv-49feb73662b7",
   "method": "deterministic",
   "verdict": "abstain",
   "constraints": [],
@@ -85,13 +85,13 @@
     {
       "entry_id": "csuw1_disk_position_states",
       "grade": "E3",
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "claim": "With the spinning disk in, the path is confocal. With the disk out, the same hardware serves both widefield fluorescence and brightfield. Disk-out is therefore not a configuration of its own but a req"
     },
     {
       "entry_id": "csuw1_disk_speed_exposure_constraint",
       "grade": "E3",
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "claim": "An exposure taken through the spinning disk must last an integer multiple of the disk period, or stripes remain in the image, and nothing may be acquired while the disk is still spinning up to speed."
     }
   ],
@@ -105,7 +105,7 @@
         "librarian_agent/kb/staging/",
         "contracts/capabilities/microscope.json"
       ],
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:widefield_inline:a1",
       "nearest": [
         {
@@ -123,7 +123,7 @@
         "librarian_agent/kb/staging/",
         "contracts/capabilities/microscope.json"
       ],
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:widefield_inline:a1"
     },
     {
@@ -135,7 +135,7 @@
         "librarian_agent/kb/staging/",
         "contracts/capabilities/microscope.json"
       ],
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:widefield_inline:a1",
       "nearest": [
         {
@@ -157,7 +157,7 @@
         "librarian_agent/kb/staging/",
         "contracts/capabilities/microscope.json"
       ],
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:widefield_inline:a1",
       "nearest": [
         {
