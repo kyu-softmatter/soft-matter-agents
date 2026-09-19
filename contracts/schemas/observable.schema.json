@@ -40,7 +40,9 @@
       "type": "boolean",
       "description": "true when the same estimator runs on both sides, so a round trip can compare the numbers directly (S4)"
     },
-    "note": { "type": "string" }
+    "note": { "type": "string" },
+    "supersedes": { "type": "string", "description": "id of the entry this one replaces, when a definition, estimator or window_parameter had to change. The superseded entry stays readable so a card that cited it still means what it meant." },
+    "superseded_by": { "type": "string", "description": "set on the older entry when a newer id replaces it. Cards already citing this id keep their meaning; new plans use the newer one." }
   },
   "required": ["id", "definition", "units", "estimator", "window_required", "producible_by", "comparable"],
   "unevaluatedProperties": false
