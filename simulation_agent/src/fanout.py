@@ -125,8 +125,68 @@ def current_kb_version() -> str:
     return json.loads(KB_INDEX.read_text())["kb_version"]
 
 
-def run(qid: str, created_at: str) -> dict[str, list[str]]:
-    """Screen, then fan out one sub-agent per (configuration, axis)."""
+def plan_queries(qid: str) -> list[dict]:
+    """The librarian calls this question needs, one per issuing caller_id.
+
+    Derived from the goal and the axis set, so the list is the same every time
+    and nothing is composed by whoever happens to run it. Each entry is the
+    tool name and its arguments exactly as 4.3.1 declares them -- the session
+    makes the calls, because an MCP tool is the model's to invoke and not
+    Python's, and hands the answers back to `run` keyed by caller_id.
+
+    Two shapes appear, for the reason 11-5 settled: a dimensionless group is
+    found **by symbol**, and a condition range is not a query term for it. So
+    A1 and A4 want `kb_group`, while A3 wants `kb_query` -- whether a measured
+    diffusivity exists for these conditions at all, which is the gap this
+    question currently records by hand.
+    """
+    goal = cards.load_goal(qid)
+    nums = {n["name"]: n for n in goal["numbers"]}
+    observable = goal["observable"]["name"]
+    kb_version = current_kb_version()
+    out: list[dict] = []
+    for config in screen(observable):
+        for axis in ("a1", "a4"):
+            out.append({
+                "tool": "kb_group",
+                "caller_id": issue(qid, config, axis),
+                "args": {"kb_version": kb_version, "symbol": "tau_d"},
+                "why": "the diffusive time is cited, not re-derived; check 36 compares the definition",
+            })
+        out.append({
+            "tool": "kb_query",
+            "caller_id": issue(qid, config, "a3"),
+            "args": {
+                "kb_version": kb_version,
+                "observable": observable,
+                "condition_range": {
+                    "temperature": {
+                        "min": nums["temperature"]["value"],
+                        "max": nums["temperature"]["value"],
+                        "unit": nums["temperature"]["unit"],
+                    },
+                    "bead_diameter": {
+                        "min": nums["bead_diameter"]["value"],
+                        "max": nums["bead_diameter"]["value"],
+                        "unit": nums["bead_diameter"]["unit"],
+                    },
+                },
+                "purpose": goal["purpose"],
+            },
+            "why": "is there a measured diffusivity for these conditions, or is the expectation standing on an absence",
+        })
+    return out
+
+
+def run(qid: str, created_at: str, kb_results: dict[str, dict] | None = None) -> dict[str, list[str]]:
+    """Screen, then fan out one sub-agent per (configuration, axis).
+
+    `kb_results` is keyed by caller_id and comes from the session having made
+    the calls in `plan_queries`. An axis with no entry is told so, and writes
+    `degraded: ["librarian_agent"]` -- which is the honest card while the
+    service is unreachable. Passing a result that cannot name its server counts
+    as no result: see `cards.evidence`.
+    """
     goal = cards.load_goal(qid)
     configs = screen(goal["observable"]["name"])
 
@@ -142,7 +202,8 @@ def run(qid: str, created_at: str) -> dict[str, list[str]]:
     for config in configs:
         for axis, module in AXIS_MODULES.items():
             caller_id = issue(qid, config, axis)
-            card = module.build(qid, config, created_at, caller_id, kb_version)
+            card = module.build(qid, config, created_at, caller_id, kb_version,
+                                (kb_results or {}).get(caller_id))
             path = cards.write(
                 cards.question_dir(qid) / f"axis_{config}_{axis}.json", card
             )
@@ -153,6 +214,11 @@ def run(qid: str, created_at: str) -> dict[str, list[str]]:
 if __name__ == "__main__":
     qid = sys.argv[1] if len(sys.argv) > 1 else "sim-20260917-001"
     created_at = sys.argv[2] if len(sys.argv) > 2 else "2026-09-18T10:00:00Z"
+    if len(sys.argv) > 3 and sys.argv[3] == "--queries":
+        for q in plan_queries(qid):
+            print(f"{q['tool']}(caller_id={q['caller_id']!r}, **{q['args']})")
+            print(f"    why: {q['why']}")
+        raise SystemExit(0)
     try:
         for config, files in run(qid, created_at).items():
             print(f"{config}: {len(files)} axis cards")

@@ -31,7 +31,8 @@ from . import cards
 AXIS = "a3"
 
 
-def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: str) -> dict:
+def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: str,
+          kb_result: dict | None = None) -> dict:
     """The caller_id is injected by the fan-out executor, never chosen here.
 
     4.3.1 rule 3: a sub-agent that picks its own id can impersonate a
@@ -143,7 +144,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
             },
         ],
     )
-    card.update(cards.tail(numbers, assumptions=assumptions, degraded=["librarian_agent"]))
+    card.update(cards.tail(numbers, assumptions=assumptions, **cards.evidence(kb_result, [])))
     card["note"] = (
         "Boundary conditions are periodic in all three directions; that is what makes the "
         "image bound apply at all. A wall would replace it with a different inequality."
@@ -166,4 +167,4 @@ if __name__ == "__main__":
         )
     qid, config, created_at, caller_id, kb_version = sys.argv[1:6]
     print(cards.write(cards.question_dir(qid) / f"axis_{config}_{AXIS}.json",
-                      build(qid, config, created_at, caller_id, kb_version)).relative_to(cards.REPO))
+                      build(qid, config, created_at, caller_id, kb_version, None)).relative_to(cards.REPO))

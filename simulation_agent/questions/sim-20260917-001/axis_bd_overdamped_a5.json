@@ -12,7 +12,7 @@
   "caller_id": "sim-20260917-001:bd_overdamped:a5",
   "config": "bd_overdamped",
   "axis": "a5",
-  "kb_version": "kbv-49feb73662b7",
+  "kb_version": "kbv-fdef964aca56",
   "method": "llm_estimate",
   "verdict": "abstain",
   "abstain_reason": "No resource allowance exists to compare the estimated cost against. simulation_agent/envelope/safety.json is absent, so the limit side of every budget inequality is missing. Its shape is specified -- one row per execution target, with a wall-clock ceiling, a storage ceiling and a separate smoke budget -- but only a person writes the file (2.1 rule 7). Supplying a ceiling here would make the cost model its own limit. The cost side is recorded in numbers[] so that the abstention does not discard the estimate too.",

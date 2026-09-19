@@ -162,3 +162,43 @@ def carry(goal: dict, names: list[str]) -> tuple[list[dict], list[dict]]:
         if overlap:
             assumptions.append({**a, "numbers": overlap})
     return numbers, assumptions
+
+
+# --------------------------------------------------------------------------- #
+# librarian evidence
+# --------------------------------------------------------------------------- #
+
+SERVED_BY = "librarian_mcp"
+
+
+def evidence(kb_result: dict | None, fallback_refs: list[dict] | None = None) -> dict:
+    """The three evidence fields, from a served answer or from its absence.
+
+    **The default is degraded, and undegraded requires proof.** A session whose
+    librarian tools are not loaded does not fail loudly when it "calls" them --
+    it simply proceeds on the degraded path (0.3-4). So the dangerous card is
+    not the one that says `degraded: ["librarian_agent"]` while the service is
+    down; that one is true. It is the card that says `degraded: []` because
+    whoever wrote it believed a call happened.
+
+    So `served_by` has to be present and has to say the service answered. A
+    `None` result, or a result that cannot name its server, is treated as the
+    service having been unreachable -- which is what it was.
+
+    `fallback_refs` are entries read straight off the store files, which 4.3.0
+    permits and which stay legitimate. They go in `kb_refs` either way: what
+    changes with the service is not the values but **the discovery of what is
+    missing**, and that is why `degraded` is about gaps rather than about
+    citations.
+    """
+    if not kb_result or kb_result.get("served_by") != SERVED_BY:
+        return {
+            "kb_refs": list(fallback_refs or []),
+            "kb_gaps": [],
+            "degraded": ["librarian_agent"],
+        }
+    return {
+        "kb_refs": list(kb_result.get("entries") or []),
+        "kb_gaps": list(kb_result.get("gaps") or []),
+        "degraded": [],
+    }
