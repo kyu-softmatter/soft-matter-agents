@@ -1,6 +1,13 @@
 # 009 — the part number is the one field nothing can find
 
-status: open · issued 2026-09-18 by manager-librarian · for librarian-2
+status: open · issued 2026-09-18 by manager-librarian · **reassigned 2026-09-19 to seat:librarian**
+
+> Issued for librarian-2, whose home was a worktree. Worktrees were reverted to
+> one working copy on 2026-09-18 (`328176f`) and the person deleted them, so
+> that seat has no session and no tree. The registry entry stays — deleting it
+> would make a future commit under that identity an unknown committer — but the
+> work comes back to the seat that is actually sitting. Two librarian seats in
+> one working copy is the shape §6.2.1 lost three times; there is now one.
 
 ## GOAL
 
@@ -67,9 +74,15 @@ on that device a single swap falsifies.
 - Do not add a `part_number` argument to `kb_query`. The return shape would then
   depend on which argument was filled, which is the reason `kb_group` is a
   separate tool rather than a branch inside `kb_query`.
-- Commit as `librarian-2@seat.invalid` from `~/Desktop/rebuild-worktrees/librarian-2`.
-  Check 41 reports PENDING for you until the merge; that is expected and I merge
-  under a registered identity.
+- Commit as `librarian@seat.invalid` in the shared working copy, naming paths.
+  **Check 41 judges you, it does not report PENDING** — this seat is registered
+  with `owns: ["librarian_agent"]`, so a commit that stays inside that directory
+  is a PASS and one that leaves it is a FAIL you should act on. The line here
+  said PENDING until 2026-09-19 and was wrong even for librarian-2, which was
+  registered by `d247886` before this task was written: PENDING is what an
+  *unregistered* committer gets. A seat that reads "my commits are PENDING
+  anyway" stops reading the one signal that catches a real boundary crossing,
+  which is worse than the stale fact itself.
 
 ## REPORT
 
