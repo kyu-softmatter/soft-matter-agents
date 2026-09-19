@@ -12,7 +12,7 @@
   "caller_id": "sim-20260917-001:bd_overdamped:a7",
   "config": "bd_overdamped",
   "axis": "a7",
-  "kb_version": "kbv-49feb73662b7",
+  "kb_version": "kbv-9bc3910f1886",
   "method": "deterministic",
   "verdict": "abstain",
   "abstain_reason": "No driving was requested. The goal names no driving parameter, and bd_overdamped is declared undriven, so there is no driving amount for this axis to bound. Abstaining is not the same as being absent: this card is the record that the axis was asked and had nothing to constrain (P1).",
