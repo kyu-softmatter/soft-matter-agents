@@ -172,6 +172,32 @@ all. That is now open. What it means in practice:
 Do not invent an id to see what the server accepts. A fabricated `caller_id` in
 the query log is the impersonation §4.3.1 rule 3 exists to prevent.
 
+**What the next seat does about it.** With a librarian process no older than
+the contract, make the item-5 duplicate check for `thr-tracer-diffusivity-001`:
+`kb_query`, `caller_id: bridge:thr-tracer-diffusivity-001:r1`, observable
+`tracer_diffusivity`. Expect zero entries and a gap — three seats have said
+independently that the store holds no measurement of it, and the microscope's
+own A4 query is the closest thing to a precedent.
+
+The answer is not the point, and this is the least obvious thing in the day's
+record. **The only bridge-prefixed line in `queries/log.jsonl` is one no bridge
+seat wrote** — the librarian side's 08:01:01Z call testing its own fix, made
+under this round's id before `selftest:` existed to hold it. Both of this
+seat's own calls were refused and a refused call leaves no line. So the log as
+it stands corroborates nothing for this round, while looking exactly as though
+it does. A correct answer reached by three routes still leaves the log wrong,
+and the only thing that fixes it is making the call.
+
+What it buys is narrow and worth naming: a later round can claim
+`degraded: []` on a line of its own rather than on one it merely matches.
+`selftest:` now exists, so a fresh stray line under a round's id would be a
+contract violation rather than an ambiguity — but it does not retroactively
+clean the one already there.
+
+Before concluding anything from a failure, say which of the three states above
+it is. The window this instruction outlived was replaced for the third one:
+tools present, answering, from a process older than the fix.
+
 ## Recorded
 
 **2026-09-19, the first bridge session read `librarian_agent/src/mcp_server.py`
