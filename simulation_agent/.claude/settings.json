@@ -1,7 +1,21 @@
 {
-  "$comment": "Session boundary for the simulation agent (plan.md 6.2). The session boundary is the permission boundary: this session can only write inside its own agent. contracts/ and plan.md are read here and written by the design session.",
+  "$comment": "Session boundary for the simulation agent (plan.md 6.2). What ENFORCES the boundary is the commit gate, checks 35 and 41, against the tree the commit would create; this file states it and enforces only part of it at write time. The entries are in two groups and they do not do the same amount -- read both comments in permissions before trusting any single line.",
   "permissions": {
     "deny": [
+      "Write(envelope/safety.json)",
+      "Edit(envelope/safety.json)",
+      "Write(approvals/**)",
+      "Edit(approvals/**)",
+      "Write(inbox/**)",
+      "Edit(inbox/**)",
+      "Write(CLAUDE.md)",
+      "Edit(CLAUDE.md)",
+      "Write(README.md)",
+      "Edit(README.md)",
+      "Write(tasks/**)",
+      "Edit(tasks/**)",
+      "Write(.claude/**)",
+      "Edit(.claude/**)",
       "Write(microscope_agent/**)",
       "Edit(microscope_agent/**)",
       "Write(librarian_agent/**)",
@@ -12,7 +26,9 @@
       "Edit(contracts/**)",
       "Write(plan.md)",
       "Edit(plan.md)"
-    ]
+    ],
+    "$comment_1_reachable": "THE FIRST FOURTEEN ENFORCE. A path pattern resolves against the session's root, which for this seat is simulation_agent/, so a pattern naming something inside this tree does resolve: Write(tasks/**) means simulation_agent/tasks/**. The rule is ownership, not a list -- inside your own tree, deny what another seat owns (6.2) -- so a new path answers itself instead of being copied from here and drifting (11-11). envelope/safety.json and approvals/ are the person's (P0 rule 7, 7.1 rule 5); a model writing a safety limit is the worst failure this system has, and it should be stopped before the hand reaches it rather than caught at the gate. Only safety.json is denied, not envelope/ -- snapshot.json in the same folder is this agent's own and hash-checked (check 26), and denying the folder would refuse correct work. inbox/ is the bridge's (7.1 rule 8): an agent writing its own inbox forges a delivery. It does not exist here yet, which is the reason to deny it now rather than after something creates one. CLAUDE.md, README.md, tasks/ and .claude/ are manager-simulation's (seats.json), and tasks/ is the load-bearing one: 6.2-2 puts descending instruction there, and a seat that can edit its own orders does not have orders, it has preferences. Denying .claude/ constrains this seat and not its manager, because managers sit at the repository root (D12) and never load this file -- that inverts the day a manager is seated inside an agent directory, and this line is where it would have to be fixed first.",
+    "$comment_2_outward": "THE REST ARE INERT. A path pattern resolves against the session's root, so from simulation_agent/ the entry Write(bridge/**) means simulation_agent/bridge/**, a path that cannot exist; every entry naming a sibling directory, contracts/ or plan.md is the same, and none of the ten has ever refused anything. That is the defect class section 7 documents at length for .mcp.json -- the interpretation point must not be the session's cwd -- but unlike there, here it cannot be repaired: a permission pattern is a literal, so there is no $(git rev-parse) to reach for, and an absolute path is the answer section 7 already rejected because it is the same string in every checkout. They are kept rather than deleted because deleting them deletes the intent, and labelled rather than left because an unlabelled inert rule reads as protection to the next person -- that is the actual failure, not the rule. They are correct for a session rooted at the repository root, and become live there. NOTE WHAT THIS LABEL DOES NOT COVER: a tool denial is not inert, because a tool name has no root to resolve against. This file contains none, so do not read 'these are inert' as a statement about a kind of rule that is not here."
   },
   "hooks": {
     "PostToolUse": [
@@ -21,8 +37,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/contracts/validate.py\" --quiet",
-            "$comment": "the validator's exit code is the only truth (plan.md 8)"
+            "command": "sh -c 'exec python3 \"$(git rev-parse --show-toplevel)/contracts/validate.py\" --quiet'",
+            "$comment": "The validator's exit code is the only truth (plan.md 8). This read $CLAUDE_PROJECT_DIR until 2026-09-19, which is the session's own cwd -- so from simulation_agent/ it looked for simulation_agent/contracts/validate.py, did not find it, and failed. A PostToolUse failure does not stop the write, so there was no symptom: every write from this seat went unvalidated at write time and only the commit gate ever saw them. Same defect plan.md 7 records for .mcp.json, same fix: ask git where the root is instead of assuming the session is standing at it. Reproduced from simulation_agent/ before and after."
           }
         ]
       }
