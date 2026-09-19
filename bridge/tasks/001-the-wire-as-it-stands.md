@@ -248,8 +248,22 @@ session; do not take one that has come free.
 
 ## A dead end with no card goes in bridge/failures.jsonl
 
-The file does not exist yet, and check 29 is `N/A` while it is absent — so
-nothing requires this seat to write one, and **its absence should not be read
-later as no dead ends having happened.** Section 7 gives a seat without
-`questions/` that file and nothing else; a try that was folded without
-producing a card is recorded nowhere else (§8.1).
+The file exists as of `1fc3a4f` and holds two rows — a `refusal` and a
+`deviation`, both from the librarian reachability task of 2026-09-19. Check 29
+passes over it: `21 failure records in 4 files are well formed`. **It checks
+form, not completeness**, so a short file is not evidence of a quiet day and
+**its silence should not be read later as no dead ends having happened.**
+Nothing requires this seat to write a row; only this paragraph does. Section 7
+gives a seat without `questions/` that file and nothing else, and a try that
+was folded without producing a card is recorded nowhere else (§8.1).
+
+This paragraph said the file did not exist until 2026-09-19, hours after it
+did. The sweep that caught it came from the simulation manager: pull every
+commit sha and path out of a document and ask git and the filesystem whether
+they resolve. It is a one-minute run with a poor yield — fourteen of their
+fifteen hits and both of mine were artefacts of the script, a date that looks
+like hex and a file correctly described in the past tense. The one that is
+left is worth the minute, and it is not the kind a checker finds: **the defect
+is prose in the present tense about something that is not there**, and what a
+path test detects is a path that does not resolve. Those are not the same
+thing, which is why this stays a habit rather than becoming a check.
