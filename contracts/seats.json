@@ -22,7 +22,7 @@
       ],
       "worktree_branch": "seat/microscope-1",
       "variant_reference": "agentic-microscope@version2",
-      "note": "One of two microscope execution seats running the A/B decided on 2026-09-18 (9.2). It builds on branch microscope-from-version2, reading agentic-microscope@version2 under 10.2.1 like any other transfer. The seat is the worktree rather than the session: one session works it at a time, and a replacement session inherits the identity because it inherits the branch. Two seats writing microscope_agent/ in one working copy would overwrite each other, which is why the worktree comes first."
+      "note": "Opened as one of two microscope execution seats for the A/B (9.3). Since microscope-2 was deferred on 2026-09-18 this is the microscope execution seat plainly, and the A/B constraints do not bind it. It builds on branch microscope-from-version2, reading agentic-microscope@version2 under 10.2.1 like any other transfer. The seat is the worktree rather than the session: one session works it at a time, and a replacement session inherits the identity because it inherits the branch. Two seats writing microscope_agent/ in one working copy would overwrite each other, which is why the worktree comes first."
     },
     {
       "seat": "microscope-2",
@@ -32,7 +32,8 @@
       ],
       "worktree_branch": "seat/microscope-2",
       "variant_reference": "agentic-microscope@main",
-      "note": "One of two microscope execution seats running the A/B decided on 2026-09-18 (9.2). It builds on branch microscope-from-main, reading agentic-microscope@main under 10.2.1 like any other transfer. The seat is the worktree rather than the session: one session works it at a time, and a replacement session inherits the identity because it inherits the branch. Two seats writing microscope_agent/ in one working copy would overwrite each other, which is why the worktree comes first."
+      "note": "Deferred by the person on 2026-09-18: this variant does not work yet, and its session and worktree were removed. The seat and the branch stay because the record is the point (P16) -- seat/microscope-2 still holds what it built, and deleting the entry would make a future commit under this identity an unknown committer. Nothing commits under it while deferred.",
+      "status": "deferred 2026-09-18"
     },
     {
       "seat": "microscope",
