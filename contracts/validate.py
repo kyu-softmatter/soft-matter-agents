@@ -39,6 +39,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+import pathlib
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -1864,11 +1865,25 @@ def _optical_path_table() -> tuple[dict | None, str]:
         except (json.JSONDecodeError, TypeError):
             continue
         if table.get("configurations"):
-            return table, f"{cand.relative_to(REPO)} > tables.optical_paths"
+            return table, f"{_rel(cand)} > tables.optical_paths"
     staged = KB_DIR / "staging" / "optical_paths.v0.json"
     if staged.exists():
-        return json.loads(staged.read_text()), str(staged.relative_to(REPO))
+        return json.loads(staged.read_text()), _rel(staged)
     return None, ""
+
+
+def _rel(p) -> str:
+    """Repo-relative when it can be, absolute when it cannot.
+
+    A store handed in from outside the repository -- a self-test, a scratch
+    export -- is not an error, and `relative_to` raising on it turned three
+    separate call sites into crashes. Fixed once in check 43 and left in the two
+    table helpers, which is the same miss twice.
+    """
+    try:
+        return str(pathlib.Path(p).relative_to(REPO))
+    except ValueError:
+        return str(p)
 
 
 def _device_table() -> tuple[dict | None, str]:
@@ -1878,10 +1893,10 @@ def _device_table() -> tuple[dict | None, str]:
     staging table it has not decomposed yet (11.1).
     """
     for cand in sorted((KB_DIR / "exports").glob("devices*.json")):
-        return json.loads(cand.read_text()), str(cand.relative_to(REPO))
+        return json.loads(cand.read_text()), _rel(cand)
     staged = KB_DIR / "staging" / "devices.v0.json"
     if staged.exists():
-        return json.loads(staged.read_text()), str(staged.relative_to(REPO))
+        return json.loads(staged.read_text()), _rel(staged)
     return None, ""
 
 
@@ -2128,6 +2143,100 @@ def check_43_entry_grade(b: Bundle) -> list[Finding]:
     return [Finding(43, PASS, f"{derived} entry grades follow from their source kind")]
 
 
+def check_44_subject_resolves(b: Bundle) -> list[Finding]:
+    """An entry's subject names a registry, and the id has to be in it (4.3.1).
+
+    `subject` exists so a query can reach an entry without already knowing its
+    id: before it, 14 of 25 entries were reachable only by an id the caller had
+    to learn by reading the staging table first. The field is worth little on
+    its own -- a subject nothing resolves is a free string with grammar, and the
+    ids it carries were checked by hand when they were written, which is the
+    guarantee that rots.
+
+    `quantity` is the weak kind and is checked against a de facto registry: the
+    names actually used in numbers[] somewhere. It catches a typo and not much
+    else, which is why the schema labels it rather than implying more.
+    """
+    if not KB_DIR.exists():
+        return [Finding(44, NA, "no knowledge store")]
+    files = sorted((KB_DIR / "entries").glob("*.json"))
+    if not files:
+        return [Finding(44, NA, "no entries in the store")]
+
+    devices, dev_rel = _device_table()
+    device_ids: set[str] = set()
+    if devices:
+        for c in devices.get("channels", []) or []:
+            if c.get("id"):
+                device_ids.add(c["id"])
+            for el in c.get("elements", []) or []:
+                if isinstance(el, dict) and el.get("id"):
+                    device_ids.add(el["id"])
+        # Retired rows count. A fact about hardware that was taken out is the
+        # one somebody comes back for, and it would have nowhere to point.
+        for r in devices.get("retired_rows", []) or []:
+            if isinstance(r, dict) and r.get("id"):
+                device_ids.add(r["id"])
+
+    paths, path_rel = _optical_path_table()
+    config_ids = {c["id"] for c in (paths or {}).get("configurations", []) if c.get("id")}
+    observable_ids = set(load_observables())
+
+    quantity_names: set[str] = set()
+    for c in b.cards:
+        if "__unreadable__" in c.data:
+            continue
+        for n in c.data.get("numbers", []) or []:
+            if isinstance(n, dict) and n.get("name"):
+                quantity_names.add(n["name"])
+    for p in files:
+        try:
+            e = json.loads(p.read_text())
+        except json.JSONDecodeError:
+            continue
+        for n in e.get("numbers", []) or []:
+            if isinstance(n, dict) and n.get("name"):
+                quantity_names.add(n["name"])
+
+    registries = {"device": (device_ids, dev_rel or "the device table"),
+                  "configuration": (config_ids, path_rel or "the optical path table"),
+                  "observable": (observable_ids, "contracts/observables.json"),
+                  "quantity": (quantity_names, "the names used in numbers[]")}
+
+    out: list[Finding] = []
+    resolved, without = 0, []
+    for p in files:
+        try:
+            e = json.loads(p.read_text())
+        except json.JSONDecodeError:
+            continue
+        try:
+            rel = str(p.relative_to(REPO))
+        except ValueError:
+            rel = str(p)
+        subjects = e.get("subject") or []
+        if not subjects:
+            without.append(e.get("entry_id") or p.stem)
+            continue
+        for s in subjects:
+            if not isinstance(s, dict):
+                continue                      # check 1 reports the shape
+            kind, sid = s.get("kind"), s.get("id")
+            known, where = registries.get(kind, (None, ""))
+            if known is None:
+                out.append(Finding(44, FAIL, f"{e.get('entry_id')}: subject kind {kind!r} has no registry", rel))
+            elif not known:
+                out.append(Finding(44, PENDING, f"{e.get('entry_id')}: {kind} subjects cannot be checked, {where} is not published yet", rel))
+            elif sid not in known:
+                out.append(Finding(44, FAIL, f"{e.get('entry_id')}: subject {kind}:{sid!r} is not in {where}. A subject names a registry so that it can be wrong; do not add the id to make this pass", rel))
+            else:
+                resolved += 1
+    if out:
+        return out
+    tail = f"; {len(without)} entries carry none yet" if without else ""
+    return [Finding(44, PASS if resolved else NA, f"{resolved} subjects resolve against their registry{tail}")]
+
+
 def check_42_check_registry(b: Bundle) -> list[Finding]:
     """A check is registered in three places, and they have to agree.
 
@@ -2353,7 +2462,8 @@ CHECKS = [
     check_28_precision, check_29_failure_record, check_30_lessons, check_31_candidate_preservation,
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
-    check_40_window_condition, check_43_entry_grade, check_42_check_registry, check_41_seat_attribution,
+    check_40_window_condition, check_43_entry_grade, check_44_subject_resolves,
+    check_42_check_registry, check_41_seat_attribution,
 ]
 
 
