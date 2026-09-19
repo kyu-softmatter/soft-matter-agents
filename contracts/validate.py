@@ -1018,13 +1018,18 @@ def check_11_axis_independence(b: Bundle) -> list[Finding]:
     if not axes:
         return [Finding(11, NA, "no axis cards")]
     out: list[Finding] = []
-    names = {c.path.name for c in axes}
-    ids = {c.data.get("id") for c in axes}
-    callers = {c.data.get("caller_id") for c in axes}
+    # Siblings are the cards of one fan-out: same directory, same qid, same
+    # revision. Pairing across revisions reported every card of a re-run as
+    # reading its predecessor, because caller_id carries no revision (4.3.1)
+    # and so the two are the same string. That is not a sibling read; it is the
+    # same axis, asked again.
+    def fanout(card) -> tuple:
+        return (str(Path(card.rel).parent), card.data.get("qid"), card.data.get("revision"))
+
     for c in axes:
         blob = json.dumps(c.data, ensure_ascii=False)
         for other in axes:
-            if other is c:
+            if other is c or fanout(other) != fanout(c):
                 continue
             for token in (other.path.name, other.data.get("id"), other.data.get("caller_id")):
                 if token and token in blob:
@@ -1587,11 +1592,18 @@ def check_33_caller_isolation(b: Bundle) -> list[Finding]:
     def scope(card) -> str:
         return str(Path(card.rel).parent)
 
-    groups: dict[tuple[str, str], list] = {}
+    # And the same argument a second time, for the same reason. A revision is a
+    # re-run (4.5.5), so two revisions are two fan-outs and their cards are not
+    # each other's siblings. caller_id is <qid>:<config>:<axis> with no revision
+    # component (4.3.1), so the same axis at two revisions necessarily shares
+    # one -- grouping without the revision made "caller_id reused" fire on a
+    # question that had done nothing wrong, and made 4.5.5's own instruction
+    # unfollowable.
+    groups: dict[tuple[str, str, object], list] = {}
     for c in axes:
-        groups.setdefault((scope(c), c.data.get("qid")), []).append(c)
+        groups.setdefault((scope(c), c.data.get("qid"), c.data.get("revision")), []).append(c)
 
-    for (where, qid), group in sorted(groups.items()):
+    for (where, qid, _rev), group in sorted(groups.items(), key=lambda kv: str(kv[0])):
         callers = [c.data.get("caller_id") for c in group]
         if len(set(callers)) != len(callers):
             dupes = {x for x in callers if callers.count(x) > 1}
