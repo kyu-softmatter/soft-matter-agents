@@ -72,7 +72,12 @@ that. `--no-verify` bypasses it and leaves no trace, so say so in the
 message.
 
 **The working copy and the git index are shared between sessions.** Name paths
-rather than using `-A`, and use `git commit -- <paths>`. See §6.2.
+rather than using `-A`, and use `git commit -- <paths>` — but **naming a path
+is not naming a change**. That form builds its index from the *worktree*
+state of those paths, so another seat's in-progress edit to the same file
+rides in under your identity, and your own partial staging of it is
+discarded. Run `git diff -- <paths>` first and check every hunk is yours. No
+check catches this. See §6.2.
 
 ## Rules that bind every session here
 
