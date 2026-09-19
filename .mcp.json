@@ -2,7 +2,7 @@
   "mcpServers": {
     "librarian": {
       "command": "python3",
-      "args": ["${CLAUDE_PROJECT_DIR:-.}/librarian_agent/src/mcp_server.py", "--serve"],
+      "args": ["/Users/kyuhwan/Desktop/rebuild/librarian_agent/src/mcp_server.py", "--serve"],
       "env": {}
     }
   }

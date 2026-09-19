@@ -47,7 +47,17 @@
       "committer_email": "simulation@seat.invalid",
       "owns": [
         "simulation_agent"
-      ]
+      ],
+      "worktree_branch": "seat/simulation-1"
+    },
+    {
+      "seat": "simulation-2",
+      "committer_email": "simulation-2@seat.invalid",
+      "owns": [
+        "simulation_agent"
+      ],
+      "worktree_branch": "seat/simulation-2",
+      "note": "The second simulation execution seat, seated 2026-09-18. Same shape as librarian-2 and for the same reason: two sessions sharing one identity is what one_identity_per_session calls a hole, and it happened twice on 2026-09-17 with the check passing both times. The first simulation session takes seat/simulation-1; neither cuts its own branch, because switching branches in a shared working copy moves files under every other session (6.2.1)."
     },
     {
       "seat": "librarian",
