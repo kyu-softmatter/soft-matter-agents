@@ -13,35 +13,39 @@ a FAIL**. Same shape as check 43 waiting on `source`.
 So this is not work you can do one card at a time. One commit, or the tree
 goes red for everyone.
 
-## Scope — five cards, twenty-two gaps (revised 2026-09-19)
+## Scope — count it, do not read it
 
-**This section said three cards and eleven gaps and is now wrong, in the way
-it warned about.** Check 49 skips a card whose `degraded` names the librarian
-— check 39's carve-out, because a card that never reached the service wrote
-its gaps by hand. `a1` and `a7` were carved out on that ground, and the card
-said re-running them through the service would remove the exemption and
-*add* the obligation. They have since been re-run. Both now read
-`degraded: []`, and `a1` has grown from four absent gaps to eight.
+**This section has carried a number three times and been wrong three times.**
+It said three cards and eleven gaps; a1 and a7 were re-run and it became five
+and twenty-two; A4 landed and A6 grew and it became six and twenty-nine. The
+number is not a fact about this task, it is a fact about the moment someone
+last looked. So the card stops carrying one.
 
-| card | `degraded` | `absent` gaps |
-|---|---|---|
-| `axis_widefield_inline_a1.json` | `[]` | 8 |
-| `axis_widefield_inline_a2.json` | `[]` | 4 |
-| `axis_widefield_inline_a3.json` | `[]` | 4 |
-| `axis_widefield_inline_a6.json` | `[]` | 3 |
-| `axis_widefield_inline_a7.json` | `[]` | 3 |
-| `goal.json` | `["librarian_agent"]` | 1 — carved out, and S3.0's |
+**The rule**: every `absent` gap on a card whose `degraded` does **not** name
+the librarian. Check 49 skips the degraded ones — check 39's carve-out, since
+a card that never reached the service wrote its gaps by hand and no
+neighbourhood search can stand behind one.
 
-**`a6` is `microscope-3`'s axis and this card touches it.** One commit is
-required by the latch, so the two seats cannot each take their own cards.
-`microscope-1` runs all five, including `a6`, and `microscope-3` stays off
-this one — its A6 work resumes after. It also carries the last v-less
-`caller_id` in the fan-out, `mic-20260918-001:widefield_inline:a6`, which
-moves to `:v1:` here by re-query, not by substitution (card 005's argument).
+**Count it at the moment you start:**
 
-**Twenty-two gaps, five cards, still one commit.** Count it yourself before
-you start rather than trusting this table: it has been wrong once already,
-and the number moves whenever a card is re-run through the service.
+```bash
+python3 contracts/validate.py 2>&1 | grep 'check 49'
+```
+
+The PENDING line states the number the check itself sees, which is the only
+number that can be stale-proof — it is computed when you read it. Use that,
+not a table.
+
+**Two consequences that do not change with the count.** Every exposed card
+goes in **one commit**, because check 49 is a latch and a partial migration
+turns the rest red. And `a6` is `microscope-3`'s axis, so `microscope-1` runs
+all of them here and the other seat stays off this card; its A6 work resumes
+after.
+
+**Do not re-run a card whose `degraded` names the librarian** to bring it into
+scope. The exemption holds only while the card declares the degraded path, so
+putting one through the service *adds* the obligation rather than discharging
+it. `goal.json` is the remaining one and it is S3.0's anyway.
 
 ## This runs at the pin, and closes the latch only
 
@@ -58,8 +62,8 @@ and that is not a wrong answer but the true one at that version.
 there, `numerical_aperture` returns `absent` with `near_names: ['na']` and
 `pixel_size` returns `absent` with `near_names: []`, both stamped
 `answered_from kbv-49feb73662b7`. So the whole body of this task — the
-twenty-two gaps, the gaps that stop being gaps, a6's caller_id, one commit —
-runs without the pin moving.
+gaps, the ones that stop being gaps, a6's caller_id, one commit — runs
+without the pin moving.
 
 **Closing A6's pixel gap is a separate, deliberate re-pin and is card 008.**
 Not chasing the store, which card 000 refused: a gap actually closes. But it
@@ -99,11 +103,11 @@ and no card had yet copied one, so this is close to its first real exercise.
 
 ## Done when
 
-All five cards carry `near_names` on all twenty-two `absent` gaps, any gap that
+Every exposed card carries `near_names` on every `absent` gap it holds, any gap that
 turned out not to be one is no longer a gap, `python3 contracts/validate.py`
 ends `0 failed` with check 49 passing rather than PENDING, and **one commit**.
 
-Then one sentence up: how many of the twenty-two survived as real absences.
+Then one sentence up: how many of them survived as real absences.
 
 ## Not this task
 
