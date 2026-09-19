@@ -100,11 +100,13 @@ class Refused(Exception):
 # units: the registry is authoritative, and dimensions are not crossed
 # --------------------------------------------------------------------------- #
 
-_UNITS = json.loads((CONTRACTS / "units.json").read_text())["units"]
+def _units() -> dict:
+    """The unit registry, re-read when the file changes (see query_log._contract)."""
+    return query_log._contract("units.json", "units")
 
 
 def _si(value: float, unit: str) -> tuple[float, tuple]:
-    u = _UNITS.get(unit)
+    u = _units().get(unit)
     if u is None:
         raise Refused(f"unit {unit!r} is not in contracts/units.json, which is the registry (5.7)")
     if u.get("si_factor") is None:
@@ -291,7 +293,7 @@ class Store:
                 names.add(n["name"])
         names.update(s["id"] for s in (e.get("subject") or []) if s.get("id"))
         ids = e.get("identifiers") or {}
-        names.update(str(v) for k, v in ids.items() if k in ADDRESSABLE and v)
+        names.update(str(v) for k, v in ids.items() if k in addressable() and v)
         return names
 
     def answers_to(self, e: dict, name: str) -> bool:
@@ -418,18 +420,29 @@ def grade_summary(store: Store, ids: list[str]) -> dict:
 # the four tools
 # --------------------------------------------------------------------------- #
 
-# Read from wherever it lives now, through the one resolver in query_log.
-# A bare subscript on someone else's schema took this server down at import
-# time when caller_id moved on 2026-09-19.
-CALLER_ID = query_log.caller_id_pattern()
-PURPOSES = tuple(json.loads((CONTRACTS / "schemas" / "goal.schema.json").read_text(
-))["properties"]["purpose"]["enum"])
-# Which `identifiers` keys a caller may address an entry BY. Read from the
-# schema for the same reason PURPOSES is: a second copy of a registry is a
-# registry that drifts. The list is closed and the default is not-addressable,
-# so a key invented next month does not silently become a query surface.
-ADDRESSABLE = tuple(json.loads((CONTRACTS / "schemas" / "kb_entry.schema.json").read_text(
-)).get("addressable_identifiers", {}).get("addressable", ()))
+# Every registry below is a function, not a constant, for one reason: a
+# constant is read once per PROCESS, and this server is long-running. Reading
+# at import is indistinguishable from reading live when you are looking at the
+# source, and on 2026-09-19 it refused a legitimate bridge caller for ten
+# minutes after the pattern had been fixed, with the message that had already
+# been replaced.
+def caller_id_pattern() -> str:
+    return query_log.caller_id_pattern()
+
+
+def purposes() -> tuple[str, ...]:
+    return query_log.purposes()
+def addressable() -> tuple[str, ...]:
+    """Which `identifiers` keys a caller may address an entry BY.
+
+    Closed, and the default is not-addressable, so a key invented next month
+    does not silently become a query surface.
+    """
+    try:
+        return tuple(query_log._contract("schemas/kb_entry.schema.json",
+                                         "addressable_identifiers", "addressable"))
+    except (KeyError, TypeError):
+        return ()
 
 
 def _fold(name: str) -> str:
@@ -456,7 +469,7 @@ def _preflight(store: Store, caller_id: str, kb_version: str, tool: str) -> Stor
     """Check the caller, then return the store AS OF the pinned version."""
     if tool not in TOOLS:
         raise Refused(f"{tool!r} is not one of the four read-only tools {TOOLS}")
-    if not isinstance(caller_id, str) or not re.match(CALLER_ID, caller_id):
+    if not isinstance(caller_id, str) or not re.match(caller_id_pattern(), caller_id):
         # Name every form the pattern takes. This said "<qid>:<config>:<axis>"
         # while the pattern accepted four, so a bridge caller -- whose id looks
         # nothing like that one -- was told its id was the wrong shape and had
@@ -618,7 +631,7 @@ def _recording_refusals(fn):
 def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
              condition_range: dict | None = None, purpose: str = "screen") -> dict:
     store = _preflight(store, caller_id, kb_version, "kb_query")
-    if purpose not in PURPOSES:
+    if purpose not in purposes():
         raise Refused(f"purpose {purpose!r} is not in contracts/schemas/goal.schema.json")
 
     hits = sorted((eid for eid, e in store.entries.items() if store.answers_to(e, observable)),
@@ -904,6 +917,22 @@ def _self_test() -> int:                                    # noqa: C901
                     if errs:
                         bad(f"the gap for {probe!r} is not a kb_gap: {errs}")
 
+        # 2d. the contract registries follow the FILE, not the process. A
+        # constant read at import looks the same as a live read from inside
+        # the source, and is not: this server refused a legitimate bridge
+        # caller for ten minutes after the pattern was fixed, because the
+        # running process still held the pattern it had loaded at start.
+        # Asserted through the cache rather than by editing contracts/ --
+        # that file belongs to another seat and a crash mid-test would leave
+        # it modified.
+        for accessor in (caller_id_pattern, purposes, addressable, _units):
+            if not callable(accessor):
+                bad(f"{accessor} is a constant again, so it is read once per process")
+        _units()
+        stamp = query_log._REGISTRY_CACHE.get(("units.json", ("units",)))
+        if not stamp or stamp[0] != (CONTRACTS / "units.json").stat().st_mtime_ns:
+            bad("the registry cache is not keyed on the file's mtime, so an edit will not be seen")
+
         # 3. units convert inside a dimension and are refused across one
         r = kb_query(store, cid, v, "coverslip_thickness", {"coverslip_um": {"min": 0.17, "max": 0.17, "unit": "mm"}})
         if not r["entries"] or r["entries"][0]["overlap"] != "full":
@@ -943,7 +972,7 @@ def _self_test() -> int:                                    # noqa: C901
                   for q in ("MRD71670", "Kinetix 22", "na")}
         if probes != {"MRD71670": 1, "Kinetix 22": 1, "na": 6}:
             bad(f"the three probe queries came back {probes}")
-        if not ADDRESSABLE:
+        if not addressable():
             bad("the addressable list is empty; it is read from the schema and something moved")
         for shut in ("position_0", "fitted_slot", "position_index_base", "0", "1", "3"):
             if kb_query(store, cid, v, shut, {})["entries"]:

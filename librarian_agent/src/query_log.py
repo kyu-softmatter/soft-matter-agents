@@ -94,11 +94,34 @@ FIELDS = ("asked_at", "caller_id", "kb_version", "tool", "purpose",
 REFUSAL_FIELDS = ("asked_at", "tool", "outcome", "reason", "claimed")
 
 
+_REGISTRY_CACHE: dict = {}
+
+
 def _contract(path: str, *keys):
-    """Read a registry out of contracts/ rather than restating it here (P3)."""
-    node = json.loads((CONTRACTS / path).read_text())
+    """Read a registry out of contracts/ rather than restating it here (P3).
+
+    Cached on the file's mtime, not for the life of the process. Reading a
+    registry once at import looks identical to reading it live from inside the
+    code, and is not: the MCP server is long-running, so on 2026-09-19 it
+    refused a legitimate bridge caller for the ten minutes between the commit
+    that fixed the pattern and the next restart -- with the old message, which
+    sent that seat to escalate something already fixed. From in here the code
+    plainly reads the current file; only a caller could see otherwise.
+
+    The mtime key rather than no cache at all because units.json is read once
+    per bound per quantity, and because a re-read that happens to catch
+    another seat mid-write should not take the service down.
+    """
+    full = CONTRACTS / path
+    stamp = full.stat().st_mtime_ns
+    key = (path, keys)
+    hit = _REGISTRY_CACHE.get(key)
+    if hit is not None and hit[0] == stamp:
+        return hit[1]
+    node = json.loads(full.read_text())
     for k in keys:
         node = node[k]
+    _REGISTRY_CACHE[key] = (stamp, node)
     return node
 
 
