@@ -1794,7 +1794,13 @@ SHARED_PATHS = re.compile(r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.git
 # (6.2). Counting them as the agent's made every ordinary design commit look
 # like a boundary crossing, which is the fastest way to teach someone to ignore
 # a check.
-DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|bridge)/(CLAUDE\.md|\.claude/|tasks/)")
+# What inside an agent's directory belongs to the design seats rather than to
+# the agent. seats.json cannot add to this: `paths` there only narrows what a
+# seat may touch, so a path this regex does not classify as design is refused
+# by check 41 however the registry lists it. That asymmetry cost half a day on
+# 2026-09-19, and check 48 exists to make a `paths` entry that cannot be
+# granted fail loudly instead of silently.
+DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|bridge)/(CLAUDE\.md|README\.md|\.claude/|tasks/)")
 
 
 def seat_boundary_of(path: str) -> str:
