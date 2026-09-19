@@ -748,7 +748,7 @@ def _self_test() -> int:                                    # noqa: C901
         log = Path(d) / "log.jsonl"
         log.parent.mkdir(parents=True, exist_ok=True)
         store = Store(log=log)
-        cid = "mic-20260917-001:transmitted:a2"
+        cid = "mic-20260917-001:v1:transmitted:a2"
         v = store.kb_version
 
         # 1. a covering condition comes back full
@@ -816,7 +816,7 @@ def _self_test() -> int:                                    # noqa: C901
         # where a thing lives is one fact. Only whether THIS caller holds a
         # copy may vary, and it varies in `snapshot` alone.
         mic = kb_query(store, cid, v, "device_registry", None)["gaps"][0]["published_in"]
-        sim = kb_query(store, "sim-20260917-001:bd_overdamped:a1", v,
+        sim = kb_query(store, "sim-20260917-001:v1:bd_overdamped:a1", v,
                        "device_registry", None)["gaps"][0]["published_in"]
         if (mic["table"], mic["sha256"]) != (sim["table"], sim["sha256"]):
             bad(f"the table differs by who asked: {mic} vs {sim}")
@@ -931,7 +931,7 @@ def _self_test() -> int:                                    # noqa: C901
 
         # 6. determinism: same query, same answer
         a = kb_query(store, cid, v, "viscosity", {"temperature": {"min": 291, "max": 295, "unit": "K"}})
-        b = kb_query(store, "mic-20260917-001:confocal:a3", v,
+        b = kb_query(store, "mic-20260917-001:v1:confocal:a3", v,
                      "viscosity", {"temperature": {"min": 291, "max": 295, "unit": "K"}})
         strip = lambda x: json.dumps({k: x[k] for k in ("entries", "grade_summary")}, sort_keys=True)
         if strip(a) != strip(b):
@@ -982,7 +982,14 @@ def _self_test() -> int:                                    # noqa: C901
                     bad(f"{pin!r} was refused without saying which kind: {exc}")
 
         # 8. a caller may not choose its own id
-        for wrong in ("librarian", "mic-20260917-001", "mic-20260917-001:transmitted:a9"):
+        # the bridge's id is a different shape: bridge:<thread>:r<N>, with no
+        # hyphen where the others have one. Splitting on the first hyphen was
+        # correct while every caller was mic or sim.
+        b = kb_query(store, "bridge:thr-mic-sim-001:r1", v, "device_registry", None)
+        if b["gaps"][0]["kind"] != "in_published_table":
+            bad(f"a bridge caller could not reach a published table: {b['gaps'][0]['kind']}")
+
+        for wrong in ("librarian", "mic-20260917-001", "mic-20260917-001:v1:transmitted:a9"):
             try:
                 kb_query(store, wrong, v, "viscosity", {})
                 bad(f"accepted caller_id {wrong!r}")
