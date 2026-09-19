@@ -1199,7 +1199,7 @@ def check_17_derived(b: Bundle) -> list[Finding]:
             src = str(n.get("source", ""))
             if not src.startswith("computed:"):
                 if n.get("derived"):
-                    out.append(Finding(17, FAIL, f"{name} is marked derived but its source is {src!r}; a dimensionless group uses computed: (5.7)", c.rel))
+                    out.append(Finding(17, FAIL, f"{name} is marked derived but its source is {src!r}; a named quantity is computed: (5.7)", c.rel))
                 continue
             if n.get("origin"):
                 continue                              # verified at its source by check 12
@@ -1790,7 +1790,10 @@ def check_36_symbol_collision(b: Bundle) -> list[Finding]:
         if "__unreadable__" in c.data:
             continue
         for num in c.data.get("numbers", []):
-            if not num.get("derived") or num.get("origin"):
+            # Either declaration pulls it in. Gating on `derived` alone let a
+            # minted group carrying a symbol and no flag pass unlooked-at, and
+            # a check that stops looking still reports PASS.
+            if num.get("origin") or not (num.get("derived") or num.get("symbol")):
                 continue
             sym, formula = num.get("symbol"), num.get("formula")
             if not sym:

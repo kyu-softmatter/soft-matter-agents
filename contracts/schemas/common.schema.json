@@ -82,11 +82,11 @@
         },
         "derived": {
           "type": "boolean",
-          "description": "true marks a dimensionless group (5.7). Uses a computed: source; not a separate source kind."
+          "description": "This computed value is a NAMED quantity: it carries a `symbol`, and one symbol means one definition across every card and the store (check 36). **It does not mean dimensionless.** A census on 2026-09-18 found 6 uses, all six carrying a unit (five `s`, one `N*s/m`), against 20 numbers with the dimensionless unit `1`, none of them derived — zero overlap. The documented meaning had never once been used, and six authors had independently read it as written here. Uses a computed: source; not a separate source kind."
         },
         "symbol": {
           "type": "string",
-          "description": "symbol of a dimensionless group, e.g. k_star"
+          "description": "The name this quantity goes by, e.g. `k_star` or `tau_d`. Dimensionless or not: what a symbol buys is that one name means one definition (check 36), and two definitions that also differ in dimension break a comparison more quietly, not less."
         },
         "origin": {
           "type": "string",
@@ -102,6 +102,17 @@
         "unit",
         "source",
         "grade"
+      ],
+      "allOf": [
+        {
+          "$comment": "derived and symbol require each other: a named quantity is one that is named. Deliberately NOT tied to `formula` -- 18 numbers compute from a formula without being named quantities (diffusivity, exposure_time_chosen, box_length_min_dilution), and requiring the flag of them would fail correct work in three boundaries at once.",
+          "if": { "properties": { "derived": { "const": true } }, "required": ["derived"] },
+          "then": { "required": ["symbol"] }
+        },
+        {
+          "if": { "required": ["symbol"] },
+          "then": { "properties": { "derived": { "const": true } }, "required": ["derived"] }
+        }
       ],
       "additionalProperties": false
     },
