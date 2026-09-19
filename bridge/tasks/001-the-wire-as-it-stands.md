@@ -59,14 +59,27 @@ The bridge's `caller_id` is `bridge:<thread>:r<N>` — for example
 2026-09-19, accepted by `common.schema.json`, where `axis.schema.json` and
 `screening.schema.json` now both point rather than each carrying a copy.
 
-**Accepted by the schema is not accepted by the server, and today it is not.**
-The bridge seat called `kb_query` with that id on 2026-09-19 and was refused:
-`caller_id '…' is not <qid>:<config>:<axis>`. A third copy of the pattern lives
-in the librarian's server, which does not read the schema. Two copies were
-consolidated and the third was invisible from `contracts/` — nothing in this
-seat's boundary can tell you the server keeps its own. Sent to the librarian
-side on 2026-09-19 with the shape that closes the class rather than the
-instance: have the server read `common.schema.json#/$defs/caller_id`.
+**Accepted by the schema is not the same as accepted by the server.** The
+bridge seat called `kb_query` with that id on 2026-09-19 and was refused:
+`caller_id '…' is not <qid>:<config>:<axis>` — the pattern as it stood before
+the bridge form was added. Two causes were found and both are real:
+
+- The server held its own copy of the pattern. The librarian side changed it to
+  derive one (`query_log.caller_id_pattern()`), which closes the class rather
+  than the instance. They also found that consolidating the pattern into
+  `common.schema.json` had taken the server down at import time, because two
+  files read the schema by bare subscript — so the count of copies was four,
+  and one failure mode was a server that did not start rather than one that
+  degraded.
+- **An MCP server process holds the code it started with.** A session whose
+  server began before the fix goes on being refused while a sibling session
+  works, and the launcher reports the connection healthy throughout. Connected
+  is not working.
+
+So if a call is refused with that message: retest after a reconnect before
+reporting a contract defect. If a fresh process still refuses, it is the
+contract and goes to the librarian side. If it succeeds, the session was
+simply older than the fix.
 
 So the rungs are three, not two: **visible is not callable, and
 schema-accepted is not server-accepted.** Item 5 still cannot be performed.
