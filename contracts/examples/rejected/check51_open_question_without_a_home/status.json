@@ -1,0 +1,13 @@
+{
+  "artifact": "thread_status",
+  "schema_version": "0.1",
+  "thread": "thr-no-home-001",
+  "round": 1,
+  "turn": "human",
+  "state": "held",
+  "updated_at": "2026-09-19T17:40:25Z",
+  "blocked_pairs": [],
+  "substitutions": [],
+  "note": "Fixture. A held thread is a person's turn, and these two are the ways the ledger can hold a question that never reaches one.",
+  "open_question": "Which bead lot is the sample? Recorded as plan.md 11-99, which does not exist -- the citation is the whole point of this fixture: a question pointed at an entry nobody wrote reads exactly like one that is recorded."
+}

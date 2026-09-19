@@ -3095,6 +3095,62 @@ def check_50_delivery_has_a_reader(b: Bundle) -> list[Finding]:
                               f"orders name the inbox")]
 
 
+def check_51_open_question_has_a_home(b: Bundle) -> list[Finding]:
+    """A held thread's open question resolves to a place the answer is recorded.
+
+    `held` means a gate could not be resolved and a person has to resolve it
+    (4.4). The person is not in this repository, so the only thing carrying the
+    question to them is the place it is written down -- and on 2026-09-19 the
+    first real hold named plan.md 11 as that place while 11 held no such entry.
+    The field said so honestly, which is better than lying and is still a
+    declaration whose other end nobody reads: the same shape as an inbox with
+    no reader (check 50) and a registry path no boundary grants (check 48).
+
+    Two halves, and the schema enforced neither. Its description already says
+    open_question is "required when state is held", with no conditional under
+    it -- a rule stated in prose beside the mechanism that was supposed to hold
+    it. So this check requires the field on a held thread, and requires the
+    reference in it to name a section 11 item that exists.
+
+    Like 48 and 50 it reads for a declaration and not for comprehension: it can
+    see that 11-13 exists and cannot see whether 11-13 is about this question.
+    """
+    held = [a for a in b.of_artifact("thread_status") if a.data.get("state") == "held"]
+    if not held:
+        return [Finding(51, NA, "no thread is held")]
+
+    plan = REPO / "plan.md"
+    if not plan.exists():
+        return [Finding(51, PENDING, "plan.md is not in this tree, so the homes cannot be read")]
+    try:
+        section = plan.read_text().split("## 11.")[1].split("## 12.")[0]
+    except IndexError:
+        return [Finding(51, FAIL, "cannot find section 11 in plan.md", "plan.md")]
+    recorded = {int(m) for m in re.findall(r"^(\d+)\. ", section, re.M)}
+
+    out: list[Finding] = []
+    for a in held:
+        q = (a.data.get("open_question") or "").strip()
+        if not q:
+            out.append(Finding(51, FAIL, "held with no open_question. Held means a person has to resolve it, and "
+                                         "a question nobody wrote down reaches no person (4.4). The schema says "
+                                         "this field is required when held and nothing enforced it", a.rel))
+            continue
+        cited = {int(m) for m in re.findall(r"\b11-(\d+)\b", q)}
+        missing = sorted(cited - recorded)
+        if not cited:
+            out.append(Finding(51, FAIL, "the open question names no recorded home. It has to say where the "
+                                         "answer gets written, as `plan.md 11-<n>`, or the only record of the "
+                                         "question is this ledger and nobody is obliged to read it", a.rel))
+        elif missing:
+            out.append(Finding(51, FAIL, f"names plan.md 11-{missing[0]}, which section 11 does not have. A "
+                                         f"question pointed at an entry that does not exist is not recorded, and "
+                                         f"reads as though it were", a.rel))
+    if out:
+        return out
+    return [Finding(51, PASS, f"{len(held)} held threads name a section 11 entry that exists")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -3107,7 +3163,8 @@ CHECKS = [
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
     check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood,
-    check_50_delivery_has_a_reader, check_45_undegraded_is_backed_by_the_log,
+    check_50_delivery_has_a_reader,
+    check_51_open_question_has_a_home, check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,
     check_42_check_registry, check_41_seat_attribution,
 ]

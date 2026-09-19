@@ -1,0 +1,13 @@
+{
+  "artifact": "thread_status",
+  "schema_version": "0.1",
+  "thread": "thr-silent-hold-001",
+  "round": 1,
+  "turn": "human",
+  "state": "held",
+  "updated_at": "2026-09-19T17:40:25Z",
+  "blocked_pairs": [],
+  "substitutions": [],
+  "note": "Fixture. Held, and the ledger never says what a person is being asked. The schema's description calls open_question required when held and no conditional under it ever enforced that.",
+  "open_question": null
+}
