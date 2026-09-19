@@ -269,6 +269,16 @@ class Store:
         field is useful and unverified, and saying so is cheaper than finding
         out in six months that it drifted.
 
+        The fifth handle is the values of `identifiers` whose key is in the
+        schema's `addressable` list -- the part number on the barrel, the model
+        on the camera. Before it, the string an operator would actually type
+        found nothing, while `na` returned six objectives no argument could
+        tell apart. Membership is decided by one question the schema asks:
+        does reconfiguring the instrument change this value? A part number
+        survives a lens swap; a slot number is falsified by one, and nothing in
+        the store records that somebody turned the nosepiece, so an addressable
+        placement would hand back a stale answer at full confidence.
+
         The set is a union, not a replacement: an entry without `subject` still
         answers to everything it answered to before, which is what makes
         filling the field additive rather than a migration.
@@ -280,7 +290,13 @@ class Store:
             if n.get("name"):
                 names.add(n["name"])
         names.update(s["id"] for s in (e.get("subject") or []) if s.get("id"))
+        ids = e.get("identifiers") or {}
+        names.update(str(v) for k, v in ids.items() if k in ADDRESSABLE and v)
         return names
+
+    def answers_to(self, e: dict, name: str) -> bool:
+        """Does this entry answer to `name`? Case-insensitively, see _fold."""
+        return _fold(name) in {_fold(n) for n in self.subjects(e)}
 
     # -- ordering ---------------------------------------------------------- #
 
@@ -360,6 +376,32 @@ CALLER_ID = json.loads((CONTRACTS / "schemas" / "axis.schema.json").read_text(
 ))["properties"]["caller_id"]["pattern"]
 PURPOSES = tuple(json.loads((CONTRACTS / "schemas" / "goal.schema.json").read_text(
 ))["properties"]["purpose"]["enum"])
+# Which `identifiers` keys a caller may address an entry BY. Read from the
+# schema for the same reason PURPOSES is: a second copy of a registry is a
+# registry that drifts. The list is closed and the default is not-addressable,
+# so a key invented next month does not silently become a query surface.
+ADDRESSABLE = tuple(json.loads((CONTRACTS / "schemas" / "kb_entry.schema.json").read_text(
+)).get("addressable_identifiers", {}).get("addressable", ()))
+
+
+def _fold(name: str) -> str:
+    """Case, and nothing beyond case.
+
+    Every caller-supplied name is matched case-insensitively, uniformly across
+    all five handles. Four of them -- entry_id, symbol, subject ids and
+    numbers[].name -- are `^[a-z][a-z0-9_]*$` by schema, so folding is a no-op
+    there and the rule costs nothing to make uniform; it bites only on
+    identifier values, which are free strings: `MRD71670` is upper and
+    `Kinetix 22` has a capital and a space.
+
+    Whitespace and punctuation are deliberately NOT normalised. Case has one
+    obvious mapping and reversing it invents nothing; stripping spaces or
+    hyphens is a guess about which of several strings the caller meant, and
+    every extra normalisation makes two different strings answer to one name --
+    which is the collision this handle widens the surface for. An operator who
+    types `Kinetix22` gets nothing, and nothing is the honest answer.
+    """
+    return name.casefold() if isinstance(name, str) else name
 
 
 def _preflight(store: Store, caller_id: str, kb_version: str, tool: str) -> Store:
@@ -398,7 +440,7 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
     if purpose not in PURPOSES:
         raise Refused(f"purpose {purpose!r} is not in contracts/schemas/goal.schema.json")
 
-    hits = sorted((eid for eid, e in store.entries.items() if observable in store.subjects(e)),
+    hits = sorted((eid for eid, e in store.entries.items() if store.answers_to(e, observable)),
                   key=store.sort_key)
     returned, nearest = [], []
     for eid in hits:
@@ -468,7 +510,7 @@ def kb_conflicts(store: Store, caller_id: str, kb_version: str, topic: str = "",
                 continue
             seen.add(key)
             o = store.entries.get(other)
-            if topic and not (topic in store.subjects(e) or (o and topic in store.subjects(o))):
+            if topic and not (store.answers_to(e, topic) or (o and store.answers_to(o, topic))):
                 continue
             pairs.append({
                 "pair": list(key),
@@ -489,7 +531,7 @@ def kb_group(store: Store, caller_id: str, kb_version: str, symbol: str,
     store = _preflight(store, caller_id, kb_version, "kb_group")
     formula_kinds = ("dimensionless_group", "derived_quantity")
     hits = sorted((eid for eid, e in store.entries.items()
-                   if e.get("kind") in formula_kinds and e.get("symbol") == symbol),
+                   if e.get("kind") in formula_kinds and _fold(e.get("symbol") or "") == _fold(symbol)),
                   key=store.sort_key)
     _log(store, caller_id=caller_id, kb_version=kb_version, tool="kb_group", purpose=purpose,
          observable=symbol,
@@ -589,6 +631,32 @@ def _self_test() -> int:                                    # noqa: C901
         # of strings must not silently half-work by iterating characters
         if store.subjects({"entry_id": "e", "subject": [{"kind": "device"}]}) != {"e"}:
             bad("a subject with no id contributed something")
+
+        # 4c. the fifth handle: an addressable identifier value. The three
+        # probes that motivated it, and the keys that must stay out.
+        probes = {q: len(kb_query(store, cid, v, q, {})["entries"])
+                  for q in ("MRD71670", "Kinetix 22", "na")}
+        if probes != {"MRD71670": 1, "Kinetix 22": 1, "na": 6}:
+            bad(f"the three probe queries came back {probes}")
+        if not ADDRESSABLE:
+            bad("the addressable list is empty; it is read from the schema and something moved")
+        for shut in ("position_0", "fitted_slot", "position_index_base", "0", "1", "3"):
+            if kb_query(store, cid, v, shut, {})["entries"]:
+                bad(f"{shut!r} is not addressable and found something anyway -- the default is closed")
+
+        # case folds, and only case
+        for lower, upper in [("mrd71670", "MRD71670"), ("kinetix 22", "Kinetix 22")]:
+            a = [e["entry_id"] for e in kb_query(store, cid, v, lower, {})["entries"]]
+            b = [e["entry_id"] for e in kb_query(store, cid, v, upper, {})["entries"]]
+            if a != b or not a:
+                bad(f"{lower!r} and {upper!r} answered differently: {a} vs {b}")
+        if kb_query(store, cid, v, "Kinetix22", {})["entries"]:
+            bad("whitespace was normalised; only case is folded, and nothing is the honest answer")
+
+        # a new handle must not reorder anything
+        na = [e["entry_id"] for e in kb_query(store, cid, v, "na", {})["entries"]]
+        if na != sorted(na):
+            bad(f"the objectives stopped coming back in entry_id order: {na}")
 
         # 5. ordering is grade, then the rank inside E3, then entry_id
         r = kb_query(store, cid, v, "na", {})
@@ -825,7 +893,12 @@ def _build_app(store: Store):
         "back from. Matching reports whether an entry's validity covers the asked "
         "conditions and never decides what to do about a gap."))
     app.add_tool(tool_kb_query, name="kb_query",
-                 description="entries for an observable and condition range, plus gaps and a grade summary")
+                 description=("entries for a name and condition range, plus gaps and a grade summary. "
+                              "`observable` is the name asked about and takes more than an observable id: "
+                              "a device or configuration id, a quantity name, an entry id, or an addressable "
+                              "identifier such as a part number or a camera model. Matching ignores case and "
+                              "nothing else. A name that fits a class -- an immersion, a product line -- "
+                              "returns the whole class, so read `identifiers` on each row to tell them apart"))
     app.add_tool(tool_kb_get, name="kb_get", description="one entry verbatim, with its digest")
     app.add_tool(tool_kb_conflicts, name="kb_conflicts", description="pairs of entries that disagree")
     app.add_tool(tool_kb_group, name="kb_group",
