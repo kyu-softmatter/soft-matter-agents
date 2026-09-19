@@ -1,0 +1,11 @@
+{
+  "source_id": "src_prior_safety_memo",
+  "kind": "prior_run",
+  "identifier": "agentic-microscope/SAFETY.md, a first-draft memo dated 2026-09-03 recording what was measured on the instrument during the prior project's first three-subsystem session. Opened on 2026-09-19 by the person, who ruled what may cross.",
+  "accessed": "2026-09-19",
+  "grade_rule": "E3. 10.3 rule 1: a run taken in another project is not a run taken here, whatever it measured. Confirming any of these on the instrument promotes it to E1 and supersedes the entry.",
+  "what_crossed": "Control-path facts only -- how a device is driven, what it reports back, what it does not. 10.2's hardware-control-path row is open and says in its own rule that it does not wait for envelope/, because wrapping a control path needs no safety limit.",
+  "what_did_not": "Every numeric limit, permitted range, forbidden-device ruling and operating procedure. 10.3 rule 4 makes those non-transferable; the person writes envelope/safety.json after confirming physically, and this memo is reference material for that person rather than a source for this store. The discarded items are listed in the commit that brought the rest.",
+  "caution": "The document's own status line says it was a first draft, not reviewed by the operator, and its open-questions section is stale against its body -- it lists the Z retract direction as unmeasured while the body records the measurement two days later. Items taken from it were cross-checked against the body rather than read off the summary.",
+  "license_note": "No text reproduced; facts restated and re-placed into this store's decomposition."
+}

@@ -1,0 +1,28 @@
+{
+  "entry_id": "camera_bodies_are_told_apart_by_serial",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The two camera bodies are distinguished by serial number rather than by label: A23H723003 is the blue arm and A24M723015 is the red arm.",
+  "identifiers": {
+    "serial": "A23H723003",
+    "model": "Kinetix 22"
+  },
+  "subject": [
+    {
+      "kind": "device",
+      "id": "camera_red"
+    },
+    {
+      "kind": "device",
+      "id": "camera_blue"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@safety-2026-09-03",
+  "grade": "E3",
+  "source_ref": "src_prior_safety_memo",
+  "validity_conditions": "Ruled TRANSFER under 10.2.1 and passed 10.3 rule 1, so it caps at E3 -- a run taken in another project is not a run taken here. 10.2's hardware-control-path row is open and says in its own rule that it does not wait for envelope/, because wrapping a control path needs no safety limit. Slot: O1 preflight, which has to know which body it opened. The labels are the thing not to trust: this store already records that the two bodies are the same model, so nothing about a frame distinguishes them, and it already records one instance of this instrument's paper record diverging from its hardware. A serial is addressable, so either number now finds this entry.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

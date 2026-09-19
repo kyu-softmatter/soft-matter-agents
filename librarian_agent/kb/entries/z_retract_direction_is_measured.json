@@ -1,0 +1,20 @@
+{
+  "entry_id": "z_retract_direction_is_measured",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Smaller Z is retracted on this stand -- measured, not inferred. Micro-Manager now carries the same convention in its configurations, so the instrument can answer which way retract is rather than requiring a reader of a memo.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "stand_ti2e"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@safety-2026-09-03",
+  "grade": "E3",
+  "source_ref": "src_prior_safety_memo",
+  "validity_conditions": "Ruled TRANSFER under 10.2.1 and passed 10.3 rule 1, so it caps at E3 -- a run taken in another project is not a run taken here. 10.2's hardware-control-path row is open and says in its own rule that it does not wait for envelope/, because wrapping a control path needs no safety limit. Slot: O1 preflight and the orchestrator, both of which move Z. It carries no number and no limit -- a direction is not a permission. It is transferred BECAUSE it replaced a guess that ran the other way: the earlier reading had been that larger Z was retracted, taken from the fact that one rotation at a high Z broke nothing, and under the measured convention that rotation drove the incoming lens millimetres PAST the sample plane, so nothing broke because nothing was in the way. Anyone following the old guess would have driven the objective toward the coverslip believing they were retracting. The source document's own open-questions list still says this direction is unmeasured and calls it the most consequential gap in the document; the body of the same document records the measurement two days later. The list is stale, not the measurement -- see the pfs_offset_sign_unmeasured gap for the direction that really is still open.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

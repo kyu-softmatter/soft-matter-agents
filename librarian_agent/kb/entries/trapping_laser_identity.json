@@ -2,7 +2,7 @@
   "entry_id": "trapping_laser_identity",
   "schema_version": "0.1",
   "kind": "claim",
-  "claim": "The trapping laser emits at 1064 nm and is rated to a maximum of 5 W measured AT THE GENERATOR. Both figures are the operator's reading of the device; this laser has no model name, so the operator's reading is the source rather than a stand-in for a datasheet that has not arrived.",
+  "claim": "The trapping laser emits at 1064 nm and is rated to a maximum of 5 W measured AT THE GENERATOR. The model is an Aresis Tweez 300.",
   "numbers": [
     {
       "name": "wavelength",
@@ -19,7 +19,8 @@
       "source": "operator_read:kyuhwan_20260919",
       "grade": "E3",
       "precision": "significant_figures",
-      "note": "at the generator. Not at the sample, and not at any point after it"
+      "note": "at the generator, which `at` now names as a resolvable id rather than leaving it to prose. Not at the sample, and not at any point after it",
+      "at": "optical_tweezers"
     }
   ],
   "subject": [
@@ -36,9 +37,12 @@
   "grade": "E3",
   "grade_tag": "operator_read",
   "source_ref": "src_operator_read_20260919",
-  "validity_conditions": "AT THE GENERATOR. Written without a place, 'the laser is 5 W' is false at every point the beam actually reaches: between the generator and the sample sit losses nothing here records and the objective's transmission at 1064 nm, which is itself an open gap. The power a sample sees is a separate fact and it is absent (gap trap_power_at_the_sample). A RATED MAXIMUM IS NOT A PERMISSION. 5 W is what the device can emit, not what this laboratory allows; what it allows is written by a person in envelope/safety.json, and that file does not exist. 10.2 gates transferred spec values on exactly that file, with the reason that a spec number not placed beside limit values gets used as a limit -- the gate applies to transfers and so does not block this entry, which came from the operator, but the hazard it names does not care where the number came from. NOT MACHINE-READABLE, and that is a limit of the schema rather than of this entry: `validity` carries quantity-to-interval pairs, so 'at the generator' has nowhere to go and a query cannot act on it. This is the second such case -- the first being that lab_ambient_temperature is a reading of the room and not of the sample -- and both are raised with manager-librarian. There is no model name -- confirmed by the operator on 2026-09-19 -- so no spec: entry is pending and nothing here is provisional. That costs a source_ref document and a part_number handle, and costs no grade: spec: and operator_read: are both E3.",
+  "validity_conditions": "AT THE GENERATOR. Written without a place, 'the laser is 5 W' is false at every point the beam actually reaches: between the generator and the sample sit losses nothing here records and the objective's transmission at 1064 nm, which is itself an open gap. The power a sample sees is a separate fact and it is absent (gap trap_power_at_the_sample). A RATED MAXIMUM IS NOT A PERMISSION. 5 W is what the device can emit, not what this laboratory allows; what it allows is written by a person in envelope/safety.json, and that file does not exist. 10.2 gates transferred spec values on exactly that file, with the reason that a spec number not placed beside limit values gets used as a limit -- the gate applies to transfers and so does not block this entry, which came from the operator, but the hazard it names does not care where the number came from. NOT MACHINE-READABLE, and that is a limit of the schema rather than of this entry: `validity` carries quantity-to-interval pairs, so 'at the generator' has nowhere to go and a query cannot act on it. This is the second such case -- the first being that lab_ambient_temperature is a reading of the room and not of the sample -- and both are raised with manager-librarian. The model name arrived after the numbers and the sequence is worth keeping: asked for it, the operator said there was none, and Aresis Tweez 300 was confirmed later the same day. The numbers are still the operator's own reading and their grade does not move -- spec: and operator_read: are both E3 -- so what the model adds is a handle, `model` being addressable, and not authority. `at` on the power carries the place now; the wavelength has none, which is why the field sits on the number and not on this entry.",
   "date": "2026-09-19",
   "supersedes": null,
   "conflict_with": [],
-  "curated_by": "kyuhwan"
+  "curated_by": "kyuhwan",
+  "identifiers": {
+    "model": "Aresis Tweez 300"
+  }
 }

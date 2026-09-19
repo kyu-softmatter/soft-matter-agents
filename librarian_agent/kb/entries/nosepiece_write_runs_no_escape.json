@@ -1,0 +1,24 @@
+{
+  "entry_id": "nosepiece_write_runs_no_escape",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The stand runs no objective escape when the nosepiece is rotated by a Micro-Manager write: Z does not move, so whatever height the outgoing objective was at is where the incoming one arrives. Rotating at the stand or in NIS does run the Ti2's own escape; the software path does not.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "nosepiece"
+    },
+    {
+      "kind": "device",
+      "id": "stand_ti2e"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@safety-2026-09-03",
+  "grade": "E3",
+  "source_ref": "src_prior_safety_memo",
+  "validity_conditions": "Ruled TRANSFER under 10.2.1 and passed 10.3 rule 1, so it caps at E3 -- a run taken in another project is not a run taken here. 10.2's hardware-control-path row is open and says in its own rule that it does not wait for envelope/, because wrapping a control path needs no safety limit. Slot: O1 preflight, which is the consumer that has to know a write does less than it appears to, with A4 second. Measured in the prior project by rotating between two objectives and reading the Z drive before and after: it moved by zero. The clearance that absorbs the difference is a property of whichever objective is arriving, and this store already holds those working distances per part number. No limit crosses with this: what is transferred is that the escape does not run, not how far anything may travel.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

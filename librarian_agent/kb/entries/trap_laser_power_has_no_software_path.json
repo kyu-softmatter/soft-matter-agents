@@ -1,0 +1,24 @@
+{
+  "entry_id": "trap_laser_power_has_no_software_path",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The trapping laser's power is neither readable nor settable from software. The level is set by a hand control and nothing reads it back, so a level used in a run leaves no record unless someone writes it down.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    },
+    {
+      "kind": "quantity",
+      "id": "illumination_power"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@safety-2026-09-03",
+  "grade": "E3",
+  "source_ref": "src_prior_safety_memo",
+  "validity_conditions": "Ruled TRANSFER under 10.2.1 and passed 10.3 rule 1, so it caps at E3 -- a run taken in another project is not a run taken here. 10.2's hardware-control-path row is open and says in its own rule that it does not wait for envelope/, because wrapping a control path needs no safety limit. Slot: A7, which owns the driving term, with the orchestrator second. This is why the detection bound in trap_heating_detection_bound is stated as a dial position and not as a power: there is no path by which the number could have been read back, so a recalled dial setting is the strongest form that fact can take. It also means a run's laser level is not recoverable from any log after the fact.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

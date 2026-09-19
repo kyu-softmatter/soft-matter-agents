@@ -595,6 +595,39 @@
       "status": "open, and narrower than it was. The DMD half has a measured value in the prior project; it is NOT entered here, because 10.2.1 requires a ruling before an item crosses and that ruling is manager-librarian's, not this seat's. Recorded as looked-for-and-found-unruled rather than not-there, which are different claims. The csuw1 port and disk halves are still unmeasured anywhere. The per-configuration switch_cost gap in optical_paths.v0.json is the same quantity one level up."
     },
     {
+      "what": "the sign convention of PFSOffset",
+      "gap_id": "pfs_offset_sign_unmeasured",
+      "why_it_matters": "it is a collision device, alongside the Z drive and the nosepiece, and it is the one remaining direction on one that has never been measured. A direction written into a configuration without being measured reads as verified",
+      "kind": "absent",
+      "searched": ["the prior project's safety memo, whose body says the convention has never been measured and deliberately leaves the configuration value at unknown rather than guessing"],
+      "status": "open, and it is the real one. That document's own open-questions list names the Z RETRACT direction as its most consequential gap; the body of the same document records that direction as measured two days later, and names PFSOffset as the one still open. The list is stale against its body. Carrying the list across would have filed a gap for something already answered and left the actual unmeasured direction unrecorded -- a false absence in one place and a silent one in the other.",
+      "closed_by": "measuring it, the way the Z direction was measured. Writing a guess into a configuration is what the prior project explicitly refused."
+    },
+    {
+      "what": "the height above the coverslip at which a bead is trapped",
+      "gap_id": "trapping_height_unknown",
+      "why_it_matters": "it dominates the trap stiffness through the wall correction, and it also sets how close the objective's front element is to the coverslip",
+      "kind": "absent",
+      "searched": ["the prior project's safety memo, which lists it as an open question and records no measurement of it"],
+      "status": "open. Two consumers want it for different reasons -- A7 for the stiffness and O1 preflight for the clearance -- which is worth noting because a measurement made for one answers the other."
+    },
+    {
+      "what": "whether the camera driver's device indices stay stable while another process holds one body",
+      "gap_id": "pvcam_indices_under_contention",
+      "why_it_matters": "the driver hands a camera to one process at a time, and if the indices shift under contention then the body a configuration opens is not the body it named",
+      "kind": "absent",
+      "searched": ["the prior project's safety memo, which records it as untested"],
+      "status": "open, and cheap to close: hold one body in the other application and enumerate. Until then the serials are the reliable discriminator (entry camera_bodies_are_told_apart_by_serial), not the indices."
+    },
+    {
+      "what": "the tweezers' repeat setting and count",
+      "gap_id": "tweez_repeat_settings_unreadable",
+      "why_it_matters": "both change whether a commanded pattern runs once or repeats, and both are among the settings whose misconfiguration returns 0",
+      "kind": "absent",
+      "searched": ["the prior project's safety memo, which lists them as still unread"],
+      "status": "open, and not closable by asking the device: the interface has no readback at all (entry tweez300_reports_nothing_back), so these are readable only in the GUI by eye. That makes this a gap about what the control path cannot tell you rather than about what nobody has got round to measuring."
+    },
+    {
       "what": "the trapping laser's power AT THE SAMPLE",
       "gap_id": "trap_power_at_the_sample",
       "why_it_matters": "it is what a sample sees, and it is what any statement about heating or about photodamage has to be in terms of. A7 owns the driving term and A3 owns sample health; both want this number and neither wants the generator's",

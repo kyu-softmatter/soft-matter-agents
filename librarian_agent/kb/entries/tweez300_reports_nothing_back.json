@@ -1,0 +1,24 @@
+{
+  "entry_id": "tweez300_reports_nothing_back",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The Tweez 300's TCP interface has no readback of any kind -- no position, no force, no trap list, no calibration -- and a return code of 0 means the GUI accepted the command, not that anything happened. Six distinct ways a command can be ignored all return 0: a breakpoint whose enable bits are unset, release bits that do not cover the value, repeat left disabled, a pattern that overruns the calibrated range and is silently clipped to the edge, a GUI calibrated at a different objective so every commanded micrometre is wrong by that ratio, and a named trap that holds no bead.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    },
+    {
+      "kind": "configuration",
+      "id": "trapping"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@safety-2026-09-03",
+  "grade": "E3",
+  "source_ref": "src_prior_safety_memo",
+  "validity_conditions": "Ruled TRANSFER under 10.2.1 and passed 10.3 rule 1, so it caps at E3 -- a run taken in another project is not a run taken here. 10.2's hardware-control-path row is open and says in its own rule that it does not wait for envelope/, because wrapping a control path needs no safety limit. Slot: A4, which screens on automatable and read_back, with O1 preflight as the second consumer -- a preflight that reads back to confirm has nothing to read here. This is what read_back: false means on that row, stated rather than left as a flag. Confirmation has to come from outside the interface: by eye in the GUI, or by measuring the result in camera data. Note the contrast with the piezo, which range-checks a trajectory against the travel its controller reports and REFUSES rather than clipping -- two devices on one instrument, opposite behaviours at the same boundary, and only one of them tells you.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}
