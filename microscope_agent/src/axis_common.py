@@ -163,6 +163,11 @@ def gaps_from(responses: dict, pin: str, caller_id: str, gap_ids: dict[str, str]
             "asked_by": caller_id,
             "asked_at": gap["asked_at"],
         })
+        # The service's near-misses, not the axis's. An axis that added its own
+        # here would be answering its own question inside a field that says the
+        # service answered it.
+        if gap.get("nearest"):
+            out[-1]["nearest"] = gap["nearest"]
     return out
 
 
@@ -291,7 +296,7 @@ def returned_needs_numeric_interval() -> bool:
     return False
 
 
-def to_card(run: AxisRun, goal: dict, qid: str, created_at: str) -> dict:
+def to_card(run: AxisRun, goal: dict, qid: str, created_at: str, revision: int = 1) -> dict:
     silent = run.silent()
     if silent:
         raise AxisError(
@@ -325,7 +330,7 @@ def to_card(run: AxisRun, goal: dict, qid: str, created_at: str) -> dict:
         "qid": qid,
         "thread": goal.get("thread", f"solo-{qid}"),
         "round": goal.get("round", 0),
-        "revision": 1,
+        "revision": revision,
         "author": "microscope_agent",
         "created_at": created_at,
         "status": "DRAFT",
@@ -366,10 +371,10 @@ def report(run: AxisRun) -> None:
         print(f"  note: {note}")
 
 
-def write(run: AxisRun, goal: dict, qid: str, created_at: str) -> int:
+def write(run: AxisRun, goal: dict, qid: str, created_at: str, revision: int = 1) -> int:
     """Write the card, or refuse and print the ledger so the work is not lost."""
     try:
-        card = to_card(run, goal, qid, created_at)
+        card = to_card(run, goal, qid, created_at, revision)
     except AxisError as exc:
         print(f"\nno card written: {exc}", file=sys.stderr)
         print("\nledger, in full:")

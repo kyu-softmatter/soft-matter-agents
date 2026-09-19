@@ -5,11 +5,11 @@
   "qid": "mic-20260918-001",
   "thread": "solo-mic-20260918-001",
   "round": 0,
-  "revision": 2,
+  "revision": 3,
   "author": "microscope_agent",
-  "created_at": "2026-09-18T18:50:09Z",
+  "created_at": "2026-09-19T17:49:44Z",
   "status": "VALIDATED",
-  "caller_id": "mic-20260918-001:v2:widefield_inline:a1",
+  "caller_id": "mic-20260918-001:v3:widefield_inline:a1",
   "config": "widefield_inline",
   "axis": "a1",
   "kb_version": "kbv-49feb73662b7",
@@ -97,79 +97,95 @@
   ],
   "kb_gaps": [
     {
-      "gap_id": "camera_sensor_numbers",
-      "observable": "read_noise",
+      "gap_id": "background_rate",
+      "observable": "background_rate",
       "kind": "absent",
       "searched": [
-        "librarian_agent/kb/entries/",
-        "librarian_agent/kb/staging/",
-        "contracts/capabilities/microscope.json"
+        "kb_query(observable=background_rate, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v2:widefield_inline:a1",
-      "nearest": [
-        {
-          "entry_id": "cameras_both_kinetix22",
-          "overlap": "partial"
-        }
-      ]
+      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
+      "asked_at": "2026-09-19T17:47:02+00:00"
     },
     {
-      "gap_id": "tracer_photophysics",
-      "observable": "tracer_brightness",
+      "gap_id": "tracer_bleaching",
+      "observable": "bleaching_rate",
       "kind": "absent",
       "searched": [
-        "librarian_agent/kb/entries/",
-        "librarian_agent/kb/staging/",
-        "contracts/capabilities/microscope.json"
+        "kb_query(observable=bleaching_rate, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v2:widefield_inline:a1"
-    },
-    {
-      "gap_id": "expected_diffusivity",
-      "observable": "tracer_diffusivity_expected",
-      "kind": "absent",
-      "searched": [
-        "librarian_agent/kb/entries/",
-        "librarian_agent/kb/staging/",
-        "contracts/capabilities/microscope.json"
-      ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v2:widefield_inline:a1",
-      "nearest": [
-        {
-          "entry_id": "water_viscosity_293k",
-          "overlap": "partial"
-        },
-        {
-          "entry_id": "lab_ambient_temperature",
-          "overlap": "partial"
-        }
-      ]
+      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
+      "asked_at": "2026-09-19T17:47:03+00:00"
     },
     {
       "gap_id": "disk_period",
       "observable": "disk_period",
       "kind": "absent",
       "searched": [
-        "librarian_agent/kb/entries/",
-        "librarian_agent/kb/staging/",
-        "contracts/capabilities/microscope.json"
+        "kb_query(observable=disk_period, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v2:widefield_inline:a1",
-      "nearest": [
-        {
-          "entry_id": "csuw1_disk_speed_exposure_constraint",
-          "overlap": "partial"
-        }
-      ]
+      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
+      "asked_at": "2026-09-19T17:47:01+00:00"
+    },
+    {
+      "gap_id": "pixel_size_in_sample",
+      "observable": "pixel_size_in_sample",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=pixel_size_in_sample, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
+      "asked_at": "2026-09-19T17:47:03+00:00"
+    },
+    {
+      "gap_id": "camera_quantum_efficiency",
+      "observable": "quantum_efficiency",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=quantum_efficiency, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
+      "asked_at": "2026-09-19T17:47:02+00:00"
+    },
+    {
+      "gap_id": "camera_sensor_numbers",
+      "observable": "read_noise",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=read_noise, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
+      "asked_at": "2026-09-19T17:47:02+00:00"
+    },
+    {
+      "gap_id": "tracer_photophysics",
+      "observable": "tracer_brightness",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_brightness, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
+      "asked_at": "2026-09-19T17:47:02+00:00"
+    },
+    {
+      "gap_id": "expected_diffusivity",
+      "observable": "tracer_diffusivity_expected",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_diffusivity_expected, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
+      "asked_at": "2026-09-19T17:47:03+00:00"
     }
   ],
-  "degraded": [
-    "librarian_agent"
-  ],
-  "note": "Every bound here abstains, and five of the six abstain for want of a number rather than because they do not apply. Read as a list of measurements, that is: the camera's read noise and quantum efficiency, the pixel size in the sample, the tracers' brightness and bleaching rate, and a background rate. None of them is exotic and none can be guessed (P2), which is the whole content of this card. The sixth is different and the difference is the point: the disk rule was evaluated against this configuration's optical path and does not constrain it. That is an answer, not a missing one, and recording it with the same word as the other five would lose it.",
+  "degraded": [],
+  "note": "Every bound here abstains, and five of the six abstain for want of a number rather than because they do not apply. Read as a list of measurements, that is: the camera's read noise and quantum efficiency, the pixel size in the sample, the tracers' brightness and bleaching rate, and a background rate. None of them is exotic and none can be guessed (P2), which is the whole content of this card. Revisions 1 and 2 of this card read the store's files and carried degraded: [librarian_agent]; revision 3 asked the service and carries none. Not one bound moved -- the same six, the same kinds, the same reasons -- so what changed is the standing of the claim rather than the claim. Two differences are worth naming. The gaps went from four to eight because each observable is now its own call and its own answer, where before this axis chose what to group. And the near-misses are gone: revision 2 named cameras_both_kinetix22 against read_noise, and the viscosity and ambient temperature against the expected diffusivity, all judged by this axis; the service returns nearest empty for every one. Those were the axis answering its own question in a field that says the service answered it, so their absence is the more honest state -- but the entries they named are still there and still nearly relevant, and at this pin the service cannot see that, because 17 of the 25 entries carry no machine-readable validity to match against. The sixth is different and the difference is the point: the disk rule was evaluated against this configuration's optical path and does not constrain it. That is an answer, not a missing one, and recording it with the same word as the other five would lose it.",
   "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
 }

@@ -44,8 +44,11 @@ def _load(name: str, filename: str):
 axc = _load("_mic_axis_common", "axis_common.py")
 
 AXIS = "a7"
-SEARCHED = ["librarian_agent/kb/entries/", "librarian_agent/kb/staging/",
-            "contracts/capabilities/microscope.json"]
+GAP_IDS = {
+    "trap_stiffness": "trap_stiffness",
+    "localisation_error": "localisation_error",
+    "working_height_above_coverslip": "working_height",
+}
 
 OWNED = (
     axc.Inequality(
@@ -179,18 +182,20 @@ def wall_correction(radius_m: float, height_m: float) -> float:
     return 1 / series
 
 
-def evaluate(goal: dict, config: str, caller_id: str) -> axc.AxisRun:
+def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str) -> axc.AxisRun:
     """Every inequality A7 owns, each with a range or a reason it has none."""
     run = axc.AxisRun(axis=AXIS, caller_id=caller_id, config=config,
-                      kb_version=axc.kb_version(), owned=OWNED,
-                      degraded=["librarian_agent"])
+                      kb_version=pin, owned=OWNED, degraded=[])
     driven = driving_requested(goal, config)
 
     # gamma is the one input this axis can produce today, and producing it
     # changes what the abstentions say: they name one missing measurement
     # instead of two.
-    viscosity = axc.kb_entry("water_viscosity_293k")
-    ambient = axc.kb_entry("lab_ambient_temperature")
+    served = responses["entries"]
+    run.kb_refs = axc.refs_from(responses, pin)
+    run.kb_gaps = axc.gaps_from(responses, pin, caller_id, GAP_IDS)
+    viscosity = (served.get("water_viscosity_293k") or {}).get("entry")
+    ambient = (served.get("lab_ambient_temperature") or {}).get("entry")
     diameter = axc.goal_number(goal, "tracer_diameter")
     gamma = None
     if viscosity and diameter:
@@ -198,11 +203,8 @@ def evaluate(goal: dict, config: str, caller_id: str) -> axc.AxisRun:
                     if n.get("name") == "viscosity"), None)
         if eta is not None:
             gamma = stokes_drag(eta, diameter["value"] * 1e-6 / 2)
-            run.kb_refs.append(axc.kb_ref("water_viscosity_293k", run.kb_version))
             window = (viscosity.get("validity") or {}).get("temperature") or {}
             if ambient:
-                run.kb_refs.append(axc.kb_ref("lab_ambient_temperature", run.kb_version))
-                run.kb_refs.append(axc.kb_ref("sample_temperature_not_actuated", run.kb_version))
                 run.notes.append(
                     f"The viscosity holds between {window.get('min')} and {window.get('max')} "
                     f"{window.get('unit')} and the laboratory reads 293 K, so the value is used "
@@ -282,9 +284,6 @@ def evaluate(goal: dict, config: str, caller_id: str) -> axc.AxisRun:
                    "a gap in this file, not an abstention (4.5.2.1)",
         ))
 
-    run.gap("trap_stiffness", "trap_stiffness", SEARCHED)
-    run.gap("localisation_error", "localisation_error", SEARCHED)
-    run.gap("working_height", "working_height_above_coverslip", SEARCHED)
     return run
 
 
@@ -293,16 +292,27 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("goal", type=Path)
     parser.add_argument("--config", required=True)
     parser.add_argument("--caller-id", required=True)
+    parser.add_argument("--kb-version", required=True,
+                        help="the pin to answer at; the store moves and siblings must agree")
+    parser.add_argument("--responses", required=True, type=Path,
+                        help="what the librarian returned for this caller_id at that pin")
+    parser.add_argument("--revision", type=int, default=1,
+                        help="the card revision; v<N> in the caller_id follows it")
     args = parser.parse_args(argv)
 
     goal = json.loads(args.goal.read_text())
     if goal.get("card") != "goal":
         print(f"{args.goal} is not a goal card", file=sys.stderr)
         return 2
-    run = evaluate(goal, args.config, args.caller_id)
+    try:
+        responses = axc.load_responses(args.responses, args.kb_version, args.caller_id)
+    except axc.AxisError as exc:
+        print(f"no card written: {exc}", file=sys.stderr)
+        return 3
+    run = evaluate(goal, args.config, args.caller_id, responses, args.kb_version)
     axc.report(run)
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    return axc.write(run, goal, goal.get("qid", ""), created_at)
+    return axc.write(run, goal, goal.get("qid", ""), created_at, args.revision)
 
 
 if __name__ == "__main__":

@@ -43,7 +43,7 @@
   ],
   "fan_out": [
     {
-      "caller_id": "mic-20260918-001:v2:widefield_inline:a1",
+      "caller_id": "mic-20260918-001:v3:widefield_inline:a1",
       "config": "widefield_inline",
       "axis": "a1",
       "kb_version": "kbv-49feb73662b7"
@@ -79,7 +79,7 @@
       "kb_version": "kbv-49feb73662b7"
     },
     {
-      "caller_id": "mic-20260918-001:v2:widefield_inline:a7",
+      "caller_id": "mic-20260918-001:v3:widefield_inline:a7",
       "config": "widefield_inline",
       "axis": "a7",
       "kb_version": "kbv-49feb73662b7"

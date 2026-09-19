@@ -5,11 +5,11 @@
   "qid": "mic-20260918-001",
   "thread": "solo-mic-20260918-001",
   "round": 0,
-  "revision": 2,
+  "revision": 3,
   "author": "microscope_agent",
-  "created_at": "2026-09-18T18:51:24Z",
+  "created_at": "2026-09-19T17:49:06Z",
   "status": "VALIDATED",
-  "caller_id": "mic-20260918-001:v2:widefield_inline:a7",
+  "caller_id": "mic-20260918-001:v3:widefield_inline:a7",
   "config": "widefield_inline",
   "axis": "a7",
   "kb_version": "kbv-49feb73662b7",
@@ -133,12 +133,6 @@
   ],
   "kb_refs": [
     {
-      "entry_id": "water_viscosity_293k",
-      "grade": "E3",
-      "kb_version": "kbv-49feb73662b7",
-      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
-    },
-    {
       "entry_id": "lab_ambient_temperature",
       "grade": "E3",
       "kb_version": "kbv-49feb73662b7",
@@ -149,49 +143,50 @@
       "grade": "E3",
       "kb_version": "kbv-49feb73662b7",
       "claim": "Sample temperature is not under control on this instrument. A temperature stage exists but has never been connected, so nothing actuates the sample temperature and there is no setpoint to appeal to: a"
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-49feb73662b7",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
     }
   ],
   "kb_gaps": [
-    {
-      "gap_id": "trap_stiffness",
-      "observable": "trap_stiffness",
-      "kind": "absent",
-      "searched": [
-        "librarian_agent/kb/entries/",
-        "librarian_agent/kb/staging/",
-        "contracts/capabilities/microscope.json"
-      ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v2:widefield_inline:a7"
-    },
     {
       "gap_id": "localisation_error",
       "observable": "localisation_error",
       "kind": "absent",
       "searched": [
-        "librarian_agent/kb/entries/",
-        "librarian_agent/kb/staging/",
-        "contracts/capabilities/microscope.json"
+        "kb_query(observable=localisation_error, caller_id=mic-20260918-001:v3:widefield_inline:a7, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v2:widefield_inline:a7"
+      "asked_by": "mic-20260918-001:v3:widefield_inline:a7",
+      "asked_at": "2026-09-19T17:47:05+00:00"
+    },
+    {
+      "gap_id": "trap_stiffness",
+      "observable": "trap_stiffness",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=trap_stiffness, caller_id=mic-20260918-001:v3:widefield_inline:a7, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "asked_by": "mic-20260918-001:v3:widefield_inline:a7",
+      "asked_at": "2026-09-19T17:47:05+00:00"
     },
     {
       "gap_id": "working_height",
       "observable": "working_height_above_coverslip",
       "kind": "absent",
       "searched": [
-        "librarian_agent/kb/entries/",
-        "librarian_agent/kb/staging/",
-        "contracts/capabilities/microscope.json"
+        "kb_query(observable=working_height_above_coverslip, caller_id=mic-20260918-001:v3:widefield_inline:a7, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v2:widefield_inline:a7"
+      "asked_by": "mic-20260918-001:v3:widefield_inline:a7",
+      "asked_at": "2026-09-19T17:47:06+00:00"
     }
   ],
-  "degraded": [
-    "librarian_agent"
-  ],
+  "degraded": [],
   "note": "The viscosity holds between 288 and 298 K and the laboratory reads 293 K, so the value is used inside its window rather than carried past it. Sample temperature is not actuated here, so the ambient reading is the best statement of it, and that is a claim about the room rather than about the sample. That drag is the unbounded-medium value and it is biased low near the coverslip. Faxen parallel to a wall gives +16.4% at a = 2.5 um and h = 10 um (+16.2% carrying the series past first order), against +12.7% for the 4 um bead the prior project cited. The bias is real and it is smaller than one significant figure, so it does not move an order-of-magnitude answer -- which is also why correcting by formula buys little next to a calibration in situ, where a measured corner frequency returns kappa and the wall-corrected drag together. h is not stated anywhere, so +16.4% stands on h = 10 um and nothing else. That argument has a condition and does not outlive it: it holds while this question is in explore mode, where 5.8 claims one figure and differences under 10x are ties. In confirm mode a 16% bias is inside what the answer claims, and calibrating in situ stops being the cheaper route and becomes the only correct one. Whoever reads this later should not carry away '16% is ignorable' without the mode it was ignorable in.",
   "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
 }

@@ -51,8 +51,16 @@ def _load(name: str, filename: str):
 axc = _load("_mic_axis_common", "axis_common.py")
 
 AXIS = "a1"
-SEARCHED = ["librarian_agent/kb/entries/", "librarian_agent/kb/staging/",
-            "contracts/capabilities/microscope.json"]
+GAP_IDS = {
+    "disk_period": "disk_period",
+    "read_noise": "camera_sensor_numbers",
+    "quantum_efficiency": "camera_quantum_efficiency",
+    "tracer_brightness": "tracer_photophysics",
+    "background_rate": "background_rate",
+    "pixel_size_in_sample": "pixel_size_in_sample",
+    "tracer_diffusivity_expected": "expected_diffusivity",
+    "bleaching_rate": "tracer_bleaching",
+}
 
 OWNED = (
     axc.Inequality(
@@ -123,21 +131,17 @@ ABSENT = {
 }
 
 
-def evaluate(goal: dict, config: str, caller_id: str) -> axc.AxisRun:
+def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str) -> axc.AxisRun:
     """Every inequality A1 owns, each with a range or a reason it has none."""
     run = axc.AxisRun(axis=AXIS, caller_id=caller_id, config=config,
-                      kb_version=axc.kb_version(), owned=OWNED,
-                      degraded=["librarian_agent"])
+                      kb_version=pin, owned=OWNED, degraded=[])
 
     configuration = axc.configuration(config)
     path = configuration.get("optical_path")
     through_the_disk = path == "confocal"
 
-    disk_states = axc.kb_entry("csuw1_disk_position_states")
-    disk_rule = axc.kb_entry("csuw1_disk_speed_exposure_constraint")
-    if disk_states and disk_rule:
-        run.kb_refs.append(axc.kb_ref("csuw1_disk_position_states", run.kb_version))
-        run.kb_refs.append(axc.kb_ref("csuw1_disk_speed_exposure_constraint", run.kb_version))
+    run.kb_refs = axc.refs_from(responses, pin)
+    run.kb_gaps = axc.gaps_from(responses, pin, caller_id, GAP_IDS)
 
     for ineq in OWNED:
         if ineq.id == "disk_period_multiple":
@@ -185,21 +189,27 @@ def evaluate(goal: dict, config: str, caller_id: str) -> axc.AxisRun:
                    "a gap in this file, not an abstention (4.5.2.1)",
         ))
 
-    run.gap("camera_sensor_numbers", "read_noise", SEARCHED,
-            nearest=[{"entry_id": "cameras_both_kinetix22", "overlap": "partial"}])
-    run.gap("tracer_photophysics", "tracer_brightness", SEARCHED)
-    run.gap("expected_diffusivity", "tracer_diffusivity_expected", SEARCHED,
-            nearest=[{"entry_id": "water_viscosity_293k", "overlap": "partial"},
-                     {"entry_id": "lab_ambient_temperature", "overlap": "partial"}])
-    run.gap("disk_period", "disk_period", SEARCHED,
-            nearest=[{"entry_id": "csuw1_disk_speed_exposure_constraint", "overlap": "partial"}])
-
     run.notes.append(
         "Every bound here abstains, and five of the six abstain for want of a number rather than "
         "because they do not apply. Read as a list of measurements, that is: the camera's read "
         "noise and quantum efficiency, the pixel size in the sample, the tracers' brightness and "
         "bleaching rate, and a background rate. None of them is exotic and none can be guessed "
         "(P2), which is the whole content of this card."
+    )
+    run.notes.append(
+        "Revisions 1 and 2 of this card read the store's files and carried "
+        "degraded: [librarian_agent]; revision 3 asked the service and carries none. Not one "
+        "bound moved -- the same six, the same kinds, the same reasons -- so what changed is the "
+        "standing of the claim rather than the claim. Two differences are worth naming. The gaps "
+        "went from four to eight because each observable is now its own call and its own answer, "
+        "where before this axis chose what to group. And the near-misses are gone: revision 2 "
+        "named cameras_both_kinetix22 against read_noise, and the viscosity and ambient "
+        "temperature against the expected diffusivity, all judged by this axis; the service "
+        "returns nearest empty for every one. Those were the axis answering its own question in "
+        "a field that says the service answered it, so their absence is the more honest state -- "
+        "but the entries they named are still there and still nearly relevant, and at this pin "
+        "the service cannot see that, because 17 of the 25 entries carry no machine-readable "
+        "validity to match against."
     )
     if not through_the_disk:
         run.notes.append(
@@ -216,16 +226,27 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("goal", type=Path)
     parser.add_argument("--config", required=True)
     parser.add_argument("--caller-id", required=True)
+    parser.add_argument("--kb-version", required=True,
+                        help="the pin to answer at; the store moves and siblings must agree")
+    parser.add_argument("--responses", required=True, type=Path,
+                        help="what the librarian returned for this caller_id at that pin")
+    parser.add_argument("--revision", type=int, default=1,
+                        help="the card revision; v<N> in the caller_id follows it")
     args = parser.parse_args(argv)
 
     goal = json.loads(args.goal.read_text())
     if goal.get("card") != "goal":
         print(f"{args.goal} is not a goal card", file=sys.stderr)
         return 2
-    run = evaluate(goal, args.config, args.caller_id)
+    try:
+        responses = axc.load_responses(args.responses, args.kb_version, args.caller_id)
+    except axc.AxisError as exc:
+        print(f"no card written: {exc}", file=sys.stderr)
+        return 3
+    run = evaluate(goal, args.config, args.caller_id, responses, args.kb_version)
     axc.report(run)
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    return axc.write(run, goal, goal.get("qid", ""), created_at)
+    return axc.write(run, goal, goal.get("qid", ""), created_at, args.revision)
 
 
 if __name__ == "__main__":
