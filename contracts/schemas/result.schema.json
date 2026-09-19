@@ -277,6 +277,13 @@
           "deviations"
         ]
       }
+    },
+    "targets": {
+      "type": "array",
+      "description": "The accuracy the run was held to. Carried so a result can be read without its plan, and compared against the goal's by check 52.",
+      "items": {
+        "$ref": "common.schema.json#/$defs/target"
+      }
     }
   },
   "required": [

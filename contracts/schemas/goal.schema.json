@@ -56,35 +56,7 @@
       "items": {
         "oneOf": [
           {
-            "type": "object",
-            "properties": {
-              "metric": {
-                "type": "string"
-              },
-              "kind": {
-                "enum": [
-                  "uncertainty",
-                  "decade_resolution",
-                  "detection"
-                ]
-              },
-              "value": {
-                "type": "number"
-              },
-              "unit": {
-                "type": "string"
-              },
-              "note": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "metric",
-              "kind",
-              "value",
-              "unit"
-            ],
-            "additionalProperties": false
+            "$ref": "common.schema.json#/$defs/target"
           },
           {
             "$comment": "SUPERSEDED, and to be deleted. This form names an entry in numbers[], which P2 makes four-part -- so it forces a source and a grade onto a decision, which is what the inline form exists to stop. REMOVE THIS BRANCH once microscope_agent/questions/mic-20260918-001/goal.json and simulation_agent/questions/sim-20260917-001/goal.json carry the inline form; they are the only two cards using it. Kept meanwhile because the schema is contracts/ and those cards are two other seats' trees, so check 35 makes this at least three commits, and the gate runs the whole validator -- a schema that rejects a live card blocks every session from committing for the length of the migration. Two shapes at once is what 11-11 counts, and here the alternative is a full stop. Written open-ended, 'meanwhile' becomes permanent. manager-bridge, 2026-09-19, ruled by architecture.",

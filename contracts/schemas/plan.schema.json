@@ -287,6 +287,13 @@
     },
     "compare_variable": {
       "type": "string"
+    },
+    "targets": {
+      "type": "array",
+      "description": "The accuracy the plan was built to meet, pinned at the moment it was built. A plan_approval fixes the plan and not the goal, so a plan that pointed at the goal's target would have its accuracy move after approval with nothing recording that it had (5.3.1).",
+      "items": {
+        "$ref": "common.schema.json#/$defs/target"
+      }
     }
   },
   "required": [

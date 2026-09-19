@@ -1,0 +1,62 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-mic-99990101-004",
+  "qid": "mic-99990101-004",
+  "thread": "solo-mic-20260917-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T08:00:00Z",
+  "status": "VALIDATED",
+  "purpose": "screen",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_diffusivity"
+  },
+  "targets": [
+    {
+      "metric": "tracer_diffusivity",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "Fixture. The decision, stated once, here."
+    }
+  ],
+  "constraint_notes": [
+    "sample is consumed by the measurement and cannot be remounted",
+    "no calibration of the stage is available for this sample holder"
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "requested_by": "human",
+  "numbers": [
+    {
+      "name": "snr_target",
+      "value": 5,
+      "unit": "count",
+      "source": "assumed:a_snr",
+      "grade": "E5",
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_snr",
+      "statement": "A centroid fit needs a signal to noise ratio of order five to keep the localisation error below a pixel; no measurement on this sample exists yet.",
+      "numbers": [
+        "snr_target"
+      ],
+      "falsifier": "a localisation error above one pixel at this signal to noise ratio retires the assumption"
+    }
+  ],
+  "kb_refs": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "note": "Fixture for check 52: the goal half of a carried target that drifted."
+}

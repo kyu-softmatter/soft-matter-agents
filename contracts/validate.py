@@ -3243,42 +3243,65 @@ def check_51_open_question_has_a_home(b: Bundle) -> list[Finding]:
 
 
 def check_52_target_is_a_decision(b: Bundle) -> list[Finding]:
-    """A target is a decision, so it is not also a graded number.
+    """A target is a decision, so it is not also a graded number -- and a
+    carried copy still says what the goal said.
 
     Carried inline in `targets[]` with no source and no grade, the way a
     ceiling lives in envelope/safety.json: a grade says how far a claim can be
-    trusted, and a decision is correct by being made (5.3, ruled 2026-09-19).
-    The slot makes a grade inexpressible rather than merely absent (c8ee7b3),
-    which is the difference between a chokepoint and an opt-in guard.
+    trusted, and a decision is correct by being made (5.3.1). The slot makes a
+    grade inexpressible rather than merely absent (c8ee7b3), which is the
+    difference between a chokepoint and an opt-in guard.
 
-    Three ways the old shape survives, and the check is written against the
-    shapes rather than against names. Name matching would refuse
+    Written against shapes rather than names. A name rule would refuse
     `target_relative_error`, which is an axis's *derived* statistical
     requirement -- a claim about what the statistics need, graded and sourced
     like any other. The split runs between the person's decision and
-    everything computed from it, not between names that begin with target.
+    everything computed from it, not between names beginning with target.
 
-    The unit clause is here because the migration opens a hole. A numbers[]
-    entry has its unit checked by check 2; an inline target is not in
-    numbers[], so the moment a card moves, nothing checks its unit. Today they
-    are all `count`. A target is exactly the field someone writes `%` or
-    `decades` into, and neither is registered. Moving a value out of a checked
-    container into an unchecked one is how coverage shrinks without anyone
-    deciding to shrink it, so the commit that opens the gap closes it.
+    Two things this check inherited when the target left `numbers[]`, both
+    because the commit that opens a hole closes it.
+
+    The unit. A numbers[] entry has its unit checked by check 2; an inline
+    target does not. Today they are all `count`, and a target is exactly the
+    field someone writes `%` or `decades` into, neither of which is
+    registered.
+
+    The comparison. Check 12 made a plan's carried number cite the goal's, so
+    drift was impossible. A plan carries the target because a plan_approval
+    fixes the plan and not the goal: a plan that pointed at the goal's target
+    would have its accuracy move after approval with nothing recording that it
+    had -- the same defect kb_version pinning exists to prevent, since a pin
+    that resolves to whatever the source says now is not a pin. Carrying is
+    right and uncompared carrying is not, so the copy is checked here.
 
     Reads a declaration and not comprehension; section 8 states that limit
     once, for this kind.
     """
-    goals = [c for c in b.of_kind("goal") if c.data.get("targets")]
-    if not goals:
-        return [Finding(52, NA, "no goal states a target")]
+    carriers = [c for c in b.cards if c.data.get("targets")]
+    if not carriers:
+        return [Finding(52, NA, "no card states a target")]
+
+    goals = {c.data.get("qid"): c for c in b.of_kind("goal")}
+
+    def stated(goal: Card, metric: str):
+        """The goal's target for this metric, in whichever shape it is in."""
+        named = {n.get("name"): n for n in goal.data.get("numbers", []) or []}
+        for t in goal.data.get("targets", []) or []:
+            if t.get("metric") != metric:
+                continue
+            if "value" in t:
+                return (t["kind"], t["value"], t["unit"])
+            n = named.get(t.get("number"))
+            if n:
+                return (t["kind"], n.get("value"), n.get("unit"))
+        return None
 
     out: list[Finding] = []
-    n_inline = n_legacy = 0
-    for c in goals:
-        named = {n.get("name") for n in c.data.get("numbers", []) or []}
+    n_inline = n_legacy = n_carried = 0
+    for c in carriers:
         inline = [t for t in c.data["targets"] if "value" in t]
         legacy = [t for t in c.data["targets"] if "number" in t]
+        named = {n.get("name") for n in c.data.get("numbers", []) or []}
         n_inline += len(inline)
         n_legacy += len(legacy)
 
@@ -3298,17 +3321,36 @@ def check_52_target_is_a_decision(b: Bundle) -> list[Finding]:
                                              f"{t['number']!r}, which this card does not carry. A target "
                                              f"pointing at nothing states no target", c.rel))
 
-        both = {t["metric"] for t in inline} & {t["metric"] for t in legacy}
-        for metric in sorted(both):
+        for metric in sorted({t["metric"] for t in inline} & {t["metric"] for t in legacy}):
             out.append(Finding(52, FAIL, f"{metric!r} carries a target in both shapes: inline, where a grade "
                                          f"cannot be written, and by reference into numbers[], where P2 makes "
                                          f"one mandatory. That is the same decision recorded twice with only "
                                          f"one copy graded (11-11), and the graded copy is the wrong one",
                                c.rel))
+
+        if c.kind == "goal":
+            continue
+        goal = goals.get(c.data.get("qid"))
+        if goal is None:
+            out.append(Finding(52, FAIL, f"carries a target and no goal for {c.data.get('qid')!r} is in this "
+                                         f"tree, so nothing can say the copy still says what was decided", c.rel))
+            continue
+        for t in inline:
+            n_carried += 1
+            was = stated(goal, t["metric"])
+            if was is None:
+                out.append(Finding(52, FAIL, f"carries a target on {t['metric']!r} that {goal.rel} does not "
+                                             f"state. A carried decision nobody made is not a decision", c.rel))
+            elif was != (t["kind"], t["value"], t["unit"]):
+                out.append(Finding(52, FAIL, f"carries {t['kind']} {t['value']} {t['unit']} on {t['metric']!r} "
+                                             f"where {goal.rel} decided {was[0]} {was[1]} {was[2]}. A carried "
+                                             f"copy is pinned to what the goal said, and this one has drifted",
+                               c.rel))
     if out:
         return out
-    tail = f", and {n_legacy} still by reference while the migration runs" if n_legacy else ""
-    return [Finding(52, PASS, f"{n_inline} targets are stated as decisions{tail}")]
+    tail = f", {n_carried} of them carried unchanged" if n_carried else ""
+    legacy_tail = f"; {n_legacy} still by reference while the migration runs" if n_legacy else ""
+    return [Finding(52, PASS, f"{n_inline} targets are stated as decisions{tail}{legacy_tail}")]
 
 
 CHECKS = [
