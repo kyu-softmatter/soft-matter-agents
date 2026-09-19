@@ -79,7 +79,7 @@ rather than using `-A`, and use `git commit -- <paths>`. See §6.2.
 **Safety outranks everything (P0).** People first, then instruments, then
 samples and data. Safety decisions are made by deterministic code, never by a
 model, and ambiguity stops rather than proceeds. `plan.md` §2.1 lists the
-seven enforced rules.
+enforced rules — read the list, not a count.
 
 **One agent, one session (D11), in three tiers (D12).** The four agents always
 run as four separate Claude Code sessions. Above them sit two seats that touch
