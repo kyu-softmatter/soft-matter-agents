@@ -147,6 +147,7 @@ wrong on 2026-09-17.
 | `bad_bridge_draft_trigger.json` | 8 | says a plan completed, and carries one still in DRAFT |
 | `r2_ask_simulation.json` | 13 | a filename naming a round the card does not claim |
 | `v2_ask_simulation.json` | 13 | a filename naming a revision the card does not claim |
+| `bad_result_unresolvable_pin.json` | 46 | an estimator pin that stood at no commit |
 
 The last of those is a thread ledger rather than a card (`artifact:
 thread_status`), and `--expect-fail` counts it the same way: a ledger nobody

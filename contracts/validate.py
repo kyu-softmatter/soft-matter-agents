@@ -718,9 +718,15 @@ def vocabulary_version() -> str:
     that content stood.
     """
     p = CONTRACTS / "observables.json"
-    if not p.exists():
+    return vocabulary_version_of(p.read_text()) if p.exists() else ""
+
+
+def vocabulary_version_of(text: str) -> str:
+    """The same derivation over a given copy, so a past version hashes alike."""
+    try:
+        body = json.loads(text).get("observables", [])
+    except json.JSONDecodeError:
         return ""
-    body = json.loads(p.read_text()).get("observables", [])
     blob = json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return "obs-" + hashlib.sha256(blob.encode()).hexdigest()[:12]
 
@@ -2387,11 +2393,30 @@ def check_42_check_registry(b: Bundle) -> list[Finding]:
     except IndexError:
         return [Finding(42, FAIL, "cannot find section 8's check list in plan.md", "plan.md")]
     declared = {int(m) for m in re.findall(r"^(\d+)\. ", section, re.M)}
+    # Numbers section 8 records as in progress, with the seat that holds them.
+    # A check is agreed, then implemented, then declared, so between the second
+    # and third step it exists in code and not in the list. Failing that window
+    # would mean declaring first, and then every session is blocked for as long
+    # as the implementation takes -- the shape of three outages already. The
+    # allowance is deliberately narrow: only these numbers, only one-sided, and
+    # reported rather than passed, because a recorded work in progress and a
+    # mismatch nobody knows about are different things (section 8).
+    in_progress = {int(m): who.strip() for m, _what, who in
+                   re.findall(r"^\|\s*(\d+)\s*\|([^|]*)\|([^|]*)\|\s*$", section, re.M)}
 
     out: list[Finding] = []
+    for n, who in sorted(in_progress.items()):
+        sides = [name for name, have in (("declared", n in declared), ("implemented", n in implemented)) if have]
+        if len(sides) == 1:
+            out.append(Finding(42, PENDING, f"check {n} is {sides[0]} and not the other, which section 8 records "
+                                            f"as in progress under {who}", "plan.md"))
+        elif not sides:
+            out.append(Finding(42, PENDING, f"check {n} is assigned to {who} and neither declared nor implemented",
+                               "plan.md"))
+
     for label, missing, where in (
-        ("declared but not implemented", declared - implemented, "plan.md"),
-        ("implemented but not declared", implemented - declared, "contracts/validate.py"),
+        ("declared but not implemented", declared - implemented - set(in_progress), "plan.md"),
+        ("implemented but not declared", implemented - declared - set(in_progress), "contracts/validate.py"),
         ("implemented but never run", implemented - listed, "contracts/validate.py"),
         ("run but not implemented", listed - implemented, "contracts/validate.py"),
     ):
@@ -2438,6 +2463,46 @@ def check_40_window_condition(b: Bundle) -> list[Finding]:
         if conditions[want] not in c.numbers():
             out.append(Finding(40, FAIL, f"condition {want!r} points at {conditions[want]!r}, which is not in numbers[]", c.rel))
     return out or [Finding(40, PASS, f"{checked} plans carry the window their observable depends on")]
+
+
+def check_46_vocabulary_pin(b: Bundle) -> list[Finding]:
+    """A result's estimator pin has to be readable back (5.1, 11-1).
+
+    `estimation.vocabulary_version` says which version of the vocabulary the run
+    followed, and that is what lets `comparable` mean the same estimator ran on
+    both sides. A pin nobody can resolve says nothing: a version that was never
+    committed hashes a working tree, and there is nowhere to read it back from.
+    The librarian's server says the same about a kb_version it cannot serve.
+
+    Resolvable means the current derivation, or a commit where the vocabulary
+    stood at that content. Older is normal -- a result records what it ran
+    against, and the vocabulary grows one entry at a time.
+    """
+    pinned = [(c, (c.data.get("estimation") or {}).get("vocabulary_version")) for c in b.of_kind("result")]
+    pinned = [(c, v) for c, v in pinned if v]
+    if not pinned:
+        return [Finding(46, NA, "no result pins a vocabulary version")]
+
+    known = {vocabulary_version()}
+    import subprocess
+
+    def git(*args: str) -> str:
+        return subprocess.run(["git", "-C", str(GIT_REPO), *args],
+                              capture_output=True, text=True, check=True).stdout
+
+    try:
+        shas = [x for x in git("log", "--format=%H", "--", "contracts/observables.json").splitlines() if x.strip()]
+        for sha in shas:
+            known.add(vocabulary_version_of(git("show", f"{sha}:contracts/observables.json")))
+    except (OSError, subprocess.CalledProcessError):
+        return [Finding(46, PENDING, "git history is not readable here, so only the current version can be resolved")]
+
+    out = [Finding(46, FAIL, f"estimation pins {v}, which is not the vocabulary now and stood at no commit. A "
+                             f"version that was never committed hashes a working tree, and there is nowhere to "
+                             f"read back what estimator it declared", c.rel)
+           for c, v in pinned if v not in known]
+    return out or [Finding(46, PASS, f"{len(pinned)} results pin a vocabulary version that resolves, "
+                                     f"out of {len(known)} the history holds")]
 
 
 def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged: bool = False) -> list[Finding]:
@@ -2593,7 +2658,7 @@ CHECKS = [
     check_28_precision, check_29_failure_record, check_30_lessons, check_31_candidate_preservation,
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
-    check_40_window_condition, check_43_entry_grade, check_44_subject_resolves,
+    check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_44_subject_resolves,
     check_42_check_registry, check_41_seat_attribution,
 ]
 
