@@ -37,9 +37,20 @@
     },
     "subject": {
       "type": "array",
-      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": ["device", "configuration", "observable", "quantity"],
+            "description": "Which registry `id` is drawn from. device: a channel, element or RETIRED row id in the device table -- retired ids count, because a fact about hardware that was taken out is exactly the fact someone comes looking for later. configuration: an id in the optical path table. observable: an id in contracts/observables.json. quantity: a name used in numbers[] somewhere in the repository, which is the weakest of the four -- it is a de facto registry rather than a declared one, and it is named here so nobody mistakes it for a checked namespace of its own."
+          },
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+        },
+        "required": ["kind", "id"],
+        "additionalProperties": false
+      },
       "minItems": 1,
-      "description": "What this entry is ABOUT, so a query can find it without already knowing its id. Names come from a namespace that exists: an observable id from contracts/observables.json, or a channel or element id from the device table. Without this an entry answers only to its own id, its symbol and the names in numbers[] -- on 2026-09-18 that left 14 of 25 entries, every one of them a device fact, reachable only by an id the caller had to learn by reading the staging table first."
+      "description": "What this entry is ABOUT, so a query can find it without already knowing its id. Each subject names its registry rather than being a bare string: two entries calling one thing by different words would make matching a coincidence, and a free list is a string nothing checks. The information is mostly written already as a naming habit -- `csuw1_port_slots` contains `csuw1_port` -- and that habit works until somebody names one differently. Without this field an entry answers only to its own id, its symbol and the names in numbers[]: on 2026-09-18 that left 14 of 25 entries, every one a device fact, reachable only by an id the caller had to learn by reading the staging table first. Optional until the store has filled it; the value arrives with the check that every subject resolves, not with the field."
     },
     "source_ref": { "type": "string", "description": "id in kb/sources/" },
     "date": { "type": "string", "format": "date" },

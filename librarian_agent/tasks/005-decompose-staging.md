@@ -47,12 +47,21 @@ constraint below rather than a preference.
 
 1. **Do not decompose the tables.** 546 leaf assertions in `devices.v0.json`
    and 176 in `optical_paths.v0.json` stay where they are and keep being read.
-2. **Fill `subject` on the 14 id-only entries.** The field now exists
-   (`kb_entry.schema.json`). Your server's `subjects()` already names the gap
-   and refuses to paper over it with a text search, which was right — it needed
-   a declared field, and now there is one. Names come from a namespace that
-   exists: an observable id from `contracts/observables.json`, or a channel or
-   element id from the device table. Do not invent a third.
+2. **Fill `subject` on the 14 id-only entries.** The field exists and its
+   shape changed after your second message: each subject **names its registry**,
+   `{"kind": ..., "id": ...}`, not a bare string. A free list would let two
+   entries call one thing by different words and make matching a coincidence —
+   your point, and you caught it before anything was filled.
+
+   Four kinds. `device` resolves against the device table's channel ids,
+   element ids **and retired row ids** — a fact about hardware that was taken
+   out is exactly the fact someone comes looking for later, which is your
+   `temperature_stage` case. `configuration` against the optical path table.
+   `observable` against `contracts/observables.json`. **`quantity` against the
+   names actually used in `numbers[]`** — that is your option (ii), chosen
+   because it needs no new artefact and a typo still fails, and it is labelled
+   in the schema as the weakest of the four so nobody reads it as a declared
+   namespace.
 3. **Teach `subjects()` the new field**, so a query can reach those entries
    without the caller knowing the id first.
 4. Anything else becomes an entry **when a card needs to cite it**, not before.
@@ -66,8 +75,29 @@ still two versions behind and blocked; wait for its re-pin. The rule in your
 instructions now says *do not change the store* mid-fan-out rather than *do not
 add* — your correction, and this is the first task it binds.
 
-`subject` is additive: an entry without it still answers to its id, its symbol
-and its `numbers[]` names. Filling 14 is not a migration.
+`subject` is additive and **cannot be required yet** — expand, migrate,
+contract, the same shape as `no_overlap`. An entry without it still answers to
+its id, its symbol and its `numbers[]` names.
+
+**The field is worth little until a check resolves every subject**, and that
+check is not written. It is a check, so it needs the architecture seat to
+declare it in §8 before this seat implements it, and several §8 items are
+already queued there. Said plainly rather than implied: filling `subject` now
+is useful and unverified, and the verification is the next thing, not a thing
+already done.
+
+**And the two decisions are one decision.** The registry a `device` subject
+resolves against **is the staging table**. Ruling 1 keeps the table, so this
+works; a later decision to dissolve it would silently remove what `subject`
+checks against. Whoever revisits ruling 1 has to revisit this in the same
+breath.
+
+**Not now: `identifiers` values as query handles.** It would find `Kinetix 22`
+and `MRD70040`, which is what a person actually asks, but it also makes
+`fitted_slot: "1"` findable by `"1"`, which is noise rather than a handle. The
+rule that separates them — `part_number`, `model`, `product`, `lot` are names;
+`position`, `slot` are indices — is `identifiers` semantics and therefore mine.
+Wait for it; no consumer is querying yet.
 
 ## REPORT
 
