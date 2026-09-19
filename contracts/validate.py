@@ -2895,6 +2895,159 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
     return [Finding(41, PASS, f"{clean} commits stay inside the seat that made them{tail}")]
 
 
+def check_45_undegraded_is_backed_by_the_log(b: Bundle) -> list[Finding]:
+    """A card claiming the librarian answered has a line in the query log.
+
+    `degraded: ["librarian_agent"]` is the honest value while the service is
+    unreachable, and its absence is a positive claim: this question was put to
+    the service and the service answered. Until now nothing anywhere compared
+    that claim to the one record that would show it. The claim is cheap to make
+    by accident -- an executing agent that reads kb/ by hand gets the same
+    numbers and writes the same card, and 3.0 draws its line between reading
+    the files and the service answering exactly because those look identical
+    from inside the card.
+
+    WHAT THIS DOES NOT ESTABLISH, and 9.1 was corrected on 2026-09-19 to say
+    so: the log CARRIES the claim, it does not VERIFY it. `caller_id` is an
+    argument the caller supplies and the server cannot see the identity behind
+    it, so a line proves a call was made under that id, never that this seat
+    made it. Corroboration, not proof. What it forecloses is the case with no
+    line at all, where nothing was asked and the card says otherwise.
+
+    The migration window is honoured rather than assumed away. 4.3.1 put the
+    revision into `caller_id` on 2026-09-18 and the form without it is accepted
+    while cards migrate, so a card whose id matches the log only once the
+    `:v<N>:` is removed is reported rather than failed -- the call happened and
+    the id was renamed afterwards. That becomes a failure when the pattern
+    tightens, which is the point at which it should.
+    """
+    log = REPO / "librarian_agent" / "queries" / "log.jsonl"
+    if not log.exists():
+        return [Finding(45, PENDING, "librarian_agent/queries/log.jsonl is not in this tree, so a claim "
+                                     "that the service answered has nothing to be compared against")]
+    logged: set[str] = set()
+    for line in log.read_text().splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            cid = json.loads(line).get("caller_id")
+        except json.JSONDecodeError:
+            continue
+        if cid:
+            logged.add(cid)
+    unrevised = {re.sub(r":v\d+:", ":", c, count=1) for c in logged}
+
+    out: list[Finding] = []
+    backed, degraded = 0, 0
+    for c in b.cards:
+        if "__unreadable__" in c.data:
+            continue
+        cid = c.data.get("caller_id")
+        if not cid:
+            continue
+        if any("librarian" in str(d) for d in c.data.get("degraded") or []):
+            degraded += 1
+            continue
+        if cid in logged:
+            backed += 1
+        elif re.sub(r":v\d+:", ":", cid, count=1) in unrevised:
+            out.append(Finding(45, PENDING,
+                f"{cid!r} is not in the query log, but the log holds it without its revision -- the call "
+                "happened and the id was renamed afterwards, which 4.3.1 accepts while cards migrate. "
+                "This becomes a failure when the pattern tightens", c.rel))
+        else:
+            out.append(Finding(45, FAIL,
+                f"claims the librarian answered -- `degraded` does not name it -- but the query log holds "
+                f"no call under {cid!r}. Either the service was never reached, in which case `degraded` "
+                'should say ["librarian_agent"] (3.1 rule 2), or the id was chosen rather than issued '
+                "(4.3.1). The log corroborates a claim and cannot verify one, so this is the weaker "
+                "direction only: no line at all", c.rel))
+    if out:
+        return out
+    if backed == 0:
+        return [Finding(45, NA, f"no card claims the librarian answered; {degraded} are on the degraded path")]
+    return [Finding(45, PASS, f"{backed} cards claim the service answered and the log carries a call for "
+                              f"each; {degraded} others say degraded and are out of scope")]
+
+
+def check_47_registry_prose_names_real_seats(b: Bundle) -> list[Finding]:
+    """A seat name cited in seats.json's prose resolves to a seat in it.
+
+    The registry decides who may commit what, and its prose does real work: the
+    `growth` note prescribes the identity a second session takes, and a seat's
+    own `note` says which identity that session holds. On 2026-09-18 one of
+    those named `seat/simulation-1`, which was never registered and whose
+    branch no longer existed, so a dangling name was deciding who may commit.
+    It survived because prose is not data -- nothing read it but people.
+
+    This is 11-11's shape at one remove. There the same fact lived in two
+    places and they drifted; here a name lives in prose and the thing it names
+    lives in the list, and only the list is maintained. `growth` records the
+    other half already: its example said `microscope-2`, that identity was
+    spent on an A/B variant and deferred, and the next microscope session
+    arrived at exactly the question the example was supposed to answer.
+
+    A HISTORICAL CITATION IS NOT A DEFECT, and the fix to simulation-1 is the
+    proof: correcting the note meant writing the dead name down and saying it
+    was never real. A check that reads declarations and not comprehension --
+    the class section 8 names for 47, 48, 50 and 51 -- cannot tell that from a
+    live reference. So it does not guess. A name the registry lists in
+    `retired_names` is a citation; one it does not is a dangler. Recording it
+    is the registry owner's call, which is the architecture seat's: this check
+    reports until the key exists and refuses after, so the first entry arms it
+    rather than a second seat having to be told.
+    """
+    raw = load_seats()
+    if not raw:
+        return [Finding(47, PENDING, "contracts/seats.json is not in this tree")]
+    names = {s.get("seat") for s in raw.get("seats", [])}
+    retired = raw.get("retired_names")
+
+    # Prose is every string that is not one of the fields the checks read as
+    # data. Reading the data fields too would flag `paths` and `excludes`,
+    # which name directories and not seats.
+    STRUCTURAL = {"seat", "committer_email", "owns", "paths", "excludes", "enforced_from"}
+
+    def prose(node, key: str = ""):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if k not in STRUCTURAL:
+                    yield from prose(v, k)
+        elif isinstance(node, list):
+            for v in node:
+                yield from prose(v, key)
+        elif isinstance(node, str):
+            yield key, node
+
+    dangling: list[tuple[str, str]] = []
+    cited = 0
+    for key, text in prose(raw):
+        for n in set(re.findall(r"([A-Za-z0-9_-]+)@seat\.invalid", text)) | set(
+                 re.findall(r"seat/([A-Za-z0-9_-]+)", text)):
+            if n in names:
+                cited += 1
+            elif retired is not None and n in retired:
+                cited += 1
+            else:
+                dangling.append((key, n))
+    if not dangling:
+        return [Finding(47, PASS, f"{cited} seat names cited in the registry's prose all resolve",
+                        "contracts/seats.json")]
+    if retired is None:
+        return [Finding(47, PENDING,
+            f"the registry's prose names {sorted({n for _, n in dangling})} under "
+            f"{sorted({k for k, _ in dangling})}, and no seat by those names exists. Whether each is a "
+            "dangling reference or a deliberate citation of a dead name is the registry owner's call "
+            "(architecture): add a top-level `retired_names` listing the citations, and this check "
+            "refuses the rest from then on", "contracts/seats.json")]
+    return [Finding(47, FAIL,
+        f"the registry's prose names {sorted({n for _, n in dangling})} under "
+        f"{sorted({k for k, _ in dangling})}; no seat by those names exists and `retired_names` does not "
+        "list them. Prose here decides who may commit, so a name that resolves to nothing is an "
+        "instruction that cannot be followed", "contracts/seats.json")]
+
+
 def check_50_delivery_has_a_reader(b: Bundle) -> list[Finding]:
     """A delivered envelope has a receiver with a reason to read it.
 
@@ -2954,7 +3107,8 @@ CHECKS = [
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
     check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood,
-    check_50_delivery_has_a_reader,
+    check_50_delivery_has_a_reader, check_45_undegraded_is_backed_by_the_log,
+    check_47_registry_prose_names_real_seats,
     check_42_check_registry, check_41_seat_attribution,
 ]
 
