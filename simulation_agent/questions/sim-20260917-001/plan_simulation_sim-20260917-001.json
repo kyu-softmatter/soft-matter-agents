@@ -9,13 +9,12 @@
   "author": "simulation_agent",
   "created_at": "2026-09-17T12:30:00Z",
   "status": "VALIDATED",
-  "goal_id": "goal-sim-20260917-001-r4",
+  "goal_id": "goal-sim-20260917-001-r5",
   "synthesis_id": "synthesis-sim-20260917-001",
   "purpose": "characterize",
   "intent": "explore",
   "observable": {
-    "name": "tracer_diffusivity",
-    "definition": "The short-time translational self-diffusion coefficient of dilute spherical tracers in the sample: the proportionality between mean squared displacement and lag time in the free regime, before hindrance by walls or by neighbouring particles sets in."
+    "name": "tracer_diffusivity"
   },
   "system_configuration": {
     "config": "bd_overdamped",

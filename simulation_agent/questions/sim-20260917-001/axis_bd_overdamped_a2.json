@@ -12,7 +12,7 @@
   "caller_id": "sim-20260917-001:bd_overdamped:a2",
   "config": "bd_overdamped",
   "axis": "a2",
-  "kb_version": "kbv-67f9ad766d92",
+  "kb_version": "kbv-49feb73662b7",
   "method": "deterministic",
   "verdict": "feasible",
   "constraints": [

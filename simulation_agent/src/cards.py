@@ -205,27 +205,28 @@ def evidence(kb_result: dict | None, fallback_refs: list[dict] | None = None) ->
 
 
 def observable(name: str) -> dict:
-    """The observable as a card may state it, read from the vocabulary.
+    """The observable as a card states it: the name, and nothing else.
 
-    **The definition is not written here.** `contracts/observables.json` is
-    where an observable is defined, and a card that re-words it authors a
-    second definition of the same id -- which is how three cards ended up
-    disagreeing with the vocabulary and with each other. The wording that
-    travels is therefore a copy of the source, not a paraphrase of it.
+    **A card does not carry the definition.** `contracts/observables.json`
+    defines an observable, and a transport that restates the definition holds a
+    second copy of the same thing -- which then drifts. Eight cards had drifted
+    from the vocabulary by 2026-09-18, and this one among them had written an
+    *estimator* into the definition field, which is the category error the
+    two-field split exists to prevent. The name resolves to the entry; the
+    entry is the definition.
 
-    Copying is still duplication, and the contract is moving to carrying the
-    `name` alone (the plan schema requires `definition` today, so it is
-    supplied). When that requirement is lifted, the definition drops out of
-    here and the generated Markdown reads it from the vocabulary directly --
-    the same argument as check 9, where the JSON is authoritative and the prose
-    is generated (P3).
+    The name is checked against the vocabulary here, so a card cannot name an
+    observable nobody has defined.
 
-    What a card cannot carry at all is the `estimator`, and that is the field
-    `comparable` turns on: two sides agreeing on a word while extracting the
-    number differently is worse than disagreeing openly.
+    The generated Markdown reads the vocabulary and prints both the definition
+    and the estimator (P3: the JSON is authoritative, the prose is generated).
+    That matters for the estimator in particular -- no card can carry one
+    today, `comparable` is gated on both sides having run the same one, and
+    until a contract can carry it the rendered text is the only record of
+    which one a plan meant.
     """
-    entry = definition_entry(name)
-    return {"name": name, "definition": entry["definition"]}
+    definition_entry(name)          # refuses a name the vocabulary lacks
+    return {"name": name}
 
 
 def definition_entry(name: str) -> dict:

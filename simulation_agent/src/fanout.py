@@ -105,18 +105,38 @@ def issue(qid: str, config: str, axis: str) -> str:
     return f"{qid}:{config}:{axis}"
 
 
-def current_kb_version() -> str:
-    """The store state the siblings will all cite.
+def current_kb_version(qid: str | None = None) -> str:
+    """The store state this question cites -- pinned once, then kept.
 
     `axis.schema.json` says kb_version is "pinned by S3.0; every sibling cites
-    the same one (check 33)", so it is read once here rather than written into
-    each axis module -- a constant copied six times goes stale six times, and
-    the store's version changes whenever an entry does.
+    the same one (check 33)". Read once per *question*, not once per run: the
+    store moves within minutes while an agent is working -- three versions
+    passed in one afternoon -- so re-reading it on every regeneration turns the
+    pin from a record of what was read into a record of the last time someone
+    happened to re-run the fan-out.
 
-    Pinning is a record of what was read, not a subscription to the latest. A
-    card written against an older store stays honestly stale, and check 25
-    reports that rather than passing it.
+    So if this question's goal card already cites a version, that is the pin.
+    It is what S2 actually read, and rewriting it would claim a reading that
+    never happened. Only a question with nothing pinned yet takes the store's
+    current state.
+
+    A card left behind by a moving store is honestly stale, and check 25 says
+    so as PENDING -- confirming an older version needs the store's git history.
+    That report is correct and is not something to chase away.
     """
+    if qid is not None:
+        pinned = {
+            ref["kb_version"]
+            for ref in (cards.load_goal(qid).get("kb_refs") or [])
+            if ref.get("kb_version")
+        }
+        if len(pinned) == 1:
+            return pinned.pop()
+        if len(pinned) > 1:
+            raise Refusal(
+                f"the goal of {qid} cites {sorted(pinned)}; S3.0 pins one store state and every "
+                "sibling cites it (check 33)"
+            )
     if not KB_INDEX.exists():
         raise Refusal(
             f"{KB_INDEX.relative_to(cards.REPO)} does not exist, so there is no store state to "
@@ -143,7 +163,7 @@ def plan_queries(qid: str) -> list[dict]:
     goal = cards.load_goal(qid)
     nums = {n["name"]: n for n in goal["numbers"]}
     observable = goal["observable"]["name"]
-    kb_version = current_kb_version()
+    kb_version = current_kb_version(qid)
     out: list[dict] = []
     for config in screen(observable):
         for axis in ("a1", "a4"):
@@ -197,7 +217,7 @@ def run(qid: str, created_at: str, kb_results: dict[str, dict] | None = None) ->
             f"over the cap of {LIMITS['max_subagents_per_question']}"
         )
 
-    kb_version = current_kb_version()
+    kb_version = current_kb_version(qid)
     written: dict[str, list[str]] = {}
     for config in configs:
         for axis, module in AXIS_MODULES.items():
