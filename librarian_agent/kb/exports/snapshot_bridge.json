@@ -1,9 +1,9 @@
 {
   "snapshot_version": "0.1",
   "agent": "bridge",
-  "kb_version": "kbv-67f9ad766d92",
-  "built_from_commit": "bdeffaf19c690ca1eb905d2eb3fc247bdbd1077b",
-  "entry_count": 25,
+  "kb_version": "kbv-2d398ccb414b",
+  "built_from_commit": "681433f0aef496bb3acebb1dc9c3124de3faf121",
+  "entry_count": 26,
   "entries": {
     "cameras_both_kinetix22": {
       "text": "{\n  \"entry_id\": \"cameras_both_kinetix22\",\n  \"schema_version\": \"0.1\",\n  \"kind\": \"claim\",\n  \"claim\": \"Both cameras are Kinetix 22. They are the same model, so pixel size, quantum efficiency, read noise and full-well capacity are the same on both arms, and the two arms of the splitter are photometrically comparable without a cross-calibration term. The names red and blue, and the roles primary and second detector, are wiring and naming rather than a hardware difference: neither camera is the better one.\",\n  \"validity_conditions\": \"This instrument as configured on 2026-09-17, operator read at the instrument. This closes an older discrepancy in which a purchase quote listed one Kinetix 22 and one Prime95B against a current state recorded as two Kinetix, unconfirmed: a swap did happen against the quote. Sensor properties are shared because the model is shared; no sensor number is entered here, and the calibrated pixel size remains a per-configuration gap. Falsified by either camera being replaced.\",\n  \"identifiers\": {\n    \"model\": \"Kinetix 22\"\n  },\n  \"source\": \"operator_read:kyuhwan_20260917\",\n  \"grade_tag\": \"operator_read\",\n  \"subject\": [\n    { \"kind\": \"device\", \"id\": \"camera_red\" },\n    { \"kind\": \"device\", \"id\": \"camera_blue\" }\n  ],\n  \"grade\": \"E3\",\n  \"source_ref\": \"src_operator_read_20260917\",\n  \"date\": \"2026-09-17\",\n  \"supersedes\": null,\n  \"conflict_with\": [],\n  \"curated_by\": \"kyuhwan\"\n}\n",
@@ -44,6 +44,10 @@
     "csuw1_shutter_gates_confocal_excitation": {
       "text": "{\n  \"entry_id\": \"csuw1_shutter_gates_confocal_excitation\",\n  \"schema_version\": \"0.1\",\n  \"kind\": \"claim\",\n  \"claim\": \"The shutter inside the confocal unit gates the confocal laser into the unit, and it must be open while the confocal laser is in use for excitation to reach the sample.\",\n  \"validity_conditions\": \"This instrument as configured on 2026-09-17, operator read at the instrument. This entry says what the shutter gates and stops there. Which shutter an abort closes is policy, not knowledge: it belongs to a person and to microscope_agent/envelope/safety.json (4.3.2, 10.3 rule 4). Falsified by a re-plumbing of the excitation path.\",\n  \"source\": \"operator_read:kyuhwan_20260917\",\n  \"grade_tag\": \"operator_read\",\n  \"subject\": [\n    { \"kind\": \"device\", \"id\": \"csuw1_shutter\" }\n  ],\n  \"grade\": \"E3\",\n  \"source_ref\": \"src_operator_read_20260917\",\n  \"date\": \"2026-09-17\",\n  \"supersedes\": null,\n  \"conflict_with\": [],\n  \"curated_by\": \"kyuhwan\"\n}\n",
       "sha256": "7993d24ad8f469ff10630ca31a78d0518f63d4a6f53e268a206fb15c0b76d8e5"
+    },
+    "declared_versus_inferred_temperature": {
+      "text": "{\n  \"entry_id\": \"declared_versus_inferred_temperature\",\n  \"schema_version\": \"0.1\",\n  \"kind\": \"claim\",\n  \"claim\": \"Temperature enters the two sides differently, and the difference is not symmetric. In the simulation the thermostat realises the declared value, so citing a temperature there records WHY the number was chosen and is not evidence about the model's temperature -- the model's temperature is what was declared. In the experiment nothing actuates the sample and the only thermometer reads the room, so a temperature used there is INFERRED, and citing the same entry is a claim about the sample. The uncertainty therefore sits entirely on the experiment side.\",\n  \"subject\": [\n    { \"kind\": \"quantity\", \"id\": \"temperature\" },\n    { \"kind\": \"observable\", \"id\": \"tracer_diffusivity\" }\n  ],\n  \"source\": \"computed:temperature_asymmetry\",\n  \"grade\": \"E4\",\n  \"grade_tag\": \"computed\",\n  \"source_ref\": \"src_store_derivation\",\n  \"validity_conditions\": \"Holds while both halves hold, and each is separately falsifiable. The experiment half rests on sample_temperature_not_actuated and on lab_ambient_temperature being a reading of the room: connect the temperature stage, or record where the thermometer sits relative to the sample, and it changes. The simulation half rests on the engine's thermostat realising its setpoint, which is a property of that engine and is NOT held in this store -- it is named here as an input rather than asserted as knowledge, and a simulation seat is the one that can confirm or refute it. E4 rather than E3 because a consequence is never better than the derivation that produced it, whatever the grade of its inputs. What this entry does NOT say is how large the experiment-side uncertainty is; that needs the thermometer's distance from the sample and how well the two track, and neither is known.\",\n  \"date\": \"2026-09-19\",\n  \"supersedes\": null,\n  \"conflict_with\": [],\n  \"curated_by\": \"kyuhwan\"\n}\n",
+      "sha256": "38ed5c31534fa1725cf8baa02db33a177030a6cd56578bef3f1305b90055951b"
     },
     "emission_wheel_camera_mapping": {
       "text": "{\n  \"entry_id\": \"emission_wheel_camera_mapping\",\n  \"schema_version\": \"0.1\",\n  \"kind\": \"claim\",\n  \"claim\": \"The first emission filter wheel serves the red camera and the second serves the blue camera. The operator stated this from memory, with the word probably, and the blue half is the complementary half of the same recalled claim.\",\n  \"validity_conditions\": \"This instrument as configured on 2026-09-17, stated from memory rather than read (operator_recall:kyuhwan_20260917), which is why this is E5 and not E3 while every neighbouring claim about the unit is E3. Not to be promoted by corroboration: a spectral splitter puts one wheel on each output arm, which is consistent with this mapping but is not a reading of it. If the mapping is inverted, two-colour data is labelled wrong and nothing raises an error. Settled by one acquisition: move one wheel and see which camera's image changes.\",\n  \"source\": \"operator_recall:kyuhwan_20260917\",\n  \"grade_tag\": \"operator_recall\",\n  \"subject\": [\n    { \"kind\": \"device\", \"id\": \"filter_wheel_em1\" },\n    { \"kind\": \"device\", \"id\": \"filter_wheel_em2\" },\n    { \"kind\": \"device\", \"id\": \"camera_red\" },\n    { \"kind\": \"device\", \"id\": \"camera_blue\" }\n  ],\n  \"grade\": \"E5\",\n  \"source_ref\": \"src_operator_recall_20260917\",\n  \"date\": \"2026-09-17\",\n  \"supersedes\": null,\n  \"conflict_with\": [],\n  \"curated_by\": \"kyuhwan\"\n}\n",
@@ -233,6 +237,9 @@
       "csuw1_shutter_gates_confocal_excitation": [
         "entry_id"
       ],
+      "declared_versus_inferred_temperature": [
+        "entry_id"
+      ],
       "emission_wheel_camera_mapping": [
         "entry_id"
       ],
@@ -313,6 +320,9 @@
       "temperature_stage": [
         "subject:device"
       ],
+      "tracer_diffusivity": [
+        "subject:observable"
+      ],
       "viscosity": [
         "number",
         "subject:quantity"
@@ -335,5 +345,5 @@
     }
   },
   "how_to_verify": "sha256 of each entry's `text` must equal its `sha256`, and sha256 over the canonical JSON of this object without `snapshot_hash` must equal `snapshot_hash`. A hand-edited copy fails both. `built_from_commit` names the commit this was built from, so every byte here is readable back with `git show <commit>:<path>` -- a kb_version identifies the knowledge and this identifies the packaging. Do not edit a copy: fix the KB and re-export (4.3.2).",
-  "snapshot_hash": "86f77b1d4a6b22665a386d242b799cf8dbe057606aa46fb54f2e7541dc3915e3"
+  "snapshot_hash": "4069fcfac15cdfcb301226a3fb38276d2f0f0a9e33aaecbf6c795399624e7998"
 }
