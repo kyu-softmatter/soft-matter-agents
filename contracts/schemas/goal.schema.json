@@ -42,7 +42,7 @@
         "definition": {
           "type": "string",
           "minLength": 20,
-          "description": "a name alone is insufficient (5.4) Kept for now and no longer required: the definition lives in contracts/observables.json, and a card that restates it holds a second copy that drifts -- eight cards had already drifted from the vocabulary by 2026-09-18. Name the observable and the definition, the estimator and the window come with it by reference. This property is due to be removed once every card has dropped it; 5.4 still asks for the definition and that sentence is the architecture seat's to settle before then."
+          "description": "Kept for now and no longer required: the definition lives in contracts/observables.json, and a card that restates it holds a second copy that drifts -- eight cards had already drifted from the vocabulary by 2026-09-18. Name the observable and the definition, the estimator and the window come with it by reference. This property is due to be removed once every card has dropped it; 5.4 still asks for the definition and that sentence is the architecture seat's to settle before then."
         }
       },
       "required": [
