@@ -1176,6 +1176,8 @@ ALLOWED_PATHS = [
     r"^librarian_agent/tasks/[A-Za-z0-9_.-]+$",
     r"^bridge/tasks/[A-Za-z0-9_.-]+$",
     r"^librarian_agent/src/[A-Za-z0-9_.-]+$",
+    r"^(microscope|simulation|librarian)_agent/README\.md$",
+    r"^bridge/README\.md$",
     r"^bridge/CLAUDE\.md$",
     r"^bridge/failures\.jsonl$",
     r"^bridge/threads/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
