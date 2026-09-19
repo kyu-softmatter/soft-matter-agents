@@ -1930,14 +1930,19 @@ def check_35_session_boundary(b: Bundle, commit_range: str | None = None, staged
     contracts_touched = []
     design_paths = []
     for p in paths:
-        if SHARED_PATHS.match(p) or DESIGN_OWNED.match(p):
-            design_paths.append(p)
-            continue
+        # One table, through seat_boundary_of, which is what its docstring
+        # promises and what stopped being true the moment an inbox was
+        # classified in one place and not the other: check 41 called
+        # <agent>/inbox/ the bridge's and check 35 called it the agent's, so a
+        # delivery that also moved the turn -- the ordinary case -- counted as
+        # two boundaries and was refused.
+        where = seat_boundary_of(p)
         if p.startswith("contracts/"):
             contracts_touched.append(p)
-        for rx, agent in AGENT_OF_PATH:
-            if rx.match(p):
-                touched.setdefault(agent, []).append(p)
+        if where == "design":
+            design_paths.append(p)
+        elif where != "unattributable":
+            touched.setdefault(where, []).append(p)
     out: list[Finding] = []
     if len(touched) > 1:
         out.append(Finding(35, FAIL, f"one commit writes into {sorted(touched)}; a session writes inside one agent (6.2)"))
