@@ -3068,10 +3068,10 @@ def check_50_delivery_has_a_reader(b: Bundle) -> list[Finding]:
     for the contents of a file it does not own -- get that backwards and the
     seat that cannot fix the problem is the one that is blocked.
 
-    Like check 48 it reads for a declaration and cannot read for comprehension:
-    standing orders that name the inbox may still describe it wrongly. What it
-    forecloses is the case that actually happened, where the word is absent
-    altogether.
+    Reads a declaration and not comprehension; section 8 states that limit
+    once, for this kind.
+    What it forecloses is the case that actually happened, where the word is
+    absent altogether.
     """
     delivered = [c for c in b.of_kind("ask_simulation", "ask_experiment") if "/inbox/" in c.rel]
     if not delivered:
@@ -3114,8 +3114,8 @@ def check_51_open_question_has_a_home(b: Bundle) -> list[Finding]:
     it. So this check requires the field on a held thread, and requires the
     reference in it to name a section 11 item that exists.
 
-    Like 48 and 50 it reads for a declaration and not for comprehension: it can
-    see that 11-13 exists and cannot see whether 11-13 is about this question.
+    Reads a declaration and not comprehension; section 8 states that limit
+    once, for this kind.
     """
     held = [a for a in b.of_artifact("thread_status") if a.data.get("state") == "held"]
     if not held:
