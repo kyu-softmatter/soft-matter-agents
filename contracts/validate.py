@@ -998,7 +998,12 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
         if on_disk.get("revision") != src.get("revision"):
             continue          # the source moved on; the round is not comparable, and saying so beats a false pass
         if card_sha(on_disk) != src.get("sha256"):
-            out.append(Finding(8, FAIL, "the source card at the recorded revision does not hash to the recorded value: either it was edited without a revision bump, or the payload is not what was sent. Stop the round; do not repair it (4.4 failure table)", h.rel))
+            out.append(Finding(8, FAIL, f"{src.get('path')} at revision {src.get('revision')} no longer "
+                                        f"hashes to what this ledger recorded: either it was edited without "
+                                        f"a revision bump, or the payload is not what was sent. Stop the "
+                                        f"round; do not repair it (4.4 failure table). The finding is on the "
+                                        f"ledger and the cause is in that card's tree, so naming it is "
+                                        f"routing and not repair", h.rel))
         else:
             verified += 1
 
