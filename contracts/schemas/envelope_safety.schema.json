@@ -5,9 +5,12 @@
   "description": "Not a card and not knowledge: policy. A person writes it after confirming the limits outside the system, no agent may edit it (Tier 3), and nothing in it is transferred from anywhere else -- a safety limit written for another setup is reference material, not grounds. This schema exists because the file would otherwise be invisible: a JSON object with neither `card` nor `artifact` is skipped by the collector, so a mistyped key would leave check_budget returning `unavailable`, every run falling to Tier 2, and nothing reporting an error. The same silence held run logs until run_log.schema.json. The shape here is not invented: it is what simulation_agent/src/operator.py and axis_a5_budget.py already read.",
   "type": "object",
   "properties": {
-    "artifact": { "const": "envelope_safety" },
-    "schema_version": { "const": "0.1" },
-
+    "artifact": {
+      "const": "envelope_safety"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
     "policy_version": {
       "type": "string",
       "description": "Recorded into every run log as safety_policy_version. Policy changes, so a run has to say which one it ran under; raise this whenever a ceiling moves, or the record cannot be read back."
@@ -16,32 +19,112 @@
       "type": "string",
       "description": "The person who confirmed these limits. Not machine-read, and kept anyway: P0 rule 7 makes the confirmation the point, and a policy nobody signed is a preference."
     },
-    "written_at": { "type": "string" },
+    "written_at": {
+      "type": "string"
+    },
     "basis": {
       "type": "string",
       "description": "What the ceilings were chosen against -- which machine, what else it has to keep doing. A number without this cannot be revisited, only replaced."
     },
-
     "targets": {
       "type": "array",
       "minItems": 1,
       "description": "One row per place a run may execute. A second target is a data change here and not a code change: the cost model picks the smallest target that fits, and `intent` on the goal card decides between those that do (4.5.1). The target is deliberately not a capabilities/ configuration -- local and cluster run the same model and produce the same observable.",
-      "items": { "$ref": "#/$defs/target" }
+      "items": {
+        "$ref": "#/$defs/target"
+      }
     }
   },
-  "required": ["artifact", "schema_version", "policy_version", "targets"],
+  "required": [
+    "artifact",
+    "schema_version",
+    "policy_version",
+    "targets"
+  ],
   "additionalProperties": false,
-
   "$defs": {
     "limit": {
       "type": "object",
-      "description": "A ceiling. value and unit only: this is a decision, not a measurement, so it carries no source and no grade -- P2's four parts describe a claim about the world, and a policy is not one.",
+      "description": "A ceiling. value and unit only: this is a decision, not a measurement, so it carries no source and no grade -- P2's four parts describe a claim about the world, and a policy is not one. What it does carry is `confirmation` -- not a grade, but the record of whether anyone physically checked this particular ceiling (10.3 rule 4, tightened 2026-09-19).",
       "properties": {
-        "value": { "type": "number", "exclusiveMinimum": 0 },
-        "unit": { "type": "string", "description": "must be in units.json with a fixed SI factor, or si() refuses it" },
-        "note": { "type": "string" }
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "description": "must be in units.json with a fixed SI factor, or si() refuses it"
+        },
+        "note": {
+          "type": "string"
+        },
+        "confirmation": {
+          "type": "object",
+          "description": "How this particular ceiling came to be in this file. Required per limit, not per file: a file-level `written_by` is the bulk stamp -- one signature covering twelve limits and saying which of them anyone actually checked. Librarian rule 10 already says a confirmation applied in bulk is not a confirmation, and if that holds for a KB entry it holds harder for the file P0 hands to deterministic code.\n\nCopying a limit from another document is NOT forbidden. Forbidding it would mean confirming every limit before the file can exist, and then nobody starts the file. What is required is that the two be DISTINGUISHABLE, so a later check can say `an unconfirmed limit is parameterising an irreversible action` (2.1 rule 3's shape), which today it cannot.\n\nThis is not a grade. 10.3 rule 4 keeps a limit a policy with no source and no grade, and that is unchanged: the ceiling is a decision about what is allowed. What is recorded here is the EVENT of confirming, and an event is something that happened rather than something claimed.",
+          "oneOf": [
+            {
+              "$comment": "Confirmed physically, outside the system, as 10.3 rule 4 requires.",
+              "properties": {
+                "kind": {
+                  "const": "physical"
+                },
+                "by": {
+                  "type": "string",
+                  "minLength": 2,
+                  "description": "who did it"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "how": {
+                  "type": "string",
+                  "minLength": 10,
+                  "description": "what was actually done. `confirmed` is not a how -- the point is that someone reading this later can tell whether the check would catch the thing the limit exists to catch."
+                }
+              },
+              "required": [
+                "kind",
+                "by",
+                "on",
+                "how"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "$comment": "Carried from another document without being re-confirmed here. Legal, and visibly so.",
+              "properties": {
+                "kind": {
+                  "const": "carried_over"
+                },
+                "from": {
+                  "type": "string",
+                  "minLength": 3,
+                  "description": "the document it was taken from"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "note": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "kind",
+                "from",
+                "on"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
       },
-      "required": ["value", "unit"],
+      "required": [
+        "value",
+        "unit",
+        "confirmation"
+      ],
       "additionalProperties": false
     },
     "target": {
@@ -52,21 +135,39 @@
           "pattern": "^[a-z0-9_]+$",
           "description": "the id the operator is invoked with; `local` is its default"
         },
-        "label": { "type": "string" },
-        "wall_clock_max": { "$ref": "#/$defs/limit" },
-        "storage_max": { "$ref": "#/$defs/limit" },
+        "label": {
+          "type": "string"
+        },
+        "wall_clock_max": {
+          "$ref": "#/$defs/limit"
+        },
+        "storage_max": {
+          "$ref": "#/$defs/limit"
+        },
         "smoke_budget": {
           "type": "object",
           "description": "Separate on purpose. A smoke run allowed the full budget tells you nothing before the run it precedes, and its second job is to replace the estimated cost-per-step with one measured on this machine -- so the budget comparison for the full run stops resting on an E5.",
           "properties": {
-            "wall_clock_max": { "$ref": "#/$defs/limit" },
-            "storage_max": { "$ref": "#/$defs/limit" }
+            "wall_clock_max": {
+              "$ref": "#/$defs/limit"
+            },
+            "storage_max": {
+              "$ref": "#/$defs/limit"
+            }
           },
-          "required": ["wall_clock_max", "storage_max"],
+          "required": [
+            "wall_clock_max",
+            "storage_max"
+          ],
           "additionalProperties": false
         }
       },
-      "required": ["target", "wall_clock_max", "storage_max", "smoke_budget"],
+      "required": [
+        "target",
+        "wall_clock_max",
+        "storage_max",
+        "smoke_budget"
+      ],
       "additionalProperties": false
     }
   }
