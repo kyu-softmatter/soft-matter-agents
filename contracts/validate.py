@@ -825,8 +825,29 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
     # rule, over every table and whether or not a round exists; what belongs
     # here is narrower -- the observable this round asks for.
     vocab = load_observables()
+
+    # An envelope in an inbox is a *delivery* of a round, not a round. The
+    # round lives in bridge/threads/, and the thread-level rules below --
+    # duplicate blocking, the ledger, the turn -- count rounds. Counting the
+    # delivered copy as a second round made rule 5 refuse the first real
+    # delivery for asking what its own original asked.
+    delivered = [c for c in asks if "/inbox/" in c.rel]
+    rounds = [c for c in asks if "/inbox/" not in c.rel]
+    by_round = {(str(c.data.get("thread")), c.data.get("round")): c for c in rounds}
+    for c in delivered:
+        key = (str(c.data.get("thread")), c.data.get("round"))
+        source = by_round.get(key)
+        if source is None:
+            out.append(Finding(8, FAIL, f"delivered as {key[0]} round {key[1]}, which is not a round in "
+                                        f"bridge/threads/. A delivery carries a round; it does not open one "
+                                        f"(4.4)", c.rel))
+        elif canon_sha(c.data) != canon_sha(source.data):
+            out.append(Finding(8, FAIL, f"the delivered envelope differs from {source.rel}. A delivery is the "
+                                        f"round, byte for byte in canonical form -- otherwise the receiving "
+                                        f"side acts on something the thread does not record (4.4 rule 1)", c.rel))
+
     by_thread: dict[str, list[Card]] = {}
-    for c in asks:
+    for c in rounds:
         by_thread.setdefault(str(c.data.get("thread")), []).append(c)
 
     for c in asks:
