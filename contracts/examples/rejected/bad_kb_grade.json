@@ -32,5 +32,7 @@
       "kb_version": "kbv-6757e8d916c5"
     }
   ],
-  "degraded": []
+  "degraded": [
+    "librarian_agent"
+  ]
 }

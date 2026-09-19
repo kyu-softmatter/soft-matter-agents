@@ -25,5 +25,7 @@
       "grade": "E1"
     }
   ],
-  "degraded": []
+  "degraded": [
+    "librarian_agent"
+  ]
 }

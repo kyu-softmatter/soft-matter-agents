@@ -102,5 +102,7 @@
       "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second."
     }
   ],
-  "degraded": []
+  "degraded": [
+    "librarian_agent"
+  ]
 }

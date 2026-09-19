@@ -26,5 +26,7 @@
     }
   ],
   "assumptions": [],
-  "degraded": []
+  "degraded": [
+    "librarian_agent"
+  ]
 }
