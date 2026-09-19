@@ -60,9 +60,12 @@ chosen (§11-2); PENDING means an artifact a later milestone produces.
 
 The commit gate checks **the tree the commit would create**, not the working
 copy — the index is unpacked to a scratch directory and the validator runs
-there, so another session's half-finished edit no longer refuses your commit.
-It lists separately whatever differs from what is going in, because nothing
-checked that. `--no-verify` bypasses it and leaves no trace, so say so in the
+there. With `git commit -- <paths>` git builds a temporary index first, so what
+is judged is your paths on top of HEAD and another session's half-finished edit
+neither enters your commit nor refuses it. A plain `git commit` has no such
+index: whatever anyone staged is your commit, and is judged as yours. The gate
+lists separately whatever differs from what is going in, because nothing checks
+that. `--no-verify` bypasses it and leaves no trace, so say so in the
 message.
 
 **The working copy and the git index are shared between sessions.** Name paths
@@ -96,8 +99,10 @@ librarian MCP calls, so every transfer leaves a trace on disk. See §6.2.
 directory, read that agent's `CLAUDE.md` and stay inside it. If it is the
 repository root, this is a top-tier seat: specify, do not implement. The
 directory cannot tell architecture from manager — both sit at the root — so
-that one comes from the person who seated you, and `contracts/seats.json` says
-which paths follow from it.
+that one comes from the person who seated you. `contracts/seats.json` then
+**narrows** a seat inside the boundaries it owns; it cannot widen one. Which
+paths a boundary holds is a table in the validator, so a path added to a seat's
+`paths` that the validator classifies elsewhere grants nothing (§11-11).
 
 **Numbers carry four parts (P2).** `{value, unit, source, grade}`. The grade
 E1–E6 is derived from the source, never self-reported. E6 — a value a model
