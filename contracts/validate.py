@@ -2701,6 +2701,36 @@ def run(roots: list[Path], include_rejected: bool = False, commit_range: str | N
     return findings
 
 
+def describe_tree(staged: bool = False) -> str:
+    """Which tree the verdict above is about.
+
+    Five sessions share one working copy, so a bare run is nobody's commit: it
+    holds everyone's half-finished edits at once. Twice in one day two seats
+    quoted counts at each other and both were stale, and once a count that was
+    read honestly off a run belonged to another agent's in-flight revision
+    bump. The rule "read it off the run" is not enough on a shared copy -- the
+    run has to say which tree it ran against, and saying it is cheaper to
+    automate than to remember.
+    """
+    import subprocess
+
+    def git(*args: str) -> str:
+        return subprocess.run(["git", "-C", str(GIT_REPO), *args],
+                              capture_output=True, text=True, check=True).stdout.strip()
+
+    try:
+        head = git("rev-parse", "--short", "HEAD")
+        dirty = [x for x in git("status", "--porcelain").splitlines() if x.strip()]
+    except (OSError, subprocess.CalledProcessError):
+        return "tree: not a git checkout, so this verdict names no commit"
+    if staged:
+        return f"tree: the index as it would be committed, on top of {head}"
+    if not dirty:
+        return f"tree: {head}, clean"
+    return (f"tree: {head} plus {len(dirty)} uncommitted paths, which is nobody's commit -- "
+            f"a failure here may belong to another session")
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="the deterministic gate (plan.md section 8)")
     ap.add_argument("paths", nargs="*", type=Path, default=None)
@@ -2764,6 +2794,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"verdict: {counts[PASS]} passed, {counts[FAIL]} failed, "
           f"{counts[UNDECIDED]} undecided, {counts[PENDING]} pending, {counts[NA]} not applicable")
+    print(describe_tree(args.staged))
     if counts[UNDECIDED]:
         print("undecided means a threshold nobody has chosen; it is not a threshold that is satisfied")
     if counts[FAIL]:
