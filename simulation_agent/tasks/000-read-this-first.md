@@ -7,71 +7,69 @@ Everything this seat was told on 2026-09-18 was told by message, and the
 instructions that mattered survived only as long as the sessions did. That was
 the defect §6.2-2 names, and this file is the repair.
 
-## Two seats, one identity — do not commit until this is settled
+## Two seats, two identities — settled, and session 2 may commit
 
-There are two live simulation execution sessions and **one** identity,
-`simulation@seat.invalid`. `contracts/seats.json` says what that costs:
-`one_identity_per_session` records that two sessions sharing an identity is not
-a seat but a hole, that it happened twice on 2026-09-17, and that **both times
-check 41 passed and the pass was the defect.**
+`simulation-2@seat.invalid` was registered on 2026-09-18. This section used to
+say session 2 must not commit, and **that instruction is withdrawn**: it was
+right while one identity covered two sessions, and it went stale the moment the
+registry grew. A standing order that outlives its cause stops being a
+precaution and becomes a seat idling for no reason.
 
-The registry's own `growth` note prescribes the fix — a second execution
-session gets its own identity with the same `owns` and no `paths`, following
-the `microscope-2` precedent, so `simulation-2@seat.invalid`. `seats.json` is
-in `manager-simulation`'s `excludes`, so this seat cannot issue it. **Raised to
-the architecture seat.**
+- **Session 1** keeps `simulation@seat.invalid`, where all of this agent's
+  commits are.
+- **Session 2** commits as `simulation-2@seat.invalid`, same `owns`, no
+  `paths`.
 
-Until it lands:
+The reason both exist is in the registry's `one_identity_per_session`: two
+sessions sharing an identity is not a seat, it is a hole, because check 41
+cannot tell them apart and passes their mixture. It happened twice on
+2026-09-17 and **both times the check passed and the pass was the defect.**
 
-- **Session 1** (the one that committed `d1364e5`) holds `simulation@seat.invalid`
-  legitimately and may commit.
-- **Session 2** does not commit. Read, audit and prepare; leave the writing.
+No branch is assigned to this agent, and none should be created. Worktrees were
+reverted on 2026-09-18 (`328176f`), so this is one shared working copy and a
+branch switch moves the files under every other session. Name paths, never
+`-A`, and use `git commit -- <paths>`.
 
-The same message raised the worktree question. `seats.json` says the seat is
-the worktree rather than the session, and two seats sharing one boundary in one
-working copy overwrite each other. No branch has been assigned to this agent.
-Do not create one: a branch switch in a shared working copy moves the files
-under every other session.
+## The librarian answers now, and what is left is smaller than it was
 
-## The librarian is unreachable, and the cause is known
+**`.mcp.json` landed and the service answered for the first time on
+2026-09-19.** It resolves the server through `git rev-parse --show-toplevel`,
+so each checkout gets its own store and no session depends on where it was
+launched from. The history of the three forms that did not work is in §7 and is
+worth reading once; it is no longer a blocker.
 
-M2's remaining completion condition is one pass with the librarian **on** —
-`kb_refs` filled, `kb_gaps` filled, `degraded` **empty** (§9.1). It cannot be
-met today, and not because of approval.
+Two things about it still hold and are easy to get wrong:
 
-**The path is fixed as of `8d4a604`** and the remaining obstacle is smaller.
+- **Project MCP config is read at session start.** A session opened before
+  `8d4a604` cannot see `mcp__librarian__*` no matter what the file says. If the
+  tools are not in your session, the answer is a new session, not a workaround.
+- **A session that cannot see the tools must not write a card claiming the
+  service answered.** `degraded: ["librarian_agent"]` is the honest value, and
+  session 1 already made that structural: `cards.evidence` defaults to degraded
+  and clears only when a reply names the server. Do not reintroduce a hardcoded
+  `degraded` anywhere.
 
-Three forms have been tried and the history is in §7. A plain relative path
-resolved against the session's cwd. `${CLAUDE_PROJECT_DIR:-.}` fell back to
-`.` because that variable is not set here, so a session at `simulation_agent/`
-looked for `./librarian_agent/src/mcp_server.py`, which does not exist. An
-absolute path into the shared checkout worked and was measured to be wrong for
-a different reason: `microscope-1`'s worktree held `kbv-fdef964aca56` while
-the shared copy answered `kbv-67f9ad766d92`, so a worktree session's cards
-would cite a version whose bytes are not in its own checkout. The current form
-resolves `git rev-parse --show-toplevel`, which gives each worktree its own
-store and gives this directory the repository root. Confirmed to resolve here.
-
-**Resolving is not the same as connecting, and nobody has checked the second.**
-The test is not that the path is right; it is that `mcp__librarian__*` appears
-in a session opened at an agent directory. Only a session started after
-`8d4a604` can make that observation, because project MCP config is read at
-session start.
-
-**A session that cannot see the tools must not produce a card claiming the
-service answered.** `degraded: ["librarian_agent"]` is the honest value while
-this holds, and session 1 already made that structural: `cards.evidence`
-defaults to degraded and only clears when a reply names the librarian server.
-Do not reintroduce a hardcoded `degraded` anywhere.
-
-`.mcp.json` is the architecture seat's path. **Raised there**, with the
-constraint stated: the path must not depend on the launching session's working
-directory, and `CLAUDE_PROJECT_DIR` is not set in this context.
+**Check 45 now reads that claim against the query log** — a card whose
+`degraded` omits the librarian must have a call logged under its `caller_id`.
+Know what it does and does not do: the log **carries** the claim and does not
+verify it, because `caller_id` is an argument and the server cannot see the
+identity behind it. A line proves a call was made under that id, not that you
+made it. What it forecloses is the card with no line at all.
 
 ## What is startable right now
 
-**`001`.** It needs no librarian and no new identity — but see the seat rule
-above for who commits it.
+**`001` is done** — `cards.observable()` returns the name alone and no card in
+`questions/` carries a `definition`. Nothing is blocked on the librarian, on an
+identity, or on a person. The open work is revision 2 of `sim-20260917-001`:
+the fan-out with the tools actually reachable, pinning the store as of that
+run, leaving revision 1 beside it.
+
+**And read the inbox section of `CLAUDE.md` before you need it.** Rounds from
+the bridge arrive in `simulation_agent/inbox/<thread>/`; an envelope sitting
+there is the turn, and you never write into it. Taking a round is S2 and is
+assigned by a task card the way an axis is — seeing one you have no card for,
+report it up rather than starting it, because two seats share this tree and a
+round each assumes the other took looks staffed while nobody holds it.
 
 ## What is already true, so do not redo it
 
@@ -80,9 +78,15 @@ above for who commits it.
   `kb_group(symbol='tau_d')`, A3 wants `kb_query`. MCP tools are called by the
   model, not by Python, and that boundary is already in the code. When the
   tools appear, the work starts at the call, not at the wiring.
-- `caller_id` is issued by the fan-out runner as `<qid>:<config>:<axis>`
+- `caller_id` is issued by the fan-out runner as **`<qid>:v<N>:<config>:<axis>`**
   (§4.3.1). An axis module never chooses its own — the rule exists so a
-  sibling's id cannot be worn, including by text arriving from a search.
+  sibling's id cannot be worn, including by text arriving from a search. **The
+  revision is in the id** because the id is also the server's isolation unit:
+  without it the same axis at two revisions shares one session context, and a
+  re-run inherits the attempt it exists to replace. Revision 1 writes `v1`
+  rather than omitting it. This file said the form without `v<N>` until
+  2026-09-19; that form is still accepted while the cards that predate
+  `a6dca6a` migrate, and stops being accepted after.
 - **The cards of `sim-20260917-001` read `kbv-9bc3910f1886`.** That is what
   `e36b6f7` (2026-09-18 07:44) was built against — checked against the store's
   own history, not against the cards — and `failures.jsonl` records the same
