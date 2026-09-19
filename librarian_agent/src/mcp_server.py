@@ -739,6 +739,13 @@ def _self_test() -> int:                                    # noqa: C901
             print("note: no usable mcp package, so the transport was not exercised")
         else:
             import asyncio
+            # The instructions string is the only part of the design most
+            # callers ever see, and on 2026-09-18 it still said a stale pin was
+            # refused for one commit after that stopped being true. This pins
+            # the positive claim, tied to case 7 which verifies the behaviour;
+            # it does not and cannot check descriptions for drift in general.
+            if "version it names" not in (app.instructions or ""):
+                bad("the instructions no longer say a pin is answered from the version it names")
             listed = asyncio.run(app.list_tools())
             names = {t.name for t in listed}
             if names != set(TOOLS):
@@ -810,9 +817,12 @@ def _build_app(store: Store):
 
     app = _Server(name="librarian", instructions=(
         "Read-only knowledge store. Four tools and no writes. caller_id is issued by the "
-        "fan-out launcher and pins which question, configuration and axis is asking; "
-        "kb_version pins the store version and a mismatch is refused rather than answered "
-        "at another version. Matching reports whether an entry's validity covers the asked "
+        "fan-out launcher and pins which question, configuration and axis is asking. "
+        "kb_version is honoured: a pin is answered from the version it names, not from "
+        "whatever the store is at now, and every response says in `answered_from` which "
+        "version and commit replied. The one pin that cannot be served is a version that "
+        "was never committed -- it hashes a working tree, so there is nowhere to read it "
+        "back from. Matching reports whether an entry's validity covers the asked "
         "conditions and never decides what to do about a gap."))
     app.add_tool(tool_kb_query, name="kb_query",
                  description="entries for an observable and condition range, plus gaps and a grade summary")
