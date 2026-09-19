@@ -1189,13 +1189,19 @@ def check_13_paths(b: Bundle) -> list[Finding]:
     # where it is convenient is P4 in reverse.
     prefixed = 0
     for c in b.cards + b.artifacts:
-        m = re.match(r"^r(\d+)_", c.path.name)
+        m = re.match(r"^([rv])(\d+)_", c.path.name)
         if m is None or "__unreadable__" in c.data:
             continue
+        # Two prefixes because they are two things (7.1 rule 3). While one
+        # sentence covered both, this read r<N>_ as a round and a revision-2
+        # plan named r2_ failed against its round of 0 -- 4.5.5 could not be
+        # followed. The field each prefix answers to is the whole difference.
+        field = "round" if m.group(1) == "r" else "revision"
         prefixed += 1
-        if int(m.group(1)) != c.data.get("round"):
-            out.append(Finding(13, FAIL, f"the filename says round {int(m.group(1))} and the card says {c.data.get('round')} (7.1 rule 3)", c.rel))
-    return out or [Finding(13, PASS, f"{n} files sit in declared paths, {prefixed} of them naming their round")]
+        if int(m.group(2)) != c.data.get(field):
+            out.append(Finding(13, FAIL, f"the filename says {field} {int(m.group(2))} and the card says "
+                                         f"{c.data.get(field)} (7.1 rule 3)", c.rel))
+    return out or [Finding(13, PASS, f"{n} files sit in declared paths, {prefixed} of them naming their round or revision")]
 
 
 def check_14_command_provenance(b: Bundle) -> list[Finding]:
