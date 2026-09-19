@@ -28,11 +28,14 @@ hypothetical. **The service answered for the first time on 2026-09-19**:
 real gap detection — two `absent`, one `condition_mismatch`. That is §0.3's line
 between reading the files and the service answering, crossed.
 
-**§9.1's condition was first met on 2026-09-19** by
-`microscope_agent/questions/mic-20260918-001/axis_widefield_inline_a4.json` —
-`kb_refs` and `kb_gaps` both filled, `degraded` empty, and its caller_id backed
-by the log. Every other card in the repository still read the files directly
-and belongs on the degraded path.
+**§9.1's condition was first met on 2026-09-19**, by three cards under
+`microscope_agent/questions/mic-20260918-001/` — `axis_widefield_inline_a2`,
+`_a3` and `_a6` — each with `kb_refs` and `kb_gaps` filled, `degraded` empty,
+and a caller_id the query log carries. Count them off a run, not off this
+sentence: check 45 is what counts them. This file named a fourth card, `_a4`,
+until 2026-09-19; that path is in no commit in this repository, so the
+evidence for the milestone was unreadable. Cards not in that list still read
+the files directly and belong on the degraded path.
 
 ```bash
 python3 contracts/validate.py                                    # the repository
