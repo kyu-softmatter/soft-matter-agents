@@ -9,6 +9,9 @@
   "unit": "s",
   "validity_conditions": "A length squared over a diffusivity is a TIME, and the unit above says so: this is a derived quantity that keeps a dimension, not a dimensionless group. Physically: spherical tracer, bulk fluid, no slip, overdamped. Near a wall the drag is corrected separately rather than absorbed into this time, or the time unit changes with stage position and nothing can be compared.",
   "source": "computed:diffusive_time",
+  "subject": [
+    { "kind": "quantity", "id": "tau_d" }
+  ],
   "grade": "E4",
   "grade_tag": "textbook",
   "source_ref": "src_colloid_dynamics",

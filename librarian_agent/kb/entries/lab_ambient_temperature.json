@@ -9,6 +9,10 @@
   "validity_conditions": "The room as of 2026-09-17, operator read off a thermometer. Two things are still open and neither may be assumed. WHERE the thermometer is -- room air or close to the sample -- is not recorded, so this is the laboratory's ambient temperature and it is not established to be the sample's; a plan that needs the viscosity or the thermal energy AT THE SAMPLE stands on that gap rather than on this entry. And the drift band is unmeasured: with no actuator, that band is not a tolerance anyone chooses but a property of the room somebody has to measure. Water's viscosity moves by roughly two percent per kelvin, so in explore mode a drift of about a kelvin does not move a decade and can be ignored, while in confirm mode it cannot. The date the reading was taken is not recorded either -- what is dated 2026-09-17 is the operator's statement that it is a reading.",
   "source": "operator_read:kyuhwan_20260917",
   "grade_tag": "operator_read",
+  "subject": [
+    { "kind": "quantity", "id": "ambient_temperature" },
+    { "kind": "quantity", "id": "temperature" }
+  ],
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

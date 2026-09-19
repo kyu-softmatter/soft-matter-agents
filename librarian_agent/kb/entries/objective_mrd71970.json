@@ -18,6 +18,9 @@
     "immersion": "oil"
   },
   "source": "spec:MRD71970",
+  "subject": [
+    { "kind": "device", "id": "nosepiece" }
+  ],
   "grade": "E3",
   "grade_tag": "vendor_spec",
   "source_ref": "src_nikon_objective_catalog",

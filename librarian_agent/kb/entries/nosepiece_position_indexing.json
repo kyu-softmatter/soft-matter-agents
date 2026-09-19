@@ -12,6 +12,9 @@
   },
   "source": "operator_read:kyuhwan_20260917",
   "grade_tag": "operator_read",
+  "subject": [
+    { "kind": "device", "id": "nosepiece" }
+  ],
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

@@ -11,6 +11,9 @@
     "temperature": { "min": 288, "max": 298, "unit": "K" }
   },
   "source": "literature:src_water_properties",
+  "subject": [
+    { "kind": "quantity", "id": "viscosity" }
+  ],
   "grade": "E3",
   "grade_tag": "textbook",
   "source_ref": "src_water_properties",
