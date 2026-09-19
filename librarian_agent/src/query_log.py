@@ -332,6 +332,120 @@ def verify(log: Path = DEFAULT_LOG) -> list[str]:
     return problems
 
 
+_AXIS_RE = re.compile(r"^a[1-7]$")
+_REV_RE = re.compile(r"^v[0-9]+$")
+
+
+def _fanout_of(caller_id: str) -> tuple[tuple[str, str, str] | None, str | None]:
+    """Split an axis caller_id into its fan-out and its axis.
+
+    Returns ((qid, revision, config), axis) for the config-axis form, and
+    (None, None) for everything else -- s2, operator, bridge and selftest are
+    not siblings of anything, so they have no fan-out to disagree within.
+
+    The un-versioned axis form gets (None, None) too, and that is the point
+    rather than an omission. `mic-20260918-001:widefield_inline:a4` names no
+    revision, so it cannot be told from the a4 of a re-plan, and grouping it
+    with v1 would be a guess written into a finding. common.schema.json accepts
+    that form only "while the cards that predate a6dca6a migrate"; until the
+    migration finishes those calls are simply outside this witness, which
+    `retired_caller_form` reports so the absence is visible rather than silent.
+    """
+    parts = caller_id.split(":")
+    if len(parts) < 3 or parts[0] in ("bridge", "selftest"):
+        return None, None
+    qid, rest = parts[0], parts[1:]
+    if not _REV_RE.match(rest[0]):
+        return None, None
+    rev, rest = rest[0], rest[1:]
+    if len(rest) == 2 and _AXIS_RE.match(rest[1]):
+        return (qid, rev, rest[0]), rest[1]
+    return None, None
+
+
+def fanout_pins(log: Path = DEFAULT_LOG) -> list[str]:
+    """Siblings of one fan-out that read different stores.
+
+    A separate property from the one `verify` witnesses, and invisible to it
+    on purpose: `_query_key` folds the caller down to its AGENT, so two axes of
+    one fan-out are the same key there and their pins are never compared. The
+    rule this checks is stated in librarian_agent/CLAUDE.md -- pin kb_version
+    for the whole fan-out and do not move the store mid-flight -- and until now
+    nothing tested it. It is worth a witness because no caller can see it: an
+    axis knows its own pin and never its siblings', and the server is the only
+    place both appear.
+
+    Why this reports rather than fails. The pin is chosen by the fan-out
+    launcher, which is not this seat; a check that fails for something the
+    reader cannot fix gets suppressed, and then the determinism witness beside
+    it gets suppressed with it. `--strict` promotes it, the same way
+    contracts/validate.py promotes undecided.
+    """
+    if not log.exists():
+        return []
+    pins: dict[tuple[str, str, str], dict[str, list[str]]] = {}
+    when: dict[tuple[tuple[str, str, str], str], list[str]] = {}
+    for line in log.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            rec = json.loads(line)
+        except json.JSONDecodeError:
+            continue          # verify() owns malformed lines; do not report twice
+        if rec.get("outcome") == "refused" or not rec.get("kb_version"):
+            continue
+        fan, axis = _fanout_of(str(rec.get("caller_id", "")))
+        if fan is None:
+            continue
+        pins.setdefault(fan, {}).setdefault(rec["kb_version"], [])
+        if axis not in pins[fan][rec["kb_version"]]:
+            pins[fan][rec["kb_version"]].append(axis)
+        when.setdefault((fan, rec["kb_version"]), []).append(rec["asked_at"])
+    problems = []
+    for fan, versions in sorted(pins.items()):
+        if len(versions) < 2:
+            continue
+        qid, rev, config = fan
+        detail = "; ".join(
+            f"{v} read by {sorted(axes)} ({min(when[(fan, v)])} to {max(when[(fan, v)])})"
+            for v, axes in sorted(versions.items())
+        )
+        problems.append(
+            f"fan-out {qid}:{rev}:{config} read {len(versions)} stores: {detail}. "
+            "Siblings pinned to different kb_versions did not see the same knowledge, "
+            "so the fan-out's axes are not comparable and the difference is itself a "
+            "channel between them"
+        )
+    return problems
+
+
+def retired_caller_form(log: Path = DEFAULT_LOG) -> list[str]:
+    """Axis calls still arriving without a revision, and when they last did.
+
+    common.schema.json accepts `<qid>:<config>:<axis>` only while cards that
+    predate a6dca6a migrate, and says it stops being accepted after. Whoever
+    tightens that pattern needs to know the migration is finished, and this log
+    is the only place that is observable. Reports the latest use, because a
+    form last seen yesterday and one still being issued this hour are different
+    decisions.
+    """
+    if not log.exists():
+        return []
+    latest: dict[str, str] = {}
+    for line in log.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            rec = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        cid = str(rec.get("caller_id", ""))
+        parts = cid.split(":")
+        if len(parts) == 3 and not _REV_RE.match(parts[1]) and _AXIS_RE.match(parts[2]):
+            latest[cid] = max(latest.get(cid, ""), rec.get("asked_at", ""))
+    return [f"{cid} carries no revision; last used {ts}" for cid, ts in sorted(latest.items())]
+
+
 def _self_test() -> int:
     """Exercise the module without writing into the store."""
     import tempfile
@@ -370,6 +484,53 @@ def _self_test() -> int:
         if not any("returned something different" in p for p in found):
             print("FAIL: a determinism violation went unnoticed:", found); ok = False
 
+        # The fan-out pin witness, on a log of its own so the determinism
+        # fixture above does not have to stay pin-clean as well.
+        fan = Path(d) / "fanout.jsonl"
+        sib = dict(base, observable="tracer_diffusivity")
+        for axis, ver in [("a1", "kbv-aaaaaaaaaaaa"), ("a2", "kbv-aaaaaaaaaaaa"),
+                          ("a3", "kbv-bbbbbbbbbbbb")]:
+            record(fan, **dict(sib, caller_id=f"mic-20260917-001:v1:transmitted:{axis}",
+                               kb_version=ver))
+        split = fanout_pins(fan)
+        if len(split) != 1 or "a3" not in split[0] or "kbv-bbbbbbbbbbbb" not in split[0]:
+            print("FAIL: a fan-out reading two stores was not reported:", split); ok = False
+        if any("v2" in x for x in split):
+            print("FAIL: reported a fan-out that does not exist:", split); ok = False
+
+        # A different REVISION of the same question is a different fan-out and
+        # may legitimately repin -- that is what v<N> is for. Regression: an
+        # earlier draft keyed on (qid, config) and called every re-plan a split.
+        agree = Path(d) / "agree.jsonl"
+        for cid, ver in [("mic-20260917-001:v1:transmitted:a1", "kbv-aaaaaaaaaaaa"),
+                         ("mic-20260917-001:v2:transmitted:a1", "kbv-bbbbbbbbbbbb"),
+                         ("mic-20260917-001:v1:confocal:a1", "kbv-cccccccccccc"),
+                         ("mic-20260917-001:v1:s2", "kbv-dddddddddddd"),
+                         ("mic-20260917-001:v1:operator", "kbv-eeeeeeeeeeee"),
+                         ("bridge:thr-mic-sim-001:r1", "kbv-ffffffffffff"),
+                         ("selftest:pins", "kbv-000000000000")]:
+            record(agree, **dict(sib, caller_id=cid, kb_version=ver))
+        if fanout_pins(agree):
+            print("FAIL: called a repin, another config, or a non-axis caller a split:",
+                  fanout_pins(agree)); ok = False
+
+        # The un-versioned form is reported as unattributable, never folded in.
+        # Two of these with different pins must NOT become a fan-out finding:
+        # which revision each belonged to is exactly what is not on record.
+        oldform = Path(d) / "oldform.jsonl"
+        for cid, ver in [("mic-20260917-001:transmitted:a1", "kbv-aaaaaaaaaaaa"),
+                         ("mic-20260917-001:transmitted:a2", "kbv-bbbbbbbbbbbb")]:
+            record(oldform, **dict(sib, caller_id=cid, kb_version=ver))
+        if fanout_pins(oldform):
+            print("FAIL: guessed a revision for an id that carries none:",
+                  fanout_pins(oldform)); ok = False
+        if len(retired_caller_form(oldform)) != 2:
+            print("FAIL: the retired form went unreported:",
+                  retired_caller_form(oldform)); ok = False
+        if retired_caller_form(agree):
+            print("FAIL: reported a current-form id as retired:",
+                  retired_caller_form(agree)); ok = False
+
         missing = Path(d) / "undeclared" / "log.jsonl"
         try:
             record(missing, **base)
@@ -386,6 +547,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--path", type=Path, default=DEFAULT_LOG)
     ap.add_argument("--verify", action="store_true", help="audit the log: shape, ordering, and one answer per (query, kb_version)")
     ap.add_argument("--self-test", action="store_true", help="exercise record and verify in a temporary directory")
+    ap.add_argument("--strict", action="store_true",
+                    help="count fan-out pin splits as failures, not reports (they are another seat's to fix)")
     args = ap.parse_args(argv)
     if args.self_test:
         return _self_test()
@@ -397,7 +560,17 @@ def main(argv: list[str] | None = None) -> int:
         for p in problems:
             print(p)
         print(f"{args.path}: {len(problems)} problems" if problems else f"{args.path}: clean")
-        return 1 if problems else 0
+
+        # Reported below the verdict, never folded into it. These two are the
+        # launcher's and the contract's to act on; printing them as failures
+        # here would make this command fail for something its reader cannot
+        # fix, and a check like that gets silenced along with the one above it.
+        splits = fanout_pins(args.path)
+        for s_ in splits:
+            print(f"REPORT {s_}")
+        for s_ in retired_caller_form(args.path):
+            print(f"REPORT {s_}")
+        return 1 if problems or (splits and args.strict) else 0
     ap.print_help()
     return 0
 
