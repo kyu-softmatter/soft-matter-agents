@@ -151,8 +151,6 @@ SOURCE_GRADE = {
     "spec": "E3",
     "prior_run": "E3",        # another project ran it; 10.3 rule 1 caps it here
     "literature": "E3",       # published, and not a vendor specification
-    "operator_set": "E5",     # the operator chose it; a decision, not an observation.
-                              # The grade is the wrong axis for one -- see common.schema.json
     "operator_read": "E3",    # the operator read it off the instrument
     "operator_recall": "E5",  # the operator stated it from memory
     "computed": None,         # max(E4, worst input)
