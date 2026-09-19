@@ -1,0 +1,20 @@
+{
+  "entry_id": "trap_heating_detection_bound",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The operator recalls not noticing a temperature change in the sample unless the infrared trapping laser was driven above roughly 20 percent on its dial. This records where noticing stopped, by means that were not recorded.",
+  "subject": [
+    { "kind": "device", "id": "optical_tweezers" },
+    { "kind": "configuration", "id": "trapping" },
+    { "kind": "quantity", "id": "temperature" }
+  ],
+  "source": "operator_recall:kyuhwan_20260919",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_operator_recall_20260919",
+  "validity_conditions": "THIS IS NOT A LIMIT AND MAY NOT BE USED AS ONE. 'Keep it under 20 percent' is the sentence someone lifts out of an entry and uses to parameterise a laser, and three separate rules forbid that: safety limits live in a file a person writes and in deterministic code (P0, 2.1 rule 7), they do not transfer (10.3 rule 4), and the grade forbids it on its own -- an E5 may not parameterise an irreversible action without a person's individual approval, and raising laser power onto a sample is irreversible to the sample. Anyone needing a bound writes one in envelope/safety.json after confirming it physically. Three things this says less than it appears to. It is RECALLED, not read, which is why it is E5 while the neighbouring instrument facts are E3. It is a DETECTION BOUND and not a zero: 'did not notice' was measured by unrecorded means, and 'no heating below 20 percent' is a stronger claim than was made. And 20 PERCENT IS A DIAL READING, not a power: a percentage of an unstated maximum is not a quantity, and writing it into numbers[] would not make it one -- the same ruling that keeps a nominal magnification out of numbers[], wearing different clothes. It does not close the heating gap. A measured heating rate is still absent, and a gap that looks satisfied by an E5 recollection is a false absence running backwards. What it does is sharpen what to measure: sweep the dial with a thermometer that has a recorded position, and the bound becomes a curve.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

@@ -1,0 +1,9 @@
+{
+  "source_id": "src_operator_recall_20260919",
+  "kind": "operator_recall",
+  "identifier": "Things the operator (kyuhwan) stated from memory on 2026-09-19, as distinct from what he read at the instrument the same day.",
+  "accessed": "2026-09-19",
+  "grade_rule": "E5. What was remembered and what was seen do not take the same grade (5.3), and which of the two a statement is, is a question for the person rather than an inference from how confident it sounds.",
+  "license_note": "Identifier only.",
+  "note": "Kept separate from src_operator_read_20260919 for the same day, so the grade follows from which source an entry cites rather than from prose inside it."
+}

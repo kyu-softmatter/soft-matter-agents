@@ -2,16 +2,30 @@
   "entry_id": "lab_ambient_temperature",
   "schema_version": "0.1",
   "kind": "claim",
-  "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. Because nothing actuates the sample temperature on this instrument, this is an ambient value of the room rather than a setpoint -- which is what makes it an operator reading at E3 and not a calibration at E2.",
+  "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2.",
   "numbers": [
-    { "name": "ambient_temperature", "value": 293, "unit": "K", "source": "operator_read:kyuhwan_20260917", "grade": "E3", "precision": "significant_figures", "note": "the reading was reported as 20 degrees Celsius. The store carries kelvin because the unit registry is multiplicative -- si_factor and a dimension vector cannot express an offset unit, so Celsius cannot enter it at all. 293 K rather than 293.15 K: the exact conversion would claim five figures from a reading given to the nearest degree, and the 0.15 K it drops is far inside the resolution of the reading." }
+    {
+      "name": "ambient_temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "operator_read:kyuhwan_20260917",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the reading was reported as 20 degrees Celsius. The store carries kelvin because the unit registry is multiplicative -- si_factor and a dimension vector cannot express an offset unit, so Celsius cannot enter it at all. 293 K rather than 293.15 K: the exact conversion would claim five figures from a reading given to the nearest degree, and the 0.15 K it drops is far inside the resolution of the reading."
+    }
   ],
-  "validity_conditions": "The room as of 2026-09-17, operator read off a thermometer. Two things are still open and neither may be assumed. WHERE the thermometer is -- room air or close to the sample -- is not recorded, so this is the laboratory's ambient temperature and it is not established to be the sample's; a plan that needs the viscosity or the thermal energy AT THE SAMPLE stands on that gap rather than on this entry. And the drift band is unmeasured: with no actuator, that band is not a tolerance anyone chooses but a property of the room somebody has to measure. Water's viscosity moves by roughly two percent per kelvin, so in explore mode a drift of about a kelvin does not move a decade and can be ignored, while in confirm mode it cannot. The date the reading was taken is not recorded either -- what is dated 2026-09-17 is the operator's statement that it is a reading.",
+  "validity_conditions": "The room as of 2026-09-17, operator read off a thermometer. CORRECTED 2026-09-19: this entry used to reason that the value could not be a setpoint because nothing actuates the temperature. That premise was false and the conclusion was right. The room IS held, by continuous air conditioning; what is not actuated is the SAMPLE, and the entry had collapsed the two. The grade never rested on that argument: 20 C is a value someone READ, which 12 grades differently from a setpoint, and a room value applied to the sample is not a measurement of the sample. A right answer standing on a wrong reason is the thing that rots, and as written the sentence asserted that this room is uncontrolled. The controlled room does not shrink the sample question, it ISOLATES it: with the room held, whatever still moves at the sample is local -- illumination, a contacting objective, the stage -- and those have their own open gap. Do not read 'the room is controlled' as 'temperature is handled'. WHERE the thermometer sits is now stated rather than inferred (no_thermometer_at_the_sample): it reads the room, and how far that is from the sample and how well the two track are both unknown. A plan needing the viscosity or the thermal energy AT THE SAMPLE stands on that gap rather than on this entry. Water's viscosity moves by roughly two percent per kelvin, so in explore mode a drift of about a kelvin does not move a decade and can be ignored, while in confirm mode it cannot. The date the reading was taken is not recorded either -- what is dated 2026-09-17 is the operator's statement that it is a reading.",
   "source": "operator_read:kyuhwan_20260917",
   "grade_tag": "operator_read",
   "subject": [
-    { "kind": "quantity", "id": "ambient_temperature" },
-    { "kind": "quantity", "id": "temperature" }
+    {
+      "kind": "quantity",
+      "id": "ambient_temperature"
+    },
+    {
+      "kind": "quantity",
+      "id": "temperature"
+    }
   ],
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
