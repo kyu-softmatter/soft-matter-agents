@@ -124,9 +124,21 @@ reason a round can be substituted rather than spent — could not be performed a
 all. That is now open. What it means in practice:
 
 - A round may only claim `degraded: []` when a query under its own `caller_id`
-  is in `queries/log.jsonl`. Reading the store's files is not the service
-  answering (§0.3), and a refused call leaves no line at all — so an empty log
+  is in `queries/log.jsonl`. **That is a requirement on the writer, not a
+  check.** `caller_id` is an argument: the server sees no identity behind it
+  and cannot tell that the process calling is the seat the id names, so the
+  log **corroborates** a claim and does not verify it. On 2026-09-19 three
+  lines one second apart carried three different seats' ids, which is one
+  process iterating over id forms and not three seats — and nothing in the log
+  can say so. A round could point at a line it did not produce and nothing
+  downstream would notice. Reading the store's files is also not the service
+  answering (§0.3), and a refused call leaves no line at all, so an empty log
   is indistinguishable from never having asked.
+
+  The rule this seat already applies one layer in is the same one: a verdict
+  the writer can choose is not a gate (check 8, check 21). Here the honest move
+  is the verb rather than a new mechanism — say corroborates, and do not read a
+  green completion condition as verified.
 - `degraded: ["librarian_agent"]` is the right entry in three states, and they
   are not the same state. **Absent**: the tools are not in the session — how
   the window was launched, fixed by relaunching it. **Present and refusing on
