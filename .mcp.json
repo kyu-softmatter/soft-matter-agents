@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "librarian": {
+      "command": "python3",
+      "args": ["librarian_agent/src/mcp_server.py", "--serve"],
+      "env": {}
+    }
+  }
+}
