@@ -1,9 +1,9 @@
 {
   "snapshot_version": "0.1",
   "agent": "bridge",
-  "kb_version": "kbv-2d398ccb414b",
-  "built_from_commit": "681433f0aef496bb3acebb1dc9c3124de3faf121",
-  "entry_count": 26,
+  "kb_version": "kbv-2516402d59eb",
+  "built_from_commit": "2d3dd5433e939021be3bf758be3b0310c3429f5c",
+  "entry_count": 27,
   "entries": {
     "cameras_both_kinetix22": {
       "text": "{\n  \"entry_id\": \"cameras_both_kinetix22\",\n  \"schema_version\": \"0.1\",\n  \"kind\": \"claim\",\n  \"claim\": \"Both cameras are Kinetix 22. They are the same model, so pixel size, quantum efficiency, read noise and full-well capacity are the same on both arms, and the two arms of the splitter are photometrically comparable without a cross-calibration term. The names red and blue, and the roles primary and second detector, are wiring and naming rather than a hardware difference: neither camera is the better one.\",\n  \"validity_conditions\": \"This instrument as configured on 2026-09-17, operator read at the instrument. This closes an older discrepancy in which a purchase quote listed one Kinetix 22 and one Prime95B against a current state recorded as two Kinetix, unconfirmed: a swap did happen against the quote. Sensor properties are shared because the model is shared; no sensor number is entered here, and the calibrated pixel size remains a per-configuration gap. Falsified by either camera being replaced.\",\n  \"identifiers\": {\n    \"model\": \"Kinetix 22\"\n  },\n  \"source\": \"operator_read:kyuhwan_20260917\",\n  \"grade_tag\": \"operator_read\",\n  \"subject\": [\n    { \"kind\": \"device\", \"id\": \"camera_red\" },\n    { \"kind\": \"device\", \"id\": \"camera_blue\" }\n  ],\n  \"grade\": \"E3\",\n  \"source_ref\": \"src_operator_read_20260917\",\n  \"date\": \"2026-09-17\",\n  \"supersedes\": null,\n  \"conflict_with\": [],\n  \"curated_by\": \"kyuhwan\"\n}\n",
@@ -60,6 +60,10 @@
     "laser_shutter_on_the_combiner": {
       "text": "{\n  \"entry_id\": \"laser_shutter_on_the_combiner\",\n  \"schema_version\": \"0.1\",\n  \"kind\": \"claim\",\n  \"claim\": \"A second shutter exists on the laser combiner, distinct from the shutter inside the confocal unit. Two shutters sit in the confocal excitation chain: one at the source and one at the unit's entrance.\",\n  \"validity_conditions\": \"This instrument as configured on 2026-09-17, operator read at the instrument. The store records that both exist and where each sits; it does not record which one anything closes, because that is policy written by a person in envelope/safety.json (4.3.2). Falsified by either shutter being removed or re-sited.\",\n  \"source\": \"operator_read:kyuhwan_20260917\",\n  \"grade_tag\": \"operator_read\",\n  \"subject\": [\n    { \"kind\": \"device\", \"id\": \"laser_shutter\" },\n    { \"kind\": \"device\", \"id\": \"laser_combiner\" }\n  ],\n  \"grade\": \"E3\",\n  \"source_ref\": \"src_operator_read_20260917\",\n  \"date\": \"2026-09-17\",\n  \"supersedes\": null,\n  \"conflict_with\": [],\n  \"curated_by\": \"kyuhwan\"\n}\n",
       "sha256": "bf740a33692a12d01756dab4dee89fc5982b6631ee2dc4e1e2247b022b6bc27b"
+    },
+    "no_thermometer_at_the_sample": {
+      "text": "{\n  \"entry_id\": \"no_thermometer_at_the_sample\",\n  \"schema_version\": \"0.1\",\n  \"kind\": \"claim\",\n  \"claim\": \"There is no thermometer beside the sample. The only thermometer in the laboratory reads the room, so any temperature attributed to the sample is a room reading applied to it.\",\n  \"subject\": [\n    { \"kind\": \"quantity\", \"id\": \"temperature\" },\n    { \"kind\": \"quantity\", \"id\": \"ambient_temperature\" }\n  ],\n  \"source\": \"operator_read:kyuhwan_20260919\",\n  \"grade\": \"E3\",\n  \"grade_tag\": \"operator_read\",\n  \"source_ref\": \"src_operator_read_20260919\",\n  \"validity_conditions\": \"This laboratory as of 2026-09-19, read by the operator. It REPLACES an inference: lab_ambient_temperature reasoned that its value could only be the room's, from the fact that nothing actuates the sample. The same conclusion is now stated, which is a stronger claim than a consequence of an absence, and it is why the sample-adjacent reading stops being an open question. What it does NOT say is how far the room thermometer is from the sample or how well the two track -- neither is known, and an unknown distance is not a small one. Falsified by putting a thermometer at the sample, which is also what would close the two questions it leaves open.\",\n  \"date\": \"2026-09-19\",\n  \"supersedes\": null,\n  \"conflict_with\": [],\n  \"curated_by\": \"kyuhwan\"\n}\n",
+      "sha256": "f185c5af50eb7c702266650272f2aa623162849c8fcab286c36fc9fbfd018bbd"
     },
     "nosepiece_objective_assignment": {
       "text": "{\n  \"entry_id\": \"nosepiece_objective_assignment\",\n  \"schema_version\": \"0.1\",\n  \"kind\": \"claim\",\n  \"claim\": \"The six nosepiece positions hold, in order from 0 to 5: MRD70040 (CFI Plan Apo Lambda D 4X), MRD70170 (10X), MRD70270 (20X), MRD77400 (CFI Apo Lambda S 40XC WI), MRD71670 (60X Oil) and MRD71970 (100X Oil). The operator confirmed the whole assignment at the instrument.\",\n  \"validity_conditions\": \"This instrument on 2026-09-17, operator read at the instrument. The table arrived as an index from an earlier project's dossier under explicit operator authorisation, and every row was then confirmed here; the specifications of each lens are separate entries citing the catalog part number, never the dossier. Position-to-lens mapping is the one claim on this nosepiece that a single lens swap falsifies, and this instrument's paper record has drifted from its hardware before, so it is re-read rather than inherited. A magnification written here -- 4x, 20x -- is a nominal designation and a string identifier, not a number, and nothing may back-derive it from a calibrated pixel size.\",\n  \"identifiers\": {\n    \"position_0\": \"MRD70040\",\n    \"position_1\": \"MRD70170\",\n    \"position_2\": \"MRD70270\",\n    \"position_3\": \"MRD77400\",\n    \"position_4\": \"MRD71670\",\n    \"position_5\": \"MRD71970\"\n  },\n  \"source\": \"operator_read:kyuhwan_20260917\",\n  \"grade_tag\": \"operator_read\",\n  \"subject\": [\n    { \"kind\": \"device\", \"id\": \"nosepiece\" }\n  ],\n  \"grade\": \"E3\",\n  \"source_ref\": \"src_operator_read_20260917\",\n  \"date\": \"2026-09-17\",\n  \"supersedes\": null,\n  \"conflict_with\": [],\n  \"curated_by\": \"kyuhwan\"\n}\n",
@@ -267,6 +271,9 @@
       "na": [
         "number"
       ],
+      "no_thermometer_at_the_sample": [
+        "entry_id"
+      ],
       "nosepiece": [
         "subject:device"
       ],
@@ -345,5 +352,5 @@
     }
   },
   "how_to_verify": "sha256 of each entry's `text` must equal its `sha256`, and sha256 over the canonical JSON of this object without `snapshot_hash` must equal `snapshot_hash`. A hand-edited copy fails both. `built_from_commit` names the commit this was built from, so every byte here is readable back with `git show <commit>:<path>` -- a kb_version identifies the knowledge and this identifies the packaging. Do not edit a copy: fix the KB and re-export (4.3.2).",
-  "snapshot_hash": "4069fcfac15cdfcb301226a3fb38276d2f0f0a9e33aaecbf6c795399624e7998"
+  "snapshot_hash": "abf48743815e1639ad2d41e47ee832dcb98985dfbf520991866e9130482acdbb"
 }
