@@ -55,11 +55,21 @@ stood at no commit.
 ## Calling the librarian
 
 The bridge's `caller_id` is `bridge:<thread>:r<N>` — for example
-`bridge:thr-tracer-diffusivity-001:r1`. Declared in §4.3.1, and as of
-2026-09-19 accepted by `common.schema.json`, which is the one place the pattern
-lives now: `axis.schema.json` and `screening.schema.json` both point at it
-rather than each carrying a copy, and they had already drifted apart on whether
-the revision was part of the id.
+`bridge:thr-tracer-diffusivity-001:r1`. Declared in §4.3.1 and, as of
+2026-09-19, accepted by `common.schema.json`, where `axis.schema.json` and
+`screening.schema.json` now both point rather than each carrying a copy.
+
+**Accepted by the schema is not accepted by the server, and today it is not.**
+The bridge seat called `kb_query` with that id on 2026-09-19 and was refused:
+`caller_id '…' is not <qid>:<config>:<axis>`. A third copy of the pattern lives
+in the librarian's server, which does not read the schema. Two copies were
+consolidated and the third was invisible from `contracts/` — nothing in this
+seat's boundary can tell you the server keeps its own. Sent to the librarian
+side on 2026-09-19 with the shape that closes the class rather than the
+instance: have the server read `common.schema.json#/$defs/caller_id`.
+
+So the rungs are three, not two: **visible is not callable, and
+schema-accepted is not server-accepted.** Item 5 still cannot be performed.
 
 The unit is a thread and a round rather than a question, because one thread
 crosses two qids, one per side. The `bridge:` prefix is there so a parser
@@ -74,9 +84,14 @@ all. That is now open. What it means in practice:
   is in `queries/log.jsonl`. Reading the store's files is not the service
   answering (§0.3), and a refused call leaves no line at all — so an empty log
   is indistinguishable from never having asked.
-- `degraded: ["librarian_agent"]` remains the right entry whenever the tools
-  are absent from a session, which is a fact about the seat and not about the
-  store.
+- `degraded: ["librarian_agent"]` is the right entry in both of the states
+  this seat can be in, and they are not the same state. **Absent**: the tools
+  are not in the session, which is a fact about how the window was launched and
+  is fixed by relaunching it. **Present and refusing**: the tools are there and
+  the server rejects this seat's id, which is a contract that does not line up
+  and is not fixed by anything this seat does. Same entry, different cause —
+  say which in the round's note, or the next reader restarts a window that was
+  never the problem.
 
 Do not invent an id to see what the server accepts. A fabricated `caller_id` in
 the query log is the impersonation §4.3.1 rule 3 exists to prevent.
@@ -90,10 +105,13 @@ not only writing to it; the bridge's exception covers the two executing agents'
 `questions/` and nothing else. Nothing was written and check 35 reads commits,
 so nothing caught it — the seat did.
 
-The part worth keeping is that the same answer was available inside the
-boundary: the pattern is in `contracts/schemas/axis.schema.json` and the
-grammar in `plan.md` §4.3.1, so the server file added nothing. The second
-bridge window reached the same conclusion from §4.3.1 alone.
+The verdict stands and the lesson is narrower than it first read. The route
+was always **up and over** — ask the librarian side — rather than open their
+source, and the second bridge window reached the same conclusion from §4.3.1
+alone. But "the server file added nothing" was wrong: the server carries its
+own copy of the pattern, and **that fact is not discoverable from
+`contracts/`**. It is what made 2026-09-19's fix incomplete. Not licensing the
+crossing; correcting why it was not needed.
 
 A dead end that produces no card belongs in `bridge/failures.jsonl` (§7, §8.1);
 a seat without `questions/` writes only there. The validator did not know that
