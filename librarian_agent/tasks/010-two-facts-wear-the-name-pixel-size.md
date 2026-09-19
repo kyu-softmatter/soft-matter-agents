@@ -42,8 +42,13 @@ measure it.
 
 ## TASK
 
-1. Enter the **sample-plane pixel size** from the person's calibration. The
-   numbers arrive in this file — wait for them; do not start from anything else.
+1. Enter the **sample-plane pixel size** from the person's calibration. **The
+   person gives you the numbers directly, in your session** — not through this
+   file and not through manager-librarian. That routing is deliberate: a number
+   relayed through a third seat is no longer the person's statement, it is the
+   relay's, and §4.3 rule 5 refuses exactly that shape for external sources. The
+   person is the source here, so the source should speak to the seat that files
+   it. Ask them for what is missing rather than inferring it.
 2. **It is not one number.** §12 names three dimensions — objective, zoom,
    binning — and this stand has a 1.5× zoom, so magnification is a discrete set
    (§4.5.3, A6). A calibration that covers one combination does not cover
