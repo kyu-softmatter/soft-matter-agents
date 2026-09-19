@@ -355,5 +355,6 @@ if __name__ == "__main__":
     configs = fanout.screen(cards.load_goal(qid)["observable"]["name"])
     revision = cards.question_revision(qid)
     target = cards.question_dir(qid) / cards.artifact_name("synthesis.json", revision)
-    cards.refuse_overwrite(target, revision)
-    print(cards.write(target, build(qid, configs, created_at, revision)).relative_to(cards.REPO))
+    card = build(qid, configs, created_at, revision)
+    cards.refuse_overwrite(target, revision, card)
+    print(cards.write(target, card).relative_to(cards.REPO))

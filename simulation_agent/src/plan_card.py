@@ -246,7 +246,7 @@ def emit(qid: str, created_at: str) -> tuple[Path, str]:
     card = build(qid, created_at, revision)
     json_path = directory / cards.artifact_name(f"plan_simulation_{qid}.json", revision)
     md_path = json_path.with_suffix(".md")
-    cards.refuse_overwrite(json_path, revision)
+    cards.refuse_overwrite(json_path, revision, card)
     cards.write(json_path, card)
     md_path.write_text(render(card))
 

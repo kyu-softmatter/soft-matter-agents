@@ -14,6 +14,7 @@ only way to change a number's grade here is to change where it came from.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -269,19 +270,65 @@ def question_revision(qid: str) -> int:
     return int(load_goal(qid)["revision"])
 
 
-def refuse_overwrite(path: Path, revision: int) -> None:
-    """Stop rather than replace a card that belongs to another revision.
+def canon_sha(card: dict) -> str:
+    """The card's identity as the bridge computes it: sorted keys, no spaces.
 
-    Previous output is not deleted (4.5.5). Overwriting is how a record
-    becomes a subscription, and the repair is a new revision rather than a
-    steadier hand.
+    Deliberately the same form as the validator's, because that is what a
+    bridge ledger records as `(card_id, revision, hash)`. Raw bytes cannot be
+    the identity -- the bridge re-serialises the card inside the envelope --
+    so semantic equality is what "not a character changed" means.
+    """
+    blob = json.dumps(card, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return "sha256:" + hashlib.sha256(blob.encode()).hexdigest()
+
+
+def content_sha(card: dict) -> str:
+    """`canon_sha` with `status` removed: the card's content, not its state.
+
+    A card's status advances along the state machine on the same file --
+    DRAFT to VALIDATED to APPROVED (5.5) -- so a hash that includes it changes
+    when nothing about the plan has. `plan_hash` already excludes status for
+    exactly this reason: hashing it "would void an approval at the instant it
+    was granted". The same argument applies to any check that asks whether the
+    content moved.
+    """
+    return canon_sha({k: v for k, v in card.items() if k != "status"})
+
+
+def refuse_overwrite(path: Path, revision: int, card: dict | None = None) -> None:
+    """Stop rather than replace a card, on either of two grounds.
+
+    **Another revision.** Previous output is not deleted (4.5.5); the repair
+    for a changed question is a new revision, not a steadier hand.
+
+    **The same revision with different content.** This is the one that cost
+    something. Revision 1 of this agent's first plan held seven different
+    contents in one evening, and a bridge seat computing its hash a day apart
+    got two answers. Once a card has crossed into a round, a ledger records
+    `(card_id, revision, hash)`; content moving under a fixed revision then
+    stops the round, and the contract forbids repairing it (4.4). Refusing
+    here is what makes "the revision is stable" a fact rather than an
+    intention.
+
+    Regeneration that reproduces the same card byte-for-byte is fine: that is
+    a rebuild, not a change.
     """
     if not path.exists():
         return
-    existing = json.loads(path.read_text()).get("revision")
-    if existing is not None and int(existing) != revision:
+    existing = json.loads(path.read_text())
+    was = existing.get("revision")
+    if was is not None and int(was) != revision:
         raise FileExistsError(
-            f"{path.name} is revision {existing} and this run is revision {revision}. "
+            f"{path.name} is revision {was} and this run is revision {revision}. "
             "A re-run raises the revision and writes beside the old output rather than over "
             f"it (4.5.5): the file for this one is {artifact_name(path.name, revision)!r}."
+        )
+    if card is not None and content_sha(existing) != content_sha(card):
+        raise FileExistsError(
+            f"{path.name} already exists at revision {revision} with different content.\n"
+            f"  on disk: {content_sha(existing)}\n"
+            f"  new    : {content_sha(card)}\n"
+            "A fixed revision has one content. Changing it means raising the revision "
+            f"({artifact_name(path.name, revision + 1)!r}), because a round that carried the old "
+            "hash cannot be repaired once it has moved (4.4, 4.5.5)."
         )

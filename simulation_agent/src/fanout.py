@@ -231,7 +231,7 @@ def run(qid: str, created_at: str, kb_results: dict[str, dict] | None = None) ->
             target = cards.question_dir(qid) / cards.artifact_name(
                 f"axis_{config}_{axis}.json", revision
             )
-            cards.refuse_overwrite(target, revision)
+            cards.refuse_overwrite(target, revision, card)
             written.setdefault(config, []).append(cards.write(target, card).name)
     return written
 
