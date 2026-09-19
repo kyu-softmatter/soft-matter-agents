@@ -139,6 +139,14 @@ above for who commits it.
 
   Revision 2 is the librarian run, when it happens. Not a save.
 
+  Two things about it were settled after this file first said so. The prefix
+  is **`v<N>_`**, not `r<N>_`: rule 3 had put rounds and revisions in one
+  sentence, the check read the prefix as a round and compared it to the card's
+  `round` field, and `a6ab72b` split them. And revision 2 **may cite revision 1
+  as a record and may not take it as input** — the comparison "revision 1 said
+  X, this differs because Y" is the point of keeping it, while feeding its
+  numbers into a fresh calculation inherits the reason the re-run exists.
+
 - The validator is green. An earlier report of a red check 13 on
   `microscope_agent/.mcp.json` is stale: that file is gone and the tree reads
   `0 failed`.
