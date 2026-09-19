@@ -122,7 +122,8 @@
         "contracts/",
         "microscope_agent/CLAUDE.md",
         "microscope_agent/.claude/",
-        "microscope_agent/tasks/"
+        "microscope_agent/tasks/",
+        "microscope_agent/README.md"
       ],
       "excludes": [
         "contracts/capabilities/simulation.json",
@@ -149,7 +150,8 @@
         "contracts/",
         "simulation_agent/CLAUDE.md",
         "simulation_agent/.claude/",
-        "simulation_agent/tasks/"
+        "simulation_agent/tasks/",
+        "simulation_agent/README.md"
       ],
       "excludes": [
         "contracts/capabilities/microscope.json",
@@ -176,7 +178,8 @@
         "contracts/",
         "librarian_agent/CLAUDE.md",
         "librarian_agent/.claude/",
-        "librarian_agent/tasks/"
+        "librarian_agent/tasks/",
+        "librarian_agent/README.md"
       ],
       "excludes": [
         "contracts/seats.json",
@@ -203,7 +206,8 @@
         "contracts/",
         "bridge/CLAUDE.md",
         "bridge/.claude/",
-        "bridge/tasks/"
+        "bridge/tasks/",
+        "bridge/README.md"
       ],
       "excludes": [
         "contracts/capabilities/microscope.json",
@@ -239,7 +243,11 @@
         "microscope_agent/tasks/",
         "simulation_agent/tasks/",
         "librarian_agent/tasks/",
-        "bridge/tasks/"
+        "bridge/tasks/",
+        "microscope_agent/README.md",
+        "simulation_agent/README.md",
+        "librarian_agent/README.md",
+        "bridge/README.md"
       ],
       "excludes": [
         "contracts/seats.json"

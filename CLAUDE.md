@@ -47,6 +47,14 @@ and every one of both must still be rejected — a fixture that stops failing
 means a check stopped working. **Read every count off the run, never off
 prose**: three counts written into this file were wrong within a day.
 
+**And read the tree the run names with it.** Several sessions share one
+working copy, so a bare run is **nobody's commit** — a failure in it may be
+another session's work in progress. The validator says which tree it used on
+its last line: a commit, that commit plus uncommitted paths, or the index as
+it would be committed under `--staged`. Quoting a number without that line is
+how two seats quoted each other stale numbers on 2026-09-19, one of them from
+an honest `0 failed` that was true of HEAD and false of the working copy.
+
 UNDECIDED and PENDING are not passes. UNDECIDED means a threshold nobody has
 chosen (§11-2); PENDING means an artifact a later milestone produces.
 
