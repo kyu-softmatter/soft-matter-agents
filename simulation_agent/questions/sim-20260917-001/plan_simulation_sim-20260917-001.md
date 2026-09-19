@@ -5,12 +5,14 @@ editing this file changes nothing (P3).*
 
 - **question** `sim-20260917-001`, revision 1, status `VALIDATED`
 - **purpose** characterize · **intent** explore
-- **from** goal `goal-sim-20260917-001-r3` via synthesis `synthesis-sim-20260917-001`
+- **from** goal `goal-sim-20260917-001-r4` via synthesis `synthesis-sim-20260917-001`
 - **degraded** librarian_agent — see the open risks
 
 ## What is computed
 
-**tracer_diffusivity** — The short-time translational self-diffusion coefficient of dilute spherical tracers, read from the slope of the mean squared displacement against lag time over lags strictly below the diffusive time, with the intercept left free.
+**tracer_diffusivity** — The short-time translational self-diffusion coefficient of dilute spherical tracers in the sample: the proportionality between mean squared displacement and lag time in the free regime, before hindrance by walls or by neighbouring particles sets in.
+
+*Estimator (from `contracts/observables.json`, which no card can carry):* Weighted least-squares fit of the mean squared displacement of single-particle positions against lag time, with the intercept left free so that localisation error stays out of the slope. D = slope / (2 * spatial_dimensions). Fit range: lags from one save interval up to max_lag_time, which must satisfy both bounds -- below the diffusive time tau_d, so the tracer is still free, and short enough against the record that every lag in the fit is determined. The plan declares the value and shows both. Weighting: by the number of independent displacements at each lag. A record of length T yields about T/tau of them at lag tau, so the variance of the MSD estimate grows sharply with lag, and equal weights hand the slope to the points that have the fewest samples. This is not a refinement: measured on the simulation side, equal weights over whole-record lags gave a 7 percent bias at 0.16 percent relative standard error -- a number that looks precise and is wrong, which is the failure a shared estimator exists to prevent.
 
 Configuration `bd_overdamped` on `hoomd_backend`.
 Model: overdamped Brownian dynamics of spherical tracers in an implicit solvent, no pair interactions, periodic boundaries in all three directions.

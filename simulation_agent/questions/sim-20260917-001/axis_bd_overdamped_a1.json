@@ -12,7 +12,7 @@
   "caller_id": "sim-20260917-001:bd_overdamped:a1",
   "config": "bd_overdamped",
   "axis": "a1",
-  "kb_version": "kbv-fdef964aca56",
+  "kb_version": "kbv-67f9ad766d92",
   "method": "deterministic",
   "verdict": "feasible",
   "constraints": [
@@ -124,7 +124,7 @@
     {
       "entry_id": "tau_d",
       "grade": "E4",
-      "kb_version": "kbv-fdef964aca56",
+      "kb_version": "kbv-67f9ad766d92",
       "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
     }
   ],

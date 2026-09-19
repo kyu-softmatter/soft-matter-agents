@@ -202,3 +202,38 @@ def evidence(kb_result: dict | None, fallback_refs: list[dict] | None = None) ->
         "kb_gaps": list(kb_result.get("gaps") or []),
         "degraded": [],
     }
+
+
+def observable(name: str) -> dict:
+    """The observable as a card may state it, read from the vocabulary.
+
+    **The definition is not written here.** `contracts/observables.json` is
+    where an observable is defined, and a card that re-words it authors a
+    second definition of the same id -- which is how three cards ended up
+    disagreeing with the vocabulary and with each other. The wording that
+    travels is therefore a copy of the source, not a paraphrase of it.
+
+    Copying is still duplication, and the contract is moving to carrying the
+    `name` alone (the plan schema requires `definition` today, so it is
+    supplied). When that requirement is lifted, the definition drops out of
+    here and the generated Markdown reads it from the vocabulary directly --
+    the same argument as check 9, where the JSON is authoritative and the prose
+    is generated (P3).
+
+    What a card cannot carry at all is the `estimator`, and that is the field
+    `comparable` turns on: two sides agreeing on a word while extracting the
+    number differently is worse than disagreeing openly.
+    """
+    entry = definition_entry(name)
+    return {"name": name, "definition": entry["definition"]}
+
+
+def definition_entry(name: str) -> dict:
+    vocabulary = json.loads((CONTRACTS / "observables.json").read_text())
+    for entry in vocabulary["observables"]:
+        if entry["id"] == name:
+            return entry
+    raise KeyError(
+        f"{name!r} is not in contracts/observables.json. An entry is added when a question "
+        "needs one; a card may not define an observable the vocabulary has not."
+    )

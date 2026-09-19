@@ -113,7 +113,7 @@ def build(qid: str, created_at: str) -> dict:
         synthesis_id=syn["id"],
         purpose=goal["purpose"],
         intent=goal["intent"],
-        observable=goal["observable"],
+        observable=cards.observable(goal["observable"]["name"]),
         system_configuration={
             "config": config,
             "optical_path": None,
@@ -285,7 +285,13 @@ def render(card: dict) -> str:
 
     add("## What is computed")
     add("")
-    add(f"**{card['observable']['name']}** — {card['observable']['definition']}")
+    # Read from the vocabulary rather than from the card, so this line stays
+    # right once the card carries the name alone.
+    entry = cards.definition_entry(card["observable"]["name"])
+    add(f"**{card['observable']['name']}** — {entry['definition']}")
+    add("")
+    add(f"*Estimator (from `contracts/observables.json`, which no card can carry):* "
+        f"{entry['estimator']}")
     add("")
     sc = card["system_configuration"]
     add(f"Configuration `{sc['config']}` on `{', '.join(sc['devices'])}`.")
