@@ -3242,6 +3242,75 @@ def check_51_open_question_has_a_home(b: Bundle) -> list[Finding]:
     return [Finding(51, PASS, f"{len(held)} held threads name a section 11 entry that exists")]
 
 
+def check_52_target_is_a_decision(b: Bundle) -> list[Finding]:
+    """A target is a decision, so it is not also a graded number.
+
+    Carried inline in `targets[]` with no source and no grade, the way a
+    ceiling lives in envelope/safety.json: a grade says how far a claim can be
+    trusted, and a decision is correct by being made (5.3, ruled 2026-09-19).
+    The slot makes a grade inexpressible rather than merely absent (c8ee7b3),
+    which is the difference between a chokepoint and an opt-in guard.
+
+    Three ways the old shape survives, and the check is written against the
+    shapes rather than against names. Name matching would refuse
+    `target_relative_error`, which is an axis's *derived* statistical
+    requirement -- a claim about what the statistics need, graded and sourced
+    like any other. The split runs between the person's decision and
+    everything computed from it, not between names that begin with target.
+
+    The unit clause is here because the migration opens a hole. A numbers[]
+    entry has its unit checked by check 2; an inline target is not in
+    numbers[], so the moment a card moves, nothing checks its unit. Today they
+    are all `count`. A target is exactly the field someone writes `%` or
+    `decades` into, and neither is registered. Moving a value out of a checked
+    container into an unchecked one is how coverage shrinks without anyone
+    deciding to shrink it, so the commit that opens the gap closes it.
+
+    Reads a declaration and not comprehension; section 8 states that limit
+    once, for this kind.
+    """
+    goals = [c for c in b.of_kind("goal") if c.data.get("targets")]
+    if not goals:
+        return [Finding(52, NA, "no goal states a target")]
+
+    out: list[Finding] = []
+    n_inline = n_legacy = 0
+    for c in goals:
+        named = {n.get("name") for n in c.data.get("numbers", []) or []}
+        inline = [t for t in c.data["targets"] if "value" in t]
+        legacy = [t for t in c.data["targets"] if "number" in t]
+        n_inline += len(inline)
+        n_legacy += len(legacy)
+
+        for t in inline:
+            entry = unit_entry(t["unit"])
+            if entry is None:
+                out.append(Finding(52, FAIL, f"the target on {t['metric']!r} is in {t['unit']!r}, which "
+                                             f"units.json does not define. Leaving numbers[] took its unit out "
+                                             f"of check 2's reach, so this is the only thing looking", c.rel))
+            elif entry.get("si_factor") is None:
+                out.append(Finding(52, FAIL, f"the target on {t['metric']!r} is in {t['unit']!r}, which has no "
+                                             f"fixed SI factor, so nothing can be compared against it", c.rel))
+
+        for t in legacy:
+            if t["number"] not in named:
+                out.append(Finding(52, FAIL, f"the target on {t['metric']!r} names the number "
+                                             f"{t['number']!r}, which this card does not carry. A target "
+                                             f"pointing at nothing states no target", c.rel))
+
+        both = {t["metric"] for t in inline} & {t["metric"] for t in legacy}
+        for metric in sorted(both):
+            out.append(Finding(52, FAIL, f"{metric!r} carries a target in both shapes: inline, where a grade "
+                                         f"cannot be written, and by reference into numbers[], where P2 makes "
+                                         f"one mandatory. That is the same decision recorded twice with only "
+                                         f"one copy graded (11-11), and the graded copy is the wrong one",
+                               c.rel))
+    if out:
+        return out
+    tail = f", and {n_legacy} still by reference while the migration runs" if n_legacy else ""
+    return [Finding(52, PASS, f"{n_inline} targets are stated as decisions{tail}")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -3255,7 +3324,8 @@ CHECKS = [
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
     check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood,
     check_50_delivery_has_a_reader,
-    check_51_open_question_has_a_home, check_45_undegraded_is_backed_by_the_log,
+    check_51_open_question_has_a_home,
+    check_52_target_is_a_decision, check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,
     check_42_check_registry, check_41_seat_attribution,
 ]

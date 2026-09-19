@@ -1,0 +1,132 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-mic-99990101-002",
+  "qid": "mic-99990101-002",
+  "thread": "solo-mic-20260918-001",
+  "round": 0,
+  "revision": 6,
+  "author": "microscope_agent",
+  "created_at": "2026-09-18T14:24:58Z",
+  "status": "VALIDATED",
+  "purpose": "screen",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_diffusivity",
+    "definition": "Short-time translational diffusion coefficient of dilute tracer spheres in the sample, read from the mean squared displacement of tracked centroids over lag times below the trap-free drift time."
+  },
+  "targets": [
+    {
+      "metric": "tracer_diffusivity",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "Fixture. The migrated form."
+    },
+    {
+      "metric": "tracer_diffusivity",
+      "number": "target_decade_resolution",
+      "kind": "decade_resolution"
+    }
+  ],
+  "priority": [
+    "contrast",
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "sample_contrast": [
+    "label_free",
+    "fluorescence"
+  ],
+  "configuration_preference": [
+    "widefield_inline"
+  ],
+  "constraint_notes": [
+    "sample is consumed by the measurement and cannot be remounted",
+    "no calibration of the stage is available for this sample holder",
+    "The tracer diameter is here as a number now, but it is still kb_gap tracer_geometry: it is knowledge and belongs in the librarian's store as an entry (P14), not only on this card.",
+    "Re-pinned from kbv-9bc3910f1886 to kbv-49feb73662b7 on 2026-09-18 (task 002). The tau_d near-miss for tracer_radius was re-read against the re-filed entry and the verdict does not move -- but neither of its reasons is the old one. It is no_overlap now because the entry carries no machine-readable validity, which kb_entry.schema.json makes no_overlap rather than a silent match; and because the relation reversed direction. Filed as a dimensionless group, tau_d was unrelated to a length. Filed as a derived_quantity in seconds over bead_diameter**2/diffusivity, it names this gap's own target as an input: it does not partially answer tracer_radius, it consumes it. Inverting it to d = sqrt(tau_d*D) yields nothing, because the store holds no tau_d value and D is this question's observable. So the gap is upstream of the entry rather than adjacent to it, and that is the finding: closing tracer_geometry with a lot number does not just raise the diameter to E3, it makes tau_d computable.",
+    "Renumbered from mic-20260917-001 on 2026-09-18. contracts/examples/ uses that qid for eleven fixtures, two of them a human-signed plan_approval and a result, so the fixtures cannot move and a real question sharing the id made siblings of two unrelated sets: check 33 caught it as axis cards citing two kb_versions under one qid. Revisions 1 to 4 are under the old qid in this agent's history."
+  ],
+  "numbers": [
+    {
+      "name": "target_decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "source": "assumed:a_target",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "one decade is enough to tell whether the tracers are free or hindered"
+    },
+    {
+      "name": "snr_target",
+      "value": 5,
+      "unit": "count",
+      "source": "assumed:a_snr",
+      "grade": "E5",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "tracer_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "operator_recall:kyuhwan_20260918",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "Nominal diameter of the main species, which 5.3 rule 5 makes the reference length. Nominal is what the operator stated and all that is claimed: no polydispersity figure exists here, so no distribution is asserted, and one significant figure is the whole of it. A lot number would make this spec: at E3; there is none yet."
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_target",
+      "statement": "Screening only needs to place the diffusivity within one decade; the question is which regime the sample is in, not what the coefficient is.",
+      "numbers": [
+        "target_decade_resolution"
+      ],
+      "falsifier": "if two candidate regimes fall inside the same decade, one decade is not enough and the goal must be restated"
+    },
+    {
+      "rationale_id": "a_snr",
+      "statement": "A centroid fit needs a signal to noise ratio of order five to keep the localisation error below a pixel; no measurement on this sample exists yet.",
+      "numbers": [
+        "snr_target"
+      ],
+      "falsifier": "a localisation error above one pixel at this signal to noise ratio retires the assumption"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "tracer_geometry",
+      "observable": "tracer_radius",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/entries/",
+        "librarian_agent/kb/staging/",
+        "microscope_agent/CLAUDE.md"
+      ],
+      "kb_version": "kbv-49feb73662b7",
+      "nearest": [
+        {
+          "entry_id": "tau_d",
+          "overlap": "no_overlap"
+        }
+      ]
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "requested_by": "human",
+  "sample_contrast_provenance": {
+    "source": "operator_recall:kyuhwan_20260917",
+    "grade": "E5"
+  },
+  "configuration_preference_by": {
+    "who": "kyuhwan",
+    "at": "2026-09-17T21:07:15-07:00"
+  },
+  "note": "Fixture for check 52: one decision recorded twice, and only the copy that should not have a grade has one. This is what a half-finished migration looks like from the inside."
+}
