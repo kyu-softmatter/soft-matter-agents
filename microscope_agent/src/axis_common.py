@@ -158,12 +158,17 @@ def gaps_from(responses: dict, pin: str, caller_id: str, gap_ids: dict[str, str]
     for gap in sorted(responses["gaps"], key=lambda g: g["observable"]):
         observable = gap["observable"]
         kind = gap["kind"]
-        # The service answers `absent` for a name it holds in a published table
-        # rather than as an entry, and `absent` sends the caller outside for
-        # something already in its own snapshot. Where the snapshot does hold
-        # it, the kind says so and `published_in` says where (4.3.1, fifth kind).
-        if observable in published and kind == "absent":
-            kind = "in_published_table"
+        # **The axis never changes the kind.** It was doing exactly that on
+        # 2026-09-19 -- rewriting `absent` to `in_published_table` wherever the
+        # snapshot held the name -- and that is the axis inventing a
+        # classification the service did not make. A card records what was
+        # answered. Two things were wrong with it and the second is worse: the
+        # `published_in.sha256` came from the current snapshot while the card is
+        # pinned to an older version, so the card cited a table its own pin
+        # never saw. The other seat refused the same move on its PFS gap and was
+        # right to. `published_in` is attached only where the SERVICE already
+        # said in_published_table, which it will once the pin reaches a version
+        # whose export answers to these names.
         out.append({
             "gap_id": gap_ids[observable],
             "observable": observable,
@@ -180,7 +185,7 @@ def gaps_from(responses: dict, pin: str, caller_id: str, gap_ids: dict[str, str]
         # this-name (check 49).
         if gap.get("near_names") is not None:
             out[-1]["near_names"] = gap["near_names"]
-        if observable in published:
+        if kind == "in_published_table" and observable in published:
             out[-1]["published_in"] = published[observable]
         # The service's near-misses, not the axis's. An axis that added its own
         # here would be answering its own question inside a field that says the
