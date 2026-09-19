@@ -1595,10 +1595,94 @@ def check_25_kb_refs(b: Bundle) -> list[Finding]:
 
 
 def check_26_snapshot(b: Bundle) -> list[Finding]:
-    snaps = list(REPO.glob("*_agent/envelope/snapshot.json"))
+    """An envelope snapshot must be the store it names, byte for byte.
+
+    4.3.2 says the copy is compared against the authoritative store so the two
+    cannot diverge, and the snapshot says how: `built_from_commit` names the
+    commit it was built from, so every byte is readable back with
+    `git show <commit>:<path>`. That is what this reads.
+
+    Against that commit and not against HEAD. The store moves; an envelope
+    taken last week is honest, and what makes it honest is naming the commit
+    whose bytes it holds. `kb_version` identifies the knowledge and
+    `built_from_commit` identifies the packaging.
+
+    Against the store rather than against the published export, which an
+    earlier draft of this check did. The export is itself a copy, so comparing
+    copy to copy verifies the wrong relation -- and `built_from_commit` names
+    the store commit, not the commit the export file happens to live in, so
+    the lookup was wrong as well as the target.
+
+    The per-part hashes are not recomputed here and `snapshot_hash` is not
+    re-derived. Both would need the exporter's canonical form, and restating
+    it would put one rule in two places with nothing comparing them (11-11).
+    Comparing the embedded text against the committed bytes subsumes them: if
+    the text is right, what any hash of it says is a separate question for the
+    exporter's own verifier.
+    """
+    import subprocess
+    snaps = sorted(REPO.glob("*_agent/envelope/snapshot.json"))
     if not snaps:
         return [Finding(26, PENDING, "needs envelope/snapshot.json (M1) and the KB it is exported from (M3)")]
-    return [Finding(26, PENDING, "snapshot hash comparison not implemented yet")]
+    out: list[Finding] = []
+    checked = 0
+
+    def blob(commit: str, path: str):
+        try:
+            return subprocess.run(["git", "-C", str(GIT_REPO), "show", f"{commit}:{path}"],
+                                  capture_output=True, text=True, check=True).stdout
+        except (OSError, subprocess.CalledProcessError):
+            return None
+
+    for p in snaps:
+        rel = str(p.relative_to(REPO))
+        try:
+            doc = json.loads(p.read_text())
+        except json.JSONDecodeError as exc:
+            out.append(Finding(26, FAIL, f"is not readable JSON: {exc}", rel))
+            continue
+        commit = doc.get("built_from_commit")
+        if not commit:
+            out.append(Finding(26, FAIL,
+                "carries no `built_from_commit`, so nothing says which bytes this is a copy of. A "
+                "snapshot built from an uncommitted export cannot be read back and cannot be "
+                "checked (4.3.2)", rel))
+            continue
+        if blob(commit, "librarian_agent/kb/index.json") is None:
+            out.append(Finding(26, FAIL,
+                f"names built_from_commit {commit[:12]}, which is not a commit in this repository "
+                "that carries the store. A copy whose origin cannot be read back is not a copy of "
+                "anything", rel))
+            continue
+        bad: list[str] = []
+        for eid, e in (doc.get("entries") or {}).items():
+            want = blob(commit, f"librarian_agent/kb/entries/{eid}.json")
+            if want is None:
+                bad.append(f"entry {eid} does not exist at that commit")
+            elif want != e.get("text"):
+                bad.append(f"entry {eid} does not match the committed bytes")
+        for name, t in (doc.get("tables") or {}).items():
+            src = t.get("from")
+            if not src:
+                bad.append(f"table {name} does not say which file it came from")
+                continue
+            # `from` is written relative to the librarian's own directory, the
+            # way that agent names its own files; git wants it from the root.
+            path = src if src.startswith("librarian_agent/") else f"librarian_agent/{src}"
+            want = blob(commit, path)
+            if want is None:
+                bad.append(f"table {name} names {path}, absent at that commit")
+            elif want != t.get("text"):
+                bad.append(f"table {name} does not match the committed bytes of {path}")
+        if bad:
+            out.append(Finding(26, FAIL,
+                f"does not match the store at {commit[:12]}: " + "; ".join(bad[:4]) +
+                (f"; and {len(bad) - 4} more" if len(bad) > 4 else "") +
+                ". Fix the KB and re-export rather than editing the copy (4.3.2)", rel))
+        else:
+            checked += 1
+    return out or [Finding(26, PASS,
+        f"{checked} envelope snapshots hold the bytes the commit they name holds")]
 
 
 KB_LIKE = re.compile(r"(entries|literature|references|knowledge|kb)[/_.]", re.I)
