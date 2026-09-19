@@ -2264,6 +2264,78 @@ def check_39_estimate_justified(b: Bundle) -> list[Finding]:
     return [Finding(39, PASS, f"{n} estimates each name the gap they stand on")]
 
 
+def check_49_absent_searched_the_neighbourhood(b: Bundle) -> list[Finding]:
+    """`absent` may only be claimed after the name neighbourhood was searched.
+
+    4.3.1 already draws this line once: a gap with an empty `searched` is not a
+    gap, because not-looked-for and not-there are different claims. `absent`
+    makes the strongest claim of the five kinds -- it does not exist -- and its
+    next action sends the caller outside and then to a person. A gap that has
+    only tried one exact string has not earned it; what it knows is "not found
+    under this name", and that has a different next action: ask again with the
+    name the store uses.
+
+    The two were structurally unable to back each other. `nearest` holds
+    entries that answered to the NAME and fell short on CONDITIONS, and
+    `absent` is emitted exactly when nothing answers to the name -- so an
+    absent gap could never carry a `nearest`, and its emptiness meant nothing.
+    `near_names` is the other axis and is what this check reads.
+
+    The evidence is the service's first day: of nine empty kb_query answers,
+    eight were the store holding the knowledge under another word or in a
+    published table, and one was honestly not there. `numerical_aperture` came
+    back absent while six entries held it as `na`. A false gap fails quietly --
+    nothing rejects it, and later someone reads it as proof the value does not
+    exist. For an agent whose distinguishing job is recording what it could not
+    answer, recording an absence that is not there is the exact failure mode.
+    """
+    out: list[Finding] = []
+    seen, degraded = 0, 0
+    carried: list[tuple] = []
+    bare: list[tuple] = []
+    for c in b.cards:
+        if "__unreadable__" in c.data:
+            continue
+        # The same carve-out check 39 makes, for the same reason. A card that
+        # never reached the librarian wrote its gaps by hand, and no
+        # neighbourhood search can stand behind one -- demanding it would fail
+        # 25 cards across three other seats for work that was correct when it
+        # was done. Not-reached and looked-for-and-absent are different claims,
+        # and this check is about the second.
+        if any("librarian" in str(d) for d in c.data.get("degraded") or []):
+            degraded += 1
+            continue
+        for g in c.data.get("kb_gaps") or []:
+            if not isinstance(g, dict) or g.get("kind") != "absent":
+                continue
+            seen += 1
+            (carried if "near_names" in g else bare).append(
+                (c.rel, g.get("gap_id"), g.get("observable")))
+    # Expand, migrate, contract. The field exists and the server does not emit
+    # it yet, so every absent gap is bare and failing them would refuse work
+    # that could not have been done otherwise -- the deadlock that makes a gate
+    # something to bypass. This flips itself: once any gap carries near_names
+    # the migration has started, and a bare one after that is a real defect.
+    # Check 43 does the same while the store catches up on `source`.
+    if bare and not carried:
+        return [Finding(49, PENDING,
+                        f"{len(bare)} absent gaps carry no `near_names` and none carries it yet, so the "
+                        "server has not started emitting it; this fails once the first one does",
+                        bare[0][0])]
+    for rel, gid, obs in bare:
+        out.append(Finding(49, FAIL,
+            f"gap {gid!r} for {obs!r} claims `absent` but carries no `near_names`, while "
+            f"{len(carried)} other gaps do -- so nothing says the store was asked what it calls "
+            "this. An empty list is an answer, searched and nothing near; a missing key is not (4.3.1)",
+            rel))
+    if out:
+        return out
+    if seen == 0:
+        return [Finding(49, NA, f"no card that reached the librarian carries an `absent` gap; "
+                                f"{degraded} are on the degraded path and out of scope")]
+    return [Finding(49, PASS, f"{seen} absent gaps each searched the neighbourhood first")]
+
+
 def check_43_entry_grade(b: Bundle) -> list[Finding]:
     """An entry's grade follows from its source kind, the way a card's does (5.3).
 
@@ -2750,7 +2822,7 @@ CHECKS = [
     check_28_precision, check_29_failure_record, check_30_lessons, check_31_candidate_preservation,
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
-    check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves,
+    check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood,
     check_42_check_registry, check_41_seat_attribution,
 ]
 

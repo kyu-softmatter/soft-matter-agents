@@ -293,6 +293,13 @@
             "additionalProperties": false
           }
         },
+        "near_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Names the store DOES answer to that are close to what was asked. Required by check 49 when kind is `absent`, and an empty array is a real answer -- it says the neighbourhood was searched and nothing was near. The key being absent says the search never ran, and then the gap may only claim 'not found under this name', not 'it does not exist'. Separate from `nearest` because the two search different axes: `nearest` holds entries that answered to the NAME and fell short on CONDITIONS, so `absent` -- emitted exactly when nothing answers to the name -- can never carry one. The two were structurally unable to back each other. Added 2026-09-19 after the service's first day: of nine empty kb_query answers, eight were the store holding the knowledge under another word or in a published table, and only one was honestly not there. `numerical_aperture` returned absent while six entries held it as `na`. Suggesting is not matching: a name here returns nothing and asks the caller to ask again, so it cannot make a wrong string answer as though it were right -- which is why folding whitespace into the matcher was refused while this is not the same move."
+        },
         "kb_version": {
           "type": "string"
         },
