@@ -3,77 +3,410 @@
   "note": "Authoritative unit registry (P3: JSON wins over units.md). dim is the dimension vector: L length, T time, M mass, Th temperature, A angle, N count. si_factor converts the unit to SI base units.",
   "offset_units": "The registry is multiplicative. si_factor and dim express a scale and a dimension, and neither can express an ORIGIN, so an offset unit -- Celsius, Fahrenheit -- cannot be registered here and no entry for one should be added: an offset unit does not survive the operations a multiplicative one does, and a degC that scaled like a K would be wrong silently. Temperature is carried in kelvin everywhere. The consequence worth writing down is not the absent unit but the absent provenance: a person says 20 C, a card stores 293 K, and nothing in the number records that the reading arrived in Celsius. That goes in the number's note, beside the rounding -- 293 rather than 293.15, because the exact conversion would claim five figures from a reading given to the nearest degree. Found 2026-09-17 while entering lab_ambient_temperature.",
   "units": {
-    "1":       { "si_factor": 1.0,      "dim": {} },
-    "count":   { "si_factor": 1.0,      "dim": { "N": 1 } },
-    "m":       { "si_factor": 1.0,      "dim": { "L": 1 } },
-    "mm":      { "si_factor": 1e-3,     "dim": { "L": 1 } },
-    "um":      { "si_factor": 1e-6,     "dim": { "L": 1 } },
-    "nm":      { "si_factor": 1e-9,     "dim": { "L": 1 } },
-    "s":       { "si_factor": 1.0,      "dim": { "T": 1 } },
-    "ms":      { "si_factor": 1e-3,     "dim": { "T": 1 } },
-    "us":      { "si_factor": 1e-6,     "dim": { "T": 1 } },
-    "min":     { "si_factor": 60.0,     "dim": { "T": 1 } },
-    "h":       { "si_factor": 3600.0,   "dim": { "T": 1 } },
-    "Hz":      { "si_factor": 1.0,      "dim": { "T": -1 } },
-    "kHz":     { "si_factor": 1e3,      "dim": { "T": -1 } },
-    "fps":     { "si_factor": 1.0,      "dim": { "T": -1 } },
-    "kg":      { "si_factor": 1.0,      "dim": { "M": 1 } },
-    "g":       { "si_factor": 1e-3,     "dim": { "M": 1 } },
-    "K":       { "si_factor": 1.0,      "dim": { "Th": 1 } },
-    "N":       { "si_factor": 1.0,      "dim": { "M": 1, "L": 1, "T": -2 } },
-    "nN":      { "si_factor": 1e-9,     "dim": { "M": 1, "L": 1, "T": -2 } },
-    "pN":      { "si_factor": 1e-12,    "dim": { "M": 1, "L": 1, "T": -2 } },
-    "J":       { "si_factor": 1.0,      "dim": { "M": 1, "L": 2, "T": -2 } },
-    "pJ":      { "si_factor": 1e-12,    "dim": { "M": 1, "L": 2, "T": -2 } },
-    "pN*um":   { "si_factor": 1e-18,    "dim": { "M": 1, "L": 2, "T": -2 } },
-    "kT":      { "si_factor": null,     "dim": { "M": 1, "L": 2, "T": -2 },
-                 "needs": "temperature",
-                 "note": "k_B*T. A card using kT must carry a number named temperature in K, or check 2 fails." },
-    "W":       { "si_factor": 1.0,      "dim": { "M": 1, "L": 2, "T": -3 } },
-    "mW":      { "si_factor": 1e-3,     "dim": { "M": 1, "L": 2, "T": -3 } },
-    "uW":      { "si_factor": 1e-6,     "dim": { "M": 1, "L": 2, "T": -3 } },
-    "Pa":      { "si_factor": 1.0,      "dim": { "M": 1, "L": -1, "T": -2 } },
-    "Pa*s":    { "si_factor": 1.0,      "dim": { "M": 1, "L": -1, "T": -1 } },
-    "mPa*s":   { "si_factor": 1e-3,     "dim": { "M": 1, "L": -1, "T": -1 } },
-    "N*s/m":   { "si_factor": 1.0,      "dim": { "M": 1, "T": -1 } },
-    "pN*s/um": { "si_factor": 1e-06,    "dim": { "M": 1, "T": -1 } },
-    "N/m":     { "si_factor": 1.0,      "dim": { "M": 1, "T": -2 } },
-    "pN/um":   { "si_factor": 1e-6,     "dim": { "M": 1, "T": -2 } },
-    "pN/nm":   { "si_factor": 1e-3,     "dim": { "M": 1, "T": -2 } },
-    "m^2/s":   { "si_factor": 1.0,      "dim": { "L": 2, "T": -1 } },
-    "um^2/s":  { "si_factor": 1e-12,    "dim": { "L": 2, "T": -1 } },
-    "m/s":     { "si_factor": 1.0,      "dim": { "L": 1, "T": -1 } },
-    "um/s":    { "si_factor": 1e-6,     "dim": { "L": 1, "T": -1 } },
-    "nm/s":    { "si_factor": 1e-9,     "dim": { "L": 1, "T": -1 } },
-    "rad":     { "si_factor": 1.0,      "dim": { "A": 1 } },
-    "deg":     { "si_factor": 0.017453292519943295, "dim": { "A": 1 } },
-    "core_h":  { "si_factor": 3600.0,   "dim": { "T": 1 }, "note": "core-hours: budget accounting, not wall clock" },
-    "GB":      { "si_factor": 1.0,      "dim": { "N": 1 }, "note": "storage budget" }
+    "1": {
+      "si_factor": 1.0,
+      "dim": {}
+    },
+    "count": {
+      "si_factor": 1.0,
+      "dim": {
+        "N": 1
+      }
+    },
+    "m": {
+      "si_factor": 1.0,
+      "dim": {
+        "L": 1
+      }
+    },
+    "mm": {
+      "si_factor": 0.001,
+      "dim": {
+        "L": 1
+      }
+    },
+    "um": {
+      "si_factor": 1e-06,
+      "dim": {
+        "L": 1
+      }
+    },
+    "nm": {
+      "si_factor": 1e-09,
+      "dim": {
+        "L": 1
+      }
+    },
+    "s": {
+      "si_factor": 1.0,
+      "dim": {
+        "T": 1
+      }
+    },
+    "ms": {
+      "si_factor": 0.001,
+      "dim": {
+        "T": 1
+      }
+    },
+    "us": {
+      "si_factor": 1e-06,
+      "dim": {
+        "T": 1
+      }
+    },
+    "min": {
+      "si_factor": 60.0,
+      "dim": {
+        "T": 1
+      }
+    },
+    "h": {
+      "si_factor": 3600.0,
+      "dim": {
+        "T": 1
+      }
+    },
+    "Hz": {
+      "si_factor": 1.0,
+      "dim": {
+        "T": -1
+      }
+    },
+    "kHz": {
+      "si_factor": 1000.0,
+      "dim": {
+        "T": -1
+      }
+    },
+    "fps": {
+      "si_factor": 1.0,
+      "dim": {
+        "T": -1
+      }
+    },
+    "kg": {
+      "si_factor": 1.0,
+      "dim": {
+        "M": 1
+      }
+    },
+    "g": {
+      "si_factor": 0.001,
+      "dim": {
+        "M": 1
+      }
+    },
+    "K": {
+      "si_factor": 1.0,
+      "dim": {
+        "Th": 1
+      }
+    },
+    "N": {
+      "si_factor": 1.0,
+      "dim": {
+        "M": 1,
+        "L": 1,
+        "T": -2
+      }
+    },
+    "nN": {
+      "si_factor": 1e-09,
+      "dim": {
+        "M": 1,
+        "L": 1,
+        "T": -2
+      }
+    },
+    "pN": {
+      "si_factor": 1e-12,
+      "dim": {
+        "M": 1,
+        "L": 1,
+        "T": -2
+      }
+    },
+    "J": {
+      "si_factor": 1.0,
+      "dim": {
+        "M": 1,
+        "L": 2,
+        "T": -2
+      }
+    },
+    "pJ": {
+      "si_factor": 1e-12,
+      "dim": {
+        "M": 1,
+        "L": 2,
+        "T": -2
+      }
+    },
+    "pN*um": {
+      "si_factor": 1e-18,
+      "dim": {
+        "M": 1,
+        "L": 2,
+        "T": -2
+      }
+    },
+    "kT": {
+      "si_factor": null,
+      "dim": {
+        "M": 1,
+        "L": 2,
+        "T": -2
+      },
+      "needs": "temperature",
+      "note": "k_B*T. A card using kT must carry a number named temperature in K, or check 2 fails."
+    },
+    "W": {
+      "si_factor": 1.0,
+      "dim": {
+        "M": 1,
+        "L": 2,
+        "T": -3
+      }
+    },
+    "mW": {
+      "si_factor": 0.001,
+      "dim": {
+        "M": 1,
+        "L": 2,
+        "T": -3
+      }
+    },
+    "uW": {
+      "si_factor": 1e-06,
+      "dim": {
+        "M": 1,
+        "L": 2,
+        "T": -3
+      }
+    },
+    "Pa": {
+      "si_factor": 1.0,
+      "dim": {
+        "M": 1,
+        "L": -1,
+        "T": -2
+      }
+    },
+    "Pa*s": {
+      "si_factor": 1.0,
+      "dim": {
+        "M": 1,
+        "L": -1,
+        "T": -1
+      }
+    },
+    "mPa*s": {
+      "si_factor": 0.001,
+      "dim": {
+        "M": 1,
+        "L": -1,
+        "T": -1
+      }
+    },
+    "N*s/m": {
+      "si_factor": 1.0,
+      "dim": {
+        "M": 1,
+        "T": -1
+      }
+    },
+    "pN*s/um": {
+      "si_factor": 1e-06,
+      "dim": {
+        "M": 1,
+        "T": -1
+      }
+    },
+    "N/m": {
+      "si_factor": 1.0,
+      "dim": {
+        "M": 1,
+        "T": -2
+      }
+    },
+    "pN/um": {
+      "si_factor": 1e-06,
+      "dim": {
+        "M": 1,
+        "T": -2
+      }
+    },
+    "pN/nm": {
+      "si_factor": 0.001,
+      "dim": {
+        "M": 1,
+        "T": -2
+      }
+    },
+    "m^2/s": {
+      "si_factor": 1.0,
+      "dim": {
+        "L": 2,
+        "T": -1
+      }
+    },
+    "um^2/s": {
+      "si_factor": 1e-12,
+      "dim": {
+        "L": 2,
+        "T": -1
+      }
+    },
+    "m/s": {
+      "si_factor": 1.0,
+      "dim": {
+        "L": 1,
+        "T": -1
+      }
+    },
+    "um/s": {
+      "si_factor": 1e-06,
+      "dim": {
+        "L": 1,
+        "T": -1
+      }
+    },
+    "nm/s": {
+      "si_factor": 1e-09,
+      "dim": {
+        "L": 1,
+        "T": -1
+      }
+    },
+    "rad": {
+      "si_factor": 1.0,
+      "dim": {
+        "A": 1
+      }
+    },
+    "deg": {
+      "si_factor": 0.017453292519943295,
+      "dim": {
+        "A": 1
+      }
+    },
+    "core_h": {
+      "si_factor": 3600.0,
+      "dim": {
+        "T": 1
+      },
+      "note": "core-hours: budget accounting, not wall clock"
+    },
+    "MB": {
+      "si_factor": 0.001,
+      "dim": {
+        "N": 1
+      },
+      "note": "storage budget; decimal, one thousandth of GB. Not MiB -- a budget is a decision about disk a person reads off a disk, and the 7% a binary reading would add is silent."
+    },
+    "GB": {
+      "si_factor": 1.0,
+      "dim": {
+        "N": 1
+      },
+      "note": "storage budget"
+    }
   },
   "quantities": {
-    "length": ["m", "mm", "um", "nm"],
-    "time": ["s", "ms", "us", "min", "h"],
-    "rate": ["Hz", "kHz", "fps"],
-    "temperature": ["K"],
-    "force": ["N", "nN", "pN"],
-    "energy": ["J", "pJ", "pN*um", "kT"],
-    "power": ["W", "mW", "uW"],
-    "viscosity": ["Pa*s", "mPa*s"],
-    "stiffness": ["N/m", "pN/um", "pN/nm"],
-    "drag": ["N*s/m", "pN*s/um"],
-    "diffusivity": ["m^2/s", "um^2/s"],
-    "velocity": ["m/s", "um/s", "nm/s"],
-    "angle": ["rad", "deg"],
-    "count": ["count"],
-    "dimensionless": ["1"],
-    "budget": ["core_h", "GB"]
+    "length": [
+      "m",
+      "mm",
+      "um",
+      "nm"
+    ],
+    "time": [
+      "s",
+      "ms",
+      "us",
+      "min",
+      "h"
+    ],
+    "rate": [
+      "Hz",
+      "kHz",
+      "fps"
+    ],
+    "temperature": [
+      "K"
+    ],
+    "force": [
+      "N",
+      "nN",
+      "pN"
+    ],
+    "energy": [
+      "J",
+      "pJ",
+      "pN*um",
+      "kT"
+    ],
+    "power": [
+      "W",
+      "mW",
+      "uW"
+    ],
+    "viscosity": [
+      "Pa*s",
+      "mPa*s"
+    ],
+    "stiffness": [
+      "N/m",
+      "pN/um",
+      "pN/nm"
+    ],
+    "drag": [
+      "N*s/m",
+      "pN*s/um"
+    ],
+    "diffusivity": [
+      "m^2/s",
+      "um^2/s"
+    ],
+    "velocity": [
+      "m/s",
+      "um/s",
+      "nm/s"
+    ],
+    "angle": [
+      "rad",
+      "deg"
+    ],
+    "count": [
+      "count"
+    ],
+    "dimensionless": [
+      "1"
+    ],
+    "budget": [
+      "core_h",
+      "GB",
+      "MB"
+    ]
   },
   "constants": {
-    "k_B": { "value": 1.380649e-23, "unit": "J", "per": "K", "source": "spec:si_constants" }
+    "k_B": {
+      "value": 1.380649e-23,
+      "unit": "J",
+      "per": "K",
+      "source": "spec:si_constants"
+    }
   },
   "dimensionless_group_entry": {
     "note": "Shape a KB entry must have to define a dimensionless group (5.7). The definitions themselves are knowledge and live in the librarian's KB, never here.",
-    "required": ["symbol", "formula", "inputs", "validity_conditions", "source", "grade"],
+    "required": [
+      "symbol",
+      "formula",
+      "inputs",
+      "validity_conditions",
+      "source",
+      "grade"
+    ],
     "grade_rule": "max(E4, worst input grade) - a formula is itself an assumption"
   }
 }
