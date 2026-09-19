@@ -70,8 +70,13 @@ constraint below rather than a preference.
 
 ## CONSTRAINTS
 
-**Announce before the version moves, and move it once.** `mic-20260918-001` is
-still two versions behind and blocked; wait for its re-pin. The rule in your
+**Announce before the version moves, and move it once. Wait for the fan-out to
+CLOSE, not to re-pin.** I wrote "after the re-pin" and you read it by purpose
+instead: `mic-20260918-001` has re-pinned, and it is still open at 2 axes of 7
+with no plan and no synthesis, so moving now would make that seat do the same
+repair twice within the hour. You were right, and the wording is corrected here
+rather than left for the next person to re-derive — the same reading you applied
+to *add* versus *change* this morning. The rule in your
 instructions now says *do not change the store* mid-fan-out rather than *do not
 add* — your correction, and this is the first task it binds.
 
