@@ -53,16 +53,46 @@ while writing it, that is the sentence doing its job.
    already ruled on that second one: **visible-range objective curves stop
    well short of 1064 nm, use the end of the graph, do not extrapolate.**
 
-## A prerequisite you will hit immediately
+## The prerequisite, and the person's answer to it
 
-**There is no IR laser in the store.** No entry, and `1064` appears only in
-objective transmission context. So there is no `device` id to subject this to,
-and the `light_engines` key of the device table does not hold rows for it.
+**There was no IR laser in the store** — no entry, and `1064` appeared only in
+objective transmission context, so there was no `device` id to subject this
+to. Asked, and answered the same day:
 
-Do not invent one to make the subject resolve — that is the inversion you
-correctly refused for the objectives in 009. Either the laser gets a device
-row first, by the route any device fact takes, or this entry is subjected to
-what genuinely exists and says what it could not name. Report which.
+> 1064 nm, maximum 5 W (power at the laser generator), and 20% is of that.
+> Measured power output is in the prior agent repository.
+
+So the laser can have a row, and 012 is no longer blocked on inventing one.
+
+**But 20% of 5 W is 1 W AT THE GENERATOR, and that is not the power at the
+sample.** Do not carry the first number to where the second belongs. Between
+them sit losses nobody here has written down and the objective's transmission
+at 1064 nm, on which the person has already ruled: **the published curves for
+visible-range objectives stop well short of 1064 nm — use the end of the
+graph, do not extrapolate** — because the purpose is an order of magnitude,
+not an accurate power.
+
+Three separate facts, and they do not collapse:
+
+| | source | grade |
+|---|---|---|
+| 1064 nm, 5 W maximum at the generator | `spec:` once you have the model, `operator_read:` otherwise | E3 |
+| ~1 W at the generator during the observation | `computed:` from a dial setting recalled, so it inherits the worst input | **E5**, not E4 |
+| power at the sample | nothing yet | absent |
+
+The middle row is where this goes wrong quietly. It looks like arithmetic on a
+spec and is arithmetic on a **recollection of a dial position**, so §5.8's rule
+applies — a computed value inherits the worst precision of its inputs, and one
+recollection in the chain makes the answer a recollection.
+
+**The prior repository's measured power is a §10.2.1 item.** Rule it
+transfer / downgrade / discard **before** using it, name the slot it went into
+and the §10.3 rule it passed, cap it at **E3** because a measurement taken
+elsewhere is not one taken here, source it to the measurement record rather
+than to the old repository, and do not take it from prose. If it cannot name
+a slot it is discarded. Ask before opening if you are unsure the row is open —
+which rows of §10.2 are open is a separate question from whether the
+repository is.
 
 ## TASK
 
