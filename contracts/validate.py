@@ -1091,6 +1091,7 @@ ALLOWED_PATHS = [
     r"^contracts/examples/(rejected/)?[A-Za-z0-9_.-]+\.(json|md|jsonl)$",
     r"^contracts/examples/rejected/check[0-9]{2}_[a-z0-9_]+/[A-Za-z0-9_.-]+\.(json|md|jsonl)$",
     r"^microscope_agent/tasks/[A-Za-z0-9_.-]+$",
+    r"^simulation_agent/tasks/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/CLAUDE\.md$",
     r"^(microscope|simulation)_agent/envelope/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/approvals/[A-Za-z0-9_.-]+$",
@@ -2291,7 +2292,11 @@ def check_40_window_condition(b: Bundle) -> list[Finding]:
         obs = (c.data.get("observable") or {}).get("name")
         entry = vocab.get(obs)
         if entry is None:
-            out.append(Finding(40, PENDING, f"observable {obs!r} is not in the vocabulary, so its window requirement is unknown", c.rel))
+            out.append(Finding(40, FAIL, f"observable {obs!r} is not in contracts/observables.json. Not a hold: a "
+                                          f"card naming something the vocabulary does not define is a reference to "
+                                          f"nothing, and holding it lets a typo through with its window requirement "
+                                          f"silently unenforced -- and become a thread waiting on a person at the "
+                                          f"bridge. A new observable is entered in the vocabulary first (11-1)", c.rel))
             continue
         if not entry.get("window_required"):
             continue
