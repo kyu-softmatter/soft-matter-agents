@@ -1,7 +1,7 @@
 {
   "schema_version": "0.1",
   "note": "Which committer identity owns which paths (plan.md 6.2.1). git records no session, so a seat declares itself: the committer is the seat and the author stays the person. Read by check 41.",
-  "adopt": "Prefix the commit with the seat's identity. Only the committer is overridden, so the author stays whoever the person is: GIT_COMMITTER_NAME='seat:design' GIT_COMMITTER_EMAIL=design@seat.invalid git commit -m ... . Record the same pair in the worktree's own git config as committer.name and committer.email -- git does not read those keys, so they change nothing by themselves, but a session whose context was cleared can then read its own seat off disk instead of being re-seated by hand (6.2.3). Without that, every context reset silently downgrades the next commit to the person's identity and check 41 reports it as unattributed.",
+  "adopt": "Put the seat in the worktree's own git config and git uses it: `git config extensions.worktreeConfig true` once, then `git config --worktree committer.name 'seat:<name>'` and `--worktree committer.email <name>@seat.invalid`. Git has read committer.name and committer.email since v2.22, so no environment prefix is needed -- verified on 2.50.1: the commit's committer is the seat and the author stays the person. An env prefix (GIT_COMMITTER_NAME=... GIT_COMMITTER_EMAIL=... git commit) still works and is what a shared working copy with no worktree config has to use. This note said until 2026-09-18 that git does not read those keys and that a context reset therefore downgrades the next commit to the person's identity; both were wrong, and the config survives a reset on its own (6.2.3).",
   "addresses": "seat.invalid is reserved by RFC 2606 and can never route. A seat identity is a label, not a mailbox.",
   "boundaries": "owns holds boundary names as check 41 derives them from the path, using the same table check 35 counts: design, microscope_agent, simulation_agent, librarian_agent, bridge. An agent's CLAUDE.md and .claude/ are the design seat's, and so is all of contracts/.",
   "unknown_committer": "report",
@@ -20,7 +20,7 @@
       "owns": [
         "microscope_agent"
       ],
-      "worktree_branch": "microscope-from-version2",
+      "worktree_branch": "seat/microscope-1",
       "variant_reference": "agentic-microscope@version2",
       "note": "One of two microscope execution seats running the A/B decided on 2026-09-18 (9.2). It builds on branch microscope-from-version2, reading agentic-microscope@version2 under 10.2.1 like any other transfer. The seat is the worktree rather than the session: one session works it at a time, and a replacement session inherits the identity because it inherits the branch. Two seats writing microscope_agent/ in one working copy would overwrite each other, which is why the worktree comes first."
     },
@@ -30,7 +30,7 @@
       "owns": [
         "microscope_agent"
       ],
-      "worktree_branch": "microscope-from-main",
+      "worktree_branch": "seat/microscope-2",
       "variant_reference": "agentic-microscope@main",
       "note": "One of two microscope execution seats running the A/B decided on 2026-09-18 (9.2). It builds on branch microscope-from-main, reading agentic-microscope@main under 10.2.1 like any other transfer. The seat is the worktree rather than the session: one session works it at a time, and a replacement session inherits the identity because it inherits the branch. Two seats writing microscope_agent/ in one working copy would overwrite each other, which is why the worktree comes first."
     },
