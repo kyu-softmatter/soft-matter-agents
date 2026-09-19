@@ -1166,6 +1166,7 @@ ALLOWED_PATHS = [
     r"^(microscope|simulation)_agent/CLAUDE\.md$",
     r"^(microscope|simulation)_agent/envelope/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/approvals/[A-Za-z0-9_.-]+$",
+    r"^(microscope|simulation)_agent/inbox/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/questions/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
     r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
@@ -1800,6 +1801,8 @@ SHARED_PATHS = re.compile(r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.git
 # by check 41 however the registry lists it. That asymmetry cost half a day on
 # 2026-09-19, and check 48 exists to make a `paths` entry that cannot be
 # granted fail loudly instead of silently.
+INBOX = re.compile(r"^(microscope|simulation)_agent/inbox/")
+
 DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|bridge)/(CLAUDE\.md|README\.md|\.claude/|tasks/)")
 
 
@@ -1811,6 +1814,12 @@ def seat_boundary_of(path: str) -> str:
     """
     if SHARED_PATHS.match(path) or DESIGN_OWNED.match(path) or path.startswith("contracts/"):
         return "design"
+    # An inbox sits in the receiving agent's tree and belongs to the bridge
+    # (7.1 rule 8). Place decides where a reader looks; this decides who may
+    # write. An agent able to write its own inbox could forge a delivery, which
+    # is the one thing the bridge exists to make impossible.
+    if INBOX.match(path):
+        return "bridge"
     for rx, agent in AGENT_OF_PATH:
         if rx.match(path):
             return agent

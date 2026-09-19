@@ -153,6 +153,11 @@
         "$ref": "common.schema.json#/$defs/contrast"
       },
       "description": "What this sample offers, as a set. A configuration survives the contrast screen when its requires_contrast is one of these -- membership, not equality. A set because a fluorescent tracer still has refractive-index contrast and so provides both, which is why equality would drop brightfield from a fluorescent question. S3.0 can evaluate this before S3 runs, which none of the priority terms can (4.5.3)."
+    },
+    "from_round": {
+      "type": "string",
+      "pattern": "^thr-[a-z0-9-]+:r[1-9][0-9]*$",
+      "description": "Present when this goal was written from a delivered round (5.1): the thread and round it came from. It is how the bridge learns the round was taken. The bridge already reads the executing agents' questions/ (6.2-3), so this closes the loop with no write across a boundary and no second copy of whose turn it is -- the thread ledger stays the only place that says that."
     }
   },
   "required": [

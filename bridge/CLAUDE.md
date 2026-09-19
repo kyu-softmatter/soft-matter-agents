@@ -74,6 +74,35 @@ does to a grade: a verdict the writer can choose is not a gate.
    is four windows nobody can follow (§6.2). The turn is never the bridge's — it
    moves cards, so it never owes a move.
 
+## Delivering a round
+
+A wrapped round does not reach anyone by sitting in `threads/`. The receiving
+agent may not read this directory — §6.2 rule 3 bars it, and until 2026-09-19
+nothing said where a delivery goes, so the first real round stood for forty
+minutes with its turn set to an agent that had no way to know.
+
+Deliver by writing into **`<agent>/inbox/<thread>/`**. The place is in the
+receiving agent's tree so that separating that agent one day takes its rounds
+with it (§7, D1); the **boundary is the bridge's**, so the agent cannot write
+there and cannot forge a delivery (§7.1 rule 8).
+
+What goes in: **the envelope and its markdown, and nothing else.**
+
+- **No copy of `status.json`.** It is the one mutable file in a thread — the
+  turn moves — so a copy is stale as soon as the turn does, which is the drift
+  that had the example round saying *the human's turn* for a day. The ledger
+  stays the single place that says whose turn it is.
+- **Presence is the turn.** An envelope in your inbox is a round waiting on
+  you. Nothing further has to be said, and nothing that could go out of date
+  is written twice.
+- **Nothing is removed from an inbox.** The delivery happened, and the record
+  of it is the file (P1).
+
+The receiving agent's S2 turns the envelope into its own goal and puts
+`from_round` on it. That is how this seat learns the round was taken: the
+bridge already reads both agents' `questions/`, so the loop closes with no
+write across a boundary in the other direction.
+
 ## What it must never do
 
 Add or adjust a number. Optimise conditions. Write a conclusion. Answer on behalf
