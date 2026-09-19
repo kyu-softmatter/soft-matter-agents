@@ -3432,6 +3432,64 @@ def check_53_deny_rules_do_not_block_reading(b: Bundle) -> list[Finding]:
         "(repository settings only; a user-level or harness refusal is invisible here)")]
 
 
+def check_54_kb_basis_resolves(b: Bundle) -> list[Finding]:
+    """A `kb:` basis must name an entry the same card cites in `kb_refs`.
+
+    5.3.2 widened `basis` to take `kb:<entry_id>` so a bound resting on served
+    knowledge rather than on a computed number could be written at all -- A4's
+    numbers[] is empty and all five of its basis entries are `kb:`. The
+    widening was declared with the claim that **this reference resolves**, and
+    that claim is what separates it from the checks that read a declaration
+    and trust it. A claim that separates one class from another and is not
+    enforced gives the next reader no reason to believe the separation.
+
+    Resolving against the card's own `kb_refs` and not against the store: the
+    point is that the card asked for the entry and recorded what came back. An
+    entry that exists in the store but was never cited here means the bound
+    rests on something this card never obtained, which is the false-grounding
+    that an empty basis was going to be.
+
+    This covers the `kb:` form only, which is what 8 declares. The other half
+    -- a basis naming a number that is not in numbers[] -- is still
+    unguarded: check 2 compares units for basis entries it finds and skips
+    the ones it does not, so a basis naming nothing passes. Reported rather
+    than folded in here.
+    """
+    out: list[Finding] = []
+    seen = 0
+    for c in b.cards:
+        if "__unreadable__" in c.data:
+            continue
+        refs = {r.get("entry_id") for r in (c.data.get("kb_refs") or [])
+                if isinstance(r, dict)}
+        found: list[tuple] = []
+
+        def walk(node):
+            if isinstance(node, dict):
+                if isinstance(node.get("basis"), list) and "parameter" in node:
+                    for x in node["basis"]:
+                        if isinstance(x, str) and x.startswith("kb:"):
+                            found.append((node.get("parameter"), x[3:]))
+                for v in node.values():
+                    walk(v)
+            elif isinstance(node, list):
+                for v in node:
+                    walk(v)
+
+        walk(c.data)
+        for parameter, entry_id in found:
+            seen += 1
+            if entry_id not in refs:
+                out.append(Finding(54, FAIL,
+                    f"the bound on {parameter!r} rests on kb:{entry_id}, which this card does not "
+                    "cite in kb_refs. A bound may rest on knowledge this card obtained; resting it "
+                    "on an entry that was never asked for is the false grounding an empty basis "
+                    "would have been (5.3.2)", c.rel))
+    if not seen:
+        return [Finding(54, PENDING, "no bound rests on a kb: basis yet")]
+    return out or [Finding(54, PASS, f"{seen} kb: basis references resolve to the citing card's kb_refs")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -3447,6 +3505,7 @@ CHECKS = [
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision, check_53_deny_rules_do_not_block_reading,
+    check_54_kb_basis_resolves,
     check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,
     check_42_check_registry, check_41_seat_attribution,
