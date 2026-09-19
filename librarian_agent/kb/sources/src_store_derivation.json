@@ -1,0 +1,9 @@
+{
+  "source_id": "src_store_derivation",
+  "kind": "derivation",
+  "identifier": "A claim derived inside the store from entries it already holds. The entry names its inputs; this source record says the derivation is the source, so that a derived claim does not borrow the provenance of the facts it rests on.",
+  "accessed": "2026-09-19",
+  "grade_rule": "E4 via a `computed:` source. The derivation is itself an assumption (5.3), so a consequence is never better than E4 however solid its inputs -- an E3 fact and an E3 fact do not make an E3 conclusion.",
+  "license_note": "Nothing is reproduced; the inputs are entry ids in this store.",
+  "note": "Written for the temperature asymmetry, which follows from two entries here and one property of the simulation engine that this store does not hold. An entry using this source has to name which of its inputs are in the store and which are not."
+}

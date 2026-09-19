@@ -1,0 +1,19 @@
+{
+  "entry_id": "declared_versus_inferred_temperature",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Temperature enters the two sides differently, and the difference is not symmetric. In the simulation the thermostat realises the declared value, so citing a temperature there records WHY the number was chosen and is not evidence about the model's temperature -- the model's temperature is what was declared. In the experiment nothing actuates the sample and the only thermometer reads the room, so a temperature used there is INFERRED, and citing the same entry is a claim about the sample. The uncertainty therefore sits entirely on the experiment side.",
+  "subject": [
+    { "kind": "quantity", "id": "temperature" },
+    { "kind": "observable", "id": "tracer_diffusivity" }
+  ],
+  "source": "computed:temperature_asymmetry",
+  "grade": "E4",
+  "grade_tag": "computed",
+  "source_ref": "src_store_derivation",
+  "validity_conditions": "Holds while both halves hold, and each is separately falsifiable. The experiment half rests on sample_temperature_not_actuated and on lab_ambient_temperature being a reading of the room: connect the temperature stage, or record where the thermometer sits relative to the sample, and it changes. The simulation half rests on the engine's thermostat realising its setpoint, which is a property of that engine and is NOT held in this store -- it is named here as an input rather than asserted as knowledge, and a simulation seat is the one that can confirm or refute it. E4 rather than E3 because a consequence is never better than the derivation that produced it, whatever the grade of its inputs. What this entry does NOT say is how large the experiment-side uncertainty is; that needs the thermometer's distance from the sample and how well the two track, and neither is known.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}
