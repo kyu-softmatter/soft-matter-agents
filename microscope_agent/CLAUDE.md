@@ -32,8 +32,20 @@ Not from here. This agent keeps **records** (`questions/`, `runs/`) and
 and cannot write here (D11), so **this session copies the export into its own
 `envelope/snapshot.json`**. The copy is deliberate: which KB version entered
 this agent's envelope, and when, is then a fact in this agent's own commit
-history. Check 26 compares each entry against the store by hash, so the copy
-cannot silently diverge.
+history. **Check 26 does not yet do this, whatever it sounds like.** It is a
+stub: it returns PENDING whether a snapshot is present or absent, so a
+diverged copy passes today exactly as a sound one does. Until it is
+implemented, verify the copy yourself — each entry's text hashing to its own
+`sha256`, each matching the store file byte for byte, `snapshot_hash`
+recomputing, `kb_version` agreeing with `index.json` — and say in your commit
+that you did, because nothing else will.
+
+**Copy only bytes that are committed.** If the export is modified in the
+working copy, wait. A snapshot built from uncommitted bytes has no commit
+behind it, and then the one thing the copy exists to establish — which KB
+version entered this envelope, and when, as a fact of this agent's history —
+is the thing it cannot show. Record in your commit message which commit of
+the export you took.
 
 Query the service for anything a plan needs, and record both halves of the
 answer. `kb_refs` holds what came back. **`kb_gaps` holds what was asked for and
