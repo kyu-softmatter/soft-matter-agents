@@ -56,6 +56,37 @@ verify it, because `caller_id` is an argument and the server cannot see the
 identity behind it. A line proves a call was made under that id, not that you
 made it. What it forecloses is the card with no line at all.
 
+## How a hold is written here, because two of them went stale in one day
+
+A card that says *do not start yet* is the most perishable thing in this
+directory, and this seat has now had to withdraw two of them within hours of
+writing them: `000`'s *session 2 does not commit*, and `002`'s *do not start*.
+Both named their release condition in prose. Both stayed after the condition
+cleared, because **prose does not re-check itself and nobody re-reads a card
+that says wait.**
+
+So a hold in this directory carries a **condition you can run**, not a
+sentence you have to remember to re-evaluate:
+
+```bash
+# 002 was held on this, and it now returns the inline branch:
+python3 -c "import json;print(json.load(open('contracts/schemas/goal.schema.json'))['properties']['targets']['items'])"
+# 003's third step is held on this returning 0:
+python3 -c "
+import json,glob,re
+print(sum(1 for f in glob.glob('simulation_agent/questions/*/axis_*.json')
+          if not re.search(r':v\\d+:', json.load(open(f)).get('caller_id',''))))"
+```
+
+**The cost of a stale hold is not confusion, it is an idle seat.** `simulation-2`
+sat registered and not committing for a day because one sentence outlived its
+reason, and the only thing pointing at that sentence was the sentence. A hold
+whose release is a command is one line to check and cannot quietly outlive
+itself.
+
+**And a hold names who lifts it.** If that is this seat, say so, because a card
+that holds on somebody unnamed holds forever.
+
 ## What is startable right now
 
 **`001` is done** — `cards.observable()` returns the name alone and no card in
