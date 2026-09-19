@@ -81,14 +81,22 @@ before reporting a contract defect. A fresh process that still refuses is the
 contract and goes to the librarian side; one that succeeds means the session
 was older than the fix.
 
-**And if there is no contract at all, report the absence.** A refusal is loud;
-a missing contract is not. When a seat needs to know what a service does and
-nothing on disk says, the producer's source becomes the nearest answer, and
-reading it produces no error and no record — two seats opened the librarian's
-server hours apart on 2026-09-19 for exactly that reason. `contracts/` states
-what each executing side produces, which is why check 8 can derive an
-answerability verdict instead of trusting the card; nothing states what the
-librarian service does. That absence is a report, not a licence.
+**Re-read before you cite.** This paragraph said something else for an hour:
+that no contract described the librarian service, and that an absent contract
+should be reported. It was false. `plan.md` §4.3.1 carries all four tools with
+their arguments and says outright that the table is canonical — and it also
+records that a duplicate `contracts/librarian_tools.json` was proposed on the
+same reasoning a day earlier, accepted, and reverted, because the table
+already gives the signatures and a second copy is the split §11-11 counts. The
+rebuttal was pre-written in the document said to contain nothing.
+
+Two seats reached that conclusion the same day, one from a `grep` for a
+filename that did not exist, one from a checkout read two minutes before the
+revert. Neither is carelessness of a kind a rule prevents: eight sessions
+share this working copy, and a file quoted as it stood when you last looked is
+a different file. **A missing file is not a missing contract**, and a search
+for the filename somebody proposed will not find the contract that already
+exists under another name.
 
 **Do not hand-spawn the librarian's server, even though the command is the one
 `.mcp.json` registers.** The argument that running a file means reading it does
