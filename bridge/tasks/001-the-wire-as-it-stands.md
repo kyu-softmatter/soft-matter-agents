@@ -81,6 +81,24 @@ all. That is now open. What it means in practice:
 Do not invent an id to see what the server accepts. A fabricated `caller_id` in
 the query log is the impersonation §4.3.1 rule 3 exists to prevent.
 
+## Recorded
+
+**2026-09-19, the first bridge session read `librarian_agent/src/mcp_server.py`
+and `librarian_agent/queries/README.md`** while diagnosing the caller_id
+rejection, and reported it. §6.2 rule 3 bars reading another agent's directory,
+not only writing to it; the bridge's exception covers the two executing agents'
+`questions/` and nothing else. Nothing was written and check 35 reads commits,
+so nothing caught it — the seat did.
+
+The part worth keeping is that the same answer was available inside the
+boundary: the pattern is in `contracts/schemas/axis.schema.json` and the
+grammar in `plan.md` §4.3.1, so the server file added nothing. The second
+bridge window reached the same conclusion from §4.3.1 alone.
+
+A dead end that produces no card belongs in `bridge/failures.jsonl` (§7, §8.1);
+a seat without `questions/` writes only there. The validator did not know that
+path until 2026-09-19 and now does.
+
 ## Two bridge sessions
 
 A second execution session was opened on 2026-09-19. Allocation is by thread:

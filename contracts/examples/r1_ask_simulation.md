@@ -1,31 +1,37 @@
 # Round 1 — experiment to simulation
 
-`thr-diffusivity-crosscheck` · wrapped by the bridge · **the human's turn**
+`thr-example-crosscheck` · wrapped by the bridge
 
 The microscope side finished `mic-20260917-001`, and its result card is carried
-here unchanged. The bridge wrote no number of its own: this envelope's
-`numbers[]` is empty, which is why none of the payload's values are restated
-below. Restating them would put one quantity in two places, and by next week it
-would be two quantities (P3, check 9).
+here unchanged.
 
-| gate | verdict |
-|---|---|
-| payload integrity | the canonical hash of the carried card matches `r1_hashes.json` |
-| answerability | **yes** — `bd_overdamped` produces it, checked against `capabilities/simulation.json` |
-| unit consistency | **no counterpart** — the opening round has nothing to compare against |
+**Whose turn it is, and what state the round is in, are in `status.json`.** They
+are not repeated here, and neither are the gate verdicts, which are in
+`r1_ask_simulation.json`. The rule the envelope already follows for numbers —
+the bridge writes none of its own, so none of the payload's values appear here
+(P3, check 9) — applies to every other field the JSON holds. A courier that
+recites what it carries puts one fact in two places, and this file is what
+proved it: when the round stopped being held it went on saying *the human's
+turn* for a day, in the example a bridge seat copies when writing its first
+round.
 
-## Why the round is held rather than refused
+Check 9 compares numbers and would not have caught that. Nothing catches prose
+drift, which is the argument for having no prose to drift: point at the field
+rather than restating it.
 
-`capabilities/simulation.json` declares no configuration, and
-`contracts/observables.json` defines no entry, so the engine side has not said
-whether it can produce `tracer_diffusivity`. Not declared is not impossible.
-Refusing here would record an impossibility nobody established, and answering
-yes would claim a capability nobody declared. So the round is held, the turn goes
-to a person, and `status.json` names the open question.
+## What this round is
+
+A result crossing from the instrument to the engine, so that the same
+observable can be produced on both sides and compared. The envelope carries the
+card, the ledger records what was read and from where, and the thread ledger
+says who owes the next move.
+
+The payload's own numbers, sources and grades stay in the payload. Read them
+there.
 
 ## What the librarian would have changed
 
-`degraded: ["librarian_agent"]`. With the knowledge store reachable, a repeat of
-this observable under the same conditions would come back as a reference instead
-of a new round (plan.md 4.4 rule 5). With no store to point at there is nothing
-to substitute, so a repeat would reopen the round. That is what this line costs.
+`degraded: ["librarian_agent"]`. With the store reachable, a repeat of this
+observable under the same conditions would come back as a reference instead of
+a new round (plan.md 4.4 rule 5). With nothing to point at there is nothing to
+substitute, so a repeat would reopen the round. That is what this line costs.

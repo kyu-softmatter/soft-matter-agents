@@ -108,6 +108,12 @@ print(canon_sha(card), card['id'], card['revision'])
 " microscope_agent/questions/mic-20260917-001/result.json
 ```
 
+**The markdown restates nothing the JSON holds.** Not the turn, not the state,
+not a gate verdict — point at `status.json` and at the envelope instead. Check 9
+enforces this for numbers and nothing enforces it for prose, which is the reason
+to carry no prose that can drift: the example round said *the human's turn* for
+a day after the round opened, and a seat writing its first round copied it.
+
 **The markdown may not contain a number.** The envelope's `numbers[]` is empty,
 and check 9 requires every number in a markdown file to be in its card's
 `numbers[]`. So the human-readable round names the payload and points at it
