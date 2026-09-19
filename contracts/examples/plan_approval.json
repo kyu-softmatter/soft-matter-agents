@@ -11,7 +11,7 @@
   "status": "APPROVED",
   "plan_id": "plan-mic-20260917-001-r1",
   "plan_revision": 1,
-  "plan_hash": "sha256:0ea6db8e9b28147d78507089882c56076c962e23c1bb122c80597fb774c03fb9",
+  "plan_hash": "sha256:2bd6c3fbe49cfe89e2a5d94f7943789f4543e02cbd68c2e69e3bc98aca8d6dd9",
   "approved_by": "kyuhwan",
   "approved_at": "2026-09-17T09:00:00Z",
   "note": "One irreversible action, the reference bleach, rests on a calibrated power rather than an estimate, so an individual approval is enough. The drift tolerance is an estimate but nothing irreversible depends on it.",

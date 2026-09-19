@@ -12,8 +12,7 @@
   "purpose": "compare",
   "intent": "explore",
   "observable": {
-    "name": "tracer_diffusivity",
-    "definition": "Short-time translational diffusion coefficient of dilute tracer spheres, read from the mean squared displacement of tracked centroids, measured at two sample temperatures."
+    "name": "tracer_diffusivity"
   },
   "targets": [
     { "metric": "diffusivity_ratio", "number": "target_decade_resolution", "kind": "decade_resolution" }

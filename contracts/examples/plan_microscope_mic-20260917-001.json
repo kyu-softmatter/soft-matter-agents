@@ -14,8 +14,7 @@
   "purpose": "screen",
   "intent": "explore",
   "observable": {
-    "name": "tracer_diffusivity",
-    "definition": "Short-time translational diffusion coefficient of dilute tracer spheres in the sample, read from the mean squared displacement of tracked centroids over lag times below the trap-free drift time."
+    "name": "tracer_diffusivity"
   },
   "system_configuration": {
     "config": "brightfield",

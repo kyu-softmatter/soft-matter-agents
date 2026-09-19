@@ -28,8 +28,7 @@
     "approval_id": "appr-mic-20260917-001-r1",
     "run_id": "run-20260917-001",
     "observable": {
-      "name": "tracer_diffusivity",
-      "definition": "Short-time translational diffusion coefficient of dilute tracer spheres in the sample, read from the mean squared displacement of tracked centroids over lag times below the trap-free drift time."
+      "name": "tracer_diffusivity"
     },
     "outcome": "DONE",
     "values": [
@@ -213,7 +212,7 @@
       "note": "False rather than true because nobody ran the declared weighted fit here. An example that claimed to have followed it would be teaching the field to be filled in rather than answered."
     }
   },
-  "payload_hash": "sha256:975c9212f0ca426f942b240b15f0122f251a10b5356b0f44895d01ba26ea30fa",
+  "payload_hash": "sha256:e5753c582199dbe22e6c1b5a8c9b99e25e60704d1f1d5aed7336eab93a42a52f",
   "answerability": {
     "observable": "tracer_diffusivity",
     "checked_against": "simulation.json",
