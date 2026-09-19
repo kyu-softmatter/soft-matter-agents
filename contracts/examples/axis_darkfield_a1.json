@@ -9,7 +9,7 @@
   "author": "microscope_agent",
   "created_at": "2026-09-17T08:10:00Z",
   "status": "VALIDATED",
-  "caller_id": "mic-20260917-001:darkfield:a1",
+  "caller_id": "mic-20260917-001:v1:darkfield:a1",
   "config": "darkfield",
   "axis": "a1",
   "kb_version": "kbv-6757e8d916c5",
@@ -20,7 +20,9 @@
       "parameter": "exposure_time",
       "unit": "s",
       "min": 0.5,
-      "basis": ["exposure_floor"],
+      "basis": [
+        "exposure_floor"
+      ],
       "precision": "order_of_magnitude"
     }
   ],
@@ -39,10 +41,14 @@
     {
       "rationale_id": "a_dark_floor",
       "statement": "Darkfield collects only scattered light, which for a tracer of this size sits roughly two decades below the transmitted signal; reaching the same signal to noise ratio therefore needs an exposure of order half a second.",
-      "numbers": ["exposure_floor"],
+      "numbers": [
+        "exposure_floor"
+      ],
       "falsifier": "a centroid at the target signal to noise ratio with a shorter darkfield exposure retires this bound"
     }
   ],
   "kb_refs": [],
-  "degraded": ["librarian_agent"]
+  "degraded": [
+    "librarian_agent"
+  ]
 }

@@ -11,12 +11,19 @@
   "status": "DRAFT",
   "kb_version": "kbv-00000000",
   "method": "llm_estimate",
-  "verdict": "feasible",  "caller_id": "mic-99999999-001:brightfield:a6",
+  "verdict": "feasible",
+  "caller_id": "mic-99999999-001:v1:brightfield:a6",
   "config": "brightfield",
   "axis": "a6",
   "note": "MUST FAIL check 9: the markdown beside this card states a number the card does not contain.",
   "numbers": [
-    { "name": "field_of_view", "value": 100, "unit": "um", "source": "spec:objective_20x", "grade": "E3" }
+    {
+      "name": "field_of_view",
+      "value": 100,
+      "unit": "um",
+      "source": "spec:objective_20x",
+      "grade": "E3"
+    }
   ],
   "degraded": []
 }

@@ -9,7 +9,7 @@
   "author": "microscope_agent",
   "created_at": "2026-09-17T00:00:00Z",
   "status": "DRAFT",
-  "caller_id": "mic-99999999-002:brightfield:a2",
+  "caller_id": "mic-99999999-002:v1:brightfield:a2",
   "config": "brightfield",
   "axis": "a2",
   "kb_version": "kbv-6757e8d916c5",
@@ -17,10 +17,20 @@
   "verdict": "feasible",
   "note": "MUST FAIL check 21 and check 25: the store grades water_viscosity_293k as E3, and this card promotes it to E1 on the way in. Inheriting a grade upward is how a literature value quietly becomes a measurement.",
   "numbers": [
-    { "name": "viscosity", "value": 0.001, "unit": "Pa*s", "source": "kb:water_viscosity_293k", "grade": "E1" }
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E1"
+    }
   ],
   "kb_refs": [
-    { "entry_id": "water_viscosity_293k", "grade": "E1", "kb_version": "kbv-6757e8d916c5" }
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E1",
+      "kb_version": "kbv-6757e8d916c5"
+    }
   ],
   "degraded": []
 }

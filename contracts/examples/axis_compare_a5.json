@@ -9,23 +9,62 @@
   "author": "microscope_agent",
   "created_at": "2026-09-17T10:05:00Z",
   "status": "VALIDATED",
-  "caller_id": "mic-20260917-002:brightfield:a5",
+  "caller_id": "mic-20260917-002:v1:brightfield:a5",
   "config": "brightfield",
   "axis": "a5",
   "kb_version": "kbv-6757e8d916c5",
   "method": "llm_estimate",
   "verdict": "feasible",
   "constraints": [
-    { "parameter": "temperature_tolerance", "unit": "K", "max": 0.5, "basis": ["temperature_tolerance_max"], "precision": "order_of_magnitude" }
+    {
+      "parameter": "temperature_tolerance",
+      "unit": "K",
+      "max": 0.5,
+      "basis": [
+        "temperature_tolerance_max"
+      ],
+      "precision": "order_of_magnitude"
+    }
   ],
   "numbers": [
-    { "name": "viscosity_sensitivity", "value": 0.02, "unit": "1", "source": "assumed:a_visc_sens", "grade": "E5", "precision": "order_of_magnitude", "note": "fractional change in viscosity per kelvin near room temperature" },
-    { "name": "temperature_tolerance_max", "value": 0.5, "unit": "K", "source": "assumed:a_temp_tol", "grade": "E5", "precision": "order_of_magnitude" }
+    {
+      "name": "viscosity_sensitivity",
+      "value": 0.02,
+      "unit": "1",
+      "source": "assumed:a_visc_sens",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "fractional change in viscosity per kelvin near room temperature"
+    },
+    {
+      "name": "temperature_tolerance_max",
+      "value": 0.5,
+      "unit": "K",
+      "source": "assumed:a_temp_tol",
+      "grade": "E5",
+      "precision": "order_of_magnitude"
+    }
   ],
   "assumptions": [
-    { "rationale_id": "a_visc_sens", "statement": "The viscosity of water moves by roughly two percent per kelvin near room temperature, which is what makes temperature the compared variable in the first place.", "numbers": ["viscosity_sensitivity"], "falsifier": "a measured sensitivity outside this decade" },
-    { "rationale_id": "a_temp_tol", "statement": "Half a kelvin of drift during a record keeps the arms separable given that sensitivity.", "numbers": ["temperature_tolerance_max"], "falsifier": "arm-to-arm scatter larger than the drift effect" }
+    {
+      "rationale_id": "a_visc_sens",
+      "statement": "The viscosity of water moves by roughly two percent per kelvin near room temperature, which is what makes temperature the compared variable in the first place.",
+      "numbers": [
+        "viscosity_sensitivity"
+      ],
+      "falsifier": "a measured sensitivity outside this decade"
+    },
+    {
+      "rationale_id": "a_temp_tol",
+      "statement": "Half a kelvin of drift during a record keeps the arms separable given that sensitivity.",
+      "numbers": [
+        "temperature_tolerance_max"
+      ],
+      "falsifier": "arm-to-arm scatter larger than the drift effect"
+    }
   ],
   "kb_refs": [],
-  "degraded": ["librarian_agent"]
+  "degraded": [
+    "librarian_agent"
+  ]
 }

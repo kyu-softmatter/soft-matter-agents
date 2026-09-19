@@ -9,24 +9,64 @@
   "author": "microscope_agent",
   "created_at": "2026-09-17T10:05:00Z",
   "status": "VALIDATED",
-  "caller_id": "mic-20260917-002:brightfield:a1",
+  "caller_id": "mic-20260917-002:v1:brightfield:a1",
   "config": "brightfield",
   "axis": "a1",
   "kb_version": "kbv-6757e8d916c5",
   "method": "llm_estimate",
   "verdict": "feasible",
   "constraints": [
-    { "parameter": "exposure_time", "unit": "s", "min": 0.001, "max": 0.05, "basis": ["exposure_time_min", "exposure_time_max"], "precision": "order_of_magnitude" }
+    {
+      "parameter": "exposure_time",
+      "unit": "s",
+      "min": 0.001,
+      "max": 0.05,
+      "basis": [
+        "exposure_time_min",
+        "exposure_time_max"
+      ],
+      "precision": "order_of_magnitude"
+    }
   ],
   "numbers": [
-    { "name": "exposure_time_min", "value": 0.001, "unit": "s", "source": "assumed:a_exp_min", "grade": "E5", "precision": "order_of_magnitude" },
-    { "name": "exposure_time_max", "value": 0.05, "unit": "s", "source": "assumed:a_exp_max", "grade": "E5", "precision": "order_of_magnitude" }
+    {
+      "name": "exposure_time_min",
+      "value": 0.001,
+      "unit": "s",
+      "source": "assumed:a_exp_min",
+      "grade": "E5",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "exposure_time_max",
+      "value": 0.05,
+      "unit": "s",
+      "source": "assumed:a_exp_max",
+      "grade": "E5",
+      "precision": "order_of_magnitude"
+    }
   ],
   "assumptions": [
-    { "rationale_id": "a_exp_min", "statement": "Read noise floors a useful brightfield exposure at about a millisecond on this camera.", "numbers": ["exposure_time_min"], "falsifier": "a usable centroid at a shorter exposure" },
-    { "rationale_id": "a_exp_max", "statement": "Motion blur crosses a pixel in tens of milliseconds at the expected diffusivity.", "numbers": ["exposure_time_max"], "falsifier": "a measured blur below a pixel at a longer exposure" }
+    {
+      "rationale_id": "a_exp_min",
+      "statement": "Read noise floors a useful brightfield exposure at about a millisecond on this camera.",
+      "numbers": [
+        "exposure_time_min"
+      ],
+      "falsifier": "a usable centroid at a shorter exposure"
+    },
+    {
+      "rationale_id": "a_exp_max",
+      "statement": "Motion blur crosses a pixel in tens of milliseconds at the expected diffusivity.",
+      "numbers": [
+        "exposure_time_max"
+      ],
+      "falsifier": "a measured blur below a pixel at a longer exposure"
+    }
   ],
   "kb_refs": [],
-  "degraded": ["librarian_agent"],
+  "degraded": [
+    "librarian_agent"
+  ],
   "note": "The same window as question 001. It is re-derived here rather than carried across questions: a bound that travels between questions without going through the store is a bound nobody can date."
 }

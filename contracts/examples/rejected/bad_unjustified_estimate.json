@@ -12,18 +12,26 @@
   "kb_version": "kbv-00000000",
   "method": "llm_estimate",
   "verdict": "feasible",
-  "caller_id": "mic-99999999-003:brightfield:a4",
+  "caller_id": "mic-99999999-003:v1:brightfield:a4",
   "config": "brightfield",
   "axis": "a4",
   "note": "MUST FAIL check 39: the librarian was reachable (degraded is empty) and the card still estimated, without a kb_gaps entry saying what was looked for and not found. An estimate nobody checked and an estimate that survived a search are not the same number.",
   "numbers": [
-    { "name": "settling_time", "value": 0.01, "unit": "s", "source": "assumed:a_settle", "grade": "E5" }
+    {
+      "name": "settling_time",
+      "value": 0.01,
+      "unit": "s",
+      "source": "assumed:a_settle",
+      "grade": "E5"
+    }
   ],
   "assumptions": [
     {
       "rationale_id": "a_settle",
       "statement": "stage settling is taken as one hundredth of a second, from the order of magnitude of comparable stages",
-      "numbers": ["settling_time"],
+      "numbers": [
+        "settling_time"
+      ],
       "falsifier": "a step response measured on this stage"
     }
   ],

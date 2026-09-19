@@ -11,15 +11,30 @@
   "status": "DRAFT",
   "kb_version": "kbv-00000000",
   "method": "llm_estimate",
-  "verdict": "feasible",  "caller_id": "mic-99999999-001:brightfield:a2",
+  "verdict": "feasible",
+  "caller_id": "mic-99999999-001:v1:brightfield:a2",
   "config": "brightfield",
   "axis": "a2",
   "note": "MUST FAIL check 3: E6 is a value a model made up, and it may not enter any card.",
   "numbers": [
-    { "name": "photobleach_time", "value": 3, "unit": "s", "source": "assumed:a_guess", "grade": "E6" }
+    {
+      "name": "photobleach_time",
+      "value": 3,
+      "unit": "s",
+      "source": "assumed:a_guess",
+      "grade": "E6"
+    }
   ],
   "assumptions": [
-    { "rationale_id": "a_guess", "statement": "The model thought this was about right, which is exactly what E6 means.", "numbers": ["photobleach_time"] }
+    {
+      "rationale_id": "a_guess",
+      "statement": "The model thought this was about right, which is exactly what E6 means.",
+      "numbers": [
+        "photobleach_time"
+      ]
+    }
   ],
-  "degraded": ["librarian_agent"]
+  "degraded": [
+    "librarian_agent"
+  ]
 }

@@ -11,12 +11,19 @@
   "status": "DRAFT",
   "kb_version": "kbv-00000000",
   "method": "llm_estimate",
-  "verdict": "feasible",  "caller_id": "mic-99999999-001:brightfield:a7",
+  "verdict": "feasible",
+  "caller_id": "mic-99999999-001:v1:brightfield:a7",
   "config": "brightfield",
   "axis": "a7",
-  "note": "MUST FAIL check 11: this card reads mic-99999999-001:darkfield:a7, a sibling of the same fan-out. Once one axis can see another, the intersection in S4 is combining two views of the same opinion.",
+  "note": "MUST FAIL check 11: this card reads mic-99999999-001:v1:darkfield:a7, a sibling of the same fan-out. Once one axis can see another, the intersection in S4 is combining two views of the same opinion.",
   "numbers": [
-    { "name": "trap_count", "value": 2, "unit": "count", "source": "spec:tweezer", "grade": "E3" }
+    {
+      "name": "trap_count",
+      "value": 2,
+      "unit": "count",
+      "source": "spec:tweezer",
+      "grade": "E3"
+    }
   ],
   "degraded": []
 }

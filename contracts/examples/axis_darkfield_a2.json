@@ -9,7 +9,7 @@
   "author": "microscope_agent",
   "created_at": "2026-09-17T08:10:00Z",
   "status": "VALIDATED",
-  "caller_id": "mic-20260917-001:darkfield:a2",
+  "caller_id": "mic-20260917-001:v1:darkfield:a2",
   "config": "darkfield",
   "axis": "a2",
   "kb_version": "kbv-6757e8d916c5",
@@ -20,7 +20,9 @@
       "parameter": "exposure_time",
       "unit": "s",
       "max": 0.02,
-      "basis": ["exposure_ceiling"],
+      "basis": [
+        "exposure_ceiling"
+      ],
       "precision": "order_of_magnitude"
     }
   ],
@@ -49,7 +51,10 @@
       "grade": "E5",
       "precision": "order_of_magnitude",
       "formula": "displacement_per_frame_max**2/(2*diffusivity_expected)",
-      "inputs": ["displacement_per_frame_max", "diffusivity_expected"],
+      "inputs": [
+        "displacement_per_frame_max",
+        "diffusivity_expected"
+      ],
       "note": "the exposure at which the mean squared displacement reaches one pixel. An E5 input drags the computed value to E5, which is the whole point of the rule."
     }
   ],
@@ -57,10 +62,14 @@
     {
       "rationale_id": "a_dark_diff",
       "statement": "The tracer diffusivity is taken as the bulk Stokes-Einstein order of magnitude, since nothing has been measured on this sample yet.",
-      "numbers": ["diffusivity_expected"],
+      "numbers": [
+        "diffusivity_expected"
+      ],
       "falsifier": "a measured diffusivity outside this decade retires the bound computed from it"
     }
   ],
   "kb_refs": [],
-  "degraded": ["librarian_agent"]
+  "degraded": [
+    "librarian_agent"
+  ]
 }

@@ -11,12 +11,19 @@
   "status": "DRAFT",
   "kb_version": "kbv-00000000",
   "method": "llm_estimate",
-  "verdict": "feasible",  "caller_id": "mic-99999999-001:brightfield:a5",
+  "verdict": "feasible",
+  "caller_id": "mic-99999999-001:v1:brightfield:a5",
   "config": "brightfield",
   "axis": "a5",
   "note": "MUST FAIL check 2: a unit that is not in the registry. An unregistered unit cannot be checked for dimension, so it cannot be compared with anything.",
   "numbers": [
-    { "name": "stage_travel", "value": 2, "unit": "furlong", "source": "spec:motor_stage", "grade": "E3" }
+    {
+      "name": "stage_travel",
+      "value": 2,
+      "unit": "furlong",
+      "source": "spec:motor_stage",
+      "grade": "E3"
+    }
   ],
   "degraded": []
 }

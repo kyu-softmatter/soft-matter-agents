@@ -1612,7 +1612,13 @@ def check_33_caller_isolation(b: Bundle) -> list[Finding]:
         if len(versions) > 1:
             out.append(Finding(33, FAIL, f"qid {qid} in {where}: siblings cite different kb_version {sorted(versions)}; S3.0 pins one"))
         for c in group:
-            want = f"{c.data.get('qid')}:{c.data.get('config')}:{c.data.get('axis')}"
+            # Both forms, while the cards that predate a6dca6a migrate (4.3.1).
+            # The one without the revision stops being accepted once they have.
+            qid, cfg, ax = c.data.get("qid"), c.data.get("config"), c.data.get("axis")
+            want = f"{qid}:v{c.data.get('revision')}:{cfg}:{ax}"
+            legacy = f"{qid}:{cfg}:{ax}"
+            if c.data.get("caller_id") == legacy:
+                want = legacy
             if c.data.get("caller_id") != want:
                 out.append(Finding(33, FAIL, f"caller_id {c.data.get('caller_id')!r} does not match {want!r}", c.rel))
     return out or [Finding(33, PASS, f"{len(axes)} axis cards are isolated by caller and pinned to one kb_version")]
