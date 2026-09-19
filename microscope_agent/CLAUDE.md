@@ -405,6 +405,44 @@ that uses them.
 **Drop** — their orchestrator, and the per-device GUI-session management. We
 have our own single entry point and it is already written.
 
+## A standing preference: move the stage, not the trap
+
+**Stated by the person on 2026-09-19.** Where a measurement needs relative
+motion between the sample and the trapped object, **prefer moving the piezo
+stage over steering the trap.** The reason is image analysis: with the trap
+held still the object stays at one place on the sensor, so flat-field,
+distortion and illumination non-uniformity stay constant instead of varying
+along the trajectory. Drag calibration is the worked example — if the sample
+has to move at 10 µm/s past the object, move the stage at 10 µm/s rather than
+sweeping the trap.
+
+**This is a preference and not evidence.** It says which actuator to reach for
+first, not what the instrument can do. It does not become a number, it does
+not relieve any axis of stating its bounds, and A7 may still return an
+interval that refuses it — `preference_is_not_evidence`, the same rule S3.0
+applies to a configuration preference.
+
+**It chooses the actuator; it does not change the physics.** Two consequences
+that are easy to get backwards:
+
+- **The escape condition still binds.** `v_max ~ k·x_max/γ` is about the
+  *relative* velocity between fluid and object. Driving that relative velocity
+  from the stage instead of the trap produces the same drag and the same
+  escape, so A7 owns the same inequality either way.
+- **What changes is which limits enter it.** Stage-driven motion is bounded by
+  the piezo's travel, bandwidth and settling time, and by the motorised
+  stage's velocity, acceleration and backlash — not by the trap steering rate
+  or the multiplexing update rate. A7's `stage_velocity` bound becomes the one
+  that binds, and `trap_velocity` stops being the limiting term.
+
+**Do not fetch the piezo travel range from the prior project.** It exists
+there as the heading of that project's `SAFETY.md`, and §10.3 rule 4 makes
+safety limits non-transferable — that project put the number in its safety
+document because it was using it as a limit, and a travel range read as a
+permission is exactly the failure the rule names. A stage-driven calibration
+will want that number immediately; it comes from this instrument or from the
+person, not from there.
+
 ## What the operator still owes, and what each one unlocks
 
 Kept here rather than in a card because these are not missing values -- a
