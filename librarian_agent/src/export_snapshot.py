@@ -63,6 +63,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import kb_index                                             # noqa: E402
+
 AGENT = Path(__file__).resolve().parent.parent
 KB = AGENT / "kb"
 EXPORTS = KB / "exports"
@@ -231,6 +234,34 @@ def build(agent: str) -> dict:
         body["not_included"] = [
             f"{n} -- this agent has no instrument for it to describe (4.3.2)" for n in sorted(TABLES)
         ]
+
+    # Every name the store answers to, so discovery does not require guessing
+    # it. On 2026-09-19 the service answered `absent` to `numerical_aperture`
+    # while six entries carried a number called `na`, and to `objective` while
+    # eight answered to `nosepiece`. Neither is missing knowledge and neither
+    # is a published table -- the store simply had a different word, and a
+    # caller had no way to see which words exist.
+    #
+    # The list rather than synonyms, deliberately. Teaching the server that
+    # `numerical_aperture` means `na` is inventing a namespace: it needs a
+    # rule for what may be a synonym of what, and the guesses that rule
+    # licenses are the same move as normalising whitespace. Publishing what
+    # the store does answer to invents nothing, and the snapshot already
+    # carried every one of these names inside the entries -- each consumer
+    # would otherwise re-derive the same list.
+    index: dict[str, list[str]] = {}
+    for eid, text in ((k, v["text"]) for k, v in entries.items()):
+        for name, origin in kb_index.handles(json.loads(text)):
+            index.setdefault(name, [])
+            if origin not in index[name]:
+                index[name].append(origin)
+    body["handles"] = {
+        "note": "every name kb_query and kb_get answer to at this kb_version, with where each "
+                "comes from. Matching folds case and nothing else, so a name not here does not "
+                "answer -- there are no synonyms, and asking for one gets `absent` even when the "
+                "store holds the fact under another word.",
+        "names": {k: sorted(v) for k, v in sorted(index.items())},
+    }
 
     body["how_to_verify"] = (
         "sha256 of each entry's `text` must equal its `sha256`, and sha256 over the canonical "
