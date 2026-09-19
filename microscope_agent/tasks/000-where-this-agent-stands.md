@@ -48,27 +48,34 @@ Three reasons, and the first is the one that was learned expensively:
 If you find a reason the pinned version cannot answer some axis, that is a
 finding to send up, not a licence to re-pin.
 
-## Two things carried over from the old card
+## The librarian answers now
 
-**A measurement nobody has made.** The launcher writes its own log per seat
-path:
+**Settled on 2026-09-19, by measurement rather than inference.** The tools
+attach, the service replied, and `librarian_agent/queries/log.jsonl` holds the
+first record this repository has ever had of the service answering:
+`caller_id` `mic-20260918-001:widefield_inline:a4`, pinned at
+`kbv-49feb73662b7`, `answered_from` naming commit `9baf01d` and
+`reproducible: true`. The served digest matched that commit's blob byte for
+byte, and *differed* from the working-copy file — which is the confirmation,
+not a problem: the entry gained a field afterwards and the server correctly
+served the version the pin names. Staying on `kbv-49feb73662b7` is therefore
+not just permitted, it is demonstrated.
+
+**An earlier version of this card was wrong about why, and the error is worth
+keeping.** It said `enabledMcpjsonServers` is empty at every project path, so
+no session could see the tools. The first half is still true — it is empty
+everywhere — and the conclusion was false: the tools attached anyway. **That
+field is not the gate.** What was blocking was the server path, fixed by
+`8d4a604`. If a seat ever fails to attach, do not diagnose it from that field;
+read the launcher's own log:
 
 ```
 ~/Library/Caches/claude-cli-nodejs/<path with / replaced by ->/mcp-logs-librarian/
 ```
 
-The first line gives the `cwd` the server started in; a failure shows as
-`Server stderr: python3: can't open file ...`. **Do not stop at whether it
-attached** — compare the `kb_version` the server answers with against
-`librarian_agent/kb/index.json`. They must be the same string. `8d4a604`
-resolves the server through `git rev-parse --show-toplevel` so that each
-checkout runs its own copy; confirm it did.
-
-Note that the librarian is **not approved** yet: `enabledMcpjsonServers` is
-empty at every project path, so no session can see the tools. That failure is
-silent — an unserved session takes the degraded path and writes cards that
-look fine — so confirm the tools are visible rather than inferring it from the
-absence of an error, and report it rather than working around it.
+It records the `cwd` the server started in and any `Server stderr`. Note what
+it does **not** record: the `kb_version`. Connection success there does not
+tell you which store answered — only a call does, through `answered_from`.
 
 **A contract fix that is not yours to make alone.** `d6999e5` takes an
 observable's definition out of the cards, leaving the name to be read from the
