@@ -156,9 +156,18 @@ policy: a ceiling derived from what the job needs is not a ceiling, and
 §4.2's *does not submit an over-budget job on its own* would be unenforceable.
 
 `envelope/safety.json` is written by a person (§10.3 rule 4) and holds a **list
-of execution targets**, each with its own ceilings. Today there is one:
+of execution targets**, each with its own ceilings.
 
-| | local |
+**The file does not exist yet.** Its shape is fixed —
+`contracts/schemas/envelope_safety.schema.json` since `22ca6ae` — and the
+numbers below are what was proposed in the design discussion for a single
+`local` target. **They are a starting point for the person who writes it, not
+a ceiling anything can read.** Do not treat them as in force: the operator
+resolves ceilings from the file at run time, finds nothing, and refuses, which
+is correct. A ceiling written in an instruction file is not a ceiling, for the
+same reason a ceiling derived from the job is not one.
+
+| | proposed for `local` |
 |---|---|
 | `wall_clock_max` | 4 h |
 | `storage_max` | 20 GB |
