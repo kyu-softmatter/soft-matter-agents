@@ -404,10 +404,31 @@ it.
 GIT_COMMITTER_NAME='seat:microscope' GIT_COMMITTER_EMAIL=microscope@seat.invalid git commit -F msg -- <paths>
 ```
 
-**Do not put that in the repository's git config.** §6.2.3 prescribes writing
-it into a worktree's own config, and that prescription assumes D12's
-per-session worktrees, which do not exist yet -- `git worktree list` reports
-one shared checkout. An identity written there would be read by every other
-session as its own, and a simulation session committing as `seat:microscope`
-is worse than no attribution at all: check 41 would pass it. Set it per
-command until each session has its own worktree.
+**Which seat you are is your worktree, not your session.** Since the A/B
+(§9.3) this agent has two execution seats: `microscope-1` on
+`seat/microscope-1`, building from `agentic-microscope@version2`, and
+`microscope-2` on `seat/microscope-2`, from `main`. A replacement session
+inherits the identity because it inherits the branch. The undivided
+`microscope` remains only for work on the shared checkout, on `main`, that
+belongs to neither variant.
+
+**In a worktree the identity lives in the worktree's own config**, so it
+survives a context reset and you do not prefix every commit:
+
+```bash
+git config --worktree committer.name  'seat:microscope-2'
+git config --worktree committer.email microscope-2@seat.invalid
+git var GIT_COMMITTER_IDENT        # confirm before you rely on it
+```
+
+**Not `--local`.** In a linked worktree `--local` writes to the shared
+`.git/config`, where every other session reads it as its own — a simulation
+session committing as `seat:microscope` is worse than no attribution, because
+check 41 passes it. This needs `extensions.worktreeConfig=true` once, which is
+already set. §6.2.3 prescribed `--local` by mistake until `44f368b`.
+
+Only on the shared checkout, which has no worktree config, set it per command:
+
+```bash
+GIT_COMMITTER_NAME='seat:microscope' GIT_COMMITTER_EMAIL=microscope@seat.invalid git commit -F msg -- <paths>
+```
