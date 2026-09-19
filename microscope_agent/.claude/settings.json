@@ -2,10 +2,20 @@
   "$comment": "Session boundary for the microscope agent (plan.md 6.2). The session boundary is the permission boundary: this session can only write inside its own agent. contracts/ and plan.md are read here and written by the design session.",
   "permissions": {
     "deny": [
-      "Write(microscope_agent/inbox/**)",
-      "Edit(microscope_agent/inbox/**)",
       "Write(microscope_agent/envelope/safety.json)",
       "Edit(microscope_agent/envelope/safety.json)",
+      "Write(microscope_agent/approvals/**)",
+      "Edit(microscope_agent/approvals/**)",
+      "Write(microscope_agent/inbox/**)",
+      "Edit(microscope_agent/inbox/**)",
+      "Write(microscope_agent/CLAUDE.md)",
+      "Edit(microscope_agent/CLAUDE.md)",
+      "Write(microscope_agent/README.md)",
+      "Edit(microscope_agent/README.md)",
+      "Write(microscope_agent/tasks/**)",
+      "Edit(microscope_agent/tasks/**)",
+      "Write(microscope_agent/.claude/**)",
+      "Edit(microscope_agent/.claude/**)",
       "Write(simulation_agent/**)",
       "Edit(simulation_agent/**)",
       "Write(librarian_agent/**)",
@@ -17,7 +27,7 @@
       "Write(plan.md)",
       "Edit(plan.md)"
     ],
-    "$comment": "The first four are the only entries that enforce anything from a session opened in this directory: inbox/** is the bridge's (7.1 rule 8) and envelope/safety.json is the person's (P0 rule 7), and both sit inside this tree where a path resolves. The rest point outside this tree, where nothing resolves from here -- they are a statement of intent, not a guard. Kept rather than deleted so the intent survives, labelled rather than left so the next reader does not mistake them for protection. If a session is ever seated at the repository root, they become live and the bridge's own deny on <agent>/inbox/ has to come out first, or it blocks the one outside write that seat is required to make."
+    "$comment": "Two groups. The first fourteen resolve from a session opened in this directory and are the only entries that enforce anything here: inside an agent's own tree, deny what another seat owns. envelope/safety.json and approvals/ are the person's (P0 rule 7, 6.1) -- a model writing a safety limit is the worst failure this system has. inbox/ is the bridge's (7.1 rule 8): an agent writing its own inbox forges a delivery. CLAUDE.md, README.md, tasks/ and .claude/ are manager-microscope's (seats.json), and tasks/ is the load-bearing one -- 6.2-2 puts descending instruction there, and a seat that can edit its own orders does not have orders. Denying .claude/ constrains this seat and not its manager, because managers sit at the repository root (D12) and never load this file; that inverts if a manager is ever seated inside an agent directory. The rest point outside this tree, where nothing resolves from here -- a statement of intent, not a guard. Kept so the intent survives, labelled so the next reader does not mistake them for protection."
   },
   "hooks": {
     "PostToolUse": [
