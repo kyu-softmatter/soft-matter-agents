@@ -15,8 +15,20 @@ already records.**
 
 | | source | grade | enterable now |
 |---|---|---|---|
-| **sensor pixel pitch** — the physical spacing on the Kinetix 22 sensor | `spec:` vendor datasheet | E3 | yes, if you find the real sheet |
-| **pixel size at the sample plane** — what an image actually resolves | must be measured on this instrument | none yet | **no** |
+| **pixel size at the sample plane** — what an image actually resolves | `calibration:` — **the person calibrated it on this instrument** | E2 | **yes, and it is the one A6 needs** |
+| **sensor pixel pitch** — the physical spacing on the Kinetix 22 sensor | `spec:` vendor datasheet | E3 | secondary; see below |
+
+**This ordering was inverted when the task was first issued, including by this
+seat.** The relay said enter the sensor pitch now and leave the sample-plane
+value as a gap. `plan.md:1137` says the opposite: *what axis A6 actually reads
+is the pixel size; magnification is a derived convenience, and the moment it
+becomes canonical the back-calculation starts.* And `plan.md:1135` had already
+routed it — measured per objective/zoom/binning combination, `calibration:`
+source, **validity period required**, E2. The design had this row all along.
+
+So the sample-plane value is the canonical datum, not the derived one, and the
+sensor pitch is a separate vendor fact that is **not** its input. Nothing
+divides one into the other.
 
 **Do not produce the second by dividing the first by a nominal magnification.**
 That is the `20.078x` trap `plan.md:1950` records: a nominal magnification with
@@ -30,10 +42,19 @@ measure it.
 
 ## TASK
 
-1. Find the sensor pixel pitch in the **vendor datasheet** and enter it as its
-   own entry. One claim per file (rule 1).
-2. Leave the sample-plane pixel size unentered. If a gap record is the right
-   place to say why, say it there.
+1. Enter the **sample-plane pixel size** from the person's calibration. The
+   numbers arrive in this file — wait for them; do not start from anything else.
+2. **It is not one number.** §12 names three dimensions — objective, zoom,
+   binning — and this stand has a 1.5× zoom, so magnification is a discrete set
+   (§4.5.3, A6). A calibration that covers one combination does not cover
+   another, and rule 2 is what stops it being applied where it does not hold.
+   How many entries that means is a filing question: one claim per file (rule
+   1), and a combination is a claim.
+3. **The validity period is required, not optional** (§12, and rule 9 as
+   corrected on 2026-09-19). It is what makes this E2 rather than a person's
+   say-so — a calibration with no expiry is a measurement with no event.
+4. The sensor pitch stays open and is **not** needed to do any of the above.
+   Leave it for when a vendor sheet is actually in hand.
 
 ## CONTRACT
 

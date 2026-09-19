@@ -131,9 +131,18 @@ server was reachable has to name the gap it stands on (check 39).
    in `conflict_with`, with the difference in conditions written down.
 8. **Nothing is deleted.** A superseded entry stays and the new one points back
    with `supersedes`.
-9. **E1 and E2 arrive only through result cards.** A measurement this system
-   made comes in as a result card from an execution agent, and only this session
-   turns it into an entry. Nothing else is a path for E1.
+9. **E1 and E2 need a recorded measurement event, not a claim.** A measurement
+   this system made comes in as a result card from an execution agent, and only
+   this session turns it into an entry. **Nothing else is a path for E1.** E2
+   has a second path and this rule denied it until 2026-09-19: a calibration
+   the operator performed on this instrument, which §12 routes as a
+   `calibration:` source **with a validity period, which is required** — that
+   period is what stands in for the result card's traceability. Written as an
+   absolute, this rule was true for the case it was drafted for and false for
+   the first real one: the person's own per-objective pixel-size calibration,
+   which §12 had named as E2 all along. An operator saying a number from memory
+   is `operator_recall:` and E5; what separates them is the calibration event,
+   not who spoke.
 10. **A confirmation mark applied in bulk is not a confirmation.** Stamp the row
     you re-read, never a batch.
 
