@@ -404,31 +404,29 @@ it.
 GIT_COMMITTER_NAME='seat:microscope' GIT_COMMITTER_EMAIL=microscope@seat.invalid git commit -F msg -- <paths>
 ```
 
-**Which seat you are is your worktree, not your session.** Since the A/B
-(§9.3) this agent has two execution seats: `microscope-1` on
-`seat/microscope-1`, building from `agentic-microscope@version2`, and
-`microscope-2` on `seat/microscope-2`, from `main`. A replacement session
-inherits the identity because it inherits the branch. The undivided
-`microscope` remains only for work on the shared checkout, on `main`, that
-belongs to neither variant.
+**This seat is `microscope-1`.** §9.3 split it in two for the A/B, and
+`58064da` deferred the second variant and removed the worktrees, so there is
+one microscope execution seat again. It keeps the divided identity rather than
+falling back to the undivided `microscope`: the seat outlives its worktree,
+and `microscope` stays valid only for the commits already made under it.
 
-**In a worktree the identity lives in the worktree's own config**, so it
-survives a context reset and you do not prefix every commit:
+With one checkout there is nothing for a worktree config to attach to, so set
+it per command:
 
 ```bash
-git config --worktree committer.name  'seat:microscope-2'
-git config --worktree committer.email microscope-2@seat.invalid
+GIT_COMMITTER_NAME='seat:microscope-1' GIT_COMMITTER_EMAIL=microscope-1@seat.invalid git commit -F msg -- <paths>
+```
+
+**If a worktree is made again, move the identity into it** — that is where it
+survives a context reset, and it is the mechanism §6.2.3 now prescribes:
+
+```bash
+git config --worktree committer.name  'seat:microscope-1'
+git config --worktree committer.email microscope-1@seat.invalid
 git var GIT_COMMITTER_IDENT        # confirm before you rely on it
 ```
 
-**Not `--local`.** In a linked worktree `--local` writes to the shared
+**Never `--local`.** In a linked worktree `--local` writes to the shared
 `.git/config`, where every other session reads it as its own — a simulation
 session committing as `seat:microscope` is worse than no attribution, because
-check 41 passes it. This needs `extensions.worktreeConfig=true` once, which is
-already set. §6.2.3 prescribed `--local` by mistake until `44f368b`.
-
-Only on the shared checkout, which has no worktree config, set it per command:
-
-```bash
-GIT_COMMITTER_NAME='seat:microscope' GIT_COMMITTER_EMAIL=microscope@seat.invalid git commit -F msg -- <paths>
-```
+check 41 passes it. §6.2.3 prescribed `--local` by mistake until `44f368b`.
