@@ -33,6 +33,58 @@ GIT_COMMITTER_NAME='seat:simulation' GIT_COMMITTER_EMAIL=simulation@seat.invalid
 The working copy and the git index are shared between sessions. Name paths
 rather than using `-A`, and use `git commit -- <paths>`.
 
+**Four paths inside this tree are not yours**, and they matter more than the
+outward ones because they are the ones a session here can actually reach:
+`envelope/safety.json` and `approvals/`, which only the person writes (P0 rule
+7, §7.1 rule 5); `inbox/`, which only the bridge writes (§7.1 rule 8); and this
+file, `README.md`, `tasks/` and `.claude/`, which are `manager-simulation`'s.
+The rest of the deny list points outside this tree, where nothing resolves from
+a session opened here — that file says which entries are which.
+
+## A round arrives in `inbox/`, and the envelope is the turn
+
+**`simulation_agent/inbox/<thread>/` is where the bridge delivers.** It holds
+`r<N>_ask_simulation.{json,md}` and nothing else. You **read** it; you never
+write it. By the boundary classifier that folder is the `bridge`'s and not this
+agent's — only its location is in your tree — and an agent writing its own
+inbox is forging a delivery.
+
+**An envelope sitting there is the turn. There is nothing else to check.** No
+`status.json` copy is delivered on purpose: it is the one file in a thread that
+changes, so a copy goes stale the moment the turn moves, and that drift is what
+left the example thread reading "the human's turn" for a day. **And do not read
+`bridge/threads/` for the turn instead.** §7.1 rule 8 refuses that, and on this
+side the reason is sharper than the separation argument it gives for the
+microscope: what makes this agent worth running separately is that it
+**completes without experimental input** — a goal card from a person is enough,
+and a number that wanted an experiment goes up as `assumed` with
+`degraded: ["bridge"]`. An agent that reaches into `bridge/` to find its work
+has given that back.
+
+**That independence is also why this folder is easy to miss here.** This seat
+has a legitimate way to proceed with no round at all, so nothing about a quiet
+day looks wrong. On the microscope side on 2026-09-19 a round was delivered
+correctly, passed checks 8, 13 and 41, and sat unread — not from inattention,
+but because no document told any seat the folder existed, and a chat message
+rescued it. That is the §6.2 rule 2 failure in its pure form: the notice worked
+and left no trace, so a session reset would have lost the fact that a round was
+waiting. This section is here so the same envelope does not arrive here into
+the same silence.
+
+**Taking a round is S2, and it is assigned by a task card the way an axis is.**
+Do not start one because you saw it. Two seats share this tree —
+`simulation@seat.invalid` and `simulation-2@seat.invalid` — and a round each
+assumes the other took is worse than one nobody took, because it looks staffed.
+Seeing an envelope you have no card for, report it up; `manager-simulation`
+cards it.
+
+**How the bridge learns you took it**: the goal card's `from_round`,
+`thr-…:r<N>`. The bridge already reads this agent's `questions/`, so nothing is
+written back toward it.
+
+**Nothing is deleted from the inbox.** The delivery happened and that file is
+the record of it (P1).
+
 ## The four layers, and what each one judges
 
 ### 1. S2 — refining the question (LLM alone)
