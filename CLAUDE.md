@@ -23,9 +23,14 @@ name is not a refusal but an ordering: register it, then plan with it.
 **the read-only MCP server over it exists as of 2026-09-18** (`a9df017`, four
 tools). So §9.1's completion condition — one pass with the librarian **on**,
 `kb_refs` and `kb_gaps` filled and `degraded` empty — is reachable rather than
-hypothetical. **Nothing has gone through it yet**: `queries/log.jsonl` does not
-exist, so every card so far read the files directly and belongs on the degraded
-path. Reading the files is not the service answering (§0.3).
+hypothetical. **The service answered for the first time on 2026-09-19**:
+`queries/log.jsonl` holds seven calls under one issued caller_id, three of them
+real gap detection — two `absent`, one `condition_mismatch`. That is §0.3's line
+between reading the files and the service answering, crossed.
+
+**No card cites those answers yet**, so every card in the repository still
+belongs on the degraded path and §9.1's condition is in progress rather than
+met. The queries exist; the card that would prove it does not.
 
 ```bash
 python3 contracts/validate.py                                    # the repository
