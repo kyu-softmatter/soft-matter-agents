@@ -75,6 +75,7 @@ import functools
 import json
 import math
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -143,12 +144,50 @@ def _interval_si(bound: dict, where: str) -> tuple[float, float, tuple]:
 # the store
 # --------------------------------------------------------------------------- #
 
+REPO = AGENT.parent
+
+
+def _git(*args: str) -> str:
+    return subprocess.run(["git", "-C", str(REPO), *args],
+                          capture_output=True, text=True, check=True).stdout
+
+
+def version_history() -> dict[str, str]:
+    """Every committed kb_version, mapped to the commit that carried it.
+
+    Built by walking the history of kb/index.json and reading the version out
+    of each revision. Derived entirely from content already in git -- it does
+    not depend on who called, or on what was asked before, so it is the
+    content-addressed cache 4.3.1 rule 2 explicitly permits rather than state
+    that could carry anything between callers.
+    """
+    out: dict[str, str] = {}
+    try:
+        shas = _git("log", "--format=%H", "--", "librarian_agent/kb/index.json").split()
+    except (OSError, subprocess.CalledProcessError):
+        return out
+    for sha in shas:
+        try:
+            v = json.loads(_git("show", f"{sha}:librarian_agent/kb/index.json")).get("kb_version")
+        except (subprocess.CalledProcessError, json.JSONDecodeError):
+            continue
+        out.setdefault(v, sha)          # the first commit to carry it
+    return out
+
+
 class Store:
     """Entries and the index, loaded once. Read-only by construction."""
 
-    def __init__(self, kb: Path | None = None, log: Path | None = None):
+    def __init__(self, kb: Path | None = None, log: Path | None = None,
+                 _index: dict | None = None, _entries: dict | None = None,
+                 _commit: str | None = None):
         self.kb = kb or (AGENT / "kb")
         self.log = log if log is not None else query_log.DEFAULT_LOG
+        self.commit = _commit                       # None means the working tree
+        if _index is not None:
+            self.index, self.entries = _index, (_entries or {})
+            self.kb_version = self.index.get("kb_version")
+            return
         index_path = self.kb / "index.json"
         if not index_path.exists():
             raise Refused(f"{index_path} is missing; rebuild it with src/kb_index.py")
@@ -161,6 +200,46 @@ class Store:
         stale = sorted(set(self.entries) ^ set(self.index.get("entries") or {}))
         if stale:
             raise Refused(f"index.json does not match entries/ ({stale}); rebuild it with src/kb_index.py")
+
+    # -- serving the version that was pinned, not the one we happen to be at -- #
+
+    def at(self, kb_version: str) -> "Store":
+        """The store as it was at `kb_version`.
+
+        4.3.1 asks that the same (query, kb_version) always give the same
+        answer. Serving that version is what satisfies it; refusing gives
+        neither the same answer nor any answer, and turns a guarantee about
+        reproducibility into a lock on the store -- every version move would
+        stop whatever fan-out was in flight, held back only by discipline,
+        and discipline does not scale.
+        """
+        if kb_version == self.kb_version:
+            return self
+        if not isinstance(kb_version, str) or not re.fullmatch(r"kbv-[0-9a-f]{12}", kb_version or ""):
+            raise Refused(f"kb_version {kb_version!r} is not the shape a version takes "
+                          "(kbv- and twelve hex digits). Malformed, not merely old.")
+        sha = version_history().get(kb_version)
+        if sha is None:
+            raise Refused(
+                f"kb_version {kb_version} is well formed and is not in this repository's history, "
+                f"so nothing can be read at it. This store is at {self.kb_version}. A version that "
+                "was never committed is not servable and that is deliberate: it hashes a working "
+                "tree nobody else can reproduce, and answering from HEAD instead would answer a "
+                "different question under the pinned name."
+            )
+        index = json.loads(_git("show", f"{sha}:librarian_agent/kb/index.json"))
+        entries = {}
+        for line in _git("ls-tree", "--name-only", sha, "librarian_agent/kb/entries/").splitlines():
+            if not line.endswith(".json"):
+                continue
+            e = json.loads(_git("show", f"{sha}:{line}"))
+            entries[e["entry_id"]] = e
+        return Store(kb=self.kb, log=self.log, _index=index, _entries=entries, _commit=sha)
+
+    @property
+    def reproducible(self) -> bool:
+        """False when this version exists only in an uncommitted working tree."""
+        return self.commit is not None or self.kb_version in version_history()
 
     # -- what an entry is about ------------------------------------------- #
 
@@ -283,7 +362,8 @@ PURPOSES = tuple(json.loads((CONTRACTS / "schemas" / "goal.schema.json").read_te
 ))["properties"]["purpose"]["enum"])
 
 
-def _preflight(store: Store, caller_id: str, kb_version: str, tool: str) -> None:
+def _preflight(store: Store, caller_id: str, kb_version: str, tool: str) -> Store:
+    """Check the caller, then return the store AS OF the pinned version."""
     if tool not in TOOLS:
         raise Refused(f"{tool!r} is not one of the four read-only tools {TOOLS}")
     if not isinstance(caller_id, str) or not re.match(CALLER_ID, caller_id):
@@ -292,12 +372,7 @@ def _preflight(store: Store, caller_id: str, kb_version: str, tool: str) -> None
             "sub-agent may not choose it (4.3.1 rule 3); a malformed one is refused here, and "
             "that an issued-looking id really came from the launcher is enforced there, not here"
         )
-    if kb_version != store.kb_version:
-        raise Refused(
-            f"this store is at {store.kb_version} and the call pins {kb_version!r}. Refused rather "
-            "than answered at today's version: the pin exists so a fan-out's siblings read one KB "
-            "(4.3.1 rule 2), and an older version is confirmable only from the store's git history"
-        )
+    return store.at(kb_version)
 
 
 def _log(store: Store, **rec) -> None:
@@ -305,9 +380,21 @@ def _log(store: Store, **rec) -> None:
     query_log.record(store.log, **rec)
 
 
+def _provenance(store: Store) -> dict:
+    """Which version answered, and whether anyone could reproduce it."""
+    return {
+        "kb_version": store.kb_version,
+        "commit": store.commit,
+        "reproducible": store.reproducible,
+        "note": ("read from the working tree at a version that is not committed, so this exact "
+                 "answer cannot be reproduced later -- record it as such" if not store.reproducible
+                 else "the answer came from this version, not from whatever the store is at now"),
+    }
+
+
 def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
              condition_range: dict | None = None, purpose: str = "screen") -> dict:
-    _preflight(store, caller_id, kb_version, "kb_query")
+    store = _preflight(store, caller_id, kb_version, "kb_query")
     if purpose not in PURPOSES:
         raise Refused(f"purpose {purpose!r} is not in contracts/schemas/goal.schema.json")
 
@@ -345,7 +432,8 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
 
     answer = {"entries": returned, "gaps": gaps,
               "grade_summary": grade_summary(store, [r["entry_id"] for r in returned]),
-              "kb_version": store.kb_version}
+              "kb_version": store.kb_version,
+              "answered_from": _provenance(store)}
     _log(store, caller_id=caller_id, kb_version=kb_version, tool="kb_query", purpose=purpose,
          observable=observable, condition_range=condition_range,
          returned=[{"entry_id": r["entry_id"], "grade": r["grade"]} for r in returned],
@@ -356,7 +444,7 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
 
 def kb_get(store: Store, caller_id: str, kb_version: str, entry_id: str,
            purpose: str = "screen") -> dict:
-    _preflight(store, caller_id, kb_version, "kb_get")
+    store = _preflight(store, caller_id, kb_version, "kb_get")
     e = store.entries.get(entry_id)
     _log(store, caller_id=caller_id, kb_version=kb_version, tool="kb_get", purpose=purpose,
          observable=entry_id,
@@ -365,12 +453,12 @@ def kb_get(store: Store, caller_id: str, kb_version: str, entry_id: str,
     if e is None:
         raise Refused(f"no entry {entry_id!r} at {store.kb_version}")
     return {"entry": e, "sha256": (store.index.get("entries") or {}).get(entry_id, {}).get("sha256"),
-            "kb_version": store.kb_version}
+            "kb_version": store.kb_version, "answered_from": _provenance(store)}
 
 
 def kb_conflicts(store: Store, caller_id: str, kb_version: str, topic: str = "",
                  purpose: str = "troubleshoot") -> dict:
-    _preflight(store, caller_id, kb_version, "kb_conflicts")
+    store = _preflight(store, caller_id, kb_version, "kb_conflicts")
     pairs, seen = [], set()
     for eid in sorted(store.entries, key=store.sort_key):
         e = store.entries[eid]
@@ -391,14 +479,14 @@ def kb_conflicts(store: Store, caller_id: str, kb_version: str, topic: str = "",
             })
     _log(store, caller_id=caller_id, kb_version=kb_version, tool="kb_conflicts", purpose=purpose,
          observable=topic or None, returned=[], gaps=[], coverage={})
-    return {"pairs": pairs, "kb_version": store.kb_version,
+    return {"pairs": pairs, "kb_version": store.kb_version, "answered_from": _provenance(store),
             "note": "both sides of a conflict are kept and neither is merged away (4.3 rule 6); "
                     "which one applies is decided by the conditions, by the caller"}
 
 
 def kb_group(store: Store, caller_id: str, kb_version: str, symbol: str,
              purpose: str = "screen") -> dict:
-    _preflight(store, caller_id, kb_version, "kb_group")
+    store = _preflight(store, caller_id, kb_version, "kb_group")
     formula_kinds = ("dimensionless_group", "derived_quantity")
     hits = sorted((eid for eid, e in store.entries.items()
                    if e.get("kind") in formula_kinds and e.get("symbol") == symbol),
@@ -419,7 +507,7 @@ def kb_group(store: Store, caller_id: str, kb_version: str, symbol: str,
             "dimensionless": e["kind"] == "dimensionless_group",
             "unit": e.get("unit"),
             "validity_conditions": e["validity_conditions"], "validity": e.get("validity"),
-            "kb_version": store.kb_version,
+            "kb_version": store.kb_version, "answered_from": _provenance(store),
             "note": "a definition, not a value: it carries a formula and takes no condition "
                     "range (4.3.1). `dimensionless` is stated rather than left to be inferred "
                     "from a missing unit -- absent and pure-number are different claims, and "
@@ -520,12 +608,49 @@ def _self_test() -> int:                                    # noqa: C901
         if strip(a) != strip(b):
             bad("two callers got different answers to one query at one kb_version")
 
-        # 7. the pin is checked, not assumed
-        try:
-            kb_query(store, cid, "kbv-000000000000", "viscosity", {})
-            bad("answered a call pinning a version this store is not at")
-        except Refused:
-            pass
+        # 7. an old pin is SERVED, not refused, and it answers as it was then.
+        # The fixture is the repository's own history -- no store move needed.
+        history = version_history()
+        if len(history) < 2:
+            print("note: fewer than two committed versions, so the old-pin case was not exercised")
+        else:
+            oldest = min(history, key=lambda v: len(Store().at(v).entries))
+            then = Store(log=log).at(oldest)
+            a = kb_query(store, cid, oldest, "viscosity", {})
+            if a["kb_version"] != oldest or a["answered_from"]["commit"] is None:
+                bad(f"a pinned old version did not answer from itself: {a['answered_from']}")
+            if not a["entries"]:
+                bad("the old version had the viscosity entry and did not return it")
+
+            # the sharpest case: one entry_id, two versions, two answers
+            now_kind = kb_get(store, cid, v, "tau_d")["entry"]["kind"]
+            then_kind = kb_get(store, cid, oldest, "tau_d")["entry"]["kind"]
+            if now_kind == then_kind:
+                print(f"note: tau_d reads the same at both versions ({now_kind}); "
+                      "the re-filing may have been squashed out of history")
+            elif (then_kind, now_kind) != ("dimensionless_group", "derived_quantity"):
+                bad(f"tau_d went {then_kind} -> {now_kind}, which is not the re-filing that happened")
+
+            # an entry that did not exist then must not appear from HEAD
+            if len(then.entries) < len(store.entries):
+                gone = sorted(set(store.entries) - set(then.entries))[0]
+                try:
+                    kb_get(store, cid, oldest, gone)
+                    bad(f"{gone} did not exist at {oldest} and was served anyway -- HEAD leaked in")
+                except Refused:
+                    pass
+                if kb_query(store, cid, oldest, "na", {})["entries"]:
+                    bad("the objectives did not exist at the oldest version and were returned")
+
+        # 7b. unresolvable is still refused, and says which kind
+        for pin, word in [("kbv-000000000000", "history"), ("not-a-version", "Malformed"),
+                          ("kbv-XYZ", "Malformed")]:
+            try:
+                kb_query(store, cid, pin, "viscosity", {})
+                bad(f"served an unresolvable pin {pin!r}")
+            except Refused as exc:
+                if word not in str(exc):
+                    bad(f"{pin!r} was refused without saying which kind: {exc}")
 
         # 8. a caller may not choose its own id
         for wrong in ("librarian", "mic-20260917-001", "mic-20260917-001:transmitted:a9"):
