@@ -127,7 +127,10 @@
           "description": "no_counterpart is the opening round: there is nothing on the other side to compare against yet. From round two on it means the comparison was skipped, which is a failure."
         },
         "compared_against": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "description": "id of the counterpart card the units were compared with; null only with no_counterpart"
         },
         "note": {
@@ -145,7 +148,7 @@
         "human",
         "plan_completion"
       ],
-      "description": "the bridge never opens a round by itself (4.4)"
+      "description": "What opened this round. The bridge never opens one itself (4.4), so these two are the whole list. `plan_completion` is the plan card reaching its finished state -- validated, past DRAFT -- and not a run finishing: a completed plan is what tells the other side what to measure, and a plan crossing is the normal opening of a thread. `human` is a person handing a card over, and it is the only way a result crosses, because a finished run opening a round by itself would be a second automatic trigger and 4.4 grants one. Note what this does not mean: a plan crossing is not a comparison. M4's condition is two results measured for the same observable, and that needs a run on each side; carrying a plan is how the second side learns which run to do."
     }
   },
   "required": [

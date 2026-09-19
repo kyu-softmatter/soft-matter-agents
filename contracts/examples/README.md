@@ -144,6 +144,7 @@ wrong on 2026-09-17.
 | `bad_bridge_escalation.json` | 8 | a pair that came back twice, with the thread still open |
 | `bad_bridge_wrong_configs.json` | 8 | the right verdict, naming configurations the table does not list |
 | `bad_bridge_unknown_observable.json` | 8 | asks for an observable the vocabulary does not define |
+| `bad_bridge_draft_trigger.json` | 8 | says a plan completed, and carries one still in DRAFT |
 | `r2_ask_simulation.json` | 13 | a filename naming a round the card does not claim |
 
 The last of those is a thread ledger rather than a card (`artifact:

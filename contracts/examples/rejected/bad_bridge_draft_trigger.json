@@ -1,0 +1,50 @@
+{
+  "card": "ask_experiment",
+  "schema_version": "0.1",
+  "id": "ask-thr-bad-trigger-r1",
+  "qid": "sim-20260919-024",
+  "thread": "thr-bad-trigger",
+  "round": 1,
+  "revision": 1,
+  "author": "bridge",
+  "created_at": "2026-09-19T09:00:00Z",
+  "status": "DRAFT",
+  "direction": "simulation_to_experiment",
+  "trigger": "plan_completion",
+  "payload_card": {
+    "card": "plan",
+    "schema_version": "0.1",
+    "id": "plan-sim-20260919-024",
+    "qid": "sim-20260919-024",
+    "thread": "solo-sim-20260919-024",
+    "round": 0,
+    "revision": 1,
+    "author": "simulation_agent",
+    "created_at": "2026-09-19T09:00:00Z",
+    "status": "DRAFT",
+    "numbers": [],
+    "degraded": [
+      "librarian_agent"
+    ]
+  },
+  "payload_hash": "sha256:b7ed4a37e0773f252ffdfd45cc17aceaf7904b5419902899de577918ef164d95",
+  "answerability": {
+    "observable": "tracer_diffusivity",
+    "checked_against": "microscope.json",
+    "producible": "yes",
+    "producing_configs": [
+      "confocal",
+      "transmitted",
+      "widefield_inline",
+      "widefield_side"
+    ]
+  },
+  "unit_consistency": {
+    "verdict": "no_counterpart",
+    "compared_against": null
+  },
+  "numbers": [],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

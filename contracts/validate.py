@@ -843,6 +843,15 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
                                         f"a plan built in reduced mode must not read as normal on the other side "
                                         f"(3.1 rule 2)", c.rel))
 
+        if c.data.get("trigger") == "plan_completion":
+            if payload.get("card") != "plan":
+                out.append(Finding(8, FAIL, f"trigger is plan_completion and the payload is a {payload.get('card')!r}; "
+                                            f"what completed was not a plan. A finished run does not open a round -- "
+                                            f"a person does (4.4)", c.rel))
+            elif payload.get("status") == "DRAFT":
+                out.append(Finding(8, FAIL, "trigger is plan_completion and the payload plan is still DRAFT; a plan "
+                                            "that has not passed the validator has completed nothing (5.5)", c.rel))
+
         uc = c.data.get("unit_consistency") or {}
         verdict, against = uc.get("verdict"), uc.get("compared_against")
         rnd = c.data.get("round") or 0
