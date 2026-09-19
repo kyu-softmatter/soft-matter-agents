@@ -81,6 +81,30 @@ before reporting a contract defect. A fresh process that still refuses is the
 contract and goes to the librarian side; one that succeeds means the session
 was older than the fix.
 
+**And if there is no contract at all, report the absence.** A refusal is loud;
+a missing contract is not. When a seat needs to know what a service does and
+nothing on disk says, the producer's source becomes the nearest answer, and
+reading it produces no error and no record — two seats opened the librarian's
+server hours apart on 2026-09-19 for exactly that reason. `contracts/` states
+what each executing side produces, which is why check 8 can derive an
+answerability verdict instead of trusting the card; nothing states what the
+librarian service does. That absence is a report, not a licence.
+
+**Do not hand-spawn the librarian's server, even though the command is the one
+`.mcp.json` registers.** The argument that running a file means reading it does
+not hold — spawning puts none of the producer's source into this seat's
+context, which is what §6.2 rule 3 protects. The reason is narrower and it is
+P4: the registered invocation is fixed and reviewed, and a hand-spawn is
+whatever arguments the caller picks. Read-only would stop being a property of
+the contract and become a property of this seat's restraint, and P4 is the rule
+that refuses exactly that substitution. A stale server is fixed by a new
+window, from the person.
+
+The microscope execution seat reads this differently and used the route,
+recording the disagreement rather than letting it look settled — which is the
+right handling. The general question is with the architecture seat; this
+paragraph binds this seat until it answers.
+
 "Reconnect" is not the way to get one. The reconnect tool re-dials connectors
 whose status is `failed`, and a stale server reports `connected` with its four
 tools present — it is serving correctly, from old code. For a project-scoped
