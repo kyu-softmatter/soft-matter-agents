@@ -52,30 +52,66 @@
     },
     "targets": {
       "type": "array",
-      "description": "What accuracy is wanted. In explore mode, stated in decades.",
+      "description": "What accuracy is wanted. In explore mode, stated in decades. A target is a DECISION and not a claim about the world, so it carries no source and no grade -- the same reason a ceiling in envelope/safety.json carries none. A grade measures how far a claim can be trusted; a decision is correct by being made, and grading a person's own goal E5 would say they might be misremembering what they want. Inline rather than by reference so that a grade is not merely absent but inexpressible: an opt-in guard is not a chokepoint (2.1 rule 9).",
       "items": {
-        "type": "object",
-        "properties": {
-          "metric": {
-            "type": "string"
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "metric": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "uncertainty",
+                  "decade_resolution",
+                  "detection"
+                ]
+              },
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "metric",
+              "kind",
+              "value",
+              "unit"
+            ],
+            "additionalProperties": false
           },
-          "number": {
-            "type": "string"
-          },
-          "kind": {
-            "enum": [
-              "uncertainty",
-              "decade_resolution",
-              "detection"
-            ]
+          {
+            "$comment": "SUPERSEDED, and to be deleted. This form names an entry in numbers[], which P2 makes four-part -- so it forces a source and a grade onto a decision, which is what the inline form exists to stop. REMOVE THIS BRANCH once microscope_agent/questions/mic-20260918-001/goal.json and simulation_agent/questions/sim-20260917-001/goal.json carry the inline form; they are the only two cards using it. Kept meanwhile because the schema is contracts/ and those cards are two other seats' trees, so check 35 makes this at least three commits, and the gate runs the whole validator -- a schema that rejects a live card blocks every session from committing for the length of the migration. Two shapes at once is what 11-11 counts, and here the alternative is a full stop. Written open-ended, 'meanwhile' becomes permanent. manager-bridge, 2026-09-19, ruled by architecture.",
+            "type": "object",
+            "properties": {
+              "metric": {
+                "type": "string"
+              },
+              "number": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "uncertainty",
+                  "decade_resolution",
+                  "detection"
+                ]
+              }
+            },
+            "required": [
+              "metric",
+              "number",
+              "kind"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "metric",
-          "number",
-          "kind"
-        ],
-        "additionalProperties": false
+        ]
       }
     },
     "priority": {
