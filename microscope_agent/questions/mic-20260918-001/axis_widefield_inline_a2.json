@@ -7,9 +7,9 @@
   "round": 0,
   "revision": 1,
   "author": "microscope_agent",
-  "created_at": "2026-09-19T07:46:05Z",
+  "created_at": "2026-09-19T07:55:02Z",
   "status": "VALIDATED",
-  "caller_id": "mic-20260918-001:widefield_inline:a2",
+  "caller_id": "mic-20260918-001:v1:widefield_inline:a2",
   "config": "widefield_inline",
   "axis": "a2",
   "kb_version": "kbv-49feb73662b7",
@@ -75,44 +75,44 @@
       "observable": "localisation_error",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=localisation_error, caller_id=mic-20260918-001:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries']"
+        "kb_query(observable=localisation_error, caller_id=mic-20260918-001:v1:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:widefield_inline:a2",
-      "asked_at": "2026-09-19T07:43:35+00:00"
+      "asked_by": "mic-20260918-001:v1:widefield_inline:a2",
+      "asked_at": "2026-09-19T07:54:24+00:00"
     },
     {
       "gap_id": "target_relative_error_never_stated",
       "observable": "target_relative_error",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=target_relative_error, caller_id=mic-20260918-001:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries']"
+        "kb_query(observable=target_relative_error, caller_id=mic-20260918-001:v1:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:widefield_inline:a2",
-      "asked_at": "2026-09-19T07:44:03+00:00"
+      "asked_by": "mic-20260918-001:v1:widefield_inline:a2",
+      "asked_at": "2026-09-19T07:54:24+00:00"
     },
     {
       "gap_id": "expected_diffusivity",
       "observable": "tracer_diffusivity_expected",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=tracer_diffusivity_expected, caller_id=mic-20260918-001:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries']"
+        "kb_query(observable=tracer_diffusivity_expected, caller_id=mic-20260918-001:v1:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:widefield_inline:a2",
-      "asked_at": "2026-09-19T07:43:31+00:00"
+      "asked_by": "mic-20260918-001:v1:widefield_inline:a2",
+      "asked_at": "2026-09-19T07:54:24+00:00"
     },
     {
       "gap_id": "tracer_loading",
       "observable": "tracer_number_density",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=tracer_number_density, caller_id=mic-20260918-001:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries']"
+        "kb_query(observable=tracer_number_density, caller_id=mic-20260918-001:v1:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:widefield_inline:a2",
-      "asked_at": "2026-09-19T07:44:07+00:00"
+      "asked_by": "mic-20260918-001:v1:widefield_inline:a2",
+      "asked_at": "2026-09-19T07:54:24+00:00"
     }
   ],
   "degraded": [],
