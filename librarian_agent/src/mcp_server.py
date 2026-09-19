@@ -167,14 +167,23 @@ class Store:
     def subjects(self, e: dict) -> set[str]:
         """The names this entry answers to.
 
-        An entry has no field saying what it is ABOUT -- no observable id, no
-        subject -- so the only declared names available are its own id, its
-        symbol if it is a group, and the names in `numbers[]`. Matching on those
-        is deterministic and explainable, and it is string identity rather than a
-        declared relation: `contracts/observables.json` ids such as
-        `tracer_diffusivity` live in a different namespace from a number named
-        `viscosity`, and nothing links them. That missing field is raised with
-        the manager rather than papered over with a text search here.
+        Four handles, and `subject` is the only one that is a declared relation
+        rather than a by-product. The other three are what an entry happens to
+        contain: its own id, its symbol if it carries a formula, and the names
+        in `numbers[]`. Those leave a whole genre unreachable -- a device fact
+        has no number and no symbol, so before `subject` existed 14 of 25
+        entries answered only to an id the caller had to learn by reading the
+        staging table first.
+
+        A `subject` name comes from a namespace that already exists: an
+        observable id from contracts/observables.json, or a channel or element
+        id from the device table. Not a third namespace invented here -- a
+        third would need a rule joining it to the other two, and a join nobody
+        writes is a join that does not hold.
+
+        The set is a union, not a replacement: an entry without `subject` still
+        answers to everything it answered to before, which is what makes
+        filling the field additive rather than a migration.
         """
         names = {e["entry_id"]}
         if e.get("symbol"):
@@ -182,6 +191,7 @@ class Store:
         for n in e.get("numbers") or []:
             if n.get("name"):
                 names.add(n["name"])
+        names.update(e.get("subject") or [])
         return names
 
     # -- ordering ---------------------------------------------------------- #
@@ -467,6 +477,16 @@ def _self_test() -> int:                                    # noqa: C901
             bad(f"an entry with no opinion on bead_diameter should say so: {e0['overlap']}, {e0['unconstrained']}")
         if "temperature" not in e0["unasked"]:
             bad(f"the temperature the entry constrains and the query skipped should be flagged: {e0['unasked']}")
+
+        # 4b. `subject` is a handle, and it is additive -- an entry keeps every
+        # handle it had. Asserted on the function rather than through the store
+        # so it holds before any entry carries the field.
+        probe = {"entry_id": "e", "numbers": [{"name": "n"}], "symbol": "s",
+                 "subject": ["csuw1_port", "tracer_diffusivity"]}
+        if store.subjects(probe) != {"e", "n", "s", "csuw1_port", "tracer_diffusivity"}:
+            bad(f"subject is not a handle, or it replaced the others: {store.subjects(probe)}")
+        if store.subjects({"entry_id": "e"}) != {"e"}:
+            bad("an entry with no subject stopped answering to its own id")
 
         # 5. ordering is grade, then the rank inside E3, then entry_id
         r = kb_query(store, cid, v, "na", {})
