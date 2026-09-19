@@ -355,8 +355,17 @@ behind to say that it was dropped (P1); an abstaining one leaves a card.
 ## Units
 
 Cards are authoritative in physical units (D7). Reduced units exist only inside
-the backend: `src/hoomd_backend.py` converts on the way in and on the way out,
-so a plan does not become invalid when the engine changes (§5.7 rule 4).
+the backend, which converts on the way in and on the way out, so a plan does
+not become invalid when the engine changes (§5.7 rule 4).
+
+**No backend converts anything today, because none needs to.**
+`src/hoomd_backend.py` is in §7's tree and is not written; the only backend
+here is `mock_backend.py`, and it integrates in SI throughout and says so in
+its own header. So the rule above is currently a boundary with nothing crossing
+it. This sentence used to name `hoomd_backend.py` in the present tense, which
+read as though the conversion existed and had been got right — the same shape
+as a ceiling written in an instruction file. When that backend is written, the
+conversion is its first responsibility and this paragraph is its specification.
 
 Mass-based time units are not used at all. In the overdamped limit they do not
 enter the physics and have no experimental counterpart, and a reference point
