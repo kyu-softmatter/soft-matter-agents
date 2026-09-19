@@ -1,9 +1,9 @@
 {
   "snapshot_version": "0.1",
   "agent": "bridge",
-  "kb_version": "kbv-5d2a6c90a168",
-  "built_from_commit": "ecb318b73a7064be2177512fdd3ade4af6373b30",
-  "entry_count": 28,
+  "kb_version": "kbv-39bad9dea5b6",
+  "built_from_commit": "ba9d7349b4353a5a0ee2b7d61dcd58f54b3d20c9",
+  "entry_count": 29,
   "entries": {
     "cameras_both_kinetix22": {
       "text": "{\n  \"entry_id\": \"cameras_both_kinetix22\",\n  \"schema_version\": \"0.1\",\n  \"kind\": \"claim\",\n  \"claim\": \"Both cameras are Kinetix 22. They are the same model, so pixel size, quantum efficiency, read noise and full-well capacity are the same on both arms, and the two arms of the splitter are photometrically comparable without a cross-calibration term. The names red and blue, and the roles primary and second detector, are wiring and naming rather than a hardware difference: neither camera is the better one.\",\n  \"validity_conditions\": \"This instrument as configured on 2026-09-17, operator read at the instrument. This closes an older discrepancy in which a purchase quote listed one Kinetix 22 and one Prime95B against a current state recorded as two Kinetix, unconfirmed: a swap did happen against the quote. Sensor properties are shared because the model is shared; no sensor number is entered here, and the calibrated pixel size remains a per-configuration gap. Falsified by either camera being replaced.\",\n  \"identifiers\": {\n    \"model\": \"Kinetix 22\"\n  },\n  \"source\": \"operator_read:kyuhwan_20260917\",\n  \"grade_tag\": \"operator_read\",\n  \"subject\": [\n    { \"kind\": \"device\", \"id\": \"camera_red\" },\n    { \"kind\": \"device\", \"id\": \"camera_blue\" }\n  ],\n  \"grade\": \"E3\",\n  \"source_ref\": \"src_operator_read_20260917\",\n  \"date\": \"2026-09-17\",\n  \"supersedes\": null,\n  \"conflict_with\": [],\n  \"curated_by\": \"kyuhwan\"\n}\n",
@@ -112,6 +112,10 @@
     "trap_heating_detection_bound": {
       "text": "{\n  \"entry_id\": \"trap_heating_detection_bound\",\n  \"schema_version\": \"0.1\",\n  \"kind\": \"claim\",\n  \"claim\": \"The operator recalls not noticing a temperature change in the sample unless the infrared trapping laser was driven above roughly 20 percent on its dial. This records where noticing stopped, by means that were not recorded.\",\n  \"subject\": [\n    { \"kind\": \"device\", \"id\": \"optical_tweezers\" },\n    { \"kind\": \"configuration\", \"id\": \"trapping\" },\n    { \"kind\": \"quantity\", \"id\": \"temperature\" }\n  ],\n  \"source\": \"operator_recall:kyuhwan_20260919\",\n  \"grade\": \"E5\",\n  \"grade_tag\": \"operator_recall\",\n  \"source_ref\": \"src_operator_recall_20260919\",\n  \"validity_conditions\": \"THIS IS NOT A LIMIT AND MAY NOT BE USED AS ONE. 'Keep it under 20 percent' is the sentence someone lifts out of an entry and uses to parameterise a laser, and three separate rules forbid that: safety limits live in a file a person writes and in deterministic code (P0, 2.1 rule 7), they do not transfer (10.3 rule 4), and the grade forbids it on its own -- an E5 may not parameterise an irreversible action without a person's individual approval, and raising laser power onto a sample is irreversible to the sample. Anyone needing a bound writes one in envelope/safety.json after confirming it physically. Three things this says less than it appears to. It is RECALLED, not read, which is why it is E5 while the neighbouring instrument facts are E3. It is a DETECTION BOUND and not a zero: 'did not notice' was measured by unrecorded means, and 'no heating below 20 percent' is a stronger claim than was made. And 20 PERCENT IS A DIAL READING, not a power: a percentage of an unstated maximum is not a quantity, and writing it into numbers[] would not make it one -- the same ruling that keeps a nominal magnification out of numbers[], wearing different clothes. It does not close the heating gap. A measured heating rate is still absent, and a gap that looks satisfied by an E5 recollection is a false absence running backwards. What it does is sharpen what to measure: sweep the dial with a thermometer that has a recorded position, and the bound becomes a curve.\",\n  \"date\": \"2026-09-19\",\n  \"supersedes\": null,\n  \"conflict_with\": [],\n  \"curated_by\": \"kyuhwan\"\n}\n",
       "sha256": "1306dab3079433c95dd1ba84a260e52caccd5d6d4b778fb66a65ec0ed2871a7f"
+    },
+    "trapping_laser_identity": {
+      "text": "{\n  \"entry_id\": \"trapping_laser_identity\",\n  \"schema_version\": \"0.1\",\n  \"kind\": \"claim\",\n  \"claim\": \"The trapping laser emits at 1064 nm and is rated to a maximum of 5 W measured AT THE GENERATOR. Both figures are the operator's report of the device's rating; no model name or datasheet was given.\",\n  \"numbers\": [\n    { \"name\": \"wavelength\", \"value\": 1064, \"unit\": \"nm\", \"source\": \"operator_read:kyuhwan_20260919\", \"grade\": \"E3\", \"precision\": \"significant_figures\" },\n    { \"name\": \"rated_max_power\", \"value\": 5, \"unit\": \"W\", \"source\": \"operator_read:kyuhwan_20260919\", \"grade\": \"E3\", \"precision\": \"significant_figures\", \"note\": \"at the generator. Not at the sample, and not at any point after it\" }\n  ],\n  \"subject\": [\n    { \"kind\": \"device\", \"id\": \"optical_tweezers\" },\n    { \"kind\": \"configuration\", \"id\": \"trapping\" }\n  ],\n  \"source\": \"operator_read:kyuhwan_20260919\",\n  \"grade\": \"E3\",\n  \"grade_tag\": \"operator_read\",\n  \"source_ref\": \"src_operator_read_20260919\",\n  \"validity_conditions\": \"AT THE GENERATOR. Written without a place, 'the laser is 5 W' is false at every point the beam actually reaches: between the generator and the sample sit losses nothing here records and the objective's transmission at 1064 nm, which is itself an open gap. The power a sample sees is a separate fact and it is absent (gap trap_power_at_the_sample). A RATED MAXIMUM IS NOT A PERMISSION. 5 W is what the device can emit, not what this laboratory allows; what it allows is written by a person in envelope/safety.json, and that file does not exist. 10.2 gates transferred spec values on exactly that file, with the reason that a spec number not placed beside limit values gets used as a limit -- the gate applies to transfers and so does not block this entry, which came from the operator, but the hazard it names does not care where the number came from. NOT MACHINE-READABLE, and that is a limit of the schema rather than of this entry: `validity` carries quantity-to-interval pairs, so 'at the generator' has nowhere to go and a query cannot act on it. This is the second such case -- the first being that lab_ambient_temperature is a reading of the room and not of the sample -- and both are raised with manager-librarian. A model name would add a source_ref and a part_number handle, not a grade: spec: and operator_read: are both E3, so a datasheet is worth having and not worth waiting for.\",\n  \"date\": \"2026-09-19\",\n  \"supersedes\": null,\n  \"conflict_with\": [],\n  \"curated_by\": \"kyuhwan\"\n}\n",
+      "sha256": "3c017fdbd599f035009126216affb20140fe8feb178fd765a854b7c926048ee5"
     },
     "water_viscosity_293k": {
       "text": "{\n  \"entry_id\": \"water_viscosity_293k\",\n  \"schema_version\": \"0.1\",\n  \"kind\": \"claim\",\n  \"claim\": \"Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood.\",\n  \"numbers\": [\n    { \"name\": \"viscosity\", \"value\": 0.001, \"unit\": \"Pa*s\", \"source\": \"kb:water_viscosity_293k\", \"grade\": \"E3\" }\n  ],\n  \"validity_conditions\": \"pure water, 288 to 298 K, atmospheric pressure. Not valid for the buffer or glycerol mixtures, and not valid without stating the temperature: the value carries a temperature dependence steep enough to matter in confirm mode.\",\n  \"validity\": {\n    \"temperature\": { \"min\": 288, \"max\": 298, \"unit\": \"K\" }\n  },\n  \"source\": \"literature:src_water_properties\",\n  \"subject\": [\n    { \"kind\": \"quantity\", \"id\": \"viscosity\" }\n  ],\n  \"grade\": \"E3\",\n  \"grade_tag\": \"textbook\",\n  \"source_ref\": \"src_water_properties\",\n  \"date\": \"2026-09-17\",\n  \"supersedes\": null,\n  \"conflict_with\": [],\n  \"curated_by\": \"kyuhwan\"\n}\n",
@@ -314,6 +318,9 @@
       "optical_tweezers": [
         "subject:device"
       ],
+      "rated_max_power": [
+        "number"
+      ],
       "sample_temperature_not_actuated": [
         "entry_id"
       ],
@@ -343,6 +350,9 @@
       "trapping": [
         "subject:configuration"
       ],
+      "trapping_laser_identity": [
+        "entry_id"
+      ],
       "viscosity": [
         "number",
         "subject:quantity"
@@ -352,6 +362,9 @@
       ],
       "water_viscosity_293k": [
         "entry_id"
+      ],
+      "wavelength": [
+        "number"
       ],
       "working_distance": [
         "number"
@@ -365,5 +378,5 @@
     }
   },
   "how_to_verify": "sha256 of each entry's `text` must equal its `sha256`, and sha256 over the canonical JSON of this object without `snapshot_hash` must equal `snapshot_hash`. A hand-edited copy fails both. `built_from_commit` names the commit this was built from, so every byte here is readable back with `git show <commit>:<path>` -- a kb_version identifies the knowledge and this identifies the packaging. Do not edit a copy: fix the KB and re-export (4.3.2).",
-  "snapshot_hash": "7201bc583588a8b5b336e09096757fc6dc14b51f8a3372d55ea38450c0e910f4"
+  "snapshot_hash": "6b5232fecb01a805a14dd41483f4381801b252f615cc1d6c1455c87523fa60dc"
 }
