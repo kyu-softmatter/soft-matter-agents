@@ -54,6 +54,16 @@
     },
     "source_ref": { "type": "string", "description": "id in kb/sources/" },
     "date": { "type": "string", "format": "date" },
+    "valid_until": {
+      "type": "object",
+      "description": "When this claim stops being asserted. Required for a `calibration:` source and optional otherwise. §5.3 lists E2 as `calibration:<cal_id>` with a validity period and a condition range BOTH required, and until 2026-09-19 neither was enforced -- so a calibration could claim the second-highest grade in the scale with nothing holding the claim up. It lands before its first subject: no entry carries a calibration source yet, so nothing has to migrate. `date` and `event` both exist because a real calibration ends one of two ways, and refusing the second would refuse correct work: an expiry the operator set, or the next calibration superseding it. One of the two is enough; neither is not.",
+      "properties": {
+        "date": { "type": "string", "format": "date", "description": "the day after which the claim is not asserted" },
+        "event": { "type": "string", "minLength": 10, "description": "the occurrence that ends it, e.g. the next recalibration of this objective. The superseding entry then names this one in `supersedes`." }
+      },
+      "minProperties": 1,
+      "additionalProperties": false
+    },
     "supersedes": { "type": ["string", "null"] },
     "conflict_with": { "type": "array", "items": { "type": "string" }, "description": "contradictory entries are both kept and marked, never merged (4.3)" },
     "curated_by": { "type": "string", "description": "who put it here. Until M3 that is a person, not the librarian agent." }
@@ -68,6 +78,11 @@
   },
   "required": ["entry_id", "schema_version", "kind", "claim", "validity_conditions", "grade", "source_ref", "date", "curated_by"],
   "allOf": [
+    {
+      "$comment": "5.3 lists E2 as `calibration:<cal_id>` with a validity period AND a condition range, both required, and neither was enforced until 2026-09-19. `validity` is the machine-readable half that matching actually reads, so requiring only the prose would leave the range unusable. What separates E2 from E5 is that a calibration event happened and is bounded: an unbounded calibration is a measurement with no event, which is the same claim an operator could have made from memory.",
+      "if": { "properties": { "source": { "pattern": "^calibration:" } }, "required": ["source"] },
+      "then": { "required": ["validity", "valid_until"] }
+    },
     {
       "if": { "properties": { "kind": { "const": "derived_quantity" } }, "required": ["kind"] },
       "then": { "required": ["symbol", "formula", "unit"] }
