@@ -418,8 +418,10 @@ def grade_summary(store: Store, ids: list[str]) -> dict:
 # the four tools
 # --------------------------------------------------------------------------- #
 
-CALLER_ID = json.loads((CONTRACTS / "schemas" / "axis.schema.json").read_text(
-))["properties"]["caller_id"]["pattern"]
+# Read from wherever it lives now, through the one resolver in query_log.
+# A bare subscript on someone else's schema took this server down at import
+# time when caller_id moved on 2026-09-19.
+CALLER_ID = query_log.caller_id_pattern()
 PURPOSES = tuple(json.loads((CONTRACTS / "schemas" / "goal.schema.json").read_text(
 ))["properties"]["purpose"]["enum"])
 # Which `identifiers` keys a caller may address an entry BY. Read from the
@@ -468,7 +470,20 @@ def _log(store: Store, **rec) -> None:
     query_log.record(store.log, **rec)
 
 
-AGENT_OF = {"mic": "microscope_agent", "sim": "simulation_agent"}
+AGENT_OF = {"mic": "microscope_agent", "sim": "simulation_agent", "bridge": "bridge"}
+
+
+def _agent_of(caller_id: str) -> str | None:
+    """Which agent is asking, from the id the launcher issued.
+
+    Four id forms, and the bridge's does not look like the other three: it is
+    `bridge:<thread>:r<N>` rather than `<qid>:v<N>:...`, so splitting on the
+    first hyphen -- which worked while every caller was mic or sim -- returns
+    the whole string for it.
+    """
+    if caller_id.startswith("bridge:"):
+        return AGENT_OF["bridge"]
+    return AGENT_OF.get(caller_id.split("-", 1)[0])
 
 
 def _gap_id(observable: str, kind: str) -> str:
@@ -516,7 +531,7 @@ def published_table_for(store: Store, caller_id: str, name: str) -> dict | None:
     folded = _fold(name)
     hits: dict[str, dict] = {}
     mine: set[str] = set()
-    agent = AGENT_OF.get(caller_id.split("-", 1)[0])
+    agent = _agent_of(caller_id)
     for snap_path in sorted(published.glob("snapshot_*.json")):   # sorted: determinism
         try:
             tables = (json.loads(snap_path.read_text()).get("tables") or {})
@@ -543,9 +558,15 @@ def published_table_for(store: Store, caller_id: str, name: str) -> dict | None:
 
 def _provenance(store: Store) -> dict:
     """Which version answered, and whether anyone could reproduce it."""
+    # Resolve the commit even when the answer came from the working tree. It
+    # said `commit: null, reproducible: true` -- not contradictory, since the
+    # version is in history, but it told a consumer it could pin and then did
+    # not say what to pin to, leaving it to search the history itself. The map
+    # is already built.
+    commit = store.commit or version_history().get(store.kb_version)
     return {
         "kb_version": store.kb_version,
-        "commit": store.commit,
+        "commit": commit,
         "reproducible": store.reproducible,
         "note": ("read from the working tree at a version that is not committed, so this exact "
                  "answer cannot be reproduced later -- record it as such" if not store.reproducible

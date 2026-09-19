@@ -86,6 +86,28 @@ def _contract(path: str, *keys):
     return node
 
 
+def contract_first(*candidates: tuple[str, tuple[str, ...]]):
+    """The first of several places a definition may live, or a clear refusal.
+
+    On 2026-09-19 `caller_id` moved from axis.schema.json's own properties into
+    common.schema.json's $defs. Both this module and the server read the old
+    place with a bare subscript at import time, so the contract moved and the
+    service did not degrade -- it failed to start, twice, in one run. Reading
+    a registry instead of restating it is right; doing it without saying what
+    happens when it moves is what cost the outage. One implementation, because
+    two copies of the fallback drift the same way the registry would.
+    """
+    for path, keys in candidates:
+        try:
+            node = _contract(path, *keys)
+        except (KeyError, TypeError, FileNotFoundError):
+            continue
+        if node is not None:
+            return node
+    raise Rejected(f"none of {[c[0] for c in candidates]} carries that definition; "
+                   "the contract moved again and this reads it rather than restating it")
+
+
 def gap_kinds() -> tuple[str, ...]:
     """The gap kinds, from the contract rather than retyped.
 
@@ -104,7 +126,10 @@ def purposes() -> tuple[str, ...]:
 
 
 def caller_id_pattern() -> str:
-    return _contract("schemas/axis.schema.json", "properties", "caller_id", "pattern")
+    return contract_first(
+        ("schemas/common.schema.json", ("$defs", "caller_id", "pattern")),
+        ("schemas/axis.schema.json", ("properties", "caller_id", "pattern")),
+    )
 
 
 class Rejected(ValueError):

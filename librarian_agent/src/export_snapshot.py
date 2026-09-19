@@ -59,6 +59,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -138,6 +139,48 @@ class Stale(Exception):
     """The published snapshot no longer matches the store."""
 
 
+REPO = AGENT.parent
+INPUTS = ["librarian_agent/kb/index.json", "librarian_agent/kb/entries",
+          "librarian_agent/kb/staging"]
+
+
+def _git(*args: str) -> str:
+    return subprocess.run(["git", "-C", str(REPO), *args],
+                          capture_output=True, text=True, check=True).stdout
+
+
+def built_from_commit() -> str:
+    """The commit whose content this snapshot publishes.
+
+    Required, and requiring it is what closes a hole that discipline was
+    holding shut. A consumer that pins `kb_version` still could not pin a
+    snapshot: three snapshots inside ten minutes on 2026-09-19 all claimed
+    kbv-67f9ad766d92 with identical entry text and identical entry hashes,
+    because what moved was the export's own structure, not the knowledge.
+    That is correct by design -- a version identifies knowledge, not its
+    packaging -- and it left nothing saying which packaging came from where.
+    A `published_in.sha256` then pointed at bytes that were in no commit.
+
+    Naming the commit makes publishing from a dirty tree impossible rather
+    than merely discouraged: there is no commit to name. Same argument as
+    making `published_in` conditionally required -- a field nobody must fill
+    is a field nobody fills.
+
+    Only the snapshot's own inputs have to be clean. Six seats commit here
+    hourly and blocking on somebody else's unrelated edit would make this
+    refuse correct work, which is how a gate gets bypassed.
+    """
+    dirty = [line[3:] for line in _git("status", "--porcelain", "--", *INPUTS).splitlines()
+             if line.strip()]
+    if dirty:
+        raise Stale(
+            "refusing to publish from an uncommitted store: " + ", ".join(sorted(dirty)) +
+            ". The snapshot would name a commit whose content is not what it carries, and its "
+            "sha256 would point at bytes nothing can read back. Commit the store, then publish."
+        )
+    return _git("rev-parse", "HEAD").strip()
+
+
 def _digest(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
 
@@ -168,6 +211,7 @@ def build(agent: str) -> dict:
         "snapshot_version": SNAPSHOT_VERSION,
         "agent": agent,
         "kb_version": index["kb_version"],
+        "built_from_commit": built_from_commit(),
         "entry_count": len(entries),
         "entries": entries,
         "tables": {},
@@ -191,7 +235,10 @@ def build(agent: str) -> dict:
     body["how_to_verify"] = (
         "sha256 of each entry's `text` must equal its `sha256`, and sha256 over the canonical "
         "JSON of this object without `snapshot_hash` must equal `snapshot_hash`. A hand-edited "
-        "copy fails both. Do not edit a copy: fix the KB and re-export (4.3.2)."
+        "copy fails both. `built_from_commit` names the commit this was built from, so every "
+        "byte here is readable back with `git show <commit>:<path>` -- a kb_version identifies "
+        "the knowledge and this identifies the packaging. Do not edit a copy: fix the KB and "
+        "re-export (4.3.2)."
     )
     body["snapshot_hash"] = _digest(_canonical(body))
     return body
