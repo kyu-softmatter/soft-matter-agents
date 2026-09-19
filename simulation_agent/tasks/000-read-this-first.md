@@ -39,12 +39,24 @@ M2's remaining completion condition is one pass with the librarian **on** —
 `kb_refs` filled, `kb_gaps` filled, `degraded` **empty** (§9.1). It cannot be
 met today, and not because of approval.
 
-`.mcp.json` launches the server as
-`${CLAUDE_PROJECT_DIR:-.}/librarian_agent/src/mcp_server.py`. In a session
-opened at `simulation_agent/` that variable is unset, the fallback resolves to
-`./librarian_agent/src/mcp_server.py`, and nothing is there — confirmed. The
-server itself is fine: run from the repository root it answers `initialize`
-normally. So the connection closes and the tools never appear.
+**The path is fixed as of `8d4a604`** and the remaining obstacle is smaller.
+
+Three forms have been tried and the history is in §7. A plain relative path
+resolved against the session's cwd. `${CLAUDE_PROJECT_DIR:-.}` fell back to
+`.` because that variable is not set here, so a session at `simulation_agent/`
+looked for `./librarian_agent/src/mcp_server.py`, which does not exist. An
+absolute path into the shared checkout worked and was measured to be wrong for
+a different reason: `microscope-1`'s worktree held `kbv-fdef964aca56` while
+the shared copy answered `kbv-67f9ad766d92`, so a worktree session's cards
+would cite a version whose bytes are not in its own checkout. The current form
+resolves `git rev-parse --show-toplevel`, which gives each worktree its own
+store and gives this directory the repository root. Confirmed to resolve here.
+
+**Resolving is not the same as connecting, and nobody has checked the second.**
+The test is not that the path is right; it is that `mcp__librarian__*` appears
+in a session opened at an agent directory. Only a session started after
+`8d4a604` can make that observation, because project MCP config is read at
+session start.
 
 **A session that cannot see the tools must not produce a card claiming the
 service answered.** `degraded: ["librarian_agent"]` is the honest value while
