@@ -110,6 +110,23 @@ above for who commits it.
   revision 1 alone as the record of what was read in the first place. Nothing
   has to be re-stamped for the gate to open.
 
+- **`sim-20260917-001` is revision 1, and stays revision 1 despite six edits.**
+  `45b2b5f` made §4.5.5 a mechanism — `r<N>_` prefixes, and `refuse_overwrite`
+  stops rather than replacing a card of another revision — and running it
+  surfaced six intermediate states. They were collapsed back into revision 1
+  on purpose.
+
+  The reason is worth keeping, because it is not "they were small". A
+  `revision` is the unit an approval names and a result cites (§5.5, §6.1).
+  Checked: nothing anywhere in this repository cites this qid, there is no
+  approval card and no run, so none of those six was ever named or acted on.
+  They were saves. Numbering them would make `revision` mean *how many times
+  the author edited*, and restoring `r2_`–`r6_` would put numbered revisions
+  on disk that nobody ever cited — the same confusion pointed the other way.
+  What changed between them is in the history, which is where that belongs.
+
+  Revision 2 is the librarian run, when it happens. Not a save.
+
 - The validator is green. An earlier report of a red check 13 on
   `microscope_agent/.mcp.json` is stale: that file is gone and the tree reads
   `0 failed`.
