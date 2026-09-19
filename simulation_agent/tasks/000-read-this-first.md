@@ -94,6 +94,22 @@ above for who commits it.
   a document that has gone stale is corrected against **the history**, never
   against the cards, and the cards are never corrected against the document.
 
+  **And the rule that would have prevented all four moves: regenerating a
+  finished question in place is the defect.** §4.5.5 already says it — a re-run
+  reuses the `qid` and **raises `revision`**, and the earlier outputs stay
+  beside it under an `r2_` prefix (P9, §7.1 rule 6). Every card here is
+  `revision: 1`. The fan-out was rebuilding revision 1 over itself, so each run
+  had to choose a version for cards that had already read one, and there is no
+  right answer to that question.
+
+  This also answers the objection that pinning `9bc3910f1886` is unusable
+  because `kb_group(symbol=…)` did not exist in that store version. It is
+  unusable **for a new query**, and a new query is not revision 1's business.
+  When the librarian is reachable, the fan-out makes **revision 2**: it pins
+  the store as of that run, asks with the vocabulary that store has, and leaves
+  revision 1 alone as the record of what was read in the first place. Nothing
+  has to be re-stamped for the gate to open.
+
 - The validator is green. An earlier report of a red check 13 on
   `microscope_agent/.mcp.json` is stale: that file is gone and the tree reads
   `0 failed`.
