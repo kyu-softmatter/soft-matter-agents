@@ -1,6 +1,7 @@
 {
-  "$comment": "Session boundary for the librarian (plan.md 6.2). The session boundary is the permission boundary: this session can only write inside its own agent. contracts/ and plan.md are read here and written by the design session.",
+  "$comment": "Session boundary for the librarian (plan.md 6.2). What ENFORCES the boundary is the commit gate -- check 35 refuses a commit that crosses it, against the tree the commit would create. This file states the boundary; since 2026-09-19 it no longer claims to hold it.",
   "permissions": {
+    "$comment_deny": "INERT AS WRITTEN, AND KEPT ON PURPOSE. A path pattern resolves against the session root, and this session is started in librarian_agent/ -- so `Write(bridge/**)` means `librarian_agent/bridge/**`, a path that cannot exist. All ten entries name a sibling directory, contracts/ or plan.md, so all ten are outside this root and none of them can ever match. They are not deleted because deleting them deletes the intent, and they are labelled because an unlabelled inert rule reads as protection to the next person -- that is the failure, not the rule. Nothing can be aimed inside this tree instead: unlike the executing agents, this seat has no envelope/ or inbox/ that another seat writes. A tool denial WOULD still work here -- tool names do not resolve against a root -- and there are none in this file, so do not read the label as covering a kind of rule this file does not contain.",
     "deny": [
       "Write(microscope_agent/**)",
       "Edit(microscope_agent/**)",
@@ -21,8 +22,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/contracts/validate.py\" --quiet",
-            "$comment": "the validator's exit code is the only truth (plan.md 8)"
+            "command": "sh -c 'exec python3 \"$(git rev-parse --show-toplevel)/contracts/validate.py\" --quiet'",
+            "$comment": "The validator's exit code is the only truth (plan.md 8). This read $CLAUDE_PROJECT_DIR until 2026-09-19, which is the session's own directory -- so from librarian_agent/ it looked for librarian_agent/contracts/validate.py, did not find it, and failed. A PostToolUse failure does not stop the write, so there was no symptom: every write from this seat went unvalidated at write time, and only the commit gate ever saw them. Same defect plan.md 7 records for .mcp.json, same fix: ask git where the repository root is instead of assuming the session is standing at it."
           }
         ]
       }
