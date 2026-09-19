@@ -1507,13 +1507,38 @@ _KB_HISTORY: dict | None = None
 # check 25's 34 pending findings on the board, every one of them saying an
 # entry had changed when nothing a card could have read had.
 #
+# What moved there is the DISCOVERY SURFACE, not nothing: a re-query finds
+# different entries, which is the field's whole purpose, and check 49 and gap
+# detection stand on it. Under a pin the old subject is what gets served, so a
+# card already written is unexposed -- but unexposed and inconsequential are
+# different, and the PASS line says which one this is. `identifiers` is the
+# same kind.
+#
 # Naming the claim-bearing fields is reading the entry schema, not choosing a
 # subset of it. The earlier comment here refused to choose one for a good
 # reason -- which fields reach a card was not written down -- and what changed
 # is that `subject` now says in its own description what it is for.
-CLAIM_FIELDS = {"value", "unit", "kind", "grade", "source", "claim",
-                "validity", "valid_until", "validity_conditions", "symbol",
-                "formula", "inputs", "uncertainty"}
+CLAIM_FIELDS = {"numbers", "unit", "kind", "grade", "grade_tag", "source",
+                "source_ref", "claim", "validity", "valid_until",
+                "validity_conditions", "symbol", "formula", "inputs",
+                "supersedes", "conflict_with"}
+# `numbers` is the one that matters most and was missing for an hour on
+# 2026-09-19. The first version of this list named `value` and `uncertainty`,
+# which are NOT top-level properties of kb_entry -- they live inside
+# `numbers[]` -- so they could never match, while a changed number surfaces as
+# the single key `numbers` and was therefore counted as bookkeeping. An
+# objective's NA moving 1.42 -> 9.99 was classified "nothing a card could have
+# read is different", which is the exact failure this check exists to catch.
+# manager-librarian found it by checking the list against the schema instead
+# of against the prose, which is what the list is for. Two fields that name
+# nothing are worse than none: they read as coverage.
+#
+# `supersedes` and `conflict_with` are here because an entry a card cites
+# being replaced, or gaining a contradiction, is something the citing card has
+# to know -- rules 7 and 8 keep both for that reason. `grade_tag` because
+# 4.3.1 orders within E3 by it (peer_reviewed -> textbook -> vendor_spec ->
+# preprint), so a retag changes the evidential standing behind a citation
+# while the grade letter sits still.
 
 
 def kb_entry_at(sha: str, entry_id: str) -> dict | None:
@@ -1642,9 +1667,9 @@ def check_25_kb_refs(b: Bundle) -> list[Finding]:
               f"an honest record of what was read, and the question is whether the {len(rels)} card(s) resting "
               f"on it should be revised. {where}", rels[0]))
     if bookkeeping:
-        out.append(Finding(25, PASS, f"{bookkeeping} pinned refs sit on entries that changed only in fields "
-                                     f"no card reads -- `subject` and the like, filled in store-wide -- so "
-                                     f"what each card read is unmoved"))
+        out.append(Finding(25, PASS, f"{bookkeeping} pinned refs sit on entries whose movement was in the "
+                                     f"discovery surface only -- `subject`, `identifiers` -- so what each "
+                                     f"card READ is unmoved, though what a re-query would FIND has changed"))
 
     if KB_INDEX is not None:
         entries = {}
