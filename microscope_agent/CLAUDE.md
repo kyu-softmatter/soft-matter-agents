@@ -155,11 +155,25 @@ downgrade | <item>            | E5      | 10.3 rule 2
 drop      | <item>            | no slot in A1-A7
 ```
 
-It is a sibling and not the card itself because the card is the manager's and
-you do not edit it (6.2-2); this file is yours. One line, greppable, so a
-count is a count and not a reading. **An item you looked at and did not take
-is a line here** — that is the whole point of the file, and the line costs
-less than the argument about why the drop was invisible.
+One line, greppable, so a count is a count and not a reading. **An item you
+looked at and did not take is a line here** — that is the whole point of the
+file, and the line costs less than the argument about why the drop was
+invisible.
+
+**You cannot write that file today, and this seat caused that.** The
+paragraph above said the sibling file was yours; the deny list then closed
+`tasks/**` to you, because that is where descending instruction lives and a
+seat that can edit its own orders has none. Both are this seat's and they
+contradict. Until it is resolved, **report your rulings up in the same
+sentence that reports the task, and `manager-microscope` writes them into
+`tasks/NNN-rulings.md`** — the judgement stays yours and is attributed to
+you; only the hand that writes it changes.
+
+Do not resolve it by asking for an allow rule. Deny wins over allow in this
+harness, and cards and rulings share the `NNN-` prefix, so a glob that
+separated them would be one rename away from failing open. The real fix is a
+directory that is not `tasks/`, which is §7.1 and therefore architecture's;
+it is raised.
 
 One precedent, already caught: the prior project's `20.078x`. A nominal
 magnification wearing a value back-derived from a calibrated pixel size — a

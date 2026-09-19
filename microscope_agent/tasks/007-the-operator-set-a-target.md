@@ -5,32 +5,42 @@ Written by `manager-microscope`. You read this; you do not edit it (§6.2-2).
 **This card is `microscope-1`'s**, because it revises the goal card and re-runs
 A2, both of which are that seat's.
 
-## The number
+## The number — and whose number it is
 
-**`target_relative_error = 0.5` on `tracer_diffusivity`.** The person set it on
-2026-09-19, asked directly, because A2 said only the operator could.
+**Revised 2026-09-19, before anything acted on the first version.** That
+version said `target_relative_error = 0.5`, written `operator_set:` at E5.
+Two things were wrong with it.
 
-Write it into `goal.json` as a new revision — `numbers[]` gains
+**What the person decided is the decade, not a relative error.** Asked in this
+seat's window they chose the option whose label read *50%* and whose body read
+*enough to tell whether D is 10⁻¹³ or 10⁻¹²*; the same decision reached the
+bridge seat as **one decade**. The decade is the statement, and `0.5` was a
+gloss this seat put on it. So what changes on the goal card is small and
+exact: `target_decade_resolution = 1` is already there as `assumed:a_target`,
+noted *"Screening only needs to place the diffusivity within one decade; the
+question is which regime the sample is in"*. **The assumption becomes a stated
+goal.** No new number is added.
 
-```json
-{"name": "target_relative_error", "value": 0.5, "unit": "1",
- "source": "operator_set:kyuhwan_20260919", "grade": "E5",
- "precision": "order_of_magnitude"}
-```
+**A relative error is an axis's margin, not the person's target.** The
+simulation side already shows the shape: its A2 carries
+`target_relative_error 0.1` as `assumed:a_statistics`, noted *"well inside the
+one decade the goal asks for"*. If A2 here derives a statistical requirement,
+**keep the two halves separable in the card** — which half a person stated and
+which half the axis chose. Statistics go as 1/ε², so the margin is the
+expensive half and it is the axis's to justify.
 
-and `targets[]` gains `{"metric": "tracer_diffusivity", "number":
-"target_relative_error", "kind": "uncertainty"}`.
+**Do not choose a source kind yet.** This seat added `operator_set:` at
+`b47dc3d` and graded it E5 to match the targets already on the card. The
+bridge manager's objection is better than that compromise and matches what
+the schema text already admits: a target is not unreliable, it is correct by
+being made, and E5 says the person might be misremembering their own goal.
+`envelope/safety.json` settled this shape once already — value and unit, no
+source, no grade. Three options are with architecture and §5.3 is theirs.
 
-**Use `operator_set:`, which did not exist until `b47dc3d`.** Not `assumed:` —
-that says nobody chose it when a person did. Not `operator_recall:` — nothing
-was recalled. The three operator prefixes are not interchangeable and only
-`read` and `recall` are claims about the world at all. Its E5 is there to
-match the two targets already on the card and the schema says outright that
-the grade is the wrong axis for a decision; do not read it as low confidence.
-
-`target_decade_resolution` and `snr_target` are the same kind of thing and are
-still written `assumed:`. **Move them to `operator_set:` in this same
-revision** if you can attribute them; leave them if you cannot, and say which.
+**So mark the field provisional rather than encoding it.** Say in the card
+that the person stated one decade on 2026-09-19 and that the encoding awaits
+§5.3. The goal is usable in reasoning now; the representation is not settled,
+and writing a source kind that gets rewritten is worse than writing none.
 
 ## What it unblocks, and what it does not
 

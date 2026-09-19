@@ -13,44 +13,46 @@ a FAIL**. Same shape as check 43 waiting on `source`.
 So this is not work you can do one card at a time. One commit, or the tree
 goes red for everyone.
 
-## Scope — three cards, eleven gaps
+## Scope — five cards, twenty-two gaps (revised 2026-09-19)
 
-I read the check rather than the summary of it, and the scope is narrower than
-it was described to me. **Check 49 skips any card whose `degraded` names the
-librarian** — the same carve-out check 39 makes, for the same reason: a card
-that never reached the service wrote its gaps by hand and no neighbourhood
-search could stand behind one.
+**This section said three cards and eleven gaps and is now wrong, in the way
+it warned about.** Check 49 skips a card whose `degraded` names the librarian
+— check 39's carve-out, because a card that never reached the service wrote
+its gaps by hand. `a1` and `a7` were carved out on that ground, and the card
+said re-running them through the service would remove the exemption and
+*add* the obligation. They have since been re-run. Both now read
+`degraded: []`, and `a1` has grown from four absent gaps to eight.
 
-| card | `degraded` | `absent` gaps | |
-|---|---|---|---|
-| `axis_widefield_inline_a2.json` | `[]` | 4 | **re-run** |
-| `axis_widefield_inline_a3.json` | `[]` | 4 | **re-run** |
-| `axis_widefield_inline_a6.json` | `[]` | 3 | **re-run** |
-| `axis_widefield_inline_a1.json` | `["librarian_agent"]` | 4 | carved out |
-| `axis_widefield_inline_a7.json` | `["librarian_agent"]` | 3 | carved out |
-| `goal.json` | `["librarian_agent"]` | 1 | carved out, and S3.0's anyway |
+| card | `degraded` | `absent` gaps |
+|---|---|---|
+| `axis_widefield_inline_a1.json` | `[]` | 8 |
+| `axis_widefield_inline_a2.json` | `[]` | 4 |
+| `axis_widefield_inline_a3.json` | `[]` | 4 |
+| `axis_widefield_inline_a6.json` | `[]` | 3 |
+| `axis_widefield_inline_a7.json` | `[]` | 3 |
+| `goal.json` | `["librarian_agent"]` | 1 — carved out, and S3.0's |
 
-Eleven gaps, three cards. That is exactly what the check counts.
+**`a6` is `microscope-3`'s axis and this card touches it.** One commit is
+required by the latch, so the two seats cannot each take their own cards.
+`microscope-1` runs all five, including `a6`, and `microscope-3` stays off
+this one — its A6 work resumes after. It also carries the last v-less
+`caller_id` in the fan-out, `mic-20260918-001:widefield_inline:a6`, which
+moves to `:v1:` here by re-query, not by substitution (card 005's argument).
 
-**Do not re-run a1 or a7 as part of this.** They are exempt only while they
-declare the degraded path. Re-running them through the service removes the
-carve-out and *adds* the obligation — worth doing eventually, because §9.1
-wants served cards, but it is separate work and must not ride on this commit.
+**Twenty-two gaps, five cards, still one commit.** Count it yourself before
+you start rather than trusting this table: it has been wrong once already,
+and the number moves whenever a card is re-run through the service.
 
-## Wait for the pixel size first
+## The pixel size has landed — this is no longer blocked
 
-**Do not start yet.** A person has calibrated the sample-plane pixel size on
-this instrument and the librarian is entering it now; it will be this
-repository's first E2. As of this card there is no E2 in the store, so it has
-not landed.
+The wait is over. Twenty-four E2 entries are in the store, calibrated pixel
+size per objective and zoom — the first E2 this repository has had. That
+closes A6's `sample_plane_pixel_size` outright, the gap no sensor pitch could
+close because pitch and sample-plane size are different facts.
 
-That value closes one of A6's three gaps outright — `sample_plane_pixel_size`,
-the one that could not be closed by any sensor pitch because pitch and
-sample-plane size are different facts. Re-running A6 before it lands means
-running A6 twice. Wait, then do all three once.
-
-Watch for it: `grep -rl '"grade": *"E2"' librarian_agent/kb/entries/` returns
-nothing today.
+**Start with this card**, ahead of 007. A2 appears in both and running it
+twice is the thing to avoid, so fold 007's goal revision and A2 re-run into
+this commit.
 
 ## What the re-run should produce
 
