@@ -6,6 +6,9 @@
   "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. The disk period itself is not in the store: this entry states the relation the exposure must satisfy, not the number it must be a multiple of, and a plan needs the period from the device before it can apply this. Falsified by a disk or controller change.",
   "source": "operator_read:kyuhwan_20260917",
   "grade_tag": "operator_read",
+  "subject": [
+    { "kind": "device", "id": "csuw1_disk_speed" }
+  ],
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

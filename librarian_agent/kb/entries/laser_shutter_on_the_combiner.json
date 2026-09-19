@@ -6,6 +6,10 @@
   "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. The store records that both exist and where each sits; it does not record which one anything closes, because that is policy written by a person in envelope/safety.json (4.3.2). Falsified by either shutter being removed or re-sited.",
   "source": "operator_read:kyuhwan_20260917",
   "grade_tag": "operator_read",
+  "subject": [
+    { "kind": "device", "id": "laser_shutter" },
+    { "kind": "device", "id": "laser_combiner" }
+  ],
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

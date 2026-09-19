@@ -6,6 +6,9 @@
   "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument (operator_read:kyuhwan_20260917). No numeric condition applies, so a query's condition_range comes back unconstrained rather than satisfied. Falsified by a second splitting element being fitted, or by the loaded device list showing two independently addressable mechanisms.",
   "source": "operator_read:kyuhwan_20260917",
   "grade_tag": "operator_read",
+  "subject": [
+    { "kind": "device", "id": "csuw1_port" }
+  ],
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

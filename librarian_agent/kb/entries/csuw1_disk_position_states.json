@@ -6,6 +6,9 @@
   "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. The consequence worth carrying: the position labelled bright field is also the widefield-fluorescence position, so the configuration id cannot be recovered from this selector's label, and a read-back that confirms the label confirms nothing about which configuration is loaded. Falsified by a mechanical change to the disk carrier.",
   "source": "operator_read:kyuhwan_20260917",
   "grade_tag": "operator_read",
+  "subject": [
+    { "kind": "device", "id": "csuw1_disk_position" }
+  ],
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

@@ -6,6 +6,9 @@
   "validity_conditions": "This instrument as of 2026-09-17, operator read. Two consequences travel with it. A temperature stage being present is not a control channel, so it is not listed as one. And any plan needing the viscosity or the thermal energy carries temperature as an uncontrolled condition: in explore mode a drift of about a kelvin does not move a decade and can be ignored, while in confirm mode it cannot and there is no actuator to appeal to. The ambient value itself, its drift band and where it is read are not in the store -- see the sample_temperature_value gap. Falsified by the stage being connected and driven.",
   "source": "operator_read:kyuhwan_20260917",
   "grade_tag": "operator_read",
+  "subject": [
+    { "kind": "device", "id": "temperature_stage" }
+  ],
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

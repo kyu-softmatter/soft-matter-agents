@@ -6,6 +6,10 @@
   "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. What is confirmed here is the hardware arrangement and the group each element belongs to. What follows from it under one-channel-one-worker -- that stage moves serialise with port and filter changes, and that the lock a worker waits on is chosen per command rather than per channel -- is a design consequence, not a reading, and is not stamped as one. Falsified by the stage being moved off the body hub or the piezo being mounted elsewhere.",
   "source": "operator_read:kyuhwan_20260917",
   "grade_tag": "operator_read",
+  "subject": [
+    { "kind": "device", "id": "stand_ti2e" },
+    { "kind": "device", "id": "motor_stage" }
+  ],
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

@@ -6,6 +6,9 @@
   "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. Drivable and readable is not the same as verifiable: read-back returns a position, and which element that position holds is exactly what is unknown (see csuw1_port_slots). Falsified by a driver or configuration change that drops the property.",
   "source": "operator_read:kyuhwan_20260917",
   "grade_tag": "operator_read",
+  "subject": [
+    { "kind": "device", "id": "csuw1_port" }
+  ],
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

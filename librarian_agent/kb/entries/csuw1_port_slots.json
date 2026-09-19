@@ -6,6 +6,11 @@
   "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. 561 carries no numbers[] entry: it is the dichroic's nominal designation, a string identifier that is exact by definition, and the measured edge of its transmission curve is a different quantity that nobody here has measured (5.3). Slot contents only: the slot ORDER is not part of this claim and is recorded as a gap, not estimated. Because two states starve one camera, a position number read back from the driver does not establish which element is in the beam -- that is settled by acquiring, not by read-back. Falsified by re-fitting any slot.",
   "source": "operator_read:kyuhwan_20260917",
   "grade_tag": "operator_read",
+  "subject": [
+    { "kind": "device", "id": "csuw1_port" },
+    { "kind": "device", "id": "camera_red" },
+    { "kind": "device", "id": "camera_blue" }
+  ],
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

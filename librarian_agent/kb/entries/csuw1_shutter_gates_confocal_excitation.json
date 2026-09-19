@@ -6,6 +6,9 @@
   "validity_conditions": "This instrument as configured on 2026-09-17, operator read at the instrument. This entry says what the shutter gates and stops there. Which shutter an abort closes is policy, not knowledge: it belongs to a person and to microscope_agent/envelope/safety.json (4.3.2, 10.3 rule 4). Falsified by a re-plumbing of the excitation path.",
   "source": "operator_read:kyuhwan_20260917",
   "grade_tag": "operator_read",
+  "subject": [
+    { "kind": "device", "id": "csuw1_shutter" }
+  ],
   "grade": "E3",
   "source_ref": "src_operator_read_20260917",
   "date": "2026-09-17",

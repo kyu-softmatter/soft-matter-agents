@@ -6,6 +6,12 @@
   "validity_conditions": "This instrument as configured on 2026-09-17, stated from memory rather than read (operator_recall:kyuhwan_20260917), which is why this is E5 and not E3 while every neighbouring claim about the unit is E3. Not to be promoted by corroboration: a spectral splitter puts one wheel on each output arm, which is consistent with this mapping but is not a reading of it. If the mapping is inverted, two-colour data is labelled wrong and nothing raises an error. Settled by one acquisition: move one wheel and see which camera's image changes.",
   "source": "operator_recall:kyuhwan_20260917",
   "grade_tag": "operator_recall",
+  "subject": [
+    { "kind": "device", "id": "filter_wheel_em1" },
+    { "kind": "device", "id": "filter_wheel_em2" },
+    { "kind": "device", "id": "camera_red" },
+    { "kind": "device", "id": "camera_blue" }
+  ],
   "grade": "E5",
   "source_ref": "src_operator_recall_20260917",
   "date": "2026-09-17",
