@@ -2,7 +2,12 @@
 
 Written by `manager-simulation`. You read this; you do not edit it (§6.2-2).
 
-**Startable now.** Needs no librarian. Read `000` first for who may commit it.
+**DONE**, verified 2026-09-19: `cards.observable()` returns the name alone,
+and no card under `questions/` carries a `definition`. Kept rather than deleted
+— the reasoning below is why the field went, and a finished card that vanishes
+takes its reason with it (P1). The seat rule it used to point at has also
+moved: `simulation-2@seat.invalid` exists now, so both sessions commit. See
+`000`.
 
 ## What changed upstream
 
