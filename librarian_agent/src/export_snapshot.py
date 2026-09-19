@@ -72,6 +72,62 @@ EXPORTS = KB / "exports"
 TABLES = {"devices": "staging/devices.v0.json",
           "optical_paths": "staging/optical_paths.v0.json"}
 
+# What each table answers to, and where each name came from. A table needs this
+# for the reason an entry needed `subject`: the store could not say where a
+# thing lives, so it said the thing did not exist. On 2026-09-19 five of seven
+# kb_query calls came back `absent` and every one of the five named something
+# published here.
+#
+# Only three sources of name are admitted -- the table's own key, the term the
+# design uses, and a word a caller actually typed. No invented plurals or
+# variants: guessing at variants is the same move as normalising whitespace,
+# and each guess makes two different strings answer to one name.
+TABLE_NAMES = {
+    "devices": {
+        "devices": "the table's own key",
+        "device_registry": "4.3.2 calls it the device registry; asked for on 2026-09-19",
+        "control_channel": "4.6 calls each row a control channel; asked for on 2026-09-19",
+    },
+    "optical_paths": {
+        "optical_paths": "the table's own key",
+        "optical_path_valid_tuples": "4.5.3 requires a combination to be a valid tuple of the "
+                                     "optical path table; asked for on 2026-09-19",
+    },
+}
+
+
+# Which lists in each table hold rows a consumer reads. Declared rather than
+# discovered: walking every key at every depth gave 164 names including `note`,
+# `status` and `what`, and a query for `note` answered "it is in the device
+# table" -- true, useless, and the shape of a report people stop reading. These
+# are the lists the tables' own `consumers` block names: A4 and S3.0 screen
+# configurations, the orchestrator compiles channels into locks, O1 preflight
+# reads elements.
+TABLE_ROWS = {"devices": ("channels", "elements"),
+              "optical_paths": ("configurations",)}
+
+
+def table_columns(table: dict, row_lists: tuple[str, ...]) -> list[str]:
+    """The keys of the rows a consumer reads, and nothing else.
+
+    `read_back` and `automatable_condition` are both keys of a `channels` row,
+    and both were asked for and answered `absent`.
+    """
+    names: set[str] = set()
+
+    def walk(node, inside: bool):
+        if isinstance(node, dict):
+            if inside:
+                names.update(k for k in node if isinstance(k, str))
+            for k, v in node.items():
+                walk(v, inside or k in row_lists)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v, inside)
+
+    walk(table, False)
+    return sorted(names)
+
 # Which agents get the instrument tables, and which get entries only.
 AGENTS = {"microscope_agent": True, "simulation_agent": False, "bridge": False}
 
@@ -120,7 +176,13 @@ def build(agent: str) -> dict:
     if AGENTS[agent]:
         for name, rel in TABLES.items():
             text = (KB / rel).read_text()
-            body["tables"][name] = {"text": text, "sha256": _digest(text), "from": f"kb/{rel}"}
+            body["tables"][name] = {
+                "text": text,
+                "sha256": _digest(text),
+                "from": f"kb/{rel}",
+                "names": TABLE_NAMES.get(name, {name: "the table's own key"}),
+                "columns": table_columns(json.loads(text), TABLE_ROWS.get(name, ())),
+            }
     else:
         body["not_included"] = [
             f"{n} -- this agent has no instrument for it to describe (4.3.2)" for n in sorted(TABLES)

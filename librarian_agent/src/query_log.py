@@ -86,6 +86,19 @@ def _contract(path: str, *keys):
     return node
 
 
+def gap_kinds() -> tuple[str, ...]:
+    """The gap kinds, from the contract rather than retyped.
+
+    Validated here because a wrong kind is the defect this log has already
+    surfaced once: `condition_mismatch` was reported for a query where nothing
+    had been compared, and only the record made it visible. A kind the contract
+    does not have would be a worse version of the same thing, recorded as
+    though it were fine.
+    """
+    return tuple(_contract("schemas/common.schema.json", "$defs", "kb_gap",
+                           "properties", "kind", "enum"))
+
+
 def purposes() -> tuple[str, ...]:
     return tuple(_contract("schemas/goal.schema.json", "properties", "purpose", "enum"))
 
@@ -112,6 +125,10 @@ def check(rec: dict) -> dict:
         raise Rejected(f"caller_id {rec['caller_id']!r} is not <qid>:<config>:<axis> as the launcher issues it (4.3.1)")
     if rec["purpose"] not in purposes():
         raise Rejected(f"purpose {rec['purpose']!r} is not in contracts/schemas/goal.schema.json")
+    kinds = gap_kinds()
+    for g in rec.get("gaps") or []:
+        if g not in kinds:
+            raise Rejected(f"gap kind {g!r} is not in contracts/schemas/common.schema.json ({kinds})")
     for r in rec.get("returned") or []:
         if r.get("grade") == "E6":
             raise Rejected(f"entry {r.get('entry_id')!r} logged as E6; E6 is in no entry, so a line claiming one is wrong (5.3)")
@@ -140,8 +157,27 @@ def record(log: Path = DEFAULT_LOG, **rec) -> dict:
 
 
 def _query_key(rec: dict) -> str:
-    """What 4.3.1 says must determine the answer, and nothing else."""
-    return json.dumps([rec["tool"], rec["kb_version"], rec.get("observable"),
+    """What the answer may depend on, and nothing else.
+
+    The tool, the pinned version and the question -- plus the caller's AGENT,
+    which is the prefix of the caller_id and not the whole of it. 4.3.1 rule 1
+    isolates by caller_id and permits per-caller context; rule 2 forbids the
+    answer depending on call history. An agent is neither: it is an argument,
+    and one answer legitimately varies with it -- a gap pointing into a
+    published table names the asker's own snapshot only when that agent holds
+    a copy, while the table and its sha256 are the same fact for everyone.
+
+    Keying on the whole caller_id would make this witness useless, because
+    every axis of every fan-out has its own id and no two lines would ever be
+    compared. Keying on none of it called a legitimate difference a violation:
+    that is how the first version of the published-table lookup was caught,
+    which answered `absent` to a simulation and `in_published_table` to a
+    microscope for one question -- a real defect. Two axes of one agent asking
+    one question at one version must still agree, and that is the property a
+    fan-out depends on.
+    """
+    agent = str(rec.get("caller_id", "")).split("-", 1)[0]
+    return json.dumps([rec["tool"], rec["kb_version"], agent, rec.get("observable"),
                        rec.get("condition_range")], sort_keys=True)
 
 
@@ -169,8 +205,12 @@ def verify(log: Path = DEFAULT_LOG) -> list[str]:
         last = rec["asked_at"]
         qk, ak = _query_key(rec), _answer_key(rec)
         if qk in seen and seen[qk][1] != ak:
+            # Name the query and both answers. A violation that says only
+            # "line 7 and line 13 differ" makes the reader reconstruct which
+            # question it was, and this report exists to be acted on.
             problems.append(
-                f"line {n}: same query at the same kb_version as line {seen[qk][0]} returned something different. "
+                f"line {n}: same query at the same kb_version as line {seen[qk][0]} returned something "
+                f"different. query={qk}; then={seen[qk][1]}; now={ak}. "
                 "4.3.1 requires one answer per (query, kb_version); this is that guarantee failing"
             )
         elif qk not in seen:

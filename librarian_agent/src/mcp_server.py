@@ -349,11 +349,21 @@ def match(entry: dict, condition_range: dict | None) -> dict:
             )
         if _ge(q_lo, e_lo) and _ge(e_hi, q_hi):
             continue
-        out: dict[str, Any] = {"unit": query[q]["unit"]}
-        if not _ge(q_lo, e_lo):
+        # The uncovered part is a CLOSED piece of the asked interval, not a
+        # one-sided bound. `{min: 280}` would say everything above 280 is
+        # uncovered, which includes the 288-298 the entry does cover -- an
+        # overstatement in a store whose discipline is not overstating. So the
+        # entry's own bound is carried, converted into the unit the caller
+        # asked in, and becomes the other end of the piece.
+        unit = query[q]["unit"]
+        factor, _ = _si(1.0, unit)
+        out: dict[str, Any] = {"unit": unit}
+        if not _ge(q_lo, e_lo) and e_lo != float("-inf"):
             out["below_min"] = query[q].get("min")
-        if not _ge(e_hi, q_hi):
+            out["covered_from"] = min(e_lo, q_hi) / factor
+        if not _ge(e_hi, q_hi) and e_hi != float("inf"):
             out["above_max"] = query[q].get("max")
+            out["covered_to"] = max(e_hi, q_lo) / factor
         if e_hi < q_lo or q_hi < e_lo:
             out["disjoint"] = True
         uncovered[q] = out
@@ -361,6 +371,33 @@ def match(entry: dict, condition_range: dict | None) -> dict:
     return {"overlap": "full" if not uncovered else "partial",
             "uncovered": uncovered,
             "unconstrained": unconstrained, "unasked": unasked}
+
+
+def uncovered_ranges(row: dict) -> list[dict]:
+    """The uncovered part, as condition_ranges the contract can carry.
+
+    The row's own `uncovered` says which side missed and by how much, in a
+    shape this module invented. `kb_gap.nearest[].uncovered` is a
+    condition_range -- quantity to {min?, max?, unit} -- and a condition_range
+    cannot hold a union, so a query that overhangs an entry on BOTH sides is
+    two pieces and comes back as two `nearest` items for one entry.
+
+    Two items for one entry reads oddly and is the honest option. The
+    alternative is one item covering the whole asked interval, which would
+    report the middle -- the part the entry does cover -- as uncovered. This
+    store's discipline is not overstating; a slightly awkward list is cheaper
+    than a gap that claims more is missing than is.
+    """
+    pieces: list[dict] = []
+    for quantity, miss in (row.get("uncovered") or {}).items():
+        unit = miss.get("unit")
+        if miss.get("below_min") is not None:
+            pieces.append({quantity: {"min": miss["below_min"],
+                                      "max": miss["covered_from"], "unit": unit}})
+        if miss.get("above_max") is not None:
+            pieces.append({quantity: {"min": miss["covered_to"],
+                                      "max": miss["above_max"], "unit": unit}})
+    return pieces
 
 
 def grade_summary(store: Store, ids: list[str]) -> dict:
@@ -431,6 +468,79 @@ def _log(store: Store, **rec) -> None:
     query_log.record(store.log, **rec)
 
 
+AGENT_OF = {"mic": "microscope_agent", "sim": "simulation_agent"}
+
+
+def _gap_id(observable: str, kind: str) -> str:
+    """A stable id for a gap, so the same question names the same gap.
+
+    `^[a-z][a-z0-9_]*$` by contract, and an observable may be a part number
+    with digits and capitals, so it is folded and non-conforming characters
+    become underscores. Derived, never random: an assumption points at a gap
+    by id (check 39), and an id that changed per call would break that link on
+    the next run of the same question.
+    """
+    slug = re.sub(r"[^a-z0-9]+", "_", observable.casefold()).strip("_") or "unnamed"
+    if not slug[0].isalpha():
+        slug = "q_" + slug
+    return f"{slug}_{kind}"
+
+
+def published_table_for(store: Store, caller_id: str, name: str) -> dict | None:
+    """Where a name lives, when it lives in a published table rather than an entry.
+
+    On 2026-09-19 five of the first seven kb_query calls came back `absent`,
+    and every one of the five named something the librarian itself publishes:
+    the device registry, a control channel, a read-back column, the optical
+    path table, and `automatable_condition` -- a field this seat wrote into
+    the dmd row four commits earlier. Telling a caller a thing does not exist
+    when it exists in another shape sends them looking outside for something
+    already on their disk.
+
+    Where the thing lives is the same fact for every caller, and the first
+    version of this did not treat it that way: it looked only in the asker's
+    own snapshot, so `device_registry` came back `in_published_table` to the
+    microscope and `absent` to the simulation. `absent` means no claim exists,
+    which was false -- the table exists, the simulation simply was not
+    published a copy. The determinism witness in the query log caught it
+    inside the self-test: one query, one kb_version, two answers.
+
+    So the table, its sha256 and the kind are identical for everyone. Only
+    `snapshot` is caller-dependent, and it is present exactly when that
+    agent's own snapshot carries the table -- which is a statement about the
+    caller's copy, not about the fact.
+    """
+    published = store.kb / "exports"
+    if not published.exists():
+        return None
+    folded = _fold(name)
+    hits: dict[str, dict] = {}
+    mine: set[str] = set()
+    agent = AGENT_OF.get(caller_id.split("-", 1)[0])
+    for snap_path in sorted(published.glob("snapshot_*.json")):   # sorted: determinism
+        try:
+            tables = (json.loads(snap_path.read_text()).get("tables") or {})
+        except json.JSONDecodeError:
+            continue
+        for table in sorted(tables):
+            meta = tables[table]
+            by_name = folded in {_fold(n) for n in (meta.get("names") or {})}
+            by_column = folded in {_fold(c) for c in (meta.get("columns") or [])}
+            if not (by_name or by_column):
+                continue
+            hits.setdefault(table, {"table": table, "sha256": meta.get("sha256"),
+                                    **({"column": name} if by_column and not by_name else {})})
+            if agent and snap_path.name == f"snapshot_{agent}.json":
+                mine.add(table)
+    if not hits:
+        return None
+    table = sorted(hits)[0]
+    found = dict(hits[table])
+    if table in mine:
+        found["snapshot"] = f"kb/exports/snapshot_{agent}.json"
+    return found
+
+
 def _provenance(store: Store) -> dict:
     """Which version answered, and whether anyone could reproduce it."""
     return {
@@ -461,9 +571,9 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
                "identifiers": e.get("identifiers"), "source": e.get("source"),
                "source_ref": e["source_ref"], **m}
         returned.append(row)
-        if m["uncovered"]:
+        for piece in uncovered_ranges(m):
             compared_and_short.append({"entry_id": eid, "overlap": "partial",
-                                       "uncovered": m["uncovered"]})
+                                       "uncovered": piece})
 
     # A gap needs something to be missing. Until 2026-09-19 this read
     # `absent if nothing returned else condition_mismatch`, which called every
@@ -485,18 +595,35 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
     gaps = []
     covered = [r for r in returned if r["overlap"] == "full"]
     if not returned or (condition_range and compared_and_short and not covered):
-        gaps.append({
+        published = published_table_for(store, caller_id, observable) if not returned else None
+        kind = ("in_published_table" if published else
+                "absent" if not returned else "condition_mismatch")
+        gap = {
+            # Required by the contract, and derived rather than invented so the
+            # same question yields the same id. Until 2026-09-19 this server
+            # emitted gaps with no gap_id and with a `note` the schema does not
+            # allow -- kb_gap sets additionalProperties false -- so a caller
+            # pasting one into a card would have failed check 1. Nothing caught
+            # it because no card had copied a gap yet. The note is no loss: what
+            # it said is now carried by `kind` and `published_in`, which is the
+            # whole argument for moving the kind rather than adding guidance.
+            "gap_id": _gap_id(observable, kind),
             "observable": observable,
-            "condition_range": condition_range or {},
-            "kind": "absent" if not returned else "condition_mismatch",
-            "searched": ["kb/entries"],
+            "kind": kind,
+            "searched": ["kb/entries"] + (["kb/exports"] if not returned else []),
             "nearest": compared_and_short,
             "kb_version": store.kb_version,
             "asked_by": caller_id,
             "asked_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "note": "searched kb/entries only. This server does not search outside the store; "
-                    "external search happens in the librarian session (4.3.1)",
-        })
+        }
+        # Omitted rather than emitted empty: a condition_range has
+        # minProperties 1, and `{}` is not "no conditions were asked", it is an
+        # invalid range. The server was emitting it on every gap.
+        if condition_range:
+            gap["condition_range"] = condition_range
+        if published:
+            gap["published_in"] = published
+        gaps.append(gap)
 
     answer = {"entries": returned, "gaps": gaps,
               "grade_summary": grade_summary(store, [r["entry_id"] for r in returned]),
@@ -642,6 +769,75 @@ def _self_test() -> int:                                    # noqa: C901
         # and the two that must still be gaps
         if [g["kind"] for g in kb_query(store, cid, v, "nothing_answers_to_this", None)["gaps"]] != ["absent"]:
             bad("a name nothing answers to stopped producing absent")
+
+        # 2c. a name that is published in a table is not absent. All five that
+        # came back absent on the first day of real use, plus the two cases
+        # that must not become this kind.
+        expect = {"device_registry": ("devices", None), "control_channel": ("devices", None),
+                  "optical_path_valid_tuples": ("optical_paths", None),
+                  "read_back": ("devices", "read_back"),
+                  "automatable_condition": ("devices", "automatable_condition")}
+        for q, (table, column) in expect.items():
+            g = kb_query(store, cid, v, q, None)["gaps"][0]
+            if g["kind"] != "in_published_table":
+                bad(f"{q!r} is published in {table} and came back {g['kind']}")
+                continue
+            pi = g.get("published_in")
+            if not pi:
+                bad(f"{q!r}: in_published_table with no published_in, which names the shelf not the book")
+            elif pi.get("table") != table or pi.get("column") != column:
+                bad(f"{q!r}: published_in says {pi.get('table')}/{pi.get('column')}")
+            elif not re.fullmatch(r"[0-9a-f]{64}", pi.get("sha256") or ""):
+                bad(f"{q!r}: published_in carries no usable sha256, so the next action is advisory")
+        if kb_query(store, cid, v, "genuinely_absent_name", None)["gaps"][0]["kind"] != "absent":
+            bad("a name that is nowhere stopped being absent")
+
+        # where a thing lives is one fact. Only whether THIS caller holds a
+        # copy may vary, and it varies in `snapshot` alone.
+        mic = kb_query(store, cid, v, "device_registry", None)["gaps"][0]["published_in"]
+        sim = kb_query(store, "sim-20260917-001:bd_overdamped:a1", v,
+                       "device_registry", None)["gaps"][0]["published_in"]
+        if (mic["table"], mic["sha256"]) != (sim["table"], sim["sha256"]):
+            bad(f"the table differs by who asked: {mic} vs {sim}")
+        if "snapshot" not in mic or "snapshot" in sim:
+            bad(f"`snapshot` should be present only for the agent that holds it: {mic} / {sim}")
+
+        # the uncovered piece is a closed part of the asked interval. The
+        # entry covers 288-298 K, so none of these may report the middle.
+        overhangs = {
+            (280, 320): [{"min": 280, "max": 288.0}, {"min": 298.0, "max": 320}],
+            (280, 295): [{"min": 280, "max": 288.0}],
+            (291, 320): [{"min": 298.0, "max": 320}],
+            (330, 340): [{"min": 330.0, "max": 340}],
+        }
+        for (lo, hi), want in overhangs.items():
+            g = kb_query(store, cid, v, "viscosity",
+                         {"temperature": {"min": lo, "max": hi, "unit": "K"}})["gaps"][0]
+            got = [n["uncovered"]["temperature"] for n in g["nearest"]]
+            if got != [{**w, "unit": "K"} for w in want]:
+                bad(f"{lo}-{hi} K reported uncovered {got}, expected {want}")
+
+        # every gap this server emits has to be pasteable into a card
+        try:
+            import jsonschema
+            from referencing import Registry, Resource
+        except ImportError:
+            print("note: jsonschema not installed, so gap shape was not checked against the contract")
+        else:
+            res = {f.name: Resource.from_contents(json.loads(f.read_text()))
+                   for f in (CONTRACTS / "schemas").glob("*.json")}
+            gap_schema = json.loads((CONTRACTS / "schemas" / "common.schema.json").read_text())
+            gv = jsonschema.Draft202012Validator(
+                {"$ref": "common.schema.json#/$defs/kb_gap", "$defs": gap_schema.get("$defs", {})},
+                registry=Registry().with_resources(res.items()))
+            for probe, cr in [("device_registry", None), ("read_back", None),
+                              ("genuinely_absent_name", None),
+                              ("viscosity", {"temperature": {"min": 280, "max": 320, "unit": "K"}})]:
+                for g in kb_query(store, cid, v, probe, cr)["gaps"]:
+                    errs = [f"{'/'.join(str(x) for x in e.path) or '(root)'}: {e.message}"
+                            for e in gv.iter_errors(g)]
+                    if errs:
+                        bad(f"the gap for {probe!r} is not a kb_gap: {errs}")
 
         # 3. units convert inside a dimension and are refused across one
         r = kb_query(store, cid, v, "coverslip_thickness", {"coverslip_um": {"min": 0.17, "max": 0.17, "unit": "mm"}})
