@@ -28,10 +28,16 @@ What the pass found, and it is the content of the card rather than a caveat:
 
   That is the opposite of what 001 expected of A4 -- it was picked as the axis
   most likely to return an interval because the device registry is the one
-  table with real content. The registry lives in kb/staging/, and Store loads
-  index.json and entries/ only, so the service cannot serve it at any version.
-  Every registry-dependent bound below therefore abstains with a gap the
-  service itself reported, while the bounds that rest on entries return.
+  table with real content. The registry lives in kb/staging/, and the service
+  answers every question about it `absent`, saying in the gap itself that it
+  searched kb/entries only and does not search outside the store. So it is not
+  reachable through the service, and the pin does not change that. Every
+  registry-dependent bound below therefore abstains with a gap the service
+  itself reported, while the bounds that rest on entries return.
+
+  That paragraph used to cite the server's source instead of the server's
+  answer, which was a 6.2 rule 3 crossing and is recorded as one in
+  failures.jsonl. The answer says the same thing and is inside the boundary.
 
 A4 has no numeric output and `constraints` stays empty. That is a contract
 finding and not an oversight: common.schema.json's `interval` requires
@@ -126,11 +132,12 @@ GAP_IDS = {
 }
 
 STAGING_NOTE = (
-    "The service reported this absent from kb/entries, which is the whole store it loads: "
-    "mcp_server.Store reads index.json and entries/*.json and nothing else, so the flat table "
-    "in kb/staging/ is outside what any version can serve. This is asked-and-absent from the "
-    "service, not nobody-checked -- and it is not fixed by pinning elsewhere, only by the "
-    "librarian decomposing the staging tables into entries (11.1)."
+    "The service reported this absent and said in the gap itself what it looked in: it searched "
+    "kb/entries only, and it does not search outside the store -- external search happens in the "
+    "librarian session (4.3.1). The flat table in kb/staging/ is therefore not reachable through "
+    "it, and the pin does not change that: the gap came back at the pinned version naming the "
+    "same search. This is asked-and-absent from the service, not nobody-checked, and what closes "
+    "it is the librarian decomposing the staging tables into entries (11.1)."
 )
 
 
