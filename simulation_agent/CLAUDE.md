@@ -210,14 +210,54 @@ policy: a ceiling derived from what the job needs is not a ceiling, and
 `envelope/safety.json` is written by a person (§10.3 rule 4) and holds a **list
 of execution targets**, each with its own ceilings.
 
-**The file does not exist yet.** Its shape is fixed —
-`contracts/schemas/envelope_safety.schema.json` since `22ca6ae` — and the
-numbers below are what was proposed in the design discussion for a single
-`local` target. **They are a starting point for the person who writes it, not
-a ceiling anything can read.** Do not treat them as in force: the operator
-resolves ceilings from the file at run time, finds nothing, and refuses, which
-is correct. A ceiling written in an instruction file is not a ceiling, for the
-same reason a ceiling derived from the job is not one.
+**The file does not exist yet**, and its shape moved on 2026-09-19
+(`5af6bb8`). Read `contracts/schemas/envelope_safety.schema.json` rather than
+this section if the two disagree — the schema is what the gate applies.
+
+**Every limit now has to say whether anyone actually checked it.** That is the
+change, and it is per limit rather than per file. A file-level signature is the
+bulk stamp: one name over twelve ceilings, saying which of them a person
+confirmed — none of them. The confirmation is not a grade and §10.3 rule 4 is
+unchanged; a ceiling is still a policy with no source and no grade. What is
+recorded is the **event** of confirming, which is something that happened
+rather than something claimed.
+
+**Copying a limit from elsewhere is legal, and visible.** Exactly one of two
+shapes per limit:
+
+```json
+"wall_clock_max": {
+  "value": 4, "unit": "h",
+  "confirmation": {
+    "kind": "physical", "by": "Takuya", "on": "2026-09-19",
+    "how": "ran the 4 h job on this workstation and watched thermals and the disk"
+  }
+},
+"storage_max": {
+  "value": 20, "unit": "GB",
+  "confirmation": {
+    "kind": "carried_over", "from": "lab workstation provisioning note", "on": "2026-09-19"
+  }
+}
+```
+
+`how` has a ten-character floor because **"confirmed" is not a how** — a later
+reader has to be able to tell whether what was done would catch the thing the
+limit exists to catch. Forbidding `carried_over` was considered and refused:
+it would mean confirming every ceiling before the file can exist at all, and
+then nobody starts the file. A rule that refuses correct work gets bypassed.
+
+The file also carries `policy_version` at the top, which every run log records
+as `safety_policy_version`. **Raise it whenever a ceiling moves**, or a run
+cannot say which policy it ran under.
+
+The numbers below are what the design discussion proposed for one `local`
+target. **They are a starting point for the person writing the file, not a
+ceiling anything can read**, and each still needs its own `confirmation`. Do
+not treat them as in force: the operator resolves ceilings at run time, finds
+no file, and refuses — which is correct. A ceiling written in an instruction
+file is not a ceiling, for the same reason a ceiling derived from the job is
+not one.
 
 | | proposed for `local` |
 |---|---|
@@ -226,7 +266,14 @@ same reason a ceiling derived from the job is not one.
 | `smoke_budget` | 5 min / 500 MB |
 
 `smoke_budget` is separate because a smoke run that may spend the full budget
-tells you nothing before the run it is supposed to precede.
+tells you nothing before the run it is supposed to precede. It nests its own
+`wall_clock_max` and `storage_max`, and **each of those is a limit in its own
+right** — so each carries its own `confirmation` too. Four confirmations for
+one `local` target, not two.
+
+The worked example above was validated against the schema before being put
+here, and the same run confirmed that a limit with the `confirmation` removed
+is refused. Check it again yourself if the schema has moved since.
 
 **A5 emits the cost; S4 picks the target.** The target is *not* a
 `capabilities/` configuration — local and cluster run the same model on
