@@ -67,7 +67,13 @@ TOOLS = ("kb_query", "kb_get", "kb_conflicts", "kb_group")
 # This tuple is not cosmetic: `coverage` verdicts are checked against it and
 # a rejected record fails the call, so renaming the server without renaming
 # here would have stopped every query that found no overlap.
-OVERLAP = ("full", "partial", "no_overlap", "unconstrained")
+OVERLAP = ("full", "partial", "no_overlap", "unstated", "unconstrained")
+# `unstated` joined on 2026-09-19: the entry declares no conditions at all,
+# which is a different answer from declaring some that miss. This tuple has
+# now caught the same coupling twice -- it validates `coverage`, and a
+# rejected record fails the call, so a new overlap value that lands in the
+# server and not here stops every query that produces it. The first time it
+# was found by a test; this time by the first run after the change.
 FIELDS = ("asked_at", "caller_id", "kb_version", "tool", "purpose",
           "observable", "condition_range", "returned", "gaps", "coverage")
 

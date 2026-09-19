@@ -324,6 +324,15 @@ def match(entry: dict, condition_range: dict | None) -> dict:
     unconstrained = sorted(set(query) - set(validity))   # the entry has no opinion
     unasked = sorted(set(validity) - set(query))         # the query was silent
 
+    if not validity:
+        # The entry declares no conditions at all, which is not the same claim
+        # as declaring some that happen to miss. "Compared and it covers" and
+        # "there was nothing to compare" are different answers, and entry rule
+        # 2 says a claim without conditions is not reusable -- so the caller
+        # has to be able to see which one it got.
+        return {"overlap": "unstated", "uncovered": {},
+                "unconstrained": unconstrained, "unasked": unasked}
+
     if not shared:
         return {"overlap": "no_overlap", "uncovered": {},
                 "unconstrained": unconstrained, "unasked": unasked}
@@ -442,7 +451,7 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
 
     hits = sorted((eid for eid, e in store.entries.items() if store.answers_to(e, observable)),
                   key=store.sort_key)
-    returned, nearest = [], []
+    returned, compared_and_short = [], []
     for eid in hits:
         e = store.entries[eid]
         m = match(e, condition_range)
@@ -452,19 +461,36 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
                "identifiers": e.get("identifiers"), "source": e.get("source"),
                "source_ref": e["source_ref"], **m}
         returned.append(row)
-        if m["overlap"] != "full":
-            nearest.append({"entry_id": eid, "overlap": "partial" if m["uncovered"] else "no_overlap",
-                             **({"uncovered": m["uncovered"]} if m["uncovered"] else {})})
+        if m["uncovered"]:
+            compared_and_short.append({"entry_id": eid, "overlap": "partial",
+                                       "uncovered": m["uncovered"]})
 
+    # A gap needs something to be missing. Until 2026-09-19 this read
+    # `absent if nothing returned else condition_mismatch`, which called every
+    # not-full overlap a mismatch without asking whether anything had been
+    # compared -- so a query with no condition_range against an entry with no
+    # validity produced `condition_mismatch`, telling a caller its conditions
+    # were not covered when neither side had stated any. The next action that
+    # kind prescribes, find literature at other conditions, was nonsense.
+    #
+    # Two cases produce a gap and a third deliberately does not:
+    #   nothing answers to the name                     -> absent
+    #   a comparison happened and fell short            -> condition_mismatch
+    #   entries came back and no comparison was possible-> no gap; the rows say
+    #     why, in `overlap` (`unstated` when the entry declares no conditions,
+    #     `no_overlap` when it declares others) and in `unconstrained`.
+    # The third case wants a fifth kind more than it wants one of these four,
+    # and inventing kinds is not this seat's to do, so it is reported on the
+    # row and raised rather than forced into a word that means something else.
     gaps = []
     covered = [r for r in returned if r["overlap"] == "full"]
-    if not covered:
+    if not returned or (condition_range and compared_and_short and not covered):
         gaps.append({
             "observable": observable,
             "condition_range": condition_range or {},
             "kind": "absent" if not returned else "condition_mismatch",
             "searched": ["kb/entries"],
-            "nearest": nearest,
+            "nearest": compared_and_short,
             "kb_version": store.kb_version,
             "asked_by": caller_id,
             "asked_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -598,6 +624,24 @@ def _self_test() -> int:                                    # noqa: C901
             bad(f"a partial-only answer is a condition_mismatch gap, got {r['gaps']}")
         if r["gaps"] and not r["gaps"][0]["searched"]:
             bad("a gap with an empty searched is not a gap")
+
+        # 2b. a gap needs something to be missing. The case that produced a
+        # false `condition_mismatch` for a day: nobody stated a condition on
+        # either side, and the caller was told its conditions were not covered.
+        for label, cr in [("no conditions asked", None),
+                          ("conditions asked", {"temperature": {"min": 290, "max": 295, "unit": "K"}})]:
+            a = kb_query(store, cid, v, "stand_ti2e_lock_groups", cr)
+            if a["gaps"]:
+                bad(f"{label}: an entry that states no conditions produced {a['gaps'][0]['kind']}")
+            if a["entries"][0]["overlap"] != "unstated":
+                bad(f"{label}: an entry with no validity reported {a['entries'][0]['overlap']}")
+        # states conditions, none of them the asked one: not a mismatch either
+        a = kb_query(store, cid, v, "viscosity", {"bead_diameter": {"min": 1, "max": 2, "unit": "um"}})
+        if a["gaps"] or a["entries"][0]["overlap"] != "no_overlap":
+            bad(f"an entry constraining another quantity gave {a['gaps']} / {a['entries'][0]['overlap']}")
+        # and the two that must still be gaps
+        if [g["kind"] for g in kb_query(store, cid, v, "nothing_answers_to_this", None)["gaps"]] != ["absent"]:
+            bad("a name nothing answers to stopped producing absent")
 
         # 3. units convert inside a dimension and are refused across one
         r = kb_query(store, cid, v, "coverslip_thickness", {"coverslip_um": {"min": 0.17, "max": 0.17, "unit": "mm"}})
