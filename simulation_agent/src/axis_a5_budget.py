@@ -35,7 +35,16 @@ AXIS = "a5"
 ENVELOPE = cards.AGENT / "envelope" / "safety.json"
 
 
-def build(qid: str, config: str, created_at: str) -> dict:
+def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: str) -> dict:
+    """The caller_id is injected by the fan-out executor, never chosen here.
+
+    4.3.1 rule 3: a sub-agent that picks its own id can impersonate a
+    sibling's. The check below refuses an id that does not name this axis --
+    that catches an executor mistake, and is not this module choosing one.
+    """
+    if not caller_id.endswith(f":{AXIS}"):
+        raise ValueError(f"{caller_id!r} was issued to another axis; this module is {AXIS}")
+
     goal = cards.load_goal(qid)
     numbers, assumptions = cards.carry(goal, ["n_particles", "max_lag_time"])
 
@@ -83,10 +92,10 @@ def build(qid: str, config: str, created_at: str) -> dict:
         f"axis-{qid}-{config}-{AXIS}",
         qid,
         created_at,
-        caller_id=f"{qid}:{config}:{AXIS}",
+        caller_id=caller_id,
         config=config,
         axis=AXIS,
-        kb_version="kbv-9bc3910f1886",
+        kb_version=kb_version,
         method="llm_estimate",
         verdict="abstain",
         abstain_reason=(
@@ -109,8 +118,18 @@ def build(qid: str, config: str, created_at: str) -> dict:
 
 
 if __name__ == "__main__":
-    qid = sys.argv[1] if len(sys.argv) > 1 else "sim-20260917-001"
-    config = sys.argv[2] if len(sys.argv) > 2 else "bd_overdamped"
-    created_at = sys.argv[3] if len(sys.argv) > 3 else "2026-09-17T12:10:00Z"
+    # Runnable alone, but only with an id handed in: whoever runs it is acting
+    # as the fan-out executor and says so by supplying one (4.3.1 rule 3).
+    # `python3 -m src.fanout` is the normal path and issues all six.
+    if len(sys.argv) < 6:
+        raise SystemExit(
+            "usage: python3 -m src.axis_a5_budget <qid> <config> <created_at> "
+            "<caller_id> <kb_version>"
+            "\n"
+            "The caller_id is issued by the fan-out executor and cannot be chosen "
+            "here (4.3.1 rule 3). Use `python3 -m src.fanout` unless you are "
+            "standing in for it."
+        )
+    qid, config, created_at, caller_id, kb_version = sys.argv[1:6]
     print(cards.write(cards.question_dir(qid) / f"axis_{config}_{AXIS}.json",
-                      build(qid, config, created_at)).relative_to(cards.REPO))
+                      build(qid, config, created_at, caller_id, kb_version)).relative_to(cards.REPO))

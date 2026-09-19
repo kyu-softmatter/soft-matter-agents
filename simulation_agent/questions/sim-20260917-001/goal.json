@@ -1,13 +1,13 @@
 {
   "card": "goal",
   "schema_version": "0.1",
-  "id": "goal-sim-20260917-001-r2",
+  "id": "goal-sim-20260917-001-r3",
   "qid": "sim-20260917-001",
   "thread": "solo-sim-20260917-001",
   "round": 0,
-  "revision": 2,
+  "revision": 3,
   "author": "simulation_agent",
-  "created_at": "2026-09-18T09:00:00Z",
+  "created_at": "2026-09-18T10:20:00Z",
   "status": "VALIDATED",
   "purpose": "characterize",
   "intent": "explore",
@@ -170,25 +170,25 @@
     {
       "entry_id": "lab_ambient_temperature",
       "grade": "E3",
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator."
     },
     {
       "entry_id": "sample_temperature_not_actuated",
       "grade": "E3",
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "claim": "Sample temperature is not under control on this instrument, so any temperature a plan uses is an ambient value of the room rather than a commanded one."
     },
     {
       "entry_id": "water_viscosity_293k",
       "grade": "E3",
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
     },
     {
       "entry_id": "tau_d",
       "grade": "E4",
-      "kb_version": "kbv-9bc3910f1886",
+      "kb_version": "kbv-49feb73662b7",
       "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
     }
   ],
@@ -211,7 +211,7 @@
           "overlap": "partial"
         }
       ],
-      "kb_version": "kbv-9bc3910f1886"
+      "kb_version": "kbv-49feb73662b7"
     },
     {
       "gap_id": "tracer_diffusivity_measured",
@@ -220,7 +220,7 @@
       "searched": [
         "librarian_agent/kb/entries, read directly while the MCP service is down (4.3.0)"
       ],
-      "kb_version": "kbv-9bc3910f1886"
+      "kb_version": "kbv-49feb73662b7"
     }
   ],
   "degraded": [

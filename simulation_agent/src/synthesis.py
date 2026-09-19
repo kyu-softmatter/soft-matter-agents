@@ -336,7 +336,15 @@ def build(qid: str, configs: list[str], created_at: str) -> dict:
 
 
 if __name__ == "__main__":
+    # The configuration list comes from the same screening the fan-out ran, so
+    # there is one source of it rather than a copy here that can drift. The
+    # import is at the entry point and not at module scope: S4 intersects
+    # cards and has no business importing the axis modules that made them
+    # (7.2 rule 2).
+    from . import fanout
+
     qid = sys.argv[1] if len(sys.argv) > 1 else "sim-20260917-001"
-    created_at = sys.argv[2] if len(sys.argv) > 2 else "2026-09-17T12:20:00Z"
+    created_at = sys.argv[2] if len(sys.argv) > 2 else "2026-09-18T10:10:00Z"
+    configs = fanout.screen(cards.load_goal(qid)["observable"]["name"])
     print(cards.write(cards.question_dir(qid) / "synthesis.json",
-                      build(qid, ["bd_overdamped"], created_at)).relative_to(cards.REPO))
+                      build(qid, configs, created_at)).relative_to(cards.REPO))

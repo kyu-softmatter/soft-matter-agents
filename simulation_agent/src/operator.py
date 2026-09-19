@@ -131,10 +131,32 @@ def max_tier(plan: dict) -> int:
 
 
 def read_envelope() -> dict | None:
-    """The person's ceilings, or None if they were never written (2.1 rule 7)."""
+    """The person's ceilings, or None if they were never written (2.1 rule 7).
+
+    The file says what it is, and that is checked before it is believed.
+    Reading a policy file without confirming it is one would let any JSON that
+    happens to have a `targets` key act as a ceiling, and a safety decision
+    reads fail-closed or it is not one (P0).
+    """
     if not ENVELOPE.exists():
         return None
-    return json.loads(ENVELOPE.read_text())
+    envelope = json.loads(ENVELOPE.read_text())
+    if envelope.get("artifact") != "envelope_safety":
+        raise Refused(
+            f"{ENVELOPE.relative_to(cards.REPO)} does not declare artifact envelope_safety "
+            f"(it says {envelope.get('artifact')!r}); this is not the ceilings file"
+        )
+    if envelope.get("schema_version") != "0.1":
+        raise Refused(
+            f"{ENVELOPE.relative_to(cards.REPO)} is schema_version "
+            f"{envelope.get('schema_version')!r}, which this operator does not read"
+        )
+    if not envelope.get("policy_version"):
+        raise Refused(
+            f"{ENVELOPE.relative_to(cards.REPO)} has no policy_version. Every run log records "
+            "which policy it ran under, and a run that cannot name one cannot be read back (2.1)"
+        )
+    return envelope
 
 
 def check_budget(plan: dict, budget: str, target: str) -> dict:
