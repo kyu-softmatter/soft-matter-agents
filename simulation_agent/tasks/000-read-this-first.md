@@ -71,10 +71,24 @@ above for who commits it.
 - `caller_id` is issued by the fan-out runner as `<qid>:<config>:<axis>`
   (§4.3.1). An axis module never chooses its own — the rule exists so a
   sibling's id cannot be worn, including by text arriving from a search.
-- The cards of `sim-20260917-001` pin `kbv-9bc3910f1886` and **stay pinned**.
-  The question is finished; a pin is a record of what was read, and rewriting
-  it would claim a reading that never happened. Check 25 reports that as
-  PENDING and the report is correct.
+- The cards of `sim-20260917-001` pin `kbv-49feb73662b7` — one version across
+  all twenty references — and **stay pinned**. A pin records what was read;
+  rewriting it claims a reading that never happened. The store has moved on
+  since, and check 25 reports that as PENDING, and the report is correct.
+
+  This line said `kbv-9bc3910f1886` when it was written, and was already wrong
+  then. The cause is worth more than the correction: the fan-out re-read
+  `kb/index.json` on **every** run, and with the store moving several times in
+  an afternoon the pin came to record *when the fan-out was last regenerated*
+  rather than what S3.0 read — the opposite of what `axis.schema.json` means
+  by "pinned by S3.0". Session 1 found it while checking this file and fixed
+  it in `0711717`: one read per question, the goal's version is the pin if it
+  has one, regeneration idempotent, and a goal citing two versions is refused
+  rather than quietly accepted.
+
+  So: do not re-pin to an older version to make a document agree, including
+  this one. A document that has gone stale is corrected against the cards; the
+  cards are not corrected against the document.
 - The validator is green. An earlier report of a red check 13 on
   `microscope_agent/.mcp.json` is stale: that file is gone and the tree reads
   `0 failed`.
