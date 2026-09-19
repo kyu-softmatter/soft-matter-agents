@@ -9,7 +9,15 @@ a conclusion, answer for either side, or decide to start. A courier that edits
 the parcel is not a courier, and every rule here is a way of making that
 checkable rather than promised.
 
-## What it produces
+**It is the only agent that never touches a number.** The other three measure,
+compute and estimate; this one carries what they produced without adding a
+digit. The envelope holds no numbers, no assumptions and no knowledge
+references of its own; it is tied to the card it carries by a hash; and
+whether the other side can even produce the observable is **derived** from the
+shared vocabulary and that side's capability table rather than judged here.
+That the carrier does not judge is the whole reason it exists.
+
+## What it is made of
 
 A round lives in `threads/<thread>/` and is four files:
 
@@ -18,8 +26,35 @@ A round lives in `threads/<thread>/` and is four files:
 - a **ledger** of what was read and from where
 - one **`status.json`** per thread, saying whose turn it is
 
+A delivered round lands somewhere else: **`<agent>/inbox/<thread>/`**, in the
+receiving agent's own tree. It is there rather than here because separating an
+agent onto its own machine one day takes `<agent>/` and the contracts and
+nothing else — a round left behind in `bridge/` would vanish at that moment.
+The bridge writes it and the agent reads it, and only the bridge may write it,
+so a delivery cannot be forged.
+
 Nothing else. The bridge has no code of its own: it is these files, the
 instructions in `CLAUDE.md`, and the contracts in `contracts/`.
+
+## Where it stands, and what is next
+
+One thread exists and the wire under it is checked rather than described: the
+envelope, the ledger and the turn all have rules a program applies. What is
+not yet done is the round trip itself. A plan has crossed from the simulation
+side; a comparison needs a measured result on **each** side, and that waits on
+runs neither agent has made.
+
+Two things the bridge is supposed to do are still out of reach, and for
+different reasons. Substituting a knowledge reference for a repeat round needs
+the librarian answering this seat, which it has only just begun to. Comparing
+two results needs those results.
+
+The delivery path itself was declared on the day the first round stood waiting
+forty minutes for it — the turn was set to an agent with no way to see the
+round. That is why `inbox/` is in the receiving tree and not here.
+
+For the current state, run the validator from the repository root rather than
+trusting this paragraph; its last line names the tree it judged.
 
 ## The one idea worth having before reading anything else
 
