@@ -99,20 +99,37 @@ A dead end that produces no card belongs in `bridge/failures.jsonl` (§7, §8.1)
 a seat without `questions/` writes only there. The validator did not know that
 path until 2026-09-19 and now does.
 
-## Two bridge sessions
+## One bridge session, and a handover that is now recorded
 
-A second execution session was opened on 2026-09-19. Allocation is by thread:
+A second execution session was opened on 2026-09-19 and the first has since
+closed its window, released `bridge@seat.invalid` and handed
+`thr-tracer-diffusivity-001` over. **That handover is recorded here**, which is
+what this file is for: the rule below says a thread moves only when it is
+handed over in this file, the first handover happened in messages instead, and
+the incoming session read the rule and correctly held off the thread. The rule
+worked on its first day against the case that motivated it. Both of those
+message contexts are now gone; this paragraph is what is left.
 
-- `thr-tracer-diffusivity-001` belongs to the session that opened it. Another
-  session does not touch it unless it is handed over here.
-- A second session takes the next thread and says so here.
+- `thr-tracer-diffusivity-001` belongs to the session holding
+  `bridge-2@seat.invalid`. r1 is committed, the turn is the microscope's, and
+  both hashes re-derive from disk.
+- A thread belongs to the session that opened it. It moves only when the move
+  is written here. A new thread takes a name no other thread has.
 
-`status.json` is the collision point, because it is overwritten as the turn
-moves rather than appended. Two sessions writing one thread lose a turn without
-either seeing it.
+`status.json` is the collision point when two sessions do run at once, because
+it is overwritten as the turn moves rather than appended. Check 8 holds the
+directory name and the `thread` field equal, so a thread cannot quietly become
+another one, but nothing stops two writers from losing a turn between them.
 
-The second session has no seat identity yet: `seats.json` lists one bridge
-execution seat. **Do not commit under `bridge@seat.invalid` while holding a
-different session** — one identity for two sessions is the hole that let three
-commits go unattributed on 2026-09-17. Its registration was requested from the
-architecture seat on 2026-09-19.
+Seat identities: `seats.json` lists `bridge`, `bridge-2` and `manager-bridge`.
+The `bridge` entry stays although no session holds it — deleting it would turn
+`1a6e879`, committed under it, into an unknown committer. One identity per
+session; do not take one that has come free.
+
+## A dead end with no card goes in bridge/failures.jsonl
+
+The file does not exist yet, and check 29 is `N/A` while it is absent — so
+nothing requires this seat to write one, and **its absence should not be read
+later as no dead ends having happened.** Section 7 gives a seat without
+`questions/` that file and nothing else; a try that was folded without
+producing a card is recorded nowhere else (§8.1).
