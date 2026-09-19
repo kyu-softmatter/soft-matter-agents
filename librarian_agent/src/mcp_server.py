@@ -587,6 +587,79 @@ def published_table_for(store: Store, caller_id: str, name: str) -> dict | None:
 SERVER_SESSION = f"srv-{os.getpid()}-{int(time.time())}"
 
 
+NEAR_MIN_SHARED = 4
+NEAR_LIMIT = 8
+
+
+def near_names(store: Store, asked: str) -> list[str]:
+    """Names the store DOES answer to that are close to `asked`.
+
+    Suggesting is not matching. Nothing here returns an entry -- a name in
+    this list makes the caller ask again -- so a wrong suggestion costs one
+    query, while a missing one costs the fact. That is why this is not the
+    move refused for whitespace: folding a guess into the MATCHER makes a
+    wrong string authoritative, and folding it into a suggestion cannot.
+
+    Two exact predicates, not a score. A score has a threshold, a threshold
+    is a dial, and a dial gets widened until the report cries at everything
+    -- which this seat wrote down in 009 and would rather not demonstrate.
+
+    1. CONTAINMENT, either direction, case-folded, with the shorter side at
+       least four characters. Catches `objective` -> `objective_mrd70040` and
+       `magnification` -> `nominal_magnification`. The minimum length is the
+       guard: without it `na` is inside `nanoparticle` and every short handle
+       becomes a suggestion for everything that happens to spell it.
+
+    2. INITIALISM: the handle is exactly the first letters of the asked
+       name's underscore-separated words. This exists for one case that no
+       containment rule can reach -- `numerical_aperture` -> `na`, which is
+       what six objectives carry and what the service answered `absent` to on
+       its first day. `na` is not a substring of `numerical_aperture`; it is
+       an abbreviation of it, and no amount of widening rule 1 finds it while
+       every widening makes rule 1 noisier. Narrow by construction: it
+       proposes at most one string per asked name, and only if the store
+       already answers to it.
+
+    3. A SINGLE TRAILING S dropped from the asked name, then rule 1 again.
+       The case is in the log: a caller asked `objectives`, got nothing, and
+       asked `objective` forty-three seconds later. `objective` is inside
+       `objective_mrd70040` and `objectives` is not, so the plural found the
+       neighbourhood empty while the singular found seven. This is the third
+       exact rule and not a loosening of the first -- it drops one character
+       in one position and re-runs the same predicate, so what it can propose
+       is still bounded by containment.
+
+    Deliberately NOT here: edit distance, token overlap, and general
+    stemming. Each is a dial with a threshold, and a threshold gets widened
+    until the report cries at everything. When a real miss turns up that none
+    of these reaches, the honest answer is a fourth exact rule with its case
+    written beside it, the way rule 3 got here.
+    """
+    handles = {h for e in store.entries.values() for h in store.subjects(e)}
+    a = _fold(asked)
+    words = [w for w in re.split(r"[^a-z0-9]+", a) if w]
+    initials = "".join(w[0] for w in words) if len(words) > 1 else None
+
+    forms = {a}
+    if a.endswith("s") and len(a) - 1 >= NEAR_MIN_SHARED:
+        forms.add(a[:-1])
+
+    out = set()
+    for h in handles:
+        f = _fold(h)
+        if f == a:
+            continue                                  # it answered; this is not a near miss
+        if initials and f == initials:
+            out.add(h)
+            continue
+        for form in forms:
+            short, long = sorted((f, form), key=len)
+            if len(short) >= NEAR_MIN_SHARED and short in long:
+                out.add(h)
+                break
+    return sorted(out)[:NEAR_LIMIT]
+
+
 def _provenance(store: Store) -> dict:
     """Which version answered, and whether anyone could reproduce it."""
     # Resolve the commit even when the answer came from the working tree. It
@@ -704,6 +777,21 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
             gap["condition_range"] = condition_range
         if published:
             gap["published_in"] = published
+        if gap["kind"] in ("absent", "in_published_table"):
+            # Always present on these two, empty included. An empty array says
+            # the neighbourhood was searched and nothing was near; the key
+            # missing says the search never ran, and then the gap may only
+            # claim "not found under this name" rather than "it does not
+            # exist". Same distinction `searched` draws one level up.
+            #
+            # On in_published_table as well as absent, because pointing at a
+            # table is not the whole answer when entries are also near:
+            # `objectives` is a column of the device table AND the subject of
+            # six entries, and a gap that named only the table would send a
+            # caller to read a row when six graded claims were a re-ask away.
+            # Not on condition_mismatch -- there the name matched, and what
+            # fell short is in `nearest`.
+            gap["near_names"] = near_names(store, observable)
         gaps.append(gap)
 
     answer = {"entries": returned, "gaps": gaps,
@@ -948,6 +1036,36 @@ def _self_test() -> int:                                    # noqa: C901
         stamp = query_log._REGISTRY_CACHE.get(("units.json", ("units",)))
         if not stamp or stamp[0] != (CONTRACTS / "units.json").stat().st_mtime_ns:
             bad("the registry cache is not keyed on the file's mtime, so an edit will not be seen")
+
+        # 2e. near_names: suggest without matching. The key is present on
+        # absent and in_published_table, empty included, because an empty
+        # array and a missing key are different claims.
+        flagship = kb_query(store, cid, v, "numerical_aperture", None)["gaps"][0]
+        if flagship["kind"] != "absent" or flagship.get("near_names") != ["na"]:
+            bad(f"numerical_aperture should suggest na: {flagship.get('near_names')}")
+        objective = kb_query(store, cid, v, "objective", None)["gaps"][0]
+        if "objective_mrd70040" not in (objective.get("near_names") or []):
+            bad(f"`objective` should reach the objective entries: {objective.get('near_names')}")
+        for q in ("pixel_size", "refractive_index"):
+            g = kb_query(store, cid, v, q, None)["gaps"][0]
+            if g.get("near_names") != []:
+                bad(f"{q} has nothing near it and should say so with an empty list, got "
+                    f"{g.get('near_names')}")
+        # the plural is the case rule 3 exists for: this caller asked
+        # `objectives`, got nothing, and asked `objective` 43 seconds later
+        tbl = kb_query(store, cid, v, "objectives", None)["gaps"][0]
+        if tbl["kind"] != "in_published_table" or "near_names" not in tbl:
+            bad(f"a published-table answer should still say what is near: {sorted(tbl)}")
+        elif "objective_mrd70040" not in tbl["near_names"]:
+            bad(f"the plural found an empty neighbourhood: {tbl['near_names']}")
+        # a suggestion must never be a match: the store answers to `na`, so a
+        # query for it returns entries rather than suggesting anything
+        if not kb_query(store, cid, v, "na", None)["entries"]:
+            bad("suggesting leaked into matching: `na` stopped answering")
+        # and a short handle must not be suggested for anything that spells it
+        noisy = kb_query(store, cid, v, "nanoparticle_count", None)["gaps"][0]
+        if "na" in (noisy.get("near_names") or []):
+            bad("a two-letter handle was suggested by containment; the length guard is gone")
 
         # 3. units convert inside a dimension and are refused across one
         r = kb_query(store, cid, v, "coverslip_thickness", {"coverslip_um": {"min": 0.17, "max": 0.17, "unit": "mm"}})
