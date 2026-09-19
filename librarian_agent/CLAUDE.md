@@ -9,10 +9,16 @@ another agent, so nothing here needs a stub or a mock counterpart.
 ## How work arrives
 
 From the **manager-librarian** seat, in five fields — `GOAL`, `TASK`,
-`CONTRACT`, `CONSTRAINTS`, `REPORT`. The queue is not in this file: this file is
-what you re-read every time, and every line in it is a tax on clearing (§6.2.3).
-The current queue lives at `~/Desktop/librarian-handoff-brief.md`, with the
-evidence behind it in `~/Desktop/librarian-verification-2026-09-17.md`.
+`CONTRACT`, `CONSTRAINTS`, `REPORT`. **Your queue is `librarian_agent/tasks/`**
+— one file per task, and a message only ever points at it (§6.2 rule 2), because
+a message is context and dies with a clear. Read the lowest open number first
+unless a task says otherwise.
+
+The queue is not in this file on purpose: this file is what you re-read every
+time, so every line in it is a tax on clearing (§6.2.3). Background evidence
+that did not fit a task lives outside the repository in
+`~/Desktop/librarian-verification-2026-09-17.md`; the tasks cite it where it
+matters and you should not need it otherwise.
 
 **You judge, manager-librarian confirms, then you clear** (§6.2.3). Neither side
 has all the evidence: you know what you are holding and whether the task really
@@ -26,8 +32,10 @@ on disk — they are the task's completion condition:
 1. the **output**, and the gate it passed;
 2. **what you newly learned**, as an entry or as a result card for one (P14) —
    left here, the next session learns it again;
-3. the **dead ends**, in `failures.jsonl`. An attempt abandoned without a card
-   is recorded nowhere else.
+3. the **dead ends**, in `librarian_agent/failures.jsonl`. An attempt
+   abandoned without a card is recorded nowhere else. This seat has no
+   `questions/`, so its records sit at the agent root and name a `task` where a
+   question-owning seat would name a `qid` — exactly one of the two.
 
 **Ask in one sentence**, whichever way you lean: *what is not yet on disk?*
 "Nothing" means clear. Anything else is a P1 violation report and becomes the
@@ -160,6 +168,19 @@ python3 librarian_agent/src/kb_index.py          # rebuild kb/index.json
 python3 librarian_agent/src/kb_index.py --check  # fail if it is stale
 python3 contracts/validate.py                    # entries are schema-checked here too
 ```
+
+**Commit as this seat, every time:**
+
+```bash
+GIT_COMMITTER_NAME='seat:librarian' GIT_COMMITTER_EMAIL=librarian@seat.invalid \
+  git commit -- librarian_agent
+```
+
+The identity is written here rather than remembered because a prefix that lives
+only in context disappears with a clear, and the next commit then goes out under
+the person's name and check 41 reports it unattributed (§6.2.3). Name paths; the
+working copy and the git index are shared, so `-a` and `-A` take whatever
+another seat has staged.
 
 `kb_version` is a content hash over every entry. Cards pin it, so siblings in one
 fan-out read the same knowledge and a question rerun at the same version gives
