@@ -46,6 +46,26 @@ The gate has two conditions, both observable on disk (§9.3, `9ebd137`):
    carrying the `caller_id` of a real question. **Check this yourself**; as of
    this card the directory holds only `README.md`.
 
+**There is one measurement nobody has made, and it falls to whichever seat
+opens next.** The launcher writes its own log per seat path:
+
+```
+~/Library/Caches/claude-cli-nodejs/<path with / replaced by ->/mcp-logs-librarian/
+```
+
+The first line gives the `cwd` the server was started in, and a failure shows
+as `Server stderr: python3: can't open file ...`. **Do not stop at whether it
+attached.** `8d4a604` resolves the server through `git rev-parse
+--show-toplevel`, so each worktree should now run its own copy against its own
+store — confirm that it did, by comparing the `kb_version` the server answers
+with against your own `librarian_agent/kb/index.json`. They must be the same
+string. When they were not, the answer came from another checkout's store and
+every hash and pin check in this repository silently lost its footing.
+
+(The seat that found this log predicted the opposite — that you would attach
+to the shared checkout's store — because it was reading `35c609e`, which
+`8d4a604` has since replaced. Measure; do not inherit the prediction.)
+
 **The first condition fails silently, which is why it is worth your
 attention.** A session that cannot see the librarian tools does not error —
 it falls through to the degraded path (§0.3-4) and writes cards that look
