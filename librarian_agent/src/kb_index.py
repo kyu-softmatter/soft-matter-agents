@@ -99,9 +99,10 @@ def entry_digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def build() -> dict:
+def build(kb: Path | None = None) -> dict:
+    kb = kb or KB
     entries = {}
-    for p in sorted((KB / "entries").glob("*.json")):
+    for p in sorted((kb / "entries").glob("*.json")):
         data = json.loads(p.read_text())
         entries[data["entry_id"]] = {
             "file": f"entries/{p.name}",
@@ -115,7 +116,7 @@ def build() -> dict:
         }
     blob = json.dumps(entries, sort_keys=True, separators=(",", ":"))
     version = "kbv-" + hashlib.sha256(blob.encode()).hexdigest()[:12]
-    parsed = {eid: json.loads((KB / meta["file"]).read_text()) for eid, meta in entries.items()}
+    parsed = {eid: json.loads((kb / meta["file"]).read_text()) for eid, meta in entries.items()}
     found = collisions(parsed)
     return {
         "schema_version": "0.1",

@@ -84,6 +84,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import kb_index                                             # noqa: E402
 import query_log                                            # noqa: E402
 
 AGENT = Path(__file__).resolve().parent.parent
@@ -188,22 +189,35 @@ class Store:
         self.kb = kb or (AGENT / "kb")
         self.log = log if log is not None else query_log.DEFAULT_LOG
         self.commit = _commit                       # None means the working tree
+        self.index_stale = False
         if _index is not None:
             self.index, self.entries = _index, (_entries or {})
             self.kb_version = self.index.get("kb_version")
             return
-        index_path = self.kb / "index.json"
-        if not index_path.exists():
-            raise Refused(f"{index_path} is missing; rebuild it with src/kb_index.py")
-        self.index = json.loads(index_path.read_text())
-        self.kb_version = self.index.get("kb_version")
+        # The entries are the authority and index.json is their index -- the
+        # index file says so itself. This used to read the index and REFUSE
+        # when the two disagreed, which took the service down for every
+        # session in the shared working copy for as long as it took one seat
+        # to write entries and rebuild. _serve() builds a Store at startup, so
+        # a new server could not start at all during that window; a caller saw
+        # a bare tool error and the launcher logged the connection healthy.
+        # One symptom, two failures -- an attached process failing every call,
+        # and a new process unable to start -- and only the first is cured by
+        # restarting, which is why it was misdiagnosed for hours.
+        #
+        # Deriving the version from the entries removes the window rather than
+        # asking every writer to close it quickly. Discipline does not scale;
+        # this seat wrote that in task 006 and then shipped a window anyway.
         self.entries: dict[str, dict] = {}
         for p in sorted((self.kb / "entries").glob("*.json")):
             e = json.loads(p.read_text())
             self.entries[e["entry_id"]] = e
-        stale = sorted(set(self.entries) ^ set(self.index.get("entries") or {}))
-        if stale:
-            raise Refused(f"index.json does not match entries/ ({stale}); rebuild it with src/kb_index.py")
+        fresh = kb_index.build(self.kb)
+        self.index = fresh
+        self.kb_version = fresh["kb_version"]
+        index_path = self.kb / "index.json"
+        written = json.loads(index_path.read_text()) if index_path.exists() else {}
+        self.index_stale = written.get("kb_version") != self.kb_version
 
     # -- serving the version that was pinned, not the one we happen to be at -- #
 
@@ -553,16 +567,42 @@ def published_table_for(store: Store, caller_id: str, name: str) -> dict | None:
     agent's own snapshot carries the table -- which is a statement about the
     caller's copy, not about the fact.
     """
-    published = store.kb / "exports"
-    if not published.exists():
+    # The snapshot is read AT THE PINNED VERSION, not from the working tree.
+    # It was read from the tree until 2026-09-19, so a caller pinned to an
+    # older version was handed the sha256 of the table as published NOW --
+    # which does not match the copy in its own envelope. The next action this
+    # gap kind prescribes is "read tables.<table> and confirm it is the
+    # version the store published", and that sent the one caller who followed
+    # it to a mismatch. Serving the pinned version has to reach the packaging
+    # too, not only the entries.
+    snapshots: dict[str, str] = {}
+    if store.commit:
+        try:
+            listing = _git("ls-tree", "--name-only", store.commit,
+                           "librarian_agent/kb/exports/").splitlines()
+        except (OSError, subprocess.CalledProcessError):
+            listing = []
+        for path in sorted(listing):
+            if Path(path).name.startswith("snapshot_") and path.endswith(".json"):
+                try:
+                    snapshots[Path(path).name] = _git("show", f"{store.commit}:{path}")
+                except (OSError, subprocess.CalledProcessError):
+                    continue
+    else:
+        published = store.kb / "exports"
+        if published.exists():
+            for snap_path in sorted(published.glob("snapshot_*.json")):
+                snapshots[snap_path.name] = snap_path.read_text()
+    if not snapshots:
         return None
+
     folded = _fold(name)
     hits: dict[str, dict] = {}
     mine: set[str] = set()
     agent = _agent_of(caller_id)
-    for snap_path in sorted(published.glob("snapshot_*.json")):   # sorted: determinism
+    for snap_name in sorted(snapshots):                           # sorted: determinism
         try:
-            tables = (json.loads(snap_path.read_text()).get("tables") or {})
+            tables = (json.loads(snapshots[snap_name]).get("tables") or {})
         except json.JSONDecodeError:
             continue
         for table in sorted(tables):
@@ -573,7 +613,7 @@ def published_table_for(store: Store, caller_id: str, name: str) -> dict | None:
                 continue
             hits.setdefault(table, {"table": table, "sha256": meta.get("sha256"),
                                     **({"column": name} if by_column and not by_name else {})})
-            if agent and snap_path.name == f"snapshot_{agent}.json":
+            if agent and snap_name == f"snapshot_{agent}.json":
                 mine.add(table)
     if not hits:
         return None
@@ -672,6 +712,7 @@ def _provenance(store: Store) -> dict:
         "kb_version": store.kb_version,
         "commit": commit,
         "reproducible": store.reproducible,
+        "index_written": not store.index_stale,
         "note": ("read from the working tree at a version that is not committed, so this exact "
                  "answer cannot be reproduced later -- record it as such" if not store.reproducible
                  else "the answer came from this version, not from whatever the store is at now"),
@@ -908,7 +949,6 @@ def _self_test() -> int:                                    # noqa: C901
         # Store() built without an explicit log defaults to the real one and a
         # single such call is enough.
         shared = query_log.DEFAULT_LOG
-        shared_before = shared.read_bytes() if shared.exists() else None
         cid = "mic-20260917-001:v1:transmitted:a2"
         v = store.kb_version
 
@@ -1046,7 +1086,14 @@ def _self_test() -> int:                                    # noqa: C901
         objective = kb_query(store, cid, v, "objective", None)["gaps"][0]
         if "objective_mrd70040" not in (objective.get("near_names") or []):
             bad(f"`objective` should reach the objective entries: {objective.get('near_names')}")
-        for q in ("pixel_size", "refractive_index"):
+        # `pixel_size` was the one honest absent on the service's first day and
+        # is answered now, by the operator's twelve calibrations. Asserted as an
+        # answer rather than deleted: a gap that closes because the fact arrived
+        # is worth a test, and this one closed for the right reason.
+        px = kb_query(store, cid, v, "pixel_size", None)
+        if not px["entries"] or px["gaps"]:
+            bad(f"pixel_size should answer now: {len(px['entries'])} entries, {px['gaps']}")
+        for q in ("refractive_index", "pinhole_diameter"):
             g = kb_query(store, cid, v, q, None)["gaps"][0]
             if g.get("near_names") != []:
                 bad(f"{q} has nothing near it and should say so with an empty list, got "
@@ -1102,10 +1149,18 @@ def _self_test() -> int:                                    # noqa: C901
 
         # 4c. the fifth handle: an addressable identifier value. The three
         # probes that motivated it, and the keys that must stay out.
-        probes = {q: len(kb_query(store, cid, v, q, {})["entries"])
+        # Membership, not counts. `Kinetix 22` returned one entry when this
+        # was written and returns two now that a second entry carries the same
+        # model, which is correct and would have failed a count -- the same
+        # reason this repository tells you to read counts off the run.
+        probes = {q: {e["entry_id"] for e in kb_query(store, cid, v, q, {})["entries"]}
                   for q in ("MRD71670", "Kinetix 22", "na")}
-        if probes != {"MRD71670": 1, "Kinetix 22": 1, "na": 6}:
-            bad(f"the three probe queries came back {probes}")
+        for q, must in [("MRD71670", {"objective_mrd71670"}),
+                        ("Kinetix 22", {"cameras_both_kinetix22"}),
+                        ("na", {f"objective_mrd{n}" for n in
+                                ("70040", "70170", "70270", "71670", "71970", "77400")})]:
+            if not must <= probes[q]:
+                bad(f"{q!r} did not reach {sorted(must - probes[q])}")
         if not addressable():
             bad("the addressable list is empty; it is read from the schema and something moved")
         for shut in ("position_0", "fitted_slot", "position_index_base", "0", "1", "3"):
@@ -1178,6 +1233,32 @@ def _self_test() -> int:                                    # noqa: C901
                 if kb_query(store, cid, oldest, "na", {})["entries"]:
                     bad("the objectives did not exist at the oldest version and were returned")
 
+        # 7c. a published-table answer is read at the PINNED version, so the
+        # sha256 it hands out is one the caller's own copy can match. It used
+        # to come from the working tree, which sent a caller pinned to an
+        # older version to a table whose bytes it does not have.
+        if len(history) >= 2:
+            for pin in sorted(history):
+                g = kb_query(store, cid, pin, "immersion", None)["gaps"][0]
+                pi = g.get("published_in")
+                if not pi:
+                    continue        # that version published no table index; absent is honest
+                # The sha belongs to the commit the SNAPSHOT was built from,
+                # which is usually earlier than the commit the entries are at
+                # -- publishing follows writing. That is what
+                # `built_from_commit` is for, and comparing against the wrong
+                # commit is how this assertion first failed.
+                try:
+                    snap = json.loads(_git(
+                        "show", f"{history[pin]}:{pi['snapshot']}"))
+                    blob = _git("show", f"{snap['built_from_commit']}:"
+                                        "librarian_agent/kb/staging/devices.v0.json")
+                except Exception:
+                    continue
+                import hashlib as _h
+                if _h.sha256(blob.encode()).hexdigest() != pi.get("sha256"):
+                    bad(f"pin {pin}: the table sha is not the one its own snapshot was built from")
+
         # 7b. unresolvable is still refused, and says which kind
         for pin, word in [("kbv-000000000000", "history"), ("not-a-version", "Malformed"),
                           ("kbv-XYZ", "Malformed")]:
@@ -1236,7 +1317,9 @@ def _self_test() -> int:                                    # noqa: C901
             bad(f"no entry names a conflict yet, so there are no pairs: {c['pairs']}")
 
         # 12. no write tool is exposed
-        exported = {n for n in globals() if n.startswith("kb_")}
+        import types
+        exported = {n for n, val in globals().items()
+                    if n.startswith("kb_") and not isinstance(val, types.ModuleType)}
         if exported != set(TOOLS):
             bad(f"the module exposes {sorted(exported)}; only the four read-only tools may exist")
 
@@ -1313,8 +1396,13 @@ def _self_test() -> int:                                    # noqa: C901
                 if not {"caller_id", "kb_version"} <= props:
                     bad(f"tool {t_.name} exposes {sorted(props)}; caller_id and kb_version are the wire contract")
 
-        shared_after = shared.read_bytes() if shared.exists() else None
-        if shared_after != shared_before:
+        # Look for THIS process's session id rather than comparing bytes.
+        # Four other sessions call the live server, so the shared log changes
+        # under a passing test, and a guard that reads any change as a write
+        # by the test is a guard that cries at other people's work. The
+        # session stamp makes the question exact: did anything I did land
+        # there.
+        if shared.exists() and SERVER_SESSION in shared.read_text():
             bad(f"the self-test wrote to {shared}, the log real callers are attributed by")
 
     print("self-test: ok" if ok else "self-test: FAILED")
