@@ -129,8 +129,8 @@
       "id": "ok_ratio",
       "metric": "diffusivity_ratio_decades_resolved",
       "comparator": ">=",
-      "number": "target_decade_resolution",
-      "statement": "the ratio between the arms is placed within one decade"
+      "statement": "the ratio between the arms is placed within one decade",
+      "target": "diffusivity_ratio"
     }
   ],
   "alternatives_rejected": [],
@@ -179,15 +179,6 @@
       "precision": "order_of_magnitude"
     },
     {
-      "name": "target_decade_resolution",
-      "value": 1,
-      "unit": "count",
-      "source": "assumed:a_target",
-      "grade": "E5",
-      "precision": "order_of_magnitude",
-      "origin": "goal_compare.json#target_decade_resolution"
-    },
-    {
       "name": "total_time_estimate",
       "value": 900,
       "unit": "s",
@@ -230,14 +221,6 @@
       "falsifier": "arm-to-arm scatter larger than the drift effect"
     },
     {
-      "rationale_id": "a_target",
-      "statement": "Carried from the goal: one decade of ratio resolution answers the question.",
-      "numbers": [
-        "target_decade_resolution"
-      ],
-      "falsifier": "a ratio change smaller than the arm-to-arm scatter"
-    },
-    {
       "rationale_id": "a_cost",
       "statement": "Fifteen minutes covers two records plus thermal settling between them.",
       "numbers": [
@@ -257,5 +240,14 @@
   "kb_refs": [],
   "degraded": [
     "librarian_agent"
+  ],
+  "targets": [
+    {
+      "metric": "diffusivity_ratio",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "Carried from the goal and pinned to what it decided: a plan_approval fixes the plan and not the goal (5.3.1)."
+    }
   ]
 }

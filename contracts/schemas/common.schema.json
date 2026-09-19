@@ -394,8 +394,7 @@
       "required": [
         "id",
         "metric",
-        "comparator",
-        "number"
+        "comparator"
       ],
       "additionalProperties": false,
       "oneOf": [
@@ -419,7 +418,8 @@
             ]
           }
         }
-      ]
+      ],
+      "$comment": "`number` left `required` on 2026-09-19 when `target` became its alternative: the threshold is still mandatory, and which of the two carries it is the oneOf below. Dropping it from `required` without that oneOf would have made a criterion with no threshold at all writable."
     },
     "interval": {
       "type": "object",

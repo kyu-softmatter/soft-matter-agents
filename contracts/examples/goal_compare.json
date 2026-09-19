@@ -15,18 +15,29 @@
     "name": "tracer_diffusivity"
   },
   "targets": [
-    { "metric": "diffusivity_ratio", "number": "target_decade_resolution", "kind": "decade_resolution" }
+    {
+      "metric": "diffusivity_ratio",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "The comparison only has to show whether the ratio moves by a decade; the absolute coefficients are not the question. Inadequate if the change to be seen is smaller than the arm-to-arm scatter -- a decision to revisit, not a claim that was wrong."
+    }
   ],
-  "constraint_notes": ["the two arms run back to back on the same chamber, since remounting changes the wall distance"],
-  "priority": ["physical_feasibility", "target_accuracy", "evidence_grade", "cost"],
+  "constraint_notes": [
+    "the two arms run back to back on the same chamber, since remounting changes the wall distance"
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
   "compare_variable": "temperature",
   "requested_by": "human",
-  "numbers": [
-    { "name": "target_decade_resolution", "value": 1, "unit": "count", "source": "assumed:a_target", "grade": "E5", "precision": "order_of_magnitude" }
-  ],
-  "assumptions": [
-    { "rationale_id": "a_target", "statement": "The comparison only has to show whether the ratio moves by a decade; the absolute coefficients are not the question.", "numbers": ["target_decade_resolution"], "falsifier": "a ratio change smaller than the arm-to-arm scatter" }
-  ],
+  "numbers": [],
+  "assumptions": [],
   "kb_refs": [],
-  "degraded": ["librarian_agent"]
+  "degraded": [
+    "librarian_agent"
+  ]
 }
