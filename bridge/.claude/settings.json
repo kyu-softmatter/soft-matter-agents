@@ -1,5 +1,5 @@
 {
-  "$comment": "Session boundary for the bridge (plan.md 6.2). The session boundary is the permission boundary: this session can only write inside its own agent. contracts/ and plan.md are read here and written by the design session.",
+  "$comment": "Session boundary for the bridge (plan.md 6.2). READ THE NEXT TWO COMMENTS BEFORE TRUSTING THIS FILE: as of 2026-09-19 the deny list enforces nothing for a session rooted at bridge/, and what has actually held this boundary all day is the commit gate (checks 35 and 41) and the seat reading its own rules.",
   "permissions": {
     "deny": [
       "Write(microscope_agent/**)",
@@ -15,7 +15,8 @@
       "Bash(python3*hardware*)",
       "Write(*/runs/**)",
       "Edit(*/runs/**)"
-    ]
+    ],
+    "$comment": "INERT FROM AN AGENT-ROOTED SESSION, and wrong if it ever resolves. A path pattern resolves against the session's root, which for this seat is bridge/ -- so Write(microscope_agent/**) means bridge/microscope_agent/**, a path that cannot exist, and every sibling-naming entry below is the same. That is the defect class section 7 documents at length for .mcp.json: the interpretation point must not be the session's cwd. An absolute path is not the fix either, for the reason given there -- it is the same string in every worktree. Kept because it is correct for a session rooted at the repository root, and because deleting it would remove the statement of intent. Note the second problem if it ever does resolve: Write(microscope_agent/**) would block the one write outside bridge/ this seat is required to make -- the delivery into <agent>/inbox/ that 7.1 rule 8 mandates."
   },
   "hooks": {
     "PostToolUse": [
@@ -24,8 +25,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/contracts/validate.py\" --quiet",
-            "$comment": "the validator's exit code is the only truth (plan.md 8)"
+            "command": "sh -c 'exec python3 \"$(git rev-parse --show-toplevel)/contracts/validate.py\" --quiet'",
+            "$comment": "The validator's exit code is the only truth (plan.md 8). Resolved from the git root rather than from $CLAUDE_PROJECT_DIR, which is the session's cwd: rooted at bridge/ it looked for bridge/contracts/validate.py and failed on every write in every bridge session, silently, because a PostToolUse failure does not stop the write. Same resolution .mcp.json uses, and for the same reason."
           }
         ]
       }
