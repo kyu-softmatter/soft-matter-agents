@@ -31,19 +31,34 @@ it out preserves the boundary `kb_version` exists to draw.
 
 ## What a line holds
 
-`asked_at`, `caller_id`, `kb_version`, `tool`, `purpose`, `observable`,
-`condition_range`, `returned`, `gaps`, `coverage`. The shape is fixed and an
-unknown field is refused, because a log that accepts anything documents nothing.
+An answered line: `asked_at`, `caller_id`, `kb_version`, `tool`, `purpose`,
+`observable`, `condition_range`, `returned`, `gaps`, `coverage`,
+`server_session`. A refused one: `asked_at`, `tool`, `outcome`, `reason`,
+`claimed`, `server_session` — and nothing else, because a refusal may not
+assert what the server rejected. The shape is fixed and an unknown field is
+refused, because a log that accepts anything documents nothing.
 
 Neither of the two questions is a new idea. `kb_query` already takes
 `caller_id` and `purpose`; a `kb_gap` already keeps `asked_by`. So a question
 that **failed** was already attributable while a question that **succeeded** was
 not, and this closes that asymmetry rather than adding a concept.
 
-`caller_id` is `<qid>:<config>:<axis>`, issued by the fan-out launcher and never
-chosen by the sub-agent (§4.3.1) — which is what makes the "who" worth writing
-down. This directory inherits the limit too: the line records the id it was
-handed, and nothing here can check that the launcher issued it.
+**`caller_id` is carried here, not verified here.** It takes four forms —
+`<qid>:v<N>:<config>:<axis>`, `<qid>:v<N>:s2`, `<qid>:v<N>:operator`, and
+`bridge:<thread>:r<N>` — and the launcher issues it rather than the sub-agent
+choosing it (§4.3.1), which is what makes the "who" worth writing down. What
+this directory cannot do is check it: the server sees an argument, not an
+identity, so a line says which id was passed and not which process passed it.
+Anything verified against this field is corroborated by the log rather than
+proved by it, and saying so is cheaper than a reader assuming the stronger
+claim. It was written as one form until 2026-09-19, which is the same
+abridgement that left a bridge caller unable to see why it had been refused.
+
+`server_session` is the part the server does observe: which of its own runs
+answered. It identifies no caller. What it gives is that lines sharing it came
+from one process — the distinction that was missing on 2026-09-19, when three
+lines one second apart carried three seats' ids and nothing could tell three
+callers from one harness iterating over three names.
 
 `purpose` and the `caller_id` pattern are read live out of `contracts/`, never
 copied. A second copy of a registry is a registry that drifts.
