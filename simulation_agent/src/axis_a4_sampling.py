@@ -32,7 +32,7 @@ AXIS = "a4"
 
 
 def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: str,
-          kb_result: dict | None = None) -> dict:
+          kb_result: dict | None = None, revision: int = 1) -> dict:
     FALLBACK_REFS = [
         {
                     "entry_id": "tau_d",
@@ -106,9 +106,10 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
 
     card = cards.head(
         "axis",
-        f"axis-{qid}-{config}-{AXIS}",
+        f"axis-{qid}-{config}-{AXIS}" + ("" if revision == 1 else f"-r{revision}"),
         qid,
         created_at,
+        revision=revision,
         caller_id=caller_id,
         config=config,
         axis=AXIS,

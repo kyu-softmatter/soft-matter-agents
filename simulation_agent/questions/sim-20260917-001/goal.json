@@ -1,11 +1,11 @@
 {
   "card": "goal",
   "schema_version": "0.1",
-  "id": "goal-sim-20260917-001-r6",
+  "id": "goal-sim-20260917-001-r1",
   "qid": "sim-20260917-001",
   "thread": "solo-sim-20260917-001",
   "round": 0,
-  "revision": 6,
+  "revision": 1,
   "author": "simulation_agent",
   "created_at": "2026-09-18T12:30:00Z",
   "status": "VALIDATED",

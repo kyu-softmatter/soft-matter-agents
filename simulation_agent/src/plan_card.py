@@ -48,9 +48,10 @@ MODEL = (
 )
 
 
-def build(qid: str, created_at: str) -> dict:
+def build(qid: str, created_at: str, revision: int = 1) -> dict:
     goal = cards.load_goal(qid)
-    syn = json.loads((cards.question_dir(qid) / "synthesis.json").read_text())
+    syn = json.loads((cards.question_dir(qid) / cards.artifact_name(
+        "synthesis.json", revision)).read_text())
     config = syn["chosen_config"]
 
     point = {p["parameter"]: p["number"] for p in syn["operating_point"]}
@@ -94,6 +95,15 @@ def build(qid: str, created_at: str) -> dict:
         ("synthesis.json", "integration_timestep_max"),
         ("synthesis.json", "box_length_min_images"),
     ]
+    # Derived cards resolve to this revision's filenames. `goal.json` does not:
+    # its revisions 2 to 6 were written in place before 4.5.5's revision rule
+    # was applied here, so one goal file exists on disk where the rule wants
+    # several. The earlier revisions are in git history, and putting them back
+    # on disk is a separate repair rather than something to paper over here.
+    wanted = [
+        (f if f == "goal.json" else cards.artifact_name(f, revision), n)
+        for f, n in wanted
+    ]
     numbers = synthesis.carry_from(qid, config, wanted)
     assumptions = synthesis.assumptions_for(qid, numbers)
 
@@ -106,9 +116,10 @@ def build(qid: str, created_at: str) -> dict:
 
     card = cards.head(
         "plan",
-        f"plan-{qid}",
+        f"plan-{qid}" + ("" if revision == 1 else f"-r{revision}"),
         qid,
         created_at,
+        revision=revision,
         goal_id=goal["id"],
         synthesis_id=syn["id"],
         purpose=goal["purpose"],
@@ -229,9 +240,11 @@ def emit(qid: str, created_at: str) -> tuple[Path, str]:
     import subprocess
 
     directory = cards.question_dir(qid)
-    card = build(qid, created_at)
-    json_path = directory / f"plan_simulation_{qid}.json"
-    md_path = directory / f"plan_simulation_{qid}.md"
+    revision = cards.question_revision(qid)
+    card = build(qid, created_at, revision)
+    json_path = directory / cards.artifact_name(f"plan_simulation_{qid}.json", revision)
+    md_path = json_path.with_suffix(".md")
+    cards.refuse_overwrite(json_path, revision)
     cards.write(json_path, card)
     md_path.write_text(render(card))
 

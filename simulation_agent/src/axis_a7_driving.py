@@ -49,7 +49,7 @@ def driving_requested(goal: dict) -> list[str]:
 
 
 def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: str,
-          kb_result: dict | None = None) -> dict:
+          kb_result: dict | None = None, revision: int = 1) -> dict:
     """The caller_id is injected by the fan-out executor, never chosen here.
 
     4.3.1 rule 3: a sub-agent that picks its own id can impersonate a
@@ -78,9 +78,10 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
 
     card = cards.head(
         "axis",
-        f"axis-{qid}-{config}-{AXIS}",
+        f"axis-{qid}-{config}-{AXIS}" + ("" if revision == 1 else f"-r{revision}"),
         qid,
         created_at,
+        revision=revision,
         caller_id=caller_id,
         config=config,
         axis=AXIS,

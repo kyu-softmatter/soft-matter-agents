@@ -218,16 +218,21 @@ def run(qid: str, created_at: str, kb_results: dict[str, dict] | None = None) ->
         )
 
     kb_version = current_kb_version(qid)
+    # The derived cards belong to the revision of the question they were
+    # derived from. Leaving them at 1 while the goal moved on produced a plan
+    # that claimed revision 1 and was built from revision 6.
+    revision = cards.question_revision(qid)
     written: dict[str, list[str]] = {}
     for config in configs:
         for axis, module in AXIS_MODULES.items():
             caller_id = issue(qid, config, axis)
             card = module.build(qid, config, created_at, caller_id, kb_version,
-                                (kb_results or {}).get(caller_id))
-            path = cards.write(
-                cards.question_dir(qid) / f"axis_{config}_{axis}.json", card
+                                (kb_results or {}).get(caller_id), revision)
+            target = cards.question_dir(qid) / cards.artifact_name(
+                f"axis_{config}_{axis}.json", revision
             )
-            written.setdefault(config, []).append(path.name)
+            cards.refuse_overwrite(target, revision)
+            written.setdefault(config, []).append(cards.write(target, card).name)
     return written
 
 

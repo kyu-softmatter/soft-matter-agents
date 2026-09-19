@@ -5,7 +5,7 @@ editing this file changes nothing (P3).*
 
 - **question** `sim-20260917-001`, revision 1, status `VALIDATED`
 - **purpose** characterize · **intent** explore
-- **from** goal `goal-sim-20260917-001-r6` via synthesis `synthesis-sim-20260917-001`
+- **from** goal `goal-sim-20260917-001-r1` via synthesis `synthesis-sim-20260917-001`
 - **degraded** librarian_agent — see the open risks
 
 ## What is computed

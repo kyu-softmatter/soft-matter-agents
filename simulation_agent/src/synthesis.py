@@ -28,7 +28,7 @@ from . import cards
 AXES = ("a1", "a2", "a3", "a4", "a5", "a7")
 
 
-def axis_cards(qid: str, config: str) -> list[tuple[str, dict]]:
+def axis_cards(qid: str, config: str, revision: int = 1) -> list[tuple[str, dict]]:
     """Every axis card of one configuration, as (filename, card).
 
     All six are read, including the ones that abstained. An abstention carries
@@ -37,7 +37,9 @@ def axis_cards(qid: str, config: str) -> list[tuple[str, dict]]:
     """
     out = []
     for axis in AXES:
-        path = cards.question_dir(qid) / f"axis_{config}_{axis}.json"
+        path = cards.question_dir(qid) / cards.artifact_name(
+            f"axis_{config}_{axis}.json", revision
+        )
         if not path.exists():
             raise FileNotFoundError(f"{path.name} is missing; every axis leaves a card (4.5.3)")
         out.append((path.name, json.loads(path.read_text())))
@@ -258,10 +260,10 @@ OPERATING_POINT = {
 }
 
 
-def build(qid: str, configs: list[str], created_at: str) -> dict:
+def build(qid: str, configs: list[str], created_at: str, revision: int = 1) -> dict:
     per_config, chosen = [], None
     for config in configs:
-        group = axis_cards(qid, config)
+        group = axis_cards(qid, config, revision)
         intersection, conflict = intersect(group)
         entry = {
             "config": config,
@@ -282,7 +284,11 @@ def build(qid: str, configs: list[str], created_at: str) -> dict:
 
     goal = cards.load_goal(qid)
     spec = OPERATING_POINT[chosen]
-    numbers = carry_from(qid, chosen, spec["carry"])
+    # The table names revision-1 files. Resolve each to this revision's name,
+    # so `origin` points at the card that actually produced the number rather
+    # than at whatever a previous revision left on disk.
+    resolved = [(cards.artifact_name(f, revision), n) for f, n in spec["carry"]]
+    numbers = carry_from(qid, chosen, resolved)
     assumptions = assumptions_for(qid, numbers)
     grades = {n["name"]: n["grade"] for n in numbers}
     # The ratio reads a number computed a line earlier, so the grade table
@@ -311,9 +317,10 @@ def build(qid: str, configs: list[str], created_at: str) -> dict:
     ]
     card = cards.head(
         "synthesis",
-        f"synthesis-{qid}",
+        f"synthesis-{qid}" + ("" if revision == 1 else f"-r{revision}"),
         qid,
         created_at,
+        revision=revision,
         configs_screened=configs,
         per_config=per_config,
         chosen_config=chosen,
@@ -346,5 +353,7 @@ if __name__ == "__main__":
     qid = sys.argv[1] if len(sys.argv) > 1 else "sim-20260917-001"
     created_at = sys.argv[2] if len(sys.argv) > 2 else "2026-09-18T10:10:00Z"
     configs = fanout.screen(cards.load_goal(qid)["observable"]["name"])
-    print(cards.write(cards.question_dir(qid) / "synthesis.json",
-                      build(qid, configs, created_at)).relative_to(cards.REPO))
+    revision = cards.question_revision(qid)
+    target = cards.question_dir(qid) / cards.artifact_name("synthesis.json", revision)
+    cards.refuse_overwrite(target, revision)
+    print(cards.write(target, build(qid, configs, created_at, revision)).relative_to(cards.REPO))

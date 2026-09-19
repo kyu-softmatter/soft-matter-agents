@@ -238,3 +238,50 @@ def definition_entry(name: str) -> dict:
         f"{name!r} is not in contracts/observables.json. An entry is added when a question "
         "needs one; a card may not define an observable the vocabulary has not."
     )
+
+
+# --------------------------------------------------------------------------- #
+# revisions
+# --------------------------------------------------------------------------- #
+
+
+def artifact_name(base: str, revision: int) -> str:
+    """A card's filename for a given revision (4.5.5, 7.1 rule 3).
+
+    Revision 1 keeps the bare name and every later revision takes an `r<N>_`
+    prefix, so the revisions of one question sit side by side in one flat
+    folder rather than replacing each other.
+
+    **This is the mechanism that removes a question nobody could answer.** A
+    re-run that rewrote revision 1 in place had to decide, each time, which
+    store version to stamp on a card that had already read one -- and there is
+    no right answer to that, which is why this agent's pin moved four times in
+    one evening. A new run is a new revision: revision 1 keeps what it read,
+    and the new revision records what it read. Nothing has to be chosen.
+    """
+    if revision < 1:
+        raise ValueError(f"revision {revision} is not a revision")
+    return base if revision == 1 else f"r{revision}_{base}"
+
+
+def question_revision(qid: str) -> int:
+    """The revision the question is currently on, from its goal card."""
+    return int(load_goal(qid)["revision"])
+
+
+def refuse_overwrite(path: Path, revision: int) -> None:
+    """Stop rather than replace a card that belongs to another revision.
+
+    Previous output is not deleted (4.5.5). Overwriting is how a record
+    becomes a subscription, and the repair is a new revision rather than a
+    steadier hand.
+    """
+    if not path.exists():
+        return
+    existing = json.loads(path.read_text()).get("revision")
+    if existing is not None and int(existing) != revision:
+        raise FileExistsError(
+            f"{path.name} is revision {existing} and this run is revision {revision}. "
+            "A re-run raises the revision and writes beside the old output rather than over "
+            f"it (4.5.5): the file for this one is {artifact_name(path.name, revision)!r}."
+        )
