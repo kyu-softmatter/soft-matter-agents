@@ -87,7 +87,7 @@
         },
         "derived": {
           "type": "boolean",
-          "description": "This computed value is a NAMED quantity: it carries a `symbol`, and one symbol means one definition across every card and the store (check 36). **It does not mean dimensionless.** A census on 2026-09-18 found 6 uses, all six carrying a unit (five `s`, one `N*s/m`), against 20 numbers with the dimensionless unit `1`, none of them derived — zero overlap. The documented meaning had never once been used, and six authors had independently read it as written here. Uses a computed: source; not a separate source kind."
+          "description": "This computed value is a NAMED quantity: it carries a `symbol`, and one symbol means one definition across every card and the store (check 36). **It does not mean dimensionless.** A census on 2026-09-18 found 6 uses, all six carrying a unit (five `s`, one `N*s/m`), against 20 numbers with the dimensionless unit `1`, none of them derived \u2014 zero overlap. The documented meaning had never once been used, and six authors had independently read it as written here. Uses a computed: source; not a separate source kind."
         },
         "symbol": {
           "type": "string",
@@ -417,7 +417,7 @@
           "items": {
             "type": "string"
           },
-          "description": "names in numbers[] this bound rests on"
+          "description": "what this bound rests on: a name in numbers[], or `kb:<entry_id>` for a bound that rests on a served entry rather than a computed number. The second form was added on 2026-09-19 (5.3.2) because A4's numbers[] is empty and its bounds stand on kb_refs -- all 28 intervals then in the repository named numbers[] entries, so a bound grounded only in the store could not be written at all. It reuses the `kb:` prefix 5.3 already defines rather than minting a second name for the same thing. **This reference resolves**: the entry_id must appear in that card's kb_refs, and a check can say so -- unlike the declaration-reading checks, nothing here is taken on trust."
         },
         "precision": {
           "$ref": "#/$defs/precision"
@@ -575,6 +575,135 @@
       "type": "string",
       "pattern": "^((mic|sim)-[0-9]{8}-[0-9]{3}(:v[0-9]+)?:(s2|operator|[a-z0-9_]+:a[1-7])|bridge:thr-[a-z0-9-]+:r[1-9][0-9]*|selftest:[a-z0-9-]+)$",
       "description": "Who is asking, and the server's isolation unit (4.3.1). Four forms: <qid>:v<N>:s2, <qid>:v<N>:<config>:<axis>, <qid>:v<N>:operator, and bridge:<thread>:r<N>. The bridge hangs off a thread and a round rather than a question, because one thread crosses two qids -- one per side -- and the bridge: prefix lets a parser split the id without knowing the namespace. The revision is part of it because without it a re-run's a1 shares a session context with the attempt it exists to replace; revision 1 writes v1 rather than omitting it. The axis form without v<N> is still accepted while the cards that predate a6dca6a migrate, and stops being accepted after. Declared in 4.3.1 and repeated nowhere: while this pattern held the axis form alone, s2, operator and bridge: were declared and the server refused them, and a refused call leaves no line in queries/log.jsonl -- so the only visible symptom was a seat that stayed degraded. The bridge branch is as tight as the two fields it is built from: the thread is a `thr-` thread, because that is what `thread` allows and a `solo-` one has no round in it, and the round starts at 1, because round 0 means no bridge round is involved. A looser branch would let a query be logged under a thread that cannot exist or a round that cannot, and the log is the only evidence a query happened -- a line no round can ever be matched to is the attribution missing while the line looks fine. A fifth form, `selftest:<what-is-being-tested>`, is reserved for verification traffic. It collides with no qid and no thread, so a reader can tell a line a test produced from a line a round produced -- the log does not record the calling process, so without separate namespaces there is no way to tell. It is not an exception to the rule that an id is issued rather than chosen: a selftest impersonates no round, so there is nothing to issue."
+    },
+    "target": {
+      "$comment": "A target is a DECISION and carries no source and no grade -- the same reason a ceiling in envelope/safety.json carries none (5.3.1). A grade says how far a claim can be trusted; a decision is correct by being made. Inline rather than by reference into numbers[], so a grade is not merely absent but inexpressible: an opt-in guard is not a chokepoint (2.1 rule 9). Defined once here because goal, plan and result all carry it -- three copies of one shape is what 11-11 counts. A carried copy is compared against the goal's by check 52; it is pinned rather than referenced for the reason kb_version is pinned, that a plan_approval fixes the plan and not the goal, so a pin that resolves to whatever the goal says now is not a pin.",
+      "type": "object",
+      "properties": {
+        "metric": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "uncertainty",
+            "decade_resolution",
+            "detection"
+          ]
+        },
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "metric",
+        "kind",
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "allowed_set": {
+      "type": "object",
+      "description": "A discrete set of permitted values on one parameter, where an interval cannot say it. Two axes need it and they need different value types: A4's selector exclusivity is a set of strings, and A6's magnification is a set of numbers because the turret and the 1.5x zoom make it discrete (4.5.3). It is not an interval: intervals require a unit, and a unit means nothing for a selector name. Like an interval it **intersects**, so S4 combines it with ranges and with other sets the way it already combines ranges.",
+      "properties": {
+        "parameter": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": [
+              "number",
+              "string"
+            ]
+          },
+          "description": "the permitted values, all of one kind"
+        },
+        "unit": {
+          "type": "string",
+          "description": "required when the values are numeric, meaningless when they are not"
+        },
+        "excluded": {
+          "type": "array",
+          "items": {
+            "type": [
+              "number",
+              "string"
+            ]
+          },
+          "description": "values ruled out, named rather than left implicit, when saying what is forbidden carries more than saying what remains"
+        },
+        "basis": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "what this bound rests on: a name in numbers[], or `kb:<entry_id>` for a bound that rests on a served entry rather than a computed number. The second form was added on 2026-09-19 (5.3.2) because A4's numbers[] is empty and its bounds stand on kb_refs -- all 28 intervals then in the repository named numbers[] entries, so a bound grounded only in the store could not be written at all. It reuses the `kb:` prefix 5.3 already defines rather than minting a second name for the same thing. **This reference resolves**: the entry_id must appear in that card's kb_refs, and a check can say so -- unlike the declaration-reading checks, nothing here is taken on trust."
+        },
+        "precision": {
+          "$ref": "#/$defs/precision"
+        }
+      },
+      "required": [
+        "parameter",
+        "values",
+        "basis"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "values": {
+                "contains": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "unit"
+            ]
+          }
+        }
+      ]
+    },
+    "precondition": {
+      "type": "object",
+      "description": "A constraint that restricts no value and instead requires something of the plan. A4's selector verifiability is the case: no selector on this configuration can be read back, 2.1 makes an unverified state non-proceedable, and the conclusion is that the loaded state must be established by acquisition. **It does not intersect, it propagates** -- if any axis returns one, the plan must carry it. That is why it is not an allowed_set: S4 intersects sets, and a precondition folded into one would be silently dropped the first time an intersection was taken.",
+      "properties": {
+        "parameter": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "requires": {
+          "type": "string",
+          "minLength": 10,
+          "description": "what the plan must do, as an instruction and not a description"
+        },
+        "basis": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "what this bound rests on: a name in numbers[], or `kb:<entry_id>` for a bound that rests on a served entry rather than a computed number. The second form was added on 2026-09-19 (5.3.2) because A4's numbers[] is empty and its bounds stand on kb_refs -- all 28 intervals then in the repository named numbers[] entries, so a bound grounded only in the store could not be written at all. It reuses the `kb:` prefix 5.3 already defines rather than minting a second name for the same thing. **This reference resolves**: the entry_id must appear in that card's kb_refs, and a check can say so -- unlike the declaration-reading checks, nothing here is taken on trust."
+        }
+      },
+      "required": [
+        "parameter",
+        "requires",
+        "basis"
+      ],
+      "additionalProperties": false
     }
   }
 }

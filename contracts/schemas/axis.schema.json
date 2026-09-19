@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "axis.schema.json",
-  "title": "axis — one (configuration, axis) constraint from S3 (4.5.2)",
+  "title": "axis \u2014 one (configuration, axis) constraint from S3 (4.5.2)",
   "allOf": [
     {
       "$ref": "common.schema.json#/$defs/common_head"
@@ -92,6 +92,12 @@
           },
           "interval": {
             "$ref": "common.schema.json#/$defs/interval"
+          },
+          "allowed_set": {
+            "$ref": "common.schema.json#/$defs/allowed_set"
+          },
+          "precondition": {
+            "$ref": "common.schema.json#/$defs/precondition"
           }
         },
         "required": [
@@ -113,9 +119,24 @@
               ]
             },
             "then": {
-              "required": [
-                "interval"
-              ]
+              "oneOf": [
+                {
+                  "required": [
+                    "interval"
+                  ]
+                },
+                {
+                  "required": [
+                    "allowed_set"
+                  ]
+                },
+                {
+                  "required": [
+                    "precondition"
+                  ]
+                }
+              ],
+              "$comment": "Exactly one of the three. A returned bound must say something, and what it says comes in three shapes: a numeric range, a discrete set of permitted values, or a requirement on the plan. oneOf and not anyOf because two of them on one inequality is two bounds wearing one entry, and S4 would intersect the pair it recognised and drop the other."
             }
           },
           {
