@@ -135,6 +135,8 @@ GAP_IDS = {
     "pixel_size": "sample_plane_pixel_size_absent",
     "magnification": "magnification_is_not_a_number",
     "sensor_active_area": "sensor_active_area_absent",
+    "emission_wavelength": "emission_wavelength_absent",
+    "refractive_index": "immersion_refractive_index_absent",
 }
 
 # The name a missing input goes by on the card, where that differs from the
@@ -151,15 +153,16 @@ MISSING_NAMES = {"pixel_size": "sample_plane_pixel_size"}
 # call that was never made. They are named in `missing` instead.
 GOAL_SIDE = ("required_lateral_resolution", "required_field_of_view")
 
-# Asked, came back empty, and NOT recorded as gaps. 004 is explicit that an
-# empty kb_query is not evidence of absence in this store right now -- of ten
-# such calls, eight missed knowledge the store holds under another name. The
-# three in GAP_IDS survived that second check against served entries. These two
-# did not get one: the service began failing every call at 07:47Z, before the
-# entries that might carry a wavelength or an index could be fetched by id. So
-# they are named as missing inputs, which is what this axis observed, and not
-# as absences, which is a claim about the store that nothing here establishes.
-UNVERIFIED_ABSENT = ("emission_wavelength", "refractive_index")
+# The second-name check 004 requires, which revision 1 could not finish. Every
+# gap above was asked twice: once under the name in GAP_IDS, and once against
+# the entries at this pin that could plausibly hold it, fetched by id. These
+# four are the ones fetched for the wavelength and the index, and none of them
+# carries a number -- the dichroic entry is about which slots are occupied, the
+# splitter entry about two names for one mechanism, and the two shutter entries
+# about gating. Named here rather than cited as kb_refs: they are evidence that
+# nothing is there, and a kb_ref is a dependency, which they are not.
+NEGATIVE_EVIDENCE = ("csuw1_dichroic_slots", "csuw1_port_is_the_camera_splitter",
+                     "csuw1_shutter_gates_confocal_excitation", "laser_shutter_on_the_combiner")
 
 
 def _na_numbers(responses: dict) -> list[dict]:
@@ -208,7 +211,7 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
 
     for ineq in OWNED:
         missing = [MISSING_NAMES.get(n, n) for n in ineq.needs
-                   if n in absent or n in goal_side_absent or n in UNVERIFIED_ABSENT]
+                   if n in absent or n in goal_side_absent]
 
         if ineq.id == "lateral_resolution":
             run.outcomes.append(axc.Outcome(
@@ -218,8 +221,13 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                        "back for all six objectives at E3, from 0.20 on the 4x to 1.45 on the "
                        "100x, and it came back only because this axis asked by entry id: "
                        "kb_query(observable=numerical_aperture) answers absent while six entries "
-                       "carry numbers[].name = na. What is missing is a wavelength, which no "
-                       "entry this axis could reach states, and a required lateral resolution, "
+                       "carry numbers[].name = na. What is missing is a wavelength -- asked "
+                       "under emission_wavelength and under wavelength, absent both times, and "
+                       "then looked for by id in the four entries at this pin that could "
+                       "plausibly hold a band: the dichroic slots, the port-is-the-splitter "
+                       "entry and the two shutter entries. None of the four carries a number. "
+                       "That is the second-name check 004 requires, finished -- and a required "
+                       "lateral resolution, "
                        "which the goal does not state -- its one target is one decade on the "
                        "diffusivity, and a decade on a diffusivity is not a length. Without "
                        "lambda the spot size is not computable; without a required resolution "
@@ -289,10 +297,16 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
             run.outcomes.append(axc.Outcome(
                 inequality_id=ineq.id, parameter=ineq.parameter, state="abstained",
                 kind="no_input", missing=missing,
-                reason="One of three inputs is present. NA is served for all six objectives; the "
-                       "immersion medium is named per objective as air, water or oil, which is a "
-                       "string identifier and not a refractive index, and no index is a number "
-                       "in this store; and the wavelength is the same one missing from "
+                reason="One of three inputs is present, and the split between the other two is "
+                       "worth reading. NA is served for all six objectives. The immersion medium "
+                       "is answered and the refractive index is not: asking for `immersion` "
+                       "returns in_published_table, pointing at the devices table's immersion "
+                       "column, while asking for `refractive_index` returns absent -- so the "
+                       "store knows these lenses take air, water and oil, and holds no index for "
+                       "any of them. A medium name is a string identifier; turning one into a "
+                       "number here would be this axis inventing knowledge, which P14 puts in "
+                       "the librarian's hands and P2 grades E6 and refuses. One literature entry "
+                       "closes it. The wavelength is the same input missing from "
                        "lateral_resolution. Worth recording even if all three arrived: the "
                        "requirement side is not available to this axis either, because how far a "
                        "tracer wanders out of focus during a record is the diffusivity -- which "
@@ -312,7 +326,10 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         "Answered by the librarian service rather than by reading the store, which is what makes "
         f"degraded empty here: {len(run.kb_refs)} entries came back with their own grades and "
         f"{len(run.kb_gaps)} questions came back absent, all at the pinned {pin}, and every call "
-        "is in librarian_agent/queries/log.jsonl under this caller_id."
+        "is in librarian_agent/queries/log.jsonl under this caller_id. The transport was a stdio "
+        "client rather than this session's attached server, which has failed every call since "
+        "07:47:44Z: same server file, same pin, same caller_id, same log, and the answers carry "
+        "the same answered_from. What the transport cannot change is what the service said."
     )
     run.notes.append(
         "The finding this axis exists to report: NA is in the store six times and the query for "
@@ -331,14 +348,26 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         "all. Both are named in `missing` on that row."
     )
     run.notes.append(
-        "Two inputs are named as missing and deliberately not recorded as gaps: the emission "
-        "wavelength and the immersion refractive index. Both were asked of the service and both "
-        "came back empty, which in this store is not yet evidence of absence -- 004 records that "
-        "eight of ten empty queries missed knowledge held under another name. The three gaps "
-        "this card does record were each confirmed against a served entry that says the thing is "
-        "not there. These two could not be: the service began failing every call at 07:47Z and "
-        "the entries that might carry a band or an index were never fetched by id. An unfinished "
-        "check is reported as unfinished rather than rounded to absent."
+        "Revision 2 exists to finish the second-name check revision 1 could not. 004 requires it "
+        "because an empty kb_query is not evidence of absence in this store -- eight of ten such "
+        "calls missed knowledge held under another name. Every one of the five gaps here was "
+        "asked twice: under its own name, and then by entry id against whatever at this pin "
+        "could hold it. The wavelength and the index were the two left open, and both are now "
+        "settled as absent -- " + ", ".join(NEGATIVE_EVIDENCE) + " were fetched and none of "
+        "them carries a number. Nothing in the five verdicts moved; what moved is that they are "
+        "now checked rather than assumed."
+    )
+    run.notes.append(
+        "One answer came back as neither an entry nor an absence. `immersion` returns "
+        "in_published_table, naming the devices table in this agent's own snapshot and the "
+        "column, with a sha256. It is not recorded as a gap on this card, for two reasons worth "
+        "separating. The medium is already in hand from the six objective entries' identifiers, "
+        "so nothing here depends on the pointer. And the pointer does not resolve against this "
+        "agent's envelope: the served hash is the table as of the pinned kbv-49feb73662b7, while "
+        "envelope/snapshot.json holds kbv-67f9ad766d92, and the two tables differ. A caller that "
+        "pins an older version than its snapshot is told to look somewhere its own copy does not "
+        "match. That is a finding for the librarian and the manager, not something to bake into "
+        "a card as a hash nobody can verify."
     )
     run.notes.append(
         "constraints[] is empty and there is one candidate it could have held: the NA set. It is "
@@ -361,6 +390,11 @@ def main(argv: list[str] | None = None) -> int:
                              "siblings have to agree (check 33)")
     parser.add_argument("--responses", required=True, type=Path,
                         help="what the librarian returned for this caller_id at that pin")
+    parser.add_argument("--revision", type=int, default=1,
+                        help="the card's revision. Raised on any edit (5.4), and the caller_id "
+                             "has to carry the same number: check 33 wants qid:v<revision>:"
+                             "config:axis, because the id is the server's isolation unit and a "
+                             "re-run must not inherit the session it replaces")
     args = parser.parse_args(argv)
 
     goal = json.loads(args.goal.read_text())
@@ -375,7 +409,19 @@ def main(argv: list[str] | None = None) -> int:
     run = evaluate(goal, args.config, args.caller_id, responses, args.kb_version)
     axc.report(run)
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    return axc.write(run, goal, goal.get("qid", ""), created_at)
+    rc = axc.write(run, goal, goal.get("qid", ""), created_at)
+    if rc == 0 and args.revision != 1:
+        # axis_common.to_card() writes revision 1, which is right for a first
+        # run and wrong for every re-run. Patched here rather than there: that
+        # file is shared with the other microscope seat and nothing refuses a
+        # collision in it, so a change to it is asked for by card (6.2.1).
+        out = (axc.AGENT / "questions" / goal.get("qid", "")
+               / f"axis_{args.config}_{AXIS}.json")
+        card = json.loads(out.read_text())
+        card["revision"] = args.revision
+        out.write_text(json.dumps(card, ensure_ascii=False, indent=2) + "\n")
+        print(f"revision -> {args.revision}")
+    return rc
 
 
 if __name__ == "__main__":
