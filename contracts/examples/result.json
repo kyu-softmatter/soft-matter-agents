@@ -190,5 +190,13 @@
   "kb_refs": [],
   "degraded": [
     "librarian_agent"
-  ]
+  ],
+  "estimation": {
+    "vocabulary_version": "obs-4778293234e6",
+    "followed": false,
+    "deviations": [
+      "no fit was run: this card is a hand-written example of the round trip, not the output of an estimator"
+    ],
+    "note": "False rather than true because nobody ran the declared weighted fit here. An example that claimed to have followed it would be teaching the field to be filled in rather than answered."
+  }
 }

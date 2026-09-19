@@ -705,6 +705,26 @@ def canon_sha(obj: dict) -> str:
     return "sha256:" + hashlib.sha256(blob.encode()).hexdigest()
 
 
+def vocabulary_version() -> str:
+    """A content hash of the observable vocabulary, derived and never stored.
+
+    A result says which version's estimator it ran, and that pin is what lets
+    `comparable` mean something: two results are comparable when both followed
+    the same estimator, and "the same" needs a version to be a claim rather than
+    a hope. Derived rather than written into observables.json, because a
+    generated field inside a hand-edited file goes stale silently -- the failure
+    that check 25 exists to catch in the store's index. An older pin is read
+    back the way the librarian reads an older kb_version: from the commit where
+    that content stood.
+    """
+    p = CONTRACTS / "observables.json"
+    if not p.exists():
+        return ""
+    body = json.loads(p.read_text()).get("observables", [])
+    blob = json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return "obs-" + hashlib.sha256(blob.encode()).hexdigest()[:12]
+
+
 def load_observables() -> dict[str, dict]:
     p = CONTRACTS / "observables.json"
     if not p.exists():

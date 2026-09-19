@@ -8,10 +8,10 @@
     "path": "contracts/examples/result.json",
     "card_id": "result-mic-20260917-001-r1",
     "revision": 1,
-    "sha256": "sha256:70877469d1ee2eb45f897ba1bbdfd7b0239429a10be09fb2e68f90f69660b35a",
+    "sha256": "sha256:00f7b18e12c105876eb17f881c460468e042ef0818220f89b10085c792f39438",
     "status": "DONE"
   },
-  "payload_sha256": "sha256:2e8b3d47892f395fd4792a0ade25f3ce10e034ff425301f16e3ae55832848a81",
+  "payload_sha256": "sha256:975c9212f0ca426f942b240b15f0122f251a10b5356b0f44895d01ba26ea30fa",
   "verified_at": "2026-09-17T10:20:00Z",
   "note": "In the real tree the source path is the sender's own questions/<qid>/result.json; here it is the hand-written example card the round carries. The source hash leaves status out, so the card moving along the state machine does not read as tampering (5.5)."
 }

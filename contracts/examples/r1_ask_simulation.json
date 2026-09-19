@@ -203,9 +203,17 @@
     "kb_refs": [],
     "degraded": [
       "librarian_agent"
-    ]
+    ],
+    "estimation": {
+      "vocabulary_version": "obs-4778293234e6",
+      "followed": false,
+      "deviations": [
+        "no fit was run: this card is a hand-written example of the round trip, not the output of an estimator"
+      ],
+      "note": "False rather than true because nobody ran the declared weighted fit here. An example that claimed to have followed it would be teaching the field to be filled in rather than answered."
+    }
   },
-  "payload_hash": "sha256:2e8b3d47892f395fd4792a0ade25f3ce10e034ff425301f16e3ae55832848a81",
+  "payload_hash": "sha256:975c9212f0ca426f942b240b15f0122f251a10b5356b0f44895d01ba26ea30fa",
   "answerability": {
     "observable": "tracer_diffusivity",
     "checked_against": "simulation.json",
