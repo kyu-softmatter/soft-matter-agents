@@ -69,8 +69,26 @@ rather than the old repository (rule 2), and **nothing comes out of prose**
 1. Enter the control-path facts. The device table already has `automatable`
    and `read_back` columns — the Tweez 300 is a `read_back: false` row, and
    §0 is the evidence for it.
-2. Record the open questions as gaps. §9 names the Z retract direction as the
-   most consequential, and the trapping height as unknown.
+2. Record the open questions as gaps.
+
+   **CORRECTED 2026-09-19, after the seat read the body instead of the
+   summary.** This line used to say "§9 names the Z retract direction as the
+   most consequential". §9 does say that, and **§9 is wrong about its own
+   document.** §2's body: *"The Z sign convention is MEASURED — KH,
+   2026-09-05: smaller Z is retracted"*, and *"`PFSOffset` is still 0 =
+   unknown… the one remaining unmeasured direction on a collision device."*
+
+   So the summary is older than the body it cites — and it cites it, `(§2)`,
+   which is what made it look checked. Taking §9 at its word would have
+   **invented one absence and missed the real one**, and the invented one was
+   load-bearing: the prior guess about the retract direction pointed the
+   opposite way, so following it means driving the objective **toward** the
+   coverslip while believing you are retracting. That document calls the
+   collision its worst irreversible risk.
+
+   A cross-reference is not a confirmation. This seat wrote the wrong line
+   here by quoting a summary, and the execution seat caught it by opening
+   what the summary pointed at.
 3. Rule each item and say which of the three it was. A discard is a result.
 
 ## CONSTRAINTS
