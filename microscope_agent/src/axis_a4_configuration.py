@@ -140,13 +140,44 @@ GAP_IDS = {
     "automatable_condition": "automatable_condition_not_an_entry",
 }
 
+# The five names this axis asked for are not entries, and the service answered
+# `absent` to all five. They are in this agent's own snapshot, published by the
+# librarian and pinned by sha256 -- which is why 4.3.1 grew a fifth gap kind on
+# 2026-09-19, after these exact three queries sent a caller outside for what it
+# already held. The gap now says where it is; whether the bound can rest on it
+# is a separate question and the answer is below.
+PUBLISHED = {
+    "device_registry": {"snapshot": "kb/exports/snapshot_microscope_agent.json",
+                        "table": "devices", "sha256": "69c56ea681458edf3921d0b7a0150468a4fae18b4c6e71a28e769a00a599d37b"},
+    "control_channel": {"snapshot": "kb/exports/snapshot_microscope_agent.json",
+                        "table": "devices", "column": "driver", "sha256": "69c56ea681458edf3921d0b7a0150468a4fae18b4c6e71a28e769a00a599d37b"},
+    "read_back": {"snapshot": "kb/exports/snapshot_microscope_agent.json",
+                  "table": "devices", "column": "read_back", "sha256": "69c56ea681458edf3921d0b7a0150468a4fae18b4c6e71a28e769a00a599d37b"},
+    "automatable_condition": {"snapshot": "kb/exports/snapshot_microscope_agent.json",
+                              "table": "devices", "column": "automatable_condition",
+                              "sha256": "69c56ea681458edf3921d0b7a0150468a4fae18b4c6e71a28e769a00a599d37b"},
+    "optical_path_valid_tuples": {"snapshot": "kb/exports/snapshot_microscope_agent.json",
+                                  "table": "optical_paths", "sha256": "020c5369ab0645b06061c96e5af94df5f05761ec0b167e7c76f05dba0e69ec2c"},
+}
+
 STAGING_NOTE = (
-    "The service reported this absent and said in the gap itself what it looked in: it searched "
-    "kb/entries only, and it does not search outside the store -- external search happens in the "
-    "librarian session (4.3.1). The flat table in kb/staging/ is therefore not reachable through "
-    "it, and the pin does not change that: the gap came back at the pinned version naming the "
-    "same search. This is asked-and-absent from the service, not nobody-checked, and what closes "
-    "it is the librarian decomposing the staging tables into entries (11.1)."
+    "The service answered absent and said what it searched: kb/entries only, and it does not "
+    "search outside the store (4.3.1). But this is not an absence, and the gap above no longer "
+    "calls it one -- the answer is in this agent's own envelope/snapshot.json, in the table and "
+    "column `published_in` names, published by the librarian and pinned by sha256. Read there, "
+    "all six devices this configuration declares are channel rows with drivers, all six are "
+    "`automatable: full`, all six carry `read_back: true`, and the DMD alone carries "
+    "`automatable_condition: core_requirement` -- full only on a core pinned to device interface "
+    "71, which is the trap this bound was written to catch.\n\n"
+    "**So why does the bound still abstain.** Because a bound has to say what it rests on, and "
+    "`basis` takes a name in numbers[] or `kb:<entry_id>` and nothing else. A published table is "
+    "neither. Citing the row's `entry_ref` instead would be false grounding -- check 54 exists "
+    "because a bound resting on something the card never obtained is the defect an empty basis "
+    "was going to be, and the values here (driver, automatable, read_back) are in the table and "
+    "not in those entries. So the axis can read the answer and cannot ground a bound on it. The "
+    "missing piece is a third basis form for a published table, and that is contracts/ and the "
+    "manager's (6.2). This is the same shape as the discrete-constraint slot one step along: the "
+    "answer existed, the card had no lawful way to say it."
 )
 
 
@@ -157,7 +188,7 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
 
     absent = {g["observable"]: g for g in responses["gaps"]}
     run.kb_refs = axc.refs_from(responses, pin)
-    run.kb_gaps = axc.gaps_from(responses, pin, caller_id, GAP_IDS)
+    run.kb_gaps = axc.gaps_from(responses, pin, caller_id, GAP_IDS, PUBLISHED)
 
     for ineq in OWNED:
         missing = [n for n in ineq.needs if n in absent]
@@ -304,6 +335,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--kb-version", required=True,
                         help="the pin to answer at. Not read from the store: the store moves and "
                              "siblings have to agree (check 33)")
+    parser.add_argument("--revision", type=int, default=1,
+                        help="the card revision; v<N> in the caller_id follows it")
     parser.add_argument("--responses", required=True, type=Path,
                         help="what the librarian returned for this caller_id at that pin")
     args = parser.parse_args(argv)
@@ -320,7 +353,7 @@ def main(argv: list[str] | None = None) -> int:
     run = evaluate(goal, args.config, args.caller_id, responses, args.kb_version)
     axc.report(run)
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    return axc.write(run, goal, goal.get("qid", ""), created_at)
+    return axc.write(run, goal, goal.get("qid", ""), created_at, args.revision)
 
 
 if __name__ == "__main__":

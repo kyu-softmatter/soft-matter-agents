@@ -194,8 +194,8 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
     served = responses["entries"]
     run.kb_refs = axc.refs_from(responses, pin)
     run.kb_gaps = axc.gaps_from(responses, pin, caller_id, GAP_IDS)
-    viscosity = (served.get("water_viscosity_293k") or {}).get("entry")
-    ambient = (served.get("lab_ambient_temperature") or {}).get("entry")
+    viscosity = served.get("water_viscosity_293k")
+    ambient = served.get("lab_ambient_temperature")
     diameter = axc.goal_number(goal, "tracer_diameter")
     gamma = None
     if viscosity and diameter:

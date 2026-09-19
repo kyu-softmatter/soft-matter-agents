@@ -225,6 +225,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--kb-version", required=True,
                         help="the pin to answer at. Not read from the store: the store moves and "
                              "siblings have to agree (check 33)")
+    parser.add_argument("--revision", type=int, default=1,
+                        help="the card revision; v<N> in the caller_id follows it")
     parser.add_argument("--responses", required=True, type=Path,
                         help="what the librarian returned for this caller_id at that pin")
     args = parser.parse_args(argv)
@@ -241,7 +243,7 @@ def main(argv: list[str] | None = None) -> int:
     run = evaluate(goal, args.config, args.caller_id, responses, args.kb_version)
     axc.report(run)
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    return axc.write(run, goal, goal.get("qid", ""), created_at)
+    return axc.write(run, goal, goal.get("qid", ""), created_at, args.revision)
 
 
 if __name__ == "__main__":

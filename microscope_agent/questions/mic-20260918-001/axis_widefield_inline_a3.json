@@ -7,7 +7,7 @@
   "round": 0,
   "revision": 1,
   "author": "microscope_agent",
-  "created_at": "2026-09-19T17:09:45Z",
+  "created_at": "2026-09-19T18:49:29Z",
   "status": "VALIDATED",
   "caller_id": "mic-20260918-001:v1:widefield_inline:a3",
   "config": "widefield_inline",
@@ -83,7 +83,8 @@
       ],
       "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:v1:widefield_inline:a3",
-      "asked_at": "2026-09-19T08:12:42+00:00"
+      "asked_at": "2026-09-19T18:45:02+00:00",
+      "near_names": []
     },
     {
       "gap_id": "photodamage_threshold",
@@ -94,7 +95,8 @@
       ],
       "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:v1:widefield_inline:a3",
-      "asked_at": "2026-09-19T08:12:42+00:00"
+      "asked_at": "2026-09-19T18:45:03+00:00",
+      "near_names": []
     },
     {
       "gap_id": "optical_heating",
@@ -105,7 +107,8 @@
       ],
       "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:v1:widefield_inline:a3",
-      "asked_at": "2026-09-19T08:12:43+00:00"
+      "asked_at": "2026-09-19T18:45:03+00:00",
+      "near_names": []
     },
     {
       "gap_id": "tracer_loading",
@@ -116,7 +119,8 @@
       ],
       "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:v1:widefield_inline:a3",
-      "asked_at": "2026-09-19T08:12:43+00:00"
+      "asked_at": "2026-09-19T18:45:04+00:00",
+      "near_names": []
     }
   ],
   "degraded": [],

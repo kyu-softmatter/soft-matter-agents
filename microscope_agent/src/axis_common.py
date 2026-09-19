@@ -142,7 +142,7 @@ def refs_from(responses: dict, pin: str) -> list[dict]:
             for eid in sorted(served)]
 
 
-def gaps_from(responses: dict, pin: str, caller_id: str, gap_ids: dict[str, str]) -> list[dict]:
+def _gaps_from_doc() -> None:
     """Gaps that name the call that came back empty, not a directory that was listed.
 
     `searched` held directory paths while there was no service to ask. Now it
@@ -150,19 +150,38 @@ def gaps_from(responses: dict, pin: str, caller_id: str, gap_ids: dict[str, str]
     claims (4.3.1) and only the first one is available once the librarian
     answers.
     """
+def gaps_from(responses: dict, pin: str, caller_id: str, gap_ids: dict[str, str],
+              published: dict[str, dict] | None = None) -> list[dict]:
+    """(see below)"""
+    published = published or {}
     out = []
     for gap in sorted(responses["gaps"], key=lambda g: g["observable"]):
         observable = gap["observable"]
+        kind = gap["kind"]
+        # The service answers `absent` for a name it holds in a published table
+        # rather than as an entry, and `absent` sends the caller outside for
+        # something already in its own snapshot. Where the snapshot does hold
+        # it, the kind says so and `published_in` says where (4.3.1, fifth kind).
+        if observable in published and kind == "absent":
+            kind = "in_published_table"
         out.append({
             "gap_id": gap_ids[observable],
             "observable": observable,
-            "kind": gap["kind"],
+            "kind": kind,
             "searched": [f"{gap['tool']}(observable={observable}, caller_id={caller_id}, "
                          f"kb_version={pin}) -> {gap['kind']}, searched {gap['searched']}"],
             "kb_version": pin,
             "asked_by": caller_id,
             "asked_at": gap["asked_at"],
         })
+        # `near_names` is the service's answer to "what do you call this", and
+        # an empty list is an answer: searched, nothing near. A missing key says
+        # the search never ran, and then the gap may only claim not-found-under-
+        # this-name (check 49).
+        if gap.get("near_names") is not None:
+            out[-1]["near_names"] = gap["near_names"]
+        if observable in published:
+            out[-1]["published_in"] = published[observable]
         # The service's near-misses, not the axis's. An axis that added its own
         # here would be answering its own question inside a field that says the
         # service answered it.

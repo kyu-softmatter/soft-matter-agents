@@ -7,7 +7,7 @@
   "round": 0,
   "revision": 1,
   "author": "microscope_agent",
-  "created_at": "2026-09-19T18:25:02Z",
+  "created_at": "2026-09-19T18:49:29Z",
   "status": "VALIDATED",
   "caller_id": "mic-20260918-001:v1:widefield_inline:a4",
   "config": "widefield_inline",
@@ -22,7 +22,7 @@
       "parameter": "device_set",
       "state": "abstained",
       "kind": "no_input",
-      "reason": "the service was asked for device_registry, control_channel at kbv-49feb73662b7 and answered absent. The service reported this absent and said in the gap itself what it looked in: it searched kb/entries only, and it does not search outside the store -- external search happens in the librarian session (4.3.1). The flat table in kb/staging/ is therefore not reachable through it, and the pin does not change that: the gap came back at the pinned version naming the same search. This is asked-and-absent from the service, not nobody-checked, and what closes it is the librarian decomposing the staging tables into entries (11.1).",
+      "reason": "the service was asked for device_registry, control_channel at kbv-49feb73662b7 and answered absent. The service answered absent and said what it searched: kb/entries only, and it does not search outside the store (4.3.1). But this is not an absence, and the gap above no longer calls it one -- the answer is in this agent's own envelope/snapshot.json, in the table and column `published_in` names, published by the librarian and pinned by sha256. Read there, all six devices this configuration declares are channel rows with drivers, all six are `automatable: full`, all six carry `read_back: true`, and the DMD alone carries `automatable_condition: core_requirement` -- full only on a core pinned to device interface 71, which is the trap this bound was written to catch.\n\n**So why does the bound still abstain.** Because a bound has to say what it rests on, and `basis` takes a name in numbers[] or `kb:<entry_id>` and nothing else. A published table is neither. Citing the row's `entry_ref` instead would be false grounding -- check 54 exists because a bound resting on something the card never obtained is the defect an empty basis was going to be, and the values here (driver, automatable, read_back) are in the table and not in those entries. So the axis can read the answer and cannot ground a bound on it. The missing piece is a third basis form for a published table, and that is contracts/ and the manager's (6.2). This is the same shape as the discrete-constraint slot one step along: the answer existed, the card had no lawful way to say it.",
       "missing": [
         "device_registry",
         "control_channel"
@@ -33,7 +33,7 @@
       "parameter": "selector_states",
       "state": "abstained",
       "kind": "no_input",
-      "reason": "the service was asked for optical_path_valid_tuples at kbv-49feb73662b7 and answered absent. The service reported this absent and said in the gap itself what it looked in: it searched kb/entries only, and it does not search outside the store -- external search happens in the librarian session (4.3.1). The flat table in kb/staging/ is therefore not reachable through it, and the pin does not change that: the gap came back at the pinned version naming the same search. This is asked-and-absent from the service, not nobody-checked, and what closes it is the librarian decomposing the staging tables into entries (11.1). What the entries do give is one required value rather than the tuple: disk-out is a required selector value on this configuration rather than a configuration of its own. A required value is not a validated combination, and the combination is what this bound is about.",
+      "reason": "the service was asked for optical_path_valid_tuples at kbv-49feb73662b7 and answered absent. The service answered absent and said what it searched: kb/entries only, and it does not search outside the store (4.3.1). But this is not an absence, and the gap above no longer calls it one -- the answer is in this agent's own envelope/snapshot.json, in the table and column `published_in` names, published by the librarian and pinned by sha256. Read there, all six devices this configuration declares are channel rows with drivers, all six are `automatable: full`, all six carry `read_back: true`, and the DMD alone carries `automatable_condition: core_requirement` -- full only on a core pinned to device interface 71, which is the trap this bound was written to catch.\n\n**So why does the bound still abstain.** Because a bound has to say what it rests on, and `basis` takes a name in numbers[] or `kb:<entry_id>` and nothing else. A published table is neither. Citing the row's `entry_ref` instead would be false grounding -- check 54 exists because a bound resting on something the card never obtained is the defect an empty basis was going to be, and the values here (driver, automatable, read_back) are in the table and not in those entries. So the axis can read the answer and cannot ground a bound on it. The missing piece is a third basis form for a published table, and that is contracts/ and the manager's (6.2). This is the same shape as the discrete-constraint slot one step along: the answer existed, the card had no lawful way to say it. What the entries do give is one required value rather than the tuple: disk-out is a required selector value on this configuration rather than a configuration of its own. A required value is not a validated combination, and the combination is what this bound is about.",
       "missing": [
         "optical_path_valid_tuples"
       ]
@@ -59,7 +59,7 @@
       "parameter": "commanded_selectors",
       "state": "abstained",
       "kind": "no_input",
-      "reason": "the service was asked for device_registry, automatable_condition at kbv-49feb73662b7 and answered absent. The service reported this absent and said in the gap itself what it looked in: it searched kb/entries only, and it does not search outside the store -- external search happens in the librarian session (4.3.1). The flat table in kb/staging/ is therefore not reachable through it, and the pin does not change that: the gap came back at the pinned version naming the same search. This is asked-and-absent from the service, not nobody-checked, and what closes it is the librarian decomposing the staging tables into entries (11.1). One selector is answered and it is not enough: the port is automatable in full with read-back at E3. The bound is over every selector the plan commands, and which selectors those are comes from the optical-path table, which is the same absent table. An automatable field also carries a condition in the registry -- the DMD's full automatability holds only on a core pinned to device interface 71 -- and screening on the bare field would pass a plan whose preflight then fails when it opens the device.",
+      "reason": "the service was asked for device_registry, automatable_condition at kbv-49feb73662b7 and answered absent. The service answered absent and said what it searched: kb/entries only, and it does not search outside the store (4.3.1). But this is not an absence, and the gap above no longer calls it one -- the answer is in this agent's own envelope/snapshot.json, in the table and column `published_in` names, published by the librarian and pinned by sha256. Read there, all six devices this configuration declares are channel rows with drivers, all six are `automatable: full`, all six carry `read_back: true`, and the DMD alone carries `automatable_condition: core_requirement` -- full only on a core pinned to device interface 71, which is the trap this bound was written to catch.\n\n**So why does the bound still abstain.** Because a bound has to say what it rests on, and `basis` takes a name in numbers[] or `kb:<entry_id>` and nothing else. A published table is neither. Citing the row's `entry_ref` instead would be false grounding -- check 54 exists because a bound resting on something the card never obtained is the defect an empty basis was going to be, and the values here (driver, automatable, read_back) are in the table and not in those entries. So the axis can read the answer and cannot ground a bound on it. The missing piece is a third basis form for a published table, and that is contracts/ and the manager's (6.2). This is the same shape as the discrete-constraint slot one step along: the answer existed, the card had no lawful way to say it. One selector is answered and it is not enough: the port is automatable in full with read-back at E3. The bound is over every selector the plan commands, and which selectors those are comes from the optical-path table, which is the same absent table. An automatable field also carries a condition in the registry -- the DMD's full automatability holds only on a core pinned to device interface 71 -- and screening on the bare field would pass a plan whose preflight then fails when it opens the device.",
       "missing": [
         "device_registry",
         "automatable_condition"
@@ -118,57 +118,90 @@
     {
       "gap_id": "automatable_condition_not_an_entry",
       "observable": "automatable_condition",
-      "kind": "absent",
+      "kind": "in_published_table",
       "searched": [
         "kb_query(observable=automatable_condition, caller_id=mic-20260918-001:v1:widefield_inline:a4, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:v1:widefield_inline:a4",
-      "asked_at": "2026-09-19T18:23:21+00:00"
+      "asked_at": "2026-09-19T18:45:07+00:00",
+      "near_names": [],
+      "published_in": {
+        "snapshot": "kb/exports/snapshot_microscope_agent.json",
+        "table": "devices",
+        "column": "automatable_condition",
+        "sha256": "69c56ea681458edf3921d0b7a0150468a4fae18b4c6e71a28e769a00a599d37b"
+      }
     },
     {
       "gap_id": "control_channel_not_an_entry",
       "observable": "control_channel",
-      "kind": "absent",
+      "kind": "in_published_table",
       "searched": [
         "kb_query(observable=control_channel, caller_id=mic-20260918-001:v1:widefield_inline:a4, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:v1:widefield_inline:a4",
-      "asked_at": "2026-09-19T18:23:20+00:00"
+      "asked_at": "2026-09-19T18:45:07+00:00",
+      "near_names": [],
+      "published_in": {
+        "snapshot": "kb/exports/snapshot_microscope_agent.json",
+        "table": "devices",
+        "column": "driver",
+        "sha256": "69c56ea681458edf3921d0b7a0150468a4fae18b4c6e71a28e769a00a599d37b"
+      }
     },
     {
       "gap_id": "device_registry_not_an_entry",
       "observable": "device_registry",
-      "kind": "absent",
+      "kind": "in_published_table",
       "searched": [
         "kb_query(observable=device_registry, caller_id=mic-20260918-001:v1:widefield_inline:a4, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:v1:widefield_inline:a4",
-      "asked_at": "2026-09-19T18:23:19+00:00"
+      "asked_at": "2026-09-19T18:45:08+00:00",
+      "near_names": [],
+      "published_in": {
+        "snapshot": "kb/exports/snapshot_microscope_agent.json",
+        "table": "devices",
+        "sha256": "69c56ea681458edf3921d0b7a0150468a4fae18b4c6e71a28e769a00a599d37b"
+      }
     },
     {
       "gap_id": "optical_path_table_not_an_entry",
       "observable": "optical_path_valid_tuples",
-      "kind": "absent",
+      "kind": "in_published_table",
       "searched": [
         "kb_query(observable=optical_path_valid_tuples, caller_id=mic-20260918-001:v1:widefield_inline:a4, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:v1:widefield_inline:a4",
-      "asked_at": "2026-09-19T18:23:21+00:00"
+      "asked_at": "2026-09-19T18:45:08+00:00",
+      "near_names": [],
+      "published_in": {
+        "snapshot": "kb/exports/snapshot_microscope_agent.json",
+        "table": "optical_paths",
+        "sha256": "020c5369ab0645b06061c96e5af94df5f05761ec0b167e7c76f05dba0e69ec2c"
+      }
     },
     {
       "gap_id": "read_back_not_an_entry",
       "observable": "read_back",
-      "kind": "absent",
+      "kind": "in_published_table",
       "searched": [
         "kb_query(observable=read_back, caller_id=mic-20260918-001:v1:widefield_inline:a4, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
       "kb_version": "kbv-49feb73662b7",
       "asked_by": "mic-20260918-001:v1:widefield_inline:a4",
-      "asked_at": "2026-09-19T18:23:20+00:00"
+      "asked_at": "2026-09-19T18:45:09+00:00",
+      "near_names": [],
+      "published_in": {
+        "snapshot": "kb/exports/snapshot_microscope_agent.json",
+        "table": "devices",
+        "column": "read_back",
+        "sha256": "69c56ea681458edf3921d0b7a0150468a4fae18b4c6e71a28e769a00a599d37b"
+      }
     }
   ],
   "degraded": [],
