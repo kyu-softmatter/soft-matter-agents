@@ -14,8 +14,10 @@ commit, with the reason.
 
 **M0 landed. The four agents are built concurrently.** Milestone names M0–M5
 name bodies of work, not an order. What actually blocks what is the column in
-`plan.md` §9, and the one fact worth acting on is that **§11-1, the observable
-vocabulary, blocks three of the four agents** — a decision only the user makes.
+`plan.md` §9. §11-1 no longer blocks anything: on 2026-09-19 the person settled
+that **the vocabulary is never finished** — entries are added when a question
+needs one, so an unanticipated experiment is still takeable. An unregistered
+name is not a refusal but an ordering: register it, then plan with it.
 
 `contracts/` is the only shared code. `librarian_agent/kb/` is the store, and
 **the read-only MCP server over it exists as of 2026-09-18** (`a9df017`, four
