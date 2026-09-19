@@ -76,7 +76,20 @@ OVERLAP = ("full", "partial", "no_overlap", "unstated", "unconstrained")
 # was found by a test; this time by the first run after the change.
 FIELDS = ("asked_at", "caller_id", "kb_version", "tool", "purpose",
           "observable", "condition_range", "returned", "gaps", "coverage",
-          "outcome", "reason", "claimed")
+          "outcome", "reason", "claimed", "server_session")
+
+# `caller_id` is the argument a caller passed, and the server cannot check
+# that the process on the other end is the seat that id names. On 2026-09-19
+# three lines one second apart carried three different seats' ids, and
+# settling whose they were took a grep across six commits -- the log could not
+# say, because nothing in it distinguishes three seats calling from one
+# process iterating over three ids.
+#
+# `server_session` is the one thing the server does observe: which of its own
+# runs answered. It does not identify the caller and must not be read as
+# doing so. What it gives is that lines sharing it were served by one process,
+# which is exactly the distinction that was missing. Recorded, never consulted
+# when answering (4.3.1 rule 4).
 
 # A refused call is a record too. Until 2026-09-19 the log held answers only,
 # so how often the service refused was written nowhere -- "nine of ten queries
@@ -91,7 +104,7 @@ FIELDS = ("asked_at", "caller_id", "kb_version", "tool", "purpose",
 # the log's first line. So a refusal records nothing as validated: every
 # argument as given goes under `claimed`, whose name says what it is, and no
 # field asserts a property the server just rejected.
-REFUSAL_FIELDS = ("asked_at", "tool", "outcome", "reason", "claimed")
+REFUSAL_FIELDS = ("asked_at", "tool", "outcome", "reason", "claimed", "server_session")
 
 
 _REGISTRY_CACHE: dict = {}
@@ -175,14 +188,22 @@ class Rejected(ValueError):
     """A record that would have made the log unreadable or untrue."""
 
 
-def check(rec: dict) -> dict:
-    """Validate one record. A log that accepts anything documents nothing."""
+def check(rec: dict, *, writing: bool = False) -> dict:
+    """Validate one record. A log that accepts anything documents nothing.
+
+    `writing` separates what a NEW line must carry from what an old one may
+    lack. `server_session` arrived on 2026-09-19 with sixty-one lines already
+    on disk, and requiring it of those would have made verify() report the
+    whole history as malformed -- expand, migrate, contract, which this seat
+    has invoked at three other seats and broke here on its own first field.
+    """
     unknown = sorted(set(rec) - set(FIELDS))
     if unknown:
         raise Rejected(f"unknown fields {unknown}; the record shape is fixed so the log stays countable")
 
     if rec.get("outcome") == "refused":
-        missing = sorted(set(REFUSAL_FIELDS) - set(rec))
+        expected = set(REFUSAL_FIELDS) if writing else set(REFUSAL_FIELDS) - {"server_session"}
+        missing = sorted(expected - set(rec))
         if missing:
             raise Rejected(f"a refusal is missing {missing}")
         asserted = sorted(set(rec) - set(REFUSAL_FIELDS))
@@ -197,7 +218,10 @@ def check(rec: dict) -> dict:
         if not str(rec.get("reason") or "").strip():
             raise Rejected("a refusal without a reason records that something failed and not what")
         return rec
-    for f in ("asked_at", "caller_id", "kb_version", "tool", "purpose"):
+    needed = ["asked_at", "caller_id", "kb_version", "tool", "purpose"]
+    if writing:
+        needed.append("server_session")
+    for f in needed:
         if not rec.get(f):
             raise Rejected(f"{f} is required: a line without it cannot be attributed or replayed")
     if rec["tool"] not in TOOLS:
@@ -219,16 +243,17 @@ def check(rec: dict) -> dict:
     return rec
 
 
-def record_refusal(log: Path, tool: str, reason: str, **claimed) -> dict:
+def record_refusal(log: Path, tool: str, reason: str, server_session: str = "", **claimed) -> dict:
     """Append a refusal. Nothing in `claimed` is validated, and its name says so."""
     return record(log, tool=tool, outcome="refused", reason=reason,
+                  server_session=server_session,
                   claimed={k: v for k, v in claimed.items() if v is not None})
 
 
 def record(log: Path = DEFAULT_LOG, **rec) -> dict:
     """Append one line. Returns the record as written."""
     rec.setdefault("asked_at", datetime.now(timezone.utc).isoformat(timespec="seconds"))
-    check(rec)
+    check(rec, writing=True)
     if not log.parent.exists():
         raise Rejected(
             f"{log.parent} does not exist, and this module will not create it. "
@@ -314,7 +339,8 @@ def _self_test() -> int:
     ok = True
     with tempfile.TemporaryDirectory() as d:
         log = Path(d) / "log.jsonl"
-        base = dict(caller_id="mic-20260917-001:transmitted:a2", kb_version="kbv-c6aab372060a",
+        base = dict(caller_id="mic-20260917-001:v1:transmitted:a2", kb_version="kbv-c6aab372060a",
+                    server_session="srv-selftest-0",
                     tool="kb_query", purpose="screen", observable="tracer_diffusivity",
                     condition_range={"temperature": {"min": 288, "max": 298, "unit": "K"}},
                     returned=[{"entry_id": "water_viscosity_293k", "grade": "E3"}],

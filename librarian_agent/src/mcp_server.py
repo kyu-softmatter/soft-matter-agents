@@ -74,9 +74,11 @@ import argparse
 import functools
 import json
 import math
+import os
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -493,7 +495,7 @@ def _preflight(store: Store, caller_id: str, kb_version: str, tool: str) -> Stor
 
 def _log(store: Store, **rec) -> None:
     """An unlogged answer is worse than no answer, so a log failure fails the call."""
-    query_log.record(store.log, **rec)
+    query_log.record(store.log, server_session=SERVER_SESSION, **rec)
 
 
 AGENT_OF = {"mic": "microscope_agent", "sim": "simulation_agent", "bridge": "bridge"}
@@ -582,6 +584,9 @@ def published_table_for(store: Store, caller_id: str, name: str) -> dict | None:
     return found
 
 
+SERVER_SESSION = f"srv-{os.getpid()}-{int(time.time())}"
+
+
 def _provenance(store: Store) -> dict:
     """Which version answered, and whether anyone could reproduce it."""
     # Resolve the commit even when the answer came from the working tree. It
@@ -620,6 +625,7 @@ def _recording_refusals(fn):
         except Refused as exc:
             query_log.record_refusal(
                 store.log, tool=fn.__name__, reason=str(exc),
+                server_session=SERVER_SESSION,
                 caller_id=caller_id, kb_version=kb_version,
                 arguments={k: v for k, v in kw.items()} or None,
             )
@@ -805,6 +811,16 @@ def _self_test() -> int:                                    # noqa: C901
         log = Path(d) / "log.jsonl"
         log.parent.mkdir(parents=True, exist_ok=True)
         store = Store(log=log)
+
+        # The shared log must be untouchable from here. A test writes under
+        # ids that look exactly like a live seat's, and a line in the real log
+        # is attributed by nothing but that id -- so a test that reached it
+        # would put a call no seat made under a caller_id that identifies one.
+        # Checked by the bytes rather than by reading the code, because every
+        # Store() built without an explicit log defaults to the real one and a
+        # single such call is enough.
+        shared = query_log.DEFAULT_LOG
+        shared_before = shared.read_bytes() if shared.exists() else None
         cid = "mic-20260917-001:v1:transmitted:a2"
         v = store.kb_version
 
@@ -1016,7 +1032,7 @@ def _self_test() -> int:                                    # noqa: C901
         if len(history) < 2:
             print("note: fewer than two committed versions, so the old-pin case was not exercised")
         else:
-            oldest = min(history, key=lambda v: len(Store().at(v).entries))
+            oldest = min(history, key=lambda v: len(Store(log=log).at(v).entries))
             then = Store(log=log).at(oldest)
             a = kb_query(store, cid, oldest, "viscosity", {})
             if a["kb_version"] != oldest or a["answered_from"]["commit"] is None:
@@ -1178,6 +1194,10 @@ def _self_test() -> int:                                    # noqa: C901
                 props = set(schema.get("properties") or {})
                 if not {"caller_id", "kb_version"} <= props:
                     bad(f"tool {t_.name} exposes {sorted(props)}; caller_id and kb_version are the wire contract")
+
+        shared_after = shared.read_bytes() if shared.exists() else None
+        if shared_after != shared_before:
+            bad(f"the self-test wrote to {shared}, the log real callers are attributed by")
 
     print("self-test: ok" if ok else "self-test: FAILED")
     return 0 if ok else 1
