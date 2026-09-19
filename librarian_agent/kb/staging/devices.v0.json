@@ -595,6 +595,20 @@
       "status": "open, and narrower than it was. The DMD half has a measured value in the prior project; it is NOT entered here, because 10.2.1 requires a ruling before an item crosses and that ruling is manager-librarian's, not this seat's. Recorded as looked-for-and-found-unruled rather than not-there, which are different claims. The csuw1 port and disk halves are still unmeasured anywhere. The per-configuration switch_cost gap in optical_paths.v0.json is the same quantity one level up."
     },
     {
+      "what": "the trapping laser's power AT THE SAMPLE",
+      "gap_id": "trap_power_at_the_sample",
+      "why_it_matters": "it is what a sample sees, and it is what any statement about heating or about photodamage has to be in terms of. A7 owns the driving term and A3 owns sample health; both want this number and neither wants the generator's",
+      "kind": "absent",
+      "searched": [
+        "the operator, 2026-09-19: the laser is 1064 nm and the generator's maximum is 5 W, and the 20 percent of the detection bound is 20 percent of that. Those are facts about the GENERATOR",
+        "the prior project, which holds a measured output: NOT FETCHABLE, see the ruling below",
+        "the objective's transmission at 1064 nm, which would be one of the factors: itself an open gap (objective_transmission_1064nm)"
+      ],
+      "status": "open, and the tempting arithmetic is the thing to refuse. Twenty percent of five watts is one watt AT THE GENERATOR. Moving that number to the sample crosses losses nothing here records and an objective transmission that is itself unknown, and a figure that arrives at the sample carrying the generator's provenance is the failure this store keeps meeting under other names. Three facts, not one: the generator's rating, the generator's output at the time of the observation, and the power at the sample. Only the first is enterable today.",
+      "why_the_prior_measurement_cannot_be_fetched": "10.2's row for device spec values -- NA, magnification, pixel size, OUTPUT LIMITS -- waits on a human-written envelope/safety.json, which does not exist. The row states its own reason and it is this case exactly: a spec number not placed beside the limit values gets used as a limit. Same ruling as the piezo travel range (gap piezo_travel_range), reached the same way and for the same clause.",
+      "what_would_close_it": "a measurement at the sample plane, with the dial position and the objective recorded beside it. Then the generator figure becomes an input to a ratio rather than a stand-in for the answer."
+    },
+    {
       "what": "the Kinetix 22 sensor's pixel pitch, from the vendor datasheet",
       "gap_id": "sensor_pixel_pitch",
       "why_it_matters": "it is the fixed physical fact the other two rest on, and the store does not have it. Of nine empty answers on the service's first day this was the only honest absent -- the other eight were the store holding its own knowledge under another name",
