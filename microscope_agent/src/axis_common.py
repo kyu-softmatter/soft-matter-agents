@@ -197,6 +197,30 @@ def ledger_has_a_home() -> bool:
     return LEDGER_FIELD in (schema.get("properties") or {})
 
 
+def returned_needs_numeric_interval() -> bool:
+    """Whether the contract makes `returned` require an interval it can only state numerically.
+
+    Read off the schema rather than assumed, so that the refusal below clears
+    itself the day a slot for a discrete constraint exists -- the same shape as
+    ledger_has_a_home().
+
+    A4 is where this bites. The three axis states are a numeric range, an
+    abstention with a kind, or a failure, and a bound that has grounds and
+    constrains something other than a number is none of the three: `interval`
+    requires {parameter, unit, basis} with numeric min/max, `basis` names
+    entries in numbers[], and both the interval and the ledger item forbid
+    additional properties. So the contract cannot hold "this configuration's
+    selectors are readable but not verifiable" in any shape, well or badly.
+    """
+    schema = json.loads((CONTRACTS / "schemas" / "axis.schema.json").read_text())
+    item = ((schema.get("properties") or {}).get("inequalities") or {}).get("items") or {}
+    for rule in item.get("allOf") or []:
+        if (((rule.get("if") or {}).get("properties") or {}).get("state") or {}).get("const") == "returned":
+            if "interval" in ((rule.get("then") or {}).get("required") or []):
+                return True
+    return False
+
+
 def to_card(run: AxisRun, goal: dict, qid: str, created_at: str) -> dict:
     silent = run.silent()
     if silent:
@@ -210,6 +234,19 @@ def to_card(run: AxisRun, goal: dict, qid: str, created_at: str) -> dict:
             f"axis.schema.json declares no {LEDGER_FIELD!r} and is closed to additional "
             f"properties, so this card cannot carry the {len(run.outcomes)} per-inequality "
             "outcomes 4.5.2.1 requires"
+        )
+    discrete = [o.inequality_id for o in run.outcomes
+                if o.state == "returned" and o.interval is None]
+    if discrete and returned_needs_numeric_interval():
+        raise AxisError(
+            f"{len(discrete)} bounds have grounds and constrain something that is not a number: "
+            f"{', '.join(discrete)}. axis.schema.json makes `interval` required when state is "
+            "`returned`, and interval requires {parameter, unit, basis} with numeric min/max -- "
+            "so the card cannot say it. The three ways out are all worse than stopping: a made-up "
+            "interval would be a fabricated bound resting on an empty `basis`, and each of the "
+            "three abstention kinds is false here -- the inputs were present (not no_input), the "
+            "bound does bite (not not_constraining), and it was asked for (not not_requested). "
+            "A discrete constraint needs a slot in the contract, which is the manager's (6.2)"
         )
     card = {
         "card": "axis",

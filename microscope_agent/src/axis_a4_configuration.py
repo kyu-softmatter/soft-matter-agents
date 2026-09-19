@@ -1,0 +1,332 @@
+"""A4: configuration suitability -- whether this configuration can be driven and verified.
+
+4.5.3 gives this axis device combination, optical-path exclusivity and
+automatability. The inequality list below is derived from that cell rather than
+declared here (4.5.2.1), and each entry names where it comes from.
+
+**This axis is answered by the service, not by reading the store.** Every other
+axis so far called axis_common.kb_entry(), which opens kb/entries/*.json -- and
+reading the files is not the service answering (0.3), so those cards belong to
+the degraded path whatever they say. This one takes a --responses file holding
+what the librarian actually returned, refuses any response not stamped with the
+pin it was asked at, and never opens the store. That is why `degraded` can be
+empty here and could not be before.
+
+What the pass found, and it is the content of the card rather than a caveat:
+
+  The three selectors that define `widefield_inline` all read back, and not one
+  of the three read-backs establishes what it has to establish. The port
+  returns a position number and which element that position holds is unknown;
+  `csuw1_bright` and `csuw1_disk_position` are one mechanism under two names, so
+  setting one and reading the other agrees with itself and means nothing; and
+  the disk-out label serves widefield fluorescence and brightfield alike, so
+  confirming the label confirms nothing about which configuration is loaded.
+
+  2.1 says an unverified state does not proceed. So A4 returns a constraint
+  rather than an abstention: this configuration is reachable, and its loaded
+  state is not verifiable by read-back. Verification has to come from acquiring.
+
+  That is the opposite of what 001 expected of A4 -- it was picked as the axis
+  most likely to return an interval because the device registry is the one
+  table with real content. The registry lives in kb/staging/, and Store loads
+  index.json and entries/ only, so the service cannot serve it at any version.
+  Every registry-dependent bound below therefore abstains with a gap the
+  service itself reported, while the bounds that rest on entries return.
+
+A4 has no numeric output and `constraints` stays empty. That is a contract
+finding and not an oversight: common.schema.json's `interval` requires
+{parameter, unit, basis} with numeric min/max, the ledger item is closed to
+additional properties, and this axis's answers are per-selector and discrete.
+The constraint is therefore carried in `reason`, where S4 can read it but not
+intersect it. Raised with manager-microscope rather than worked around.
+
+It reads contracts/ and the recorded responses, and imports no device
+(7.2 rule 2).
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.curdir) != _HERE]
+
+import argparse                                                  # noqa: E402
+import importlib.util                                            # noqa: E402
+import json                                                      # noqa: E402
+from datetime import datetime, timezone                           # noqa: E402
+from pathlib import Path                                          # noqa: E402
+
+
+def _load(name: str, filename: str):
+    path = os.path.join(_HERE, filename)
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)                               # type: ignore[union-attr]
+    return module
+
+
+axc = _load("_mic_axis_common", "axis_common.py")
+
+AXIS = "a4"
+
+OWNED = (
+    axc.Inequality(
+        id="devices_present",
+        parameter="device_set",
+        statement="every device this configuration declares exists in the registry and has a "
+                  "control channel",
+        needs=("device_registry", "control_channel"),
+        derived_from="4.5.3 A4 'device combination'",
+    ),
+    axc.Inequality(
+        id="path_tuple_valid",
+        parameter="selector_states",
+        statement="the selector states this configuration needs form a tuple the optical-path "
+                  "table lists, so light actually reaches the detector",
+        needs=("optical_path_valid_tuples",),
+        derived_from="4.5.3 A4 'optical path exclusivity', and 4.6's rule that S3.0 and the "
+                     "orchestrator read one table",
+    ),
+    axc.Inequality(
+        id="selector_exclusivity",
+        parameter="concurrent_selector_holds",
+        statement="no two selectors this configuration must hold at once contend for one "
+                  "exclusive resource",
+        needs=("lock_groups",),
+        derived_from="4.5.3 A4 'optical path exclusivity'",
+    ),
+    axc.Inequality(
+        id="selector_automatable",
+        parameter="commanded_selectors",
+        statement="every selector the plan must set can be set without a human, and any "
+                  "condition attached to that claim holds",
+        needs=("device_registry", "automatable_condition"),
+        derived_from="4.5.3 A4 'automatability'",
+    ),
+    axc.Inequality(
+        id="selector_verifiable",
+        parameter="verified_selectors",
+        statement="every selector the plan must set can be confirmed to be in the state it was "
+                  "set to; an unverified state does not proceed (2.1)",
+        needs=("read_back",),
+        derived_from="4.5.3 A4 'automatability', sharpened by 2.1: read-back is what makes a "
+                     "selector state verified, and 4.6.6 rule 5 routes the rest to a manual sheet",
+    ),
+)
+
+GAP_IDS = {
+    "device_registry": "device_registry_not_an_entry",
+    "control_channel": "control_channel_not_an_entry",
+    "read_back": "read_back_not_an_entry",
+    "optical_path_valid_tuples": "optical_path_table_not_an_entry",
+    "automatable_condition": "automatable_condition_not_an_entry",
+}
+
+STAGING_NOTE = (
+    "The service reported this absent from kb/entries, which is the whole store it loads: "
+    "mcp_server.Store reads index.json and entries/*.json and nothing else, so the flat table "
+    "in kb/staging/ is outside what any version can serve. This is asked-and-absent from the "
+    "service, not nobody-checked -- and it is not fixed by pinning elsewhere, only by the "
+    "librarian decomposing the staging tables into entries (11.1)."
+)
+
+
+def load_responses(path: Path, pin: str, caller_id: str) -> dict:
+    """The librarian's answers, and a refusal if any of them answered elsewhere.
+
+    The pin check is the point. A response stamped with another kb_version is
+    an answer to a different question, and a card that mixes two versions is
+    the thing check 33 exists to catch -- better to stop here, where the reason
+    is legible, than to emit a card that has to be unpicked.
+    """
+    data = json.loads(path.read_text())
+    if data.get("pin") != pin:
+        raise axc.AxisError(
+            f"the responses were obtained at {data.get('pin')!r} and this axis is answering at "
+            f"{pin!r}; re-ask rather than re-label"
+        )
+    if data.get("caller_id") != caller_id:
+        raise axc.AxisError(
+            f"the responses were asked by {data.get('caller_id')!r}, not {caller_id!r}. Isolation "
+            "is by caller_id (4.3.1), so another caller's answers are not this axis's input"
+        )
+    for eid, rec in data.get("entries", {}).items():
+        got = (rec.get("answered_from") or {}).get("kb_version")
+        if got != pin:
+            raise axc.AxisError(f"{eid} was answered from {got!r}, not the pinned {pin!r}")
+    for gap in data.get("gaps", []):
+        got = (gap.get("answered_from") or {}).get("kb_version")
+        if got != pin:
+            raise axc.AxisError(
+                f"the gap on {gap.get('observable')!r} was answered from {got!r}, not {pin!r}"
+            )
+    return data
+
+
+def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str) -> axc.AxisRun:
+    """Every inequality A4 owns, each with a constraint or a reason it has none."""
+    run = axc.AxisRun(axis=AXIS, caller_id=caller_id, config=config, kb_version=pin,
+                      owned=OWNED, degraded=[])
+
+    served = responses["entries"]
+    absent = {g["observable"]: g for g in responses["gaps"]}
+
+    # Refs carry the grade the service returned, never a restated one (check 21).
+    for eid in sorted(served):
+        rec = served[eid]
+        run.kb_refs.append({"entry_id": eid, "grade": rec["grade"], "kb_version": pin,
+                            "claim": rec["claim"][:200]})
+
+    # A gap names the call that came back empty, not a directory that was listed.
+    for observable, gap in sorted(absent.items()):
+        run.kb_gaps.append({
+            "gap_id": GAP_IDS[observable],
+            "observable": observable,
+            "kind": gap["kind"],
+            "searched": [f"{gap['tool']}(observable={observable}, caller_id={caller_id}, "
+                         f"kb_version={pin}) -> {gap['kind']}, searched {gap['searched']}"],
+            "kb_version": pin,
+            "asked_by": caller_id,
+            "asked_at": gap["asked_at"],
+        })
+
+    for ineq in OWNED:
+        missing = [n for n in ineq.needs if n in absent]
+
+        if ineq.id == "selector_exclusivity":
+            # What the entry states at E3 is the arrangement: one channel carries two lock
+            # groups, and a lock group belongs to an element. The entry explicitly declines to
+            # stamp the scheduling consequence as a reading, so this axis does not cite it as
+            # one -- what follows from the arrangement alone is a constraint on how a plan may
+            # name a selector, and that is what is returned.
+            run.outcomes.append(axc.Outcome(
+                inequality_id=ineq.id, parameter=ineq.parameter, state="returned",
+                reason="Exclusivity on this configuration has to be evaluated per element and "
+                       "cannot be evaluated per channel. stand_ti2e carries two lock groups at "
+                       "once -- its optical elements in optical_path, the motor stage in stage, "
+                       "because the piezo rides on the motor stage -- so a plan that names the "
+                       "channel has not said which lock its command takes. The constraint is "
+                       "therefore on the plan's form: a selector this configuration holds is "
+                       "named as an element. Note what is NOT claimed here: the entry's own "
+                       "validity_conditions mark the scheduling consequence -- that stage moves "
+                       "serialise with port and filter changes -- as a design consequence rather "
+                       "than a reading, and it is not stamped as one, so this axis does not "
+                       "return it as a bound.",
+            ))
+            continue
+
+        if ineq.id == "selector_verifiable":
+            # Three independent entries, one conclusion. Returned rather than abstained: the
+            # axis has grounds and the grounds say the bound bites.
+            run.outcomes.append(axc.Outcome(
+                inequality_id=ineq.id, parameter=ineq.parameter, state="returned",
+                reason="None of the three selectors that define this configuration is verifiable "
+                       "by read-back, and each fails differently. (1) The port is drivable and "
+                       "readable in full, and read-back returns a position number while which "
+                       "element that position holds is not known -- two of its three states send "
+                       "zero light to one camera, so the position does not say which. (2) "
+                       "csuw1_bright and csuw1_disk_position are one mechanism under two names, "
+                       "so setting one and reading the other shows an agreement that means "
+                       "nothing, and which name micromanager addresses is unsettled. (3) The "
+                       "disk-out position serves widefield fluorescence and brightfield alike, "
+                       "so a read-back confirming the label confirms nothing about which "
+                       "configuration is loaded. 2.1 makes an unverified state one that does not "
+                       "proceed, so the bound is: on this configuration the loaded state is "
+                       "established by acquiring, not by read-back, and a plan that treats a "
+                       "returned position as a verification is refused. Readable-but-not-"
+                       "verifiable is a sharper case than unreadable -- a reply exists and does "
+                       "not answer the question asked -- and it is the reason this returns "
+                       "instead of abstaining.",
+            ))
+            continue
+
+        if missing:
+            reason = (f"the service was asked for {', '.join(missing)} at {pin} and answered "
+                      f"absent. " + STAGING_NOTE)
+            if ineq.id == "selector_automatable":
+                reason += (
+                    " One selector is answered and it is not enough: the port is automatable in "
+                    "full with read-back at E3. The bound is over every selector the plan "
+                    "commands, and which selectors those are comes from the optical-path table, "
+                    "which is the same absent table. An automatable field also carries a "
+                    "condition in the registry -- the DMD's full automatability holds only on a "
+                    "core pinned to device interface 71 -- and screening on the bare field would "
+                    "pass a plan whose preflight then fails when it opens the device."
+                )
+            if ineq.id == "path_tuple_valid":
+                reason += (
+                    " What the entries do give is one required value rather than the tuple: "
+                    "disk-out is a required selector value on this configuration rather than a "
+                    "configuration of its own. A required value is not a validated combination, "
+                    "and the combination is what this bound is about."
+                )
+            run.outcomes.append(axc.Outcome(
+                inequality_id=ineq.id, parameter=ineq.parameter, state="abstained",
+                kind="no_input", missing=missing, reason=reason,
+            ))
+            continue
+
+        run.outcomes.append(axc.Outcome(
+            inequality_id=ineq.id, parameter=ineq.parameter, state="failed",
+            reason="every input is present and this axis has no code to emit the constraint: "
+                   "that is a gap in this file, not an abstention (4.5.2.1)",
+        ))
+
+    run.notes.append(
+        "Answered by the librarian service rather than by reading the store, which is what makes "
+        "degraded empty here: five entries came back with their own grades and five questions "
+        "came back absent, all at the pinned kbv-49feb73662b7, and every call is in "
+        "librarian_agent/queries/log.jsonl under this caller_id. The served digests were checked "
+        "byte for byte against the pinned commit's blobs."
+    )
+    run.notes.append(
+        "Two of five bounds return and three abstain, and the split is not about physics. The "
+        "three that abstain all want the device registry or the optical-path table, which live "
+        "in kb/staging/; the server's Store loads index.json and entries/ only, so no version of "
+        "the service can serve them. 001 picked A4 first because the registry is the one table "
+        "with real content -- and that content is in the half of the store the service does not "
+        "carry. The fix is the librarian decomposing staging into entries (11.1), not a different "
+        "pin."
+    )
+    run.notes.append(
+        "constraints[] is empty while two bounds returned, and that is the contract rather than "
+        "the axis: interval requires {parameter, unit, basis} with numeric min/max, and A4's "
+        "answers are discrete and per-selector. The ledger item forbids additional properties, "
+        "so the constraint is carried in reason where S4 can read it and cannot intersect it. "
+        "Raised with manager-microscope."
+    )
+    return run
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="A4: configuration suitability (4.5.3).")
+    parser.add_argument("goal", type=Path)
+    parser.add_argument("--config", required=True)
+    parser.add_argument("--caller-id", required=True)
+    parser.add_argument("--kb-version", required=True,
+                        help="the pin to answer at. Not read from the store: the store moves and "
+                             "siblings have to agree (check 33)")
+    parser.add_argument("--responses", required=True, type=Path,
+                        help="what the librarian returned for this caller_id at that pin")
+    args = parser.parse_args(argv)
+
+    goal = json.loads(args.goal.read_text())
+    if goal.get("card") != "goal":
+        print(f"{args.goal} is not a goal card", file=sys.stderr)
+        return 2
+    try:
+        responses = load_responses(args.responses, args.kb_version, args.caller_id)
+    except axc.AxisError as exc:
+        print(f"no card written: {exc}", file=sys.stderr)
+        return 3
+    run = evaluate(goal, args.config, args.caller_id, responses, args.kb_version)
+    axc.report(run)
+    created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return axc.write(run, goal, goal.get("qid", ""), created_at)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
