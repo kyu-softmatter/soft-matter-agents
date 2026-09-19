@@ -43,16 +43,28 @@ moves to `:v1:` here by re-query, not by substitution (card 005's argument).
 you start rather than trusting this table: it has been wrong once already,
 and the number moves whenever a card is re-run through the service.
 
-## The pixel size has landed — this is no longer blocked
+## This runs at the pin, and closes the latch only
 
-The wait is over. Twenty-four E2 entries are in the store, calibrated pixel
-size per objective and zoom — the first E2 this repository has had. That
-closes A6's `sample_plane_pixel_size` outright, the gap no sensor pitch could
-close because pitch and sample-plane size are different facts.
+An earlier revision of this card said the pixel size had landed, that it
+closed A6's `sample_plane_pixel_size`, and that this card should therefore go
+first. **The first clause is true of the store and false of this fan-out.**
+Counted at the pin: `kbv-49feb73662b7` holds 25 entries and **no pixel entry
+at all**. The twelve calibrated entries — six objectives by two zooms, twelve
+entries and not twenty-four; that number was grade strings counted as
+entries — arrived after it. Asked at the pin, `pixel_size` is still `absent`,
+and that is not a wrong answer but the true one at that version.
 
-**Start with this card**, ahead of 007. A2 appears in both and running it
-twice is the thing to avoid, so fold 007's goal revision and A2 re-run into
-this commit.
+**None of which blocks this card.** `near_names` works at the pin: asked
+there, `numerical_aperture` returns `absent` with `near_names: ['na']` and
+`pixel_size` returns `absent` with `near_names: []`, both stamped
+`answered_from kbv-49feb73662b7`. So the whole body of this task — the
+twenty-two gaps, the gaps that stop being gaps, a6's caller_id, one commit —
+runs without the pin moving.
+
+**Closing A6's pixel gap is a separate, deliberate re-pin and is card 008.**
+Not chasing the store, which card 000 refused: a gap actually closes. But it
+moves all five siblings together under check 33, and that cost belongs in its
+own card rather than smuggled into this one.
 
 ## What the re-run should produce
 
@@ -87,13 +99,15 @@ and no card had yet copied one, so this is close to its first real exercise.
 
 ## Done when
 
-The three cards carry `near_names` on all eleven `absent` gaps, any gap that
+All five cards carry `near_names` on all twenty-two `absent` gaps, any gap that
 turned out not to be one is no longer a gap, `python3 contracts/validate.py`
 ends `0 failed` with check 49 passing rather than PENDING, and **one commit**.
 
-Then one sentence up: how many of the eleven survived as real absences.
+Then one sentence up: how many of the twenty-two survived as real absences.
 
 ## Not this task
 
-**A1 and A7**, as above. **A4**, still blocked on the discrete-constraint
-slot. **A5**, which is `microscope-3`'s and has not been written.
+**Re-pinning.** Card 008 does that, deliberately, for the pixel size.
+
+**A4**, still blocked on the discrete-constraint slot. **A5**, which is
+`microscope-3`'s.
