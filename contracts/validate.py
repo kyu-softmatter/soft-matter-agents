@@ -2490,6 +2490,38 @@ def check_40_window_condition(b: Bundle) -> list[Finding]:
     return out or [Finding(40, PASS, f"{checked} plans carry the window their observable depends on")]
 
 
+def check_48_registry_grants(b: Bundle) -> list[Finding]:
+    """A `paths` entry that cannot grant is dead letter (6.2.1).
+
+    seats.json narrows; it does not grant. Check 41 classifies a path first,
+    refuses it when that category is not in the seat's `owns`, and only then
+    narrows by `paths`. So a path listed for a seat whose `owns` does not cover
+    its category reads as a grant in the registry and is refused at the gate,
+    with nothing saying the two disagree. That is what bridge/README.md was for
+    half of 2026-09-19: listed, classified as the agent's, refused, and the
+    registry looked correct the whole time.
+
+    Two copies of one fact with nothing comparing them is what 11-11 counts.
+    This is the comparison.
+    """
+    reg = load_seats()
+    if not reg:
+        return [Finding(48, PENDING, "contracts/seats.json is absent, so there is nothing to compare")]
+    out: list[Finding] = []
+    checked = 0
+    for seat in reg.get("seats", []):
+        owns = set(seat.get("owns", []))
+        for path in seat.get("paths") or []:
+            checked += 1
+            where = seat_boundary_of(path)
+            if where not in owns:
+                out.append(Finding(48, FAIL, f"seat {seat.get('seat')!r} lists {path!r}, which counts as "
+                                             f"{where!r} and not as anything it owns ({sorted(owns)}). A paths "
+                                             f"entry that cannot grant is dead letter: the registry reads as a "
+                                             f"grant and check 41 refuses it (6.2.1)", "contracts/seats.json"))
+    return out or [Finding(48, PASS, f"{checked} registry paths fall inside a category their seat owns")]
+
+
 def check_46_vocabulary_pin(b: Bundle) -> list[Finding]:
     """A result's estimator pin has to be readable back (5.1, 11-1).
 
@@ -2683,7 +2715,7 @@ CHECKS = [
     check_28_precision, check_29_failure_record, check_30_lessons, check_31_candidate_preservation,
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
-    check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_44_subject_resolves,
+    check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves,
     check_42_check_registry, check_41_seat_attribution,
 ]
 
