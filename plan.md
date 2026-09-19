@@ -1661,6 +1661,7 @@ src/devices/dev_*.py         형제도, 상위도 import하지 않는다
 | 번호 | 무엇 | 맡은 좌석 |
 |---|---|---|
 | 45 | `degraded: []`가 질의 로그에 뒷받침되는지 | manager-simulation |
+| 47 | `seats.json`의 산문이 대는 좌석 이름이 실재하는지 | manager-simulation |
 
 **구현이 끝나면 아래 목록에 선언이 들어가고 이 표에서 빠진다.** 순서는 §8의 그것 그대로 — 합의 → 구현 → 선언.
 
