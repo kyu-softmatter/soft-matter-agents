@@ -256,3 +256,56 @@ sessions were live in one working copy while this ran, and the store's own
 entries this pass argues for — the E5 link and the measured diameter — are
 therefore named here with their blockers rather than created, and both blockers
 are schema questions that belong to the manager.
+
+---
+
+# Correction, 84 seconds after this file was committed
+
+This note went stale between being written and being committed, and the commit
+gate said so in a line I read past. Appended rather than edited, because the
+shape is the point.
+
+`bfa02e7` — this file — landed at 20:04:40. `a675c4e` landed at **20:03:16**,
+one minute and twenty-four seconds earlier, and closed three of the things
+written above as open. The pre-commit gate printed `tree: the index as it would
+be committed, on top of a675c4e`. That line exists precisely so a committer
+knows what tree they are landing on. It was printed, and it was not read.
+
+`librarian_agent/CLAUDE.md` says to re-read the section from disk before
+reporting on it, and gives two examples from 2026-09-18 of a reference that was
+correct when taken and wrong when used. This is the third, and it was committed
+by the seat whose whole output that day was counting the same failure in others.
+The distance between taking a reading and using it does not have to be an hour.
+Here it was eighty-four seconds, and the tree still moved.
+
+## What was already false when this file was committed
+
+| written above | actually, as of `a675c4e` at 20:03:16 |
+|---|---|
+| `kind: "sample"` fails check 1 and check 44 | `sample` is a subject kind and resolves against `kb/staging/samples.v0.json` and nothing else |
+| the diameter is blocked on `validity` having no interval shape | `calibration:` now accepts a `sample` subject **in place of** `validity` — the instance is the subject, not a condition. `valid_until` stays required |
+| `g/cm^3` and `mg/ml` are unregistered | both registered |
+
+And by `1837ecd` at 20:07:07, three minutes after: `1/ml` registered,
+`refuted_by` and `refutes` added to the entry schema, `quantities.json`'s
+`pending_015` block released, and 017's stale diameter constraint struck
+through in the task file itself. Every finding in this note was acted on; none
+of the findings was wrong. What was wrong was the tense.
+
+## What the correction does not touch
+
+The four findings stand as findings. `kb_conflicts` did return the two peaks as
+live conflicts at `kbv-0d3ece9d6234`; the rename was and still is half done;
+`1/ml` was missed by four censuses and the reason it was missed is structural;
+the E5 link was and still is not an entry. A finding that is acted on quickly
+does not become a wrong finding. It becomes a closed one, and only the closing
+needs correcting here.
+
+## The one that is not closed by a contracts change
+
+The peaks still carry `conflict_with` and no `refuted_by`; the field exists and
+nothing uses it. That is an entry edit, it moves `kb_version`, and at the time
+of writing another librarian execution session holds those exact files
+uncommitted. Claimed by message rather than by writing — which is the rule the
+`failures.jsonl` record two hours ago was written to remember, applied on its
+first opportunity.
