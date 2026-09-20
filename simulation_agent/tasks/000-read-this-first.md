@@ -95,16 +95,24 @@ answer: *the manager allocates by card*. This is that card.
 
 | | |
 |---|---|
-| **the next session with the librarian** | **`004` — revision 2.** |
-| **`simulation-2`** | hold, and hand `004` over. |
+| **`simulation-3`** | **`004` — revision 2.** The person decided it. |
+| **`simulation-2`** | hand `004` over; it cannot reach the librarian. |
+| **a third session** | the `budget.json` split below — **ask first**, it collides with `004`. |
 
-**Reallocated 2026-09-20.** `004` is the librarian re-run by definition, and
-`simulation-2`'s window started before the MCP fix — settings are read at
-session start, so that session cannot get the tools no matter what the config
-now says. Session 3 closed. **So no live seat here can open `004`**, and the
-card waits for a session opened after the fix rather than sitting with a seat
-that cannot act on it. `simulation-3` is registered now and its identity is
-free.
+**`004` → `simulation-3`, 2026-09-20.** The person told the architecture seat
+and it came down through this one, which is the right route: execution
+allocation is the manager's. `simulation-3` is registered, its two commits pass
+checks 35 and 41, and it **waited for an allocation rather than opening `004`
+itself** — which is what made allocating possible instead of merging.
+
+`simulation-2` hands it over because its window opened before the MCP fix and
+settings are read at session start, so that seat cannot get the librarian
+whatever the config now says. `004` is the librarian re-run by definition.
+
+**`004` and the `budget.json` split both touch `src/plan_card.py`.** They cannot
+run at once in a tree with no worktree. `004` goes first; the split waits or
+takes the files `004` does not hold. Whoever picks up the split, say so here
+before starting.
 
 **Two things the arriving seat should read before starting, both learned the
 hard way on 2026-09-20:**
@@ -133,18 +141,27 @@ Registration is architecture's and has been asked for.
 
 **Still open, and touching none of `004`'s files:**
 
-1. **Confirm the librarian, and fill the fourth row of `failures.jsonl`.**
-   The cause of its absence is now known and it was not what the earlier rows
-   said: `.claude/settings.local.json` carried
-   `disabledMcpjsonServers: ["librarian"]`, which overrode a user-level enable
-   that had been in place since 2026-09-19. The person removed it, and that
-   file is untracked and globally ignored, so **no seat could see it** — which
-   is why three rows guessed. It now reads
-   `{"…/simulation_agent": {"enabledMcpjsonServers": ["librarian"]}}`.
-   **Whether `mcp__librarian__*` is now present in a session opened at
-   `simulation_agent/` is the open question**, and the seven project entries in
-   `~/.claude.json` are still empty arrays, so a second cause may still exist.
-   Report either way; a `connected` is what opens `004`.
+1. **The librarian is reachable — settled 2026-09-20, and the fourth row of
+   `failures.jsonl` records it.** `시뮬레이션 세션 4` confirmed it by **calling
+   the server**, not by reading a tool list: a `kb_query` that refused as
+   designed, logged with `claimed` filled. A session opened at
+   `simulation_agent/` attaches.
+
+   **There was one cause, not two, and this card said otherwise until now.**
+   The user-level `~/.claude/settings.json` has carried
+   `enabledMcpjsonServers: ["librarian"]` since 2026-09-19 and it applies
+   regardless of directory. The only thing overriding it was a repo-local
+   `disabledMcpjsonServers` in `.claude/settings.local.json`. Remove the deny
+   and nothing further needs enabling — the repo side now reads `{}` and there
+   is no per-agent file, and the tools attach anyway.
+
+   **So the suspicion this card carried is closed, and it was never evidence.**
+   It said the seven project entries in `~/.claude.json` are empty arrays so a
+   second cause may exist. They are still empty and the tools attach, which
+   means those arrays were not the mechanism at any point. Three rows of
+   `failures.jsonl` reasoned from them. **Not visible from inside the
+   repository is what made that reasonable and still wrong** — the deny lived
+   in an untracked, globally ignored file that no seat could read.
 
 2. **`read_envelope()` names the wrong field on one path.** A `limits` that is
    not a dict reports *carries no `smoke_budget`*, because the membership test
