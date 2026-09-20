@@ -1158,6 +1158,23 @@ Every number is `{value, unit, source, grade}`. **The source says where it came 
 | `computed:<formula_id>` | **max(E4, worst input grade)** |
 | `assumed:<rationale_id>` | E5 |
 
+**What an inference rests on, when it is not a quantity: `supports` (2026-09-20).** `inputs` names
+quantities and a grade composes from them. Some entries rest on things that are not quantities at all,
+and those were being written as prose in `validity_conditions` -- the same shape as the CV that read as
+200 per cent, and the reason a distinction living only in prose is one nothing can act on. `supports` is
+mutually exclusive with `inputs` and takes two forms:
+
+- `{entry}` — another entry in this store. **It caps the grade**, the way an input does.
+- `{external, who_could_confirm}` — a premise this repository does not hold and names who could settle
+  it. **One of these removes the cap entirely**, because a chain whose weakest link is outside the store
+  has no worst input to inherit from: there is nothing here to be worse than.
+
+**So `computed:` caps against whatever is nameable, and stops capping when something is not.** That is
+not a weaker rule; it is the rule declining to manufacture a bound out of an absence. An entry resting
+on an external premise is not ungraded — it is graded by 5.3's ordinary route and says out loud that a
+premise underneath it is unverifiable here, with a name attached to who could verify it.
+
+
 **A target has no row in this table. And no new one is made (2026-09-19).** A **target accuracy** a person stated rides in a card as `target_relative_error` and the like, but **it has neither a source nor a grade.** The reason is the same split as §4.6 — just as the device registry's `limits` is **what the device can do** while `envelope/safety.json` is **what we permit**, a measured accuracy is a **claim** about the world and a target accuracy is a **decision** about what we will accept. **A decision is right by being made.** A grade is a scale for how far a claim can be trusted, so it has nowhere to attach on a decision.
 
 `operator_recall:` looks closest but is **the wrong kind**: that is an operator stating **a fact about the world** from memory, and it is E5 because memory is unreliable about facts. Grading a target E5 would be saying **the person may be misremembering their own target.** `assumed:` is wrong for the same reason — it records a person's target as an assumption.
@@ -2063,7 +2080,37 @@ The check list:
 55. Whether `ALLOWED_PATHS` permits the filenames the §7 tree names (§7.1). **§7 is the human-facing record and what refuses is the regex**, so a seat that fixed only one side could not tell why it kept being blocked — on 2026-09-19 `bridge/README.md` and `contracts/quantities.json` were in that position and **both times a line went into §7.** Being one-directional is **design**: bidirectional means either half placed first is blocked and the two seats can never get in, and one-way means **exactly one passing order exists** (§7.1). **It reads only each line's first token, so it does not see files listed on a directory line** — there are nine such lines in §7, of which two `envelope/` ones are real declarations, and this is not on the docstring's list of deliberate non-catches
 60. Whether every observable id is registered in `quantities.json` (§7, §11-8). **Inclusion, not synchronisation** — `observables.json` registers *what can be produced and compared*, so it is a **subset** of `quantities.json` and not the reverse. **No escape hatch such as `not_yet_registered`**: registering an observable carries **the more expensive promise** of `estimator`, `window_required` and `producible_by`, so **a name blessed on the expensive side cannot be held pending on the cheap one.** The check and the registrations that make it hold went in **one commit** — landing the check alone would stop **every seat's next commit** on a condition `plan.md` already records as unsatisfied
 61. How far behind an envelope is against the published export — **advisory, not a failure** (§4.3.2). A lagging envelope is not a defect (a consumer may pin deliberately) and **a gate that goes red on correct inaction teaches people to skip it** (§6.2.1). No new status is created; **a passing message carries the number** (§8). **It compares against the published export, not the store**: an envelope behind a stale export cannot close the gap by copying, so folding it into one number mixes **two racks with different owners.** It sits differently from check 26, which compares an envelope against **the commit it named** — that is integrity and this is currency, and the route by which the microscope envelope being 34 behind while sitting inside `0 failed` was noticed was a person opening two files by hand
+
+    **A second leg, added 2026-09-20, with its own owner.** The first compares an envelope against the
+    export that fed it. The second compares that export against the store -- a bridge that existed only
+    in `export_snapshot.py --check`, which is a librarian tool and therefore runs in **no gate**. While
+    the store moved twice one morning the published export sat on the previous night's version, every
+    seat's gate read `0 failed`, and this check called the microscope envelope **`current`** -- true of
+    the export it copied and two versions stale of the store. **A misleading word is worse than silence,
+    because silence does not reassure**, and the person was choosing safety ceilings against that
+    envelope at the time. Two legs and two owners, kept as separate counts: the original argument forbade
+    **merging two lags into one distance**, and two distances reported side by side do not.
+
 62. Whether check 43 **derives** a `computed:` grade **from its inputs** (§5.3). 43 derives grades from source kinds, and its `computed:` branch alone only asks whether the declared value is in `("E4","E5")` and **reads no inputs at all** — E5 passes where §5.3 says E4. **A grade that looks derived and is not is the quietest kind of wrong**: what would catch it is precisely what is absent. The rule is `max(E4, worst input)`, where **the E4 floor is the limit of how good arithmetic can make it** and **the worst input is the limit of how good the chain can be.** It does on entries what check 21 already did on cards — **a place where one rule had two enforcers and only one knew the rule** (§11-11's shape, with both copies inside the validator).
+
+    **Corrected 2026-09-20: `inputs` names three different things and a grade composes from only one.** A
+    **relation's formal parameters** (`derived_quantity`, `dimensionless_group`) are bound variables --
+    `bead_diameter` in `bead_diameter**2/diffusivity` is one -- and 5.3's max(E4, worst input) is a rule
+    about a **computed value**, so a relation composes no numbers and takes no grade. `tau_d` is E4 in a
+    store holding no diameter at all. A **quantity an inference rests on** is the one shape that composes.
+    A **claim it rests on** has no numbers to compose, and now has its own field (`supports`, 5.3).
+
+    **The evidence that the distinction was real cut the seat's own count down.** `tau_d` and
+    `tracer_diffusivity_expected` share a kind and a formula key and the check treated them differently,
+    for one reason: the second's parameter names **coincidentally** match names the store holds values
+    for. Carriers 0, 0 against 1, 1, 1. **Editing one string inside a formula would have produced a
+    grade** -- task 020's option 2, refused at the front door, arriving at the side. The honest count of
+    derivations is **1, not 2**, and the librarian seat argued the point that lowered it.
+
+    **Fourth instance of section 8's scoping class, and the first that was green.** The three before it
+    went loudly red or produced a visibly wrong number. Here what the check happened to see was the
+    carrier map, and seeing the wrong set produced a passing line with a number in it.
+
 64. Whether `--expect-fail` reaches **input** fixtures that are not cards (§11-7). `--expect-fail` asserts that fixture **cards** fail, and that is how a silently broken check is caught, but that folder holds files that are neither cards nor artifacts — two `.md` exist to fail their paired `.json` at check 9, and a group's `receiving_agent/CLAUDE.md` exists to fail the group at check 50. **They are inputs, and nothing was sweeping them.**
 
     **Deleting an input is already caught** — the subject stops failing and `--expect-fail` says so. **What is not caught is an input that remains and stops doing its job while another defect keeps the subject failing**, and then the fixture **passes for the wrong reason.** So it does not try to separate live inputs from dead ones — that is **running** the fixture and is `--expect-fail`'s job. All that can be said is **that every file is reached**: it is accepted if it shares a stem with a swept file, or sits in a group folder with a swept member. Neither, and it is **dead weight**, and **in a directory whose purpose is failing, dead weight is indistinguishable from a test**
