@@ -3658,6 +3658,95 @@ def check_56_undecided_names_the_settled_unit(b: Bundle) -> list[Finding]:
                               f"which is 11-2's settled unit")]
 
 
+def check_57_irreversible_rests_on_a_confirmed_limit(b: Bundle) -> list[Finding]:
+    """An irreversible action is bounded by a limit a person actually checked.
+
+    4.6.6.1 rule 3 settled the boundary this sits on. Two channels take
+    commands and report nothing back, and the person chose to automate them
+    with the blind spot recorded rather than to refuse them -- so a command
+    goes out, nothing treats that channel's state as confirmed, and the run
+    log carries `verification: none`. The third bullet is this check:
+    **an irreversible action still requires a confirmed limit.** Being able to
+    command the trap is not being able to confirm it is off.
+
+    So `carried_over` is not confirmation here. It is legal in the envelope --
+    forbidding it would mean confirming every ceiling before the file can
+    exist, and then nobody starts the file -- and that licence stops at the
+    actions that cannot be undone. `physical` carries who, when and how, and
+    only that clears an irreversible action.
+
+    WHAT IT DOES NOT COVER. A limit can be confirmed while compliance with it
+    is unverifiable: `optical_power_max` is `physical` today and the channels
+    it bounds are `read_back: false`, so nothing reads back whether the limit
+    held. That is a different failure and 4.6.6.1 puts it on the run log's
+    `verification` field, not here. Folding it in would make one check carry
+    two rules.
+
+    Reversibility and the parameter list come from check 22's reading of
+    `actions[]`, not from a second notion of irreversible (11-11).
+    """
+    plans = [c for c in b.of_kind("plan") if "__unreadable__" not in c.data]
+    if not plans:
+        return [Finding(57, NA, "no plan cards")]
+
+    envelopes: dict[str, dict] = {}
+    for env in REPO.glob("*_agent/envelope/safety.json"):
+        try:
+            doc = json.loads(env.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        limits: dict[str, dict] = {}
+        for tgt in doc.get("targets", []) or []:
+            for name, lim in (tgt.get("limits") or {}).items():
+                if isinstance(lim, dict) and "confirmation" in lim:
+                    limits[name] = lim
+        envelopes[env.parent.parent.name] = limits
+
+    out: list[Finding] = []
+    cleared = ungoverned = 0
+    for c in plans:
+        agent = c.data.get("author")
+        limits = envelopes.get(str(agent))
+        for a in c.data.get("actions", []) or []:
+            if a.get("reversible"):
+                continue
+            for param in a.get("parameters", []) or []:
+                if limits is None:
+                    ungoverned += 1
+                    continue
+                # A limit is named for the quantity it bounds: <quantity>_max
+                # or <quantity>_min, which is how envelope_safety.schema.json
+                # names all six of them.
+                lim = limits.get(f"{param}_max") or limits.get(f"{param}_min")
+                if lim is None:
+                    ungoverned += 1
+                    continue
+                kind = (lim.get("confirmation") or {}).get("kind")
+                if kind == "physical":
+                    cleared += 1
+                else:
+                    out.append(Finding(57, FAIL,
+                        f"action {a.get('id')!r} is irreversible and rests on {param!r}, whose limit is "
+                        f"confirmed as {kind!r} -- carried from another document and not checked here. "
+                        f"4.6.6.1 rule 3: an irreversible action requires a confirmed limit, and "
+                        f"carried_over's licence stops at what cannot be undone (2.1 rule 7)", c.rel))
+    if out:
+        return out
+    if ungoverned and not cleared:
+        # Expand, migrate, contract. The envelopes are days old and carry the
+        # two limits P0 ranks highest, not yet the ones these actions rest on.
+        # Failing now would refuse work that could not have been done, which
+        # is the deadlock that makes a gate something to go around; this flips
+        # itself the moment any irreversible parameter gains a limit.
+        return [Finding(57, PENDING, f"{ungoverned} irreversible parameters have no limit in their agent's "
+                                     f"envelope yet, so there is no confirmation to read. This becomes a "
+                                     f"failure once any of them is bounded")]
+    if not cleared and not ungoverned:
+        return [Finding(57, NA, "no irreversible actions")]
+    return [Finding(57, PASS, f"{cleared} irreversible parameters rest on limits a person physically "
+                              f"confirmed; {ungoverned} are not bounded by the envelope yet")]
+
+
 def check_50_delivery_has_a_reader(b: Bundle) -> list[Finding]:
     """A delivered envelope has a receiver with a reason to read it.
 
@@ -4252,6 +4341,7 @@ CHECKS = [
     check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,
     check_56_undecided_names_the_settled_unit,
+    check_57_irreversible_rests_on_a_confirmed_limit,
     check_60_observables_are_registered_quantities,
     check_61_envelope_currency,
     check_42_check_registry, check_41_seat_attribution,
