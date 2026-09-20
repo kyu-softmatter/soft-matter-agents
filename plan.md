@@ -1,9 +1,3 @@
-<!-- generated-from: plan_ko.md sha256:b3b8a2efea2d2456695caa7610f05770c50fcbac439a6847bd633c1b7eec6419 -->
-<!-- This file is the English rendering of plan_ko.md, which is the record.
-     Do not edit it by hand: edit plan_ko.md and regenerate. Where the two
-     disagree the Korean wins (0, language convention). contracts/hooks/pre-push
-     recomputes the hash above and refuses a push when it no longer matches. -->
-
 # plan.md — four-agent research system, redesign
 
 > Status: draft v0.2 (2026-09-16) · Scope: **design principles and boundaries only**. Implementation detail is not settled here.

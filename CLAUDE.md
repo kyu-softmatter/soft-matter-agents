@@ -4,9 +4,8 @@ Four agents for soft-matter research: a microscope agent and a simulation
 agent that design and run experiments, a librarian that owns all knowledge,
 and a bridge that carries cards between the two executing agents.
 
-The design lives in **`plan_ko.md`** (Korean) — that is the record. **`plan.md`
-is its English rendering**, generated and never hand-edited; where the two
-disagree the Korean wins. Read one of them before changing anything structural. Principles **P0–P16** and decisions **D1–D12** there override
+The design lives in **`plan.md`**, in English like everything else here. Read
+it before changing anything structural. Principles **P0–P16** and decisions **D1–D12** there override
 habit and convenience: if work would violate one, the work is wrong, not the
 principle. Changing a principle means editing `plan.md` first, in the same
 commit, with the reason.
@@ -84,7 +83,7 @@ check catches this. See §6.2.
 
 **Safety outranks everything (P0).** People first, then instruments, then
 samples and data. Safety decisions are made by deterministic code, never by a
-model, and ambiguity stops rather than proceeds. `plan.md` §2.1 lists the
+model, and ambiguity stops rather than proceeds. §2.1 lists the
 enforced rules — read the list, not a count.
 
 **One agent, one session (D11), in three tiers (D12).** The four agents always
@@ -202,14 +201,14 @@ gap early.
 
 - Everything inside this repository is written in **English**: code, schemas,
   comments, filenames, commit messages, agent instructions.
-- **`plan_ko.md` is the one exception and stays in Korean** — it is the design
-  document of record. `plan.md` is generated from it in English and carries
-  `generated-from: plan_ko.md sha256:<hex>` in its head; `contracts/hooks/pre-push`
-  recomputes that hash and refuses a push when the rendering has gone stale.
-  The hook cannot translate — a model is needed and P0 puts no model in a gate —
-  so it compares and refuses, and regenerating is a person's or a session's work.
+- **There is no exception any more.** `plan.md` was Korean until 2026-09-20,
+  then briefly a generated English rendering of `plan_ko.md`, and is now the
+  record itself. The Korean text left version control and stays in history.
+  What the two-file arrangement cost is why it ended: a hash bound the pair,
+  no generator existed, so every edit to the record was two hand-edits plus a
+  recomputed header, and two architecture seats could not hold it at once.
 
-## Where to look in plan_ko.md
+## Where to look in plan.md
 
 | | |
 |---|---|

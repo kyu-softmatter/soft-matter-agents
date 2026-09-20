@@ -2,3 +2,8 @@
 __pycache__/
 *.pyc
 .venv/
+
+# The Korean record left version control on 2026-09-20: plan.md is the record
+# now, in the language everything else in this repository already uses. The
+# Korean text stays in history and is not deleted from it.
+plan_ko.md
