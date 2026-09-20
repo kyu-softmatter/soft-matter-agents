@@ -1,7 +1,7 @@
 {
   "artifact": "envelope_safety",
   "schema_version": "0.1",
-  "policy_version": "1",
+  "policy_version": "2",
   "agent": "microscope",
   "written_by": "kyuhwan",
   "written_at": "2026-09-20",
@@ -11,16 +11,16 @@
       "label": "The instrument itself",
       "limits": {
         "optical_power_max": {
-          "value": 100,
-          "unit": "mW",
-          "note": "Laser output.",
-          "confirmation": {
-            "kind": "physical",
-            "by": "kyuhwan",
-            "on": "2026-09-20",
-            "how": "Measured at the sample plane with a power meter."
-          }
-        },
+  "value": 1020,
+  "unit": "mW",
+  "note": "Laser output at the sample plane. The highest point the dial reached under measurement; the next point up over-ranged the meter and is an extrapolation, not a measurement.",
+  "confirmation": {
+    "kind": "physical",
+    "by": "kyuhwan",
+    "on": "2026-09-20",
+    "how": "Measured at the sample plane with a Thorlabs power meter across the dial range, by the person recording it here. The bench work predates this entry; what is dated today is this person confirming it holds for this instrument as configured."
+  }
+},
         "objective_clearance_min": {
           "value": 130,
           "unit": "um",
