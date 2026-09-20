@@ -220,6 +220,12 @@ ARTIFACT_SCHEMA = {
     "screening": "screening.schema.json",
     "run_log": "run_log.schema.json",
     "envelope_safety": "envelope_safety.schema.json",
+    # Split from envelope_safety on 2026-09-20 (plan.md 7): the simulation tree
+    # holds budget.json and no safety.json, because the grade of harm differs.
+    # Writing the schema is not wiring it -- check 1 resolves an artifact
+    # through this dict alone, so until this line existed a budget.json would
+    # have been refused as an unknown artifact the moment it appeared.
+    "envelope_budget": "envelope_budget.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]
@@ -661,6 +667,18 @@ def check_04_assumptions_explained(b: Bundle) -> list[Finding]:
     return out or [Finding(4, PASS, f"{n} assumed numbers are explained")]
 
 
+def envelope_files() -> list:
+    """Every agent's ceilings file, under either name (plan.md 7).
+
+    Three checks used to glob `envelope/safety.json` by name. After the split
+    that made the simulation tree's ceilings **invisible** to all three rather
+    than refused by them -- a FAIL is loud and an empty glob is not, which is
+    the worse of the two failures and the reason this is one function.
+    """
+    return sorted(REPO.glob("*_agent/envelope/safety.json")) + \
+           sorted(REPO.glob("*_agent/envelope/budget.json"))
+
+
 def check_05_envelope(b: Bundle) -> list[Finding]:
     """The ceilings a person wrote, and whether a run could read them (2.1 rule 7).
 
@@ -670,7 +688,7 @@ def check_05_envelope(b: Bundle) -> list[Finding]:
     checked here is that every ceiling converts -- because the alternative is
     that it does not, at run time, inside si(), long after the person wrote it.
     """
-    envs = sorted(REPO.glob("*_agent/envelope/safety.json"))
+    envs = envelope_files()
     if not envs:
         # Say what shape is available, rather than only that nobody has written
         # one. This globs every agent, and until 2026-09-19 the line read "a
@@ -1505,7 +1523,7 @@ def check_18_scope_range(b: Bundle) -> list[Finding]:
             out.append(Finding(18, FAIL, "scope_approval without valid_until", c.rel))
         if not c.data.get("max_runs"):
             out.append(Finding(18, FAIL, "scope_approval without max_runs", c.rel))
-    envs = list(REPO.glob("*_agent/envelope/safety.json"))
+    envs = envelope_files()
     if not envs:
         out.append(Finding(18, PENDING, "subset-of-envelope test needs envelope/safety.json, which M1 produces"))
     return out
@@ -3837,7 +3855,7 @@ def check_57_irreversible_rests_on_a_confirmed_limit(b: Bundle) -> list[Finding]
         return [Finding(57, NA, "no plan cards")]
 
     envelopes: dict[str, dict] = {}
-    for env in REPO.glob("*_agent/envelope/safety.json"):
+    for env in envelope_files():
         try:
             doc = json.loads(env.read_text())
         except (OSError, json.JSONDecodeError):
@@ -3845,7 +3863,15 @@ def check_57_irreversible_rests_on_a_confirmed_limit(b: Bundle) -> list[Finding]
         limits: dict[str, dict] = {}
         for tgt in doc.get("targets", []) or []:
             for name, lim in (tgt.get("limits") or {}).items():
-                if isinstance(lim, dict) and "confirmation" in lim:
+                if not isinstance(lim, dict):
+                    continue
+                # A budget limit carries `chosen_by` and never `confirmation`:
+                # P0 rule 7 binds safety.* only (4.6.6.1, plan.md 7). Recorded
+                # here rather than skipped, so an irreversible action bounded
+                # only by a budget fails this check instead of passing it by
+                # being unseen. The simulation tree has no irreversible action
+                # today; that is a fact about today and not about the rule.
+                if "confirmation" in lim or "chosen_by" in lim:
                     limits[name] = lim
         envelopes[env.parent.parent.name] = limits
 
