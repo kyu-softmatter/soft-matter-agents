@@ -996,7 +996,21 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
             out.append(Finding(8, FAIL, f"the source card cannot be read: {exc}", h.rel))
             continue
         if on_disk.get("revision") != src.get("revision"):
-            continue          # the source moved on; the round is not comparable, and saying so beats a false pass
+            # The source moved on. Skipping the comparison is right -- the
+            # ledger recorded a revision that no longer exists, and failing it
+            # would refuse the one legitimate way out of a pin (5.3.1). Saying
+            # so is not optional: until 2026-09-19 this branch was a bare
+            # `continue` under a comment claiming it said so, which is the
+            # defect this repository spent the day counting -- prose promising
+            # a guard the code does not provide. A superseded round is
+            # invisible otherwise, and the envelope already delivered to the
+            # receiving side still describes the old revision.
+            out.append(Finding(8, PENDING, f"{src.get('path')} is now revision {on_disk.get('revision')} and "
+                                           f"this ledger records revision {src.get('revision')}, so the "
+                                           f"transport cannot be recomputed. The round is superseded rather "
+                                           f"than broken; what was delivered still describes the old "
+                                           f"revision", h.rel))
+            continue
         if card_sha(on_disk) != src.get("sha256"):
             out.append(Finding(8, FAIL, f"{src.get('path')} at revision {src.get('revision')} no longer "
                                         f"hashes to what this ledger recorded: either it was edited without "
