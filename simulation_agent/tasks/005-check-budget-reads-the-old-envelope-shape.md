@@ -2,10 +2,19 @@
 
 Written by `manager-simulation`. You read this; you do not edit it (§6.2-2).
 
-**Do this before the person saves `envelope/safety.json`.** It is the first
-thing that file will touch, and it has never run: until now `read_envelope()`
-returned `None` because the file did not exist, so the branch below was never
-reached.
+**The person saved `envelope/safety.json` on 2026-09-20 at 10:33, so this is
+live rather than impending.** Until then `read_envelope()` returned `None` and
+the branch below was never reached; it is reached now. Confirmed against the
+real tree, not a clone:
+
+```
+'smoke'  ->  KeyError: 'smoke_budget'
+'full'   ->  'unavailable'   compared=0
+```
+
+**This is the only thing between here and the first entry in `runs/`.** Check 5
+counts six converting ceilings — the microscope's two and this agent's four —
+and the validator is otherwise green.
 
 ## What I did
 
