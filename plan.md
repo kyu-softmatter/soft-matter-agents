@@ -1,4 +1,4 @@
-<!-- generated-from: plan_ko.md sha256:9150b8049e5b1f3eeab570ed46348ef0248a23c93fd081923f73da7433561981 -->
+<!-- generated-from: plan_ko.md sha256:b3b8a2efea2d2456695caa7610f05770c50fcbac439a6847bd633c1b7eec6419 -->
 <!-- This file is the English rendering of plan_ko.md, which is the record.
      Do not edit it by hand: edit plan_ko.md and regenerate. Where the two
      disagree the Korean wins (0, language convention). contracts/hooks/pre-push
@@ -1976,6 +1976,10 @@ Because one question's fan-out **has to read one store at whatever revision.** W
     **It is permitted for the same reason as `basis`, and for a different reason from the PFS case below.** What was refused down there was that **what was missing was data** — the PFS fact did not exist as an entry. Here **the entry exists and the field cannot name it.** When what is missing is an **expression**, widen the expression; when what is missing is **data**, make the data. Separating those two is the whole of this judgement.
 
     **And the resolution machinery already exists** — check 54 resolves `basis`'s `kb:` references against that card's `kb_refs`. It is a symmetric repair with no new vocabulary. **Check 62 in fact gets easier**: today it has to find the name in the store and ask about carrier unanimity, whereas `kb:<entry_id>` **points at exactly one, so the unanimity question does not arise.**
+
+    **The direction of the asymmetry is what names this defect.** The same three inputs are **legal in an entry and illegal in a card** -- the entry schema accepts names that resolve against the store, while check 17 accepts a card's `inputs` only from that card's own `numbers[]` and `CONSTANTS`. And **the side that must show the gate its grounds is the card, and the side that cannot state them is also the card.** The microscope manager wrote it that way, and the sentence says why this is a defect more briefly than anything else here.
+
+    **The loop was closed, which is the evidence that the expression gap is not cosmetic.** The fan-out could not move to the current store because **moving it made A2 inexpressible**: `missing` empties, the axis falls to `failed`, and that is false about an axis that ran fine and is a state that stops a plan. So **this one field was holding all seven cards of the re-pin.** Meanwhile the executing seat had computed `tracer_diffusivity_expected` -- 0.09 um^2/s, tau_d about 300 s, crossing the simulation's independent 312 s within an order of magnitude -- and **reverted it for want of anywhere to write the input down.** The first time two agents reached the same quantity independently, and it lived in a message rather than in a card (6.2 rule 2).
 
     Implementation is manager-microscope's — the same place that widened `basis`.
 
