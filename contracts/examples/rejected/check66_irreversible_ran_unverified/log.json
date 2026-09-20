@@ -1,0 +1,50 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "mic-20260917-901-r1",
+  "plan_id": "plan-mic-20260917-966-r1",
+  "revision": 1,
+  "approval": {
+    "id": "appr-mic-20260917-901",
+    "kind": "plan_approval"
+  },
+  "safety_policy_version": "3",
+  "stop_criteria": [
+    "sc_record_length"
+  ],
+  "t0_wall": "2026-09-17T00:00:00+00:00",
+  "t0_mono": 8804.0,
+  "backend": "orchestrator",
+  "registry_source": "librarian_agent/kb/staging/devices.v0.json",
+  "time_base_note": "REJECTED FIXTURE. Every field here is well formed and check 1 passes it; what fails is check 66. The run carries out plan-mic-20260917-001-r1, whose fourth action act_bleach_ref is reversible: false -- bleaching a reference field cannot be undone. The dispatch records verification: none, so the command went out and nothing read back whether the limit it rests on held. 2.1 rule 8: no read-back is no signal, and an absent signal does not permit. Note what is NOT wrong: the limit may be perfectly well confirmed, which is check 57's question and passes here. This fixture exists because those two failures were nearly folded into one check, and a single check could not have said which of them this run broke.",
+  "events": [
+    {
+      "t_mono": 0.0,
+      "time_base": "software",
+      "event": "preflight"
+    },
+    {
+      "t_mono": 0.31,
+      "time_base": "software",
+      "event": "dispatch",
+      "action": "act_bleach_ref",
+      "channel": "dia_lamp",
+      "from": "actions[act_bleach_ref]",
+      "verification": "none",
+      "params": {
+        "illumination_power": {
+          "value": 4.0,
+          "unit": "mW",
+          "grade": "E2",
+          "from": "numbers[illumination_power]"
+        }
+      }
+    },
+    {
+      "t_mono": 62.0,
+      "time_base": "trigger",
+      "event": "finished"
+    }
+  ],
+  "finished_at": "2026-09-17T00:01:02+00:00"
+}

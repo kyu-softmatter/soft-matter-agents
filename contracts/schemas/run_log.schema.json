@@ -89,6 +89,10 @@
           "type": "string",
           "description": "the plan.json field path this event was derived from. Commands are derived, never composed (4.6.1)"
         },
+        "verification": {
+          "enum": ["readback", "none"],
+          "description": "Whether the instrument was asked to confirm this command took effect. 4.6.6.1 rule 3 put its rule on this field and nothing carried it until 2026-09-20: the subsection says the run record carries `verification: none` for a channel that cannot be confirmed, and no such field existed. A rule written with nothing to hold it is the class counted most often that day.\n\n`readback` means the channel's state was QUERIED AFTER the command and matched what was commanded. A return code is not a read-back: on the Tweez 300 a zero means the GUI accepted the text, and six distinct ways a command can be ignored all return zero (tweez300_reports_nothing_back, E3). An acknowledgement is `none`.\n\nOPTIONAL ON PURPOSE, and check 66 rather than this schema is what requires it. Which actions need a read-back depends on reversibility, and reversibility lives on the plan's actions[] where a run log cannot see it -- an irreversible action requires one, a reversible one may legitimately go without. Leaving it out of `required` also keeps the two run logs written before the field existed valid, which is the honest reading: nothing asked them to record a read-back, so their silence is not a claim."
+        },
         "params": {
           "type": "object",
           "description": "parameters as sent. Each one names the field it came from, so a number in a command can be traced to the card that justified it (check 14).",

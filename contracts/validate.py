@@ -4240,6 +4240,111 @@ def check_54_kb_basis_resolves(b: Bundle) -> list[Finding]:
     return out or [Finding(54, PASS, f"{seen} kb: basis references resolve to the citing card's kb_refs")]
 
 
+def check_66_irreversible_run_reads_back_compliance(b: Bundle) -> list[Finding]:
+    """An irreversible action's run says whether compliance was read back (4.6.6.1).
+
+    57's sibling, and a second check rather than a second clause in it. Two
+    different failures block an irreversible action: the limit is unconfirmed
+    -- **a person did not measure** -- and the limit is confirmed while nothing
+    reads back whether it held -- **a machine cannot see**. 57 reads the
+    envelope and the plan's `actions[]`; this reads the run record, which may
+    not exist yet. Architecture put both on 57 in a message and the seat
+    holding it followed the document instead, writing "not handled here" into
+    the docstring. This is the not-handled half.
+
+    2.1 rule 8 is the substance. A confirmed ceiling bounds what may be
+    DEMANDED and says nothing about what HAPPENED, and where nothing reads
+    back there is no signal at all -- an absent signal does not permit.
+
+    Three ways to fail, and the third is the one prose cannot catch:
+
+      - the event records no `verification` at all -- the run does not stand,
+        and this is separate from recording `none`, which is a statement
+      - `verification: none` -- the demand was legitimate, the outcome unknown
+      - `verification: readback` on a channel the registry marks
+        `read_back: false` -- the log claims something the instrument cannot
+        do. `laser_combiner` and `optical_tweezers` are that pair, and they
+        are exactly the two 4.6.6.1 rule 3 was written about
+
+    WHAT IT DOES NOT DO. It does not fail a device the channel table has never
+    heard of. That is check 38's finding and already open on two names; having
+    two checks red on one defect would say the registry is wrong twice.
+    """
+    logs = b.of_artifact("run_log")
+    if not logs:
+        return [Finding(66, NA, "no run logs")]
+
+    plans = {c.data.get("id"): c.data for c in b.of_kind("plan")
+             if "__unreadable__" not in c.data}
+
+    # read_back is a property of the CHANNEL; a plan may name an element
+    # instead, so both resolve to the channel's answer (check 38's rule).
+    devices, _dev_rel = _device_table()
+    reads_back: dict[str, bool] = {}
+    for ch in (devices or {}).get("channels", []) or []:
+        rb = ch.get("read_back")
+        if not isinstance(rb, bool):
+            continue
+        reads_back[ch["id"]] = rb
+        for el in ch.get("elements") or []:
+            reads_back[el["id"]] = rb
+
+    out: list[Finding] = []
+    cleared = unresolved_plan = 0
+    for log in logs:
+        doc = log.data
+        plan = plans.get(doc.get("plan_id"))
+        if plan is None:
+            plan = plans.get(f"{doc.get('plan_id')}-r{doc.get('revision')}")
+        if plan is None:
+            # Which plan a run carried out is check 15's question, not this
+            # one. Counted so the pass line cannot read as "all verified"
+            # when it means "nothing was resolvable".
+            unresolved_plan += 1
+            continue
+        by_id = {a.get("id"): a for a in plan.get("actions", []) or []}
+        irreversible = {aid for aid, a in by_id.items() if not a.get("reversible")}
+
+        for ev in doc.get("events", []) or []:
+            m = re.match(r"actions\[([^\]]+)\]", str(ev.get("from") or ""))
+            aid = m.group(1) if m else ev.get("action")
+            if aid not in irreversible:
+                continue
+            device = ev.get("channel") or by_id[aid].get("device")
+            v = ev.get("verification")
+            if v is None:
+                out.append(Finding(66, FAIL,
+                    f"action {aid!r} is irreversible and its dispatch records no `verification` at all. "
+                    f"4.6.6.1 rule 3: the run record carries the read-back for that channel, and if that "
+                    f"is empty the run does not stand. Recording `none` is a statement; recording nothing "
+                    f"is not", log.rel))
+            elif v == "none":
+                out.append(Finding(66, FAIL,
+                    f"action {aid!r} is irreversible and ran on {device!r} with nothing reading back "
+                    f"whether the limit held. 2.1 rule 8: no read-back is no signal, and an absent "
+                    f"signal does not permit. A confirmed ceiling bounds what may be demanded, not what "
+                    f"happened (4.6.6.1 rule 3)", log.rel))
+            elif reads_back.get(device) is False:
+                out.append(Finding(66, FAIL,
+                    f"action {aid!r} claims `verification: readback` on {device!r}, which the channel "
+                    f"table marks read_back false -- that channel reports nothing back, so the claim "
+                    f"describes something the instrument cannot do (4.6.6.1 rule 3)", log.rel))
+            else:
+                cleared += 1
+
+    if out:
+        return out
+    if unresolved_plan and not cleared:
+        return [Finding(66, PENDING, f"{unresolved_plan} run log(s) name a plan that is not in this tree, "
+                                     f"so which of their actions are irreversible cannot be read "
+                                     f"(check 15 owns that link)")]
+    if not cleared:
+        return [Finding(66, PASS, f"{len(logs)} run log(s) dispatched no irreversible action; there is "
+                                  f"nothing whose compliance had to be read back")]
+    return [Finding(66, PASS, f"{cleared} irreversible dispatch(es) read compliance back from a channel "
+                              f"that can report it")]
+
+
 def check_60_observables_are_registered_quantities(b: Bundle) -> list[Finding]:
     """Every observable id is declared in contracts/quantities.json (section 7).
 
@@ -4536,6 +4641,7 @@ CHECKS = [
     check_47_registry_prose_names_real_seats,
     check_56_undecided_names_the_settled_unit,
     check_57_irreversible_rests_on_a_confirmed_limit,
+    check_66_irreversible_run_reads_back_compliance,
     check_60_observables_are_registered_quantities,
     check_61_envelope_currency,
     check_42_check_registry, check_41_seat_attribution,
