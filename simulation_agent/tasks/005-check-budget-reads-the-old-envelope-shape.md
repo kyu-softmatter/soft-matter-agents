@@ -54,6 +54,21 @@ ceilings = targets[target]["limits"]
 Check the shape yourself against `contracts/schemas/envelope_safety.schema.json`
 rather than taking this diff — I am the one who got it wrong last time.
 
+**Since verified end to end**, in a clone with a real simulation
+`envelope/safety.json` in place. Before the change: `smoke` raises
+`KeyError`, `full` returns `unavailable` having compared nothing. After the
+single line above, and nothing else:
+
+```
+'smoke'  ->  'inside'   compared=2   exceeded=[]
+'full'   ->  'inside'   compared=2   exceeded=[]
+```
+
+Two ceilings actually compared instead of zero, and the smoke branch reaches
+`smoke_budget` inside `limits` without further change. The validator stays at
+`0 failed` with that envelope present, and check 5 counts six converting
+ceilings — the microscope's two and this agent's four.
+
 ## Why the gate did not catch it, which is the part worth keeping
 
 I tested the schema in nine cases and every one passed. **I never ran the code
