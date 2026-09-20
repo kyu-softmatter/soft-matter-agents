@@ -1710,7 +1710,7 @@ rebuild/
                              `sys.stdlib_module_names`** -- `jsonschema`, `referencing`, `numpy`. `referencing` is
                              separate because check 1 builds a `$ref` registry itself. **HOOMD cannot go here** --
                              it is not on PyPI and is conda-forge only, so `uv sync` gives the pipeline and not the
-                             engine. That separation matches 9.2 rule 4 and 4.6: the mock is a first-class backend,
+                             engine. That separation matches §9.2 rule 4 and §4.6: the mock is a first-class backend,
                              so **a machine running only the validator and the mock does all of M2's validation**
   uv.lock                  the exact versions that manifest resolves to. **Without it another machine resolves
                              different ones** -- the person's requirement of "easy on another computer too" hangs on this file
@@ -1722,7 +1722,7 @@ rebuild/
                              layer, and **numbers especially are kept out** (they go stale on being written; wrong
                              three times in one day in `CLAUDE.md`).
                              **Architecture's** -- it is `README.md`'s neighbour and belongs to no agent.
-                             It carries the same coupling as a root file (the addendum to 7.1 rule 9):
+                             It carries the same coupling as a root file (the addendum to §7.1 rule 9):
                              `ALLOWED_PATHS` first, `SHARED_PATHS` to make the boundary `design`, and then 7 closes it
     index.html             a one-screen landing page. The loop, the four-agent diagram, a slot for the film, three principles.
                              **No build step and no dependency** -- the CSS, SVG and script are inside the file.
@@ -1733,7 +1733,7 @@ rebuild/
     schemas/               goal/plan/plan_approval/scope_approval/result/refusal/ask
                            + axis/synthesis/common/kb_entry
     units.json             the unit registry (the record)
-    units.md               a description of that registry + the mandatory form of a dimensionless-group entry (5.7)
+    units.md               a description of that registry + the mandatory form of a dimensionless-group entry (§5.7)
     observables.json       the shared observable vocabulary (the record). It grows one entry per question (11-1)
     quantities.json        the **quantity registry** that `numbers[].name` uses (the record). It is kept
                            **beside `observables.json` rather than merged with it**: that one registers *what can be
@@ -1743,9 +1743,9 @@ rebuild/
                            observable is a quantity and not the reverse** -- **a requirement, not a description of
                            the present state**: on 2026-09-19 two observables were not yet here, and check 60
                            enforces that inclusion. Rule 1 was written by the data -- **a name states the quantity,
-                           not its own subject or locus** (5.3.3's `at`, check 44's `subject`). Growth is as with
+                           not its own subject or locus** (§5.3.3\'s `at`, check 44's `subject`). Growth is as with
                            `observables.json`: one at a time when a question needs it, never speculatively
-    seats.json             committer identity -> owned boundary. Read by check 41 (6.2.1)
+    seats.json             committer identity -> owned boundary. Read by check 41 (§6.2.1)
     validation_limits.json the validator's thresholds. `null` means "nobody has chosen one yet"
     validate.py            the deterministic validator
     capabilities/          the "producible observables" table per configuration (modality) -- S3.0's input
@@ -1755,29 +1755,29 @@ rebuild/
         check<NN>_<what>/  a defect that takes two files to express (11-7)
   microscope_agent/                 three top-level folders + CLAUDE.md
     README.md              what this agent is and what it becomes today. **The manager's**
-    tasks/                 **the manager writes and the execution seat reads.** The home of downward instructions (6.2-2).
+    tasks/                 **the manager writes and the execution seat reads.** The home of downward instructions (§6.2-2).
                            An execution seat must not be able to edit its own queue, so this path is the manager's
     CLAUDE.md                       role / what it does not do / permissions
-    envelope/                       safety.json        the safety policy -- the person's, Tier 3 (2.1).
+    envelope/                       safety.json        the safety policy -- the person's, Tier 3 (§2.1).
                                                        the only file envelope owns itself
                                     snapshot.json      a read-only copy of the librarian's KB -- the device registry,
-                                                       valid optical paths, calibration (M3, 4.3.2)
+                                                       valid optical paths, calibration (M3, §4.3.2)
     failures.jsonl                  **dead ends, per seat.** Seats with no `questions/` (librarian, bridge) write only here.
-    rulings.jsonl                   **10.2.1 rulings.** One line per item crossing from a prior repository:
+    rulings.jsonl                   **§10.2.1 rulings.** One line per item crossing from a prior repository:
                                       `{ruling: transfer|downgrade|drop, item, slot, rule, by, at}`.
                                       **`by` names the judgement, not the hand** -- an execution seat may write down
                                       a ruling a manager made, and without `by` the ledger silently attributes every
-                                      ruling to the execution seat (6.2.1's defect in a new file).
-                                      The execution seat writes it. Append-only, never deleted (7.1 rule 9).
-                                      6.2.3 hung a completion condition on it and gave it no path until 2026-09-18 --
+                                      ruling to the execution seat (§6.2.1\'s defect in a new file).
+                                      The execution seat writes it. Append-only, never deleted (§7.1 rule 9).
+                                      §6.2.3 hung a completion condition on it and gave it no path until 2026-09-18 --
                                       it was structurally unsatisfiable
     approvals/                      the only folder a person writes -- plan_approval, scope_approval
     inbox/<thread>/                 **the bridge writes and this agent reads.** Only delivered `r<N>_ask_*.{json,md}`.
                                     **No copy of `status.json` is kept** -- the turn is the fact of being in the
-                                    inbox (7.1 rule 8). **The boundary is `bridge`** -- only the place is inside this
-                                    tree and the writer is the bridge (6.2-3)
+                                    inbox (§7.1 rule 8). **The boundary is `bridge`** -- only the place is inside this
+                                    tree and the writer is the bridge (§6.2-3)
     questions/<qid>/                everything about one question, flat in this one folder
-                                      failures.jsonl                  (validator failures, refusals, deviations, 8.1)
+                                      failures.jsonl                  (validator failures, refusals, deviations, §8.1)
                                       question_microscope_<qid>.md    (S2, for people)
                                       goal.json                       (S2, the record)
                                       axis_<config>_a1.json …          (S3, per configuration × axis constraints)
@@ -1786,47 +1786,47 @@ rebuild/
                                       plan_microscope_<qid>.md        (S5, generated)
                                       refusal.json                    (only when there is one)
     runs/<run_id>/                  raw/, log.json, deviations.json
-    src/                            deterministic code (7.2)
+    src/                            deterministic code (§7.2)
                                       axis_a1_snr.py … axis_a7_driving.py    (S3, seven)
                                       synthesis.py                           (S4)
                                       operator.py                            (S6)
-                                      orchestrator.py   single entry point, parallel (4.6.8)
+                                      orchestrator.py   single entry point, parallel (§4.6.8)
                                       devices/          one per control channel + manual.py, mock.py
     .claude/skills/                 S2 refinement / system_designer / system_operator / deviation recording
-  simulation_agent/                 the same structure, only the axis list differs (4.5.3)
+  simulation_agent/                 the same structure, only the axis list differs (§4.5.3)
     CLAUDE.md
     envelope/                       budget.json (resource ceilings -- wall clock, storage, smoke), snapshot.json.
-                                    **`safety.json` is not here** -- there is no irreversible physical action in this tree (2.1)
+                                    **`safety.json` is not here** -- there is no irreversible physical action in this tree (§2.1)
     approvals/                      the only folder a person writes
     inbox/<thread>/                 **the bridge writes and this agent reads.** Only delivered `r<N>_ask_*.{json,md}`.
                                     **No copy of `status.json` is kept** -- the turn is the fact of being in the
-                                    inbox (7.1 rule 8). **The boundary is `bridge`** -- only the place is inside
-                                    this tree and the writer is the bridge (6.2-3)
+                                    inbox (§7.1 rule 8). **The boundary is `bridge`** -- only the place is inside
+                                    this tree and the writer is the bridge (§6.2-3)
     questions/<qid>/                question_…md, goal.json, axis_<config>_a1–a7.json,
                                     synthesis.json, plan_simulation_<qid>.{json,md}
     runs/<run_id>/                  config, trajectory_meta, observables, log.json
     src/                            axis_a1_stability.py … axis_a5_budget.py + axis_a7_driving.py
-                                    (no A6, 4.5.3), synthesis.py, operator.py,
+                                    (no A6, §4.5.3), synthesis.py, operator.py,
                                     hoomd_backend.py, mock_backend.py
-                                    (no orchestrator and no devices -- there is one thing to coordinate, 4.6.8)
+                                    (no orchestrator and no devices -- there is one thing to coordinate, §4.6.8)
     .claude/skills/                 S2 refinement / system_designer / system_operator / convergence judgement
   librarian_agent/                  the system's only knowledge store (P14)
     CLAUDE.md
     kb/entries/  kb/sources/  kb/distilled/  kb/lessons/
     kb/staging/                     tables extracted from a prior repository. **Not the final form** -- decomposed
-                                      into atomic entries at M3, when the query method is settled (11.1)
+                                      into atomic entries at M3, when the query method is settled (§11.1)
     kb/index.json                   generated. `kb_version` = a content hash over all entries
-    kb/exports/snapshot_<agent>.json  the publication point. Each agent session copies it into its own envelope (4.3.2)
-    queries/log.jsonl               who asked what and why. **Outside `kb/`** -- it is a record, not knowledge (4.3.2)
+    kb/exports/snapshot_<agent>.json  the publication point. Each agent session copies it into its own envelope (§4.3.2)
+    queries/log.jsonl               who asked what and why. **Outside `kb/`** -- it is a record, not knowledge (§4.3.2)
     src/kb_index.py                 index regeneration (store maintenance, from M0)
-    src/mcp_server.py               the read-only, caller-isolated MCP server (4.3.1, M3)
+    src/mcp_server.py               the read-only, caller-isolated MCP server (§4.3.1, M3)
     src/export_snapshot.py          publishes kb/exports/. It does not write into another's directory (M3)
-    src/query_log.py                writing queries/log.jsonl and offline auditing. No read function (4.3.2)
+    src/query_log.py                writing queries/log.jsonl and offline auditing. No read function (§4.3.2)
     .claude/skills/                 answering queries, distillation, conflict handling, external search (writes only here)
   bridge/
     CLAUDE.md
     README.md                       what this agent is and what it becomes today. **The manager's**
-    tasks/                          the manager writes and this seat reads. The home of downward instructions (6.2-2)
+    tasks/                          the manager writes and this seat reads. The home of downward instructions (§6.2-2)
     threads/<thread>/               rounds are separated by filename prefix, not by folder
                                       r1_ask_simulation.json, r1_ask_simulation.md,
                                       r1_hashes.json, r2_…, status.json
@@ -1847,7 +1847,7 @@ rebuild/
                              nowhere in its own commit history** -- P14's "which KB version entered this envelope
                              is a fact of this agent's commit history" does not hold. Two microscope seats measured
                              it and raised it.
-                             Outside the repository it **fails rather than falling back** (8.2: a silent fallback
+                             Outside the repository it **fails rather than falling back** (§8.2: a silent fallback
                              passes the test and fails in the field).
                              **Architecture's** -- it is `.claude/`'s sibling and a shared entry point for four, so
                              it belongs to no agent.
@@ -1867,7 +1867,7 @@ rebuild/
                              approval` right now, and approval is stored in `~/.claude.json` **per project path**,
                              so each worktree has to be approved separately. Before approval an execution seat
                              cannot see the tools, and that failure is silent -- a session with no tools simply
-                             takes the degraded path (0.3-4)
+                             takes the degraded path (§0.3-4)
   .claude/
     settings.json          hooks (validation and permission gates)
     agents/                shared subagent definitions
@@ -2569,7 +2569,7 @@ Rule 1 looks inconvenient and it is the only way the grade system means anything
 
     **The second row bit twice the same day too, and bit in the same direction.** `bridge/README.md` in the morning, `contracts/quantities.json` in the evening. **Both times a line went into §7 and the gate kept refusing** — because what refuses is `ALLOWED_PATHS`. The opposite direction (the regex permits and §7 lacks it) never happened once. **Someone editing `ALLOWED_PATHS` knows they are editing a regex, and someone putting a line into §7 believes they have declared it.**
 
-    **And check 13's message pointed at the wrong file both times**: *"path is not declared in plan.md section 7"*. Putting it in §7 does not resolve it. In the evening case the librarian manager raised "§7 needs a line" to architecture, and architecture put in that line expecting it to work — **both believed the message.** The same as check 41 saying `owns` in the morning when what needed fixing was not `owns`. **The cheapest fix is not a new check but one line of message**, and that alone would have prevented both of today's cases.
+    **And check 13's message pointed at the wrong file both times**: *"path is not declared in plan.md §7"*. Putting it in §7 does not resolve it. In the evening case the librarian manager raised "§7 needs a line" to architecture, and architecture put in that line expecting it to work — **both believed the message.** The same as check 41 saying `owns` in the morning when what needed fixing was not `owns`. **The cheapest fix is not a new check but one line of message**, and that alone would have prevented both of today's cases.
 
     **The record is settled as `ALLOWED_PATHS` (2026-09-19, architecture).** Unlike the third row, **derivation is not the answer here**: the §7 tree is human prose and carries reasons, references and explanations beyond paths, and making it generated loses what it carries. And the opposite direction, parsing §7 to derive the regex, is **the tree parsing refused in the morning.** So here **a comparator is right, and it is the exception to §11-11's general preference for derivation** — because the two places do not hold the same thing.
 
