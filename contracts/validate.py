@@ -640,7 +640,21 @@ def check_05_envelope(b: Bundle) -> list[Finding]:
     """
     envs = sorted(REPO.glob("*_agent/envelope/safety.json"))
     if not envs:
-        return [Finding(5, PENDING, "no envelope/safety.json yet; a person writes it (2.1 rule 7, 10.3 rule 4)")]
+        # Say what shape is available, rather than only that nobody has written
+        # one. This globs every agent, and until 2026-09-19 the line read "a
+        # person writes it" for all of them -- true of the simulation side,
+        # where a person had simply not yet, and misleading for the microscope,
+        # where the schema expresses compute ceilings and nothing else, so no
+        # person could. The keys are read off the schema rather than listed
+        # here, so this stays true when the shape widens (11-11).
+        try:
+            tgt = json.loads((CONTRACTS / "schemas" / "envelope_safety.schema.json").read_text())
+            keys = sorted(k for k in tgt["$defs"]["target"].get("properties", {}) if k not in ("target", "label"))
+        except (OSError, KeyError, json.JSONDecodeError):
+            keys = []
+        shape = f"; the schema's ceilings are {keys} and `additionalProperties` is closed, so an agent whose limits are not in that list has no shape to write in yet" if keys else ""
+        return [Finding(5, PENDING, f"no envelope/safety.json in any agent tree; a person writes it "
+                                    f"(2.1 rule 7, 10.3 rule 4){shape}")]
     out: list[Finding] = []
     n = 0
     for env in envs:
