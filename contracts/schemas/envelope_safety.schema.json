@@ -33,12 +33,20 @@
       "items": {
         "$ref": "#/$defs/target"
       }
+    },
+    "agent": {
+      "enum": [
+        "simulation",
+        "microscope"
+      ],
+      "description": "Which agent's limits this file carries. A discriminator rather than an inference from the path, so the file says what it is and check 5 can compare that against the tree it was found in."
     }
   },
   "required": [
     "artifact",
     "schema_version",
     "policy_version",
+    "agent",
     "targets"
   ],
   "additionalProperties": false,
@@ -129,15 +137,28 @@
     },
     "target": {
       "type": "object",
+      "description": "One execution target and its ceilings. The frame is shared; `limits` is the agent's own, so one agent gaining a limit does not touch the other's shape -- manager-microscope's point, and the recurrence path of the defect this replaces.",
       "properties": {
         "target": {
-          "type": "string",
-          "pattern": "^[a-z0-9_]+$",
-          "description": "the id the operator is invoked with; `local` is its default"
+          "type": "string"
         },
         "label": {
           "type": "string"
         },
+        "limits": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "target",
+        "limits"
+      ],
+      "additionalProperties": false
+    },
+    "simulation_limits": {
+      "type": "object",
+      "description": "The simulation agent's ceilings. Derived from what simulation_agent/src/operator.py and axis_a5_budget.py read.",
+      "properties": {
         "wall_clock_max": {
           "$ref": "#/$defs/limit"
         },
@@ -146,7 +167,7 @@
         },
         "smoke_budget": {
           "type": "object",
-          "description": "Separate on purpose. A smoke run allowed the full budget tells you nothing before the run it precedes, and its second job is to replace the estimated cost-per-step with one measured on this machine -- so the budget comparison for the full run stops resting on an E5.",
+          "description": "Separate because a smoke run allowed the full budget tells you nothing before the run it precedes. Its two ceilings are limits in their own right and each carries its own confirmation.",
           "properties": {
             "wall_clock_max": {
               "$ref": "#/$defs/limit"
@@ -163,12 +184,99 @@
         }
       },
       "required": [
-        "target",
         "wall_clock_max",
         "storage_max",
         "smoke_budget"
       ],
       "additionalProperties": false
+    },
+    "microscope_limits": {
+      "type": "object",
+      "description": "The microscope agent's ceilings, specified by manager-microscope 2026-09-19 with a ground for each. Ordered as P0 orders harm: people, then instrument, then sample.",
+      "properties": {
+        "optical_power_max": {
+          "$ref": "#/$defs/limit",
+          "$comment": "PEOPLE. A7's total_optical_power bound abstains on missing: [safety_power_limit], and trap_laser_power_has_no_software_path (E3) says the dial is a hand control with no software path -- so a written ceiling is the only control there is. 2.1 rule 4 presumes an output that has one."
+        },
+        "objective_clearance_min": {
+          "$ref": "#/$defs/limit",
+          "$comment": "INSTRUMENT, and a FLOOR rather than a ceiling -- the smallest gap allowed between front element and sample. nosepiece_write_runs_no_escape (E3): a Micro-Manager nosepiece write runs no objective escape, so the incoming lens arrives at the height the outgoing one left, against working distances of 0.13 mm at 100x oil. The prior repository put its own travel range in a SAFETY.md and 10.3 rule 4 forbids carrying it -- that prohibition is itself the argument for this field."
+        },
+        "stage_velocity_max": {
+          "$ref": "#/$defs/limit",
+          "$comment": "INSTRUMENT. The person's standing preference of 2026-09-19 is that relative motion is driven by the piezo stage rather than by steering the trap, and a stage running away in front of a 0.13 mm working distance is the same collision. A7 owns stage_velocity and abstains on piezo_bandwidth, piezo_settling_time and stage_max_velocity."
+        },
+        "stage_acceleration_max": {
+          "$ref": "#/$defs/limit",
+          "$comment": "INSTRUMENT. Paired with velocity: a bounded speed reached instantly is not a bounded move."
+        },
+        "illumination_power_max": {
+          "$ref": "#/$defs/limit",
+          "$comment": "SAMPLE. A3's illumination_power abstains on sample_heating_rate. Lowest in P0's order and still a limit."
+        },
+        "exposure_time_max": {
+          "$ref": "#/$defs/limit",
+          "$comment": "SAMPLE. Dose is power times time; bounding one without the other bounds nothing."
+        }
+      },
+      "required": [
+        "optical_power_max",
+        "objective_clearance_min"
+      ],
+      "$comment": "Only the two P0 ranks highest are required. Requiring all six would mean nothing can be written until every one is settled, and then nobody starts the file -- the same argument that made carried_over legal. A limit that is absent is not permissive: the operator resolves it, finds nothing and refuses.",
+      "additionalProperties": false
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "agent": {
+            "const": "simulation"
+          }
+        },
+        "required": [
+          "agent"
+        ]
+      },
+      "then": {
+        "properties": {
+          "targets": {
+            "items": {
+              "properties": {
+                "limits": {
+                  "$ref": "#/$defs/simulation_limits"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "agent": {
+            "const": "microscope"
+          }
+        },
+        "required": [
+          "agent"
+        ]
+      },
+      "then": {
+        "properties": {
+          "targets": {
+            "items": {
+              "properties": {
+                "limits": {
+                  "$ref": "#/$defs/microscope_limits"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

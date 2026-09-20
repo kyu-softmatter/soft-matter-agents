@@ -648,11 +648,12 @@ def check_05_envelope(b: Bundle) -> list[Finding]:
         # person could. The keys are read off the schema rather than listed
         # here, so this stays true when the shape widens (11-11).
         try:
-            tgt = json.loads((CONTRACTS / "schemas" / "envelope_safety.schema.json").read_text())
-            keys = sorted(k for k in tgt["$defs"]["target"].get("properties", {}) if k not in ("target", "label"))
+            sch = json.loads((CONTRACTS / "schemas" / "envelope_safety.schema.json").read_text())
+            shapes = {a.split("_")[0]: sorted(d.get("properties", {}))
+                      for a, d in sch["$defs"].items() if a.endswith("_limits")}
         except (OSError, KeyError, json.JSONDecodeError):
-            keys = []
-        shape = f"; the schema's ceilings are {keys} and `additionalProperties` is closed, so an agent whose limits are not in that list has no shape to write in yet" if keys else ""
+            shapes = {}
+        shape = ("; the shapes available are " + "; ".join(f"{a}: {k}" for a, k in sorted(shapes.items()))) if shapes else ""
         return [Finding(5, PENDING, f"no envelope/safety.json in any agent tree; a person writes it "
                                     f"(2.1 rule 7, 10.3 rule 4){shape}")]
     out: list[Finding] = []
@@ -664,10 +665,21 @@ def check_05_envelope(b: Bundle) -> list[Finding]:
         except (OSError, json.JSONDecodeError) as exc:
             out.append(Finding(5, FAIL, f"cannot be read: {exc}", rel))
             continue
+        # The file says which agent's limits it carries; the path says which
+        # tree it is in. A schema cannot compare the two, and a microscope file
+        # sitting in the simulation tree would validate perfectly while every
+        # ceiling a run resolves there is the wrong instrument's.
+        declared = doc.get("agent")
+        in_tree = rel.split("/")[0].removesuffix("_agent")
+        if declared and declared != in_tree:
+            out.append(Finding(5, FAIL, f"declares agent {declared!r} and sits in {in_tree}'s tree. A run "
+                                        f"resolves ceilings by path, so this file would answer with another "
+                                        f"instrument's limits (2.1 rule 1)", rel))
         for target in doc.get("targets", []) or []:
             where = f"targets[{target.get('target')!r}]"
-            rows = [(where, target)] + [
-                (f"{where}.smoke_budget", target.get("smoke_budget") or {})
+            limits = target.get("limits") or {}
+            rows = [(where, limits)] + [
+                (f"{where}.smoke_budget", limits.get("smoke_budget") or {})
             ]
             for label, row in rows:
                 for key, limit in row.items():
