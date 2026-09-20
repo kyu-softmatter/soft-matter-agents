@@ -1,0 +1,107 @@
+{
+  "schema_version": "0.1-provisional",
+  "kind": "sample_instances",
+  "storage_form": "PROVISIONAL, and a flat table for the same reason devices.v0.json is one. Unlike that file this was not extracted from anywhere: it is new, created 2026-09-19 because task 016 established that the store had no way to name the thing on the bench.",
+  "created_at": "2026-09-19",
+  "why_this_file_exists": "Found by refusing to game check 44. The bead entries could carry no `subject` because there is no registry a sample resolves against, and the fields were removed rather than filled with an id that would make them pass. Task 015 then showed where the claim had gone instead -- into the entry NAMES, `tracer_particle_density`, where nothing checks it. A check rejecting the honest form of an assertion is what proved the registry was needed.",
+  "the_ruling_this_implements": "Architecture, 6eaee1b. THE INSTANCE/TYPE SPLIT IS THE WHOLE RULING. A measurement is made on an INSTANCE; a specification is written about a TYPE; and the claim joining them carries its own grade. If the bottle turns out to be another product, an observation made on it stays true of the bottle and becomes false of the product -- which is why the first column cannot be a catalogue number. Putting all three in one cell is what happened to the pixel size earlier the same day: grading a value before settling what it is about.",
+  "why_not_inside_the_device_table": "Every column there is false of a sample: `driver`, `automatable`, `read_back`, `lock_group`. Same argument that kept the room thermometer out of it.",
+  "why_not_the_microscope_run_records": "Two reasons from architecture. One sample is used by TWO agents -- the simulation models it as well -- and a bottle outlives a run.",
+  "naming_rule": "AN INSTANCE ID MUST NOT ENCODE A PRODUCT. `abvigen_bottle` would bake the very claim that carries its own grade into the identifier, which is the disease this table exists to cure. Ids describe what the thing observably is, plus a letter to tell instances apart.",
+  "consumers": {
+    "librarian": "resolves `subject` of kind sample for entries about an instance",
+    "a1": "tracer brightness and detectability are about the instance in the tub",
+    "a6": "the collected wavelength depends on what is actually fluorescing",
+    "simulation": "models the same sample and must name the same instance"
+  },
+  "instances": [
+    {
+      "id": "particle_suspension_a",
+      "what_it_observably_is": "an aqueous suspension of particles in use on the microscope bench, which fluoresce under green excitation and are visible through the 605 band",
+      "first_recorded": "2026-09-19",
+      "label": {
+        "read": true,
+        "read_on": "2026-09-19",
+        "states_a_product": false,
+        "entry_ref": "bottle_label_states_no_product",
+        "note": "LOOKED AT AND SILENT, which is different from not checked. This is what makes the identification permanently open rather than pending: the one thing that might have settled it has happened and did not."
+      },
+      "identified_as": {
+        "type": "AFR-0500-COOH",
+        "grade": "E5",
+        "source": "assumed:person_ruling_20260919",
+        "why_e5": "THE JOINING CLAIM CARRIES ITS OWN GRADE AND THIS IS IT. Not `operator_read:` -- nobody read it off the bottle. Not `operator_recall:` -- it is not a memory. It is the person's reasoned judgement from named evidence, which is `assumed:` and E5. EVERY TYPE-LEVEL FACT APPLIED TO THIS BOTTLE INHERITS THIS GRADE by 5.8, worst in the chain. So the material, the density, the 5 um diameter and the number-density relation reach this instance at E5, not at the E3 they carry about the type.",
+        "evidence_for": [
+          "abvigen_published_data_is_unreliable -- the supplier's page carries errors unrelated to spectra, so `the data sheet is wrong` is a cheaper explanation than `the bottle is not the product`",
+          "the prior project tested the same catalogue product and found the same disagreement with the published spectra, independently"
+        ],
+        "evidence_against": [
+          "the label says nothing, so nothing positively identifies this bottle"
+        ],
+        "what_would_settle_it": "a label, an invoice, or a lot number that names the product. Any of them moves this to `spec:<lot>` at E3 and lifts every type-level fact with it.",
+        "history": "Task 015 ruled on 2026-09-19 that the product was the WRONG one, and the person reversed it the same day once the prior project's records were opened. Recorded rather than erased: 015's evidence was a silent label, which is equally consistent with both explanations, and what actually decided it was the asymmetry in how careless the vendor's page is. Anyone re-deriving this from the label alone will reach 015 again."
+      },
+      "observed_on_this_instance": [
+        {
+          "entry_ref": "particles_show_on_the_green_605_path",
+          "grade": "E2",
+          "what": "fluoresces under Aura3 green, visible through the 605 band"
+        },
+        {
+          "entry_ref": "bottle_label_states_no_product",
+          "grade": "E3",
+          "what": "the label states no product identity"
+        }
+      ],
+      "type_facts_reach_this_instance_via": "identified_as, at E5"
+    }
+  ],
+  "types_referenced": {
+    "why": "NOT A PRODUCT TABLE. Architecture ruled this file names instances, and it does. This section exists only so `identified_as.type` resolves against something instead of being a free string -- which is precisely the failure that produced 015, a claim asserted in text nothing checks. It lists the designations instances point at and holds no facts about them; the facts are ordinary entries at E3.",
+    "AFR-0500-COOH": {
+      "supplier": "Abvigen Inc",
+      "entries": [
+        "tracer_particle_material_and_shape",
+        "tracer_particle_density",
+        "tracer_stock_concentration",
+        "tracer_storage_conditions",
+        "tracer_number_density_from_diameter",
+        "tracer_emission_peak",
+        "tracer_excitation_peak"
+      ],
+      "caution": "abvigen_published_data_is_unreliable applies to every one of these. Two of them, the excitation and emission peaks, are marked DISPROVED by two independent instrument observations and are kept only under rule 8."
+    }
+  },
+  "gaps": [
+    {
+      "what": "the particle diameter",
+      "kind": "absent",
+      "searched": [
+        "the bottle label",
+        "kb/entries",
+        "the prior project's records"
+      ],
+      "status": "DOES NOT RESOLVE AND GOT WORSE. 5 um stands on the product NAME, so it now reaches this bottle only through the E5 joining claim. The microscope's `operator_recall:` 5 um and the simulation's `assumed:` 2 um both stand exactly where they did, and 015 was explicit that this gap must not be allowed to close or narrow on the identification.",
+      "why_it_matters": "tracer_diffusivity and the number-density relation both stand on it"
+    },
+    {
+      "what": "the lot number",
+      "kind": "absent",
+      "searched": [
+        "the bottle label"
+      ],
+      "status": "The prior project's record also has `lot: null -- not on the product page, read it off the tube`. Nobody has. This is the cheapest thing on the list that would lift the joining claim to E3.",
+      "why_it_matters": "it is the identifier a person can verify by looking, which 10.2 names as the one thing worth carrying about a consumable"
+    },
+    {
+      "what": "the dilution between the stock bottle and the coverslip",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "the microscope agent's run records"
+      ],
+      "status": "Recorded nowhere, and no card has asked for it. So even with a diameter, the number density under the objective does not follow from the stock concentration -- there is an unrecorded factor in between.",
+      "why_it_matters": "tracer_number_density in any real sample"
+    }
+  ]
+}
