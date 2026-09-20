@@ -74,3 +74,47 @@ the reporter will.
 The line's output as it stands today — I expect it to name the microscope at 34
 and the simulation as current. Then whether `--check`'s exit code changed: it
 must not.
+
+
+---
+
+## What the implementation learned — written down 2026-09-20 for check 61
+
+The publisher half landed (`0f0b41b`) and the execution seat's report named
+three things the **validator half (check 61)** needs and this file did not
+anticipate. They were in a message only, which is the failure this repository
+keeps fixing, so they are here.
+
+**1. An edit moves `kb_version` without changing the count.** It is a hash over
+every entry, so reporting a delta alone prints `0 entries behind` for a store
+that really moved. Version difference and entry-count difference are two
+statements and both belong in the line.
+
+**2. A row can be AHEAD, and then the owner is different.** An envelope newer
+than the published export means the *exports* are stale, and the seat who
+closes that is the librarian, not the consumer. This is why the header the seat
+chose is `not matching` rather than `behind`: **a header that contradicts the
+rows under it is worse than a vague one.**
+
+**3. Absent is not behind.** An agent with no `envelope/` has not fallen
+behind, it has not started. Reported as its own line, not as an infinite lag.
+
+And the limitation the publisher half states in its own output carries over
+inverted: `--check` tells the publisher that a consumer is behind and the
+consumer does not run it. **Check 61 is the half the consumer sees**, which is
+the whole reason it needs to exist alongside a tool that already reports the
+same fact.
+
+Current output for reference, read off a run rather than quoted from prose:
+
+```
+envelopes not matching the published export (ADVISORY, not a failure):
+  simulation_agent: 1 entries behind (envelope at kbv-7c77fa74ee5a, published kbv-bf4f559baf68)
+envelopes current with the published export: microscope_agent
+no envelope yet, which is not behind: bridge
+exit=0
+```
+
+The 34-entry case this task was written about is gone — the microscope caught
+up on its own before the code existed. **The self-test holds it as a fixture**,
+because a property that waits for real lag passes vacuously on a day with none.
