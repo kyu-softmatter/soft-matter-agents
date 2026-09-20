@@ -75,9 +75,11 @@
         "calibration",
         "operator_read",
         "operator_recall",
-        "computed"
+        "computed",
+        "assumed",
+        "person_ruling"
       ],
-      "description": "the sub-rank inside a grade, mostly to separate the kinds of E3 (4.3). Its load-bearing use is the citation order among literature: peer_reviewed -> textbook -> vendor_spec -> preprint. The other values exist so the enum is not silently incomplete -- an operator reading is E3 by 5.3 and had no value here, so every such entry left this null and a null read as an omission rather than a kind."
+      "description": "the sub-rank inside a grade, mostly to separate the kinds of E3 (4.3). Its load-bearing use is the citation order among literature: peer_reviewed -> textbook -> vendor_spec -> preprint. The other values exist so the enum is not silently incomplete -- an operator reading is E3 by 5.3 and had no value here, so every such entry left this null and a null read as an omission rather than a kind. Two E5 values added 2026-09-19, for the reason this enum exists at all: `assumed:` sources had no tag, so every one left this null and a null read as an omission rather than a kind -- the same hole operator_read had. `person_ruling` is separated from plain `assumed` and from `operator_recall` because what MOVES them differs, which is the criterion 5.3 used to split read from recall. A recall is settled by asking the person again. A placeholder assumption is settled by getting the datum. A ruling -- the person's reasoned judgement from named evidence, like the 2026-09-19 identification of the bottle -- is overturned only by new evidence, and asking again returns the same answer because it was never a memory. All three are E5; the tag says what would change them."
     },
     "identifiers": {
       "type": "object",
