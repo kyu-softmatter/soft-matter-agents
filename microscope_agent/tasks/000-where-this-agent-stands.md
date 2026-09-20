@@ -15,38 +15,47 @@ deferred rather than removed, and the `microscope-2` seat and branch stay
 (P16): the branch holds what that variant built, and removing the seat entry
 would turn its commits into unattributed ones.
 
-## Start here
+## Where the fan-out stands (2026-09-19)
 
-**Task 001, A2 to A6, on `mic-20260918-001`.** Not a new question. That
-fan-out is two axes of seven in, A1 and A7 are committed, and 001 was written
-for exactly this before the A/B existed. Its opening claim still holds — I
-checked rather than assumed: the store is still at 25 entries.
+**`mic-20260918-001` is complete and served.** All seven axes are written,
+`A1`–`A7`, all at one pin and all answered by the service. Counted off a run
+rather than claimed here — run it yourself, the numbers move:
 
-**002 is closed**, at `ab2eb6f`. Nothing else on disk says so. Do not redo it.
+```bash
+python3 contracts/validate.py 2>&1 | grep -E 'check (33|45|49)'
+```
 
-## Do not re-pin. Answer at `kbv-49feb73662b7`
+At the time of writing: check 33 over 19 axis cards at one `kb_version`,
+check 45 over 7 served cards each backed by a call in the log, check 49 over
+31 `absent` gaps each carrying `near_names`. **Cards 001 through 006 are
+discharged.** Do not redo them.
 
-The siblings are pinned to `kbv-49feb73662b7` and the store has since moved to
-`kbv-67f9ad766d92`, so check 25 shows five PENDING lines for this directory.
-**Leave them.** Write A2–A6 against `kbv-49feb73662b7` too.
+**Every axis abstains except A4**, which returned two bounds in the shapes
+opened for it — an `allowed_set` on `lock_group` and a `precondition` on
+`verified_selectors`. Abstention with a reason is the correct outcome
+(§4.5.2.1), not a backlog.
 
-Three reasons, and the first is the one that was learned expensively:
+## What is left, and what blocks each
 
-- **Chasing the store does not converge.** Task 002 re-pinned this fan-out
-  once, and the card naming the target was stale four minutes after it was
-  written because the store moved again. It has moved twice more since. A
-  fan-out that re-pins whenever the librarian commits never finishes.
-- **The server now serves an old pin** rather than refusing it (`4033b4d`).
-  `_preflight` returns the store as of the version you pinned, and every
-  answer carries `answered_from` saying which version and which commit
-  replied. That is what makes staying put honest instead of merely
-  convenient — the pin names a state the server can still produce.
-- **Check 33 requires siblings to agree.** A2 answered at today's version
-  while A1 and A7 sit at `49feb73662b7` fails it, and re-pinning the two
-  finished cards to keep up is the treadmill again.
+| card | state |
+|---|---|
+| **008** — the deliberate re-pin | **Runnable.** Its preconditions arrived: the twelve calibrated pixel sizes, and λ as `filter_ff01_595_31_32_passband`, 579.5–610.5 nm at `spec:` E3. Expected to give A6 its diffraction limit at E3 |
+| **009** — the goal targets | Waits on the bridge manager's list. Nine cards across three trees move together or check 52 refuses the half-move |
+| **007** — the operator's decade | Fold into 009; both touch the same goal cards |
+| **A4's three remaining bounds** | Blocked on `contracts/`, not on you. `allowed_set.basis` and `precondition.basis` take a `numbers[]` name or `kb:<entry_id>`, and A4's answers live in a **published table** with neither. `manager-microscope` owns that |
+| **A5's gaps** | Need the person or a measurement: `drift_rate`, `pfs_behaviour`, `settling_time`, `session_time_budget`, `instrument_availability_window` |
 
-If you find a reason the pinned version cannot answer some axis, that is a
-finding to send up, not a licence to re-pin.
+## If you have just restarted and have no seat
+
+**Check `contracts/seats.json` before anything.** On 2026-09-19 the person
+withdrew two newly minted microscope seats (`5bc83e9`) and ruled that one is
+minted **only on a statement**. A seat named to you in chat is not a seat
+until that file says so, and committing without one is check 41 PENDING,
+which `--strict` counts as a failure from your first commit.
+
+**A seat cannot be given to you by this card or by any session** (§6.2.2).
+Ask the person; do not proceed on a relay. Standing down until then is a
+correct outcome, not a stall.
 
 ## The librarian answers now
 
