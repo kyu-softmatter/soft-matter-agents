@@ -6,7 +6,41 @@ Specified in `plan.md` §4.6.6.1 (`4de4924`), which the person settled on
 2026-09-20. **Read it rather than this card where the two differ** — this one
 sequences the work and names what is yours; that one is the decision.
 
-## Why this can start before the safety envelope
+## The envelope landed — the last step is no longer blocked
+
+`microscope_agent/envelope/safety.json` exists as of `c1404bf`, written and
+committed by the person: `optical_power_max` 100 mW and
+`objective_clearance_min` 130 um, **both confirmed physically on the bench**,
+no `carried_over`. So §4.6.6.1's two parallel tracks meet here — wrapping did
+not wait for it, and moving real hardware did.
+
+**What that opens is narrower than the ceilings sound.** On the three channels
+in scope, read-back exists, so reversible actions and — inside the confirmed
+ceiling — irreversible ones are both available. On `laser_combiner` and
+`optical_tweezers`, **a confirmed ceiling does not open an irreversible
+action**: a ceiling binds what may be asked for, read-back confirms what
+happened, and an irreversible action needs both. 100 mW raises a bound on
+reversible actions there and nothing else.
+
+## A limit and an axis have not been compared, and somebody should
+
+`objective_clearance_min` is **130 um**. The 100x oil objective's working
+distance is **0.13 mm — the same number.** The 60x oil has 150 um, twenty
+above. And `Apo Lambda S 40XC WI` carries **no working distance at all** in
+the store, so it cannot be checked against the floor in either direction.
+
+I am not questioning the limit: it is the person's, physically confirmed, and
+P0 rule 7 says nothing exceeds it. What has not happened is the comparison.
+**A6 returned an `allowed_set` on `objective_zoom_pair`**, and nothing has put
+that set beside this floor. If focusing a 130 um objective means a clearance
+of at most 130 um, the 100x is at or past the boundary whenever it is in
+focus — which would exclude it, and that is a conclusion for the person or for
+A6 to reach explicitly rather than for a seat to discover by being refused
+mid-run.
+
+**Report it; do not resolve it here.** It is raised upward in parallel.
+
+## Why the wrapping could start before the envelope
 
 `tracer_brightness` needs the instrument to move, and `src/devices/` holds
 only `manual.py` and `mock.py`. All **ten** channels in the registry have
@@ -63,10 +97,12 @@ Behind the existing interface — `preflight(channel)`, `apply(params)`,
 **Do not add a fifth function**; a device that does not fit the four is
 telling you something about the device.
 
-## 4. Mock round-trip before anything real
+## 4. Mock round-trip, then real
 
-All four functions through `mock.py` first, end to end. Real hardware waits on
-`envelope/safety.json`, which is the person's.
+All four functions through `mock.py` first, end to end. **Then real hardware**
+— the envelope is in place, so this step is open rather than blocked. Nothing
+about that shortens the mock pass: it is what tells you the wrapper is wrong
+while being wrong is still free.
 
 ## The two channels you are not wrapping, and why the note matters
 
