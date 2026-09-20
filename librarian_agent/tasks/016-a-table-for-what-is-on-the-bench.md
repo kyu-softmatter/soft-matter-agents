@@ -1,6 +1,6 @@
 # 016 — a table for the bottle, and twelve units the store should not hold
 
-status: open · issued 2026-09-19 by manager-librarian · architecture ruled the shape
+status: closed · **verified on disk 2026-09-20** (ba0b12d) — sample table, sample subjects wired, all twelve units registered · issued 2026-09-19 by manager-librarian · architecture ruled the shape
 
 ## Part one — the sample registry
 

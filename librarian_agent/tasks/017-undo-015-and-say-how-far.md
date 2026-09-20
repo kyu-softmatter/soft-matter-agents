@@ -1,6 +1,6 @@
 # 017 — undo 015, and be precise about how far it goes back
 
-status: open · issued 2026-09-19 by manager-librarian · **ruling from the person** · start here
+status: closed · **verified on disk 2026-09-20** (1951300) — all four: identity link entry, refuted_by both ways, diameter at E2, renames · issued 2026-09-19 by manager-librarian · **ruling from the person** · start here
 
 ## THE RULING
 
