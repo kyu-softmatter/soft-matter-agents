@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soft Matter Agents — toward an experimental AGI for autonomous soft-matter research</title>
+<meta name="description" content="A four-agent research system that turns a soft-matter research question into an instrument configuration, runs it under approval, and feeds what it learns back into the next experiment.">
+<meta property="og:title" content="Soft Matter Agents">
+<meta property="og:description" content="Toward an experimental AGI for autonomous soft-matter research.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='11' fill='none' stroke='%23c8643c' stroke-width='3'/><circle cx='16' cy='16' r='3' fill='%233d7a8c'/></svg>">
+<style>
+  :root{
+    --paper:#fbfaf8; --ink:#14171d; --ink-soft:#4a5160; --rule:#e2ded7;
+    --hero:#101319; --hero-soft:#9aa3b2;
+    --mic:#c8643c; --sim:#3d7a8c; --lib:#a8873f; --bri:#7a8290;
+    --maxw:1080px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --paper:#0f1216; --ink:#e9e6e1; --ink-soft:#a2aab8; --rule:#262b33;
+           --hero:#080a0d; --mic:#e08054; --sim:#5ba2b7; --lib:#cba95c; --bri:#8b93a1; }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font:400 17px/1.65 ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px}
+  h1,h2,h3,.ui{font-family:ui-sans-serif,-apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif}
+  a{color:inherit}
+  .skip{position:absolute;left:-9999px}
+  .skip:focus{left:8px;top:8px;background:var(--paper);padding:8px 12px;z-index:9}
+
+  /* ---------- hero ---------- */
+  header.hero{background:var(--hero); color:#f4f2ee; padding:84px 0 72px; border-bottom:1px solid #000}
+  .eyebrow{font:600 12.5px/1 ui-sans-serif,-apple-system,"Segoe UI",sans-serif;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--hero-soft); margin:0 0 22px}
+  h1{font-size:clamp(40px,7vw,68px); line-height:1.04; letter-spacing:-.025em; font-weight:700; margin:0}
+  .tagline{font-size:clamp(19px,2.6vw,26px); line-height:1.35; color:#f0ede7; margin:20px 0 0; max-width:22em}
+  .lede{color:var(--hero-soft); font-size:17.5px; margin:22px 0 0; max-width:34em}
+  .cta{margin:36px 0 0; display:flex; gap:12px; flex-wrap:wrap}
+  .btn{display:inline-block; text-decoration:none; padding:11px 20px; border-radius:6px;
+    font:600 15px/1 ui-sans-serif,-apple-system,"Segoe UI",sans-serif; border:1px solid #2b3039}
+  .btn.primary{background:#f4f2ee; color:#101319; border-color:#f4f2ee}
+  .btn.ghost{color:#f4f2ee}
+  .btn:hover{opacity:.88}
+
+  /* ---------- sections ---------- */
+  section{padding:76px 0; border-bottom:1px solid var(--rule)}
+  .kicker{font:600 12.5px/1 ui-sans-serif,-apple-system,"Segoe UI",sans-serif;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); margin:0 0 14px}
+  h2{font-size:clamp(26px,3.6vw,36px); line-height:1.15; letter-spacing:-.02em; margin:0 0 18px; font-weight:700}
+  .say{max-width:44em; color:var(--ink-soft); font-size:17.5px; margin:0}
+  .say strong{color:var(--ink); font-weight:600}
+
+  /* ---------- the loop ---------- */
+  .loop{margin:40px 0 0}
+  .chips{display:flex; flex-wrap:wrap; align-items:stretch; gap:10px}
+  .chip{flex:1 1 150px; min-width:150px; background:transparent; border:1px solid var(--rule);
+    border-radius:8px; padding:16px 14px; position:relative}
+  .chip .n{font:600 11px/1 ui-sans-serif,-apple-system,sans-serif; letter-spacing:.12em;
+    color:var(--ink-soft); display:block; margin-bottom:8px}
+  .chip .t{font:600 16px/1.3 ui-sans-serif,-apple-system,"Segoe UI",sans-serif; letter-spacing:-.01em}
+  .chip.c1{border-left:3px solid var(--ink)}
+  .chip.c2{border-left:3px solid var(--ink-soft)}
+  .chip.c3{border-left:3px solid var(--mic)}
+  .chip.c4{border-left:3px solid var(--sim)}
+  .chip.c5{border-left:3px solid var(--lib)}
+  .chip.c6{border-left:3px solid var(--ink)}
+  .loopback{margin-top:14px; display:flex; align-items:center; gap:12px;
+    border:1px dashed var(--rule); border-radius:8px; padding:12px 16px;
+    font:500 14.5px/1.4 ui-sans-serif,-apple-system,sans-serif; color:var(--ink-soft)}
+  .loopback svg{flex:0 0 auto}
+
+  /* ---------- video ---------- */
+  .film{margin:34px 0 0; border:1px solid var(--rule); border-radius:10px; overflow:hidden; background:#0b0d11}
+  .film video{display:block; width:100%; height:auto}
+  .film video[hidden]{display:none}
+  .film-empty{padding:64px 28px; text-align:center; color:#8b93a1;
+    font:500 15px/1.6 ui-sans-serif,-apple-system,sans-serif}
+  .film-empty .big{display:block; color:#d7d3cc; font-size:17px; font-weight:600; margin-bottom:6px}
+  figcaption{margin:12px 0 0; color:var(--ink-soft); font-size:15px}
+
+  /* ---------- architecture ---------- */
+  .arch{margin:38px 0 0}
+  .arch svg{display:block; width:100%; height:auto}
+  @media (max-width:760px){ .arch{display:none} }
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px; margin:34px 0 0}
+  .card{border:1px solid var(--rule); border-radius:10px; padding:22px 20px; background:transparent}
+  .card h3{margin:0 0 8px; font-size:18px; letter-spacing:-.01em; display:flex; align-items:center; gap:9px}
+  .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+  .card p{margin:0; font-size:15.5px; line-height:1.6; color:var(--ink-soft)}
+  .card .role{display:block; margin-top:12px; font:600 11.5px/1 ui-sans-serif,-apple-system,sans-serif;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft)}
+
+  /* ---------- principles ---------- */
+  .three{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:34px; margin:38px 0 0}
+  .three h3{font-size:17.5px; margin:0 0 10px; letter-spacing:-.01em}
+  .three p{margin:0; color:var(--ink-soft); font-size:16px}
+  .three .num{font:700 13px/1 ui-sans-serif,-apple-system,sans-serif; color:var(--mic);
+    letter-spacing:.1em; display:block; margin-bottom:12px}
+
+  /* ---------- footer ---------- */
+  footer{padding:54px 0 72px; color:var(--ink-soft); font-size:15px}
+  footer a{text-decoration-color:var(--rule); text-underline-offset:3px}
+  .foot-row{display:flex; gap:26px; flex-wrap:wrap; margin-bottom:18px;
+    font:600 15px/1 ui-sans-serif,-apple-system,sans-serif}
+</style>
+</head>
+<body>
+<a class="skip" href="#loop">Skip to content</a>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Autonomous experimentation · soft matter · in development</p>
+    <h1>Soft&nbsp;Matter<br>Agents</h1>
+    <p class="tagline">Toward an experimental AGI for autonomous soft-matter research.</p>
+    <p class="lede">A closed loop from a research question to a real instrument and back —
+      where every number carries its evidence, safety is decided by code rather than by a
+      model, and <em>a refusal is a result</em>.</p>
+    <div class="cta">
+      <a class="btn primary" href="#loop">See the loop</a>
+      <a class="btn ghost" href="https://github.com/kyu-softmatter/soft-matter-agents">Repository&nbsp;↗</a>
+    </div>
+  </div>
+</header>
+
+<section id="loop">
+  <div class="wrap">
+    <p class="kicker">The loop</p>
+    <h2>One question, all the way around</h2>
+    <p class="say">Most lab automation stops at execution: a human decides the conditions and the
+      software moves the stage. This system closes the other half of the circle — the
+      <strong>planning, the observation and the knowledge</strong> are inside the loop too, so what a
+      run teaches becomes the input to the next question rather than a note in someone's file.</p>
+
+    <div class="loop">
+      <div class="chips">
+        <div class="chip c1"><span class="n">01</span><span class="t">Research question</span></div>
+        <div class="chip c2"><span class="n">02</span><span class="t">Scientific planning</span></div>
+        <div class="chip c3"><span class="n">03</span><span class="t">Experiment</span></div>
+        <div class="chip c4"><span class="n">03′</span><span class="t">Simulation</span></div>
+        <div class="chip c5"><span class="n">04</span><span class="t">Observation</span></div>
+        <div class="chip c6"><span class="n">05</span><span class="t">Knowledge</span></div>
+      </div>
+      <div class="loopback">
+        <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
+          <path d="M19 7H3" stroke="currentColor" stroke-width="1.6" fill="none"/>
+          <path d="M7 2 2 7l5 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>What was learned re-enters as the next question — the loop has no end state.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="demo">
+  <div class="wrap">
+    <p class="kicker">On the bench</p>
+    <h2>Autonomous acquisition, on a real microscope</h2>
+    <p class="say">The instrument half is not a simulation of a lab. The agent emits an
+      acquisition that deterministic code has already checked against what the sample and the
+      hardware will survive, and a human approves it before anything moves.</p>
+
+    <figure style="margin:0">
+      <div class="film">
+        <video id="demoVideo" controls playsinline preload="metadata" poster="assets/microscope-poster.jpg">
+          <source id="demoSource" src="assets/microscope-automation.mp4" type="video/mp4">
+        </video>
+        <!-- Drop the acquisition movie at docs/assets/microscope-automation.mp4
+             (and a still frame at docs/assets/microscope-poster.jpg).
+             Until it is there, the placeholder below is shown instead. -->
+        <div class="film-empty" id="demoEmpty" hidden>
+          <span class="big">Acquisition movie</span>
+          Not published yet — the clip shown at the group meeting goes here.
+        </div>
+      </div>
+      <figcaption>Automated acquisition driven by the microscope agent, under an approved plan.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="agents">
+  <div class="wrap">
+    <p class="kicker">The system</p>
+    <h2>Four agents, one knowledge store</h2>
+    <p class="say">Two agents execute: one against a bench, one against an engine. They never
+      reference each other directly — everything between them crosses a
+      <strong>bridge that is forbidden to author anything</strong>. Neither keeps its own facts; the
+      <strong>librarian</strong> is the only knowledge store, and it records what it could
+      <em>not</em> answer as carefully as what it could.</p>
+
+    <div class="arch" role="img" aria-label="Architecture: a person sends goals down to the microscope and simulation agents, which exchange cards only through the bridge; both pull read-only from the librarian.">
+      <svg viewBox="0 0 900 430" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ar" markerWidth="9" markerHeight="9" refX="7.5" refY="3.2" orient="auto">
+            <path d="M0 0 L7.5 3.2 L0 6.4 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g font-family="ui-sans-serif,-apple-system,Segoe UI,sans-serif" color="var(--ink-soft)">
+
+          <!-- person -->
+          <rect x="350" y="12" width="200" height="46" rx="8" fill="none" stroke="var(--ink)" stroke-width="1.4"/>
+          <text x="450" y="34" text-anchor="middle" font-size="15" font-weight="600" fill="var(--ink)">The researcher</text>
+          <text x="450" y="50" text-anchor="middle" font-size="12" fill="var(--ink-soft)">goal in · approval or refusal out</text>
+
+          <!-- down / up arrows -->
+          <g stroke="var(--ink-soft)" stroke-width="1.3" fill="none" color="var(--ink-soft)">
+            <path d="M400 58 V96" marker-end="url(#ar)"/>
+            <path d="M500 96 V58" marker-end="url(#ar)"/>
+          </g>
+          <text x="388" y="82" text-anchor="end" font-size="11.5" fill="var(--ink-soft)">goal</text>
+          <text x="512" y="82" font-size="11.5" fill="var(--ink-soft)">plan · result · refusal</text>
+
+          <!-- microscope -->
+          <rect x="40" y="110" width="300" height="92" rx="10" fill="none" stroke="var(--mic)" stroke-width="1.8"/>
+          <text x="62" y="140" font-size="17" font-weight="700" fill="var(--ink)">Microscope agent</text>
+          <text x="62" y="162" font-size="13" fill="var(--ink-soft)">designs the instrument configuration</text>
+          <text x="62" y="181" font-size="13" fill="var(--ink-soft)">and the acquisition, then runs it</text>
+
+          <!-- simulation -->
+          <rect x="560" y="110" width="300" height="92" rx="10" fill="none" stroke="var(--sim)" stroke-width="1.8"/>
+          <text x="582" y="140" font-size="17" font-weight="700" fill="var(--ink)">Simulation agent</text>
+          <text x="582" y="162" font-size="13" fill="var(--ink-soft)">designs the parameter set inside</text>
+          <text x="582" y="181" font-size="13" fill="var(--ink-soft)">budget, then runs the engine</text>
+
+          <!-- bridge -->
+          <rect x="330" y="240" width="240" height="72" rx="10" fill="none" stroke="var(--bri)" stroke-width="1.8" stroke-dasharray="5 4"/>
+          <text x="450" y="268" text-anchor="middle" font-size="16" font-weight="700" fill="var(--ink)">Bridge</text>
+          <text x="450" y="288" text-anchor="middle" font-size="12.5" fill="var(--ink-soft)">carries cards · authors nothing</text>
+          <text x="450" y="304" text-anchor="middle" font-size="12.5" fill="var(--ink-soft)">never touches a number</text>
+
+          <g stroke="var(--bri)" stroke-width="1.3" fill="none" color="var(--bri)">
+            <path d="M190 202 V276 H322" marker-end="url(#ar)"/>
+            <path d="M710 202 V276 H578" marker-end="url(#ar)"/>
+          </g>
+
+          <!-- librarian -->
+          <rect x="230" y="352" width="440" height="66" rx="10" fill="none" stroke="var(--lib)" stroke-width="1.8"/>
+          <text x="450" y="378" text-anchor="middle" font-size="16" font-weight="700" fill="var(--ink)">Librarian — the only knowledge store</text>
+          <text x="450" y="399" text-anchor="middle" font-size="12.5" fill="var(--ink-soft)">read-only · answers on request · records every gap it could not fill</text>
+
+          <g stroke="var(--lib)" stroke-width="1.3" fill="none" color="var(--lib)" stroke-dasharray="3 3">
+            <path d="M120 202 V385 H222" marker-end="url(#ar)"/>
+            <path d="M780 202 V385 H678" marker-end="url(#ar)"/>
+          </g>
+          <text x="128" y="300" font-size="11.5" fill="var(--ink-soft)">pull</text>
+          <text x="754" y="300" font-size="11.5" text-anchor="end" fill="var(--ink-soft)">pull</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h3><span class="dot" style="background:var(--mic)"></span>Microscope agent</h3>
+        <p>Turns a measurement question into an instrument configuration and an acquisition that is
+           detectable, sufficient, and inside what the sample and the hardware will survive — then
+           runs it under approval.</p>
+        <span class="role">executes · against a bench</span>
+      </div>
+      <div class="card">
+        <h3><span class="dot" style="background:var(--sim)"></span>Simulation agent</h3>
+        <p>Same five stages, a different axis list. Turns a computational question into a parameter
+           set that is stable, sampled correctly and inside budget. The cheapest simulation is the
+           one it decides not to run.</p>
+        <span class="role">executes · against an engine</span>
+      </div>
+      <div class="card">
+        <h3><span class="dot" style="background:var(--lib)"></span>Librarian</h3>
+        <p>Owns every fact the other three use, and records what it could not answer. <em>Nobody
+           checked</em> and <em>checked and it is not there</em> are different claims, and only one
+           of them means go and find it.</p>
+        <span class="role">knowledge · read-only</span>
+      </div>
+      <div class="card">
+        <h3><span class="dot" style="background:var(--bri)"></span>Bridge</h3>
+        <p>Carries a card from one executing agent to the other and keeps track of whose turn it is.
+           It adds no number, rounds nothing off, improves no condition. A courier that edits the
+           parcel is not a courier.</p>
+        <span class="role">transport · authors nothing</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <p class="kicker">What holds it together</p>
+    <h2>The hard part is not the proposal. It is the gate.</h2>
+    <p class="say">A model proposing settings is easy and not worth much. What makes a proposal
+      usable is that it has to survive deterministic code before it becomes a plan.</p>
+
+    <div class="three">
+      <div>
+        <span class="num">01</span>
+        <h3>Every number carries its evidence</h3>
+        <p>A value is <em>value, unit, source, grade</em> — and the grade is derived from the
+          source, never self-reported. A number a model invented has a name, and it may not enter
+          a plan or the knowledge base.</p>
+      </div>
+      <div>
+        <span class="num">02</span>
+        <h3>Safety is decided by code</h3>
+        <p>Never by a model. People first, then instruments, then samples and data. Where the
+          evidence is ambiguous the system stops instead of proceeding.</p>
+      </div>
+      <div>
+        <span class="num">03</span>
+        <h3>A refusal is a result</h3>
+        <p>When the evidence for a value does not exist, the system says so — with where it looked
+          — instead of inventing one. The gap is an output, recorded and reusable.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="status">
+  <div class="wrap">
+    <p class="kicker">Status</p>
+    <h2>Under active construction, in the open</h2>
+    <p class="say">The card contracts and the deterministic gate are in place, the knowledge
+      service answers, and the four agents are being built concurrently rather than in sequence.
+      Nothing here quotes a progress number: the repository's own rule is that a count written
+      into prose is wrong by the next day, so the honest answer is the one you get by running the
+      validator. The design document is authoritative, long, and in Korean.</p>
+    <div class="cta" style="margin-top:30px">
+      <a class="btn primary" style="background:var(--ink);color:var(--paper);border-color:var(--ink)"
+         href="https://github.com/kyu-softmatter/soft-matter-agents">Read the code&nbsp;↗</a>
+      <a class="btn ghost" style="border-color:var(--rule);color:var(--ink)"
+         href="https://github.com/kyu-softmatter/soft-matter-agents/blob/main/plan.md">The design document (KO)&nbsp;↗</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <a href="https://github.com/kyu-softmatter/soft-matter-agents">Repository</a>
+      <a href="https://github.com/kyu-softmatter/soft-matter-agents/blob/main/plan.md">plan.md</a>
+      <a href="https://github.com/kyu-softmatter/soft-matter-agents/blob/main/CLAUDE.md">CLAUDE.md</a>
+    </div>
+    <p style="margin:0;max-width:44em">Soft Matter Agents is a research system in development. It is
+      deliberately slower than it needs to be in the places where being wrong is expensive.</p>
+  </div>
+</footer>
+
+<script>
+  // If the acquisition movie has not been published yet, show the placeholder
+  // instead of a broken player. No other behaviour on this page depends on JS.
+  (function () {
+    var src = document.getElementById('demoSource');
+    if (!src) return;
+    src.addEventListener('error', function () {
+      document.getElementById('demoVideo').hidden = true;
+      document.getElementById('demoEmpty').hidden = false;
+    });
+  })();
+</script>
+</body>
+</html>
