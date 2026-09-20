@@ -173,6 +173,7 @@
         "design"
       ],
       "paths": [
+        "README.md",
         "contracts/",
         "microscope_agent/CLAUDE.md",
         "microscope_agent/.claude/",
@@ -201,6 +202,7 @@
         "design"
       ],
       "paths": [
+        "README.md",
         "contracts/",
         "simulation_agent/CLAUDE.md",
         "simulation_agent/.claude/",
@@ -229,6 +231,7 @@
         "design"
       ],
       "paths": [
+        "README.md",
         "contracts/",
         "librarian_agent/CLAUDE.md",
         "librarian_agent/.claude/",
@@ -257,6 +260,7 @@
         "design"
       ],
       "paths": [
+        "README.md",
         "contracts/",
         "librarian_agent/CLAUDE.md",
         "librarian_agent/.claude/",
@@ -280,6 +284,7 @@
         "design"
       ],
       "paths": [
+        "README.md",
         "contracts/",
         "bridge/CLAUDE.md",
         "bridge/.claude/",
@@ -308,6 +313,7 @@
         "design"
       ],
       "paths": [
+        "README.md",
         "contracts/",
         "microscope_agent/CLAUDE.md",
         "microscope_agent/.claude/",
@@ -366,5 +372,6 @@
     "manager-simulation-2",
     "simulation-1"
   ],
-  "retired_names_note": "Names cited in the prose above that are deliberately dead. simulation-1 was never registered and its branch is gone; simulation-2's note records that, and recording it means writing the name. Check 47 refuses any seat-shaped name in the prose that is neither registered nor listed here. A name goes here when a correction has to cite it, not when a seat is vacated -- a vacated seat keeps its entry and is simply unoccupied. manager-bridge-2 and manager-simulation-2 were opened on 2026-09-19 and withdrawn with zero commits; they are listed because the prose above cites them as the examples that earned the minting rule, and a cited dead name is what this field is for."
+  "retired_names_note": "Names cited in the prose above that are deliberately dead. simulation-1 was never registered and its branch is gone; simulation-2's note records that, and recording it means writing the name. Check 47 refuses any seat-shaped name in the prose that is neither registered nor listed here. A name goes here when a correction has to cite it, not when a seat is vacated -- a vacated seat keeps its entry and is simply unoccupied. manager-bridge-2 and manager-simulation-2 were opened on 2026-09-19 and withdrawn with zero commits; they are listed because the prose above cites them as the examples that earned the minting rule, and a cited dead name is what this field is for.",
+  "the_front_door_is_not_one_seats": "README.md is on the four manager seats and on the undivided `manager` as well as on architecture, decided 2026-09-20. It is an UN-NARROWING and not a widening: README.md was always inside the `design` boundary every manager owns, it was never in anyone's `excludes`, and only `paths` kept them out -- so CLAUDE.md's rule that this file narrows and cannot widen is not touched. manager-librarian-2 established the distinction by running check 41's classifier rather than reading the registry, after telling the person the file was outside its boundary, which it was not. WHY IT HAD TO MOVE: contracts/hooks/pre-push, landed the same evening, made README.md refuse a push when it stops naming a top-level entry. That turned the front door into an artifact that can block every seat's push and could be written by one live seat. The first refusal proved it -- the fix was four names, and the only session able to type them was the architecture one. A gate whose only remedy sits in another seat gets bypassed with --no-verify rather than satisfied, which is the failure pre-commit's own comment was written against. It is the variant of `dividing_a_boundary`: there the parts stopped covering the whole and .mcp.json was an orphan nobody owned; here the parts cover it and one seat is a bottleneck. Both come of splitting a boundary without checking afterwards that the split still works. WHAT IT COSTS: the front door is now a shared surface like contracts/, so check 41 gives attribution and not refusal, and five seats can collide on it with nothing refusing -- which on 2026-09-20 was not hypothetical, that window opened at least six times in one evening across validate.py, plan.md, README.md and this file. Review at merge is what guards it, the same honest answer the managers' shared_in_contracts gives. AND THE OPEN QUESTION IS NARROWER THAN IT WAS: 11-11 asks whether every section 7 path reaches a live seat, and README did reach one. The question this raises is HOW MANY it reaches, which nothing checks and which only bites for paths a gate can refuse on."
 }
