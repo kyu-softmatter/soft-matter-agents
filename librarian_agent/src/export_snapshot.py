@@ -70,11 +70,18 @@ AGENT = Path(__file__).resolve().parent.parent
 KB = AGENT / "kb"
 EXPORTS = KB / "exports"
 
-# 4.3.2 names these two as knowledge that belongs in the snapshot. They live in
-# staging until they are decomposed; exporting changes where they are read,
-# not who owns them.
+# 4.3.2 names the first two as knowledge that belongs in the snapshot. They
+# live in staging until they are decomposed; exporting changes where they are
+# read, not who owns them.
+#
+# `samples` joined them on 2026-09-19 and is not an instrument table, which is
+# the whole reason it needed adding rather than inheriting: architecture put it
+# beside the device table precisely BECAUSE one sample is used by two agents --
+# the simulation models what the microscope images -- and until this commit the
+# publisher shipped it to neither.
 TABLES = {"devices": "staging/devices.v0.json",
-          "optical_paths": "staging/optical_paths.v0.json"}
+          "optical_paths": "staging/optical_paths.v0.json",
+          "samples": "staging/samples.v0.json"}
 
 # What each table answers to, and where each name came from. A table needs this
 # for the reason an entry needed `subject`: the store could not say where a
@@ -97,6 +104,11 @@ TABLE_NAMES = {
         "optical_path_valid_tuples": "4.5.3 requires a combination to be a valid tuple of the "
                                      "optical path table; asked for on 2026-09-19",
     },
+    "samples": {
+        "samples": "the table's own key",
+        "sample": "the subject kind that resolves against this file and nothing else "
+                  "(kb_entry.schema.json, check 44), added 2026-09-19",
+    },
 }
 
 
@@ -108,7 +120,8 @@ TABLE_NAMES = {
 # configurations, the orchestrator compiles channels into locks, O1 preflight
 # reads elements.
 TABLE_ROWS = {"devices": ("channels", "elements"),
-              "optical_paths": ("configurations",)}
+              "optical_paths": ("configurations",),
+              "samples": ("instances",)}
 
 
 def table_columns(table: dict, row_lists: tuple[str, ...]) -> list[str]:
@@ -132,8 +145,38 @@ def table_columns(table: dict, row_lists: tuple[str, ...]) -> list[str]:
     walk(table, False)
     return sorted(names)
 
-# Which agents get the instrument tables, and which get entries only.
-AGENTS = {"microscope_agent": True, "simulation_agent": False, "bridge": False}
+# Which tables each agent gets, BY NAME.
+#
+# This was a boolean per agent until 2026-09-19 -- gets the tables, or gets
+# entries only -- and the boolean was not a shorthand, it was the model. Every
+# table was an instrument table, every instrument was the microscope's, so one
+# bit said everything there was to say. The sample table broke that on the day
+# it was created and the publisher could not express the break: architecture's
+# stated reason for putting samples beside the device table rather than inside
+# the microscope's run records is that ONE SAMPLE IS USED BY TWO AGENTS, and a
+# boolean can only offer the simulation all three tables or none. So it got
+# none, and the table reached nobody at all for the first hours of its life.
+#
+# The lesson is not about tables. A field whose two values happen to cover
+# every case today reads as a decision and is really an absence of one, and it
+# fails the first time a third case appears -- silently, by having nowhere to
+# put it. Naming the tables costs one line per agent and can be wrong out loud.
+AGENTS = {
+    "microscope_agent": ("devices", "optical_paths", "samples"),
+    "simulation_agent": ("samples",),
+    "bridge": (),
+}
+
+# Why an agent does not get a table, per table rather than per agent. The old
+# single reason -- "this agent has no instrument for it to describe" -- is true
+# of the two instrument tables and false of the sample table, which nobody is
+# excluded from for want of an instrument.
+TABLE_WITHHELD = {
+    "devices": "this agent has no instrument for it to describe (4.3.2)",
+    "optical_paths": "this agent has no instrument for it to describe (4.3.2)",
+    "samples": "this agent neither images nor models the sample; it carries cards between the "
+               "two that do (4.4), and a thread's subject reaches it through the cards",
+}
 
 SNAPSHOT_VERSION = "0.1"
 
@@ -220,20 +263,20 @@ def build(agent: str) -> dict:
         "tables": {},
         "not_included": [],
     }
-    if AGENTS[agent]:
-        for name, rel in TABLES.items():
-            text = (KB / rel).read_text()
-            body["tables"][name] = {
-                "text": text,
-                "sha256": _digest(text),
-                "from": f"kb/{rel}",
-                "names": TABLE_NAMES.get(name, {name: "the table's own key"}),
-                "columns": table_columns(json.loads(text), TABLE_ROWS.get(name, ())),
-            }
-    else:
-        body["not_included"] = [
-            f"{n} -- this agent has no instrument for it to describe (4.3.2)" for n in sorted(TABLES)
-        ]
+    wanted = AGENTS[agent]
+    for name in sorted(wanted):
+        rel = TABLES[name]
+        text = (KB / rel).read_text()
+        body["tables"][name] = {
+            "text": text,
+            "sha256": _digest(text),
+            "from": f"kb/{rel}",
+            "names": TABLE_NAMES.get(name, {name: "the table's own key"}),
+            "columns": table_columns(json.loads(text), TABLE_ROWS.get(name, ())),
+        }
+    body["not_included"] = [
+        f"{n} -- {TABLE_WITHHELD[n]}" for n in sorted(set(TABLES) - set(wanted))
+    ]
 
     # Every name the store answers to, so discovery does not require guessing
     # it. On 2026-09-19 the service answered `absent` to `numerical_aperture`
@@ -373,10 +416,24 @@ def _self_test() -> int:
         bad(f"a freshly built snapshot did not verify: {verify(mic) or verify(sim)}")
     if build("microscope_agent") != mic:
         bad("two builds of one store differ; the export is not deterministic")
-    if set(mic["tables"]) != set(TABLES) or sim["tables"]:
-        bad(f"the instrument tables went to the wrong agents: {sorted(mic['tables'])}, {sorted(sim['tables'])}")
+    # Each agent gets the tables AGENTS names for it, and is told about the
+    # rest. This asserted `sim["tables"]` was empty until 2026-09-19, which was
+    # not a stricter version of the same check -- it was the boolean model
+    # written down a second time, and it would have REFUSED the sample table
+    # reaching the simulation, which is the thing architecture created that
+    # table for. A test that encodes the shape of the code rather than the
+    # rule the code is for turns into the reason the rule cannot be followed.
+    for name, snap in (("microscope_agent", mic), ("simulation_agent", sim)):
+        if set(snap["tables"]) != set(AGENTS[name]):
+            bad(f"{name} got {sorted(snap['tables'])}, AGENTS says {sorted(AGENTS[name])}")
+        withheld = {line.split(" -- ")[0] for line in snap["not_included"]}
+        if withheld != set(TABLES) - set(AGENTS[name]):
+            bad(f"{name} was told about {sorted(withheld)}, which is not what it was withheld")
     if not sim["not_included"]:
-        bad("an agent that does not get the tables should be told which ones and why")
+        bad("an agent that does not get every table should be told which ones and why")
+    if "samples" not in mic["tables"] or "samples" not in sim["tables"]:
+        bad("one sample is used by two agents (016); the sample table has to reach both, "
+            "and it reached neither for the first hours it existed")
     if mic["entries"].keys() != sim["entries"].keys():
         bad("the entry set differs between agents; selecting a subset needs a basis no entry carries")
 
