@@ -1633,6 +1633,14 @@ rebuild/
     units.json             단위 레지스트리 (정본)
     units.md               그 레지스트리의 설명 + 무차원군 entry의 필수 형식 (§5.7)
     observables.json       공유 관측량 어휘 (정본). 질문마다 한 항목씩 자란다 (§11-1)
+    quantities.json        `numbers[].name`이 쓰는 **양의 레지스트리** (정본). `observables.json`과
+                           **합치지 않고 나란히 둔다**: 그쪽은 *무엇을 생산하고 비교할 수 있나*를 등록해
+                           항목마다 `estimator`·`window_required`·`producible_by`를 달지만, 커버슬립
+                           두께나 픽셀 크기는 **아무도 생산하지 않고 아무것과도 비교되지 않는다.**
+                           맞추려고 추정기를 지어 주는 것은 도치다. **모든 observable은 quantity이고
+                           역은 아니다.** 규칙 1은 데이터가 썼다 — **이름은 양을 말하지 자기 주어나
+                           locus를 말하지 않는다**(§5.3.3의 `at`, 검사 44의 `subject`). 성장은
+                           `observables.json`과 같다: 질문이 필요로 할 때 하나씩, 투기적으로는 절대
     seats.json             커미터 신원 → 소유 경계. 검사 41이 읽는다 (§6.2.1)
     validation_limits.json 검증기 임계값. `null`은 "아직 아무도 고르지 않음"이다
     validate.py            결정론적 검증기
