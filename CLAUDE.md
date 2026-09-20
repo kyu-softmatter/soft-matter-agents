@@ -124,14 +124,17 @@ resolves normally. See §6.2. Sessions communicate only through file cards and r
 librarian MCP calls, so every transfer leaves a trace on disk. See §6.2.
 
 **MCP tools can be missing for a reason no seat here can see.** Claude Code
-keys projects by working directory, so one repository becomes several things
-to approve; the root `.mcp.json` is inherited and **the approval is not**.
-That much is true, and approving by server name at the user level is right.
-It is not sufficient, and this file said it was until 2026-09-20: that
-user-level approval was in place from 2026-09-19 20:00 and three seats still
-had no tools for a day, because `.claude/settings.local.json` in this
-repository held one key, `{"disabledMcpjsonServers": ["librarian"]}`, and **a
-deny beats an allow**.
+keys projects by working directory, and this file said for days that the
+approval therefore does not reach a session launched in a subdirectory.
+**It does.** On 2026-09-20 all seven `rebuild` entries in `~/.claude.json`
+held an empty `enabledMcpjsonServers`, and sessions rooted at the repository
+root and at `simulation_agent/` both reached the server anyway: a user-level
+approval by server name covers every directory, and the per-directory split
+this file blamed was never the operative thing. What actually silenced three
+seats for a day was one key in `.claude/settings.local.json` —
+`{"disabledMcpjsonServers": ["librarian"]}` — because **a deny beats an
+allow**, while the user-level approval prescribed here as the fix had been in
+force since 2026-09-19 20:00.
 
 That file is untracked and gitignored globally, so part of a session's real
 permissions sits where nothing in this repository can reach it. The commit
@@ -141,8 +144,10 @@ it walks past this one, and its own note about refusals it cannot see names
 user-level and harness ones — not a repository file sitting beside the one it
 read. Three seats recorded the symptom and none could state the cause from
 inside its own boundary. **When the tools are missing, read that file first,
-by hand.** Settings are read at session start, so fixing it leaves a running
-session unchanged.
+by hand** — and read it again, because it moves: on 2026-09-20 it went from
+that one key to `{}` to absent inside ten minutes while seats were quoting it
+to each other, and nothing anywhere records that it did. Settings are read at
+session start, so fixing it leaves a running session unchanged.
 
 A seat without the librarian's tools gets no error — it proceeds on the
 degraded path, which is legitimate here, so a silent day looks like an
