@@ -1286,6 +1286,11 @@ ALLOWED_PATHS = [
     r"^(microscope|simulation|librarian)_agent/\.claude/.*$",
     r"^bridge/\.claude/.*$",
     r"^\.claude/.*$",
+    # The public page (7). It is outside every agent and outside contracts/,
+    # so nothing about it is shared code: it is the repository's own front
+    # door, a sibling of README.md, and it classifies as `design` below.
+    r"^docs/[A-Za-z0-9_.-]+\.(html|css|js|svg|png|jpg|jpeg|webp|mp4|md)$",
+    r"^docs/assets/[A-Za-z0-9_.-]+$",
 ]
 
 
@@ -1797,6 +1802,49 @@ def check_26_snapshot(b: Bundle) -> list[Finding]:
     Comparing the embedded text against the committed bytes subsumes them: if
     the text is right, what any hash of it says is a separate question for the
     exporter's own verifier.
+
+    WHAT A FIXTURE FOR THIS CHECK HAS TO BE, pinned here rather than sent.
+    11-7 settled on 2026-09-20 that the four history-reading checks -- 26, 35,
+    41, 46 -- get a script that BUILDS a repository rather than a stored one,
+    and assigned that harness to manager-bridge as check 65. The harness is
+    that seat's; which case it runs for check 26 is this one's, and it is
+    written into the check so the hand-off cites instead of carries.
+
+    THE DIVERGENCE CASE IS A REAL EXPORT WHOSE BYTES BELONG TO ANOTHER COMMIT,
+    and it is one of nine outcomes this check can produce. Six of the other
+    eight are also failures and none of them is 4.3.2's divergence:
+
+      no snapshot at all            -> PENDING, and the wrong branch entirely
+      unreadable JSON               -> FAIL, but that is check 1's kind of defect
+      no `built_from_commit`        -> FAIL: not a copy of anything
+      commit carries no store       -> FAIL: not a copy of anything
+      entry absent at that commit   -> FAIL: not a copy of anything
+      entry text != committed bytes -> FAIL: A COPY OF SOMETHING ELSE  <- this
+      table without `from`          -> FAIL: not a copy of anything
+      table path absent at commit   -> FAIL: not a copy of anything
+      table text != committed bytes -> FAIL: A COPY OF SOMETHING ELSE  <- this
+
+    The line that matters runs between "this is not a copy of anything" and
+    "this IS a copy, of something else". Only the second is what 4.3.2 means
+    by the store and the copy diverging, and only the second is a state a real
+    repository reaches by accident -- the others need a snapshot nobody could
+    have produced. A fixture that names a bogus commit and calls itself a
+    divergence fixture exercises branch four, fails, and stays green while
+    testing something else. That is the defect check 64 hit on its own first
+    draft: a check whose question got decided by what it happened to look at.
+
+    So the case, minimally: a built repository holding `kb/index.json` and at
+    least one entry at commit C, plus `<name>_agent/envelope/snapshot.json`
+    naming C with ONE entry's `text` altered by one byte. One byte, because a
+    fixture that diverges loudly would also trip the cheaper branches and
+    could not tell them apart. The table surface wants its own case for the
+    same reason -- entries and tables are read by separate loops, and a
+    fixture for one proves nothing about the other.
+
+    Two facts about the glob the harness would otherwise find by debugging:
+    the pattern is `*_agent/envelope/snapshot.json`, so a fixture placed under
+    `bridge/` is never read at all, and the blob lookup runs against GIT_REPO
+    rather than against the tree being validated.
     """
     import subprocess
     snaps = sorted(REPO.glob("*_agent/envelope/snapshot.json"))
@@ -2072,7 +2120,7 @@ AGENT_OF_PATH = [
     (re.compile(r"^librarian_agent/"), "librarian_agent"),
     (re.compile(r"^bridge/"), "bridge"),
 ]
-SHARED_PATHS = re.compile(r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock|\.claude/)")
+SHARED_PATHS = re.compile(r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock|\.claude/|docs/)")
 # Both lists, because they answer different questions about the same file:
 # ALLOWED_PATHS says it may exist and SHARED_PATHS says whose boundary it is
 # in. A root file added to the first alone passes check 13 and classifies as
