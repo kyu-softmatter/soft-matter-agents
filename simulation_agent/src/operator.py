@@ -412,10 +412,22 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     approval, envelope = gate(plan, budget, target)
 
     # The status flip is bookkeeping and belongs to the agent; the decision it
-    # records belongs elsewhere. For tier 2 that decision is a person's approval
-    # card in approvals/ -- the one folder they write and no seat may (7.1 rule
-    # 5). For tier 0-1 it is the gate above having passed deterministically.
-    if plan["status"] == "VALIDATED":
+    # records belongs to a person. APPROVED has exactly two routes in (6.1): a
+    # plan_approval for this (plan_id, revision), or a live scope_approval
+    # covering it. There is no third -- the state machine's arrow into APPROVED
+    # is labelled `person` -- and check 7 refuses the status with neither card
+    # present.
+    #
+    # So a tier 0-1 run leaves the plan VALIDATED. This used to flip regardless
+    # and the first run in this repository's history turned the tree red: the
+    # gate runs the whole validator, so every other session's commit was
+    # refused until the line was reverted. The reasoning it rested on was that
+    # a deterministic gate passing is the equivalent decision, and it is not;
+    # the tier split exists precisely because those two are different things.
+    # The run's autonomy is already on the record where it belongs, in the run
+    # log's `approval: {id: null, kind: null}`, which says it needed none -- a
+    # different fact from a plan card claiming an approval nobody gave.
+    if approval["id"] is not None and plan["status"] == "VALIDATED":
         plan["status"] = "APPROVED"
         cards.write(plan_path, plan)
     check_md_agrees(plan_path, plan)
