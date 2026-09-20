@@ -225,6 +225,34 @@
       "why_not_more": "Moving validate.py and the shared schemas up to the architecture seat was proposed on 2026-09-17 and refused. The argument for it was sound -- a seat that can edit the code that checks it is the same shape excludes was written against -- but it does not survive being followed through. Architecture would then implement checks, against 6.2's 'specify, do not implement' and against the check-42 order that has the manager implement and architecture declare; and architecture writing the gate is still a seat checked by code it wrote, one tier up. The regress does not end inside the repository. It ends at an enforcement point no seat controls: a required status check on the remote. That is unavailable here -- branch protection needs a paid plan on a private repository -- so the honest state is that the shared core is guarded by review at merge, and this note says so."
     },
     {
+      "seat": "manager-bridge-2",
+      "committer_email": "manager-bridge-2@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "contracts/",
+        "bridge/CLAUDE.md",
+        "bridge/.claude/",
+        "bridge/tasks/",
+        "bridge/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/seats.json"
+      ],
+      "note": "The second bridge manager seat, opened 2026-09-19 after the first closed. Same paths and the same excludes: a new identity is not a new boundary. It exists because a vacated identity is not inherited -- reusing manager-bridge would collapse two sessions' commits into one seat with no way to tell them apart, and the cost of not reusing is this line. manager-bridge stays listed and unoccupied so the commits already under it keep their attribution.",
+      "owns_in_contracts": [
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/schemas/round_hashes.schema.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "why_not_more": "Moving validate.py and the shared schemas up to the architecture seat was proposed on 2026-09-17 and refused. The argument for it was sound -- a seat that can edit the code that checks it is the same shape excludes was written against -- but it does not survive being followed through. Architecture would then implement checks, against 6.2's 'specify, do not implement' and against the check-42 order that has the manager implement and architecture declare; and architecture writing the gate is still a seat checked by code it wrote, one tier up. The regress does not end inside the repository. It ends at an enforcement point no seat controls: a required status check on the remote. That is unavailable here -- branch protection needs a paid plan on a private repository -- so the honest state is that the shared core is guarded by review at merge, and this note says so."
+    },
+    {
       "seat": "manager",
       "committer_email": "manager@seat.invalid",
       "owns": [
