@@ -53,6 +53,16 @@
       "unit": "K",
       "where": "both in librarian entries",
       "why_it_matters": "Rule 1 again, on the locus rather than the subject. `ambient_temperature` is `temperature` read at the room, and `at` exists as of 7320f78 to say that. Listed below as a quantity anyway, because retiring a name in use is the work and not the declaration."
+    },
+    {
+      "names": [
+        "working_distance",
+        "working_distance_min",
+        "working_distance_max"
+      ],
+      "unit": "mm",
+      "where": "working_distance on five objective entries; the min/max pair on objective_mrd77400 alone",
+      "why_it_matters": "Not a synonym and not a mistake: a dry or oil lens has one working distance and the 40x water-immersion lens has a RANGE, because its correction collar moves it. So the store is right and a caller still cannot see it. On 2026-09-20 manager-microscope looked for `working_distance` on all six objectives, found five, and reported the sixth as missing -- the value was there under two other names.\n\nWhat this exposes is bigger than the pair. `kb_query('working_distance')` returns five entries and NO GAP, because five is a real answer. `near_names` only rides on a gap, so a PARTIAL answer offers nothing: five out of six looks complete to anyone who does not already know there are six. The mechanism built to say 'the store calls it something else' fires only when the store says nothing at all."
     }
   ],
   "quantities": [
