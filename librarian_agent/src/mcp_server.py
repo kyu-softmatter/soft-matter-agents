@@ -653,8 +653,12 @@ NEAR_MIN_SHARED = 4
 NEAR_LIMIT = 8
 
 
-def near_names(store: Store, asked: str) -> list[str]:
+def near_names(store: Store, asked: str, exclude: set[str] | frozenset[str] = frozenset()) -> list[str]:
     """Names the store DOES answer to that are close to `asked`.
+
+    `exclude` drops handles the caller already has in the same answer. It is a
+    parameter rather than the caller's job because the cap has to come after
+    the subtraction -- see the end of the function.
 
     Suggesting is not matching. Nothing here returns an entry -- a name in
     this list makes the caller ask again -- so a wrong suggestion costs one
@@ -719,6 +723,16 @@ def near_names(store: Store, asked: str) -> list[str]:
             if len(short) >= NEAR_MIN_SHARED and short in long:
                 out.add(h)
                 break
+    # SUBTRACT BEFORE THE CAP, not after (022). A name the caller is already
+    # holding in the same response is not a neighbour, it is noise -- asking
+    # for `pixel_size` returns twelve entries and suggesting eight of their own
+    # handles back is the report that cries at everything. And the order
+    # matters on its own: the cap is alphabetical, so cap-then-subtract can
+    # spend all eight slots on names that were returned and drop the one that
+    # was not. Here that would be harmless -- pixel_size's twelve all come
+    # back -- and it is not harmless in general, which is the only kind of
+    # correctness worth having in a cap.
+    out -= set(exclude)
     return sorted(out)[:NEAR_LIMIT]
 
 
@@ -844,6 +858,15 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
     # The third case wants a fifth kind more than it wants one of these four,
     # and inventing kinds is not this seat's to do, so it is reported on the
     # row and raised rather than forced into a word that means something else.
+    # Computed ONCE, here, and used both at the answer level and on a gap if
+    # one is built (022). Two computations under one key name in one response
+    # is the two-spellings defect this store keeps paying for; if the gap's
+    # neighbourhood and the answer's neighbourhood could differ, a caller
+    # reading one and citing the other would be right by accident.
+    near = near_names(store, observable,
+                      exclude={h for r in returned
+                                 for h in store.subjects(store.entries[r["entry_id"]])})
+
     gaps = []
     covered = [r for r in returned if r["overlap"] == "full"]
     if not returned or (condition_range and compared_and_short and not covered):
@@ -889,10 +912,42 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
             # caller to read a row when six graded claims were a re-ask away.
             # Not on condition_mismatch -- there the name matched, and what
             # fell short is in `nearest`.
-            gap["near_names"] = near_names(store, observable)
+            gap["near_names"] = near
         gaps.append(gap)
 
     answer = {"entries": returned, "gaps": gaps,
+              # ALWAYS PRESENT, EMPTY INCLUDED, AND NOT ONLY WHEN A GAP WAS
+              # BUILT (022). Until 2026-09-20 the neighbourhood was attached
+              # inside the branch that builds a gap, so it reached a caller
+              # only when the store returned NOTHING -- and the failure that
+              # found it was the opposite case. A preflight asked for
+              # `working_distance` and got five of six objectives: the sixth,
+              # the 40x water-immersion lens, carries `working_distance_min`
+              # and `_max` because a correction collar moves it, so for that
+              # one lens the answer was empty while the response as a whole
+              # looked complete. The mechanism built to say "the store calls
+              # it something else" computed exactly those two names and had no
+              # way out of the function.
+              #
+              # The docstring's own argument decides it: a wrong suggestion
+              # costs one query and a missing one costs the fact. Gating on
+              # emptiness makes missing the default for every partial answer.
+              # None of the three predicates changed -- only when they may
+              # speak.
+              #
+              # Present-and-empty means the neighbourhood was searched and
+              # nothing was near; absent would mean the search never ran. Same
+              # distinction the gap already draws, and it has to hold on
+              # complete answers too or silence and clean read the same.
+              #
+              # WHAT THIS STILL DOES NOT CLOSE. The 40x miss is per SUBJECT --
+              # one lens of six had no value under that name -- and everything
+              # here is per NAME. A caller who ignores the suggestion records
+              # nothing, because there is no gap for the lens and so nothing
+              # for check 39 to bite on. Naming it rather than implying the
+              # fix reaches it; that needs a different mechanism and 022 says
+              # not in this task.
+              "near_names": near,
               "grade_summary": grade_summary(store, [r["entry_id"] for r in returned]),
               "kb_version": store.kb_version,
               "answered_from": _provenance(store)}
@@ -1197,6 +1252,40 @@ def _self_test() -> int:                                    # noqa: C901
             bad(f"a published-table answer should still say what is near: {sorted(tbl)}")
         elif "objective_mrd70040" not in tbl["near_names"]:
             bad(f"the plural found an empty neighbourhood: {tbl['near_names']}")
+        # 2f. THE PARTIAL ANSWER, which is the case the gate hid (022). A
+        # preflight asked for `working_distance` and got five of the six
+        # objectives; the sixth, the 40x water-immersion lens, carries
+        # `working_distance_min` and `_max` because a correction collar moves
+        # it. No gap is built -- five entries came back -- so before this the
+        # neighbourhood had nowhere to go and the response looked complete.
+        # This is the case that actually happened, which is why it is the one
+        # asserted.
+        wd = kb_query(store, cid, v, "working_distance", None)
+        if not wd["entries"] or wd["gaps"]:
+            bad(f"working_distance should answer partially with no gap: "
+                f"{len(wd['entries'])} entries, {wd['gaps']}")
+        if "near_names" not in wd:
+            bad("a partial answer carries no neighbourhood at all, which is the whole of 022")
+        else:
+            for want in ("working_distance_min", "working_distance_max"):
+                if want not in wd["near_names"]:
+                    bad(f"the 40x lens is reachable only as {want} and the partial answer "
+                        f"did not offer it: {wd['near_names']}")
+
+        # 2g. A COMPLETE ANSWER SAYS NOTHING EXTRA, and says it with an empty
+        # list rather than an absent key. Unsubtracted, `pixel_size` would
+        # suggest eight handles the caller is holding in the same response --
+        # the report that cries at everything. Subtraction is what separates a
+        # mechanism that helps from one people learn to skip.
+        for q in ("pixel_size", "refractive_index", "na"):
+            a = kb_query(store, cid, v, q, None)
+            if "near_names" not in a:
+                bad(f"{q}: the key must be present even when the answer is complete, or "
+                    f"searched-and-nothing-near reads the same as never-searched")
+            elif a["near_names"]:
+                bad(f"{q} answered completely and still suggested {a['near_names']}; every one "
+                    f"of those is a handle of an entry in the same response")
+
         # a suggestion must never be a match: the store answers to `na`, so a
         # query for it returns entries rather than suggesting anything
         if not kb_query(store, cid, v, "na", None)["entries"]:
