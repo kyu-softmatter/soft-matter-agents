@@ -123,13 +123,26 @@ Tool denials are not inert, and a denial aimed inside the agent's own tree
 resolves normally. See §6.2. Sessions communicate only through file cards and read-only
 librarian MCP calls, so every transfer leaves a trace on disk. See §6.2.
 
-**Launching a session in its own directory splits MCP approval.** Claude
-Code keys projects by working directory, so one repository becomes several
-things to approve, one per directory, and they start empty. The root
-`.mcp.json` is inherited; **the approval is not**, and the two behaving
-differently is why a seat can have the server registered and the tools
-missing. Approve by server name at the user level rather than per path.
-Settings are read at session start, so a running session is unaffected.
+**MCP tools can be missing for a reason no seat here can see.** Claude Code
+keys projects by working directory, so one repository becomes several things
+to approve; the root `.mcp.json` is inherited and **the approval is not**.
+That much is true, and approving by server name at the user level is right.
+It is not sufficient, and this file said it was until 2026-09-20: that
+user-level approval was in place from 2026-09-19 20:00 and three seats still
+had no tools for a day, because `.claude/settings.local.json` in this
+repository held one key, `{"disabledMcpjsonServers": ["librarian"]}`, and **a
+deny beats an allow**.
+
+That file is untracked and gitignored globally, so part of a session's real
+permissions sits where nothing in this repository can reach it. The commit
+gate judges the tree a commit would create and the file is never in that
+tree. Check 53 reads settings files by globbing `settings.json` exactly, so
+it walks past this one, and its own note about refusals it cannot see names
+user-level and harness ones — not a repository file sitting beside the one it
+read. Three seats recorded the symptom and none could state the cause from
+inside its own boundary. **When the tools are missing, read that file first,
+by hand.** Settings are read at session start, so fixing it leaves a running
+session unchanged.
 
 A seat without the librarian's tools gets no error — it proceeds on the
 degraded path, which is legitimate here, so a silent day looks like an

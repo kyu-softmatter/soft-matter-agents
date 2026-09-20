@@ -74,6 +74,14 @@
       "note": "The second simulation execution seat, seated 2026-09-18. Same shape as librarian-2 and for the same reason: two sessions sharing one identity is what one_identity_per_session calls a hole, and it happened twice on 2026-09-17 with the check passing both times. The first simulation session keeps simulation@seat.invalid, which is where all 27 of that agent's commits are. This note used to say it takes seat/simulation-1 -- a seat that was never registered and a branch that no longer exists -- so a dangling name was deciding who may commit."
     },
     {
+      "seat": "simulation-3",
+      "committer_email": "simulation-3@seat.invalid",
+      "owns": [
+        "simulation_agent"
+      ],
+      "note": "The third simulation execution seat, seated 2026-09-20. Same shape as simulation-2 and librarian-2: owns the agent directory, no paths, because an execution seat is not narrowed inside its own tree. Minted on a relay -- the occupying session reported that the person had opened it, and the person has not said so here. a_seat_is_minted_only_on_a_statement asks for the person's statement or the occupant's; a relay is the second of those only if the relaying session is the one being seated, and here it was. If the person did not open a third simulation session, withdraw this the way the three seats minted on inference on 2026-09-19 were withdrawn."
+    },
+    {
       "seat": "librarian",
       "committer_email": "librarian@seat.invalid",
       "owns": [
