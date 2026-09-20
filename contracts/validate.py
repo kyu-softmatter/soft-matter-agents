@@ -2042,6 +2042,12 @@ def check_32_purpose(b: Bundle) -> list[Finding]:
     return out or [Finding(32, PASS, f"{len(goals)} goals state a purpose consistent with their intent")]
 
 
+def card_scope(card) -> str:
+    """The folder a card's siblings share. Used by checks 33 and 58, which ask
+    two halves of one question and must partition the same way."""
+    return str(Path(card.rel).parent)
+
+
 def check_33_caller_isolation(b: Bundle) -> list[Finding]:
     axes = b.of_kind("axis")
     if not axes:
@@ -2054,9 +2060,6 @@ def check_33_caller_isolation(b: Bundle) -> list[Finding]:
     # an id -- and they did, because the fixtures wear plausible qids. The
     # symptom was "siblings cite different kb_version", which was true of the
     # two sets and meaningless between them. Scope is the directory.
-    def scope(card) -> str:
-        return str(Path(card.rel).parent)
-
     # And the same argument a second time, for the same reason. A revision is a
     # re-run (4.5.5), so two revisions are two fan-outs and their cards are not
     # each other's siblings. caller_id is <qid>:<config>:<axis> with no revision
@@ -2066,7 +2069,7 @@ def check_33_caller_isolation(b: Bundle) -> list[Finding]:
     # unfollowable.
     groups: dict[tuple[str, str, object], list] = {}
     for c in axes:
-        groups.setdefault((scope(c), c.data.get("qid"), c.data.get("revision")), []).append(c)
+        groups.setdefault((card_scope(c), c.data.get("qid"), c.data.get("revision")), []).append(c)
 
     for (where, qid, _rev), group in sorted(groups.items(), key=lambda kv: str(kv[0])):
         callers = [c.data.get("caller_id") for c in group]
@@ -4151,6 +4154,61 @@ def check_61_envelope_currency(b: Bundle) -> list[Finding]:
                     "librarian_agent/kb/exports")]
 
 
+def check_58_one_fanout_reads_one_store(b: Bundle) -> list[Finding]:
+    """Every axis card under one question and configuration pins one store.
+
+    Check 33 asks the same thing and cannot see this. It groups by
+    (scope, qid, **revision**), and it has to: a revision is a re-run (4.5.5),
+    caller_id carries no revision component, so grouping without it makes
+    "caller_id reused" fire on a card and the card that replaced it. Correct
+    for that question, and it partitions the fan-out for every other question
+    asked in the same pass -- including the kb_version agreement, which then
+    holds trivially inside each partition.
+
+    A revision counts re-runs of **one axis**, not of the fan-out. Six axes at
+    revision 2 and one still at revision 1 are one fan-out, and S4 will
+    intersect all seven. Intersecting intervals derived against different
+    stores compares two knowledge states, and the abstentions are the worse
+    half: an axis at an older pin reports `absent` for what the newer store
+    holds, and nothing downstream can tell that from a real absence.
+
+    So this ignores revision on purpose and looks only at the store. Not a
+    duplicate of 33 -- the half of 33's question that 33's grouping had to
+    give up.
+
+    When written, mic-20260918-001 had six axes at kbv-7c77fa74ee5a and a5
+    alone at kbv-49feb73662b7, six commits and fifty-eight entries apart, and
+    check 33 passed. Re-deriving a5 found all seven of its inputs still
+    absent, so the split had not yet produced a wrong answer -- which is the
+    argument for closing it then rather than the argument that it did not
+    matter.
+    """
+    out: list[Finding] = []
+    groups: dict[tuple, list] = {}
+    for c in b.cards:
+        if "__unreadable__" in c.data or c.data.get("card") != "axis":
+            continue
+        qid, cfg, ver = c.data.get("qid"), c.data.get("config"), c.data.get("kb_version")
+        if not qid or not ver:
+            continue
+        groups.setdefault((card_scope(c), qid, cfg), []).append((ver, c))
+    if not groups:
+        return [Finding(58, NA, "no axis cards")]
+    for (_where, qid, cfg), members in sorted(groups.items(), key=lambda kv: str(kv[0])):
+        by_ver: dict[str, list[str]] = {}
+        for ver, c in members:
+            by_ver.setdefault(ver, []).append(c.data.get("axis") or c.rel)
+        if len(by_ver) > 1:
+            spread = "; ".join(f"{v} <- {', '.join(sorted(a))}" for v, a in sorted(by_ver.items()))
+            out.append(Finding(58, FAIL,
+                f"the fan-out for {qid} on {cfg} reads {len(by_ver)} stores: {spread}. S4 intersects "
+                "these together, and an axis left at an older pin reports absent for what the newer "
+                "store holds -- indistinguishable downstream from a real absence. Re-derive the "
+                "stragglers; do not re-pin them without re-asking", members[0][1].rel))
+    return out or [Finding(58, PASS,
+        f"{len(groups)} fan-outs each read one store, across revisions")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -4166,7 +4224,7 @@ CHECKS = [
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision, check_53_deny_rules_do_not_block_reading,
-    check_54_kb_basis_resolves,
+    check_54_kb_basis_resolves, check_58_one_fanout_reads_one_store,
     check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,
     check_56_undecided_names_the_settled_unit,
