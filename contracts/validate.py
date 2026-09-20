@@ -1249,7 +1249,7 @@ def check_12_synthesis_closure(b: Bundle) -> list[Finding]:
 
 
 ALLOWED_PATHS = [
-    r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json)$",
+    r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock)$",
     r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|seats\.json|validate\.py|validation_limits\.json)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
@@ -2072,7 +2072,12 @@ AGENT_OF_PATH = [
     (re.compile(r"^librarian_agent/"), "librarian_agent"),
     (re.compile(r"^bridge/"), "bridge"),
 ]
-SHARED_PATHS = re.compile(r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|\.claude/)")
+SHARED_PATHS = re.compile(r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock|\.claude/)")
+# Both lists, because they answer different questions about the same file:
+# ALLOWED_PATHS says it may exist and SHARED_PATHS says whose boundary it is
+# in. A root file added to the first alone passes check 13 and classifies as
+# `unattributable`, so it exists legitimately and no seat may be said to own
+# it. Section 7 records the coupling as of 2026-09-19.
 
 # An agent's CLAUDE.md and .claude/ belong to the design seat, not to the agent
 # (6.2). Counting them as the agent's made every ordinary design commit look
