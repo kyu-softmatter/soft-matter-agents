@@ -2006,6 +2006,17 @@ src/devices/dev_*.py         imports neither a sibling nor anything above
 
 **Deleting the right thing to satisfy a gate is the most expensive failure** — the same pressure as a gate that refuses correct work being answered with `--no-verify`, and this side is worse: a bypass leaves a trace while **a deletion leaves a green tree.** So a check's documentation records not only what it refuses but **what it deliberately does not refuse.** Without that sentence, when a check is wrong the reader suspects their own file.
 
+**One seat's uncommitted work reddens the tree and stops every other seat, and the failure does not say
+whose it is.** On 2026-09-20 a defect being diagnosed in one session held up commits in eight others:
+the gate judges the tree a commit would create, that tree is built from a shared index, and a red from
+somebody else's half-finished edit is indistinguishable in the output from a red of your own. The
+validator's `tree:` line says *nobody's commit*, which is honest, and it cannot name the seat, because
+nothing on disk says which seat an uncommitted edit belongs to — the same reason a hunk cannot be
+attributed (§6.2.1). **The cost is not the red; it is that eight seats each have to work out that it is
+not theirs.** With no worktrees this stays, and it is the third thing one shared working copy costs,
+beside carrying another seat's hunk in and having your own edit erased.
+
+
 **A card can be perfectly written, pass every check, and be false — because the world moved beneath it.** On 2026-09-19 §11-13 was rewritten **three times in one day**: a product was identified, retracted, and the retraction retracted. The record was right at each moment and false hours later each time. **This is different from stale prose** — stale prose is a reference that lost its referent, and checks 47, 48, 50 and 51 catch that class. Here **every reference resolves and every sentence is coherent and the world says something different.** No writing convention catches it, and **no check catches it either** — the validator reads the disk, not the bench. Only one thing catches it: **re-reading before acting.** So it is written down lest the conventions read as covering this too. The simulation manager raised it, distinguishing this class from its two stale holds — the former is **an instruction outliving its grounds** and is stopped by a writing convention; the latter is not.
 
 **Check 33's group key serves two checks whose scopes differ — so the state it was preventing passes (2026-09-19).** The key is `(directory, qid, revision)` and it adjudicates two things: `caller_id` uniqueness and `kb_version` agreement. **The first needs revision in the key** (two revisions of the same axis share one caller_id under the legacy form, so without it a false failure hit correct cards — so it was added, and that reason is right), and **the second must not have it.**
