@@ -5,6 +5,8 @@ Four agents that design and run soft-matter experiments: a **microscope** and a
 them, a **librarian** that owns everything either of them knows, and a
 **bridge** that carries cards between the two.
 
+**One screen instead of this file:** <https://kyu-softmatter.github.io/soft-matter-agents/>
+
 The point is not that a model proposes settings. It is that a proposal has to
 survive a deterministic gate before it becomes a plan, and that **a refusal is
 a result** — when the evidence for a value does not exist, the system says so
@@ -85,6 +87,7 @@ rather than passing.
 | `ARCHITECT.md` | standing orders for the architecture seat only |
 | `contracts/` | the only shared code: card schemas, the unit registry, the observable vocabulary, and `validate.py` |
 | `<agent>/README.md` | what that agent is and what it does today |
+| `docs/` | the public page — one screen, for someone who was sent a link and will not open this repository |
 
 ## Running the gate
 
@@ -107,5 +110,7 @@ times in one day, which is why there are none.
 
 ---
 
-Private research repository. The design is deliberately slower than it needs to
-be in places where being wrong is expensive.
+Public, and in development. The design is deliberately slower than it needs to
+be in places where being wrong is expensive. This line said **private** until
+2026-09-20, while the repository was public and being read by people the
+sentence told to go away.
