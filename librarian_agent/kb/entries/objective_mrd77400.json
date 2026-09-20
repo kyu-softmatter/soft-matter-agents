@@ -4,13 +4,39 @@
   "kind": "claim",
   "claim": "Nikon CFI Apo Lambda S 40XC WI, part number MRD77400: a water-immersion 40x objective of numerical aperture 1.25 with a correction collar, specified for coverglass from 150 to 190 micrometres. Its working distance is quoted as a range, 0.16 to 0.2 mm, because it depends on where the correction collar is set.",
   "numbers": [
-    { "name": "na", "value": 1.25, "unit": "1", "source": "spec:MRD77400", "grade": "E3", "precision": "significant_figures" },
-    { "name": "working_distance_min", "value": 0.16, "unit": "mm", "source": "spec:MRD77400", "grade": "E3", "precision": "significant_figures", "note": "the quoted range is carried as its two ends; compressing a range into one value would stop it being a quotation" },
-    { "name": "working_distance_max", "value": 0.2, "unit": "mm", "source": "spec:MRD77400", "grade": "E3", "precision": "significant_figures" }
+    {
+      "name": "na",
+      "value": 1.25,
+      "unit": "1",
+      "source": "spec:MRD77400",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "working_distance_min",
+      "value": 0.16,
+      "unit": "mm",
+      "source": "spec:MRD77400",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the quoted range is carried as its two ends; compressing a range into one value would stop it being a quotation"
+    },
+    {
+      "name": "working_distance_max",
+      "value": 0.2,
+      "unit": "mm",
+      "source": "spec:MRD77400",
+      "grade": "E3",
+      "precision": "significant_figures"
+    }
   ],
-  "validity_conditions": "Catalog specification for this part number, capped at E3 because a published specification is not a measurement taken here. The working distance is collar-dependent, and the collar setting is determined once the coverglass thickness is fixed -- so at the 170 micrometres this laboratory uses (coverslip_thickness_in_use) the working distance is a single value rather than a range. The catalog does not publish that value, and the librarian does not interpolate within a quoted range, so it is recorded as a condition_mismatch gap rather than derived. This is the one lens on this nosepiece with a real correction collar.",
+  "validity_conditions": "Catalog specification for this part number, capped at E3 because a published specification is not a measurement taken here. The working distance is collar-dependent, and the collar setting is determined once the coverglass thickness is fixed -- so at the 170 micrometres this laboratory uses (coverslip_thickness_in_use) the working distance is a single value rather than a range. The catalog does not publish that value, and the librarian does not interpolate within a quoted range, so it is recorded as a condition_mismatch gap rather than derived. This is the one lens on this nosepiece with a real correction collar. THIS LENS DOES NOT ANSWER TO `working_distance`, AND A PREFLIGHT KEYED ON THAT NAME GETS NOTHING FOR IT. Run against the store: `working_distance` returns five entries, the other five objectives; this one carries `working_distance_min` and `working_distance_max` instead. So a focus ceiling written as `look up working_distance for the lens in use` succeeds for five lenses and comes back EMPTY for this one -- not with a range to think about, with nothing. That is the worse failure of the two, because a range is visible and an absence looks like a lookup that has not run. THE SAFE PATH IS THE PART NUMBER. Task 009 made `identifiers.part_number` addressable, and it works: a query for MRD77400 returns this entry, whose numbers a caller then reads -- getting the interval, and seeing that it is one. A preflight resolving by part number cannot silently miss a lens; one resolving by quantity name already does. WHICH END BINDS IS NOT THE STORE'S TO SAY, and the store can still say which end is conservative: at any collar setting the true working distance is at least the minimum, so a ceiling at 0.16 mm is never passed before focus and a ceiling at 0.2 mm can be. That is geometry, not policy; the choice belongs to the person who writes envelope/safety.json (4.3.2, 10.3 rule 4).",
   "validity": {
-    "coverslip_um": { "min": 150, "max": 190, "unit": "um" }
+    "coverslip_um": {
+      "min": 150,
+      "max": 190,
+      "unit": "um"
+    }
   },
   "identifiers": {
     "part_number": "MRD77400",
@@ -20,7 +46,10 @@
   },
   "source": "spec:MRD77400",
   "subject": [
-    { "kind": "device", "id": "nosepiece" }
+    {
+      "kind": "device",
+      "id": "nosepiece"
+    }
   ],
   "grade": "E3",
   "grade_tag": "vendor_spec",

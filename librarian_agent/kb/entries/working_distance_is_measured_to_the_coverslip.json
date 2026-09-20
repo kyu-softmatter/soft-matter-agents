@@ -1,0 +1,22 @@
+{
+  "entry_id": "working_distance_is_measured_to_the_coverslip",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The catalogue working distances for the objectives on this nosepiece are measured from the front element to the coverslip's lens-facing surface, not to the sample plane. This is inferred from two facts the store already holds; no document was read that says it.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "nosepiece"
+    }
+  ],
+  "inputs": ["working_distance", "coverslip_thickness"],
+  "source": "computed:working_distance_versus_coverslip",
+  "grade": "E4",
+  "grade_tag": "computed",
+  "source_ref": "src_store_derivation",
+  "validity_conditions": "THE INFERENCE, AND IT IS AN INFERENCE. Three of the six objectives have a catalogue working distance SHORTER than the coverslip this laboratory mounts on: 60x Oil at 150 um (objective_mrd71670), 100x Oil at 130 um (objective_mrd71970), and 40x WI from 160 um (objective_mrd77400), against coverslip_thickness 170 um (coverslip_thickness_in_use, E3, operator_read). If the catalogue measured to the SAMPLE PLANE, then at focus the front element of those three would sit nearer the sample than the glass is thick -- inside the coverslip. It cannot. So the catalogue measures to the coverslip's lens-facing surface, and the distance from front element to sample is the working distance plus the coverslip thickness.\n\nRECORDED AS AN INFERENCE OR NOT AT ALL, which is how task 021 put it and why this is E4 rather than E3. Nothing was read. Two E3 facts and one impossibility give it, and 5.3 caps a consequence at E4 however good its inputs are. A later reading of the Nikon catalogue that states the convention outright would supersede this at E3; a measurement on this bench would do better still.\n\nWHAT IT IS NOT NEEDED FOR. Not for the focus ceiling. Task 021 recorded the person's correction of an over-built argument: a lens is at its working distance when it is in focus, by definition, so `do not pass the working distance` means `do not pass focus` whichever surface the catalogue measured from. The convention does not enter that rule and the ceiling did not wait on it.\n\nWHAT IT IS NEEDED FOR. Anything computing an absolute Z in stage coordinates from the coverslip geometry -- where the sample plane sits relative to a focused objective, how far a stage may travel before the element meets glass, and any conversion between a focus position and a depth in the sample. Those need the plus-170 and get it wrong silently without this.\n\nWHY THIS ONE DERIVES AND declared_versus_inferred_temperature DOES NOT. Both are conclusions this store reasoned to rather than read, and both are `computed:` at E4. The difference is what they rest on: this rests on two QUANTITIES the store carries as numbers, `working_distance` and `coverslip_thickness`, so `inputs` resolves and check 62 can verify the grade. That entry rests on CLAIMS carrying no numbers, so nothing composes. Same source kind, two different shapes -- which is the gap raised with manager-librarian under task 020.",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}
