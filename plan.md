@@ -1997,7 +1997,6 @@ src/devices/dev_*.py         imports neither a sibling nor anything above
 | 65 | whether the four checks that read history (26, 35, 41, 46) have a test that builds a repository | manager-bridge |
 | 63 | whether a tie verdict comes out carrying the worse grade of the two values compared (§5.8.1) | manager-bridge |
 | 59 | whether the hook names and warns about the paths of an unattributed commit | manager-bridge |
-| 66 | whether an irreversible action's run reads back compliance (`verification`) | manager-microscope |
 | 53 | whether an agent setting's `deny` contains a pattern that blocks reading | manager-microscope |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
