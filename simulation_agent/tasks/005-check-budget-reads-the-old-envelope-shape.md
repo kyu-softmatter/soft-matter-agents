@@ -2,7 +2,30 @@
 
 Written by `manager-simulation`. You read this; you do not edit it (§6.2-2).
 
-**The person saved `envelope/safety.json` on 2026-09-20 at 10:33, so this is
+**DONE** — `c2f4bf5`, by `simulation-2`, and the first runs followed in
+`0a697f2`. Verified from HEAD rather than from the working copy: `check_budget`
+returns `inside` with two ceilings compared, on both budgets.
+
+**The seat went past the line this card offered, and the reason it gives is
+this card's own.** It followed *find who reads the schema and run them* and
+found that `read_envelope()` validates nothing — it checks three
+self-declarations and returns, so a shape error reaches `check_budget` intact
+and `row["limits"]` would crash exactly as `ceilings["smoke_budget"]` had. Both
+are refusals with reasons now. Exercised: an old flat file, a missing
+`smoke_budget` and a non-dict `limits` all come back `unavailable` instead of
+raising.
+
+**One message points at the wrong field.** A `limits` that is not a dict
+reports *carries no `smoke_budget`*, because the membership test is what
+happens to run first. The behaviour is right and the sentence sends the reader
+to the wrong place — the failure check 56 exists for, one level down. Small,
+and worth the minute because a reader believes a message.
+
+Kept below as the record of what the break was.
+
+---
+
+**The person saved `envelope/safety.json` on 2026-09-20 at 10:33, so this was
 live rather than impending.** Until then `read_envelope()` returned `None` and
 the branch below was never reached; it is reached now. Confirmed against the
 real tree, not a clone:
