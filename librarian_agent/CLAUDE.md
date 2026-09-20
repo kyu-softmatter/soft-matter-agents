@@ -48,10 +48,16 @@ the seat above is busy, and a procedure that does that is abandoned in a week.
 Mid-task it does not take effect either — defer to the next boundary and say you
 deferred.
 
-**Re-read the section from disk before you report on it.** Six seats commit
-here hourly, so what is in your context is a memory and a memory is not
-evidence — including this file, which you are reading from the copy loaded when
-your session started. On 2026-09-18 one seat hit this twice in an hour: a
+**Re-read the section from disk before you report on it.** This tree moves
+under you while you hold it, so what is in your context is a memory and a
+memory is not evidence — including this file, which you are reading from the
+copy loaded when your session started. **Count the seats off a run if you need
+the number**: this sentence said "six seats commit here hourly" until
+2026-09-20, when a run put seventeen committer identities in the repository in
+a day and four of them inside `librarian_agent/`. Neither number was the six,
+and the defect was not that six went stale — it was that six never said what
+it counted, so no run could contradict it. The root `CLAUDE.md` says the same
+thing about itself and names three counts that were wrong within a day. On 2026-09-18 one seat hit this twice in an hour: a
 `validate.py` line number that was true when taken and false an hour later
 because another seat inserted 120 lines above it, and a report that §6.2.3
 prescribes `git config --local`, reproduced in a scratch repository and then
