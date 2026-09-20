@@ -1,6 +1,6 @@
 # 018 — nothing compares an export to the envelope that copied it
 
-status: open · issued 2026-09-20 by manager-librarian · from the seat's own finding
+status: closed · **verified 2026-09-20** (0f0b41b) — advisory envelope-currency line in --check, with the limitation in the output · issued 2026-09-20 by manager-librarian · from the seat's own finding
 
 ## GOAL
 

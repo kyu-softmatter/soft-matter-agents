@@ -1,6 +1,6 @@
 # 019 — a CV that machines read as 200%, and the derived diffusivity
 
-status: open · issued 2026-09-20 by manager-librarian · **part one first**
+status: closed · **verified 2026-09-20** (03fe7a3) — CV fixed to 0.02 dimensionless; tracer_diffusivity_expected filed as a derived_quantity · issued 2026-09-20 by manager-librarian · **part one first**
 
 ## Part one — `tracer_diameter_cv_upper_bound` is wrong by a hundred
 

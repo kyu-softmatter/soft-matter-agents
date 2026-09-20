@@ -24,11 +24,12 @@
     {
       "names": [
         "diffusivity",
-        "tracer_diffusivity"
+        "tracer_diffusivity",
+        "tracer_diffusivity_expected"
       ],
       "unit": "um^2/s",
-      "where": "diffusivity in simulation_agent (6 uses); tracer_diffusivity is a registered observable",
-      "why_it_matters": "The registered observable and the name the simulation actually writes are different strings. This is the same collision as the one above and it sits on the one observable the bridge is currently threading."
+      "where": "diffusivity in simulation_agent (6 uses); tracer_diffusivity is a registered observable; tracer_diffusivity_expected is a derived_quantity entry as of 2026-09-20",
+      "why_it_matters": "The registered observable and the name the simulation actually writes are different strings. This is the same collision as the one above and it sits on the one observable the bridge is currently threading. A third name joined on 2026-09-20 and it is the dangerous one, because unlike the first two it is NOT the same quantity: `tracer_diffusivity` is what either side MEASURES OR MODELS and `_expected` is what Stokes-Einstein PREDICTS. Two names for one thing is a matching problem; a third name that looks like the other two and is a different claim is a comparison silently made against the wrong operand. The moment it is easiest to slip into a measured or modelled slot is when the bridge thread resumes, which is why the librarian seat raised it before that happened."
     },
     {
       "names": [
@@ -115,6 +116,13 @@
       "unit": "W",
       "kind": "physical",
       "note": "The trapping laser's is neither readable nor settable from software, so a value for it is an operator reading of a hand control and not a device readback."
+    },
+    {
+      "id": "tracer_diffusivity_expected",
+      "definition": "The Stokes-Einstein PREDICTION of a tracer sphere's translational diffusivity, k_B T / 3 pi eta d. A computed expectation, not an observation: it is what the viscosity, the temperature and the diameter imply, and it is the number a plan compares a measurement against rather than a measurement itself.",
+      "unit": "um^2/s",
+      "kind": "physical",
+      "note": "Third name in a family of three and the one most likely to be mistaken for the others -- see open_collisions. Held as a derived_quantity with the formula rather than a value, so an improving input improves it; that is also why nothing may recompute it (plan.md 1295)."
     }
   ],
   "not_yet_registered": {
