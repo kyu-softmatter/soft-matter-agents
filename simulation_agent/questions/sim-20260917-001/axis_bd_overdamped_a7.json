@@ -9,7 +9,7 @@
   "author": "simulation_agent",
   "created_at": "2026-09-18T10:00:00Z",
   "status": "VALIDATED",
-  "caller_id": "sim-20260917-001:bd_overdamped:a7",
+  "caller_id": "sim-20260917-001:v1:bd_overdamped:a7",
   "config": "bd_overdamped",
   "axis": "a7",
   "kb_version": "kbv-9bc3910f1886",

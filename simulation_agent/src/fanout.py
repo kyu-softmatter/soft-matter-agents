@@ -100,9 +100,20 @@ def screen(observable: str) -> list[str]:
     return kept
 
 
-def issue(qid: str, config: str, axis: str) -> str:
-    """The one place an id is composed (4.3.1 rule 3)."""
-    return f"{qid}:{config}:{axis}"
+def issue(qid: str, revision: int, config: str, axis: str) -> str:
+    """The one place an id is composed (4.3.1 rule 3).
+
+    The revision belongs in the id because the id is also the server's
+    isolation unit. Without it a re-run's a1 is the same string as the a1 it
+    exists to replace, so the two share one session context and the second
+    inherits the answers the first was discarded for.
+
+    `revision` takes no default. Revision 1 writes `v1` rather than omitting
+    it: a default would let the old form back in through a call site nobody
+    re-read, and the schema accepts that form only while the cards written
+    before a6dca6a migrate.
+    """
+    return f"{qid}:v{revision}:{config}:{axis}"
 
 
 def current_kb_version(qid: str | None = None) -> str:
@@ -164,18 +175,22 @@ def plan_queries(qid: str) -> list[dict]:
     nums = {n["name"]: n for n in goal["numbers"]}
     observable = goal["observable"]["name"]
     kb_version = current_kb_version(qid)
+    # The same revision `run` stamps the cards with, from the same accessor:
+    # the id a query is logged under has to be the id the card ends up citing,
+    # or check 45 compares two different strings.
+    revision = cards.question_revision(qid)
     out: list[dict] = []
     for config in screen(observable):
         for axis in ("a1", "a4"):
             out.append({
                 "tool": "kb_group",
-                "caller_id": issue(qid, config, axis),
+                "caller_id": issue(qid, revision, config, axis),
                 "args": {"kb_version": kb_version, "symbol": "tau_d"},
                 "why": "the diffusive time is cited, not re-derived; check 36 compares the definition",
             })
         out.append({
             "tool": "kb_query",
-            "caller_id": issue(qid, config, "a3"),
+            "caller_id": issue(qid, revision, config, "a3"),
             "args": {
                 "kb_version": kb_version,
                 "observable": observable,
@@ -225,7 +240,7 @@ def run(qid: str, created_at: str, kb_results: dict[str, dict] | None = None) ->
     written: dict[str, list[str]] = {}
     for config in configs:
         for axis, module in AXIS_MODULES.items():
-            caller_id = issue(qid, config, axis)
+            caller_id = issue(qid, revision, config, axis)
             card = module.build(qid, config, created_at, caller_id, kb_version,
                                 (kb_results or {}).get(caller_id), revision)
             target = cards.question_dir(qid) / cards.artifact_name(
