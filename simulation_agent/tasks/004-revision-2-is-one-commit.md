@@ -165,9 +165,30 @@ was second-order behind the diameter is now the one holding the grade.**
 ## Polydispersity, which nobody was accounting for
 
 A point value became a distribution and that settles something downstream that
-was never argued. **CV within 2 per cent puts the spread in diffusivity across
-particles at about 4 per cent**, since `D` goes as `1/d`. That is inside
-explore's tie band, where differences under 10× are ties (P15).
+was never argued. **Ignoring polydispersity is safe.** Derive the margin
+yourself before writing it down, because the version in circulation — this
+card's included, until it was checked — does not follow from its own reason.
+
+`D = k_BT/3πηd`, so `ln D = const − ln d` and `δD/D = −δd/d`: **`D ∝ 1/d`
+transfers relative spread one-to-one.** A 2 per cent CV in diameter is a
+**2 per cent** CV in diffusivity, not 4. Confirmed numerically as well as
+analytically. Four per cent is what "within 2 per cent" gives if it is read as
+**±2 per cent**, i.e. a 4 per cent full width — a different quantity, needing a
+different sentence. `plan.md` §11-13 and this card both said *twice the spread
+in diameter, since `D` goes as `1/d`*, and `1/d` is precisely what makes it
+one-to-one. Raised with architecture.
+
+**The conclusion does not move**: 2 and 4 per cent are both far inside explore's
+tie band, where differences under 10× are ties (P15). But this section's
+deliverable **is** the reason, so a reason that does not produce its own number
+is the one thing it must not carry.
+
+**Take the CV from the store, not from here — and not yet.**
+`tracer_diameter_measured` holds `tracer_diameter_cv_upper_bound` as
+`value: 2, unit: "1"`, which is dimensionless 2, i.e. **200 per cent**; the
+note says per cent and a note is prose (issue 019). Whatever writes this margin
+must read a value/unit pair that comes out right without the note, so wait for
+that entry to be fixed rather than hand-copying either number.
 
 So ignoring polydispersity is **safe, and until 2026-09-19 nothing said why**.
 A2 is where independent displacements are counted, so that is where the reason
