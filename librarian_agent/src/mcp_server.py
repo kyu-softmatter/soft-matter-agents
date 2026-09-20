@@ -1383,6 +1383,23 @@ def _self_test() -> int:                                    # noqa: C901
             elif "supersedes" not in row:
                 bad(f"kb_query dropped supersedes on {e['entry_id']}")
 
+        # 8c. every unit in the store is one units.json defines -- INCLUDING the
+        # entry-level `unit`, which four separate censuses on 2026-09-19 all
+        # missed because every one of them walked numbers[] only. That field is
+        # the one KB rule 4 makes MANDATORY for a derived_quantity, so the only
+        # kind obliged to state a unit was the kind no count ever looked at.
+        # It matters because check 2 iterates CARDS and a KB entry is not one:
+        # the store can hold a unit a card would be refused for, and the first
+        # card citing such an entry inherits it. Found by librarian-agent-a5.
+        units = set(_units())
+        for e in store.entries.values():
+            seen = [("unit", e.get("unit"))]
+            seen += [(f"numbers[{i}]", n.get("unit"))
+                     for i, n in enumerate(e.get("numbers") or [])]
+            for where, u in seen:
+                if u and u not in units:
+                    bad(f"{e['entry_id']} {where} carries {u!r}, which units.json does not define")
+
         # 9. a symbol returns a definition, and says whether it is dimensionless.
         # tau_d is a derived_quantity, not a group: kb_group keys on the symbol
         # and must serve both formula-carrying kinds, or re-filing an entry

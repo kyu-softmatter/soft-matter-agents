@@ -1,0 +1,44 @@
+{
+  "entry_id": "tracer_diameter_measured",
+  "schema_version": "0.1",
+  "kind": "calibration",
+  "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19.",
+  "numbers": [
+    {
+      "name": "tracer_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "calibration:tracer_diameter_20260919",
+      "grade": "E2",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "tracer_diameter_cv_upper_bound",
+      "value": 2,
+      "unit": "1",
+      "source": "calibration:tracer_diameter_20260919",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "per cent, as an UPPER BOUND -- the person said within 2 per cent, not 2 per cent. Dimensionless, so the unit is `1` and the per-cent is carried here rather than in a unit the registry does not have. What the spread is OF -- how many particles, sized how -- is not recorded and is a gap."
+    }
+  ],
+  "subject": [
+    {
+      "kind": "sample",
+      "id": "particle_suspension_a"
+    }
+  ],
+  "source": "calibration:tracer_diameter_20260919",
+  "grade": "E2",
+  "grade_tag": "calibration",
+  "source_ref": "src_cal_tracer_diameter_20260919",
+  "valid_until": {
+    "date": "2036-09-19",
+    "event": "a different bottle of particles is put into use, or this one is re-suspended from a different stock. The event is the real condition and the date is only an outer bound: this measurement is about the contents of one bottle, so what ends it is the bottle ending, not time passing"
+  },
+  "validity_conditions": "THE SCOPE IS AN INSTANCE, AND IT LIVES IN `subject`, NOT IN `validity`. This entry was blocked for part of 2026-09-19 because a `calibration:` source required a machine-readable `validity`, and a condition_range is quantity-to-interval while what bounds this measurement is a bottle. manager-librarian ruled the right answer, which was none of the three options raised: an instance is a SUBJECT, not a condition. What stops this being applied to another bottle is the subject, and `validity` exists for the case the pixel-size calibrations have, where a claim holds only at 1x1 binning. `valid_until` stayed unconditionally required, because it carries the event, and `an unbounded calibration is a measurement with no event` was the load-bearing half of that rule. IT DOES NOT RUN THROUGH THE IDENTIFICATION, AND THAT IS THE POINT. A measurement made on the bottle does not pass through `identified_as` in the sample table and does not inherit its E5. The 5 um that stood on the product name was type-level and weak; this 5 um is instance-level and E2. Same number, entirely different standing. If the bottle turns out to be another product, this stays true of the bottle and only the type-level facts move. IT OUTRANKS THE LOT. E2 is above the E3 a `spec:<lot>` would have given, so the lot number this gap had been waiting on is not needed for the diameter. The lot narrows rather than vanishing: the prior project recorded that size CV and dye loading both vary lot to lot, and size CV is now measured and out of the lot's hands, leaving dye loading -- tracer_brightness, still unmeasured, still lot-dependent, and read by A1. IT SETTLES A STANDING DISAGREEMENT. The simulation's `assumed:` 2 um and the microscope's `operator_recall:` 5 um were both E5 with neither outranking the other, which is what opened 11-13. One side is now a measurement, so the argument goes from `a weak claim beats a blank` to `a measurement beats a blank`. THE CV IS AN UPPER BOUND AND IT BUYS SOMETHING DOWNSTREAM. Within 2 per cent makes the spread in diffusivity across particles about 4 per cent, since D goes as 1/d, which is inside explore's tie band. Worth stating because nobody was accounting for polydispersity and nothing on disk said why that was safe. WHAT IS NOT RECORDED: how it was measured. The person stated a result, not an instrument or a procedure, and for a CV that matters -- a spread depends on how many particles were sized and how. Not inferred.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

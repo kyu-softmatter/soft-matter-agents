@@ -1,0 +1,13 @@
+{
+  "source_id": "src_cal_tracer_diameter_20260919",
+  "kind": "calibration",
+  "identifier": "calibration:tracer_diameter_20260919 -- the person measured the diameter of the particles in the bottle in use directly on 2026-09-19: 5 um, coefficient of variation within 2 per cent.",
+  "cal_id": "tracer_diameter_20260919",
+  "cal_id_note": "MINTED BY THIS SEAT. The person supplied a measurement, not an identifier; identifiers belong to their owner and this store owns this one. It must not be read back to the person as something they said.",
+  "accessed": "2026-09-19",
+  "grade_rule": "E2, grade_tag calibration. Entry rule 9's second path: a calibration the operator performed on this instrument. E2 is ABOVE the E3 a `spec:<lot>` would have supplied, so the lot number this gap had been waiting on is no longer needed for the diameter -- the question was answered by measurement, and answered better than it was asked.",
+  "url": null,
+  "recorded_first_in": "plan.md 11-13, by the architecture seat, 2026-09-19 19:41 (48f8239). It reached this store afterwards, which is a P14 inversion that this entry closes: knowledge lives here, and for some hours this fact lived in the design document instead.",
+  "method_not_stated": "HOW IT WAS MEASURED IS NOT RECORDED. The person stated the result, not the instrument or the procedure. That matters for a CV in particular -- a spread depends on how many particles were sized and how -- so `basis` is a gap rather than something to infer.",
+  "note": "The CV is an UPPER BOUND and dimensionless: `within 2 per cent`, not `2 per cent`. Entering it as a value would assert a spread that was measured to be that, when what was stated is that it is no worse."
+}

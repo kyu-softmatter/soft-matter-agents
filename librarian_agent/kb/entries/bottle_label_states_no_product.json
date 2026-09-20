@@ -7,9 +7,15 @@
   "grade": "E3",
   "grade_tag": "operator_read",
   "source_ref": "src_operator_read_bottle_20260919",
-  "validity_conditions": "AN ABSENCE THAT WAS LOOKED FOR, WHICH IS WHY IT IS AN ENTRY. 'The label does not say' is a reading; 'nobody has checked the label' is not, and 4.3.1 draws exactly that line for gaps. This entry is what converts the product identification from unconfirmed-and-pending into unconfirmed-and-permanent: before the label was examined, a look at the bottle might have settled it, and now nothing further is scheduled to arrive. Anything that settles it in future has to come from somewhere else. It says nothing about what the particles ARE. It bounds what the bench can tell us, not the sample. NO `subject`: there is no registry id for the bottle, the sample, or the particles. Check 44 refuses a subject that resolves against nothing and it is right to -- an empty list is not an answer either, so the field is absent. Same structural gap as `at` having nowhere to point for the room, and it is now the reason a withdrawn identification has to be tracked through prose and entry names rather than through a subject the store could refuse.",
+  "validity_conditions": "AN ABSENCE THAT WAS LOOKED FOR, WHICH IS WHY IT IS AN ENTRY. 'The label does not say' is a reading; 'nobody has checked the label' is not, and 4.3.1 draws exactly that line for gaps. This entry is what converts the product identification from unconfirmed-and-pending into unconfirmed-and-permanent: before the label was examined, a look at the bottle might have settled it, and now nothing further is scheduled to arrive. Anything that settles it in future has to come from somewhere else. It says nothing about what the particles ARE. It bounds what the bench can tell us, not the sample. IT HAS A SUBJECT NOW. This entry carried none because check 44 rightly refused one -- there was no registry a sample resolved against, and an id was not invented to make it pass. `samples.v0.json` now exists and `subject.kind` takes `sample` (a675c4e), wired to resolve against that table and nothing else. The refusal is what produced the registry: a check rejecting the honest form of an assertion is the strongest evidence that the thing being asserted had nowhere to live.",
   "date": "2026-09-19",
   "supersedes": null,
   "conflict_with": [],
-  "curated_by": "kyuhwan"
+  "curated_by": "kyuhwan",
+  "subject": [
+    {
+      "kind": "sample",
+      "id": "particle_suspension_a"
+    }
+  ]
 }

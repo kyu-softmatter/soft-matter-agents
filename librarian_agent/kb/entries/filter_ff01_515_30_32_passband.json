@@ -8,7 +8,7 @@
       "name": "filter_centre_wavelength",
       "value": 515,
       "unit": "nm",
-      "source": "spec:FF01-515-30-32",
+      "source": "spec:FF01-515/30-32",
       "grade": "E3",
       "precision": "significant_figures",
       "note": "the designated centre. A nominal specification at the precision it was specified to -- 5.3 forbids dressing a nominal designation in a precision back-computed from a calibration, which is the 20.078x case, and does not forbid this. Same treatment objective_mrd70040 gives its NA."
@@ -17,7 +17,7 @@
       "name": "filter_fwhm",
       "value": 30,
       "unit": "nm",
-      "source": "spec:FF01-515-30-32",
+      "source": "spec:FF01-515/30-32",
       "grade": "E3",
       "precision": "significant_figures"
     }
@@ -34,11 +34,11 @@
     "vendor": "Semrock",
     "designation": "515/30"
   },
-  "source": "spec:FF01-515-30-32",
+  "source": "spec:FF01-515/30-32",
   "grade": "E3",
   "grade_tag": "vendor_spec",
   "source_ref": "src_prior_filter_records",
-  "validity_conditions": "A VENDOR SPECIFICATION ABOUT A PART, WHICH IS WHY IT IS NOT E5. This does not come through the prior repository even though that is where the part number was found: the passband is Semrock's published specification of FF01-515/30-32, and a part number is a type. Whether this part is in this laboratory's wheel is a SEPARATE claim at E5 (emission_wheel_filter_positions); whether it is in position 3 is another (emission_wheel_red_arm_is_position_3). Keeping them apart is what lets the band arrive at E3 the moment somebody confirms the part off the engraving, instead of the whole chain being dragged to E5. NOMINAL PASSBAND, NOT A MEASURED CURVE. 500.0-530.0 nm is centre plus or minus half the FWHM. A real filter's edges are steeper than that and its blocking is wavelength dependent, so this is a triage figure: adequate for deciding which band collects a dye, not for a blocking calculation. The vendor publishes measured curves and none has been obtained. `validity` pins the passband so a query at another wavelength returns `disjoint` rather than a value. THE SOURCE TOKEN IS SLUGGED AND THE PART NUMBER IS NOT. `source` reads `spec:FF01-515-30-32` because common.schema.json's source pattern allows [A-Za-z0-9_.:@-] and a solidus is not in it -- while every bandpass part number in optics is written centre/width, so the pattern excludes the canonical form of an entire class of part. The true part number `FF01-515/30-32` is in `identifiers.part_number`, which is where an exact designation belongs anyway, and the slug is reversible. Raised with manager-librarian rather than left as a silent mangling: a source token that does not match the part it names is the kind of thing that reads fine until somebody greps for it.",
+  "validity_conditions": "A VENDOR SPECIFICATION ABOUT A PART, WHICH IS WHY IT IS NOT E5. This does not come through the prior repository even though that is where the part number was found: the passband is Semrock's published specification of FF01-515/30-32, and a part number is a type. Whether this part is in this laboratory's wheel is a SEPARATE claim at E5 (emission_wheel_filter_positions); whether it is in position 3 is another (emission_wheel_red_arm_is_position_3). Keeping them apart is what lets the band arrive at E3 the moment somebody confirms the part off the engraving, instead of the whole chain being dragged to E5. NOMINAL PASSBAND, NOT A MEASURED CURVE. 500.0-530.0 nm is centre plus or minus half the FWHM. A real filter's edges are steeper than that and its blocking is wavelength dependent, so this is a triage figure: adequate for deciding which band collects a dye, not for a blocking calculation. The vendor publishes measured curves and none has been obtained. `validity` pins the passband so a query at another wavelength returns `disjoint` rather than a value. THE SOURCE NAMES THE PART EXACTLY, AS OF a675c4e. It read `spec:FF01-515-30-32` for part of 2026-09-19 because common.schema.json's source pattern had no solidus in its character class -- which excluded the canonical form of every bandpass filter in optics, since they are all designated centre/width. manager-librarian added it. The slug is reverted rather than left: a source token that does not match the part it names reads fine until somebody greps for it. `identifiers.part_number` keeps the designation too, which is where an exact designation belongs regardless.",
   "date": "2026-09-19",
   "supersedes": null,
   "conflict_with": [],
