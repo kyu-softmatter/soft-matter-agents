@@ -3814,6 +3814,132 @@ def check_60_observables_are_registered_quantities(b: Bundle) -> list[Finding]:
                            f"{len(declared)} the registry holds", "contracts/observables.json")]
 
 
+def check_61_envelope_currency(b: Bundle) -> list[Finding]:
+    """How far each envelope trails the published export. ADVISORY: a number
+    in a passing message, never a status of its own.
+
+    Three things looked at snapshots and none of them looked at this. Check 26
+    compares an envelope against the commit it NAMES, which is integrity, and
+    it is right to pass an honest envelope of any age. `export_snapshot.py
+    --check` compares the exports against the store, which is the publisher's
+    end. Nobody compared an export against the envelope that copied it, so a
+    microscope envelope sat 34 entries behind inside a repository reading
+    `0 failed`, and the only reason anyone noticed was a manager opening two
+    files by hand (task 018).
+
+    IT DOES NOT FAIL, AND THAT IS NOT SOFTNESS. A stale envelope is not a
+    defect: a consumer may pin deliberately, and an agent that has not run
+    today is in breach of nothing. Make it red and the gate reddens whenever a
+    seat is idle -- which on 2026-09-19 was most of them -- and a gate that
+    reddens for correct inaction is one people learn to skip. No new ADVISORY
+    status either: five meanings are enough to relearn, and a sixth would
+    reopen how --strict counts it. The idiom already exists -- check 52 says
+    "4 still by reference", check 3's UNDECIDED line carries per-plan counts.
+
+    IT COMPARES AGAINST THE PUBLISHED EXPORT AND NOT AGAINST THE STORE, which
+    is the one question the publisher's tool never had to answer. Comparing to
+    the store looks better because it measures distance from the truth, and it
+    is worse: an envelope behind a STALE export cannot be fixed by the
+    consumer, because copying gets them the stale export. One number would
+    merge two lags with different owners. So the exports-behind-the-store leg
+    stays where it already is, in the publisher's own tool, and this leg is the
+    consumer's. The useful output of a currency check is not a distance, it is
+    a distance plus whose move it is. (librarian-3, `kb/distilled/`.)
+
+    Three shapes it has to get right, and all three are in task 018 rather than
+    in anyone's context:
+
+    1. `kb_version` is a hash over every entry, so an EDIT moves it with no
+       change in count. A delta-only report prints "0 entries behind" for a
+       store that really moved, so the version and the count are two
+       statements and both go in the line.
+    2. An envelope AHEAD of the export means the EXPORTS are the stale side,
+       and the librarian closes that by republishing. Different owner, so it
+       is worded differently rather than called "behind".
+    3. An agent with no envelope has not fallen behind, it has not started.
+       Its own category, not an infinite lag.
+
+    THE COMPUTATION IS DUPLICATED FROM `envelope_lag()` AND THAT IS A COST.
+    contracts/ may not import an agent's source -- check 16's direction, and
+    section 7 makes contracts the thing agents depend on -- so the two halves
+    read the same two files by two copies of one rule. This is 11-11's shape
+    with the audiences deliberately split: the publisher's tool tells the seat
+    that cannot act, and this one runs in every seat's gate. If the two ever
+    disagree about an agent, one of them is wrong and neither is authoritative
+    over the other.
+
+    MUTATION-TESTED AGAINST SYNTHETIC TREES ON 2026-09-20, because the real one
+    exercises only some of it. Six shapes, each built in a scratch tree with
+    KB_DIR and REPO pointed at it: same count on a moved version reports the
+    edit rather than "0 behind"; AHEAD names the publisher; a missing envelope
+    lands in its own category; a plain lag counts; all-current SAYS SO rather
+    than printing nothing, because silence and clean read the same and one of
+    them is a check that stopped working; and nothing published is N/A.
+
+    THE TEST IS NOT IN THE REPOSITORY, and that is the gap to name rather than
+    leave. contracts/ has no home for a validator unit fixture -- examples/
+    holds cards -- and inventing one is a shared-surface convention that binds
+    four manager seats, so it is not this seat's to add alone. Today the tree
+    itself exercises the behind row and the absent row; when the simulation
+    envelope catches up, the moved-version and AHEAD shapes are tested by
+    nothing. That is 018's own warning turned on this check: a property that
+    waits for real lag passes vacuously on a day with none.
+    """
+    exports = KB_DIR / "exports"
+    if not exports.exists():
+        return [Finding(61, NA, "nothing has been published, so no envelope can trail it")]
+    published = sorted(exports.glob("snapshot_*.json"))
+    if not published:
+        return [Finding(61, NA, "nothing has been published, so no envelope can trail it")]
+
+    current, absent, rows, unreadable = [], [], [], []
+    for target in published:
+        agent = target.name[len("snapshot_"):-len(".json")]
+        try:
+            pub = json.loads(target.read_text())
+        except json.JSONDecodeError:
+            unreadable.append(f"the export for {agent} does not parse; check 1 owns that")
+            continue
+        env = REPO / agent / "envelope" / "snapshot.json"
+        if not env.exists():
+            absent.append(agent)
+            continue
+        try:
+            copy = json.loads(env.read_text())
+        except json.JSONDecodeError:
+            unreadable.append(f"{agent}'s envelope does not parse; check 5 owns that")
+            continue
+        if copy.get("kb_version") == pub.get("kb_version"):
+            current.append(agent)
+            continue
+        delta = (pub.get("entry_count") or 0) - (copy.get("entry_count") or 0)
+        if delta > 0:
+            rows.append(f"{agent} is {delta} behind at {copy.get('kb_version')}, which the "
+                        f"consuming agent closes by re-copying")
+        elif delta < 0:
+            rows.append(f"{agent} is {-delta} AHEAD at {copy.get('kb_version')}, so the exports "
+                        f"are the stale side and the librarian closes it by republishing")
+        else:
+            rows.append(f"{agent} is at the same entry count on a different kb_version "
+                        f"({copy.get('kb_version')}), so entries were edited rather than added")
+
+    parts = []
+    if current:
+        parts.append(f"{len(current)} current ({', '.join(current)})")
+    parts += rows
+    if absent:
+        parts.append(f"{len(absent)} with no envelope yet ({', '.join(absent)}), which is not "
+                     "behind but not started")
+    parts += unreadable
+    return [Finding(61, PASS,
+                    f"{len(published)} published export{'' if len(published) == 1 else 's'}, each "
+                    "checked against the envelope that copied it rather than against the store: " +
+                    "; ".join(parts) +
+                    ". Reported and not failed -- a consumer may pin deliberately and an idle "
+                    "seat is in breach of nothing",
+                    "librarian_agent/kb/exports")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -3834,6 +3960,7 @@ CHECKS = [
     check_47_registry_prose_names_real_seats,
     check_56_undecided_names_the_settled_unit,
     check_60_observables_are_registered_quantities,
+    check_61_envelope_currency,
     check_42_check_registry, check_41_seat_attribution,
 ]
 
