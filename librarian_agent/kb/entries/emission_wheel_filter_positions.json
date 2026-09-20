@@ -1,0 +1,23 @@
+{
+  "entry_id": "emission_wheel_filter_positions",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The emission filter wheel holds single-band filters in positions 1 to 4 -- FF01-432/36-32 at 1, FF01-515/30-32 at 2, FF01-595/31-32 at 3, FF01-680/42-32 at 4 -- with a quad-band filter at position 0 whose part number was never supplied. Positions 5 to 8 are blocked by a metal plate.",
+  "identifiers": {
+    "position_1": "FF01-432/36-32",
+    "position_2": "FF01-515/30-32",
+    "position_3": "FF01-595/31-32",
+    "position_4": "FF01-680/42-32",
+    "position_0": "quad-band, part number not recorded",
+    "nikon_order_codes": "77015975 / 77015964 / 77015965 / 77015891",
+    "vendor": "Semrock BrightLine"
+  },
+  "source": "prior_run:agentic-microscope@filters-2026-09-06",
+  "grade": "E3",
+  "source_ref": "src_prior_filter_records",
+  "validity_conditions": "THE PAIRING IS INFERRED, NOT CONFIRMED, AND THAT IS THE PRIOR PROJECT'S OWN WARNING carried forward verbatim: `The position<->part pairing is INFERRED from the wheel label naming the EXCITATION line, not stated by the operator. Confirm off the engraving.` So the wheel labels read 405/488/555/647, which are EXCITATION lines, and the parts listed are the emission filters someone matched to them. Nobody read a part number off a filter. USE THIS AT E5, NOT E3. The entry's own grade is E3 because 10.3 rule 1 caps a prior run there, but applying it to the wheel on this bench today stacks two assumptions on top: that the pairing was right when written, and that nothing has been swapped since. 5.8 takes the worst of a chain. The second assumption is lighter than it would be for a consumable -- a filter is a part and stays in its slot unless somebody pulls it, where a bottle gets replaced -- but lighter is not absent, and the bead is precisely why: this store spent a day today on a bottle whose continuity nobody had written down. ONE READING OF THE ENGRAVING SETTLES IT and moves this to `spec:<part>` at E3. That is the same cheap confirmation 10.2's consumables row describes for a lot number: bring the identifier a person can verify by looking, and let them look. WHAT IS NOT HERE: position 0's part number, which was never supplied. The store's EM-Quad-Multiband record lists bands [[432,36],[515,30],[595,31],[680,42]], exactly the four single-bands combined, which is suggestive and is NOT a part number and is not entered as one.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

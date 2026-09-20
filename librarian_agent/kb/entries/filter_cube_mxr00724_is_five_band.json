@@ -1,0 +1,22 @@
+{
+  "entry_id": "filter_cube_mxr00724_is_five_band",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The cube in the Ti2 filter turret is a Nikon MXR00724, LED-DA/FI/TR/Cy5/Cy7-A, a FIVE-band cube, and it sits in FilterTurret1 position 0. Its emitter passes bands centred at 440, 520.5, 606, 694 and 808.5 nm.",
+  "identifiers": {
+    "part_number": "MXR00724",
+    "product": "LED-DA/FI/TR/Cy5/Cy7-A",
+    "turret_position": "0",
+    "exciter_bands_nm": "378/50, 474/24, 554.5/21, 635/16, 735/26",
+    "dichroic_bands_nm": "432/36, 514.5/31, 595.5/31, 681/40, 808.5/81",
+    "emitter_bands_nm": "440/40, 520.5/21, 606/34, 694/34, 808.5/81"
+  },
+  "source": "prior_run:agentic-microscope@filters-2026-09-06",
+  "grade": "E3",
+  "source_ref": "src_prior_filter_records",
+  "validity_conditions": "FIVE BANDS, AND THE LABEL SAYS THREE. The turret's metadata label reads DA/FI/TR, a three-band set, across all 2312 of the prior project's metadata records -- while 764 frames were shot on 647-Cy5, which a three-band cube passes almost nothing of. The prior project resolved it on 2026-08-10 by reading NIS-Elements Device Manager > Filter Block Settings: the physical part is MXR00724, five bands. A label disagreeing with the part in the slot, discovered by counting frames that should not have worked. THE POSITION IS 0 AND THE SOFTWARE LABEL SAYS 1. The MicroManager label `1-MXR00724 -Empty` reads as position 1 and is wrong twice over -- the turret numbers from 0, and `Empty` was a display artifact. Corrected 2026-09-09 against three independent records including a contrast measurement: state 0 gave 1.00x against 5.16/5.15/5.13x for states 1/2/3, so 0 holds the cube and the rest are empty slots. Setting the turret to 1 inserts an EMPTY slot, which on the confocal path is the difference between blocked and clear. THE EXCITER AND EMITTER ARE SEPARATELY SWAPPABLE. The prior project's note corrects an earlier assumption that a cube is one monolithic block: exciter and emitter are individual units in the cube frame. So the part number identifies a set that was shipped together, not a guarantee that all three pieces are still the ones listed. WHY THIS MATTERS FOR THE BEAD. The exciter's third band is 554.5/21, i.e. 544-565 nm, and the emitter's third is 606/34, i.e. 589-623 nm. Those are the 555 and 605 the person reported reading -- so the operator's two numbers are this cube's TRITC window pair, which is a more specific account of where they came from than anything this store had. And because the emitter also passes 694/34, a particle emitting in the red is not excluded by this cube; the band is selected downstream in the wheel. E3 AND STILL CARRYING A CONTINUITY ASSUMPTION, like everything else from that repository: it was verified there, not here.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

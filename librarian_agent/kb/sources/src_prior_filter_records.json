@@ -1,0 +1,12 @@
+{
+  "source_id": "src_prior_filter_records",
+  "kind": "prior_run",
+  "identifier": "agentic-microscope: data/filters.yaml (filter/dichroic registry) and config/channels/abvigen-bangs-green-red-2color.yaml (emission wheel position table, dated 2026-09-06).",
+  "accessed": "2026-09-19",
+  "grade_rule": "E3, grade_tag absent -- `prior_run` is a source prefix with no place in the E3 grade_tag enum, which is raised. 10.3 rule 1 caps a run taken elsewhere at E3.",
+  "url": null,
+  "transfer_ruling": "10.2.1 TRANSFER. Row: 10.2's `장치 레지스트리와 유효 광경로 표의 초기 내용`, whose prerequisite -- the shape of the kb/staging/ tables -- is met, and whose text explicitly covers `실제로 빛이 검출기까지 도달하는 선택자 조합`; a filter wheel position is exactly such a selector. NOT the device-spec row, which waits on envelope/safety.json for the stated reason that a spec number not set beside limit values gets used as a limit -- a passband is not limit-shaped the way an output limit is. Slot: KB entry and the device registry in kb/staging/, both named in the 2026-09-18 amendment. Rule: 10.3 rule 1.",
+  "decomposition": "WHAT CROSSES AND WHAT DOES NOT, split the way the microscope manager proposed and 5.3 supports. Which PART sits in which wheel position crosses from here and carries a continuity assumption. What that part's PASSBAND is does not come from here at all -- it is a Semrock catalogue specification, entered as `spec:<part>` at E3 the same way the objective NA values were, with nominal precision made explicit. 5.3's nominal-designation rule (`20x`, `1.5x`, filter position `3`) is about labels that name WHICH THING; it does not forbid entering a specified quantity at the precision it was specified to, which is why objective_mrd70040 carries nominal_magnification as a string AND na as a number.",
+  "what_did_not_cross": "The ADU and SNR readings from their bandpass comparison: DISCARD, instrument-specific with no slot here. Their parametric spectra and blocking-OD estimates: DISCARD, the file itself labels parametric values `triage only`.",
+  "note": "Their own caveat is carried forward rather than dropped: `The position<->part pairing is INFERRED from the wheel label naming the EXCITATION line, not stated by the operator. Confirm off the engraving.` So the pairing was never confirmed even there, and that is why it is entered at E5 rather than E3."
+}

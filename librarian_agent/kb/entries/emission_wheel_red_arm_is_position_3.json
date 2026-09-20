@@ -1,0 +1,19 @@
+{
+  "entry_id": "emission_wheel_red_arm_is_position_3",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "On the prior project's instrument the red particle's emission was strongest through emission wheel position 3, measured by running the same particle through all four single-band positions on 2026-09-06.",
+  "identifiers": {
+    "part_at_that_position": "FF01-595/31-32",
+    "wheel_label": "555",
+    "red_arm_position": "3"
+  },
+  "source": "prior_run:agentic-microscope@filters-2026-09-06",
+  "grade": "E3",
+  "source_ref": "src_prior_filter_records",
+  "validity_conditions": "MEASURED RATHER THAN CHOSEN, and the controls are what make it quantitative. The four positions gave 0.1, 1.6, 362.1 and 62.3 ADU. The first two bands sit blueward of the excitation and cannot carry fluorescence, so they read the floor at about 0.4 percent of the signal -- which is what establishes that the 677-701 band at 17.2 percent is real emission from the red tail of one broad emitter rather than bleed, and that position 3 wins by a real margin rather than a preference. The ADU figures themselves are NOT entered: instrument-specific, DISCARD under 10.2.1, and quoted here only as the reasoning behind the ranking. WHAT IT ESTABLISHES IS A BAND, NOT A PEAK, and the prior project says so itself: `Four bandpasses bracket a band, they do not locate a peak`, which is why it named a TRITC stand-in rather than inventing a number. A6 needs the wavelength actually collected and that is the band of position 3, not a peak inside it. CORROBORATED INDEPENDENTLY ON THIS BENCH. Today's E2 observation, particles_show_on_the_green_605_path, puts this bottle's emission in the same band on this instrument. Two observations, two instruments, two projects. The prior project's numbers are not borrowed for that -- the agreement is what makes borrowing unnecessary. WHICH WHEEL is not settled by this. emission_wheel_camera_mapping is E5 `operator_recall:` and says the first wheel serves red, `probably`. This entry is about positions WITHIN a wheel and neither confirms nor contradicts it. THE POSITION IS A STRING, NOT A NUMBER, and the schema caught me writing it as one. 5.3's own examples of a nominal designation are `20x` 대물렌즈, `1.5x` 줌 and 필터 위치 `3` -- this exact case. A slot index names WHICH SLOT and asserts no quantity, so it has no uncertainty and no place in numbers[]. I reached for `precision: exact` to express that, which the enum does not have, and the absence is the argument: a value needing `exact` is a value that should not be in numbers[] at all.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}
