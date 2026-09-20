@@ -414,8 +414,23 @@ def apply_preference(result: Screening, goal: dict, by_id: dict[str, dict]) -> N
 # --------------------------------------------------------------------------- #
 
 
-def caller_id(qid: str, config: str, axis: str) -> str:
-    return f"{qid}:{config}:{axis}"
+def caller_id(qid: str, config: str, axis: str, revision: int = 1) -> str:
+    """`<qid>:v<N>:<config>:<axis>` -- the form common.schema.json requires.
+
+    The v-less form this emitted until now is accepted only while the cards
+    that predate a6dca6a migrate, and is refused after. Card 005 migrated the
+    twenty-five ids already written; it did not touch the generator, so the
+    old form would have come back on the first fan-out this stage issued.
+    Nothing caught it because an unresolved cap empties fan_out, and every
+    fan-out since has been unresolved -- a defect that waits for the cap to
+    resolve is one a green run does not see.
+
+    The revision is the axis card's, not the goal's, and at issue time it is
+    1: the cards these ids name do not exist yet. A later revision re-queries
+    under its own v<N>, which is the axis seat's to do -- rewriting an id in
+    place would point a card at a caller the query log has no calls for (005).
+    """
+    return f"{qid}:v{revision}:{config}:{axis}"
 
 
 def fan_out(result: Screening, qid: str, limits: dict | None = None) -> list[dict]:
