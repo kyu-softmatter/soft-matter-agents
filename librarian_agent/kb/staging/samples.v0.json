@@ -75,14 +75,18 @@
   "gaps": [
     {
       "what": "the particle diameter",
-      "kind": "absent",
+      "kind": "absent_from_this_store_only",
       "searched": [
         "the bottle label",
         "kb/entries",
         "the prior project's records"
       ],
-      "status": "DOES NOT RESOLVE AND GOT WORSE. 5 um stands on the product NAME, so it now reaches this bottle only through the E5 joining claim. The microscope's `operator_recall:` 5 um and the simulation's `assumed:` 2 um both stand exactly where they did, and 015 was explicit that this gap must not be allowed to close or narrow on the identification.",
-      "why_it_matters": "tracer_diffusivity and the number-density relation both stand on it"
+      "status": "CLOSED BY MEASUREMENT, AND NOT YET IN THIS STORE. The person measured it directly on 2026-09-19: 5 um, CV within 2 per cent. Architecture recorded it in plan.md 11-13 at 19:41 as `calibration:` E2 -- which is ABOVE the E3 a `spec:<lot>` would have given, so the lot is no longer needed for the diameter at all. The question this gap had been putting to a person was answered by measurement, and answered better than it was asked. WHAT IS STILL MISSING IS THE ENTRY. plan.md holds this and kb/entries/ does not, which is a P14 inversion: knowledge lives here, and this fact is currently living in the architecture seat's design document. Creating it needs a cal_id, a `validity` and a `valid_until`, which the schema requires of any `calibration:` source for a stated and correct reason -- an unbounded calibration is a measurement with no event. The cal_id this seat can mint. The `validity` is the problem: a condition_range is quantity-to-interval, and what this measurement is conditioned on is AN INSTANCE, this bottle, which has no interval shape. Raised rather than invented.",
+      "why_it_matters": "tracer_diffusivity and the number-density relation both stand on it",
+      "why_this_one_does_not_hang_off_the_link": "AND THIS IS THE INSTANCE/TYPE SPLIT PAYING FOR ITSELF ON ITS FIRST DAY. A measurement made on the bottle does NOT run through `identified_as` and does NOT inherit its E5. The 5 um that stood on the product name was type-level and weak; the 5 um that was measured is instance-level and E2. Same number, and everything about its standing is different. If the bottle later turns out to be another product, this measurement stays true of the bottle.",
+      "what_the_lot_still_owes": "The lot narrows rather than vanishing. The prior project recorded that size CV and dye loading both vary lot to lot; size CV is now measured directly and out of the lot's hands, leaving dye loading -- which is tracer_brightness, still unmeasured, still lot-dependent, and read by A1.",
+      "the_disagreement_it_settles": "The simulation's `assumed:` 2 um and the microscope's `operator_recall:` 5 um were symmetric at E5 with neither outranking the other. One side is now a measurement. The argument goes from `a weak claim beats a blank` to `a measurement beats a blank`.",
+      "polydispersity": "CV within 2 per cent is an upper bound, dimensionless, and it makes the spread in diffusivity across particles about 4 per cent since D goes as 1/d -- inside explore's tie band. Worth recording because nobody was accounting for polydispersity and nothing said why that was safe."
     },
     {
       "what": "the lot number",
@@ -103,5 +107,6 @@
       "status": "Recorded nowhere, and no card has asked for it. So even with a diameter, the number density under the objective does not follow from the stock concentration -- there is an unrecorded factor in between.",
       "why_it_matters": "tracer_number_density in any real sample"
     }
-  ]
+  ],
+  "a_correction_recorded_in_place": "THIS FILE SAID THE DIAMETER `DOES NOT RESOLVE AND GOT WORSE`, AND THAT WAS ALREADY FALSE WHEN WRITTEN. The measurement landed at 19:41; this table was written after it and did not know. It is the exact failure librarian_agent/CLAUDE.md describes -- a reference that was correct when taken and wrong when used -- committed by the seat that had spent the day counting it in others. Recorded here rather than silently overwritten, because the file is young enough that the diff would otherwise be the only trace."
 }
