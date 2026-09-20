@@ -2795,7 +2795,7 @@ def check_55_section_7_names_are_allowed(b: Bundle) -> list[Finding]:
 
 
 def check_62_computed_grade_derived(b: Bundle) -> list[Finding]:
-    """A `computed:` grade should follow from its inputs, the way check 21 works.
+    """A `computed:` grade should follow from what it was computed from.
 
     Check 43 already derives an entry's grade from its source KIND, but its
     `computed:` branch only asks whether the declared grade is in ("E4","E5") --
@@ -2807,6 +2807,39 @@ def check_62_computed_grade_derived(b: Bundle) -> list[Finding]:
     5.3: `computed:` is **max(E4, worst input)**. Worse, not better -- the E4
     floor is a cap on how good arithmetic can make something, and the worst
     input is a cap on how good the chain can be.
+
+    **`inputs` names three different relations, and this check composes over
+    exactly one of them.** That is the correction of 2026-09-20; the first
+    version of this check composed over all three and got one of them right by
+    accident.
+
+      1. FORMAL PARAMETERS of a relation -- `derived_quantity` and
+         `dimensionless_group`, which the schema requires to carry a `formula`.
+         `bead_diameter` in `bead_diameter**2/diffusivity` is a bound variable,
+         not a reference to a value, and **no grade composes from it**: 5.3's
+         max(E4, worst input) is a rule about a computed VALUE, and a relation
+         composes no numbers. `tau_d` is E4 in a store holding no diameter at
+         all. Reported, never derived, never blocked.
+      2. QUANTITIES an inference rests on, named so their grades compose.
+         `working_distance_is_measured_to_the_coverslip` rests on
+         `working_distance` and `coverslip_thickness`, both carried as numbers.
+         This is the one shape that composes.
+      3. CLAIMS an inference rests on, which carry no numbers to compose. They
+         go in `supports`, added to the schema on 2026-09-20 for exactly this,
+         and the grade still caps at the worst support -- but only when every
+         support is an entry. A premise the store does not hold cannot be
+         graded, so one `external` support stops composition and says so.
+
+    **What the accident was**, recorded because it is the argument that
+    survives this rewrite: `tau_d` and `tracer_diffusivity_expected` are both
+    relations with formulas, and the first version treated them differently --
+    derived for one, blocked for the other -- purely because
+    `tracer_diffusivity_expected`'s parameter names happen to collide with
+    value names the store carries, and `tau_d`'s `bead_diameter` is the
+    open_collisions synonym for `tracer_diameter` and collides with nothing.
+    Rename one string in a formula and a grade appears. That is option 2 of
+    task 020 -- resolving a bare name to whatever entry carries it -- arriving
+    through a side door after being refused at the front.
 
     An input resolves when the store carries that name AND every carrier agrees
     on its grade. Unanimity rather than a unique carrier: six names are carried
@@ -2820,19 +2853,21 @@ def check_62_computed_grade_derived(b: Bundle) -> list[Finding]:
     grade of a name, not its value. Section 8 records that limitation for this
     family of checks.
 
-    Underivable is neither a failure nor PENDING. Not a failure, because the
-    entry is not wrong -- nothing can be said about it. Not PENDING, which
-    means an artifact a later milestone produces: **no milestone resolves a
-    symbol.** So it is a count inside the pass, the idiom 15c29b0 settled for
-    advisory findings. Three shapes, and they need different next actions:
-      inputs name symbols the store does not carry  -- tau_d
-      no `inputs` key at all                        -- nothing to resolve
-      carriers disagree on grade                    -- a store defect, named
+    Nothing here is a failure or PENDING. Not a failure, because an entry that
+    composes no grade is not wrong -- there is nothing to say about it. Not
+    PENDING, which means an artifact a later milestone produces: **no milestone
+    resolves a symbol.** So it is a count inside the pass, the idiom 15c29b0
+    settled for advisory findings. The counts are split by KIND rather than
+    gathered under one word, because "blocked" implies waiting and two of these
+    shapes are permanent and correct.
     """
     if not KB_DIR.exists() or not (KB_DIR / "entries").exists():
         return [Finding(62, NA, "no knowledge store")]
 
+    FORMULA_KINDS = ("derived_quantity", "dimensionless_group")
+
     carriers: dict[str, set[str]] = {}
+    grade_of: dict[str, str] = {}
     entries = []
     for path in sorted((KB_DIR / "entries").glob("*.json")):
         try:
@@ -2840,23 +2875,79 @@ def check_62_computed_grade_derived(b: Bundle) -> list[Finding]:
         except json.JSONDecodeError:
             continue
         entries.append(e)
+        if e.get("entry_id") and e.get("grade"):
+            grade_of[e["entry_id"]] = e["grade"]
         for n in e.get("numbers") or []:
             if isinstance(n, dict) and n.get("name") and n.get("grade"):
                 carriers.setdefault(n["name"], set()).add(n["grade"])
 
     out: list[Finding] = []
-    derived = 0
-    no_inputs: list[str] = []
+    derived: list[str] = []
+    relations: list[str] = []
+    by_claim: list[str] = []
+    partly_outside: list[str] = []
+    no_basis: list[str] = []
+    dangling: list[str] = []
     unresolved: list[str] = []
     divergent: list[str] = []
+
+    def _verdict(eid, worst, e):
+        want = f"E{worst}"
+        if e.get("grade") != want:
+            out.append(Finding(62, FAIL,
+                f"{eid} declares {e.get('grade')} and what it rests on gives {want} -- 5.3 makes "
+                f"a computed grade max(E4, worst input), and check 43 only checks the range, so "
+                f"nothing else would say so", _rel(KB_DIR / "entries" / f"{eid}.json")))
+            return False
+        return True
 
     for e in entries:
         if not str(e.get("source") or "").startswith("computed:"):
             continue
-        eid = e.get("entry_id")
+        eid = str(e.get("entry_id"))
+
+        # Shape 1. A relation. Its `inputs` are the formula's free variables,
+        # and binding them to whatever the store happens to carry under the
+        # same string is the move 020 refused.
+        if e.get("kind") in FORMULA_KINDS:
+            relations.append(eid)
+            continue
+
+        sups = e.get("supports")
         ins = e.get("inputs")
+
+        # Shape 3. Supporting claims. They carry no numbers, so the cap comes
+        # from each supporting ENTRY's own grade -- and only if the store holds
+        # every one of them.
+        if sups:
+            worst = 4
+            outside = False
+            broken = None
+            for sup in sups:
+                if not isinstance(sup, dict):
+                    continue
+                if sup.get("external"):
+                    outside = True
+                    continue
+                g = grade_of.get(str(sup.get("entry")))
+                if g is None:
+                    broken = f"{eid} -> {sup.get('entry')}"
+                    continue
+                worst = max(worst, int(g[1:]))
+            if broken:
+                # A dangling support is a defect and an external premise is by
+                # design, so they get separate words even though both stop the
+                # composition. Reported once, under the defect.
+                dangling.append(broken)
+            elif outside:
+                partly_outside.append(eid)
+            elif _verdict(eid, worst, e):
+                by_claim.append(eid)
+            continue
+
+        # Shape 2. Quantities. The only shape whose grade composes by arithmetic.
         if ins is None:
-            no_inputs.append(str(eid))
+            no_basis.append(eid)
             continue
         worst = 4
         blocked = None
@@ -2864,6 +2955,7 @@ def check_62_computed_grade_derived(b: Bundle) -> list[Finding]:
             grades = carriers.get(name)
             if not grades:
                 blocked = f"{eid}:{name} carried by nothing"
+                unresolved.append(blocked)
                 break
             if len(grades) > 1:
                 blocked = f"{eid}:{name} carried at {sorted(grades)}"
@@ -2871,32 +2963,47 @@ def check_62_computed_grade_derived(b: Bundle) -> list[Finding]:
                 break
             worst = max(worst, int(sorted(grades)[0][1:]))
         if blocked:
-            if "carried by nothing" in blocked:
-                unresolved.append(blocked)
             continue
-        want = f"E{worst}"
-        if e.get("grade") != want:
-            out.append(Finding(62, FAIL,
-                f"{eid} declares {e.get('grade')} and its inputs give {want} -- 5.3 makes a "
-                f"computed grade max(E4, worst input), and check 43 only checks the range, so "
-                f"nothing else would say so", _rel(KB_DIR / "entries" / f"{eid}.json")))
-        else:
-            derived += 1
+        if _verdict(eid, worst, e):
+            derived.append(eid)
 
     if out:
         return out
-    tail = []
+
+    def phrase(ids, one, many, tail):
+        return f"{len(ids)} {one if len(ids) == 1 else many} {tail} ({', '.join(ids[:3])})"
+
+    parts = []
+    if derived:
+        parts.append(phrase(derived, "computed grade derives", "computed grades derive",
+                            "from quantities and matches" if len(derived) == 1
+                            else "from quantities and match"))
+    if relations:
+        parts.append(phrase(relations, "formula entry takes", "formula entries take",
+                            "no grade from their inputs, which is correct and permanent -- those "
+                            "are parameters of a relation, not references to values"))
+    if by_claim:
+        parts.append(phrase(by_claim, "entry rests", "entries rest",
+                            "on supporting entries and caps at the worst of them"))
+    if partly_outside:
+        parts.append(phrase(partly_outside, "entry rests", "entries rest",
+                            "partly on a premise the store does not hold, so nothing composes"))
+    if no_basis:
+        parts.append(phrase(no_basis, "entry names", "entries name",
+                            "neither `inputs` nor `supports`, so there is nothing to compose over"))
+    if dangling:
+        parts.append(phrase(dangling, "entry names", "entries name",
+                            "a support that is no entry in this store, so nothing composes"))
     if unresolved:
-        tail.append(f"{len(unresolved)} blocked on a symbol the store does not carry ({unresolved[0]})")
-    if no_inputs:
-        tail.append(f"{len(no_inputs)} carry no `inputs` key ({no_inputs[0]})")
+        parts.append(phrase(unresolved, "input names", "inputs name",
+                            "a quantity the store does not carry"))
     if divergent:
-        tail.append(f"{len(divergent)} blocked on carriers that disagree ({divergent[0]})")
-    note = ("; " + ", ".join(tail)) if tail else ""
-    if derived == 0 and not tail:
+        parts.append(phrase(divergent, "input names", "inputs name",
+                            "a quantity whose carriers disagree"))
+
+    if not parts:
         return [Finding(62, NA, "no entry carries a computed: source")]
-    return [Finding(62, PASS,
-                    f"{derived} computed grades derive from their inputs and match{note}")]
+    return [Finding(62, PASS, "; ".join(parts))]
 
 
 def check_64_every_rejected_fixture_is_reached(b: Bundle) -> list[Finding]:

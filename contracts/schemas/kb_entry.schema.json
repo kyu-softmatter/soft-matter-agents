@@ -47,6 +47,56 @@
       "type": "array",
       "items": {
         "type": "string"
+      },
+      "description": "What the entry was computed from -- and it means two different things depending on the kind, which is the seam check 62 found on 2026-09-20. On a `derived_quantity` or a `dimensionless_group` these are the FORMAL PARAMETERS of the formula: free variables, not references to anything in the store, and no grade composes from them (`tau_d` is E4 in a store holding no diameter). On a `claim` they are QUANTITIES the inference rests on, named so their grades compose to max(E4, worst). Binding the first kind to whatever entry happens to carry the same string is task 020's refused option 2 arriving through a side door: rename one variable in a formula and a grade appears. A claim resting on other CLAIMS uses `supports` instead, because a claim carries no number to compose."
+    },
+    "supports": {
+      "type": "array",
+      "minItems": 1,
+      "description": "What an inference rests on when what it rests on is not a quantity. Added 2026-09-20 at the librarian seat's request, after `declared_versus_inferred_temperature` had its three supports recorded in `validity_conditions` as prose -- the same shape as the CV that computed as 200 per cent, and the reason a distinction living only in prose is one nothing can act on. `inputs` could not hold them: check 62 builds its carriers from `numbers[].name`, two of those supports carry no numbers at all, and the third is a premise about the simulation engine that this store does not hold and should not. Writing them as inputs would have produced three carried-by-nothing rows for things that are not quantities and never will be. Mutually exclusive with `inputs`: arithmetic over quantities and support by claim are different relations and an entry does exactly one of them.",
+      "items": {
+        "type": "object",
+        "oneOf": [
+          {
+            "required": [
+              "entry"
+            ],
+            "not": {
+              "required": [
+                "external"
+              ]
+            }
+          },
+          {
+            "required": [
+              "external",
+              "who_could_confirm"
+            ],
+            "not": {
+              "required": [
+                "entry"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "entry": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "an entry_id in this store. Its own grade is what caps the inference."
+          },
+          "external": {
+            "type": "string",
+            "minLength": 20,
+            "description": "a premise this store does not hold and has no business holding -- another agent's, or the person's. One of these stops the grade composing, because an ungraded premise cannot cap anything, and that is the honest report rather than a number that quietly ignores it."
+          },
+          "who_could_confirm": {
+            "type": "string",
+            "minLength": 3,
+            "description": "required beside `external`: a premise outside the store that names nobody who could settle it is not a support, it is a hope. Usually an agent name."
+          }
+        },
+        "additionalProperties": false
       }
     },
     "validity_conditions": {
@@ -302,6 +352,15 @@
             "unit"
           ]
         }
+      }
+    },
+    {
+      "$comment": "inputs and supports are mutually exclusive. Composing arithmetic over quantities and resting on claims are different relations; an entry doing both would leave check 62 no way to say which cap applied.",
+      "not": {
+        "required": [
+          "inputs",
+          "supports"
+        ]
       }
     }
   ],
