@@ -206,6 +206,32 @@ seven cases.
    act or this seat's is not settled anywhere, and it is cheaper to ask than to
    be the seat that deleted a P0 file on its own reading.
 
+**Ordering ruled 2026-09-20, because `plan_card.py` writes the path into the
+card.** Line 154 emits `"checked_against": ["…/envelope/safety.json"]`, so a
+revision 2 generated before the rename is **born naming a path that will
+vanish** — and **nothing catches that**: check 8 reads a `checked_against` only
+for a bridge envelope's answerability, against `contracts/capabilities/`.
+Nothing reads this one.
+
+**So `plan_card.py` goes first, then `004`.** Not the other way, and not folded
+into `004`. `004`'s one-commit argument is that **one pin blocks its four items
+and one revision bump releases them** — a path string is neither pinned nor
+revision-bumped, so attaching it widens a commit that is already four things
+and hands the file to the seat that is not in it. The overlap is exactly one
+file, so reversing the order costs nothing.
+
+**And the same two lines are already stale in a second way.** The `note` beside
+them says *"The file is absent, so there is no allowance to compare the
+estimated cost against, and A5 abstained for the same reason."* The file has
+existed since 10:33 and `check_budget` returns `inside`. Fix both while there.
+
+**No fallback while the two files overlap.** `operator` reads `budget.json` and
+nothing else; absent means `unavailable` and the run refuses, which is the state
+this tree was in all morning and is safe. A fallback would make behaviour depend
+on which files happen to be present, and if both exist and disagree it picks one
+silently — P0 stops on ambiguity rather than choosing. **Land `budget.json` in
+the same commit as the operator change** and there is no window to bridge.
+
 **Then, and only then, `manager-simulation` tightens two things** — removing
 `simulation_limits` from `envelope_safety.schema.json`, and narrowing
 `ALLOWED_PATHS` from `envelope/[anything]` to the declared names per agent, so
