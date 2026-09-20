@@ -221,6 +221,23 @@ def check_budget(plan: dict, budget: str, target: str) -> dict:
             ),
         }
     ceilings = row["limits"]
+    # The membership test below runs before anything looks at the type, so a
+    # `limits` that is not an object used to be reported as a missing
+    # `smoke_budget` -- the right refusal pointing at the wrong field, and a
+    # reader believes a message. It was worse than a wrong sentence: only
+    # `list` under `smoke` reached that message at all, and every other
+    # non-object shape raised TypeError out of the membership test or the
+    # subscript. One type check ahead of the membership test says what is
+    # actually wrong and closes all of them.
+    if not isinstance(ceilings, dict):
+        return {
+            "status": "unavailable",
+            "target": target,
+            "reason": (
+                f"the {target!r} row's `limits` is {type(ceilings).__name__} and not an object, "
+                "which envelope_safety.schema.json requires; nothing can be read under it"
+            ),
+        }
     if budget == SMOKE and "smoke_budget" not in ceilings:
         return {
             "status": "unavailable",
@@ -232,6 +249,18 @@ def check_budget(plan: dict, budget: str, target: str) -> dict:
             ),
         }
     limits = ceilings["smoke_budget"] if budget == SMOKE else ceilings
+    # The same defect one level down, and beyond what 005 named. `smoke_budget`
+    # nests ceilings of its own, each a limit in its own right, so a non-object
+    # there fails in exactly the way the block above was written against.
+    if not isinstance(limits, dict):
+        return {
+            "status": "unavailable",
+            "target": target,
+            "reason": (
+                f"the {target!r} limits carry a `smoke_budget` that is "
+                f"{type(limits).__name__} and not an object, so it nests no ceilings"
+            ),
+        }
     compared, exceeded = [], []
     for cost_name, limit_name in (
         ("wall_clock_estimate", "wall_clock_max"),
