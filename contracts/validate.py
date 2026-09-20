@@ -2702,6 +2702,111 @@ def check_55_section_7_names_are_allowed(b: Bundle) -> list[Finding]:
     return [Finding(55, PASS, f"{tested} paths section 7 declares are paths ALLOWED_PATHS permits")]
 
 
+def check_62_computed_grade_derived(b: Bundle) -> list[Finding]:
+    """A `computed:` grade should follow from its inputs, the way check 21 works.
+
+    Check 43 already derives an entry's grade from its source KIND, but its
+    `computed:` branch only asks whether the declared grade is in ("E4","E5") --
+    it never reads the inputs. So E5 passes where 5.3 says E4, and the number
+    looks derived while being declared. A grade that looks derived and is not
+    is the quietest way to be wrong, because the thing that would catch it is
+    the thing that is absent.
+
+    5.3: `computed:` is **max(E4, worst input)**. Worse, not better -- the E4
+    floor is a cap on how good arithmetic can make something, and the worst
+    input is a cap on how good the chain can be.
+
+    An input resolves when the store carries that name AND every carrier agrees
+    on its grade. Unanimity rather than a unique carrier: six names are carried
+    by more than one entry today, all six unanimous, so requiring uniqueness
+    would refuse work it has no reason to refuse. And unanimity cannot be
+    silent -- divergence is reported rather than resolved one way, which is
+    what a unique-carrier rule could not promise.
+
+    **It does not claim WHICH VALUE.** `pixel_size` is carried by twelve
+    entries at one grade and twelve different values; this check resolves the
+    grade of a name, not its value. Section 8 records that limitation for this
+    family of checks.
+
+    Underivable is neither a failure nor PENDING. Not a failure, because the
+    entry is not wrong -- nothing can be said about it. Not PENDING, which
+    means an artifact a later milestone produces: **no milestone resolves a
+    symbol.** So it is a count inside the pass, the idiom 15c29b0 settled for
+    advisory findings. Three shapes, and they need different next actions:
+      inputs name symbols the store does not carry  -- tau_d
+      no `inputs` key at all                        -- nothing to resolve
+      carriers disagree on grade                    -- a store defect, named
+    """
+    if not KB_DIR.exists() or not (KB_DIR / "entries").exists():
+        return [Finding(62, NA, "no knowledge store")]
+
+    carriers: dict[str, set[str]] = {}
+    entries = []
+    for path in sorted((KB_DIR / "entries").glob("*.json")):
+        try:
+            e = json.loads(path.read_text())
+        except json.JSONDecodeError:
+            continue
+        entries.append(e)
+        for n in e.get("numbers") or []:
+            if isinstance(n, dict) and n.get("name") and n.get("grade"):
+                carriers.setdefault(n["name"], set()).add(n["grade"])
+
+    out: list[Finding] = []
+    derived = 0
+    no_inputs: list[str] = []
+    unresolved: list[str] = []
+    divergent: list[str] = []
+
+    for e in entries:
+        if not str(e.get("source") or "").startswith("computed:"):
+            continue
+        eid = e.get("entry_id")
+        ins = e.get("inputs")
+        if ins is None:
+            no_inputs.append(str(eid))
+            continue
+        worst = 4
+        blocked = None
+        for name in ins:
+            grades = carriers.get(name)
+            if not grades:
+                blocked = f"{eid}:{name} carried by nothing"
+                break
+            if len(grades) > 1:
+                blocked = f"{eid}:{name} carried at {sorted(grades)}"
+                divergent.append(blocked)
+                break
+            worst = max(worst, int(sorted(grades)[0][1:]))
+        if blocked:
+            if "carried by nothing" in blocked:
+                unresolved.append(blocked)
+            continue
+        want = f"E{worst}"
+        if e.get("grade") != want:
+            out.append(Finding(62, FAIL,
+                f"{eid} declares {e.get('grade')} and its inputs give {want} -- 5.3 makes a "
+                f"computed grade max(E4, worst input), and check 43 only checks the range, so "
+                f"nothing else would say so", _rel(KB_DIR / "entries" / f"{eid}.json")))
+        else:
+            derived += 1
+
+    if out:
+        return out
+    tail = []
+    if unresolved:
+        tail.append(f"{len(unresolved)} blocked on a symbol the store does not carry ({unresolved[0]})")
+    if no_inputs:
+        tail.append(f"{len(no_inputs)} carry no `inputs` key ({no_inputs[0]})")
+    if divergent:
+        tail.append(f"{len(divergent)} blocked on carriers that disagree ({divergent[0]})")
+    note = ("; " + ", ".join(tail)) if tail else ""
+    if derived == 0 and not tail:
+        return [Finding(62, NA, "no entry carries a computed: source")]
+    return [Finding(62, PASS,
+                    f"{derived} computed grades derive from their inputs and match{note}")]
+
+
 def check_43_entry_grade(b: Bundle) -> list[Finding]:
     """An entry's grade follows from its source kind, the way a card's does (5.3).
 
@@ -3951,7 +4056,7 @@ CHECKS = [
     check_28_precision, check_29_failure_record, check_30_lessons, check_31_candidate_preservation,
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
-    check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood, check_55_section_7_names_are_allowed,
+    check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood, check_62_computed_grade_derived, check_55_section_7_names_are_allowed,
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision, check_53_deny_rules_do_not_block_reading,
