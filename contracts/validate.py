@@ -2807,6 +2807,64 @@ def check_62_computed_grade_derived(b: Bundle) -> list[Finding]:
                     f"{derived} computed grades derive from their inputs and match{note}")]
 
 
+def check_64_every_rejected_fixture_is_reached(b: Bundle) -> list[Finding]:
+    """Every file under examples/rejected/ is a subject or an input, never neither.
+
+    `--expect-fail` asserts that each fixture CARD fails, which is how a check
+    that quietly stopped working gets caught. But it iterates cards and
+    artifacts, and the folder holds files that are neither: `bad_md_number.md`
+    exists so that `bad_md_number.json` fails check 9, and a group's
+    `receiving_agent/CLAUDE.md` exists so the group fails check 50. Those are
+    INPUTS. Nothing walks them, so nothing notices a fixture that has stopped
+    being a fixture.
+
+    Deleting an input is already caught, because the subject then stops failing
+    and --expect-fail says so. What is not caught is an input that is still
+    there and no longer does its job, while some OTHER defect in the subject
+    keeps it failing -- the fixture passes for the wrong reason, which is the
+    shape this repository keeps finding.
+
+    This check cannot tell a live input from a dead one; that would be running
+    the fixture, which is --expect-fail's job. What it can say is that every
+    file is REACHED: a non-iterated file is accounted for when it shares a stem
+    with an iterated file, or sits in a group folder that has an iterated
+    member. A file that is neither is dead weight, and dead weight in a
+    directory whose whole purpose is to fail is indistinguishable from a test.
+    """
+    root = CONTRACTS / "examples" / "rejected"
+    if not root.exists():
+        return [Finding(64, NA, "no rejected fixtures on disk")]
+    files = sorted(p for p in root.rglob("*") if p.is_file())
+    if not files:
+        return [Finding(64, NA, "no rejected fixtures on disk")]
+
+    # What --expect-fail WOULD iterate, not what this run happened to collect.
+    # A plain run excludes the rejected tree entirely, so reading b.cards here
+    # made every fixture an orphan -- the check asked about this run when the
+    # question is about the directory.
+    rejected_bundle = collect([root], True)
+    subjects = {c.rel for c in (rejected_bundle.cards + rejected_bundle.artifacts)}
+    reached, inputs, orphans = [], [], []
+    for f in files:
+        rel = _rel(f)
+        if rel in subjects:
+            reached.append(rel)
+            continue
+        by_stem = any(_rel(s) in subjects for s in f.parent.glob(f.stem + ".*") if s != f)
+        group = next((q for q in f.parents if q.name.startswith("check") and q.parent == root), None)
+        by_group = bool(group) and any(_rel(m) in subjects for m in group.rglob("*") if m.is_file())
+        (inputs if (by_stem or by_group) else orphans).append(rel)
+
+    if orphans:
+        return [Finding(64, FAIL,
+                        f"{len(orphans)} files under examples/rejected/ are neither iterated by --expect-fail "
+                        f"nor an input to something that is ({', '.join(orphans[:3])}). A fixture nothing "
+                        "reaches cannot fail, and in this directory that is indistinguishable from one that "
+                        "passes", orphans[0])]
+    return [Finding(64, PASS,
+                    f"{len(reached)} rejected fixtures are iterated and {len(inputs)} are inputs to one")]
+
+
 def check_43_entry_grade(b: Bundle) -> list[Finding]:
     """An entry's grade follows from its source kind, the way a card's does (5.3).
 
@@ -4056,7 +4114,7 @@ CHECKS = [
     check_28_precision, check_29_failure_record, check_30_lessons, check_31_candidate_preservation,
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
-    check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood, check_62_computed_grade_derived, check_55_section_7_names_are_allowed,
+    check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood, check_62_computed_grade_derived, check_64_every_rejected_fixture_is_reached, check_55_section_7_names_are_allowed,
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision, check_53_deny_rules_do_not_block_reading,
