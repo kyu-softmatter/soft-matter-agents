@@ -37,8 +37,12 @@ where nobody can fix it. The exit is the next revision, which is this card.
 
 ## A. The diameter, and the source kind changes with it
 
-Six cards carry `bead_diameter`: `goal.json`, the plan, `synthesis.json`, and
-axes **a1, a3, a4**. Counted, not taken on trust — do the same before you edit.
+**Seven files carry `bead_diameter`**, and this card said six until the
+execution seat counted them: `goal.json`, the plan JSON, `synthesis.json`,
+axes **a1, a3, a4** — and `plan_simulation_sim-20260917-001.md`. The markdown
+was named in §D and left out of the count here, so the checklist was complete
+only if both sections were read, and a seat editing the six the number names
+leaves the seventh to check 9.
 
 **2 µm → 5 µm, and it is a measurement.** The person measured the particles
 directly on 2026-09-19: **5 µm, CV within 2 per cent**, which is
@@ -61,21 +65,35 @@ errors on record, so *the datasheet is wrong* is a far cheaper explanation than
 need the catalogue that was standing in for it. It still matters for the
 brightness — see below.
 
-**The lot narrows rather than vanishing.** `agentic-microscope` recorded that
-size CV *and* dye loading both vary lot to lot. Size CV is now measured and out
-of the lot's hands; **dye loading is not** — that is `tracer_brightness`, still
-unmeasured, still lot-dependent, and read by A1. So the open question stops
-being *which lot* and becomes *how is brightness obtained*, and that answer may
-also turn out to be a measurement.
+**On this side the lot vanishes, and this card said it narrows.** The
+narrowing is real on the microscope side — `agentic-microscope` recorded that
+size CV *and* dye loading vary lot to lot, size CV is now measured, dye loading
+is not, and that is `tracer_brightness`. **But `tracer_brightness` is in no
+card of this question.** It lives in the microscope's A1, which is SNR; *this*
+agent's A1 is integration stability and has no use for dye loading. Checked.
+The lot reached this question through `bead_diameter` and nothing else, so
+measuring the diameter cut its last grip here.
 
-Two consequences to work out rather than guess: `a_sample`'s statement is
-written around there being no value, and a number sourced `operator_recall:`
-is not an assumption's placeholder — so that assumption probably goes and the
-lot becomes a `kb_gaps` entry. And **`a_sample`'s falsifier fires on a
-condition that has not happened**: it says *"a bead lot specification replaces
-this with an E3 value and every interval resting on it moves."* The intervals
-are moving and no lot arrived. Say what you conclude from that; it is the more
-interesting half.
+So the consequence runs the other way: **do not open a `kb_gaps` entry for the
+lot on this side.** It would record a gap that nothing in this question rests
+on — the false-gap failure check 49 exists for, reached from the opposite end.
+This card had borrowed the microscope's framing without checking it applied.
+
+**`a_sample` goes, and it is a deletion rather than an edit.** Its `numbers`
+list is exactly `["bead_diameter"]`, so once that number stops being assumed
+the assumption has no numbers left. That is what carries §11-2's unit from
+seven distinct rationales to six.
+
+**Its falsifier did not fire, and the reason generalises.** It reads *"a bead
+lot specification replaces this with an E3 value"* — which names **a document
+that would arrive**, not **a state that would obtain**. A direct measurement
+satisfied the underlying condition by a better route, E2 above the E3 the
+falsifier anticipated, and the falsifier had nothing to match. That is `002`'s
+diagnosis of `a_target` one step milder: `a_target`'s says when somebody would
+change their mind, `a_sample`'s says which piece of paper would settle it, and
+**both name a route instead of a state.** *"A measured or specified size at E3
+or better exists"* would have fired either way. Found by the execution seat,
+and worth carrying into how falsifiers are written here.
 
 ## B. What the diameter drags, and what it quietly does not
 
