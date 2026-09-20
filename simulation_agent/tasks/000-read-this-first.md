@@ -87,45 +87,56 @@ itself.
 **And a hold names who lifts it.** If that is this seat, say so, because a card
 that holds on somebody unnamed holds forever.
 
-## What is startable right now, in order
+## Who has what, because two seats share this tree
 
-**1. `005` — one line, and it is the only thing between here and the first
-entry in `runs/`.** `check_budget` reads the envelope's old flat shape, which
-this seat's manager broke on 2026-09-19 when the schema gained a per-agent
-`limits` block. The person saved `envelope/safety.json` on 2026-09-20 at 10:33,
-so the path is live rather than hypothetical:
+Two simulation sessions are open and there is **no worktree**, so nothing
+refuses a collision — `seats.json` says so under `microscope-3` and names the
+answer: *the manager allocates by card*. This is that card.
 
-```
-'smoke'  ->  KeyError: 'smoke_budget'
-'full'   ->  'unavailable'   compared=0
-```
+| | |
+|---|---|
+| **`simulation-2`** | **`004` — revision 2.** Hold it alone. |
+| **session 3** | the two small items below. **Do not open `004`.** |
 
-The card carries the fix and the verification. Check the shape against
-`contracts/schemas/envelope_safety.schema.json` rather than taking the diff —
-the seat that wrote both is the one that got it wrong.
+**Why `004` goes to `simulation-2` and not to whoever is free.** It is one
+commit spanning `goal.json`, the plan JSON, the generated `.md` and
+`src/plan_card.py` — the exact shape two sessions must not both hold. And
+`simulation-3` is **not in `contracts/seats.json` yet**, so its commits are
+PENDING under `--strict` and a merge from it FAILs outright: giving the only
+open work to a seat that cannot land it stalls the work and the seat together.
+Registration is architecture's and has been asked for.
 
-**2. Then a mock smoke run.** `runs/` is empty; nothing has ever run here,
-`mock_backend` included. §9.2 rule 4 puts the engine after the pipeline passes
-with mock, and §4.6 makes mock a first-class backend — so this run, not HOOMD,
-is the next real milestone. HOOMD is not installed and is not on PyPI
-(conda-forge only), which is correct rather than missing.
+**Session 3's two, which touch none of `004`'s files:**
 
-**3. Then `004` — revision 2, one commit.** Four things converge on it and the
-card says why they are one: the diameter alignment, the target inline, the
-librarian re-run, and the `caller_id` at `:v2:`. It needs the librarian, which
-needs this session to have been approved for the server — see the root
-`CLAUDE.md` on why approval is per session and does not inherit.
+1. **Confirm the librarian, and fill the fourth row of `failures.jsonl`.**
+   The cause of its absence is now known and it was not what the earlier rows
+   said: `.claude/settings.local.json` carried
+   `disabledMcpjsonServers: ["librarian"]`, which overrode a user-level enable
+   that had been in place since 2026-09-19. The person removed it, and that
+   file is untracked and globally ignored, so **no seat could see it** — which
+   is why three rows guessed. It now reads
+   `{"…/simulation_agent": {"enabledMcpjsonServers": ["librarian"]}}`.
+   **Whether `mcp__librarian__*` is now present in a session opened at
+   `simulation_agent/` is the open question**, and the seven project entries in
+   `~/.claude.json` are still empty arrays, so a second cause may still exist.
+   Report either way; a `connected` is what opens `004`.
 
-**Done, so do not restart them.** `001` (the observable definition). `003` (the
-`caller_id` migration — zero old-form ids remain and `issue()` takes the
-revision). `002` is not separate work; it folded into `004`.
+2. **`read_envelope()` names the wrong field on one path.** A `limits` that is
+   not a dict reports *carries no `smoke_budget`*, because the membership test
+   runs first. The behaviour is right — it refuses — and the sentence sends the
+   reader somewhere else, which is check 56's failure one level down. `005`
+   records it.
+
+**Done, so do not restart.** `001`. `003`. `005` (`c2f4bf5`) and the first runs
+(`0a697f2`) — `runs/` holds `run-20260920-001` and `-002`, and `005` is marked
+done with what was verified from HEAD. `002` is not separate work; it folded
+into `004`.
 
 **And read the inbox section of `CLAUDE.md` before you need it.** Rounds from
 the bridge arrive in `simulation_agent/inbox/<thread>/`; an envelope sitting
 there is the turn, and you never write into it. Taking a round is S2 and is
 assigned by a task card the way an axis is — seeing one you have no card for,
-report it up rather than starting it, because two seats share this tree and a
-round each assumes the other took looks staffed while nobody holds it.
+report it up rather than starting it.
 
 ## What is already true, so do not redo it
 
