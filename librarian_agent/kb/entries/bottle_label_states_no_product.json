@@ -1,0 +1,15 @@
+{
+  "entry_id": "bottle_label_states_no_product",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The label on the particle bottle in use does not state a product identity. The operator examined it on 2026-09-19 and reported that it does not say.",
+  "source": "operator_read:kyuhwan_20260919_bottle",
+  "grade": "E3",
+  "grade_tag": "operator_read",
+  "source_ref": "src_operator_read_bottle_20260919",
+  "validity_conditions": "AN ABSENCE THAT WAS LOOKED FOR, WHICH IS WHY IT IS AN ENTRY. 'The label does not say' is a reading; 'nobody has checked the label' is not, and 4.3.1 draws exactly that line for gaps. This entry is what converts the product identification from unconfirmed-and-pending into unconfirmed-and-permanent: before the label was examined, a look at the bottle might have settled it, and now nothing further is scheduled to arrive. Anything that settles it in future has to come from somewhere else. It says nothing about what the particles ARE. It bounds what the bench can tell us, not the sample. NO `subject`: there is no registry id for the bottle, the sample, or the particles. Check 44 refuses a subject that resolves against nothing and it is right to -- an empty list is not an answer either, so the field is absent. Same structural gap as `at` having nowhere to point for the room, and it is now the reason a withdrawn identification has to be tracked through prose and entry names rather than through a subject the store could refuse.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

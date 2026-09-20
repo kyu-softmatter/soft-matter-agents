@@ -1,0 +1,56 @@
+{
+  "entry_id": "particles_show_on_the_green_605_path",
+  "schema_version": "0.1",
+  "kind": "calibration",
+  "claim": "The particles in the bottle in use fluoresce under Aura3 green excitation and are visible through the 605 band of the emission filter wheel. This establishes that their emission overlaps the bands this optical path uses; it is not a spectral peak.",
+  "numbers": [
+    {
+      "name": "path_excitation_band_nominal_centre",
+      "value": 555,
+      "unit": "nm",
+      "source": "calibration:tracer_path_compat_20260919",
+      "grade": "E2",
+      "precision": "order_of_magnitude",
+      "at": "emission_filter_wheel",
+      "note": "the NOMINAL CENTRE of an instrument band, not a property of the particle. Observed through filters, not on a spectrometer. Precision is declared coarse on purpose (5.8): a band observation is not an nm-level statement about a spectrum."
+    },
+    {
+      "name": "path_emission_band_nominal_centre",
+      "value": 605,
+      "unit": "nm",
+      "source": "calibration:tracer_path_compat_20260919",
+      "grade": "E2",
+      "precision": "order_of_magnitude",
+      "at": "emission_filter_wheel",
+      "note": "as above. A6 needs the wavelength the path actually collects; this is the band that was used for the observation, which is close to but not the same claim, and the single-band filter that defines it is an open gap."
+    }
+  ],
+  "source": "calibration:tracer_path_compat_20260919",
+  "grade": "E2",
+  "grade_tag": "calibration",
+  "source_ref": "src_cal_tracer_path_compat_20260919",
+  "valid_until": {
+    "date": "2036-09-19",
+    "event": "the emission filter wheel, the cube in the turret, or the excitation light engine is changed. BOTH the date and the event are set, and the event is the one that actually invalidates this: a ten-year date alone would say the observation still holds the day after somebody swaps the filter wheel, which is the single change that certainly breaks it. The date is an outer bound, not the condition"
+  },
+  "validity_conditions": "WHAT THIS ESTABLISHES IS COMPATIBILITY, NOT A SPECTRUM. Observed through filters rather than on a spectrometer, so the claim is that whatever is in the bottle emits into the bands this path uses. 555 and 605 are nominal centres of instrument bands and are NOT the particle's excitation and emission peaks. Writing them as peaks would manufacture spectral precision nobody measured -- and A1 will later need the overlap between a spectrum and a passband, a calculation that a band centre recorded as a peak makes look possible when it is not. THE DATE 2026-09-19 IS ASSIGNED FOR CONVENIENCE and was not stated as the date of observation; it is when the fact reached this store. For a configuration-dependent observation that distinction can matter and this entry cannot answer it. THE CAL ID WAS MINTED HERE, not supplied by the person. Identifiers belong to their owner and this store owns this one; it must not be read back to them as something they said. IT DOES NOT GIVE A6 ITS WAVELENGTH. The cube in the turret is MULTIBAND, so its marking does not name what the path collects; the single-band filters sit in the emission wheel and which position carries the red path is not recorded -- emission_wheel_camera_mapping is `operator_recall:` at E5 and says `probably`. So the band that defines the imaged wavelength is an open gap, and this entry is the observation that the particles are visible on the path, not a measurement of the path. WHAT IT DOES DO IS REFUTE THE PRODUCT IDENTIFICATION. A particle emitting at 680 nm, as the Abvigen sheet specifies, does not light up under green excitation and show through a 605 band. The observation was made on this bench and the specification was not, so the specification loses -- 10.3 rule 1, a run elsewhere is not a run here, which binds a vendor exactly as it binds a prior project. See bottle_label_states_no_product for why that cannot be settled by looking. `validity` PINS THE BANDS AS POINTS, AND THAT IS A CONFIGURATION IDENTITY RATHER THAN A SPECTRAL WIDTH. The schema requires a non-empty condition range from any `calibration:` source, and the reason it gives is exact: an unbounded calibration is a measurement with no event, which is the same claim an operator could have made from memory. The only conditions honestly available here are which bands were in the path, so those are what is pinned -- at their nominal centres, as points, because no bandwidth was measured and inventing one to fill an interval would be the over-claim this field exists to prevent. A query at any other band therefore comes back `disjoint`, which is the correct answer: this observation says nothing about a path it was not made on. What is genuinely unmatchable is the rest of the configuration -- this cube, this wheel, this light engine -- which has no quantity-to-interval shape at all and lives in `valid_until.event`. Third case of that limit after 'at the generator' on the trapping laser and 'the room' on the ambient temperature; raised with manager-librarian as one problem rather than three.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [
+    "tracer_emission_peak",
+    "tracer_excitation_peak"
+  ],
+  "curated_by": "kyuhwan",
+  "validity": {
+    "path_excitation_band_nominal_centre": {
+      "min": 555,
+      "max": 555,
+      "unit": "nm"
+    },
+    "path_emission_band_nominal_centre": {
+      "min": 605,
+      "max": 605,
+      "unit": "nm"
+    }
+  }
+}

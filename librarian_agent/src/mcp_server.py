@@ -386,7 +386,29 @@ def match(entry: dict, condition_range: dict | None) -> dict:
             out["disjoint"] = True
         uncovered[q] = out
 
-    return {"overlap": "full" if not uncovered else "partial",
+    # `disjoint` outranks `partial` when any shared quantity misses entirely.
+    # The two words say different things and the difference decides what a
+    # caller may do: `partial` means some of the asked range is covered, which
+    # invites clipping to the covered part; `disjoint` means none of it is, and
+    # clipping would land on a value nobody measured. This returned `partial`
+    # for both until 2026-09-19, while already writing `disjoint: true` into
+    # the same row's `uncovered` -- the truth computed and not delivered where
+    # it is read, which is the same shape as kb_query dropping conflict_with.
+    # Found by filing eight polystyrene dispersion points at single
+    # wavelengths and asking for one between them: eight entries that do not
+    # apply at all came back marked partially applicable.
+    #
+    # `no_overlap` was NOT reused for this, and the distinction is task 004's:
+    # it means no quantity in COMMON and carries its subject in the word.
+    # Disjointness is about the intervals, not the quantity sets. Folding them
+    # back together would undo the split 004 made one day earlier.
+    if not uncovered:
+        overlap = "full"
+    elif any(u.get("disjoint") for u in uncovered.values()):
+        overlap = "disjoint"
+    else:
+        overlap = "partial"
+    return {"overlap": overlap,
             "uncovered": uncovered,
             "unconstrained": unconstrained, "unasked": unasked}
 
@@ -780,7 +802,15 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
                "supersedes": e.get("supersedes"), **m}
         returned.append(row)
         for piece in uncovered_ranges(m):
-            compared_and_short.append({"entry_id": eid, "overlap": "partial",
+            # Carry the row's own verdict rather than hardcoding one. This is
+            # the site task 004 singled out as easy to miss, and missing it is
+            # worse than not making the change at all: the same response would
+            # then say `disjoint` in `entries[]` and `partial` in the gap's
+            # `nearest[]` for one comparison. It was hardcoded to "partial",
+            # so every disjoint nearest was mislabelled the moment `disjoint`
+            # existed. uncovered_ranges only yields pieces when something is
+            # uncovered, so this is never "full".
+            compared_and_short.append({"entry_id": eid, "overlap": m["overlap"],
                                        "uncovered": piece})
 
     # A gap needs something to be missing. Until 2026-09-19 this read
@@ -975,6 +1005,32 @@ def _self_test() -> int:                                    # noqa: C901
         elif r["gaps"]:
             bad("a fully covered query produced a gap")
 
+        # 1b. an interval that misses entirely is `disjoint`, not `partial`.
+        # The words decide what a caller may do: `partial` says some of the
+        # asked range is covered and invites clipping to it; `disjoint` says
+        # none of it is, and clipping would land on a value nobody measured.
+        # Both the row and the gap's `nearest` must say the same word -- 004
+        # names the nearest path as the one that gets missed.
+        disj = [e for e in store.entries.values()
+                if (e.get("validity") or {}).get("wavelength")]
+        if not disj:
+            bad("no entry bounds a wavelength, so `disjoint` is untested rather than passing")
+        else:
+            w = disj[0]["validity"]["wavelength"]
+            far = {"wavelength": {"min": w["max"] + 500, "max": w["max"] + 600, "unit": w["unit"]}}
+            obs = (disj[0].get("numbers") or [{}])[0].get("name") or disj[0]["entry_id"]
+            r = kb_query(store, cid, v, obs, far)
+            row = next((x for x in r["entries"] if x["entry_id"] == disj[0]["entry_id"]), None)
+            if row is None:
+                bad(f"{disj[0]['entry_id']} did not answer to {obs!r}")
+            elif row["overlap"] != "disjoint":
+                bad(f"an interval 500 units away should be disjoint, got {row['overlap']}")
+            for g in r["gaps"]:
+                for n in g.get("nearest") or []:
+                    if n["entry_id"] == disj[0]["entry_id"] and n["overlap"] != "disjoint":
+                        bad(f"gap nearest says {n['overlap']} where the row says disjoint -- "
+                            "the collision task 004 moved into the branch nobody reads")
+
         # 2. a wider condition is partial, names what is uncovered, and opens a gap
         r = kb_query(store, cid, v, "viscosity", {"temperature": {"min": 280, "max": 320, "unit": "K"}})
         e0 = r["entries"][0]
@@ -1106,7 +1162,16 @@ def _self_test() -> int:                                    # noqa: C901
         px = kb_query(store, cid, v, "pixel_size", None)
         if not px["entries"] or px["gaps"]:
             bad(f"pixel_size should answer now: {len(px['entries'])} entries, {px['gaps']}")
-        for q in ("refractive_index", "pinhole_diameter"):
+        # `refractive_index` left this list on 2026-09-19, the same way
+        # `pixel_size` did: it was an honest absent and then the fact arrived,
+        # as eight polystyrene dispersion points from Sultanova 2009. Asserted
+        # as an answer rather than deleted -- a gap that closes because
+        # somebody sourced it is worth a test. Fifth assertion here to go
+        # stale for a good reason; every one of them was a fact appearing.
+        ri = kb_query(store, cid, v, "refractive_index", None)
+        if not ri["entries"]:
+            bad("refractive_index should answer now, from the dispersion entries")
+        for q in ("pinhole_diameter",):
             g = kb_query(store, cid, v, q, None)["gaps"][0]
             if g.get("near_names") != []:
                 bad(f"{q} has nothing near it and should say so with an empty list, got "

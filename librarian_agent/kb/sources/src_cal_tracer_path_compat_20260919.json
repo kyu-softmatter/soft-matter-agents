@@ -1,0 +1,13 @@
+{
+  "source_id": "src_cal_tracer_path_compat_20260919",
+  "kind": "calibration",
+  "identifier": "calibration:tracer_path_compat_20260919 -- an observation on this instrument that the particles in use fluoresce under Aura3 green excitation and are visible through the 605 band of the emission filter wheel.",
+  "cal_id": "tracer_path_compat_20260919",
+  "cal_id_note": "MINTED BY THIS SEAT. The person supplied the observation and not an identifier; identifiers are the owner's to issue, and this store owns this one. It is not a number the person stated and must not be read back to them as one.",
+  "accessed": "2026-09-19",
+  "date_note": "THE DATE 2026-09-19 IS ASSIGNED FOR CONVENIENCE AND WAS NOT STATED AS THE DATE OF OBSERVATION. It is the date the fact reached this store. If when it was observed ever matters -- and for a configuration-dependent observation it can -- this date does not answer it and must not be used as though it does.",
+  "grade_rule": "E2, grade_tag calibration. Entry rule 9 as rewritten on 2026-09-19: E2 has a second path beside the result card, namely a calibration the operator performed on this instrument, carrying a validity period that stands in for the result card's traceability. The calibration event is what separates this from `operator_recall:` at E5, not who spoke.",
+  "url": null,
+  "not_a_peak": "THIS IS NOT A SPECTRUM AND NOT A PEAK. It was observed through filters, not on a spectrometer, so what it establishes is that the emission of whatever is in the bottle OVERLAPS the bands this optical path uses. 555 and 605 are the nominal centres of instrument bands, not properties of the particle. Recording them as peaks would manufacture spectral precision that was never measured, and A1 will later need the overlap between a spectrum and a passband -- a band centre written down as a peak is exactly the input that makes that calculation look possible when it is not. Precision follows 5.8: a band observation is not an nm-level statement.",
+  "note": "An earlier relay of this same observation described it as the marking on a filter cube, and another as a measurement. Neither is what is entered. The cube in the turret carries a MULTIBAND filter, so its marking does not name the band the path collects; the single-band filters live in the emission wheel. What is entered is only what was observed -- that the particles show up on this path."
+}

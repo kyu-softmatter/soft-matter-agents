@@ -60,20 +60,6 @@ CONTRACTS = AGENT.parent / "contracts"
 DEFAULT_LOG = AGENT / "queries" / "log.jsonl"
 
 TOOLS = ("kb_query", "kb_get", "kb_conflicts", "kb_group")
-# Expand, migrate, contract -- the same transition the schema is in. The
-# overlap value `unconstrained` became `no_overlap` because one word was
-# naming both a value and a field; a card belonging to another seat still
-# carries the old one, so both are accepted until the last holder moves.
-# This tuple is not cosmetic: `coverage` verdicts are checked against it and
-# a rejected record fails the call, so renaming the server without renaming
-# here would have stopped every query that found no overlap.
-OVERLAP = ("full", "partial", "no_overlap", "unstated", "unconstrained")
-# `unstated` joined on 2026-09-19: the entry declares no conditions at all,
-# which is a different answer from declaring some that miss. This tuple has
-# now caught the same coupling twice -- it validates `coverage`, and a
-# rejected record fails the call, so a new overlap value that lands in the
-# server and not here stops every query that produces it. The first time it
-# was found by a test; this time by the first run after the change.
 FIELDS = ("asked_at", "caller_id", "kb_version", "tool", "purpose",
           "observable", "condition_range", "returned", "gaps", "coverage",
           "outcome", "reason", "claimed", "server_session")
@@ -177,6 +163,40 @@ def purposes() -> tuple[str, ...]:
     return tuple(_contract("schemas/goal.schema.json", "properties", "purpose", "enum"))
 
 
+def overlap_values() -> tuple[str, ...]:
+    """The overlap verdicts a `coverage` entry may carry, read from the contract.
+
+    This was a hardcoded tuple until 2026-09-19 and it broke twice the same
+    way: `coverage` verdicts are validated against it and a rejected record
+    FAILS THE CALL, so an overlap value that reaches the server and not this
+    list stops every query that produces it. `unstated` did it once, found by
+    a test. `disjoint` did it again within the day, found by the first run
+    after the change -- and that time the value had been agreed in the schema
+    first, so the copy here was already stale when it was written.
+
+    Two lists in two files that have to agree is one list too many. This reads
+    `kb_gap.nearest[].overlap` and adds the two verdicts that exist on a row
+    and cannot reach `nearest`, which the contract's own description names:
+    `full`, nothing uncovered, and `unstated`, the entry declares no
+    conditions at all. Those two stay written here rather than derived because
+    they have no home in the schema -- the row shape belongs to this module
+    and the gap shape to the contract -- and saying so is better than leaving
+    a silent second source of truth.
+
+    `unconstrained` is gone without an edit here. It was this enum's name for
+    `no_overlap`, kept while cards migrated; manager-librarian verified that
+    no card on disk still carries it and dropped it in 5908649, closing an
+    expand-migrate-contract that had been open since 2026-09-18. Deriving is
+    what makes the contract step land here for free.
+    """
+    nearest = contract_first(
+        ("schemas/common.schema.json",
+         ("$defs", "kb_gap", "properties", "nearest", "items", "properties", "overlap", "enum")),
+        ("schemas/common.schema.json", ("$defs", "overlap", "enum")),
+    )
+    return tuple(nearest) + ("full", "unstated")
+
+
 def caller_id_pattern() -> str:
     return contract_first(
         ("schemas/common.schema.json", ("$defs", "caller_id", "pattern")),
@@ -238,8 +258,9 @@ def check(rec: dict, *, writing: bool = False) -> dict:
         if r.get("grade") == "E6":
             raise Rejected(f"entry {r.get('entry_id')!r} logged as E6; E6 is in no entry, so a line claiming one is wrong (5.3)")
     for quantity, verdict in (rec.get("coverage") or {}).items():
-        if verdict not in OVERLAP:
-            raise Rejected(f"coverage of {quantity!r} is {verdict!r}, not one of {OVERLAP}: matching says whether it covers, never what to do (4.3.1)")
+        allowed = overlap_values()
+        if verdict not in allowed:
+            raise Rejected(f"coverage of {quantity!r} is {verdict!r}, not one of {allowed}: matching says whether it covers, never what to do (4.3.1)")
     return rec
 
 

@@ -1,0 +1,9 @@
+{
+  "source_id": "src_operator_read_bottle_20260919",
+  "kind": "operator_read",
+  "identifier": "The person examined the label on the particle bottle in use, 2026-09-19, and reported that it does not state a product identity.",
+  "accessed": "2026-09-19",
+  "grade_rule": "E3, grade_tag operator_read. A value the operator read off the physical object. What was read is an ABSENCE, and that is still a reading: 'I looked at the label and it does not say' is evidence, where 'nobody has checked' is not. The distinction is the same one 4.3.1 draws for gaps -- looked-for-and-absent is not nobody-checked.",
+  "url": null,
+  "note": "This is what makes the identification permanently open rather than pending. Before the label was checked, `AFR-0500-COOH` was unconfirmed and a look at the bottle might have confirmed it. The look happened and settled nothing, so nothing further is scheduled to arrive."
+}
