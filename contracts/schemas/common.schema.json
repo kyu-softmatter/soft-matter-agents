@@ -83,11 +83,11 @@
           "items": {
             "type": "string"
           },
-          "description": "required when source is computed:. Names this formula reads."
+          "description": "required when source is computed:. Names this formula reads. A name in this card's numbers[], a constant, or `kb:<entry_id>` for an input that is a quantity the store holds (5.3, 2026-09-20) -- the second case of the class that widened `basis`, and permitted for the same reason: the entry exists and the field could not name it. A kb: input resolves against this card's kb_refs, which check 54 enforces. Note what check 17 then does NOT do: it resolves such an input and does not recompute the value from it, because the arithmetic would need the entry's value at this card's pin and the index holds the current store."
         },
         "derived": {
           "type": "boolean",
-          "description": "This computed value is a NAMED quantity: it carries a `symbol`, and one symbol means one definition across every card and the store (check 36). **It does not mean dimensionless.** A census on 2026-09-18 found 6 uses, all six carrying a unit (five `s`, one `N*s/m`), against 20 numbers with the dimensionless unit `1`, none of them derived — zero overlap. The documented meaning had never once been used, and six authors had independently read it as written here. Uses a computed: source; not a separate source kind."
+          "description": "This computed value is a NAMED quantity: it carries a `symbol`, and one symbol means one definition across every card and the store (check 36). **It does not mean dimensionless.** A census on 2026-09-18 found 6 uses, all six carrying a unit (five `s`, one `N*s/m`), against 20 numbers with the dimensionless unit `1`, none of them derived \u2014 zero overlap. The documented meaning had never once been used, and six authors had independently read it as written here. Uses a computed: source; not a separate source kind."
         },
         "symbol": {
           "type": "string",

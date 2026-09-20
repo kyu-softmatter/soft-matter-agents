@@ -1405,6 +1405,7 @@ def check_16_dependency_direction(b: Bundle) -> list[Finding]:
 def check_17_derived(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     n_computed = 0
+    n_from_store = 0
     for c in b.cards:
         if "__unreadable__" in c.data:
             continue
@@ -1424,9 +1425,28 @@ def check_17_derived(b: Bundle) -> list[Finding]:
             if not formula or not inputs:
                 out.append(Finding(17, FAIL, f"{name} is computed but has no formula/inputs", c.rel))
                 continue
-            missing = [i for i in inputs if i not in env and i not in CONSTANTS]
+            # An input may name the store (5.3, ruled 2026-09-20): the second
+            # case of the class that widened `basis`. The same three names are
+            # legal in a KB entry's own `inputs` and were illegal here, and the
+            # asymmetry pointed the wrong way -- the card is the artefact that
+            # has to show its grounds to the gate, and it was the one that
+            # could not name them. Resolution is check 54's, against kb_refs.
+            from_store = [i for i in inputs if str(i).startswith("kb:")]
+            missing = [i for i in inputs
+                       if i not in env and i not in CONSTANTS and not str(i).startswith("kb:")]
             if missing:
-                out.append(Finding(17, FAIL, f"{name} reads {missing}, which are not numbers of this card", c.rel))
+                out.append(Finding(17, FAIL, f"{name} reads {missing}, which are neither numbers of "
+                                             "this card nor kb: entries", c.rel))
+                continue
+            if from_store:
+                # Resolved, not recomputed. The arithmetic needs each entry's
+                # value AT THIS CARD'S PIN, and the index holds the current
+                # store -- checking against today's value would be the error
+                # check 58 exists to catch, one level down. So this says
+                # plainly that it did not verify the number rather than
+                # implying it did. Fetching pinned values is a separate check
+                # and is raised rather than invented here.
+                n_from_store += 1
                 continue
             sub = {k: v for k, v in env.items() if k in inputs}
             try:
@@ -1460,7 +1480,7 @@ def check_17_derived(b: Bundle) -> list[Finding]:
                 denom = abs(value_si) if value_si else abs(declared_si)
                 if abs(declared_si - value_si) / denom > tol:
                     out.append(Finding(17, FAIL, f"{name} states {n['value']} {n['unit']} but {formula} recomputes to {value_si / f:.6g} {n['unit']}", c.rel))
-    return out or [Finding(17, PASS, f"{n_computed} computed values recompute from their formulas")]
+    return out or [Finding(17, PASS, f"{n_computed - n_from_store} computed values recompute from their formulas; {n_from_store} rest on a kb: input and are resolved but not recomputed")]
 
 
 def check_18_scope_range(b: Bundle) -> list[Finding]:
@@ -4064,6 +4084,15 @@ def check_54_kb_basis_resolves(b: Bundle) -> list[Finding]:
                     for x in node["basis"]:
                         if isinstance(x, str) and x.startswith("kb:"):
                             found.append((node.get("parameter"), x[3:]))
+                # Same rule, second field. 5.3 let `inputs` name the store on
+                # 2026-09-20 for the reason that let `basis` do it, and the
+                # claim that made that safe was this check. A widening whose
+                # guarantee is not extended with it is the guarantee quietly
+                # dropped.
+                if isinstance(node.get("inputs"), list) and "name" in node:
+                    for x in node["inputs"]:
+                        if isinstance(x, str) and x.startswith("kb:"):
+                            found.append((node.get("name"), x[3:]))
                 for v in node.values():
                     walk(v)
             elif isinstance(node, list):
