@@ -40,10 +40,20 @@ where nobody can fix it. The exit is the next revision, which is this card.
 Six cards carry `bead_diameter`: `goal.json`, the plan, `synthesis.json`, and
 axes **a1, a3, a4**. Counted, not taken on trust — do the same before you edit.
 
-**2 µm → 5 µm.** The product is identified: Abvigen `AFR-0500-COOH`, found by
-the person on the vendor's page, and `manager-microscope` confirmed the same
-product key in `agentic-microscope`'s `data/particles.yaml` **on disk** — a file
-written at the time, so it is a second trace and not the same memory twice.
+**2 µm → 5 µm.** This card said until 2026-09-19 that the product was
+identified as Abvigen `AFR-0500-COOH`, with a vendor page and a
+contemporaneous `data/particles.yaml` behind it. **That identification was
+withdrawn the same evening** (`8646426`, issue 015): the person ruled it is not
+what is on the bench, and two entries force it —
+`bottle_label_states_no_product` (E3, `operator_read`) and
+`particles_show_on_the_green_605_path` (E2, `calibration`), the second because
+particles emitting at 680 nm do not show through a 605 band.
+
+**The alignment survives the withdrawal, and it is worth seeing why.** 5 µm was
+never derived from the product. It is `operator_recall:kyuhwan_20260918` and it
+was that before the catalogue was found — the catalogue was a *second* trace,
+and losing it leaves the first standing. What is thinner is the support, not
+the value: one weak claim instead of two.
 
 **The grade stays E5 and the source kind does not.** Two seats disagreed here
 and this is the reading to follow, with the reason so you can overrule it if it
@@ -62,9 +72,19 @@ the same kind of thing. **A blank is not disagreeing.** So `operator_recall:`,
 E5 unchanged, and `manager-bridge`'s advice to keep `assumed:` was written
 before that distinction landed.
 
-**Leave the lot gap open.** `spec:AFR-0500-COOH` is E3 *about that product*;
-that our bottle **is** that product is still E5, because the person read a
-catalogue and not a label. Reading the label lifts that layer on its own.
+**Leave the lot gap open, and know that one exit is now shut.** This card
+said reading the label would lift the grade on its own. **The label was read**
+— on 2026-09-19, by the operator — **and it does not state a product
+identity.** So the doubt is permanent rather than pending: the one cheap thing
+that might have settled it has happened and did not. A lot number is still what
+would make either side `spec:` at E3, and nothing short of that will.
+
+That is the reverse of what this card said hours earlier, and the direction
+matters: it did not go stale because an instruction outlived its cause, the way
+the holds in `000` and `002` did. **A fact about the world changed under it.**
+The repair is the same and the lesson is not — no convention about how a card
+is written would have prevented this one, and re-reading before acting is what
+catches it.
 
 Two consequences to work out rather than guess: `a_sample`'s statement is
 written around there being no value, and a number sourced `operator_recall:`
