@@ -82,6 +82,14 @@
       "note": "The third simulation execution seat, seated 2026-09-20. Same shape as simulation-2 and librarian-2: owns the agent directory, no paths, because an execution seat is not narrowed inside its own tree. Minted on a relay -- the occupying session reported that the person had opened it. It has since committed 555317b, author the person and committer seat:simulation-3@seat.invalid, with checks 35 and 41 passing because the registration was already at HEAD when seats_at read it; and it reports that the person seated it directly and asked for the registration. That report reached here by relay too, and 6.2.2 says a seat does not seat a seat, so the withdrawal clue stays and only the person closes it: if the person did not open a third simulation session, withdraw this the way the three seats minted on inference on 2026-09-19 were withdrawn. The occupying session said the same thing about its own message, which is the reason to believe it and not the reason to act on it."
     },
     {
+      "seat": "simulation-4",
+      "committer_email": "simulation-4@seat.invalid",
+      "owns": [
+        "simulation_agent"
+      ],
+      "note": "The fourth simulation execution seat, seated 2026-09-20. Same shape as simulation-2 and -3. Minted on a relay from simulation-2, which reports the person opened a fourth session; the person has not said so here, so the same withdrawal clue applies as on simulation-3 and only the person closes it. simulation-2 asked specifically that simulation-3 NOT be lent to this window: session 3 closed and came back up and is running now, so the name is not vacant, and two windows on one identity is the hole one_identity_per_session names. That is the microscope-3 precedent applied before the fact rather than after -- a name that looks free is the case that rule exists for."
+    },
+    {
       "seat": "librarian",
       "committer_email": "librarian@seat.invalid",
       "owns": [
