@@ -799,6 +799,20 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
                # measured differently came back clean at E3 -- a real
                # citation, a passing gate, and the wrong number.
                "conflict_with": e.get("conflict_with") or [],
+               # `refuted_by` says something `conflict_with` cannot, and the
+               # difference is what a caller may do. A conflict says two claims
+               # disagree and the conditions decide, so the caller still has a
+               # choice; a refutation says an observation here showed this one
+               # false, and there is no choice left. 017 ruled the vendor's
+               # 620/680 refuted rather than contested and the store had no
+               # word for it, so kb_conflicts went on returning the pair with
+               # "which one applies is decided by the conditions, by the
+               # caller" -- the one sentence that ruling forbids. The schema's
+               # own note asks for these in the projection beside grade and
+               # claim, for the reason 21c5325 established: a mark nobody sees
+               # is not a mark. Same stakes, higher.
+               "refuted_by": e.get("refuted_by") or [],
+               "refutes": e.get("refutes") or [],
                "supersedes": e.get("supersedes"), **m}
         returned.append(row)
         for piece in uncovered_ranges(m):
@@ -1363,25 +1377,53 @@ def _self_test() -> int:                                    # noqa: C901
                 pass
 
         # 8b. a contradiction reaches the tool a screen actually uses.
-        # Rules 7 and 8 do not remove a disputed or superseded entry, so the
-        # mark IS the protection; a projection that drops it hands out a
-        # contested number that looks uncontested. kb_get kept both fields and
+        # Rules 7 and 8 do not remove a disputed, refuted or superseded entry,
+        # so the mark IS the protection; a projection that drops it hands out a
+        # contested number that looks uncontested. kb_get kept those fields and
         # kb_query dropped them, and a screening fan-out calls kb_query.
-        marked = [e for e in store.entries.values() if e.get("conflict_with")]
+        #
+        # Split in two on 2026-09-19, because the single form it had could not
+        # tell two different failures apart and started reporting the wrong one.
+        # It required the live store to contain a `conflict_with`, and the day
+        # the last one legitimately became a `refuted_by` -- 017 ruling that the
+        # vendor peaks are disproved rather than disputed -- the property failed
+        # saying no entry carries a conflict. That is true and it is not a
+        # defect: the store is allowed to hold no disagreement at all. What must
+        # never happen is a mark that exists and is not delivered.
+        #
+        # So: key presence is checked against EVERY row, which needs no example
+        # and catches the actual defect mode (a field missing from the dict
+        # literal); value fidelity is checked against whatever marks the store
+        # does carry, over all three spellings rather than one.
+        marks = ("conflict_with", "refuted_by", "refutes")
+        any_row = kb_query(store, "selftest:conflict-mark", v, "viscosity", None)["entries"]
+        if not any_row:
+            bad("the projection cannot be checked: nothing answers to `viscosity`")
+        for row in any_row:
+            for field in (*marks, "supersedes"):
+                if field not in row:
+                    bad(f"kb_query's projection has no {field!r} key at all, so no "
+                        f"entry could ever deliver that mark ({row['entry_id']})")
+
+        marked = [e for e in store.entries.values() if any(e.get(m) for m in marks)]
         if not marked:
-            bad("no entry carries conflict_with, so this property is untested "
-                "rather than passing -- rule 7 says conflicts are kept and marked")
+            bad("no entry carries any contradiction mark, so value fidelity is "
+                "untested rather than passing -- rules 7 and 8 keep a contradicted "
+                "entry, and the mark is the whole of what keeps it safe")
         for e in marked:
             obs = (e.get("numbers") or [{}])[0].get("name") or e["entry_id"]
             rows = kb_query(store, "selftest:conflict-mark", v, obs, None)["entries"]
             row = next((r for r in rows if r["entry_id"] == e["entry_id"]), None)
             if row is None:
-                bad(f"{e['entry_id']} carries a conflict and does not answer to {obs!r}")
-            elif sorted(row.get("conflict_with") or []) != sorted(e["conflict_with"]):
-                bad(f"kb_query dropped the conflict mark on {e['entry_id']}: "
-                    f"{row.get('conflict_with')!r} for {e['conflict_with']!r}")
-            elif "supersedes" not in row:
-                bad(f"kb_query dropped supersedes on {e['entry_id']}")
+                bad(f"{e['entry_id']} carries a contradiction mark and does not "
+                    f"answer to {obs!r}")
+                continue
+            for field in marks:
+                if not e.get(field):
+                    continue
+                if sorted(row.get(field) or []) != sorted(e[field]):
+                    bad(f"kb_query dropped {field} on {e['entry_id']}: "
+                        f"{row.get(field)!r} for {e[field]!r}")
 
         # 8c. every unit in the store is one units.json defines -- INCLUDING the
         # entry-level `unit`, which four separate censuses on 2026-09-19 all

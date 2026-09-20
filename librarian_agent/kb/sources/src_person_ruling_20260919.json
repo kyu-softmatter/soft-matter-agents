@@ -1,0 +1,9 @@
+{
+  "source_id": "src_person_ruling_20260919",
+  "kind": "person_ruling",
+  "identifier": "Rulings the person (kyuhwan) made on 2026-09-19 by reasoning from evidence already on record, as distinct from what he read at the instrument and from what he stated from memory the same day.",
+  "accessed": "2026-09-19",
+  "grade_rule": "E5, via the `assumed:` prefix. A reasoned judgement is not a reading and not a recollection, and the store had only three person-shaped sources before this one: operator_read (E3, he looked), operator_recall (E5, he remembered), operator_calibration (E2, he performed a calibration event). A ruling is none of those. It takes E5 because what stands behind it is an inference the person found more economical than its alternative, and an inference is exactly what `assumed:` is for -- the grade is honest about that whether the reasoning is good or bad, and this one's reasoning is good.",
+  "license_note": "Identifier only.",
+  "note": "Kept separate from src_operator_recall_20260919 for the same day even though both land at E5. The two coincide in grade and not in kind: a recollection can be checked by asking again, a ruling can only be overturned by new evidence, and which of the two a claim rests on decides what would move it. 5.3's own argument for separating read from recall applies here a second time."
+}
