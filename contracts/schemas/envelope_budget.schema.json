@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "envelope_budget.schema.json",
+  "title": "envelope_budget",
+  "description": "Resource ceilings for the simulation agent: wall clock, storage, and a separate smoke budget. Split out of envelope_safety on 2026-09-20 because the grade of harm differs -- get the laser ceiling wrong and you lose an eye, get the wall clock wrong and you lose a night -- and the same lock on the same door was never decided. Splitting does not remove the gate: A5 and the operator still read one place, and a run that cannot tell whether it is inside budget still stops, because P0's stop-on-ambiguity binds resources too. What goes away is the physical-confirmation requirement and Tier 3, both of which were meaningless about a disk quota. There is no safety.json in this tree (plan.md §7).",
+  "type": "object",
+  "properties": {
+    "artifact": {
+      "const": "envelope_budget"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "policy_version": {
+      "type": "string",
+      "description": "Recorded into every run log as safety_policy_version; raise it whenever a ceiling moves, or the record cannot be read back."
+    },
+    "written_by": {
+      "type": "string"
+    },
+    "agent": {
+      "const": "simulation",
+      "description": "Kept so check 5 can compare the declaration against the tree the file was found in. A schema cannot see a misplaced file; a path check can."
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/target"
+      }
+    }
+  },
+  "required": [
+    "artifact",
+    "schema_version",
+    "policy_version",
+    "agent",
+    "targets"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "limit": {
+      "type": "object",
+      "description": "A resource ceiling. Value and unit only, like a safety limit -- it is a decision and not a claim about the world, so P2's four parts do not apply (5.3.1). What it does NOT carry is `confirmation`: P0 rule 7 binds `safety.*` and not this file. Putting a power meter in a beam and knowing a machine's job limit are different acts, and demanding physical confirmation of the second writes a requirement nobody can satisfy.",
+      "properties": {
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "description": "must be in units.json with a fixed SI factor, or si() refuses it"
+        },
+        "note": {
+          "type": "string"
+        },
+        "chosen_by": {
+          "type": "object",
+          "description": "Who chose it and when. This is what replaces `confirmation` here, and it is a lower bar on purpose: what a budget needs is that somebody who knows that machine picked the number, not that anyone measured it. Required, because a ceiling nobody will own is a ceiling nobody will raise when it pinches -- and the failure mode of an unowned budget is someone quietly working around it.",
+          "properties": {
+            "by": {
+              "type": "string",
+              "minLength": 2
+            },
+            "on": {
+              "type": "string",
+              "format": "date"
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 10,
+              "description": "why this number rather than another. Optional, and the first thing a later reader wants."
+            }
+          },
+          "required": [
+            "by",
+            "on"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "chosen_by"
+      ],
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "wall_clock_max": {
+              "$ref": "#/$defs/limit"
+            },
+            "storage_max": {
+              "$ref": "#/$defs/limit"
+            },
+            "smoke_budget": {
+              "type": "object",
+              "description": "Separate because a smoke run allowed the full budget tells you nothing before the run it precedes. Each of its two is a ceiling in its own right and carries its own chosen_by.",
+              "properties": {
+                "wall_clock_max": {
+                  "$ref": "#/$defs/limit"
+                },
+                "storage_max": {
+                  "$ref": "#/$defs/limit"
+                }
+              },
+              "required": [
+                "wall_clock_max",
+                "storage_max"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "wall_clock_max",
+            "storage_max",
+            "smoke_budget"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "target",
+        "limits"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -7,7 +7,7 @@ Everything this seat was told on 2026-09-18 was told by message, and the
 instructions that mattered survived only as long as the sessions did. That was
 the defect §6.2-2 names, and this file is the repair.
 
-## Two seats, two identities — settled, and session 2 may commit
+## Identities — one per session, and the count keeps moving
 
 `simulation-2@seat.invalid` was registered on 2026-09-18. This section used to
 say session 2 must not commit, and **that instruction is withdrawn**: it was
@@ -131,14 +131,6 @@ hard way on 2026-09-20:**
   element in a list, a substring in a str — and `str` is the likelier hand-edit,
   a person leaving a note where an object belongs.
 
-**Why `004` goes to `simulation-2` and not to whoever is free.** It is one
-commit spanning `goal.json`, the plan JSON, the generated `.md` and
-`src/plan_card.py` — the exact shape two sessions must not both hold. And
-`simulation-3` is **not in `contracts/seats.json` yet**, so its commits are
-PENDING under `--strict` and a merge from it FAILs outright: giving the only
-open work to a seat that cannot land it stalls the work and the seat together.
-Registration is architecture's and has been asked for.
-
 **Still open, and touching none of `004`'s files:**
 
 1. **The librarian is reachable — settled 2026-09-20, and the fourth row of
@@ -179,6 +171,47 @@ the bridge arrive in `simulation_agent/inbox/<thread>/`; an envelope sitting
 there is the turn, and you never write into it. Taking a round is S2 and is
 assigned by a task card the way an axis is — seeing one you have no card for,
 report it up rather than starting it.
+
+## The `budget.json` split — the section the table points at
+
+**`plan.md` rules that there is no `safety.json` in this tree.** The file in
+`simulation_agent/envelope/` is misnamed, and the reason is not tidiness:
+
+> The grade of harm differs — get the laser ceiling wrong and you lose an eye,
+> get the wall clock wrong and you lose a night. Putting the same lock on the
+> same door was never decided.
+
+So `envelope/budget.json`, and what goes away with the rename is **the
+physical-confirmation requirement and Tier 3**, both meaningless about a disk
+quota. **P0 rule 7 now binds `safety.*` only.** What a budget needs is that
+somebody who knows that machine chose the number — not that anyone measured it.
+
+**Done, by `manager-simulation`:** `contracts/schemas/envelope_budget.schema.json`.
+`confirmation` is replaced by **`chosen_by`** — `by`, `on`, and an optional
+`rationale` — and the schema refuses a `confirmation` or a `grade` pushed into a
+limit, so the lower bar is expressed rather than merely permitted. Tested in
+seven cases.
+
+**What is left, and most of it is this seat's because `src/` is:**
+
+1. **`src/axis_a5_budget.py`, `src/operator.py`, `src/plan_card.py`** — the
+   paths and the artifact name. `operator.ENVELOPE` and `read_envelope()`'s
+   three self-declaration checks both name `envelope_safety`.
+2. **`envelope/budget.json` itself**, carrying what `safety.json` carries now
+   with `confirmation` rewritten as `chosen_by`. The values do not change: 2 h,
+   10 GB, 5 min / 500 MB, chosen by the person on 2026-09-19.
+3. **Removing `safety.json`** — **ask before doing this one.** It is committed
+   (`fa1d69f`, `human@seat.invalid`) and it is a `safety.*` file, so Tier 3
+   still reads as binding until it is gone. Whether the rename is the person's
+   act or this seat's is not settled anywhere, and it is cheaper to ask than to
+   be the seat that deleted a P0 file on its own reading.
+
+**Then, and only then, `manager-simulation` tightens two things** — removing
+`simulation_limits` from `envelope_safety.schema.json`, and narrowing
+`ALLOWED_PATHS` from `envelope/[anything]` to the declared names per agent, so
+§7's tree becomes binding rather than descriptive. **Both are held until the
+swap lands**: doing either first refuses the file that is there now, and a gate
+that refuses correct work is one somebody reaches around.
 
 ## What is already true, so do not redo it
 
