@@ -170,6 +170,18 @@ Snapshots go out by publishing, never by writing across the boundary: put them
 in `kb/exports/snapshot_<agent>.json` and let each agent copy into its own
 `envelope/`. `kb/` is the one directory other sessions may read, and read only.
 
+**What a snapshot carries, and why it stops where it does.** Entries and
+tables, not `contracts/`. Asked on 2026-09-19 as a possible hole — an agent
+working from `envelope/` alone cannot see `quantities.json`, `observables.json`
+or `units.json` — and it is not one, but nothing said so, which is why the
+question was askable. The line is: **`envelope/` pins what moves independently
+of the consumer.** `kb/` does — the store advances while a fan-out is in
+flight, so a card has to name the version it read. `contracts/` does not: it
+lives in this repository, a commit already pins it, and every agent reads it
+directly since the boundary denies writing it and not reading it. Copying it
+into an envelope would create a second authority that can drift from the first,
+which is the failure the snapshot exists to prevent, pointed the other way.
+
 ## The prior repositories
 
 `agentic-microscope` was opened by the person on 2026-09-17; the other three
