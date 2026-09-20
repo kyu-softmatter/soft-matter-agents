@@ -6,7 +6,7 @@
   "goal_revision": 6,
   "stage": "S3.0",
   "observable": "tracer_diffusivity",
-  "kb_version": "kbv-49feb73662b7",
+  "kb_version": "kbv-7c77fa74ee5a",
   "cap": 3,
   "candidates": [
     {
@@ -43,46 +43,46 @@
   ],
   "fan_out": [
     {
-      "caller_id": "mic-20260918-001:v3:widefield_inline:a1",
+      "caller_id": "mic-20260918-001:v4:widefield_inline:a1",
       "config": "widefield_inline",
       "axis": "a1",
-      "kb_version": "kbv-49feb73662b7"
+      "kb_version": "kbv-7c77fa74ee5a"
     },
     {
-      "caller_id": "mic-20260918-001:v1:widefield_inline:a2",
+      "caller_id": "mic-20260918-001:v2:widefield_inline:a2",
       "config": "widefield_inline",
       "axis": "a2",
-      "kb_version": "kbv-49feb73662b7"
+      "kb_version": "kbv-7c77fa74ee5a"
     },
     {
-      "caller_id": "mic-20260918-001:v1:widefield_inline:a3",
+      "caller_id": "mic-20260918-001:v2:widefield_inline:a3",
       "config": "widefield_inline",
       "axis": "a3",
-      "kb_version": "kbv-49feb73662b7"
+      "kb_version": "kbv-7c77fa74ee5a"
     },
     {
-      "caller_id": "mic-20260918-001:v1:widefield_inline:a4",
+      "caller_id": "mic-20260918-001:v2:widefield_inline:a4",
       "config": "widefield_inline",
       "axis": "a4",
-      "kb_version": "kbv-49feb73662b7"
+      "kb_version": "kbv-7c77fa74ee5a"
     },
     {
       "caller_id": "mic-20260918-001:v1:widefield_inline:a5",
       "config": "widefield_inline",
       "axis": "a5",
-      "kb_version": "kbv-49feb73662b7"
+      "kb_version": "kbv-7c77fa74ee5a"
     },
     {
-      "caller_id": "mic-20260918-001:v1:widefield_inline:a6",
+      "caller_id": "mic-20260918-001:v3:widefield_inline:a6",
       "config": "widefield_inline",
       "axis": "a6",
-      "kb_version": "kbv-49feb73662b7"
+      "kb_version": "kbv-7c77fa74ee5a"
     },
     {
-      "caller_id": "mic-20260918-001:v3:widefield_inline:a7",
+      "caller_id": "mic-20260918-001:v4:widefield_inline:a7",
       "config": "widefield_inline",
       "axis": "a7",
-      "kb_version": "kbv-49feb73662b7"
+      "kb_version": "kbv-7c77fa74ee5a"
     }
   ],
   "degraded": [

@@ -5,14 +5,14 @@
   "qid": "mic-20260918-001",
   "thread": "solo-mic-20260918-001",
   "round": 0,
-  "revision": 3,
+  "revision": 4,
   "author": "microscope_agent",
-  "created_at": "2026-09-19T18:49:29Z",
+  "created_at": "2026-09-20T06:04:36Z",
   "status": "VALIDATED",
-  "caller_id": "mic-20260918-001:v3:widefield_inline:a1",
+  "caller_id": "mic-20260918-001:v4:widefield_inline:a1",
   "config": "widefield_inline",
   "axis": "a1",
-  "kb_version": "kbv-49feb73662b7",
+  "kb_version": "kbv-7c77fa74ee5a",
   "method": "deterministic",
   "verdict": "abstain",
   "constraints": [],
@@ -85,14 +85,86 @@
     {
       "entry_id": "csuw1_disk_position_states",
       "grade": "E3",
-      "kb_version": "kbv-49feb73662b7",
+      "kb_version": "kbv-7c77fa74ee5a",
       "claim": "With the spinning disk in, the path is confocal. With the disk out, the same hardware serves both widefield fluorescence and brightfield. Disk-out is therefore not a configuration of its own but a req"
     },
     {
       "entry_id": "csuw1_disk_speed_exposure_constraint",
       "grade": "E3",
-      "kb_version": "kbv-49feb73662b7",
+      "kb_version": "kbv-7c77fa74ee5a",
       "claim": "An exposure taken through the spinning disk must last an integer multiple of the disk period, or stripes remain in the image, and nothing may be acquired while the disk is still spinning up to speed."
+    },
+    {
+      "entry_id": "pixel_size_100x_zoom_1_5x",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "With the 100x objective at 1.5x intermediate magnification and 1x1 binning, one pixel spans 0.04333 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_100x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "With the 100x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.065 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_10x_zoom_1_5x",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "With the 10x objective at 1.5x intermediate magnification and 1x1 binning, one pixel spans 0.43333 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_10x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "With the 10x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.65 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_20x_zoom_1_5x",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "With the 20x objective at 1.5x intermediate magnification and 1x1 binning, one pixel spans 0.21582 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_20x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "With the 20x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.32373 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_40x_zoom_1_5x",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "With the 40x objective at 1.5x intermediate magnification and 1x1 binning, one pixel spans 0.10833 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_40x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "With the 40x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.1625 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_4x_zoom_1_5x",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "With the 4x objective at 1.5x intermediate magnification and 1x1 binning, one pixel spans 1.0833 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_4x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "With the 4x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 1.625 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_60x_zoom_1_5x",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "With the 60x objective at 1.5x intermediate magnification and 1x1 binning, one pixel spans 0.07222 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_60x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "With the 60x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.10833 micrometres at the sample plane, measured by the operator on this instrument."
     }
   ],
   "kb_gaps": [
@@ -101,11 +173,11 @@
       "observable": "background_rate",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=background_rate, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=background_rate, caller_id=mic-20260918-001:v4:widefield_inline:a1, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
-      "asked_at": "2026-09-19T18:44:55+00:00",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v4:widefield_inline:a1",
+      "asked_at": "2026-09-20T05:57:34+00:00",
       "near_names": []
     },
     {
@@ -113,11 +185,11 @@
       "observable": "bleaching_rate",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=bleaching_rate, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=bleaching_rate, caller_id=mic-20260918-001:v4:widefield_inline:a1, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
-      "asked_at": "2026-09-19T18:44:56+00:00",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v4:widefield_inline:a1",
+      "asked_at": "2026-09-20T05:57:35+00:00",
       "near_names": []
     },
     {
@@ -125,11 +197,11 @@
       "observable": "disk_period",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=disk_period, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=disk_period, caller_id=mic-20260918-001:v4:widefield_inline:a1, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
-      "asked_at": "2026-09-19T18:44:56+00:00",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v4:widefield_inline:a1",
+      "asked_at": "2026-09-20T05:57:35+00:00",
       "near_names": []
     },
     {
@@ -137,23 +209,25 @@
       "observable": "pixel_size_in_sample",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=pixel_size_in_sample, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=pixel_size_in_sample, caller_id=mic-20260918-001:v4:widefield_inline:a1, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
-      "asked_at": "2026-09-19T18:44:57+00:00",
-      "near_names": []
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v4:widefield_inline:a1",
+      "asked_at": "2026-09-20T05:57:36+00:00",
+      "near_names": [
+        "pixel_size"
+      ]
     },
     {
       "gap_id": "camera_quantum_efficiency",
       "observable": "quantum_efficiency",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=quantum_efficiency, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=quantum_efficiency, caller_id=mic-20260918-001:v4:widefield_inline:a1, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
-      "asked_at": "2026-09-19T18:44:57+00:00",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v4:widefield_inline:a1",
+      "asked_at": "2026-09-20T05:57:37+00:00",
       "near_names": []
     },
     {
@@ -161,11 +235,11 @@
       "observable": "read_noise",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=read_noise, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=read_noise, caller_id=mic-20260918-001:v4:widefield_inline:a1, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
-      "asked_at": "2026-09-19T18:44:57+00:00",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v4:widefield_inline:a1",
+      "asked_at": "2026-09-20T05:57:37+00:00",
       "near_names": []
     },
     {
@@ -173,11 +247,11 @@
       "observable": "tracer_brightness",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=tracer_brightness, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=tracer_brightness, caller_id=mic-20260918-001:v4:widefield_inline:a1, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
-      "asked_at": "2026-09-19T18:44:58+00:00",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v4:widefield_inline:a1",
+      "asked_at": "2026-09-20T05:57:38+00:00",
       "near_names": []
     },
     {
@@ -185,12 +259,14 @@
       "observable": "tracer_diffusivity_expected",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=tracer_diffusivity_expected, caller_id=mic-20260918-001:v3:widefield_inline:a1, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=tracer_diffusivity_expected, caller_id=mic-20260918-001:v4:widefield_inline:a1, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v3:widefield_inline:a1",
-      "asked_at": "2026-09-19T18:44:58+00:00",
-      "near_names": []
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v4:widefield_inline:a1",
+      "asked_at": "2026-09-20T05:57:39+00:00",
+      "near_names": [
+        "tracer_diffusivity"
+      ]
     }
   ],
   "degraded": [],

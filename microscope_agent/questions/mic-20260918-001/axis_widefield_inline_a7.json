@@ -5,14 +5,14 @@
   "qid": "mic-20260918-001",
   "thread": "solo-mic-20260918-001",
   "round": 0,
-  "revision": 3,
+  "revision": 4,
   "author": "microscope_agent",
-  "created_at": "2026-09-19T18:49:30Z",
+  "created_at": "2026-09-20T06:04:37Z",
   "status": "VALIDATED",
-  "caller_id": "mic-20260918-001:v3:widefield_inline:a7",
+  "caller_id": "mic-20260918-001:v4:widefield_inline:a7",
   "config": "widefield_inline",
   "axis": "a7",
-  "kb_version": "kbv-49feb73662b7",
+  "kb_version": "kbv-7c77fa74ee5a",
   "method": "deterministic",
   "verdict": "abstain",
   "constraints": [],
@@ -135,19 +135,25 @@
     {
       "entry_id": "lab_ambient_temperature",
       "grade": "E3",
-      "kb_version": "kbv-49feb73662b7",
-      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. Because nothing actuates the sample temperature on this instrument, this is an ambient value of the "
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what m"
     },
     {
       "entry_id": "sample_temperature_not_actuated",
       "grade": "E3",
-      "kb_version": "kbv-49feb73662b7",
+      "kb_version": "kbv-7c77fa74ee5a",
       "claim": "Sample temperature is not under control on this instrument. A temperature stage exists but has never been connected, so nothing actuates the sample temperature and there is no setpoint to appeal to: a"
+    },
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
     },
     {
       "entry_id": "water_viscosity_293k",
       "grade": "E3",
-      "kb_version": "kbv-49feb73662b7",
+      "kb_version": "kbv-7c77fa74ee5a",
       "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
     }
   ],
@@ -157,11 +163,11 @@
       "observable": "localisation_error",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=localisation_error, caller_id=mic-20260918-001:v3:widefield_inline:a7, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=localisation_error, caller_id=mic-20260918-001:v4:widefield_inline:a7, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v3:widefield_inline:a7",
-      "asked_at": "2026-09-19T18:45:18+00:00",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v4:widefield_inline:a7",
+      "asked_at": "2026-09-20T05:57:55+00:00",
       "near_names": []
     },
     {
@@ -169,11 +175,11 @@
       "observable": "trap_stiffness",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=trap_stiffness, caller_id=mic-20260918-001:v3:widefield_inline:a7, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=trap_stiffness, caller_id=mic-20260918-001:v4:widefield_inline:a7, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v3:widefield_inline:a7",
-      "asked_at": "2026-09-19T18:45:18+00:00",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v4:widefield_inline:a7",
+      "asked_at": "2026-09-20T05:57:55+00:00",
       "near_names": []
     },
     {
@@ -181,11 +187,11 @@
       "observable": "working_height_above_coverslip",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=working_height_above_coverslip, caller_id=mic-20260918-001:v3:widefield_inline:a7, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=working_height_above_coverslip, caller_id=mic-20260918-001:v4:widefield_inline:a7, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v3:widefield_inline:a7",
-      "asked_at": "2026-09-19T18:45:18+00:00",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v4:widefield_inline:a7",
+      "asked_at": "2026-09-20T05:57:56+00:00",
       "near_names": []
     }
   ],

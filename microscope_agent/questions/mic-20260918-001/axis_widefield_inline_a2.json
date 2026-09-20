@@ -5,14 +5,14 @@
   "qid": "mic-20260918-001",
   "thread": "solo-mic-20260918-001",
   "round": 0,
-  "revision": 1,
+  "revision": 2,
   "author": "microscope_agent",
-  "created_at": "2026-09-19T18:49:29Z",
+  "created_at": "2026-09-20T06:04:36Z",
   "status": "VALIDATED",
-  "caller_id": "mic-20260918-001:v1:widefield_inline:a2",
+  "caller_id": "mic-20260918-001:v2:widefield_inline:a2",
   "config": "widefield_inline",
   "axis": "a2",
-  "kb_version": "kbv-49feb73662b7",
+  "kb_version": "kbv-7c77fa74ee5a",
   "method": "deterministic",
   "verdict": "abstain",
   "constraints": [],
@@ -65,8 +65,32 @@
     {
       "entry_id": "tau_d",
       "grade": "E4",
-      "kb_version": "kbv-49feb73662b7",
+      "kb_version": "kbv-7c77fa74ee5a",
       "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
+    },
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "tracer_number_density_from_diameter",
+      "grade": "E3",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "The number of Abvigen AFR-0500-COOH particles per millilitre of the as-supplied 10 mg/ml suspension is 6*C/(pi*rho*d**3), where C is the mass concentration, rho the particle density 1.03 g/cm3 and d t"
+    },
+    {
+      "entry_id": "tracer_particle_density",
+      "grade": "E3",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "The Abvigen AFR-0500-COOH particle material has a density of 1.03 g/cm3, which is independent of the diameter supplied."
+    },
+    {
+      "entry_id": "tracer_stock_concentration",
+      "grade": "E3",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "The Abvigen AFR-0500-COOH product is supplied as a suspension at a mass concentration of 10 mg/ml, in volumes of 10 ml or 20 ml."
     }
   ],
   "kb_gaps": [
@@ -75,11 +99,11 @@
       "observable": "localisation_error",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=localisation_error, caller_id=mic-20260918-001:v1:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=localisation_error, caller_id=mic-20260918-001:v2:widefield_inline:a2, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v1:widefield_inline:a2",
-      "asked_at": "2026-09-19T18:45:00+00:00",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v2:widefield_inline:a2",
+      "asked_at": "2026-09-20T05:57:40+00:00",
       "near_names": []
     },
     {
@@ -87,11 +111,11 @@
       "observable": "target_relative_error",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=target_relative_error, caller_id=mic-20260918-001:v1:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=target_relative_error, caller_id=mic-20260918-001:v2:widefield_inline:a2, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v1:widefield_inline:a2",
-      "asked_at": "2026-09-19T18:45:00+00:00",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v2:widefield_inline:a2",
+      "asked_at": "2026-09-20T05:57:41+00:00",
       "near_names": []
     },
     {
@@ -99,24 +123,28 @@
       "observable": "tracer_diffusivity_expected",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=tracer_diffusivity_expected, caller_id=mic-20260918-001:v1:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=tracer_diffusivity_expected, caller_id=mic-20260918-001:v2:widefield_inline:a2, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v1:widefield_inline:a2",
-      "asked_at": "2026-09-19T18:45:00+00:00",
-      "near_names": []
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v2:widefield_inline:a2",
+      "asked_at": "2026-09-20T05:57:41+00:00",
+      "near_names": [
+        "tracer_diffusivity"
+      ]
     },
     {
       "gap_id": "tracer_loading",
       "observable": "tracer_number_density",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=tracer_number_density, caller_id=mic-20260918-001:v1:widefield_inline:a2, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=tracer_number_density, caller_id=mic-20260918-001:v2:widefield_inline:a2, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v1:widefield_inline:a2",
-      "asked_at": "2026-09-19T18:45:01+00:00",
-      "near_names": []
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v2:widefield_inline:a2",
+      "asked_at": "2026-09-20T05:57:42+00:00",
+      "near_names": [
+        "tracer_number_density_from_diameter"
+      ]
     }
   ],
   "degraded": [],

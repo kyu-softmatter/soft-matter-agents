@@ -57,6 +57,7 @@ sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.curdir) != _HERE]
 import argparse                                                  # noqa: E402
 import importlib.util                                            # noqa: E402
 import json                                                      # noqa: E402
+import re                                                        # noqa: E402
 from datetime import datetime, timezone                           # noqa: E402
 from pathlib import Path                                          # noqa: E402
 
@@ -124,7 +125,7 @@ OWNED = (
         parameter="axial_range",
         statement="the axial range that stays in focus must cover the tracer's axial excursion "
                   "over the record: n*lambda/NA**2 >= axial_excursion",
-        needs=("emission_wavelength", "refractive_index"),
+        needs=("emission_wavelength", "immersion_refractive_index"),
         derived_from="4.5.3 A6 'axial resolution'",
     ),
 )
@@ -136,7 +137,13 @@ GAP_IDS = {
     "magnification": "magnification_is_not_a_number",
     "sensor_active_area": "sensor_active_area_absent",
     "emission_wavelength": "emission_wavelength_absent",
-    "refractive_index": "immersion_refractive_index_absent",
+    # Asked under the specific name from revision 3 on. Under the bare
+    # `refractive_index` the store answers with eight polystyrene entries -- the
+    # TRACER's index, not the immersion medium's -- so the generic name closed
+    # this gap with the wrong quantity. A false closure is what check 49 exists
+    # against, met here from the opposite side to the usual: not a name the store
+    # uses that the caller missed, but a name they share for different things.
+    "immersion_refractive_index": "immersion_refractive_index_absent",
 }
 
 # The name a missing input goes by on the card, where that differs from the
@@ -193,12 +200,79 @@ def _na_numbers(responses: dict) -> list[dict]:
     return out
 
 
+def _nyquist(responses: dict):
+    """Which (objective, zoom) pairs sample the diffraction-limited spot finely enough.
+
+    Returns (satisfying, failing, band, table) or None when an input is missing.
+
+    Three things this could get wrong, and does not:
+
+    **The pixel size is not a free parameter.** It is selected by a discrete
+    pair, and 0.10833 um appears twice -- 40x at 1.5x and 60x at 1x -- with
+    opposite verdicts, because the limit moves with NA. So the permitted thing
+    is the pair, not the length, and an interval on `effective_pixel_size`
+    would be false on its face.
+
+    **Lambda is a band and stays one.** 008 is explicit: four bandpasses
+    bracket a band, they do not locate a peak, so the limit is evaluated at
+    579.5 and at 610.5 rather than at a centre. A pair counts as satisfying
+    only if it satisfies at both edges; one that satisfies at one edge and not
+    the other is reported as edge-dependent rather than rounded either way.
+    None is, here -- the band's width changes no verdict, which is worth
+    knowing and is not a reason to have skipped the care.
+
+    **Objectives are paired to pixel entries by nominal designation.** `20X` in
+    an objective's claim against `20x` in a pixel entry's id. 5.3 makes a
+    nominal designation a string identifier exact by definition, so matching on
+    it is identity and not arithmetic -- which is the one thing 5.3's
+    `20.078x` precedent forbids doing with these two quantities.
+    """
+    served = responses["entries"]
+    band = (served.get("filter_ff01_595_31_32_passband") or {}).get("validity", {}).get("wavelength")
+    if not band:
+        return None
+    na_by_designation = {}
+    for eid, e in served.items():
+        if not eid.startswith("objective_"):
+            continue
+        m = re.search(r"(\d+)X", e.get("claim", ""))
+        na = next((n["value"] for n in e.get("numbers", []) if n["name"] == "na"), None)
+        if m and na is not None:
+            na_by_designation[m.group(1) + "x"] = (eid, na)
+    satisfying, failing, table = [], [], []
+    for eid, e in sorted(served.items()):
+        m = re.match(r"pixel_size_(\d+x)_zoom_(1x|1_5x)$", eid)
+        if not m:
+            continue
+        pitch = next((n["value"] for n in e.get("numbers", []) if n["name"] == "pixel_size"), None)
+        pair = na_by_designation.get(m.group(1))
+        if pitch is None or pair is None:
+            continue
+        obj_id, na = pair
+        lo = band["min"] / (4 * na) / 1000.0        # nm -> um
+        hi = band["max"] / (4 * na) / 1000.0
+        name = f"{m.group(1)}@{m.group(2).replace('_', '.')}"
+        (satisfying if pitch <= lo else failing).append(name)
+        table.append((name, obj_id, eid, na, pitch, lo, hi))
+    if not table:
+        return None
+    return satisfying, failing, band, table
+
+
 def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str) -> axc.AxisRun:
     """Every inequality A6 owns, each with a constraint or a reason it has none."""
     run = axc.AxisRun(axis=AXIS, caller_id=caller_id, config=config, kb_version=pin,
                       owned=OWNED, degraded=[])
 
     absent = {g["observable"] for g in responses["gaps"]}
+    # The service answers `absent` to `emission_wavelength`, and the wavelength is
+    # nonetheless served -- as a passband on the filter in the red arm, which is
+    # the right shape for it. 008: four bandpasses bracket a band, they do not
+    # locate a peak. So the name is absent and the quantity is not, and a bound
+    # that named it missing while nyquist below computed from it would be two
+    # answers to one question inside one card.
+    if "filter_ff01_595_31_32_passband" in responses["entries"]:
+        absent.discard("emission_wavelength")
     run.kb_refs = axc.refs_from(responses, pin)
     run.kb_gaps = axc.gaps_from(responses, pin, caller_id, GAP_IDS)
     run.numbers = _na_numbers(responses)
@@ -237,28 +311,53 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
             continue
 
         if ineq.id == "nyquist_sampling":
+            computed = _nyquist(responses)
+            if computed is None:
+                run.outcomes.append(axc.Outcome(
+                    inequality_id=ineq.id, parameter=ineq.parameter, state="abstained",
+                    kind="no_input", missing=missing,
+                    reason="the calibrated pixel sizes or the passband are not in this response, "
+                           "so the comparison cannot be made",
+                ))
+                continue
+            satisfying, failing, band, table = computed
+            basis = ["kb:filter_ff01_595_31_32_passband"]
+            basis += sorted({f"kb:{obj}" for _, obj, _, _, _, _, _ in table})
+            basis += sorted({f"kb:{pix}" for _, _, pix, _, _, _, _ in table})
+            rows = "; ".join(
+                f"{name} pixel {pitch:.5f} um against {lo:.4f}-{hi:.4f} um at NA {na}"
+                for name, _, _, na, pitch, lo, hi in sorted(table)
+            )
             run.outcomes.append(axc.Outcome(
-                inequality_id=ineq.id, parameter=ineq.parameter, state="abstained",
-                kind="no_input", missing=missing,
-                reason="Both factors of the effective pixel size are missing, and they are "
-                       "missing for different reasons. The calibrated pixel size is genuinely "
-                       "absent -- the camera entry says in its own words that no sensor number "
-                       "is entered and that the calibrated pixel size remains a per-"
-                       "configuration gap, and both cameras being one model means one gap rather "
-                       "than two. Magnification is absent by construction: the nosepiece entry "
-                       "states that a magnification written there is a nominal designation and a "
-                       "string identifier rather than a number, and 5.3 refuses back-deriving "
-                       "one from a calibrated pixel size -- the prior project's 20.078x is that "
-                       "refusal's precedent. So this bound is not one entry away from closing. "
-                       "The missing input is named sample_plane_pixel_size and not pixel_size "
-                       "deliberately: a camera's sensor pitch entering the store would be a new "
-                       "reference and would not close this gap, because what Nyquist compares "
-                       "against a diffraction-limited spot is the pixel projected into the "
-                       "sample, and that is the pitch divided by a magnification this instrument "
-                       "has never measured. It closes on one calibration per configuration, "
-                       "measured here by a person, and that single measurement closes both "
-                       "factors at once.",
+                inequality_id=ineq.id, parameter="objective_zoom_pair", state="returned",
+                allowed_set={
+                    "parameter": "objective_zoom_pair",
+                    "values": sorted(satisfying),
+                    "excluded": sorted(failing),
+                    "basis": basis,
+                },
+                reason=(
+                    "This is the bound this axis said would close on one calibration per "
+                    "configuration, and it has. Twelve sample-plane pixel sizes at E2 measured on "
+                    "this instrument, six objective NAs at E3, and the red arm's passband at E3 "
+                    "are enough to compare a pixel against a diffraction-limited spot without "
+                    "back-deriving anything. " + rows + ". Four of twelve satisfy "
+                    "pixel <= lambda/(4*NA) at both edges of the band and eight fail at both; "
+                    "none is edge-dependent, so the band's width changes no verdict here. "
+                    "**The permitted thing is the pair and not the pixel size**, which is why "
+                    "this is a set and not an interval: 0.10833 um appears twice, at 40x with "
+                    "1.5x zoom and at 60x with 1x, and it satisfies in the first and fails in the "
+                    "second because the limit moves with NA. A bound stated on the length alone "
+                    "would be false for one of them whichever way it was written. "
+                    "**Magnification is not an input any more and that is the real change.** The "
+                    "earlier revision named it missing because the pixel size then available "
+                    "would have been a sensor pitch needing division by a magnification this "
+                    "instrument has never measured -- 5.3's 20.078x precedent. These twelve are "
+                    "measured at the sample plane already, so nothing is divided and the "
+                    "refusal that blocked this bound no longer applies to it."
+                ),
             ))
+            continue
             continue
 
         if ineq.id == "field_of_view":
@@ -340,12 +439,15 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         "been the second in this fan-out to carry one."
     )
     run.notes.append(
-        "001 and 004 both expected the diffraction limit to compute here, and it does not. The "
-        "expectation was that six objectives carry the inputs; they carry one of the two. A "
-        "wavelength closes half of it and is one entry -- the emission bands of the filter sets "
-        "this configuration uses. The other half is not the librarian's: a required lateral "
-        "resolution is a property of the question, and the goal card states no spatial target at "
-        "all. Both are named in `missing` on that row."
+        "001 and 004 both expected the diffraction limit to compute here, and it still does "
+        "not, but only half of the reason survives. The wavelength has arrived and it is a "
+        "band rather than a peak -- the red arm is position 3 and the filter there passes "
+        "579.5 to 610.5 nm, at E3 -- so the inputs the six objectives were said to carry are "
+        "now complete on the instrument side, and nyquist above computes from exactly them. "
+        "What is still missing is not the librarian's: a required lateral resolution is a "
+        "property of the question, and this goal card states no spatial target at all. Its "
+        "only target is one decade on a diffusivity, which is not a length. So the "
+        "diffraction limit is computable and there is nothing to compare it against."
     )
     run.notes.append(
         "Revision 2 exists to finish the second-name check revision 1 could not. 004 requires it "
