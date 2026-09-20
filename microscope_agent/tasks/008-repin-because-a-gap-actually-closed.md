@@ -48,26 +48,36 @@ The store is at **`kbv-c7b156160a3a`** as of this card, 42 entries — and it
 is about to hold one more thing this fan-out needs, which is the wait
 condition below.
 
-**Wait for the emission wavelength entry.** A6 abstains on two bounds for want
-of `emission_wavelength`, and the number now exists: **605 nm**, measured on
-this setup, so `calibration:` and **E2**. It beats the vendor sheet's 680 nm,
-which is `spec:AFR-0500-COOH` at E3 and describes the product family rather
-than this bottle. **Do not compute on either value yet** — the E2 entry is not
-in the store. A `calibration:` source requires `validity` and `valid_until`,
-and the `cal_id`, the date and the conditions are still being asked of the
-person. Computing now would cite a value with nothing for `kb_refs` to point
-at.
+**The wavelength A6 needs is the filter band, and it is not the dye's peak.**
+Settled by the person on 2026-09-19, asked twice because the first question
+conflated two things: **555/605 is read off the filter cube's markings**. So
+it is `operator_read:` at **E3**, not a calibration at E2 — an earlier
+revision of this card said E2 and lot-bound, and both were wrong. A cube's
+marking does not depend on the bead lot, and no `cal_id` or validity date is
+needed to file it.
 
-**When it lands, A6's diffraction limit computes.** NA is E3 for all six
-objectives, λ is E2, and a computed value inherits the worst input (§5.8), so
-the interval is **E3**. That would be this fan-out's second real interval
-after A4's two.
+**It does not conflict with the vendor's 680 nm.** Those are two different
+quantities: 680 is the dye's emission peak from the product sheet, 605 is
+what this instrument's emission filter passes. **A6 wants the second** — the
+diffraction limit is set by the light actually collected, not by where the
+dye would emit if you could see all of it.
 
-**Carry its validity onto anything built from it.** Dye loading varies lot to
-lot, so that calibration's `valid_until` is *discard when a new lot is
-opened*. 605 nm is a fact about **this bottle**, and an interval standing on
-it inherits that boundary. An A6 bound that outlives the bottle is a bound
-about nothing.
+**The mismatch is now a configuration finding, not a data conflict, and it is
+worse than a conflict.** A dye emitting at 680 read through a filter passing
+~605 returns almost nothing. Both facts can be true at once, and if they are,
+this bead and this cube do not go together. Two readings, and the second is
+the more likely: either the product identification is wrong — the person
+matched a vendor listing, not a bottle label, and this is the strongest
+evidence yet against it — or the cube named is not the one that will be used.
+
+**So A6 computes on 605 and says what it is standing next to.** With NA at E3
+and λ at E3 the interval is E3. But an A6 that returns a resolution while A1
+cannot say the tracer is visible has answered a narrower question than it
+looks, and the card should say so rather than leave S4 to notice.
+
+**A1 changes too, and that is not this card's task** — its abstention stops
+being "no number for `tracer_brightness`" and becomes "this combination may
+produce no signal at all". Report it; I will card it.
 
 **And the pin is currently split.** `a1` sits at `kbv-67f9ad766d92` while
 `a2`–`a6` sit at `kbv-49feb73662b7`, six commits apart — found by the
