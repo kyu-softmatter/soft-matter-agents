@@ -4319,15 +4319,33 @@ def check_61_envelope_currency(b: Bundle) -> list[Finding]:
     reopen how --strict counts it. The idiom already exists -- check 52 says
     "4 still by reference", check 3's UNDECIDED line carries per-plan counts.
 
-    IT COMPARES AGAINST THE PUBLISHED EXPORT AND NOT AGAINST THE STORE, which
-    is the one question the publisher's tool never had to answer. Comparing to
-    the store looks better because it measures distance from the truth, and it
-    is worse: an envelope behind a STALE export cannot be fixed by the
-    consumer, because copying gets them the stale export. One number would
-    merge two lags with different owners. So the exports-behind-the-store leg
-    stays where it already is, in the publisher's own tool, and this leg is the
-    consumer's. The useful output of a currency check is not a distance, it is
-    a distance plus whose move it is. (librarian-3, `kb/distilled/`.)
+    TWO LEGS, NAMED SEPARATELY, BECAUSE THEY HAVE DIFFERENT OWNERS. An
+    envelope behind a STALE export cannot be fixed by the consumer -- copying
+    gets them the stale export -- so one merged number would hide whose move
+    it is. The useful output of a currency check is a distance plus an owner.
+    (librarian-3, `kb/distilled/`.)
+
+    THE PUBLISHER'S LEG WAS LEFT OUT UNTIL 2026-09-20 AND HAD TO COME BACK.
+    The argument for leaving it out was that `export_snapshot.py --check`
+    already has it, which is true -- it prints `exports are current` and names
+    the store version when they are not. What is also true is that `--check`
+    is the librarian's tool and its own source says the consumer never runs
+    it, so that leg runs in one seat, by hand, on the days that seat happens
+    to look. It ran in no gate.
+
+    What that cost, on the morning it was written: the store moved twice and
+    the exports sat at the previous night's version for hours, while every
+    seat's gate read `0 failed` and THIS CHECK CALLED THE MICROSCOPE ENVELOPE
+    `current`. It was -- current with an export two versions stale. A word
+    that means up-to-date was true of the comparison and false of the
+    situation, which is worse than silence, because silence does not reassure.
+    The person was choosing how to write a safety limit against that envelope
+    at the time.
+
+    So the leg is here as its OWN count with its OWN owner named, which is
+    what the original argument actually forbade merging. Duplication cost:
+    this is a third copy of a one-line comparison, and the docstring below
+    already says what to do when copies disagree.
 
     Three shapes it has to get right, and all three are in task 018 rather than
     in anyone's context:
@@ -4375,7 +4393,13 @@ def check_61_envelope_currency(b: Bundle) -> list[Finding]:
     if not published:
         return [Finding(61, NA, "nothing has been published, so no envelope can trail it")]
 
+    try:
+        store_version = json.loads(KB_INDEX_PATH.read_text()).get("kb_version")
+    except (OSError, json.JSONDecodeError):
+        store_version = None
+
     current, absent, rows, unreadable = [], [], [], []
+    stale_exports = []
     for target in published:
         agent = target.name[len("snapshot_"):-len(".json")]
         try:
@@ -4383,6 +4407,8 @@ def check_61_envelope_currency(b: Bundle) -> list[Finding]:
         except json.JSONDecodeError:
             unreadable.append(f"the export for {agent} does not parse; check 1 owns that")
             continue
+        if store_version and pub.get("kb_version") != store_version:
+            stale_exports.append(f"{agent} at {pub.get('kb_version')}")
         env = REPO / agent / "envelope" / "snapshot.json"
         if not env.exists():
             absent.append(agent)
@@ -4407,6 +4433,17 @@ def check_61_envelope_currency(b: Bundle) -> list[Finding]:
                         f"({copy.get('kb_version')}), so entries were edited rather than added")
 
     parts = []
+    if store_version is None:
+        parts.append("the store's own version could not be read, so nothing is said about "
+                     "whether the exports are current with it")
+    elif stale_exports:
+        parts.append(f"{len(stale_exports)} export{'' if len(stale_exports) == 1 else 's'} "
+                     f"published from before the store's {store_version} "
+                     f"({'; '.join(stale_exports)}), which only the librarian closes by "
+                     f"republishing -- an envelope matching one of these is current with a "
+                     f"stale copy and not with the store")
+    else:
+        parts.append(f"every export is at the store's {store_version}")
     if current:
         parts.append(f"{len(current)} current ({', '.join(current)})")
     parts += rows
@@ -4415,8 +4452,9 @@ def check_61_envelope_currency(b: Bundle) -> list[Finding]:
                      "behind but not started")
     parts += unreadable
     return [Finding(61, PASS,
-                    f"{len(published)} published export{'' if len(published) == 1 else 's'}, each "
-                    "checked against the envelope that copied it rather than against the store: " +
+                    f"{len(published)} published export{'' if len(published) == 1 else 's'}, "
+                    "checked against the store that fed them and against the envelopes that "
+                    "copied them, as two legs with two owners: " +
                     "; ".join(parts) +
                     ". Reported and not failed -- a consumer may pin deliberately and an idle "
                     "seat is in breach of nothing",
