@@ -96,6 +96,14 @@
       "note": "The second bridge execution seat, opened 2026-09-19. Same shape as librarian-2, simulation-2 and microscope-3. The session declined to commit until it was registered, which is right: two sessions under one identity is the hole that left three commits anonymous on 2026-09-17."
     },
     {
+      "seat": "bridge-3",
+      "committer_email": "bridge-3@seat.invalid",
+      "owns": [
+        "bridge"
+      ],
+      "note": "The third bridge execution seat, opened 2026-09-19 after bridge and bridge-2 both closed. Neither freed name is reused: two sessions under one identity collapse in the history with no way to tell them apart, and both vacated entries stay listed so the commits already under them keep their attribution."
+    },
+    {
       "seat": "architecture",
       "committer_email": "architecture@seat.invalid",
       "owns": [
