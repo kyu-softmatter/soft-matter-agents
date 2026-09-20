@@ -1,0 +1,38 @@
+{
+  "artifact": "envelope_safety",
+  "schema_version": "0.1",
+  "policy_version": "1",
+  "agent": "microscope",
+  "written_by": "kyuhwan",
+  "written_at": "2026-09-20",
+  "targets": [
+    {
+      "target": "bench",
+      "label": "The instrument itself",
+      "limits": {
+        "optical_power_max": {
+          "value": 100,
+          "unit": "mW",
+          "note": "Laser output.",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-09-20",
+            "how": "Measured at the sample plane with a power meter."
+          }
+        },
+        "objective_clearance_min": {
+          "value": 130,
+          "unit": "um",
+          "note": "A floor, not a ceiling: the objective may not come closer than this.",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-09-20",
+            "how": "Approach test on the stage."
+          }
+        }
+      }
+    }
+  ]
+}
