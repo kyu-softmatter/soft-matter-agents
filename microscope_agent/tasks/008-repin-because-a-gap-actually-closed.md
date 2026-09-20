@@ -22,6 +22,42 @@ The test `000` should have stated, and now does by example: **move when a
 question's answer changes, not when the store's version does.** Here an
 inequality that could not be computed becomes computable.
 
+## Copy the envelope first
+
+**The envelope is 34 entries behind the store**, and check 26 will not tell
+you: it verifies that a snapshot holds the bytes of the commit it names, which
+is integrity and not currency. **An honestly stale envelope sits inside a
+`0 failed` run.** The librarian seat raised that as its own defect and this
+card is its first live instance.
+
+So the order is **copy, then re-pin, then ask**. Re-pinning against a store
+the envelope has not caught up to gives cards that cite entries the agent's
+own copy does not hold.
+
+Take the bytes of a published commit and say which in the commit message
+(§4.3.2). The librarian announces publication; do not copy a modified export.
+
+## What has changed under this card since it was written
+
+**The diameter is `calibration:` E2, measured by the person on 2026-09-18 —
+not the disputed E5 recall.** `tracer_diameter_measured`, with a CV bound. So
+the 5 µm / 2 µm split is settled from this side, and it is settled **above**
+what a lot number would have given: an individual measurement does not carry
+the same-stock assumption that a catalogue identity does.
+
+**Which means quantities derived from it are E4, not E5.** The worst input is
+E3 (viscosity, temperature), and `computed:` caps at max(E4, worst input)
+(§5.3) — the same reason `tau_d` is E4. Expect `tracer_diffusivity_expected`
+at E4 if the librarian's entry lands before you run.
+
+**Cite the store as `kb:<entry_id>` and do not repeat the entry's own source
+prefix.** A card citing the diameter writes `kb:tracer_diameter_measured`,
+**not** `calibration:`. Both produce the same grade, so nothing catches the
+mistake — and repeating it claims a calibration the card does not have, and
+adds nothing to `kb_refs`, which is half of what §9.1 asks to be filled. The
+rule is in `common.schema.json`'s `source` description (`6c69c13`); read it
+there rather than from this card.
+
 ## What it costs, stated rather than discovered
 
 **All five siblings move together.** Check 33 requires the siblings under one
