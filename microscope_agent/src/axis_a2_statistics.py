@@ -162,18 +162,21 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
 
         if ineq.id == "record_length_vs_diffusive_time" and "tau_d" in served:
             reason += (
-                ". What is served is the relation and not the value: tau_d came back at E4 -- the "
-                "diffusive time is what a sphere needs to diffuse its own diameter, and it sets "
-                "the shortest record length an MSD can be read from. So this bound returns the "
-                "moment a diffusivity exists, and the diffusivity is computable from three "
-                "entries that already do: the water viscosity, the tracer diameter and the "
-                "ambient temperature. It is not computed here. Knowledge lives in one place "
-                "(P14), and a diffusivity derived inside this axis would sit in this file and in "
-                "every other axis that needs it, which 4.5.2.1 forbids because the copies "
-                "eventually disagree. The entry also carries its own warning for whoever does "
-                "compute it: near a wall the drag is corrected separately rather than absorbed "
-                "into this time, or the time unit moves with stage position and nothing can be "
-                "compared"
+                ". The relation is served and so, since kbv-bf4f559baf68, is the second one: "
+                "tracer_diffusivity_expected came back at E4 as a formula over the ambient "
+                "temperature, the viscosity and the diameter, and the service supplies all "
+                "three -- the diameter now at E2, measured on this instrument. So the floor "
+                "computes: about 0.09 um^2/s, and a diffusive time near 300 s, which "
+                "cross-checks against the simulation side's independent 312 s from a 2 um "
+                "bead. **The bound is not written because the card cannot say what it rests "
+                "on.** check 17 accepts `inputs` naming this card's own numbers[] or a "
+                "CONSTANT, and these three are store entries. 5.3.2 widened `basis` to take "
+                "kb:<entry_id> for exactly this case; `inputs` did not get the same widening, "
+                "and the resolving machinery (check 54) already exists. Copying the three into "
+                "numbers[] is the workaround plan.md 1295 names in its own words -- recomputing "
+                "what the store holds is a bypass rather than an estimate -- and the precedent "
+                "it cites was wrong by a factor of four. So the bound waits on the contract, "
+                "and the number it would carry is written here so the wait is visible"
             )
 
         if ineq.id == "independent_repeats" and no_remount:
@@ -192,11 +195,12 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         ))
 
     run.notes.append(
-        "Answered by the librarian service rather than by reading the store, which is what makes "
-        "degraded empty: one entry came back with its own grade and four questions came back "
-        "absent, all at the pinned kbv-49feb73662b7, and every call is in "
-        "librarian_agent/queries/log.jsonl under this caller_id. The served digest was checked "
-        "byte for byte against the pinned commit's blob."
+        f"Answered by the librarian service rather than by reading the store, which is what "
+        f"makes degraded empty: {len(run.kb_refs)} entries came back with their own grades and "
+        f"{len(run.kb_gaps)} questions came back absent, all at the pinned {pin}, and every call "
+        f"is in librarian_agent/queries/log.jsonl under this caller_id. The counts and the "
+        f"version here are computed rather than typed -- cards carried a stale pin in this "
+        f"sentence after a re-pin because they were typed."
     )
     run.notes.append(
         "All four bounds abstain and the four missing inputs are not alike. Two are measurements "

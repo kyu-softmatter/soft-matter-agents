@@ -217,11 +217,12 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         ))
 
     run.notes.append(
-        "Answered by the librarian service rather than by reading the store, which is what makes "
-        "degraded empty: two entries came back with their own grades and four questions came back "
-        "absent, all at the pinned kbv-49feb73662b7, and every call is in "
-        "librarian_agent/queries/log.jsonl under this caller_id. Both served digests were checked "
-        "byte for byte against the pinned commit's blobs."
+        f"Answered by the librarian service rather than by reading the store, which is what "
+        f"makes degraded empty: {len(run.kb_refs)} entries came back with their own grades and "
+        f"{len(run.kb_gaps)} questions came back absent, all at the pinned {pin}, and every call "
+        f"is in librarian_agent/queries/log.jsonl under this caller_id. The counts and the "
+        f"version in this sentence are computed rather than typed -- three cards carried a stale "
+        f"pin here after a re-pin because they were typed."
     )
     run.notes.append(
         "Four bounds, four missing numbers, and three of the four are one experiment: point this "

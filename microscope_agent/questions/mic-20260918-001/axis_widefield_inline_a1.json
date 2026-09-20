@@ -7,7 +7,7 @@
   "round": 0,
   "revision": 4,
   "author": "microscope_agent",
-  "created_at": "2026-09-20T06:04:36Z",
+  "created_at": "2026-09-20T06:20:45Z",
   "status": "VALIDATED",
   "caller_id": "mic-20260918-001:v4:widefield_inline:a1",
   "config": "widefield_inline",
@@ -63,7 +63,7 @@
       "parameter": "exposure_time",
       "state": "abstained",
       "kind": "no_input",
-      "reason": "no pixel size exists: it needs the camera's sensor pitch, which the camera entry does not carry, and the magnification actually in use; no expected diffusivity is in the store. It is computable -- Stokes-Einstein on the viscosity, the diameter and the ambient temperature, all three of which exist -- and that is why it belongs in the store as an entry rather than here: knowledge lives in one place (P14), and computing it in this axis would also put the drag in two files, which 4.5.2.1 forbids because the two would eventually disagree",
+      "reason": "the store does not answer to this name and the quantity is there anyway: the gap carries near_names [pixel_size], and under that name twelve E2 entries give the pixel size AT THE SAMPLE PLANE, measured on this instrument per objective and zoom. So this is not a measurement anybody is missing. What is missing is WHICH of the twelve applies -- the objective-and-zoom pair, which S4 chooses and no librarian holds. A6 returns the four pairs that satisfy Nyquist and this axis may not read that (4.5.3 rule b); once the pair is fixed this bound is arithmetic, because the expected diffusivity is served now too; no expected diffusivity is in the store. It is computable -- Stokes-Einstein on the viscosity, the diameter and the ambient temperature, all three of which exist -- and that is why it belongs in the store as an entry rather than here: knowledge lives in one place (P14), and computing it in this axis would also put the drag in two files, which 4.5.2.1 forbids because the two would eventually disagree",
       "missing": [
         "pixel_size_in_sample",
         "tracer_diffusivity_expected"

@@ -118,8 +118,15 @@ ABSENT = {
     "tracer_brightness": "nothing describes the fluorophore on these beads -- not the dye, not "
                          "a photon rate, not a labelling density",
     "background_rate": "no background measurement exists on this instrument",
-    "pixel_size_in_sample": "no pixel size exists: it needs the camera's sensor pitch, which the "
-                            "camera entry does not carry, and the magnification actually in use",
+    "pixel_size_in_sample":
+        "the store does not answer to this name and the quantity is there anyway: the gap "
+        "carries near_names [pixel_size], and under that name twelve E2 entries give the "
+        "pixel size AT THE SAMPLE PLANE, measured on this instrument per objective and "
+        "zoom. So this is not a measurement anybody is missing. What is missing is WHICH "
+        "of the twelve applies -- the objective-and-zoom pair, which S4 chooses and no "
+        "librarian holds. A6 returns the four pairs that satisfy Nyquist and this axis may "
+        "not read that (4.5.3 rule b); once the pair is fixed this bound is arithmetic, "
+        "because the expected diffusivity is served now too",
     "tracer_diffusivity_expected": "no expected diffusivity is in the store. It is computable -- "
                                    "Stokes-Einstein on the viscosity, the diameter and the "
                                    "ambient temperature, all three of which exist -- and that is "
@@ -142,6 +149,7 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
 
     run.kb_refs = axc.refs_from(responses, pin)
     run.kb_gaps = axc.gaps_from(responses, pin, caller_id, GAP_IDS)
+    absent = {g["observable"] for g in responses["gaps"]}
 
     for ineq in OWNED:
         if ineq.id == "disk_period_multiple":
@@ -165,9 +173,12 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                 ))
             continue
 
-        missing = [n for n in ineq.needs if n in ABSENT]
+        # From the service's gaps, not from ABSENT. Built from the static table,
+        # an input the store gained went on being reported missing -- the false
+        # absence check 49 exists against, arriving through a hardcoded list.
+        missing = [n for n in ineq.needs if n in absent]
         if missing:
-            reason = "; ".join(ABSENT[m] for m in missing)
+            reason = "; ".join(ABSENT[m] for m in missing if m in ABSENT)
             if ineq.id == "snr_sustained_over_window":
                 reason += (
                     ". The coupling is what makes this bound matter on this configuration rather "

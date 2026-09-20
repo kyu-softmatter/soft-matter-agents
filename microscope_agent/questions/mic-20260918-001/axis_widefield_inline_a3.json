@@ -7,7 +7,7 @@
   "round": 0,
   "revision": 2,
   "author": "microscope_agent",
-  "created_at": "2026-09-20T06:04:36Z",
+  "created_at": "2026-09-20T06:20:45Z",
   "status": "VALIDATED",
   "caller_id": "mic-20260918-001:v2:widefield_inline:a3",
   "config": "widefield_inline",
@@ -150,6 +150,6 @@
     }
   ],
   "degraded": [],
-  "note": "Answered by the librarian service rather than by reading the store, which is what makes degraded empty: two entries came back with their own grades and four questions came back absent, all at the pinned kbv-49feb73662b7, and every call is in librarian_agent/queries/log.jsonl under this caller_id. Both served digests were checked byte for byte against the pinned commit's blobs. Four bounds, four missing numbers, and three of the four are one experiment: point this illumination at these tracers and watch them bleach. That run yields the bleaching rate, a damage threshold and -- with a thermometer at the sample -- a heating rate, and it is the single cheapest thing anyone could do for this fan-out. The fourth, the tracer loading, is not an experiment but a record nobody kept. The sharpest thing in this card is not a number and not this axis's alone: the sample is spent by the measurement. A2 reads that as one mount, so no repeat can average anything away. A3 reads it as an illumination budget that setup draws down before the record begins. Both follow from one sentence on the goal card, and it is worth S4 seeing that the two axes are not making the same point twice.",
+  "note": "Answered by the librarian service rather than by reading the store, which is what makes degraded empty: 6 entries came back with their own grades and 4 questions came back absent, all at the pinned kbv-7c77fa74ee5a, and every call is in librarian_agent/queries/log.jsonl under this caller_id. The counts and the version in this sentence are computed rather than typed -- three cards carried a stale pin here after a re-pin because they were typed. Four bounds, four missing numbers, and three of the four are one experiment: point this illumination at these tracers and watch them bleach. That run yields the bleaching rate, a damage threshold and -- with a thermometer at the sample -- a heating rate, and it is the single cheapest thing anyone could do for this fan-out. The fourth, the tracer loading, is not an experiment but a record nobody kept. The sharpest thing in this card is not a number and not this axis's alone: the sample is spent by the measurement. A2 reads that as one mount, so no repeat can average anything away. A3 reads it as an illumination budget that setup draws down before the record begins. Both follow from one sentence on the goal card, and it is worth S4 seeing that the two axes are not making the same point twice.",
   "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
 }
