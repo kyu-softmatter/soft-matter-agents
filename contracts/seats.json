@@ -51,6 +51,14 @@
       "unguarded": "This seat and microscope-1 share microscope_agent/ with no worktree, since worktrees were reverted on 2026-09-18. In practice the axis modules and axis cards are one file each, so the shared surface is src/axis_common.py and failures.jsonl. Nothing refuses a collision there; the manager allocates by card. The seat reported this rather than discovering it later."
     },
     {
+      "seat": "microscope-4",
+      "committer_email": "microscope-4@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "note": "The fourth microscope execution seat, seated by the person on 2026-09-20 and registered on their word rather than on an inference -- the rule directly above. Not microscope-2: that entry has no commits but belongs to the 2026-09-18 worktree session, and a name is not reused whether or not anything was written under it, because the registry's job is to say which session made a commit and a reused name cannot. Same owns as the other three and no paths: microscope_agent/ cannot honestly be divided between seats doing one agent's work, so what this buys is attribution and not refusal."
+    },
+    {
       "seat": "simulation",
       "committer_email": "simulation@seat.invalid",
       "owns": [
