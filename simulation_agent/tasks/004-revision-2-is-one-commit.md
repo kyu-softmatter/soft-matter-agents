@@ -162,6 +162,62 @@ is a thermometer reading of **the room**, not the sample, and this question
 already carries `sample_adjacent_temperature` as an open gap. **The gap that
 was second-order behind the diameter is now the one holding the grade.**
 
+## Every verdict this question carries is an E5 tie, and stays one
+
+§5.8.1 landed on 2026-09-19 (`3113a37`): **a tie verdict carries a grade, and
+it is the worse of the two values compared.** A computed value inherits the
+worst input, so a comparison inherits it too — no new threshold, and it closes
+the misleading case exactly: an ungraded tie is what misleads, and a graded one
+says what it is worth.
+
+Counted across this question's axis cards:
+
+| | verdict today | grade carried | §5.8.1 would give |
+|---|---|---|---|
+| a1 | `feasible` | **none** | E5 |
+| a2 | `feasible` | **none** | E5 |
+| a3 | `feasible` | **none** | E5 |
+| a4 | `feasible` | **none** | E5 |
+
+a5 and a7 abstain, so they have nothing to grade.
+
+**And the measurement does not move one of them.** Re-run with `bead_diameter`
+at E2 and `diffusivity` and `tau_d` at E3: **all four stay E5**, each held there
+by a choice rather than by the physics —
+
+- **a1** by `dt_resolution_factor`
+- **a2** by `target_relative_error`, `n_particles`, `independent_samples_min`,
+  `lag_to_record_ratio_max`
+- **a3** by `box_margin_factor`, `spacing_factor`, `particles_per_edge`
+- **a4** by `lag_coverage_factor`
+
+That is the sharpest form of what §B says: **the physics stops being an estimate
+and not one verdict improves.** Anyone reading revision 2 as a firmer plan has
+the wrong picture, and a `feasible` with no grade on it is what would let them.
+
+**`max_lag_time` holds three of the four.** It is the single highest-leverage
+number in this question — and it is `assumed:a_window`, the one whose *reason*
+goes stale when `tau_d` moves (§B). So the window is not just a number A4
+re-decides; it is what three feasibility verdicts rest on. Fix it well.
+
+**Check 63 is `manager-bridge`'s**, so do not implement the grading. What is
+yours is that revision 2's cards should carry it, and that the cards can say it
+before a check demands it.
+
+## Choosing 2 µm is still allowed, if it is recorded as a choice
+
+Architecture's wording, which is better than this card's earlier framing and
+replaces it: **a model may run at a diameter that is not on the bench, as long
+as the choice is recorded as a choice.** What changed on 2026-09-19 is not that
+2 µm became wrong — it is that `assumed:a_sample` became **a decision taken in
+the presence of a measurement**, and such a decision has to be *made* rather
+than inherited.
+
+So aligning is the expected move and it is not the only legal one. If revision 2
+keeps a different diameter, it says so in the open, names the measurement it is
+departing from, and gives the reason. What is no longer available is carrying
+2 µm because it was already there.
+
 ## Polydispersity, which nobody was accounting for
 
 A point value became a distribution and that settles something downstream that
