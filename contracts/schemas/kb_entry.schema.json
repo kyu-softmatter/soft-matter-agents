@@ -5,30 +5,86 @@
   "description": "One claim per file. The store is authoritative for knowledge (P14) whether or not a librarian agent exists to serve it.",
   "type": "object",
   "properties": {
-    "entry_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
-    "schema_version": { "const": "0.1" },
+    "entry_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
     "kind": {
-      "enum": ["claim", "dimensionless_group", "derived_quantity", "calibration"],
+      "enum": [
+        "claim",
+        "dimensionless_group",
+        "derived_quantity",
+        "calibration"
+      ],
       "description": "A dimensionless_group and a derived_quantity both carry a formula instead of a value (5.7); what separates them is a claim, not a filing convenience. dimensionless_group asserts the formula evaluates to a pure number. derived_quantity is a named quantity computed from others that KEEPS a dimension, and it states that dimension in `unit`. Until derived_quantity existed there was no kind for the second, so it was filed as the first -- tau_d, whose formula is a length squared over a diffusivity and therefore a TIME, sat under dimensionless_group with no unit anywhere on it."
     },
-    "claim": { "type": "string", "minLength": 20 },
-    "numbers": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/number" } },
-    "symbol": { "type": "string", "description": "dimensionless_group and derived_quantity. One symbol means one definition across the store and every card (check 36), whatever its dimension." },
-    "formula": { "type": "string", "description": "dimensionless_group and derived_quantity" },
-    "unit": { "type": "string", "description": "derived_quantity only: the unit the formula yields, from contracts/units.json. A dimensionless_group must not carry one -- being dimensionless is the claim it makes, and a unit beside it would contradict the kind rather than annotate it." },
-    "inputs": { "type": "array", "items": { "type": "string" } },
-    "validity_conditions": { "type": "string", "minLength": 10, "description": "under what conditions the claim holds; a claim without them is not reusable" },
-    "validity": { "$ref": "common.schema.json#/$defs/condition_range", "description": "the machine-readable half of validity_conditions (4.3.1). Where the two disagree this one wins (P3): prose cannot be matched against a query condition_range. An entry without it comes back as `overlap: no_overlap` rather than matching silently." },
-    "source": { "$ref": "common.schema.json#/$defs/source", "description": "Where the claim came from, in the same form a card's number uses (5.3), so that an entry's grade is DERIVED and not self-reported (check 43). source_ref says which document; this says what kind of evidence it is, and only the second one fixes a grade. Optional while the store catches up: entries written before the field existed are counted rather than failed." },
-    "grade": { "$ref": "common.schema.json#/$defs/grade" },
+    "claim": {
+      "type": "string",
+      "minLength": 20
+    },
+    "numbers": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/number"
+      }
+    },
+    "symbol": {
+      "type": "string",
+      "description": "dimensionless_group and derived_quantity. One symbol means one definition across the store and every card (check 36), whatever its dimension."
+    },
+    "formula": {
+      "type": "string",
+      "description": "dimensionless_group and derived_quantity"
+    },
+    "unit": {
+      "type": "string",
+      "description": "derived_quantity only: the unit the formula yields, from contracts/units.json. A dimensionless_group must not carry one -- being dimensionless is the claim it makes, and a unit beside it would contradict the kind rather than annotate it."
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "validity_conditions": {
+      "type": "string",
+      "minLength": 10,
+      "description": "under what conditions the claim holds; a claim without them is not reusable"
+    },
+    "validity": {
+      "$ref": "common.schema.json#/$defs/condition_range",
+      "description": "the machine-readable half of validity_conditions (4.3.1). Where the two disagree this one wins (P3): prose cannot be matched against a query condition_range. An entry without it comes back as `overlap: no_overlap` rather than matching silently."
+    },
+    "source": {
+      "$ref": "common.schema.json#/$defs/source",
+      "description": "Where the claim came from, in the same form a card's number uses (5.3), so that an entry's grade is DERIVED and not self-reported (check 43). source_ref says which document; this says what kind of evidence it is, and only the second one fixes a grade. Optional while the store catches up: entries written before the field existed are counted rather than failed."
+    },
+    "grade": {
+      "$ref": "common.schema.json#/$defs/grade"
+    },
     "grade_tag": {
-      "enum": ["peer_reviewed", "preprint", "vendor_spec", "textbook", "measured_here", "calibration", "operator_read", "operator_recall", "computed"],
+      "enum": [
+        "peer_reviewed",
+        "preprint",
+        "vendor_spec",
+        "textbook",
+        "measured_here",
+        "calibration",
+        "operator_read",
+        "operator_recall",
+        "computed"
+      ],
       "description": "the sub-rank inside a grade, mostly to separate the kinds of E3 (4.3). Its load-bearing use is the citation order among literature: peer_reviewed -> textbook -> vendor_spec -> preprint. The other values exist so the enum is not silently incomplete -- an operator reading is E3 by 5.3 and had no value here, so every such entry left this null and a null read as an omission rather than a kind."
     },
     "identifiers": {
       "type": "object",
       "description": "Exact names for the thing the claim is about: part_number, lot, catalog_number, position, slot. A nominal designation is exact by definition and carries no uncertainty (5.3), so it belongs here and never in numbers[]. Until this existed a table with part numbers could not become an entry at all, which is why the objective and particle registries stayed in staging. Keys here are split by `addressable_identifiers` below: some may be looked up, most may not.",
-      "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" },
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
       "additionalProperties": {
         "type": "string",
         "description": "a string even when it looks like a number. A position stored as 0 invites arithmetic on positions and a magnification stored as 20 invites a decimal point; the driver converts at the call site."
@@ -41,55 +97,196 @@
         "type": "object",
         "properties": {
           "kind": {
-            "enum": ["device", "configuration", "observable", "quantity"],
-            "description": "Which registry `id` is drawn from. device: a channel, element or RETIRED row id in the device table -- retired ids count, because a fact about hardware that was taken out is exactly the fact someone comes looking for later. configuration: an id in the optical path table. observable: an id in contracts/observables.json. quantity: a name used in numbers[] somewhere in the repository, which is the weakest of the four -- it is a de facto registry rather than a declared one, and it is named here so nobody mistakes it for a checked namespace of its own."
+            "enum": [
+              "device",
+              "configuration",
+              "observable",
+              "quantity",
+              "sample"
+            ],
+            "description": "Which registry `id` is drawn from. device: a channel, element or RETIRED row id in the device table -- retired ids count, because a fact about hardware that was taken out is exactly the fact someone comes looking for later. configuration: an id in the optical path table. observable: an id in contracts/observables.json. quantity: a name used in numbers[] somewhere in the repository, which is the weakest of the four -- it is a de facto registry rather than a declared one, and it is named here so nobody mistakes it for a checked namespace of its own. sample: an id in the sample table, kb/staging/samples.v0.json -- INSTANCES, the bottle on the bench, not products. Added 2026-09-19 after check 44 refused the subject on every bead entry and the seat removed the field rather than gaming it; the claim then reappeared in the entry NAMES, where nothing checks it. It resolves against that table and nothing else -- deliberately not the way `quantity` resolves, which accepts a name used in numbers[] anywhere and so lets an entry be its own registry. That failed the same day: renaming a number dangled five subjects that had only ever resolved against a number in the same file."
           },
-          "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
         },
-        "required": ["kind", "id"],
+        "required": [
+          "kind",
+          "id"
+        ],
         "additionalProperties": false
       },
       "minItems": 1,
       "description": "What this entry is ABOUT, so a query can find it without already knowing its id. Each subject names its registry rather than being a bare string: two entries calling one thing by different words would make matching a coincidence, and a free list is a string nothing checks. The information is mostly written already as a naming habit -- `csuw1_port_slots` contains `csuw1_port` -- and that habit works until somebody names one differently. Without this field an entry answers only to its own id, its symbol and the names in numbers[]: on 2026-09-18 that left 14 of 25 entries, every one a device fact, reachable only by an id the caller had to learn by reading the staging table first. Optional until the store has filled it; the value arrives with the check that every subject resolves, not with the field."
     },
-    "source_ref": { "type": "string", "description": "id in kb/sources/" },
-    "date": { "type": "string", "format": "date" },
+    "source_ref": {
+      "type": "string",
+      "description": "id in kb/sources/"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
     "valid_until": {
       "type": "object",
       "description": "When this claim stops being asserted. Required for a `calibration:` source and optional otherwise. §5.3 lists E2 as `calibration:<cal_id>` with a validity period and a condition range BOTH required, and until 2026-09-19 neither was enforced -- so a calibration could claim the second-highest grade in the scale with nothing holding the claim up. It lands before its first subject: no entry carries a calibration source yet, so nothing has to migrate. `date` and `event` both exist because a real calibration ends one of two ways, and refusing the second would refuse correct work: an expiry the operator set, or the next calibration superseding it. One of the two is enough; neither is not.",
       "properties": {
-        "date": { "type": "string", "format": "date", "description": "the day after which the claim is not asserted" },
-        "event": { "type": "string", "minLength": 10, "description": "the occurrence that ends it, e.g. the next recalibration of this objective. The superseding entry then names this one in `supersedes`." }
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "the day after which the claim is not asserted"
+        },
+        "event": {
+          "type": "string",
+          "minLength": 10,
+          "description": "the occurrence that ends it, e.g. the next recalibration of this objective. The superseding entry then names this one in `supersedes`."
+        }
       },
       "minProperties": 1,
       "additionalProperties": false
     },
-    "supersedes": { "type": ["string", "null"] },
-    "conflict_with": { "type": "array", "items": { "type": "string" }, "description": "contradictory entries are both kept and marked, never merged (4.3)" },
-    "curated_by": { "type": "string", "description": "who put it here. Until M3 that is a person, not the librarian agent." }
+    "supersedes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "conflict_with": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "contradictory entries are both kept and marked, never merged (4.3)"
+    },
+    "curated_by": {
+      "type": "string",
+      "description": "who put it here. Until M3 that is a person, not the librarian agent."
+    }
   },
   "addressable_identifiers": {
     "description": "Which `identifiers` keys a caller may look an entry up BY. This is a registry the server reads, not a constraint on entries: any key matching propertyNames may be stored, but only these join the names an entry answers to. It exists because the part number -- the string on the barrel, the title of the vendor sheet, the thing an operator would type -- was the one field in an entry that nothing could find. Verified on 2026-09-18 at 25 entries: kb_query('MRD71670') returned 0 and kb_query('Kinetix 22') returned 0, while kb_query('na') returned six objectives that all named subject device:nosepiece and so could not be told apart by address at all.",
     "criterion": "Does reconfiguring the instrument change this value? If yes it is never addressable. A part number survives a lens swap; a slot number is falsified by one, and nothing in the store records that someone turned the nosepiece. An addressable placement would hand back a stale answer at full confidence, which is worse than not finding it. The curator had already written this argument into nosepiece_objective_assignment: position-to-lens is the one claim on that device a single swap falsifies.",
     "closed": "The list is closed and the default is not-addressable, so a key invented later does not silently become a query surface. Growing it is a deliberate edit with a reason, the way observables.json and goal.schema.json's purposes grow.",
     "class_handles": "Some of these name a class rather than an item -- `model` is Kinetix 22 for both cameras, `product` is a product line, `immersion` is shared by every oil lens. That is not a reason to exclude them: kb_query already returns sets and a caller reads `identifiers` on each row. It is recorded here so a hit's kind is not mistaken for uniqueness.",
-    "addressable": ["part_number", "catalog_number", "model", "product", "serial", "lot", "nominal_magnification", "immersion"],
-    "not_addressable_examples": ["position", "position_0", "slot", "fitted_slot", "port", "channel", "position_index_base"]
+    "addressable": [
+      "part_number",
+      "catalog_number",
+      "model",
+      "product",
+      "serial",
+      "lot",
+      "nominal_magnification",
+      "immersion"
+    ],
+    "not_addressable_examples": [
+      "position",
+      "position_0",
+      "slot",
+      "fitted_slot",
+      "port",
+      "channel",
+      "position_index_base"
+    ]
   },
-  "required": ["entry_id", "schema_version", "kind", "claim", "validity_conditions", "grade", "source_ref", "date", "curated_by"],
+  "required": [
+    "entry_id",
+    "schema_version",
+    "kind",
+    "claim",
+    "validity_conditions",
+    "grade",
+    "source_ref",
+    "date",
+    "curated_by"
+  ],
   "allOf": [
     {
-      "$comment": "5.3 lists E2 as `calibration:<cal_id>` with a validity period AND a condition range, both required, and neither was enforced until 2026-09-19. `validity` is the machine-readable half that matching actually reads, so requiring only the prose would leave the range unusable. What separates E2 from E5 is that a calibration event happened and is bounded: an unbounded calibration is a measurement with no event, which is the same claim an operator could have made from memory.",
-      "if": { "properties": { "source": { "pattern": "^calibration:" } }, "required": ["source"] },
-      "then": { "required": ["validity", "valid_until"] }
+      "$comment": "5.3 lists E2 as `calibration:<cal_id>` with a validity period AND a condition range, both required, and neither was enforced until 2026-09-19. `validity` is the machine-readable half that matching actually reads, so requiring only the prose would leave the range unusable. What separates E2 from E5 is that a calibration event happened and is bounded: an unbounded calibration is a measurement with no event, which is the same claim an operator could have made from memory. AMENDED 2026-09-19: `validity` is required OR the entry names a `sample` subject. 5.3 asks a calibration for a condition range because a claim without conditions gets applied where it does not hold -- the pixel size holds at 1x1 binning and nowhere else. But a calibration whose scope is WHICH OBJECT has no interval: the person measured this bottle's diameter, and the thing that stops it being applied to another bottle is the subject, not a range. The scope lives in `subject` when the scope is an object. `valid_until` stays required unconditionally, because that is what carries the event -- an unbounded calibration is a measurement with no event, which was always the load-bearing half.",
+      "if": {
+        "properties": {
+          "source": {
+            "pattern": "^calibration:"
+          }
+        },
+        "required": [
+          "source"
+        ]
+      },
+      "then": {
+        "required": [
+          "valid_until"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "validity"
+            ]
+          },
+          {
+            "properties": {
+              "subject": {
+                "type": "array",
+                "contains": {
+                  "properties": {
+                    "kind": {
+                      "const": "sample"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "subject"
+            ]
+          }
+        ]
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "derived_quantity" } }, "required": ["kind"] },
-      "then": { "required": ["symbol", "formula", "unit"] }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "derived_quantity"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "symbol",
+          "formula",
+          "unit"
+        ]
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "dimensionless_group" } }, "required": ["kind"] },
-      "then": { "required": ["symbol", "formula"], "not": { "required": ["unit"] } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "dimensionless_group"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "symbol",
+          "formula"
+        ],
+        "not": {
+          "required": [
+            "unit"
+          ]
+        }
+      }
     }
   ],
   "unevaluatedProperties": false

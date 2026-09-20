@@ -311,6 +311,20 @@
         "N": 1
       },
       "note": "storage budget"
+    },
+    "g/cm^3": {
+      "si_factor": 1000.0,
+      "dim": {
+        "kg": 1,
+        "m": -3
+      }
+    },
+    "mg/ml": {
+      "si_factor": 1.0,
+      "dim": {
+        "kg": 1,
+        "m": -3
+      }
     }
   },
   "quantities": {

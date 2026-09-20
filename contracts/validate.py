@@ -2341,6 +2341,22 @@ def _rel(p) -> str:
         return str(p)
 
 
+def _sample_table() -> tuple[dict | None, str]:
+    """The instance table -- what is physically on the bench, not what it is.
+
+    Beside the device table rather than inside it: every column there is about
+    driving hardware and false of a sample. Architecture ruled the split on
+    2026-09-19 and the reason is instance versus type -- a measurement is made
+    on an instance and a specification written about a type, so an observation
+    of this bottle stays true of the bottle even if the bottle turns out to be
+    another product.
+    """
+    staged = KB_DIR / "staging" / "samples.v0.json"
+    if staged.exists():
+        return json.loads(staged.read_text()), _rel(staged)
+    return None, ""
+
+
 def _device_table() -> tuple[dict | None, str]:
     """The channel table, from wherever the librarian last published it.
 
@@ -2823,10 +2839,25 @@ def check_44_subject_resolves(b: Bundle) -> list[Finding]:
             if isinstance(n, dict) and n.get("name"):
                 quantity_names.add(n["name"])
 
+    # `sample` resolves against the sample table and NOTHING else -- not the
+    # way `quantity` does. `quantity` accepts a name used in numbers[]
+    # anywhere, which lets an entry satisfy its own subject; that failed on
+    # 2026-09-19 when renaming a number dangled five subjects that had only
+    # ever resolved against a number in the same file. The execution seat
+    # asked for this distinction explicitly before the wiring existed.
+    samples, sam_rel = _sample_table()
+    sample_ids: set[str] = set()
+    if samples:
+        for group in ("instances", "retired_rows"):
+            for row in samples.get(group) or []:
+                if isinstance(row, dict) and row.get("id"):
+                    sample_ids.add(row["id"])
+
     registries = {"device": (device_ids, dev_rel or "the device table"),
                   "configuration": (config_ids, path_rel or "the optical path table"),
                   "observable": (observable_ids, "contracts/observables.json"),
-                  "quantity": (quantity_names | declared_quantities, "the names used in numbers[] or declared in contracts/quantities.json")}
+                  "quantity": (quantity_names | declared_quantities, "the names used in numbers[] or declared in contracts/quantities.json"),
+                  "sample": (sample_ids, sam_rel or "the sample table")}
 
     out: list[Finding] = []
     resolved, without = 0, []
