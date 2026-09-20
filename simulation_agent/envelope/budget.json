@@ -1,0 +1,45 @@
+{
+  "artifact": "envelope_budget",
+  "schema_version": "0.1",
+  "policy_version": "1",
+  "written_by": "kyuhwan",
+  "agent": "simulation",
+  "targets": [
+    {
+      "target": "local",
+      "label": "this workstation",
+      "limits": {
+        "wall_clock_max": {
+          "value": 2, "unit": "h",
+          "chosen_by": {
+            "by": "kyuhwan", "on": "2026-09-19",
+            "rationale": "An unconfirmed limit is safer small, and raising a ceiling later is easier than lowering one: a job that has been running inside 8 h for a month makes 2 h look like a regression, while 2 h that turns out to pinch is one edit. Replaces the 4 h the design discussion had proposed."
+          }
+        },
+        "storage_max": {
+          "value": 10, "unit": "GB",
+          "chosen_by": {
+            "by": "kyuhwan", "on": "2026-09-19",
+            "rationale": "Tighter than the 20 GB proposed, for the same reason as the wall clock: nothing was measured, and an unconfirmed ceiling is safer small."
+          }
+        },
+        "smoke_budget": {
+          "wall_clock_max": {
+            "value": 5, "unit": "min",
+            "chosen_by": {
+              "by": "kyuhwan", "on": "2026-09-19",
+              "rationale": "A smoke run that may spend the full budget tells you nothing before the run it is supposed to precede, so this is a ceiling in its own right and not a fraction of the one above."
+            }
+          },
+          "storage_max": {
+            "value": 500, "unit": "MB",
+            "chosen_by": {
+              "by": "kyuhwan", "on": "2026-09-19",
+              "rationale": "Same reason as the smoke wall clock: the run that calibrates the cost model must be cheap before the model is trusted."
+            }
+          }
+        }
+      }
+    }
+  ]
+}

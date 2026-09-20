@@ -4,11 +4,18 @@
 inequality A5 owns has the same shape -- estimated cost against an allowance --
 and the two halves have different owners: **the cost model belongs to this
 agent and the ceiling belongs to a person.** The ceilings live in
-`envelope/safety.json` (2.1 rule 7, 6.1), which does not exist yet. Its shape
-is no longer open -- this agent's standing orders specify a list of execution
-targets, each carrying a wall-clock ceiling, a storage ceiling and a separate
-smoke budget -- but a specified shape is not a written file, and an unwritten
-ceiling is not a satisfied one.
+`envelope/budget.json`, renamed from `safety.json` on 2026-09-20 because the
+grade of harm differs -- get the laser ceiling wrong and you lose an eye, get
+the wall clock wrong and you lose a night.
+
+**Why it abstains is read off the file rather than asserted.** This docstring
+said "which does not exist yet" and the `abstain_reason` below said the same,
+unconditionally, for a day after the person wrote the file. A sentence about a
+file that does not consult the file cannot notice when it stops being true,
+and no check compares prose to disk. So the reason is derived, and the two
+cases it distinguishes are different facts: with no file there is no allowance
+to compare against, and with a file there is one this axis does not yet turn
+into an interval. Only the second is this agent's to close.
 
 P5 says a judgement without a basis abstains rather than guessing. An axis
 that supplied its own allowance would be writing policy, and "does not submit
@@ -32,7 +39,37 @@ from . import cards
 
 AXIS = "a5"
 
-ENVELOPE = cards.AGENT / "envelope" / "safety.json"
+ENVELOPE = cards.AGENT / "envelope" / "budget.json"
+
+
+def abstain_reason() -> str:
+    """Why this axis abstains, stated from the file rather than about it.
+
+    Both branches abstain and they abstain for different reasons, so the two
+    sentences are not interchangeable. Emitting an interval once a ceiling
+    exists is a behaviour change with a card of its own; what this function
+    fixes is only that the card stops claiming something false about disk.
+    """
+    where = ENVELOPE.relative_to(cards.REPO)
+    if not ENVELOPE.exists():
+        return (
+            "No resource allowance exists to compare the estimated cost against. "
+            f"{where} is absent, so the limit side of every budget inequality is missing. "
+            "Its shape is specified -- one row per execution target, with a wall-clock "
+            "ceiling, a storage ceiling and a separate smoke budget -- but a specified "
+            "shape is not a written file. Supplying a ceiling here would make the cost "
+            "model its own limit. The cost side is recorded in numbers[] so that the "
+            "abstention does not discard the estimate too."
+        )
+    return (
+        f"An allowance exists -- {where} declares one -- and this axis does not yet turn "
+        "it into an allowed interval over the settable parameters. So the abstention is "
+        "this agent's unfinished work and not a missing ceiling, which are different "
+        "facts and were reported as the same one until 2026-09-20. The operator compares "
+        "the cost against these ceilings at run time either way (4.6 O1), so nothing runs "
+        "over budget on the strength of this abstention; what is missing is the constraint "
+        "at plan time. The cost side is recorded in numbers[] as before."
+    )
 
 
 def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: str,
@@ -100,15 +137,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
         kb_version=kb_version,
         method="llm_estimate",
         verdict="abstain",
-        abstain_reason=(
-            "No resource allowance exists to compare the estimated cost against. "
-            f"{ENVELOPE.relative_to(cards.REPO)} is absent, so the limit side of every budget "
-            "inequality is missing. Its shape is specified -- one row per execution target, "
-            "with a wall-clock ceiling, a storage ceiling and a separate smoke budget -- but "
-            "only a person writes the file (2.1 rule 7). Supplying a ceiling here would make "
-            "the cost model its own limit. The cost side is recorded in numbers[] so that the "
-            "abstention does not discard the estimate too."
-        ),
+        abstain_reason=abstain_reason(),
     )
     card.update(cards.tail(numbers, assumptions=assumptions, **cards.evidence(kb_result, [])))
     card["note"] = (

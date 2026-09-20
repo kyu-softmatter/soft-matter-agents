@@ -150,18 +150,7 @@ def build(qid: str, created_at: str, revision: int = 1) -> dict:
                 "tier": 0,
             },
         ],
-        envelope_check={
-            "checked_against": ["simulation_agent/envelope/safety.json"],
-            "status": "unavailable",
-            "note": (
-                "The file is absent, so there is no allowance to compare the estimated cost "
-                "against, and A5 abstained for the same reason. Its shape is declared -- "
-                "contracts/schemas/envelope_safety.schema.json landed fifteen seconds before "
-                "this question's first cards were written -- so what is missing is the person's "
-                "file and not the contract. This is not a claim that the run is inside budget; "
-                "it is the record that nothing was available to check it against."
-            ),
-        },
+        envelope_check=envelope_check(numbers),
         cost={
             "wall_clock": "under a second of compute; the job is a million particle-steps with no pair interactions",
             "numbers": ["wall_clock_estimate", "storage_estimate"],
@@ -228,6 +217,70 @@ def build(qid: str, created_at: str, revision: int = 1) -> dict:
         degraded=["librarian_agent"],
     ))
     return card
+
+
+def envelope_check(numbers: list[dict]) -> dict:
+    """The budget comparison at write time, run rather than written down.
+
+    This block was a literal until 2026-09-20 and it said `unavailable`,
+    "the file is absent", and `envelope/safety.json`. By then the file existed,
+    was named `budget.json`, and the operator's own check reported `inside`:
+    three false statements in one field, and **nothing reads it.** Check 8's
+    `checked_against` is the bridge envelope's answerability against
+    `contracts/capabilities/`; this field is compared to nothing by anything,
+    so a wrong value here is never caught rather than caught late.
+
+    So it is computed from the same code the operator runs, not restated. The
+    operator re-reads the ceilings at run time regardless (4.6 O1) -- this is
+    the write-time record of what was true when the plan was written, which is
+    what a person reads before approving.
+
+    `operator` is imported here rather than at module scope. S5 writes the plan
+    and S6 runs it, so the dependency points the wrong way for a module-level
+    import; what is being reused is one comparison, at one call site.
+    """
+    from . import operator
+
+    envelope = operator.read_envelope()
+    if envelope is None:
+        return {
+            "checked_against": [str(operator.ENVELOPE.relative_to(cards.REPO))],
+            "status": "unavailable",
+            "note": (
+                "The ceilings file is absent, so there is no allowance to compare the "
+                "estimated cost against, and A5 abstained for the same reason. This is not "
+                "a claim that the run is inside budget; it is the record that nothing was "
+                "available to check it against."
+            ),
+        }
+    # The plan carries no execution target -- the target is part of the
+    # operating point S4 chooses (standing orders, "the envelope"), and no
+    # field holds it yet. While the envelope declares exactly one there is
+    # nothing to choose; with two there would be, and guessing which machine a
+    # plan is costed against is not a thing to do quietly.
+    targets = [row["target"] for row in envelope.get("targets", [])]
+    if len(targets) != 1:
+        return {
+            "checked_against": [str(operator.ENVELOPE.relative_to(cards.REPO))],
+            "status": "unavailable",
+            "note": (
+                f"the envelope declares {len(targets)} execution targets ({', '.join(targets)}) "
+                "and this plan names none. The target is part of the operating point and no "
+                "field carries it yet, so which ceilings apply is undetermined -- and an "
+                "undetermined ceiling is not a satisfied one."
+            ),
+        }
+    checked = operator.check_budget({"numbers": numbers}, operator.FULL, targets[0])
+    note = checked.get("reason") or (
+        "; ".join(checked["exceeded"]) if checked.get("exceeded") else
+        "every cost number of this plan that lines up with a ceiling is under it: "
+        + ", ".join(f"{c['cost']} against {c['limit']}" for c in checked["compared"])
+    )
+    return {
+        "checked_against": [str(operator.ENVELOPE.relative_to(cards.REPO))],
+        "status": checked["status"],
+        "note": f"target {targets[0]}: {note}. Re-confirmed at run time (4.6 O1).",
+    }
 
 
 def emit(qid: str, created_at: str) -> tuple[Path, str]:

@@ -22,7 +22,7 @@ Tier 1-2.
   write either.
 
 **The limits are re-read here, not trusted from the plan.** O1 re-confirms
-them (4.6), so the ceilings come off `envelope/safety.json` at run time rather
+them (4.6), so the ceilings come off `envelope/budget.json` at run time rather
 than out of the plan's `envelope_check` field. A plan that said `inside`
 against an envelope that has since changed is exactly what re-confirming is
 for. If the file is absent the run is refused: an unavailable ceiling is not a
@@ -54,7 +54,7 @@ from . import mock_backend
 
 APPROVALS = cards.AGENT / "approvals"
 RUNS = cards.AGENT / "runs"
-ENVELOPE = cards.AGENT / "envelope" / "safety.json"
+ENVELOPE = cards.AGENT / "envelope" / "budget.json"
 
 # Which budget a run is measured against. A smoke run that may spend the full
 # allowance tells you nothing before the run it is supposed to precede, so the
@@ -152,6 +152,19 @@ def max_tier(plan: dict) -> int:
 def read_envelope() -> dict | None:
     """The person's ceilings, or None if they were never written (2.1 rule 7).
 
+    Renamed from `envelope/safety.json` on 2026-09-20. The grade of harm is
+    what differs: get the laser ceiling wrong and you lose an eye, get the
+    wall clock wrong and you lose a night, and the same lock on the same door
+    was never decided. There is no `safety.json` in this tree (7). What the
+    rename drops is the physical-confirmation requirement and Tier 3, both
+    meaningless about a disk quota; what it does not drop is the gate, because
+    a run that cannot tell whether it is inside budget still stops.
+
+    There is deliberately no fallback to the old name. A reader that takes
+    whichever of two files happens to exist makes behaviour depend on the
+    state of a migration, and picks one silently when they disagree -- which
+    is the ambiguity P0 says to stop on rather than resolve.
+
     The file says what it is, and that is checked before it is believed.
     Reading a policy file without confirming it is one would let any JSON that
     happens to have a `targets` key act as a ceiling, and a safety decision
@@ -160,9 +173,9 @@ def read_envelope() -> dict | None:
     if not ENVELOPE.exists():
         return None
     envelope = json.loads(ENVELOPE.read_text())
-    if envelope.get("artifact") != "envelope_safety":
+    if envelope.get("artifact") != "envelope_budget":
         raise Refused(
-            f"{ENVELOPE.relative_to(cards.REPO)} does not declare artifact envelope_safety "
+            f"{ENVELOPE.relative_to(cards.REPO)} does not declare artifact envelope_budget "
             f"(it says {envelope.get('artifact')!r}); this is not the ceilings file"
         )
     if envelope.get("schema_version") != "0.1":
@@ -192,9 +205,11 @@ def check_budget(plan: dict, budget: str, target: str) -> dict:
             "status": "unavailable",
             "target": target,
             "reason": (
-                f"{ENVELOPE.relative_to(cards.REPO)} does not exist. A person writes it "
-                "(2.1 rule 7, 10.3 rule 4); a ceiling this agent derived from what the job "
-                "needs would not be a ceiling."
+                f"{ENVELOPE.relative_to(cards.REPO)} does not exist; a ceiling this agent "
+                "derived from what the job needs would not be a ceiling. P0 rule 7 binds "
+                "`safety.*` and not this file, so what a budget needs is that somebody who "
+                "knows the machine chose the number -- `chosen_by` -- and not that anyone "
+                "measured it."
             ),
         }
     targets = {row["target"]: row for row in envelope.get("targets", [])}
@@ -210,14 +225,14 @@ def check_budget(plan: dict, budget: str, target: str) -> dict:
     # that it had compared. Descend once -- and refuse rather than crash on a
     # shape error, because read_envelope() checks the file's three
     # self-declarations and does not validate it against
-    # envelope_safety.schema.json, so a malformed row arrives here intact.
+    # envelope_budget.schema.json, so a malformed row arrives here intact.
     if "limits" not in row:
         return {
             "status": "unavailable",
             "target": target,
             "reason": (
                 f"the {target!r} row carries no `limits` block, which "
-                "envelope_safety.schema.json requires of every target"
+                "envelope_budget.schema.json requires of every target"
             ),
         }
     ceilings = row["limits"]
@@ -235,7 +250,7 @@ def check_budget(plan: dict, budget: str, target: str) -> dict:
             "target": target,
             "reason": (
                 f"the {target!r} row's `limits` is {type(ceilings).__name__} and not an object, "
-                "which envelope_safety.schema.json requires; nothing can be read under it"
+                "which envelope_budget.schema.json requires; nothing can be read under it"
             ),
         }
     if budget == SMOKE and "smoke_budget" not in ceilings:
@@ -605,6 +620,10 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         "plan_id": plan["id"],
         "revision": plan["revision"],
         "approval": approval,
+        # The field is named in run_log.schema.json and the value now comes out of
+        # envelope/budget.json, so the name says `safety` about a file that is
+        # deliberately not one. Renaming it is the manager's and would strand the
+        # two run logs already on disk that carry it; raised rather than changed.
         "safety_policy_version": (read_envelope() or {}).get("policy_version"),
         "stop_criteria": [m["id"] for m in monitors],
         "t0_wall": t0_wall,
