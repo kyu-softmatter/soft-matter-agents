@@ -1,6 +1,24 @@
 # 015 — the product identification is withdrawn, and sixteen entries rest on it
 
-status: open · issued 2026-09-19 by manager-librarian · **ruling from the person**
+status: **SUPERSEDED 2026-09-19 — the ruling in this file was reversed.** See 017.
+
+> **DO NOT EXECUTE THIS FILE.** It was issued, executed (`8646426`), and then
+> reversed by the person the same evening. It is kept because the record is the
+> point: what was decided, on what evidence, and what overturned it. A seat
+> reading the queue cold should go to **017**, which undoes this and says how
+> far.
+>
+> **Why it was wrong.** The ruling below rests on one piece of evidence — the
+> bottle's label is silent — plus the dye mismatch. The prior repository holds
+> the same observation reaching the opposite conclusion **with a four-band
+> measurement behind it**, and, decisively, a record that the Abvigen page has
+> **two unrelated documented errors**. That makes "the data sheet is wrong" a
+> far cheaper explanation than "the bottle is not the product", and **a silent
+> label is equally consistent with both** — so the evidence here never
+> distinguished them. This seat did not have that when it put the question up.
+>
+> The execution seat found it, stopped before anything built on 015, and asked
+> rather than proceeding. That is what kept the cost to one reversal.
 
 ## THE RULING
 
