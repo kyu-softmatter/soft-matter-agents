@@ -4,8 +4,9 @@ Four agents for soft-matter research: a microscope agent and a simulation
 agent that design and run experiments, a librarian that owns all knowledge,
 and a bridge that carries cards between the two executing agents.
 
-The design lives in **`plan.md`** (Korean). Read it before changing anything
-structural. Principles **P0–P16** and decisions **D1–D12** there override
+The design lives in **`plan_ko.md`** (Korean) — that is the record. **`plan.md`
+is its English rendering**, generated and never hand-edited; where the two
+disagree the Korean wins. Read one of them before changing anything structural. Principles **P0–P16** and decisions **D1–D12** there override
 habit and convenience: if work would violate one, the work is wrong, not the
 principle. Changing a principle means editing `plan.md` first, in the same
 commit, with the reason.
@@ -201,9 +202,14 @@ gap early.
 
 - Everything inside this repository is written in **English**: code, schemas,
   comments, filenames, commit messages, agent instructions.
-- `plan.md` is the one exception and stays in **Korean**.
+- **`plan_ko.md` is the one exception and stays in Korean** — it is the design
+  document of record. `plan.md` is generated from it in English and carries
+  `generated-from: plan_ko.md sha256:<hex>` in its head; `contracts/hooks/pre-push`
+  recomputes that hash and refuses a push when the rendering has gone stale.
+  The hook cannot translate — a model is needed and P0 puts no model in a gate —
+  so it compares and refuses, and regenerating is a person's or a session's work.
 
-## Where to look in plan.md
+## Where to look in plan_ko.md
 
 | | |
 |---|---|

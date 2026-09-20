@@ -80,7 +80,8 @@ rather than passing.
 
 | | |
 |---|---|
-| `plan.md` | the design, in Korean. Authoritative. Start at §0.1 for the fixed decisions and §2 for the principles |
+| `plan_ko.md` | the design, in Korean. **The record.** Start at §0.1 for the fixed decisions and §2 for the principles |
+| `plan.md` | the same document rendered in English. **Generated** — edit `plan_ko.md` and regenerate; where they disagree the Korean wins |
 | `CLAUDE.md` | the rules binding every session here |
 | `ARCHITECT.md` | standing orders for the architecture seat only |
 | `contracts/` | the only shared code: card schemas, the unit registry, the observable vocabulary, and `validate.py` |

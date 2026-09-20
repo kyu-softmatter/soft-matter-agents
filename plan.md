@@ -1,374 +1,379 @@
-# plan.md — 4-에이전트 연구 시스템 재설계
+<!-- generated-from: plan_ko.md sha256:9150b8049e5b1f3eeab570ed46348ef0248a23c93fd081923f73da7433561981 -->
+<!-- This file is the English rendering of plan_ko.md, which is the record.
+     Do not edit it by hand: edit plan_ko.md and regenerate. Where the two
+     disagree the Korean wins (0, language convention). contracts/hooks/pre-push
+     recomputes the hash above and refuses a push when it no longer matches. -->
 
-> 상태: 초안 v0.2 (2026-09-16) · 범위: **설계 원칙과 경계만**. 구현 세부는 아직 정하지 않는다.
+# plan.md — four-agent research system, redesign
+
+> Status: draft v0.2 (2026-09-16) · Scope: **design principles and boundaries only**. Implementation detail is not settled here.
 
 ---
 
-## 0. 이 문서의 위치
+## 0. Where this document sits
 
-- 이 문서는 **무엇을 만들지 / 무엇을 만들지 않을지**만 고정한다. 함수명·라이브러리·프롬프트 문구는 여기서 정하지 않는다.
-- 변경 규칙: 원칙(§2)과 충돌하는 구현이 나오면 **구현을 고친다**. 원칙을 바꿀 때는 이 문서를 먼저 고치고, 바꾼 이유를 같은 커밋에 남긴다.
-- 언어 규약: **저장소 안의 것은 영어로 쓴다** — 코드, 스키마, 주석, 커밋 메시지, 에이전트 지침(`CLAUDE.md`, skills). 이 `plan.md`만 한국어로 유지한다.
-- 이전 4개 저장소(`agentic-microscope`, `Brownian-Dynamics-Agent`, `librarian-agent`, `sim-exp-bridge`)는 **의도적으로 참고하지 않았다**. 참고를 허용하는 시점은 §10.2에 명시한다.
-- 그 저장소들의 미러·요약도 같은 금지 대상이다 — 내용도, **파일명도** 이 설계에 쓰지 않는다. 규칙은 `CLAUDE.md`에 있다.
+- This document fixes only **what will be built and what will not**. Function names, libraries and prompt wording are not decided here.
+- Rule for changes: when an implementation conflicts with a principle (§2), **the implementation is what gets fixed**. Changing a principle means editing this document first and leaving the reason in the same commit.
+- Language convention: **everything inside the repository is written in English** — code, schemas, comments, commit messages, agent instructions (`CLAUDE.md`, skills).
+  **The design document is the one exception, and as of 2026-09-20 the shape of the exception changed**: the document of record is `plan_ko.md` (Korean), and `plan.md` is **the English rendering generated from it**. Work happens in `plan_ko.md`. Where the two disagree, the Korean wins — the same shape as JSON beating Markdown (P3), and for the same reason: **one document of record means one place to fix.** `plan.md` carries `generated-from: plan_ko.md sha256:<hex>` in its head, and `contracts/hooks/pre-push` recomputes that hash and refuses the push when it no longer matches. The hook does **not** translate — that needs a model and P0 puts no model in a gate, so what deterministic code can do is compare and refuse. **Why it changed**: the repository is public and most people opening this document for the first time do not read Korean. Moving the document of record into English instead would mean **the person doing the design loses their own language** — so the record is written in the language it can be written most precisely in, and the read side is generated.
+- The four prior repositories (`agentic-microscope`, `Brownian-Dynamics-Agent`, `librarian-agent`, `sim-exp-bridge`) were **deliberately not consulted**. §10.2 states when consulting them becomes permitted.
+- Mirrors and summaries of those repositories fall under the same ban — neither their contents nor **their filenames** are used in this design. The rule lives in `CLAUDE.md`.
 
-### 0.1 확정된 기반 결정
+### 0.1 The settled foundational decisions
 
-| # | 결정 | 내용 |
+| # | Decision | What it says |
 |---|---|---|
-| D1 | 저장소 형태 | **단일 모노레포**. 4개 에이전트를 한 repo 안의 패키지로 두고, 계약(스키마)과 단위 규약을 한 곳에서 버전 관리한다. |
-| D2 | 실행 런타임 | **Claude Code 세션 중심**. 각 에이전트 = 디렉터리 + `CLAUDE.md` + 디렉터리 스코프 skills + subagents + hooks. 결정론적 부분만 얇은 스크립트로 내린다. |
-| D3 | 에이전트 간 통신 | **파일/git 기반 비동기 카드**. 스키마가 고정된 JSON(+사람용 MD)을 주고받고, 커밋이 감사 로그가 된다. |
-| D4 | 실행 권한 | **단계적 게이트**: 제안(자율) → 검증(코드) → 승인(사람) → 실행(로그). 위험 동작은 티어로 분리(§6). |
-| D5 | 독립 구동 | **각 에이전트는 혼자서도 작동한다.** 사람이 개별적으로 호출할 수 있고, 다른 에이전트가 없으면 축소 모드로 진행하며 무엇이 빠졌는지를 카드에 남긴다(§3.1). |
-| D6 | 내부 파이프라인 | **두 실행 에이전트는 같은 5단 파이프라인을 쓴다**: 질문 정교화(S1–S2, LLM 단독) → **system designer**(S3–S5: 축별 병렬 독립 해석 → 종합·트레이드오프 → 산출) → 승인 → **system operator**(S6: preflight → 하달 → 감시 → 기록) → backends(HOOMD-blue / 하드웨어). §4.5–4.6. |
-| D7 | 단위 정본 | **카드의 정본은 물리 단위**(µm·s·pN·K·k_BT). 무차원수는 **파생**이며, 어떤 군을 쓸지는 고정 목록이 아니라 **사서 KB에서 찾거나 그 자리에서 정의**한다(§5.7). 환원 단위 변환은 backend 안에서만. |
-| D8 | 승인 입도 | **승인 카드는 두 종류**: 계획 단건(`plan_approval`)과 조건 범위(`scope_approval`). 범위 승인은 유효기간·횟수 상한이 필수이고, 편차가 한 번 나오면 스스로 소멸한다(§6.1). |
-| D9 | 사서 인터페이스 | **사서는 MCP 서버로 구현한다.** 서브에이전트가 파일 왕복 없이 바로 질의한다. **읽기 도구만 외부에 노출**하고, 증류·보관은 사서 세션 안에서만 일어난다(§4.3.1). |
-| D10 | 단일 지식 저장소 | **모든 지식은 사서가 소유한다.** 다른 에이전트는 자기 지식 저장소를 갖지 않고, 필요한 것은 사본(스냅샷)으로만 갖는다(P14, §4.3.2). |
-| D11 | 세션 경계 | **에이전트 하나 = Claude Code 세션 하나.** 항상 넷으로 분리하며 한 세션에서 스코프만 바꿔 쓰지 않는다. 세션 경계가 곧 권한 경계다(§6.2). |
-| D12 | 지시·보고 계층 | **3계층.** 아키텍처(구조를 쓴다) → 매니저(각 에이전트의 설계 수정) → 에이전트 넷(수행). 지시는 내려가고 보고는 올라온다. 계층은 권한을 늘리지 않는다 — 위의 둘은 Tier 0이다(§6.2, §6.2.1). **worktree는 2026-09-18에 도입했다가 같은 날 되돌렸다**(§6.2.1). |
+| D1 | Repository shape | **A single monorepo.** The four agents are packages inside one repo, and the contracts (schemas) and unit conventions are version-controlled in one place. |
+| D2 | Execution runtime | **Centred on Claude Code sessions.** Each agent = a directory + `CLAUDE.md` + directory-scoped skills + subagents + hooks. Only the deterministic parts drop down into thin scripts. |
+| D3 | Inter-agent communication | **File/git-based asynchronous cards.** Schema-fixed JSON (plus Markdown for people) is exchanged, and the commits become the audit log. |
+| D4 | Execution permission | **A staged gate**: proposal (autonomous) → validation (code) → approval (human) → execution (logged). Dangerous actions are separated by tier (§6). |
+| D5 | Standalone operation | **Each agent works on its own.** A person can call any one of them directly, and with the others absent it proceeds in reduced mode and records in the card what was missing (§3.1). |
+| D6 | Internal pipeline | **The two executing agents use the same five-stage pipeline**: question refinement (S1–S2, LLM alone) → **system designer** (S3–S5: parallel independent per-axis analysis → synthesis and trade-offs → output) → approval → **system operator** (S6: preflight → dispatch → watch → record) → backends (HOOMD-blue / hardware). §4.5–4.6. |
+| D7 | Unit of record | **The card's record is physical units** (µm·s·pN·K·k_BT). Dimensionless numbers are **derived**, and which group to use is not a fixed list but is **looked up in the librarian's KB or defined on the spot** (§5.7). Reduced-unit conversion happens only inside a backend. |
+| D8 | Approval granularity | **Two kinds of approval card**: a single plan (`plan_approval`) and a condition range (`scope_approval`). A scope approval must carry an expiry and a count ceiling, and it destroys itself the first time a deviation appears (§6.1). |
+| D9 | Librarian interface | **The librarian is implemented as an MCP server.** Subagents query it directly without a file round-trip. **Only read tools are exposed outward**; distillation and archiving happen only inside the librarian's session (§4.3.1). |
+| D10 | One knowledge store | **All knowledge is owned by the librarian.** No other agent keeps a knowledge store of its own; what it needs it holds only as a copy (a snapshot) (P14, §4.3.2). |
+| D11 | Session boundary | **One agent = one Claude Code session.** They are always split four ways, and one session does not simply change scope. The session boundary is the permission boundary (§6.2). |
+| D12 | Instruction and reporting tiers | **Three tiers.** Architecture (writes the structure) → manager (revises each agent's design) → the four agents (do the work). Instructions go down and reports come up. A tier does not add permission — the top two are Tier 0 (§6.2, §6.2.1). **Worktrees were introduced on 2026-09-18 and reverted the same day** (§6.2.1). |
 
-### 0.2–0.4 계약이 설계에서 찾아낸 것
+### 0.2–0.4 What the contracts found in the design
 
-세 절은 한 계열이다. 계약을 쓸 때마다 설계의 거짓말이 드러났고, 드러난 자리를 마일스톤별로 남긴다 — M0(§0.2), M1(§0.3), M4 와이어(§0.4). 번호는 참조가 걸려 있어 고정이다.
+The three subsections are one series. Every time a contract was written, a lie in the design surfaced, and the place it surfaced is recorded per milestone — M0 (§0.2), M1 (§0.3), the M4 wire (§0.4). The numbers are fixed because references point at them.
 
-### 0.2 M0 — 카드 계약
+### 0.2 M0 — the card contracts
 
-계약을 쓰면 설계의 거짓말이 드러난다. M0에서 다섯 개가 나왔고, 전부 이 문서를 고쳐 반영했다:
+Writing a contract exposes the design's lies. Five came out of M0, and every one of them was folded back into this document:
 
-1. **P2가 3-튜플이라고 말하는데 §5.3은 4-튜플이었다.** 등급이 §6 게이트와 검사 21·22의 입력이므로 §5.3이 옳고 P2가 낡았다.
-2. **§5.2에 `card`와 `qid`가 없었다.** 검증기는 **파일명을 믿지 않고** 스키마를 골라야 하고, 질문 단위로 묶어야 한다.
-3. **승인이 계획 해시에 묶이는데 `status`를 빼지 않으면** 상태가 `APPROVED`로 넘어가는 순간 승인이 스스로 무효화된다.
-4. **승인 카드에 둘 곳이 없었다.** `scope_approval`은 여러 질문에 걸치므로 `questions/<qid>/`가 담을 수 없다 → `approvals/`, 그리고 쓰기 주체가 폴더로 갈린다.
-5. **숫자가 카드 사이를 옮겨 다닐 때의 규칙이 없었다.** 옮긴 숫자는 `origin`으로 출처 카드를 가리키고, 검증기가 **재계산이 아니라 대조로** 확인한다. 이미 검증된 값을 입력이 적은 곳에서 다시 유도하는 것은 검증이 아니다.
+1. **P2 said three-tuple while §5.3 said four.** The grade is an input to the §6 gate and to checks 21 and 22, so §5.3 was right and P2 was stale.
+2. **§5.2 had no `card` and no `qid`.** The validator has to pick a schema **without trusting the filename**, and it has to group by question.
+3. **An approval binds to the plan's hash, and without excluding `status`** the approval invalidates itself the moment the state moves to `APPROVED`.
+4. **There was nowhere to put approval cards.** A `scope_approval` spans several questions, so `questions/<qid>/` cannot hold it → `approvals/`, and the writing party is separated by folder.
+5. **There was no rule for a number moving between cards.** A moved number points at its source card through `origin`, and the validator confirms it **by comparison, not by recomputation**. Re-deriving an already-validated value somewhere with fewer inputs is not validation.
 
-### 0.3 M1 — 현미경 실행 계층
+### 0.3 M1 — the microscope execution layer
 
-`capabilities/`를 실제로 채우려 하자 세 개가 더 나왔다:
+Actually trying to fill in `capabilities/` produced three more:
 
-1. **계약이 광트랩을 표현하지 못했다.** `capabilities.schema.json`은 구성마다 관측량을 **하나 이상** 요구하는데, 트래핑 구성에는 검출기가 없다 — 트랩 광은 모든 검출 경로에서 차단되므로 스스로는 아무것도 내지 않고 이미징 구성 위에 겹쳐 쓴다. 표현하려면 없는 관측량을 지어내야 했다. 구성에 **역할**(`imaging` / `perturbation`)을 주어 고쳤다(§4.5.3).
-2. **스키마가 있는데 아무도 검사하지 않았다.** 검증기는 `card` 필드를 가진 JSON만 카드로 모으므로 `capabilities/*.json`은 어떤 검사도 통과하지 않은 채 있었다 — 검사받지 않는 계약은 계약이 아니라 장식이다(P4). 검사 1이 KB entry를 검사하듯 capabilities도 검사한다.
-3. **"두 표는 같은 테이블"이라는 규칙에 검사가 없었다.** §4.6.7이 그렇게 선언만 하고 있었고, 두 파일이 갈라지는 것을 막는 것은 아무것도 없었다. 검사 38로 만들었다.
+1. **The contract could not express an optical trap.** `capabilities.schema.json` requires **at least one** observable per configuration, and a trapping configuration has no detector — the trap light is blocked on every detection path, so it produces nothing on its own and is layered on top of an imaging configuration. Expressing it would have meant inventing an observable that does not exist. Fixed by giving a configuration a **role** (`imaging` / `perturbation`) (§4.5.3).
+2. **There was a schema and nobody checked it.** The validator collects as cards only the JSON that carries a `card` field, so `capabilities/*.json` sat there having passed no check at all — a contract nothing checks is not a contract but decoration (P4). Capabilities are now checked the way check 1 checks a KB entry.
+3. **The rule "the two tables are the same table" had no check.** §4.6.7 merely declared it, and nothing stopped the two files from diverging. Made into check 38.
 
-1번과 3번은 **표를 채우는 순간에만** 드러난다. 골격으로 두는 동안은 어느 쪽도 틀리지 않는다.
+1 and 3 surface **only at the moment the table is filled in**. While it stays a skeleton, neither of them is wrong.
 
 
-**넷째 (2026-09-18) — `degraded`가 사실의 반대를 주장하고 있었다.** 앞의 셋은 계약을 **쓰다가** 드러났는데, 이것은 **계약이 이미 맞고 코드가 그 필드의 뜻을 뒤집어 채운** 경우다. 그래서 스키마도 검사도 막지 못한다.
+**The fourth (2026-09-18) — `degraded` was asserting the opposite of the fact.** The first three surfaced **while writing** a contract; this one is a case where **the contract was already right and the code filled that field with the inverse of its meaning.** So neither the schema nor a check could stop it.
 
-`screening.py`가 `kb_version`을 핀으로 박지 못할 때만 `degraded`에 사서를 넣었다. 그런데 그 함수는 `kb/index.json`을 **파일로 직접 읽는다.** 스토어가 잘 읽히면 `degraded: []`가 나오고, 그것은 **"사서가 답했다"**는 주장이다 — gap 탐지도 충돌 탐지도 외부 검색도 일어나지 않았는데. **그리고 M1의 완료 조건이 정확히 그 필드다**(§9.1). 오늘 만들어진 카드들이 그 조건을 이미 충족한 것처럼 보고하고 있었다.
+`screening.py` put the librarian into `degraded` only when it could not pin `kb_version`. But that function reads `kb/index.json` **directly, as a file.** When the store reads cleanly the result is `degraded: []`, and that is a claim that **"the librarian answered"** — when no gap detection, no conflict detection and no external search happened. **And M1's completion condition is exactly that field** (§9.1). The cards made that day were reporting the condition as already met.
 
-**검증기가 잡을 수 없었고, 못 잡는 이유가 이 항목의 요점이다.** 디스크에 파일이 있다는 것과 서비스가 답했다는 것을 구분할 근거가 카드 안에 없다. 현미경 세션이 **읽어서** 찾았다.
+**The validator could not catch it, and why it could not is the point of this entry.** Nothing in the card distinguishes a file existing on disk from a service having answered. The microscope session found it **by reading.**
 
-**같은 모양이 다른 자리에도 있다.** 스토어를 직접 읽는 코드를 가진 좌석은 전부 후보다 — 파일 읽기가 성공하는 것이 서비스가 도는 것처럼 보이는 자리라면 어디든.
+**The same shape lives elsewhere.** Every seat holding code that reads the store directly is a candidate — anywhere a successful file read looks like a running service.
 
-**절반만 잡는 검사는 넣지 않는다.** "`degraded`가 비었으면 `kb_refs`나 `kb_gaps` 중 하나는 차 있어야 한다"는 평소 스윕에서 `plan_approval` 하나만 걸리지만(사람이 쓰는 카드라 정당한 예외), `--expect-fail`에서는 **평평한 픽스처 일곱 장에 두 번째 실패 이유를 붙인다.** 그러면 그중 원래 검사가 망가져도 카드는 계속 실패하고, §11-7이 막으려는 상태가 된다. 그리고 진짜 경우 — `kb_gaps`를 성실히 채우면서 `degraded`를 잘못 비우는 코드 — 는 그 검사를 그대로 통과한다.
+**A check that catches half is not added.** "If `degraded` is empty then one of `kb_refs` or `kb_gaps` must be filled" catches exactly one card in the ordinary sweep (a `plan_approval`, a legitimate exception since a person writes it), but under `--expect-fail` it **attaches a second failure reason to seven flat fixtures.** Then the original check can break and the card keeps failing, which is the state §11-7 exists to prevent. And the real case — code that fills `kb_gaps` faithfully while wrongly emptying `degraded` — passes that check untouched.
 
-**정직한 검사는 로그와 대조하는 것이고, 이제 가능해진다.** MCP 서버가 2026-09-18에 실물로 섰고(`a9df017`), 모든 응답이 `caller_id`와 함께 `queries/log.jsonl`에 남는다(§4.3.2). 그러면 `degraded: []`는 **그 `caller_id`로 로그에 기록이 있어야** 하는 주장이 된다. 지금 로그 파일이 아직 없다는 것 자체가 **오늘까지의 모든 카드가 축소 경로**라는 뜻이고, 그것이 첫 대조 기준이다.
+**The honest check is to compare against the log, and that is now possible.** The MCP server stood up for real on 2026-09-18 (`a9df017`), and every response is recorded in `queries/log.jsonl` with its `caller_id` (§4.3.2). Then `degraded: []` becomes a claim that **the log must carry an entry under that `caller_id`.** That the log file does not yet exist is itself the statement that **every card up to today is on the degraded path**, and that is the first baseline to compare against.
 
-### 0.4 M4 — 브리지 와이어
+### 0.4 M4 — the bridge wire
 
-브리지의 와이어 계약을 쓰자 여섯 개가 더 나왔다. 브리지 코드는 아직 한 줄도 없다:
+Writing the bridge's wire contract produced six more. Not one line of bridge code exists yet:
 
-1. **게이트가 boolean이었다.** `answerability`와 `unit_consistency`가 참·거짓만 가질 수 있어서, 표가 아직 말하지 않은 것을 브리지가 "산출 불가"로 적거나 "가능"으로 적어야 했다 — 둘 다 없는 사실을 만드는 일이다. 셋으로 고쳤고, 그러자 **거절(반례 숫자가 붙는다)과 보류(차례가 사람에게 간다)가 갈렸다.**
-2. **대응 가능성이 자기 신고였다.** 검사 21은 등급이 출처에서 도출되는지 보는데 브리지 게이트에는 같은 것이 없었다 — 봉투가 `producible: true`라고 쓰면 그것이 사실이 됐다. 이제 검증기가 어휘와 능력표에서 다시 계산하고, **카드가 표보다 더 주장하면 거절한다.**
-3. **봉투의 해시는 자기 자신만 증명했다.** `payload_hash`는 "봉투가 자기와 일치한다"는 말이고, 숫자를 고친 브리지는 값과 해시를 함께 고칠 수 있다. `r<N>_hashes.json`이 보낸 쪽의 **원본 카드**를 리비전과 함께 적어야 "받은 카드 = 보낸 카드"가 비로소 검사가 된다.
-4. **`status.json`과 `r<N>_hashes.json`은 카드가 아니다.** 숫자도 등급도 `qid`도 없다. 그런데 검증기는 `card` 필드를 가진 JSON만 모으므로, 이 둘은 스키마를 갖고도 아무 검사를 통과하지 않은 채 있을 수 있었다 — §0.3-2와 같은 실패다. `artifact` 필드로 갈라서 검사 1이 검사하고 `--expect-fail`이 함께 센다.
-5. **브리지의 MD는 payload의 숫자를 복창할 수 없다.** 봉투의 `numbers[]`가 비어 있으므로 검사 9가 MD의 모든 숫자를 거절한다. 처음에는 불편한 제약처럼 보였는데 정확히 옳다 — 수송체가 값을 다시 쓰면 같은 양이 두 곳에 산다(P3).
+1. **The gate was boolean.** `answerability` and `unit_consistency` could only be true or false, so the bridge had to write something the table had not yet said as either "cannot produce" or "possible" — both of which manufacture a fact that does not exist. Fixed to three values, and that split **refusal (which carries a counter-example number) from holding (which passes the turn to a person).**
+2. **Producibility was self-reported.** Check 21 asks whether a grade follows from its source, and the bridge gate had no equivalent — if the envelope wrote `producible: true`, that became the fact. Now the validator recomputes it from the vocabulary and the capability table, and **refuses when the card claims more than the table does.**
+3. **The envelope's hash proved only itself.** `payload_hash` says "the envelope agrees with itself", and a bridge that altered a number could alter the value and the hash together. Only when `r<N>_hashes.json` records the sending side's **original card** along with its revision does "the card received = the card sent" become a check at all.
+4. **`status.json` and `r<N>_hashes.json` are not cards.** They have no numbers, no grades and no `qid`. But the validator collects only JSON carrying a `card` field, so those two could hold a schema and still pass no check — the same failure as §0.3-2. They are split off by an `artifact` field so that check 1 checks them and `--expect-fail` counts them too.
+5. **The bridge's Markdown cannot echo the payload's numbers.** The envelope's `numbers[]` is empty, so check 9 refuses every number in the Markdown. It looked like an awkward constraint at first and is exactly right — a carrier that rewrites a value makes the same quantity live in two places (P3).
 
-6. **한 선언에 파서가 둘이었다.** `capabilities/microscope.json`이 합성 형태 `{"id": ..., "requires_composition": [...]}`로 선언하는데, 검사 38은 그것을 읽고 검사 8의 도출은 문자열로만 비교했다. **표가 생산 가능하다고 말하는 관측량이 `no`로 도출됐다.** 그리고 그 `no`가 브리지를 완전히 막았다 — 도출이 `no`면 검사 8은 거절 카드를 요구하고, 거절 카드는 반례 숫자를 요구하는데 표가 생산 가능하다고 하니 반례가 없다. 쓸 수 있는 카드가 없고, 억지로 쓰면 **아무도 확립하지 않은 불가능을 장부에 남기는 일**이 된다. 브리지 좌석이 제보했고 정규화를 공유해서 고쳤다.
+6. **One declaration had two parsers.** `capabilities/microscope.json` declares in the composite form `{"id": ..., "requires_composition": [...]}`, check 38 read that, and check 8's derivation compared strings only. **An observable the table says is producible derived as `no`.** And that `no` blocked the bridge completely — with a derivation of `no`, check 8 demands a refusal card, a refusal card demands a counter-example number, and there is no counter-example when the table says it is producible. There was no card that could be written, and forcing one **puts an impossibility nobody established into the ledger.** The bridge seat reported it and it was fixed by sharing the normalisation.
 
-   규칙 둘이 여기서 나온다. **한 선언에 파서는 하나다** — 정규화를 공유하지 않는 두 소비자는 언젠가 갈리고, 갈린 쪽은 오류를 내지 않고 **조용히 거짓을 말한다**. 그리고 **침묵에서 불가능을 도출하지 않는다** — `populated` 표가 "아무도 이 이름을 붙이지 않았다"를 "생산할 수 없다"로 바꾸고 있었고, 그래서 한 카드가 두 이유로 실패하면서 그중 하나가 거짓 진술이었다. 어휘에 없는 이름은 이제 `no`가 아니라 `undeclared`다.
+   Two rules come out of this. **One declaration, one parser** — two consumers that do not share a normalisation will diverge eventually, and the one that diverged does not raise an error, it **quietly says something false.** And **do not derive impossibility from silence** — the `populated` table was turning "nobody attached this name" into "cannot be produced", so one card failed for two reasons and one of them was a false statement. A name absent from the vocabulary is now `undeclared`, not `no`.
 
-1번과 2번은 M0에서 드러나지 않았다. **봉투가 한 장도 없는 동안 게이트는 어떤 모양이어도 틀리지 않는다** — 검사 8이 그때까지 `N/A`였기 때문이다. 6번은 그 반대쪽이다: 봉투가 생기자마자 드러났고, **막힌 것은 게이트가 아니라 게이트를 통과할 카드를 쓰는 쪽**이었다.
-
----
-
-## 1. 무엇을 만드는가
-
-한 문장: **"무엇을 측정/계산할지"가 정해졌을 때, 그것을 실제로 얻어낼 수 있는 조건을 설계하고, 승인 하에 실행하고, 반대편(실험↔시뮬레이션)에 검증 가능한 형태로 넘기는 시스템.**
-
-이 시스템은 연구 주제를 고르지 않는다. **주어진 목표를 실행 가능한 조건으로 번역하는 일**만 한다.
-
-**측정 대상은 고정되지 않는다.** 어떤 실험이 올지는 열린 질문이고, **그 실험에 맞는 시스템 구성을 제안하는 것이 목표다.** 따라서 현미경 에이전트의 산출물은 "정해진 구성의 파라미터"가 아니라 **"어떤 구성으로 측정할 것인가 + 그 구성에서의 파라미터"** 다. 특정 모달리티(광트랩, 와이드필드 형광, 컨포컬, DMD 구조화 조명, …)를 전제로 설계하지 않는다.
-
-### 1.1 성공 기준 (측정 가능한 형태로)
-
-- **S1** 사람이 한 문장으로 던진 목표 → 기계 판독 가능한 실행계획서. 계획서의 모든 숫자에 단위와 출처가 붙어 있다.
-- **S2** 검증기가 계획서를 통과시킨다. 출처 없는 숫자 개수 = 0.
-- **S3** 승인된 계획이 실행되고, 실행 로그만으로 계획을 되짚어 재구성할 수 있다.
-- **S4** 한쪽 결과가 반대쪽에서 **같은 관측량**으로 비교된다. 단위/무차원화 변환은 산문이 아니라 코드가 검사한다.
-- **S5** 같은 질문을 두 번째로 물으면 KB 재사용으로 더 빨라지고, 첫 번째 답과 모순되지 않는다.
-- **S6** 한 목표에 가능한 구성이 둘 이상일 때, **고른 구성과 버린 구성의 이유가 수치로** 계획서에 남는다.
-
-### 1.2 실패 기준 (이게 보이면 설계가 틀렸다)
-
-- 산문 속에만 존재하고 아무도 검사하지 않는 숫자가 생긴다.
-- 왕복이 3라운드를 넘어가는데 관측량 정의가 라운드마다 미묘하게 바뀐다.
-- 사람이 실행마다 똑같은 안전 확인을 손으로 반복한다.
-- 실패한 실행/런이 조용히 사라진다.
-- 안전 판정이 LLM 경로에 들어간다.
-- 숫자가 어디서 왔는지는 적혀 있는데 **얼마나 믿을 만한지**는 적혀 있지 않다.
+1 and 2 did not surface in M0. **While not a single envelope exists, the gate cannot be the wrong shape** — check 8 was `N/A` until then. 6 is the other side of that: it surfaced the moment an envelope existed, and **what was blocked was not the gate but the side trying to write a card that could pass it.**
 
 ---
 
-## 2. 설계 원칙
+## 1. What is being built
 
-| # | 원칙 | 왜 | 어기면 |
+In one sentence: **a system that, once "what to measure or compute" is settled, designs the conditions under which it can actually be obtained, executes them under approval, and hands them to the other side (experiment ↔ simulation) in a form that can be verified.**
+
+This system does not choose research topics. It only does **the work of translating a given goal into executable conditions.**
+
+**The measurement target is not fixed.** Which experiment will arrive is an open question, and **proposing the system configuration that suits that experiment is the goal.** So the microscope agent's output is not "parameters for a settled configuration" but **"which configuration to measure with, plus the parameters within it."** It is not designed on the premise of a particular modality (optical trap, widefield fluorescence, confocal, DMD structured illumination, …).
+
+### 1.1 Success criteria (in a measurable form)
+
+- **S1** A goal thrown out in one sentence by a person → a machine-readable execution plan. Every number in the plan carries a unit and a source.
+- **S2** The validator passes the plan. Count of numbers without a source = 0.
+- **S3** An approved plan is executed, and the plan can be reconstructed from the execution log alone.
+- **S4** A result from one side is compared on the other side as **the same observable**. Unit and non-dimensionalisation conversions are checked by code, not by prose.
+- **S5** Asking the same question a second time is faster through KB reuse, and does not contradict the first answer.
+- **S6** When a goal admits more than one possible configuration, **the reason for the chosen one and the discarded ones is left in the plan as numbers.**
+
+### 1.2 Failure criteria (if this shows up, the design is wrong)
+
+- A number comes into being that exists only in prose and that nobody checks.
+- The round trip passes three rounds while the observable's definition shifts subtly each round.
+- A person repeats the same safety confirmation by hand on every execution.
+- A failed execution or run quietly disappears.
+- A safety judgement enters an LLM path.
+- Where a number came from is written down but **how much it can be trusted** is not.
+
+---
+## 2. Design principles
+
+| # | Principle | Why | If broken |
 |---|---|---|---|
-| **P0** | **안전이 먼저다 — 사람, 그다음 장비, 그다음 시료와 데이터.** 다른 모든 원칙과 충돌하면 **P0이 이긴다.** 안전 판단은 언제나 결정론적 코드가 하고, 모호하면 멈춘다(§2.1). | 이 시스템은 되돌릴 수 없는 물리적 동작을 일으킨다. 다른 원칙은 틀리면 다시 하면 되지만 이것은 아니다. | 사람이 다치거나 장비가 부서진다. 그 뒤의 모든 설계는 의미가 없다. |
-| **P1** | **파일이 진실, 세션은 휘발성.** 에이전트의 상태는 전부 디스크에 있다. | 세션은 끊기고 컨텍스트는 요약된다. | 어제 합의한 조건을 오늘 아무도 모른다. |
-| **P2** | **모든 숫자는 (값, 단위, 출처, 등급) 4-튜플.** 출처가 없으면 숫자가 아니고, 등급이 없으면 얼마나 믿을지 알 수 없다(§5.3). | 물리량은 단위 없이 의미가 없고, 출처 없이 재현이 안 되며, 등급 없이는 게이트를 걸 수 없다(§6). | 모델이 그럴듯하게 만든 수치가 실험 조건이 된다. |
-| **P3** | **산문은 설명용, 계약은 기계 판독용.** 같은 숫자가 MD와 JSON에 둘 다 있으면 **JSON이 정본**. | 검사할 수 없는 문장은 시간이 지나면 거짓이 된다. | 문서와 실제 실행이 갈라진다. |
-| **P4** | **판단만 모델이 하고, 검사는 코드가 한다.** 검증기는 결정론적이다. | 같은 모델에게 자기 출력을 채점시키면 통과율이 곧 100%가 된다. | 게이트가 장식이 된다. |
-| **P5** | **거절은 1급 출력.** 불가능한 요청은 "왜 불가능한지"를 **반례 숫자**와 함께 거절한다. | 못 하는 일을 억지로 하면 조용히 틀린 데이터가 나온다. | 실현 불가능한 계획이 장비까지 내려간다. |
-| **P6** | **한 에이전트 = 한 책임 = 한 디렉터리 = 한 권한 집합.** | 권한과 책임이 같은 경계를 가져야 감사가 가능하다. | 브리지가 조건을 최적화하고, 사서가 실험을 설계한다. |
-| **P7** | **의존성은 단방향.** 사서는 아무도 호출하지 않는다(pull-only). 브리지는 내용을 만들지 않는다(transport-only). | 순환 호출은 무한 왕복과 책임 소재 불명을 낳는다. | 누가 그 숫자를 정했는지 아무도 모른다. |
-| **P8** | **실행은 게이트를 통과한다.** 제안 → 검증 → 승인 → 실행. 게이트는 건너뛸 수 없다. | 장비와 시료는 되돌릴 수 없다. | 한 번의 오타가 하드웨어 손상이 된다. |
-| **P9** | **로그는 append-only.** 수정은 새 리비전(`r1`, `r2`, …)이고 덮어쓰기는 없다. | 무엇이 언제 바뀌었는지가 곧 실험 기록이다. | 편향을 추적할 수 없다. |
-| **P10** | **범위는 축소가 기본값.** 새 능력은 "지금 이 질문에 필요한가"를 통과해야 들어온다. | 이전 구조가 커진 이유가 이것이다. | 다시 범용 워크플로 엔진이 된다. |
-| **P11** | **각 에이전트는 혼자서도 완결된다.** 협업은 능력을 더할 뿐, 작동의 전제가 아니다. | 실험은 시뮬레이션을 기다릴 수 없고, 시뮬레이션은 장비 일정을 기다릴 수 없다. | 하나가 멈추면 넷이 멈춘다. |
-| **P12** | **산출물 트리는 질문 단위로 평평하다.** 한 질문의 모든 파일이 한 폴더에, 단계별 폴더 없이, 라운드·리비전은 파일명 접두사로(§7.1). | 산출물은 무한히 쌓이고 지우지 않는다(P9). 사람은 "그 질문" 단위로 찾는다. | 석 달 뒤 자기 실험 기록을 grep으로 뒤지게 된다. |
-| **P13** | **코드는 개수가 아니라 의존 방향으로 규율한다.** 에이전트 코드는 `src/` 한 곳에 모으고, 의존은 단방향, 형제 import 금지(§7.2). | 파일 개수 상한은 설계를 규율하지 못하고 설계에 밀려난다 — 이 문서에서 이미 한 번 그랬다(4개 → 5개). 구조를 지키는 것은 의존 그래프다. | 장치 하나를 고치면 다른 장치가 깨진다. |
-| **P14** | **지식은 한 곳에만 있다.** 사서가 유일한 소유자이고, 다른 에이전트는 출처 id와 해시가 붙은 **사본**만 갖는다. 사본은 스스로 고칠 수 없다(§4.3.2). | 같은 사실이 두 곳에 있으면 곧 서로 다른 두 값이 된다. 어느 쪽이 맞는지는 아무도 모른다. | 에이전트마다 다른 점도값으로 계획을 세운다. |
-| **P15** | **거짓 정밀도를 만들지 않는다.** 계산값의 유효숫자는 입력의 최악 정밀도를 따르고, 추정이 섞이면 **자릿수로만** 말한다(§5.8). | 기본 목적은 모르는 시스템을 탐색하는 것이다. 세 자리로 적힌 추정값은 정보가 아니라 착시다. | 자릿수도 모르는 값으로 조건을 고르고, 그것이 정밀한 결정처럼 보인다. |
-| **P16** | **학습은 순위만 바꾸고 후보를 지우지 않는다.** 교훈은 실제 기록(E1·E2)에 근거하고, 반증 조건과 사례 수를 달고 산다(§8.2). | 지운 후보는 데이터가 쌓이지 않아 영원히 불리해진다. 편향은 그렇게 자기를 실현한다. | 시스템이 처음 몇 번 잘된 구성만 반복하고, 그것을 학습이라 부른다. |
+| **P0** | **Safety comes first — people, then instruments, then samples and data.** Where it conflicts with every other principle, **P0 wins.** A safety judgement is always made by deterministic code, and ambiguity stops (§2.1). | This system causes irreversible physical action. Other principles can be got wrong and redone; this one cannot. | A person is hurt or an instrument is destroyed. Every design decision after that is meaningless. |
+| **P1** | **Files are the truth, sessions are volatile.** All of an agent's state is on disk. | Sessions drop and context gets summarised. | Nobody knows today the condition that was agreed yesterday. |
+| **P2** | **Every number is a four-tuple (value, unit, source, grade).** Without a source it is not a number; without a grade there is no knowing how far to trust it (§5.3). | A physical quantity means nothing without a unit, cannot be reproduced without a source, and cannot be gated without a grade (§6). | A figure a model made up plausibly becomes an experimental condition. |
+| **P3** | **Prose is for explaining, contracts are for machines.** When the same number is in both Markdown and JSON, **the JSON is the record.** | A sentence that cannot be checked becomes false with time. | The document and the actual execution diverge. |
+| **P4** | **The model only judges; the code checks.** The validator is deterministic. | Make a model grade its own output and the pass rate goes straight to 100%. | The gate becomes decoration. |
+| **P5** | **A refusal is a first-class output.** An impossible request is refused with "why it is impossible" and **a counter-example number.** | Forcing work that cannot be done produces quietly wrong data. | An unrealisable plan travels all the way down to the instrument. |
+| **P6** | **One agent = one responsibility = one directory = one permission set.** | Auditing is possible only when permission and responsibility share a boundary. | The bridge optimises conditions and the librarian designs experiments. |
+| **P7** | **Dependencies run one way.** The librarian calls nobody (pull-only). The bridge creates no content (transport-only). | Circular calls produce infinite round trips and no located responsibility. | Nobody knows who decided that number. |
+| **P8** | **Execution passes through the gate.** Proposal → validation → approval → execution. The gate cannot be skipped. | Instruments and samples are not reversible. | One typo becomes hardware damage. |
+| **P9** | **Logs are append-only.** A correction is a new revision (`r1`, `r2`, …), never an overwrite. | What changed and when is the experimental record. | Bias cannot be traced. |
+| **P10** | **Scope shrinks by default.** A new capability has to pass "is this needed for the question in front of us" to get in. | This is the reason the previous structure grew. | It becomes a general-purpose workflow engine again. |
+| **P11** | **Each agent is complete on its own.** Collaboration only adds capability; it is not a precondition for working. | An experiment cannot wait for a simulation, and a simulation cannot wait for instrument time. | One stops and four stop. |
+| **P12** | **The output tree is flat, per question.** Every file of one question in one folder, no per-stage folders, rounds and revisions as filename prefixes (§7.1). | Outputs accumulate without limit and are not deleted (P9). People look things up by "that question". | Three months later you are grepping through your own experimental record. |
+| **P13** | **Code is disciplined by dependency direction, not by file count.** Agent code gathers in one `src/`, dependencies run one way, sibling imports are forbidden (§7.2). | A ceiling on file count does not discipline a design, it gets pushed aside by it — which already happened once in this document (4 → 5). What holds the structure is the dependency graph. | Fixing one device breaks another. |
+| **P14** | **Knowledge lives in one place only.** The librarian is its sole owner, and every other agent holds only a **copy** carrying a source id and a hash. A copy cannot correct itself (§4.3.2). | The same fact in two places soon becomes two different values. Nobody knows which is right. | Each agent plans with a different viscosity. |
+| **P15** | **Do not manufacture false precision.** A computed value's significant figures follow the worst precision among its inputs, and once an estimate is mixed in it speaks **in orders of magnitude only** (§5.8). | The default purpose is exploring a system nobody understands. An estimate written to three digits is not information, it is an illusion. | A condition is chosen with a value whose order of magnitude is unknown, and it looks like a precise decision. |
+| **P16** | **Learning reorders candidates; it does not delete them.** A lesson rests on an actual record (E1·E2) and lives with a falsification condition and a case count (§8.2). | A deleted candidate accumulates no data and is disadvantaged forever. That is how bias fulfils itself. | The system repeats whichever configuration worked the first few times and calls that learning. |
 
-### 2.1 안전 규칙 (P0)
+### 2.1 The safety rules (P0)
 
-P0은 표어가 아니라 **강제 규칙의 목록**이며, 전부 코드가 집행한다. **개수를 여기 적지 않는다** — 2026-09-19에 셋이 늘었고, 그날까지 이 문장이 "일곱 개"였다. 목록을 세라.
+P0 is not a slogan but **a list of enforced rules**, all of them enforced by code. **The count is not written here** — three were added on 2026-09-19, and until that day this sentence said "seven". Count the list.
 
-1. **안전은 판단이 아니라 인터록이다.** 사람이나 장비를 위험하게 할 수 있는 동작은 LLM 판단 경로에 두지 않는다(§4.6.1). 모든 안전 한계는 `envelope/`에 기계 판독 값으로 있고 Tier 3 보호를 받는다.
-2. **모호하면 멈춘다 (fail-closed).** 상태를 되읽을 수 없거나, 근거 등급이 부족하거나, 검증기가 판정 불가일 때 기본값은 **진행이 아니라 정지**다.
-3. **비가역 동작에는 E1–E3 근거만.** `E4`(계산값)나 `E5`(추정)에 의존하는 값이 되돌릴 수 없는 동작의 파라미터로 들어가면 `scope_approval`로 덮이지 않고 **사람의 개별 승인이 강제된다**(§5.3, §6.1).
-4. **출력은 마지막에 올리고 가장 먼저 내린다.** 광원·레이저 출력을 올리는 명령은 병렬 집합의 맨 끝, 내리는 명령은 맨 앞이다. abort는 출력 차단부터 한다(§4.6.8).
-5. **사람이 장비에 손을 대는 동안 자동 명령은 금지된다.** `manual` 지시서가 열려 있으면 orchestrator는 그 장치군에 어떤 명령도 내리지 않는다. 사람의 확인으로 지시서가 닫혀야 잠금이 풀린다 — 소프트웨어판 lockout/tagout이다(§8 검사 23).
-6. **안전 관련 실패는 재시도로 덮지 않는다.** 재시도는 계획에 명시된 횟수만 하고, 안전 인터록이 걸린 실패는 0회다.
-7. **안전 한계는 누구도 넘을 수 없다.** 계획도, `scope_approval`도, 사람의 개별 승인도 `envelope/`의 안전 한계를 넘지 못한다. 한계 자체를 바꾸는 것은 Tier 3(금지)이며, 사람이 시스템 **밖에서** 물리적으로 확인한 뒤 문서를 고쳐야 한다.
-8. **안전 신호는 거부할 수 있고 허가할 수는 없다.** 인터록이나 상태 읽기가 "괜찮다"로 읽히는 값을 돌려줘도 그것을 **진행의 근거로 쓰지 않는다.** 한 값이 여러 세계를 덮기 때문이다 — 그 센서가 다룰 수 없는 구성, 있어야 할 것이 없는 상태, 그리고 실제로 안전한 상태가 **같은 값으로 읽힌다.** 정보가 한 방향으로만 흐른다: 신호가 "위험"이면 그것은 사실이고 **멈춘다**, 신호가 "괜찮다"면 그것은 **그 센서가 위험을 보지 못했다는 것**이지 위험이 없다는 것이 아니다. 규칙 2(되읽을 수 없으면 정지)가 덮지 못하는 자리다 — 여기서는 되읽히고, 읽힌 값이 비대칭이다. **허가는 언제나 다른 것에서 나와야 한다**: `envelope/`의 한계, 사람의 승인, 또는 그 구성이 허용된다고 말하는 결정론적 검사.
-9. **옵트인 가드는 초크포인트가 아니다.** 안전 검사가 **호출하는 쪽이 부르기로 선택해야** 작동한다면, 그것은 보호가 아니라 **관례**다. 같은 장치에 닿는 다른 경로가 그 검사를 지나치지 않고 도달할 수 있으면 그 경로가 실질이고 검사는 장식이다. **가드는 우회로가 없는 자리에 둔다** — 명령이 실제로 나가는 곳, 즉 드라이버 쪽이다(P4, §4.6.1). 그리고 우회로를 닫을 수 없으면 **닫을 수 없다고 적는다**: 2026-09-19에 이 저장소가 같은 것을 세 번 만났다 — 세션 루트에 대해 풀려 아무것도 막지 않던 거부 목록, 흔적 없이 게이트를 지나가는 `--no-verify`, 그리고 이 규칙을 낳은 사례. **셋 다 보호가 있다고 적혀 있고 그 옆에 문이 열려 있었다.** §6.2가 그날 "집행하는 것은 커밋 게이트이고 설정 파일은 진술한다"로 뒤집힌 것이 이 규칙의 한 사례다.
-10. **저장된 상태를 불러오는 것은 출력을 켜는 명령이다.** 구성·템플릿·프로젝트 파일이 출력 상태를 담으면, 그것을 로드하는 것만으로 **출력 명령 없이 출력이 켜진다.** 규칙 4(출력은 맨 나중에 올리고 맨 먼저 내린다)가 통째로 우회된다 — 순서를 맞출 명령이 애초에 없기 때문이다. 그러므로 **저장되는 구성은 출력이 꺼진 상태로 저장하고**, 로드는 출력을 켜는 동작으로 취급해 규칙 4의 순서 안에 둔다. 상태 복원 경로가 출력을 담을 수 있는지는 장치마다 다르므로 **장치 레지스트리가 그것을 말해야 한다**(§4.6.1).
+1. **Safety is an interlock, not a judgement.** An action that can endanger a person or an instrument is not placed on an LLM judgement path (§4.6.1). Every safety limit lives in `envelope/` as a machine-readable value under Tier 3 protection.
+2. **Ambiguity stops (fail-closed).** When state cannot be read back, when the evidence grade is insufficient, or when the validator cannot decide, the default is **stop, not proceed**.
+3. **Irreversible actions take E1–E3 evidence only.** When a value resting on `E4` (computed) or `E5` (estimated) enters as a parameter of an irreversible action, it is not covered by a `scope_approval` and **an individual human approval is forced** (§5.3, §6.1).
+4. **Power goes up last and comes down first.** A command raising a light source or laser output is at the very end of a parallel set; a command lowering it is at the very front. An abort begins with cutting output (§4.6.8).
+5. **While a person has hands on the instrument, automatic commands are forbidden.** With a `manual` instruction sheet open, the orchestrator issues no command at all to that device group. The lock releases only when a person's confirmation closes the sheet — this is lockout/tagout in software (§8, check 23).
+6. **A safety-related failure is not papered over by a retry.** Retries happen only the number of times the plan states, and a failure on a safety interlock gets zero.
+7. **Nobody may exceed a safety limit.** Not the plan, not a `scope_approval`, not an individual human approval may exceed the safety limit in `envelope/`. Changing the limit itself is Tier 3 (forbidden), and requires a person to confirm physically **outside** the system and then edit the document.
+8. **A safety signal can refuse and cannot permit.** Even when an interlock or a state read returns a value that reads as "fine", **that is not used as grounds for proceeding.** One value covers several worlds — a configuration that sensor cannot handle, a state where something that should be present is missing, and a genuinely safe state **all read as the same value.** Information flows one way: if the signal says "danger" that is a fact and **it stops**; if the signal says "fine" that means **that sensor did not see a danger**, not that there is none. This is the place rule 2 (stop when it cannot be read back) does not cover — here it *is* read back, and the value read is asymmetric. **Permission always has to come from something else**: a limit in `envelope/`, a human approval, or a deterministic check that says the configuration is allowed.
+9. **An opt-in guard is not a chokepoint.** If a safety check only runs because **the caller chose to call it**, it is not protection but **a convention.** If another path touching the same device can reach it without passing that check, that path is the reality and the check is decoration. **A guard goes where there is no way around it** — where the command actually leaves, which is the driver side (P4, §4.6.1). And where the way around cannot be closed, **write down that it cannot be**: on 2026-09-19 this repository met the same thing three times — a deny list that resolved against the session root and blocked nothing, a `--no-verify` that walks past the gate without a trace, and the case that produced this rule. **All three had protection written down with a door open beside it.** §6.2 flipping that day to "what enforces is the commit gate, and the settings file states" is one instance of this rule.
+10. **Loading saved state is a command that turns output on.** When a configuration, template or project file carries output state, loading it **turns output on with no output command.** Rule 4 (power up last, down first) is bypassed entirely — because there is no command to order in the first place. So **a configuration that gets saved is saved with output off**, and loading is treated as an output-raising action and placed inside rule 4's ordering. Whether a state-restore path can carry output differs per device, so **the device registry has to say so** (§4.6.1).
 
-**안전은 우선순위 목록의 1번이 아니라 목록 밖의 제약이다.** 목록에 넣는 순간 교환 가능한 것처럼 보이기 때문이다.
+**Safety is not item 1 on a priority list; it is a constraint outside the list.** The moment it goes on the list it looks exchangeable.
 
 ---
 
-## 3. 시스템 개관
+## 3. System overview
 
 ```
-                        사람 (연구자)
-                   목표 ↓        ↑ 승인 / 거절
+                        the person (researcher)
+                   goal ↓        ↑ approval / refusal
         ┌──────────────────────────────────────────┐
         │                                          │
   ┌─────┴─────────────┐                  ┌─────────┴─────────┐
-  │ 현미경 에이전트    │                  │ 시뮬레이션 에이전트│
-  │ 조건 설계 + 실행   │                  │ 파라미터 설계+실행 │
+  │ microscope agent  │                  │ simulation agent  │
+  │ condition design  │                  │ parameter design  │
+  │ + execution       │                  │ + execution       │
   └─────┬─────────────┘                  └─────────┬─────────┘
-        │  plan / result 카드                       │  plan / result 카드
+        │  plan / result cards                      │  plan / result cards
         └──────────────┐          ┌─────────────────┘
                        ▼          ▼
                   ┌──────────────────────┐
-                  │ 브리지                │  수송 · 단위 사상 검사
-                  │ (내용 창작 금지)      │  라운드/해시 관리
+                  │ bridge               │  transport · unit-mapping checks
+                  │ (may author nothing) │  round / hash management
                   └──────────────────────┘
 
         ▲ pull                                        ▲ pull
-        └───────────────  사서 (지식) ─────────────────┘
-              entries / distilled / sources — 시스템의 유일한 지식 저장소
-              MCP 서버로 노출 (읽기 전용, 무상태)
-              (먼저 말 걸지 않음, 요청에만 응답)
+        └──────────────  librarian (knowledge) ───────┘
+              entries / distilled / sources — the system's only knowledge store
+              exposed as an MCP server (read-only, stateless)
+              (never speaks first, answers only on request)
 
-  ※ 사람은 네 상자 어디든 직접 호출할 수 있다 (D5, §3.1).
+  ※ the person can call any of the four boxes directly (D5, §3.1).
 ```
 
-- **수평축**: 실험 ↔ 시뮬레이션. 오직 브리지를 통해서만 접촉한다. 직접 참조 금지.
-- **수직축**: 사람의 목표/승인이 내려오고, 계획/결과/거절이 올라간다.
-- **사서**: 양쪽이 당겨 쓰는 지식 계층. 호출자가 되지 않는다.
-- **직접 호출 경로**: 네 에이전트 모두 사람이 단독으로 부를 수 있는 입구를 갖는다. 브리지를 거치는 것은 **선택지이며 기본값이 아니다**(D5).
+- **Horizontal axis**: experiment ↔ simulation. They touch only through the bridge. Direct reference is forbidden.
+- **Vertical axis**: the person's goals and approvals come down; plans, results and refusals go up.
+- **Librarian**: the knowledge layer both sides pull from. It never becomes a caller.
+- **Direct-call paths**: all four agents have an entrance a person can use alone. Going through the bridge is **an option and not the default** (D5).
 
-### 3.1 독립 구동과 축소 모드 (D5, P11)
+### 3.1 Standalone operation and reduced mode (D5, P11)
 
-협업 상대가 없어도 멈추지 않는다. 대신 **무엇이 없는 상태로 일했는지를 카드에 적는다.**
+Nothing stops for want of a collaborator. Instead, **what it worked without is written into the card.**
 
-| 에이전트 | 단독 호출 시 | 무엇이 빠지는가 | 카드에 남는 표시 |
+| Agent | Called alone | What is missing | What the card records |
 |---|---|---|---|
-| 현미경 | 사람이 goal 카드를 직접 준다 → 조건 설계 → 승인 → 측정 | 사서 없으면 상수를 KB에서 당길 수 없고, 브리지 없으면 반대편 대조가 없다 | `degraded: [librarian]`, 해당 숫자는 `assumed` 또는 `spec` |
-| 시뮬레이션 | 사람이 goal 카드를 직접 준다 → 파라미터 설계 → 스모크런 → 본 실행 | 동일 | `degraded: [librarian, bridge]` |
-| 사서 | 사람이 직접 질의·증류를 시킨다 (지식 보관소 단독 사용) | 없음 — 사서는 원래 단독 도구로 완결된다 | — |
-| (MCP 서버 정지) | 각 에이전트는 `envelope/snapshot.*`만으로 진행 | 최신 지식·외부 검색 | `degraded: [librarian]` |
-| 브리지 | 사람이 양쪽 카드를 손으로 넣어 왕복시킨다 | 자동 트리거가 없다 | `trigger: human` |
+| microscope | the person supplies the goal card directly → condition design → approval → measurement | without the librarian, constants cannot be pulled from the KB; without the bridge, there is no comparison against the other side | `degraded: [librarian]`, the affected numbers are `assumed` or `spec` |
+| simulation | the person supplies the goal card directly → parameter design → smoke run → the real run | the same | `degraded: [librarian, bridge]` |
+| librarian | the person queries and distils directly (the knowledge store used alone) | nothing — the librarian is complete as a standalone tool | — |
+| (MCP server down) | each agent proceeds on `envelope/snapshot.*` alone | the latest knowledge, external search | `degraded: [librarian]` |
+| bridge | the person places both sides' cards by hand to make the round trip | there is no automatic trigger | `trigger: human` |
 
-규칙:
-1. **누구도 상대의 존재를 전제하지 않는다.** 상대 호출이 실패하면 거절이 아니라 **축소 모드 + 명시**로 진행한다.
-2. **축소 모드를 숨기지 않는다.** 검증기는 `degraded` 목록이 있는 카드를 통과시키되, 그 목록을 result 카드까지 전파하도록 강제한다.
-3. **단독 실행 결과도 1급 결과다.** thread 없이 만들어진 계획/결과도 같은 스키마와 같은 게이트를 지난다(§5.2의 `thread: solo-<id>`).
-4. **하드 의존은 `contracts/` 하나뿐이다.** 어떤 에이전트도 다른 에이전트의 디렉터리를 읽지 않으므로, 디렉터리 하나 + `contracts/`만 체크아웃해도 돌아간다.
+Rules:
+1. **Nobody presumes the other exists.** When a call to the other side fails, it proceeds as **reduced mode plus a statement**, not as a refusal.
+2. **Reduced mode is not hidden.** The validator passes a card carrying a `degraded` list, but forces that list to propagate all the way to the result card.
+3. **A standalone result is a first-class result.** A plan or result made without a thread passes the same schema and the same gate (`thread: solo-<id>` in §5.2).
+4. **There is exactly one hard dependency: `contracts/`.** No agent reads another agent's directory, so checking out one directory plus `contracts/` is enough to run.
 
 ---
+## 4. Agent specifications
 
-## 4. 에이전트 명세
+Each agent has **what it does / what it does not do / inputs / outputs / permissions / failure modes / standalone operation / definition of done**. "What it does not do" is the core output of this redesign.
 
-각 에이전트는 **하는 일 / 하지 않는 일 / 입력 / 출력 / 권한 / 실패 모드 / 독립 구동 / 완료 정의**를 갖는다. "하지 않는 일"이 이 재설계의 핵심 산출물이다.
+### 4.1 Microscope agent (`microscope_agent/`)
 
-### 4.1 현미경 에이전트 (`microscope_agent/`)
+**Responsibility in one sentence**: translate a given observation goal into conditions actually measurable on this instrument, and carry out the measurement under approval.
 
-**한 문장 책임**: 주어진 관측 목표를 이 장비에서 실제로 측정 가능한 조건으로 번역하고, 승인 하에 측정을 수행한다.
+**What it does**
+1. **Configuration choice**: find the candidate **system configurations (modalities)** that can yield the observable in `contracts/capabilities/`, and eliminate impossible configurations with numbers. **What to measure with is the first decision, and it comes before parameter search** (§1).
+2. **Back-calculating the requirement**: target uncertainty/resolution → the statistics needed (sample count, measurement length, repetitions).
+3. **Condition search**: propose conditions inside the operating envelope — source power, detector settings, frame rate/exposure time, measurement length, field of view and magnification, stage position and **travel speed**, temperature, sample concentration, and the parameters belonging to the chosen configuration (**number of traps and power per trap**, pinhole, DMD pattern, camera selection, and so on).
+4. **Stating the trade-offs**: SNR ↔ photodamage, temporal resolution ↔ noise, resolution ↔ field of view, statistics ↔ drift, and the trade-offs **between configurations**. The chosen point is written together with **the points and the configurations discarded.**
+5. **Writing the execution plan** → passing the validator → requesting approval → execution → raw data plus execution log.
+6. **Recording deviations afterwards**: the difference between planned and actual conditions, per run (drift, actual power, temperature variation, and so on).
 
-**하는 일**
-1. **구성 선택**: 그 관측량을 얻을 수 있는 **시스템 구성(모달리티)** 후보를 `contracts/capabilities/`에서 찾고, 불가능한 구성을 수치로 탈락시킨다. **무엇으로 측정할지가 첫 번째 결정이며, 파라미터 탐색보다 앞선다**(§1).
-2. **요구량 역산**: 목표 불확도/분해능 → 필요한 통계량(샘플 수, 측정 길이, 반복 수)을 계산한다.
-3. **조건 탐색**: 동작 한계(operating envelope) 안에서 조건을 제안한다 — 광원 출력, 검출 설정, 프레임레이트/노출시간, 측정 길이, 시야·배율, 스테이지 위치와 **이동 속도**, 온도, 시료 농도, 그리고 선택한 구성에 딸린 파라미터(**트랩 개수와 개당 출력**, 핀홀, DMD 패턴, 카메라 선택 등).
-4. **트레이드오프 명시**: SNR ↔ 광손상, 시간 분해능 ↔ 노이즈, 분해능 ↔ 시야, 통계량 ↔ 드리프트, 그리고 **구성 간** 트레이드오프. 선택한 지점과 **버린 지점·버린 구성**을 함께 적는다.
-5. **실행계획서 작성** → 검증기 통과 → 승인 요청 → 실행 → 원시데이터 + 실행 로그.
-6. **사후 편차 기록**: 계획한 조건 대 실제 조건의 차이를 런 단위로 남긴다. (드리프트, 실제 출력, 온도 변동 등)
+**What it does not do**
+- It does not decide what to research. Goals come only from a person or from the bridge.
+- It does not update the envelope or the calibration constants on its own. It reflects only the output of a separate, explicit calibration procedure.
+- It does not change hardware state without approval (§6 Tier 2).
+- It does not claim paper-level conclusions. It reports as far as the observable and its uncertainty.
+- It does not delete a failed run or quietly re-run it (P9).
+- **It does not build a knowledge store of its own.** A new fact coming out of a measurement leaves as a result card, and entering it into the KB is the librarian's job (P14).
 
-**하지 않는 일**
-- 무엇을 연구할지 정하지 않는다. 목표는 사람 또는 브리지에서만 온다.
-- envelope과 캘리브레이션 상수를 스스로 갱신하지 않는다. 별도의 명시적 캘리브레이션 절차의 출력만 반영한다.
-- 승인 없이 하드웨어 상태를 바꾸지 않는다(§6 Tier 2).
-- 논문 수준의 결론을 주장하지 않는다. 관측량과 불확도까지만 보고한다.
-- 실패한 런을 지우거나 조용히 재실행하지 않는다(P9).
-- **자기 지식 저장소를 만들지 않는다.** 측정에서 나온 새 사실은 result 카드로 내보내고 KB 등재는 사서에게 맡긴다(P14).
+**Inputs**: a goal card (person) or an ask_experiment card (bridge), `envelope/*.json`, librarian entries
+**Outputs**: `questions/<qid>/plan_microscope_<qid>.json` (the record, **configuration + parameters**) plus `.md` (for people), `runs/<run_id>/{raw/, log.json, deviations.json}`, a result or refusal card
 
-**입력**: goal 카드(사람) 또는 ask_experiment 카드(브리지), `envelope/*.json`, 사서 entries
-**출력**: `questions/<qid>/plan_microscope_<qid>.json`(정본, **구성 + 파라미터**) + `.md`(사람용), `runs/<run_id>/{raw/, log.json, deviations.json}`, result 또는 refusal 카드
+**Permissions**: Tier 0 autonomous / Tier 1 low-risk single measurement inside the envelope / Tier 2 human approval / Tier 3 forbidden (§6)
 
-**권한**: Tier 0 자율 / Tier 1 envelope 내 저위험 단발 측정 / Tier 2 사람 승인 / Tier 3 금지 (§6)
-
-**실패 모드와 대응**
-| 상황 | 대응 |
+**Failure modes and responses**
+| Situation | Response |
 |---|---|
-| 요구 조건이 envelope 밖 | **거절 카드**: 어느 수치가 어느 한계를 얼마나 넘는지 명시 |
-| 목표 불확도가 물리적으로 불가 | 필요한 측정 시간을 계산해 반례로 제시 후 거절 |
-| 필요한 캘리브레이션 상수가 KB에 없음 | 진행 중단, 캘리브레이션 선행 작업을 제안 (추정값으로 채우지 않음) |
-| 실행 중 편차가 허용범위 초과 | 정지 기준(stop criteria)에 따라 중단, 부분 결과를 편차와 함께 보고 |
+| The required condition is outside the envelope | **Refusal card**: state which value exceeds which limit and by how much |
+| The target uncertainty is physically impossible | Compute the measurement time it would need, present it as a counter-example, then refuse |
+| A needed calibration constant is not in the KB | Stop; propose calibration as prior work (do not fill it with an estimate) |
+| Deviation during execution exceeds tolerance | Stop per the stop criteria, report the partial result together with the deviation |
 
-**독립 구동**: 사서와 브리지가 없어도 사람의 goal 카드만으로 완결된다. KB에서 당기지 못한 상수는 `assumed`로 올리고 `degraded: [librarian]`을 남긴다. 장비와 envelope에 접근하는 유일한 에이전트이므로, 단독 모드에서도 §6 게이트는 그대로 적용된다.
+**Standalone operation**: complete on a person's goal card alone, with no librarian and no bridge. A constant that could not be pulled from the KB goes up as `assumed` and leaves `degraded: [librarian]`. Since it is the only agent touching the instrument and the envelope, the §6 gate applies unchanged in standalone mode.
 
-**완료 정의**: result 카드가 검증기를 통과하고, 그 안의 모든 숫자가 `run_id`로 추적 가능하다.
+**Definition of done**: the result card passes the validator, and every number in it is traceable by `run_id`.
 
 ---
 
-### 4.2 시뮬레이션 에이전트 (`simulation_agent/`)
+### 4.2 Simulation agent (`simulation_agent/`)
 
-**한 문장 책임**: 주어진 계산 목표를 안정적이고 예산 안에서 수렴하는 파라미터 집합으로 번역하고, 승인 하에 실행한다.
+**Responsibility in one sentence**: translate a given computational goal into a parameter set that is stable and converges inside budget, and run it under approval.
 
-**하는 일**
-1. **파라미터 설계**: 적분 시간간격, 총 스텝/물리 시간, 입자 수·밀도, 상호작용 파라미터, 온도, 마찰/확산계수, 박스 크기와 경계조건, 시드 수, 평형화 시간, 저장 간격.
-2. **제약 검사(코드로)**:
-   - 적분 안정성: 시간간격 ≪ 최단 특성시간
-   - 유한 크기: 박스 크기 vs 관련 상관길이
-   - 표본화: 저장 간격 vs 관측량의 시간 스케일 (에일리어싱 방지)
-   - 통계: 시드 수·궤적 길이 vs 목표 통계오차
-   - 예산: 예상 월클록·저장 용량 vs 허용치
-3. **평형화/정상상태 판정 기준을 사전에 선언**한다. 실행 후에 고르지 않는다.
-4. **실행계획서 → 검증 → (필요시 승인) → 스모크런 → 본 실행 → 결과 + 수렴 증거**.
+**What it does**
+1. **Parameter design**: integration timestep, total steps/physical time, particle count and density, interaction parameters, temperature, friction/diffusion coefficient, box size and boundary conditions, seed count, equilibration time, save interval.
+2. **Constraint checks (in code)**:
+   - Integration stability: timestep ≪ the shortest characteristic time
+   - Finite size: box size vs the relevant correlation length
+   - Sampling: save interval vs the observable's timescale (avoiding aliasing)
+   - Statistics: seed count and trajectory length vs the target statistical error
+   - Budget: expected wall clock and storage vs what is allowed
+3. **Declaring the equilibration/steady-state criterion in advance.** It is not chosen after the run.
+4. **Execution plan → validation → (approval if needed) → smoke run → the real run → results plus convergence evidence.**
 
-**하지 않는 일**
-- 모델 자체를 바꾸지 않는다. 포텐셜 형태·물리 모델 변경은 사람 승인이 필요한 별도 결정이다.
-- 실험 데이터에 맞추려고 파라미터를 몰래 역산하지 않는다. 피팅은 **명시적으로 요청된 작업일 때만**, 피팅임을 라벨링해서 한다.
-- 실패·발산한 런을 삭제하지 않는다. 발산도 결과다.
-- **자기 지식 저장소를 만들지 않는다.** 새 사실은 result 카드로 내보낸다(P14).
-- 예산을 넘는 잡을 스스로 제출하지 않는다.
+**What it does not do**
+- It does not change the model itself. Changing a potential form or a physical model is a separate decision requiring human approval.
+- It does not quietly back-fit parameters to match experimental data. Fitting happens **only when it is explicitly the requested task**, labelled as fitting.
+- It does not delete a failed or diverged run. Divergence is a result too.
+- **It does not build a knowledge store of its own.** New facts leave as result cards (P14).
+- It does not submit an over-budget job on its own.
 
-**입력**: goal 카드 또는 ask_simulation 카드, `envelope/budget.json`(자원 한계), 사서 entries
-**출력**: `questions/<qid>/plan_simulation_<qid>.json` + `.md`, `runs/<run_id>/{config, trajectory_meta, observables, log.json}`, result 또는 refusal 카드
+**Inputs**: a goal card or an ask_simulation card, `envelope/budget.json` (resource limits), librarian entries
+**Outputs**: `questions/<qid>/plan_simulation_<qid>.json` plus `.md`, `runs/<run_id>/{config, trajectory_meta, observables, log.json}`, a result or refusal card
 
-**권한**: Tier 0 자율 / Tier 1 스모크런·소규모 검증런 / Tier 2 예산 초과 잡·모델 변경 / Tier 3 금지
+**Permissions**: Tier 0 autonomous / Tier 1 smoke runs and small verification runs / Tier 2 over-budget jobs and model changes / Tier 3 forbidden
 
-**실패 모드와 대응**
-| 상황 | 대응 |
+**Failure modes and responses**
+| Situation | Response |
 |---|---|
-| 목표 정확도가 예산 안에서 불가능 | 필요 자원을 계산해 반례로 제시, 목표 완화안 1개 동봉 후 거절 |
-| 평형화 미달 | 부분 결과 폐기하지 않고 "미수렴" 라벨로 보고 |
-| 시드 간 분산이 목표보다 큼 | 추가 시드 수를 계산해서 후속 계획으로 제안 |
+| The target accuracy is impossible inside budget | Compute the resources needed, present them as a counter-example, enclose one relaxed-goal option, then refuse |
+| Equilibration not reached | Do not discard the partial result; report it labelled "not converged" |
+| Seed-to-seed variance larger than the target | Compute the additional seed count and propose it as follow-up work |
 
-**독립 구동**: 실험 쪽 입력 없이 사람의 goal 카드만으로 완결된다. 실험 대조가 필요했던 숫자는 `assumed`로 올리고 `degraded: [bridge]`를 남긴다. 장비 일정과 무관하게 돌아가는 것이 이 에이전트를 분리해 두는 이유다.
+**Standalone operation**: complete on a person's goal card alone, with no input from the experimental side. Numbers that needed an experimental comparison go up as `assumed` and leave `degraded: [bridge]`. Running independently of instrument scheduling is the reason this agent is kept separate.
 
-**완료 정의**: result 카드에 관측량 + 통계오차 + 수렴 증거가 있고, config 해시로 재실행이 가능하다.
+**Definition of done**: the result card carries the observable, the statistical error and convergence evidence, and the run can be repeated from the config hash.
 
 ---
+### 4.3 Librarian agent (`librarian_agent/`)
 
-### 4.3 사서 에이전트 (`librarian_agent/`)
+**Responsibility in one sentence**: hand the other agents the knowledge they need **now**, with its source, and where there is none, fetch it from outside, distil it and keep it.
 
-**한 문장 책임**: 다른 에이전트가 **지금** 필요한 지식을 출처와 함께 건네고, 없으면 외부에서 가져와 증류해 보관한다.
-
-**3계층 저장**
+**Three storage layers**
 ```
 kb/
-  sources/    원문 식별자 (DOI/URL/로컬 경로), 접근일, 라이선스 메모.
-              원문 전문 복제 금지 — 식별자와 국소 인용만 보관.
-  distilled/  사람이 읽는 증류 노트: 무엇을 주장하는가 / 어떤 조건에서 / 한계는 무엇인가.
-  entries/    원자적 주장 1개 = 파일 1개, 기계 판독.
-              {claim, numbers[(값,단위,출처)], validity_conditions,
+  sources/    source identifiers (DOI/URL/local path), access date, licence notes.
+              No reproduction of full text -- identifiers and local quotations only.
+  distilled/  human-readable distillation notes: what is claimed / under what conditions / what the limits are.
+  entries/    one atomic claim = one file, machine-readable.
+              {claim, numbers[(value,unit,source)], validity_conditions,
                confidence, source_ref, date, supersedes}
 ```
 
-**신뢰도는 §5.3의 E-등급을 그대로 쓴다.** 사서 전용 척도를 따로 두지 않는다 — 두 개의 눈금은 곧 두 개의 진실이 된다.
+**Confidence uses §5.3's E-grades as they are.** No separate librarian-only scale — two scales soon become two truths.
 
-**E3 안의 서열** (인용 우선순위): `peer_reviewed` → `textbook` → `vendor_spec` → `preprint`. 등급은 넷 다 E3이고 태그로만 갈린다 — 같은 값을 두 문헌이 다르게 말하면 이 순서로 인용하되, **둘 다 보관하고 `conflict_with`로 묶는다.**
+**The ordering inside E3** (citation priority): `peer_reviewed` → `textbook` → `vendor_spec` → `preprint`. All four are grade E3 and are separated only by tag — when two sources state the same value differently, cite in this order but **keep both and tie them with `conflict_with`.**
 
-preprint가 마지막인 이유는 동료심사를 거치지 않았다는 것 하나다. 벤더 명세가 교과서보다 뒤인 이유는 다르다 — 벤더는 자기 장비에 유리한 조건에서 측정한다.
+The reason preprint is last is one thing: it has not been peer-reviewed. The reason a vendor spec sits below a textbook is different — a vendor measures under conditions favourable to its own instrument.
 
-**일반 검색 결과는 entry가 될 수 없다.** 위 네 종류가 아닌 출처(블로그, 포럼, 요약 페이지, 모델 응답)는 **무엇을 찾아볼지 알려주는 단서로만** 쓰고, 그것을 따라가 위 네 종류에 도달했을 때만 등재한다. 도달하지 못하면 등재하지 않는다.
+**A general search result cannot become an entry.** A source outside those four kinds (a blog, a forum, a summary page, a model's answer) is used **only as a clue about what to look up**, and is entered only when following it reaches one of the four. If it does not, it is not entered.
 
-**정말 없으면 사람에게 묻는다.** 네 종류에서 찾지 못한 값은 추정으로 채우지 않고 `gaps`에 올린 뒤, **어디를 찾아봤는지 명시해서** 사람에게 확인을 요청한다. 사람이 답을 주면 그 출처로 등재하고, 못 주면 그 값은 E5 추정으로 남으며 계획이 그 사실을 안고 간다.
+**When it genuinely is not there, ask the person.** A value not found in the four kinds is not filled in by estimate; it goes into `gaps` and then the person is asked to confirm, **stating where it was looked for.** If the person supplies an answer it is entered with that source; if not, the value stays an E5 estimate and the plan carries that fact with it.
 
-**E6(모델 추측)은 KB에 들어갈 수 없다.** 대화 안에서만 쓰고, 쓸 때 라벨을 붙인다.
+**E6 (a model's guess) cannot enter the KB.** It is used only inside a conversation, and labelled when used.
 
-**하는 일**
-1. **컨텍스트 기반 제공**: 요청 컨텍스트(관측량 + 조건 범위)를 받아 관련 entry만 돌려준다. 관련 없는 지식을 쏟아붓지 않는다.
-2. **없으면 "없음"이라고 답한다.** 추측으로 빈칸을 채우지 않는다. 그 다음에 외부 검색을 제안한다.
-3. **외부 검색 → 증류 → 보관**: 출처 확인 후 3계층에 나눠 저장. 증류는 요약이 아니라 **주장 단위 분해**다.
-4. **충돌 보존**: 상충하는 주장은 임의로 병합하지 않고 둘 다 보관하며 `conflict` 표시와 조건 차이를 기록한다.
-5. **갱신**: 새 측정이 기존 entry를 뒤집으면 `supersedes`로 연결한다. 옛 entry는 지우지 않는다.
+**What it does**
+1. **Context-based supply**: given the request context (observable plus condition range), return only the relevant entries. It does not dump unrelated knowledge.
+2. **When there is none, it answers "none".** It does not fill a blank with a guess. It then proposes an external search.
+3. **External search → distillation → storage**: after confirming the source, store it across the three layers. Distillation is not summarising but **decomposition into claims.**
+4. **Conflict preservation**: conflicting claims are not merged arbitrarily; both are kept, marked `conflict`, with the difference in conditions recorded.
+5. **Updating**: when a new measurement overturns an existing entry, link them with `supersedes`. The old entry is not deleted.
 
-**하지 않는 일**
-- 실험/시뮬레이션 조건을 정하지 않는다. 숫자를 제공할 뿐 선택하지 않는다.
-- 값을 보간·외삽·평균내지 않는다. 그건 사용하는 에이전트의 판단이며 그 판단은 계획서에 기록된다.
-- 다른 에이전트에게 먼저 말 걸지 않는다(P7, pull-only).
-- 유료·저작권 보호 자료의 접근 제한을 우회하지 않는다. 접근 불가는 접근 불가로 기록한다.
+**What it does not do**
+- It does not set experimental or simulation conditions. It supplies numbers; it does not choose them.
+- It does not interpolate, extrapolate or average values. That is the judgement of the agent using them, and that judgement is recorded in the plan.
+- It does not speak to another agent first (P7, pull-only).
+- It does not bypass access restrictions on paid or copyrighted material. Inaccessible is recorded as inaccessible.
 
-**입력**: query `{observable, condition_range, requester, purpose}`
-**출력**: `{entries: [...], gaps: [...], grade_summary}` — **gaps가 비어 있지 않은 응답이 정상**이다.
+**Input**: a query `{observable, condition_range, requester, purpose}`
+**Output**: `{entries: [...], gaps: [...], grade_summary}` — **a response whose gaps are non-empty is the normal case.**
 
-#### 4.3.0 저장소와 서비스는 다른 것이다 (§9)
+#### 4.3.0 A store and a service are different things (§9)
 
-**사서는 두 가지다: 지식 저장소와 그 위의 서비스.** 저장소는 M0 시점부터 사람이 큐레이션하는 형태로 있었고, 서비스가 M3다. 2026-09-17에 실행 순서가 바뀌어 M3이 첫 번째가 됐지만(§9), **구분 자체는 순서와 무관하다** — 서비스가 생겨도 큐레이션은 사람의 일로 남는다.
+**The librarian is two things: a knowledge store, and a service on top of it.** The store has existed since M0 in a form a person curates; the service is M3. On 2026-09-17 the execution order changed and M3 became first (§9), but **the distinction itself is independent of order** — curation stays a person's job even once the service exists.
 
-| | 저장소 (M0부터) | 서비스 (M3, 실행 순서 1번) |
+| | Store (from M0) | Service (M3, first in execution order) |
 |---|---|---|
-| 무엇 | `kb/entries/`, `kb/sources/`, `kb/distilled/`, `kb/index.json` | MCP 서버, 컨텍스트 질의, `gaps` 산출, 증류, 외부 검색, 충돌 탐지, 스냅샷 내보내기 |
-| 누가 쓰나 | **사람이 손으로 큐레이션한다** (`curated_by`) | 사서 에이전트. 다만 **entry 등재는 사서 세션 안에서만** — 서비스가 노출하는 것은 읽기뿐이다(§4.3.1) |
-| 누가 읽나 | 에이전트가 파일을 직접 읽고 `kb:` 출처로 인용 | `kb_query` 호출. **직접 읽기는 없어지지 않는다** — MCP가 죽어도 저장소는 읽힌다 |
-| 정본 | entry 파일. `index.json`은 생성물이다 | 동일 |
+| What | `kb/entries/`, `kb/sources/`, `kb/distilled/`, `kb/index.json` | MCP server, context queries, producing `gaps`, distillation, external search, conflict detection, snapshot export |
+| Who writes it | **a person curates it by hand** (`curated_by`) | the librarian agent. But **entering an entry happens only inside the librarian's session** — what the service exposes is reading only (§4.3.1) |
+| Who reads it | agents read the files directly and cite with a `kb:` source | calling `kb_query`. **Direct reading does not go away** — the store is readable even with MCP dead |
+| Record | the entry files. `index.json` is generated | the same |
 
-**저장소만 있어도 등급 체계는 작동한다.** `kb_version`은 entry 전체의 내용 해시이고, 카드가 `kb:<entry_id>`를 인용하면 검증기가 **저장소와 대조해** 등급을 확인한다(검사 21·25). 즉 "문헌값을 인용했다"는 주장이 저장소 없이는 자기 신고였지만, 저장소가 있으면 검사 대상이 된다.
+**The grade system works with the store alone.** `kb_version` is a content hash over all entries, and when a card cites `kb:<entry_id>` the validator confirms the grade **against the store** (checks 21 and 25). That is: "I cited a literature value" was self-reported without the store, and with the store it becomes checkable.
 
-**서비스가 없을 때 실제로 잃는 것**은 값이 아니라 **빈칸의 발견**이다: 무엇이 KB에 없는지(`gaps`), 어떤 주장이 서로 어긋나는지(`conflict`), 외부에 답이 있는지를 알 수 없다. 그래서 사서에 닿지 못한 카드는 `degraded: ["librarian_agent"]`를 달되, 그 뜻은 "문헌값이 없다"가 아니라 **"무엇을 놓쳤는지 모른다"** 다.
+**What is actually lost without the service** is not values but **the discovery of blanks**: what is not in the KB (`gaps`), which claims contradict each other (`conflict`), and whether an answer exists outside. So a card that did not reach the librarian carries `degraded: ["librarian_agent"]`, and its meaning is not "there is no literature value" but **"we do not know what was missed."**
 
-**그 상태는 한시적이 아니다.** 원래 순서에서는 M1–M2 동안의 과도기였지만, 재배열 뒤에도 **MCP 서버가 내려간 모든 순간의 상태**로 남는다(§3.1). 그래서 M1·M2의 완료 조건이 그 상태를 한 번씩 강제로 지나가게 한다(§9) — 지나가 본 적 없는 분기는 있는 분기가 아니다.
+**That state is not temporary.** In the original order it was the interregnum during M1–M2, but after the reordering it remains **the state at every moment the MCP server is down** (§3.1). So the completion conditions of M1 and M2 force a pass through that state once each (§9) — a branch nobody has walked is not a branch that exists.
 
-#### 4.3.1 인터페이스 — MCP 서버 (D9, M3)
+#### 4.3.1 Interface — the MCP server (D9, M3)
 
-사서는 **MCP 서버**로 구현한다(`librarian_agent/src/mcp_server.py`). 서브에이전트가 파일 왕복 없이 바로 질의할 수 있어야 S3의 팬아웃(구성 × 축, 최대 21개)이 실용적인 속도를 갖는다.
+The librarian is implemented as an **MCP server** (`librarian_agent/src/mcp_server.py`). Subagents have to be able to query it directly, without a file round-trip, for S3's fan-out (configuration × axis, up to 21) to have a practical speed.
 
-**노출하는 도구는 읽기뿐이다:**
+**The tools it exposes are read-only:**
 
-| 도구 | 하는 일 | 누가 쓰나 |
+| Tool | What it does | Who uses it |
 |---|---|---|
-| `kb_query(caller_id, kb_version, observable, condition_range, purpose)` | 관련 entry + `gaps` + `grade_summary` | S2, S3 서브에이전트, operator |
-| `kb_get(caller_id, kb_version, entry_id)` | entry 하나를 원문 그대로 | **질문 안의** 누구나 |
-| `kb_conflicts(caller_id, kb_version, topic)` | 상충하는 주장 쌍 | S3 |
-| `kb_group(caller_id, kb_version, symbol)` | 무차원군 하나의 정의식·입력·유효 조건 | S3 (§5.7), 검사 36의 대조 경로 |
+| `kb_query(caller_id, kb_version, observable, condition_range, purpose)` | relevant entries + `gaps` + `grade_summary` | S2, S3 subagents, the operator |
+| `kb_get(caller_id, kb_version, entry_id)` | one entry, verbatim | anyone **inside the question** |
+| `kb_conflicts(caller_id, kb_version, topic)` | pairs of conflicting claims | S3 |
+| `kb_group(caller_id, kb_version, symbol)` | one dimensionless group's defining expression, inputs and validity | S3 (§5.7), check 36's comparison path |
 
-**이 표가 정본이고, 서버가 노출하는 와이어 이름이 여기 맞춰진다.** 2026-09-18에 같은 표를 `contracts/`에 한 벌 더 두자는 제안이 올라왔고 제가 받았다가 되돌렸다 — 근거는 "실행석이 서명을 알려면 `mcp_server.py`를 읽어야 한다"였는데 **이 표가 이미 인자까지 적고 있어서 전제가 틀렸다.** 뒀으면 같은 표가 두 곳에서 갈라졌을 것이고, 그것은 §11-11이 세고 있는 바로 그 형태다. 서버의 와이어 이름이 MCP 관례로 접두사를 달아 이 표와 어긋나면 **계약이 없는 것이 아니라 서버가 계약에서 벗어난 것**이고, 맞추는 방향은 서버 쪽이다.
+**This table is the record, and the server's wire names are matched to it.** On 2026-09-18 a proposal came up to keep a second copy of this table in `contracts/`, and I accepted it and then reversed — the argument was "an execution seat has to read `mcp_server.py` to learn the signatures", and **the premise was wrong because this table already writes the arguments down.** Had it stayed, the same table would have diverged in two places, which is exactly the shape §11-11 counts. If the server's wire names take an MCP-conventional prefix and diverge from this table, **it is not that there is no contract but that the server departed from it**, and the side that moves is the server.
 
-**네 번째가 왜 필요한가** (§11-5의 답): 무차원군은 **기호로 찾는다.** `kb_query`는 관측량과 조건 범위로 찾아 값을 돌려주지만, S3·S4가 `k*`나 `τ_D`를 물을 때 원하는 것은 값이 아니라 **정의식**이고(§5.7), 조건 범위는 질의어가 아니다. `kb_get`은 `entry_id`를 이미 알아야 하는데 기호에서 id로 가는 길은 색인에만 있다. 남은 선택은 `kb_query`가 인자에 따라 값 또는 정의식을 돌려주게 만드는 것인데, **반환 모양이 인자에 따라 바뀌는 도구는 호출하는 쪽마다 분기를 낳는다.** 도구를 하나 더 두는 편이 싸다. 검사 36도 같은 조회를 필요로 하므로 이 도구가 그 대조 경로가 된다.
+**Why a fourth is needed** (the answer to §11-5): a dimensionless group **is looked up by symbol.** `kb_query` searches by observable and condition range and returns a value, but when S3 and S4 ask about `k*` or `τ_D` what they want is not a value but **the defining expression** (§5.7), and a condition range is not the query term. `kb_get` requires already knowing the `entry_id`, and the route from symbol to id exists only in the index. The remaining option is making `kb_query` return either a value or a definition depending on its arguments, and **a tool whose return shape changes with its arguments produces a branch in every caller.** One more tool is cheaper. Check 36 needs the same lookup, so this tool becomes its comparison path.
 
-**쓰기 도구는 노출하지 않는다.** 외부 검색, 증류, entry 작성·폐기는 사서 세션 안에서만 일어난다. 서브에이전트가 KB에 쓸 수 있으면 증류되지 않은 값이 곧바로 정본이 된다.
+**No write tools are exposed.** External search, distillation, and writing or retiring entries happen only inside the librarian's session. If a subagent can write to the KB, an undistilled value becomes the record immediately.
 
-**`condition_range`는 구간의 map이다.** 정본 물리 단위로 적는다(D7):
+**`condition_range` is a map of intervals.** It is written in the physical units of record (D7):
 
 ```
 condition_range = {
@@ -377,16 +382,16 @@ condition_range = {
 }
 ```
 
-대응하는 쪽은 entry의 유효 조건이며 **같은 모양이어야 한다.** 그래서 M3의 첫 작업은 서버가 아니라 스키마다: 지금 `validity_conditions`는 산문이고(`minLength: 10`) **산문은 대조할 수 없다.** 기계 판독 `validity`를 나란히 두고 산문은 사람을 위해 남긴다 — 둘 중 정본은 `validity`다(P3). 산문만 있는 기존 entry는 `validity`가 채워질 때까지 조건 질의에 걸리지 않고 `unconstrained`로 돌아온다. 조용히 통과시키는 것보다 낫다.
+What it is matched against is an entry's validity conditions, and **they have to be the same shape.** So M3's first task is not the server but the schema: today `validity_conditions` is prose (`minLength: 10`), and **prose cannot be compared.** A machine-readable `validity` goes beside it and the prose stays for people — of the two, `validity` is the record (P3). An existing entry with prose only does not match a condition query until `validity` is filled, and comes back as `unconstrained`. That is better than passing it quietly.
 
-**대조 규칙 넷.** 사서는 값을 고르지 않고 **덮는지 아닌지만** 말한다(§4.3 "하지 않는 일"):
+**Four comparison rules.** The librarian does not choose values; it says **only whether something is covered** (§4.3, "what it does not do"):
 
-1. **덮으면 돌려준다.** entry의 `validity`가 질의 구간을 전부 포함하면 `overlap: "full"`.
-2. **겹치기만 하면 겹친다고 말한다.** 부분 교집합이면 `overlap: "partial"`과 **덮이지 않은 부분**을 함께 돌려준다. 잘라내거나 외삽하지 않는다 — 그 판단은 쓰는 쪽의 것이고 그 판단은 계획서에 기록된다.
-3. **침묵은 두 가지이고 결과가 다르므로 이름도 둘이다.** 질의가 물었는데 entry가 그 양에 의견이 없으면 `unconstrained`다 — 그 entry는 그 축을 제한하지 않으니 무해하다. **entry가 제한하는데 질의가 그 양을 말하지 않았으면 `unasked`다** — 이쪽이 위험한 쪽이고, 호출자가 자기가 고려하지 않은 조건 밖에서 그 값을 쓰고 있을 수 있다는 뜻이다. 어느 쪽도 만족으로 치지 않는다: 침묵을 충족으로 읽으면 유효 조건이 없는 것과 같아진다. **2026-09-18까지 이 규칙은 위험한 쪽을 `unconstrained`라고 불렀고**, 그래서 계약대로 구현한 호출자는 경고를 무해한 집합에서 찾고 "걱정할 것 없음"을 읽었을 것이다 — 규칙의 취지가 이름 하나로 정확히 뒤집히는 경우였다. **구현이 맞고 명세가 틀렸다**(`a9df017`의 `match()`가 둘을 이미 갈라 두었다). 그리고 `overlap` 값 쪽의 `unconstrained`는 **`no_overlap`으로 바꾼다** — 한 응답 안에서 같은 단어가 overlap 값과 필드 이름 두 자리에 있으면 §4.5.2.1이 적은 그 충돌이고, `no_overlap`은 자기 대상을 말 안에 갖는다.
-4. **단위는 차원이 같을 때만 변환한다.** `units.json`이 정본이고(§5.7), 차원이 다르면 변환하지 않고 거절한다.
+1. **Covered, so return it.** When an entry's `validity` contains the whole query interval, `overlap: "full"`.
+2. **Merely overlapping, so say it overlaps.** On a partial intersection, return `overlap: "partial"` together with **the part not covered.** Do not clip and do not extrapolate — that judgement belongs to the user of the value, and that judgement is recorded in the plan.
+3. **Silence is two things with different consequences, so it has two names.** When the query asked and the entry has no opinion on that quantity, it is `unconstrained` — that entry does not constrain that axis, so it is harmless. **When the entry constrains and the query did not mention that quantity, it is `unasked`** — that is the dangerous one, meaning the caller may be using the value outside a condition it never considered. Neither counts as satisfaction: reading silence as satisfied is the same as having no validity conditions at all. **Until 2026-09-18 this rule called the dangerous one `unconstrained`**, so a caller implementing the contract faithfully would have looked for the warning in the harmless set and read "nothing to worry about" — a case where a rule's intent is inverted exactly by one name. **The implementation was right and the specification was wrong** (`match()` in `a9df017` had already separated the two). And the `unconstrained` on the `overlap` side **becomes `no_overlap`** — the same word in two positions within one response, as an overlap value and as a field name, is the collision §4.5.2.1 records, and `no_overlap` carries its own subject inside the word.
+4. **Units convert only when the dimensions match.** `units.json` is the record (§5.7), and where dimensions differ it does not convert, it refuses.
 
-**`gaps`의 모양.** §4.3은 "어디를 찾아봤는지 명시해서" 올리라고 요구한다. 그 요구가 곧 필드다:
+**The shape of `gaps`.** §4.3 requires them raised "stating where it was looked for". That requirement is the field:
 
 ```
 gap = {
@@ -401,617 +406,611 @@ gap = {
 }
 ```
 
-`kind`가 넷인 이유는 **다음에 할 일이 넷 다 다르기** 때문이다:
+`kind` has four values because **what to do next differs in all four cases**:
 
-| kind | 뜻 | 다음에 할 일 |
+| kind | Meaning | What to do next |
 |---|---|---|
-| `absent` | 그 관측량에 대한 주장이 아예 없다 | 외부 검색, 그래도 없으면 사람에게 |
-| `condition_mismatch` | 주장은 있으나 이 조건을 덮지 않는다 | 다른 조건의 문헌을 찾거나, 쓰는 쪽이 외삽을 가정으로 기록 |
-| `inaccessible` | 출처를 찾았으나 접근할 수 없다 (유료·제한) | 사람에게. **우회하지 않는다**(§4.3) |
-| `unqualified_source` | 단서는 있었으나 §4.3의 네 종류에 도달하지 못했다 | 등재하지 않는다. 단서를 `searched`에 남겨 다음 사람이 같은 길을 다시 걷지 않게 한다 |
+| `absent` | there is no claim at all about that observable | external search, and if still nothing, the person |
+| `condition_mismatch` | a claim exists but does not cover this condition | find literature at other conditions, or have the user record the extrapolation as an assumption |
+| `inaccessible` | a source was found but cannot be accessed (paywalled, restricted) | the person. **Do not bypass** (§4.3) |
+| `unqualified_source` | there was a clue but it did not reach one of §4.3's four kinds | do not enter it. Leave the clue in `searched` so the next person does not walk the same path again |
 
-**`searched`가 빈 gap은 gap이 아니다.** 찾아보지 않은 것과 없는 것은 다르고, 이 필드가 그 둘을 가른다. `nearest`도 같은 일을 한다 — "비슷한 것이 아무것도 없다"와 "있는데 온도가 다르다"는 다음 행동이 다르다.
+**A gap with an empty `searched` is not a gap.** Not having looked and there not being one are different, and this field separates them. `nearest` does the same job — "there is nothing similar" and "there is one but at a different temperature" lead to different next actions.
 
-**`grade_summary`는 편의값이다.** 돌려준 entry들의 등급 개수와 최악 등급을 요약할 뿐이고, 정본은 각 entry의 `grade`다. **카드는 `grade_summary`를 인용하지 않는다** — 요약을 인용하면 어느 숫자가 어느 등급이었는지가 사라진다.
+**`grade_summary` is a convenience value.** It merely summarises the grade counts and the worst grade among the returned entries; the record is each entry's own `grade`. **A card does not cite `grade_summary`** — citing the summary loses which number had which grade.
 
-**상태는 `caller_id` 단위로 격리한다.** 서버가 완전히 무상태일 필요는 없다 — 격리 단위만 맞으면 된다. 다만 **그 단위가 `qid`면 안 된다.** 누출이 일어나는 곳이 바로 같은 `qid`를 공유하는 형제들 사이이기 때문이다.
+**State is isolated per `caller_id`.** The server does not have to be fully stateless — it only has to get the isolation unit right. But **that unit must not be `qid`.** The leak happens precisely between siblings sharing one `qid`.
 
-**축이 아닌 호출자에게도 형태가 있어야 한다**(2026-09-19). 위 도구 표가 소비자로 **S2·S3 서브에이전트·operator·S4**를 적는데 형식은 `<config>:<axis>`뿐이었다 — **S2·S4·operator는 축이 없으므로 규격에 맞는 id를 만들 수 없었다.** 그러면 그 세 자리가 낸 카드의 `degraded: []`는 **원리적으로 뒷받침될 수 없고**, 그것을 검사하려는 시도가 "축 카드만 덮고 나머지는 못 덮는다"로 끝난다. 이 절이 소비자 넷을 적어 두고 형식은 하나만 준 것이므로 §11-11이 세는 그 모양이다 — 한 사실이 두 자리에 살고 갈라졌다. 시뮬레이션 매니저가 검사 45를 설계하다 찾았다.
+**A caller that is not an axis needs a form too** (2026-09-19). The tool table above lists **S2, S3 subagents, the operator and S4** as consumers, while the format was only `<config>:<axis>` — **S2, S4 and the operator have no axis, so they could not construct a conforming id.** Then `degraded: []` on a card issued by those three **cannot be supported in principle**, and an attempt to check it ends as "covers axis cards only and nothing else". This subsection wrote down four consumers and gave one format, so it is the shape §11-11 counts — one fact living in two places and diverging. The simulation manager found it while designing check 45.
+**S4 is not in this table — §4.5.4 forbids it to query** (corrected 2026-09-19). This table listed S4 as a consumer of `kb_conflicts` and `kb_group`, and §4.5.4 rule 4 says "it does not query for new facts. S4 **only combines**." **Two subsections were saying different things** — the sixth shape today, and unlike the previous five: it is not one sentence meaning two things but **two subsections in conflict.**
 
-**S4는 이 표에 없다 — §4.5.4가 조회를 금지한다**(2026-09-19 정정). 이 표는 `kb_conflicts`와 `kb_group`의 소비자로 S4를 적고 있었고, §4.5.4 규칙 4는 "새 사실을 조회하지 않는다. S4는 **조합만** 한다"고 말한다. **두 절이 서로 다른 것을 말하고 있었다** — 오늘 여섯 번째 모양인데 앞의 다섯과 다르다: 한 문장이 두 뜻인 것이 아니라 **두 절이 충돌**한다.
+**§4.5.4 wins, because it carries its reason and its alternative** — *once synthesis starts querying, S3's parallel independence becomes meaningless and one final agent ends up re-judging everything alone*, and *if more knowledge is needed, go back to S3, and that is a new revision (P9)*. This table merely enumerated consumers, with no reason. **The side holding a reason beats the side holding a list.**
 
-**§4.5.4가 이긴다. 이유와 대안을 함께 들고 있기 때문이다** — *종합이 조회를 시작하면 S3의 병렬 독립성이 무의미해지고 마지막 한 에이전트가 모든 것을 혼자 다시 판단하게 된다*, 그리고 *지식이 더 필요하면 S3로 돌아가고 그것은 새 리비전이다(P9)*. 이 표는 소비자를 열거할 뿐 이유가 없었다. **근거를 든 쪽이 목록을 든 쪽을 이긴다.**
+**So `s4` came out of the `caller_id` grammar too — which I had put in the same day.** Widening to non-axis callers, I took this table as the grounds, and that table happened to be the wrong side. A seat that does not query does not appear in the log, so it needs no id.
 
-**그래서 `caller_id` 문법에서 `s4`도 뺐다 — 같은 날 제가 넣은 것이다.** 축 아닌 호출자를 넓히면서 이 표를 근거로 삼았는데 하필 그 표가 틀린 쪽이었다. 조회하지 않는 자리는 로그에 나타나지 않으므로 id가 필요 없다.
+**`kb_get`'s "anyone" was narrowed to "anyone inside the question" as well.** A manager looking around is not any card's evidence, and permitting it makes **the log an access record rather than evidence.** That is why the simulation manager did not call the tools even though they came up in its session today — a manager has no axis and no qid, so it would have had to **invent** an id, which is exactly the thing this subsection's clause exists to prevent.
 
-**`kb_get`의 "누구나"도 "질문 안의 누구나"로 좁혔다.** 매니저가 둘러보는 것은 어느 카드의 증거도 아니고, 허용하면 **로그가 증거가 아니라 접속 기록**이 된다. 시뮬레이션 매니저가 오늘 자기 세션에 도구가 떴는데도 부르지 않은 이유가 이것이었다 — 매니저에게는 축도 qid도 없어 id를 **지어내야** 했고, 그것이 이 절이 사칭을 막으려고 둔 조항 그 자체다.
+**A consequence: synthesis does not decide its own `degraded`; it inherits it from the input axes.** It does not query, so it cannot know on its own. If even one axis is in reduced mode the synthesis is too, and the propagation runs axis → synthesis → plan (check 10). The example chain already behaves that way — **the rule is catching up with the observation.**
 
-**따라오는 것: synthesis는 `degraded`를 스스로 정하지 않고 입력 축들에서 물려받는다.** 조회하지 않으므로 자기가 알 수 없다. 축 하나라도 축소 모드면 종합도 축소 모드이고, 전파는 축 → synthesis → plan으로 이어진다(검사 10). 지금 예시 사슬이 이미 그렇게 동작하고 있다 — **규칙이 관찰을 따라잡는 것이다.**
+**Which cards need a `caller_id` field is decided by this too**: goal (S2 queries) and result (the operator queries) have one, and **synthesis does not.**
 
-**`caller_id` 필드가 필요한 카드도 이것으로 갈린다**: goal(S2가 조회한다)과 result(operator가 조회한다)는 가지고, **synthesis는 갖지 않는다.**
+**The bridge has a form too — and omitting it is the fifth instance of the same defect** (2026-09-19). The same day "four consumers listed and one format given" was fixed, and **the fixed grammar counted four again and left the bridge out.** The reason the bridge is not in this subsection's table is not that it does not use the librarian but **that the requirement is written in §4.4 rule 5** — if the same observable at the same conditions has already crossed, do not open a round, point at a knowledge item. When a consumer list lives in one subsection and one consumer is declared in another, whoever edits the list does not count them (§11-11).
 
-**브리지에게도 형태가 있다 — 그리고 이것을 빠뜨린 것이 같은 결함의 다섯째다**(2026-09-19). 같은 날 "소비자 넷을 적고 형식은 하나만 줬다"를 고쳤는데, **고친 문법이 다시 넷을 세면서 브리지를 빠뜨렸다.** 브리지가 이 절의 표에 없는 이유가 "사서를 안 쓴다"가 아니라 **그 요구가 §4.4 규칙 5에 적혀 있기 때문**이다 — 같은 관측량이 같은 조건으로 이미 건넜으면 라운드를 열지 말고 지식 항목을 가리키라는 것. 소비자 목록이 한 절에 있고 소비자 하나가 다른 절에서 선언되면, 목록을 고치는 사람이 그를 세지 않는다(§11-11).
+**The bridge's isolation unit is not a question but a thread and a round.** `bridge:<thread>:r<N>`. There is a reason it cannot hang off `<qid>` — **one thread moves between two `qid`s** (one on each side). And the `bridge:` prefix exists so that a parser separates them without knowing the namespace.
 
-**브리지의 격리 단위는 질문이 아니라 스레드와 라운드다.** `bridge:<thread>:r<N>`. `<qid>`로 매달 수 없는 이유가 있다 — **한 스레드는 두 `qid`를 오간다**(양쪽 각각). 그리고 `bridge:` 접두를 붙이는 것은 파서가 이름공간을 몰라도 갈리게 하기 위해서다.
+**So this table is the only home for consumers.** §4.4 says the librarian is needed but **does not declare itself a consumer**; it points here. Two lists means only one of them gets fixed.
 
-**그래서 이 표가 소비자의 유일한 자리다.** §4.4는 사서가 필요하다고 말하되 **소비자로 자기를 선언하지 않고** 이 표를 가리킨다. 목록이 둘이면 한쪽만 고쳐진다.
+**And a window is open between declaration and passage**: `axis.schema.json`'s pattern still accepts only the axis form, so `s2`, `operator` and `bridge:…` are **declared and refused by the server.** The format is this subsection's, so the declaration had to come first. **And closing it needs three places — my writing "two" was one short**: adding the format is this subsection, letting a card carry it is the manager's schema, and **letting the call pass is the librarian's server.** On 2026-09-19 the server refused an id the schema accepted — because the server held its own copy of the pattern, and while consolidating two copies into one the day before, **the third copy, the one that decides whether a call succeeds, was missed and it was written down as "now one place".** It is closed now, with the server reading `common.schema.json#/$defs/caller_id` — closing the class rather than the instance.
 
-**그리고 선언과 통과 사이에 창이 열려 있다**: `axis.schema.json`의 패턴이 아직 축 형태만 받으므로 `s2`·`operator`·`bridge:…`는 **선언돼 있고 서버가 거절한다.** 형식이 이 절의 것이라 선언이 먼저일 수밖에 없었다. **그리고 닫는 데 세 곳이 필요하다 — 제가 두 곳이라고 적었던 것이 한 칸 짧았다**: 형식을 더하는 것은 이 절이고, 카드가 그것을 실을 수 있게 하는 것은 매니저의 스키마이며, **호출이 통과하게 하는 것은 사서의 서버다.** 2026-09-19에 스키마가 받는 id를 서버가 거절했다 — 서버가 자기 패턴 사본을 들고 있었기 때문이고, 전날 사본 둘을 하나로 모으면서 **호출의 성패를 정하는 셋째 사본을 놓친 채 "이제 한 곳"이라고 적혔다.** 지금은 서버가 `common.schema.json#/$defs/caller_id`를 읽어 닫혔다 — 인스턴스가 아니라 부류를 닫는 쪽이다.
+**Two of the three being right still refuses the call, and that state is invisible in the log** — a refused call leaves no line in `queries/log.jsonl`, so the only symptom is "that seat stays degraded". So `degraded: ["librarian_agent"]` has **two causes**: the tools being absent (the window was launched wrongly; a restart fixes it) and the tools being present and refusing (the contract does not match; a restart does not fix it). Same marking, different cause. **Since a refused call leaves not even a line**, the queries from those seats have no trace at all during that time — which is why knowing the window is open matters.
 
-**셋 중 둘만 맞아도 호출은 거절되고, 그 상태는 로그에서 보이지 않는다** — 거절된 호출은 `queries/log.jsonl`에 줄을 남기지 않으므로 증상이 "그 자리가 계속 degraded"뿐이다. 그래서 `degraded: ["librarian_agent"]`에는 **원인이 둘**이다: 도구가 없는 것(창을 잘못 띄운 것, 재시작으로 고쳐진다)과 도구가 있는데 거절당하는 것(계약이 안 맞는 것, 재시작으로 안 고쳐진다). 같은 표시에 다른 원인이다. **거절된 호출은 로그에 줄도 남기지 않으므로** 그동안 그 자리들의 질의는 흔적조차 없다 — 창이 열려 있다는 것을 아는 것이 그래서 중요하다.
+**Closing that window revealed that two copies had already diverged** (`71da178`). The `caller_id` pattern existed in the `axis` and `screening` schemas separately, and **the screening one had no `(:v[0-9]+)?`** — the first screening card carrying the `:v1:` §4.3.1 requires **would have been refused by a schema nobody was thinking about.** It simply had not blown up because no screening card existed yet. The pattern is now in one place, `common.schema.json`. It is the shape §11-11 counts, except this time it was caught **before** it blew up.
 
-**그 창이 닫히면서 사본 둘이 이미 갈라져 있던 것이 드러났다**(`71da178`). `caller_id` 패턴이 `axis`와 `screening` 스키마에 각각 있었고, **screening 쪽에 `(:v[0-9]+)?`가 없었다** — §4.3.1이 요구하는 `:v1:`을 단 첫 screening 카드는 **아무도 생각하지 않은 스키마에 거절당했을** 것이다. screening 카드가 아직 없어서 안 터졌을 뿐이다. 이제 패턴은 `common.schema.json` 한 곳이다. §11-11이 세는 그 형태인데, 이번엔 **터지기 전에** 잡혔다.
+**The axis form was left alone.** That is about not moving again what was just moved; adding three is enough.
 
-**축 형태는 건드리지 않았다.** 방금 옮긴 것을 또 옮기지 않으려는 것이고, 셋을 더하는 것으로 충분하다.
+**The revision component exists because that argument goes one step further** (2026-09-18). The reason the unit must not be `qid` is that "the leak happens between siblings sharing one `qid`", and without a revision **a re-run's a1 and the original a1 are the same context on the server.** What the same subsection allows is "one subagent continuing follow-up queries inside **its own** context", and **a re-run's a1 is not the same subagent** — it is a different fan-out, and it exists because something was wrong.
 
-**리비전 성분이 있는 이유는 그 논거가 한 칸 더 가기 때문이다**(2026-09-18). 단위가 `qid`면 안 되는 이유가 "누출이 같은 `qid`를 공유하는 형제들 사이에서 일어난다"인데, 리비전이 없으면 **재실행의 a1과 원래 a1이 서버에서 같은 맥락**이 된다. 같은 절이 허용하는 것은 "한 서브에이전트가 **자기** 맥락 안에서 후속 질의를 이어가는 것"인데, **재실행의 a1은 같은 서브에이전트가 아니다** — 다른 팬아웃이고, 무언가 틀렸기 때문에 존재한다.
+**And without this, §4.5.5's rule gets a mechanical bypass.** "Revision 2 may cite revision 1 as a record and may not use it as an input" **is checkable at the card level**, but if the server carries the context across, revision 1's context enters revision 2's computation **with no card citing anything.** The leak merely moves from between siblings to **between two moments of the same axis.** The simulation manager raised it.
 
-**그리고 이것이 없으면 §4.5.5의 규칙에 기계적 우회로가 생긴다.** "리비전 2는 리비전 1을 기록으로 인용할 수 있고 입력으로 쓸 수 없다"는 **카드 수준에서는 검사할 수 있는데**, 서버가 맥락을 이어주면 **아무 카드도 아무것도 인용하지 않은 채** 리비전 1의 맥락이 리비전 2의 계산에 들어간다. 누출이 형제 사이에서 **같은 축의 두 시점 사이**로 옮겨갈 뿐이다. 시뮬레이션 매니저가 올렸다.
-
-**리비전 1도 `v1`을 명시한다.** 생략하면 "없으면 1"이라는 암묵 규칙이 생기고, 그 부류가 오늘 다섯 번 물렸다(§7.1 규칙 3). 대가는 검사 33의 문자열 강제와 기존 카드들이 함께 움직이는 것이다.
+**Revision 1 states `v1` too.** Omitting it creates the implicit rule "absent means 1", and that class of thing bit five times today (§7.1 rule 3). The price is check 33's string enforcement and the existing cards moving together.
 
 ```
-caller_id = <qid>:v<N>:s2                  예) mic-20260916-001:v1:s2
-          | <qid>:v<N>:<config>:<axis>    예) mic-20260916-001:v1:confocal:a3   (S3만 팬아웃한다)
-          | <qid>:v<N>:operator            예) mic-20260916-001:v1:operator
-          | bridge:<thread>:r<N>          예) bridge:thr-tracer-diffusivity-001:r2
-          | selftest:<무엇을 시험하는가>   예) selftest:query-log-roundtrip   (라운드가 아니다)
+caller_id = <qid>:v<N>:s2                  e.g. mic-20260916-001:v1:s2
+          | <qid>:v<N>:<config>:<axis>     e.g. mic-20260916-001:v1:confocal:a3   (only S3 fans out)
+          | <qid>:v<N>:operator            e.g. mic-20260916-001:v1:operator
+          | bridge:<thread>:r<N>           e.g. bridge:thr-tracer-diffusivity-001:r2
+          | selftest:<what is being tested> e.g. selftest:query-log-roundtrip   (not a round)
 ```
 
-다섯 가지 규칙:
+Five rules:
 
-1. **격리**: 세션 컨텍스트는 `caller_id` 단위로만 유지된다. 다른 `caller_id`의 질의나 응답을 참조하지 않는다. 한 서브에이전트가 자기 맥락 안에서 후속 질의를 이어가는 것은 허용된다 — 형제를 보지 않는 한 상태는 해롭지 않다.
-2. **결정성**: 같은 `(질의, kb_version)`은 언제나 같은 답을 준다. **답이 호출 이력에 의존하면 안 된다.** 이 조건을 지키면 내용 주소화 캐시는 누출 경로가 아니며, 21갈래 팬아웃에서는 오히려 필요하다.
-3. **id는 발급받는 것이지 고르는 것이 아니다.** `caller_id`는 S3 팬아웃 실행기가 주입한다. 서브에이전트가 스스로 정하거나 바꿀 수 없다 — 그러면 형제의 id를 사칭할 수 있고, 검색된 문헌에 섞인 지시문으로도 그렇게 될 수 있다.
-4. **검증 트래픽은 자기 이름공간을 쓴다.** `selftest:`는 어떤 `qid`·스레드와도 겹치지 않으므로, 로그를 읽는 쪽이 **시험이 낸 줄과 실제 라운드가 낸 줄을 구별할 수 있다.** 겹치면 구별할 방법이 없다 — 로그에는 호출한 프로세스가 적히지 않는다. 2026-09-19에 사서석의 자기시험이 실제 `queries/log.jsonl`을 기본값으로 잡은 `Store()`를 하나 들고 있었고, **그 시험이 도구를 부르지 않아서** 실물 로그에 시험 줄이 섞이지 않았다. 한 줄 차이였고, 섞였으면 `degraded: []`를 방증하던 그 로그가 시험 줄을 담은 채로 남았을 것이다. `selftest:` id는 규칙 3의 예외가 아니다 — **라운드를 사칭하지 않으므로 발급받을 것이 없다.**
-5. **전역 집계는 답에 영향을 주지 않는다.** 인기 entry, 질의 빈도 같은 통계는 기록할 수 있으나 순위나 응답 내용에 들어가면 그 순간 형제 간 통신 경로가 된다.
+1. **Isolation**: session context is kept per `caller_id` only. It does not reference another `caller_id`'s queries or responses. A subagent continuing follow-up queries inside its own context is permitted — state is harmless as long as it does not see a sibling.
+2. **Determinism**: the same `(query, kb_version)` always gives the same answer. **The answer must not depend on call history.** Hold that condition and a content-addressed cache is not a leak path; in a 21-way fan-out it is in fact necessary.
+3. **An id is issued, not chosen.** The `caller_id` is injected by the S3 fan-out runner. A subagent cannot set or change its own — that would let it impersonate a sibling's id, and an instruction embedded in retrieved literature could do it too.
+4. **Verification traffic uses its own namespace.** `selftest:` overlaps no `qid` and no thread, so a reader of the log **can tell a line produced by a test from a line produced by a real round.** If they overlap there is no way to tell — the log does not record the calling process. On 2026-09-19 the librarian seat's self-test held a `Store()` defaulting to the real `queries/log.jsonl`, and **because that test did not call the tools**, no test lines got mixed into the real log. It was one line's difference, and had they mixed, the very log that was evidence for `degraded: []` would have been left holding test lines. A `selftest:` id is not an exception to rule 3 — **it impersonates no round, so there is nothing to be issued.**
+5. **Global aggregates do not affect answers.** Statistics such as popular entries or query frequency may be recorded, but the moment they enter a ranking or a response body they become a sibling-to-sibling communication path.
 
-**결정성은 정렬까지 포함한다.** 돌려주는 entry의 순서는 `(등급, E3 안의 서열, entry_id)`의 전순서다 — 등급이 좋은 것이 먼저, 같은 E3 안에서는 `peer_reviewed → textbook → vendor_spec → preprint`(§4.3), 그래도 같으면 `entry_id` 사전순. 이 정렬이 §4.3의 인용 우선순위가 **실제로 동작하는 유일한 자리**다. 지금까지 그 서열은 문장으로만 있었고 어떤 코드도 그것을 읽지 않았다.
+**Determinism includes the ordering.** The order of returned entries is a total order on `(grade, rank within E3, entry_id)` — better grade first, within the same E3 `peer_reviewed → textbook → vendor_spec → preprint` (§4.3), and ties broken by `entry_id` lexicographically. This ordering is **the only place §4.3's citation priority actually operates.** Until now that ranking existed only as a sentence and no code read it.
 
-**팬아웃 동안 KB 버전을 고정한다.** S3.0이 `kb_version`을 핀으로 박고 모든 질의가 그것을 들고 간다. 사서가 팬아웃 도중에 **저장소를 바꾸면**(추가든 수정이든 폐기든) 형제마다 다른 KB를 보게 되어 결정성이 깨지고, 그 차이 자체가 간접 채널이 된다. 부수 효과로 **그 질문 전체가 재현 가능해진다** — 같은 `kb_version`으로 다시 돌리면 같은 제약이 나온다.
+**The KB version is pinned for the duration of a fan-out.** S3.0 pins `kb_version` and every query carries it. If the librarian **changes the store mid-fan-out** (adding, editing or retiring), each sibling sees a different KB, determinism breaks, and the difference itself becomes a side channel. As a side effect **the whole question becomes reproducible** — re-run with the same `kb_version` and the same constraints come out.
 
-**팬아웃 도중에 저장소가 움직이면 핀을 쫓지 말고 머문다**(2026-09-18, 현미경 매니저). 본능은 재고정이고 그것이 틀렸다. 근거 셋:
+**When the store moves mid-fan-out, stay rather than chase the pin** (2026-09-18, microscope manager). The instinct is to re-pin and that is wrong. Three grounds:
 
-1. **쫓는 것은 수렴하지 않는다.** 한 번 재고정했더니 목표를 적은 카드가 **4분 뒤에 낡았고**, 그 뒤로 저장소가 두 번 더 움직였다. 사서가 커밋할 때마다 재고정하는 팬아웃은 끝나지 않는다.
-2. **서버가 옛 핀을 서빙하므로 머무는 것이 편의가 아니라 정직이다.** 응답에 `answered_from`이 붙고, 핀이 **서버가 아직 재현할 수 있는 상태**를 가리킨다. 서버가 거절하던 동안에는 머무는 것이 불가능했고, 그래서 쫓는 것이 유일한 선택처럼 보였다.
-3. **검사 33이 형제 일치를 요구한다.** 남은 축만 오늘 버전으로 답하면 끝난 축들과 어긋나고, 끝난 것을 따라 올리는 것이 바로 그 러닝머신이다.
+1. **Chasing does not converge.** Re-pinning once left the card recording the target **stale four minutes later**, and the store moved twice more after that. A fan-out that re-pins every time the librarian commits does not finish.
+2. **The server serves old pins, so staying is honesty and not convenience.** The response carries `answered_from`, and the pin points at **a state the server can still reproduce.** While the server was refusing, staying was impossible, which is why chasing looked like the only option.
+3. **Check 33 requires sibling agreement.** Answering only the remaining axes at today's version puts them out of step with the finished ones, and dragging the finished ones up to match is precisely that treadmill.
 
-**그래서 검사 25가 그 디렉터리에 내는 PENDING은 결함이 아니라 상태다** — "이 팬아웃은 그때의 저장소로 답했다"는 사실이고, `answered_from`이 그것을 증명한다. 이 판단은 §9.3의 공통 조상 문제와 같은 모양이다: 한쪽이 쌓은 것을 선행으로 볼 것이냐 기준점으로 볼 것이냐. 여기서는 **머문 자리가 기준점**이다.
+**So the PENDING check 25 raises on that directory is a state and not a defect** — it is the fact that "this fan-out answered against the store as it was then", and `answered_from` proves it. This judgement has the same shape as §9.3's common-ancestor problem: whether to treat what one side accumulated as prior work or as a baseline. Here **the place it stayed is the baseline.**
 
-**gap `kind`는 다섯이다 — 다섯째는 `in_published_table`**(2026-09-19). 서비스의 첫 실사용이 찾았다: `kb_query`가 `device_registry`·`control_channel`·`read_back` 셋에 `absent`로 답했는데, **셋 다 호출자 자기 `envelope/` 스냅샷의 `tables.devices`에 있다** — 하나는 표 이름이고 둘은 그 표의 열 이름이며, 그 스냅샷은 사서가 직접 발행하고 sha256으로 고정한 것이다.
+**There are five gap `kind`s — the fifth is `in_published_table`** (2026-09-19). The service's first real use found it: `kb_query` answered `absent` for `device_registry`, `control_channel` and `read_back`, and **all three are in the caller's own `envelope/` snapshot under `tables.devices`** — one is a table name and two are column names in that table, and that snapshot is published by the librarian itself and fixed by sha256.
 
-**`absent`는 도움이 안 되는 정도가 아니라 비용이 나는 방향으로 거짓이다.** 그 kind의 다음 행동이 "밖에서 찾고, 그래도 없으면 사람에게"이므로, **이미 손에 든 것을 찾으러 건물 밖으로 내보낸다.** 그리고 가장 날카로운 형태는 P14가 자기를 겨눈 것이다 — 지식은 한 곳에 살고 사서가 소유하는데, **사서가 자기 파일을 두고 "없으니 밖을 보라"고 답했다.**
+**`absent` is not merely unhelpful; it is false in the direction that costs.** That kind's next action is "look outside, and if still nothing, the person", so it **sends you out of the building to find what is already in your hand.** And the sharpest form of it is P14 pointed at itself — knowledge lives in one place and the librarian owns it, and **the librarian answered "it is not here, look outside" about its own file.**
 
-**kind가 넷인 이유로 이 절이 적어 둔 것은 "다음 행동이 넷 다 다르다"였고, 그 기준이 여기서 답을 낸다.** 이 경우의 다음 행동 — **자기 스냅샷의 `tables.<이름>`을 읽고 sha256을 대조하라** — 은 넷 중 무엇과도 다르다. 그러므로 다섯째다.
+**What this subsection wrote down as the reason for four kinds was "the next action differs in all four", and that criterion produces the answer here.** This case's next action — **read `tables.<name>` in your own snapshot and compare the sha256** — is unlike all four. So it is a fifth.
 
-**이름은 무엇이 아닌지가 아니라 어디 있는지를 말한다.** `not_an_entry`는 다음 행동을 담지 않는다. 그리고 gap은 **어느 표인지**를 실어야 한다 — 열을 물었을 때 표 이름을 돌려주지 않으면 호출자가 추측한다. `nearest`에 안내만 싣는 대안은 거절했다: **기계가 분기하는 것은 `kind`**이고, 아무도 읽지 않는 필드에 다음 행동을 묻으면 호출자는 여전히 `absent`의 일을 한다.
+**The name says where it is, not what it is not.** `not_an_entry` carries no next action. And the gap has to carry **which table** — asked about a column, returning no table name makes the caller guess. The alternative of putting the guidance only in `nearest` was refused: **what a machine branches on is `kind`**, and putting the next action in a field nobody reads leaves the caller still doing `absent`'s work.
 
-**이름이 안 풀리면 gap이 저장소가 아는 가까운 이름들을 싣는다**(2026-09-19). 빈손 아홉 중 **여덟이 저장소가 자기 지식을 호출자의 단어로 못 알아본 것**이었다 — `numerical_aperture`를 물었는데 저장소는 `na`로, `objective`를 물었는데 `objective_mrd70040…`으로 갖고 있다. 다섯은 `in_published_table`이 닫고, 셋은 **아무것도 닫지 않는다.**
+**When a name does not resolve, the gap carries the nearest names the store does know** (2026-09-19). Of nine empty-handed results, **eight were the store failing to recognise its own knowledge in the caller's words** — asked for `numerical_aperture` while the store holds it as `na`, asked for `objective` while it holds `objective_mrd70040…`. Five are closed by `in_published_table`; three are closed **by nothing.**
 
-**맞추는 것은 권위이고 제안하는 것은 아니다.** 이것이 퍼지 매칭과 갈리는 지점이다. `answers_to()`에서 문자열을 접으면 **틀린 이름이 맞은 것처럼 entry를 돌려받고**, 그러면 호출자의 단어가 저장소의 단어를 덮어쓴다. gap에 가까운 이름을 싣는 것은 **아무것도 돌려주지 않고** "이 이름들은 안다"고만 말한다 — 호출자가 저장소의 단어로 다시 물어야 하고, 로그에 **그 두 번이 다 남는다.** `in_published_table`과 같은 모양이다: **gap은 어디로 가라고 말하지 대신 가 주지 않는다.** 사서석이 같은 날 공백 정규화를 거절했고 그 논거가 이것과 충돌하지 않는 이유가 여기 있다.
+**Matching is authority; suggesting is not.** This is where it parts from fuzzy matching. Folding strings inside `answers_to()` means **a wrong name gets an entry back as though it were right**, and then the caller's word overwrites the store's word. Putting near names in the gap returns **nothing** and says only "I know these names" — the caller has to ask again in the store's words, and **both of those asks stay in the log.** Same shape as `in_published_table`: **a gap says where to go, it does not go for you.** This is why the librarian seat refusing whitespace normalisation the same day does not conflict with this.
 
-**그리고 이것이 더 깊은 질문을 하나 연다**(§11로 올릴 것). `kb_query`의 인자 이름이 `observable`인데, 첫 실사용에서 **등재된 관측량으로 물은 것이 한 번도 없었다** — 물은 것은 표 하나와 열 둘, 그리고 entry_id였다. entry의 `subject`는 이미 네 kind(device·configuration·observable·quantity)를 갖는데, 질의의 인자는 그중 **하나의 이름**을 달고 있다. 다섯째 kind는 답 쪽을 고치고, 이것은 **질문 쪽**이다. 섞지 않는다.
+**And this opens a deeper question** (to be raised in §11). `kb_query`'s argument is named `observable`, and in the first real use **not once was it asked with a registered observable** — what was asked was one table, two columns, and an entry_id. An entry's `subject` already has four kinds (device, configuration, observable, quantity), while the query's argument carries **the name of one of them.** The fifth kind fixes the answer side; this is **the question side.** They are not mixed.
 
-**옛 핀은 거절하지 않고 서빙한다.** 이 절이 약속하는 재현성 — *같은 `kb_version`으로 다시 돌리면 같은 제약이 나온다* — 이 그것을 요구한다. 그리고 핀이 존재하는 이유가 **팬아웃 도중에 저장소가 바뀌어도 형제들이 같은 KB를 보게 하는 것**이므로, 그 상황에서 핀을 거절하면 핀이 막으려던 바로 그 실패가 일어난다. 서버가 2026-09-18까지 거절했고(`4033b4d`이 고쳤다), 그 거절 동작 위에 서 있던 판단이 하나 있었다 — **버그의 동작을 근거로 삼은 결정은 버그가 고쳐지면 다시 봐야 한다.** 다만 커밋되지 않은 버전은 서빙 대상이 아니다: 작업 트리를 해시한 것은 되돌아갈 자리가 없다.
+**Old pins are served, not refused.** The reproducibility this subsection promises — *re-run with the same `kb_version` and the same constraints come out* — requires it. And since the pin exists **so that siblings see the same KB even when the store changes mid-fan-out**, refusing the pin in that situation produces exactly the failure the pin was preventing. The server refused until 2026-09-18 (`4033b4d` fixed it), and one judgement had been standing on that refusing behaviour — **a decision grounded in a bug's behaviour has to be revisited when the bug is fixed.** An uncommitted version is not servable, though: a hash of a working tree has nowhere to go back to.
 
-**동사가 "추가"였던 것이 2026-09-18에 물렸다.** `kb_version`은 **모든 entry에 걸린 해시**이므로 수정도 폐기도 똑같이 그것을 움직인다. 그날 `tau_d` **하나를 고쳤더니** 카드 19곳이 낡았고 그중 하나는 일곱 축 중 둘이 진행 중이었다. 사서 실행석이 올린 문장이 요점이다 — **한 동사로 쓰인 규칙은 그 동사에 대한 규칙으로 읽힌다.**
+**The verb being "add" bit on 2026-09-18.** `kb_version` is **a hash over all entries**, so editing and retiring move it just as much. That day **fixing one `tau_d`** staled 19 places across cards, one of which had two of seven axes in flight. The sentence the librarian execution seat raised is the point — **a rule written with one verb gets read as a rule about that verb.**
 
-**MCP는 수송이지 기억이 아니다.** 받은 entry는 호출한 쪽이 자기 산출물에 `kb_refs`로 적어 남긴다(P1, §8 검사 25). 서버가 죽어도 그 계획이 무엇에 근거했는지는 파일에 남아 있어야 한다.
+**MCP is transport, not memory.** An entry received is recorded by the caller in its own output as `kb_refs` (P1, §8 check 25). Even with the server dead, what a plan rested on has to remain in the files.
+**What was not received is recorded too.** `kb_refs` records the entries received, but **what was asked for and not received** was recorded nowhere. The service's output is not values but the discovery of blanks (§4.3.0), and if that blank is not on disk then what the service did is not recorded — turn the server off and the discovery goes with it. So a card also writes `kb_gaps` (§5.2), and a rule comes with it: **every `assumed:` (E5) number on a card that reached the librarian must point at an item in `kb_gaps`** (check 39). An estimate is legitimate only when somebody looked and it was not there. If the librarian was not reached, that fact stays in `degraded` and this rule does not apply — **not having reached it and having looked and not found are different.**
 
-**받지 못한 것도 기록한다.** `kb_refs`는 받은 entry를 남기지만 **묻고 받지 못한 것**은 어디에도 남지 않았다. 서비스의 산출물이 값이 아니라 빈칸의 발견인데(§4.3.0) 그 빈칸이 디스크에 없으면 서비스가 한 일은 기록되지 않는다 — 서버를 끄면 발견도 함께 사라진다. 그래서 카드는 `kb_gaps`도 적고(§5.2), 규칙이 하나 붙는다: **사서에 닿은 카드의 모든 `assumed:`(E5) 숫자는 `kb_gaps`의 항목을 지목해야 한다**(검사 39). 추정이 정당한 것은 누군가 찾아봤고 없었을 때뿐이다. 사서에 닿지 못했으면 그 사실이 `degraded`에 남고 이 규칙은 적용되지 않는다 — **닿지 못한 것과 찾아봤는데 없는 것은 다르다.**
+**A failed call is reduced mode, not a refusal.** Where the librarian cannot be reached it proceeds carrying `degraded: [librarian]`, and a value that could not be filled goes up as `assumed` (E5) (§3.1).
 
-**호출 실패는 거절이 아니라 축소 모드다.** 사서에 닿지 못하면 `degraded: [librarian]`을 달고 진행하며, 채우지 못한 값은 `assumed`(E5)로 올린다(§3.1).
+#### 4.3.2 The librarian owns all knowledge (D10, P14)
 
-#### 4.3.2 사서가 모든 지식을 소유한다 (D10, P14)
+**No other agent keeps a knowledge store of its own.** All knowledge that is newly produced or needs consulting passes through the librarian. Three things are distinguished for this:
 
-**다른 에이전트는 자기 지식 저장소를 갖지 않는다.** 새로 생기거나 참고해야 하는 모든 지식은 사서를 거친다. 이를 위해 세 가지를 구분한다:
-
-| | 무엇 | 어디 | 소유 |
+| | What | Where | Ownership |
 |---|---|---|---|
-| **지식** | 무엇이 참인가 — 측정 사실, 캘리브레이션 결과, 문헌, 장치 특성 | `librarian_agent/kb/` | **사서, 유일** |
-| **기록** | 무슨 일이 있었나 — 질문, 계획, 런 로그, 원시데이터, **질의 로그** | 각 에이전트의 `questions/`, `runs/`, 그리고 사서의 `queries/` | 해당 에이전트, append-only |
-| **정책** | 무엇을 허용하는가 — 안전 한계, 인터록 | `envelope/safety.*` | **사람**, Tier 3 (§2.1 규칙 7) |
+| **Knowledge** | what is true — measured facts, calibration results, literature, device characteristics | `librarian_agent/kb/` | **the librarian, solely** |
+| **Record** | what happened — questions, plans, run logs, raw data, **the query log** | each agent's `questions/`, `runs/`, and the librarian's `queries/` | that agent, append-only |
+| **Policy** | what is permitted — safety limits, interlocks | `envelope/safety.*` | **the person**, Tier 3 (§2.1 rule 7) |
 
-**정책은 두 모양이고, 한계가 붙는 대상이 다르기 때문이다.** 시뮬레이션의 한계는 **실행 목표**에 붙는다(`targets` — 이 런에서 무엇을 어디까지). 장비의 한계는 목표에 붙지 않고 **제어 채널**에 붙는다 — 출력을 내는 `laser_combiner`·`optical_tweezers`·`widefield_source_a/b`·`dmd`, 움직이는 `piezo_stage`·`stand_ti2e`. **장비에는 실행 목표라는 것이 없다.** 그래서 `targets`를 두 쪽 모두에 필수로 요구하면 현미경 정책은 쓸 수 없고, 2026-09-18까지 실제로 그랬다. 스키마가 `agent`로 두 모양을 갈라 받는다. 어느 채널이 어느 파라미터를 묶고 그것이 계획서의 `conditions[]`와 어디서 만나는지는 **현미경 좌석이 정한다** — 그 자리만 아는 사실이고, 모르는 자리가 지어내면 그것이 §10.3 규칙 4가 막는 것이 된다.
+**Policy has two shapes, because what a limit attaches to differs.** A simulation's limit attaches to **an execution target** (`targets` — what, and how far, in this run). An instrument's limit does not attach to a target; it attaches to **a control channel** — the output-producing `laser_combiner`, `optical_tweezers`, `widefield_source_a/b`, `dmd`, and the moving `piezo_stage`, `stand_ti2e`. **An instrument has no such thing as an execution target.** So requiring `targets` on both sides makes the microscope policy unwritable, and until 2026-09-18 it literally was. The schema splits the two shapes by `agent`. Which channel binds which parameter and where that meets the plan's `conditions[]` is **the microscope seat's to decide** — it is a fact only that seat knows, and a seat that does not know inventing it is what §10.3 rule 4 prevents.
 
-경계가 헷갈리는 두 경우:
+Two cases where the boundary is confusing:
 
-- **"이 레이저의 최대 출력은 X다"** → 사실이다. 사서의 몫(E3, spec).
-- **"우리는 Y를 넘지 않는다"** → 정책이다. `envelope/safety.*`의 몫이며, 지식이 아니므로 사서가 건드리지 않는다.
+- **"This laser's maximum power is X"** → a fact. The librarian's (E3, spec).
+- **"We do not go above Y"** → a policy. `envelope/safety.*`'s, and not knowledge, so the librarian does not touch it.
 
-**실행 시점에 필요한 지식은 스냅샷으로 갖는다.** 장치 레지스트리와 캘리브레이션처럼 preflight가 매번 봐야 하는 값은 `envelope/snapshot.*`에 **사서 KB에서 내보낸 사본**으로 둔다. 사본에는 entry id와 해시가 붙고 검증기가 정본과 대조한다(§8 검사 26). 사본은 손으로 고칠 수 없다 — 고쳐야 하면 KB를 고치고 다시 내보낸다.
+**Knowledge needed at execution time is held as a snapshot.** Values preflight has to consult every time, such as the device registry and calibration, sit in `envelope/snapshot.*` as **a copy exported from the librarian's KB.** The copy carries entry ids and hashes and the validator compares it against the record (§8 check 26). The copy cannot be edited by hand — if it needs fixing, fix the KB and export again.
 
-**두 표가 여기에 해당한다 — 장치 레지스트리와 유효 광경로 표다.** 둘 다 "이 장비가 어떻게 생겼는가"를 말하므로 지식이고, 따라서 `envelope/`가 소유하지 않는다. 내보내기가 M3에 오므로 **M1–M2 동안 두 표는 `librarian_agent/kb/staging/{devices,optical_paths}.v0.json`에 있고, 실행 에이전트가 §4.3.0이 허용하는 직접 읽기로 본다**(§11.1). M3에 스냅샷으로 내보내지면 **읽는 자리만 바뀌고 소유자는 그대로다.** `envelope/`가 스스로 갖는 것은 정책 하나 — `safety.json` — 뿐이다.
+**Two tables fall under this — the device registry and the valid optical-path table.** Both say "what this instrument looks like", so they are knowledge, and therefore not owned by `envelope/`. Export arrives in M3, so **during M1–M2 the two tables live in `librarian_agent/kb/staging/{devices,optical_paths}.v0.json` and the executing agents read them by the direct read §4.3.0 permits** (§11.1). When they are exported as snapshots in M3, **only the place they are read from changes; the owner does not.** The one thing `envelope/` owns itself is a single policy — `safety.json`.
 
-스냅샷을 두는 이유는 P0 규칙 2(fail-closed)다. **안전 판정이 살아 있는 서버 호출에 의존해서는 안 된다.**
+The reason a snapshot exists is P0 rule 2 (fail-closed). **A safety judgement must not depend on a live server call.**
 
-**사서의 기록도 `kb/` 밖이다.** 누가 무엇을 왜 물었는지는 `librarian_agent/queries/log.jsonl`에 append-only로 남고 지식 저장소 안에 들어가지 않는다. 위 표의 세 갈래에서 이것은 **기록**이다 — 무엇이 참인가가 아니라 무슨 일이 있었나이고, 실행 에이전트의 `runs/`가 저장소 안이 아니라 옆에 있는 것과 같은 자리다. 그리고 `kb_version`이 해시하고 카드가 `kb:`로 인용하는 것은 entry뿐이므로, 인용될 수 없는 것을 그 안에 두면 그 경계가 흐려진다.
+**The librarian's records are outside `kb/` too.** Who asked what and why stays append-only in `librarian_agent/queries/log.jsonl` and does not enter the knowledge store. Of the three categories in the table above this is a **record** — not what is true but what happened, the same position as an executing agent's `runs/` sitting beside the store rather than inside it. And since what `kb_version` hashes and what a card cites with `kb:` is entries only, putting something uncitable inside blurs that boundary.
 
-**이 로그는 새 개념이 아니라 이미 있는 비대칭을 닫는다.** `kb_query`는 `caller_id`와 `purpose`를 받고 `kb_gap`은 `asked_by`를 들고 있다(§4.3.1) — 즉 **실패한 질의는 귀속되는데 성공한 질의는 안 됐다.** 받은 entry는 카드의 `kb_refs`에 남지만 누가 왜 물었는지는 카드 밖에서 사라졌다.
+**This log is not a new concept; it closes an asymmetry that already existed.** `kb_query` takes a `caller_id` and a `purpose`, and `kb_gap` carries `asked_by` (§4.3.1) — that is, **a failed query was attributed and a successful one was not.** An entry received stays in the card's `kb_refs`, but who asked and why disappeared outside the card.
 
-**그리고 이 로그는 답에 닿지 않는다.** §4.3.1 규칙 4(전역 집계는 답에 영향을 주지 않는다)를 주석이 아니라 **구조로** 지킨다: 쓰기와 오프라인 감사만 존재하고 **caller·관측량·횟수로 로그를 읽는 함수를 두지 않는다.** 답변 경로가 호출할 것이 없으면 형제 간 통신 경로는 생길 수 없다(P4: 자제가 아니라 없어서 못 한다).
+**And this log does not touch answers.** §4.3.1 rule 4 (global aggregates do not affect answers) is kept **structurally rather than by comment**: only writing and offline auditing exist, and **no function reads the log by caller, observable or count.** If the answering path has nothing to call, a sibling communication channel cannot come into being (P4: not restraint, but absence).
 
-부수 효과가 하나 더 있다. 질의 옆에 답을 적어 두면 **§4.3.1의 결정성이 처음으로 검사 가능해진다** — 같은 `(질의, kb_version)`에 서로 다른 반환이 두 줄 있으면 그 자리가 보증이 깨진 곳이다. 지금까지 그 보증은 문장으로만 있었다.
+There is one more side effect. Recording the answer beside the query makes **§4.3.1's determinism checkable for the first time** — two lines with different returns for the same `(query, kb_version)` is a place where the guarantee broke. Until now that guarantee existed only as a sentence.
 
-**사서가 발행하고 소비자가 당겨 간다.** 사서 세션은 다른 에이전트 디렉터리에 쓸 수 없다(D11, §6.2) — 그러니 `src/export_snapshot.py`는 `kb/exports/snapshot_<agent_id>.json`에 **발행만** 하고, 각 에이전트 세션이 그것을 자기 `envelope/snapshot.json`으로 복사한다. 사본이 둘로 늘지만 둘 다 entry 해시로 정본과 대조되므로(검사 26) 값이 둘로 갈라질 수는 없고, **경계를 뚫는 것보다 사본 하나가 싸다.** 그리고 복사가 각 세션의 손을 거치는 것이 부수 효과가 아니라 본질이다 — 언제 어떤 KB 버전을 자기 envelope에 들였는지가 그 에이전트의 커밋에 남는다.
+**The librarian publishes and the consumer pulls.** The librarian's session cannot write into another agent's directory (D11, §6.2) — so `src/export_snapshot.py` only **publishes** to `kb/exports/snapshot_<agent_id>.json`, and each agent's session copies it into its own `envelope/snapshot.json`. The copies grow to two, but both are compared against the record by entry hash (check 26) so the values cannot diverge, and **one copy is cheaper than piercing a boundary.** And the copy passing through each session's hands is the point rather than a side effect — when, and at which KB version, an agent took it into its envelope stays in that agent's commits.
 
-`kb/`는 다른 세션이 읽어도 되는 유일한 남의 디렉터리다. 지식은 공유하도록 설계됐고(P14), **읽기만** 공유된다 — 쓰기는 사서 세션뿐이다. §3.1 규칙 4("어떤 에이전트도 다른 에이전트의 디렉터리를 읽지 않는다")의 유일한 예외이며, 규칙의 결론은 그대로다: `kb/` 없이 체크아웃해도 축소 모드로 돌아간다.
+`kb/` is the only other directory another session may read. Knowledge is designed to be shared (P14), and **only reading** is shared — writing is the librarian's session alone. It is the single exception to §3.1 rule 4 ("no agent reads another agent's directory"), and the rule's conclusion stands: check out without `kb/` and it still runs in reduced mode.
 
-**새 사실은 result 카드로 나간다.** 실행 에이전트는 측정에서 나온 새 지식을 자기 디렉터리에 적지 않는다. result 카드로 내보내고 **사서만이** 그것을 KB entry로 만든다. **실행 에이전트가 잰 값이 KB에 들어오는 경로는 이것뿐이다.**
+**New facts leave as result cards.** An executing agent does not write new knowledge from a measurement into its own directory. It exports a result card and **only the librarian** turns it into a KB entry. **This is the only path by which a value an executing agent measured enters the KB.**
 
-**그러나 이것이 E1·E2의 유일한 경로는 아니다 — 2026-09-19에 이 절이 그렇게 적고 있었고 틀렸다.** 사람이 장비에서 직접 한 **교정**은 실행 에이전트의 result 카드로 오지 않는다. §12의 `pixel_size` 행이 그 길을 처음부터 열어 두었는데(`calibration:` 출처, 유효기간, E2) 이 문장의 "유일한"이 그것을 덮고 있었고, 같은 절대문이 `librarian_agent/CLAUDE.md` 규칙 9에도 있었다. **교정은 둘째 경로다**: 출처가 `calibration:`이고 **유효기간이 필수**이며, 그 유효기간이 result 카드가 주는 추적성을 대신한다. E1은 경로가 여전히 하나다. **가르는 것은 누가 말했느냐가 아니라 교정 사건이 있었느냐**이고, 사람이 기억으로 말한 값은 교정이 아니므로 `operator_recall:` E5로 남는다. 사서 매니저가 사람에게 되물어 찾았다(§8.1).
+**But it is not the only path for E1 and E2 — on 2026-09-19 this subsection said so and was wrong.** A **calibration** a person performed directly on the instrument does not arrive as an executing agent's result card. §12's `pixel_size` row had opened that path from the start (`calibration:` source, an expiry, E2), and this sentence's "only" was covering it, and the same absolute statement was in `librarian_agent/CLAUDE.md` rule 9 as well. **Calibration is a second path**: its source is `calibration:` and **an expiry is mandatory**, and that expiry stands in for the traceability a result card would give. E1 still has exactly one path. **What separates them is not who said it but whether a calibration event occurred**, and a value a person stated from memory is not a calibration, so it stays `operator_recall:` E5. The librarian manager found it by asking the person back (§8.1).
 
-**권한**: Tier 0 KB 읽기/검색 · Tier 1 외부 검색(읽기) · Tier 1 KB 쓰기(신규 entry) · Tier 2 기존 entry 폐기/supersede · Tier 3 원문 대량 복제, 접근 제한 우회
+**Permissions**: Tier 0 KB read/search · Tier 1 external search (read) · Tier 1 KB write (new entry) · Tier 2 retiring/superseding an existing entry · Tier 3 bulk reproduction of source text, bypassing access restrictions
 
-**독립 구동**: 사람이 직접 쓰는 지식 보관소로 완결된다 — 질의, 증류, 충돌 정리, 폐기는 다른 에이전트 없이 동작한다. 네 에이전트 중 협업 의존이 0인 유일한 에이전트다.
+**Standalone operation**: complete as a knowledge store a person writes to directly — querying, distillation, conflict resolution and retirement all work with no other agent. It is the only one of the four with zero collaboration dependency.
 
-**완료 정의**: 응답의 모든 숫자가 `source_ref`로 추적되고, 채우지 못한 빈칸이 `gaps`에 명시돼 있다.
+**Definition of done**: every number in a response is traceable through `source_ref`, and the blanks that could not be filled are stated in `gaps`.
 
 ---
 
-### 4.4 브리지 에이전트 — 시뮬레이션↔실제 (`bridge/`)
+### 4.4 Bridge agent — simulation ↔ reality (`bridge/`)
 
-**이름에 대하여.** 이 에이전트가 잇는 두 쪽은 **시뮬레이션과 실제 실험**이고, 그 관계는 대칭이다. `sim2real` 같은 이름을 쓰지 않는 이유가 둘 있다 — 방향이 한쪽으로 읽히고, `2`가 **변환**을 함축한다. 이 에이전트는 변환하지 않는다(§4.4 규칙 2: 검사하고, 변환하지 않는다).
+**On the name.** The two sides this agent joins are **simulation and the real experiment**, and the relation is symmetric. There are two reasons not to use a name like `sim2real` — the direction reads one way, and the `2` implies **conversion.** This agent does not convert (§4.4 rule 2: it checks, it does not convert).
 
-식별자는 `bridge`로 둔다. 이름을 바꾸면 디렉터리·`author` enum·검사기 정규식·장부 스키마·네 개의 `CLAUDE.md`·예시 스레드가 함께 움직이는데, **얻는 것은 서술로 얻을 수 있다.** 그래서 서술에서만 두 쪽을 명시한다: 시뮬레이션↔실제, 양방향.
+The identifier stays `bridge`. Changing the name would move the directory, the `author` enum, the validator's regexes, the ledger schema, four `CLAUDE.md` files and the example thread together, while **what is gained can be gained in the description.** So the description alone states both sides: simulation ↔ reality, bidirectional.
 
-정확히 말하면 **한 라운드는 방향이 있고**(`ask_simulation` / `ask_experiment`), 양방향인 것은 스레드 전체의 관계다. 라운드 단위로는 반이중이다 — `duplex` 류의 이름이 살짝 과했을 이유이기도 하다.
+Strictly, **a round has a direction** (`ask_simulation` / `ask_experiment`), and what is bidirectional is the relation of the whole thread. Per round it is half duplex — which is also why a `duplex`-style name would have been slightly too much.
 
-**한 문장 책임**: 한쪽의 계획서/결과를 반대쪽이 실행할 수 있는 질문 카드로 옮기고, 라운드를 관리한다. **내용을 창작하지 않는다.**
+**Responsibility in one sentence**: move one side's plan or result into a question card the other side can act on, and manage the rounds. **It authors no content.**
 
-**하는 일**
-1. **수송**: plan/result 카드 → `ask_simulation.json` / `ask_experiment.json` 봉투로 감싸 전달.
-2. **단위·무차원수 검사**: 양쪽 카드가 같은 물리 단위를 쓰는지, 파생 무차원군이 서로 모순되지 않는지 확인한다(§5.7). 환원 단위는 카드에 등장하지 않으므로 **사상 변환 자체가 없다** — 브리지는 변환하지 않고 두 표현의 일관성만 본다. 첫 라운드에는 비교할 상대가 없고(`no_counterpart`), **두 번째 라운드부터 같은 답이 오면 그것은 하지 않은 비교다**(검사 8).
-3. **대응 가능성 검사**: 요청한 관측량을 상대편이 산출할 수 있는가? **판정은 어휘(`contracts/observables.json`)와 상대의 능력표에서 도출되며 봉투가 신고하지 않는다** — 검사 21이 등급에 하는 것과 같다. 답은 셋 중 하나다: `yes`(그 표의 어떤 구성이 낸다) · `no`(어휘가 그쪽을 배제하거나, `populated` 표의 어떤 구성도 내지 않는다) · `undeclared`(표가 아직 말하지 않았다, 또는 **어휘가 그 이름을 정의하지 않았다**). `no`는 왕복을 낭비하기 전에 거절 카드가 되고, **`undeclared`는 거절이 아니라 보류다**(§11-1).
+**What it does**
+1. **Transport**: plan/result card → wrapped in an `ask_simulation.json` / `ask_experiment.json` envelope and delivered.
+2. **Unit and dimensionless-number checks**: confirm that both sides' cards use the same physical units and that derived dimensionless groups do not contradict each other (§5.7). Reduced units never appear in a card, so **there is no mapping conversion at all** — the bridge does not convert, it only looks at the consistency of two representations. The first round has nothing to compare against (`no_counterpart`), and **from the second round on, the same answer means a comparison that was not made** (check 8).
+3. **Producibility check**: can the other side produce the requested observable? **The verdict is derived from the vocabulary (`contracts/observables.json`) and the other side's capability table; the envelope does not self-report it** — the same as what check 21 does to grades. The answer is one of three: `yes` (some configuration in that table produces it) · `no` (the vocabulary excludes that side, or no configuration in the `populated` table produces it) · `undeclared` (the table has not said yet, or **the vocabulary does not define the name**). A `no` becomes a refusal card before a round trip is wasted, and **`undeclared` is a hold, not a refusal** (§11-1).
 
-   **합성이 필요한 생산도 `yes`이고, 합성 요구는 표에 남는다.** 능력표가 `{"id": ..., "requires_composition": ["trapping"]}`로 선언한 관측량은 대응 가능성이 `yes`이며, **봉투는 구성 이름만 싣는다**(`producing_configs`). 봉투가 합성 요구까지 복창하지 않는 이유는 §4.4-5와 같다 — 구성을 계획하는 쪽은 같은 표를 직접 읽으므로 옮겨 적을 필요가 없고, 한 사실이 두 곳에 살면 다음 주에는 두 사실이 된다(P3). 받는 쪽이 합성 없이 계획하는 일은 그쪽 S3.0이 같은 표를 보고 막는다.
-4. **라운드 상태기계 + 무결성**: `r<N>_hashes.json`이 **보낸 쪽 디렉터리의 원본 카드**를 id·리비전·해시로 적는다. 봉투의 `payload_hash`만으로는 "봉투가 자기와 일치한다"는 말뿐이고, 숫자를 고친 브리지는 값과 해시를 함께 고칠 수 있다. 원본이 그 뒤 리비전을 올리면 대조가 불가능해지며, 그때 검증기는 통과가 아니라 **"원본과 대조된 라운드 0개"**로 센다.
-5. **중복 차단**: 같은 관측량·조건이 이미 왕복했으면 새 라운드 대신 KB 참조로 대체하고, 그 대체를 `status.json`의 `substitutions`에 적는다. 한 스레드에서 같은 (방향, 관측량)으로 라운드를 두 번 여는 것은 실패다(검사 8). **사서가 없으면 이 규칙은 작동하지 않는다** — 가리킬 저장소가 없으므로 축소 모드의 브리지는 대체 대신 라운드를 다시 연다. `degraded: [librarian_agent]`가 그 비용을 적는 자리다.
-6. **반복되면 사람을 부른다**: 한 스레드에서 같은 `(reason_code, parameter)` 쌍이 **두 번** 나오면 라운드를 더 열지 않고 사람에게 올린다. **고정 라운드 상한은 두지 않는다** — 숫자는 진짜 진전이 있는 왕복까지 자르고, 제자리를 도는 왕복은 그 숫자에 닿기 전에 이미 낭비다. A→B→A→B 같은 순환도 쌍의 반복으로 잡힌다. **반복은 `status.json`의 `blocked_pairs`에 적히고**, 스레드의 거절 카드에서 같은 쌍이 두 라운드에 걸쳐 나왔는데 장부에 없으면 실패다 — 아무도 적지 않는 반복은 아무도 집행하지 않는 상한이다.
+   **Production requiring composition is also `yes`, and the composition requirement stays in the table.** An observable the capability table declares as `{"id": ..., "requires_composition": ["trapping"]}` has producibility `yes`, and **the envelope carries only the configuration names** (`producing_configs`). The reason the envelope does not echo the composition requirement is the same as §4.4-5 — the side planning the configuration reads the same table directly, so there is nothing to copy across, and one fact living in two places is two facts by next week (P3). The receiving side planning without the composition is stopped by its own S3.0 looking at the same table.
+4. **Round state machine plus integrity**: `r<N>_hashes.json` records **the original card in the sending side's directory** by id, revision and hash. `payload_hash` alone says only "the envelope agrees with itself", and a bridge that altered a number could alter the value and the hash together. If the original later moves to a new revision, comparison becomes impossible, and the validator then counts not a pass but **"rounds compared against the original: 0".**
+5. **Duplicate blocking**: if the same observable at the same conditions has already made the round trip, replace the new round with a KB reference and record that substitution in `status.json`'s `substitutions`. Opening a round twice on the same (direction, observable) within one thread is a failure (check 8). **Without the librarian this rule does not work** — there is no store to point at, so a bridge in reduced mode reopens the round instead of substituting. `degraded: [librarian_agent]` is where that cost is written.
+6. **Call the person when it repeats**: when the same `(reason_code, parameter)` pair appears **twice** within one thread, do not open another round; escalate to the person. **There is no fixed round ceiling** — a number cuts off round trips that are making real progress, and round trips going in circles are already waste before they reach that number. A cycle like A→B→A→B is caught by the repeated pair as well. **Repetition is recorded in `status.json`'s `blocked_pairs`**, and if the thread's refusal cards show the same pair across two rounds with nothing in the ledger, that is a failure — a repetition nobody records is a ceiling nobody enforces.
 
-**하지 않는 일**
-- 숫자를 더하거나 보정하거나 반올림하지 않는다. 한 글자도 바꾸지 않고 옮긴다.
-- 조건을 최적화하거나 "더 나은" 파라미터를 제안하지 않는다.
-- 결론이나 해석을 쓰지 않는다.
-- 한쪽 에이전트를 대신해 답하지 않는다. 답은 항상 그 에이전트의 서명으로 나온다.
-- 라운드를 스스로 열지 않는다. 라운드 개시는 사람 또는 계획서 완료 이벤트가 트리거한다.
+**What it does not do**
+- It does not add, correct or round a number. It moves it without changing a character.
+- It does not optimise conditions or suggest "better" parameters.
+- It does not write conclusions or interpretations.
+- It does not answer on behalf of either agent. An answer always goes out under that agent's signature.
+- It does not open a round on its own. Opening a round is triggered by a person or by a plan-completion event.
 
-**입력**: 한쪽의 plan/result 카드
-**출력**: `threads/<thread>/{r<N>_ask_*.json, r<N>_ask_*.md, r<N>_hashes.json, status.json}`. 뒤의 둘은 **카드가 아니라 스레드 장부**다(§5.1).
+**Input**: one side's plan/result card
+**Output**: `threads/<thread>/{r<N>_ask_*.json, r<N>_ask_*.md, r<N>_hashes.json, status.json}`. The last two are **thread ledgers, not cards** (§5.1).
 
-**권한**: Tier 0 (수송·검사·거절) 전부. **Tier 1 이상 없음** — 브리지는 아무것도 실행하지 않는다.
+**Permissions**: Tier 0 (transport, checking, refusal), all of it. **Nothing at Tier 1 or above** — the bridge executes nothing.
 
-**실패 모드와 대응**
-| 상황 | 대응 |
+**Failure modes and responses**
+| Situation | Response |
 |---|---|
-| 관측량이 상대편에서 산출 불가 | 즉시 거절 카드, 대체 가능한 관측량 목록 첨부(목록은 각 에이전트가 선언한 능력표에서 가져옴) |
-| 단위 사상이 불명확 | 라운드 보류, 사상 정의 요청을 사람에게 올림 |
-| 관측량이 어휘·능력표에 **아직 선언되지 않음** | 라운드 **보류**. 차례는 사람이고 `status.json`이 무엇을 답해야 하는지 적는다. 거절이 아니다 — 선언되지 않은 것은 불가능한 것이 아니다(§11-1) |
-| 해시 불일치 | 라운드 정지. 자동 복구 금지 |
+| The observable is not producible on the other side | Immediate refusal card, with a list of substitutable observables attached (the list comes from each agent's declared capability table) |
+| The unit mapping is unclear | Hold the round, escalate a request for a mapping definition to the person |
+| The observable is **not yet declared** in the vocabulary or the capability table | **Hold** the round. The turn is the person's and `status.json` records what has to be answered. This is not a refusal — undeclared is not impossible (§11-1) |
+| Hash mismatch | Stop the round. Automatic recovery forbidden |
 
-**차례는 브리지의 것이 될 수 없다.** `status.json`의 `turn`은 두 실행 에이전트와 사람 중 하나다 — 브리지는 카드를 옮기므로 빚지는 쪽이 아니고, 사서는 답할 뿐 차례를 갖지 않는다. `state`가 `open`이면 차례는 에이전트의 것이고, `held`·`escalated`·`closed`면 항상 사람의 것이다. 그 셋에서 스레드를 꺼낼 수 있는 것은 사람뿐이다.
+**The turn can never be the bridge's.** `status.json`'s `turn` is one of the two executing agents or the person — the bridge moves cards, so it is not the side that owes anything, and the librarian only answers and holds no turn. When `state` is `open` the turn belongs to an agent; when it is `held`, `escalated` or `closed` it always belongs to the person. Only a person can take a thread out of those three.
 
-**봉투의 MD는 payload의 숫자를 복창하지 않는다.** 봉투의 `numbers[]`는 비어 있고(브리지는 숫자를 만들지 않는다), 검사 9는 MD에 적힌 숫자가 그 카드의 `numbers[]`에 있어야 한다고 요구한다. 그래서 사람용 봉투는 값을 다시 쓰지 못하고 payload를 가리킨다. 의도한 결과다 — 수송체가 값을 복창하면 같은 양이 두 곳에 살고, 다음 주에는 두 값이 된다(P3).
+**The envelope's Markdown does not echo the payload's numbers.** The envelope's `numbers[]` is empty (the bridge makes no numbers), and check 9 requires every number written in the Markdown to be in that card's `numbers[]`. So the human-readable envelope cannot restate values; it points at the payload. That is the intended result — a carrier echoing a value makes the same quantity live in two places, and next week it is two values (P3).
 
-**독립 구동**: 사람이 양쪽 카드를 손으로 넣어도 라운드가 성립한다(`trigger: human`). 두 실행 에이전트가 동시에 살아 있을 필요는 없다 — 비동기가 기본이다(D3).
+**Standalone operation**: a round stands even with a person placing both sides' cards by hand (`trigger: human`). The two executing agents do not have to be alive at the same time — asynchronous is the default (D3).
 
 ---
+### 4.5 The executing agents' internal workflow (microscope and simulation, in common)
 
-### 4.5 실행 에이전트의 내부 워크플로우 (현미경·시뮬레이션 공통)
+The two executing agents use **the same five-stage pipeline**. The only difference is §4.5.3's axis list.
 
-두 실행 에이전트는 **같은 5단 파이프라인**을 쓴다. 다른 것은 §4.5.3의 축 목록뿐이다.
-
-**용어**: **S3–S5를 묶어 `system designer`라고 부른다.** goal 카드를 받아 검증 가능한 plan을 만들어내는 부분 전체이며, 축별 해석(S3) → 종합(S4) → 산출(S5)로 구성된다. 저장소 안에서는 영어 표기 `system_designer`를 쓴다(§0 언어 규약). 앞단(S1–S2)은 **질문을 정하는 일**, system designer는 **그 질문을 실행 가능한 조건으로 푸는 일**이며, 이 경계가 파이프라인에서 가장 중요한 분리선이다 — 질문이 확정되지 않은 상태로 system designer에 들어가는 것을 금지한다.
+**Terminology**: **S3–S5 together are called the `system designer`.** It is the whole part that takes a goal card and produces a validatable plan, made of per-axis analysis (S3) → synthesis (S4) → output (S5). Inside the repository the English spelling `system_designer` is used (§0, language convention). The front end (S1–S2) is **the work of settling the question**, and the system designer is **the work of solving that question into executable conditions**; this boundary is the most important dividing line in the pipeline — entering the system designer with the question unsettled is forbidden.
 
 ```
-[S1] 사람의 질문
+[S1] the person's question
   │
-[S2] 질문 정교화                                      LLM 단독 · 숫자 생성 금지
-  │   → question_<agent>_<qid>.md   (사람용)
-  │   → goal_<agent>_<qid>.json     (정본 = §5.1의 goal 카드)
-  │   목적(purpose) → 관측량 → 정합성 검사 → intent
-  │   ├─(a) 측정/계산해야 할 것 ──────────────────┐
-  │   ├─(b) 이미 알려진 것 → 사서 위임 → 조기 종료 (실험하지 않음)
-  │   └─(c) 사람만 답할 수 있는 것 (목적 포함) → 1회 되묻기
+[S2] refine the question                              LLM alone · forbidden to produce numbers
+  │   → question_<agent>_<qid>.md   (for people)
+  │   → goal_<agent>_<qid>.json     (the record = §5.1's goal card)
+  │   purpose → observable → consistency check → intent
+  │   ├─(a) something to be measured/computed ────┐
+  │   ├─(b) already known → hand to the librarian → stop early (no experiment)
+  │   └─(c) only a person can answer (purpose included) → ask back once
   │                                               │
 ┌─ system designer ────────────────────────────────┴─────────────
 │
-│ [S3.0] 구성 스크리닝                                 Python (결정론적)
-│   │   capabilities/에서 이 관측량을 낼 수 있는 구성만 남긴다
-│   │   0개면 여기서 refusal · 남기는 구성은 3개까지
+│ [S3.0] configuration screening                      Python (deterministic)
+│   │   keep only the configurations in capabilities/ that can yield this observable
+│   │   zero of them means a refusal here · at most 3 configurations are kept
 │   │   → configs.json
 │   │
-│ [S3] 구성 × 축 병렬 독립 해석  ←── 사서 pull         LLM + Python
-│   │   (남은 구성) × (축 A1–A7) 만큼 서브에이전트
-│   │   형제의 출력을 볼 수 없음
-│   │   각자 "제약(허용 구간)"을 낸다 — 결정하지 않는다
+│ [S3] configuration × axis, parallel and independent ←── librarian pull   LLM + Python
+│   │   one subagent per (surviving configuration) × (axis A1–A7)
+│   │   cannot see a sibling's output
+│   │   each produces a "constraint (permitted interval)" — it does not decide
 │   │   → axis_<config>_a1.json … axis_<config>_a7.json
 │   │
-│ [S4] 종합 · 트레이드오프 정리                        LLM + Python
-│   │   구성별 교집합 → 공집합인 구성 탈락
-│   │   살아남은 구성 비교 + 우선순위 → 구성 1개 + 동작점 1개
-│   │   새 숫자 생성 금지, 새 사실 조회 금지
+│ [S4] synthesis · resolving trade-offs                LLM + Python
+│   │   per-configuration intersection → a configuration with an empty set drops out
+│   │   compare the survivors + priorities → one configuration + one operating point
+│   │   forbidden to produce new numbers, forbidden to query new facts
 │   │   → synthesis.json
 │   │
-│ [S5] 산출
-│       → plan_<agent>_<qid>.json  (정본) ──검증기──> VALIDATED
-│       → plan_<agent>_<qid>.md    (JSON에서 생성, 사람용)
+│ [S5] output
+│       → plan_<agent>_<qid>.json  (the record) ──validator──> VALIDATED
+│       → plan_<agent>_<qid>.md    (generated from the JSON, for people)
 │
 └────────────────────────────────────────────────────────────────
 ```
 
-**system designer의 계약** — 이 세 단계를 한 이름으로 묶는 이유는 입출력이 하나로 고정되기 때문이다:
+**The system designer's contract** — the reason these three stages are bound under one name is that their input and output are fixed as one:
 
-| | 내용 |
+| | Content |
 |---|---|
-| 입력 | goal 카드 1개 (S2 산출물) + 사서 entries. 그 밖의 것은 읽지 않는다. |
-| 출력 | `plan_<agent>_<qid>.json` + `.md`, 또는 refusal 카드. 중간 산출물(`axis_*.json`, `synthesis.json`)은 같은 폴더에 감사 기록으로 남는다. |
-| 권한 | Tier 0만. **system designer는 아무것도 실행하지 않는다** — 실행은 승인 이후의 별개 단계다(§6). |
-| 금지 | 질문 자체를 바꾸는 것. 목표가 틀렸다고 판단되면 계획이 아니라 **refusal + 되물음**으로 S2에 돌려보낸다. |
+| Input | one goal card (S2's output) plus librarian entries. It reads nothing else. |
+| Output | `plan_<agent>_<qid>.json` plus `.md`, or a refusal card. The intermediates (`axis_*.json`, `synthesis.json`) stay in the same folder as an audit record. |
+| Permissions | Tier 0 only. **The system designer executes nothing** — execution is a separate stage after approval (§6). |
+| Forbidden | changing the question itself. If the goal is judged wrong, it goes back to S2 as **a refusal plus a question**, not as a plan. |
 
-#### 4.5.1 S2 — 질문 정교화 (LLM 단독)
+#### 4.5.1 S2 — refining the question (LLM alone)
 
-1. **목적 파악 — 왜 묻는가.** 관측량보다 먼저 온다. 목적이 정밀도 모드, 우선순위, 정지 기준, 심지어 "이 관측량이 맞는가"까지 결정하기 때문이다. `purpose`에 적는다.
-2. **관측량 좁히기 — 무엇을 재는가.** 목적을 하나의 관측량으로 번역한다.
-3. **목적과 관측량의 정합성 검사**: 요청된 관측량이 그 목적의 나쁜 대리(proxy)면 **더 나은 관측량을 제안한다.** 바꾸지는 않는다 — 질문을 바꿀 권한은 없으므로(§4.5의 system designer 계약) 되묻기(c)로 올린다.
-4. **모호함을 세 갈래로만 분류한다**:
-   - **측정/계산해야 하는 것** → S3로 내려간다.
-   - **이미 알려진 것** → 사서에게 위임하고 **여기서 끝낸다.** 실험을 하지 않는 것도 정상 출력이다.
-   - **사람만 답할 수 있는 것** (목표 정확도, 우선순위, 시료의 정체) → **1회만** 되묻는다. 왕복을 늘리지 않는다.
-5. **다음 단계가 알아들을 형태로 변환**: 목적, 관측량 정의, 목표 정확도, 제약, 우선순위를 goal 카드 필드에 채운다.
-6. **정밀도 모드 판정**: `purpose`의 기본값을 따르되(아래 표), 다르게 정하면 이유를 적는다(§5.8, §8 검사 32).
-7. **저장**: 사람용 MD + 정본 JSON, 같은 `qid`.
+1. **Grasp the purpose — why is this being asked.** It comes before the observable, because the purpose determines the precision mode, the priorities, the stop criteria, and even "is this the right observable". It is written in `purpose`.
+2. **Narrow the observable — what is being measured.** Translate the purpose into a single observable.
+3. **Check purpose against observable**: if the requested observable is a poor proxy for that purpose, **propose a better one.** Do not change it — there is no authority to change the question (the system designer contract in §4.5), so it goes up as an ask-back (c).
+4. **Classify ambiguity into exactly three branches**:
+   - **Something to be measured/computed** → down to S3.
+   - **Something already known** → hand it to the librarian and **stop here.** Not running an experiment is a normal output too.
+   - **Something only a person can answer** (target accuracy, priorities, the identity of the sample) → ask back **once only.** Do not multiply round trips.
+5. **Convert into a form the next stage understands**: fill the goal card's fields with purpose, observable definition, target accuracy, constraints and priorities.
+6. **Decide the precision mode**: follow the `purpose`'s default (the table below), and if choosing otherwise, write the reason (§5.8, §8 check 32).
+7. **Save**: Markdown for people plus the JSON of record, under the same `qid`.
 
-**목적 분류 (`purpose`)** — 각각이 다른 기본값을 끌고 온다:
+**Purpose classification (`purpose`)** — each drags in a different default:
 
-| purpose | 무엇을 하려는가 | 기본 `intent` | 그 목적이 바꾸는 것 |
+| purpose | What is being attempted | Default `intent` | What that purpose changes |
 |---|---|---|---|
-| `screen` | 계가 어떤지 훑어본다 | explore | 빠르고 거칠게. 시료 보존과 회전 속도가 정확도보다 앞선다 |
-| `characterize` | 특성을 정량화한다 | explore | 정확도 우선. 조건 범위를 넓게 훑는다 |
-| `compare` | 조건·시료 간 비교 | explore | **절대 정확도보다 조건의 동일성이 우선.** 계통오차는 비교에서 상쇄되므로, 각 팔을 따로 최적화하지 않고 **한 조건으로 고정**한다 |
-| `verify` | 알려진 값·모델을 확인한다 | **confirm** | 목표 불확도가 명시되어야 시작된다 |
-| `troubleshoot` | 장비·시료 이상을 진단한다 | explore | 안전 여유를 크게, 회전을 빠르게. 결론보다 배제가 목적 |
-| `feed` | 다른 실험·시뮬레이션의 입력을 만든다 | 상대가 정함 | 상대편이 요구하는 형식·불확도가 제약이 된다(브리지, §4.4) |
+| `screen` | survey what the system is like | explore | fast and rough. Sample preservation and turnaround come before accuracy |
+| `characterize` | quantify a property | explore | accuracy first. Sweep a wide condition range |
+| `compare` | compare across conditions or samples | explore | **sameness of conditions comes before absolute accuracy.** Systematic error cancels in a comparison, so the arms are not optimised separately but **fixed at one condition** |
+| `verify` | confirm a known value or model | **confirm** | does not start until the target uncertainty is stated |
+| `troubleshoot` | diagnose an instrument or sample fault | explore | large safety margins, fast turnaround. The aim is exclusion rather than a conclusion |
+| `feed` | produce the input for another experiment or simulation | set by the other side | the format and uncertainty the other side requires become the constraint (bridge, §4.4) |
 
-`compare` 행이 이 표에서 가장 실질적인 항목이다. 비교가 목적일 때 각 조건을 개별 최적화하면 계통오차가 조건마다 달라져 **비교 자체가 무의미해진다.** 목적을 모르면 S4는 당연하다는 듯 각각을 최적화한다.
+The `compare` row is the most substantive item in this table. When comparison is the purpose, optimising each condition individually makes the systematic error differ per condition and **the comparison itself becomes meaningless.** Not knowing the purpose, S4 will optimise each of them as a matter of course.
 
-**목적은 사람만 답할 수 있다.** 비어 있으면 추측하지 않고 되묻는다(c). 관측량은 추론할 수 있어도 목적은 추론할 수 없다 — 같은 관측량이 여섯 가지 목적 중 무엇이든 될 수 있기 때문이다.
+**Only a person can answer the purpose.** If it is blank, do not guess; ask back (c). An observable can be inferred and a purpose cannot — the same observable can belong to any of the six purposes.
 
-**핵심 제약**: S2는 LLM 단독이므로 **숫자를 만들 수 없다.** 목표 정확도·조건 범위 같은 수치는 사람이 주거나 사서가 출처와 함께 준 것만 goal 카드에 들어간다. 채울 수 없으면 빈칸으로 두고 "이 값을 정하라"를 S3로 넘긴다(P2, P4).
+**Core constraint**: S2 is the LLM alone, so **it cannot produce numbers.** Figures such as target accuracy and condition ranges enter the goal card only if a person gave them or the librarian gave them with a source. Where it cannot be filled, leave it blank and pass "decide this value" to S3 (P2, P4).
 
-왜 분리하나: 정교화되지 않은 질문을 병렬로 뿌리면 N개의 서브에이전트가 각자 **다른 질문**을 푼다. 그 결과는 종합할 수 없다.
+Why separate it: scatter an unrefined question in parallel and N subagents each solve **a different question.** Those results cannot be synthesised.
 
-#### 4.5.2 S3 — 축별 병렬 독립 해석 (system designer · LLM + Python)
+#### 4.5.2 S3 — per-axis parallel independent analysis (system designer · LLM + Python)
 
-- **입력**: goal 카드 + **자기 구성 하나**(S3.0이 남긴 것) + 자기가 요청한 사서 entries. **형제의 출력은 입력이 아니다.**
-- **출력**: (자기 구성, 자기 축)에 대한 **제약** — "이 구성에서 이 축만 보면 허용되는 구간".
-- **결정하지 않는다.** 동작점을 고르는 것은 S4의 일이다. 이것이 독립성을 지키는 실질적 장치다 — 각자 한 점을 고르면 서로 다른 N개의 계획이 나오고, 종합이 불가능해진다.
-- **방법을 선언한다**: `method: deterministic | llm_estimate`. 결정론적 산출은 `computed:` 출처를, LLM 추정은 `assumed:` 출처를 받는다(§5.3). 이 라벨이 S4에서 신뢰 가중치가 된다.
-- **기권할 수 있다**: `verdict: feasible | infeasible | abstain` + 근거 숫자. 판단 근거가 없으면 추측하지 않고 기권한다(P5).
-- **한 번만 돈다.** 재귀 호출 금지, 개수 상한을 둔다(비용 통제).
-- **탐색 모드에서는 자릿수로 답한다.** 허용 구간을 수치가 아니라 자릿수로 내고, 추정이 섞인 계산에 세 자리 유효숫자를 붙이지 않는다(§5.8).
+- **Input**: the goal card + **its own single configuration** (whichever S3.0 left) + the librarian entries it requested itself. **A sibling's output is not an input.**
+- **Output**: a **constraint** on (its own configuration, its own axis) — "looking only at this axis in this configuration, this is the permitted interval".
+- **It does not decide.** Choosing the operating point is S4's job. This is the practical device that preserves independence — if each picks a point, N different plans come out and synthesis becomes impossible.
+- **It declares its method**: `method: deterministic | llm_estimate`. A deterministic output takes a `computed:` source; an LLM estimate takes an `assumed:` source (§5.3). That label becomes the confidence weight in S4.
+- **It may abstain**: `verdict: feasible | infeasible | abstain` plus the numbers behind it. With no grounds for a judgement, it abstains rather than guessing (P5).
+- **It runs once.** Recursive calls forbidden, with a count ceiling (cost control).
+- **In explore mode it answers in orders of magnitude.** It gives the permitted interval as a decade rather than a figure, and does not put three significant digits on a calculation with an estimate in it (§5.8).
 
-독립성의 구조적 보장 — 요청이 아니라 구조로 막는다:
-1. 서브에이전트는 각자 **별개 호출**로 실행되고, 출력은 각자의 파일에만 쓴다.
-2. 형제 파일 경로에 대한 읽기 권한이 없다.
-3. 검증기가 `axis_*.json` 사이의 상호 참조를 실패로 처리한다(§8 검사 11).
-4. 사서 질의는 `caller_id`로 격리되고, 그 id는 팬아웃 실행기가 발급한다(§4.3.1). 사서가 형제 간 우회로가 되지 못한다.
+Structural guarantees of independence — blocked by structure, not by request:
+1. Subagents run as **separate calls**, and each writes output only to its own file.
+2. They have no read permission on a sibling's file path.
+3. The validator treats a cross-reference between `axis_*.json` files as a failure (§8 check 11).
+4. Librarian queries are isolated by `caller_id`, and the id is issued by the fan-out runner (§4.3.1). The librarian cannot become a detour between siblings.
 
-##### 4.5.2.1 축 서브에이전트가 건네받는 것
+##### 4.5.2.1 What an axis subagent is handed
 
-위의 넷은 형제 **사이**를 막는다. 이 절은 축과 **자기 계산 사이**를 규정한다. 2026-09-17에 `agentic-microscope`의 판정 패킷에서 이관했는데, **그쪽 모양 그대로는 우리에게 맞지 않는다**(§10.2.1).
+The four above block things **between** siblings. This subsection governs the space between an axis and **its own computation.** It was brought across from `agentic-microscope`'s verdict packet on 2026-09-17, and **its shape there does not fit us as it stands** (§10.2.1).
 
-**왜 맞지 않는가를 먼저 적는다.** 저쪽 서브에이전트는 **이미 나온 제안을 게이트에 걸어 판정한다** — 그래서 "판정해야 할 소견 목록"이 있다. 우리 S3는 제안을 판정하지 않고 **구간을 만든다**(§4.5.2). 소견이 아직 없으므로 소견 목록도 없다. 옮겨오는 것은 목록이 아니라 **그 목록이 막으려던 실패**다.
+**Why it does not fit, first.** Their subagents **take proposals that already exist and run them against a gate**, so there is a "list of findings to judge". Our S3 does not judge proposals; it **makes intervals** (§4.5.2). There are no findings yet, so there is no list of findings. What crosses over is not the list but **the failure the list was preventing.**
 
-**막으려던 실패: 침묵이 여유로 읽힌다.** 저쪽 표현은 "소견 없는 마진은 headroom으로 읽힌다"였다. 우리 쪽에서 같은 실패는 이렇게 생긴다 — **한 축이 자기가 소유한 부등식 다섯 중 둘에서 아무 구간도 내지 않으면, 그 침묵이 "이 축은 거기를 제한하지 않는다"로 읽힌다.** 제한하지 않는 것과 계산하지 못한 것은 다르고, S4는 그 차이를 볼 수 없다. 그래서:
+**The failure it prevented: silence reads as headroom.** Their wording was "a margin with no finding reads as headroom". On our side the same failure looks like this — **if an axis produces no interval for two of the five inequalities it owns, that silence reads as "this axis does not constrain there".** Not constraining and not having been able to compute are different, and S4 cannot see the difference. So:
 
-- **자기가 소유한 부등식을 전부 열거하고**, 각각에 대해 구간·기권 중 하나를 낸다. §4.5.3이 축마다 부등식을 지정하므로 이 목록은 **도출되는 것이지 축이 선언하는 것이 아니다.**
-- **돌았으나 구간이 나오지 않은 것을 따로 싣는다** — 입력이 없었는지, 그 조건에서 그 부등식이 구속하지 않는지. 둘은 다른 말이고, 빠뜨리면 둘 다 "제한 없음"이 된다.
-- **침묵은 거절된다.** 목록에 있는데 구간도 기권도 없으면 그 축의 산출은 받지 않는다.
+- **Enumerate every inequality it owns**, and for each produce either an interval or an abstention. §4.5.3 assigns inequalities per axis, so this list is **derived and not declared by the axis.**
+- **Separately carry what it ran and got no interval from** — whether the input was missing, or the inequality does not bind under those conditions. Those are different statements, and omitting them makes both "no constraint".
+- **Silence is refused.** If something is on the list with neither an interval nor an abstention, that axis's output is not accepted.
 
-**계산과 해석을 가른다 — 이건 그대로 이관한다.** 저쪽에서 정량 반쪽은 코드가 내고 서브에이전트는 **그 마진을 다시 계산하지 않는다.** §4.6.1이 실행 쪽에 그은 선을 설계 쪽에도 긋는 것이다. 우리 `method: deterministic | llm_estimate`는 한 산출에 라벨을 붙일 뿐 두 반쪽을 가르지 않는다. **결정론적으로 낼 수 있는 부등식은 코드가 내고, 서브에이전트는 닫힌 형태가 없는 것만 맡는다.** 재계산하면 같은 양이 두 곳에서 나오고, 갈리면 어느 쪽이 계획에 들어갔는지 알 수 없다(§0.4-6의 "한 선언에 파서는 하나"와 같은 실패).
+**Separate computation from interpretation — this crosses over unchanged.** On their side the quantitative half is produced by code and the subagent **does not recompute that margin.** It draws on the design side the line §4.6.1 draws on the execution side. Our `method: deterministic | llm_estimate` merely labels one output; it does not split the two halves. **An inequality that can be produced deterministically is produced by code, and the subagent takes only those with no closed form.** Recomputing produces the same quantity in two places, and when they diverge there is no knowing which one entered the plan (the same failure as §0.4-6's "one declaration, one parser").
 
-**어휘는 두 뜻으로 읽힐 수 없어야 한다.** 저쪽은 `accept`/`refuse`를 쓰다가 **첫 실물 소집에서 두 에이전트가 두 단어를 정반대 뜻으로 썼다** — 한쪽은 `refuse`를 "소견이 유효하다"로, 다른 쪽은 `accept`를 같은 뜻으로. 소견을 두고 "받아들인다"는 소견을 인정하는 것도 되고 제안을 통과시키는 것도 된다. **우리 `verdict: feasible | infeasible | abstain`은 대상이 구성이므로 이 충돌이 없다** — 그대로 둔다. 남길 것은 규칙이다: **판정 어휘는 대상이 말 안에 있어야 하고, 바꿀 때 옛 단어는 지우지 않고 "왜 지금 거절되는가"와 함께 남긴다.** 지우면 다음 사람이 같은 단어를 다시 고른다.
+**Vocabulary must not be readable two ways.** They used `accept`/`refuse` and **at the first real convening two agents used the two words in exactly opposite senses** — one used `refuse` to mean "the finding stands", the other used `accept` for the same thing. "Accepting" a finding can mean granting the finding or letting the proposal through. **Our `verdict: feasible | infeasible | abstain` does not have this collision because its subject is the configuration** — it stays. What is kept is the rule: **judgement vocabulary must carry its subject inside the word, and when it changes, the old word is not deleted but left with "why this is now refused".** Delete it and the next person picks the same word again.
 
-**축 산출의 상태는 넷이고 하나로 뭉치지 않는다.** 저쪽에서 둘을 뭉갰더니 **게이트가 FAIL을 반환했는데 "결과를 내지 않았다"고 말하게 됐다.** 우리 넷은 이렇다: `returned`(구간이 왔다) · `abstained`(축이 근거 없다고 밝혔다) · `not_run`(그 구성에 그 축이 해당 없음, §4.5.3) · `failed`(호출됐고 아무것도 돌아오지 않았다). **`abstained`와 `failed`를 뭉치면 P5로 기권한 축과 죽은 축이 같아 보이고, 전자는 정상이고 후자는 계획을 멈춰야 한다.**
+**An axis output has four states and they are not collapsed.** Collapsing two of them on their side led to **a gate returning FAIL while saying "it produced no result".** Our four: `returned` (an interval came) · `abstained` (the axis stated it has no grounds) · `not_run` (that axis does not apply to that configuration, §4.5.3) · `failed` (it was called and nothing came back). **Collapse `abstained` and `failed` and an axis that abstained under P5 looks the same as a dead one, and the first is normal while the second has to stop the plan.**
 
-**서브에이전트에게 쓰기 도구를 주지 않는다.** 읽기만 연다 — 자제가 아니라 없어서 못 하는 것이다(P4). 각 에이전트 디렉터리의 `.claude/settings.json`이 집행한다. 저쪽 로스터 다섯 장이 전부 `tools: Read, Grep, Glob`이었다.
+**Subagents are given no write tools.** Only reading is opened — not restraint, but inability (P4). Each agent directory's `.claude/settings.json` enforces it. All five of their roster files were `tools: Read, Grep, Glob`.
 
-**되읽을 때 거절한다.** 근거 숫자 없는 판정 · 자기 목록에 없는 부등식에 대한 구간(축이 남의 축을 침범했다) · 목록에 있는데 침묵 · 기권인데 이유가 없는 것. **거절 하나면 그 라운드의 산출을 쓰지 않는다** — 거절된 산출은 없는 산출이 아니고, 그것 없이 종합하면 **일어나지 않은 검토를 기록하는 것**이 된다.
+**Refuse on read-back.** A verdict with no supporting numbers · an interval for an inequality not on its own list (the axis trespassed on another's) · silence on something that is on the list · an abstention with no reason. **One refusal and the round's output is not used** — a refused output is not an absent output, and synthesising without it **records a review that did not happen.**
 
-#### 4.5.3 구성과 축 — 직교하는 두 차원
+#### 4.5.3 Configurations and axes — two orthogonal dimensions
 
-**축은 모달리티에 중립적으로 쓴다.** 측정 대상이 열려 있으므로(§1), 축은 "광트랩의 무엇"이 아니라 **어떤 광학 측정에도 물어야 하는 질문**이어야 한다.
+**Axes are written to be modality-neutral.** Since the measurement target is open (§1), an axis must be **a question any optical measurement has to be asked**, not "something about the optical trap".
 
-| | 현미경 | 시뮬레이션 |
+| | Microscope | Simulation |
 |---|---|---|
-| A1 | 신호와 잡음 (SNR, 검출 한계, 배경, 아티팩트 — 스피닝 디스크에서는 **노출시간이 디스크 주기의 정수배**여야 줄무늬가 남지 않는다) | 적분 안정성 (시간간격 vs 최단 특성시간) |
-| A2 | 통계 요구량 (샘플 수, 기록 길이, 반복) | 통계 요구량 (시드 수, 궤적 길이) |
-| A3 | 시료 건전성 (광손상, 표백, 가열, 농도) | 유한 크기 (박스 vs 상관길이, 경계조건) |
-| A4 | 구성 적합성 (장치 조합, 광경로 배타, 자동화 가능성) | 표본화 (저장 간격 vs 관측량 시간스케일) |
-| A5 | 시간 안정성 (드리프트, PFS 상태, 구성 전환에 따른 재정착, 총 소요, 스케줄) | 자원 예산 (월클록, 저장 용량) |
-| A6 | 공간 분해능·시야·광학 단면 (NA, 배율, 픽셀 크기, 핀홀, 축방향 분해능). 대물렌즈 터렛과 1.5× 줌 때문에 **배율은 이산 집합**이다 | — |
-| A7 | **구동과 운동** (출력, 트랩 개수와 분할, 다중화 한계 / 스테이지·트랩의 속도·가속·정착·이탈) | 구동 프로토콜 (전단율, 외력 램프) |
+| A1 | signal and noise (SNR, detection limit, background, artefacts — on a spinning disk the **exposure time must be an integer multiple of the disk period** or striping remains) | integration stability (timestep vs the shortest characteristic time) |
+| A2 | statistics required (sample count, record length, repetitions) | statistics required (seed count, trajectory length) |
+| A3 | sample health (photodamage, bleaching, heating, concentration) | finite size (box vs correlation length, boundary conditions) |
+| A4 | configuration fitness (device combinations, optical-path exclusivity, automatability) | sampling (save interval vs the observable's timescale) |
+| A5 | temporal stability (drift, PFS state, resettling after a configuration switch, total elapsed, scheduling) | resource budget (wall clock, storage) |
+| A6 | spatial resolution, field of view, optical sectioning (NA, magnification, pixel size, pinhole, axial resolution). Because of the objective turret and the 1.5× zoom, **magnification is a discrete set** | — |
+| A7 | **driving and motion** (power, trap count and splitting, multiplexing limits / stage and trap speed, acceleration, settling, escape) | driving protocol (shear rate, force ramp) |
 
-A6은 이미징이 1급 모달리티가 되면서 필요해진 축이다. 광트랩만 가정했을 때는 없었고, **그 부재가 곧 편향의 증거였다.**
+A6 became necessary once imaging became a first-class modality. It did not exist while only the optical trap was assumed, and **its absence was itself the evidence of the bias.**
 
-**A7 — 계를 건드리는 쪽의 한계.** 앞의 여섯 축은 "무엇을 보는가"를 묻고, A7만 "무엇을 하는가"를 묻는다:
+**A7 — the limits on the side that perturbs the system.** The first six axes ask "what is being seen"; A7 alone asks "what is being done":
 
-- **구동량**: 광원·레이저 출력, **트랩 개수 `N`과 분할**(개당 출력 ≈ 총출력/`N`이므로 개당 강성도 함께 내려간다), 다중화 방식의 채널 수와 갱신률, 트랩 간 간섭이 생기는 최소 간격.
-- **운동**: 피에조 스테이지(범위, 대역폭, 정착시간, 폐루프 여부), 모터라이즈드 스테이지(속도, 가속, 백래시, 반복도), **트랩 위치의 이동 속도**.
-- **결합 한계 — 이탈**: 트랩을 너무 빨리 움직이면 항력이 트랩 힘을 이겨 입자가 빠진다. 자릿수로는 `v_max ~ k·x_max/γ`. 이 부등식 하나가 **구동량(`k`)과 운동(`v`)을 직접 묶는다.**
-- **정착시간**은 측정 시작 시점을 정한다 → A5(시간 안정성)의 입력이 된다.
-- **안전 결합**: 총 출력은 A3(시료)보다 먼저 P0의 안전 한계에 걸린다(§2.1). A7이 내는 구간은 언제나 안전 한계의 부분집합이다.
+- **Drive quantities**: source and laser power, **trap count `N` and splitting** (power per trap ≈ total/`N`, so the per-trap stiffness falls with it), the multiplexing scheme's channel count and update rate, the minimum separation at which traps start to interfere.
+- **Motion**: the piezo stage (range, bandwidth, settling time, whether closed-loop), the motorised stage (speed, acceleration, backlash, repeatability), **the travel speed of a trap position.**
+- **The coupling limit — escape**: move a trap too fast and drag beats the trap force and the particle is lost. To an order of magnitude, `v_max ~ k·x_max/γ`. This single inequality **binds a drive quantity (`k`) and a motion quantity (`v`) directly.**
+- **Settling time** sets when measurement begins → it becomes an input to A5 (temporal stability).
+- **Safety coupling**: total power hits P0's safety limit before it reaches A3 (the sample) (§2.1). The interval A7 produces is always a subset of the safety limit.
 
-**A7 — 시뮬레이션 쪽.** 구동 프로토콜(전단율, 외력 램프)은 A1이 아니라 A7이 소유한다. A1은 주어진 전단율에서 **시간간격**의 상한을 내지만(`dt ≪ 1/γ̇`), 그것은 γ̇를 입력으로 받는 것이지 **γ̇ 자체의 허용 구간**을 내는 것이 아니다. A7이 없으면 구동량은 어떤 축도 검토하지 않은 숫자로 계획서에 들어간다. A7이 소유하는 부등식:
+**A7 — the simulation side.** The driving protocol (shear rate, force ramp) is owned by A7, not A1. A1 produces an upper bound on the **timestep** at a given shear rate (`dt ≪ 1/γ̇`), but that takes γ̇ as an input; it does not produce **the permitted interval for γ̇ itself.** Without A7, the drive quantity enters the plan as a number no axis reviewed. The inequalities A7 owns:
 
-- **준정적성**: 램프 지속시간 ≫ 계의 완화시간. 어기면 상태가 아니라 램프를 측정한다.
-- **정상상태 도달**: 전단 하에서 정상상태까지 누적돼야 하는 변형량. 총 스텝 수는 A2(통계)와 A5(예산)도 제약하지만, "얼마나 변형시켜야 하는가"는 구동 쪽 질문이다.
-- **모델 타당성**: 구동 세기가 과감쇠 가정이 유지되는 범위 안인가.
+- **Quasi-staticity**: ramp duration ≫ the system's relaxation time. Break it and you measure the ramp rather than the state.
+- **Reaching steady state**: the strain that has to accumulate before steady state under shear. Total step count is also constrained by A2 (statistics) and A5 (budget), but "how much do we have to strain it" is a question on the driving side.
+- **Model validity**: is the drive strength inside the range where the overdamped assumption holds.
 
-**A6은 시뮬레이션에 없고, 그 번호는 비워 둔다.** 축 번호가 양쪽에서 같은 것을 뜻해야 브리지(M4)가 `axis_*_a7.json`을 마주 놓고 비교할 수 있다. 시뮬레이션의 구동 축을 A6으로 당겨 쓰면 A6이 한쪽에서 분해능, 다른 쪽에서 구동을 뜻하게 된다. **번호의 구멍은 비용이 아니라 대응의 조건이다.** 따라서 축은 현미경 7개(A1–A7), 시뮬레이션 6개(A1–A5, A7)다.
+**A6 does not exist for simulation, and the number is left empty.** An axis number has to mean the same thing on both sides for the bridge (M4) to put `axis_*_a7.json` side by side and compare. Pulling simulation's driving axis up into A6 would make A6 mean resolution on one side and driving on the other. **A hole in the numbering is not a cost but the condition for correspondence.** So the axes are seven for the microscope (A1–A7) and six for simulation (A1–A5, A7).
 
-**해당 없는 축은 기권하고, 목록에서 빠지지 않는다.** 평형 시뮬레이션에서 A7은 "구동 요청 없음"으로 기권한 카드를 남긴다. `capabilities/`에서 축을 잘라내는 것이 아니다 — 잘라내면 **제약이 빠졌다는 사실을 아무것도 기록하지 않는다**(P1).
+**An inapplicable axis abstains; it does not fall off the list.** In an equilibrium simulation, A7 leaves a card abstaining with "no driving requested". It is not cut out of `capabilities/` — cutting it out means **nothing records the fact that a constraint was absent** (P1).
 
-**왜 구동과 운동을 두 축으로 쪼개지 않는가** — 여기서 축을 가르는 기준이 나온다:
+**Why driving and motion are not split into two axes** — this is where the criterion for splitting an axis comes from:
 
-> **(a) 한 부등식에 함께 나타나는 변수들은 한 축이 소유한다.**
-> **(b) 어떤 축도 다른 축의 *출력*을 입력으로 요구하지 않는다.**
+> **(a) Variables appearing together in one inequality are owned by one axis.**
+> **(b) No axis requires another axis's *output* as an input.**
 
-여러 축이 **같은 파라미터**에 각자 구간을 내는 것은 정상이다 — 노출시간은 A1·A3·A5·A6이 모두 제약하고, 그 교집합을 구하는 것이 바로 S4의 일이다. 문제는 다른 데 있다:
+Several axes each producing an interval on **the same parameter** is normal — exposure time is constrained by A1, A3, A5 and A6 all at once, and taking that intersection is exactly S4's job. The problem is elsewhere:
 
-- (a)를 어기면 **같은 부등식이 두 축에 복제된다.** 이탈 조건 `v_max ~ k·x_max/γ`를 구동 축과 운동 축이 각자 쓰면 둘은 반드시 어긋난다. 한 부등식은 한 곳에만 있어야 한다.
-- (b)를 어기면 **형제를 봐야 하는 축**이 생기고 S3의 독립성(§4.5.2)이 무너진다.
+- Break (a) and **the same inequality is duplicated across two axes.** If a driving axis and a motion axis each write the escape condition `v_max ~ k·x_max/γ`, the two will necessarily diverge. One inequality belongs in one place.
+- Break (b) and **an axis that has to see a sibling** comes into being, and S3's independence (§4.5.2) collapses.
 
-대비되는 예: 스피닝 디스크의 `노출시간 = n × 디스크 주기`는 두 변수 모두 **직접 설정 가능한 파라미터**이므로, 이 조건을 A1이 혼자 소유하고 두 변수에 대한 구간을 함께 내면 된다. 다른 축들도 노출시간에 각자 구간을 내고 S4가 교집합을 구한다 — 아무것도 깨지지 않는다.
+A contrasting example: for a spinning disk, `exposure time = n × disk period` has both variables as **directly settable parameters**, so A1 can own that condition alone and produce intervals on both variables together. The other axes each produce their own intervals on exposure time and S4 takes the intersection — nothing breaks.
 
-새 축을 만들 때 (a)와 (b)를 먼저 통과시킨다.
+When creating a new axis, put it through (a) and (b) first.
+**A configuration (modality) is the second dimension, orthogonal to the axes.** S3's fan-out is (configuration × axis); the axes are fixed but **the configuration list differs per question** — S3.0 draws it deterministically from `contracts/capabilities/`. If the observable is "particle trajectory", the optical trap and brightfield tracking remain as candidates; if it is "local concentration field", confocal and widefield fluorescence do.
 
-**구성(모달리티)은 축과 직교하는 두 번째 차원이다.** S3의 팬아웃은 (구성 × 축)이며, 축은 고정이지만 **구성 목록은 질문마다 다르다** — `contracts/capabilities/`에서 S3.0이 결정론적으로 뽑는다. 관측량이 "입자 궤적"이면 광트랩·명시야 추적이, "국소 농도장"이면 컨포컬·와이드필드 형광이 후보로 남는 식이다.
+**Not every configuration yields an observable.** An optical trap has no detector — the trap light is blocked on every detection path, so it is not visible to a camera, and it is therefore used **not as a replacement for an imaging configuration but layered on top of one.** Configurations split into two roles:
 
-**모든 구성이 관측량을 내지는 않는다.** 광트랩은 검출기를 갖지 않는다 — 트랩 광은 모든 검출 경로에서 차단되므로 카메라에 보이지 않고, 그래서 이미징 구성을 **대체하는 것이 아니라 그 위에 겹쳐** 쓴다. 구성은 두 역할로 갈린다:
-
-| 역할 | 무엇 | `capabilities/`에 선언하는 것 |
+| Role | What | What it declares in `capabilities/` |
 |---|---|---|
-| `imaging` | 관측량을 낸다 | 관측량 목록 |
-| `perturbation` | 계를 건드리되 스스로는 아무것도 내지 않는다 | 어떤 구성과 겹칠 수 있는가 |
+| `imaging` | produces observables | the observable list |
+| `perturbation` | perturbs the system and produces nothing itself | which configurations it can be layered with |
 
-S3.0은 `imaging` 구성만 관측량으로 스크리닝한다. `perturbation` 구성은 goal이 그 구동을 요구할 때 선택된 이미징 구성에 얹히며, 그 조합도 **광경로 표의 유효 튜플**이어야 한다. 이 구분이 없으면 계약이 광트랩에게 없는 관측량을 요구한다(§0.3-1).
+S3.0 screens only `imaging` configurations by observable. A `perturbation` configuration is layered onto the selected imaging configuration when the goal requires that driving, and that combination too has to be **a valid tuple in the optical-path table.** Without this distinction the contract demands of an optical trap an observable it does not have (§0.3-1).
 
-**비용 통제**: S3.0 이후 남기는 구성은 **3개까지**. 구성 3개 × 축 7개 = 서브에이전트 21개가 `validation_limits.json`의 `max_subagents_per_question`과 같다. 이 상한은 장식이 아니다 — 구성 넷이 다 살아남으면 4 × 7 = 28로 실제로 걸린다.
+**Cost control**: after S3.0, at most **3** configurations are kept. 3 configurations × 7 axes = 21 subagents, equal to `max_subagents_per_question` in `validation_limits.json`. That ceiling is not decoration — if four configurations all survive it is 4 × 7 = 28 and it actually binds.
 
-**자를 때 쓸 수 있는 판별자는 능력 수준에서 평가되는 것뿐이다.** 이 절은 2026-09-17까지 "넘으면 goal 카드의 우선순위로 자른다"고 적고 있었고, 그것은 **자기가 갖지 못한 정보를 전제하는 규칙**이었다. goal 카드의 우선순위 네 항목(`physical_feasibility`, `target_accuracy`, `evidence_grade`, `cost`)은 **하나도 S3.0에서 평가할 수 없다** — 넷 다 S3가 만드는 숫자를 요구하는데, S3를 돌릴지 정하는 것이 바로 이 컷이다. 현미경 세션이 S3.0을 구현하면서 찾았다.
+**The only discriminators usable for cutting are ones evaluated at the capability level.** Until 2026-09-17 this subsection said "over the limit, cut by the goal card's priorities", and that was **a rule presuming information it does not have.** None of the goal card's four priority items (`physical_feasibility`, `target_accuracy`, `evidence_grade`, `cost`) **can be evaluated at S3.0** — all four require numbers S3 produces, and this cut is what decides whether to run S3 at all. The microscope session found it while implementing S3.0.
 
-그래서 규칙은 이렇다:
+So the rule is:
 
-1. **`capabilities/`만 보고 판정되는 판별자로 자른다** — `requires_contrast`(시료가 제공하는 대비와 맞지 않는 구성은 후보가 아니다), 그리고 값이 생기면 전환 비용. 이것들은 S3 없이 참·거짓이 정해진다.
-2. **그래도 상한을 넘으면 자르지 않고 멈춘다.** 사람에게 §4.5.1 (c)로 한 번 되묻는다 — 어느 구성을 볼지는 목적을 아는 쪽이 답할 수 있다.
-3. **근거 없이 후보를 떨어뜨리지 않는다**(P16). 시도되지 않은 구성은 시도를 정당화할 기록이 영원히 쌓이지 않으므로, 임의로 자른 하나는 영구히 불리해진다. 편향이 자기를 실현하는 경로가 정확히 이것이고, P16이 이름 붙인 실패다.
+1. **Cut with discriminators decidable from `capabilities/` alone** — `requires_contrast` (a configuration that does not match the contrast the sample provides is not a candidate), and switching cost once there are values for it. These are true or false without S3.
+2. **If it still exceeds the ceiling, do not cut — stop.** Ask the person once through §4.5.1 (c) — which configurations to look at is answerable by whoever knows the purpose.
+3. **Do not drop a candidate without grounds** (P16). An untried configuration never accumulates the record that would justify trying it, so one cut arbitrarily is disadvantaged permanently. That is exactly the path by which bias fulfils itself, and the failure P16 named.
 
-**상한이 자주 걸리면 그것은 상한 문제가 아니다.** 구성 넷이 모두 살아남는 질문이 흔하다면 축 일곱 개가 구성마다 독립적으로 돌아야 하는지를 다시 봐야 한다 — 상한을 올리는 것은 비용을 올리는 것이고, 되묻기를 늘리는 것은 사람을 소모하는 것이다. 이 절을 고치기 전에 §11에 먼저 적을 것.
+**If the ceiling binds often, that is not a ceiling problem.** If questions where all four configurations survive are common, then whether seven axes have to run independently per configuration needs revisiting — raising the ceiling raises the cost, and multiplying the ask-backs consumes the person. Write it in §11 before editing this subsection.
 
-축은 **고정 목록**이며 질문마다 바뀌지 않는다. 일부 축이 "해당 없음"으로 기권하는 것은 정상이다. 축을 추가·삭제하는 것은 이 문서를 고치는 일이다(P10).
+The axes are **a fixed list** and do not change per question. Some axes abstaining as "not applicable" is normal. Adding or removing an axis means editing this document (P10).
 
-#### 4.5.4 S4 — 종합과 트레이드오프 (system designer · LLM + Python)
+#### 4.5.4 S4 — synthesis and trade-offs (system designer · LLM + Python)
 
-1. **구성별 교집합 계산 (Python, 결정론적)**: 구성마다 축별 허용 구간의 교집합을 구한다. 공집합인 구성은 **어느 두 축이 어떤 수치에서 충돌하는지**와 함께 탈락시킨다. 모든 구성이 탈락하면 refusal 카드로 끝낸다(P5).
-2. **구성 선택 + 우선순위 적용 (LLM)**: 살아남은 구성을 비교해 하나를 고르고, 그 구성의 교집합 안에서 한 점을 고른다. 우선순위는 goal 카드에 사람이 준 것을 쓰고, 없으면 기본 정책 — **물리적 타당성 > 목표 정확도 > 근거 등급 > 비용** — 을 쓰고 그 사실을 카드에 적는다. **안전은 이 목록에 없다**: 교환 대상이 아니라 이미 걸러진 제약이기 때문이다(§2.1). 같은 조건이면 **근거 등급이 더 좋은 쪽**을 고른다.
-**탐색 모드의 비교 규칙**: **10배 미만의 차이는 차이가 아니다.** 구성 비교가 같은 자릿수 안에서 갈리면 tie로 두고, 근거 등급 → 안전 여유 → 시도 이력이 적은 쪽(P16) → 비용 순으로 가른다. 미세한 수치 우위로 구성을 고르는 것은 없는 정보를 쓰는 일이다.
+1. **Per-configuration intersection (Python, deterministic)**: for each configuration, take the intersection of the per-axis permitted intervals. A configuration whose intersection is empty is dropped, together with **which two axes conflict at what values.** If every configuration drops, it ends as a refusal card (P5).
+2. **Configuration choice + applying priorities (LLM)**: compare the survivors, choose one, and choose a point inside that configuration's intersection. Use the priorities the person put in the goal card; if there are none, use the default policy — **physical feasibility > target accuracy > evidence grade > cost** — and write that fact into the card. **Safety is not on this list**: it is not something to trade but a constraint already filtered (§2.1). All else equal, choose **the one with the better evidence grade.**
+**The comparison rule in explore mode**: **a difference under 10× is not a difference.** When a configuration comparison falls within the same order of magnitude, treat it as a tie and break it by evidence grade → safety margin → whichever has been tried less (P16) → cost. Choosing a configuration on a marginal numerical edge is using information that is not there.
 
 
-   **양보 순서는 goal 카드가 싣고 온다**(2026-09-19 확정, §11-9). 고정 순서도 기본값도 없다.
+   **The concession order is carried in by the goal card** (settled 2026-09-19, §11-9). There is no fixed order and no default.
 
-   - **사다리에 오르는 축은 다섯이다**: A1(신호·잡음) · A2(통계 요구량) · A5(시간 안정성) · A6(분해능·시야) · A7(구동·운동). **A4(구성 적합성)는 사다리 밖이다** — 광경로가 있거나 없거나이지 양보의 대상이 아니다. **A3(시료 건전성)은 바닥이 있다** — P0이 사람 → 장비 → 시료·데이터 순이므로 완전히 거래되지 않는다.
-   - **순서는 `hard` 제약을 넘지 못한다.** 1순위가 물리적으로 불가능한 것을 사주지 않는다. 순서는 **가능한 것들 사이의 타이브레이크**이지 허가가 아니다.
-   - **양보는 이름을 대고 기록한다.** 어느 축을 얼마나 양보해 무엇을 얻었는지가 트레이드오프 기록에 남는다(아래 3).
-   - **카드가 순서를 싣지 않으면 S4는 추측하지 않는다.** 갈리는 상황에서 순서가 없으면 §4.5.1 (c)로 사람에게 올린다. 기본값을 두지 않기로 한 것이 이 결과를 의도한 것이다 — 없는 순서를 지어내는 것보다 한 번 묻는 것이 싸다.
+   - **Five axes climb the ladder**: A1 (signal and noise) · A2 (statistics required) · A5 (temporal stability) · A6 (resolution and field of view) · A7 (driving and motion). **A4 (configuration fitness) is off the ladder** — an optical path either exists or does not; it is not something to concede. **A3 (sample health) has a floor** — P0 orders people → instruments → samples and data, so it is not fully tradeable.
+   - **The order cannot override a `hard` constraint.** Being first does not buy something physically impossible. The order is **a tiebreak among possible things**, not a permission.
+   - **A concession is recorded by name.** Which axis was conceded by how much, to gain what, stays in the trade-off record (3 below).
+   - **If the card carries no order, S4 does not guess.** Where things are close and there is no order, escalate to the person through §4.5.1 (c). Choosing to have no default was intended to produce exactly this outcome — asking once is cheaper than inventing an order that does not exist.
 
-   **그리고 순서는 goal 카드에 있어야만 한다 — S2에서 쓰이기 때문이다.** 축이 숫자를 내기 **전에** 적히므로 사후 정당화가 될 수 없다. 나중에 정할 수 있게 하면 **고른 구성을 정당화하는 순서를 고르게 된다**. §9.3이 A/B에 대해 "무엇이 더 나은가를 시작 전에 적는다"고 한 것과 같은 논거이고, 같은 실패를 막는다.
-3. **트레이드오프 기록**: 고른 구성·지점과 **버린 구성·버린 지점**, 버린 이유를 수치로 남긴다(S6). `llm_estimate`에 의존한 축은 그 의존을 표시한다.
-4. **금지**: 새 숫자를 만들지 않고, 새 사실을 조회하지 않는다. S4는 **조합만** 한다. 지식이 더 필요하다는 결론이 나오면 S3로 되돌리는 것이 옳고, 그것은 새 리비전이다(P9).
+   **And the order has to be in the goal card, because it is used at S2.** Written **before** any axis produces a number, it cannot be a post-hoc justification. Allowing it to be set later means **choosing the order that justifies the configuration already chosen.** It is the same argument as §9.3's "write down what counts as better before starting" for the A/B, and it prevents the same failure.
+3. **Trade-off record**: leave the chosen configuration and point, **the discarded configurations and points**, and the reasons for discarding, as numbers (S6). An axis that leaned on an `llm_estimate` marks that dependence.
+4. **Forbidden**: it makes no new numbers and queries no new facts. S4 **only combines.** If the conclusion is that more knowledge is needed, the right move is back to S3, and that is a new revision (P9).
 
-왜 금지하나: 종합 단계가 조회를 시작하면 S3의 병렬 독립성이 무의미해진다. 마지막 한 에이전트가 모든 것을 다시 혼자 판단하게 된다.
+Why forbid it: once the synthesis stage starts querying, S3's parallel independence becomes meaningless. One final agent ends up judging everything alone again.
 
-#### 4.5.5 S5 — 산출물과 식별자 (system designer)
+#### 4.5.5 S5 — outputs and identifiers (system designer)
 
-- `plan_<agent>_<qid>.json` — 정본. §5.4의 필수 항목을 전부 갖는다. 검증기를 통과해야 `VALIDATED`(§5.5).
-- `plan_<agent>_<qid>.md` — **JSON에서 생성한다.** 손으로 고쳐도 시스템은 읽지 않는다(§5.6).
-- 한 질문의 모든 파일은 `questions/<qid>/` **한 폴더에 평평하게** 놓인다(§7.1).
-- `qid` 규약: `<agent>-<YYYYMMDD>-<NNN>` (예: `mic-20260916-001`, `sim-20260916-003`). 한 질문의 모든 산출물이 같은 qid를 공유하므로 grep 한 번으로 이력 전체가 모인다.
-- 재실행은 qid를 재사용하고 `revision`을 올린다. 이전 산출물은 지우지 않고 **`v2_`** 접두사로 나란히 둔다(P9, **§7.1 규칙 3**).
-- **리비전 2는 리비전 1을 기록으로 인용할 수 있고, 입력으로 쓸 수 없다.** 게이트가 더는 반대하지 않는 것과 그래도 되는 것은 다른 질문이라 시뮬레이션 매니저가 일부러 비워 두었다. §4.5.2가 금지하는 것은 **한 팬아웃 안의 형제 간 읽기**이므로 다른 팬아웃인 리비전 1에는 걸리지 않는다. 그러나 **리비전 1의 숫자를 자기 계산에 먹이면** 재실행이 존재하는 이유 — 무언가 틀렸다는 것 — 를 그대로 물려받는다. 그래서 허용되는 것은 **대조**다: "리비전 1은 X였고 이번이 다른 이유는 Y"라고 적는 것. 검사 12가 수송을 **재도출이 아니라 비교**로 보는 것과 같은 선이고, 그 선이 있어야 P9가 리비전 1을 남겨 두는 이유가 성립한다 — 비교 대상으로 남기는 것이지 재료로 남기는 것이 아니다.
-- 파일명은 §0 언어 규약에 따라 영어로 쓴다 (`question_…`, `goal_…`, `plan_…`).
+- `plan_<agent>_<qid>.json` — the record. It carries every mandatory item in §5.4. It has to pass the validator to be `VALIDATED` (§5.5).
+- `plan_<agent>_<qid>.md` — **generated from the JSON.** Edit it by hand and the system does not read it (§5.6).
+- Every file of one question sits **flat in one folder**, `questions/<qid>/` (§7.1).
+- `qid` convention: `<agent>-<YYYYMMDD>-<NNN>` (e.g. `mic-20260916-001`, `sim-20260916-003`). Every output of one question shares the qid, so one grep gathers the whole history.
+- A re-run reuses the qid and increments `revision`. Earlier outputs are not deleted; they sit alongside under a **`v2_`** prefix (P9, **§7.1 rule 3**).
+- **Revision 2 may cite revision 1 as a record and may not use it as an input.** The gate no longer objecting and it being all right are different questions, so the simulation manager deliberately left it open. What §4.5.2 forbids is **reading between siblings within one fan-out**, so it does not catch revision 1, which is a different fan-out. But **feeding revision 1's numbers into your own computation** inherits exactly the reason the re-run exists — that something was wrong. So what is permitted is **comparison**: writing "revision 1 was X and this one differs because Y". It is the same line as check 12 treating transport **as comparison rather than re-derivation**, and that line is what makes P9's reason for keeping revision 1 hold — it is kept as something to compare against, not as material.
+- Filenames are written in English per §0's language convention (`question_…`, `goal_…`, `plan_…`).
 
-#### 4.5.6 각 단계의 정지 조건
+#### 4.5.6 Stopping conditions at each stage
 
-| 단계 | 여기서 끝날 수 있는 경우 |
+| Stage | Where it can end |
 |---|---|
-| S2 | 이미 알려진 답 → 사서 위임 후 종료 · 사람만 답할 수 있음 → 되묻고 대기 |
-| S3 | 모든 축이 `infeasible` → refusal |
-| S4 | 교집합이 공집합 → refusal (충돌 축을 수치로 지목) |
-| S5 | 검증기 실패 → `DRAFT` 유지, 리비전 증가 |
+| S2 | the answer is already known → hand to the librarian and stop · only a person can answer → ask back and wait |
+| S3 | every axis `infeasible` → refusal |
+| S4 | the intersection is empty → refusal (naming the conflicting axes with numbers) |
+| S5 | validator failure → stays `DRAFT`, revision increments |
 
-조기 종료를 1급 출력으로 둔다. **가장 싼 실험은 하지 않아도 되는 실험이다.**
+Early termination is a first-class output. **The cheapest experiment is the one that does not have to be run.**
 
 ---
+### 4.6 The execution layer — system operator (S6)
 
-### 4.6 실행 계층 — system operator (S6)
-
-승인된 plan을 받아 모듈별 작업으로 쪼개 하달하고, 실행을 감시하고, 결과를 기록한다. **계획을 바꾸지 않는다.**
+It takes an approved plan, breaks it into per-module work and dispatches it, watches the execution, and records the results. **It does not change the plan.**
 
 ```
-      plan_<agent>_<qid>.json (정본, APPROVED)  +  plan_….md (문맥)
+      plan_<agent>_<qid>.json (the record, APPROVED)  +  plan_….md (context)
                         │
 ┌─ system operator ─────┴────────────────────────────────────────
 │
-│ [O1] preflight       모듈별 상태 조회 · 한계 재확인 · dry-run
-│   │                  하나라도 실패하면 여기서 정지 (장비 미접촉)
+│ [O1] preflight       per-module state query · re-confirm limits · dry-run
+│   │                  one failure and it stops here (instrument untouched)
 │   │
-│ [O2] 하달            plan.json → 모듈 명령으로 기계적 유도 (Python)
-│   │                  위험 낮은 모듈부터, 광원·출력은 마지막
+│ [O2] dispatch        plan.json → mechanically derived module commands (Python)
+│   │                  lowest-risk modules first, sources and power last
 │   │
-│ [O3] 감시            stop_criteria를 모니터로 컴파일, 위반 시 즉시 중단
-│   │                  중단 판정에 LLM 없음
+│ [O3] watch           compile stop_criteria into monitors, abort immediately on violation
+│   │                  no LLM in the abort decision
 │   │
-│ [O4] 기록            log.json (append-only) + deviations.json → result 카드
+│ [O4] record          log.json (append-only) + deviations.json → result card
 │
 └───────────────────────┬────────────────────────────────────────
-                        │  고정 인터페이스: preflight / apply / read / abort
+                        │  fixed interface: preflight / apply / read / abort
         ┌───────────────┴───────────────────┐
-   [시뮬레이션]                        [현미경]
+   [simulation]                        [microscope]
    src/hoomd_backend.py            src/orchestrator.py
-   src/mock_backend.py                단일 진입점 · 병렬 · 락 · 동기 · abort fan-out
-     (HOOMD-blue 잡 하나)               │
-                                       └─ src/devices/ (자기 장치만 안다)
-                                          dev_body · dev_camera1 · dev_camera2
-                                          dev_fluor1 · dev_fluor2 · dev_dmd
-                                          dev_confocal_laser · dev_confocal
-                                          dev_piezo · dev_motor_stage · dev_tweezer
-                                          manual · mock
+   src/mock_backend.py                single entry point · parallel · locks · sync · abort fan-out
+     (one HOOMD-blue job)               │
+                                        └─ src/devices/ (each knows only its own device)
+                                           dev_body · dev_camera1 · dev_camera2
+                                           dev_fluor1 · dev_fluor2 · dev_dmd
+                                           dev_confocal_laser · dev_confocal
+                                           dev_piezo · dev_motor_stage · dev_tweezer
+                                           manual · mock
 ```
 
-**designer와 operator의 경계가 곧 승인 게이트다.** designer는 Tier 0만 갖고(아무것도 실행하지 않음), operator는 Tier 1–2를 갖는 유일한 구성요소다(§6). 승인은 특정 `(plan_id, revision)`에만 유효하므로, 계획이 바뀌면 operator는 실행을 거부한다(§5.5).
+**The boundary between designer and operator is the approval gate.** The designer has Tier 0 only (it executes nothing), and the operator is the only component holding Tier 1–2 (§6). An approval is valid only for a specific `(plan_id, revision)`, so if the plan changes the operator refuses to execute (§5.5).
 
-#### 4.6.1 무엇을 Python이 하고 무엇을 LLM이 하나
+#### 4.6.1 What Python does and what the LLM does
 
-| | Python (결정론적) | LLM |
+| | Python (deterministic) | LLM |
 |---|---|---|
-| 정상 경로 | 명령 유도, 단위 변환, 하달 순서, 인터록, 모니터, 중단 | **관여하지 않는다** |
-| 예외 경로 | 이상 감지와 중단 자체 | 계획에 없던 상황의 해석, 편차 보고 작성, 후속 제안 |
+| Normal path | command derivation, unit conversion, dispatch order, interlocks, monitors, aborting | **not involved** |
+| Exception path | detecting the anomaly and the abort itself | interpreting a situation the plan did not anticipate, writing the deviation report, proposing follow-ups |
 
-**규칙: LLM은 장비·시뮬레이션 명령을 합성하지 않는다.** 모든 명령은 `plan.json`의 값에서 기계적으로 유도되고, 로그의 모든 명령에는 어느 필드에서 왔는지를 가리키는 `from` 필드가 붙는다(§8 검사 14).
+**Rule: the LLM does not synthesise instrument or simulation commands.** Every command is derived mechanically from values in `plan.json`, and every command in the log carries a `from` field pointing at the field it came from (§8 check 14).
 
-이유는 단순하다 — 되돌릴 수 없는 동작에서 확률적 출력은 위험만 더한다(P4, P8). LLM이 필요한 곳은 "계획이 예상하지 못한 일이 벌어졌을 때 그것을 사람이 읽을 수 있게 적는 일"이며, 그때도 중단은 이미 Python이 끝낸 뒤다.
+The reason is simple — in an irreversible action, a probabilistic output only adds risk (P4, P8). Where the LLM is needed is "writing up, so a person can read it, what happened that the plan did not anticipate", and even then the abort is already finished by Python.
 
-#### 4.6.2 json과 md를 둘 다 읽는 이유
+#### 4.6.2 Why both the JSON and the Markdown are read
 
-- `plan_….json` = **명령**. 모든 파라미터는 여기서만 온다.
-- `plan_….md` = **문맥**. 왜 이 조건이 선택됐고 무엇을 버렸는지가 담긴다. 예외 상황에서 "이 편차가 계획의 의도를 깨는가"를 판단할 때 쓴다.
-- **MD가 JSON을 이기는 경우는 없다.** 둘이 어긋나면 실행 전에 정지한다. §8 검사 9는 작성 시점의 검사이고, operator는 실행 시점에 한 번 더 확인한다(P3).
+- `plan_….json` = **the commands.** Every parameter comes only from here.
+- `plan_….md` = **the context.** It holds why this condition was chosen and what was discarded. It is used in an exceptional situation to judge "does this deviation break the plan's intent".
+- **There is no case where the Markdown beats the JSON.** If the two disagree, it stops before executing. §8 check 9 is a check at writing time, and the operator confirms once more at execution time (P3).
 
-#### 4.6.3 모듈·장치 분해
+#### 4.6.3 Module and device decomposition
 
-**시뮬레이션 — 논리 모듈 5개**
+**Simulation — five logical modules**
 
-| | 모듈 |
+| | Module |
 |---|---|
-| MOD1 | 초기 구성 생성 (배치, 밀도) |
-| MOD2 | 적분기 설정 (시간간격, 열욕) |
-| MOD3 | 관측량 측정 (저장 간격, 계산) |
-| MOD4 | 체크포인트·저장 |
-| MOD5 | 잡 제출·자원 |
+| MOD1 | initial configuration generation (placement, density) |
+| MOD2 | integrator setup (timestep, thermostat) |
+| MOD3 | observable measurement (save interval, computation) |
+| MOD4 | checkpointing and storage |
+| MOD5 | job submission and resources |
 
-**현미경 — 모듈은 논리 단위가 아니라 실제 장치 단위로 나눈다.**
-장치마다 제어 소프트웨어와 입출력 단자가 다르기 때문이다(§4.6.6). 논리적으로 묶으면 operator가 **존재하지 않는 통합 인터페이스**를 가정하게 된다.
+**Microscope — modules are divided by actual device, not by logical unit.**
+Each device has different control software and different I/O terminals (§4.6.6). Grouping them logically makes the operator assume **an integrated interface that does not exist.**
 
-**장치는 두 층이다: 제어 채널(장치)과 그 안의 요소.** 현미경 본체 하나에 독립적으로 움직이는 요소가 열 개 있다. 요소 단위로 보지 않으면 인터록도 광경로도 표현할 수 없다.
+**Devices are two layers: the control channel (the device) and the elements inside it.** One microscope body has ten independently moving elements. Without looking at element granularity, neither interlocks nor optical paths can be expressed.
 
-| 장치 (제어 채널) | 요소 | M3에서 채워야 할 것 |
+| Device (control channel) | Elements | What has to be filled in at M3 |
 |---|---|---|
-| **현미경 본체** | 대물렌즈 터렛 · 컨덴서 터렛 · 필터터렛 1·2 · 필터터렛용 셔터 1·2 · dia lamp · PFS · 형광광원 브랜치 · 1.5× 줌(on/off) · 출력방향 | 요소마다 채널이 따로인지 본체 SDK 하나인지, 각 터렛의 위치 목록과 전환 시간, PFS 동작 범위와 재획득 시간 |
-| **컨포컬 (스피닝 디스크)** | 다이크로익 선택 1·2 · 필터휠 1·2 · **스피닝 디스크(회전 속도, in/out 위치)** · **레이저용 셔터** · 검출기 | 각 휠의 위치 목록과 전환 시간, 디스크 속도 범위와 안정화 시간, in/out 전환 시간, 셔터 응답 시간, 취득 포맷 |
-| 카메라 ×2 | — | 각각 어느 출력방향에 붙는지, 트리거 방식, 동시 사용 가능 여부 |
-| 형광 광원 ×2 | 출력 · 파장 · 셔터 | 어느 브랜치에 대응하는지, 셔터가 광원 쪽인지 본체 쪽인지 |
-| DMD | 패턴 · 동기 | 패턴 업로드 경로, 카메라·광원과의 동기 방식 |
-| 컨포컬 레이저 | 출력 · 라인(파장) · 인터록 | 출력 제어 채널, 인터록 신호 |
-| 피에조 스테이지 | xyz | 범위·속도·대역폭·정착시간, 폐루프 여부 |
-| 모터라이즈드 스테이지 | xy(z) | 속도·가속 한계, 백래시, 반복도 |
-| 옵티컬 트위저 | 출력 · 트랩 개수/분할 · 트랩 위치 | **트랩 개수 상한과 분할 방식**, 트랩 이동 속도 한계, 강성 캘리브레이션 경로 |
+| **microscope body** | objective turret · condenser turret · filter turrets 1 and 2 · shutters 1 and 2 for the filter turrets · dia lamp · PFS · fluorescence source branch · 1.5× zoom (on/off) · output direction | whether each element has its own channel or shares one body SDK, each turret's position list and switching time, the PFS operating range and reacquisition time |
+| **confocal (spinning disk)** | dichroic selection 1 and 2 · filter wheels 1 and 2 · **the spinning disk (rotation speed, in/out position)** · **the laser shutter** · the detector | each wheel's position list and switching time, the disk speed range and stabilisation time, in/out switching time, shutter response time, acquisition format |
+| cameras ×2 | — | which output direction each attaches to, trigger scheme, whether they can be used simultaneously |
+| fluorescence sources ×2 | power · wavelength · shutter | which branch each corresponds to, whether the shutter is on the source side or the body side |
+| DMD | pattern · sync | pattern upload path, sync scheme with camera and source |
+| confocal laser | power · line (wavelength) · interlock | power control channel, interlock signal |
+| piezo stage | xyz | range, speed, bandwidth, settling time, whether closed-loop |
+| motorised stage | xy(z) | speed and acceleration limits, backlash, repeatability |
+| optical tweezers | power · trap count/splitting · trap position | **the ceiling on trap count and the splitting scheme**, the trap travel-speed limit, the stiffness calibration path |
 
-요소는 스물다섯 개 남짓이고, **제어 채널은 그보다 훨씬 적다.** 그래서 파일 분할 기준은 장치가 아니라 **제어 채널**이다(§4.6.5).
+There are about twenty-five elements, and **far fewer control channels.** So the file-splitting criterion is not the device but **the control channel** (§4.6.5).
 
-"채워야 할 것"은 **확인해서 사서 KB에 넣는다.** 2026-09-17에 이전 저장소에서 추출한 부분이 `kb/staging/devices.v0.json`에 있고(§11.1), 비어 있는 칸은 장비에서 확인될 때 채워진다. `envelope/`에 넣지 않는 이유는 §4.3.2다 — 장치 특성은 지식이다. 지금 추측으로 채우지 않는다(P2).
+"What has to be filled in" is **confirmed and then put into the librarian's KB.** What was extracted from a prior repository on 2026-09-17 is in `kb/staging/devices.v0.json` (§11.1), and the empty cells are filled as they are confirmed on the instrument. The reason it does not go in `envelope/` is §4.3.2 — device characteristics are knowledge. They are not filled in by guess now (P2).
 
-모듈·장치는 **자기 파라미터만** 받는다. 장치 간 직접 통신은 없고, 순서·동기·인터록은 operator가 쥔다 — S3의 병렬 독립성과 같은 이유다.
+Modules and devices receive **only their own parameters.** There is no direct device-to-device communication; ordering, synchronisation and interlocks are held by the operator — the same reason as S3's parallel independence.
 
-#### 4.6.4 하지 않는 일
+#### 4.6.4 What it does not do
 
-- **계획을 고치지 않는다.** 그대로 실행할 수 없으면 중단하고 편차와 함께 designer로 되돌린다. 그것은 새 리비전이다(P9).
-- **승인되지 않은 plan을 실행하지 않는다.**
-- **실패를 재시도로 덮지 않는다.** 재시도는 계획에 명시된 횟수만, 그 사실을 로그에 남기고 한다.
-- **결과를 해석하지 않는다.** operator의 출력은 result 카드까지이며, 해석은 그다음 단계의 일이다.
+- **It does not fix the plan.** If it cannot be executed as written, it stops and returns it to the designer with the deviation. That is a new revision (P9).
+- **It does not execute an unapproved plan.**
+- **It does not paper over a failure with a retry.** Retries happen only the number of times the plan states, with that fact left in the log.
+- **It does not interpret results.** The operator's output ends at the result card; interpretation is the next stage's work.
 
-#### 4.6.5 backend 경계
+#### 4.6.5 The backend boundary
 
-- 고정 인터페이스 하나: `preflight() / apply(params) / read() / abort()`. HOOMD-blue든 카메라든 operator에게는 같은 모양으로 보인다.
-- **`src/devices/mock.py`는 1급 백엔드다.** 하드웨어와 HOOMD 없이 파이프라인 전체가 돌아야 하며, M2–M3의 검증은 mock으로 한다(§9).
-- **백엔드는 정책을 갖지 않는다.** 한계 판정은 envelope과 operator의 일이고, 백엔드는 명령을 전달하고 상태를 돌려줄 뿐이다. 백엔드에 조건 판단이 들어가면 envelope이 두 곳에 생긴다.
-- 백엔드 교체가 계획을 바꾸지 않는다. 같은 plan.json이 mock에서도 실장비에서도 그대로 실행된다 — 이것이 재현성의 실무적 정의다(S3).
-- **파일 분할 기준은 제어 채널이다.** 본체 SDK 하나가 열 개 요소를 다루면 `dev_body.py` 한 파일이 그 열 개를 맡는다. 요소마다 파일을 쪼개면 같은 SDK 핸들을 여러 파일이 잡게 되고, 그 순간 단일 진입점(§4.6.8)이 깨진다.
+- One fixed interface: `preflight() / apply(params) / read() / abort()`. HOOMD-blue or a camera looks the same shape to the operator.
+- **`src/devices/mock.py` is a first-class backend.** The whole pipeline has to run with no hardware and no HOOMD, and M2–M3's validation is done on the mock (§9).
+- **A backend holds no policy.** Judging limits is the envelope's and the operator's work; a backend relays commands and returns state. Put a condition judgement in a backend and the envelope exists in two places.
+- Swapping the backend does not change the plan. The same plan.json runs unchanged on the mock and on the real instrument — that is the practical definition of reproducibility (S3).
+- **The file-splitting criterion is the control channel.** If one body SDK handles ten elements, one file `dev_body.py` takes those ten. Split a file per element and several files hold the same SDK handle, and at that moment the single entry point (§4.6.8) breaks.
 
-#### 4.6.6 이질적 제어 채널 (현미경의 실제 조건)
+#### 4.6.6 Heterogeneous control channels (the microscope's actual conditions)
 
-현재 현미경에 붙은 아홉 종류의 장치 — 본체, 카메라 2대, 형광 광원 2개, DMD, 컨포컬 레이저, 컨포컬, 피에조 스테이지, 모터라이즈드 스테이지, 옵티컬 트위저 — 와 그 안의 스물다섯 남짓한 요소(§4.6.3)는 **각각 다른 소프트웨어나 입출력 단자로 조작된다.** 이 사실이 operator 설계에 강제하는 것:
+The nine kinds of device currently attached to the microscope — the body, two cameras, two fluorescence sources, the DMD, the confocal laser, the confocal, the piezo stage, the motorised stage, the optical tweezers — and the roughly twenty-five elements inside them (§4.6.3) are **each operated through different software or different I/O terminals.** What that fact forces on the operator's design:
 
-1. **장치 레지스트리가 있어야 한다 — 그리고 그것은 지식이다.** 장치마다 다음을 적는다:
+1. **There has to be a device registry — and it is knowledge.** Per device, record:
    `{id, elements: [...], control: sdk | daq | gui_manual | file_watch, automatable: full | partial | none, read_back: bool, sync: hw_trigger | sw_sequence | none, lock_group: ..., limits: {...}}`
-   `limits`에 들어가는 것은 **장치가 할 수 있는 것**(행정거리, 최대 속도, 노출 범위)이지 **우리가 허용하는 것**이 아니다. 후자는 정책이며 `envelope/safety.json`의 몫이다(§4.3.2). 둘을 한 필드에 담으면 안전 한계가 장치 사양과 함께 갱신된다.
-   광경로 제약은 여기가 아니라 광경로 표에 있다(§4.6.7).
-   레지스트리는 사서가 소유한다 — M1–M2 동안 `kb/staging/devices.v0.json`에, M3부터 `envelope/snapshot.json`에 있다(§4.3.2).
-   **계획 단계(S3 축 A4)와 실행 단계(O1 preflight)가 같은 표를 본다.** 어느 자리에 있든 이것이 조건이다.
+   What goes in `limits` is **what the device can do** (travel, maximum speed, exposure range), not **what we permit.** The latter is policy and belongs to `envelope/safety.json` (§4.3.2). Put both in one field and the safety limit gets updated along with the device specification.
+   Optical-path constraints are not here but in the optical-path table (§4.6.7).
+   The registry is owned by the librarian — in `kb/staging/devices.v0.json` during M1–M2, and in `envelope/snapshot.json` from M3 (§4.3.2).
+   **The planning stage (S3 axis A4) and the execution stage (O1 preflight) look at the same table.** Wherever it lives, that is the condition.
 
 
-**시료 레지스트리도 옆 표로 있다 — 그리고 제품이 아니라 개체를 이름 댄다 (2026-09-19).**
+**A sample registry sits beside it as its own table — and it names an individual, not a product (2026-09-19).**
 
-**개체와 유형을 가르는 것이 이 판정의 전부다.** 측정은 **개체**에 대해 이루어지고 스펙은 **유형**에 대해 쓰인다. 오늘 형광 대역을 잰 것은 카탈로그의 제품군이 아니라 **이 벤치의 통에 든 것**에 대한 관찰이고, 그 병이 나중에 다른 제품으로 밝혀져도 **관찰은 병에 대해 여전히 참이고 제품에 대해 거짓이 된다.** 그러므로 첫 항목이 `AFR-0500-COOH`일 수 없다 — 지금 벤치에 있는 것은 **카탈로그 정체성이 없는 입자**다.
+**Separating individual from type is the whole of this judgement.** A measurement is made of an **individual** and a specification is written about a **type.** What had its fluorescence band measured today is not a catalogue product line but **what is in the tube on this bench**, and if that bottle later turns out to be a different product, **the observation is still true of the bottle and becomes false of the product.** So the first item cannot be `AFR-0500-COOH` — what is on the bench right now is **a particle with no catalogue identity.**
 
-그래서 셋으로 갈린다: **개체**(레지스트리의 항목), **유형**(KB의 보통 entry, `spec:<catalog>` E3), 그리고 **둘을 잇는 주장**("이 병이 그 제품이다") — 이것이 자기 등급을 갖는다. 2026-09-19 현재 E5이고, 사람이 라벨을 읽으면 E3가 된다. **셋을 한 칸에 담으면 오늘 아침 픽셀 크기에서 아키텍처가 한 것이 된다: 그 값이 무엇에 대한 것인지 확정하기 전에 등급을 매기는 것.**
+So it splits three ways: the **individual** (the registry's item), the **type** (an ordinary KB entry, `spec:<catalog>` E3), and **the claim joining them** ("this bottle is that product") — which carries its own grade. As of 2026-09-19 that is E5, and it becomes E3 when a person reads the label. **Putting all three in one cell is what architecture did with pixel size this morning: grading a value before settling what it is about.**
 
-**자리는 사서의 `kb/staging/`, 장치 표 옆이다.** 같은 표는 아니다 — 장치 표의 열이 전부 `driver`·`automatable`·`read_back`이고 시료에 대해 **전부 거짓**이라, 온도계를 device로 넣지 않기로 한 것과 같은 이유가 여기 걸린다(§5.3.3). 사서인 이유는 §4.6이 장치 레지스트리를 두고 "그것은 지식이다"라고 한 것과 같다 — **이 실험실에 무엇이 있는가는 지식이고 지식은 한 곳에 산다**(P14). 현미경의 런 기록이 아닌 이유는 둘이다: 한 시료를 **두 에이전트가 쓰고**(시뮬레이션은 그것을 모형화한다), 병은 런보다 오래 산다.
+**Its place is the librarian's `kb/staging/`, beside the device table.** Not the same table — the device table's columns are all `driver`, `automatable`, `read_back`, and **all false for a sample**, so the same reason that kept a thermometer out of the devices applies here (§5.3.3). The reason it is the librarian's is the same as §4.6 saying of the device registry "it is knowledge" — **what is in this laboratory is knowledge, and knowledge lives in one place** (P14). Two reasons it is not the microscope's run record: one sample is used by **two agents** (the simulation models it), and a bottle outlives a run.
 
-**만드는 근거는 subject 해소가 아니다.** 사서 매니저가 세운 기준 — *이 레지스트리는 subject를 풀어 주는 것 말고 존재할 이유가 있는가* — 를 통과한다: **런 기록이 스테이지에 무엇이 있었는지 말해야 한다.** 그 기준이 같은 날 셋을 다르게 답한 것이 기준의 값이다. 양은 통과했고, 장소는 **통과하지 못해 레지스트리 대신 예약어(`ambient`)로 끝났고**, 시료는 통과했다. **검사를 만족시키려고 레지스트리를 만드는 것은 도치이고 그날 세 번 거부됐다.**
+**The grounds for creating it are not subject resolution.** It passes the criterion the librarian manager set — *does this registry have a reason to exist beyond resolving a subject* — because **a run record has to say what was on the stage.** The value of that criterion is that it answered three cases differently on the same day. The quantity passed; the place **did not pass and ended as a reserved word (`ambient`) instead of a registry**; the sample passed. **Creating a registry in order to satisfy a check is inversion, and it was refused three times that day.**
 
-**그리고 이 레지스트리가 필요한 가장 강한 증거는 검사 하나가 스스로 만들었다.** 검사 44가 시료 entry의 subject를 거절했고 사서석은 게임하지 않고 지웠다 — 옳았다. **그런데 주장은 사라지지 않았다**: 그 entry들의 이름이 `tracer_particle_density`, `tracer_emission_peak`가 됐다. **주어가 거절당하자 아무것도 검사하지 않는 문자열로 옮겨갔다.** 거절이 문제를 없앤 것이 아니라 **보이지 않게 했다**, 그리고 그 위에 열여섯 entry가 섰다.
+**And the strongest evidence that this registry is needed was produced by a check itself.** Check 44 refused the sample entries' subject and the librarian seat deleted them rather than gaming it — which was right. **But the claim did not disappear**: those entries' names became `tracer_particle_density`, `tracer_emission_peak`. **The subject, having been refused, moved into a string nothing checks.** The refusal did not remove the problem, it **made it invisible**, and sixteen entries stood on top of it.
 
-2. **자동화되지 않는 장치를 자동인 척하지 않는다.** GUI로만 조작되는 장치는 `src/devices/manual.py`가 담당한다 — operator가 **지시서를 내고 사람의 확인을 받는다.** 지시서와 확인 기록은 `runs/<run_id>/manual_steps.md`에 남고, **확인 없이는 다음 모듈로 넘어가지 않는다.** 절반만 자동인 시스템을 완전 자동인 척하면 로그 전체가 거짓이 된다(P2, P9).
+2. **A device that is not automated is not pretended to be.** A device operable only through a GUI is handled by `src/devices/manual.py` — the operator **issues an instruction sheet and takes a person's confirmation.** The sheet and the confirmation record stay in `runs/<run_id>/manual_steps.md`, and **without the confirmation it does not move to the next module.** Pretending a half-automatic system is fully automatic makes the entire log false (P2, P9).
 
-3. **광경로는 쌍 배타가 아니라 상태 벡터다**(§4.6.7). 초기 설계의 `exclusive_with`는 이 장비를 표현하지 못한다 — 아래에서 교체한다.
+3. **An optical path is a state vector, not pairwise exclusion** (§4.6.7). The initial design's `exclusive_with` cannot express this instrument — it is replaced below.
 
-4. **동기화는 operator가 쥔다.** 하드웨어 트리거로 묶인 조합(예: 광원·DMD·카메라)과 소프트웨어 순서로 묶인 조합을 구분해 적는다. 장치끼리 직접 말하게 두면 순서가 로그에 남지 않는다.
+4. **Synchronisation is held by the operator.** Record separately which combinations are bound by a hardware trigger (for example source, DMD and camera) and which by software ordering. Let devices talk to each other directly and the ordering does not stay in the log.
 
-5. **제어 채널이 다르면 실패 모드도 다르다.** SDK는 예외를 던지고, DAQ는 **조용히 잘못된 전압을 내고**, GUI는 아무것도 알려주지 않는다. 그래서 모든 장치는 `read()`로 자기 상태를 되읽을 수 있어야 하며, **되읽을 수 없는 장치는 `automatable: none`으로 취급한다.** 확인할 수 없는 자동화는 자동화가 아니다.
+5. **Different control channels have different failure modes.** An SDK throws an exception, a DAQ **quietly outputs the wrong voltage**, and a GUI tells you nothing. So every device has to be able to read its own state back through `read()`, and **a device that cannot be read back is treated as `automatable: none`.** Automation that cannot be confirmed is not automation.
 
-#### 4.6.6.1 실물 제어를 세우는 순서 (2026-09-20, 사람이 정했다)
+#### 4.6.6.1 The order for standing up real control (2026-09-20, settled by the person)
 
-`tracer_brightness`를 재려면 장비가 실제로 움직여야 하고, 지금 `src/devices/`에는 `manual.py`와 `mock.py`뿐이며 **장치 레지스트리 열 채널의 `control` 칸이 전부 비어 있다.** §10.2의 "하드웨어 제어 경로" 행이 그 칸을 위해 열려 있고, 관문(인터페이스 네 함수)은 충족됐다. **그 행이 적어 둔 것이 순서를 결정한다: 제어 경로를 감싸는 데 안전 한계는 필요 없다.** 그러므로 감싸는 일과 사람이 `envelope/safety.json`을 쓰는 일은 **병렬로 간다** — 기다리는 것은 **실물을 움직이는 순간**뿐이다.
+Measuring `tracer_brightness` requires the instrument to actually move, and `src/devices/` today holds only `manual.py` and `mock.py`, while **the `control` cell of all ten registry channels is empty.** §10.2's "hardware control path" row is open for that cell, and the gate (the four interface functions) is satisfied. **What that row records decides the order: wrapping a control path needs no safety limit.** So the wrapping and the person's writing of `envelope/safety.json` **go in parallel** — what waits is only **the moment the real thing moves.**
 
-**1. 범위는 밝기 경로 셋이다.** `widefield_source_a`(여기) · `camera_red`(605 밴드 수집) · `stand_ti2e`(대물렌즈·필터). **셋 다 `automatable: full`이고 `read_back: true`다.** 세어 보고 고른 것이고, 결과가 §10.2.1의 "한 번에 하나"와 저절로 맞는다 — **되읽기 없는 두 채널이 이 측정 경로에 아예 없다.** 열을 한 번에 감싸면 쓰이지 않는 제어 경로가 생기고, **시험되지 않은 코드는 이 저장소가 여러 번 센 부류다.**
+**1. The scope is the three brightness-path channels.** `widefield_source_a` (excitation) · `camera_red` (605-band collection) · `stand_ti2e` (objective and filters). **All three are `automatable: full` and `read_back: true`.** It was chosen by counting, and the result lines up with §10.2.1's "one at a time" by itself — **the two channels without read-back are not on this measurement path at all.** Wrapping all ten at once creates control paths nobody uses, and **untested code is a class this repository has counted several times.**
 
-**2. `control` 칸은 이전 저장소에서 추출한다.** §10.2의 그 행이 가리키는 것이 정확히 이것이다 — 드라이버 호출 방식, 채널, 되읽기 경로. **§10.2.1 판정을 거치고 구조만 넘어온다: 수치는 안 넘어온다**(§10.3). 판정은 `microscope_agent/rulings.jsonl`에 `by`와 함께 적힌다(§7.1 규칙 9).
+**2. The `control` cells are extracted from a prior repository.** That is exactly what §10.2's row points at — the driver call style, the channel, the read-back path. **It passes a §10.2.1 ruling and only structure crosses: no figures cross** (§10.3). The ruling is written into `microscope_agent/rulings.jsonl` with its `by` (§7.1 rule 9).
 
-**3. 되읽기 없는 둘은 자동화하되 맹점을 명시한다 — 그리고 그것이 §2.1과 만나는 자리를 여기 적는다.**
+**3. The two without read-back are automated with the blind spot stated — and where that meets §2.1 is written here.**
 
-`laser_combiner`와 `optical_tweezers`는 명령은 받고 확인은 안 된다. 사람이 **자동화하되 맹점을 런 기록에 박는 쪽**을 골랐다. **§2.1 규칙 2는 되읽을 수 없으면 멈추라고 하고, 규칙 8은 신호가 없으면 허가도 없다고 한다.** 그 둘이 이 선택과 만나므로 경계를 좁혀 적는다:
+`laser_combiner` and `optical_tweezers` accept commands and are not confirmable. The person chose **to automate them and nail the blind spot into the run record.** **§2.1 rule 2 says stop when it cannot be read back, and rule 8 says no signal means no permission.** Both meet this choice, so the boundary is written narrowly:
 
-- **명령은 나간다. 그 채널의 상태를 확인된 것으로 취급하는 것은 아무것도 없다.** 런 기록이 그 채널에 대해 `verification: none`을 싣고, 그것이 비어 있으면 런이 성립하지 않는다.
-- **그 채널의 상태 위에 안전 판정을 세우지 않는다** — 규칙 8 그대로다. 허가는 `envelope/`의 한계, 사람의 승인, 또는 결정론적 검사에서만 온다.
-- **비가역 동작은 여전히 확인된 한계를 요구한다**(검사 57). 트랩을 명령할 수는 있어도, **꺼져 있다는 것을 시스템이 확인할 수 있게 되는 것은 아니다.**
+- **The command goes out. Nothing treats that channel's state as confirmed.** The run record carries `verification: none` for that channel, and if that is empty the run does not stand.
+- **No safety judgement is built on that channel's state** — rule 8 exactly. Permission comes only from a limit in `envelope/`, a human approval, or a deterministic check.
+- **An irreversible action still requires a confirmed limit** (check 57). A trap can be commanded, but **that does not make its being off something the system can confirm.**
 
-**그리고 비가역 동작을 막는 실패가 둘이다 — 위 문단이 하나만 덮고 있었다.** 검사 57을 맡은 좌석이 짚었다:
+**And there are two failures that block an irreversible action — the paragraph above covered only one.** The seat holding check 57 pointed it out:
 
-    - **한계가 확인되지 않았다**(`confirmation: carried_over`) — 무엇까지 요구해도 되는지가 안 정해졌다.
-    - **한계는 확인됐는데 그것이 지켜졌는지를 아무도 되읽지 못한다**(`verification: none`) — 요구는 정당한데 **일어난 일이 미지**다.
+    - **The limit is unconfirmed** (`confirmation: carried_over`) — how far it is permissible to demand has not been settled.
+    - **The limit is confirmed and nobody can read back whether it was respected** (`verification: none`) — the demand is legitimate and **what happened is unknown.**
 
-    **둘은 한 검사가 지지 않는다 — 아키텍처가 메시지로 57에 둘 다 주었고 그것이 틀렸다.** 입력이 다르다: 57은 **envelope과 계획의 `actions[]`**를 읽고, 둘째는 **런 기록**을 읽는데 런은 아직 없을 수도 있다. 고치는 사람도 고치는 방법도 다르다 — 첫째는 **사람이 안 쟀다**이고 둘째는 **기계가 못 본다**다. 한 검사가 둘을 지면 실패했을 때 **어느 규칙이 깨졌는지 말하지 못한다.** 57을 맡은 좌석이 문서를 따르고 메시지를 따르지 않았으며, docstring에 "여기서 다루지 않는다"까지 적었다. **둘째는 검사 66이다.**
+    **One check does not carry both — architecture gave 57 both in a message and that was wrong.** The inputs differ: 57 reads **the envelope and the plan's `actions[]`**, while the second reads **the run record**, and a run may not exist yet. Who fixes it and how differ too — the first is **a person did not measure**, the second is **a machine cannot see.** If one check carries both, then on failure **it cannot say which rule was broken.** The seat holding 57 followed the document and not the message, and even wrote "not handled here" into the docstring. **The second is check 66.**
 
-    **그리고 가르면서 드러난 것: 둘째를 붙들 것이 없다.** 이 절이 런 기록의 `verification`에 그 규칙을 얹었는데 **`run_log.schema.json`에 그 필드가 없다**(2026-09-20 확인, 언급 0회). **규칙이 적혀 있고 그것을 지는 것이 없는** 그 모양이고, 오늘 가장 많이 센 부류다. 66은 필드와 검사를 함께 가져온다. 그리고 둘째가 정확히 §2.1 규칙 8이다 — 되읽기가 없으면 **신호가 아예 없고, 없는 신호는 허가하지 않는다.** 확인된 천장은 **무엇을 요구해도 되는지의 상한**을 주지 **무엇이 일어났는지**를 주지 않는다.
+    **And splitting them revealed this: there is nothing for the second to hold on to.** This subsection put that rule on the run record's `verification`, and **`run_log.schema.json` has no such field** (confirmed 2026-09-20, zero mentions). It is the shape where **a rule is written and nothing carries it**, and the class counted most often today. 66 brings the field and the check together. And the second is precisely §2.1 rule 8 — with no read-back there is **no signal at all, and an absent signal does not permit.** A confirmed ceiling gives **an upper bound on what may be demanded**, not **what happened.**
 
-    **그러므로: 확인된 한계는 요구를 묶고, 되읽기는 일어난 일을 확인하며, 비가역 동작은 둘 다 필요하다.** 그 결과가 사람의 셋째 선택에 그대로 걸린다 — `laser_combiner`와 `optical_tweezers`는 **명령을 받지만 그 둘을 통한 비가역 동작은 돌지 않는다**, 한계가 확인돼 있든 없든. 되읽기 경로가 생기는 날 열린다. **트랩을 거는 것 자체는 비가역이 아니므로 마비되지 않는다** — 막히는 것은 되돌릴 수 없는 부분집합이다.
+    **Therefore: a confirmed limit binds the demand, read-back confirms what happened, and an irreversible action needs both.** That result lands directly on the person's third choice — `laser_combiner` and `optical_tweezers` **accept commands, and no irreversible action through those two runs**, whether or not the limit is confirmed. It opens the day a read-back path exists. **Setting a trap is not itself irreversible, so nothing is paralysed** — what is blocked is the irreversible subset.
+    **The remaining risk is accepted, not resolved, and it is written that way.** `optical_tweezers` is a laser and falls under P0's first line. This choice is **a person accepting rule 2 for that channel**, and the condition for reversing it is the day a read-back path exists — on that day this paragraph is edited first.
 
-    **남는 위험은 해소된 것이 아니라 수용된 것이고, 그렇게 적는다.** `optical_tweezers`는 레이저이고 P0의 첫 줄에 걸린다. 이 선택은 **그 채널에 대해 규칙 2를 사람이 받아들인 것**이며, 되돌릴 조건은 되읽기 경로가 생기는 날이다 — 그날 이 문단이 먼저 고쳐진다.
 
+#### 4.6.7 An optical path is a state vector — and that is what a "configuration" is
 
-#### 4.6.7 광경로는 상태 벡터다 — 그리고 그것이 곧 "구성"이다
+Writing out every **discrete selector** that determines an optical path gives: output port, fluorescence source branch, filter turrets 1 and 2, the shutters for filter turrets 1 and 2, the objective turret, the condenser turret, the 1.5× zoom, the dia lamp, and on the confocal side dichroics 1 and 2, filter wheels 1 and 2, **the spinning disk in/out**, and **the laser shutter.**
 
-광경로를 정하는 **이산 선택자**를 모두 적으면 이렇다: 출력방향, 형광광원 브랜치, 필터터렛 1·2, 필터터렛용 셔터 1·2, 대물렌즈 터렛, 컨덴서 터렛, 1.5× 줌, dia lamp, 그리고 컨포컬 쪽의 다이크로익 1·2, 필터휠 1·2, **스피닝 디스크 in/out**, **레이저용 셔터**.
+**The spinning disk's in/out splits the same hardware into two modalities** — with the disk out, the same path is widefield. In the configuration list these are two separate items, and the switching cost is the disk in/out time.
 
-**스피닝 디스크 in/out이 같은 하드웨어를 두 모달리티로 가른다** — 디스크가 빠지면 같은 경로가 와이드필드가 된다. 구성 목록에서 이 둘은 별개 항목이며, 전환 비용은 디스크 in/out 시간이다.
+**Optical-path state = the tuple of these selectors.** The combinations number in the thousands and only a few are physically valid.
 
-**광경로 상태 = 이 선택자들의 튜플이다.** 조합 수는 수천이지만 물리적으로 유효한 것은 소수다.
+**It cannot be expressed as pairwise exclusion (`exclusive_with`).** The real constraint is not "A and B cannot be simultaneous" but **"only this tuple is valid."** The filter turret positions, the dichroic selection and the output port all have to agree for light to reach the detector, and that does not decompose into pairs.
 
-**쌍 배타(`exclusive_with`)로는 표현할 수 없다.** 실제 제약은 "A와 B는 동시에 안 된다"가 아니라 **"이 튜플만 유효하다"** 이기 때문이다. 필터터렛 위치와 다이크로익 선택과 출력방향이 서로 맞아야 빛이 검출기까지 도달하는데, 이것은 쌍으로 분해되지 않는다.
-
-그래서 **유효 광경로의 화이트리스트**를 둔다. 장치 레지스트리와 같은 이유로 지식이므로 사서가 소유하고, M1–M2 동안 `kb/staging/optical_paths.v0.json`에, M3부터 `envelope/snapshot.json`에 있다(§4.3.2):
+So there is **a whitelist of valid optical paths.** For the same reason as the device registry it is knowledge, so the librarian owns it: in `kb/staging/optical_paths.v0.json` during M1–M2, and in `envelope/snapshot.json` from M3 (§4.3.2):
 
 ```
 { id, selectors: {output_port, fluor_branch, filter_turret_1, filter_turret_2,
@@ -1022,100 +1021,100 @@ S3.0은 `imaging` 구성만 관측량으로 스크리닝한다. `perturbation` �
   switch_cost: {time, perturbation} }
 ```
 
-**그리고 이 항목 하나가 곧 §4.5.3의 "구성(모달리티)"이다.** `contracts/capabilities/`가 `관측량 → 구성`을 매핑하고, **광경로 표**가 `구성 → 선택자 상태`를 매핑한다. **S3.0이 후보를 고를 때 보는 표와 orchestrator가 인터록에 쓰는 표가 같은 테이블이다.** 둘로 두면 언젠가 갈라지고, 갈라지는 순간 "계획상 가능한데 실제로는 빛이 안 오는" 구성이 생긴다. 두 파일로 나뉘어 있으므로 **구성 id 집합이 같은지를 검증기가 본다**(§8 검사 38).
+**And one item in this table is exactly §4.5.3's "configuration (modality)".** `contracts/capabilities/` maps `observable → configuration`, and **the optical-path table** maps `configuration → selector state`. **The table S3.0 consults when choosing candidates and the table the orchestrator uses for interlocks are the same table.** Keep two and they diverge eventually, and the moment they do there is a configuration that "is possible on paper and where no light actually arrives". Since they are split across two files, **the validator checks that the configuration id sets match** (§8 check 38).
 
-**합성 요구는 관측량 쪽에 붙는다.** 어떤 관측량은 교란 구성이 얹혀야 나온다 — 포획된 입자의 위치 분포는 트랩이 켜져 있어야 존재한다. 그것을 `transmitted_with_trap` 같은 **새 경로 id**로 표현하지 않는다. 이 표의 `composable` 블록이 이미 어느 구성이 어느 것과 합성되는지 말하고 있으므로, 새 id는 같은 말을 두 번째 표에 적는 것이고 **두 표는 갈라진다.** 대신 `capabilities/`의 `produces` 항목이 문자열 대신 `{id, requires_composition}`가 될 수 있게 하고, 검사 38이 그 요구가 이 표와 어긋나지 않는지 본다 — 지목된 구성이 `perturbation`이어야 하고, 그쪽 `composes_with`가 이쪽을 되지목해야 한다. **"아무 구성과나 합성된다"는 표가 담을 수 있고 장비가 담을 수 없는 문장이다.**
+**Composition requirements attach on the observable side.** Some observables come only with a perturbation configuration layered on — the position distribution of a trapped particle exists only with the trap on. That is not expressed as a **new path id** like `transmitted_with_trap`. This table's `composable` block already says which configuration composes with which, so a new id writes the same statement into a second table and **the two tables diverge.** Instead, `capabilities/`'s `produces` items may be `{id, requires_composition}` rather than a string, and check 38 verifies that the requirement does not contradict this table — the named configuration has to be a `perturbation`, and its `composes_with` has to point back. **"Composes with any configuration" is a sentence a table can hold and an instrument cannot.**
 
-`switch_cost`가 계획에 들어가는 이유: 광경로 전환은 공짜가 아니다. 터렛 회전은 초 단위이고 진동과 포커스 변화를 남긴다. 한 질문 안에서 구성을 두 번 바꾸는 계획은 그 비용을 A5(시간 안정성)에 계상해야 한다.
+Why `switch_cost` enters the plan: an optical-path switch is not free. A turret rotation takes seconds and leaves vibration and a focus change. A plan that changes configuration twice within one question has to account for that cost in A5 (temporal stability).
 
-**선언만으로는 부족하다.** 광경로는 사람이 손으로 바꿔놓을 수 있으므로, O1 preflight가 실행 시점에 각 선택자의 실제 위치를 `read()`로 확인한다. 되읽을 수 없는 선택자가 있으면 그 경로는 `automatable: none`이고 `manual` 지시서로 간다(§4.6.6 규칙 2·5).
+**Declaring it is not enough.** An optical path can be changed by a person's hand, so O1 preflight confirms each selector's actual position at execution time through `read()`. If a selector cannot be read back, that path is `automatable: none` and goes to a `manual` instruction sheet (§4.6.6 rules 2 and 5).
 
-#### 4.6.8 현미경 orchestrator — 하나의 병렬 진입점
+#### 4.6.8 The microscope orchestrator — one parallel entry point
 
-현미경 쪽에는 **모든 하드웨어를 조작하는 병렬 Python 스크립트 하나**(`src/orchestrator.py`)를 두고, 장치별 스크립트(`src/devices/dev_*.py`)는 **그것에 종속**된다.
+On the microscope side there is **one parallel Python script that operates all the hardware** (`src/orchestrator.py`), and the per-device scripts (`src/devices/dev_*.py`) are **subordinate to it.**
 
-**orchestrator가 쥐는 것** — 장치 스크립트가 절대 손대지 않는 것:
+**What the orchestrator holds** — what a device script never touches:
 
-| 책임 | 내용 |
+| Responsibility | Content |
 |---|---|
-| 병렬 실행 | **워커 하나 = 제어 채널 하나** = `src/devices/`의 파일 하나. 카메라 2대는 채널이 둘이므로 워커도 둘이고, 본체의 열 개 요소는 채널이 하나이므로 그 안은 순차다 — 터렛들이 같은 기계를 공유하니 물리적으로도 그렇다. |
-| 장치 락 | 장치 하나에 동시 명령 금지. 장치마다 배타 락 1개. |
-| 광경로 락 | 광경로 표(§4.6.7)의 유효 튜플을 **락 그룹으로 컴파일**한다. 전환 중에는 어떤 취득도 시작되지 않는다. |
-| 순서 | 출력을 **올리는** 명령은 병렬 집합의 마지막, **내리는** 명령은 맨 처음. |
-| 동기 | 하드웨어 트리거로 묶인 조합의 준비·발사 순서. |
-| 타임아웃 | 모든 작업에 상한. `manual` 채널은 사람 대기이므로 별도 상한. |
-| abort fan-out | 중단 시 모든 장치에 동시 전파. 일부가 실패해도 나머지를 계속 시도하고, 결과를 전부 기록한다. |
-| 상태 스냅샷 | 각 단계 전후로 `read()`를 모아 로그에 남긴다. |
-| 시각 기준 | 공통 `t0`를 박고 모든 워커의 이벤트를 같은 시계 위에 놓는다(§4.6.9). |
+| Parallel execution | **one worker = one control channel** = one file in `src/devices/`. Two cameras are two channels so there are two workers; the body's ten elements are one channel so inside it is sequential — the turrets share one machine, so that is also physically true. |
+| Device locks | no simultaneous commands to one device. One exclusive lock per device. |
+| Optical-path locks | **compiles** the optical-path table's valid tuples (§4.6.7) **into lock groups.** No acquisition begins during a switch. |
+| Ordering | a command **raising** output is last in a parallel set; a command **lowering** it is first. |
+| Synchronisation | the arm-and-fire ordering of combinations bound by a hardware trigger. |
+| Timeouts | a ceiling on every operation. The `manual` channel waits on a person, so it gets its own ceiling. |
+| Abort fan-out | on abort, propagate to all devices simultaneously. If some fail, keep trying the rest and record every outcome. |
+| State snapshots | gather `read()` before and after each stage and leave it in the log. |
+| Time base | pin a common `t0` and put every worker's events on the same clock (§4.6.9). |
 
-**장치 스크립트의 제약**:
-1. **자기 장치만 안다.** 다른 `dev_*.py`를 import하지 않는다(§8 검사 16).
-2. **네 함수만 구현한다**: `preflight() / apply(params) / read() / abort()`.
-3. **병렬성·순서·락을 스스로 다루지 않는다.** 그것을 장치 쪽에서 하면 인터록이 여러 곳에 흩어진다.
-4. **상태를 보관하지 않는다.** 상태의 정본은 장치 자신이고, 사본은 orchestrator의 스냅샷뿐이다.
-5. **정책을 갖지 않는다**(§4.6.5). 한계 판정은 envelope과 operator의 일이다.
+**Constraints on a device script**:
+1. **It knows only its own device.** It does not import another `dev_*.py` (§8 check 16).
+2. **It implements four functions only**: `preflight() / apply(params) / read() / abort()`.
+3. **It does not handle parallelism, ordering or locks itself.** Doing that on the device side scatters the interlocks across several places.
+4. **It stores no state.** The record of state is the device itself, and the only copy is the orchestrator's snapshot.
+5. **It holds no policy** (§4.6.5). Judging limits is the envelope's and the operator's work.
 
-**이 장비의 구체 인터록** (P0, §2.1):
+**This instrument's concrete interlocks** (P0, §2.1):
 
-1. **차단은 셔터부터.** abort는 필터터렛용 셔터 1·2와 **레이저용 셔터**를 먼저 닫고 그다음 출력을 내린다. 램프와 레이저의 램프다운은 셔터보다 느리므로 가장 빠른 차단 수단을 첫 번째로 쓴다.
-2. **터렛을 돌리기 전에 z를 후퇴시킨다.** 대물렌즈·컨덴서 터렛이 회전하는 동안 렌즈가 시료·커버슬립과 충돌할 수 있다. 이것은 조건이 아니라 **인터록**이다 — 계획이 무엇을 요구하든 z 후퇴 없이는 회전 명령이 나가지 않는다.
-3. **PFS는 전환 전에 끄고 안정 후에 다시 건다.** 터렛이나 광경로가 바뀌는 동안 켜져 있으면 초점을 잃고 헤맨다. 재획득 시간은 A5의 정착시간에 포함된다.
-4. **전환 중 취득 금지.** 광경로 락이 걸린 동안 어떤 카메라·검출기도 취득을 시작하지 않는다. 스피닝 디스크는 **속도가 안정된 뒤에만** 취득을 시작한다 — 가속 중의 프레임은 주기가 맞지 않는다.
+1. **Blocking starts with the shutters.** An abort closes filter-turret shutters 1 and 2 and **the laser shutter** first, and then lowers power. Ramping a lamp or a laser down is slower than a shutter, so the fastest blocking means is used first.
+2. **Retract z before rotating a turret.** While the objective or condenser turret rotates, a lens can collide with the sample and the coverslip. This is not a condition but **an interlock** — whatever the plan demands, no rotation command goes out without the z retraction.
+3. **PFS is turned off before a switch and re-engaged after settling.** Left on while a turret or the optical path changes, it loses focus and hunts. The reacquisition time is included in A5's settling time.
+4. **No acquisition during a switch.** While the optical-path lock is held, no camera or detector begins an acquisition. The spinning disk begins acquisition **only after its speed is stable** — frames taken while accelerating do not match the period.
 
-**병렬화의 목적을 오해하지 않는다** — 이것이 가장 중요한 한 줄이다:
+**Do not mistake what the parallelism is for** — this is the single most important line:
 
-> orchestrator의 병렬성은 **대기시간을 겹치기 위한 것**이다 (광원 워밍업, 스테이지 이동, 온도 안정화, 카메라 준비). **타이밍 정밀도를 얻기 위한 것이 아니다.**
-> 정밀한 동시성이 필요한 조합(광원·DMD·카메라, 그리고 **스피닝 디스크 회전과 카메라 노출**)은 **하드웨어 트리거**로 묶는다. 소프트웨어 병렬로 마이크로초를 맞추려는 시도는 조용히 틀린 데이터를 만든다.
+> The orchestrator's parallelism exists **to overlap waiting** (source warm-up, stage motion, temperature stabilisation, camera readiness). **It does not exist to obtain timing precision.**
+> Combinations needing precise simultaneity (source, DMD and camera, and **spinning-disk rotation with camera exposure**) are bound by a **hardware trigger.** Trying to hit microseconds with software parallelism produces quietly wrong data.
 
-**단일 진입점 규칙**: 장비로 나가는 모든 명령은 orchestrator를 통과한다. 우회 호출을 허용하면 로그가 갈라지고 인터록이 무의미해진다. `devices/manual.py`와 `devices/mock.py`도 같은 인터페이스로 orchestrator 아래에 들어간다.
+**Single entry point rule**: every command going out to the instrument passes through the orchestrator. Allow a bypass call and the log splits and the interlocks become meaningless. `devices/manual.py` and `devices/mock.py` also sit under the orchestrator behind the same interface.
 
-**시뮬레이션 쪽에는 orchestrator를 두지 않는다.** HOOMD 잡 하나가 단일 백엔드이므로 병렬 조율 대상이 없다. 대칭을 위해 없는 계층을 만들지 않는다(P10).
-#### 4.6.9 병렬 워커가 같은 시계를 쓰는 법
+**There is no orchestrator on the simulation side.** One HOOMD job is a single backend, so there is nothing to coordinate in parallel. A layer that is not needed is not created for symmetry (P10).
 
-워커를 채널별로 나누면 곧바로 문제가 생긴다 — **서로 다른 워커의 이벤트를 어떻게 같은 시간축에 놓는가.** 카메라 두 대의 프레임을 맞추려면 이 답이 필요하다.
+#### 4.6.9 How parallel workers share one clock
 
-정렬 수단은 셋이고, **우선순위가 있다:**
+Splitting workers by channel produces an immediate problem — **how to put events from different workers on the same time axis.** Matching frames from two cameras needs this answer.
 
-| | 수단 | 쓸 수 있는 곳 |
+There are three means of alignment, **in priority order:**
+
+| | Means | Where it works |
 |---|---|---|
-| 1순위 | **공통 하드웨어 트리거의 카운터** | 같은 트리거에 묶인 장치들. 프레임 인덱스가 곧 시각이며 지터가 없다 |
-| 2순위 | **장치의 하드웨어 타임스탬프** + 클럭 정렬 | 자체 시계를 가진 장치. 런 시작·끝에 양쪽 시계를 같은 순간에 읽어 offset과 drift를 기록한다 |
-| 3순위 | **소프트웨어 단조 시계** (orchestrator의 `t0` 기준 오프셋) | 그 외 전부 |
+| 1st | **a common hardware trigger's counter** | devices bound to the same trigger. The frame index is the time and there is no jitter |
+| 2nd | **the device's hardware timestamp** plus clock alignment | devices with their own clock. Read both clocks at the same instant at the start and end of the run, and record offset and drift |
+| 3rd | **a software monotonic clock** (an offset against the orchestrator's `t0`) | everything else |
 
-**규칙: 소프트웨어 타임스탬프로 물리를 계산하지 않는다.** OS 스케줄링 지터가 수 ms 단위로 들어오므로, 3순위 시각은 **로그 정렬과 인과 순서**에만 쓴다. 두 프레임의 시간차나 상관함수처럼 물리가 걸린 값은 1·2순위에서만 나온다(§8 검사 37).
+**Rule: do not compute physics from a software timestamp.** OS scheduling jitter enters at the millisecond scale, so third-priority times are used **only for log ordering and causal sequence.** Values with physics riding on them, such as the time difference between two frames or a correlation function, come only from the first and second (§8 check 37).
 
-**카메라 두 대의 경우**가 이 규칙의 전형이다. 두 워커가 독립적으로 돌되 **같은 하드웨어 트리거**에 묶고, 각 워커는 자기 프레임에 트리거 카운터를 함께 적는다. 정렬은 소프트 시계가 아니라 **카운터 일치**로 한다. 이것이 §4.6.8의 "병렬은 대기시간을 겹치기 위한 것이지 타이밍 정밀도를 위한 것이 아니다"의 실제 구현이다.
+**The two-camera case** is the archetype of this rule. The two workers run independently but are bound to **the same hardware trigger**, and each worker writes the trigger counter alongside its frames. Alignment is done by **counter match**, not by the soft clock. This is the actual implementation of §4.6.8's "parallelism is for overlapping waiting, not for timing precision".
 
-**런 로그의 시각 기록**: orchestrator는 런 시작에 `{t0_wall(UTC), t0_mono}`를 함께 남기고, 이후 모든 이벤트는 `t_mono` 오프셋으로 적는다. 하드웨어 타임스탬프가 있는 장치는 `t_dev`를 나란히 적고, 클럭 정렬 측정도 같은 로그에 남긴다. 나중에 어떤 시각이 어느 등급이었는지 되짚을 수 있어야 한다.
+**Time recording in the run log**: the orchestrator leaves `{t0_wall(UTC), t0_mono}` together at the start of the run, and every event afterwards is written as a `t_mono` offset. A device with a hardware timestamp writes `t_dev` alongside, and the clock-alignment measurements stay in the same log. It has to be possible later to trace which time was of which grade.
 
 ---
+## 5. The shared contracts (`contracts/`)
 
-## 5. 공유 계약 (`contracts/`)
+### 5.1 Kinds of card
 
-### 5.1 카드 종류
-
-| 카드 | 누가 쓰나 | 무엇인가 |
+| Card | Who writes it | What it is |
 |---|---|---|
-| `goal` | 사람 | **왜 묻는가**(`purpose`) + 무엇을 알고 싶은가: 관측량 + 목표 정확도 + 제약 + 우선순위 + `intent`. S2 정교화의 산출물(§4.5.1). |
-| `plan` (실행계획서) | 현미경, 시뮬레이션 | 그것을 어떻게 얻는가. 조건 전부 + 비용 + 정지/성공 기준. |
-| `plan_approval` | 사람 | 어떤 plan 리비전을 실행해도 되는가. |
-| `scope_approval` | 사람 | 어떤 **조건 범위**를 사람 승인 없이 실행해도 되는가. 유효기간·횟수 상한 필수(§6.1). |
-| `result` | 현미경, 시뮬레이션 | 무엇이 나왔는가. 값 + 불확도 + 편차 + run_id. |
-| `refusal` | 모두 | 왜 못 하는가. 반례 숫자 필수. |
-| `ask_*` (봉투) | 브리지 | plan/result를 반대편으로 옮기는 수송 봉투. **숫자를 담지 않는다**(§4.4). |
+| `goal` | the person | **why it is being asked** (`purpose`) plus what is wanted: observable + target accuracy + constraints + priorities + `intent`. The output of S2 refinement (§4.5.1). |
+| `plan` (execution plan) | microscope, simulation | how to obtain it. All conditions + cost + stop/success criteria. |
+| `plan_approval` | the person | which plan revision may be executed. |
+| `scope_approval` | the person | which **condition range** may be executed without individual human approval. Expiry and count ceiling mandatory (§6.1). |
+| `result` | microscope, simulation | what came out. Value + uncertainty + deviation + run_id. |
+| `refusal` | anyone | why it cannot be done. A counter-example number is mandatory. |
+| `ask_*` (envelope) | the bridge | the transport envelope carrying a plan/result to the other side. **It holds no numbers** (§4.4). |
 
-**카드의 `observable`은 이름만 싣는다.** 정의는 `contracts/observables.json`에서 읽는다. 2026-09-18까지 `plan.schema.json`이 `required: [name, definition]`에 `additionalProperties: false`여서 **모든 계획서가 정의를 다시 쓸 수밖에 없었고**, 계획 카드 셋이 전부 어휘와 다른 문장을 싣고 있었다. 한 사실이 두 곳에 살면 다음 주에 두 사실이 된다 — 이미 됐다.
+**A card's `observable` carries the name only.** The definition is read from `contracts/observables.json`. Until 2026-09-18 `plan.schema.json` had `required: [name, definition]` with `additionalProperties: false`, so **every plan was forced to restate the definition**, and all three plan cards carried a sentence different from the vocabulary's. One fact in two places is two facts by next week — it already was.
 
-근거는 이 저장소의 선례 그대로다: 봉투가 payload의 숫자를 복창하지 못하게 한 것(검사 9, §4.4-5)과 **같은 실패가 한 층 위에서** 일어난 것이고, "복창하는 수송체는 같은 양을 두 곳에 둔다"가 정의에도 적용된다. 그리고 얻는 것이 하나 더 있다 — 지금 `estimator`가 상대편으로 건너갈 경로가 **아예 없는데**, 카드가 이름만 싣고 양쪽이 같은 어휘를 읽으면 **추정자가 참조로 건너간다.** 복사보다 강하다(§11-1이 `estimator`를 정체성의 일부로 둔 이유). 사람이 읽을 문장은 생성되는 `.md`가 어휘에서 끌어온다(P3). 브리지 매니저가 올렸다.
+The grounds are this repository's own precedent: it is **the same failure one layer up** as stopping an envelope from echoing the payload's numbers (check 9, §4.4-5), and "a carrier that echoes puts the same quantity in two places" applies to definitions too. And there is one more gain — today there is **no path at all** for an `estimator` to cross to the other side, whereas with the card carrying only the name and both sides reading the same vocabulary, **the estimator crosses by reference.** That is stronger than a copy (the reason §11-1 made `estimator` part of identity). The sentence a person reads is pulled from the vocabulary by the generated `.md` (P3). The bridge manager raised it.
 
-받은 `ask_*`를 goal로 바꾸는 것은 **받는 쪽 에이전트의 S2**다. 브리지는 무엇을 묻는지 쓰지 않는다 — 옮기는 자가 질문을 쓰면 그것은 더 이상 수송이 아니다(§4.4).
+Turning a received `ask_*` into a goal is **the receiving agent's S2.** The bridge does not write what is being asked — when the carrier writes the question, it is no longer transport (§4.4).
 
-`status.json`과 `r<N>_hashes.json`은 이 표에 없다. **카드가 아니라 스레드 장부**이기 때문이다: 숫자도 등급도 없고 `qid`도 없다(한 스레드가 두 질문을 잇는다). 누구 차례인지, 무엇이 반복됐는지, 무엇이 대체됐는지만 적는다. 검증기는 `card` 대신 `artifact` 필드로 이 둘을 갈라 보며, 검사받지 않는 계약은 장식이라는 §0.3-2의 결론이 여기에도 적용된다.
+`status.json` and `r<N>_hashes.json` are not in this table. They are **thread ledgers, not cards**: no numbers, no grades, and no `qid` (one thread joins two questions). They record only whose turn it is, what repeated and what was substituted. The validator separates the two by an `artifact` field instead of `card`, and §0.3-2's conclusion — a contract nothing checks is decoration — applies here too.
 
-### 5.2 공통 필드
+### 5.2 Common fields
 
 ```
-card,                              카드 종류 — 검증기가 스키마를 고르는 근거
+card,                              the kind -- what the validator picks a schema by
 id, schema_version, qid,
 thread, round, revision,
 author (agent id), created_at, status,
@@ -1126,205 +1125,204 @@ kb_gaps:     [ {observable, kind, searched, kb_version} ... ],
 degraded:    [ agent_id ... ]
 ```
 
-- `card`: 종류를 카드 안에 적는다. **파일명을 믿지 않는다** — 파일은 옮겨지고 이름은 바뀐다.
-- `qid`: 한 질문의 산출물을 묶는 열쇠(§4.5.5). 파일 경로가 이미 말해주지만, 카드가 경로 밖으로 나가는 순간(브리지 수송) 경로는 사라진다.
-- `thread`: 단독 실행에서는 `solo-<qid>`를 쓴다. 실제 thread id는 브리지 왕복에 속한 카드만 갖는다.
-- `numbers`: **카드가 숫자를 담는 유일한 자리다.** 다른 필드는 숫자를 직접 적지 않고 이름으로 가리킨다. 같은 숫자를 두 곳에 적으면 다음 주에는 두 값이 된다(P3).
-- `assumptions`: E5 숫자의 근거 목록. 모든 `assumed:` 숫자가 여기 설명돼 있어야 한다(§8 검사 4). `authorised_by`는 사람이 **값을 그 출처가 덮는 범위 밖으로 끌고 가라고 지시**했을 때 그 사실을 남긴다(D3) — 곡선의 끝점을 그 밖의 파장에 쓰거나, 한 조건에서 읽은 spec을 다른 조건에 적용할 때. **지시는 등급을 올리지 않는다**: 쓰라는 말은 그 값의 근거가 아니고, 권한이 E5를 E3으로 올릴 수 있는 순간 등급 척도가 권한 척도가 되어 아무것도 측정하지 않게 된다. 이 칸이 사는 것은 **E5/E6 경계**다 — 외삽이 숫자로 적히고 나면 사람이 지시한 것과 모델이 지어낸 것이 똑같이 생기고, E5는 카드에 들어갈 수 있고 E6은 어디에도 못 들어간다. 그래서 **모델은 이 칸을 채울 수 없다.** 채울 수 있으면 E6이 카드로 들어오는 세탁 경로가 된다. 그리고 이 칸은 KB entry에 붙지 않는다 — entry는 그 출처가 덮는 조건에서 참인 것을 말하고, 그것을 늘린 것은 늘린 계획의 속성이다.
-- `kb_refs`: 사서에게 받은 entry와 **그때의 등급**. `kb:` 출처의 등급은 여기서 검증된다(검사 21·25).
-- `kb_gaps`: 사서에게 물었으나 **받지 못한 것**(§4.3.1). `kb_refs`의 반대쪽이고, 이쪽이 비어 있지 않은 것도 정상이다. 모든 `assumed:` 숫자는 여기를 지목한다(검사 39) — 찾아보지 않은 추정과 찾아봤는데 없는 추정은 같은 값이 아니다.
-- `degraded`: 없는 협업 상대 없이 진행했음을 기록한다(§3.1). 비어 있는 것도 정상, 비어 있지 않은 것도 정상. **숨기는 것만 비정상이다.**
+- `card`: the kind is written inside the card. **Do not trust the filename** — files get moved and names get changed.
+- `qid`: the key binding one question's outputs (§4.5.5). The file path already says it, but the moment a card leaves the path (bridge transport) the path is gone.
+- `thread`: a standalone run uses `solo-<qid>`. Only cards belonging to a bridge round trip have a real thread id.
+- `numbers`: **the only place a card holds numbers.** Other fields do not write numbers directly; they point by name. Write the same number in two places and next week there are two values (P3).
+- `assumptions`: the list of grounds for E5 numbers. Every `assumed:` number has to be explained here (§8 check 4). `authorised_by` records the fact that a person **instructed a value to be carried outside the range its source covers** (D3) — using a curve's endpoint at a wavelength beyond it, or applying a spec read at one condition to another. **An instruction does not raise the grade**: being told to use it is not evidence for the value, and the moment authority can lift E5 to E3 the grade scale becomes an authority scale and measures nothing. What this field lives on is **the E5/E6 boundary** — once an extrapolation is written as a number, what a person instructed and what a model invented look identical, and E5 may enter a card while E6 may enter nothing. So **a model cannot fill this field.** If it could, it would be the laundering path by which E6 enters a card. And this field does not attach to a KB entry — an entry states what is true under the conditions its source covers, and stretching that is a property of the plan that stretched it.
+- `kb_refs`: the entries received from the librarian and **their grades at that time.** The grade of a `kb:` source is validated here (checks 21 and 25).
+- `kb_gaps`: what was asked of the librarian and **not received** (§4.3.1). The opposite side of `kb_refs`, and it being non-empty is normal too. Every `assumed:` number points here (check 39) — an estimate nobody looked up and an estimate looked up and not found are not the same value.
+- `degraded`: records that it proceeded without an absent collaborator (§3.1). Empty is normal and non-empty is normal. **Only hiding it is abnormal.**
 
-### 5.3 숫자 4-튜플: 값·단위·출처·등급 (P2)
+### 5.3 The number four-tuple: value, unit, source, grade (P2)
 
-모든 숫자는 `{value, unit, source, grade}`다. **출처는 어디서 왔는지를, 등급은 얼마나 믿을 만한지를** 말한다. 둘은 다른 정보이며 둘 다 필요하다.
+Every number is `{value, unit, source, grade}`. **The source says where it came from and the grade says how far it can be trusted.** They are different information and both are needed.
 
-**근거 등급 (E-등급)** — 하나의 척도를 시스템 전체가 공유한다. 카드, KB entry, 결정 근거가 모두 같은 눈금을 쓴다.
+**Evidence grades (E-grades)** — one scale shared by the whole system. Cards, KB entries and decision grounds all use the same ruler.
 
-| 등급 | 이름 | 무엇 | 예 |
+| Grade | Name | What | Example |
 |---|---|---|---|
-| **E1** | 직접 측정 | 이 시스템이 **이 조건에서** 측정한 값 | 해당 run의 실측 |
-| **E2** | 캘리브레이션 유래 | 교정 절차의 출력. 유효 조건 범위와 유효기간이 반드시 붙는다 | 제어값 대 실제값 곡선 |
-| **E3** | 문헌·명세 | 동료심사 문헌, 교과서, 벤더 명세 | 용매 점도 η(T), 카메라 QE |
-| **E4** | 계산값 | E1–E3 입력에 정의식을 적용한 값 | `τ_D`, `k*` |
-| **E5** | 추정 | 근거를 적은 가정 | "표백 시간상수는 이 정도" |
-| **E6** | 모델 추측 | LLM이 지어낸 값 | — **카드·KB 진입 금지** |
+| **E1** | direct measurement | a value this system measured **at these conditions** | the actual reading of that run |
+| **E2** | calibration-derived | the output of a calibration procedure. A validity range and an expiry are mandatory | the control-value vs actual-value curve |
+| **E3** | literature / specification | peer-reviewed literature, textbooks, vendor specifications | solvent viscosity η(T), camera QE |
+| **E4** | computed | a defining expression applied to E1–E3 inputs | `τ_D`, `k*` |
+| **E5** | estimate | an assumption with its grounds written down | "the bleaching time constant is about this" |
+| **E6** | model guess | a value the LLM invented | — **forbidden to enter a card or the KB** |
 
-**등급은 출처에서 결정론적으로 도출된다.** 자기 신고가 아니다(§8 검사 21):
+**The grade is derived deterministically from the source.** It is not self-reported (§8 check 21):
 
-| source | 등급 |
+| source | Grade |
 |---|---|
 | `measured:<run_id>` | E1 |
-| `calibration:<cal_id>` | E2 (유효기간·조건 범위 필수) |
-| `kb:<entry_id>` | 그 entry의 등급을 상속 |
+| `calibration:<cal_id>` | E2 (expiry and condition range mandatory) |
+| `kb:<entry_id>` | inherits that entry's grade |
 | `spec:<device_id>` | E3 |
-| `operator_read:<who>_<date>` | E3 — 운영자가 장비에서 **읽은** 값 |
-| `literature:<ref>` | E3 — 발표된 것이되 벤더 스펙이 아닌 것. `spec:`이 벤더를 덮는 동안 교과서와 논문에 접두사가 없었다 |
-| `prior_run:<project>@<sha>` | E3 — **저쪽의 런은 이쪽의 런이 아니다**(§10.3 규칙 1). 이전 저장소에서 넘어온 측정의 상한이고, 여기서 다시 재면 E1로 올라간다 |
-| `operator_recall:<who>_<date>` | E5 — 운영자가 **기억으로 말한** 값 |
-| `computed:<formula_id>` | **max(E4, 최악 입력 등급)** |
+| `operator_read:<who>_<date>` | E3 — a value the operator **read** off the instrument |
+| `literature:<ref>` | E3 — published but not a vendor spec. While `spec:` covered vendors, textbooks and papers had no prefix |
+| `prior_run:<project>@<sha>` | E3 — **a run over there is not a run over here** (§10.3 rule 1). The ceiling for a measurement brought from a prior repository; measured again here it rises to E1 |
+| `operator_recall:<who>_<date>` | E5 — a value the operator **stated from memory** |
+| `computed:<formula_id>` | **max(E4, worst input grade)** |
 | `assumed:<rationale_id>` | E5 |
 
-**목표는 이 표에 행이 없다. 새로 만들지도 않는다 (2026-09-19).** 사람이 말한 **목표 정확도**는 `target_relative_error`처럼 카드에 실리지만 **출처도 등급도 갖지 않는다.** 이유는 §4.6의 갈림과 같다 — 장치 레지스트리의 `limits`가 **장치가 할 수 있는 것**이고 `envelope/safety.json`이 **우리가 허용하는 것**인 것처럼, 측정된 정확도는 세계에 대한 **주장**이고 목표 정확도는 우리가 무엇을 받아들일지에 대한 **결정**이다. **결정은 내려짐으로써 옳다.** 등급은 주장이 얼마나 믿을 만한지를 말하는 척도이므로 결정에 붙을 자리가 없다.
+**A target has no row in this table. And no new one is made (2026-09-19).** A **target accuracy** a person stated rides in a card as `target_relative_error` and the like, but **it has neither a source nor a grade.** The reason is the same split as §4.6 — just as the device registry's `limits` is **what the device can do** while `envelope/safety.json` is **what we permit**, a measured accuracy is a **claim** about the world and a target accuracy is a **decision** about what we will accept. **A decision is right by being made.** A grade is a scale for how far a claim can be trusted, so it has nowhere to attach on a decision.
 
-`operator_recall:`이 가장 가까워 보이지만 **종류가 틀렸다**: 그것은 운영자가 **세계의 사실**을 기억으로 말한 것이고, 기억이 사실에 대해 불신뢰하기 때문에 E5다. 목표를 E5로 매기면 **사람이 자기 목표를 잘못 기억하고 있을 수 있다**고 말하는 것이 된다. `assumed:`도 같은 이유로 틀리다 — 사람의 목표를 가정으로 기록하는 것이다.
+`operator_recall:` looks closest but is **the wrong kind**: that is an operator stating **a fact about the world** from memory, and it is E5 because memory is unreliable about facts. Grading a target E5 would be saying **the person may be misremembering their own target.** `assumed:` is wrong for the same reason — it records a person's target as an assumption.
 
-**`decision:` 출처 종류를 만드는 안은 거절한다.** 이 표는 출처 → 등급의 함수이고 P2는 등급이 출처에서 도출된다고 말한다. **아무 등급도 내지 않는 출처를 넣으면 그 불변식에 구멍이 하나 뚫린다** — 그리고 그 구멍은 "이건 출처가 아니다"를 출처 종류로 적는 일이다. 천장이 그렇게 살지 않는 것과 같은 이유로 목표도 그렇게 살지 않는다. 브리지 매니저가 셋을 놓고 올렸다.
+**The proposal to create a `decision:` source kind is refused.** This table is a function from source to grade, and P2 says the grade is derived from the source. **Putting in a source that yields no grade punches a hole in that invariant** — and that hole would be writing "this is not a source" as a source kind. For the same reason a ceiling does not live that way, a target does not either. The bridge manager raised all three together.
 
-**선은 "목표처럼 생긴 수"가 아니라 사람의 목표와 거기서 계산된 모든 것 사이에 그어진다.** 한 decade라는 목표에서 유도한 **통계 요구량**은 결정이 아니라 **통계가 무엇을 요구하는지에 대한 주장**이므로, `computed:`로 등급과 출처를 갖는 `numbers[]` 항목으로 남는다. 목표가 등급을 잃는 것이 그 아래 계산까지 등급을 잃게 하지 않는다 — 오히려 반대다: 결정이 등급 밖으로 나가면 **그 결정에서 나온 주장들의 등급이 더 선명해진다.** 현미경 매니저가 그었다.
+**The line is drawn not at "numbers that look like targets" but between a person's target and everything computed from it.** The **statistics requirement** derived from a one-decade target is not a decision but **a claim about what statistics demand**, so it stays as a `numbers[]` item with a `computed:` source and a grade. The target losing its grade does not make the computations under it lose theirs — the opposite: when a decision steps outside the grade scale, **the grades of the claims flowing from it get sharper.** The microscope manager drew it.
 
-**같은 이유로 `operator_set:` 출처 종류는 물린다(2026-09-19).** 사람이 목표를 말한 것을 적을 접두사가 없어서 그날 몇 시간 동안 존재했는데, 목표가 출처를 갖지 않기로 정해지면서 **그것으로 적힐 수 있는 수가 이 저장소에 하나도 남지 않았다.** 남기면 죽은 어휘이고, 죽은 어휘보다 나쁘다 — **`operator_set`이라는 이름이 "사람의 결정은 여기 넣으라"로 읽혀 바로 위의 판정을 뒤집는다.** `decision:`을 거절한 논거(등급을 안 내는 출처는 P2 불변식의 구멍)는 여기 적용되지 않는다. `operator_set:`은 E5를 내므로 함수는 온전하고, **깨지는 것은 불변식이 아니라 뜻이다.** 만든 좌석이 스스로 물릴지 물어 왔다.
+**For the same reason the `operator_set:` source kind is withdrawn (2026-09-19).** It existed for a few hours that day because there was no prefix for recording a person stating a target, and once targets were settled as having no source, **not one number in this repository could be written with it.** Leaving it is dead vocabulary, and worse than dead — **the name `operator_set` reads as "put a person's decisions here" and inverts the judgement immediately above.** The argument that refused `decision:` (a source yielding no grade is a hole in P2's invariant) does not apply here. `operator_set:` yields E5, so the function is intact, and **what breaks is not the invariant but the meaning.** The seat that created it asked whether to withdraw it.
 
-**E5는 두 가지를 한 칸에 담고 있고, 둘이 충돌할 때 그것은 같은 것이 아니다 (2026-09-19).** `operator_recall:`은 **세계에 대한 주장**이다 — 틀릴 수 있지만 무언가를 말하고 있다. `assumed:<rationale_id>`는 **진행하려고 놓은 자리 채우기**이고 이 셋업에 대해 아무것도 주장하지 않는다. 등급이 같은 이유는 **둘 다 믿을 근거가 약해서**이지 둘이 같은 종류여서가 아니다.
+**E5 holds two things in one cell, and when they conflict they are not the same thing (2026-09-19).** `operator_recall:` is **a claim about the world** — it may be wrong, but it is saying something. `assumed:<rationale_id>` is **a placeholder put down in order to proceed** and claims nothing about this setup. The reason they share a grade is that **the grounds for believing both are weak**, not that they are the same kind.
 
-**그래서 이 둘이 어긋날 때 그것은 충돌이 아니다.** 한쪽은 주장이고 한쪽은 빈칸이며, **빈칸은 반대하고 있지 않다.** §11-13이 처음에 "둘 다 E5이고 어느 쪽도 다른 쪽을 이기지 않는다"고 적었는데 그 문장이 한 겹 거쳤다 — 등급만 보면 대칭이고, 종류를 보면 아니다. 오늘 목표 정확도에서 나온 것과 같은 자리다: **등급이 어떤 구별에 대해서는 틀린 축이다.**
+**So when these two disagree, it is not a conflict.** One is a claim and one is a blank, and **a blank is not objecting.** §11-13 first wrote "both are E5 and neither beats the other", and that sentence was one layer short — by grade they are symmetric, by kind they are not. It is the same place as today's target accuracy: **the grade is the wrong axis for some distinctions.**
 
-**판정 규칙**: 주장과 자리 채우기가 같은 양에 대해 다른 값을 들고 있으면 **주장 쪽으로 맞춘다.** 자리 채우기를 유지하는 것은 **아무도 주장한 적 없는 수로 계획하는 것**이고, 그 상태에서 두 쪽이 갈라지면 §11-13이 적은 해악 — 갈라진 실험을 하나의 비교라고 부르는 것 — 이 근거 없이 발생한다. 맞춘 뒤에도 등급은 E5로 남고 갭은 그대로 열려 있다. **불확실성이 사라지는 것이 아니라 공유된다**, 그리고 그것이 정직한 상태다.
+**Resolution rule**: when a claim and a placeholder hold different values for the same quantity, **move to the claim.** Keeping the placeholder is **planning with a number nobody ever asserted**, and if the two sides then diverge from that state, the harm §11-13 records — calling two diverged experiments one comparison — happens with no grounds. After moving, the grade stays E5 and the gap stays open. **The uncertainty is not removed but shared**, and that is the honest state.
 
-**그리고 목표와 여유를 합치지 않는다.** 2026-09-19에 `axis_bd_overdamped_a2.json`이 `target_relative_error 0.1`을 `assumed:a_statistics` E5로 들고 있었고, 그것은 **목표가 없던 동안 축이 스스로 고른 여유**다. 사람이 말한 목표는 그것과 다른 사실이고, **둘 중 하나만 방금 도착했다.** 합치면 안 되는 이유는 값이 아니라 비용이다 — 통계는 1/ε²로 가므로 10%와 30%는 **표본 아홉 배**이고, 축이 자발적으로 조인 쪽이 비싼 끝이다. 오늘은 A5가 "이 축이 물리기엔 너무 작은 일"이라 공짜지만, 실제 예산이 생기는 순간 **검토되지 않은 0.1이 계산이 흘러가는 자리**가 된다. 나중에 읽는 사람이 `0.1`을 보고 사람이 고른 값이라고 생각하지 않도록 적어 둔다.
+**And do not merge a target with a margin.** On 2026-09-19 `axis_bd_overdamped_a2.json` carried `target_relative_error 0.1` as `assumed:a_statistics` E5, and that is **a margin the axis chose for itself while there was no target.** The target a person stated is a different fact, and **only one of the two had just arrived.** The reason not to merge them is not the value but the cost — statistics go as 1/ε², so 10% and 30% are **nine times the samples**, and the end the axis tightened to on its own is the expensive one. Today it is free because A5 says "too small a job for this axis to bite", but the moment a real budget exists, **an unreviewed 0.1 is where the computation flows.** It is written down so a later reader does not see `0.1` and think a person chose it.
 
-무차원군은 새 출처 종류가 아니다. `computed:`를 쓰고 **`derived: true` 표시**를 단다(§5.7) — 등급 규칙이 같으므로 행을 늘리지 않는다. 표시가 필요한 이유는 검증기가 정의식을 재계산해야 하기 때문이다(검사 17).
+A dimensionless group is not a new source kind. It uses `computed:` with a **`derived: true` mark** (§5.7) — the grade rule is the same, so no row is added. The mark is needed because the validator has to recompute the defining expression (check 17).
 
-운영자를 두 종류로 가른 이유: 이 시스템이 붙는 단계에서 **가장 큰 정보원은 사람**인데, 그 말을 전부 `assumed`(E5)로 떨어뜨리면 실제로 확인된 사실을 과소평가하고, 전부 `spec`(E3)으로 올리면 기억을 문서로 승격시킨다. **본 것과 기억한 것은 같은 등급을 받을 수 없다.** 어느 쪽인지는 말한 사람만 알므로 출처 종류로 갈라 적는다.
+Why the operator was split in two: at the stage this system attaches, **the largest information source is the person**, and dropping everything they say to `assumed` (E5) undervalues facts that were actually confirmed, while raising it all to `spec` (E3) promotes memory to documentation. **Having seen and having remembered cannot take the same grade.** Only the speaker knows which it is, so it is separated by source kind.
+Why `computed` does not become E1 even from E1 inputs: **the expression itself is an assumption.** Stokes–Einstein assumes sphericity, bulk and no slip, and those assumptions remain in the computed value however good the inputs are. So a computation drops one step, and where the inputs are worse it follows the worse side.
 
-`computed`가 E1 입력에서도 E1이 되지 않는 이유: **식 자체가 가정이기 때문이다.** Stokes–Einstein은 구형·벌크·무활주를 가정하고, 그 가정은 입력이 아무리 좋아도 계산값에 남는다. 그래서 계산은 한 단계 내려가고, 입력이 더 나쁘면 나쁜 쪽을 따라간다.
+**A policy takes no grade — because it is a decision, not a claim.** P2's four parts (`value`, `unit`, `source`, `grade`) attach to **a claim about the world.** A ceiling in `envelope/safety.*` is not a claim about the world but **something we have decided not to do**, so it has only `value` and `unit`. The simulation manager settled this on 2026-09-18, and the bridge manager, while separately building a schema that demanded `{value, unit, source, grade}` on every ceiling, **read it and deleted its own** — one rule with two schemas is the shape §11-11 counts.
 
-**정책에는 등급이 붙지 않는다 — 주장이 아니라 결정이기 때문이다.** P2의 네 부분(`value`·`unit`·`source`·`grade`)은 **세계에 대한 주장**에 붙는다. `envelope/safety.*`의 상한은 세계에 대한 주장이 아니라 **우리가 하지 않기로 한 것**이므로 `value`와 `unit`만 갖는다. 2026-09-18에 시뮬레이션 매니저가 그렇게 정했고, 브리지 매니저가 상한마다 `{value, unit, source, grade}`를 요구하는 스키마를 따로 짓다가 **읽고 나서 자기 것을 지웠다** — 규칙 하나에 스키마 둘은 §11-11이 세는 그 형태다.
+**Attaching a grade goes wrong in two directions.** One is that a reading appears — "this ceiling is only E5, so it is soft" — and P0 says exactly the opposite: safety is decided by deterministic code and ambiguity stops. The other is worse: with a grade attached, **the ceiling can be raised by improving the source.** A ceiling is not a fact that better evidence revises upward.
 
-**등급을 붙이면 두 방향으로 틀린다.** 하나는 "이 상한은 E5뿐이니 무른 것"이라는 읽기가 생기는데, P0은 정확히 그 반대를 말한다 — 안전은 결정론적 코드가 판정하고 애매하면 멈춘다. 다른 하나가 더 나쁘다: 등급이 붙으면 **출처를 개선해서 상한을 올릴 수 있게 된다.** 상한은 더 나은 증거가 위로 고쳐 주는 사실이 아니다.
+**E5 is permitted and counted.** How many E5s are in one plan is that plan's reliability, and there is a ceiling (§11-2). E6 may enter nothing.
 
-**E5는 허용하되 센다.** 계획서 하나에 E5가 몇 개인지가 그 계획의 신뢰도이며 상한이 있다(§11-2). E6은 어디에도 들어갈 수 없다.
+**A nominal designation is not a number.** Values such as a `20x` objective, a `1.5x` zoom, or filter position `3` are **identifiers exact by definition** with no uncertainty. These are stored not in `numbers[]` but as **string identifiers.**
 
-**명목 지정은 숫자가 아니다.** `20x` 대물렌즈, `1.5x` 줌, 필터 위치 `3` 같은 값은 **정의상 정확한 식별자**이며 불확도가 없다. 이런 것은 `numbers[]`가 아니라 **문자열 식별자**로 저장한다.
+The reason is that the failure mode is concrete. Leave a nominal magnification as a number and somebody back-calculates it from the pixel-size calibration — `6.5 µm ÷ 0.1xx µm/px = 20.0xxx` — and **a calibrated quantity gets stored wearing a nominal name.** The false precision is the symptom; the disease is two different facts sharing one name:
 
-이유는 실패 모드가 구체적이기 때문이다. 명목 배율을 숫자로 두면 누군가 픽셀 크기 교정값에서 그것을 역산한다 — `6.5 µm ÷ 0.1xx µm/px = 20.0xxx` — 그리고 **교정된 양이 명목 이름을 입고 저장된다.** 거짓 정밀도는 증상이고, 병은 서로 다른 두 사실이 한 이름을 공유한 것이다:
-
-| | 무엇 | 어디에 |
+| | What | Where |
 |---|---|---|
-| `objective: "20x"` | 명목 지정. 정확하고 불확도가 없다 | 문자열 식별자 |
-| `pixel_size` | 대물렌즈·줌·비닝 조합마다 **측정된** 값 | `numbers[]`, `calibration:` 출처, 유효기간 (E2) |
+| `objective: "20x"` | a nominal designation. Exact, no uncertainty | string identifier |
+| `pixel_size` | a **measured** value per objective × zoom × binning combination | `numbers[]`, `calibration:` source, with an expiry (E2) |
 
-축 A6이 실제로 읽는 것은 **픽셀 크기**다. 배율은 파생된 편의값이며, 그것을 정본으로 두는 순간 역산이 시작된다.
+What axis A6 actually reads is **pixel size.** Magnification is a derived convenience, and the moment it becomes the record the back-calculation starts.
 
-**`spec:` 값은 인용이다.** 카탈로그가 `NA 0.80`이라고 적었으면 `0.80`으로 옮긴다 — 자릿수를 **더하지도 줄이지도 않는다.** 표기를 바꾸면 그것은 더 이상 인용이 아니고, 어느 쪽으로 바꿨는지 나중에 알 수 없다.
+**A `spec:` value is a quotation.** If the catalogue says `NA 0.80`, it is carried across as `0.80` — digits are **neither added nor removed.** Change the notation and it is no longer a quotation, and later there is no knowing which way it was changed.
 
-**구간도 인용이다.** 카탈로그가 작동거리를 `0.2–0.16 mm`로 적었으면 한쪽 끝으로 눌러 단일값으로 옮기는 것은 인용이 아니라 편집이다. 조건이 고정돼서 값이 하나로 정해지는 경우는 있다 — 커버슬립 두께가 고정되면 보정環 설정이 정해지고 작동거리도 정해진다 — 그러나 그것은 구간이 사라진 것이 아니라 **조건부 단일값**이고, **그 조건이 `validity`에 적혀야 한다.** 조건 없이 끝점만 남기면 다음 사람은 왜 구간이 사라졌는지 알 수 없고, 조건이 바뀌었을 때 그 값이 틀렸다는 것도 알 수 없다. (2026-09-17에 이 문서가 스스로 이 규칙을 어겼다: 넘긴 대물렌즈 표가 `0.2–0.16 mm`를 `160 µm`로 눌렀다.)
+**An interval is a quotation too.** If the catalogue gives a working distance as `0.2–0.16 mm`, pressing it to one end as a single value is editing, not quoting. There are cases where fixing the conditions fixes the value to one — fix the coverslip thickness and the correction-collar setting is fixed and so is the working distance — but that is not the interval disappearing, it is **a conditional single value**, and **that condition has to be written in `validity`.** Leave only the endpoint with no condition and the next person cannot know why the interval vanished, nor that the value is wrong once the condition changes. (On 2026-09-17 this document broke its own rule here: the objective table it handed over pressed `0.2–0.16 mm` into `160 µm`.)
 
-**허용범위와 사용값은 다른 사실이다.** "이 렌즈가 받아들이는 커버슬립 두께"와 "이 랩이 실제로 올리는 두께"는 서로 다른 질문에 답한다. 둘을 한 필드에 합치면 두 답을 잃는다 — 렌즈를 바꿀 때 무엇이 여전히 맞는지, 시료 준비를 바꿀 때 무엇이 깨지는지. 전자는 `spec:`이고 후자는 `operator_read:`다.
+**A permitted range and a value in use are different facts.** "The coverslip thickness this lens accepts" and "the thickness this lab actually mounts" answer different questions. Merge them into one field and both answers are lost — what still holds when the lens is changed, and what breaks when sample preparation changes. The first is `spec:` and the second is `operator_read:`.
 
-**그림에서 읽은 숫자는 출처가 아니다.** 벤더가 투과율을 **곡선 그래프로만** 주고 수치 표를 주지 않는 경우가 있다. 모델이 렌더된 곡선에서 픽셀을 읽어 표를 만들면 그것은 인용이 아니라 **추론이며 E6**이다 — 카드에도 KB에도 들어갈 수 없다. 사람이 같은 그래프를 읽으면 `operator_read:`(E3)이지만 **그래프가 지지하는 정밀도까지만**이다(§5.8, §8 검사 28). 그리고 곡선의 끝점을 그 너머의 값 대용으로 쓰는 편법은 곡선이 끝에서 평평할 때만 성립한다 — 아직 급하게 떨어지는 중이면 끝점은 상한도 근사도 아니다.
+**A number read off a figure is not a source.** Vendors sometimes give transmission **only as a curve** with no numeric table. If a model reads pixels off the rendered curve and builds a table, that is not a quotation but **an inference, and E6** — it may enter neither a card nor the KB. A person reading the same graph is `operator_read:` (E3), but **only to the precision the graph supports** (§5.8, §8 check 28). And the trick of using the curve's endpoint as a stand-in for values beyond it holds only when the curve is flat at that end — if it is still falling steeply, the endpoint is neither a bound nor an approximation.
 
-**결정에도 등급이 붙는다.** 구성 선택, 동작점 선택, 중단 판정 같은 결정은 `{by: code|llm|human, evidence_grade: E1…E5, reversible: yes|no}`로 기록한다. 이 조합이 §6의 티어와 §2.1 규칙 3을 결정한다 — 등급은 장식이 아니라 **게이트의 입력**이다.
+**Decisions take grades too.** Decisions such as choosing a configuration, choosing an operating point, or aborting are recorded as `{by: code|llm|human, evidence_grade: E1…E5, reversible: yes|no}`. That combination determines §6's tier and §2.1 rule 3 — the grade is not decoration but **an input to the gate.**
 
-### 5.3.3 `at`은 지금 해소되지 않는다 — 그리고 그렇다고 말한다 (2026-09-19)
+### 5.3.3 `at` is not resolved now — and it says so (2026-09-19)
 
-**장소 레지스트리를 지금 만들지 않는다. 대신 `at`이 해소되지 않았을 때 그것을 말하게 한다.**
+**No place registry is built now. Instead, an unresolved `at` is made to say so.**
 
-사서 매니저가 짚은 비대칭이 답의 절반이다: **오늘 해소되는 `at`은 전부 구동 채널을 가리키고, 해소되지 않는 것은 전부 아무도 구동하지 않는 것을 가리킨다.** 우연이 아니다 — 구동되는 것에 대해서는 **장치 표가 이미 "어디"에 답하고 있고**, 구동되지 않는 것에 대해서는 답하는 표가 없다. 그러므로 `at`은 지금 두 가지 일을 하고 있고, 그중 하나만 자기 레지스트리를 갖는다.
+The asymmetry the librarian manager pointed at is half the answer: **every `at` that resolves today points at a driven channel, and every one that does not points at something nobody drives.** That is not a coincidence — for driven things **the device table already answers "where"**, and for undriven things there is no table that answers. So `at` is doing two jobs right now, and only one of them has its own registry.
 
-**온도계를 장치 표에 넣는 우회는 거절한다.** 장치 표는 **소프트웨어가 말을 거는 것들의 레지스트리**이고 열 채널 전부가 `driver`·`automatable`·`read_back`·`lock_group`을 갖는다. 눈으로 읽는 벽 온도계는 그중 아무것도 갖지 않으므로, 넣으면 **그 표의 모든 열이 그것에 대해 거짓**이 된다. 사서 매니저가 확인하고 거절했다.
+**The workaround of putting a thermometer in the device table is refused.** The device table is **a registry of the things software talks to**, and all ten channels have `driver`, `automatable`, `read_back`, `lock_group`. A wall thermometer read by eye has none of them, so putting it in makes **every column of that table false about it.** The librarian manager confirmed and refused it.
 
-**지금 만들지 않는 이유는 사례가 둘이기 때문이 아니다 — 비교가 아직 필요하지 않기 때문이다.** 어휘가 사는 자리는 "방에서 쟀는데 시료에서 필요하다"를 **기계가 대조**하는 순간이고, 지금 그 대조를 기다리는 갭 셋은 **값이 아직 없다.** 어휘가 없어서 막힌 것이 아니라 값이 없어서 막혀 있다. 다음 주에 시료가 오면 그 값들이 생기고, **그때가 어휘가 필요한 순간이다.** 그 전에 만들면 사례 둘에서 다섯째 kind를 설계하는 것이고, 자유 문자열로 굳으면 **없는 것보다 나쁘다 — 해소되는 것처럼 보이기 때문이다.** 그쪽 스키마가 `quantity`를 "넷 중 가장 약한 것, 선언된 것이 아니라 사실상의 레지스트리"라고 이미 경고하고 있다.
+**The reason not to build it now is not that there are two cases — it is that the comparison is not needed yet.** Where a vocabulary lives is the moment a **machine compares** "measured in the room but needed at the sample", and the three gaps waiting on that comparison **have no values yet.** They are blocked for want of values, not for want of a vocabulary. When the sample arrives next week those values appear, and **that is the moment the vocabulary is needed.** Building it before is designing a fifth kind from two cases, and if it sets as a free string it is **worse than nothing — because it looks resolved.** That schema already warns that `quantity` is "the weakest of the four, a de facto registry rather than a declared one".
 
-**그래서 지금 할 일은 해소되지 않은 `at`을 세어지게 만드는 것이다.** 등록된 subject로 풀리지 않는 `at`은 **그렇게 표시되고**, 검사가 그 수를 보고한다. 자유 문자열로 조용히 통과하면 안 된다 — **절반만 해소되는 필드는 해소된 쪽만 보게 하고 나머지를 잊게 한다**(사서 매니저의 문장). 오늘 이 저장소가 같은 것을 세 번 배웠다: `drop 0`은 `rulings.jsonl`이 생기기 전까지 안 보였고, 거짓 갭은 검사 49 전까지 안 보였고, 목표의 단위는 그릇을 옮기는 커밋이 닫지 않았으면 안 보였을 것이다. **세어지지 않는 결핍은 없는 결핍처럼 보인다.**
+**So what to do now is make the unresolved `at`s countable.** An `at` that does not resolve to a registered subject **is marked as such**, and a check reports the count. It must not pass quietly as a free string — **a field that resolves only half the time makes you look at the resolved half and forget the rest** (the librarian manager's sentence). This repository learned the same thing three times today: `drop 0` was invisible until `rulings.jsonl` existed, false gaps were invisible until check 49, and the target's unit would have been invisible had the commit moving its container not closed it. **A deficiency nobody counts looks like a deficiency that is not there.**
 
-**전환 조건**: 시료 의존 갭들이 닫히기 **전에** 장소 어휘를 세운다. 그때 세는 근거는 추측이 아니라 그동안 쌓인 미해소 `at`의 목록이다.
+**Transition condition**: stand the place vocabulary up **before** the sample-dependent gaps close. The grounds for counting then are not a guess but the list of unresolved `at`s accumulated in the meantime.
 
-**그리고 그때 그것을 소유하는 것은 사서다.** 사서 매니저가 막힌 지점이 이것이었는데, 선례가 있다 — §4.6이 장치 레지스트리를 두고 **"그리고 그것은 지식이다"**라고 적고 사서에게 준다. 광경로 표도 같다. 장소는 같은 종류의 사실이다: **이 셋업에 대한 사실**이지, 에이전트가 무엇을 계산해도 되는지를 정하는 계약 어휘(`observables.json`)가 아니다. P14대로 지식은 한 곳에 산다.
+**And the librarian owns it when that happens.** This is where the librarian manager got stuck, and there is a precedent — §4.6 says of the device registry **"and it is knowledge"** and gives it to the librarian. The optical-path table is the same. A place is the same kind of fact: **a fact about this setup**, not the contract vocabulary (`observables.json`) that decides what an agent may compute. Per P14, knowledge lives in one place.
 
-### 5.3.2 bound가 딛는 것이 숫자만은 아니다 — A4·A6가 드러낸 것 (2026-09-19)
+### 5.3.2 What a bound stands on is not only numbers — what A4 and A6 revealed (2026-09-19)
 
-**`interval.basis`는 `kb:<entry_id>`도 받는다.** 지금 설명이 "names in numbers[]"이고, 그래서 **서비스가 준 지식만으로 서는 bound가 표현 불가능하다.** A4가 그 경우다: `numbers[]`가 비어 있고 근거는 E3로 돌아온 `kb_refs` 다섯이다. 사서가 서빙을 시작했으므로 이 종류는 흔해진다. **새 어휘를 만들지 않는다** — `kb:<entry_id>`는 §5.3이 이미 정의한 출처 접두사이고, 같은 것을 두 이름으로 부르지 않는다. 필드 모양이 `string`이라 넓히기이지 마이그레이션이 아니다. 그리고 이 참조는 **실제로 해소된다**: 그 `entry_id`가 그 카드의 `kb_refs`에 있는지 검사가 확인할 수 있으므로, 47·48·50·51의 "선언을 읽지 이해를 읽지 않는" 부류가 **아니다.**
+**`interval.basis` accepts `kb:<entry_id>` too.** Its description today is "names in numbers[]", and so **a bound standing purely on knowledge the service supplied is inexpressible.** A4 is that case: `numbers[]` is empty and the grounds are five `kb_refs` that came back E3. Now that the librarian is serving, this kind becomes common. **No new vocabulary is created** — `kb:<entry_id>` is a source prefix §5.3 already defines, and the same thing is not called by two names. The field's shape is `string`, so this is a widening and not a migration. And this reference **actually resolves**: a check can confirm that the `entry_id` is in that card's `kb_refs`, so it is **not** in the class of 47, 48, 50 and 51 that "read a declaration and not an understanding".
 
-**허용 집합과 전제조건은 다른 필드다. 하나로 두지 않는다.**
+**A permitted set and a precondition are different fields. They are not made one.**
 
-- **`allowed_set`** — 구간이 아니라 열거. A4의 선택자 조합(문자열)과 A6의 배율(대물렌즈 터렛 × 1.5× 줌이라 이산 집합, §4.5.3)이 둘 다 여기다. **교집합이 정의된다**: 집합∩집합도 집합∩구간도 S4가 지금 하는 일 그대로다. `interval`을 재사용하지 않는 이유가 스키마에 이미 있다 — `interval`은 `unit`을 **필수**로 요구하고, 문자열 선택자 집합에 단위는 뜻이 없다.
-- **`precondition`** — 값을 제한하지 않고 **계획에 무언가를 요구**한다. A4의 `selector_verifiable`가 그것이다: 선택자 셋 중 read-back으로 검증되는 것이 하나도 없고 셋이 각각 다르게 실패하므로, §2.1이 미검증 상태를 진행 불가로 만드는 결론은 "적재 상태는 획득으로 확정한다"이다. **S4는 이것을 교집합하지 않고 전파한다.**
+- **`allowed_set`** — an enumeration, not an interval. A4's selector combinations (strings) and A6's magnification (a discrete set, being objective turret × 1.5× zoom, §4.5.3) both go here. **Intersection is defined**: set∩set and set∩interval are exactly what S4 already does. The reason not to reuse `interval` is already in the schema — `interval` requires `unit` as **mandatory**, and a unit is meaningless on a set of string selectors.
+- **`precondition`** — it does not constrain a value; it **requires something of the plan.** A4's `selector_verifiable` is that: none of the three selectors is verified by read-back and the three fail differently, so §2.1 making an unverified state non-proceedable gives the conclusion "the mounted state is settled by the acquisition". **S4 propagates this rather than intersecting it.**
 
-**둘을 한 필드에 넣으면 S4가 두 종류를 한 연산으로 처리하려다 하나를 잘못 다룬다.** 그리고 그것은 이 저장소가 다섯 번 물린 부류다 — **한 문장이 두 가지를 뜻하면 읽는 쪽이 하나를 고른다**(§7.1 규칙 3). 여기서는 읽는 쪽이 S4이고, 고른 쪽이 틀리면 전제조건이 조용히 사라진다.
+**Put both in one field and S4, trying to handle two kinds with one operation, mishandles one.** And that is the class that bit this repository five times — **when one sentence means two things, the reader picks one** (§7.1 rule 3). Here the reader is S4, and if it picks wrong the precondition quietly disappears.
 
-**`state: returned`은 셋 중 정확히 하나를 요구한다** — 수치 구간 · `allowed_set` · `precondition`. 지금은 `interval` 하나만 요구하고 `additionalProperties: false`라 나머지 둘을 **넣을 수 없다.** 현미경 매니저가 저장소의 interval 28개를 전부 세어 올렸다.
+**`state: returned` requires exactly one of three** — a numeric interval · an `allowed_set` · a `precondition`. Today it requires only `interval` and has `additionalProperties: false`, so the other two **cannot be put in.** The microscope manager counted all 28 intervals in the repository and raised it.
 
-### 5.3.1 목표는 나른다 — 그리고 나른 사본을 대조한다 (2026-09-19)
+### 5.3.1 A target travels — and the travelled copy is compared (2026-09-19)
 
-**목표를 goal 카드에만 두고 아래에서 참조하는 안은 거절한다.** `plan_approval`이 고정하는 것은 **plan이지 goal이 아니다.** 목표가 goal에만 살면, 승인된 계획이 있는 상태에서 goal의 목표를 고쳤을 때 **그 계획의 정확도 목표가 따라 움직이고 아무 기록도 남지 않는다.** 승인은 그 순간의 계획에 대한 것이므로, 계획이 딛는 것은 그때 얼어 있어야 한다.
+**The proposal to keep the target only in the goal card and reference it below is refused.** What a `plan_approval` fixes is **the plan, not the goal.** If the target lives only in the goal, then editing the goal's target while an approved plan exists makes **that plan's accuracy target move with it, leaving no record.** An approval is about the plan at that moment, so what the plan stands on has to be frozen then.
 
-**이것은 예외가 아니라 이미 있는 것의 한 사례다.** `kb_version`을 핀하고 옛 핀을 git 이력에서 서빙하는 이유가 같다(§4.3.2) — 카드의 입력은 그 카드가 만들어진 순간으로 얼어야 하고, "지금 무엇이든 그것"으로 풀리는 핀은 핀이 아니다. 움직일 수 있는 goal을 가리키는 plan은 그 결함의 다른 이름이다.
+**This is not an exception but an instance of something already here.** It is the same reason `kb_version` is pinned and old pins are served from git history (§4.3.2) — a card's inputs have to freeze at the moment the card was made, and a pin that resolves to "whatever it is now" is not a pin. A plan pointing at a goal that can move is another name for that defect.
 
-**§11-11이 세는 것은 사본이 아니라 대조 없는 사본이다.** 검사 12가 이미 그 대조를 하고 있었고, 나르기를 그만두는 것이 아니라 **나른 것을 계속 대조하는 것**이 그 표가 요구하는 바다. 그러므로 목표는 goal·plan·result에 같은 인라인 슬롯으로 실리고, **나른 사본이 goal의 것과 같은지를 검사 52가 본다** — 검사 12가 `numbers[]`에 대해 공짜로 해 주던 일을 목표가 그 그릇을 떠나면서 잃기 때문이다. 단위 절과 같은 논거이고, 같은 검사에 들어간다: **구멍을 여는 변경이 그것을 닫는다.**
+**What §11-11 counts is not copies but copies with no comparison.** Check 12 was already doing that comparison, and what that table demands is not that copying stop but **that what was copied keeps being compared.** So the target rides in goal, plan and result in the same inline slot, and **check 52 verifies that the travelled copy matches the goal's** — because what check 12 did for free on `numbers[]` is lost the moment the target leaves that container. It is the same argument as the unit subsection, and it goes into the same check: **the change that opens a hole closes it.**
 
-**그리고 나르기는 앞으로만 간다. 뒤로 못 간다 — 계약 변경이 승인된 산출물을 고쳐 쓸 수 없기 때문이다 (2026-09-19).**
+**And travelling only goes forward. It cannot go back — because a contract change cannot rewrite an approved output (2026-09-19).**
 
-브리지 매니저가 예시 계획 하나를 실제로 옮겨 보고 넷이 거절하는 것을 봤는데, 그중 하나가 스키마 문제가 아니었다:
+The bridge manager actually migrated one example plan and watched four refusals, one of which was not a schema problem:
 
 ```
 check 7 FAIL  plan_hash does not match the plan (status excluded)  [plan_approval.json]
 ```
 
-**승인이 고정한 카드는 필드를 얻지도 잃지도 못한다.** 해시가 움직이고 승인이 더는 그 카드를 덮지 않기 때문이다(§5.5). 그러므로 계약 마이그레이션은 승인된 계획에 **닿을 수 없다** — "닿으면 안 된다"가 아니라 **사람이 다시 승인하지 않는 한 불가능하다.** 이것은 목표에만 걸리는 사실이 아니고, **승인에만 걸리는 사실도 아니다: 기록된 해시가 핀한 카드의 모양을 바꾸는 모든 스키마 변경이 같은 벽을 만난다.** 이 절이 처음에 "승인이 핀한"이라고 적은 것은 한 겹 좁았다 — **누가 그 해시를 적었는지는 상관없다.** 서명하는 사람이든 배달하는 브리지든, 적힌 해시는 적힌 해시다. `bridge/threads/<thread>/r<N>_hashes.json`이 승인과 똑같이 원본 카드를 얼리고 **승인 없이도 존재한다**: 2026-09-19에 `sim-20260917-001`이 실제로 그것에 얼어 있었고, 제자리에서 옮기면 `card_sha`가 움직여 검사 8이 실패한다. 두 핀은 **나가는 문도 같다 — 다음 리비전**이다. 그러므로 앞으로만 가는 것은 동기를 공유하는 두 규칙이 아니라 **기록된 해시에 대한 한 규칙**이다.
+**A card an approval has fixed can neither gain nor lose a field.** The hash moves and the approval no longer covers that card (§5.5). So a contract migration **cannot touch** an approved plan — not "must not touch" but **cannot, unless a person approves again.** This is not a fact about targets alone, and **not a fact about approvals alone either: every schema change that alters the shape of a card some recorded hash has pinned meets the same wall.** This subsection's first wording, "pinned by an approval", was one layer narrow — **it does not matter who wrote the hash.** Signing person or delivering bridge, a recorded hash is a recorded hash. `bridge/threads/<thread>/r<N>_hashes.json` freezes the original card exactly as an approval does and **exists without one**: on 2026-09-19 `sim-20260917-001` was actually frozen in it, and migrating it in place moves `card_sha` and check 8 fails. The two pins **share an exit too — the next revision.** So going forward only is not two rules sharing a motive but **one rule about recorded hashes.**
 
-**그리고 핀이 깨졌을 때 소견이 원인의 자리를 대야 한다.** 장부 핀이 깨지면 소견은 장부에 귀속되고 그것은 옳다 — 더는 성립하지 않는 것이 장부다. 그런데 **장부는 브리지 트리에 있고 움직인 카드는 남의 트리에 있으며**, 메시지는 *고치지 말고 라운드를 멈추라*고 말한다. 브리지 좌석이 자기 트리의 빨간불을 읽고, 고치지 말라는 말을 듣고, **원인이 어디인지는 못 듣는다.** 검사 50의 원칙을 반대편에서 본 것이다 — 거기서는 행동할 수 있는 쪽을 겨누는 것이 문제였고, 여기서는 **행동할 수 있는 쪽을 소견만 보고 식별할 수 없다.** 검사 8이 원본 경로와 리비전을 이름으로 댄다. **원인을 대는 것은 라우팅이지 수리가 아니고**, 고치지 말라는 지시는 그대로 선다. 브리지 매니저가 올렸고, 조사한 것은 manager-simulation이 자기 트리를 직접 확인해서다 — 보내진 조사 결과를 믿지 않고.
+**And when a pin breaks, the finding has to name the cause's location.** When a ledger pin breaks the finding is attributed to the ledger, and that is right — what no longer holds is the ledger. But **the ledger is in the bridge tree and the card that moved is in someone else's tree**, and the message says *do not fix it, stop the round.* The bridge seat reads a red light in its own tree, hears "do not fix", and **does not hear where the cause is.** It is check 50's principle seen from the other side — there the problem was aiming at the side that can act, and here **the side that can act cannot be identified from the finding alone.** Check 8 names the original path and revision. **Naming the cause is routing, not repair**, and the instruction not to fix stands unchanged. The bridge manager raised it, and what did the investigating was manager-simulation checking its own tree directly — rather than trusting an investigation result it was sent.
 
-**그래서 형태는 이 저장소가 이미 쓰는 것이다** — `seats.json`의 `enforced_from`과 검증기의 `before_enforcement()`. **새 카드는 인라인, 승인이 핀한 카드는 그 승인이 서 있는 동안 옛 모양을 유지한다.** 그러면 제거 조건이 "아홉 카드가 옮겨졌다"가 아니라 **"옮겨지지 않은 카드 중 아직 핀된 것이 없다"**가 되고, 이쪽은 **사람에게 이미 승인한 것을 다시 승인해 달라고 하지 않고도 참이 될 수 있는 조건**이다. 앞엣것은 그럴 수 없다.
+**So the shape is one this repository already uses** — `seats.json`'s `enforced_from` and the validator's `before_enforcement()`. **New cards go inline; cards an approval has pinned keep the old shape for as long as that approval stands.** Then the removal condition becomes not "nine cards have been migrated" but **"none of the unmigrated cards is still pinned"**, and that is **a condition that can become true without asking a person to re-approve what they already approved.** The former cannot.
 
-**`success_criteria`도 같이 넓힌다.** 기준은 임계값을 `number`로 대고 검사 6이 그것을 `numbers[]`에 대해 해소하는데, 임계값이 결정이면 **가리킬 것이 없다.** `$defs/criterion`이 `target: <metric>`을 `number`의 대안으로 갖고 **정확히 하나**를 요구하며, 검사 6이 둘 다 해소한다 — `number`는 `numbers[]`에, `target`은 그 카드의 `targets[]`에. 검사 6의 보증을 **느슨하게 하지 않고 이어 받는** 모양이고, 단위 절·대조 절과 같은 논거다.
+**`success_criteria` is widened with it.** A criterion names its threshold as a `number` and check 6 resolves that against `numbers[]`, and when the threshold is a decision there is **nothing to point at.** `$defs/criterion` gains `target: <metric>` as an alternative to `number`, requiring **exactly one**, and check 6 resolves both — `number` against `numbers[]`, `target` against that card's `targets[]`. It is the shape of **inheriting check 6's guarantee rather than loosening it**, the same argument as the unit and comparison subsections.
 
-**세어 보고 알았다는 것이 이 판정의 값이다.** `targets[]` 참조는 다섯이었고 **그 수 자체는 아홉 카드에 세 트리에 걸쳐** goal·plan·result로 있었다. 브리지 매니저가 **자기 예시 카드로 먼저 마이그레이션을 시도해서** 검사 12에 걸렸고, 두 실행석이 자기 트리를 고치기 **전에** 알았다. `contracts/examples/`가 있는 이유가 그것이다.
+**That this was learned by counting is the value of the judgement.** There were five `targets[]` references, and **the numbers themselves were across nine cards in three trees**, in goal, plan and result. The bridge manager **tried the migration on its own example card first**, hit check 12, and knew it **before** the two execution seats edited their own trees. That is why `contracts/examples/` exists.
 
-### 5.4 계획서(plan)가 반드시 갖는 것
+### 5.4 What a plan must have
 
-- `purpose` — 왜 이 측정을 하는가 (`screen`/`characterize`/`compare`/`verify`/`troubleshoot`/`feed`, §4.5.1)
-- `intent` — `explore` | `confirm`. 목표 표현과 비교 규칙이 여기서 갈린다(§5.8)
-- `observable` — 무엇을 측정/계산하는가. **`contracts/observables.json`의 id 하나**이며, 정의·`estimator`·창 요구는 그 항목에서 읽는다. 이름만으로 충분한 것이 아니라 **이름이 곧 그 항목에 대한 참조**이고, 카드가 정의를 다시 쓰면 사본이 갈라진다(§5.1). 2026-09-18까지 이 줄은 "정의까지, 이름만으로는 불충분"이었다 — **틀린 적은 없었다.** 가리킬 어휘가 없던 때 쓰인 문장이고, 그때는 정의를 카드에 적는 것 말고 방법이 없었다. 어휘가 생긴 뒤에도 남아 **두 번째 사본을 강제하는 근거**가 되어 있었다
-- `system_configuration` — **어떤 구성으로 얻는가**: 장치 집합·광경로·모달리티(현미경) 또는 모델·엔진(시뮬레이션)
-- `alternatives_rejected` — 스크리닝·종합에서 탈락한 구성과 **탈락 근거 수치**
-- `conditions` — 모든 조건 파라미터, 3-튜플
-- `envelope_check` — 어떤 한계와 대조했는가, 그 결과
-- `cost` — 예상 소요 시간·자원
-- `stop_criteria` — 언제 멈추는가 (실행 전에 선언)
-- `success_criteria` — 무엇이면 성공인가 (실행 전에 선언)
-- `assumptions` — `assumed` 숫자 목록과 근거
-- `open_risks` — 알면서 감수하는 것
+- `purpose` — why this measurement is being made (`screen`/`characterize`/`compare`/`verify`/`troubleshoot`/`feed`, §4.5.1)
+- `intent` — `explore` | `confirm`. How the target is expressed and how comparison works divide here (§5.8)
+- `observable` — what is being measured or computed. **One id from `contracts/observables.json`**, with the definition, `estimator` and window requirement read from that entry. It is not that the name suffices but that **the name is the reference to that entry**, and a card restating the definition splits the copy (§5.1). Until 2026-09-18 this line read "the definition too; the name alone is insufficient" — **it was never wrong.** It was written when there was no vocabulary to point at, and then there was no way other than writing the definition into the card. It survived after the vocabulary existed and became **the grounds forcing a second copy**
+- `system_configuration` — **by which configuration it is obtained**: device set, optical path and modality (microscope), or model and engine (simulation)
+- `alternatives_rejected` — the configurations eliminated in screening and synthesis, and **the numbers behind the elimination**
+- `conditions` — every condition parameter, as a tuple
+- `envelope_check` — which limits it was compared against, and the result
+- `cost` — expected time and resources
+- `stop_criteria` — when it stops (declared before execution)
+- `success_criteria` — what counts as success (declared before execution)
+- `assumptions` — the list of `assumed` numbers and their grounds
+- `open_risks` — what is knowingly being accepted
 
-정지/성공 기준을 **사전 선언**하는 것이 이 설계에서 가장 중요한 한 줄이다. 사후에 고르면 그것은 결과가 아니라 서술이다.
+**Declaring the stop and success criteria in advance** is the single most important line in this design. Chosen afterwards, they are not a result but a description.
 
-### 5.5 상태기계
+### 5.5 The state machine
 
 ```
 goal
-  └─> plan(DRAFT) ──validate(코드)──> plan(VALIDATED) ──사람──> plan(APPROVED)
+  └─> plan(DRAFT) ──validate(code)──> plan(VALIDATED) ──person──> plan(APPROVED)
            │                              │                         │
            └──> REFUSED                   └──> REFUSED              └─> RUNNING
                                                                         ├─> DONE   ─> result
-                                                                        └─> FAILED ─> result(부분) + 편차
+                                                                        └─> FAILED ─> result(partial) + deviations
 ```
-- 수정은 상태 되돌리기가 아니라 **리비전 증가**(`revision: 2`)이며, 새 리비전은 DRAFT부터 다시 시작한다.
-- `APPROVED`가 되는 경로는 둘이다: 그 `(plan_id, revision)`의 `plan_approval`이 있거나, 계획이 유효한 `scope_approval`의 범위 안에 있는 경우(§6.1). 계획이 바뀌면 `plan_approval`은 무효다.
-- **승인은 계획의 해시에 묶이고, 그 해시는 `status`를 뺀 카드로 계산한다.** 상태는 같은 파일 위에서 이 상태기계를 따라 움직이므로(DRAFT → VALIDATED → APPROVED), 카드 전체를 해시하면 **승인이 발급되는 순간 스스로 무효화된다.** `status` 하나만 제외하고 나머지는 전부 묶이므로, 조건 하나만 고쳐도 승인은 깨진다.
+- A correction is not a state rollback but **a revision increment** (`revision: 2`), and a new revision starts again from DRAFT.
+- There are two routes to `APPROVED`: a `plan_approval` exists for that `(plan_id, revision)`, or the plan falls inside the range of a valid `scope_approval` (§6.1). If the plan changes, the `plan_approval` is void.
+- **An approval binds to the plan's hash, and that hash is computed over the card with `status` removed.** State moves along this state machine on the same file (DRAFT → VALIDATED → APPROVED), so hashing the whole card would make **the approval invalidate itself the moment it is issued.** Everything but `status` is bound, so changing a single condition breaks the approval.
 
-### 5.6 정본 규칙
+### 5.6 The record rule
 
-JSON이 정본, MD는 JSON에서 생성되는 사람용 산출물. MD를 손으로 고쳐도 시스템은 그것을 보지 않는다(P3).
+The JSON is the record; the Markdown is a human-facing output generated from it. Edit the Markdown by hand and the system does not look at it (P3).
 
 ---
 
-### 5.7 단위와 무차원수 (D7)
+### 5.7 Units and dimensionless numbers (D7)
 
-**정본은 물리 단위다.** goal/plan/result 카드의 모든 숫자는 실험실 물리 단위로 적는다 — 길이 µm, 시간 s, 힘 pN, 온도 K, 에너지 k_BT 또는 pN·µm, 점도 Pa·s.
+**The record is physical units.** Every number in a goal/plan/result card is written in laboratory physical units — length µm, time s, force pN, temperature K, energy k_BT or pN·µm, viscosity Pa·s.
 
-**온도가 켈빈뿐인 것은 고른 것이 아니라 강제된 것이다.** `units.json`의 레지스트리는 `si_factor`와 차원 벡터 `dim`으로 되어 있어 **배율과 차원은 표현하지만 원점은 표현하지 못한다.** 그래서 오프셋 단위(섭씨·화씨)는 등재될 수 없고 등재해서도 안 된다 — `degC`에 `si_factor: 1.0`을 넣으면 그것이 켈빈처럼 배율을 받고, 틀리면서 조용하다. **없는 단위보다 큰 절반은 없는 출처다**: 사람이 20 °C라고 말하고 카드가 293 K를 실으면 숫자 어디에도 그 판독이 섭씨로 들어왔다는 말이 없다. 그것은 숫자의 `note`에 반올림과 나란히 적는다 — 1도 단위로 읽은 값에서 293.15는 다섯 자리를 주장하므로 293으로 적는다(§5.8). 2026-09-17 사서 좌석이 `lab_ambient_temperature` entry를 만들다 드러난 것이다.
+**Temperature being Kelvin only was forced, not chosen.** `units.json`'s registry is built on `si_factor` and a dimension vector `dim`, so it **expresses scale and dimension but not origin.** Offset units (Celsius, Fahrenheit) therefore cannot be registered and must not be — give `degC` an `si_factor: 1.0` and it takes scaling like Kelvin, wrong and silent. **The larger half of a missing unit is a missing source**: a person says 20 °C, the card carries 293 K, and nowhere in the number does it say the reading arrived in Celsius. That goes in the number's `note` beside the rounding — a value read to the nearest degree makes 293.15 a five-digit claim, so it is written 293 (§5.8). It surfaced on 2026-09-17 while the librarian seat was making the `lab_ambient_temperature` entry.
 
-**`derived`는 "계산됐다"가 아니다.** 2026-09-18에 이 혼동으로 검사 하나를 승인했다가 되돌렸다. `derived`가 뜻하는 것은 **"이 숫자가 전역적으로 일치해야 하는 이름 붙은 기호를 정의한다"**이고, 그래서 검사 36이 `derived` → `symbol` 필수 → 다른 정의·스토어와 충돌 비교로 이어진다. `computed:` 출처에 `formula`와 `inputs`를 가진 숫자가 `derived`가 **아닌** 것은 정상이다 — 계산됐지만 기호를 정의하지는 않는다. 저장소 전체에서 `derived`와 `symbol`은 이미 정확히 짝을 이룬다(둘 다 한쪽만 있는 경우 0). 그리고 2026-09-18의 census가 문서화된 뜻과 실제 용법이 **교집합 0으로** 갈라져 있었음을 보였다 — `derived: true` 여섯 건이 **전부 단위를 달고 있었고**(`s` 다섯, `N*s/m` 하나), 카드에서 무차원 단위 `1`인 숫자 열넷 중 `derived`는 **하나도 없었다.** 여섯 저자가 모두 "계산돼 이름이 붙은 양"으로 읽은 것이다. 그래서 뜻을 쪼개지 않고 **용법에 맞췄다.** 무차원 여부는 이 필드가 아니라 `units.json`의 `1`(`dim: {}`)에서 단위로 읽는다.
+**`derived` does not mean "was computed".** On 2026-09-18 this confusion got a check approved and then reversed. What `derived` means is **"this number defines a named symbol that has to agree globally"**, which is why check 36 runs `derived` → `symbol` mandatory → compare for conflicts against other definitions and the store. A number with a `computed:` source carrying `formula` and `inputs` being **not** `derived` is normal — it was computed but it does not define a symbol. Across the repository `derived` and `symbol` already pair exactly (zero cases of one without the other). And the 2026-09-18 census showed the documented meaning and the actual usage had diverged **to an intersection of zero** — all six `derived: true` cases **carried units** (five `s`, one `N*s/m`), and of the fourteen numbers in cards with the dimensionless unit `1`, **not one** was `derived`. All six authors read it as "a computed, named quantity". So the meaning was not split; **it was matched to the usage.** Dimensionlessness is read not from this field but as a unit, from `units.json`'s `1` (`dim: {}`).
 
-**그리고 왜 쪼개지 않았는지를 적어 둔다 — 적지 않으면 같은 제안이 다시 온다**(2026-09-18에 두 번 왔다). `formula`와 `symbol`은 다른 일을 한다: `formula`는 **"나를 다시 계산하라"**(검사 17)이고 `symbol`은 **"나는 어디서나 한 가지를 뜻한다"**(검사 36)다. 그래서 `derived`는 `symbol`과 짝이고 **`formula`와는 짝이 아니다** — 식을 갖되 이름 붙은 양이 아닌 숫자가 **열여덟 개** 있고(`diffusivity`, `exposure_time_chosen`, `box_length_min_dilution`, `exposure_ceiling` …), `formula`에 플래그를 요구하면 **세 경계에서 옳은 작업이 동시에 거절된다.** 그래서 그 쌍조건을 검사로 넣으면 **공허하게 통과한다.**
+**And why it was not split is written down — because without that the same proposal comes back** (it came twice on 2026-09-18). `formula` and `symbol` do different jobs: `formula` says **"recompute me"** (check 17) and `symbol` says **"I mean one thing everywhere"** (check 36). So `derived` pairs with `symbol` and **not with `formula`** — there are **eighteen** numbers that have an expression and are not named quantities (`diffusivity`, `exposure_time_chosen`, `box_length_min_dilution`, `exposure_ceiling`, …), and requiring the flag on `formula` **refuses correct work at three boundaries at once.** So putting that paired condition in as a check makes it **pass vacuously.**
 
-**정의되지 않은 용어 위에 규칙을 올리면 그 규칙은 엉뚱한 것을 잡는다.** 그 검사를 넣었으면 정상 카드 15장이 "유도값인데 symbol이 없다"로 떨어졌고, 그중 아홉은 시뮬레이션의 실물 카드였다. 현미경 매니저가 구현 전에 전수로 세어 보고 멈췄다.
+**Put a rule on top of an undefined term and the rule catches the wrong thing.** Adding that check would have dropped 15 normal cards as "derived with no symbol", nine of them the simulation's real cards. The microscope manager counted them all before implementing and stopped.
 
-**그리고 `kind: dimensionless_group`이 "이름 붙은 양" 용도로 쓰이고 있다.** `kb:tau_d`가 그 `kind`인데 식이 `bead_diameter**2/diffusivity`, 즉 **시간**이고 `unit`도 `dimension`도 비어 있다. 이건 검사할 수 있다 — **무차원이라고 선언한 entry는 식의 차원이 상쇄돼야 한다**, 그리고 검증기의 `eval_formula`는 이미 차원을 안다. 지금 스토어에 실제로 실패하는 사례가 하나 있으므로 공허하지 않다. 무차원이 아닌 이름 붙은 양에는 별도의 `kind`가 필요하고, 그것은 entry 스키마 쪽 결정이다.
+**And `kind: dimensionless_group` is being used for "named quantity".** `kb:tau_d` has that `kind` while its expression is `bead_diameter**2/diffusivity`, which is **time**, and its `unit` and `dimension` are empty. This is checkable — **an entry declared dimensionless must have its expression's dimensions cancel** — and the validator's `eval_formula` already knows dimensions. There is currently one genuinely failing case in the store, so it is not vacuous. A named quantity that is not dimensionless needs its own `kind`, and that is a decision on the entry-schema side.
 
-**저장소가 가진 양을 스스로 다시 계산하는 것은 추정이 아니라 우회다.** 2026-09-17에 시뮬레이션 카드가 `tau_a = 반지름²/D`를 E5로 주조했는데, `kb:tau_d`가 `지름²/D`를 **E4**로 갖고 있었고 validity가 그 구성과 정확히 맞았다. 4배 차이에 등급은 더 나쁘다. 규칙은 단순하다 — **KB가 덮는 양은 인용하고, 직접 계산하지 않는다.** 직접 계산한 값은 언제나 등급이 같거나 낮고(§5.3의 `computed`는 최악 입력을 물려받는다), 게다가 같은 양이 두 이름으로 살아남는다.
+**Recomputing for yourself a quantity the store already holds is not estimation but circumvention.** On 2026-09-17 a simulation card minted `tau_a = radius²/D` as E5, while `kb:tau_d` held `diameter²/D` as **E4** with a validity matching that configuration exactly. A factor of four apart, with the worse grade. The rule is simple — **cite a quantity the KB covers; do not compute it yourself.** A self-computed value always has an equal or lower grade (§5.3's `computed` inherits the worst input), and on top of that the same quantity survives under two names.
 
-**그런데 이것을 잡은 검사가 없었고, 원인은 어휘가 아니라 플래그였다.** 그 숫자는 이렇게 생겼다:
+**But no check caught this, and the cause was not the vocabulary but the flag.** The number looked like this:
 
 ```json
 {"name": "tau_a", "formula": "particle_radius ** 2 / tracer_diffusivity_expected",
@@ -1333,1330 +1331,1324 @@ JSON이 정본, MD는 JSON에서 생성되는 사람용 산출물. MD를 손으�
  "derived": null, "symbol": null}
 ```
 
-**세 필드가 "이것은 유도값이다"라고 말하는데**(`formula`·`inputs`·`computed:` 출처) **네 번째 필드가 검사 여부를 정한다.** 검사 36은 `if not num.get("derived"): continue`로 시작하므로 들여다보지도 않았다. `derived`가 있었으면 "유도값인데 `symbol`이 없다"로 **그 자리에서 FAIL**이었다. 검사 39도 걸리지 않았는데 이쪽은 설계대로다 — 카드가 `degraded: ["librarian_agent"]`이므로 면제된다. 없는 구멍을 선언해서 통과한 것이 아니라 **구멍을 선언할 의무 자체가 없었다.**
+**Three fields say "this is a derived value"** (`formula`, `inputs`, a `computed:` source) **and a fourth decides whether it gets checked.** Check 36 begins with `if not num.get("derived"): continue`, so it never looked. Had `derived` been set, it would have been **an immediate FAIL** as "derived with no `symbol`". Check 39 did not catch it either, and that side is by design — the card is `degraded: ["librarian_agent"]` so it is exempt. It did not pass by declaring a gap that does not exist; **there was no obligation to declare a gap at all.**
 
-**그래서 값싼 검사가 하나 나오고, 이것은 추측하지 않는다**: `formula`나 `inputs`를 가졌거나 출처가 `computed:`인 숫자에 `derived`가 없으면 **그 자체로 모순이다.** 두 양이 같은 양인지를 판정할 필요가 없는 **내부 일관성**이므로 옳은 작업을 거절하지 않는다. §0.4-6이 "한 선언에 파서는 하나"라고 적은 것의 쌍이다 — 여기서는 **선언이 넷인데 하나만 검사를 켠다**, 그리고 나머지 셋만 채우면 조용히 빠져나간다.
+**So a cheap check falls out, and this one does not guess**: a number that has a `formula` or `inputs`, or whose source is `computed:`, and that has no `derived`, is **self-contradictory on its face.** It is **internal consistency** requiring no judgement about whether two quantities are the same quantity, so it refuses no correct work. It is the pair of §0.4-6's "one declaration, one parser" — here **there are four declarations and only one turns the check on**, and filling only the other three slips through quietly.
 
-세 가지가 다르고, 섞으면 안 된다:
+Three things are different and must not be mixed:
 
-1. **거짓 gap은 검사할 수 있다.** `gap_id`가 KB에 실제로 있는 entry를 가리키면 그것은 gap이 아니다. **이 사례의 원인은 아니다** — 이 카드는 축소 모드라 gap을 선언할 의무가 없었다 — 그러나 검사 39의 진짜 구멍이고, 검사 39가 이미 gap 목록을 읽고 있으므로 자리가 있다.
-2. **같은 양의 두 이름은 검사할 수 없다.** `r²/D`와 `d²/D`는 **다른 식이다** — 4배 다르고, 둘이 같은 물리량을 뜻한다는 것은 식에서 도출되지 않는다. 결정론적으로 판정하겠다고 하면 규칙이 추측을 하게 되고, 추측하는 검사는 옳은 작업을 거절한다.
-3. **그러므로 이것은 검사가 아니라 등록으로 잡는다.** 어휘가 존재하는 이유가 이것이다(§11-1) — 양이 정의와 함께 등록되면 `tau_a`와 `tau_d`가 **한 목록에 나란히 보이고**, 사람이 본다. 관측량에 대해 이미 그렇게 하기로 했고, 유도량도 같은 자리가 필요하다.
+1. **A false gap is checkable.** If a `gap_id` points at an entry that actually exists in the KB, it is not a gap. **That is not the cause of this case** — this card was in reduced mode and had no obligation to declare a gap — but it is a real hole in check 39, and check 39 already reads the gap list, so there is a place for it.
+2. **Two names for the same quantity are not checkable.** `r²/D` and `d²/D` are **different expressions** — a factor of four apart, and that they mean the same physical quantity does not follow from the expressions. Deciding it deterministically makes the rule guess, and a guessing check refuses correct work.
+3. **So this is caught by registration rather than by a check.** That is why the vocabulary exists (§11-1) — register a quantity with its definition and `tau_a` and `tau_d` **appear side by side in one list**, and a person sees it. That was already decided for observables, and derived quantities need the same place.
 
-그 사이에 값싼 **신호** 하나는 가능하다: 카드가 유도한 숫자의 **차원과 입력 기호 집합**이 KB entry의 것과 겹치면 `UNDECIDED`로 올려 사람에게 보인다. `FAIL`이 아니다 — 두 양이 같은지는 판정 사항이 아니기 때문이고, 판정할 수 없는 것을 거절로 만들면 그것이 §11-1을 기다리지 않고 어휘를 지어내는 일이 된다.
+In the meantime one cheap **signal** is possible: when the **dimensions and the input symbol set** of a number a card derived overlap those of a KB entry, raise it as `UNDECIDED` for a person to see. Not `FAIL` — whether two quantities are the same is not adjudicable, and turning the unadjudicable into a refusal would be inventing the vocabulary rather than waiting for §11-1.
 
-**무차원수는 파생이다.** 물리값에서 정의식으로 계산하고, 검증기가 **다시 계산해 일치를 확인한다**(§8 검사 17). 카드에는 `derived:` 표시와 함께 기록하며, 파생값은 정본이 아니므로 손으로 고칠 수 없다.
+**A dimensionless number is derived.** It is computed from physical values by a defining expression, and the validator **recomputes it and confirms the match** (§8 check 17). It is recorded in the card with a `derived:` mark, and since a derived value is not the record it cannot be edited by hand.
 
-**무차원군 목록은 계약이 아니라 지식이다.** 측정 대상이 열려 있으므로(§1) 쓸모 있는 군을 미리 고정할 수 없고, 고정하려 들면 `contracts/`에 물리 지식이 박혀 지식이 두 곳에 사는 셈이 된다(P14 위반).
+**The list of dimensionless groups is knowledge, not a contract.** Since the measurement target is open (§1), the useful groups cannot be fixed in advance, and trying to fix them embeds physics knowledge in `contracts/` and makes knowledge live in two places (a P14 violation).
 
-| | 어디 | 무엇 |
+| | Where | What |
 |---|---|---|
-| **규약** | `contracts/units.md` | ① 양별 허용 단위 ② **무차원군 entry가 갖춰야 할 형식** |
-| **지식** | `librarian_agent/kb/entries/` | 무차원군 하나 = entry 하나. `{기호, 정의식, 유효 조건, 출처, 등급}` |
+| **Convention** | `contracts/units.md` | ① permitted units per quantity ② **the form a dimensionless-group entry must have** |
+| **Knowledge** | `librarian_agent/kb/entries/` | one group = one entry. `{symbol, defining expression, validity, source, grade}` |
 
-동작 방식:
+How it works:
 
-1. **먼저 찾아본다.** S3·S4는 필요한 군을 사서에 질의한다(`kb_query`, §4.3.1). 이미 증류돼 있으면 정의식과 유효 조건이 함께 온다.
-**창에 의존하는 양은 계획이 창을 들고 가야 한다**, 그리고 2026-09-17부터 그것을 **검사 40이 본다.** 그전까지는 이 문장이 규칙이었을 뿐이고, 실제로 예시 계획 두 장이 창 없이 통과하고 있었다 — 어휘에 `window_required`가 처음 들어온 날 드러났다. 검사 없는 규칙은 지켜지지 않는다는 것을 이 문서가 같은 날 두 번째로 확인했다.
+1. **Look it up first.** S3 and S4 query the librarian for the group they need (`kb_query`, §4.3.1). If it is already distilled, the defining expression and the validity come together.
+**A window-dependent quantity requires the plan to carry the window**, and since 2026-09-17 **check 40 looks at that.** Until then this sentence was only a rule, and two example plans were in fact passing with no window — it surfaced the day `window_required` first entered the vocabulary. This document confirmed for the second time that day that a rule with no check is not kept.
 
-2. **없으면 그 자리에서 만든다.** 질문마다 적절한 군이 다르므로 즉석 정의를 허용하되 세 조건을 지킨다:
-   - **정의식을 카드에 적는다.** 검증기가 물리값에서 재계산할 수 있어야 한다(검사 17).
-   - **등급은 E4다.** 정의식은 그 자체로 가정이다(§5.3).
-   - **기호를 재사용하지 않는다.** KB에 같은 기호가 다른 정의로 있으면 실패다(검사 36). 같은 기호가 두 뜻을 가지면 비교가 조용히 무너진다.
-3. **쓴 것은 사서에게 제안으로 나간다.** 즉석 정의는 result 카드와 함께 사서에게 가고 사서가 증류해 등재한다 — E1·E2 값이 KB에 들어오는 경로와 같다(§4.3.2).
+2. **If it does not exist, define it on the spot.** The appropriate group differs per question, so an ad-hoc definition is permitted under three conditions:
+   - **Write the defining expression into the card.** The validator has to be able to recompute it from the physical values (check 17).
+   - **The grade is E4.** A defining expression is itself an assumption (§5.3).
+   - **Do not reuse a symbol.** If the KB holds the same symbol with a different definition, it fails (check 36). One symbol with two meanings collapses comparison silently.
+3. **What was used goes to the librarian as a proposal.** An ad-hoc definition travels with the result card to the librarian, who distils and enters it — the same path by which E1 and E2 values enter the KB (§4.3.2).
 
-아래는 M1의 KB 시드에 들어갈 초기 후보(광트랩 콜로이드 측정 기준)다. **목록이 아니라 예시다:**
+Below are the initial candidates for M1's KB seed (on the basis of optical-trap colloid measurement). **It is an example, not a list:**
 
-| 기호 | 정의 | 의미 |
+| Symbol | Definition | Meaning |
 |---|---|---|
-| `k*` | `k d² / k_BT` | 무차원 트랩 강성 |
-| `τ_D` | `d² / D₀`, `D₀ = k_BT / 3πηd` | 확산시간 (벌크 Stokes–Einstein) |
-| `τ_k/τ_D` | `1 / k*` | 트랩 이완시간 — `k*` 하나가 둘을 지배한다 |
-| `f_wall` | 벽 거리 `h/d`의 함수 (Faxén) | 벽 근접 항력 보정 인자 |
+| `k*` | `k d² / k_BT` | dimensionless trap stiffness |
+| `τ_D` | `d² / D₀`, `D₀ = k_BT / 3πηd` | diffusion time (bulk Stokes–Einstein) |
+| `τ_k/τ_D` | `1 / k*` | trap relaxation time — one `k*` governs both |
+| `f_wall` | a function of the wall distance `h/d` (Faxén) | the near-wall drag correction factor |
 
-규칙:
+Rules:
 
-1. **기준량은 벌크 값으로 고정한다.** `γ`는 벌크 Stokes 항력, `D₀`는 그에 대응하는 확산계수다. **벽 보정을 `τ`에 흡수시키지 않고 `f_wall`로 따로 붙인다.** 흡수시키면 스테이지 위치를 바꿀 때마다 시간 단위가 바뀌어 아무것도 비교할 수 없게 된다.
-2. **`τ`는 `(d, T, η(T))`에서 계산하고 셋 모두 출처를 갖는다**(P2). `η`는 온도 의존이 강하므로 `η`만 적고 `T`를 빼놓는 것은 실패다.
-3. **질량 기반 시간 단위를 쓰지 않는다.** `τ_LJ = σ√(m/ε)`는 과감쇠 BD의 물리에 들어오지 않고 실험 대응물도 없다. 대응물 없는 기준점은 조용히 틀린 비교를 만든다.
-4. **환원 단위 변환은 backend 안에서만** 일어난다(`src/hoomd_backend.py`). plan.json은 환원값을 담지 않는다 — 계획이 특정 실행 엔진의 단위계에 묶이면 엔진 교체가 계획을 무효화한다(§7.2 규칙 2와 같은 이유).
-5. **다분산·다종 입자**: 기준 길이 `d`는 **하나**를 고른다(주 종의 공칭 지름). 나머지 크기는 비 `d_i/d`로 적는다.
+1. **Fix the reference quantities at bulk values.** `γ` is the bulk Stokes drag and `D₀` the corresponding diffusion coefficient. **The wall correction is not absorbed into `τ` but attached separately as `f_wall`.** Absorb it and the time unit changes every time the stage position changes, and nothing can be compared.
+2. **`τ` is computed from `(d, T, η(T))` and all three carry sources** (P2). `η` depends strongly on temperature, so writing `η` and omitting `T` is a failure.
+3. **Do not use a mass-based time unit.** `τ_LJ = σ√(m/ε)` does not enter the physics of overdamped BD and has no experimental counterpart. A reference point with no counterpart produces quietly wrong comparisons.
+4. **Reduced-unit conversion happens only inside the backend** (`src/hoomd_backend.py`). plan.json holds no reduced values — if a plan is tied to a particular engine's unit system, swapping the engine invalidates the plan (the same reason as §7.2 rule 2).
+5. **Polydisperse and multi-species particles**: pick **one** reference length `d` (the nominal diameter of the main species). Other sizes are written as ratios `d_i/d`.
 
-`contracts/units.md`는 사상표가 아니다. 담는 것은 ① 양별 허용 단위와 ② 무차원군 entry의 필수 형식뿐이며, **정의식 자체는 담지 않는다.** 이미징 모달리티에 붙을 군(분해능 대 픽셀 크기, 표백 시간상수 대 노출 등)을 지금 적지 않는 이유가 이것이다.
+`contracts/units.md` is not a mapping table. It holds only ① the permitted units per quantity and ② the mandatory form of a dimensionless-group entry, and **not the defining expressions themselves.** That is why the groups that will attach to imaging modalities (resolution vs pixel size, bleaching time constant vs exposure, and so on) are not written down now.
 
-### 5.8 정밀도 모드 — 탐색과 확인 (P15)
+### 5.8 Precision modes — explore and confirm (P15)
 
-goal 카드는 `intent: explore | confirm`을 갖는다. S2가 `purpose`의 기본값에서 정하고(§4.5.1), 사람이 덮어쓸 수 있다.
+A goal card carries `intent: explore | confirm`. S2 sets it from the `purpose`'s default (§4.5.1), and a person can override it.
 
-| | **탐색 (explore)** — 기본값 | **확인 (confirm)** |
+| | **explore** — the default | **confirm** |
 |---|---|---|
-| 목적 | 잘 모르는 시스템을 측정으로 알아본다 | 알려진 값을 다시 확인한다 |
-| 목표 표현 | **자릿수** — "10⁻² s 대인가 10⁻¹ s 대인가" | 목표 불확도 — "±5 %" |
-| S3 제약 표현 | 자릿수 구간 | 수치 구간 |
-| S4 비교 | **10배 미만 차이는 무차별**, 같은 자릿수면 tie | 수치 비교 |
-| E5 허용 | 관대 (상한이 높다) | 엄격 |
-| 실패 | 자릿수조차 좁히지 못함 | 목표 불확도 미달 |
+| Purpose | find out about a poorly understood system by measuring | re-confirm a known value |
+| Target expressed as | **an order of magnitude** — "is it the 10⁻² s decade or the 10⁻¹ s decade" | a target uncertainty — "±5 %" |
+| S3 constraint expressed as | a decade interval | a numeric interval |
+| S4 comparison | **a difference under 10× is indifferent**; the same decade is a tie | numeric comparison |
+| E5 tolerance | generous (the ceiling is high) | strict |
+| Failure | cannot even narrow the decade | falls short of the target uncertainty |
 
-**거짓 정밀도 금지**: 계산값의 표기 정밀도는 **입력의 최악 정밀도**를 넘을 수 없다. E5 입력이 하나라도 섞이면 결과는 자릿수로만 적는다. `τ_D = 0.0431 s`는 입력에 추정이 하나 들어간 순간 거짓말이 되고, `τ_D ~ 10⁻² s`가 참이다. 검증기가 유효숫자를 센다(§8 검사 28).
+**No false precision**: a computed value's written precision cannot exceed **the worst precision among its inputs.** With even one E5 input mixed in, the result is written only as an order of magnitude. `τ_D = 0.0431 s` becomes a lie the moment one estimate enters the inputs, and `τ_D ~ 10⁻² s` is true. The validator counts significant figures (§8 check 28).
 
-**왜 기본값이 탐색인가**: 이 시스템이 붙는 실험의 대부분은 모르는 계를 들여다보는 일이고, 확인은 예외다. 기본을 확인으로 두면 S3가 매번 존재하지 않는 정밀도를 요구하게 되고, 그 끝은 추정값에 붙은 세 자리 유효숫자다. 확인 모드는 **"무엇을 얼마나 정확히 확인하려는가"를 사람이 적어야** 켜진다.
+**Why the default is explore**: most of the experiments this system attaches to are looking into a system nobody understands, and confirmation is the exception. Make confirm the default and S3 demands a precision that does not exist every time, and the end of that is three significant figures on an estimate. Confirm mode turns on only when **a person writes down what is to be confirmed and to what accuracy.**
 
 ---
 
 
-#### 5.8.1 타이는 값에 대한 판정이고, 그 판정도 등급을 갖는다 (2026-09-19)
+#### 5.8.1 A tie is a verdict about values, and that verdict carries a grade too (2026-09-19)
 
-**P15의 10배 대역은 두 값을 비교하는 규칙이지 두 증거를 비교하는 규칙이 아니다.** 근거는 `librarian_agent/kb/distilled/the_tie_band_does_not_measure_evidence.md`에 있다(librarian-3, `kbv-7c77fa74ee5a`) — 옮기지 않고 인용한다.
+**P15's 10× band is a rule for comparing two values, not a rule for comparing two bodies of evidence.** The grounds are in `librarian_agent/kb/distilled/the_tie_band_does_not_measure_evidence.md` (librarian-3, `kbv-7c77fa74ee5a`) — cited rather than copied.
 
-**실물 사례**: 시뮬레이션이 여섯 카드에서 `bead_diameter` 2 µm을 `assumed:a_sample` E5로 들고, 저장소는 `tracer_diameter` 5 µm을 `calibration:` E2로 든다. `D ∝ 1/d`라 확산계수가 2.5배 떨어져 있고 10배 안이므로 **타이**다. 아침에는 양쪽이 E5여서 그 타이가 두 뜻 모두에서 정직했다. **지금 값의 거리는 조금도 변하지 않았고 결론이 설 수 있는지는 전부 변했는데, 대역은 그것을 하나도 보지 못한다.**
+**The real case**: the simulation holds `bead_diameter` 2 µm as `assumed:a_sample` E5 across six cards, and the store holds `tracer_diameter` 5 µm as `calibration:` E2. Since `D ∝ 1/d`, the diffusion coefficients are 2.5× apart, which is inside 10×, so it is **a tie.** In the morning both sides were E5 and that tie was honest in both senses. **The distance between the values has not changed in the slightest, and whether a conclusion can stand has changed entirely, and the band sees none of it.**
 
-**그리고 대역이 자기 목적의 반대로 작동한다.** P15는 아무도 이해 못 한 계에서 1.4배를 쫓지 말라고 있는데, 여기서는 **2 µm을 유지하는 것을 승인한다** — 차이가 대역 안이니 브리지가 불일치 없음을 보고하고, 아무 카드도 다시 정당화할 필요가 없어진다. **진짜 불일치는 값에 있지 않다**: 한쪽엔 증거가 있고 한쪽엔 자리 채우기가 있는 것이고, **대역이 재는 축은 두 쪽이 실제로 합의하는 유일한 축**이다.
+**And the band works against its own purpose.** P15 exists so nobody chases a factor of 1.4 in a system nobody understands, and here it **endorses keeping 2 µm** — the difference is inside the band, so the bridge reports no disagreement and no card has to be rejustified. **The real disagreement is not in the values**: one side has evidence and the other has a placeholder, and **the axis the band measures is the only axis on which the two sides actually agree.**
 
-**답은 대역을 좁히는 것이 아니고, 새 임계값도 아니다. §5.8이 이미 가진 규칙을 비교에 적용하는 것이다.**
+**The answer is not to narrow the band, and not a new threshold. It is to apply to comparison a rule §5.8 already has.**
 
-계산값이 사슬의 **최악 입력**을 물려받는다면, **비교의 판정도 그렇다.** 그러므로:
+If a computed value inherits **the worst input** in its chain, **so does the verdict of a comparison.** Therefore:
 
-> **타이 판정은 등급을 갖고, 그 등급은 비교된 두 값의 최악값이다.** E2와 E5의 타이는 **E5 타이**다.
+> **A tie verdict carries a grade, and that grade is the worse of the two values compared.** A tie between E2 and E5 is **an E5 tie.**
 
-새 숫자를 고르지 않는다 — §5.8의 기존 규칙이 비교에 아직 적용되지 않고 있었을 뿐이다. 그리고 이것이 오도하는 실패를 정확히 닫는다: **등급 없이 보고된 타이가 오도하는 것**이고, 등급이 붙은 타이는 자기가 얼마짜리인지 말한다. *"E5에서 불일치 없음"*은 옳게 읽히고 *"E2에서 불일치 없음"*은 훨씬 강한 말이다.
+No new number is chosen — §5.8's existing rule simply had not been applied to comparison. And this closes the misleading failure exactly: **it is a tie reported with no grade that misleads**, and a graded tie says what it is worth. *"No disagreement at E5"* reads correctly and *"no disagreement at E2"* is a far stronger statement.
 
-**대역을 좁히지 않는 이유**도 그 노트가 맞다: 양쪽이 똑같이 약한 비교 — 오늘 대부분이 그렇다 — 에서 P15가 깨진다. **없는 것은 더 작은 숫자가 아니라 첫 질문 옆의 둘째 질문**이었고, 그 둘째 질문의 답이 위의 한 줄이다.
+**Why the band is not narrowed** is also right in that note: P15 breaks on comparisons where both sides are equally weak — which most are today. **What was missing was not a smaller number but a second question beside the first**, and the answer to that second question is the single line above.
 
-**이것이 2 µm을 틀렸다고 말하지 않는다.** 5 µm은 **이 병**에 대한 E2이고, 모형은 벤치에 없는 지름으로 돌아도 된다 — **선택이 선택으로 기록되는 한.** 바뀐 것은 `assumed:a_sample`이 **더 나은 것이 없던 동안의 합리적 자리 채우기**에서 **있는 측정을 두고 내린 결정**이 됐다는 것이다. 그 결정은 괜찮고, **물려받는 것이 아니라 내려져야 한다.**
+**This does not say 2 µm is wrong.** 5 µm is an E2 about **this bottle**, and a model may run at a diameter that is not on the bench — **as long as the choice is recorded as a choice.** What changed is that `assumed:a_sample` went from **a reasonable placeholder while nothing better existed** to **a decision made in the presence of a measurement.** That decision is fine, and it **has to be made rather than inherited.**
 
-**한 규칙으로 묶는 것은 아직 벌지 않았다.** 그 노트가 둘째 사례로 `declared_versus_inferred_temperature`를 든다 — 한 entry가 비교의 두 쪽에 다른 것을 뜻하는 경우. 그런데 **둘이 같은 부류가 아니다**: 이쪽은 **등급 비대칭**이고 저쪽은 **주어·종류 비대칭**이며, 뒤엣것은 §5.3.3의 `at`과 검사 44의 `subject`가 다루는 자리다. **둘을 한 규칙으로 묶으려면 세어야 하고, 둘은 세기에 얇다**(§8). 등급 쪽은 §5.8에서 도출되므로 지금 선다. 묶는 것은 셋째 사례가 나오면 본다.
+**Binding it into one rule has not been earned yet.** That note gives `declared_versus_inferred_temperature` as a second case — one entry meaning different things on the two sides of a comparison. But **the two are not the same class**: this one is **grade asymmetry** and that one is **subject-and-kind asymmetry**, and the latter is the place §5.3.3's `at` and check 44's `subject` handle. **Binding them into one rule requires counting, and two is thin for counting** (§8). The grade side derives from §5.8 and so it stands now. Binding is revisited when a third case appears.
+## 6. The permission model
 
-## 6. 권한 모델
-
-| Tier | 예시 행동 | 게이트 | 남는 기록 |
+| Tier | Example actions | Gate | Record left |
 |---|---|---|---|
-| **0 자율** | 읽기, 계산, 조건 탐색, 카드 작성, KB 검색, 거절 | 없음 | 카드 |
-| **1 저위험 실행** | 카메라 프리뷰, envelope 내 단발 측정, 시뮬레이션 스모크런, 외부 문헌 검색, 신규 KB entry 작성 | 검증기 통과 + envelope 내 + 예산 내 | run 로그 |
-| **2 사람 승인 필수** | 광원 출력 변경, 스테이지 이동, 장시간 측정, 예산 초과 잡 제출, 물리 모델 변경, KB entry 폐기 | `plan_approval`(리비전 일치) **또는** 유효한 `scope_approval`(§6.1) | 승인 카드 + run 로그 |
-| **3 금지** | 안전 한계·캘리브레이션 상수 수동 수정, 원시데이터 삭제·덮어쓰기, 펌웨어/드라이버 설정 변경, 실패 런 은폐, 저작권 우회 | — | 시도 자체를 기록 |
+| **0 autonomous** | reading, computing, condition search, writing cards, KB search, refusing | none | the card |
+| **1 low-risk execution** | camera preview, a single measurement inside the envelope, a simulation smoke run, external literature search, writing a new KB entry | validator passed + inside the envelope + inside budget | the run log |
+| **2 human approval required** | changing source power, moving the stage, long measurements, submitting over-budget jobs, changing the physical model, retiring a KB entry | a `plan_approval` (matching revision) **or** a valid `scope_approval` (§6.1) | the approval card + the run log |
+| **3 forbidden** | manually editing safety limits or calibration constants, deleting or overwriting raw data, changing firmware/driver settings, concealing a failed run, bypassing copyright | — | the attempt itself is recorded |
 
-**구현 방향 (D2)**: Claude Code hooks의 `PreToolUse`로 Tier 2/3에 해당하는 도구 호출을 가로막고, Tier 2는 해당 `(plan_id, revision)`의 `plan_approval`이나 유효한 `scope_approval`이 디스크에 있는지 확인한다. 모델의 자기 신고에 의존하지 않는다(P4).
+**Implementation direction (D2)**: Claude Code hooks' `PreToolUse` intercepts tool calls falling under Tier 2/3, and for Tier 2 confirms that a `plan_approval` for that `(plan_id, revision)` or a valid `scope_approval` is on disk. It does not rely on the model's self-report (P4).
 
-### 6.1 승인 카드 두 종류 (D8)
+### 6.1 The two kinds of approval card (D8)
 
-| | `plan_approval` | `scope_approval` (운영 허가) |
+| | `plan_approval` | `scope_approval` (operating permit) |
 |---|---|---|
-| 대상 | `(plan_id, revision)` 1건 | 조건 범위 + 장치 집합 |
-| 필수 필드 | — | 유효기간, 실행 횟수 상한 |
-| 범위 한계 | — | **envelope의 부분집합만.** 범위가 envelope을 넘을 수 없다 |
-| 효과 | 그 계획 1회 실행 | 범위 안의 계획을 Tier 1로 강등 (사람 호출 없음) |
+| Subject | one `(plan_id, revision)` | a condition range plus a device set |
+| Mandatory fields | — | expiry, execution-count ceiling |
+| Range limit | — | **a subset of the envelope only.** The range cannot exceed the envelope |
+| Effect | one execution of that plan | demotes plans inside the range to Tier 1 (no human call) |
 
-**scope_approval의 소멸 조건** — 전부 코드로 검사한다(§8 검사 19):
+**Conditions that destroy a scope_approval** — all checked by code (§8 check 19):
 
-1. 유효기간 경과
-2. 실행 횟수 상한 도달
-3. 관련 캘리브레이션이 갱신되거나 만료됨
-4. **범위 안 실행에서 `stop_criteria` 위반이나 허용 편차 초과가 한 번이라도 발생** → 즉시 무효화하고 사람에게 올린다
-5. envelope이 변경됨 (범위의 상위 집합이 바뀌었다)
+1. the expiry passes
+2. the execution-count ceiling is reached
+3. the relevant calibration is renewed or expires
+4. **a `stop_criteria` violation or an over-tolerance deviation occurs even once in an in-range execution** → invalidate immediately and escalate to the person
+5. the envelope changes (the superset of the range moved)
 
-**scope로 덮을 수 없는 것** — 항상 개별 `plan_approval`이 필요하다:
+**What a scope cannot cover** — always needing an individual `plan_approval`:
 
-- 광경로 재구성 (광경로 표의 다른 구성으로 넘어가는 변경, §4.6.7)
-- 수동(`manual`) 채널 장치 조작
-- 시료에 비가역적인 측정
-- 계획에 새 장치가 들어오는 경우
-- 물리 모델 변경 (시뮬레이션)
+- optical-path reconfiguration (moving to a different configuration in the optical-path table, §4.6.7)
+- operating a device on a `manual` channel
+- a measurement that is irreversible for the sample
+- a plan bringing in a new device
+- changing the physical model (simulation)
 
-**의도**: 사람은 정상 반복을 승인하는 일에서 빠지고, **비정상이 생긴 순간에만** 호출된다. 하루 50번 누르는 게이트는 게이트가 아니다 — 도장 찍는 습관을 만들 뿐이다.
+**Intent**: the person drops out of approving normal repetition and is called **only when something abnormal occurs.** A gate pressed fifty times a day is not a gate — it only builds the habit of stamping.
 
-**시뮬레이션 쪽 scope**는 자원 예산 범위(총 코어시간·저장 용량)로 정의한다. 예산 안이면 Tier 1, 넘으면 개별 승인이다.
+**The simulation-side scope** is defined as a resource-budget range (total core-hours, storage). Inside budget it is Tier 1; over it, individual approval.
 
-**등급이 티어를 올린다** — 같은 동작이라도 근거가 나쁘면 게이트가 높아진다:
+**Grade raises the tier** — the same action gets a higher gate when the evidence is worse:
 
-| 상황 | 결과 |
+| Situation | Result |
 |---|---|
-| 비가역 동작의 파라미터가 E4/E5에 의존 | Tier 2로 승격, `scope_approval`로 덮을 수 없음 (§2.1 규칙 3) |
-| `scope_approval`이 덮는 계획 | 근거가 **E1–E3만**이어야 한다 |
-| E2 근거의 유효기간 경과 | 그 값을 쓰는 계획은 실행 불가, 캘리브레이션이 선행되어야 함 |
-| 계획의 E5 개수가 상한 초과 | 검증기 실패 (§8 검사 3) |
+| A parameter of an irreversible action depends on E4/E5 | promoted to Tier 2, cannot be covered by a `scope_approval` (§2.1 rule 3) |
+| A plan covered by a `scope_approval` | its evidence must be **E1–E3 only** |
+| An E2 source's expiry has passed | plans using that value cannot execute; calibration has to come first |
+| A plan's E5 count exceeds the ceiling | validator failure (§8 check 3) |
 
-**구성요소별 권한 상한**: system designer(S3–S5)는 Tier 0, **system operator(S6)만 Tier 1–2를 갖는다.** backends는 권한을 갖지 않고 operator를 통해서만 호출된다(§4.6).
+**Permission ceilings per component**: the system designer (S3–S5) is Tier 0, and **only the system operator (S6) holds Tier 1–2.** Backends hold no permissions and are called only through the operator (§4.6).
 
-**게이트가 없는 에이전트**: 브리지는 Tier 0만 갖는다. 사서는 Tier 1까지만 갖는다. 하드웨어와 계산 자원을 건드리는 것은 두 실행 에이전트뿐이다.
+**Agents with no gate**: the bridge holds Tier 0 only. The librarian holds up to Tier 1. Only the two executing agents touch hardware and compute resources.
 
-### 6.2 세션 경계 = 권한 경계 (D11)
+### 6.2 The session boundary is the permission boundary (D11)
 
-**에이전트 하나에 Claude Code 세션 하나.** 항상 넷을 따로 띄우고, 한 세션에서 디렉터리 스코프만 바꿔 쓰지 않는다. 그 넷 위에, 지시와 보고가 오르내리는 자리가 둘 더 있다(D12).
+**One Claude Code session per agent.** Four are always launched separately, and one session does not simply change directory scope. Above those four sit two more positions where instructions and reports move up and down (D12).
 
-**아홉 자리다** — 아키텍처 하나, 매니저 넷, 실행 넷. 매니저와 실행은 에이전트마다 짝을 이룬다.
+**There are nine positions** — one architecture, four manager, four execution. Manager and execution pair up per agent.
 
-| 계층 | 좌석 | 커미터 신원 | 권한 상한 | 쓸 수 있는 곳 |
+| Tier | Seat | Committer identity | Permission ceiling | Where it may write |
 |---|---|---|---|---|
-| 아키텍처 | 아키텍처 | `architecture@` | Tier 0 | `plan.md`, `CLAUDE.md`, `README.md`, `.claude/`, `contracts/seats.json` |
-| 매니저 | 현미경 매니저 | `manager-microscope@` | Tier 0 | `contracts/`(`seats.json` 제외), `microscope_agent/CLAUDE.md`·`.claude/` |
-| 매니저 | 시뮬레이션 매니저 | `manager-simulation@` | Tier 0 | 위와 같되 `simulation_agent/` 쪽 |
-| 매니저 | 사서 매니저 | `manager-librarian@` | Tier 0 | 위와 같되 `librarian_agent/` 쪽 |
-| 매니저 | 브리지 매니저 | `manager-bridge@` | Tier 0 | 위와 같되 `bridge/` 쪽 |
-| 실행 | 현미경 | `microscope@` | Tier 2 (승인 있을 때) | `microscope_agent/` |
-| 실행 | 시뮬레이션 | `simulation@` | Tier 2 (승인 있을 때) | `simulation_agent/` |
-| 실행 | 사서 | `librarian@` | Tier 1 (외부 검색, KB 쓰기) | `librarian_agent/` |
-| 실행 | 브리지 | `bridge@` | **Tier 0만** | `bridge/` |
+| architecture | architecture | `architecture@` | Tier 0 | `plan.md`, `CLAUDE.md`, `README.md`, `.claude/`, `contracts/seats.json` |
+| manager | microscope manager | `manager-microscope@` | Tier 0 | `contracts/` (except `seats.json`), `microscope_agent/CLAUDE.md` and `.claude/` |
+| manager | simulation manager | `manager-simulation@` | Tier 0 | as above but for `simulation_agent/` |
+| manager | librarian manager | `manager-librarian@` | Tier 0 | as above but for `librarian_agent/` |
+| manager | bridge manager | `manager-bridge@` | Tier 0 | as above but for `bridge/` |
+| execution | microscope | `microscope@` | Tier 2 (with approval) | `microscope_agent/` |
+| execution | simulation | `simulation@` | Tier 2 (with approval) | `simulation_agent/` |
+| execution | librarian | `librarian@` | Tier 1 (external search, KB writes) | `librarian_agent/` |
+| execution | bridge | `bridge@` | **Tier 0 only** | `bridge/` |
+Every address is `…@seat.invalid`. `.invalid` is reserved by RFC 2606 and can never route, so a seat address is a **label**, not a mailbox. The author stays the person and only the committer is the seat — git's separation of the two is exactly for this.
 
-주소는 전부 `…@seat.invalid`다. `.invalid`는 RFC 2606이 예약해 절대 라우팅되지 않으므로, 좌석 주소는 메일함이 아니라 **라벨**이다. author는 사람으로 남고 committer만 좌석이다 — git의 그 분리가 정확히 이 용도다.
+**One identity per session. Two sessions sharing an identity are not a seat but a hole.** It was caught twice on 2026-09-17. Two sessions sitting at the root were both the design seat by definition, so check 41 passed their mixture, and hours later four sessions shared one `manager@seat.invalid`, making **check 41 decorative for that whole tier** — three commits stand under that identity and git does not know which session made any of them. The symptom was the same both times: **the check passed, and its passing was the defect.**
 
-**한 세션에 한 신원. 신원을 공유하는 두 세션은 좌석이 아니라 구멍이다.** 2026-09-17에 두 번 걸렸다. 루트에 앉은 두 세션이 둘 다 정의상 설계 자리여서 검사 41이 혼합을 통과시켰고, 몇 시간 뒤 네 세션이 `manager@seat.invalid` 하나를 나눠 쓰면서 **그 계층 전체에서 검사 41이 장식이 됐다** — 커밋 셋이 그 신원으로 서 있고 git은 어느 세션이 했는지 모른다. 두 번 다 증상이 같았다: **검사가 통과했고, 통과한 것이 결함이었다.**
+**Execution seats may grow (decided 2026-09-17), and when they do the same trap waits.** With two microscope execution sessions, two sessions share one `microscope_agent/` — the same shape as four managers sharing `contracts/`. The rules are the same:
 
-**실행석은 늘어날 수 있고(2026-09-17 결정), 늘어날 때 같은 함정이 기다린다.** 현미경 실행이 둘이 되면 두 세션이 `microscope_agent/` 하나를 공유한다 — 매니저 넷이 `contracts/`를 공유하는 것과 같은 모양이다. 규칙도 같다:
+1. **Mint a new identity per session** (`microscope-2@seat.invalid` and so on). Paths may be indivisible while identities are divisible, and a divided identity **gives attribution even where it cannot refuse** — which session made a commit still has an answer. That is different from having no attribution at all.
+2. **Divide paths when they actually divide.** Do not pretend to divide — a `paths` narrowed by guesswork refuses correct work, and a refused seat uses `--no-verify`.
+3. **What guards a shared surface is not a check but the worktree merge** (§6.2.1). Two people editing the same file surface as a conflict at merge. So the merge-awareness in checks 35 and 41 is not a convenience but **the only defence of the shared surface.**
 
-1. **세션마다 신원을 새로 판다** (`microscope-2@seat.invalid` 식). 경로를 나눌 수 없어도 신원은 나눌 수 있고, 나뉜 신원은 **거절은 못 해도 귀속은 준다** — 커밋이 어느 세션 것인지는 여전히 답이 된다. 귀속조차 없는 것과는 다르다.
-2. **경로가 실제로 나뉘면 나눈다.** 나누는 시늉은 하지 않는다 — 추측으로 좁힌 `paths`는 옳은 작업을 거절하고, 거절당한 좌석은 `--no-verify`를 쓴다.
-3. **공유 표면을 지키는 것은 검사가 아니라 worktree 머지다**(§6.2.1). 같은 파일을 둘이 고치면 머지에서 충돌로 드러난다. 그래서 검사 35·41의 머지 인식이 편의가 아니라 **공유 표면의 유일한 방어**다.
+**A tier does not add permission.** The two positions above are Tier 0 — they do not touch the instrument, do not make approvals, and execute nothing. What a tier gives is not permission but **order**: structure is set above, each agent's design revisions are made by its manager, and the work is done below. If above can do more than below, that is not a tier but a bypass — and where a bypass exists, the gate below soon goes unused.
 
-**계층은 권한을 늘리지 않는다.** 위의 두 자리는 Tier 0이다 — 장비에 닿지 않고, 승인을 만들지 않고, 아무것도 실행하지 않는다. 계층이 주는 것은 권한이 아니라 **순서**다: 구조는 위에서 정하고, 각 에이전트의 설계 수정은 매니저가 하고, 수행은 아래에서 한다. 위가 아래보다 더 할 수 있으면 그것은 계층이 아니라 우회로다 — 그리고 우회로가 있으면 아래의 게이트는 곧 쓰이지 않는다.
+**Why the design seat was split in two.** As one, that seat held structure (§0, §2, §6), contract implementation (`contracts/`) and each agent's instructions **at the same time.** On 2026-09-17 two sessions sat in it and edited the same files, and the prescription §6.2.1 left then was "divide the owned paths before opening a second". The tiering is that division: architecture writes **what the rules are**, and the manager carries those rules **into the contracts and the instructions.** Divided by path, check 41 can now tell the two apart — before, both were "the design seat" by definition and there were no grounds for refusing a mixed commit.
 
-**설계 자리를 둘로 쪼갠 이유.** 하나였을 때 그 자리는 구조(§0·§2·§6)와 계약 구현(`contracts/`)과 각 에이전트의 지시문을 **동시에** 들었다. 2026-09-17에 그 자리에 두 세션이 앉아 같은 파일을 고쳤고, 아래 §6.2.1이 그때 남긴 처방이 "소유 경로를 먼저 나누고 열 것"이었다. 계층이 그 분할이다: 아키텍처는 **무엇이 규칙인가**를 쓰고, 매니저는 **그 규칙을 계약과 지시문으로 옮긴다.** 경로로 갈렸으므로 검사 41이 이제 둘을 구별할 수 있다 — 전에는 둘 다 정의상 "설계 자리"여서 섞인 커밋을 거절할 근거가 없었다.
+**A position outside the agents is necessary.** The moment rule 3 says "an agent session does not write `contracts/`", there has to be a separate position that writes the contracts and this document. That is the two positions above, and since they are not agents they do not touch the instrument. Without naming them, an M1 session starts editing the contracts the moment it is blocked, and then the contract gets fitted to the implementation — exactly the wrong direction.
 
-**에이전트 밖의 자리가 필요하다.** 규칙 3이 "에이전트 세션은 `contracts/`를 쓰지 않는다"고 말하는 순간, 계약과 이 문서를 쓰는 자리가 따로 있어야 한다. 그것이 위의 두 자리이며, 에이전트가 아니므로 장비에 닿지 않는다. 이름을 붙여두지 않으면 M1 세션이 막히는 순간 계약을 고치기 시작하고, 그러면 계약이 구현에 맞춰지는 — 정확히 반대 방향의 — 일이 벌어진다.
+**What enforces the boundary is the commit gate (checks 35 and 41). `.claude/settings.json` states it, and its path denials are enforced only in a session sitting at the repository root.** This subsection said the exact opposite until 2026-09-19 — that the settings enforce and check 35 catches at commit. **An outward-facing path denial is inert in a session rooted at an agent**: a path pattern resolves against that session's root, so `Write(microscope_agent/**)` from a session sitting in `bridge/` means `bridge/microscope_agent/**`, and **such a path cannot exist.** Every entry naming a sibling directory, `contracts/` or `plan.md` is the same. This is the defect class §7 wrote at length about for `.mcp.json` — the resolution point must not be the session's cwd — and **here there is no equivalent of `$(git rev-parse)`. Permission patterns are literal, and an absolute path becomes identical across checkouts, which is the answer §7 already refused.** So there is no portable expression for this position. bridge-85 found it and the bridge manager reproduced it.
 
-**경계를 집행하는 것은 커밋 게이트(검사 35·41)다. `.claude/settings.json`은 그것을 진술하고, 경로 거부는 저장소 루트에 앉은 세션에서만 집행한다.** 이 절은 2026-09-19까지 정반대로 적고 있었다 — 설정이 집행하고 검사 35가 커밋에서 받는다고. **바깥을 향한 경로 거부는 에이전트 루트 세션에서 불활성이다**: 경로 패턴은 그 세션의 루트에 대해 풀리므로, `bridge/`에 앉은 세션의 `Write(microscope_agent/**)`는 `bridge/microscope_agent/**`를 뜻하고 **그런 경로는 존재할 수 없다.** 형제 디렉터리·`contracts/`·`plan.md`를 대는 항목이 전부 같다. 이것은 §7이 `.mcp.json`에 대해 길게 적은 그 결함 부류이고 — 해석 기준점이 세션의 cwd이면 안 된다 — **여기서는 `$(git rev-parse)`에 해당하는 것이 없다. 권한 패턴은 리터럴이고, 절대경로는 체크아웃마다 같아지므로 §7이 이미 거절한 답이다.** 그러니 이 자리에는 포터블한 표현이 없다. bridge-85가 찾고 브리지 매니저가 재현했다.
+**So the deny list aims at what it can reach.** In a session rooted at an agent, **paths inside its own tree resolve normally.** And as it happens, the two things most in need of write protection in this system are inside it: **`envelope/safety.json`** (P0 rule 7 — a person confirms the limit physically and writes it; a model writing it is this system's worst failure) and **`inbox/**`** (§7.1 rule 8 — the bridge writes it; an agent writing its own inbox forges a delivery). Neither is **in** the deny list today, and instead there are ten inert entries. Outward-facing entries stay but are marked **as a statement of intent rather than enforcement** — delete them and the intent is gone; leave them unmarked and the next person reads them as protection.
 
-**그래서 거부 목록은 닿을 수 있는 곳을 겨눈다.** 에이전트 루트 세션에서 **자기 트리 안의 경로는 정상적으로 풀린다.** 그리고 하필 그 안에 이 시스템에서 쓰기를 가장 막아야 하는 둘이 있다: **`envelope/safety.json`**(P0 규칙 7 — 사람이 한계를 물리적으로 확인하고 쓴다. 모델이 쓰는 것이 이 시스템의 최악의 실패다)과 **`inbox/**`**(§7.1 규칙 8 — 브리지가 쓴다. 에이전트가 자기 수신함에 쓰면 배달을 위조하는 것이다). 둘 다 지금 거부 목록에 **없고**, 대신 불활성인 항목 열 개가 있다. 바깥을 향한 항목은 남기되 **집행이 아니라 의도의 진술**로 표시한다 — 지우면 의도가 사라지고, 표시하지 않으면 다음 사람이 그것을 보호로 읽는다.
+**And the rule is ownership, not a list: inside your own tree, deny what another seat owns.** Writing it as two was short — the bridge manager, applying it to its own case, found four more, and those four are in **all four agents.** `CLAUDE.md`, `README.md`, `tasks/` and `.claude/` are the manager's, and **all of them are inside that agent's tree, so they resolve in that seat.** Nothing was being denied. That is: **an execution seat could edit the instructions coming down to it, its own instruction file, and the files constraining it.** `tasks/` is the home of downward instructions per §6.2-2, and **a seat that can edit its own instructions has not been instructed, it has a preference** — the same argument as the reason `excludes` exists (§6.2.1), surfacing again one tier down.
 
-**그리고 규칙은 목록이 아니라 소유다: 자기 트리 안에서, 다른 좌석이 소유한 것을 거부한다.** 둘로 적었던 것이 짧았다 — 브리지 매니저가 자기 경우에 적용하다 넷을 더 찾았고, 그 넷은 **네 에이전트 전부**에 있다. `CLAUDE.md`·`README.md`·`tasks/`·`.claude/`는 매니저 소유인데 **전부 그 에이전트 트리 안에 있으므로 그 좌석에서 풀린다.** 아무것도 거부되고 있지 않았다. 그러니까 **실행석은 자기에게 내려오는 지시와 자기 지시문과 자기를 제약하는 파일을 고칠 수 있었다.** `tasks/`는 §6.2-2가 내려가는 지시의 집이라고 한 자리이고, **자기 지시를 고칠 수 있는 좌석은 지시를 받은 것이 아니라 선호를 가진 것이다** — `excludes`가 존재하는 이유와 같은 논거(§6.2.1)가 한 단 아래에서 다시 나온 것이다.
-
-    | 소유 | 에이전트 트리 안의 경로 |
+    | Owner | Paths inside an agent's tree |
     |---|---|
-    | 사람 | `envelope/safety.json`(P0 규칙 7) · `approvals/`(§7.1 규칙 5) |
-    | 브리지 | `inbox/`(§7.1 규칙 8) |
-    | 매니저 | `CLAUDE.md` · `README.md` · `tasks/` · `.claude/` |
+    | the person | `envelope/safety.json` (P0 rule 7) · `approvals/` (§7.1 rule 5) |
+    | the bridge | `inbox/` (§7.1 rule 8) |
+    | the manager | `CLAUDE.md` · `README.md` · `tasks/` · `.claude/` |
 
-목록이 아니라 소유로 적는 이유는 **새 에이전트가 생겼을 때 답이 따라 나오게** 하기 위해서다. 목록을 베끼면 베낀 목록이 갈라진다(§11-11).
+The reason to write it as ownership rather than as a list is so that **when a new agent appears the answer follows.** Copy a list and the copies diverge (§11-11).
 
-**`.claude/`를 거부하는 것이 매니저를 막지 않는 것은 매니저가 루트에 앉기 때문이다**(D12). 매니저 세션은 `<agent>/.claude/settings.json`을 로드하지 않으므로, 그 거부는 **제약받는 좌석에만 걸리고 제약하는 좌석에는 걸리지 않는다** — 제약되는 쪽이 자기 제약을 담은 파일을 소유하면 그것은 경계가 아니라는 §6.2.1의 요구가 여기서 우연히가 아니라 구조로 성립한다. **매니저를 에이전트 디렉터리 안에 앉히면 이것이 뒤집힌다.** 그 날 이 문단을 먼저 고쳐야 한다.
+**Denying `.claude/` does not block the manager because the manager sits at the root** (D12). A manager session does not load `<agent>/.claude/settings.json`, so that denial **binds the constrained seat and not the constraining one** — §6.2.1's requirement that a constrained party must not own the file holding its constraints holds here structurally rather than by accident. **Seat a manager inside an agent directory and this inverts.** On that day, this paragraph gets fixed first.
 
-**브리지 세션에는 장비 도구가 없고 런 디렉터리 쓰기도 거부된다** — 아무것도 실행하지 않아야 하므로 실행할 수 없어야 한다. **`contracts/`를 읽는 것은 어떤 좌석에서도 거부하지 않는다.** §6.2 규칙 3이 `contracts/`를 **모두가 읽고 아무도 쓰지 않는 곳**이라고 정했으므로, 읽기를 막는 규칙은 의도보다 넓은 것이 아니라 **규칙과 반대**다. 2026-09-19에 실행석의 `sed -n … contracts/validate.py`가 거부됐다 — 매처가 세션 cwd 기준으로 풀어 만든 경로였다. 결과가 나쁜 이유는 접근이 막히는 것 자체가 아니라 **막힌 좌석이 읽는 대신 추측하기 시작하는 것**이고, 그날 하루가 정확히 그 대가였다: 계약이 계약인 이유는 소비자가 생산자의 소스를 읽지 않아도 되는 것인데(§4.3.1), 소비자가 **계약 자체**를 못 읽으면 남는 것은 추측뿐이다. 그러므로 거부는 `Write`와 `Edit`에만 걸고, `Bash(...)` 패턴이 읽기를 잡으면 그 패턴이 틀린 것이다. **검사 53이 그것을 잡는다** — 에이전트 설정의 `deny`에 `Bash(`나 `Read(`로 시작하는 항목이 있으면 거절한다. 규칙만 적으면 다음에 거부를 더하는 사람에게 걸릴 자리가 없다.
+**A bridge session has no instrument tools and is denied writes to run directories** — it must execute nothing, so it must be unable to execute. **Reading `contracts/` is denied in no seat.** §6.2 rule 3 established `contracts/` as **the place everyone reads and nobody writes**, so a rule blocking reads is not broader than the intent but **contrary to it.** On 2026-09-19 an execution seat's `sed -n … contracts/validate.py` was denied — a path the matcher had built by resolving against the session cwd. The result is bad not because access was blocked but because **the blocked seat starts guessing instead of reading**, and that day was exactly that price: a contract is a contract because the consumer does not have to read the producer's source (§4.3.1), and when the consumer cannot read **the contract itself**, guessing is all that is left. So denials attach only to `Write` and `Edit`, and if a `Bash(...)` pattern catches a read, that pattern is wrong. **Check 53 catches it** — an entry in an agent setting's `deny` beginning with `Bash(` or `Read(` is refused. Write only the rule and there is nowhere for the next person adding a denial to be caught.
 
-    **다만 이 규칙이 닿는 범위를 정직하게 적는다.** 2026-09-19의 그 거부는 **이 저장소의 설정에서 온 것이 아니었다** — 네 에이전트 설정의 항목이 전부 `Write`/`Edit`임을 현미경 매니저가 확인했다. 사용자 수준 설정이나 하니스 쪽이고, **거기는 이 문서가 닿지 않는다.** 그러므로 규칙은 저장소 안 설정에 대한 것이고, 밖에서 온 거부를 만난 좌석이 할 일은 **추측이 아니라 보고**다 — 읽어야 알 수 있는 것을 못 읽게 됐다는 것은 §6.2 규칙 3이 말하는 **계약의 결함 보고**와 같은 자리다.
+    **But how far this rule reaches is written honestly.** That 2026-09-19 denial **did not come from this repository's settings** — the microscope manager confirmed that all the entries in the four agent settings are `Write`/`Edit`. It came from a user-level setting or the harness, and **this document does not reach there.** So the rule is about settings inside the repository, and what a seat meeting an externally imposed denial should do is **report, not guess** — being unable to read something you need to read is the same position as §6.2 rule 3's **report a defect in the contract.**
 
-**도구 거부는 경로 거부와 달리 불활성이 아니다**: 도구 이름은 루트에 대해 풀리지 않는다. 이 구별이 이 절에서 가장 중요하다 — 같은 파일 안에서 한 종류는 집행하고 다른 종류는 하지 않는다.
+**A tool denial, unlike a path denial, is not inert**: a tool name does not resolve against a root. This distinction is the most important one in this subsection — within the same file one kind enforces and the other does not.
 
-**세션이 언젠가 저장소 루트에 앉게 되면 그 전에 브리지의 거부 목록에서 `<agent>/inbox/`를 빼야 한다.** 지금은 불활성이라 충돌이 드러나지 않지만, 풀리는 순간 `Write(microscope_agent/**)`가 **이 좌석이 하도록 요구받은 유일한 바깥 쓰기**를 막는다. 조건으로 적어 둔다 — 지금 예외 목록을 만들면 같은 사실이 두 자리에 살고 대조할 것이 없다(§11-11).
+**If sessions ever come to sit at the repository root, `<agent>/inbox/` has to come out of the bridge's deny list first.** It is inert today so the conflict is invisible, but the moment it resolves, `Write(microscope_agent/**)` blocks **the one outward write this seat is required to make.** It is written as a condition — build an exception list now and the same fact lives in two places with nothing to compare (§11-11).
 
-**설계 자리도 자기 경계를 갖는다.** 루트의 `.claude/settings.json`이 설계 세션의 것이며, 네 에이전트의 **산출물 경로**(`envelope/`, `approvals/`, `questions/`, `runs/`, `src/`, `kb/`, `threads/`)에 대한 쓰기를 거부한다. 각 에이전트의 `CLAUDE.md`와 `.claude/`는 설계 자리의 것이므로 거부하지 않는다 — 검사 35의 `DESIGN_OWNED`와 같은 구분이다. **명세하는 자리가 구현할 수 없어야** "specify, do not implement"가 습관이 아니라 설정이 된다.
+**The design seat has its own boundary too.** The root `.claude/settings.json` is the design session's, and it denies writes to the four agents' **output paths** (`envelope/`, `approvals/`, `questions/`, `runs/`, `src/`, `kb/`, `threads/`). Each agent's `CLAUDE.md` and `.claude/` belong to the design seat and are not denied — the same split as check 35's `DESIGN_OWNED`. **The position that specifies has to be unable to implement** for "specify, do not implement" to be a setting rather than a habit.
 
-**경로를 이름 대는 것은 변경을 이름 대는 것이 아니다 (2026-09-19).** `git commit -- <paths>`는 임시 인덱스를 **그 경로의 작업본 상태**에서 만든다 — 내가 스테이지한 것에서가 아니다. 그러므로 **내가 이름 댄 파일을 다른 좌석이 편집 중이면 그 편집이 내 신원으로 함께 실려 간다.** 실제로 일어났다: `4cc39a0`이 `common.schema.json`에 `$defs` 셋을 담았는데 그중 `target`은 manager-bridge의 것이고(§5.3.1 판정) manager-microscope의 커밋으로 들어갔다. 브리지 매니저가 몇 초 뒤 자기 것을 커밋하려다 훅이 그 파일을 빼고 나열하는 것을 보고 알아챘다.
+**Naming a path is not naming a change (2026-09-19).** `git commit -- <paths>` builds its temporary index from **the worktree state of those paths** — not from what you staged. So **if another seat is mid-edit on a file you named, that edit rides out under your identity.** It actually happened: `4cc39a0` carried three `$defs` into `common.schema.json`, of which `target` was manager-bridge's (the §5.3.1 judgement) and went into manager-microscope's commit. The bridge manager noticed seconds later, trying to commit its own, when the hook listed that file as excluded.
 
-**한 겹 더 있다: 작업본이 인덱스를 덮으므로 자기가 스테이지한 것도 무시된다.** `git add -p`로 hunk를 골라 놓고 `git commit -- <file>`을 하면 **파일 전체가 간다.** 재현으로 확인했다 — 인덱스에 한 줄만 있고 작업본에 두 줄이 있을 때 커밋된 것은 두 줄이었다.
+**There is one more layer: the worktree overrides the index, so your own staging is ignored too.** Pick hunks with `git add -p` and then `git commit -- <file>` and **the whole file goes.** Confirmed by reproduction — with one line in the index and two in the worktree, what got committed was two.
 
-**어느 검사도 이것을 못 잡는다.** 게이트는 커밋이 만들 트리를 보는데 그 트리는 멀쩡하다. 검사 41도 못 잡는다 — `contracts/`는 네 매니저가 **같이 소유하는** 경로라 경계 위반이 아니다. 경로 규칙으로는 원리상 안 잡히고, 검사 41은 그 hunk를 영원히 커밋한 좌석의 것으로 귀속한다.
+**No check catches this.** The gate looks at the tree the commit would create, and that tree is fine. Check 41 does not catch it either — `contracts/` is a path the four managers **own jointly**, so it is no boundary violation. It is unreachable in principle by a path rule, and check 41 attributes that hunk to the committing seat forever.
 
-**그리고 방향이 둘인데 한 쪽만 적혀 있었다 (2026-09-20).** 위는 **내 커밋이 남의 진행 중 작업을 싣는** 것이다. 거울상은 **내 커밋 안 된 편집이 남의 전체 쓰기에 지워지는** 것이고, 어디에도 없었다. 사서 매니저가 같은 docstring을 **두 번 썼다** — 첫 판이 몇 분 커밋 안 된 채 있는 동안 다른 세션이 `validate.py`를 통째로 썼고 편집이 사라졌다. **경고 없고, 잡는 검사 없고, `git status`에도 안 남는다.**
+**And there are two directions, only one of which was written down (2026-09-20).** The above is **my commit carrying someone else's work in progress.** The mirror is **my uncommitted edit being erased by someone else's whole-file write**, and it was nowhere. The librarian manager wrote the same docstring **twice** — while the first draft sat uncommitted for a few minutes, another session wrote `validate.py` wholesale and the edit vanished. **No warning, no check that catches it, and nothing in `git status`.**
 
-**그리고 두 습관이 서로를 밀어낸다.** 방향 1을 닫는 것은 **커밋 전 diff**이고, 방향 2를 좁히는 것은 **빨리 커밋하기**뿐인데 그것이 방향 1을 넓힌다. 같은 날 그 사이 창이 실물로 측정됐다 — **3분**. 사서 매니저가 `git diff`를 돌려 hunk 하나가 전부 자기 것임을 확인하고 3분 뒤 커밋했더니 **셋이 들어갔다**(`779269b`). **습관이 닫는 것은 확인 시점이지 커밋 시점이 아니다.** 그래서 §6.2.1의 그 규칙은 옳은 채로 **부분적**이고, 부분적이라는 것이 적혀 있지 않았다.
+**And the two habits push against each other.** What closes direction 1 is **a diff before committing**, and the only thing that narrows direction 2 is **committing fast**, which widens direction 1. The window between them was measured for real the same day — **three minutes.** The librarian manager ran `git diff`, confirmed one hunk and that it was all its own, committed three minutes later, and **three went in** (`779269b`). **What the habit closes is the moment of checking, not the moment of committing.** So §6.2.1's rule is right and **partial**, and that it is partial was not written down.
 
-**그 커밋의 메시지에 거짓 문장이 하나 남는다** — *"the three failures … is not in this commit's index"*. 쓸 때 참이었고 커밋 시점에 거짓이었다. 되돌리지 않은 판단은 옳다: 그 변경 없이는 검사 13·48·55가 셋 다 실패하고, **귀속이 틀린 것보다 게이트가 깨지는 것이 비싸다.** 좌석이 스스로 올렸다.
+**One false sentence remains in that commit's message** — *"the three failures … is not in this commit's index"*. True when written and false at commit time. The judgement not to revert is right: without that change checks 13, 48 and 55 all fail, and **a broken gate costs more than a wrong attribution.** The seat raised it itself.
 
-**그래서 규칙은 이것이다: 공유 파일을 커밋하기 전에 `git diff -- <그 파일>`로 모든 hunk가 자기 것인지 본다.** 그리고 **이 자리는 검사가 아니라 습관으로 닫힌다** — 커밋 시점에 "이 hunk는 누구 것인가"를 판정할 근거가 디스크에 없고, 좌석이 자기 변경을 미리 선언하게 하면 그 선언이 §11-11의 새 행이 된다. §2.1 규칙 9와 같은 모양이라 **닫히지 않는다는 사실을 규칙 옆에 적는다.**
+**So the rule is this: before committing a shared file, run `git diff -- <that file>` and see that every hunk is yours.** And **this position is closed by habit and not by a check** — at commit time there are no grounds on disk for deciding "whose hunk is this", and making seats pre-declare their changes would make that declaration a new row in §11-11. It has the same shape as §2.1 rule 9, so **the fact that it does not close is written beside the rule.**
 
-**그리고 습관은 한 시간을 못 버텼다 — 양방향으로, 규칙을 쓴 두 좌석 사이에서.** `manager-microscope`가 브리지의 `$defs/target`을 `4cc39a0`으로 쓸어 갔고, `manager-bridge`가 현미경의 검사 53 전체를 `d5af7b1`로 쓸어 갔다. **둘째는 규칙이 적힌 뒤에 일어났고, 규칙을 적은 좌석이 저질렀다.** 방식이 중요하다: `git diff --stat`을 **커밋과 같은 명령에서** 돌려 `+84`를 착지 뒤에 읽었다. 자기 변경은 열두 줄이었다. **규칙을 진술하는 것과 실행하는 것은 다른 행위이고 첫째만 했다.** 습관으로 닫는 모든 통제의 실패 모드이며, 이 건은 그것을 가장 잘 지킬 위치에 있는 두 좌석 사이에서 **반감기 한 시간 미만**을 기록했다.
+**And the habit did not survive an hour — in both directions, between the two seats that wrote the rule.** `manager-microscope` swept up the bridge's `$defs/target` in `4cc39a0`, and `manager-bridge` swept up the microscope's entire check 53 in `d5af7b1`. **The second happened after the rule was written, and by the seat that wrote it.** The manner matters: it ran `git diff --stat` **in the same command as the commit** and read `+84` after landing. Its own change was twelve lines. **Stating a rule and executing it are different acts and only the first was done.** It is the failure mode of every control closed by habit, and this instance recorded **a half-life under one hour** between the two seats best placed to keep it.
 
-**두 커밋은 고치지 않는다.** 불변이고 내용은 옳으며, 되감으면 남의 작업이 두 번 움직인다. 대신 여기 적는다: **`4cc39a0`의 `$defs/target`은 manager-bridge의 것이고, `d5af7b1`의 검사 53은 manager-microscope의 것이다.** 검사 41은 둘 다 영원히 틀리게 귀속하고, **그것은 구조상 어느 검사에도 보이지 않는다** — `contracts/`가 네 매니저의 공동 소유라 아무 경계도 넘지 않았기 때문이다.
+**The two commits are not fixed.** They are immutable, their content is right, and rewinding moves someone else's work twice. Instead it is written here: **`4cc39a0`'s `$defs/target` is manager-bridge's, and `d5af7b1`'s check 53 is manager-microscope's.** Check 41 attributes both wrongly forever, and **that is structurally invisible to every check** — because `contracts/` is the four managers' joint property and no boundary was crossed.
 
-**구조적인 답은 §6.2.1에 이미 있고 매니저 좌석이 쓰지 않고 있다: 좌석마다 worktree.** worktree가 사는 것은 정돈이 아니다. **`git commit -- <paths>`가 모두가 이미 믿고 있는 뜻을 실제로 갖게 만든다** — 내가 고친 경로. 지금 그것은 "그 경로의 현재 작업본 상태"라는 **다른 문장**이고, 아무도 같은 파일을 안 고치고 있을 때만 두 문장이 일치한다. 여덟 세션은 그 일치가 깨질 것을 보장한다. 그리고 worktree를 치운 것은 기술적 장애가 아니라 **사람의 결정이었으므로**(2026-09-18) 되돌리는 것도 사람의 결정이다 — 아키텍처가 §11-17로 올린다. 당시 격리를 깨던 `.mcp.json`의 절대경로 문제는 **그 뒤 해결됐다**(`$(git rev-parse --show-toplevel)`), 그러니 그때의 장애물은 지금 없다.
+**The structural answer is already in §6.2.1 and the manager seats are not using it: a worktree per seat.** What a worktree buys is not tidiness. **It makes `git commit -- <paths>` actually mean what everyone already believes it means** — the paths I changed. Today it means **a different sentence**: "the current worktree state of those paths", and the two sentences coincide only when nobody else is editing the same file. Eight sessions guarantee that coincidence breaks. And since removing worktrees was **a person's decision** (2026-09-18) and not a technical obstacle, restoring them is a person's decision too — architecture raises it as §11-17. The `.mcp.json` absolute-path problem that was breaking isolation then **has since been solved** (`$(git rev-parse --show-toplevel)`), so that obstacle is gone.
 
-**그리고 위의 조언이 반쯤만 맞았다.** `-- <paths>`는 **다른 파일**에 대한 남의 작업으로부터 지켜 주고 **같은 파일에 대해서는 아무것도 하지 않는다.** 2026-09-19 아침에 아키텍처가 이 방식을 재현으로 확인했는데, 시험한 것이 **다른 파일 경우뿐**이었고 그 결과를 전체에 대해 말했다 — 시험이 덮은 범위보다 넓게 결론을 낸 것이고, 같은 날 두 좌석이 각자 걸린 부류다. 현미경·브리지 매니저가 함께 올렸다.
+**And the advice above was only half right.** `-- <paths>` protects you from someone else's work on **other files** and does **nothing** about the same file. On the morning of 2026-09-19 architecture confirmed this method by reproduction, but what it tested was **only the different-file case**, and it stated the result for the whole — concluding more broadly than the test covered, which is the class two seats each hit that same day. The microscope and bridge managers raised it together.
 
-**사람이 직접 시킨 일은 규칙 위반이 아니고, 그렇다고 적혀야 한다.** 2026-09-19에 현미경 실행석이 라운드 r1을 받았는데, *"라운드를 받는 것은 task 카드가 배정한다"*는 문장이 **그 뒤에** 그 에이전트의 `CLAUDE.md`에 들어갔고, 그 좌석이 받은 것은 **사람의 직접 지시**였다(§6.2.2가 인정하는 유일한 경로). 규칙은 옳고 그 일도 옳은데, **디스크에는 "카드 없이 취해진 라운드" 하나가 서 있고 다음 세션은 그것을 위반으로 읽는다.** 그러므로 **사람이 직접 배분한 일은 소급해서 카드로 적거나 예외로 명시한다** — 어느 쪽이든 기록이 필요하고, 필요한 이유는 §6.2 규칙 2와 같다: **작동했고 흔적을 남기지 않은 경로**는 다음 사람에게 없는 것과 같다. 현미경 실행석이 스스로 올렸다.
+**Work a person assigned directly is not a rule violation, and it has to be written as such.** On 2026-09-19 the microscope execution seat received round r1, while the sentence *"receiving a round is assigned by a task card"* entered that agent's `CLAUDE.md` **afterwards**, and what that seat had received was **a person's direct instruction** (the one route §6.2.2 recognises). The rule is right and the work was right, and **on disk there stands one "round taken with no card" that the next session reads as a violation.** So **work a person distributed directly is written up retroactively as a card or stated as an exception** — either way a record is needed, and the reason is the same as §6.2 rule 2: **a path that worked and left no trace** is, to the next person, a path that does not exist. The microscope execution seat raised it itself.
 
-**그리고 이것이 세션을 띄우는 방법을 규정한다.** Claude Code는 `.claude/settings.json`을 **작업 디렉터리에서만** 읽고 하위 디렉터리에서는 읽지 않는다. 그래서 현미경 세션을 저장소 루트에서 띄우면 `microscope_agent/.claude/settings.json`은 **로드되지 않고** 루트의 설계 자리 설정이 걸린다. 경계가 느슨해지는 것이 아니라 **엉뚱한 경계가 걸리고, 자기 디렉터리에 쓰는 것이 거부된다** — 자리를 잘못 앉은 세션은 조용히 넘어가는 대신 시끄럽게 막힌다. 각 에이전트 세션은 **자기 디렉터리를 작업 디렉터리로 해서** 띄운다.
+**And this dictates how a session is launched.** Claude Code reads `.claude/settings.json` **only from the working directory**, not from subdirectories. So launching a microscope session at the repository root means `microscope_agent/.claude/settings.json` is **not loaded** and the root's design-seat settings apply. The boundary does not loosen — **the wrong boundary applies, and writing to its own directory is denied** — a session seated wrongly is loudly blocked rather than quietly passed. Each agent session is launched **with its own directory as the working directory.**
 
-**그 결정이 MCP 승인을 디렉터리 수만큼 쪼갠다 (2026-09-19).** Claude Code가 **작업 디렉터리를 프로젝트 키**로 쓰므로 한 저장소가 여러 개의 승인 대상이 된다 — 확인해 보니 `~/.claude.json`에 이 저장소 관련 항목이 **일곱**이었고 전부 `enabledMcpjsonServers = []`였다. worktree가 늘면 더 늘어난다.
+**That decision splits MCP approval as many ways as there are directories (2026-09-19).** Claude Code keys projects by **working directory**, so one repository becomes several things to approve — checking showed **seven** entries related to this repository in `~/.claude.json`, all with `enabledMcpjsonServers = []`. More worktrees means more of them.
+    **And the root `.mcp.json` is inherited while the approval is not.** That the two behave differently was written nowhere, so a session with the server registered and no tools had no way to know why. **The fix is to approve by server name rather than by path** — one line of `"enabledMcpjsonServers": ["librarian"]` in the user-level `settings.json` covers all seven paths and any future ones at once. `enableAllProjectMcpServers: true` is not used: it approves any server in any repository without asking. **Settings are read at session start, so a running session is unaffected.**
 
-    **그리고 `.mcp.json`은 루트 하나가 상속되는데 승인은 상속되지 않는다.** 그 둘이 다르게 동작한다는 것이 어디에도 적혀 있지 않았고, 그래서 서버가 등록돼 있는데 도구가 없는 세션이 왜 그런지 알 길이 없었다. **해법은 경로가 아니라 서버 이름으로 승인하는 것**이다 — 사용자 레벨 `settings.json`의 `"enabledMcpjsonServers": ["librarian"]` 한 줄이 일곱 경로와 앞으로 생길 것을 한 번에 덮는다. `enableAllProjectMcpServers: true`는 쓰지 않는다: 어느 저장소의 어느 서버든 묻지 않고 승인한다. **설정은 세션 시작에 읽히므로 이미 돌고 있는 세션에는 안 걸린다.**
+    **The most expensive part is that approval is not inherited, and the failure is silent.** A seat without the librarian's tools gets no error and **proceeds on the degraded path, which for these agents is a legitimate way to finish** — so **a quiet day is indistinguishable from an ordinary one.**
 
-    **가장 비싼 것은 승인이 상속되지 않는다는 것이고, 실패가 조용하다.** 사서 도구가 없는 좌석은 오류를 받지 않고 **degraded 경로로 진행하는데, 이 에이전트들에게 그것은 정당한 완주 방법**이다 — 그래서 **조용한 날이 평범한 날과 구별되지 않는다.**
+    **The cards are not silent, though, and that distinction matters.** `evidence` defaults to degraded and clears only when the server answers, and check 45 reads it from the other side, so **no card ever comes out falsely saying "the librarian answered".** The damage stops at a seat idling or proceeding degraded. So this is **a scheduling problem, not an evidence problem** — **a failure that is silent but cannot contaminate the record is a different class and is handled differently.**
 
-    **다만 카드는 조용하지 않다, 그리고 그 구별이 중요하다.** `evidence`가 degraded를 기본값으로 두고 서버가 답해야만 풀리며 검사 45가 반대편에서 읽으므로, **거짓으로 "사서가 답했다"고 적힌 카드는 나오지 않는다.** 피해는 좌석이 놀거나 degraded로 진행하는 데서 멈춘다. 그러므로 이것은 **증거 문제가 아니라 일정 문제**다 — **조용하지만 기록을 오염시킬 수 없는 실패는 다른 부류이고, 다르게 다룬다.**
+    **"Then why not launch everything from the root" is not the answer, and a second reason appeared today.** The first is above — a root cwd reads as a top-tier seat and that position is *specify, do not implement*. **The second: inward denials are relative patterns.** `envelope/safety.json`, `approvals/**` and `inbox/**` resolve from an agent directory and **actually guard three things inside that tree that belong to others.** From the root they become paths that do not exist. This subsection wrote that *outward denials are inert in a session rooted at an agent*, and **moving to the root inverts that and makes the inward denials inert** — the guards on the person's two folders and the bridge's one drop **at the same time.** So the fix is **one approval per session, not a change to the directory structure.** The simulation execution seat found it and its manager confirmed and raised it. A running session is not fixed with `cd` (the rule above).
 
-    **"그럼 전부 루트에서 띄우면 되지 않나"는 답이 아니고, 둘째 이유가 오늘 생겼다.** 첫째는 위에 있다 — 루트 cwd는 최상위 좌석으로 읽히고 그 자리는 *specify, do not implement*다. **둘째: 안쪽 거부가 상대 패턴이다.** `envelope/safety.json`·`approvals/**`·`inbox/**`는 에이전트 디렉터리에서 풀려 **그 트리 안의 남의 것 셋을 실제로 지킨다.** 루트에서는 존재하지 않는 경로가 된다. 이 절이 *바깥 거부는 에이전트 루트 세션에서 불활성*이라고 적었는데, **루트로 옮기면 그것이 뒤집혀 안쪽 거부가 불활성이 된다** — 사람만 쓰는 두 자리와 브리지만 쓰는 한 자리의 가드가 **동시에** 빠진다. 그러므로 해법은 **세션당 승인 하나이지 디렉터리 구조를 바꾸는 것이 아니다.** 시뮬레이션 실행석이 찾고 매니저가 확인해 올렸다. 이미 돌고 있는 세션을 `cd`로 고치지는 않는다(위의 규칙).
+On 2026-09-17 this was actually wrong. All five sessions were at the root and the root had no `.claude/` at all, so **no session had ever loaded a boundary.** The two overwrites above are the result.
 
-2026-09-17에 이것이 실제로 틀려 있었다. 다섯 세션 모두 루트에 있었고 루트에는 `.claude/`가 아예 없었으므로, **어느 세션에도 경계가 로드된 적이 없었다.** 위의 두 번의 덮어쓰기가 그 결과다.
+**`deny` is half the boundary.** Denial rules catch `Write` and `Edit` and not `sed -i` or a python heredoc, and in this repository every session used the latter. The other half is the gate at commit time (§8) — whatever the tool was, it looks at the set of paths that reached the index. The settings make the right thing easy; the gate stops the wrong thing.
 
-**`deny`는 경계의 절반이다.** 거부 규칙은 `Write`와 `Edit`에 걸리고 `sed -i`나 python heredoc에는 걸리지 않는데, 이 저장소에서는 모든 세션이 후자를 썼다. 나머지 절반은 커밋 시점의 게이트다(§8) — 도구가 무엇이었든 인덱스에 올라온 경로 집합을 본다. 설정은 옳은 일을 쉽게 만들고, 게이트가 틀린 일을 막는다.
+Four things follow:
 
-네 가지가 따라온다:
+1. **Permission isolation is enforced per process.** Each agent directory's `.claude/settings.json` opens only the tools permitted to that session. A bridge session has no instrument tools at all, and a librarian session has no hardware path. The model is not restraining itself; **it cannot, for want of the means** (P4).
+2. **A message may notify and may not be the only copy.** Until 2026-09-18 this rule read "sessions do not talk directly", and **that day it was false** — six sessions instructed and reported by inter-session message all day, including the seat that wrote the rule. The observation is right and the rule was not: a message is **notification** and the disk is **the record.** A downward instruction is a file in `<agent>/tasks/` and the message points at that path. An upward report goes to its own home among cards, `failures.jsonl` or §11, and the message points at it. **What exists only in a message is context, and context disappears with a reset** (P1, §6.2.3). A case of nearly losing exactly that came up the same day — a manager had nowhere to write its own instruction and had to raise the very fact that there was nowhere to write it, by message. **Peers have no place to reach each other on disk** — `<agent>/tasks/` belongs to that agent's manager, so a manager cannot write into a neighbouring manager's lane. There are two routes and both are used: **put the obligation inside a file the other party must touch when doing that work** (on 2026-09-18 the librarian manager did this by writing the migration obligation into an enum's description — whoever moves that value will read it), and where that is impossible, **go up and come back sideways.** The latter adds a round trip and in exchange **architecture sees the fact and records it** — a decision passed directly between peers reaches no document.
+3. **Nobody writes outside their own directory.** `contracts/` is read by everyone and written by nobody, and another agent's directory is neither read nor written. The bridge alone exceptionally **reads** cards from both agents' `questions/` and transcribes them into its own `threads/`, and **delivers by writing into the receiving side's `<agent>/inbox/`** (§8 check 35, §7.1 rule 8). **Until 2026-09-19 this rule had no delivery direction** — the read exception was one-way, the bridge reading from an agent, so although §5.1 said "turning a received `ask_*` into a goal is the receiving side's S2", **the receiving side had no path to that card.** The first real round trip stood there for forty minutes, and the microscope execution seat kept on with its own question not out of laziness but **because it had no way to know that round existed.** The bridge writing the turn into `status.json` means nothing if the reading side is not in the documents — it was not dead lettering (check 48) but **absent lettering.** The reason to place it in the receiving tree is in §7.1 rule 8. **That reads are blocked too actually fell over on 2026-09-19** — the bridge seat read `librarian_agent/src/` while diagnosing the `caller_id` problem, and reported itself. It did not write and there was no harm, but **what characterises that violation is that the same conclusion was reachable inside the boundary**: the pattern is in `contracts/schemas/` and the grammar in §4.3.1, so it was reachable without opening the server file, and another bridge window did reach the same answer without reading. **It was crossed for convenience, not out of necessity.** — **That reason turned out to be wrong on 2026-09-19.** That the server held its own copy of the pattern — that the server refuses an id the schema accepts — is **a fact `contracts/` could not have told anyone**, which is why that day's fix was incomplete. That conclusion was **not** reachable inside the boundary. **The ruling stands** — up and back sideways is still the right route. But the reason changes: when something unknowable inside the boundary appears, that is **a defect report about the contract**, not a licence to read, and reporting it makes the contract carry the fact. That is what actually happened here. So the test for whether this rule was crossed is not "was there harm" but **"was that conclusion reachable inside the boundary"** — usually it is, and when it is, crossing is pure loss. Since a contract is a contract because the consumer does not have to read the producer's source (§4.3.1), a state knowable only by reading is **a defect report about the contract**, not a licence to read.
+4. **Approvals are written by a person in another window.** Even with designer and operator inside one session, only a person can create an approval card (§5.1), so there is no path for a session to approve its own plan.
 
-1. **권한 격리가 프로세스 단위로 강제된다.** 각 에이전트 디렉터리의 `.claude/settings.json`이 그 세션에 허용된 도구만 연다. 브리지 세션에는 장비 도구가 아예 없고, 사서 세션에는 하드웨어 경로가 없다. 모델이 자제하는 것이 아니라 **없어서 못 하는 것**이다(P4).
-2. **메시지는 알릴 수 있고, 유일한 사본이 될 수 없다.** 이 규칙은 2026-09-18까지 "세션끼리 직접 말하지 않는다"였는데 **그날 그것이 거짓이었다** — 여섯 세션이 하루 종일 세션 간 메시지로 지시하고 보고했고, 그 규칙을 적은 자리조차 그랬다. 규칙이 아니라 관찰이 옳다: 메시지는 **알림**이고 디스크가 **기록**이다. 내려가는 지시는 `<agent>/tasks/`의 파일이고 메시지는 그 경로를 가리킨다. 올라오는 보고는 카드·`failures.jsonl`·§11 중 자기 집으로 가고 메시지는 그것을 가리킨다. **메시지에만 있는 것은 컨텍스트이고, 컨텍스트는 초기화와 함께 사라진다**(P1, §6.2.3). 실제로 그렇게 잃을 뻔한 사례가 같은 날 나왔다 — 매니저가 자기 지시를 적어 둘 자리가 없어서 "적어 둘 자리가 없다"는 사실 자체를 메시지로 올려야 했다. **같은 층끼리는 디스크로 닿을 자리가 없다** — `<agent>/tasks/`는 그 에이전트의 매니저 것이므로 매니저가 옆 매니저의 레인에 쓸 수 없다. 두 길이 있고 둘 다 쓴다: **의무는 상대가 그 일을 할 때 반드시 건드릴 파일 안에 둔다**(2026-09-18에 사서 매니저가 enum 설명에 이행 의무를 적어 이렇게 했다 — 그 값을 옮길 사람은 그 설명을 읽게 된다), 그리고 그것이 불가능하면 **위로 올려 옆으로 간다.** 뒤엣것이 왕복을 하나 늘리지만 그 대가로 **아키텍처가 그 사실을 보고 기록한다** — 같은 층끼리 직접 주고받은 결정은 아무 문서에도 닿지 않는다.
-3. **자기 디렉터리 밖에는 쓰지 않는다.** `contracts/`는 모두가 읽지만 아무도 쓰지 않고, 다른 에이전트 디렉터리는 읽지도 쓰지도 않는다. 브리지만 예외적으로 양쪽 에이전트의 `questions/`에서 카드를 **읽어** 자기 `threads/`에 옮겨 적고, **배달은 받는 쪽의 `<agent>/inbox/`에 쓴다**(§8 검사 35, §7.1 규칙 8). **2026-09-19까지 이 규칙에 배달 쪽 방향이 없었다** — 읽기 예외는 브리지가 에이전트에게서 읽는 한 방향뿐이었고, 그래서 §5.1이 "받은 `ask_*`를 goal로 바꾸는 것은 받는 쪽의 S2"라고 적어 놓고도 **받는 쪽에 그 카드에 닿을 경로가 없었다.** 첫 실물 왕복이 거기서 40분 서 있었고, 현미경 실행석은 게을러서가 아니라 **그 라운드의 존재를 알 방법이 없어서** 자기 질문을 계속했다. 브리지가 `status.json`에 차례를 적는 것도 읽는 쪽이 문서에 없으면 뜻이 없다 — 죽은 글자(검사 48)가 아니라 **없는 글자**였다. 받는 쪽 트리에 놓는 이유는 §7.1 규칙 8에 있다. **읽기도 막는다는 것이 2026-09-19에 실제로 넘어졌다** — 브리지 좌석이 `caller_id` 문제를 진단하며 `librarian_agent/src/`를 읽었고 스스로 보고했다. 쓰지 않았고 해도 없었지만, **그 위반의 성격을 말하는 것은 같은 결론이 경계 안에서 나왔다는 것**이다: 패턴은 `contracts/schemas/`에 있고 문법은 §4.3.1에 있어 서버 파일을 열지 않고도 도달할 수 있었고, 실제로 다른 브리지 창이 읽지 않고 같은 답에 닿았다. **편해서 넘은 것이지 필요해서 넘은 것이 아니다.** — **이 이유는 2026-09-19에 틀린 것으로 드러났다.** 서버가 자기 패턴 사본을 들고 있다는 것, 즉 스키마가 받는 id를 서버가 거절한다는 것은 **`contracts/`가 알려줄 수 없는 사실**이고, 그래서 그날의 수정이 불완전했다. 그 결론은 경계 안에서 도달 가능하지 **않았다.** **판정은 그대로 둔다** — 올라갔다 옆으로 가는 것이 여전히 옳은 경로다. 다만 이유가 바뀐다: 경계 안에서 알 수 없는 것이 나오면 그것은 **계약의 결함 보고**이지 읽을 면허가 아니고, 보고하면 계약이 그 사실을 담게 된다. 이번에 실제로 그렇게 됐다. 그래서 이 규칙을 넘었는지 판단하는 시험은 "해가 있었나"가 아니라 **"그 결론이 경계 안에서 도달 가능했나"**다 — 대개 가능하고, 가능하면 넘은 것이 순수한 손실이다. 계약이 계약인 이유가 소비자가 생산자의 소스를 읽지 않아도 되는 것이므로(§4.3.1), 읽어야만 알 수 있는 상태가 나오면 그것은 **계약의 결함 보고**이지 읽을 면허가 아니다.
-4. **승인은 사람이 다른 창에서 쓴다.** designer와 operator가 한 세션 안에 있어도 승인 카드는 사람만 만들 수 있으므로(§5.1), 세션이 자기 계획을 스스로 승인할 경로는 없다.
+**The price paid**: round trips slow down going through files, and a person moves between four windows. So the bridge's `status.json` keeps **whose turn it is right now** on one line — without it, four windows soon go unmanaged.
 
-**치르는 비용**: 왕복이 파일을 거쳐 느려지고, 사람이 창 넷을 오간다. 그래서 브리지의 `status.json`이 **지금 누구 차례인지**를 한 줄로 유지한다 — 그것이 없으면 네 창은 곧 관리되지 않는다.
+**What is gained**: context stays small per agent, one session being contaminated leaves the other three intact, and "who could have done what" is answered by looking at the session settings alone.
 
-**얻는 것**: 컨텍스트가 에이전트별로 작게 유지되고, 한 세션이 오염돼도 나머지 셋이 멀쩡하며, "누가 무엇을 할 수 있었나"가 세션 설정 파일만 보면 답이 된다.
+#### 6.2.1 One working copy per session (D12)
 
-#### 6.2.1 작업 사본은 세션마다 하나다 (D12)
+**There is one working copy.** On 2026-09-18 it was decided to give each sub-session a `git worktree`, and **reverted the same day** — the person removed the worktrees. The argument for introducing it, and what is undefended now that it was reverted, are recorded below. The reason not to delete this is that the problem has not gone away.
 
-**작업 사본은 하나다.** 2026-09-18에 서브세션마다 `git worktree`를 주기로 했다가 **같은 날 되돌렸다** — 사람이 worktree를 치웠다. 도입 논거와 되돌린 뒤 무엇이 무방비인지를 아래에 남긴다. 지우지 않는 이유는 이 문제가 사라지지 않았기 때문이다.
+**Before that there was one, and that produced today's three losses.** Four sessions running in the same directory share the git index too — a file one session's `git add` put up is taken by another session's `git commit`. Without `-A`, with a plain `git commit`.
 
-**그 전에는 하나였고, 그것이 오늘의 손실 셋을 만들었다.** 네 세션이 같은 디렉터리에서 돌면 git 인덱스도 공유된다 — 한 세션의 `git add`가 올려놓은 파일을 다른 세션의 `git commit`이 가져간다. `-A`를 쓰지 않아도, 그저 `git commit`만으로.
+It happened three times on 2026-09-17.
 
-2026-09-17에 세 번 일어났다.
+1. One commit held three sessions' work and its message described one.
+2. Hours later the index simultaneously held the design seat's `contracts/validate.py` and four of the microscope session's `src/` files, and whichever of the two committed would have crossed a boundary — the pre-commit hook stopped it that time (§8).
+3. One session's in-progress KB edits left check 25 red for hours and **refused every other session's commits.** The way out was `--no-verify`, twice. The gate was fixed to look at the tree the commit would create (§8), but that fixed the symptom; the cause is the shared working copy.
 
-1. 한 커밋이 세 세션의 작업을 담았고 그 메시지는 하나만 설명했다.
-2. 몇 시간 뒤 인덱스에 설계 자리의 `contracts/validate.py`와 현미경 세션의 `src/` 파일 넷이 동시에 올라와 있었고, 둘 중 누가 커밋해도 경계를 넘었다 — 그때는 pre-commit hook이 막았다(§8).
-3. 한 세션의 진행 중 KB 편집이 검사 25를 몇 시간 붉게 만들어 **다른 모든 세션의 커밋을 거절했다.** 빠져나온 방법은 `--no-verify`였고 두 번 그랬다. 게이트를 고쳐 커밋이 만들 트리를 보게 했지만(§8), 그것은 증상을 고친 것이고 원인은 공유 작업 사본이다.
+**Add sessions and this collision grows not with the session count but with its square.** So raising speed by adding a tier requires splitting the working copy first. Add sessions without splitting and it does not get faster — they wait for each other and overwrite each other.
 
-**세션을 늘리면 이 충돌은 세션 수와 함께가 아니라 세션 수의 제곱으로 는다.** 그래서 계층을 얹어 속도를 올리려면 작업 사본을 먼저 갈라야 한다. 갈라지 않고 세션만 늘리면 더 빨라지지 않는다 — 서로를 기다리고 서로를 덮어쓴다.
+**What the worktrees were going to give, and what is absent now.** Other people's unfinished work would have become invisible, making a `git add -A` accident structurally impossible, and two people editing the same file would **have surfaced as a conflict at merge.** Reverted, **neither of those exists.** And in the meantime two places recorded "what guards the shared surface is not a check but the worktree merge" (§6.2.1, `seats.json`'s `what_protects_the_core`) — **the defence those sentences point at does not currently exist.** The `contracts/` core the four managers share, and an execution pair looking at one agent, have **no refusal-level defence and only attribution.** The merge-awareness in checks 35 and 41 (`249045f`, `8f6b906`) remains correct and has no merge to guard.
 
-**worktree가 주려던 것, 그리고 지금 없는 것.** 남의 미완성 작업이 보이지 않게 되어 `git add -A` 사고가 구조적으로 불가능해지고, 같은 파일을 둘이 고치면 **머지에서 충돌로 드러났을** 것이다. 되돌렸으므로 **그 둘 다 없다.** 그리고 그 사이 두 곳에 "공유 표면을 지키는 것은 검사가 아니라 worktree 머지다"라고 적었다(§6.2.1, `seats.json`의 `what_protects_the_core`) — **지금 그 문장이 가리키는 방어가 존재하지 않는다.** 네 매니저가 공유하는 `contracts/` 코어와, 한 에이전트를 둘이 보는 실행석 쌍에는 **거절 수준의 방어가 없고 귀속만 있다.** 검사 35·41의 머지 인식(`249045f`·`8f6b906`)은 옳은 채로 남아 있으나 지금 지킬 머지가 없다.
+**What is left instead is two of three**: the ban on `git add -A` and `git commit -- <paths>` (convention), plus the commit gate (enforcement). It is back to convention carrying half of enforcement, and that is the configuration that broke three times on 2026-09-17.
 
-**대신 남은 것은 셋 중 둘이다**: `git add -A` 금지와 `git commit -- <경로>`(관례), 그리고 커밋 게이트(집행). 관례가 집행의 절반을 맡는 상태로 돌아왔고, 그것이 2026-09-17에 세 번 무너졌던 구성이다.
+The path rules hold inside a worktree too. The three below are the rules while a shared copy remains, and habits to keep after worktrees.
 
-경로 규칙은 worktree 안에서도 그대로다. 아래 셋은 공유 사본이 남아 있는 동안의 규칙이자, worktree 이후에도 습관으로 남길 것이다.
+1. **Do not use `git add -A`.** Name the paths.
+2. **To commit without touching another's staging**, use `git commit -- <my paths>`. It uses a temporary index, so what others put up stays.
+3. **The hook prints the set going into the commit.** It cannot adjudicate ownership — git does not know which session touched a file — but it can make it visible **before** the commit, and that is the difference from discovering it afterwards.
 
-1. **`git add -A`를 쓰지 않는다.** 경로를 명시한다.
-2. **남의 스테이지를 건드리지 않고 커밋하려면** `git commit -- <내 경로들>`을 쓴다. 임시 인덱스를 쓰므로 남이 올려둔 것은 그대로 남는다.
-3. **hook이 커밋에 들어가는 집합을 출력한다.** 소유를 판정할 수는 없다 — 어느 세션이 그 파일을 만졌는지 git은 모른다 — 그러나 커밋 **전에** 보이게 할 수는 있고, 그것이 사후에 발견하는 것과의 차이다.
+**To check merges, checks 35 and 41 have to know about merges. They did not.** Confirmed in a scratch repository on 2026-09-17 — if sub-sessions commit only their own on their own branches, both pass, but when a manager merges them:
 
-**머지를 검사하려면 검사 35·41이 머지를 알아야 한다. 지금은 모른다.** 2026-09-17에 스크래치 저장소에서 확인했다 — 서브세션이 자기 브랜치에서 자기 것만 커밋하면 둘 다 통과하지만, 매니저가 그것을 머지하면:
+- **Check 35 does not refuse, it crashes** (`RecursionError`). With a merge in the range, `rev-list --reverse M~1..M` returns the merge and the commits it brought, making more than one, and the check then re-invokes itself on the same range to decompose per commit. It does not decompose, so it never ends.
+- **Check 41 silently skips the merge.** `diff-tree -r <merge>` prints nothing by default, so the changed-path list is empty and the check skips that commit. Meaning **no** attribution check applies to a merge at all.
 
-- **검사 35는 거절하지 않고 크래시한다**(`RecursionError`). 범위에 머지가 있으면 `rev-list --reverse M~1..M`이 머지와 머지된 커밋을 함께 내놓아 둘 이상이 되고, 검사는 그때 커밋별로 쪼개려고 같은 범위를 다시 부른다. 쪼개지지 않으므로 끝나지 않는다.
-- **검사 41은 머지를 조용히 건너뛴다.** `diff-tree -r <머지>`는 기본적으로 아무것도 출력하지 않으므로 변경 경로가 빈 목록이 되고, 검사는 그 커밋을 넘긴다. 머지에 귀속 검사가 **하나도** 걸리지 않는다는 뜻이다.
+**The rule is this.** A merge commit holding several boundaries is not a violation but the definition of a merge — the commits it holds were each checked on their own branch. What is checked at a merge is **what the merge itself contributed**, that is, changes in no parent (`git diff-tree --cc`). That is either a conflict resolution or an edit slipped in, and either way **the merging seat's own work**, so it has to stay inside that seat's boundary. So check 35 excludes merges from the per-commit decomposition, and check 41, instead of skipping a merge, looks at it with `--cc`.
 
-**규칙은 이렇다.** 머지 커밋이 여러 경계를 담는 것은 위반이 아니라 머지의 정의다 — 담긴 커밋들은 각자 자기 브랜치에서 이미 검사됐다. 머지에서 검사할 것은 **머지가 스스로 기여한 것**, 즉 어느 부모에도 없던 변경(`git diff-tree --cc`)이다. 그것은 충돌 해결이거나 슬쩍 끼워넣은 편집이고, 어느 쪽이든 **머지한 좌석 자신의 작업**이므로 그 좌석의 경계를 지켜야 한다. 그래서 검사 35는 머지를 커밋별 분해에서 빼고, 검사 41은 머지를 건너뛰는 대신 `--cc`로 본다.
+**This change has to land before the worktree move.** Reverse the order and the gate crashes on the first merge, and a gate that blocks correct work does not get fixed but bypassed — today's two `--no-verify` were that path.
 
-**이 변경은 worktree 이전보다 먼저 들어가야 한다.** 순서를 뒤집으면 첫 머지에서 게이트가 크래시하고, 옳은 작업을 막는 게이트는 고쳐지지 않고 우회된다 — 오늘 `--no-verify` 두 번이 그 경로였다.
+**The problem of two design seats was solved by the tiering.** If D11 is "one agent = one session", then the positions above it are one each too. On 2026-09-17 two sessions sat at the root and edited `plan.md` and `contracts/validate.py` at the same time, and the reason the result was not bad was not luck but **that the two divided the paths by hand.** D12 made that division structural: architecture takes `plan.md` and `seats.json`; the manager takes the rest of `contracts/` and the agent instructions. Unlike a hand division, this is written in `seats.json` and read by check 41.
 
-**설계 자리가 둘인 문제는 계층이 해결했다.** D11이 "한 에이전트 = 한 세션"이라면 그 위의 자리도 각각 하나다. 2026-09-17에 루트에 두 세션이 앉아 같은 시간에 `plan.md`와 `contracts/validate.py`를 고쳤고, 결과가 나쁘지 않았던 이유는 우연이 아니라 **둘이 손으로 경로를 나눴기 때문**이었다. D12가 그 분할을 구조로 만들었다: 아키텍처는 `plan.md`와 `seats.json`, 매니저는 나머지 `contracts/`와 에이전트 지시문. 손으로 나눈 것과 달리 이것은 `seats.json`에 적혀 검사 41이 읽는다.
+**Before, that boundary had no enforcement.** The agent boundary has two layers, a per-directory `settings.json` and check 35, but the design seat is **defined only by cwd being the root, so the settings could not tell two sessions at the root apart.** Both were the design seat by definition. It was not weaker than the agent boundary; it did not exist. The symptoms came too — §11-1 was decided by two positions separately, and while one wrote the pre-commit hook the other was designing the same thing. It ended in waste, but had it been the same function in the same file the contract would have split.
 
-**전에는 그 경계에 집행이 없었다.** 에이전트 경계는 디렉터리별 `settings.json`과 검사 35라는 두 겹을 갖지만, 설계 자리는 **cwd가 루트라는 것으로만 정의되므로 루트에 앉은 두 세션을 설정이 구별할 수 없었다.** 둘 다 정의상 설계 자리였다. 에이전트 경계보다 약한 것이 아니라 아예 없었다. 증상도 나왔다 — §11-1을 두 자리가 각각 결정했고, pre-commit 훅을 한쪽이 쓰는 동안 다른 쪽이 같은 것을 설계하고 있었다. 낭비로 끝났지만 같은 파일의 같은 함수였다면 계약이 갈라졌을 것이다.
+**The commit-time gate passed it too.** One commit held both design seats' `contracts/` edits together, and the hook printed the set but **had no grounds to refuse.** Both files were `contracts/`, that is, the same design-seat path. Check 35 looks at agent boundaries, so a mixture between two design seats passed by definition. The gate was not loose; there was nothing for it to see.
 
-**커밋 시점 게이트도 그것은 통과시켰다.** 한 커밋이 두 설계 자리의 `contracts/` 편집을 함께 담았고, hook은 집합을 출력했지만 **거절할 근거가 없었다.** 양쪽 파일이 모두 `contracts/`, 즉 같은 설계 자리 경로였기 때문이다. 검사 35는 에이전트 경계를 보므로 설계 자리 둘 사이의 혼합은 정의상 통과했다. 게이트가 느슨한 것이 아니라 볼 수 있는 것이 없었다.
-
-검사로 만들려면 **커밋을 세션에 귀속시켜야** 하는데 git은 그것을 모른다. **2026-09-17에 만들었다**(검사 41). 좌석은 **커미터 신원**으로 자기를 밝히고, `contracts/seats.json`이 신원 → 소유 경계를 담고, 검사 41이 그 커밋의 변경 경로가 전부 그 좌석의 것인지 본다. 경로를 경계로 분류하는 표는 검사 35가 쓰는 것을 그대로 재사용한다 — 표를 둘로 두면 갈라진다. **author는 사람으로 남고 committer만 좌석이다**: git의 그 분리가 정확히 이 용도이고, 그래서 귀속을 얻으면서 사람의 이름을 잃지 않는다. 채택은 커밋 앞의 한 줄이다:
+Making it a check requires **attributing a commit to a session**, which git does not know. **It was built on 2026-09-17** (check 41). A seat identifies itself by its **committer identity**, `contracts/seats.json` holds identity → owned boundary, and check 41 checks that all of a commit's changed paths are that seat's. The table classifying paths into boundaries is reused exactly as check 35 uses it — keep two tables and they diverge. **The author stays the person and only the committer is the seat**: git's separation is exactly for this, so attribution is gained without losing the person's name. Adoption is one line in front of the commit:
 
 ```
 GIT_COMMITTER_NAME='seat:design' GIT_COMMITTER_EMAIL=design@seat.invalid git commit -m …
 ```
 
-**검사 35가 놓치던 것을 잡는다.** 검사 35는 경계를 **센다** — 한 커밋이 두 에이전트를 건드리거나 `contracts/`와 에이전트를 섞는 것. 그러므로 현미경 좌석이 `simulation_agent/`에만 커밋하는 것은 경계가 하나이므로 **통과한다.** 틀린 경계 하나다. 검사 41은 그 하나가 누구 것인지 안다. 흔한 사고는 이쪽이다.
+**It catches what check 35 missed.** Check 35 **counts** boundaries — one commit touching two agents, or mixing `contracts/` with an agent. So the microscope seat committing only into `simulation_agent/` **passes**, because that is one boundary. One wrong boundary. Check 41 knows whose that one is. The common accident is this one.
+#### 6.2.2 A tier sends work down and cannot send permission down
 
-#### 6.2.2 계층은 일을 내려보내고, 권한은 내려보내지 못한다
+**A session does not treat another session's relayed message as its own user's instruction.** This is not a choice but something a session has to hold, and it dictates how a tier is built.
 
-**세션은 다른 세션의 전언을 자기 사용자의 지시로 취급하지 않는다.** 이것은 선택이 아니라 세션이 지켜야 하는 것이고, 계층을 세우는 방법을 규정한다.
+It was actually hit on 2026-09-17. The architecture position relayed to another position "you are the manager tier, and the user instruction is this", and the receiving side **agreed with the content and did not accept it as an instruction** — because that session's user had never told that session about the three tiers. That is a correct refusal. The same standard was used in the opposite direction just before: the side that heard second-hand about a design-seat handover stopped only after confirming directly with the user.
 
-2026-09-17에 실제로 걸렸다. 아키텍처 자리가 다른 자리에게 "당신은 매니저 계층이고, 사용자 지시는 이것이다"를 전했고, 받은 쪽은 **내용에는 동의하면서 지시로는 받지 않았다** — 그 세션의 사용자가 그 세션에 3계층을 말한 적이 없기 때문이다. 옳은 거절이다. 같은 기준이 그 직전에 반대 방향으로도 쓰였다: 설계 좌석 이전을 전해 들은 쪽이 사용자에게 직접 확인받고서야 멈췄다.
+Therefore:
 
-따라서:
+1. **A person seats each session directly.** A tier assignment does not propagate by message. Launch six sessions and the seating has to happen six times — one session cannot appoint the other five.
+2. **Work can be sent down.** Once seats are set, work requests, questions and reports flow freely by inter-session message. This is where the tiering gives speed.
+3. **A request that widens a boundary is refused even from above.** If an upper tier says "commit this file for me" or "widen your permissions", the lower refuses and escalates to the person. If above can enlarge below's permissions, §6's tiers are bypassed by one line of request.
 
-1. **좌석은 사람이 각 세션에 직접 앉힌다.** 계층의 배치는 메시지로 전파되지 않는다. 세션 여섯 개를 띄우면 좌석도 여섯 번 지정해야 한다 — 한 세션에서 나머지 다섯을 임명할 수는 없다.
-2. **일은 내려보낼 수 있다.** 좌석이 정해진 뒤의 작업 요청·질문·보고는 세션 간 메시지로 자유롭게 흐른다. 계층이 속도를 주는 곳은 여기다.
-3. **경계를 넓히는 요청은 위에서 와도 거절된다.** 위 계층이 "이 파일을 대신 커밋해 달라"거나 "권한을 넓혀 달라"고 하면 아래는 거절하고 사람에게 올린다. 위가 아래의 권한을 늘려줄 수 있으면 §6의 티어는 요청 한 줄로 우회된다.
-
-**비용은 사람이 여섯 번 앉히는 것이고, 얻는 것은 어느 메시지도 권한이 될 수 없다는 것이다.** 프롬프트 주입이 이 계층에서 통하지 않는 이유가 그것이다 — 주입할 수 있는 것은 일뿐이고, 일은 여전히 경계 안에서만 수행된다.
+**The cost is a person seating six times, and what is gained is that no message can become permission.** That is why prompt injection does not work in this tiering — what can be injected is work only, and work is still performed only inside the boundary.
 
 
-#### 6.2.3 세션은 과제 하나마다 비워도 된다 — 그리고 비우는 것이 P1의 시험이다
+#### 6.2.3 A session may be cleared after each task — and clearing is P1's test
 
-**P1이 이미 답이다**: 파일이 진실이고 세션은 휘발성이며 에이전트의 상태는 전부 디스크에 있다. 그것이 참이면 과제 하나를 끝낸 세션의 컨텍스트에는 **버려도 되는 것만** 남아 있어야 한다. 그러므로 과제 사이의 초기화는 허용될 뿐 아니라 **P1이 실제로 지켜지는지를 계속 재는 시험**이다 — 비웠는데 무언가 사라졌다면, 그것은 애초에 디스크에 없었던 것이고 P1이 깨져 있었던 것이다.
+**P1 is already the answer**: files are the truth, sessions are volatile, and all of an agent's state is on disk. If that is true, then the context of a session that has finished one task should hold **only what can be thrown away.** So a reset between tasks is not merely permitted but **a continuing test of whether P1 actually holds** — if something disappeared on clearing, it was never on disk and P1 was already broken.
 
-**과제 "사이"이지 "도중"이 아니다.** 반쯤 한 과제의 상태는 정의상 디스크에 없다. 그리고 §4.3.1-1이 허용한 것 — 서브에이전트가 자기 맥락 안에서 후속 질의를 이어가는 것 — 도 한 과제 안의 일이다.
+**"Between" tasks, not "during".** The state of a half-finished task is by definition not on disk. And what §4.3.1-1 permits — a subagent continuing follow-up queries inside its own context — is also within one task.
 
-**비우기 전에 세 가지가 디스크에 있어야 한다.** 이것이 과제의 완료 조건이다:
+**Three things have to be on disk before clearing.** These are a task's completion conditions:
 
-1. **산출물** — 카드, 그리고 그 카드가 통과한 게이트.
-2. **새로 알게 된 사실** — 사서로 갈 result 카드(P14). 여기서 알아낸 것을 여기 두면 다음 세션은 다시 알아낸다.
-3. **막다른 길** — `failures.jsonl`. 카드를 내지 않고 접은 시도는 **여기 말고는 어디에도 남지 않는다.**
-4. **내린 판정** — `rulings.jsonl`. §10.2.1의 transfer/downgrade/**drop**. 막다른 길과 다른 것이다(§7.1 규칙 9).
+1. **The output** — the card, and the gate it passed.
+2. **Newly learned facts** — a result card bound for the librarian (P14). Leave what was learned here here, and the next session learns it again.
+3. **Dead ends** — `failures.jsonl`. An attempt abandoned without producing a card **survives nowhere else.**
+4. **Rulings made** — `rulings.jsonl`. §10.2.1's transfer/downgrade/**drop**. Different from a dead end (§7.1 rule 9).
 
-세 번째가 가장 새기 쉽고, 증거가 있다. `agentic-microscope`에는 **"알려진 헛다리, 각각 한 세션씩 태웠다"**는 목록이 있었다 — Kinetix의 `10012`가 보통 소유권 충돌이 아니라 wedge라는 것 같은. 그 목록이 존재한다는 사실 자체가, 그것이 적히기 전까지 세션들이 같은 것을 반복해서 태웠다는 뜻이다.
+The third leaks most easily, and there is evidence. `agentic-microscope` had a list titled **"known wild goose chases, one session burned each"** — things like Kinetix's `10012` being a wedge rather than an ordinary ownership conflict. The existence of that list means that until it was written, sessions burned the same ones repeatedly.
 
-**초기화의 값은 지시문 길이에 비례한다.** 새 컨텍스트는 루트 `CLAUDE.md`와 자기 에이전트의 `CLAUDE.md`를 다시 읽는다. 그래서 `CLAUDE.md`를 짧게 유지하는 것(§7)과 과제마다 비우는 것은 **같은 손잡이의 양끝**이다 — 지시문이 길면 비우는 값이 비싸지고, 비싸지면 아무도 안 비우고, 그러면 상태가 다시 컨텍스트로 기어든다.
+**The value of a reset is proportional to the length of the instructions.** A fresh context re-reads the root `CLAUDE.md` and its own agent's `CLAUDE.md`. So keeping `CLAUDE.md` short (§7) and clearing per task are **two ends of the same handle** — long instructions make clearing expensive, expensive means nobody clears, and then state creeps back into context.
 
-**스스로 판단하고, 위에 확인을 받고, 비운다**(2026-09-18). 실행석은 자기 매니저에게, 매니저는 아키텍처에게 확인을 청한다. 아키텍처의 것은 사람이 정한다 — 위가 없으므로 그 한 칸은 비워 둘 수 없고, 비워 두면 가장 오래 사는 컨텍스트가 아무 규율도 받지 않는다(2026-09-18 사람의 답: 비우지 않는다).
+**Judge for yourself, get confirmation from above, then clear** (2026-09-18). An execution seat asks its manager and a manager asks architecture. Architecture's is settled by the person — there is nothing above, so that one cell cannot be left empty, and leaving it empty means the longest-lived context is under no discipline at all (the person's answer on 2026-09-18: it does not clear).
 
-**혼자 정하지 않는 이유는 어느 쪽도 근거를 다 갖지 못했기 때문이다.** 아래는 자기가 무엇을 들고 있는지, 무엇을 떠올리기 어려웠는지, 과제가 정말 끝났는지를 안다 — 위는 그것을 볼 수 없다. 위는 보고가 이미 디스크에 있는 사실을 되풀이하는지, 아래가 `plan.md`에 답이 있는 것을 묻는지를 안다 — **아래는 그것을 볼 수 없다.** 컨텍스트가 길어진 세션에게는 컨텍스트에서만 아는 지식이 디스크에서 읽은 것처럼 느껴지고, 그것이 이 문제의 전부다. 그래서 절반씩 낸다.
+**The reason not to decide alone is that neither side has all the grounds.** Below knows what it is holding, what was hard to recall, and whether the task is really finished — above cannot see that. Above knows whether a report is repeating facts already on disk, and whether below is asking things `plan.md` answers — **below cannot see that.** To a session with a long context, knowledge known only from context feels like something read off disk, and that is the whole of this problem. So each supplies half.
 
-**청하는 형식은 한 문장이다** — 비우자는 쪽이든 이어가자는 쪽이든, **"아직 디스크에 없는 것이 무엇인가"**에 답한다. 없으면 "없다"이고 그러면 비운다. 있으면 그것이 곧 P1 위반 보고이자 다음 과제다. 이 한 문장이 위가 판정할 재료 전부이고, 아래의 컨텍스트를 들여다볼 필요를 없앤다.
+**The form of the request is one sentence** — whichever side is arguing, it answers **"what is not yet on disk?"** If nothing, the answer is "nothing" and it clears. If something, that is both a P1 violation report and the next task. That one sentence is all the material above needs to judge, and it removes any need to look inside below's context.
 
-**답이 늦으면 기본값이 이긴다.** 다음 과제 경계까지 확인이 오지 않으면 비우고, 확인 없이 비웠다고 보고한다. 확인을 기다리며 멈춰 서면 위가 자리를 비운 동안 아래가 전부 막히고, 그러면 이 절차는 첫 주에 폐기된다.
+**If the answer is late, the default wins.** If no confirmation arrives by the next task boundary, it clears and reports that it cleared without confirmation. Stopping to wait for confirmation blocks everything below while above is away, and then this procedure is abandoned in the first week.
 
-**기본값은 비우는 쪽이고, 이어가려면 이유를 대야 한다.** 위 문단이 말한 대로 비우기가 P1의 시험이므로, 시험을 건너뛰는 쪽이 정당화를 진다. 그리고 그 정당화는 **"아직 디스크에 없는 것이 무엇인가"**라는 한 문장이어야 한다 — 그 문장은 동시에 P1 위반 보고이고, 다음에 무엇을 디스크로 옮겨야 하는지를 스스로 말한다. 대지 못하면 비운다.
+**The default is to clear, and continuing requires a reason.** As the paragraph above says, clearing is P1's test, so the side skipping the test carries the justification. And that justification has to be the single sentence **"what is not yet on disk?"** — that sentence is simultaneously a P1 violation report and tells you what to move onto disk next. Unable to answer, it clears.
 
-**위에서 보이는 신호 넷** — 전부 보고와 디스크에서 읽히고, 아래 컨텍스트를 들여다보지 않아도 된다:
+**Four signals visible from above** — all readable from the report and the disk, with no need to look inside below's context:
 
-1. 완료 조건 셋(산출물·사서로 갈 사실·막다른 길)이 실제로 디스크에 있다 → 비울 때가 됐다.
-2. **이미 디스크에 있는 사실을 보고가 다시 말한다** → 컨텍스트가 파일이 져야 할 짐을 지고 있다.
-3. 보고가 줄 수를 넘기거나 코드 본문을 붙여 온다 → 같은 증상.
-4. 아래가 `plan.md`에 이미 답이 있는 것을 묻는다 → 지시문을 다시 읽어야 한다는 뜻이고, 그것이 초기화가 하는 일이다.
+1. The three completion conditions (output, facts bound for the librarian, dead ends) are actually on disk → it is time to clear.
+2. **A report restates facts already on disk** → context is carrying a load the files should bear.
+3. A report exceeds its line count or pastes in code bodies → the same symptom.
+4. Below asks something `plan.md` already answers → the instructions need re-reading, and that is what a reset does.
 
-**지시는 다섯 필드 안에서 간다.** 초기화는 새 필드가 아니라 `TASK`의 마지막 단계다("보고 뒤 비운다"). 필드를 늘리면 지시문이 자라고, 지시문이 자라면 초기화 값이 비싸진다.
+**Instructions go inside five fields.** A reset is not a new field but `TASK`'s last step ("clear after reporting"). Add a field and the instructions grow; grow the instructions and the value of a reset gets expensive.
 
-**그리고 과제 도중에는 발효되지 않는다.** 위에서 비우라고 해도 다음 과제 경계에서 실행된다. 반쯤 한 과제를 비우는 것은 이 절의 전제를 어기는 것이고, 아래는 그 경우 거절하는 것이 아니라 **미룬다** — 그리고 미뤘다고 보고한다.
+**And it does not take effect mid-task.** Told from above to clear, it executes at the next task boundary. Clearing a half-done task breaks this subsection's premise, and in that case below does not refuse but **defers** — and reports that it deferred.
 
-**좌석 신원은 명령 앞 접두사가 아니라 worktree의 git config에 둔다.** 접두사는 컨텍스트에만 사는 지식이므로 초기화와 함께 사라지고, 그다음 커밋은 사람 신원으로 나가 검사 41에서 미등록으로 떨어진다. D12가 서브세션마다 worktree를 주므로 worktree별 `--local` 설정이 정확히 맞는 자리다:
+**A seat identity lives in the worktree's git config, not as a command prefix.** A prefix is knowledge living only in context, so it disappears with a reset and the next commit goes out under the person's identity and drops out at check 41 as unregistered. Since D12 gives each sub-session a worktree, a per-worktree `--local` setting is exactly the right place:
 
 ```
 GIT_COMMITTER_NAME='seat:manager-microscope' \
 GIT_COMMITTER_EMAIL=manager-microscope@seat.invalid git commit -m …
 ```
 
-**작업 사본이 하나로 돌아오면서 신원은 다시 명령 접두사다.** git이 `committer.name`/`committer.email`을 읽는 것은 맞지만(v2.22+), **한 사본에 설정이 하나뿐이라 여섯 좌석을 담을 수 없다.** worktree마다 `--worktree`로 두던 동안에는 신원이 **초기화를 스스로 견뎠는데**, 되돌리면서 그 성질을 잃었다 — 접두사는 컨텍스트에만 사는 지식이므로 비운 세션의 다음 커밋이 사람 신원으로 나간다. **그래서 §6.2.3이 "자리를 잃은 세션이 자기가 누구인지 디스크에서 읽을 수 있다"고 한 것이 지금 성립하지 않는다.**
+**With the working copy back to one, the identity is a command prefix again.** Git does read `committer.name`/`committer.email` (v2.22+), but **one copy has one setting and cannot hold six seats.** While it sat per worktree under `--worktree`, the identity **survived a reset by itself**, and reverting lost that property — a prefix is knowledge living only in context, so a cleared session's next commit goes out under the person's identity. **So §6.2.3's claim that "a session that lost its seat can read from disk who it is" does not currently hold.**
 
-**`--local`이 아니라 `--worktree`다.** 2026-09-18까지 이 절은 `--local`을 처방했고 **틀렸다** — 연결된 worktree에서 `--local`은 그 worktree가 아니라 **공유 `.git/config`에 쓴다.** 문자 그대로 따랐으면 한 좌석의 신원을 모든 세션이 자기 것으로 읽었을 것이고, 그것은 §11-10이 worktree **이전**의 위험으로 적어 둔 상태가 worktree **이후까지** 사는 경우다. 현미경 매니저가 잡았고 버릴 저장소에서 양방향으로 확인했다 — `--local`로 쓴 값은 메인 사본에서 읽히고, `--worktree`로 쓴 값은 읽히지 않는다.
+**It is `--worktree`, not `--local`.** Until 2026-09-18 this subsection prescribed `--local` and **was wrong** — in a linked worktree, `--local` writes not to that worktree but **to the shared `.git/config`.** Followed literally, one seat's identity would have been read as their own by every session, and that is §11-10's pre-worktree hazard surviving **past** worktrees. The microscope manager caught it and confirmed both directions in a throwaway repository — a value written with `--local` is read from the main copy, and one written with `--worktree` is not.
 
-**git이 `committer.name`/`committer.email`을 읽는다** — v2.22부터이고, 2026-09-18에 2.50.1에서 확인했다: env 접두사 없이 커밋해도 committer가 좌석이 되고 author는 사람으로 남는다. 그러므로 worktree 설정은 기록이 아니라 **집행**이고, 환경변수는 worktree 설정이 없는 공유 사본에서만 필요하다. 이 절은 그날까지 정반대를 적고 있었다 — "git은 그 키를 읽지 않으므로 초기화 뒤 첫 커밋이 사람 신원으로 강등된다". **틀린 쪽이 더 조심스러운 쪽이라 아무도 부딪히지 않았고, 그래서 영원히 안 고쳐질 뻔했다** — 그 주석을 읽은 좌석은 필요 없는 접두사를 계속 달았을 뿐 실패를 보지 못한다. 결론이 실제보다 안전한 오류가 가장 오래 산다. microscope-2가 자기 worktree에서 찾았다. **자리를 잃어버린 세션이 자기가 누구인지 디스크에서 읽을 수 있다**는 것이 요점이고, 그게 없으면 초기화마다 사람이 다시 앉혀야 한다(§6.2.2는 좌석 **지정**이 사람의 일이라고 했지, 좌석을 **기억**하는 것까지 사람의 일이라고 하지 않았다).
-
-## 7. 저장소 레이아웃
+**Git reads `committer.name`/`committer.email`** — since v2.22, confirmed on 2.50.1 on 2026-09-18: committing with no env prefix still makes the committer the seat and leaves the author as the person. So the worktree setting is **enforcement** rather than a record, and the environment variables are needed only on a shared copy with no worktree setting. This subsection said the exact opposite until that day — "git does not read those keys, so the first commit after a reset is downgraded to the person's identity". **The wrong side was the more cautious side, so nobody collided with it, and it nearly went unfixed forever** — a seat reading that comment merely kept attaching an unnecessary prefix and never sees a failure. An error whose conclusion is safer than reality lives longest. microscope-2 found it in its own worktree. The point is **that a session which lost its seat can read from disk who it is**, and without that a person has to re-seat it after every reset (§6.2.2 said seat **assignment** is a person's job; it did not say **remembering** the seat is).
+## 7. Repository layout
 
 ```
 rebuild/
-  plan.md                  이 문서
-  README.md                **둘 다 안 읽은 사람**을 위한 것. 무엇인지·오늘 무엇이 되는지·어디를 볼지
-  CLAUDE.md                모노레포 공통 규칙 (P0–P16, 카드 규약 요약). **여섯 세션이 모두 읽으므로 길이가 6배로 곱해진다**
-  ARCHITECT.md             아키텍처 자리의 상비 명령. 한 자리에만 걸리므로 CLAUDE.md에 두지 않는다
-  pyproject.toml           의존성 매니페스트. **소스에서 세고 `sys.stdlib_module_names`로 거른 셋뿐**이다 —
-                             `jsonschema`·`referencing`·`numpy`. `referencing`이 따로 있는 이유는 검사 1이
-                             `$ref` 레지스트리를 직접 만들기 때문. **HOOMD은 여기 못 들어간다** — PyPI에 없고
-                             conda-forge 전용이라, `uv sync`는 파이프라인을 주고 엔진은 주지 않는다. 그 분리가
-                             §9.2 규칙 4·§4.6과 맞다: mock이 1급 백엔드이므로 **검증기와 mock만 도는 머신이
-                             M2 검증을 전부 한다**
-  uv.lock                  그 매니페스트가 푼 정확한 버전. **없으면 다른 머신이 다른 버전을 푼다** — 사람이
-                             요구한 "다른 컴퓨터에서도 쉽게"가 이 파일에 걸려 있다
-  docs/                    **공개 소개 페이지** (GitHub Pages, `main`의 `/docs`). 독자는 README보다
-                             한 칸 더 밖이다 — **저장소를 열 생각이 없는 사람**, 링크 하나만 받은 사람.
-                             영어로 쓴다(§언어 규칙의 예외는 `plan.md`뿐이다).
-                             **재진술하지 않고 가리킨다** — §7의 README 규칙이 문서 층에 한 번 더 걸린 것이고,
-                             **숫자는 특히 넣지 않는다**(적는 순간 낡는다. `CLAUDE.md`에서 하루에 세 번 틀렸다).
-                             **아키텍처 소유** — `README.md`의 이웃이고 어느 에이전트의 것도 아니다.
-                             루트 파일과 같은 결합을 진다(§7.1 규칙 9의 덧붙임): `ALLOWED_PATHS`가 먼저,
-                             `SHARED_PATHS`로 경계가 `design`이 되고, 그다음 여기 §7이 닫는다
-    index.html             한 장짜리 랜딩. 루프 · 네 에이전트 그림 · 영상 자리 · 원칙 셋.
-                             **빌드 단계도 의존성도 없다** — CSS·SVG·스크립트가 파일 안에 있다.
-                             다른 머신에서 여는 비용이 0이어야 한다는 점에서 `uv.lock`과 같은 요구다
-    assets/                영상과 이미지. **비어 있는 것이 정상 상태다** — 영상이 없으면 페이지가
-                             깨진 플레이어가 아니라 자리표시를 보여준다(없는 것을 없다고 말한다, P1)
-  contracts/               ★ 유일한 공유 코드. 4 에이전트가 모두 의존.
+  plan.md                  the English rendering, generated from plan_ko.md
+  plan_ko.md               this document. The record (0, language convention)
+  README.md                for **someone who has read neither**. What it is, what it becomes today, where to look
+  CLAUDE.md                the monorepo's common rules (P0-P16, a summary of the card contracts).
+                             **All six sessions read it, so its length is multiplied by six**
+  ARCHITECT.md             standing orders for the architecture position. It binds one position only, so it is not in CLAUDE.md
+  pyproject.toml           the dependency manifest. **Only the three counted from the source and filtered through
+                             `sys.stdlib_module_names`** -- `jsonschema`, `referencing`, `numpy`. `referencing` is
+                             separate because check 1 builds a `$ref` registry itself. **HOOMD cannot go here** --
+                             it is not on PyPI and is conda-forge only, so `uv sync` gives the pipeline and not the
+                             engine. That separation matches 9.2 rule 4 and 4.6: the mock is a first-class backend,
+                             so **a machine running only the validator and the mock does all of M2's validation**
+  uv.lock                  the exact versions that manifest resolves to. **Without it another machine resolves
+                             different ones** -- the person's requirement of "easy on another computer too" hangs on this file
+  docs/                    **the public introduction page** (GitHub Pages, `/docs` on `main`). Its reader is one step
+                             further out than README's -- **someone with no intention of opening the repository**,
+                             someone who was sent a link. Written in English (the only exception to the language rule
+                             is plan_ko.md).
+                             **It points rather than restates** -- 7's README rule applied once more at the document
+                             layer, and **numbers especially are kept out** (they go stale on being written; wrong
+                             three times in one day in `CLAUDE.md`).
+                             **Architecture's** -- it is `README.md`'s neighbour and belongs to no agent.
+                             It carries the same coupling as a root file (the addendum to 7.1 rule 9):
+                             `ALLOWED_PATHS` first, `SHARED_PATHS` to make the boundary `design`, and then 7 closes it
+    index.html             a one-screen landing page. The loop, the four-agent diagram, a slot for the film, three principles.
+                             **No build step and no dependency** -- the CSS, SVG and script are inside the file.
+                             The cost of opening it on another machine has to be zero, the same requirement as `uv.lock`
+    assets/                film and images. **Empty is the normal state** -- with no film the page shows a
+                             placeholder rather than a broken player (it says what is absent is absent, P1)
+  contracts/               ★ the only shared code. All four agents depend on it.
     schemas/               goal/plan/plan_approval/scope_approval/result/refusal/ask
                            + axis/synthesis/common/kb_entry
-    units.json             단위 레지스트리 (정본)
-    units.md               그 레지스트리의 설명 + 무차원군 entry의 필수 형식 (§5.7)
-    observables.json       공유 관측량 어휘 (정본). 질문마다 한 항목씩 자란다 (§11-1)
-    quantities.json        `numbers[].name`이 쓰는 **양의 레지스트리** (정본). `observables.json`과
-                           **합치지 않고 나란히 둔다**: 그쪽은 *무엇을 생산하고 비교할 수 있나*를 등록해
-                           항목마다 `estimator`·`window_required`·`producible_by`를 달지만, 커버슬립
-                           두께나 픽셀 크기는 **아무도 생산하지 않고 아무것과도 비교되지 않는다.**
-                           맞추려고 추정기를 지어 주는 것은 도치다. **모든 observable은 quantity이고
-                           역은 아니다** — **요구이지 현재 상태의 서술이 아니다**: 2026-09-19에 관측량 둘이 아직 여기 없었고, 검사 60이 그 포함을 집행한다. 규칙 1은 데이터가 썼다 — **이름은 양을 말하지 자기 주어나
-                           locus를 말하지 않는다**(§5.3.3의 `at`, 검사 44의 `subject`). 성장은
-                           `observables.json`과 같다: 질문이 필요로 할 때 하나씩, 투기적으로는 절대
-    seats.json             커미터 신원 → 소유 경계. 검사 41이 읽는다 (§6.2.1)
-    validation_limits.json 검증기 임계값. `null`은 "아직 아무도 고르지 않음"이다
-    validate.py            결정론적 검증기
-    capabilities/          구성(모달리티)별 "산출 가능한 관측량" 표 — S3.0의 입력
-    hooks/                 커밋 시점 게이트. `core.hooksPath`로 설치한다 (§8)
-    examples/              손으로 쓴 카드 한 벌 + 반드시 실패하는 카드들
-      rejected/            파일 하나 = 픽스처 하나
-        check<NN>_<what>/  두 파일이 짝을 이뤄야 표현되는 결함 (§11-7)
-  microscope_agent/                 최상위 폴더 3개 + CLAUDE.md
-    README.md              이 에이전트가 무엇이고 오늘 무엇이 되는지. **매니저 소유**
-    tasks/                 **매니저가 쓰고 실행석이 읽는다.** 내려가는 지시의 집 (§6.2-2).
-                           실행석은 자기 큐를 고칠 수 없어야 하므로 이 경로는 매니저 소유다
-    CLAUDE.md                       역할 / 하지 않는 일 / 권한
-    envelope/                       safety.json        안전 정책 — 사람 소유, Tier 3 (§2.1).
-                                                       envelope이 스스로 소유하는 유일한 파일
-                                    snapshot.json      사서 KB의 읽기 전용 사본 — 장치 레지스트리,
-                                                       유효 광경로, 캘리브레이션 (M3, §4.3.2)
-    failures.jsonl                  **좌석 단위의 막다른 길.** `questions/`가 없는 좌석(사서·브리지)은 여기만 쓴다.
-    rulings.jsonl                   **§10.2.1 판정.** 이전 저장소에서 건너오는 항목마다 한 줄:
+    units.json             the unit registry (the record)
+    units.md               a description of that registry + the mandatory form of a dimensionless-group entry (5.7)
+    observables.json       the shared observable vocabulary (the record). It grows one entry per question (11-1)
+    quantities.json        the **quantity registry** that `numbers[].name` uses (the record). It is kept
+                           **beside `observables.json` rather than merged with it**: that one registers *what can be
+                           produced and compared*, giving each entry an `estimator`, `window_required` and
+                           `producible_by`, while coverslip thickness and pixel size are **produced by nobody and
+                           compared with nothing.** Inventing an estimator to make them fit is inversion. **Every
+                           observable is a quantity and not the reverse** -- **a requirement, not a description of
+                           the present state**: on 2026-09-19 two observables were not yet here, and check 60
+                           enforces that inclusion. Rule 1 was written by the data -- **a name states the quantity,
+                           not its own subject or locus** (5.3.3's `at`, check 44's `subject`). Growth is as with
+                           `observables.json`: one at a time when a question needs it, never speculatively
+    seats.json             committer identity -> owned boundary. Read by check 41 (6.2.1)
+    validation_limits.json the validator's thresholds. `null` means "nobody has chosen one yet"
+    validate.py            the deterministic validator
+    capabilities/          the "producible observables" table per configuration (modality) -- S3.0's input
+    hooks/                 the commit-time gate. Installed with `core.hooksPath` (8)
+    examples/              one hand-written set of cards + cards that must fail
+      rejected/            one file = one fixture
+        check<NN>_<what>/  a defect that takes two files to express (11-7)
+  microscope_agent/                 three top-level folders + CLAUDE.md
+    README.md              what this agent is and what it becomes today. **The manager's**
+    tasks/                 **the manager writes and the execution seat reads.** The home of downward instructions (6.2-2).
+                           An execution seat must not be able to edit its own queue, so this path is the manager's
+    CLAUDE.md                       role / what it does not do / permissions
+    envelope/                       safety.json        the safety policy -- the person's, Tier 3 (2.1).
+                                                       the only file envelope owns itself
+                                    snapshot.json      a read-only copy of the librarian's KB -- the device registry,
+                                                       valid optical paths, calibration (M3, 4.3.2)
+    failures.jsonl                  **dead ends, per seat.** Seats with no `questions/` (librarian, bridge) write only here.
+    rulings.jsonl                   **10.2.1 rulings.** One line per item crossing from a prior repository:
                                       `{ruling: transfer|downgrade|drop, item, slot, rule, by, at}`.
-                                      **`by`는 손이 아니라 판단을 대는 자리다** — 매니저가 내린 판정을
-                                      실행석이 적을 수 있고, 그때 `by`가 없으면 장부가 모든 판정을
-                                      실행석의 것으로 조용히 귀속한다(§6.2.1의 그 결함이 새 파일에서).
-                                      실행석이 쓴다. append-only, 지우지 않는다 (§7.1 규칙 9)
-                                      §6.2.3이 완료 조건으로 걸어 두고도 2026-09-18까지 경로를 주지 않았다 — 구조적으로 충족 불가능했다
-    approvals/                      사람이 쓰는 유일한 폴더 — plan_approval, scope_approval
-    inbox/<thread>/                 **브리지가 쓰고 이 에이전트가 읽는다.** 배달된 `r<N>_ask_*.{json,md}`만.
-                                    **`status.json` 사본은 두지 않는다** — 차례는 수신함에 있다는 사실
-                                    자체다(§7.1 규칙 8). **경계는 `bridge`다** — 자리만 이 트리 안이고
-                                    쓰는 주체는 브리지다(§6.2-3)
-    questions/<qid>/                한 질문의 모든 것이 이 한 폴더에 평평하게
-                                      failures.jsonl                  (검증기 실패·거절·편차, §8.1)
-                                      question_microscope_<qid>.md    (S2, 사람용)
-                                      goal.json                       (S2, 정본)
-                                      axis_<config>_a1.json …          (S3, 구성 × 축별 제약)
+                                      **`by` names the judgement, not the hand** -- an execution seat may write down
+                                      a ruling a manager made, and without `by` the ledger silently attributes every
+                                      ruling to the execution seat (6.2.1's defect in a new file).
+                                      The execution seat writes it. Append-only, never deleted (7.1 rule 9).
+                                      6.2.3 hung a completion condition on it and gave it no path until 2026-09-18 --
+                                      it was structurally unsatisfiable
+    approvals/                      the only folder a person writes -- plan_approval, scope_approval
+    inbox/<thread>/                 **the bridge writes and this agent reads.** Only delivered `r<N>_ask_*.{json,md}`.
+                                    **No copy of `status.json` is kept** -- the turn is the fact of being in the
+                                    inbox (7.1 rule 8). **The boundary is `bridge`** -- only the place is inside this
+                                    tree and the writer is the bridge (6.2-3)
+    questions/<qid>/                everything about one question, flat in this one folder
+                                      failures.jsonl                  (validator failures, refusals, deviations, 8.1)
+                                      question_microscope_<qid>.md    (S2, for people)
+                                      goal.json                       (S2, the record)
+                                      axis_<config>_a1.json …          (S3, per configuration × axis constraints)
                                       synthesis.json                  (S4)
-                                      plan_microscope_<qid>.json      (S5, 정본)
-                                      plan_microscope_<qid>.md        (S5, 생성물)
-                                      refusal.json                    (있을 때만)
+                                      plan_microscope_<qid>.json      (S5, the record)
+                                      plan_microscope_<qid>.md        (S5, generated)
+                                      refusal.json                    (only when there is one)
     runs/<run_id>/                  raw/, log.json, deviations.json
-    src/                            결정론적 코드 (§7.2)
-                                      axis_a1_snr.py … axis_a7_driving.py    (S3, 7개)
+    src/                            deterministic code (7.2)
+                                      axis_a1_snr.py … axis_a7_driving.py    (S3, seven)
                                       synthesis.py                           (S4)
                                       operator.py                            (S6)
-                                      orchestrator.py   단일 진입점·병렬 (§4.6.8)
-                                      devices/          제어 채널당 1개 + manual.py, mock.py
-    .claude/skills/                 S2 정교화 / system_designer / system_operator / 편차 기록
-  simulation_agent/                 위와 같은 구조, 축 목록만 다름 (§4.5.3)
+                                      orchestrator.py   single entry point, parallel (4.6.8)
+                                      devices/          one per control channel + manual.py, mock.py
+    .claude/skills/                 S2 refinement / system_designer / system_operator / deviation recording
+  simulation_agent/                 the same structure, only the axis list differs (4.5.3)
     CLAUDE.md
-    envelope/                       budget.json (자원 천장 — 벽시계·저장·smoke), snapshot.json.
-                                    **`safety.json`은 여기 없다** — 이 트리에 비가역 물리 동작이 없다(§2.1)
-    approvals/                      사람이 쓰는 유일한 폴더
-    inbox/<thread>/                 **브리지가 쓰고 이 에이전트가 읽는다.** 배달된 `r<N>_ask_*.{json,md}`만.
-                                    **`status.json` 사본은 두지 않는다** — 차례는 수신함에 있다는 사실
-                                    자체다(§7.1 규칙 8). **경계는 `bridge`다** — 자리만 이 트리 안이고
-                                    쓰는 주체는 브리지다(§6.2-3)
+    envelope/                       budget.json (resource ceilings -- wall clock, storage, smoke), snapshot.json.
+                                    **`safety.json` is not here** -- there is no irreversible physical action in this tree (2.1)
+    approvals/                      the only folder a person writes
+    inbox/<thread>/                 **the bridge writes and this agent reads.** Only delivered `r<N>_ask_*.{json,md}`.
+                                    **No copy of `status.json` is kept** -- the turn is the fact of being in the
+                                    inbox (7.1 rule 8). **The boundary is `bridge`** -- only the place is inside
+                                    this tree and the writer is the bridge (6.2-3)
     questions/<qid>/                question_…md, goal.json, axis_<config>_a1–a7.json,
                                     synthesis.json, plan_simulation_<qid>.{json,md}
     runs/<run_id>/                  config, trajectory_meta, observables, log.json
     src/                            axis_a1_stability.py … axis_a5_budget.py + axis_a7_driving.py
-                                    (A6 없음, §4.5.3), synthesis.py, operator.py,
+                                    (no A6, 4.5.3), synthesis.py, operator.py,
                                     hoomd_backend.py, mock_backend.py
-                                    (orchestrator·devices 없음 — 조율 대상이 하나다, §4.6.8)
-    .claude/skills/                 S2 정교화 / system_designer / system_operator / 수렴 판정
-  librarian_agent/                  시스템의 유일한 지식 저장소 (P14)
+                                    (no orchestrator and no devices -- there is one thing to coordinate, 4.6.8)
+    .claude/skills/                 S2 refinement / system_designer / system_operator / convergence judgement
+  librarian_agent/                  the system's only knowledge store (P14)
     CLAUDE.md
     kb/entries/  kb/sources/  kb/distilled/  kb/lessons/
-    kb/staging/                     이전 저장소에서 추출한 표. **최종 형태가 아니다** — 질의 방식이 정해지는 M3에 원자적 entry로 분해한다(§11.1)
-    kb/index.json                   생성물. `kb_version` = entry 전체의 내용 해시
-    kb/exports/snapshot_<agent>.json  발행처. 각 에이전트 세션이 자기 envelope으로 복사해 간다 (§4.3.2)
-    queries/log.jsonl               누가 무엇을 왜 물었나. **`kb/` 밖이다** — 기록이지 지식이 아니다(§4.3.2)
-    src/kb_index.py                 인덱스 재생성 (저장소 유지관리, M0부터)
-    src/mcp_server.py               읽기 전용·caller 격리 MCP 서버 (§4.3.1, M3)
-    src/export_snapshot.py          kb/exports/ 발행. 남의 디렉터리에 쓰지 않는다 (M3)
-    src/query_log.py                queries/log.jsonl 기록과 오프라인 감사. 읽기 함수 없음 (§4.3.2)
-    .claude/skills/                 질의 응답, 증류, 충돌 처리, 외부 검색 (쓰기는 여기서만)
+    kb/staging/                     tables extracted from a prior repository. **Not the final form** -- decomposed
+                                      into atomic entries at M3, when the query method is settled (11.1)
+    kb/index.json                   generated. `kb_version` = a content hash over all entries
+    kb/exports/snapshot_<agent>.json  the publication point. Each agent session copies it into its own envelope (4.3.2)
+    queries/log.jsonl               who asked what and why. **Outside `kb/`** -- it is a record, not knowledge (4.3.2)
+    src/kb_index.py                 index regeneration (store maintenance, from M0)
+    src/mcp_server.py               the read-only, caller-isolated MCP server (4.3.1, M3)
+    src/export_snapshot.py          publishes kb/exports/. It does not write into another's directory (M3)
+    src/query_log.py                writing queries/log.jsonl and offline auditing. No read function (4.3.2)
+    .claude/skills/                 answering queries, distillation, conflict handling, external search (writes only here)
   bridge/
     CLAUDE.md
-    README.md                       이 에이전트가 무엇이고 오늘 무엇이 되는지. **매니저 소유**
-    tasks/                          매니저가 쓰고 이 좌석이 읽는다. 내려가는 지시의 집 (§6.2-2)
-    threads/<thread>/               라운드는 폴더가 아니라 파일명 접두사로 구분
+    README.md                       what this agent is and what it becomes today. **The manager's**
+    tasks/                          the manager writes and this seat reads. The home of downward instructions (6.2-2)
+    threads/<thread>/               rounds are separated by filename prefix, not by folder
                                       r1_ask_simulation.json, r1_ask_simulation.md,
                                       r1_hashes.json, r2_…, status.json
-  .mcp.json                사서 MCP 서버 등록. **해석 기준점은 자기 worktree의 루트다** —
-                             `sh -c 'exec python3 "$(git rev-parse --show-toplevel)/…"'`.
-                             세 번 틀린 끝에 나온 제약이다: 기준점이 **세션의 cwd이면 안 되고**(좌석마다 다르다)
-                             **특정 체크아웃의 절대경로여도 안 된다**(worktree마다 같아진다). `.mcp.json`은
-                             추적되므로 worktree마다 자기 사본이 자기 루트에 있고, **worktree마다 다르면서
-                             좌석과 무관한 값은 그것뿐이다.**
-                             상대경로(`librarian_agent/src/…`)는 런처 cwd가 **좌석 하위 디렉터리**라 깨졌고 —
-                             런처 로그가 스스로 그렇게 적었다 — `${CLAUDE_PROJECT_DIR:-.}`은 변수가 unset이라
-                             같은 자리로 떨어졌다. 절대경로는 뜨기는 하지만 **worktree 격리를 깬다**: 2026-09-18에
-                             `microscope-1`의 체크아웃이 `kbv-fdef964aca56`인데 공유 사본이 답한 값은
-                             `kbv-67f9ad766d92`였다. 그러면 검사 26이 대조할 상대(자기 worktree의 snapshot)와
-                             서버가 말한 것이 다르고, **카드가 자기 커밋 이력에 바이트가 없는 `kb_version`을
-                             인용한다** — P14가 "어느 KB 버전이 이 envelope에 들어왔는가는 이 에이전트의 커밋
-                             이력의 사실"이라고 한 것이 성립하지 않는다. 현미경 좌석 둘이 재서 올렸다.
-                             저장소 밖에서는 **폴백하지 않고 실패한다**(§8.2: 조용한 폴백은 시험을 통과시키면서
-                             현장에서 실패한다).
-                             **아키텍처 소유** — `.claude/`의 형제이고 넷이 공유하는 진입점이라 어느 에이전트의 것도 아니다
-                             **`.claude/settings.json`과 달리 상위로 상속된다** — 하위 디렉터리에서 띄운
-                             세션도 이 등록을 읽는다(2026-09-18 실증: `librarian_agent/`에서 보이고,
-                             저장소 밖에서는 안 보인다). 그래서 등록은 루트 한 곳이면 되고 다섯 곳으로
-                             나눌 필요가 없다.
-                             **경로는 `${CLAUDE_PROJECT_DIR:-.}`로 쓴다.** 2026-09-18에 상대 경로로 썼다가
-                             **사서가 필요한 넷이 전부 연결 실패**했다 — 에이전트 세션의 cwd는 자기
-                             디렉터리이므로 `librarian_agent/src/…`가 `bridge/librarian_agent/…`나
-                             `librarian_agent/librarian_agent/…`로 풀렸다. 닿을 수 있던 것은 루트에 앉은
-                             두 좌석뿐이고 **그 둘은 Tier 0이라 카드를 쓰지 않는다** — 등록이 필요한 자리는
-                             전부 못 쓰고 쓸 수 있는 자리는 쓸 일이 없는 상태였다. 브리지 좌석이 잡았다.
-                             기본값 `:-.`이 필요한 것은 프로젝트 스코프 항목의 요구다.
-                             **등록만으로는 부족하다 — 사람이 승인해야 한다.** 지금 `Pending approval`이고,
-                             승인은 `~/.claude.json`에 **프로젝트 경로별로** 저장되므로 worktree마다
-                             따로 승인해야 한다. 승인 전에는 실행석이 도구를 못 보고, 그 실패는 조용하다
-                             — 도구가 없는 세션은 그냥 축소 경로로 간다(§0.3-4)
+  .mcp.json                registration of the librarian MCP server. **The resolution point is the root of its own
+                             worktree** -- `sh -c 'exec python3 "$(git rev-parse --show-toplevel)/…"'`.
+                             It is a constraint arrived at after being wrong three times: the resolution point
+                             **must not be the session's cwd** (it differs per seat) and **must not be one
+                             checkout's absolute path** (it becomes identical across worktrees). `.mcp.json` is
+                             tracked, so each worktree has its own copy at its own root, and **that is the only
+                             value that differs per worktree and is independent of the seat.**
+                             A relative path (`librarian_agent/src/…`) broke because the launcher's cwd is a
+                             **seat subdirectory** -- the launcher log said so itself -- and
+                             `${CLAUDE_PROJECT_DIR:-.}` fell in the same place because the variable is unset.
+                             An absolute path does come up but **breaks worktree isolation**: on 2026-09-18
+                             `microscope-1`'s checkout was `kbv-fdef964aca56` while the shared copy answered
+                             `kbv-67f9ad766d92`. Then what check 26 compares against (its own worktree's snapshot)
+                             differs from what the server said, and **a card cites a `kb_version` whose bytes are
+                             nowhere in its own commit history** -- P14's "which KB version entered this envelope
+                             is a fact of this agent's commit history" does not hold. Two microscope seats measured
+                             it and raised it.
+                             Outside the repository it **fails rather than falling back** (8.2: a silent fallback
+                             passes the test and fails in the field).
+                             **Architecture's** -- it is `.claude/`'s sibling and a shared entry point for four, so
+                             it belongs to no agent.
+                             **Unlike `.claude/settings.json` it is inherited downward** -- a session launched in a
+                             subdirectory reads this registration too (demonstrated 2026-09-18: visible from
+                             `librarian_agent/`, invisible outside the repository). So one registration at the root
+                             suffices and there is no need to split it five ways.
+                             **The path is written as `${CLAUDE_PROJECT_DIR:-.}`.** On 2026-09-18 it was written as
+                             a relative path and **all four seats needing the librarian failed to connect** -- an
+                             agent session's cwd is its own directory, so `librarian_agent/src/…` resolved to
+                             `bridge/librarian_agent/…` or `librarian_agent/librarian_agent/…`. The only ones that
+                             could reach it were the two seats at the root, and **those two are Tier 0 and write no
+                             cards** -- every position that needed the registration could not use it and every
+                             position that could had no use for it. The bridge seat caught it.
+                             The `:-.` default is required by project-scoped entries.
+                             **Registration alone is not enough -- a person has to approve.** It is `Pending
+                             approval` right now, and approval is stored in `~/.claude.json` **per project path**,
+                             so each worktree has to be approved separately. Before approval an execution seat
+                             cannot see the tools, and that failure is silent -- a session with no tools simply
+                             takes the degraded path (0.3-4)
   .claude/
-    settings.json          hooks (검증·권한 게이트)
-    agents/                공용 subagent 정의
+    settings.json          hooks (validation and permission gates)
+    agents/                shared subagent definitions
 ```
 
-**README는 셋째 사본이 되지 않아야 한다.** 네 문서가 각각 다른 독자를 갖는다:
+**README must not become a third copy.** Four documents have four different readers:
 
-| | 독자 | 성격 |
+| | Reader | Character |
 |---|---|---|
-| `plan.md` | 구조를 바꾸는 사람 | **정본.** 한국어, 길어도 된다 |
-| `CLAUDE.md` | 매 세션 | **구속하는 규칙.** 여섯 번 읽히므로 짧아야 한다 |
-| `README.md` | **둘 다 안 읽은 사람** | 무엇인지·오늘 무엇이 되는지·어디를 볼지 |
-| `docs/index.html` | **README도 안 열 사람** | 링크 하나를 받은 외부인. 30초 안에 *무엇을 하려는 시스템인가*만 |
+| `plan_ko.md` | someone changing the structure | **the record.** Korean, and allowed to be long |
+| `plan.md` | someone who does not read Korean | **generated.** The English rendering of the record; where they disagree, the Korean wins |
+| `CLAUDE.md` | every session | **binding rules.** Read six times, so it has to be short |
+| `README.md` | **someone who has read neither** | what it is, what it becomes today, where to look |
+| `docs/index.html` | **someone who will not even open README** | an outsider sent a link. Within 30 seconds, only *what is this system trying to do* |
 
-**그리고 넷째가 생긴 지금 위험은 README가 아니라 `docs/`다.** 셋째 사본을 경계하는 문장이 넷째 자리에서
-그대로 반복된다 — `docs/`는 원칙을 다시 열거하지 않고, 검사 목록을 옮기지 않고, 진행률을 적지 않는다.
-**그 페이지가 할 수 있고 다른 셋이 못 하는 일은 하나뿐이다: 그림과 영상.** 문장으로 할 수 있는 것은
-전부 이미 다른 자리에 있으므로 거기를 가리킨다. 2026-09-20에 사람이 요구한 것도 정확히 그것이다 —
-faculty가 링크를 열었을 때 30초 안에 루프가 닫혀 있다는 것이 보일 것.
+**And now that there is a fourth, the risk is not README but `docs/`.** The sentence guarding against a third copy repeats verbatim at the fourth position — `docs/` does not re-enumerate the principles, does not carry over the check list, and does not write a progress percentage. **There is exactly one thing that page can do and the other three cannot: pictures and film.** Everything sayable in sentences is already somewhere else, so it points there. That is precisely what the person asked for on 2026-09-20 — that a faculty member opening the link sees within 30 seconds that the loop is closed.
 
-**README는 재진술하지 않는다. 가리킨다.** 원칙·결정·검사 목록·절차를 다시 쓰면 오늘 네 번 본 그 실패가 셋째 자리에서 반복된다 — 봉투가 숫자를 복창하지 않는 것(§4.4-5), 카드가 정의를 복창하지 않는 것(§5.1), md가 json을 복창하지 않는 것(검사 9)과 **같은 규칙이 문서 층에 적용된 것**이다. 절 번호를 대고 끝낸다.
+**README does not restate. It points.** Rewrite the principles, the decisions, the check list or the procedures and the failure seen four times today repeats at a third position — it is **the same rule applied at the document layer** as the envelope not echoing numbers (§4.4-5), a card not echoing a definition (§5.1), and Markdown not echoing JSON (check 9). Name the section number and stop.
 
-**숫자는 특히 그렇다.** 검사 몇 개, 카드 몇 장, 진행 몇 퍼센트는 **적는 순간 낡는다** — `CLAUDE.md`에서 하루에 세 번 틀렸다. 상태를 말해야 하면 **무엇을 돌려 보면 되는지**를 적는다.
+**Numbers especially.** How many checks, how many cards, what percentage complete **go stale the moment they are written** — wrong three times in one day in `CLAUDE.md`. If the status has to be stated, write **what to run** instead.
 
-**`agentic-microscope`의 README는 2215줄이다.** 열려 있으므로 구조는 봐도 되지만(§10.2), **길이는 본이 아니라 경고다.** README를 위해 그 저장소를 보는 것은 값이나 식의 이관이 아니므로 §10.2.1의 판정 대상이 아니지만, **문장을 옮기면 그때는 판정 대상이다.**
+**`agentic-microscope`'s README is 2215 lines.** It is open, so the structure may be looked at (§10.2), but **the length is a warning rather than a model.** Looking at that repository for the sake of the README is not a transfer of a value or an expression, so it is not subject to a §10.2.1 ruling — but **carrying a sentence across is.**
 
-### 7.1 산출물 트리 규칙 (P12)
+### 7.1 Output-tree rules (P12)
 
-1. **한 질문 = 한 폴더.** `questions/<qid>/`에 question·goal·축별 제약·synthesis·plan이 평평하게 놓인다. 폴더 하나만 열면 그 질문의 전말이 보인다.
-2. **단계별 폴더를 만들지 않는다** (`stage3/`, `system_designer/` 같은 것). 어느 단계의 산출물인지는 **파일명이** 말한다.
-3. **라운드는 `r<N>_`, 리비전은 `v<N>_`.** 폴더를 파면 깊이만 늘고 목록이 한눈에 안 보인다. **둘은 다른 것이므로 접두사도 다르다** — 2026-09-18까지 이 규칙이 "라운드·리비전은 파일명 접두사로"라고 **둘을 한 문장에 묶었고**, 검사 13의 구현이 앞엣것을 택해 `r<N>_`을 카드의 `round` 필드와 대조했다. 그래서 §4.5.5대로 리비전 2를 `r2_`로 옆에 두면 `the filename says round 2 and the card says 0`이 났고, **§4.5.5를 따를 수 없는 상태**가 됐다. 구현이 틀린 것이 아니라 **한 문장이 두 가지를 뜻하면 읽는 쪽이 하나를 고른다** — 오늘 `accept`/`refuse`·`unconstrained`·`derived`·`degraded`에 이어 다섯 번째다. 라운드는 브리지의 `threads/<thread>/`에, 리비전은 `<agent>/questions/<qid>/`에 산다. 한 폴더에서 같이 나타나지 않으므로 위치로도 갈 수 있었지만, **암묵 규칙이 오늘 네 번 물렸으므로 눈에 보이는 표시를 쓴다.**
-4. **식별자는 밖으로 나가는 산출물의 파일명에만** 박는다(`question_…`, `plan_…`). 내부 중간물은 `goal.json`, `axis_A1.json`처럼 짧게 — 경로가 이미 누구의 어느 질문인지 말해준다.
-5. **승인 카드는 `approvals/`에 따로 둔다.** `scope_approval`은 여러 질문에 걸치므로 `questions/<qid>/`가 담을 수 없다. 부수 효과가 본질이다 — **에이전트는 `questions/`에 쓰고 사람은 `approvals/`에 쓴다.** 쓰기 주체가 폴더로 갈린다(§8 검사 35).
-6. **깊이 상한 3단** (에이전트 디렉터리 기준). 유일한 예외는 `runs/<run_id>/raw/` — 원시데이터는 장비가 뱉는 구조를 따른다.
-7. **새 폴더는 이 문서를 고쳐야 생긴다.** §7에 선언되지 않은 경로에 쓰면 검증기가 실패시킨다(§8 검사 13). **개수 상한은 두지 않는다** — 숫자는 폴더 안에 폴더를 파는 것으로 우회되지만, 선언 의무는 우회할 수 없다.
-8. **배달은 받는 쪽 트리에 놓는다. 받는 쪽이 브리지를 열러 가지 않는다.** `<agent>/inbox/`는 **브리지가 쓰고 그 에이전트가 읽는** 유일한 폴더다 — `approvals/`가 사람 것이고 `tasks/`가 매니저 것인 것과 같은 모양이고(규칙 5), 쓰는 주체가 폴더로 갈린다. **분류상 경계는 `bridge`이지 그 에이전트가 아니다**: 자리만 그 트리 안이고, 에이전트가 자기 수신함에 쓰면 배달을 위조하는 것이 된다. 반대안 — 실행석이 `bridge/threads/`를 직접 읽게 하는 것 — 은 **거절한다. §7의 분리 경로를 깬다**: 현미경 PC로 떼어낼 때 가져가는 것은 `microscope_agent/` + `contracts/`뿐이므로 `bridge/`는 따라가지 않고, 수신함을 거기 두면 분리한 순간 라운드가 보이지 않는다. 오늘 가장 작아 보이는 수가 D1에서 가장 비싼 수다. **수신함은 봉투만 담고 차례는 담지 않는다**: `status.json`은 스레드에서 유일하게 **변하는** 파일이라 사본은 차례가 움직이는 순간 낡고, 그 드리프트가 바로 예시 라운드를 하루 동안 "the human's turn"으로 만든 것이다 — 하필 좌석이 첫 라운드를 쓸 때 본으로 삼는 파일이었고 실제로 복사됐다. **수신함에 봉투가 있다는 것이 곧 네 차례라는 뜻**이므로 더 쓸 것이 없고, 낡을 수 있는 것을 두 자리에 두지 않는다(§11-11). 받는 쪽이 라운드를 취한 표시는 goal의 `from_round`(`thr-…:r<N>`)이고, 브리지는 이미 양쪽 `questions/`를 읽으므로 **반대 방향으로 아무것도 쓰지 않고** 그것을 안다. 수신함에서는 아무것도 지우지 않는다 — 배달은 일어났고 그 파일이 그 기록이다(P1). 브리지 매니저가 2026-09-19에 정했다.
-9. **접은 것과 내린 것은 다른 장부에 산다.** `failures.jsonl`은 **막다른 길** — 시도했다 접은 것이다. `rulings.jsonl`은 **내려진 판정** — §10.2.1의 transfer/downgrade/drop이고, **`drop`은 실패가 아니라 성공적으로 내려진 판정이다**(그 항목은 A1–A7 어디에도 슬롯이 없다고 판단됐다). 한 장부에 담으면 그 구별이 사라진다. `questions/<qid>/`도 아니다 — 판정은 질문이 아니라 **과제** 단위로 내려진다(§9.3).
+1. **One question = one folder.** The question, goal, per-axis constraints, synthesis and plan sit flat in `questions/<qid>/`. Open one folder and the whole story of that question is visible.
+2. **Do not create per-stage folders** (`stage3/`, `system_designer/` and the like). Which stage an output belongs to is said by **the filename.**
+3. **A round is `r<N>_` and a revision is `v<N>_`.** Digging folders only adds depth and stops the listing being readable at a glance. **They are different things so their prefixes differ** — until 2026-09-18 this rule said "rounds and revisions go in the filename prefix", **binding the two into one sentence**, and check 13's implementation picked the first and compared `r<N>_` against the card's `round` field. So putting revision 2 beside it as `r2_` per §4.5.5 produced `the filename says round 2 and the card says 0`, and **§4.5.5 became unfollowable.** It is not that the implementation was wrong but that **when one sentence means two things, the reader picks one** — the fifth today after `accept`/`refuse`, `unconstrained`, `derived` and `degraded`. Rounds live in the bridge's `threads/<thread>/` and revisions in `<agent>/questions/<qid>/`. They never appear in one folder, so position could have done it, but **an implicit rule bit four times today, so a visible mark is used.**
+4. **Identifiers go only in the filenames of outputs that leave** (`question_…`, `plan_…`). Internal intermediates stay short, like `goal.json` and `axis_A1.json` — the path already says whose and which question.
+5. **Approval cards go separately in `approvals/`.** A `scope_approval` spans several questions, so `questions/<qid>/` cannot hold it. The side effect is the essence — **agents write into `questions/` and the person writes into `approvals/`.** The writing party is separated by folder (§8 check 35).
+6. **A depth ceiling of three** (relative to the agent directory). The only exception is `runs/<run_id>/raw/` — raw data follows whatever structure the instrument emits.
+7. **A new folder comes into being by editing this document.** Write to a path §7 does not declare and the validator fails it (§8 check 13). **There is no ceiling on the count** — a number is bypassed by digging folders inside folders, while the obligation to declare cannot be bypassed.
+8. **Delivery is placed in the receiving tree. The receiver does not go and open the bridge.** `<agent>/inbox/` is the only folder **the bridge writes and that agent reads** — the same shape as `approvals/` being the person's and `tasks/` being the manager's (rule 5), with the writing party separated by folder. **For classification the boundary is `bridge` and not that agent**: only the place is in that tree, and an agent writing its own inbox forges a delivery. The alternative — having the execution seat read `bridge/threads/` directly — is **refused. It breaks §7's separation path**: taking the microscope PC means taking `microscope_agent/` plus `contracts/` only, so `bridge/` does not follow, and putting the inbox there makes the round invisible the moment it separates. Today's smallest-looking move is D1's most expensive one. **The inbox holds envelopes and not the turn**: `status.json` is the only file in a thread that **changes**, so a copy goes stale the instant the turn moves, and that drift is exactly what left the example round reading "the human's turn" for a day — it happened to be the file a seat used as a model when writing its first round, and it was in fact copied. **An envelope being in the inbox already means it is your turn**, so there is nothing more to write, and what can go stale is not kept in two places (§11-11). The receiver's mark of having taken a round is the goal's `from_round` (`thr-…:r<N>`), and the bridge, already reading both sides' `questions/`, knows it **while writing nothing in the reverse direction.** Nothing is deleted from an inbox — the delivery happened and that file is the record of it (P1). The bridge manager settled it on 2026-09-19.
+9. **What was abandoned and what was ruled live in different ledgers.** `failures.jsonl` is **dead ends** — things tried and abandoned. `rulings.jsonl` is **rulings made** — §10.2.1's transfer/downgrade/drop, and **a `drop` is not a failure but a successfully made ruling** (that item was judged to have no slot anywhere in A1–A7). Put them in one ledger and that distinction disappears. Nor `questions/<qid>/` — a ruling is made per **task**, not per question (§9.3).
 
-    **그리고 저장소 루트의 파일은 목록 **둘**에 들어가야 한다 — 검사기 안의 `ALLOWED_PATHS`와 `SHARED_PATHS`.** 둘이 같은 여섯을 들고 있는 것은 우연이 아니라 **역할이 다른데 대상이 같은 것**이다: 앞엣것은 *이 파일이 존재해도 되는가*, 뒤엣것은 *누구 경계인가*. **`ALLOWED_PATHS`에만 넣으면 검사 13은 통과하는데 경로가 `unattributable`로 남는다** — 존재해도 되지만 누가 커밋해도 되는지는 아무도 모르는 상태이고, 검사 41이 귀속할 것을 못 찾는다. 2026-09-19에 `pyproject.toml`과 `uv.lock`이 그 자리였다. **§11-11이 세는 두 자리는 아니다**(같은 사실이 아니라 같은 대상에 대한 다른 질문이다) **그러나 결합은 실재하고 어디에도 적혀 있지 않았다.** `SHARED_PATHS`에 들어가면 경계는 `design`이 되고, 그것이 저장소 전체 매니페스트에 맞는 답이다 — 네 매니저가 각자 의존성을 더할 것이므로 한 좌석 것이면 나머지 셋이 매번 왕복한다. `contracts/`와 같은 모양으로 검사 41은 귀속만 주고 거절은 하지 않는다. 시뮬레이션 매니저가 올렸다.
+    **And a file at the repository root has to go into **two** lists — `ALLOWED_PATHS` and `SHARED_PATHS` inside the validator.** The two holding the same six is not a coincidence but **different roles over the same subject**: the first asks *may this file exist*, the second asks *whose boundary is it in*. **Put it in `ALLOWED_PATHS` alone and check 13 passes while the path stays `unattributable`** — it may exist and nobody knows who may commit it, and check 41 finds nothing to attribute. On 2026-09-19 `pyproject.toml` and `uv.lock` were in that position. **They are not the two places §11-11 counts** (not the same fact but different questions about the same subject) **but the coupling is real and was written nowhere.** Entered into `SHARED_PATHS`, the boundary becomes `design`, and that is the right answer for a whole-repository manifest — the four managers will each add dependencies, so if it belonged to one seat the other three would round-trip every time. The same shape as `contracts/`: check 41 gives attribution and not refusal. The simulation manager raised it.
 
-    **그래서 두 좌석이 같이 선언해야 할 때는 부재를 검사가 견뎌 주는 쪽이 먼저 간다.** 여기서는 `ALLOWED_PATHS`가 먼저다 — 검사 55는 **§7이 대는 경로를 정규식이 허용하는가** 한 방향만 보므로, 정규식만 먼저 들어가면 55가 볼 것이 없어 침묵하고 §7이 뒤따라 통과한다. 반대로 하면 §7이 착지하는 순간 55가 거절한다. **동시에는 안 된다**: `plan.md`는 아키텍처, `validate.py`는 매니저라 한 커밋이 될 수 없고 검사 41이 막는다.
+    **So when two seats have to declare together, the one whose absence a check tolerates goes first.** Here that is `ALLOWED_PATHS` — check 55 looks only one way, at **whether the regex permits a path §7 names**, so with the regex in first there is nothing for 55 to see and it stays silent, and §7 follows and passes. The other way round, 55 refuses the moment §7 lands. **Simultaneously is impossible**: `plan.md` is architecture's and `validate.py` is the manager's, so they cannot be one commit and check 41 blocks it.
 
-    **그리고 55가 한 방향만 보는 것은 결함이 아니라 설계다 — 다음 사람이 "불완전하다"고 고치지 않도록 여기 적는다.** 양방향이면 **어느 절반을 먼저 놓아도 막혀서 두 좌석이 영영 못 들어간다.** 한 방향이라 **통과 순서가 정확히 하나 존재한다.** 같은 모양이 §8에도 있다 — 구현이 먼저고 선언이 닫으며, 반대로 하면 게이트가 검증기 전체를 돌려 모든 세션이 멈춘다. **두 좌석이 관여하는 검사는 통과 가능한 순서를 하나 남겨야 한다.**
+    **And 55 looking one way is design and not a defect — written here so the next person does not "complete" it.** Bidirectional means **either half is blocked whichever is placed first, and the two seats can never get in.** One-way means **exactly one passing order exists.** The same shape is in §8 — implementation first and the declaration closes it, and the other way round the gate runs the whole validator and every session stops. **A check involving two seats has to leave one order that can pass.**
 
-    **자리가 없으면 그 부류가 세어지지 않고, 그것이 이미 일어났다.** §9.3 기준 ②가 묻는 것이 정확히 *"댈 수 없어 폐기한 것이 몇인가"*인데 **폐기는 정의상 산출물을 남기지 않는다.** 2026-09-19에 저장소 전체 `ruling` 값이 transfer 5 · downgrade 1 · **drop 0**이었다. 0은 작업에 대한 사실이 아니라 **적을 자리가 없다는 사실**이고, 그 구별이 안 되는 동안 기준 ②는 영원히 셀 수 없다. **A/B가 재개되기 전에 있어야 한다** — 그 사이에 폐기된 것은 영영 안 세어진다. 현미경 매니저가 올렸다.
+    **Where there is no place, that class is not counted, and that has already happened.** §9.3's criterion ② asks exactly *"how many were discarded for being unattributable"*, and **discarding by definition leaves no output.** On 2026-09-19 the repository-wide `ruling` values were transfer 5 · downgrade 1 · **drop 0**. The 0 is not a fact about the work but **the fact that there is nowhere to write one**, and while that distinction cannot be made, criterion ② can never be counted. **It has to exist before the A/B resumes** — whatever is discarded in between is never counted. The microscope manager raised it.
+**The delivery path and the reader are two facts, and on 2026-09-19 only the first was written.** On the day rule 8 came into being, round 1 was actually delivered into `microscope_agent/inbox/` and every mechanism worked — checks 8, 13 and 41 passed, the payload hash recomputed identically, and the receiving side compared the envelope against the schema and confirmed it intact. **But the word `inbox` was not in the receiving side's instructions.** That seat's `CLAUDE.md` was last touched at 00:41 and this rule arrived at 10:25, so **there was no reason to open that directory.** The receiving side's own wording is kept: **it was a dead letter by design, and a message saved it.** Not "nobody read it" but **"the receiving side never had a reason to read it."** And that structure is exactly §6.2 rule 2's shape — the notification worked and **left no trace.** If that session resets, the only thing saying a round is waiting is an untracked file nobody was instructed to open.
 
-**배달 경로와 읽는 사람은 두 개의 사실이고, 2026-09-19에 첫째만 적혔다.** 규칙 8이 생긴 날 라운드 1이 `microscope_agent/inbox/`에 실제로 배달됐고 기제는 전부 작동했다 — 검사 8·13·41 통과, payload 해시 재계산 일치, 받는 쪽이 봉투를 스키마에 대조해 온전하다고 확인했다. **그런데 받는 쪽의 지시문에 `inbox`라는 단어가 없었다.** 그 좌석의 `CLAUDE.md`는 00:41에 마지막으로 손댔고 이 규칙은 10:25에 들어왔으니, **그 디렉터리를 열 이유가 없었다.** 받는 쪽의 표현을 그대로 남긴다: **설계상 죽은 편지였고, 메시지가 그것을 구했다.** "아무도 안 읽었다"가 아니라 **"받는 쪽이 읽을 이유를 가진 적이 없다"**이다. 그리고 그 구조는 §6.2 규칙 2의 모양 그대로다 — 알림은 작동했고 **흔적을 남기지 않았다.** 그 세션이 초기화되면 라운드가 기다린다고 말하는 것은 아무도 열라고 지시받지 않은 추적되지 않는 파일뿐이다.
+**Therefore delivery goes only to a named recipient.** The receiving agent's instructions have to name `inbox/` for a delivery to happen, and where they do not, **the round is not delivered and stops visibly** (P0's shape: ambiguity does not proceed, it stops). That is better than sitting quietly in an inbox — a sitting round **looks delivered and is not read.**
 
-**그러므로 배달은 이름이 있는 수신자에게만 한다.** 받는 에이전트의 지시문이 `inbox/`를 대고 있어야 배달이 일어나고, 대고 있지 않으면 **라운드는 배달되지 않고 눈에 보이게 멈춘다**(P0의 모양: 모호하면 진행하지 않고 멈춘다). 조용히 수신함에 앉아 있는 것보다 낫다 — 앉아 있는 라운드는 **배달된 것처럼 보이면서 읽히지 않는다.**
+**Naming the recipient is that agent's manager's job.** A thread names an **agent**, not a seat — one agent may have more than one execution seat (D12), and on 2026-09-19 the same notification reached two execution seats and **both correctly did nothing.** Each was correct because neither had been instructed, and the result is **a state that looks staffed and is not.** That assignment is work and not a tier, so the manager makes it (§6.2.2: work goes down and permission does not). **If the manager's position is empty, that agent does not receive rounds.** That is exposed rather than absorbed — when an empty position is the cause and something else fills in, the empty position is invisible.
 
-**수신자를 지목하는 것은 그 에이전트의 매니저다.** 스레드는 **에이전트**를 대지 좌석을 대지 않는다 — 한 에이전트에 실행석이 둘 이상일 수 있고(D12), 2026-09-19에 같은 알림이 실행석 둘에 닿아 **둘 다 옳게 아무것도 하지 않았다.** 각자 지시받지 않았으므로 옳았고, 결과는 **사람이 있는 것처럼 보이는데 없는 상태**다. 그 배정은 일이지 계층이 아니므로 매니저가 내린다(§6.2.2: 일은 내려가고 권한은 내려가지 않는다). **매니저 자리가 비어 있으면 그 에이전트는 라운드를 받지 못한다.** 그것을 흡수하지 않고 그대로 드러낸다 — 빈자리가 원인인데 다른 것이 대신 메우면 빈자리가 보이지 않는다.
+### 7.2 Code rules (P13)
 
-### 7.2 코드 규칙 (P13)
-
-**의존은 한 방향으로만 흐른다.** 이 다섯 줄이 코드 구조의 전부이며, 파일이 몇 개든 변하지 않는다:
+**Dependencies flow one way.** These five lines are the whole of the code structure, and they do not change however many files there are:
 
 ```
-contracts/                  아무것도 import하지 않는다 (leaf)
+contracts/                   imports nothing (leaf)
       ▲
-src/axis_*.py, synthesis.py  contracts만 import. 장치를 모른다.
+src/axis_*.py, synthesis.py  imports contracts only. Knows no device.
       ▲
-src/operator.py              contracts + orchestrator(또는 시뮬 백엔드)만
+src/operator.py              contracts + the orchestrator (or the simulation backend) only
       ▲
-src/orchestrator.py          devices/를 import할 수 있는 유일한 곳 (현미경)
+src/orchestrator.py          the only place that may import devices/ (microscope)
       ▲
-src/devices/dev_*.py         형제도, 상위도 import하지 않는다
+src/devices/dev_*.py         imports neither a sibling nor anything above
 ```
 
-1. **`contracts/`는 아무것도 import하지 않는다.** 계약이 구현에 의존하면 계약이 아니다.
-2. **계획 단계 코드(`axis_*`, `synthesis`)는 장치를 모른다.** 장치 API에 묶이면 하드웨어 없이 계획을 만들 수 없게 되고, mock 검증(§4.6.5)이 무의미해진다.
-3. **`operator.py`는 장치를 직접 import하지 않는다.** 현미경에서는 orchestrator만, 시뮬레이션에서는 백엔드 모듈만 본다.
-4. **`orchestrator.py`만 `devices/`를 import한다.** 단일 진입점(§4.6.8)의 코드 수준 표현이다.
-5. **`devices/dev_*.py`는 서로를, 그리고 상위를 import하지 않는다.** 역방향 의존은 실패다(§8 검사 16).
+1. **`contracts/` imports nothing.** A contract depending on an implementation is not a contract.
+2. **Planning-stage code (`axis_*`, `synthesis`) knows no device.** Tied to a device API, a plan cannot be made without hardware and mock validation (§4.6.5) becomes meaningless.
+3. **`operator.py` does not import a device directly.** On the microscope it sees only the orchestrator; in simulation only the backend module.
+4. **Only `orchestrator.py` imports `devices/`.** It is the code-level expression of the single entry point (§4.6.8).
+5. **`devices/dev_*.py` imports neither each other nor anything above.** A reverse dependency is a failure (§8 check 16).
 
-**폴더는 성장하는 것에만 준다.** `devices/`가 유일한 서브폴더인 이유는 장치가 교체·추가되며 계속 늘어나는 유일한 축이기 때문이다. `axis_*.py`는 고정 목록이므로(현미경 7개, 시뮬레이션 6개 — §4.5.3) 폴더를 주면 빈 계층만 생긴다. 파일이 20개인 평평한 `src/`는 접두사(`dev_`, `axis_`)로 충분히 읽힌다.
+**Folders are given only to what grows.** `devices/` is the only subfolder because devices are the one axis that keeps growing as they are swapped and added. `axis_*.py` is a fixed list (seven for the microscope, six for simulation — §4.5.3), so giving it a folder creates an empty layer. A flat `src/` with twenty files reads well enough by prefix (`dev_`, `axis_`).
 
-**LLM과 Python의 자리**: 판단하는 단계는 `.claude/skills/`에, 검사·계산·명령 유도는 `src/`에 둔다. 같은 단계를 두 곳에 쪼개는 것이 아니라, **판단은 skills, 결정론은 src**라는 P4의 파일 배치판이다.
+**Where the LLM and Python sit**: judging stages go in `.claude/skills/`, and checking, computing and command derivation go in `src/`. It is not splitting one stage across two places but **judgement in skills, determinism in src** — P4 laid out as files.
 
-**분리 경로 (D1 후속)**: 나중에 현미경 PC로 물리 분리할 때는 `microscope_agent/` + `contracts/`만 떼어내면 되도록, 현미경 에이전트는 다른 에이전트의 디렉터리를 직접 읽지 않는다. 읽는 것은 `contracts/`와 자기 디렉터리, 그리고 브리지가 자기 쪽에 놓아준 카드뿐이다.
+**The separation path (following D1)**: so that physically separating onto the microscope PC later means detaching `microscope_agent/` plus `contracts/` and nothing else, the microscope agent does not read another agent's directory directly. What it reads is `contracts/`, its own directory, and the cards the bridge placed on its side.
 
 ---
+## 8. The validation layer
 
-## 8. 검증 계층
+**Check numbers in progress are assigned here.** The table below is **not a declaration** — check 42 reads only the `NN. ` form as a declaration, so it does not count this table. It exists because two seats proposed 45 on the same day, and when numbers collide two implementations fight over one function name.
 
-**진행 중인 검사 번호는 여기서 배정한다.** 아래는 **선언이 아니다** — 검사 42는 `NN. ` 형식만 선언으로 읽으므로 이 표는 세지 않는다. 좌석 둘이 같은 날 45를 제안해서 생긴 자리이고, 번호가 겹치면 두 구현이 한 함수 이름을 두고 부딪힌다.
-
-| 번호 | 무엇 | 맡은 좌석 |
+| Number | What | Seat holding it |
 |---|---|---|
-| 65 | 이력을 읽는 검사 넷(26·35·41·46)에 저장소를 만드는 시험이 있는지 | manager-bridge |
-| 63 | 타이 판정이 비교된 두 값의 최악 등급을 달고 나오는지 (§5.8.1) | manager-bridge |
-| 59 | 훅이 미귀속 커밋의 경로를 이름으로 대고 경고하는지 | manager-bridge |
-| 66 | 비가역 동작의 런이 준수를 되읽는지 (`verification`) | manager-microscope |
-| 53 | 에이전트 설정의 `deny`가 읽기를 막는 패턴을 담지 않았는지 | manager-microscope |
+| 65 | whether the four checks that read history (26, 35, 41, 46) have a test that builds a repository | manager-bridge |
+| 63 | whether a tie verdict comes out carrying the worse grade of the two values compared (§5.8.1) | manager-bridge |
+| 59 | whether the hook names and warns about the paths of an unattributed commit | manager-bridge |
+| 66 | whether an irreversible action's run reads back compliance (`verification`) | manager-microscope |
+| 53 | whether an agent setting's `deny` contains a pattern that blocks reading | manager-microscope |
 
-**구현이 끝나면 아래 목록에 선언이 들어가고 이 표에서 빠진다.** 순서는 §8의 그것 그대로 — 합의 → 구현 → 선언.
+**When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
 
-**검사는 무엇을 일부러 거절하지 않는지도 말한다.** 2026-09-19에 그것이 옳은 가드가 삭제되는 것을 막았다. 검사 53의 초안이 브리지 설정의 `Bash(python3*hardware*)`를 거절했고, 그것은 **그 파일에서 실제로 집행되는 유일한 거부이며 P0에 인접한** 항목이다. 좌석의 첫 충동은 트리를 초록으로 만들기 위해 그 항목을 지우는 것이었다. **멈춘 이유는 docstring이 그 패턴은 정당하며 이전 초안이 그것을 잘못 거절했다고 적어 두었기 때문이다** — 그래서 구현을 읽었고, 구현이 자기 설명과 어긋나 있는 것을 보았고, 두 번째 실행에서 고쳐졌다.
+**A check also says what it deliberately does not refuse.** On 2026-09-19 that stopped a correct guard from being deleted. Check 53's first draft refused the bridge setting's `Bash(python3*hardware*)`, and that is **the only denial actually enforced in that file, and adjacent to P0.** The seat's first impulse was to delete the entry to make the tree green. **What stopped it was that the docstring recorded that the pattern is legitimate and that an earlier draft had wrongly refused it** — so it read the implementation, saw the implementation at odds with its own description, and it was fixed on the second run.
 
-**게이트를 만족시키려고 옳은 것을 지우는 것이 가장 비싼 실패다** — 게이트가 옳은 작업을 거절할 때 `--no-verify`로 답해지는 것과 같은 압력이고, 이쪽이 더 나쁘다: 우회는 흔적을 남기지만 **삭제는 초록인 트리를 남긴다.** 그러므로 검사의 문서는 무엇을 거절하는지만이 아니라 **무엇을 일부러 거절하지 않는지**를 적는다. 그 문장이 없으면 검사가 틀렸을 때 읽는 쪽이 자기 파일을 의심한다.
+**Deleting the right thing to satisfy a gate is the most expensive failure** — the same pressure as a gate that refuses correct work being answered with `--no-verify`, and this side is worse: a bypass leaves a trace while **a deletion leaves a green tree.** So a check's documentation records not only what it refuses but **what it deliberately does not refuse.** Without that sentence, when a check is wrong the reader suspects their own file.
 
-**카드는 완벽하게 쓰이고 모든 검사를 통과하고도 거짓일 수 있다 — 세상이 그 밑에서 움직였기 때문에.** 2026-09-19에 §11-13이 **하루에 세 번** 다시 쓰였다: 제품이 식별됐고, 철회됐고, 철회가 철회됐다. 매번 그 시점의 기록은 옳았고 매번 몇 시간 뒤 거짓이 됐다. **이것은 낡은 산문과 다르다** — 낡은 산문은 참조가 실재를 잃은 것이고 검사 47·48·50·51이 그 부류를 잡는다. 여기서는 **참조가 전부 실재하고 문장이 전부 정합한데 세계가 다른 말을 한다.** 어떤 작성 규약으로도 안 잡히고, **검사로도 안 잡힌다** — 검증기는 디스크를 읽지 벤치를 읽지 않는다. 잡는 것은 하나뿐이다: **행동하기 전에 다시 읽는 것.** 그래서 규약이 이것까지 덮는 것처럼 읽히지 않게 적어 둔다. 시뮬레이션 매니저가 자기 hold 둘이 낡은 것과 이 부류를 구별해 올렸다 — 앞엣것은 **지시가 근거보다 오래 산** 것이고 작성 규약으로 막히지만, 뒤엣것은 아니다.
+**A card can be perfectly written, pass every check, and be false — because the world moved beneath it.** On 2026-09-19 §11-13 was rewritten **three times in one day**: a product was identified, retracted, and the retraction retracted. The record was right at each moment and false hours later each time. **This is different from stale prose** — stale prose is a reference that lost its referent, and checks 47, 48, 50 and 51 catch that class. Here **every reference resolves and every sentence is coherent and the world says something different.** No writing convention catches it, and **no check catches it either** — the validator reads the disk, not the bench. Only one thing catches it: **re-reading before acting.** So it is written down lest the conventions read as covering this too. The simulation manager raised it, distinguishing this class from its two stale holds — the former is **an instruction outliving its grounds** and is stopped by a writing convention; the latter is not.
 
-**검사 33의 그룹 키가 두 검사를 섬기고 둘의 범위가 다르다 — 그래서 막으려던 상태가 통과한다 (2026-09-19).** 키가 `(디렉터리, qid, revision)`이고 두 가지를 판정한다: `caller_id` 유일성과 `kb_version` 합의. **앞엣것은 revision이 키에 있어야 하고**(같은 축의 두 리비전이 legacy 형식에서 한 caller_id를 공유하므로, 안 넣으면 잘못된 카드에 거짓 실패가 났다 — 그래서 넣었고 그 이유는 옳다), **뒤엣것은 있으면 안 된다.**
+**Check 33's group key serves two checks whose scopes differ — so the state it was preventing passes (2026-09-19).** The key is `(directory, qid, revision)` and it adjudicates two things: `caller_id` uniqueness and `kb_version` agreement. **The first needs revision in the key** (two revisions of the same axis share one caller_id under the legacy form, so without it a false failure hit correct cards — so it was added, and that reason is right), and **the second must not have it.**
 
-한 질문의 팬아웃은 **어느 리비전이든 한 저장소를 읽어야** 하기 때문이다. 리비전이 키에 있으면 형제들이 리비전으로 갈릴 때 **두 그룹이 각각 내부적으로 일관되므로 통과하고, 팬아웃은 실제로 두 저장소를 읽은 상태가 된다.** 오늘 `mic-20260918-001`이 그 상태였다 — rev1에 `a2·a3·a4·a5`, rev2에 `a6`, rev3에 `a1·a7`. 그리고 가정이 아니다: 사서석이 로그에서 `a1`이 `kbv-67f9ad766d92`를, 형제들이 `kbv-49feb73662b7`을 읽은 것을 쟀고 **두 축이 비교 불가**였다. **카드 안에서는 안 보이고 로그에서만 보였다.**
+Because one question's fan-out **has to read one store at whatever revision.** With revision in the key, when siblings split by revision, **the two groups are each internally consistent so it passes, and the fan-out is in fact reading two stores.** `mic-20260918-001` was in that state today — `a2·a3·a4·a5` at rev1, `a6` at rev2, `a1·a7` at rev3. And it is not hypothetical: the librarian seat measured from the log that `a1` read `kbv-67f9ad766d92` while its siblings read `kbv-49feb73662b7`, and **the two axes were incomparable.** **It was invisible inside the cards and visible only in the log.**
 
-**그러므로 그룹을 쪼갠다: `caller_id` 유일성은 `(디렉터리, qid, revision)`, `kb_version` 합의는 `(디렉터리, qid)`로 revision을 보지 않는다.** 그리고 따라 나오는 제약을 명시한다 — **팬아웃의 재핀은 형제 전부를 한 커밋으로 옮긴다.** 절반만 옮긴 팬아웃은 거짓 실패가 아니라 **진짜로 비교 불가능한 상태**다. 현미경 실행석이 카드 008을 읽다 찾았고, 그 카드가 이미 *"한 qid의 형제가 kb_version에 합의해야 하므로 이것은 A6만 재핀이 아니다"*라고 적어 놓고 **자기 범위를 다섯으로 좁혀** 같은 논리로 `a4`·`a5`를 남겼다. **카드의 논거가 카드의 범위를 반박했다.**
+**So the group is split: `caller_id` uniqueness keys on `(directory, qid, revision)`, and `kb_version` agreement keys on `(directory, qid)` and does not look at revision.** And the constraint that follows is stated — **re-pinning a fan-out moves every sibling in one commit.** A half-moved fan-out is not a false failure but **genuinely an incomparable state.** The microscope execution seat found it reading card 008, and that card had already written *"siblings of one qid have to agree on kb_version, so this is not an A6-only re-pin"* and then **narrowed its own scope to five**, leaving `a4` and `a5` by the same logic. **The card's argument refuted the card's scope.**
 
-**`inputs`도 `kb:<entry_id>`를 받는다 (2026-09-20) — `basis`와 같은 부류의 둘째 사례다.** 유도량의 `inputs`가 지금 카드 자신의 이름만 받으므로, **입력이 저장소에서 온 유도값은 표현할 수 없다.** 2026-09-20에 그것이 실물을 막았다 — 실행석이 `tracer_diffusivity_expected`를 계산해 놓고(τ_d ≈ 300 s, 시뮬레이션 쪽 독립 계산 312 s와 한 자릿수 안에서 교차) **적을 자리가 없어 되돌렸다.**
+**`inputs` accepts `kb:<entry_id>` too (2026-09-20) — the second case of the same class as `basis`.** A derived quantity's `inputs` currently accepts only names in the card itself, so **an input that is a derived value from the store is inexpressible.** On 2026-09-20 that blocked something real — an execution seat computed `tracer_diffusivity_expected` (τ_d ≈ 300 s, crossing within one order of magnitude with the simulation side's independent 312 s) and **reverted it for want of anywhere to write it.**
 
-    **`basis` 때와 같은 이유로 허용하고, 아래 PFS 건과 다른 이유로 허용한다.** 저 아래에서 거절한 것은 **없는 것이 데이터**였기 때문이다 — PFS 사실이 entry로 존재하지 않았다. 여기서는 **entry가 존재하고 필드가 그것을 부를 수 없다.** 없는 것이 **표현**이면 표현을 넓히고, 없는 것이 **데이터**면 데이터를 만든다. 그 둘을 가르는 것이 이 판정의 전부다.
+    **It is permitted for the same reason as `basis`, and for a different reason from the PFS case below.** What was refused down there was that **what was missing was data** — the PFS fact did not exist as an entry. Here **the entry exists and the field cannot name it.** When what is missing is an **expression**, widen the expression; when what is missing is **data**, make the data. Separating those two is the whole of this judgement.
 
-    **그리고 해소 기계장치가 이미 있다** — 검사 54가 `basis`의 `kb:` 참조를 그 카드의 `kb_refs`로 푼다. 대칭 수선이고 새 어휘가 없다. **검사 62가 오히려 쉬워진다**: 지금은 이름을 저장소에서 찾아 캐리어 만장일치를 물어야 하는데, `kb:<entry_id>`는 **정확히 하나를 가리키므로 만장일치 질문이 생기지 않는다.**
+    **And the resolution machinery already exists** — check 54 resolves `basis`'s `kb:` references against that card's `kb_refs`. It is a symmetric repair with no new vocabulary. **Check 62 in fact gets easier**: today it has to find the name in the store and ask about carrier unanimity, whereas `kb:<entry_id>` **points at exactly one, so the unanimity question does not arise.**
 
-    구현은 manager-microscope — `basis`를 넓힌 것과 같은 자리다.
+    Implementation is manager-microscope's — the same place that widened `basis`.
 
-**`precondition.basis`에 세 번째 형태를 만들지 않는다.** A5의 PFS 인터록이 인용할 것이 없다고 올라왔는데, 없는 것은 형식이 아니라 **데이터**다: *"PFS는 적재 상태를 검증하지 못한다"*는 **이 장비에 대한 사실**이고 지식이며, 지식은 한 곳에 산다(P14). 사서에게 entry가 있어야 하고, 지금 서비스가 `pfs`를 `absent`로 답하는 것이 **그 부재를 정확히 보고하고 있는 것**이다. §2.1의 인터록 규칙은 그 bound가 서는 **이유**이지 딛는 **근거**가 아니므로 precondition의 서술에 들어가지 `basis`에 들어가지 않는다. **없는 것이 데이터일 때 기제를 만드는 것이 오늘 네 번째로 거부되는 도치다.**
+**No third form is created for `precondition.basis`.** A5's PFS interlock came up as having nothing to cite, and what is missing is not a form but **data**: *"PFS cannot verify the mounted state"* is **a fact about this instrument** and therefore knowledge, and knowledge lives in one place (P14). The librarian has to have an entry, and the service answering `absent` for `pfs` today **is reporting that absence exactly.** §2.1's interlock rule is the **reason** that bound stands, not the **grounds** it rests on, so it goes into the precondition's statement and not into `basis`. **Building a mechanism when what is missing is data is the inversion refused for the fourth time today.**
 
-**자기 숫자를 만들어내지 못하는 근거는 맨숫자보다 나쁘다.** 2026-09-19에 §11-13이 다분산을 무시해도 되는 이유를 적으면서 *"D ∝ 1/d이라 지름 산포의 두 배"*라고 썼는데, **그 근거에서 그 숫자가 나오지 않는다** — 지수가 −1이면 1:1이고 두 배가 되려면 −2여야 한다. **그 문단의 산출물은 숫자가 아니라 근거였다**: 아무도 다분산을 고려하지 않는데 왜 안 해도 되는지가 어디에도 없다는 것이 그 문단이 생긴 이유이므로, **자기 숫자를 만들어내지 못하는 근거는 거기 있으면 안 되는 단 하나**다.
+**Grounds that cannot produce their own number are worse than a bare number.** On 2026-09-19 §11-13, writing down why polydispersity could be ignored, said *"since D ∝ 1/d, twice the diameter spread"*, and **that number does not follow from those grounds** — an exponent of −1 gives 1:1, and twice would need −2. **That paragraph's output was not a number but the grounds**: the reason the paragraph existed was that nowhere said why polydispersity need not be considered when nobody was considering it, so **grounds that cannot produce their own number are the one thing that must not be there.**
 
-그리고 **맨숫자보다 나쁜 이유는 근거가 검산을 억제하기 때문이다.** 숫자만 있으면 읽는 쪽이 의심하는데, 유도가 붙어 있으면 넘어간다 — 실제로 시뮬레이션 매니저가 그것을 자기 카드에 그대로 베꼈고 하루 뒤 다른 이유로 값을 확인하러 갔다가 알았다. **틀린 근거는 틀린 숫자를 신뢰할 만하게 만든다.**
+And **the reason it is worse than a bare number is that grounds suppress checking.** With a number alone the reader doubts it; with a derivation attached they pass over it — and in fact the simulation manager copied it straight into its own card and found out a day later, having gone to confirm the value for another reason. **Wrong grounds make a wrong number trustworthy.**
 
-**검사의 질문 범위가 그 검사가 우연히 보는 것으로 정해지면, 물어야 할 것 대신 본 것을 묻게 된다.** 검사 64의 첫 판이 마흔여덟 개 전부를 실패시켰다 — `b.cards`를 읽었는데 **평범한 실행은 rejected 트리를 아예 제외한다.** *"이 디렉터리가 어떤가"*를 물어야 할 자리에서 *"이 실행이 무엇을 모았나"*를 물은 것이다. **사례가 둘이면 일화가 아니다**: 검사 61이 같은 날 *"실제 랙을 기다리는 속성은 랙 없는 날 공허하게 통과한다"*로 같은 선을 그었고, 검사 26의 분기 픽스처가 *"스냅샷이 없다"*를 시험하면 **엉뚱한 가지를 태우고 그런데도 초록**이다. 셋이 한 부류다.
+**When a check's question scope is set by what the check happens to see, it asks what it saw instead of what it should ask.** Check 64's first version failed all forty-eight — it read `b.cards`, and **an ordinary run excludes the rejected tree entirely.** Where it should have asked *"what is this directory like"* it asked *"what did this run collect"*. **Two cases is not an anecdote**: check 61 drew the same line the same day with *"a property waiting on a real rack passes vacuously on a rackless day"*, and check 26's branch fixture, testing *"there is no snapshot"*, **burns the wrong branch and is green anyway.** The three are one class.
 
-**그래서 검사를 쓸 때 먼저 묻는다: 이 검사가 답해야 할 질문의 대상 집합은 무엇이고, 지금 손에 들어온 집합은 무엇인가.** 둘이 다르면 **손에 든 것이 답을 정한다** — 그리고 그 실패는 대개 초록이라 조용하다. 64는 첫 판에서 마흔여덟 개를 빨갛게 만들어 **시끄럽게 실패했고 그래서 잡혔다.** 61과 26은 그렇지 않았다.
+**So when writing a check, ask first: what is the target set of the question this check must answer, and what is the set actually in hand.** When they differ, **what is in hand decides the answer** — and that failure is usually green and therefore silent. 64 turned forty-eight red on its first version and **failed loudly, which is why it was caught.** 61 and 26 did not.
 
-**세어 보는 것이 고치는 것은 답이 아니라 질문일 때가 있다.** 2026-09-19에 census가 네 번 돌았고 — interval 28개, `numbers[].name` 55개, 목표 참조 다섯 대 아홉, 계획별 E5 — **네 번 다 세기 전의 틀이 그럴듯했고 세고 나서 틀렸다.** 마지막 것이 가장 분명하다: 시작한 질문이 *"내 에이전트가 왜 이렇게 추측이 많지"*였는데 답은 추측이 많은 것이 아니라 **유도가 길다**였다. **세는 행위가 고친 것은 답이 아니라 질문이다.** §11-12가 같은 모양이었고(`kind` 인자가 몇을 고쳤을지 세어 보니 0), 그래서 규칙은 하나다: **부류를 찾았다고 생각하면 세라. 세기 전에 그 부류의 이름을 문서에 적지 말라.**
+**Sometimes what counting fixes is not the answer but the question.** Four censuses ran on 2026-09-19 — 28 intervals, 55 `numbers[].name`, five target references against nine, E5 per plan — and **all four times the pre-count framing was plausible and wrong afterwards.** The last is clearest: the question started as *"why does my agent guess so much"* and the answer was not that it guesses much but **that the derivations are long.** **What the act of counting fixed was the question, not the answer.** §11-12 had the same shape (counting how many the `kind` argument would have fixed gave 0), so there is one rule: **when you think you have found a class, count. Do not put that class's name in a document before counting.**
 
-**자문은 새 상태가 아니라 통과 메시지가 나르는 숫자다.** 봉투 최신성처럼 **옳은 무행동에도 빨개지면 안 되는 것**이 나왔을 때, 검증기에 `ADVISORY`를 더하지 않는다 — 상태를 하나 더하면 다섯 상태의 뜻을 모두가 다시 배워야 하고, `--strict`가 그것을 어떻게 셀지가 새 질문이 된다. **이미 있는 관용구를 쓴다: 통과하는 검사의 메시지가 수를 나른다.** 검사 52가 `4 still by reference`로, 검사 3의 `UNDECIDED` 줄이 계획별 카운트로 하고 있는 그것이다. **옳은 작업을 거절하는 게이트는 우회되고**(§6.2.1), 자문을 실패로 만드는 것이 정확히 그 만드는 방법이다 — 좌석이 잠깐 안 돌기만 해도 트리가 빨개지면 사람은 건너뛰는 법을 배운다.
+**An advisory is not a new state but a number carried in a passing message.** When something arises that **must not go red on correct inaction** — like envelope currency — an `ADVISORY` is not added to the validator: add a state and everyone has to relearn the meanings of five, and how `--strict` counts it becomes a new question. **Use the idiom already here: a passing check's message carries the number.** That is what check 52 does with `4 still by reference`, and what check 3's `UNDECIDED` line does with a per-plan count. **A gate that refuses correct work is bypassed** (§6.2.1), and making an advisory a failure is exactly how to build one — if the tree goes red merely because a seat was briefly not running, people learn to skip it.
 
-**그리고 같은 규칙이 두 표면에서 다르게 집행되고 있었다.** §5.3이 `computed:`를 max(E4, 최악 입력)이라고 정하는데 **검사 21은 카드에서 그것을 도출하고**(`computed from {grades} gives max(E4, worst)`) **검사 43은 KB entry에서 범위만 본다** — `declared in ("E4","E5")`이고 입력을 읽지 않는다. 그래서 입력 최악이 E3인 값을 E5로 적어도 통과한다. **한 규칙에 집행자가 둘이고 하나만 규칙을 안다** — §11-11이 세는 모양인데 자리가 검사기 안이다. 검사 62가 43을 21에 맞춘다. 사서석이 자기 entry에 *"검증기는 범위만 강제한다"*고 정직하게 적어 두었고, 그 문장은 62가 들어오면 낡는다.
+**And the same rule was being enforced differently on two surfaces.** §5.3 defines `computed:` as max(E4, worst input), and **check 21 derives that from a card** (`computed from {grades} gives max(E4, worst)`) while **check 43 only looks at the range on a KB entry** — `declared in ("E4","E5")`, reading no inputs. So a value whose worst input is E3 passes when written as E5. **One rule with two enforcers and only one of them knows the rule** — the shape §11-11 counts, with the place being inside the validator. Check 62 aligns 43 with 21. The librarian seat had honestly written into its own entry *"the validator enforces the range only"*, and that sentence goes stale when 62 lands.
 
-**이름이 실재하는지 보는 검사는 그 이름이 옳은지 보지 못한다 — 이 부류를 여기 한 번 적고 각 선언이 가리킨다.** 검사 47(좌석 이름), 48(레지스트리 경로), 50(수신자 지시문), 51(`open_question`의 집)이 전부 같은 모양이다: **선언을 읽지 이해를 읽지 않는다.** 수신함을 대고 있는 지시문이 그것을 틀리게 설명할 수 있고, `§11-13`을 대는 필드가 엉뚱한 항목을 가리켜도 통과한다. 그래도 값이 있는 이유는 이 저장소에서 실제로 물린 것이 **틀린 이름이 아니라 없는 이름**이었기 때문이다 — 2026-09-19 하루에 산문 네 곳이 낡았고, 배달 경로 하나가 읽을 사람 없이 섰고, 레지스트리 항목 여덟이 죽은 글자였다. **한쪽 끝을 아무도 읽지 않는 선언**이 이 저장소의 실패 방식이고, 이 부류가 그것을 잡는다. 한계를 여기 적는 이유는 **검사를 믿는 사람이 그것에 더 많은 것을 맡기지 않게** 하기 위해서다(§8.2: 조용한 폴백은 시험을 통과시키면서 현장에서 실패한다, 의 사촌).
+**A check that sees whether a name resolves cannot see whether that name is right — this class is written once here and each declaration points at it.** Checks 47 (seat names), 48 (registry paths), 50 (recipient instructions) and 51 (`open_question`'s home) all have the same shape: **they read a declaration, not an understanding.** An instruction naming the inbox may describe it wrongly, and a field naming `§11-13` passes while pointing at the wrong item. The reason they are worth it anyway is that what actually bit in this repository was **an absent name, not a wrong one** — on 2026-09-19 four pieces of prose went stale in one day, a delivery path stood with no reader, and eight registry entries were dead letters. **A declaration one end of which nobody reads** is this repository's mode of failure, and this class catches that. The limit is written here so **that someone who trusts the checks does not entrust more to them** (a cousin of §8.2: a silent fallback passes the test and fails in the field).
 
-`contracts/validate.py` 하나가 모든 카드를 검사한다. 모델은 이 검사에 참여하지 않는다(P4).
+One `contracts/validate.py` checks every card. The model does not participate in this checking (P4).
 
-검사 목록:
-1. 스키마 적합성 (필수 필드, 타입, enum)
-2. 단위 존재 및 차원 일관성
-3. 출처와 등급 — `source` 없는 숫자 0개, `grade` 없는 숫자 0개, E5 개수 ≤ 상한, E6 0개
-4. `assumed`가 `assumptions` 목록에 실제로 설명돼 있는지
-5. envelope/예산 대조 — 모든 조건이 한계 안인지
-6. `stop_criteria`/`success_criteria` 존재 및 기계 판독 가능성
-7. 상태 전이 적법성 (§5.5) 및 approval–리비전 일치
-8. 브리지 와이어(§4.4): payload 해시가 봉투와 **원본 카드** 양쪽에 일치하는지, 방향이 봉투 종류와 payload 작성자와 맞는지, 봉투가 숫자·가정·`kb_refs`를 담지 않았는지, 대응 가능성 판정이 어휘·능력표에서 **도출한 값과 같은지**, 단위 비교를 건너뛰지 않았는지, 같은 (방향, 관측량)으로 라운드가 두 번 열리지 않았는지, 반복된 `(reason_code, parameter)`가 장부에 적혀 에스컬레이션됐는지, `status.json`의 차례가 상태와 맞는지
-9. MD ↔ JSON 불일치 — 숫자와 단위, 그리고 **md가 담은 `thr-…`·qid 식별자가 짝 카드의 값과 같은지** (있으면 실패, JSON이 정본 · P3). **산문을 검사하는 것이 아니다**: 그 둘은 읽는 사람이 보고 행동하는 식별자이고 — 어느 스레드인지, 어느 질문인지 — 나머지 산문은 비교 대상이 없는 설명이다. 2026-09-19에 예시 라운드의 md가 **저장소 어디에도 없는 스레드 이름**을 부르고 있었다. 카드에서 이름이 바뀔 때 산문이 남았고, 숫자와 단위만 보던 검사는 아무것도 잡지 않았다. 하필 그 파일이 브리지 좌석이 첫 라운드를 쓸 때 본으로 삼는 것이었고 **한 좌석이 실제로 그것을 복사했다.** 더 나은 쪽은 md가 json이 가진 것을 **아예 재진술하지 않는 것**이고(`bridge/CLAUDE.md`), 이 검사는 그래도 누가 재진술했을 때를 위한 그물이다
-10. `degraded` 전파 — plan의 `degraded`가 그 plan에서 나온 result에도 있는지 (§3.1 규칙 2)
-11. S3 독립성 — `axis_*.json`끼리 서로를 참조하지 않는지 (§4.5.2)
-12. S4 폐쇄성 — synthesis의 모든 숫자가 S3 출력 또는 goal 카드에서 유래하는지. 출처 없는 신규 숫자는 실패 (§4.5.4)
-13. 경로 적법성 — §7에 선언되지 않은 폴더나 깊이 4단 이상의 경로에 쓰였는지, 그리고 **파일명의 라운드 접두사가 카드의 `round`와 같은지** (§7.1 규칙 3). 접두사 검사는 봉투에만 걸려 있다가 2026-09-17에 모든 카드와 장부로 넓어졌다 — 라운드는 폴더가 아니라 파일명으로 구분되므로, 이름과 내용이 어긋나면 스레드의 순서가 파일 목록에서 거짓이 된다
-14. 명령 추적 — `log.json`의 모든 명령 파라미터에 출처 필드 `from`(plan.json의 필드 경로)이 있는지 (§4.6.1)
-15. 승인 선행 — `runs/<run_id>`가 존재하는데 `plan_approval`도 유효한 `scope_approval`도 없으면 실패 (§6.1)
-16. 의존 방향 — §7.2의 다섯 줄을 지키는지: `contracts/`의 import 0개, `axis_*`가 장치를 모르는지, `devices/` 내부의 형제·역방향 import가 없는지, orchestrator를 우회한 장비 호출이 없는지
-17. 단위와 파생값 — 모든 양이 `units.md`의 허용 단위를 쓰는지, `derived:` 값의 정의식이 KB에 있거나 카드에 적혀 있는지, 물리값에서 재계산한 결과와 일치하는지 (§5.7)
-18. scope 범위 — `scope_approval`의 조건 범위가 envelope의 부분집합인지, 유효기간과 횟수 상한이 있는지 (§6.1)
-19. scope 유효성 — 소멸 조건이 발생한 `scope_approval`로 실행되지 않았는지 (§6.1)
-20. 구성 선택 근거 — S3.0을 통과한 구성이 둘 이상이었다면 `alternatives_rejected`가 비어 있지 않고 각 탈락에 근거 수치가 있는지 (§5.4, S6)
-21. 등급 도출 — 모든 숫자의 `grade`가 `source`에서 §5.3 표대로 도출됐는지. **자기 신고 등급은 실패**
-22. 비가역 동작의 근거 — `reversible: no`인 동작의 파라미터가 E4/E5에 의존하면 `plan_approval`이 있는지 (§2.1 규칙 3)
-23. manual 잠금 — `manual` 지시서가 열린 동안 같은 장치군에 자동 명령이 나가지 않았는지 (§2.1 규칙 5)
-24. E2 유효성 — 캘리브레이션 유래 값의 유효기간과 조건 범위가 실행 시점에 유효한지 (§5.3)
-25. 사서 응답의 기록 — `axis_*.json`에 `kb_refs`가 있고, 사서가 준 등급이 깎이거나 올라가지 않고 그대로 전파됐는지 (§4.3.1)
-26. 스냅샷 무결성 — `envelope/snapshot.*`의 각 항목이 KB 정본과 해시로 일치하는지, 손으로 수정된 흔적이 없는지 (§4.3.2)
-27. 지식 소유 — 실행 에이전트 디렉터리에 KB 성격의 파일(주장·문헌값 모음)이 생기지 않았는지 (P14)
-28. 정밀도 — `intent: explore`인 계획의 E4/E5 값이 자릿수 표기를 벗어난 유효숫자를 갖는지, 추정이 섞인 계산이 수치 구간으로 적혔는지 (§5.8)
-29. 실패 기록 — 검증기 실패·거절·편차·scope 소멸·**포기한 시도**가 `failures.jsonl`에 남았는지, 그리고 각 기록이 `qid`와 `task` 중 **정확히 하나**를 갖는지 (§8.1). `questions/`가 없는 좌석 — 사서와 브리지 — 에서는 막다른 길이 질문이 아니라 **과제**에 속한다. 둘 다 없으면 그 기록은 무엇에 대한 것인지 말하지 않고, 둘 다 있으면 M5가 표본을 두 번 센다
-30. lesson 형식 — 모든 lesson이 근거 id, `n`, 조건 범위, **`falsifier`**, `valid_until`을 갖는지 (§8.2)
-31. 후보 보존 — lesson이 S3.0의 구성 후보를 제거하지 않았는지 (P16)
-32. 목적 — goal 카드에 `purpose`가 있고, `intent`가 그 목적의 기본값과 다르면 이유가 적혀 있는지 (§4.5.1)
-33. caller 격리 — 한 `qid`의 `axis_*.json`들이 서로 다른 `caller_id`를 쓰고, 모두 같은 `kb_version`을 인용하는지 (§4.3.1)
-34. 비교의 동일성 — `purpose: compare`인 계획에서 비교 대상 팔들의 조건이 비교 변수 외에 동일한지 (§4.5.1)
-35. 세션 쓰기 경계 — 각 커밋의 변경 경로가 그 에이전트 디렉터리 안에 있는지, `contracts/`가 에이전트 세션에서 수정되지 않았는지 (§6.2). **`contracts/seats.json`의 `enforced_from`(`f971c40`, 경계가 관례에서 게이트가 된 커밋) 이후에만 실패하고, 그 이전은 보고만 한다.** 검사 41이 부모 레지스트리로 옮겨간 것과 같은 이유다 — 사후 스윕이 경계가 생기기 전의 이력을 붉게 만들면 아무도 그 스윕을 돌리지 않는다. 근거 둘을 2026-09-17에 확인했다: `f971c40` 이전에는 §6.2가 글로만 있었고 아무것도 거절하지 않았으며, **그 구간의 커밋은 전부 사람의 것**이고 사람은 모든 경계를 소유한다(`human` 좌석). 해당되는 커밋은 정확히 셋이다 — `0ea116e`·`e6a87f1`·`72d17fc`, 설계 자리 하나가 `contracts/`와 `librarian_agent/`를 함께 들고 `kb/`가 손으로 큐레이션되던 때의 것들이다
-36. 기호 충돌 — 카드의 즉석 무차원군 정의가 KB에 있는 같은 기호의 정의와 어긋나지 않는지 (§5.7)
-37. 시각 기준 — `log.json`의 모든 이벤트가 공통 `t0` 기준 오프셋을 갖고, **물리 계산에 쓰인 시각이 트리거 카운터나 하드웨어 타임스탬프에서 왔는지** (§4.6.9)
-38. 한 표 — `contracts/capabilities/`의 구성 id 집합이 광경로 표의 것과 같은지, 각 구성이 그 표의 항목을 가리키는지, **각 구성의 `devices[]`가 채널 표에 실제로 있는 채널인지**(폐기된 행을 가리키면 폐기 사유와 함께 실패), 선언된 관측량의 단위가 `units.json`에 있는지, 그리고 **합성을 요구하는 `produces` 항목이 실제로 합성 가능한지** — 지목된 구성이 `perturbation`이고 그쪽 `composes_with`가 이 구성을 되지목하는지 (§4.6.7)
-39. 추정의 정당성 — 사서에 닿은 카드(`degraded`에 사서가 없는 카드)의 모든 `assumed:`(E5) 숫자가 `kb_gaps`의 항목을 지목하는지 (§4.3.1). 닿지 못한 카드에는 적용되지 않는다 — 그 사실은 `degraded`가 말한다
-40. 창 조건 — 어휘가 `window_required`로 표시한 관측량을 쓰는 계획이 그 `window_parameter`를 조건으로 들고 가는지, 그 조건이 가리키는 숫자가 실제로 `numbers[]`에 있는지 (§5.7)
+The check list:
+1. Schema conformance (mandatory fields, types, enums)
+2. Unit existence and dimensional consistency
+3. Sources and grades — zero numbers without a `source`, zero without a `grade`, E5 count ≤ the ceiling, zero E6
+4. Whether an `assumed` is actually explained in the `assumptions` list
+5. Envelope/budget comparison — whether every condition is inside its limit
+6. `stop_criteria`/`success_criteria` present and machine-readable
+7. State-transition legality (§5.5) and approval–revision match
+8. The bridge wire (§4.4): whether the payload hash matches both the envelope and **the original card**, whether the direction agrees with the envelope kind and the payload's author, whether the envelope is free of numbers, assumptions and `kb_refs`, whether the producibility verdict **equals the value derived** from the vocabulary and the capability table, whether the unit comparison was skipped, whether a round was opened twice on the same (direction, observable), whether a repeated `(reason_code, parameter)` is recorded in the ledger and escalated, and whether `status.json`'s turn agrees with its state
+9. Markdown ↔ JSON mismatch — numbers and units, and **whether the `thr-…` and qid identifiers the Markdown carries equal the paired card's** (a mismatch fails; the JSON is the record, P3). **This is not checking prose**: those two are the identifiers a reader sees and acts on — which thread, which question — and the rest of the prose is explanation with nothing to compare against. On 2026-09-19 an example round's Markdown was calling **a thread name that exists nowhere in the repository.** The name changed in the card and the prose stayed, and a check that looked only at numbers and units caught nothing. That file happened to be what a bridge seat uses as a model when writing its first round, and **one seat actually copied it.** The better answer is for the Markdown **not to restate what the JSON holds at all** (`bridge/CLAUDE.md`), and this check is the net for when somebody restates it anyway
+10. `degraded` propagation — whether a plan's `degraded` is also on the result that came from it (§3.1 rule 2)
+11. S3 independence — whether `axis_*.json` files reference each other (§4.5.2)
+12. S4 closure — whether every number in a synthesis originates in an S3 output or the goal card. A new number with no source fails (§4.5.4)
+13. Path legality — whether something was written to a folder §7 does not declare or to a path four levels deep or more, and **whether the filename's round prefix equals the card's `round`** (§7.1 rule 3). The prefix check applied to envelopes only until it was widened to every card and ledger on 2026-09-17 — rounds are separated by filename rather than folder, so when name and content disagree, a thread's ordering is false in the file listing
+14. Command traceability — whether every command parameter in `log.json` has a source field `from` (the field path in plan.json) (§4.6.1)
+15. Approval precedence — fails if `runs/<run_id>` exists with neither a `plan_approval` nor a valid `scope_approval` (§6.1)
+16. Dependency direction — whether §7.2's five lines hold: zero imports in `contracts/`, whether `axis_*` knows no device, whether there are sibling or reverse imports inside `devices/`, and whether any instrument call bypasses the orchestrator
+17. Units and derived values — whether every quantity uses a unit `units.md` permits, whether a `derived:` value's defining expression is in the KB or written in the card, and whether it matches the result of recomputing from the physical values (§5.7)
+18. Scope range — whether a `scope_approval`'s condition range is a subset of the envelope, and whether it has an expiry and a count ceiling (§6.1)
+19. Scope validity — whether execution happened under a `scope_approval` whose destruction condition had occurred (§6.1)
+20. Grounds for the configuration choice — if more than one configuration passed S3.0, whether `alternatives_rejected` is non-empty and each elimination carries its numbers (§5.4, S6)
+21. Grade derivation — whether every number's `grade` is derived from its `source` per §5.3's table. **A self-reported grade fails**
+22. Grounds for an irreversible action — whether a `plan_approval` exists when the parameters of a `reversible: no` action depend on E4/E5 (§2.1 rule 3)
+23. Manual lockout — whether automatic commands went to the same device group while a `manual` instruction sheet was open (§2.1 rule 5)
+24. E2 validity — whether a calibration-derived value's expiry and condition range are valid at execution time (§5.3)
+25. Recording the librarian's response — whether `axis_*.json` has `kb_refs`, and whether the grade the librarian gave propagated unchanged, neither lowered nor raised (§4.3.1)
+26. Snapshot integrity — whether each item in `envelope/snapshot.*` matches the KB record by hash, with no sign of hand editing (§4.3.2)
+27. Knowledge ownership — whether a KB-like file (a collection of claims or literature values) has appeared in an executing agent's directory (P14)
+28. Precision — whether an E4/E5 value in a plan with `intent: explore` carries significant figures beyond an order-of-magnitude notation, and whether a computation with an estimate mixed in was written as a numeric interval (§5.8)
+29. Failure recording — whether validator failures, refusals, deviations, scope destruction and **abandoned attempts** are in `failures.jsonl`, and whether each record has **exactly one** of `qid` and `task` (§8.1). In a seat with no `questions/` — the librarian and the bridge — a dead end belongs to a **task** rather than a question. With neither, the record does not say what it is about; with both, M5 counts the sample twice
+30. Lesson form — whether every lesson has an evidence id, `n`, a condition range, a **`falsifier`** and a `valid_until` (§8.2)
+31. Candidate preservation — whether a lesson removed a configuration candidate from S3.0 (P16)
+32. Purpose — whether the goal card has a `purpose`, and whether a reason is written when `intent` differs from that purpose's default (§4.5.1)
+33. Caller isolation — whether the `axis_*.json` files of one `qid` use different `caller_id`s and all cite the same `kb_version` (§4.3.1)
+34. Sameness of a comparison — whether, in a plan with `purpose: compare`, the arms' conditions are identical apart from the compared variable (§4.5.1)
+35. Session write boundary — whether each commit's changed paths are inside that agent's directory, and whether `contracts/` was modified from an agent session (§6.2). **It fails only after `contracts/seats.json`'s `enforced_from` (`f971c40`, the commit that turned the boundary from a convention into a gate) and merely reports before it.** The same reason check 41 moved to the parent's registry — if a retrospective sweep turns history from before the boundary red, nobody runs the sweep. Two grounds were confirmed on 2026-09-17: before `f971c40`, §6.2 existed only as prose and refused nothing, and **every commit in that span is the person's**, and the person owns every boundary (the `human` seat). Exactly three commits are affected — `0ea116e`, `e6a87f1`, `72d17fc`, from when one design seat held `contracts/` and `librarian_agent/` together and `kb/` was hand-curated
+36. Symbol collision — whether a card's ad-hoc dimensionless-group definition conflicts with a definition of the same symbol in the KB (§5.7)
+37. Time base — whether every event in `log.json` has an offset against the common `t0`, and **whether the times used in physics came from a trigger counter or a hardware timestamp** (§4.6.9)
+38. One table — whether `contracts/capabilities/`'s configuration id set equals the optical-path table's, whether each configuration points at an entry in that table, **whether each configuration's `devices[]` are channels actually in the channel table** (pointing at a retired row fails with the retirement reason), whether declared observables' units are in `units.json`, and **whether a `produces` item requiring composition is actually composable** — whether the named configuration is a `perturbation` and its `composes_with` points back (§4.6.7)
+39. Justification of estimates — whether every `assumed:` (E5) number on a card that reached the librarian (a card with no librarian in `degraded`) points at an item in `kb_gaps` (§4.3.1). It does not apply to a card that did not reach it — `degraded` states that fact
+40. Window conditions — whether a plan using an observable the vocabulary marks `window_required` carries that `window_parameter` as a condition, and whether the number that condition points at is actually in `numbers[]` (§5.7)
 
-    **어휘에 없는 이름은 `FAIL`이다**(`728f6b9`). 전에는 "창 요구를 알 수 없다"로 보류했고, 그래서 오타가 든 계획서가 **거절되지 않고 창 요구만 조용히 집행되지 않은 채** 통과했다 — 브리지 쪽에서는 그 카드가 `undeclared`로 도출되어 **오타 하나가 사람을 기다리는 스레드**가 된다. §4.4의 `undeclared`와 다르다: 그쪽은 "상대가 낼 수 있는지 아직 모른다"는 보류이고, 이쪽은 **존재하지 않는 것을 가리키는 참조**다.
+    **A name absent from the vocabulary is a `FAIL`** (`728f6b9`). It used to be held as "the window requirement is unknown", so a plan containing a typo passed **unrefused with only the window requirement quietly unenforced** — and on the bridge side that card derives as `undeclared`, so **one typo becomes a thread waiting on a person.** It is different from §4.4's `undeclared`: that is a hold meaning "we do not yet know whether the other side can produce it", and this is **a reference pointing at something that does not exist.**
 
-    **어휘에 없는 이름은 `PENDING`이 아니라 `FAIL`이다**(2026-09-18). 전에는 "창 요구를 알 수 없다"로 보류했고, 그래서 오타나 지어낸 이름이 든 계획서가 **거절되지 않고 창 요구만 조용히 집행되지 않은 채** 통과했다. 브리지 쪽에서는 그 카드가 `undeclared`로 도출되어 라운드가 보류로 서므로, **오타 하나가 사람을 기다리는 스레드가 된다.** §4.4의 `undeclared`와 혼동하지 말 것 — 그쪽은 "상대가 낼 수 있는지 아직 모른다"는 보류이고, 이쪽은 **존재하지 않는 것을 가리키는 참조**다. 부수 효과로 §11-1의 순서가 집행된다: 새 관측량은 **어휘에 먼저 등재된 뒤에야** 계획서가 그 이름을 쓸 수 있다. 오늘 모든 카드가 아는 이름을 쓰므로 이 변경은 아무것도 깨지 않는다.
-41. 좌석 귀속 — 커밋(또는 스테이지된 집합)의 **커미터 신원**이 `contracts/seats.json`의 좌석이고, 변경 경로가 전부 그 좌석의 것인지 (§6.2.1). 세 겹이다: `owns`가 경계를 주고, `paths`가 있으면 그 경계 **안에서** 다시 좁히고, `excludes`가 거기서 **뺀다**. `excludes`는 좁히기보다 먼저 판정하므로 거절 메시지가 진짜 이유를 말한다. 뺄셈이 필요한 이유는 D12가 `contracts/`를 매니저에게 주면서 `contracts/seats.json`만 아키텍처에게 남기기 때문이고, 그것이 남는 이유는 **제약되는 쪽이 자기가 무엇을 만질 수 있는지 적은 파일을 소유하면 그것은 경계가 아니라 선호**이기 때문이다. 등록되지 않은 신원은 `unknown_committer`가 `refuse`일 때만 실패한다 — **단 머지는 예외로 그때도 실패한다.** 평커밋에서 `report`는 부분 커버리지다(검사 35가 여전히 경계 개수를 세고 경로가 보인다). 머지에서 `report`는 **제로 커버리지**다 — 검사 35는 설계상 머지를 분해하지 않으므로, 귀속이 없으면 그 머지의 기여를 보는 검사가 하나도 없고 공유 코어의 유일한 방어가 통째로 꺼진다. 같은 정책이 두 상황에서 다른 것을 뜻하므로 기본값이 갈린다. 사람이 손으로 머지할 때는 `human@seat.invalid`를 쓴다 — 이미 모든 경계를 소유하는 좌석이고, 머지는 평커밋보다 훨씬 드물다.
+    **A name absent from the vocabulary is a `FAIL`, not `PENDING`** (2026-09-18). It used to be held as "the window requirement is unknown", so a plan containing a typo or an invented name passed **unrefused with only the window requirement quietly unenforced.** On the bridge side that card derives as `undeclared` and the round stands held, so **one typo becomes a thread waiting on a person.** Do not confuse it with §4.4's `undeclared` — that is a hold meaning "we do not yet know whether the other side can produce it", and this is **a reference pointing at something that does not exist.** As a side effect §11-1's ordering is enforced: a new observable can be used by name in a plan **only after it is entered in the vocabulary.** Every card today uses a known name, so this change breaks nothing.
+41. Seat attribution — whether a commit's (or the staged set's) **committer identity** is a seat in `contracts/seats.json` and all its changed paths are that seat's (§6.2.1). It is three layers: `owns` gives the boundary, `paths` if present narrows again **inside** that boundary, and `excludes` **subtracts** from it. `excludes` is adjudicated before the narrowing so the refusal message states the real reason. The subtraction is needed because D12 gives `contracts/` to the managers while leaving only `contracts/seats.json` with architecture, and the reason that stays is that **when the constrained party owns the file saying what it may touch, that is not a boundary but a preference.** An unregistered identity fails only when `unknown_committer` is `refuse` — **except a merge, which fails then too.** On a plain commit, `report` is partial coverage (check 35 still counts boundaries and the paths are visible). On a merge, `report` is **zero coverage** — check 35 does not decompose merges by design, so with no attribution not one check looks at what that merge contributed, and the shared core's only defence goes off entirely. The same policy means two different things in the two situations, so the default splits. A person merging by hand uses `human@seat.invalid` — a seat that already owns every boundary, and merges are far rarer than plain commits.
 
-**판정 기준은 그 커밋의 부모에 있던 레지스트리다.** 현재 작업 트리의 `seats.json`이 아니다. 2026-09-17에 `d6f5323`이 그것을 보여줬다 — 만들 때는 `contracts/capabilities/microscope.json`이 그 좌석의 경로였고, 몇 분 뒤 경계가 나뉘자 **같은 커밋이 FAIL로 바뀌었다.** §8이 규정한 사후 스윕(`--commit-range`)이 경계가 바뀔 때마다 옛 이력을 붉게 만들면 아무도 그 스윕을 돌리지 않는다. 검사 41이 묻는 것은 "**그 좌석이 그때 자기 경계 안에 있었는가**"이고, 그것은 커밋 시점의 질문이다.
+**The judging standard is the registry as it stood at that commit's parent.** Not the `seats.json` in the current working tree. `d6f5323` showed that on 2026-09-17 — when it was made, `contracts/capabilities/microscope.json` was that seat's path, and minutes later when the boundary was divided **the same commit turned into a FAIL.** If the retrospective sweep §8 prescribes (`--commit-range`) turns old history red every time a boundary moves, nobody runs the sweep. What check 41 asks is "**was that seat inside its boundary then**", and that is a question about the commit's moment.
 
-**자기 트리가 아니라 부모인 이유**는 그러지 않으면 한 커밋이 자기 경계를 넓히면서 그 넓힌 경계로 자기를 판정하기 때문이다. 부모로 보면 레지스트리를 넓히는 커밋은 **넓히기 전 규칙으로** 판정되므로 아키텍처의 적법한 `seats.json` 커밋이어야 하고, 새 경계는 다음 커밋부터 적용된다. 머지는 첫 부모를 쓰고, 부모가 없는 최초 커밋은 자기 트리로 내려간다. `--staged`도 같은 원리로 **HEAD의** 레지스트리를 쓴다 — 스테이지된 확장이 스스로를 승인하지 못하게.
-42. 검사 등록 일치 — §8의 선언, `def check_NN_` 구현, `CHECKS` 목록 세 곳이 같은 집합인지. 2026-09-17에 두 번 어긋났다(38은 선언만, 40은 구현만) — 문서의 번호가 아무것도 가리키지 않는 상태다
-43. entry 등급 도출 — `kb/entries/`의 각 entry의 `grade`가 `source` 종류에서 §5.3 표대로 도출되는지, E6이 저장소에 없는지. 검사 21은 카드만 보므로 저장소의 등급은 아무도 검사하지 않았다 — 카드에 금지된 자기 신고가 저장소 쪽에 열려 있었다. `source`가 없는 entry는 세어서 보고한다(통과가 아니다); 저장소가 다 채우면 그 필드는 필수가 된다 (§4.3, §5.3)
-44. 주어 해소 — entry의 `subject`가 대는 id가 그 kind의 레지스트리에 실제로 있는지. `device`는 장치 표의 채널·요소·**은퇴 행** id, `configuration`은 광경로 표, `observable`은 `contracts/observables.json`, `quantity`는 `numbers[]`에 실제로 쓰인 이름(넷 중 가장 약하고, 선언된 레지스트리가 아니라 사실상의 것이라 오타를 잡는 정도다). 은퇴 행을 포함하는 이유는 **치워진 하드웨어에 관한 사실이 나중에 찾아지기 때문**이다 — `sample_temperature_not_actuated`가 그 경우다. **주어는 틀릴 수 있어야 의미가 있으므로, 통과시키려고 레지스트리에 id를 더하는 것은 검사를 비우는 것이다**(§4.3.1)
-45. `degraded`가 사서를 대지 않으면 질의 로그에 그 호출이 있다 — 카드의 `degraded`에 `librarian_agent`가 없다는 것은 부재가 아니라 **주장**이다: 이 질문이 서비스에 갔고 서비스가 답했다. 그 주장을 보여줄 유일한 기록과 대조하는 것이 지금까지 없었다. 주장은 실수로도 쉽게 만들어진다 — `kb/`를 손으로 읽은 에이전트는 같은 숫자를 얻어 같은 카드를 쓰고, §0.3이 파일을 읽는 것과 서비스가 답하는 것 사이에 선을 긋는 이유가 그 둘이 **카드 안에서 똑같이 보이기 때문**이다. **무엇을 세우지 못하는지 함께 적는다(§9.1): 로그는 주장을 담을 뿐 확인하지 않는다.** `caller_id`는 호출자가 대는 인자이고 서버는 그 뒤의 신원을 보지 못하므로, 한 줄은 그 id로 호출이 있었다는 것이지 **그 좌석이 했다는 것이 아니다.** 막는 것은 줄이 아예 없는 경우다. `caller_id`의 개정 이행 창은 인정한다(§4.3.1) — `:v<N>:`를 떼야 로그와 맞는 카드는 실패가 아니라 보고다. 호출은 일어났고 id가 나중에 바뀐 것이며, 패턴이 조여지는 시점에 실패로 바뀐다
-46. 어휘 핀 해소 — `result`의 `estimation.vocabulary_version`이 **현재 어휘의 도출값이거나, 그 내용이 서 있던 커밋이 이력에 있는지.** 형식만 맞으면(`obs-` + 12hex) 아무 값이나 통과하던 자리다. 커밋된 적 없는 버전은 **읽어올 데가 없으므로** 실패다 — 사서 MCP가 "작업 트리를 해시한 것은 서빙할 수 없다"고 적은 것과 같은 경우이고, 검사 25가 저장소 인덱스에 하는 것과 같은 모양이다
-47. `seats.json`의 산문이 대는 좌석 이름이 그 파일 안에 실재한다 — 이 레지스트리의 산문은 실제로 일을 한다: `growth`가 두 번째 세션이 취할 신원을 지시하고, 각 좌석의 `note`가 그 세션이 어느 신원을 쥐는지 말한다. 2026-09-18에 그중 하나가 `seat/simulation-1`을 댔고, **등록된 적 없고 브랜치도 사라진 이름이 누가 커밋해도 되는지를 정하고 있었다.** 산문은 데이터가 아니라 사람만 읽기 때문에 살아남았다. §11-11이 한 단 건너 다시 나온 것이다 — 거기서는 같은 사실이 두 자리에 살아 갈라졌고, 여기서는 이름이 산문에 살고 그 대상이 목록에 사는데 **목록만 관리된다.** **죽은 이름의 인용은 결함이 아니고, `simulation-1`의 수정이 그 증거다**: note를 고치는 일 자체가 죽은 이름을 적는 일이었다. 이 검사는 47·48·50·51의 그 부류이므로(선언을 읽지 이해를 읽지 않는다) 둘을 구별하려 하지 않는다. 최상위 `retired_names`에 있으면 인용이고, 없으면 매달린 참조다. **그 키는 레지스트리 소유자의 것이므로 검사는 키가 없는 동안 보고하고 생긴 뒤에 거절한다** — 첫 항목이 검사를 무장시키므로 두 좌석이 순서를 맞출 필요가 없다(expand → migrate → contract)
-48. 레지스트리 부여 가능성 — `seats.json`의 어떤 좌석이 `paths`에 적은 모든 경로가, 그 좌석이 `owns`하는 범주로 `seat_boundary_of`가 분류하는지 (§6.2.1). **`paths`는 좁히기만 하고 부여하지 못한다** — 검사 41은 먼저 경로를 범주로 분류해 `owns`와 대조하고, `paths`는 그 뒤에서만 쓴다. 그래서 분류가 어긋난 항목은 **부여처럼 읽히고 게이트에서 거절되는 죽은 글자**이고, 아무것도 실패시키지 않으므로 누가 그 경로를 실제로 쓰려다 벽에 부딪힐 때까지 조용하다. 2026-09-19에 그것이 반나절이었고, 그때 이 검사를 켜면 여덟 건이 잡혔다 — 그중 넷은 아무도 앉아 있지 않은 좌석의 것이어서 부딪힐 사람조차 없었다. **`seats.json`에서 분류기를 도출하게 되면 은퇴한다**(§11-11): 도출은 갈라지는 것을 불가능하게 하고, 비교기는 갈라진 뒤에 알려줄 뿐이다
-49. 거짓 갭 — `absent` gap이 **`nearest`를 계산한 뒤에** 주장됐는지 (§4.3.1, §8.1). 계산하지 않았으면 그 갭이 말할 수 있는 것은 "없다"가 아니라 **"이 이름으로는 못 찾았다"**뿐이고, 둘은 다음 행동이 다르다. **거짓 갭은 아무것도 실패시키지 않는다** — 검사가 보는 것은 갭의 형식이지 그 갭이 참인지가 아니므로, 잘못 기록된 결핍은 남아서 다음 사람이 "저장소에 이 값이 없다"의 근거로 읽는다. 2026-09-19에 빈손 아홉 중 **여덟이 저장소가 자기 지식을 호출자의 단어로 못 알아본 것**이었다. 서버가 `near_names`를 내게 되면서 `numerical_aperture` → `['na']`가 답에 실린다 — 이 검사를 있게 한 바로 그 사례다. **"가깝다"는 점수가 아니라 정확 술어로 판정한다**: 점수에는 임계값이 있고, 임계값은 다이얼이고, 다이얼은 모든 것에 우는 보고서가 될 때까지 넓어진다. 빈 `near_names`는 실패가 아니라 **정직한 빈손**이다
-50. 배달된 봉투에는 읽을 사람이 있다 — `<agent>/inbox/`의 `r<N>_ask_*.json`은 그 에이전트의 `CLAUDE.md`가 수신함을 대고 있을 것을 요구한다 (§7.1 규칙 8). **배달 경로와 그곳을 열 이유를 가진 좌석은 두 개의 사실이고, 2026-09-19에 첫째만 적혔다.** 그날 라운드는 옳게 배달됐고 검사 8·13·41이 전부 통과했는데도 읽히지 않았다 — 한 세션이 다른 세션에 대역 밖으로 알려서 닿았고, **작동하면서 기록을 남기지 않는 알림**이 그것이다(§6.2 규칙 2). **검사는 배달에 걸리지 트리에 걸리지 않는다**: 받을 수 없는 트리에 배달한 브리지를 거절하지, 자기가 소유하지도 않은 지시문 때문에 에이전트를 거절하지 않는다. 겨누는 대상을 틀리면 옳은 좌석이 자기가 고칠 수 없는 것으로 막히고, 그것이 `--no-verify`로 답해지는 상황이다(§6.2.1). **한계를 함께 적는다: 이 검사는 검사 48과 마찬가지로 선언을 읽지 이해를 읽지 않는다.** 수신함을 대고 있는 지시문이 그것을 틀리게 설명하고 있을 수도 있다. 픽스처가 그 자리를 정확히 잡는다 — `check50_delivery_without_a_reader/`는 배달 **하나와 `CLAUDE.md` 하나**를 담고, 그 지시문은 질문·축·승인을 설명하면서 **라운드가 어디로 도착하는지만 말하지 않는다.** 파일을 빼기만 한 픽스처였으면 엉뚱한 가지를 시험했을 것이다: 실패는 **좌석이 없는 것**이 아니라 **이것만 빼고 전부 들은 좌석**이다(§11-7)
-51. `held` 스레드의 `open_question`이 기록된 자리로 풀린다 — 두 절반이다. **필드가 있어야 하고, 그 참조가 실재하는 §11 항목을 대야 한다.** 첫째 절반은 `thread_status.schema.json`이 이미 산문으로 적고 있었다 — "required when state is held" — 그리고 **그것을 붙들 조건절이 그 아래 없었다.** 기제 옆에 적힌 규칙이 기제가 아니었던 것이고, 이 저장소에서 여섯 번째로 센 그 모양이다. 둘째 절반이 막는 것은 `open_question`이 "아직 §11에 기록되지 않았다"로 끝나는 상태다 — 2026-09-19에 실제로 그랬고, **한쪽 끝을 아무도 읽지 않는 선언**이라 사람에게 무엇을 묻는지가 어느 장부에도 도착하지 않았다. 픽스처 둘이 가지 둘을 각각 판다: `11-99`를 대는 보류와, **무엇을 묻는지 끝내 말하지 않는 보류**. 뒤엣것이 조용한 쪽이다 — 장부가 완벽하게 정형이면서 아무에게도 아무것도 묻지 않을 수 있다. 부류의 한계는 §8이 한 번 적은 그것이다
-52. 목표는 결정이지 graded number가 아니다 — 인라인 `targets[]` 항목이 `numbers[]`에도 나타나면 안 되고, 그 **단위가 `units.json`에 등록**돼 있어야 한다 (§5.3). 슬롯 자체가 등급을 **표현 불가능**하게 만들지만(`c8ee7b3`, `additionalProperties: false`), 그것은 새 모양에 대해서만 참이다 — 이 검사는 옛 모양이 습관으로 돌아오는 것을 막고, `numbers[]`가 공짜로 해 주던 단위 검사를 새 그릇에서 이어 받는다. **검사된 그릇에서 안 검사된 그릇으로 값을 옮기는 것이 커버리지가 조용히 줄어드는 방식**이므로 구멍을 여는 커밋이 그것을 닫았다.
-53. 에이전트 설정의 `deny`가 읽기를 막지 않는다 — `Bash(`나 `Read(`로 시작하는 항목을 거절한다 (§6.2). `contracts/`는 모두가 읽고 아무도 쓰지 않는 곳이므로 **읽기를 막는 규칙은 의도보다 넓은 것이 아니라 규칙과 반대**이고, 막힌 좌석은 읽는 대신 **추측**한다. **못 보는 것을 함께 적는다: 이 검사는 저장소 안 설정만 본다.** 2026-09-19에 실제로 거부된 읽기는 사용자 수준 설정이나 하니스에서 왔고 거기는 이 검사도 이 문서도 닿지 않는다 — 적어 두지 않으면 통과가 보증으로 읽힌다.
-54. `basis`의 `kb:` 참조가 그 카드 자신의 `kb_refs`로 해소되는지 (§5.3.2). **이것은 47·48·50·51의 부류가 아니다** — 이름이 실재하는지가 아니라 **참조가 실제로 풀리는지**를 보고, 풀 대상이 그 카드 안에 있다. A4가 `numbers[]`가 빈 채 서빙된 `kb_refs` 다섯으로 서면서 필요해졌고(§5.3.2), 스키마가 *"이 참조는 해소된다"*고 약속한 것을 집행할 것이 없던 자리를 닫는다 — **약속이 적힌 채 구현이 없으면 그것이 이 저장소가 하루에 일곱 번 센 모양이다.**
-55. §7 트리가 대는 파일 이름을 `ALLOWED_PATHS`가 허용하는지 (§7.1). **§7은 사람용 정본이고 거절하는 것은 정규식**이라 한 쪽만 고친 좌석이 왜 계속 막히는지 알 수 없었다 — 2026-09-19에 `bridge/README.md`와 `contracts/quantities.json`이 그 자리였고 **두 번 다 §7에 줄이 들어갔다.** 방향이 하나인 것은 **설계다**: 양방향이면 어느 절반을 먼저 놓아도 막혀 두 좌석이 영영 못 들어가고, 한 방향이라 **통과 순서가 정확히 하나 존재한다**(§7.1). **각 줄의 첫 토큰만 읽으므로 디렉터리 줄에 나열된 파일은 못 본다** — §7에 그런 줄이 아홉, 그중 `envelope/` 둘이 진짜 선언이고 이것은 docstring의 "일부러 안 잡는 것" 목록에 없다
-60. 모든 observable id가 `quantities.json`에 등록돼 있는지 (§7, §11-8). **포함이지 동기화가 아니다** — `observables.json`은 *무엇을 생산하고 비교할 수 있나*를 등록하므로 `quantities.json`의 **부분집합**이고, 역은 아니다. **`not_yet_registered` 같은 탈출구를 두지 않는다**: observable 등록이 `estimator`·`window_required`·`producible_by`를 지는 **더 비싼 약속**이므로, **비싼 쪽에서 축복된 이름이 싼 쪽에서 보류될 수 없다.** 검사와 그것을 성립시키는 등록 둘이 **한 커밋**에 들어갔다 — 검사만 먼저 올리면 `plan.md`가 이미 성립 안 한다고 적어 둔 조건 때문에 **모든 좌석의 다음 커밋이 멈춘다**
-61. 봉투가 발행된 export보다 얼마나 뒤졌는지 — **자문이고 실패가 아니다** (§4.3.2). 뒤진 봉투는 결함이 아니고(소비자가 일부러 핀할 수 있다) **옳은 무행동에 빨개지는 게이트는 사람이 건너뛰는 법을 배운다**(§6.2.1). 새 status를 만들지 않고 **통과 메시지가 수를 나른다**(§8). **저장소가 아니라 발행된 export와 비교한다**: stale한 export 뒤에 있는 봉투는 복사해도 못 닫으므로, 한 숫자로 합치면 **주인이 다른 랙 둘**을 섞는다. 검사 26이 봉투를 **자기가 지목한 커밋**에 대고 보는 것과 자리가 다르다 — 그쪽은 무결성이고 이쪽은 최신성이며, 현미경 봉투가 34개 뒤진 채 `0 failed` 안에 앉아 있던 것을 알아챈 경로가 사람이 파일 둘을 손으로 연 것이었다
-62. 검사 43이 `computed:`의 등급을 **입력에서 도출**하는지 (§5.3). 43은 출처 종류에서 등급을 도출하면서 `computed:` 분기만은 선언값이 `("E4","E5")` 안인지만 보고 **입력을 전혀 안 읽는다** — §5.3이 E4라고 하는 자리에 E5를 써도 통과한다. **도출된 것처럼 보이는데 아닌 등급이 가장 조용히 틀리다**: 그것을 잡을 것이 바로 없는 것이기 때문이다. 규칙은 `max(E4, 최악 입력)`이고, **E4 바닥은 산술이 좋게 만들 수 있는 한도**이며 **최악 입력은 사슬이 좋을 수 있는 한도**다. 검사 21이 카드에서 이미 하던 것을 entry에서도 한다 — **한 규칙에 집행자가 둘이고 하나만 규칙을 알던 자리**(§11-11의 모양인데 두 사본이 다 검사기 안에 있었다).
-64. `--expect-fail`이 카드 아닌 **입력** 픽스처에도 닿는지 (§11-7). `--expect-fail`은 픽스처 **카드**가 실패하는지를 단언하고 그것이 조용히 망가진 검사를 잡는 방법인데, 그 폴더에는 카드도 아티팩트도 아닌 파일이 있다 — `.md` 둘은 짝 `.json`을 검사 9에서 실패시키려고, 그룹의 `receiving_agent/CLAUDE.md`는 그룹을 검사 50에서 실패시키려고 있다. **입력이고, 아무것도 그것들을 걷지 않았다.**
+**The reason it is the parent and not its own tree** is that otherwise a commit that widens its own boundary is judged by the widening it just made. Read from the parent, a commit widening the registry is judged **by the rules before the widening**, so it has to be a legitimate `seats.json` commit by architecture, and the new boundary applies from the next commit on. A merge uses its first parent, and a root commit with no parent falls back to its own tree. `--staged` uses **HEAD's** registry on the same principle — so a staged widening cannot approve itself.
+42. Check-registration agreement — whether §8's declarations, the `def check_NN_` implementations and the `CHECKS` list are the same set in all three places. It diverged twice on 2026-09-17 (38 declared only, 40 implemented only) — a state where a number in the document points at nothing
+43. Entry grade derivation — whether each entry's `grade` in `kb/entries/` is derived from its `source` kind per §5.3's table, and whether any E6 is in the store. Check 21 looks only at cards, so nobody was checking the store's grades — the self-reporting forbidden in a card was open on the store side. Entries with no `source` are counted and reported (not passed); once the store fills them all, that field becomes mandatory (§4.3, §5.3)
+44. Subject resolution — whether the id an entry's `subject` names is actually in that kind's registry. `device` means a channel, element or **retired row** id in the device table, `configuration` the optical-path table, `observable` `contracts/observables.json`, and `quantity` a name actually used in `numbers[]` (the weakest of the four; a de facto rather than declared registry, so it catches about as much as a typo). Retired rows are included because **a fact about hardware that was put away gets looked up later** — `sample_temperature_not_actuated` is that case. **A subject is only meaningful if it can be wrong, so adding an id to a registry in order to pass is emptying the check** (§4.3.1)
+45. If `degraded` does not name the librarian, the query log carries that call — a card without `librarian_agent` in `degraded` is not an absence but **a claim**: this question went to the service and the service answered. Comparing that claim against the only record that could show it did not exist until now. The claim is easy to make by accident — an agent that read `kb/` by hand gets the same numbers and writes the same card, and the reason §0.3 draws a line between reading a file and the service answering is that the two **look identical inside a card.** **What it cannot establish is written with it (§9.1): the log holds the claim, it does not confirm it.** `caller_id` is an argument the caller supplies and the server does not see the identity behind it, so a line means a call happened under that id and **not that that seat made it.** What it blocks is there being no line at all. The `caller_id` revision migration window is acknowledged (§4.3.1) — a card that has to drop `:v<N>:` to match the log is reported, not failed. The call happened and the id changed later, and it turns into a failure when the pattern tightens
+46. Vocabulary pin resolution — whether a `result`'s `estimation.vocabulary_version` is **a derivation of the current vocabulary, or a commit in history where its content stood.** It was a place where any value passed as long as the form matched (`obs-` + 12 hex). A version never committed fails because **there is nowhere to read it back from** — the same case as the librarian MCP writing "a hash of a working tree cannot be served", and the same shape as what check 25 does against the store index
+47. Whether the seat names `seats.json`'s prose cites actually exist in that file — this registry's prose really does work: `growth` dictates the identity a second session takes, and each seat's `note` says which identity that session holds. On 2026-09-18 one of them cited `seat/simulation-1`, and **a name never registered, whose branch was gone, was deciding who may commit.** It survived because prose is not data and only people read it. It is §11-11 one level over — there the same fact lived in two places and diverged; here a name lives in the prose and its referent lives in the list, and **only the list is maintained.** **Citing a dead name is not a defect, and the `simulation-1` fix is the evidence**: fixing the note was itself an act of writing a dead name. This check is in the 47/48/50/51 class (it reads a declaration, not an understanding), so it does not try to tell the two apart. In the top-level `retired_names` it is a citation; absent from it, a dangling reference. **That key belongs to the registry's owner, so the check reports while the key is absent and refuses once it exists** — the first entry arms the check, so two seats do not have to coordinate an order (expand → migrate → contract)
+48. Registry grantability — whether every path some seat lists in `paths` in `seats.json` is classified by `seat_boundary_of` into a category that seat `owns` (§6.2.1). **`paths` only narrows and cannot grant** — check 41 first classifies the path into a category and compares against `owns`, and uses `paths` only afterwards. So a misclassified entry is **a dead letter that reads as a grant and is refused at the gate**, and it fails nothing, so it stays quiet until someone actually tries to use that path and hits a wall. On 2026-09-19 that was half a day, and turning this check on then caught eight — four of them belonging to seats nobody was sitting in, so there was nobody to hit the wall. **It retires once the classifier is derived from `seats.json`** (§11-11): derivation makes divergence impossible, while a comparator only tells you after the fact
+49. False gaps — whether an `absent` gap was asserted **after computing `nearest`** (§4.3.1, §8.1). Without computing it, all that gap can say is not "there is none" but **"I could not find it under this name"**, and the two lead to different next actions. **A false gap fails nothing** — what a check sees is the gap's form, not whether the gap is true, so a wrongly recorded absence stays and the next person reads it as evidence that "this value is not in the store". On 2026-09-19, of nine empty-handed results **eight were the store failing to recognise its own knowledge in the caller's words.** Now that the server emits `near_names`, `numerical_aperture` → `['na']` rides in the answer — the very case that produced this check. **"Near" is adjudicated by an exact predicate, not a score**: a score has a threshold, a threshold is a dial, and a dial widens until the report cries at everything. An empty `near_names` is not a failure but **an honest empty hand**
+50. A delivered envelope has a reader — an `r<N>_ask_*.json` in `<agent>/inbox/` requires that agent's `CLAUDE.md` to name the inbox (§7.1 rule 8). **The delivery path and a seat with a reason to open it are two facts, and on 2026-09-19 only the first was written.** That day the round was correctly delivered and checks 8, 13 and 41 all passed, and it still was not read — one session reached another out of band, and **a notification that works and leaves no record** is that (§6.2 rule 2). **The check attaches to the delivery, not to the tree**: it refuses a bridge that delivered into a tree that cannot receive, and does not refuse an agent over an instruction file it does not even own. Aim at the wrong target and a correct seat is blocked by something it cannot fix, and that is the situation answered with `--no-verify` (§6.2.1). **The limit is written with it: like check 48, this check reads a declaration and not an understanding.** An instruction naming the inbox may describe it wrongly. The fixture catches that place exactly — `check50_delivery_without_a_reader/` holds **one delivery and one `CLAUDE.md`**, and that instruction explains questions, axes and approvals while **saying only nothing about where a round arrives.** A fixture made by removing a file would have tested the wrong branch: the failure is not **an absent seat** but **a seat told everything except this** (§11-7)
+51. A `held` thread's `open_question` resolves to a recorded place — two halves. **The field has to exist, and its reference has to name an actual §11 item.** The first half was already written as prose in `thread_status.schema.json` — "required when state is held" — and **there was no conditional below it to hold it.** A rule written beside a mechanism was not a mechanism, the shape counted a sixth time in this repository. What the second half blocks is an `open_question` ending in "not yet recorded in §11" — which it actually was on 2026-09-19, and being **a declaration one end of which nobody reads**, what was being asked of the person arrived in no ledger. Two fixtures dig the two branches separately: a hold naming `11-99`, and **a hold that never says what it is asking.** The latter is the quiet one — a ledger can be perfectly well formed and ask nobody anything. The class's limit is the one §8 wrote once
+52. A target is a decision, not a graded number — an inline `targets[]` item must not also appear in `numbers[]`, and its **unit must be registered in `units.json`** (§5.3). The slot itself makes a grade **inexpressible** (`c8ee7b3`, `additionalProperties: false`), but that is true only of the new shape — this check stops the old shape returning by habit, and inherits in the new container the unit check `numbers[]` was doing for free. **Moving a value from a checked container to an unchecked one is how coverage silently shrinks**, so the commit that opened the hole closed it.
+53. An agent setting's `deny` does not block reading — it refuses entries beginning with `Bash(` or `Read(` (§6.2). `contracts/` is the place everyone reads and nobody writes, so **a rule blocking reads is not broader than the intent but contrary to it**, and a blocked seat **guesses** instead of reading. **What it cannot see is written with it: this check looks only at settings inside the repository.** The read actually denied on 2026-09-19 came from a user-level setting or the harness, and neither this check nor this document reaches there — unwritten, a pass reads as a guarantee.
+54. Whether a `basis`'s `kb:` reference resolves against that card's own `kb_refs` (§5.3.2). **This is not the 47/48/50/51 class** — it looks not at whether a name exists but at **whether the reference actually resolves**, and what it resolves against is inside that card. It became necessary when A4 stood on five served `kb_refs` with an empty `numbers[]` (§5.3.2), and it closes the place where the schema promised *"this reference resolves"* with nothing to enforce it — **a promise written with no implementation is the shape this repository counted seven times in one day.**
+55. Whether `ALLOWED_PATHS` permits the filenames the §7 tree names (§7.1). **§7 is the human-facing record and what refuses is the regex**, so a seat that fixed only one side could not tell why it kept being blocked — on 2026-09-19 `bridge/README.md` and `contracts/quantities.json` were in that position and **both times a line went into §7.** Being one-directional is **design**: bidirectional means either half placed first is blocked and the two seats can never get in, and one-way means **exactly one passing order exists** (§7.1). **It reads only each line's first token, so it does not see files listed on a directory line** — there are nine such lines in §7, of which two `envelope/` ones are real declarations, and this is not on the docstring's list of deliberate non-catches
+60. Whether every observable id is registered in `quantities.json` (§7, §11-8). **Inclusion, not synchronisation** — `observables.json` registers *what can be produced and compared*, so it is a **subset** of `quantities.json` and not the reverse. **No escape hatch such as `not_yet_registered`**: registering an observable carries **the more expensive promise** of `estimator`, `window_required` and `producible_by`, so **a name blessed on the expensive side cannot be held pending on the cheap one.** The check and the registrations that make it hold went in **one commit** — landing the check alone would stop **every seat's next commit** on a condition `plan.md` already records as unsatisfied
+61. How far behind an envelope is against the published export — **advisory, not a failure** (§4.3.2). A lagging envelope is not a defect (a consumer may pin deliberately) and **a gate that goes red on correct inaction teaches people to skip it** (§6.2.1). No new status is created; **a passing message carries the number** (§8). **It compares against the published export, not the store**: an envelope behind a stale export cannot close the gap by copying, so folding it into one number mixes **two racks with different owners.** It sits differently from check 26, which compares an envelope against **the commit it named** — that is integrity and this is currency, and the route by which the microscope envelope being 34 behind while sitting inside `0 failed` was noticed was a person opening two files by hand
+62. Whether check 43 **derives** a `computed:` grade **from its inputs** (§5.3). 43 derives grades from source kinds, and its `computed:` branch alone only asks whether the declared value is in `("E4","E5")` and **reads no inputs at all** — E5 passes where §5.3 says E4. **A grade that looks derived and is not is the quietest kind of wrong**: what would catch it is precisely what is absent. The rule is `max(E4, worst input)`, where **the E4 floor is the limit of how good arithmetic can make it** and **the worst input is the limit of how good the chain can be.** It does on entries what check 21 already did on cards — **a place where one rule had two enforcers and only one knew the rule** (§11-11's shape, with both copies inside the validator).
+64. Whether `--expect-fail` reaches **input** fixtures that are not cards (§11-7). `--expect-fail` asserts that fixture **cards** fail, and that is how a silently broken check is caught, but that folder holds files that are neither cards nor artifacts — two `.md` exist to fail their paired `.json` at check 9, and a group's `receiving_agent/CLAUDE.md` exists to fail the group at check 50. **They are inputs, and nothing was sweeping them.**
 
-    **입력을 지우는 것은 이미 잡힌다** — 주체가 실패를 멈추고 `--expect-fail`이 말한다. **안 잡히는 것은 입력이 남아 있으면서 제 일을 안 하는데 다른 결함이 주체를 계속 실패시키는 경우**이고, 그때 픽스처는 **틀린 이유로 통과한다.** 그래서 살아 있는 입력과 죽은 입력을 가르려 하지 않는다 — 그것은 픽스처를 **돌리는** 일이고 `--expect-fail`의 몫이다. 말할 수 있는 것은 **모든 파일이 닿는다**는 것뿐이다: 걷히는 파일과 어간을 공유하거나, 걷히는 멤버가 있는 그룹 폴더 안에 있으면 인정한다. 둘 다 아니면 **죽은 무게**이고, **실패가 목적인 디렉터리에서 죽은 무게는 시험과 구별되지 않는다**
+    **Deleting an input is already caught** — the subject stops failing and `--expect-fail` says so. **What is not caught is an input that remains and stops doing its job while another defect keeps the subject failing**, and then the fixture **passes for the wrong reason.** So it does not try to separate live inputs from dead ones — that is **running** the fixture and is `--expect-fail`'s job. All that can be said is **that every file is reached**: it is accepted if it shares a stem with a swept file, or sits in a group folder with a swept member. Neither, and it is **dead weight**, and **in a directory whose purpose is failing, dead weight is indistinguishable from a test**
 
-    **입력은 저장소가 그 이름을 싣고 모든 캐리어가 등급에 만장일치일 때 해소된다.** 유일 캐리어가 아니라 만장일치인 이유는 계수다 — 여섯 이름이 둘 이상 entry에 실리고 여섯 다 만장일치라, 유일성을 요구하면 이유 없이 거절한다. 그리고 **만장일치는 조용할 수 없다**: 갈리면 편들지 않고 이름을 댄다. **어느 값인지는 주장하지 않는다** — `pixel_size`는 한 등급 아래 서로 다른 값 열둘이다. **이름의 등급을 푸는 것이지 값을 푸는 것이 아니고**, 그것이 §8이 이 부류에 적어 둔 한계다.
+    **An input resolves when the store carries that name and every carrier is unanimous on the grade.** Unanimity rather than uniqueness is arithmetic — six names ride on two or more entries and all six are unanimous, so demanding uniqueness would refuse without cause. And **unanimity cannot be quiet**: where they split, it names them rather than taking a side. **It asserts nothing about which value** — `pixel_size` is twelve different values under one grade. **It resolves a name's grade and not its value**, and that is the limit §8 records for this class.
+    **Underivable is neither a failure nor PENDING.** It is not a failure because the entry is not wrong but because **there is nothing that can be said**, and not PENDING because that would mean *a later milestone produces it* and **no milestone resolves a symbol.** So it comes out as a number inside a passing message, split into three shapes — a symbol the store does not carry, **no `inputs` key at all**, and carrier disagreement. **The next action differs for all three.** The second is a different kind from the other two: the symbol is not failing to resolve, **what would resolve it is not written down.**
+56. Whether check 3's undecided threshold reports in the unit §11-2 settled — while the threshold is open, that one `UNDECIDED` line is **the only place in the repository that states the unit**, and it is read far more often than §11-2's body. While it said `counted E5 = [7, 5, 17]`, that line **was teaching a unit that had just been rejected** — and **a message pointing at the wrong thing is believed**: the same day check 13's message named §7 and two seats fixed only §7 and stayed blocked, and check 41's message named `owns` and half a day went. **It compares numbers, not wording** — it recomputes the counts and compares per plan, so reverting the unit fails even if the sentence still says `rationale`. The key in `validation_limits.json` moved with it to `max_rationales_per_plan`: **a message teaching rationale while the refusal is made on raw E5 is worse than either alone.** **The limit is written with it — a rationale count counts the *number* of guesses, not their *weight*.** One rationale holding up a whole plan is still 1, and that is the price of not counting chain length. Unwritten, a pass reads as "this plan has few assumptions"
+57. **An irreversible action rests on a confirmed limit** — the parameters of a `reversible: false` action in `actions[]` have to be bound by a limit in `envelope/safety.json`, and that limit's `confirmation` has to be **`physical`**. **`carried_over` is legal inside the envelope and not here**: forbid transcription and the file cannot exist until every ceiling is confirmed, and then nobody starts the file (§10.3 rule 4) — **and that licence ends in front of an irreversible action** (§4.6.6.1 rule 3). Whether it is irreversible, and the parameter list, **use exactly the `actions[]` check 22 reads**; a second definition would diverge (§11-11). Parameters and limits are joined by the naming rule the schema uses, `<quantity>_max` / `<quantity>_min`.
+58. **One fan-out reads one store** — every axis card under one `qid` and one configuration has to pin the same `kb_version`, and **a differing revision is not an exemption.** Check 33 asks the same thing and cannot see this: 33 groups by `(scope, qid, revision)` and **has to.** A revision is a re-run (§4.5.5) and `caller_id` has no revision component, so grouping without it makes **"caller_id reuse" fire on a card and the card that replaced it.** For that question it is right. **The price is that the same grouping is also used for `kb_version` agreement**, and then agreement holds trivially within each partition and **nothing looks across the partitions.**
 
-    **도출 불가는 실패도 PENDING도 아니다.** 실패가 아닌 것은 entry가 틀린 게 아니라 **말할 수 있는 것이 없기** 때문이고, PENDING이 아닌 것은 그것이 *나중 마일스톤이 만든다*는 뜻인데 **어떤 마일스톤도 기호를 해소하지 않기** 때문이다. 그래서 통과 메시지 안의 수로 나오고, 세 모양을 나눈다 — 저장소가 안 싣는 기호, **`inputs` 키 자체가 없음**, 캐리어 불일치. **셋의 다음 행동이 다르다.** 둘째는 기호가 안 풀리는 것이 아니라 **풀 것이 안 적혀 있는** 것이라 나머지 둘과 종류가 다르다
-56. 검사 3의 미정 임계값이 §11-2가 정한 단위로 보고하는지 — 임계값이 열려 있는 동안 그 `UNDECIDED` 한 줄이 **저장소에서 단위를 말하는 유일한 자리**이고, §11-2 본문보다 훨씬 자주 읽힌다. `counted E5 = [7, 5, 17]`이라고 적고 있던 동안 그 줄은 **방금 거부된 단위를 가르치고 있었다** — 그리고 **틀린 것을 가리키는 메시지는 믿긴다**: 같은 날 검사 13의 메시지가 §7을 대는 바람에 두 좌석이 §7만 고치고 막혔고, 검사 41의 메시지가 `owns`를 대는 바람에 반나절이 갔다. **문구가 아니라 숫자를 비교한다** — 카운트를 다시 계산해 계획마다 대조하므로 문장에 `rationale`이 남아 있어도 단위를 되돌리면 실패한다. `validation_limits.json`의 키도 `max_rationales_per_plan`으로 함께 옮겼다: **메시지가 rationale을 가르치는데 거절이 원시 E5로 이루어지면 둘 중 하나보다 나쁘다.** **한계를 함께 적는다 — rationale 수는 추측의 *횟수*를 세지 *무게*를 세지 않는다.** 하나의 rationale이 계획 전체를 떠받쳐도 1이고, 그것이 사슬 길이를 세지 않는 대가다. 적어 두지 않으면 통과가 "이 계획은 가정이 적다"로 읽힌다
-57. **비가역 동작은 확인된 한계에 기댄다** — `actions[]`에서 `reversible: false`인 동작의 파라미터는 `envelope/safety.json`의 한계로 묶여야 하고, 그 한계의 `confirmation`이 **`physical`**이어야 한다. **`carried_over`는 envelope 안에서는 합법이고 여기서는 아니다**: 옮겨 적기를 금지하면 모든 천장을 확인하기 전엔 파일이 존재할 수 없고 그러면 아무도 파일을 시작하지 않는다(§10.3 규칙 4) — **그 면허가 되돌릴 수 없는 동작 앞에서 끝난다**(§4.6.6.1 규칙 3). 비가역 여부와 파라미터 목록은 **검사 22가 읽는 `actions[]`를 그대로 쓴다**; 두 번째 정의를 두면 갈라진다(§11-11). 파라미터와 한계는 스키마가 쓰는 이름 규칙 `<quantity>_max`·`<quantity>_min`으로 잇는다.
-58. **한 팬아웃은 한 저장소를 읽는다** — 한 `qid`·한 구성 아래 모든 축 카드가 같은 `kb_version`을 고정해야 하고, **revision이 다른 것은 면제가 아니다.** 검사 33이 같은 것을 묻고 이것을 볼 수 없다: 33은 `(scope, qid, revision)`으로 묶고 **그래야 한다.** revision은 재실행이고(§4.5.5) `caller_id`에 revision 성분이 없으므로, 빼고 묶으면 **"caller_id 재사용"이 한 카드와 그것을 대체한 카드에 대해 발화한다.** 그 질문에 대해서는 옳다. **대가는 같은 묶음이 `kb_version` 합의에도 쓰인다는 것이고**, 그러면 합의가 각 분할 안에서 자명하게 성립하며 **분할을 가로질러 보는 것이 없어진다.**
+    **A revision counts a re-run of one axis. It does not count a re-run of the fan-out.** Six axes at revision 2 and one at 1 is **one fan-out**, and S4 intersects all seven. Taking intervals from two stores and intersecting them **compares two knowledge states**, and **the abstaining side is worse** — an axis on an old pin reports `absent` for what the new store holds, and downstream that is **indistinguishable from a real absence.**
 
-    **revision은 한 축의 재실행을 센다. 팬아웃의 재실행을 세지 않는다.** 여섯 축이 revision 2이고 하나가 1인 것은 **한 팬아웃**이고 S4는 일곱을 다 교집합한다. 구간을 두 저장소에서 가져와 교집합하면 **두 지식 상태를 비교하는 것**이고, **기권 쪽이 더 나쁘다** — 옛 핀의 축은 새 저장소가 가진 것에 대해 `absent`를 내고, 하류에서 그것은 **진짜 부재와 구별되지 않는다.**
+    **It was written on top of a real case.** `mic-20260918-001` had six axes at `kbv-7c77fa74ee5a` and `a5` alone at `kbv-49feb73662b7` — six commits and 58 items apart — and **check 33 was passing.** Re-deriving `a5` found all seven inputs **still absent**, so that split had not yet produced a wrong answer. **That is a reason to close it then, not a reason to leave it — the hazard is the shape, not today's values.**
 
-    **실물 위에서 쓰였다.** `mic-20260918-001`이 여섯 축을 `kbv-7c77fa74ee5a`에, `a5` 하나를 `kbv-49feb73662b7`에 두고 있었다 — 여섯 커밋과 58개 항목 차이이고 **검사 33은 통과하고 있었다.** `a5`를 재도출하니 입력 일곱이 **전부 여전히 부재**라 그 분할이 아직 틀린 답을 만들지는 않았다. **그것이 그때 닫을 이유이지 놔둘 이유가 아니다 — 위험은 오늘의 값이 아니라 모양이다.**
+    **It landed after the defect was gone, and that order is the rule.** The implementation was finished while the split was live and the gate refused the failing tree. **It was not weakened to get in** — deleting the right thing to satisfy a gate leaves a green tree and is worse than a bypass (§8). Meanwhile the implementation was kept outside the repository: left in the working copy, another seat's `git commit -- <paths>` carries it off (§6.2.1).
 
-    **결함이 사라진 뒤에 착지했고 그 순서가 규칙이다.** 구현은 분할이 살아 있는 동안 완성됐고 게이트가 실패하는 트리를 거절했다. **들어가게 하려고 약화시키지 않았다** — 게이트를 만족시키려고 옳은 것을 지우면 초록인 트리가 남고 그것은 우회보다 나쁘다(§8). 그동안 구현은 저장소 밖에 보관했다: 작업 사본에 두면 다른 좌석의 `git commit -- <경로>`가 실어 간다(§6.2.1).
+    `scope` was lifted from 33's local function to a module-level `card_scope()` — **the two are halves of one question and have to partition the same way, and two copies drift** (§11-11).
 
-    `scope`는 33의 지역 함수에서 모듈 수준 `card_scope()`로 올렸다 — **둘은 한 질문의 양쪽 절반이므로 같은 방식으로 분할해야 하고, 사본 둘은 드리프트한다**(§11-11).
+    **Two things it does not handle.** **It compares versions and not contents** — two cards pinning the same version may still disagree about what they read, and checks 25 and 49 carry that. And **it does not say that version is current** — a fan-out standing **in agreement** on an old store is legitimate, and the test for when to move is card 008's: **move because the question's answer changed, not because the store's version moved**
 
-    **다루지 않는 것 둘.** **버전을 비교하지 내용을 비교하지 않는다** — 같은 버전을 고정한 두 카드가 무엇을 읽었는지에 대해 여전히 어긋날 수 있고 그것은 검사 25·49가 진다. 그리고 **그 버전이 최신이라고 말하지 않는다** — 팬아웃이 옛 저장소에 **합의해서** 서 있는 것은 정당하며, 움직일 때 쓰는 시험은 카드 008의 것이다: **저장소의 버전이 움직여서가 아니라 질문의 답이 바뀌어서 움직인다**
+    **What it does not handle is written with it: a limit being confirmed is separate from whether that limit was respected.** `optical_power_max` is `physical` as of 2026-09-20, and the channel it binds is `read_back: false`, so nothing reads compliance back — **that is the rule check 66 carries and not this one.** **Becoming able to command is not becoming able to confirm it is off.**
 
-    **다루지 않는 것을 함께 적는다: 한계가 확인돼 있어도 그 한계가 지켜졌는지는 별개다.** `optical_power_max`는 2026-09-20에 `physical`인데 그것이 묶는 채널은 `read_back: false`이므로 준수를 되읽는 것이 없다 — **그것은 검사 66이 지는 규칙이고 이 검사가 아니다.** **명령할 수 있게 되는 것이 꺼져 있다는 것을 확인할 수 있게 되는 것은 아니다.**
+    **It is PENDING today and not PASS.** The repository's only irreversible action `act_bleach_ref` rests on `illumination_power`, and the microscope envelope holds only the two P0 ranks highest, which does not yet include it. **Failing now would refuse something that could not have been done**, and it flips itself the moment any irreversible parameter gets a limit
 
-    **오늘 PENDING이고 PASS가 아니다.** 저장소의 유일한 비가역 동작 `act_bleach_ref`가 `illumination_power`에 기대는데 현미경 envelope는 P0가 가장 높이 치는 둘만 들고 그것은 아직 없다. **지금 실패시키면 할 수 없었던 일을 거절하는 것**이고, 어느 비가역 파라미터든 한계를 얻는 순간 스스로 뒤집힌다
+    **And this check's draft earned §8's principle.** The draft refused `Bash(python3*hardware*)`, which is **the only denial actually enforced in the bridge setting and adjacent to P0.** The seat's first impulse was to delete it to make the tree green, and what stopped it was **the docstring having written in advance that the pattern is legitimate.** If a check does not say what it deliberately does not refuse, then when the check is wrong the reader suspects their own file
 
-    **그리고 이 검사의 초안이 §8의 그 원칙을 벌었다.** 초안이 `Bash(python3*hardware*)`를 거절했는데 그것은 브리지 설정에서 **실제로 집행되는 유일한 거부이며 P0에 인접**하다. 좌석의 첫 충동은 트리를 초록으로 만들려고 그것을 지우는 것이었고, 멈춘 것은 **docstring이 그 패턴은 정당하다고 미리 적어 두었기 때문**이다. 검사가 무엇을 일부러 거절하지 않는지를 말하지 않으면, 검사가 틀렸을 때 읽는 쪽이 자기 파일을 의심한다
+    **It was written by shape, not by name.** A naming rule would have refused `target_relative_error`, which is a statistics requirement an axis **derived** — a claim with a grade and a source. The line is not between names beginning with `target` but between **a person's decision and everything computed from it** (§5.3).
 
-    **이름이 아니라 모양으로 썼다.** 이름 규칙이었으면 `target_relative_error`를 거절했을 텐데 그것은 축이 **유도한** 통계 요구량이고, 등급과 출처를 가진 주장이다. 선은 `target`으로 시작하는 이름 사이가 아니라 **사람의 결정과 거기서 계산된 모든 것** 사이에 있다(§5.3).
+    **A third branch not in the plan was found: a dangling reference.** The old shape could point at a `numbers[]` item not in the card and **nothing looked** — a target pointing at nothing **reads exactly like a target that was set.** It was already sitting inside the shape the 47/48/50/51 class assigns.
 
-    **계획에 없던 셋째 가지를 찾았다: 매달린 참조.** 옛 모양이 카드에 없는 `numbers[]` 항목을 가리킬 수 있었고 **아무것도 보지 않았다** — 아무것도 안 가리키는 목표는 **설정된 목표와 똑같이 읽힌다.** 47·48·50·51의 그 부류가 배정한 모양 안에 이미 앉아 있었다.
+    **The migration list is five, not two.** When the check came on it said `0 targets are stated as decisions, and 5 still by reference`, and `targets[]` appears beyond the two goal cards. The schema's removal condition names the two, so **that condition is undercounting** — **an undercounting removal condition is worse than none**: it says deletion is allowed while hiding what remains. The condition is not fixed before the full list is counted
 
-    **마이그레이션 목록이 둘이 아니라 다섯이다.** 검사가 켜지자 `0 targets are stated as decisions, and 5 still by reference`라고 말했고, `targets[]`는 두 goal 카드 말고도 나타난다. 스키마의 제거 조건이 둘을 이름으로 대고 있으므로 **그 조건이 과소계수 상태**다 — **과소계수하는 제거 조건은 없는 것보다 나쁘다**: 지워도 된다고 말하면서 남은 것을 숨긴다. 전체 목록을 세기 전에는 조건을 고치지 않는다
+**Check 42 binds two seats after D12 — declaration first, implementation second.** §8's declaration is in `plan.md` and therefore architecture's, and the implementation and `CHECKS` registration are in `contracts/validate.py` and therefore the manager's. With one seat, adding a check was one commit; now it is necessarily two. That leaves a span where the tree is red, and **which side goes first changes the character of that span.**
 
-**검사 42는 D12 이후 두 좌석을 묶는다 — 선언을 먼저, 구현을 나중에.** §8의 선언은 `plan.md`이므로 아키텍처의 것이고, 구현과 `CHECKS` 등록은 `contracts/validate.py`이므로 매니저의 것이다. 좌석이 하나였을 때 검사 하나를 더하는 일은 한 커밋이었고, 이제는 반드시 두 커밋이다. 그러면 그 사이에 트리가 붉은 구간이 생기는데, **어느 쪽을 먼저 두느냐로 그 구간의 성질이 달라진다.**
+**Implementation first, and the declaration closes it.** This subsection first wrote the opposite and reversed it the same day. The wrong argument was "choose the side whose object of waiting is in its own place", and **it left out the length of the red span.** With the declaration first, the red span runs until the whole implementation and its self-test are done; with the implementation first, it lasts as long as writing one line.
 
-**구현이 먼저고, 선언이 닫는다.** 이 절은 처음에 반대로 적었다가 같은 날 뒤집었다. 틀린 논거는 "기다릴 대상이 자기 자리에 있는 쪽을 고른다"였는데, **붉은 구간의 길이를 빼놓고 생각한 것이다.** 선언이 먼저면 붉은 구간은 구현 전체와 자체 시험이 끝날 때까지이고, 구현이 먼저면 한 줄을 쓰는 동안이다.
+**A contract change that has to move another seat's files together is loosen → each migrates → tighten** (2026-09-18). **Enforcing a new form immediately** refuses every other seat's cards the moment it lands, and the way those seats coordinate commits by hand broke twice the same day. Instead the schema is opened to accept **both the old and the new form**, each seat moves its own files, and **it tightens last.** It costs one more commit and **has no red window.** When the tightening commit becomes possible can be known by counting — when the files using the old form reach zero.
 
-**남의 좌석 파일을 함께 움직여야 하는 계약 변경은 느슨하게 → 각자 이관 → 조이기다**(2026-09-18). 새 형식을 **즉시 강제**하면 착지하는 순간 다른 좌석의 카드가 전부 거절되고, 그 좌석들이 손 맞춰 커밋을 잇는 방식은 같은 날 두 번 무너졌다. 대신 스키마가 **옛 형식과 새 형식을 둘 다 받게** 열어 두고, 각 좌석이 자기 파일을 옮기고, **마지막에 조인다.** 커밋 하나를 더 쓰지만 **붉은 창이 없다.** 조이는 커밋이 언제 가능한지는 세어서 알 수 있다 — 옛 형식을 쓰는 파일이 0이 될 때다.
+The length matters because a red check 42 blocks **not only those two seats but everyone.** The gate looks at the tree a commit would create (§8), so if HEAD is red then any commit after it creates a red tree. And there is a lesson from today — **a gate that blocks correct work does not get fixed, it gets bypassed.** Two seats adding a check is correct work, so a design that blocks everyone meanwhile invites `--no-verify`.
 
-그 길이가 중요한 이유는 검사 42가 붉으면 **그 두 좌석만 막히는 것이 아니라 모두가 막히기 때문이다.** 게이트는 커밋이 만들 트리를 보므로(§8), HEAD가 붉으면 그 뒤의 어떤 커밋도 붉은 트리를 만든다. 그리고 오늘 배운 것이 있다 — **옳은 작업을 막는 게이트는 고쳐지지 않고 우회된다.** 두 좌석이 검사를 하나 더하는 것은 옳은 작업이므로, 그동안 전원을 막는 설계는 `--no-verify`를 부른다.
+So the procedure is: **agree the wording first** (so the contract does not follow the implementation — the direction §6.2 warns about), the manager commits the implementation, registration and self-test (check 42 goes red), and architecture closes it with one line of §8 declaration. The agreement precedes the commit order, so the design still leads. On the afternoon the librarian seat added check 43 there was one seat and this problem did not exist.
 
-따라서 절차는 이렇다: **문안을 먼저 합의하고**(계약이 구현을 따라가지 않도록 — §6.2가 경고하는 방향이다), 매니저가 구현·등록·자체 시험을 커밋하고(검사 42가 붉어진다), 아키텍처가 §8 선언 한 줄로 닫는다. 합의가 커밋 순서보다 앞서므로 설계는 여전히 앞선다. 사서 좌석이 검사 43을 넣던 오후에는 좌석이 하나여서 이 문제가 없었다.
+**If that is not enough, the next move is not to soften check 42.** Simply turning a one-sided state into `PENDING` lets quiet disagreements pass too. When it becomes necessary, §8 **records the checks in progress separately** (with the seat holding each), and check 42 permits one-sidedness only for numbers on that list — a recorded in-progress and a disagreement nobody knows about are different things.
 
-**이것으로 모자라면 다음 수는 검사 42를 무르게 하는 것이 아니다.** 한쪽만 있는 상태를 그냥 `PENDING`으로 바꾸면 조용한 불일치까지 통과한다. 필요해지면 §8이 **진행 중인 검사를 따로 적고**(담당 좌석과 함께), 검사 42가 그 목록에 있는 번호에 한해 한쪽만 있는 것을 허용하게 한다 — 기록된 진행 중과 아무도 모르는 불일치는 다른 것이다.
+**Hooks**: the gate runs at commit time. `contracts/hooks/pre-commit` **shows** the set going into the commit, separately shows the files that **differ** from what will be committed (meaning they were not checked), runs `validate.py --staged` (including checks 35 and 41), and uses `--expect-fail` to see that the cards which must be refused still are. The validator's exit code is the only truth.
 
-**hooks**: 커밋 시점에 게이트가 돈다. `contracts/hooks/pre-commit`은 커밋에 들어가는 집합을 **보여주고**, 커밋될 것과 **다른** 파일들을 따로 보여주고(검사하지 않았다는 뜻이다), `validate.py --staged`(검사 35·41 포함)를 돌리고, `--expect-fail`로 거절돼야 할 카드들이 아직 거절되는지 본다. 검증기의 종료 코드가 유일한 진실이다.
+**What the gate looks at is not the working copy but the tree the commit would create.** Five sessions share one working copy (§6.2.1), so the working copy is nobody's commit — it holds everyone's unfinished edits at once. The first version validated it, and on 2026-09-17 one session's in-progress KB entries left check 25 red for hours and **refused every other session's commits.** Including commits that would have produced a green HEAD. The way out was `--no-verify`, twice. A gate that refuses correct work does not get fixed but bypassed, and a bypassed gate is not a gate.
 
-**게이트가 보는 것은 작업 사본이 아니라 커밋이 만들 트리다.** 다섯 세션이 작업 사본 하나를 공유하므로(§6.2.1) 작업 사본은 누구의 커밋도 아니다 — 모두의 미완성 편집이 동시에 얹혀 있는 상태다. 첫 판본은 그것을 검증했고, 2026-09-17에 한 세션의 진행 중 KB 항목이 검사 25를 몇 시간 붉게 만들어 **다른 모든 세션의 커밋을 거절했다.** 초록인 HEAD를 만들 커밋까지 포함해서다. 빠져나온 방법은 `--no-verify`였고 두 번 그랬다. 옳은 작업을 거절하는 게이트는 고쳐지지 않고 우회되며, 우회되는 게이트는 게이트가 아니다.
+So the hook unpacks the index into a scratch directory and runs the validator there. `git commit -- <paths>` and `git commit -a` each build a temporary index and hand it to the hook through `GIT_INDEX_FILE`, so what is unpacked is exactly the tree that commit would create — neither the working copy nor the ordinary index. **Validating a filtered subset by path was not chosen**: checks that compare **between** files, such as 12, 25 and 38, report drift that is not there or miss drift that is when they see only a subset.
 
-그래서 hook은 인덱스를 스크래치 디렉터리에 풀고 거기서 검증기를 돌린다. `git commit -- <경로>`와 `git commit -a`는 각각 임시 인덱스를 만들어 `GIT_INDEX_FILE`로 hook에 넘기므로, 풀려 나온 것은 정확히 그 커밋이 만들 트리다 — 작업 사본도 아니고 평소의 인덱스도 아니다. **경로로 일부만 걸러 검증하는 방식은 택하지 않았다**: 검사 12·25·38처럼 파일 **사이**를 비교하는 검사는 부분집합만 보면 없는 드리프트를 보고하거나 있는 드리프트를 놓친다.
+The content checks read the export. Checks 35 and 41 cannot — what is staged and who is committing has to be asked of the real repository, and the export has no `.git`. The `SMA_GIT_REPO` environment variable separates the two: the hook names the repository and only the checks that call git use it. Without this variable check 35 **fails** rather than passing — so that wherever the export is placed inside some repository, it never quietly answers about that one.
 
-내용 검사는 export를 읽는다. 검사 35·41은 그럴 수 없다 — 무엇이 스테이지됐고 누가 커밋하는지는 실제 저장소에 물어야 하고 export에는 `.git`이 없다. `SMA_GIT_REPO` 환경변수가 둘을 가른다: hook이 저장소를 지정하고, git을 호출하는 검사만 그것을 쓴다. 이 변수가 없으면 검사 35는 통과가 아니라 **실패**한다 — export가 어느 저장소 안에 놓이더라도 조용히 그쪽을 답하는 일은 없다.
+Installation is once per working copy: `git config core.hooksPath contracts/hooks`.
 
-설치는 작업 사본마다 한 번이다: `git config core.hooksPath contracts/hooks`.
+**A hook is a gate, not a lock.** `git commit --no-verify` bypasses it as ever and leaves no trace of having done so. So separate after-the-fact enforcement is needed — re-running check 35 with `--commit-range` over a pushed range. What a hook does is make the right thing easy, not make the wrong thing impossible.
 
-**hook은 게이트이지 잠금장치가 아니다.** `git commit --no-verify`는 그대로 우회하고 우회한 흔적을 남기지 않는다. 그래서 사후 집행이 따로 필요하다 — 푸시된 범위에 대해 `--commit-range`로 검사 35를 다시 돌리는 것. hook이 하는 일은 옳은 것을 쉽게 만드는 것이고, 틀린 것을 불가능하게 만드는 것이 아니다.
+**Why it was built**: the boundary was a convention and not a gate. Each agent's `.claude/settings.json` denies `Write`/`Edit` on another's files and **does not deny `python3 - <<PY` or `sed`**, and in fact every session — including the design seat — wrote by that route. A rule enforced only where convenient stands P4 on its head: the model ends up judging whether the check applies.
 
-**왜 만들었나**: 경계가 규약이었고 게이트가 아니었다. 각 에이전트의 `.claude/settings.json`이 남의 파일에 대한 `Write`/`Edit`를 거부하지만 **`python3 - <<PY`나 `sed`는 거부하지 않고**, 실제로 모든 세션이 — 설계 자리까지 포함해 — 그 경로로 썼다. 편할 때만 집행되는 규칙은 P4를 거꾸로 세운 것이다: 검사가 적용될지를 모델이 판단하게 된다.
+### 8.1 Recording failures and successes
+**The place a failure points at may not be the place the defect is.** On 2026-09-18 one enum failed two levels below `kb_gaps` and `unevaluatedProperties` failed alongside it, naming **twelve perfectly fine fields** such as `author`, `qid` and `id` — JSON Schema counts **only what a successful subschema evaluated**, so when something inner fails, every field that subschema covered becomes "unevaluated". The real defect was not in that list of twelve. **Read the deepest and most specific findings first, and findings that name fields in bulk last** — bulk is usually a symptom, not a cause.
 
-### 8.1 실패와 성공을 기록한다
+**Why the validator failed is the cheapest data there is.** A failure comes before execution, for free, already structured.
 
-**실패가 가리키는 자리가 결함이 있는 자리가 아닐 수 있다.** 2026-09-18에 enum 하나가 `kb_gaps` 두 단 아래에서 실패하자 `unevaluatedProperties`가 `author`·`qid`·`id` 같은 **멀쩡한 필드 열둘**을 들며 함께 실패했다 — JSON Schema는 **성공한 서브스키마가 평가한 것만** 세므로, 안쪽이 실패하면 그 서브스키마가 덮던 필드가 전부 "평가되지 않음"이 된다. 진짜 결함은 그 열두 개 목록에 없었다. **가장 깊고 가장 구체적인 findings를 먼저 읽고, 필드를 무더기로 드는 findings는 마지막에 읽는다** — 무더기는 대개 원인이 아니라 증상이다.
+What is recorded — all append-only in `questions/<qid>/failures.jsonl`:
 
-**검증기가 왜 실패했는지가 가장 값싼 데이터다.** 실패는 실행 전에, 무료로, 이미 구조화된 형태로 나온다.
-
-기록 대상 — 전부 `questions/<qid>/failures.jsonl`에 append-only로:
-
-| 무엇 | 언제 | 남기는 것 |
+| What | When | What is left |
 |---|---|---|
-| 검증기 실패 | 카드를 쓸 때마다 | 검사 번호, 필드 경로, 실패 값, 카드 리비전 |
-| 거절(refusal) | S3·S4·브리지 | 어느 축·구성이 왜, 반례 수치 |
-| 편차 | 실행 중·후 | 계획값 대 실제값, 정지기준 위반 여부 |
-| scope 소멸 | 승인 무효화 시 | 어느 소멸 조건이 발동했는지 |
-| **포기한 시도** | 카드를 내지 않고 접을 때 | 무엇을 해보려 했고 왜 접었는지. **카드가 나오지 않은 시도는 여기 말고는 어디에도 남지 않는다** |
-| 성공 | result가 DONE일 때 | 어떤 구성·조건이 목표를 충족했는지 |
+| Validator failure | every time a card is written | check number, field path, failing value, card revision |
+| Refusal | S3, S4, the bridge | which axis or configuration and why, with counter-example numbers |
+| Deviation | during and after execution | planned vs actual, whether a stop criterion was violated |
+| Scope destruction | when an approval is invalidated | which destruction condition fired |
+| **Abandoned attempt** | when folding without producing a card | what was attempted and why it was abandoned. **An attempt that produced no card survives nowhere else** |
+| Success | when a result is DONE | which configuration and conditions met the goal |
 
-**성공도 같은 무게로 기록한다.** 실패만 모으면 "무엇이 안 되는지"만 아는 시스템이 되고, 성공만 모으면 생존 편향이 된다(§8.2-1).
+**Success is recorded with the same weight.** Collect only failures and it becomes a system that knows only what does not work; collect only successes and it is survivorship bias (§8.2-1).
 
-### 8.2 학습과 편향 — 무엇을 할 수 있고 무엇은 못 하나
+### 8.2 Learning and bias — what can and cannot be done
 
-**자기가 무엇을 확인하지 않았는지 적어 둔 자리에서 발견이 나온다.** 2026-09-18에 한 좌석이 하루를 세어 보고 말했다 — **틀린 넷은 전부 "확인했다고 믿은 자리"였고, 맞은 하나는 자기가 무엇을 확인하지 않았는지 적어 둔 자리에서 나왔다.** 그날 그 사람은 자기 수정에 "검사가 충돌을 견디게 만든 것이지 충돌을 없앤 것이 아니다"라고 **한계를 적었고**, 그 문장이 §4.3.1의 결함(서버 격리 단위에 리비전이 없다)을 드러냈다. 한계로 적은 것이 발견이 됐다. 그러므로 보고는 **무엇을 확인했는가**만이 아니라 **무엇을 확인하지 않았는가**를 담는다 — 뒤엣것이 다음 결함이 사는 자리다.
+**Discoveries come from the place where you wrote down what you did not confirm.** On 2026-09-18 a seat counted its day and said — **all four of the wrong ones were places it believed it had confirmed, and the one right one came from a place where it had written down what it had not confirmed.** That day it wrote **a limit** into its own fix — "the check was made to survive the conflict, not to remove it" — and that sentence exposed §4.3.1's defect (the server's isolation unit has no revision). What was written as a limit became a discovery. So a report carries not only **what was confirmed** but **what was not** — the latter is where the next defect lives.
 
-**변수를 세워 놓고 시험하면 확장을 재고 환경을 재지 못한다.** 2026-09-18에 `.mcp.json`을 `${CLAUDE_PROJECT_DIR:-.}`로 고치고 다섯 작업 디렉터리에서 "닿는다"고 확인했는데, **그 확인이 변수를 직접 세운 채 이뤄졌다.** 실제 세션에서 그 변수는 unset이고 폴백 `.`이 세션 cwd로 풀려 **고치기 전과 똑같이 실패했다.** 시험이 참이었고 결론이 거짓이었다 — 잰 것이 "경로가 맞느냐"였고 물었어야 할 것은 "그 환경에서 그 값이 있느냐"였다. **조용한 폴백은 시험을 통과시키면서 현장에서 실패한다**; 값이 없으면 폴백하지 말고 실패하는 편이 낫다.
+**Test with the variable set and you measure the expansion, not the environment.** On 2026-09-18 `.mcp.json` was fixed to `${CLAUDE_PROJECT_DIR:-.}` and confirmed to "reach" from five working directories, and **that confirmation was done with the variable set by hand.** In a real session that variable is unset and the fallback `.` resolves to the session cwd, so it **failed exactly as before the fix.** The test was true and the conclusion false — what was measured was "is the path right" and what should have been asked is "does that value exist in that environment". **A silent fallback passes the test and fails in the field**; better to fail than to fall back when the value is absent.
 
-**결론이 실제보다 안전한 오류가 가장 오래 산다.** 같은 날 `seats.json`이 "git은 `committer.*`를 읽지 않는다"고 적고 있었는데 git은 읽는다. 그 오류는 좌석들이 **필요 없는 환경변수 접두사를 계속 달게** 했을 뿐 아무 실패도 내지 않았고, 그래서 아무도 부딪히지 않아 영원히 안 고쳐질 뻔했다. 틀렸는데 결과가 더 조심스러운 문장은 **증상이 없으므로 읽어서만 잡힌다.**
+**An error whose conclusion is safer than reality lives longest.** The same day `seats.json` said "git does not read `committer.*`", and git does. That error only made seats **keep attaching an unnecessary environment prefix** and produced no failure at all, so nobody collided with it and it nearly went unfixed forever. A sentence that is wrong while its consequence is more cautious **has no symptoms and is caught only by reading.**
 
-**거짓 갭은 조용하고, 나중에 근거가 된다.** 있지도 않은 결핍을 기록한 항목은 **아무것도 실패시키지 않는다** — 검사가 보는 것은 갭의 형식이지 그 갭이 참인지가 아니다. 그리고 그 항목은 남아서, 다음 사람이 "저장소에 이 값이 없다"의 근거로 읽는다. **사서의 중심 기능이 정확히 이 방향으로 실패한다**: 답하지 못한 것을 기록하는 것이 값인데, 잘못 기록된 결핍은 그 값을 부호만 바꿔 되돌려준다.
+**A false gap is quiet, and later becomes grounds.** An entry recording an absence that does not exist **fails nothing** — what a check sees is the gap's form, not whether the gap is true. And that entry stays, and the next person reads it as grounds for "this value is not in the store". **The librarian's central function fails in exactly this direction**: recording what could not be answered is the value, and a wrongly recorded absence returns that value with the sign flipped.
 
-2026-09-19에 실물로 여덟 건이었다 — 빈손 아홉 중 여덟이 **저장소가 자기 지식을 호출자의 단어로 못 알아본 것**이다(§4.3.1). 다섯은 `in_published_table`이 닫았고 **셋은 아무것도 닫지 않는다.** 같은 날 픽셀 크기가 하마터면 아홉째가 될 뻔했다: 아키텍처가 "시료면 픽셀 크기는 갭"이라고 내렸고, 사서가 실행하는 대신 사람에게 물어서 그것이 **이 저장소의 첫 E2**임이 드러났다. 그 되물음이 없었으면 저장소의 첫 교정값 자리에 "없음"이 기록됐을 것이다.
+On 2026-09-19 there were eight real cases — of nine empty-handed results, eight were **the store failing to recognise its own knowledge in the caller's words** (§4.3.1). Five were closed by `in_published_table` and **three are closed by nothing.** The same day pixel size nearly became a ninth: architecture ruled "pixel size at the sample plane is a gap", and the librarian asked the person instead of executing, and it emerged that it is **this repository's first E2.** Without that asking back, "none" would have been recorded in the place of the repository's first calibration value.
 
-**계약은 이미 구별할 수단을 갖고 있고 강제가 없다.** §4.3.1이 `searched`가 빈 gap은 gap이 아니라고 적고 `nearest`가 "비슷한 것이 없다"와 "있는데 조건이 다르다"를 가른다. 그러면 **`absent`는 `nearest`가 계산된 뒤에만 주장할 수 있다** — 계산하지 않았으면 그 갭이 말할 수 있는 것은 "없다"가 아니라 "이 이름으로는 못 찾았다"뿐이다. 둘은 다음 행동이 다르다. 이것은 도출 가능하므로 검사가 된다. **검사 49로 배정한다 — manager-librarian.** 형태는 사서 매니저가 정한다: 어디까지가 "계산했다"인지가 서버 쪽 사실이고, 그것은 경계 안에서 그쪽만 안다.
+**The contract already has the means to distinguish and no enforcement.** §4.3.1 says a gap with an empty `searched` is not a gap, and `nearest` separates "there is nothing similar" from "there is one at different conditions". Then **`absent` can be asserted only after `nearest` has been computed** — without computing it, all that gap can say is not "there is none" but "I could not find it under this name". The two lead to different next actions. This is derivable, so it becomes a check. **Assigned as check 49 — manager-librarian.** The librarian manager decides the form: where "computed" ends is a fact on the server side, and inside the boundary only that side knows it.
 
-**문서가 이미 답을 갖고 있는데 두 좌석이 읽는 대신 추론했다 — 2026-09-19에 두 번.** 배달 경로에서는 §7의 분리 경로가 *"브리지가 자기 쪽에 놓아준 카드"*라고 처음부터 적고 있었는데, 브리지 매니저와 아키텍처가 세 가지 안을 놓고 논했다. 픽셀 크기에서는 §12의 표가 *"대물렌즈·줌·비닝 조합마다 측정된 값, `calibration:` 출처, 유효기간, E2"*라고 행을 갖고 있었는데, 아키텍처가 "센서 피치 E3 + 시료면은 갭"으로 갈라 사서에게 내렸고 사서가 그대로 내렸다. **두 번 다 근거가 지시를 내린 좌석 자신의 파일 안에 있었다.**
+**The document already had the answer and two seats inferred instead of reading — twice on 2026-09-19.** On the delivery path, §7's separation path had said from the start *"the cards the bridge placed on its side"*, and the bridge manager and architecture debated three options. On pixel size, §12's table had a row saying *"a measured value per objective × zoom × binning combination, `calibration:` source, an expiry, E2"*, and architecture split it into "sensor pitch E3 plus the sample plane is a gap" and sent that down to the librarian, who executed it as given. **Both times the grounds were inside the instructing seat's own file.**
 
-**둘째 것의 진단은 "안 읽었다"보다 정확하다: 출처를 확인하지 않고 출처 규칙을 적용했다.** §10.3의 "E3 상한"은 **이전 저장소에서 넘어오는 숫자**에 걸리는 규칙이다 — 다른 데서 잰 측정은 여기서 잰 측정이 아니므로. Kinetix의 픽셀 크기는 이전 저장소에서 넘어오는 것이 아니라 **이 장비에서 사람이 교정한 것**이었고, 그 provenance라면 §12의 행이 처음부터 맞는 자리였다. 규칙을 잘못 고른 것이 아니라 **어느 규칙이 걸리는지를 정하는 사실을 확인하지 않고 골랐다.** 그래서 교훈은 "§12를 읽어라"가 아니라 **"등급을 매기기 전에 그 숫자가 어디서 왔는지를 먼저 확정하라"**다. 등급은 출처에서 도출되는 것이지(P2) 값의 종류에서 도출되는 것이 아니다.
+**The diagnosis of the second is sharper than "did not read": it applied a source rule without confirming the source.** §10.3's "E3 ceiling" is a rule that binds **numbers crossing from a prior repository** — a measurement taken elsewhere is not a measurement taken here. The Kinetix pixel size was not crossing from a prior repository but **calibrated by a person on this instrument**, and with that provenance §12's row was the right place from the beginning. It did not pick the wrong rule; it **picked without confirming the fact that decides which rule binds.** So the lesson is not "read §12" but **"settle where a number came from before grading it."** A grade is derived from the source (P2), not from the kind of value.
 
-**대가가 작았던 이유는 구조지 운이 아니다.** 사서가 사람에게 되물었고, 되물은 답이 분류를 뒤집었다. 지시를 받은 쪽이 확인 없이 실행했으면 저장소의 첫 E2가 갭으로 기록될 뻔했다 — 그리고 **갭은 조용하다.** 있지도 않은 결핍을 기록한 항목은 아무것도 실패시키지 않고, 나중에 누군가 그것을 근거로 "이 값은 없다"고 읽는다. §6.2.2가 권한은 아래로 흐르지 않는다고 한 것의 실무적 대응물이 이것이다: **내려온 분류도 분류일 뿐 사실이 아니다.**
+**The price was small for structural reasons, not luck.** The librarian asked the person back, and the answer overturned the classification. Had the instructed side executed without confirming, the repository's first E2 would have been recorded as a gap — and **gaps are quiet.** An entry recording an absence that does not exist fails nothing, and later someone reads it as grounds for "this value does not exist". This is the practical counterpart of §6.2.2's permission not flowing down: **a classification that came down is still only a classification and not a fact.**
 
 
-**부류를 찾고 그 부류를 훑지 않는 것이 이 저장소에서 가장 흔한 실수다.** 2026-09-18에 한 좌석이 자기 실수 일곱 개를 세었고 전부 같은 모양이었다 — 검사 36을 고치고 `kb_group`을 안 봤고, rename 자리를 셋이라 단언했는데 넷이었고, `relative_to`를 한 곳만 고치고 두 곳을 남겼다. **결함 하나를 고치는 순간 그것이 부류라는 것을 알면서도 나머지를 세지 않는다.**
+**Finding a class and not sweeping that class is the most common mistake in this repository.** On 2026-09-18 a seat counted seven of its own mistakes and all seven had the same shape — it fixed check 36 and did not look at `kb_group`, it asserted there were three rename sites and there were four, it fixed `relative_to` in one place and left two. **The moment one defect is fixed, knowing it is a class, the rest are not counted.**
 
-그리고 그것을 잡은 것은 매번 다짐이 아니었다: self-test가 정지할 자리를 찾았고, census가 두 수선안을 죽였고, 게이트가 잘린 `grep`을 잡았다. **경로를 실제로 밟는 것이 목록을 의심하는 습관을 이긴다.** 그러므로 부류를 고쳤다는 보고는 "주의하겠다"가 아니라 **그 부류를 지나는 시험**을 달고 와야 한다 — 세어 보지 않은 부류는 고쳐지지 않은 부류다.
+And what caught it was never a resolution: a self-test found the place it would stop, a census killed two proposed repairs, and the gate caught a truncated `grep`. **Actually walking the path beats the habit of doubting the list.** So a report that a class was fixed has to arrive carrying **a test that passes through that class**, not "I will be careful" — a class that was not counted is a class that was not fixed.
 
-사서가 이 기록을 증류해 `kb/lessons/`에 교훈으로 올린다(P14: 교훈도 지식이므로 사서 소유). **교훈은 지식이므로 등급과 반증 조건을 갖는다.**
+The librarian distils this record into lessons in `kb/lessons/` (P14: lessons are knowledge too, so the librarian owns them). **A lesson is knowledge, so it carries a grade and a falsification condition.**
 
-lesson entry의 필수 필드:
+A lesson entry's mandatory fields:
 `{trigger, claim, evidence: [run_id | failure_id …], n, condition_range, falsifier, valid_until, grade, hit_rate}`
 
-편향은 없앨 수 없다. **측정 가능하고 되돌릴 수 있게** 만드는 것이 목표다. 알려진 여섯 갈래와 대응:
+Bias cannot be removed. The goal is to make it **measurable and reversible.** Six known branches and their responses:
 
-| 편향 | 어떻게 생기나 | 대응 |
+| Bias | How it arises | Response |
 |---|---|---|
-| **생존 편향** | 성공한 계획만 남고 실패는 사라진다 | 실패·거절·편차를 성공과 **같은 스키마로** 강제 기록(§8.1, P9) |
-| **탐색 붕괴** | 잘된 구성만 계속 골라, 다른 구성은 데이터가 안 쌓여 영원히 불리해진다 | **P16**: 교훈은 순위만 바꾸고 후보를 지우지 못한다. S3.0 스크리닝은 `capabilities/`만 보고 lesson을 보지 않는다. tie일 때 **시도 이력이 적은 쪽**을 고른다. 일정 비율의 런은 lesson을 끄고 돈다(탐색 예산) |
-| **확증 편향** | "이 조건은 나쁘다"는 교훈이 그 조건의 나쁜 결과만 기억하게 한다 | **`falsifier` 필수** — "이것이 관측되면 이 교훈은 폐기된다". 반증 조건을 쓸 수 없는 교훈은 **등재 거부** |
-| **과일반화** | n=1 실패에서 규칙을 만든다 | `n`과 `condition_range` 필수. n이 상한 미만이면 `provisional`로만 남고 **순위에 영향을 주지 않으며** 사람에게만 보인다 |
-| **자기강화** | LLM이 만든 교훈을 LLM이 읽고 또 교훈을 만든다 | 모든 lesson은 **실제 기록(run_id 또는 failure_id)을 인용해야** 한다. LLM의 해석은 교훈의 *설명*이지 근거가 아니다. 근거 없는 lesson은 E6이며 KB에 못 들어간다 |
-| **표류** | 장비가 바뀌었는데 옛 교훈이 남는다 | lesson도 E2처럼 `valid_until`과 조건 범위를 갖고, 캘리브레이션이 갱신되면 재검토 큐에 들어간다 |
+| **Survivorship** | only successful plans remain and failures disappear | force failures, refusals and deviations to be recorded **in the same schema** as successes (§8.1, P9) |
+| **Exploration collapse** | keep choosing the configuration that worked, so others accumulate no data and are disadvantaged forever | **P16**: a lesson only reorders and cannot delete a candidate. S3.0 screening looks only at `capabilities/` and not at lessons. On a tie, choose **whichever has been tried less.** A fixed fraction of runs go with lessons off (an exploration budget) |
+| **Confirmation** | a lesson that "this condition is bad" makes only that condition's bad outcomes memorable | **`falsifier` mandatory** — "if this is observed, this lesson is retired". A lesson whose falsification condition cannot be written is **refused entry** |
+| **Overgeneralisation** | a rule is made from an n=1 failure | `n` and `condition_range` mandatory. Below the n ceiling it stays `provisional`, **affects no ranking**, and is shown only to a person |
+| **Self-reinforcement** | an LLM reads a lesson an LLM made and makes another lesson | every lesson **must cite an actual record** (a run_id or a failure_id). An LLM's interpretation is the lesson's *explanation*, not its grounds. A lesson with no grounds is E6 and cannot enter the KB |
+| **Drift** | the instrument changed and an old lesson remains | a lesson carries `valid_until` and a condition range like an E2, and enters a review queue when a calibration is renewed |
 
-**편향 지표** — 주기적으로 계산해 사람에게 보여준다:
+**Bias indicators** — computed periodically and shown to a person:
 
-1. **구성 선택 분포**: 시간에 따라 각 구성이 몇 번 후보였고 몇 번 선택됐나. 한쪽으로 쏠리면 경고.
-2. **거절 사유 분포**: 같은 축이 계속 거절 사유이면 그 축의 모델이 틀렸을 수 있다.
-3. **lesson 적중률(`hit_rate`)**: 교훈이 순위를 바꾼 횟수 대비 실제 결과가 그 교훈을 지지한 횟수. 낮으면 자동 강등.
-4. **반증 검사 이력**: K번 적용됐는데 `falsifier`가 한 번도 검사되지 않은 lesson에는 재검토 플래그.
+1. **Configuration-choice distribution**: over time, how often each configuration was a candidate and how often it was chosen. A skew is a warning.
+2. **Refusal-reason distribution**: if the same axis keeps being the refusal reason, that axis's model may be wrong.
+3. **Lesson hit rate (`hit_rate`)**: how often the actual result supported a lesson, against how often that lesson changed a ranking. Low means automatic demotion.
+4. **Falsification-check history**: a lesson applied K times whose `falsifier` has never once been checked gets a review flag.
 
-**할 수 없는 것을 적어 둔다**: 사람이 던지는 **질문 자체의 편향은 시스템이 고칠 수 없다.** 시스템은 물어본 것만 안다. 그래서 질문 분포도 지표로 남겨 사람에게 보여주되, 그것을 교정하려 들지 않는다.
+**What cannot be done is written down**: **the system cannot correct the bias in the questions a person asks.** The system knows only what it was asked. So the question distribution is kept as an indicator and shown to a person, without trying to correct it.
 
 ---
+## 9. Milestones and concurrent construction
 
-## 9. 마일스톤과 동시 구축
+**The four agents are built at the same time.** It was changed that way on 2026-09-17 — before that the microscope came first, and for the following half-day the librarian came first.
 
-**네 에이전트를 동시에 짓는다.** 2026-09-17에 그렇게 바꿨다 — 그전에는 현미경 먼저였고, 그다음 반나절은 사서 먼저였다.
+**Milestone names are not an order.** M0–M5 are names attached to bodies of work, and there is now no order at all. The reason the names are kept fixed is unchanged — so that references such as "what M3 produces", scattered across this document, the validator's messages and four `CLAUDE.md` files, do not quietly point at something else every time the order changes.
 
-**마일스톤 이름은 순서가 아니다.** M0–M5는 일의 덩어리에 붙은 이름이고, 이제 순서는 아예 없다. 이름을 고정해 두는 이유는 그대로다 — 이 문서와 검증기 메시지와 네 개의 `CLAUDE.md`에 흩어진 "M3가 만드는 것" 같은 참조가 순서를 바꿀 때마다 조용히 다른 것을 가리키지 않게 하려는 것이다.
+**In place of the order column, the dependencies are written.** Building concurrently does not make dependencies disappear. What disappears is **the fiction of an order**, and what remains is what actually blocks what.
 
-**순서 열을 뺀 자리에 의존을 적는다.** 동시에 짓는다고 해서 의존이 사라지지는 않는다. 사라지는 것은 **순서라는 허구**이고, 남는 것은 무엇이 무엇을 실제로 막는가다.
-
-| | 내용 | 무엇에 막히나 | 완료 조건 |
+| | Content | What blocks it | Completion condition |
 |---|---|---|---|
-| **M0** ✔ | **계약 먼저.** 카드 스키마 + `units.json`/`units.md` + `validate.py`(§8의 검사 전부) + `capabilities/` 골격 | — | **완료.** 손으로 쓴 goal → axis → synthesis → plan → 승인 → result 왕복이 검증기를 통과하고(`0 failed`), `rejected/`의 카드가 한 장도 빠짐없이 거절된다(`--expect-fail`). 개수를 적지 않는 이유: 2026-09-17에 손으로 센 숫자가 세 곳에서 어긋났다. 셀 수 있는 것은 검증기에서 읽는다. |
-| **M3** | **사서 에이전트.** entry `validity` 기계 판독화 → `kb/staging/` 분해 → 읽기 전용 MCP 서버(도구 4개, `caller_id` 격리) → `gaps` 산출 → 충돌 탐지 → 외부 검색·증류 → `kb/exports/` 발행 | **아무것도.** 협업 의존이 0인 유일한 에이전트다(§4.3.2) | 실제 질의 1건에 entries + gaps가 돌아오고, 같은 `(질의, kb_version)`을 두 번 불러 **바이트 단위로 같은** 답이 온다. E6이 KB에 없다. §12가 비어 있다. |
-| **M1** | **현미경 에이전트.** S2 → S3.0 → 축별 해석 → S4 → S5 → 승인 → 실행. `envelope/safety.json`(**사람이 쓴다**, §10.3 규칙 4), 광경로 표와 `capabilities/`의 연결(검사 38), 승인 게이트 hook | S3.0 스크리닝은 **§11-1**(관측량 어휘)에 막힌다. 실행은 `envelope/safety.json`에 막히고 그것은 사람이 쓴다. **사서에는 막히지 않는다** | 승인 없이 Tier 2 호출이 **실제로 차단**된다. mock 백엔드로 파이프라인 1회, 그다음 실측 1건이 편차 기록과 함께. **그리고 사서를 켠 상태로 1회** — 아래를 볼 것 |
-| **M2** | **시뮬레이션 에이전트.** 같은 5단 파이프라인, 축 A1–A5 + A7(구동 구성에서만 적용되고 평형에서는 기권. A6 없음 — §4.5.3), HOOMD 백엔드 | 같음: `produces` 선언이 §11-1에 막힌다 | 목표 1건 → 검증 통과한 plan → 스모크런 → 수렴 증거. **사서를 켠 상태로 1회**도 같이 |
-| **M4** | **브리지 왕복 1라운드.** 해시, 단위·무차원수 일관성, 대응 가능성 | 양쪽 `capabilities/`가 채워져야 대응 가능성이 도출된다(§11-1) **그리고** 양쪽에 카드가 최소 한 장 | 한쪽 result → 반대쪽 plan → 결과가 같은 관측량으로 비교된다(S4) |
-| **M5** | **회고 루프.** `failures.jsonl` → 사서 증류 → `kb/lessons/`, 편향 지표 4종(§8.2) | 실제 런에서 나온 `failures.jsonl`이 있어야 한다 | 같은 질문의 두 번째 왕복이 더 빠르고 모순이 없다(S5). lesson이 후보를 지우지 않음이 검사로 확인된다(검사 31) |
+| **M0** ✔ | **Contracts first.** Card schemas + `units.json`/`units.md` + `validate.py` (all of §8's checks) + a `capabilities/` skeleton | — | **Done.** A hand-written goal → axis → synthesis → plan → approval → result round trip passes the validator (`0 failed`), and not one card in `rejected/` fails to be refused (`--expect-fail`). Why no counts are written: on 2026-09-17 hand-counted numbers disagreed in three places. What can be counted is read off the validator. |
+| **M3** | **The librarian agent.** Making entry `validity` machine-readable → decomposing `kb/staging/` → the read-only MCP server (four tools, `caller_id` isolation) → producing `gaps` → conflict detection → external search and distillation → publishing `kb/exports/` | **Nothing.** It is the only agent with zero collaboration dependency (§4.3.2) | One real query returns entries plus gaps, and calling the same `(query, kb_version)` twice returns a **byte-identical** answer. No E6 in the KB. §12 is empty. |
+| **M1** | **The microscope agent.** S2 → S3.0 → per-axis analysis → S4 → S5 → approval → execution. `envelope/safety.json` (**a person writes it**, §10.3 rule 4), the link between the optical-path table and `capabilities/` (check 38), the approval-gate hook | S3.0 screening is blocked on **§11-1** (the observable vocabulary). Execution is blocked on `envelope/safety.json`, which a person writes. **It is not blocked on the librarian** | A Tier 2 call with no approval is **actually blocked.** One pipeline pass on the mock backend, then one real measurement with its deviation record. **And one pass with the librarian on** — see below |
+| **M2** | **The simulation agent.** The same five-stage pipeline, axes A1–A5 + A7 (applying only in a driven configuration and abstaining at equilibrium; no A6 — §4.5.3), the HOOMD backend | The same: the `produces` declaration is blocked on §11-1 | One goal → a plan that passes validation → a smoke run → convergence evidence. **One pass with the librarian on** as well |
+| **M4** | **One bridge round trip.** Hashes, unit and dimensionless consistency, producibility | Producibility derives only once both sides' `capabilities/` are filled (§11-1) **and** each side has at least one card | One side's result → the other side's plan → the results compared as the same observable (S4) |
+| **M5** | **The retrospective loop.** `failures.jsonl` → librarian distillation → `kb/lessons/`, the four bias indicators (§8.2) | There has to be a `failures.jsonl` from real runs | A second round trip on the same question is faster and free of contradiction (S5). That a lesson does not delete a candidate is confirmed by a check (check 31) |
 
-**진짜 임계 경로는 마일스톤이 아니라 결정 하나다.** 위 표의 "막히나" 열을 읽으면 §11-1(관측량 어휘)이 넷 중 셋을 막고 있다. 그것은 만들 것이 아니라 정할 것이고, 사람만 답할 수 있다. 동시 구축의 첫 이득이 이것이다 — 순서가 있었다면 이 사실이 "아직 그 차례가 아니다"에 가려져 있었다.
+**The real critical path is not a milestone but one decision.** Reading the "what blocks it" column above, §11-1 (the observable vocabulary) blocks three of the four. It is not something to build but something to settle, and only a person can answer it. This is concurrent construction's first dividend — with an order in place, that fact would have been hidden behind "it is not that turn yet".
 
-### 9.1 동시 구축이 뒤집는 것: 어느 경로가 걸어지지 않는가
+### 9.1 What concurrent construction inverts: which path goes unwalked
 
-**2026-09-19에 처음 충족됐다.** `microscope_agent/questions/mic-20260918-001/`의 세 카드 — `axis_widefield_inline_a2`·`_a3`·`_a6` — 가 각각 `degraded: []`이고 `kb_refs`·`kb_gaps`가 채워져 있으며 `caller_id`가 `queries/log.jsonl`에 있다(각 9·6·21줄). 세는 것은 검사 45다.
+**It was first satisfied on 2026-09-19.** Three cards in `microscope_agent/questions/mic-20260918-001/` — `axis_widefield_inline_a2`, `_a3` and `_a6` — each have `degraded: []` with `kb_refs` and `kb_gaps` filled, and their `caller_id`s are in `queries/log.jsonl` (9, 6 and 21 lines respectively). What counts them is check 45.
 
-**이 절은 그날 하루 종일 넷째 카드 `_a4`를 댔고, 그 경로는 이 저장소의 어느 커밋에도 없다.** 지워진 것이 아니라 **커밋된 적이 없다** — 그 축의 `caller_id`는 로그에 23줄로 가장 많이 나오므로 축은 돌았고 질의도 했는데 카드가 남지 않았다. 공유 작업 사본에서 커밋 안 된 파일이 쓸려 나간 전례가 있다(`146276f`). **마일스톤이 틀린 것이 아니라 증거가 읽을 수 없는 것이었고**, 그 상태가 모든 세션이 로드하는 파일에 있었다 — 검사 47이 `seats.json`에 대해 막는 것과 같은 부류가 한 단 위에서 나온 것이다. 시뮬레이션 매니저가 찾았다. **작업 사본에서 본 것을 증거로 대면 안 된다: 커밋된 것만 다음 사람이 읽을 수 있다.** **gap 다섯이 전부 `absent`인 것이 이 통과의 성격을 말한다** — 서비스가 답했다는 것이 "다 찾았다"가 아니라 **무엇이 없는지를 서비스가 말해 줬다**는 뜻이고, 그것이 §4.3.1이 `kb_gaps`를 둔 이유다. 파일을 직접 읽었으면 그 다섯은 아무 데도 기록되지 않았다.
+**This subsection cited a fourth card, `_a4`, all that day, and that path is in no commit in this repository.** It was not deleted but **never committed** — that axis's `caller_id` appears most often in the log at 23 lines, so the axis ran and queried and no card survived. There is precedent for uncommitted files being swept away in a shared working copy (`146276f`). **It is not that the milestone was wrong but that the evidence was unreadable**, and that state was in a file every session loads — the same class check 47 blocks for `seats.json`, one level up. The simulation manager found it. **Do not offer what you saw in the working copy as evidence: only what is committed can be read by the next person.** **That all five gaps are `absent` says what this pass is** — the service answering does not mean "everything was found" but **that the service said what is missing**, and that is why §4.3.1 has `kb_gaps`. Had the files been read directly, those five would have been recorded nowhere.
 
-순서가 있던 동안 이 문서는 **축소 경로를 완료 조건으로 요구**했다. 이유는 타당했다 — 사서를 먼저 세우면 다른 에이전트가 사서가 살아 있는 세계에서 태어나므로 `degraded` 분기를 아무도 지나가지 않게 된다.
+While there was an order, this document **required the degraded path as a completion condition.** The reason was sound — stand the librarian up first and the other agents are born into a world where the librarian is alive, so nobody ever walks the `degraded` branch.
 
-**동시 구축에서는 그 논리가 반대로 선다.** 넷이 같이 자라면 각자의 상대는 한동안 완성돼 있지 않다. 현미경의 첫 카드는 사서가 아직 서비스를 올리지 않은 상태에서 쓰이고, 브리지의 첫 봉투는 반대편에 카드가 한 장뿐일 때 만들어진다. **축소 경로는 요구하지 않아도 저절로 걸어진다.** 대신 위험해지는 것은 **정상 경로**다 — 모두가 축소 모드에 익숙해져서 서비스가 붙은 뒤에도 `degraded`를 달고 도는 것이 정상처럼 남는다.
+**Under concurrent construction that logic stands on its head.** When four grow together, each one's counterpart is unfinished for a while. The microscope's first card is written while the librarian has not yet raised its service, and the bridge's first envelope is made when the other side has exactly one card. **The degraded path gets walked by itself without being required.** What becomes risky instead is **the normal path** — everyone gets used to reduced mode and carrying `degraded` stays normal even after the service is attached.
 
-그래서 완료 조건을 뒤집는다: **M1과 M2는 사서를 켠 상태의 통과를 각각 1회 요구한다.** `kb_refs`가 채워지고 `kb_gaps`가 채워지고 `degraded`가 **빈** 카드가 검증기를 통과해야 한다. 축소 통과는 요구하지 않는다 — 어차피 그것이 먼저 일어나고, 일어난 것을 요구하는 조건은 아무것도 검증하지 않는다.
+So the completion condition is inverted: **M1 and M2 each require one pass with the librarian on.** A card with `kb_refs` filled, `kb_gaps` filled and `degraded` **empty** has to pass the validator. A degraded pass is not required — it happens first anyway, and a condition requiring what has already happened validates nothing.
 
-**로그는 그 주장을 담을 뿐 확인하지 않는다 — 방증이지 검증이 아니다.** `caller_id`는 **인자**다. 서버는 그 뒤의 신원을 보지 못하고, 호출한 프로세스가 그 id가 가리키는 좌석인지 확인할 방법이 없다. 그러므로 "로그에 뒷받침된다"는 **쓰는 쪽에 거는 요구**이지 게이트가 아니고, 라운드가 자기가 만들지 않은 줄을 가리켜도 아래쪽에서 아무도 모른다. 브리지 좌석이 2026-09-19에 로그 자체에서 보여 줬다 — 서로 다른 세 좌석의 id가 **1초 간격으로 같은 관측량에 같은 결과**로 서 있는데, 세 좌석이 그렇게 하지 않는다. 한 프로세스가 id 형태를 훑은 것이고, **로그는 그것을 말할 수 없다.**
+**The log holds that claim and does not confirm it — corroboration, not verification.** `caller_id` is **an argument.** The server does not see the identity behind it and has no way to confirm that the calling process is the seat that id names. So "backed by the log" is **a demand on the writing side** and not a gate, and if a round points at a line it did not create, nobody downstream knows. The bridge seat showed it from the log itself on 2026-09-19 — three different seats' ids standing **one second apart on the same observable with the same result**, and three seats do not do that. One process swept the id form, and **the log cannot say so.**
 
-이것은 검사 8이 대응 가능성을, 검사 21이 등급을 **도출**하는 것과 같은 자리다: **쓰는 쪽이 고를 수 있는 판정은 게이트가 아니다.** 다만 여기서는 도출할 것이 없어 요구로 남는다 — 서버가 신원을 보게 만들지 않는 한 그렇다. 그러니 초록인 완료 조건을 "검증됐다"로 읽지 않는다. 충족은 **그 카드를 쓴 좌석이 정직했다는 가정 위에서** 성립한다. 브리지 매니저가 올렸다.
+This is the same place as check 8 **deriving** producibility and check 21 deriving grades: **a verdict the writing side can choose is not a gate.** Here, though, there is nothing to derive from, so it remains a demand — until the server is made to see identity. So a green completion condition is not read as "verified". Satisfaction holds **on the assumption that the seat which wrote that card was honest.** The bridge manager raised it.
 
-**그리고 잃었던 측정이 돌아온다.** 사서를 먼저 세우면 "M1–M2에 쌓인 E5 중 무엇이 실은 문헌에 있었는지"를 되짚을 더미가 쌓이지 않아 그것을 잃는 것으로 적어 두었다. 동시 구축에서는 서비스가 붙기 전에 만들어진 계획이 실제로 쌓이므로, `gaps`가 켜지는 순간 그 더미에 대해 그 측정을 할 수 있다. **서비스의 값을 재는 유일한 실험이고, 두 번 할 수 없다** — 켜진 뒤에 만든 계획으로는 재지 못한다.
+**And a measurement that had been lost comes back.** Standing the librarian up first was recorded as losing the ability to look back at "which of the E5s accumulated in M1–M2 were actually in the literature", because no pile would accumulate. Under concurrent construction, plans made before the service attaches really do pile up, so the moment `gaps` comes on that measurement can be made against that pile. **It is the only experiment that measures the service's value, and it cannot be done twice** — it cannot be measured with plans made after it is on.
 
-### 9.2 동시 구축이 요구하는 것
+### 9.2 What concurrent construction requires
 
-순서가 없으면 §6.2.1의 규칙들이 조언에서 **필수**로 바뀐다. 네 세션이 같은 작업 사본과 같은 git 인덱스를 공유하며 동시에 쓰는 것이 이제 예외가 아니라 기본 상태다.
+With no order, §6.2.1's rules turn from advice into **requirements.** Four sessions sharing one working copy and one git index and writing at the same time is now the default state rather than the exception.
 
-1. **통합 지점은 코드가 아니라 계약이다.** 한 에이전트가 다른 에이전트의 코드를 기다리는 일이 있으면 그것은 순서가 필요하다는 뜻이고, 계약이 부족하다는 뜻이다. 기다릴 것은 `contracts/`의 스키마와 `capabilities/`의 선언이며, 둘 다 M0에 있다.
-2. **`git add -A` 금지, `git commit -- <경로>`, pre-commit 게이트**(§6.2.1, §8). 2026-09-17에 한 커밋이 세 세션의 작업을 담았고, 몇 시간 뒤 인덱스에 두 세션의 파일이 섞여 있었다. 순서가 있을 때도 일어난 일이 동시 구축에서는 매일 일어난다.
-3. **설계 자리는 한 번에 하나이고, 둘이 필요하면 소유 경로를 먼저 나눈다**(§6.2.1). 계약이 넷의 통합 지점이므로, 계약을 두 곳에서 동시에 고치면 넷이 동시에 흔들린다.
-4. **하드웨어 연결은 각 단계의 마지막 항목이다.** 검증은 mock으로 하고, 실제 장비와 HOOMD는 mock으로 파이프라인이 통과한 뒤에 붙인다(§4.6.5).
+1. **The integration point is the contract, not the code.** If one agent ever waits for another agent's code, that means an order is needed, which means the contract is insufficient. What is waited on is the schemas in `contracts/` and the declarations in `capabilities/`, and both are in M0.
+2. **No `git add -A`, use `git commit -- <paths>`, and the pre-commit gate** (§6.2.1, §8). On 2026-09-17 one commit held three sessions' work, and hours later the index held two sessions' files mixed. What happened even with an order happens daily under concurrent construction.
+3. **There is one design seat at a time, and if two are needed, divide the owned paths first** (§6.2.1). The contract is the integration point for all four, so editing the contract in two places at once shakes all four at once.
+4. **Hardware connection is the last item of every stage.** Validation is done on the mock, and the real instrument and HOOMD are attached after the pipeline passes on the mock (§4.6.5).
 
-**저장소와 서비스는 여전히 별개다**(§4.3.0). `kb/`는 M0 시점부터 사람이 큐레이션하는 저장소로 존재하고, M3는 그 위에 서비스를 올리는 일이다. 등재는 계속 사람과 사서 세션의 일이며(`curated_by`), 서비스가 자동으로 하는 것은 **질의·`gaps`·충돌 탐지**다.
+**The store and the service are still separate** (§4.3.0). `kb/` has existed since M0 as a store a person curates, and M3 is the work of putting a service on top of it. Entering stays the work of the person and the librarian session (`curated_by`), and what the service does automatically is **queries, `gaps` and conflict detection.**
 
-**E5 상한(§11-2)은 여전히 미결이다.** 조건은 둘이고 동시 구축이 그중 하나도 자동으로 채워주지 않는다: gap 탐지가 켜져 있어야 하고, 그 상태에서 만들어진 계획이 표본이 될 만큼 쌓여야 한다. 그때까지 검사 3은 `UNDECIDED`로 남는다 — 아무도 고르지 않은 임계값은 만족된 임계값이 아니다.
+**The E5 ceiling (§11-2) is still open.** There are two conditions and concurrent construction fills neither automatically: gap detection has to be on, and plans made in that state have to accumulate to a sample. Until then check 3 stays `UNDECIDED` — a threshold nobody has chosen is not a threshold that is satisfied.
 
 ---
 
-### 9.3 두 변형을 나란히 돌린다 (2026-09-18)
+### 9.3 Running two variants side by side (2026-09-18)
 
-**보류 (2026-09-18 저녁).** 사람이 **현미경 변형 2를 아직 하지 않기로** 정했고 그 세션과 worktree를 치웠다. 이 절은 지우지 않고 보류로 둔다 — 브랜치 `seat/microscope-2`가 지은 것을 그대로 들고 있고, 기록을 지우는 것이 P16이 막는 바로 그것이다.
+**On hold (evening of 2026-09-18).** The person decided **not to do microscope variant 2 yet** and removed that session and worktree. This subsection is not deleted but left on hold — branch `seat/microscope-2` still holds what it built, and deleting the record is precisely what P16 prevents.
 
-**따라오는 결과가 하나 있고 그것이 이 보류의 요점이다: 이 절의 제약들은 비교를 지키려고 존재하므로, 비교가 없는 동안 구속하지 않는다.** 출발 게이트·같은 `qid`·출발 전 판정 금지는 전부 **두 변형을 공평하게 만드는 장치**였다. 한쪽이 멈춘 동안 남은 쪽을 거기 묶어 두면 지켜지는 것이 없고 비용만 남는다. 그러므로 `microscope-1`은 **그냥 현미경 실행석**이고, 사서 게이트를 기다리지 않으며 자기 `qid`로 일한다.
+**One consequence follows and it is the point of this hold: the constraints in this subsection exist to protect the comparison, so while there is no comparison they do not bind.** The starting gate, the shared `qid`, and the ban on ruling before the start were all **devices for making two variants fair.** Tying the remaining side to them while the other is stopped protects nothing and leaves only cost. So `microscope-1` is **simply the microscope execution seat**, does not wait for the librarian gate, and works under its own `qid`.
 
-**다시 열 때 필요한 것**: 두 변형이 **같은 이름 붙은 SHA**에서 갈라지는 것(§9.3 본문), 그리고 그 시점까지 한쪽이 쌓은 것을 비교에서 어떻게 다룰지를 **먼저** 정하는 것. `microscope-1`이 그 사이에 한 일은 비교의 출발선이 아니라 **공통 조상**이 된다 — 그렇게 다루지 않으면 재개하는 순간 기울기가 이미 들어 있다.
+**What is needed to reopen**: the two variants diverging from **the same named SHA** (the body of §9.3), and settling **first** how what one side accumulated up to that point is treated in the comparison. What `microscope-1` did in the meantime becomes **a common ancestor** rather than the comparison's starting line — treat it otherwise and a tilt is already in place the moment it resumes.
 
-사람이 현미경 실행을 **둘로 나눠** 짓기로 했다. 하나는 `agentic-microscope`의 `version2`를, 다른 하나는 `main`을 참고하고, **나중에 더 잘 작동하는 쪽을 최종으로 고른다.**
+The person decided to build the microscope execution **split in two.** One consults `agentic-microscope`'s `version2` and the other its `main`, and **whichever works better is chosen as final later.**
 
-**분리는 worktree와 브랜치다.** 두 세션이 한 작업 사본의 `microscope_agent/src/`를 쓰면 서로 덮어쓴다 — 오늘 아침의 사고가 이번에는 **설계상 확실**하다. 같은 파일을 둘이 다르게 고치는 것이 목적이기 때문이다. 그래서 `microscope-from-version2`와 `microscope-from-main` 두 브랜치를 각자의 worktree에서 돌린다. 이것은 §11-10이 정한 순서의 **첫 단계**이므로 앞당기는 것이 아니라 그 순서를 밟는 것이다.
+**The separation is worktrees and branches.** Two sessions using one working copy's `microscope_agent/src/` overwrite each other — this morning's accident, except this time **certain by design.** Two people editing the same file differently is the point. So `microscope-from-version2` and `microscope-from-main` run as two branches in their own worktrees. This is the **first step** of the order §11-10 set, so it is walking that order rather than jumping ahead.
 
-**좌석은 세션이 아니라 worktree다.** `microscope-1@seat.invalid`·`microscope-2@seat.invalid`이고, 한 worktree를 한 번에 한 세션이 쓴다. 세션이 교체되면 브랜치를 물려받는 세션이 신원도 물려받는다 — **비교를 이력에서 읽어낼 수 있으려면 커밋이 어느 변형의 것인지 말해야** 하기 때문이다.
+**A seat is a worktree, not a session.** `microscope-1@seat.invalid` and `microscope-2@seat.invalid`, with one session using one worktree at a time. When a session is replaced, the session inheriting the branch inherits the identity — because **for the comparison to be readable off the history, a commit has to say which variant it belongs to.**
+**Write down what "works better" means before starting.** This is the core of this subsection. Decide afterwards and it is not choosing but **justifying what was chosen** (§8.2's bias). And if the two variants **answer different questions the comparison does not hold** — they have to run under the same `qid`, the same goal card and the same observable.
 
-**무엇이 "더 잘 작동하는가"를 시작 전에 적는다.** 이것이 이 절의 핵심이다. 끝난 뒤에 정하면 고르는 것이 아니라 **고른 것을 정당화하는 것**이 된다(§8.2의 편향). 그리고 두 변형이 **다른 질문에 답하면 비교가 성립하지 않는다** — 같은 `qid`, 같은 goal 카드, 같은 관측량으로 돌려야 한다.
+The criteria are set by a person, but every candidate has to be **something countable from the history.** A report's persuasiveness is not a criterion:
 
-기준은 사람이 정하되, 후보는 전부 **이력에서 세어지는 것**이어야 한다. 보고서의 설득력은 기준이 아니다:
-
-| 기준 후보 | 상태 (2026-09-18에 현미경 매니저가 실제로 세어 봄) |
+| Candidate criterion | Status (actually counted by the microscope manager on 2026-09-18) |
 |---|---|
-| 게이트 통과 | **기준이 아니라 전제다.** 커밋 게이트가 실패하는 커밋을 거절하므로 두 변형 다 반드시 `0 failed`로 읽힌다 |
-| 숫자의 등급 분포 | **세어진다** — 검사 21이 151개, 검사 28이 124개를 이미 센다 |
-| 구간을 낸 축 / 기권한 축 | **이대로 쓰면 편향을 만든다.** 아래를 볼 것 |
-| `degraded`가 정직한가 | **오늘은 못 센다** — `queries/log.jsonl`이 없어 대조할 상대가 없다 |
-| §10.2.1 폐기 수 | **적힐 자리가 없다** — 아래를 볼 것 |
+| Passing the gate | **not a criterion but a premise.** The commit gate refuses a failing commit, so both variants necessarily read `0 failed` |
+| Grade distribution of numbers | **countable** — check 21 already counts 151 and check 28 counts 124 |
+| Axes that produced intervals / axes that abstained | **used as-is it creates bias.** See below |
+| Whether `degraded` is honest | **not countable today** — there is no `queries/log.jsonl`, so there is nothing to compare against |
+| §10.2.1 discard count | **there is nowhere to write it** — see below |
 
-**구간 수로 점수를 매기면 안 된다.** §4.5.2.1은 침묵을 거절하되 **이유 있는 기권을 옳은 결과**로 두고, P5도 근거 없으면 추측하지 말라고 한다. 그런데 "구간을 낸 축이 많을수록 낫다"로 세면 **없는 입력에 숫자를 지어낸 변형이 이긴다** — §8.2의 편향을 막으려고 만든 절이 그 편향을 채점 기준으로 삼는 꼴이다. 쓰려면 **"기권이 정당한가"와 짝지어야** 하고, 더 나은 형태는 방향을 뒤집어 **정당화되지 않은 산출을 세는 것**이다: 입력 없이 나온 숫자, gap을 대지 않은 추정(검사 39), 출처가 덮지 않는 외삽.
+**Do not score by interval count.** §4.5.2.1 refuses silence while treating **a reasoned abstention as a correct result**, and P5 also says not to guess without grounds. But counting "more axes producing intervals is better" means **the variant that invented numbers for absent inputs wins** — a subsection built to prevent §8.2's bias turned into a scoring rule for that bias. To use it, it has to be **paired with "was the abstention justified"**, and a better form reverses the direction and **counts unjustified outputs**: numbers produced with no input, estimates naming no gap (check 39), extrapolations the source does not cover.
 
-**`degraded` 대조는 시기 문제이지 원리 문제가 아니다** — 사서가 서빙을 시작하면 세어진다. 다만 **그 전에 쌓인 카드는 소급 검증이 불가능하다**: 로그 없이 기록된 `degraded`는 나중에 참이었는지 물을 방법이 없다. 그러므로 이 기준을 쓰려면 A/B가 서빙 이후에 시작해야 하고, 그러지 않기로 하면 **이 기준은 이 비교에서 버린다.**
+**The `degraded` comparison is a question of timing, not of principle** — once the librarian starts serving it becomes countable. But **cards accumulated before that cannot be verified retrospectively**: a `degraded` recorded with no log cannot later be asked whether it was true. So using this criterion requires the A/B to start after serving begins, and if that is not chosen, **this criterion is dropped from this comparison.**
 
-**폐기는 적힐 자리가 없다 — 이것부터 고쳐야 한다.** 폐기된 항목은 정의상 산출물을 남기지 않으므로 분모가 보이지 않는다. 분자도 약하다: 2026-09-18 현재 `ruling`이 transfer 5·downgrade 1·discard 0인데, 그 여섯 중 **A1–A7 슬롯을 실제로 댄 것은 둘**이고 §10.2.1은 이관된 항목 **전부**에 그것을 요구한다. 자리는 과제 파일 **옆**이다 — `<agent>/tasks/NNN-rulings.md`. 과제 카드 자체가 아닌 이유는 소유가 갈리기 때문이다: 판정은 **실행석**이 내리는데 과제 카드는 **매니저**의 것이고 실행석은 그것을 고치지 않는다(§6.2-2). 카드에 적게 하면 한 파일을 두 좌석이 쓴다. 한 항목 한 줄, 고정 칼럼, transfer·downgrade·drop 전부 — **슬롯을 대지 않은 이관도 같은 줄에서 닫힌다.** 현미경 매니저가 `93f297d`으로 세웠다. 이 자리가 서기 전에 두 변형이 출발하면 그 기간의 폐기는 영영 세어지지 않는다.
+**Discards have nowhere to be written — that has to be fixed first.** A discarded item by definition leaves no output, so the denominator is invisible. The numerator is weak too: as of 2026-09-18 `ruling` stands at transfer 5 · downgrade 1 · discard 0, and of those six **only two actually named an A1–A7 slot**, while §10.2.1 requires it of **every** transferred item. The place is **beside** the task file — `<agent>/tasks/NNN-rulings.md`. Not the task card itself because ownership splits: a ruling is made by the **execution seat** while the task card is the **manager's**, and the execution seat does not edit it (§6.2-2). Writing into the card makes two seats write one file. One line per item, fixed columns, transfer, downgrade and drop alike — **a transfer that named no slot closes on the same line.** The microscope manager stood it up in `93f297d`. If the two variants start before this place exists, the discards of that period are never counted.
 
-**두 변형은 같은 커밋에서 갈라져야 하고, 그 커밋은 이름을 가져야 한다.** "현재 main에서"는 조건이 아니다 — main이 움직이므로 영원히 참이 되지 않고, 2026-09-18에 이 문장을 쓰는 동안에도 열 번 움직였다. **움직이는 참조를 가리키는 출발 조건은 조건이 아니다.** 현미경 매니저가 `93f297d`으로 못 박았고, 그 SHA를 고른 근거는 출발 전에 서야 할 넷이 전부 그 아래 들어 있다는 것이다(`ab2eb6f`·`156ba12`·`44f368b`·`93f297d`). 그러지 않으면 양쪽이 같은 수선을 각자 하게 되고 **비교가 그 수선의 차이를 재게 된다.**
+**The two variants have to diverge from the same commit, and that commit has to have a name.** "From current main" is not a condition — main moves, so it never becomes true, and it moved ten times while this sentence was being written on 2026-09-18. **A starting condition pointing at a moving reference is not a condition.** The microscope manager nailed it to `93f297d`, and the grounds for that SHA are that all four things that have to stand before starting are under it (`ab2eb6f`, `156ba12`, `44f368b`, `93f297d`). Otherwise both sides make the same repairs separately and **the comparison measures the difference between those repairs.**
 
-**진 쪽을 지우지 않는다**(P16). 시도되지 않은 구성이 영원히 불리해지는 것과 같은 논거이고, 여기서는 더 직접적이다 — 진 변형의 기록이 **왜 그것이 졌는지**를 담은 유일한 자료이며, 지우면 다음에 같은 선택을 다시 하게 된다. 진 브랜치는 병합하지 않고 남긴다.
+**The losing side is not deleted** (P16). The same argument as an untried configuration being disadvantaged forever, and here it is more direct — the losing variant's record is the only material holding **why it lost**, and deleting it means making the same choice again next time. The losing branch is left unmerged.
 
-**두 설계의 비교다**(2026-09-18 사람 결정). 이식 대 재설계가 아니다. 두 변형 **모두** §10.2.1을 동일하게 지나고, `main`도 `version2`도 **참고 대상**이지 옮겨 담을 것이 아니다. 그러므로 이 비교가 답하는 질문은 **"어느 참고 자료가 우리 규칙 아래에서 더 나은 설계를 내놓는가"**이고, 답하지 **않는** 질문은 "기존 시스템이 재설계보다 나은가"다. 둘을 섞으면 결과가 무엇에 대한 것인지 모르게 되므로, 진 쪽을 두고 "그러니 옛 시스템이 나았다"고 읽어서는 안 된다.
+**It is a comparison of two designs** (the person's decision, 2026-09-18). Not a port versus a redesign. **Both** variants pass through §10.2.1 identically, and `main` and `version2` alike are **references** rather than things to be copied over. So the question this comparison answers is **"which reference produces a better design under our rules"**, and the question it does **not** answer is "is the existing system better than a redesign". Mix the two and it becomes unclear what the result is about, so a loss must not be read as "therefore the old system was better".
 
-**출발은 사서가 실제로 서빙을 시작한 뒤다**(같은 결정). 그래야 §9.3의 `degraded` 기준이 살아 있고, 그 전에 쌓인 카드는 소급 검증이 불가능하다.
+**The start is after the librarian has actually begun serving** (the same decision). That is what keeps §9.3's `degraded` criterion alive, and cards accumulated before it cannot be verified retrospectively.
 
-**그 시점도 이름을 가져야 한다.** "사서 서빙 후"는 "현재 main에서"와 같은 함정이다 — 관측할 수 없으면 조건이 아니다. 관측 가능한 상태로 적으면 이렇다: **`.mcp.json`이 서버를 등록하고**(`2bfc229`에서 섰다) **`librarian_agent/queries/log.jsonl`에 실제 질문의 `caller_id`를 단 기록이 하나 이상 있을 것.** 그 기록이 나타난 커밋이 출발 SHA이고, 두 변형이 거기서 갈라진다.
+**That moment has to have a name too.** "After the librarian serves" is the same trap as "from current main" — unobservable means not a condition. Written as an observable state: **`.mcp.json` registers the server** (it stood up at `2bfc229`) **and `librarian_agent/queries/log.jsonl` holds at least one record carrying a real question's `caller_id`.** The commit where that record appears is the starting SHA, and the two variants diverge there.
 
-**기다리는 동안 출발 전 판정을 하지 않는다 — 양쪽 다.** 처음에는 "참고 자료를 읽고 §10.2.1로 판정해 적는 일은 지금 해도 된다"고 썼는데, **같은 날 그 허용이 방향 있는 편향을 만들었다.** 현미경 실행 세션이 하나뿐이라 판정을 적을 수 있는 쪽이 한쪽뿐이었고, 그 한쪽이 `main` 참고 변형이었다. 그러면 출발선에서 한 변형은 rulings 파일을 갖고 다른 쪽은 비어 있는데, **§9.3의 기준이 세는 것이 정확히 그 파일이다** — 비교가 재게 되는 것은 설계가 아니라 "기다리는 동안 세션이 있었는가"가 된다. 무작위 잡음도 아니고 기울기에 방향이 있다.
+**No pre-start rulings while waiting — on either side.** It was first written that "reading the references and recording §10.2.1 rulings may be done now", and **the same day that permission created a directional bias.** There was only one microscope execution session, so only one side could record rulings, and that side was the `main` reference variant. Then at the starting line one variant has a rulings file and the other is empty, and **§9.3's criteria count exactly that file** — what the comparison measures becomes not the design but "was there a session during the wait". It is not even random noise; the tilt has a direction.
 
-**금지는 §10.2.1 판정에 걸리는 것이지 계약 준수 수정에 걸리는 것이 아니다.** 스키마가 바뀌어 카드를 맞추는 일 같은 것은 어느 변형의 설계도 아니므로 중립이다. **다만 한쪽 브랜치에서만 하면 그것도 기울기다** — 중립인 일이라도 한쪽만 하면 비교가 그 차이를 잰다. 그러므로 **공유 수정은 분기점 이전의 `main`에서 이뤄지고**, 두 변형은 그것이 들어간 뒤의 SHA에서 갈라진다. 현미경 매니저가 물어 왔고, 그 구분이 맞다.
+**The ban binds §10.2.1 rulings, not contract-compliance fixes.** Things like adjusting cards because a schema changed are neither variant's design and are neutral. **But doing it on only one branch is a tilt too** — even neutral work done on one side means the comparison measures that difference. So **shared fixes are made on `main` before the divergence point**, and the two variants diverge from the SHA after they land. The microscope manager asked and that distinction is right.
 
-**금지가 기본값인 이유는 그것이 아무도 기다리지 않고 대칭을 만들기 때문이다.** 세션을 여는 것은 사람만 할 수 있으므로 "한쪽에 세션을 열어 맞추기"는 사람을 기다리지만, 금지는 즉시 선다. **양쪽에 세션이 서면 이 금지는 풀린다** — 그때는 준비가 대칭이다. 그 전까지 "허용하되 한쪽만 가능한" 상태가 제일 나쁘다.
+**The reason the ban is the default is that it waits for nobody and creates symmetry.** Only a person can open a session, so "open a session on the other side to match" waits on a person, while a ban stands immediately. **The ban lifts once sessions stand on both sides** — then the preparation is symmetric. Until then, "permitted but only possible on one side" is the worst state.
+## 10. Out of scope
 
-## 10. 범위 밖
+### 10.1 Non-goals
 
-### 10.1 하지 않는 것 (Non-goals)
+- Autonomous discovery of physical theory or mechanism. This system goes as far as **condition design and execution.**
+- Automatic writing of papers or drafts.
+- Real-time closed-loop control (changing conditions on the fly while measuring). Out of the initial scope — it conflicts with the gate model.
+- Writing new hardware drivers. It only calls existing control paths.
+- Multi-user simultaneous instrument control.
+- Becoming a general-purpose workflow/orchestration engine (P10).
+- Driving the instrument without human approval (D4).
 
-- 물리 이론/메커니즘의 자율적 발견. 이 시스템은 **조건 설계와 실행**까지다.
-- 논문·초안 자동 작성.
-- 실시간 폐루프 제어(측정하며 조건을 즉시 바꾸는 것). 초기 범위 밖 — 게이트 모델과 충돌한다.
-- 새 하드웨어 드라이버 작성. 기존 제어 경로를 호출만 한다.
-- 다중 사용자 동시 장비 제어.
-- 범용 워크플로/오케스트레이션 엔진화(P10).
-- 사람 승인 없는 장비 구동(D4).
+### 10.2 When the four prior repositories may be consulted
 
-### 10.2 이전 4개 저장소 참고 시점
+The prior repositories clearly hold useful things — hardware control paths, device specifications, concrete values such as NA, axis calculation logic, and a record of what went wrong. **The problem is when to look.** Look before the design has set and its structure is inherited wholesale, and then there is no reason to have done a redesign.
 
-이전 저장소에는 쓸 것이 분명히 있다 — 하드웨어 제어 경로, 장치 스펙, NA 같은 구체 수치, 축 계산 로직, 그리고 무엇이 잘 안 됐는지. **문제는 그것을 언제 보느냐다.** 설계가 굳기 전에 보면 그 구조를 그대로 물려받게 되고, 그러면 재설계를 할 이유가 없어진다.
+**The gate is a condition, not a milestone.** With the order gone (§9), "look at M1" no longer denotes a moment. The original logic is carried over as a condition — **look after our counterpart has set.** Then the rule says the same thing whatever the order.
 
-**게이트는 마일스톤이 아니라 조건이다.** 순서가 없어졌으므로(§9) "M1에 본다"는 더 이상 시점을 뜻하지 않는다. 원래 논리를 그대로 조건으로 옮긴다 — **우리 쪽 대응물이 굳은 뒤에 본다.** 그러면 순서가 어떻든 규칙이 같은 것을 말한다.
-
-| 무엇이 먼저 굳어야 하나 | 무엇을 | 규칙 |
+| What has to set first | What | Rule |
 |---|---|---|
-| 우리 카드 스키마 ✔ | `sim-exp-bridge`의 카드 스키마·검증기와 대조 | 우리 스키마를 먼저 확정한 뒤 **차이만** 비교. 먼저 읽고 베끼지 않는다. |
-| 장치 인터페이스 네 함수 ✔ | **하드웨어 제어 경로** — 드라이버 호출 방식, 채널, 되읽기 | `src/devices/`의 네 함수에 맞춰 다시 감싼다. 제어 경로를 감싸는 데 안전 한계는 필요 없다 — 그래서 이 행은 `envelope/`를 기다리지 않는다 |
-| `envelope/safety.json`(**사람이 쓴다**) | **장치 스펙의 구체값** — NA·배율·픽셀 크기·출력 한계 | **수치는 전부 §10.3을 통과해야 한다.** 이 행이 `envelope/`를 기다리는 이유는 한계값과 나란히 놓이지 않은 스펙 수치가 한계처럼 쓰이기 때문이다 |
-| `kb/staging/` 표의 모양 ✔ | **장치 레지스트리와 유효 광경로 표의 초기 내용** (§4.3.2에 따라 `kb/staging/`에 둔다) — 장치별 제어 채널·자동화 가능 여부·되읽기 가능 여부, 그리고 실제로 빛이 검출기까지 도달하는 선택자 조합 | 이전 저장소에서 **추출**한다. 추측으로 채우지 않는다. 추출한 값도 §10.3 규칙 1에 따라 등급 상한 E3이며, 실제 장비에서 확인되면 E1로 승급한다. **안전 한계는 §10.3 규칙 4에 따라 이관 대상이 아니다** — 사람이 직접 쓴다. |
-| 축 분해 A1–A7 ✔ (§4.5.3) | **현미경 축 계산 로직** — SNR, 광손상, 분해능, 이탈 조건 | 우리 축 분해(§4.5.3)에 맞춰 다시 배치한다. A7의 이탈 조건처럼 이미 검증된 식이 있으면 그것을 쓴다 |
-| 축 분해 A1–A5·A7 ✔ (§4.5.3) | **시뮬레이션 축 계산 로직** — 안정성·표본화·수렴 판정 | 식과 판정 기준을 참고하되 우리 축 분해에 맞춰 다시 배치한다. |
-| entry 스키마와 `kb_query` 인자 모양 | 두 KB 구조 대조 | 구조만 참고. entry는 출처 검증 후 개별 이관(§10.3). |
-| 우리 구조 ✔ (§3·§4·§6) | **아키텍처 구조 자체** — 모듈 분해, 에이전트 경계, 파이프라인 단계 | **브랜치 차이를 먼저 읽는다**: `agentic-microscope`의 `main` → `version2`가 무엇을 바꿨는지. 그것이 "1차 시도에서 무엇이 안 됐나"이고, 구조를 물려받지 않으면서 가장 많이 얻는 읽기다. 그 뒤에야 구조 자체를 보며, §10.2.1의 분류를 통과한 것만 넘어온다 |
-| 지금 열려 있다 | **시료·소모품의 lot / 벤더 품번** — 비드, 커버슬립, 배지 | **번호만 가져온다. 값은 안 가져온다.** 지름·밀도 같은 수치는 §10.3 규칙 1대로 `prior_run:` E3인데 **저쪽 비드에 대한 E3**이고, 여기 적용하려면 "같은 재고"라는 E5 가정이 위에 얹혀 도로 E5가 된다. lot 번호는 다르다 — **사람이 병을 보고 같은 것인지 확인할 수 있고**, 확인되면 `spec:<lot>` E3이 된다. 그러므로 가져오는 것은 **사람이 검증할 수 있는 식별자**뿐이다 |
-| 왕복 라운드 운영에서 겪은 실패 사례 | 무엇이 안 됐는지 | 실패 목록으로만 참고. `kb/lessons/`에 넣을 때는 §8.2의 필수 필드(근거 id, `n`, `falsifier`)를 채워야 한다 |
+| our card schemas ✔ | comparison against `sim-exp-bridge`'s card schemas and validator | settle our schemas first, then compare **only the differences.** Do not read first and copy. |
+| the device interface's four functions ✔ | **hardware control paths** — driver call style, channels, read-back | rewrap to `src/devices/`'s four functions. Wrapping a control path needs no safety limit — which is why this row does not wait on `envelope/` |
+| `envelope/safety.json` (**a person writes it**) | **concrete device specification values** — NA, magnification, pixel size, power limits | **every figure must pass §10.3.** This row waits on `envelope/` because a specification figure not placed beside a limit gets used as a limit |
+| the shape of the `kb/staging/` tables ✔ | **the initial contents of the device registry and the valid optical-path table** (placed in `kb/staging/` per §4.3.2) — per-device control channels, automatability, read-back availability, and the selector combinations where light actually reaches the detector | **extract** from the prior repository. Do not fill by guess. An extracted value is also capped at grade E3 per §10.3 rule 1, and is promoted to E1 once confirmed on the real instrument. **Safety limits are not transferable per §10.3 rule 4** — a person writes them directly. |
+| the axis decomposition A1–A7 ✔ (§4.5.3) | **microscope axis calculation logic** — SNR, photodamage, resolution, the escape condition | rearrange onto our axis decomposition (§4.5.3). Where an already-validated expression exists, such as A7's escape condition, use it |
+| the axis decomposition A1–A5, A7 ✔ (§4.5.3) | **simulation axis calculation logic** — stability, sampling, convergence judgement | consult the expressions and criteria but rearrange onto our axis decomposition. |
+| the entry schema and `kb_query`'s argument shape | comparison of the two KB structures | structure only. Entries transfer individually after source verification (§10.3). |
+| our structure ✔ (§3, §4, §6) | **the architecture itself** — module decomposition, agent boundaries, pipeline stages | **read the branch difference first**: what `agentic-microscope`'s `main` → `version2` changed. That is "what did not work on the first attempt", and it is the reading that gains the most without inheriting the structure. Only then look at the structure itself, and only what passes §10.2.1's classification crosses |
+| open now | **sample and consumable lots / vendor part numbers** — beads, coverslips, media | **take the numbers only. Do not take the values.** Figures such as diameter and density are `prior_run:` E3 per §10.3 rule 1, but that is **an E3 about their beads**, and applying it here puts an E5 assumption of "the same stock" on top and it returns to E5. A lot number is different — **a person can look at the bottle and confirm it is the same**, and once confirmed it is `spec:<lot>` E3. So what is taken is only **an identifier a person can verify** |
+| failure cases from operating round trips | what did not work | consult as a failure list only. Entering it in `kb/lessons/` requires §8.2's mandatory fields (evidence id, `n`, `falsifier`) |
 
-✔는 이미 굳은 것이고, 그 행은 열려 있다. 2026-09-17에 장치 레지스트리·광경로 표·대물렌즈 표를 그 근거로 열었고(§11.1), 같은 날 사람이 `agentic-microscope`를 열되 **"그대로 이식하지 않고, 과하게 추정한 것은 등급을 낮추거나 삭제한다"**는 단서를 달았다. 그 단서를 기계적으로 검사 가능한 형태로 옮긴 것이 §10.2.1이다.
+✔ marks what has already set, and that row is open. On 2026-09-17 the device registry, the optical-path table and the objective table were opened on those grounds (§11.1), and the same day the person opened `agentic-microscope` with the condition **"nothing is transplanted as-is, and anything over-claimed is downgraded or deleted."** §10.2.1 is that condition moved into a mechanically checkable form.
 
-**§10.3은 금지 조항이 아니라 이관 절차다.** 행이 열렸다는 것은 "봐도 된다"가 아니라 "§10.3을 통과시켜 가져온다"는 뜻이다 — 등급 상한 E3, 벤더 값은 원 출처 인용, 산문 속 수치는 이관하지 않음, 안전 한계는 이관 대상 아님.
+**§10.3 is a transfer procedure, not a prohibition.** A row being open does not mean "you may look" but "bring it across by passing it through §10.3" — an E3 grade ceiling, vendor values cited to their original source, no transfer of figures embedded in prose, and safety limits not transferable.
 
-#### 10.2.1 넘어오는 모든 것은 셋 중 하나로 판정된다
+#### 10.2.1 Everything that crosses is ruled one of three
 
-행이 열렸다는 것은 "봐도 된다"이지 "가져와도 된다"가 아니다. **이전 저장소에서 넘어오는 모든 항목은 쓰이기 전에 셋 중 하나로 판정된다.**
+A row being open means "you may look", not "you may take". **Every item crossing from a prior repository is ruled one of three before it is used.**
 
-- **이관** — 우리 A1–A7(§4.5.3)에 들어갈 자리가 있는 식이나 판정 기준. 그 자리에 **다시 배치**해야 하며, 붙은 수치는 §10.3을 통과한다.
-- **강등** — 쓸모는 있으나 그쪽에서 확신이 과했던 것. 근거 없는 단언은 반증조건을 붙여 **E5**로, `run_id` 없는 캘리브레이션 상수는 **최대 E3**으로, 모델이 만든 값은 **E6이므로 아무 데도 들어가지 못한다**(P2).
-- **폐기** — A1–A7에 자리가 없거나, 산문으로만 존재하거나, **안전 한계인 것**(§10.3 규칙 4: 이관 대상 아님).
+- **Transfer** — an expression or criterion with a place in our A1–A7 (§4.5.3). It has to be **rearranged** into that place, and any figures attached pass §10.3.
+- **Downgrade** — useful, but over-confident on their side. An assertion with no grounds becomes **E5** with a falsification condition attached, a calibration constant with no `run_id` becomes **E3 at most**, and a model-generated value is **E6 and therefore enters nothing** (P2).
+- **Discard** — no place in A1–A7, existing only in prose, or **being a safety limit** (§10.3 rule 4: not transferable).
 
-**판별자 하나로 검사 가능해진다: 이관된 항목은 자기가 들어간 A1–A7 자리와 통과한 §10.3 규칙 번호를 댄다.** 자리를 대지 못하면 폐기다 — 그것이 "도움이 안 되는 것은 삭제한다"의 기계적 형태다.
+**One discriminator makes it checkable: a transferred item names the A1–A7 place it went into and the §10.3 rule number it passed.** Unable to name a place, it is discarded — that is the mechanical form of "delete what does not help".
 
-   **"자리"는 축만이 아니다**(2026-09-18 정정). 처음 이 판별자를 쓸 때 A1–A7만 적었는데, 그러면 **정당한 이관이 자리를 못 대서 폐기된다** — 하드웨어 제어 경로는 축이 아니라 `src/devices/`의 네 함수로 들어가고, preflight 검사는 O1로, 값은 KB entry로, 모양은 계약 필드로 들어간다. 판별자의 취지는 "축에 들어가는가"가 아니라 **"우리가 이미 설계한 어딘가에 자리가 있는가"**다. 그러므로 댈 수 있는 자리는 A1–A7 축 · 오케스트레이터의 네 함수 · O1 preflight · 계약의 필드 · KB entry이고, 이 목록에 없는 자리를 대려면 **그 자리를 먼저 설계해야** 한다 — 그것이 이관이 아니라 설계라는 뜻이고, 그때는 §11로 간다. 사서 매니저가 올렸다.
+   **"A place" is not only an axis** (corrected 2026-09-18). The first use of this discriminator wrote only A1–A7, and that **discards legitimate transfers for being unable to name a place** — a hardware control path goes not into an axis but into `src/devices/`'s four functions, a preflight check into O1, a value into a KB entry, a shape into a contract field. The discriminator's intent is not "does it go into an axis" but **"is there a place for it in something we have already designed."** So the places that can be named are the A1–A7 axes, the orchestrator's four functions, O1 preflight, a contract field, and a KB entry, and naming a place not on this list requires **designing that place first** — which means it is design and not transfer, and then it goes to §11. The librarian manager raised it.
 
-그리고 이 규칙이 **"그대로 이식하지 않는다"를 구조적으로 보장한다**: 우리 분해에 다시 놓이지 않은 것은 넘어올 수 없다. 이식은 자리를 묻지 않고 옮기는 것이고, 자리를 대라는 요구가 그것을 불가능하게 만든다.
+And this rule **structurally guarantees "nothing is transplanted as-is"**: what is not re-placed into our decomposition cannot cross. Transplanting is moving without asking about a place, and demanding a place makes that impossible.
 
-**이미 한 번 걸린 사례가 근거다.** 이전 프로젝트의 `20.078x` — 명목 배율에 캘리브레이션에서 역산한 값을 입힌 것이고, 정확히 "과하게 추정"이다. §5.3의 명목 표기 규칙이 그것을 막았고(명목 지정은 숫자가 아니라 문자열이다), 장치 레지스트리가 그 이유를 적어 두었다. 분류가 없었으면 그 값은 E2처럼 생긴 채로 들어왔을 것이다.
+**A case already caught is the grounds.** The prior project's `20.078x` — a nominal magnification wearing a value back-calculated from a calibration, and precisely "over-claimed". §5.3's nominal-notation rule stopped it (a nominal designation is a string, not a number), and the device registry recorded the reason. Without the classification, that value would have come in looking like an E2.
 
-**분류가 먼저 서고 그다음에 연다.** 순서를 뒤집으면 규칙 없이 열린 구간이 생기고, 그 구간에 들어온 것은 나중에 누구도 되짚지 않는다.
+**The classification stands first and then it opens.** Reverse the order and there is a span opened with no rule, and what came in during that span is never revisited by anybody.
 
-### 10.3 수치 이관 규칙
+### 10.3 Rules for transferring figures
 
-이전 저장소의 숫자는 **코드나 `envelope/`로 직접 들어오지 않는다.** 전부 사서를 거쳐 KB entry가 된다(P14). 다섯 가지 규칙:
+Numbers from a prior repository **do not enter code or `envelope/` directly.** They all pass through the librarian and become KB entries (P14). Five rules:
 
-1. **이관 값의 등급 상한은 E3이다.** E1은 "이 시스템이 이 조건에서 측정한 값"이며 `run_id`를 요구한다(§5.3). 이전 저장소의 측정값에는 이 시스템의 `run_id`가 없고 그때의 캘리브레이션 상태를 여기서 재현할 수도 없다. 따라서 **이전 측정값도 E3로 들어온다.** 다시 재면 E1로 승급되고 옛 entry는 `supersedes`로 연결된다.
-2. **벤더 스펙은 원 출처로 간다.** NA, 픽셀 크기, 출력 한계 같은 값은 이전 저장소가 아니라 **장비 문서를 출처로** 적는다. 이전 저장소는 "어디를 봐야 하는지" 알려주는 색인이지 출처가 아니다.
-3. **산문에 있는 수치는 이관하지 않는다.** 기계 판독 가능한 자리에 있고 출처가 붙은 값만 넘어온다(P2, P3).
-4. **안전 한계는 이관 대상이 아니다.** `envelope/safety.*`는 지식이 아니라 정책이며(§4.3.2), P0 규칙 7에 따라 사람이 **시스템 밖에서 물리적으로 확인한 뒤** 직접 쓴다. 이전 저장소에 적힌 한계값은 참고 자료일 뿐 근거가 아니다.
+1. **A transferred value's grade ceiling is E3.** E1 means "a value this system measured at these conditions" and requires a `run_id` (§5.3). A prior repository's measurement has no `run_id` in this system, and its calibration state then cannot be reproduced here. So **a prior measurement also comes in as E3.** Measured again it is promoted to E1 and the old entry is linked with `supersedes`.
+2. **A vendor specification goes to its original source.** Values such as NA, pixel size and power limits are recorded **with the instrument documentation as the source**, not the prior repository. The prior repository is an index telling you where to look, not a source.
+3. **Figures in prose are not transferred.** Only values in a machine-readable position with a source attached cross over (P2, P3).
+4. **Safety limits are not transferable.** `envelope/safety.*` is policy and not knowledge (§4.3.2), and per P0 rule 7 a person writes it directly **after confirming physically outside the system.** Limit values written in a prior repository are reference material and not grounds.
 
-    **그런데 "물리적으로 확인한 뒤"가 2026-09-19까지 검사 불가능했다 — 파일이 확인된 한계와 옮겨 적은 한계를 구별하지 않는다.** 열둘 중 셋을 장비에서 다시 확인하고 아홉을 다른 문서에서 옮겨 적어도 파일은 똑같이 생긴다. **지켜진 규칙과 안 지켜진 규칙이 같은 모양이면 그 규칙은 요구가 아니라 희망이다.** 그리고 P0가 안전을 결정론적 코드에 맡기는데, 그 코드가 읽는 바로 그 파일이 이것을 안 담는다. 사서 매니저가 사람의 지시로 `agentic-microscope/SAFETY.md`를 열어 분류하다 올렸다 — **요청한 것이 완화가 아니라 조이기였다.**
+    **But "after confirming physically" was uncheckable until 2026-09-19 — the file does not distinguish a confirmed limit from a transcribed one.** Confirm three of twelve on the instrument and transcribe nine from another document and the file looks the same. **When a rule kept and a rule broken have the same shape, that rule is a hope and not a requirement.** And P0 entrusts safety to deterministic code, and the very file that code reads does not carry this. The librarian manager raised it while opening and classifying `agentic-microscope/SAFETY.md` on the person's instruction — **what it asked for was a tightening, not a relaxation.**
 
-    **그래서 한계마다 확인 기록을 요구한다.** 물리적 확인이면 **누가·언제·어떻게**, 아니면 **확인 없이 옮겨 적었다는 사실과 어디서**. **옮겨 적는 것을 금지하지 않는다** — 금지하면 열둘을 한 번에 확인해야 하고 아무도 파일을 시작하지 못한다. **구별되기만 하면 된다.** 구별되면 나중에 검사가 *"확인되지 않은 한계가 비가역 동작을 파라미터화하고 있다"*(§2.1 규칙 3의 모양)를 말할 수 있고, 지금은 말할 수 없다.
+    **So a confirmation record is required per limit.** For a physical confirmation, **who, when and how**; otherwise, **the fact that it was transcribed without confirmation, and from where.** **Transcription is not forbidden** — forbid it and all twelve have to be confirmed at once and nobody can start the file. **It only has to be distinguishable.** Distinguished, a later check can say *"an unconfirmed limit is parameterising an irreversible action"* (§2.1 rule 3's shape), and today it cannot.
 
-    **파일 수준의 `written_by`가 바로 그 일괄 도장이다.** 서명 하나가 열두 한계를 덮고, 어느 것이 확인됐는지 말하지 않는다. 사서 규칙 10이 같은 것을 이미 적고 있다 — *"일괄로 찍은 확인 표시는 확인이 아니다. 배치가 아니라 다시 읽은 행에 찍어라."* 그 문장이 KB entry에 대해 참이면 **가장 하중을 받는 파일**에 대해서는 더 참이다.
+    **A file-level `written_by` is exactly that batch stamp.** One signature covers twelve limits and says which are confirmed of none of them. Librarian rule 10 already says the same — *"a confirmation mark stamped in batch is not a confirmation. Stamp the row you re-read, not the batch."* If that sentence is true of a KB entry, it is more true of **the file bearing the most load.**
 
-    **이것은 등급이 아니다.** 같은 날 목표 정확도에 대해 정한 것(§5.3)과 부딪히지 않는다: 천장이 **무엇을 허용하는가**라는 결정인 것은 그대로이고 거기엔 출처도 등급도 없다. 새로 요구하는 것은 그 결정이 아니라 **확인이라는 사건**이다 — 누가 언제 무엇을 했는가는 주장이 아니라 일어난 일이고, 일어난 일은 기록된다. `limit`의 `{value, unit}`은 정책이고, 확인 기록은 그 옆에 붙는 사건 기록이다.
+    **This is not a grade.** It does not conflict with what was settled about target accuracy the same day (§5.3): a ceiling remains a decision about **what is permitted**, with no source and no grade. What is newly required is not that decision but **the event of confirming** — who did what and when is not a claim but something that happened, and what happened is recorded. `limit`'s `{value, unit}` is policy, and the confirmation record is an event record beside it.
 
-    **자원 천장은 `safety.json`을 떠난다 — P0은 장비에 걸리지 예산에 걸리지 않는다 (2026-09-20, 사람이 정했다).** 시뮬레이션 트리의 천장은 `wall_clock_max`·`storage_max`·`smoke_budget` 셋이고 **전부 자원**이다. P0의 순서는 사람 → 장비 → 시료 → 데이터인데 벽시계 천장은 그중 무엇도 지키지 않는다 — **일정을 지킨다.** 그런데 그 파일에 있으면 Tier 3·물리적 확인·모델 금지가 **디스크 쿼터에 전부 걸린다.**
+    **Resource ceilings leave `safety.json` — P0 binds instruments, not budgets (2026-09-20, settled by the person).** The simulation tree's ceilings are `wall_clock_max`, `storage_max` and `smoke_budget`, and **all three are resources.** P0's order is people → instruments → samples → data, and a wall-clock ceiling protects none of them — **it protects a schedule.** Yet living in that file, Tier 3, physical confirmation and the model ban **all attach to a disk quota.**
 
-    **해의 등급이 다르다는 것이 요점이다**: 레이저 천장이 틀리면 눈을 잃고 벽시계가 틀리면 밤을 잃는다. **같은 문에 같은 자물쇠를 다는 것이 정해진 적이 없었고**, 시뮬레이션 트리에 `safety.json`이 있는 이유는 천장이 살 자리가 그것뿐이었기 때문이다.
+    **The point is that the grade of harm differs**: get the laser ceiling wrong and you lose an eye; get the wall clock wrong and you lose a night. **Putting the same lock on the same door was never decided**, and the reason `safety.json` exists in the simulation tree is that it was the only place a ceiling could live.
 
-    **그래서 `simulation_agent/envelope/budget.json`으로 나눈다.** 그 트리에 `safety.json`은 없다. 나눠도 게이트가 사라지지 않는다 — A5와 operator가 여전히 한 곳에서 읽고, **예산 안인지 못 정하는 런은 여전히 멈춘다**(P0의 모호하면 정지는 자원에도 걸린다). 사라지는 것은 **물리적 확인 요구와 Tier 3**이고, 둘 다 디스크 쿼터에 대해 뜻이 없던 것이다.
+    **So it splits into `simulation_agent/envelope/budget.json`.** There is no `safety.json` in that tree. Splitting does not remove the gate — A5 and the operator still read from one place, and **a run that cannot determine whether it is inside budget still stops** (P0's stop-on-ambiguity binds resources too). What goes away is **the physical-confirmation requirement and Tier 3**, both of which were meaningless about a disk quota.
 
-    **그리고 그것이 P0 규칙 7의 문면을 고친다.** *"사람이 시스템 밖에서 물리적으로 확인한 뒤"*는 **장비를 염두에 두고 쓰였다** — 파워미터를 빔에 넣는 것과 클러스터 작업 한도를 아는 것은 다른 행위이고, 후자에 "물리적 확인"을 요구하면 만족시킬 방법이 없는 요구가 된다. **규칙 7은 이제 `safety.*`에만 걸리고, `budget.*`에 필요한 것은 그 기계를 아는 사람이 골랐다는 것뿐이다.** 사람이 질문을 받고 정했다 — 질문은 아키텍처가 올렸고 **시뮬레이션 매니저의 에이전트별 분할이 그 질문을 보이게 했다.**
+    **And that amends P0 rule 7's wording.** *"After a person confirms physically outside the system"* **was written with instruments in mind** — putting a power meter in a beam and knowing a cluster's job limit are different acts, and demanding "physical confirmation" of the latter makes a requirement with no way to satisfy it. **Rule 7 now binds `safety.*` only, and what `budget.*` needs is only that somebody who knows that machine chose it.** The person was asked and settled it — the question was raised by architecture and **the simulation manager's per-agent split is what made the question visible.**
 
-    **그리고 이 줄은 지금 검사 55에게 보이지 않는다 — 고칠 때 같이 본다.** 55는 §7 트리의 각 줄에서 **첫 토큰**만 읽으므로(`tok = line.strip().split()[0]`), `envelope/` 뒤에 나열된 `budget.json`·`snapshot.json`은 이름으로 안 잡힌다. **원래 `safety.json`도 안 잡히고 있었다.** 그런 줄이 §7에 아홉이고, 그중 넷은 `questions/<qid>/` 같은 자리표라 55가 **일부러** 건너뛰는 것이지만 **`envelope/` 두 줄은 진짜 선언이고 55의 "일부러 안 잡는 것" 목록에 없다 — 문서화되지 않은 사각지대다.** 고치는 쪽은 §7이다: 진짜 선언은 **한 줄에 한 파일**로 적어 55가 볼 수 있게 한다. 지금 그렇게 바꾸지 않는 이유는 순서다 — 보이게 만드는 순간 `ALLOWED_PATHS`에 없어서 게이트가 거절한다. `ALLOWED_PATHS`가 먼저 들어오면 그때 형식을 바꾼다.
+    **And this line is currently invisible to check 55 — it gets looked at when this is fixed.** 55 reads only the **first token** of each line in the §7 tree (`tok = line.strip().split()[0]`), so `budget.json` and `snapshot.json` listed after `envelope/` are not caught by name. **`safety.json` was not being caught either.** There are nine such lines in §7, four of them placeholders such as `questions/<qid>/` that 55 skips **deliberately**, but **the two `envelope/` lines are real declarations and are not on 55's list of deliberate non-catches — an undocumented blind spot.** The side to fix is §7: real declarations are written **one file per line** so 55 can see them. The reason not to change it now is ordering — the moment they become visible the gate refuses them for not being in `ALLOWED_PATHS`. Once `ALLOWED_PATHS` lands, the format changes then.
 
-    **구현은 manager-simulation**: 스키마에서 `simulation_limits`를 떼어 `envelope_budget.schema.json`으로, `ALLOWED_PATHS`와 `axis_a5_budget.py`·`operator.py`·`plan_card.py`의 경로. **§7은 위에서 고쳤으므로 `ALLOWED_PATHS`가 먼저다**(§7.1 — 부재를 검사가 견뎌 주는 쪽이 먼저).
+    **Implementation is manager-simulation's**: split `simulation_limits` out of the schema into `envelope_budget.schema.json`, plus `ALLOWED_PATHS` and the paths in `axis_a5_budget.py`, `operator.py` and `plan_card.py`. **§7 was fixed above, so `ALLOWED_PATHS` goes first** (§7.1 — the side whose absence a check tolerates goes first).
 
-    **`carried_over`는 레이저 상한에도 길이 된다 — 다만 제약이 쓰기가 아니라 쓰임에 붙는다 (2026-09-19).** 현미경 매니저가 *"필드가 없어 아무것도 못 쓰는 것보다 필드가 있고 확인 안 됐다고 적힌 쪽이 낫다"*고 보면서 자기가 정할 것이 아니라고 올렸다. 맞다 — 그리고 그 둘이 유일한 선택지가 아니다.
+    **`carried_over` is a route for the laser ceiling too — except the constraint attaches to use rather than to writing (2026-09-19).** The microscope manager, seeing that *"a field present and marked unconfirmed is better than no field and nothing writable"*, raised it as not being its call. That is right — and those two are not the only options.
 
-    **옮겨 적는 것은 모든 한계에 대해 합법이다.** 금지하면 열둘을 한 번에 확인해야 하고 아무도 파일을 시작하지 못한다. 그런데 계산 예산과 레이저 출력은 **틀렸을 때의 값이 다르다** — 앞엣것은 시간을 잃고 뒤엣것은 눈이나 대물렌즈를 잃는다. 그 차이를 **쓸 수 있느냐로 다루면 파일이 안 생기고, 무엇을 돌릴 수 있느냐로 다루면 둘 다 얻는다.**
+    **Transcription is legal for every limit.** Forbid it and all twelve have to be confirmed at once and nobody can start the file. But a compute budget and a laser power **differ in what being wrong costs** — the first loses time and the second loses an eye or an objective. **Handle that difference as what may be written and the file never gets made; handle it as what may be run and you get both.**
 
-    **그래서 규칙은 이것이다: 확인되지 않은 한계는 비가역 동작을 파라미터화할 수 없다.** §2.1 규칙 3이 등급에 대해 하는 일을 **확인 사건**에 대해 그대로 한다 — E4/E5가 비가역 동작에 못 들어가는 것과 같은 자리이고, 같은 이유다. 그러므로 레이저 상한을 `carried_over`로 적은 파일은 **존재할 수 있고**, 그 상한 아래에서 **비가역 동작은 돌지 않는다.** 사람이 확인하는 순간 둘 다 열린다. P0가 요구하는 것을 지키면서 파일 시작을 막지 않는 유일한 배치다.
+    **So the rule is this: an unconfirmed limit cannot parameterise an irreversible action.** It does for **the confirmation event** exactly what §2.1 rule 3 does for grades — the same place as E4/E5 being unable to enter an irreversible action, and for the same reason. So a file writing the laser ceiling as `carried_over` **may exist**, and under that ceiling **no irreversible action runs.** The moment a person confirms, both open. It is the only arrangement that keeps what P0 demands without blocking the file from being started.
 
-    **검사 57로 배정한다 — manager-simulation.** 스키마의 `confirmation` 설명이 이미 이 검사를 예고하고 있다: *"a later check can say an unconfirmed limit is parameterising an irreversible action, which today it cannot."* **예고가 적힌 채 구현이 없으면 그것이 오늘 일곱 번 센 그 모양**이다 — 적혀 있는데 아무것도 하지 않는 것. 배정된 좌석이 시뮬레이션인 이유는 그 트리가 비가역 동작이 없는 쪽이어서가 아니라 **스키마를 방금 그 좌석이 세웠고 현미경 좌석이 비어 있기 때문**이다. 검사는 양쪽 트리를 본다.
+    **Assigned as check 57 — manager-simulation.** The schema's `confirmation` description already foretells this check: *"a later check can say an unconfirmed limit is parameterising an irreversible action, which today it cannot."* **A foretelling written with no implementation is the shape counted seven times today** — written down and doing nothing. The seat assigned is simulation not because that tree is the one with no irreversible actions but **because that seat just stood the schema up and the microscope seat is empty.** The check looks at both trees.
 
-    **모양은 `contracts/schemas/envelope_safety.schema.json`의 `$defs/limit`에 필수 필드로 들어갔다 — `cd7475c`, manager-librarian.** 이 문단은 2026-09-20까지 "넣는다"로 적고 있었고, **이미 된 일이 미결로 적혀 있으면 다음 사람이 또 집는다** — 실제로 한 좌석이 집으려다 확인하고 올렸다. 필수로 거는 것이 가능한 이유는 **`envelope/safety.json`이 아직 하나도 없기 때문**이다. 마이그레이션이 0이고, 이 저장소가 받을 첫 안전 파일이 처음부터 그 모양을 갖는다. 같은 창을 그날 `calibration:`의 `valid_until`에서 한 번 썼다 — **소비자가 생기기 전이 값싸고, 그 창은 대개 닫힌 뒤에야 보인다.**
+    **The shape went in as mandatory fields on `$defs/limit` in `contracts/schemas/envelope_safety.schema.json` — `cd7475c`, manager-librarian.** This paragraph said "goes in" until 2026-09-20, and **when something already done is written as open, the next person picks it up again** — a seat in fact started to and checked and raised it. Making it mandatory is possible **because there is not one `envelope/safety.json` yet.** The migration is zero, and the first safety file this repository receives has that shape from the start. The same window was used once that day on `calibration:`'s `valid_until` — **it is cheap before there are consumers, and that window is usually visible only after it has closed.**
 
-규칙 1이 불편해 보이지만 이것이 등급 체계가 의미를 갖는 유일한 방법이다. **"어딘가에서 측정됐다"와 "여기서 측정했다"를 같은 등급에 두면 E1은 아무 뜻도 없어진다.**
+Rule 1 looks inconvenient and it is the only way the grade system means anything. **Put "measured somewhere" and "measured here" at the same grade and E1 means nothing.**
 
 ---
+## 11. Open questions (to be settled in a later session)
 
-## 11. 미결 질문 (다음 세션에서 결정)
+1. ~~**The observable vocabulary**~~ → **Settled 2026-09-19: no list is made.** The person decided — the vocabulary **stays addable and changeable at any time.** That is what lets an unanticipated experiment be taken. `observables.json` was already that shape with `status: rules_fixed_content_open`, and this decision turns it **from open into a conclusion.** The number is left empty — several places point at §11-1.
 
-1. ~~**관측량 어휘**~~ → **2026-09-19 확정: 목록을 만들지 않는다.** 사람이 정했다 — 어휘는 **언제든 추가·변경 가능한 채로 남는다.** 그래야 모르는 실험이 들어와도 받을 수 있기 때문이다. `observables.json`이 `status: rules_fixed_content_open`으로 이미 그 모양이었고, 이 결정이 그것을 **미결이 아니라 결론으로** 바꾼다. 번호는 비워 둔 채 남긴다 — 여러 곳이 §11-1을 가리킨다.
+   **So this item no longer blocks anything.** S3.0 screens **over what is registered**, and an unregistered name is not a refusal but **"register it first"** (check 40). It is not a block but **an ordering**: a new observable stands in the vocabulary first, and then a plan uses that name.
 
-   **그러므로 이 항목은 더는 아무것도 막지 않는다.** S3.0은 **등재된 것에 대해** 스크리닝하고, 등재되지 않은 이름이 오면 거절이 아니라 **"먼저 등재하라"**이다(검사 40). 막힘이 아니라 **순서**다: 새 관측량은 어휘에 먼저 서고, 그다음 계획이 그 이름을 쓴다.
+   **Adding has to be cheap, and changing must not be.** Adding is a new id and makes nothing mean something else. Changing is different — since a card **carries only the name and reads the definition from the registry** (§5.1), editing an entry **retroactively changes the meaning of every card that already used that name.** Without a trace. This has the same shape as the problem `kb_version` already solved one layer down.
 
-   **추가는 값싸야 하고, 변경은 값싸면 안 된다.** 추가는 새 id이므로 아무것도 다시 뜻하게 만들지 않는다. 변경은 다르다 — 카드가 **이름만 싣고 정의는 레지스트리에서 읽으므로**(§5.1), 항목을 고치면 **그 이름을 이미 쓴 모든 카드의 뜻이 소급해서 바뀐다.** 흔적도 없이. 이것은 `kb_version`이 한 층 아래에서 이미 푼 문제와 같은 모양이다.
+   **So the fields split in two:**
 
-   **그래서 필드를 둘로 가른다:**
-
-   | 뜻을 바꾸는 필드 | `definition` · `estimator` · `window_parameter` |
+   | Fields that change meaning | `definition` · `estimator` · `window_parameter` |
    |---|---|
-   | **제자리 수정 금지.** 고쳐야 하면 **새 id에 `supersedes`**를 달아 세우고 옛 항목은 읽을 수 있게 둔다 | |
+   | **No in-place edits.** If one must be fixed, stand up **a new id with `supersedes`** and leave the old entry readable | |
 
-   | 뜻을 바꾸지 않는 필드 | `units`(허용 단위 추가) · `producible_by` · `comparable` · `note` |
+   | Fields that do not change meaning | `units` (adding a permitted unit) · `producible_by` · `comparable` · `note` |
    |---|---|
-   | 제자리 수정해도 된다. 과거 카드가 뜻하던 바가 달라지지 않는다 | |
+   | In-place edits are fine. What past cards meant does not change | |
 
-   `estimator`가 뜻을 바꾸는 쪽에 있는 이유는 이 절이 원래 적어 둔 그대로다 — **두 쪽이 단어에는 합의하고 숫자를 뽑는 방법에는 합의하지 않으면 공개적으로 불일치하는 것보다 나쁘다.** 추정자를 조용히 바꾸면 옛 값과 새 값이 같은 열에 들어간다.
+   `estimator` is on the meaning-changing side for the reason this subsection originally wrote — **two sides agreeing on a word and not on how the number is extracted is worse than disagreeing openly.** Change an estimator quietly and old and new values land in the same column.
 
-2. **E5 상한**: 계획서 하나에 추정값을 몇 개까지 허용할까? 0이면 아무것도 못 하고, 무제한이면 등급 체계가 무의미하다. **조건 두 개가 모두 갖춰진 뒤에 정한다**: ① gap 탐지가 켜져 있고(사서 서비스), ② 그 상태에서 만들어진 계획이 표본이 될 만큼 쌓여 있다. 동시 구축은 둘 중 어느 것도 앞당기지 않는다 — 사서가 언제 켜질지가 순서로 정해져 있지 않으므로 ①의 시점 자체가 열려 있다(§9). 그때까지 검사 3은 `UNDECIDED`다.
+2. **The E5 ceiling**: how many estimates are allowed in one plan? Zero and nothing can be done; unlimited and the grade system is meaningless. **It is settled only after both conditions hold**: ① gap detection is on (the librarian service), and ② plans made in that state have accumulated into a sample. Concurrent construction advances neither — when the librarian comes on is not fixed by an order, so ①'s moment is itself open (§9). Until then check 3 is `UNDECIDED`.
 
-    **단위는 2026-09-19에 정했다: 서로 다른 `rationale_id`의 수다. 원시 E5 개수가 아니다.** 임계값은 여전히 미정이고 조건 ②를 기다리지만, **무엇을 셀지는 표본을 기다릴 필요가 없다** — 그것은 논거가 정하지 데이터가 정하지 않는다. 그리고 단위를 먼저 정해 두지 않으면 표본이 쌓인 뒤에 **잘못된 것을 센 표본**을 얻는다.
+    **The unit was settled on 2026-09-19: the number of distinct `rationale_id`s. Not the raw E5 count.** The threshold is still undecided and waits on condition ②, but **what to count does not have to wait for a sample** — that is settled by argument and not by data. And without settling the unit first, once the sample accumulates you get **a sample of the wrong thing counted.**
 
-    **원시 개수는 추측이 아니라 유도 사슬의 길이를 센다.** 시뮬레이션 매니저가 세 계획을 세어 올렸고 아키텍처가 확인했다:
+    **A raw count counts the length of the derivation chain, not the guessing.** The simulation manager counted three plans and raised it, and architecture confirmed:
 
-    | 계획 | E5 | `assumed:` | `computed:` | 서로 다른 rationale |
+    | Plan | E5 | `assumed:` | `computed:` | distinct rationales |
     |---|---|---|---|---|
     | `mic-20260917-001` | 7 | 5 | 2 | **5** |
     | `mic-20260917-002` | 5 | 4 | 1 | **4** |
     | `sim-20260917-001` | 17 | 8 | 9 | **7** |
 
-    **`computed:` E5는 전부 상속이다 — 자기 힘으로 E5인 것이 하나도 없다.** `diffusivity`가 E5인 것은 `bead_diameter`가 E5여서, `tau_d`는 그 둘이 E5여서, `integration_timestep_max`는 `tau_d`가 E5여서다. §5.8이 적힌 그대로 작동하는 것이고, 실패가 아니다. 그래서 17 대 7은 2.4배로 보이지만 **rationale로 보면 7 대 5, 1.4배**다. 시뮬레이션 쪽이 많은 것은 더 추측해서가 아니라 **파이프라인이 더 유도하기 때문**이다.
+    **Every `computed:` E5 is inherited — not one is E5 under its own power.** `diffusivity` is E5 because `bead_diameter` is, `tau_d` because those two are, `integration_timestep_max` because `tau_d` is. That is §5.8 working exactly as written, and not a failure. So 17 against 7 looks like 2.4×, and **by rationale it is 7 against 5, or 1.4×.** The simulation side is higher not because it guesses more but **because its pipeline derives more.**
 
-    **결정적인 것은 인센티브다.** 상한을 원시 개수에 걸면 **사슬이 긴 계획이 벌을 받고**, 사슬을 줄이는 방법은 `formula`와 `inputs`를 안 다는 것 — 검사 17이 읽는 바로 그 필드다. **상한이 유도를 감추는 쪽으로 보상하면 그 상한은 뒤집힌 것이다.** 게이트가 옳은 작업을 거절하면 우회되는 것과 같은 부류이고, 이쪽이 더 나쁘다: 우회는 흔적을 남기고 **감춘 유도는 초록인 카드를 남긴다.**
+    **The decisive point is the incentive.** Put the ceiling on the raw count and **a plan with a long chain is punished**, and the way to shorten the chain is to omit `formula` and `inputs` — the very fields check 17 reads. **A ceiling that rewards hiding a derivation is inverted.** It is the same class as a gate that refuses correct work getting bypassed, and this side is worse: a bypass leaves a trace and **a hidden derivation leaves a green card.**
 
-    **`assumed:` 숫자 수(rationale 하나가 여러 숫자를 덮을 때 나눠 세는 것)를 택하지 않은 이유**는 그 숫자들이 **함께 틀리기 때문**이다. 한 rationale이 틀리면 그것이 덮는 숫자 셋이 동시에 틀리므로 독립된 위험 셋이 아니라 하나다. 나눠 세면 상관된 위험을 독립된 것처럼 부풀린다. **다만 한 rationale이 여러 숫자를 덮는 것은 그 자체로 집중이고**, 그것은 상한이 아니라 별도의 관심사다 — 필요하면 그때 검사로 만든다.
+    **Why the count of `assumed:` numbers was not chosen** (counting separately when one rationale covers several numbers) **is that those numbers are wrong together.** If one rationale is wrong, the three numbers it covers are wrong simultaneously, so it is one risk and not three independent ones. Counting them separately inflates correlated risk as if it were independent. **But one rationale covering many numbers is itself a concentration**, and that is a separate concern rather than a ceiling — if it becomes necessary, it becomes a check then.
 
-    **그리고 조건이 충족되는 것과 임계값이 정해지는 것은 다른 일이다.** ②가 언젠가 갖춰져도 숫자가 **자동으로 따라 나오지 않는다** — 표본은 고를 근거를 주지 고르는 일을 대신하지 않고, 고르는 것은 사람이다. §11-17이 같은 날 같은 구별을 보여 줬다: 되돌릴 조건 둘이 충족됐고 물었고 **답이 같았다.** 시뮬레이션 매니저가 짚었다.
+    **And a condition being satisfied and a threshold being chosen are different things.** Even once ② holds, the number **does not follow automatically** — a sample gives grounds for choosing and does not do the choosing, and the chooser is a person. §11-17 showed the same distinction the same day: two conditions for reverting were met, it was asked, and **the answer was the same.** The simulation manager pointed it out.
 
-    **그리고 조건 ②가 이 축으로는 안 움직인다.** 사서를 켜고 만든 계획은 아직 하나도 없고, 시뮬레이션의 리비전 2가 첫 번째가 된다. 그때 E5는 **줄지 않는다** — 지름이 `assumed:`에서 `operator_recall:`로 가는데 둘 다 E5다. 표본이 쌓여도 등급은 그대로이고, 움직이는 것은 **rationale 수**다. 단위를 바꿔야 그 표본이 무언가를 말한다.
+    **And condition ② does not move along this axis.** Not one plan has yet been made with the librarian on, and simulation's revision 2 becomes the first. E5 **will not fall** then — the diameter moves from `assumed:` to `operator_recall:` and both are E5. The sample accumulates and the grades stay, and what moves is **the rationale count.** The unit has to change for that sample to say anything.
 
-3. **S3 축 목록의 확정**: §4.5.3의 7개 축은 제안이다. 새 축을 더할 때는 "상대의 변수를 몰라도 구간을 낼 수 있는가" 기준을 통과해야 한다(§4.5.3).
-4. **모듈 분해와 backend 인터페이스**: `preflight/apply/read/abort` 네 함수로 HOOMD-blue 호출과 아홉 종 장치 제어를 모두 덮을 수 있는가? 부족하면 무엇이 빠지는가. M1에서 실제로 감싸 보면 답이 나온다.
-5. ~~**사서 MCP 도구 목록의 확정**~~ → **2026-09-17 확정, §4.3.1로 옮겼다.** 셋으로는 부족했다: 무차원군은 기호로 찾으므로 `kb_group`이 넷째로 붙는다. 조건 범위는 **구간의 map**이고, 그것이 대조될 수 있으려면 entry 쪽에도 같은 모양의 기계 판독 `validity`가 있어야 한다 — 그래서 M3의 첫 작업은 서버가 아니라 스키마가 됐다. 번호는 비워 둔 채 남긴다. 다른 절이 §11-5를 가리키고, 번호를 당기면 그 참조가 조용히 다른 항목을 가리킨다. **이 저장소에서 절 번호는 장식이 아니라 식별자다** — `capabilities/*.json`이 §11-1을, 검사 메시지가 §6.2.1을, `seats.json`이 §10.3 규칙 4를 인용한다. 그래서 규칙은 하나다: **먼저 발표된 번호가 뜻을 지킨다.** 2026-09-18에 제가 A/B 절을 끼워 넣으면서 §9.2를 둘로 만들었고 시뮬레이션 매니저가 잡았다 — 아직 아무도 잘못 인용하지 않았지만, 그때부터 "§9.2"라고 쓰는 모두가 둘 중 하나를 뜻하고 읽는 쪽은 어느 쪽인지 알 수 없었다. 새 절을 §9.3으로 밀었다. **중복 번호는 검사할 수 있다** — 한 파일 안의 헤딩을 세면 되고, 아직 아무 검사도 하지 않는다.
-6. **축소 모드의 전파 범위**: `degraded` 표시를 시스템 내부에서만 쓸까, 외부 보고(그림·논문)까지 끌고 갈까?
-7. **게이트 자신을 시험하는 픽스처 — 카드가 아닌 검사에는 증거가 없다.** `--expect-fail contracts/examples/rejected`가 담는 것은 **카드**이므로, 카드가 아닌 것을 보는 검사에는 픽스처가 없다: entry 등급(검사 43), KB 인덱스 신선도(검사 25), 표 일치(검사 38), 좌석 귀속(검사 41), 그리고 머지 취급(§6.2.1). 2026-09-17에 검사 43은 여덟 경우로 시험됐고 그 과정에서 결함 하나가 잡혔지만 **그 증명은 커밋 메시지에만 남았다.** **2026-09-18에 처음으로 실물에서 물었다**: `caller_id` 형식을 옮기면서 `bad_sibling_b`의 필드만 고치고 **본문에 박힌 형제 참조**를 두었더니 그 카드가 실패를 멈췄고, `24/24`가 `23/24`가 되어 잡혔다. 잡히지 않았다면 그 픽스처는 **겉보기엔 멀쩡한 채로 형제 탐지를 더는 시험하지 않았을** 것이다. 카드 픽스처는 매 커밋마다 재확인되는데, 다음에 누가 검사 43을 무력화해도 아무것도 울리지 않는다 — 한 번도 실패하는 것을 본 적 없는 검사는 아무도 시험하지 않은 검사다. 방향은 정해져 있다: 카드 픽스처 옆에 카드 아닌 픽스처를 두고 `--expect-fail`이 둘을 함께 돈다. 결정할 것은 **모양**이다 — 검사마다 작은 저장소를 내보낼지, 아니면 검사별 입력 파일 한 장으로 될지. 위 다섯 중 셋(25·41·머지)은 **git 이력이 필요하므로** 파일 한 장으로는 덮이지 않는다. 그리고 픽스처가 저장소라면 그것을 만드는 비용이 검사를 늘리는 비용이 되므로, 값이 싸야 검사가 자란다.
+3. **Fixing the S3 axis list**: §4.5.3's seven axes are a proposal. Adding a new axis requires passing the criterion "can it produce an interval without knowing another's variables" (§4.5.3).
+4. **Module decomposition and the backend interface**: can the four functions `preflight/apply/read/abort` cover both HOOMD-blue calls and control of nine kinds of device? If not, what is missing. Actually wrapping them at M1 gives the answer.
+5. ~~**Fixing the librarian's MCP tool list**~~ → **Settled 2026-09-17, moved into §4.3.1.** Three were not enough: a dimensionless group is looked up by symbol, so `kb_group` is added as a fourth. A condition range is **a map of intervals**, and for it to be comparable the entry side needs a machine-readable `validity` of the same shape — which is why M3's first task became the schema rather than the server. The number is left empty. Other subsections point at §11-5, and pulling the numbers up would make those references quietly point at something else. **In this repository a section number is an identifier and not decoration** — `capabilities/*.json` cites §11-1, a check message cites §6.2.1, and `seats.json` cites §10.3 rule 4. So there is one rule: **the number published first keeps its meaning.** On 2026-09-18, inserting the A/B subsection, I made two §9.2s and the simulation manager caught it — nobody had miscited yet, but from that moment everybody writing "§9.2" meant one of two and the reader could not tell which. The new subsection was pushed to §9.3. **Duplicate numbers are checkable** — count the headings in one file — and nothing checks it yet.
+6. **The propagation range of reduced mode**: is the `degraded` marking used only inside the system, or carried into external reporting (figures, papers)?
+7. **Fixtures that test the gate itself — a check that is not about cards has no evidence.** What `--expect-fail contracts/examples/rejected` holds is **cards**, so a check that looks at something other than a card has no fixture: entry grades (check 43), KB index freshness (check 25), table agreement (check 38), seat attribution (check 41), and merge handling (§6.2.1). On 2026-09-17 check 43 was tested with eight cases and a defect was caught in the process, and **that proof survives only in a commit message.** **It bit for the first time on something real on 2026-09-18**: migrating the `caller_id` form, only `bad_sibling_b`'s field was fixed and **the sibling reference embedded in its body** was left, so that card stopped failing, and `24/24` became `23/24` and it was caught. Uncaught, that fixture would have **looked fine while no longer testing sibling detection.** Card fixtures are re-confirmed at every commit, and the next time someone disables check 43 nothing will ring — a check nobody has seen fail is a check nobody has tested. The direction is settled: non-card fixtures go beside the card fixtures and `--expect-fail` sweeps both. What has to be decided is **the shape** — whether to export a small repository per check, or whether one input file per check will do. Three of the five above (25, 41, merges) **need git history** and are not covered by a single file. And if a fixture is a repository, the cost of making one becomes the cost of adding a check, so it has to be cheap for checks to grow.
 
-    **2026-09-20 확정: 모양은 둘이고, 무엇을 읽는지가 고른다. 그리고 비싼 쪽이 넷뿐이라 값이 싸다.** 세어 보니 **git 이력을 읽는 검사는 26·35·41·46 넷이고 나머지 55는 파일만 읽는다.** (이 항목이 2026-09-17에 댄 목록은 낡았다 — 25는 지금 이력을 읽지 않고 26·46이 읽는다.)
+    **Settled 2026-09-20: there are two shapes, and what a check reads chooses between them. And it is cheap because only four are on the expensive side.** Counting showed **the checks that read git history are 26, 35, 41 and 46 — four — and the other 55 read files only.** (The list this item gave on 2026-09-17 is stale — 25 does not read history now, and 26 and 46 do.)
 
-    - **파일만 읽는 검사 → `rejected/` 그대로.** 이미 도는 기제를 카드 아닌 입력으로 넓히는 것뿐이고, 묶음 폴더가 이미 두 파일이 짝을 이루는 결함을 담는다. **추가 비용이 사실상 0이라 검사가 자란다.**
-    - **이력을 읽는 넷 → 저장소를 저장하지 않고 만드는 스크립트.** 저장소 넷을 픽스처로 두는 것은 비싸지만 `git init` 뒤 커밋 몇 개를 찍는 데는 몇 초가 든다 — 2026-09-19에 아키텍처가 pathspec 커밋과 같은 파일 오귀속을 그렇게 재현했다. **비싼 것은 저장소를 만드는 것이 아니라 보관하는 것이다.**
+    - **Checks that read files only → `rejected/` as it stands.** It is only widening an already-running mechanism to non-card inputs, and group folders already hold defects that take two files to express. **The marginal cost is effectively zero, so checks grow.**
+    - **The four that read history → a script that builds a repository rather than storing one.** Keeping four repositories as fixtures is expensive, and stamping a few commits after `git init` takes seconds — that is how architecture reproduced the pathspec commit and the same-file misattribution on 2026-09-19. **What is expensive is not making a repository but keeping one.**
 
-    **방아쇠가 실물로 왔다.** 018이 검사 61에 변이 시험을 요구했고, 사서 매니저가 여섯 모양을 스크래치 트리에서 돌린 뒤 **결과를 docstring에만 남겼다** — 둘 자리가 없어서다. 그리고 오늘 트리가 그 여섯 중 **둘만** 실제로 태운다. 시뮬레이션 봉투가 따라잡는 순간 나머지는 **아무것도 시험하지 않는다.** 018의 문장 그대로다: **실제 랙을 기다리는 속성은 랙 없는 날 공허하게 통과한다.** 지금 묶음 픽스처가 겨누는 검사는 **넷**(08·50·51·52)이고 도는 검사는 마흔아홉이다.
+    **The trigger arrived for real.** 018 demanded a mutation test for check 61, and the librarian manager ran six shapes in a scratch tree and **left the results only in a docstring** — there was nowhere to put them. And today's tree actually burns **only two** of those six. The moment the simulation envelope catches up, the rest **test nothing.** In 018's own words: **a property waiting on a real rack passes vacuously on a rackless day.** The checks the group fixtures currently aim at are **four** (08, 50, 51, 52) and the checks that run are forty-nine.
+    **The place is `contracts/` and a shared surface of four managers, so one seat does not settle it alone** — which is why the librarian manager raised facts without a judgement, and that was the right route. With the shape settled, **the implementation is assigned**: the file-side extension to manager-librarian (61 is its first consumer), and the history-side script to manager-bridge (35 and 41 are the checks that seat has touched most).
 
-    **자리는 `contracts/`이고 매니저 넷의 공유면이므로 한 좌석이 혼자 정하지 않는다** — 그래서 사서 매니저가 판단 없이 사실만 올렸고, 그것이 옳은 경로였다. 모양이 정해졌으니 **구현은 배정한다**: 파일 쪽 확장이 manager-librarian(61이 첫 소비자), 이력 쪽 스크립트가 manager-bridge(35·41이 그 좌석이 가장 많이 건드린 검사다).
+**Partially settled 2026-09-17 — the unit of a card fixture widens from a file to a group.** Today `--expect-fail` demands a failure **per file** in the folder, so **a defect that takes two files to express** cannot be added: a ledger disagreeing with an envelope fails only the ledger and the envelope is caught as `NOT REJECTED`, and a case where two refusal cards in one thread repeat the same `(reason_code, parameter)` with the ledger not recording it cannot even be added, because the cards themselves are fine. So several of check 8's ledger rules stand untested. **When testability is dictating the shape of the contract, it is inverted.** One level of `rejected/<group>/` is permitted, and for a folder, one FAIL anywhere inside the group counts as refused. Flat files stay per-file, and check 13's depth ceiling and §7's declaration obligation hold.
 
-**2026-09-17 부분 확정 — 카드 픽스처의 단위는 파일에서 묶음으로 넓힌다.** 지금 `--expect-fail`은 폴더의 **파일마다** 실패를 요구하므로 **두 파일이 짝을 이뤄야 표현되는 결함**을 넣을 수 없다: 장부와 봉투가 어긋난 경우는 장부만 실패하고 봉투가 `NOT REJECTED`로 잡히며, 한 스레드의 거절 카드 둘이 같은 `(reason_code, parameter)`를 반복하는데 장부가 적지 않은 경우는 카드 자체가 정상이라 넣을 수조차 없다. 그래서 검사 8의 장부 규칙 여러 개가 시험되지 않은 채다. **시험 가능성이 계약의 모양을 정하고 있으면 뒤집힌 것이다.** `rejected/<group>/` 한 단계를 허용하고, 폴더면 묶음 안에 하나라도 FAIL이면 거절된 것으로 센다. 평평한 파일은 그대로 파일 단위이고, 검사 13의 깊이 상한과 §7 선언 의무는 유지된다.
+**One condition attaches: a group states which check it is a fixture for.** Leave "one FAIL anywhere passes" as it is and a group **counts on a failure from an unrelated check** and stays green even after the intended defect is gone — a fixture no longer testing what it says it tests, which is exactly what this folder's rule ("a card that stopped failing means a check stopped") exists to prevent. At file granularity each fixture was nailed to its place and this problem did not arise, and widening the unit pulls the nail. So a group carries its expected check number, and counting requires **a FAIL from that check.** Flat files would be better with the same, and that is separate work.
 
-**조건 하나가 붙는다: 묶음은 자기가 어느 검사의 픽스처인지 밝힌다.** "하나라도 FAIL이면 통과"를 그냥 두면 묶음이 **무관한 검사의 실패로도 계수되고**, 의도한 결함이 사라진 뒤에도 초록으로 남는다 — 픽스처가 자기가 시험한다고 말하는 것을 더는 시험하지 않는 상태이며, 이 폴더의 규칙("실패를 멈춘 카드는 검사가 멈췄다는 뜻")이 정확히 그것을 막으려고 있다. 파일 단위에서는 각 픽스처가 자기 자리에 못박혀 있어 이 문제가 없었고, 단위를 넓히면서 못이 빠진다. 그러니 묶음은 기대 검사 번호를 달고, 계수는 **그 검사에서 나온 FAIL**을 요구한다. 평평한 파일도 같은 것을 달면 더 낫겠지만 그것은 별개 작업이다.
+17. ~~**Should manager seats get worktrees**~~ → **Settled 2026-09-19: no. One shared working copy.** The person decided, after seeing both sides.
 
-17. ~~**매니저 좌석에 worktree를 줄 것인가**~~ → **2026-09-19 확정: 주지 않는다. 공유 작업본 하나로 간다.** 사람이 정했다 — 근거 양쪽을 다 본 뒤의 결정이다.
+    **So this defect remains, and it was chosen rather than overlooked.** `git commit -- <paths>` keeps carrying other people's hunks, no check catches it, and check 41's attribution stays wrong by that much. The only thing that closes it is §6.2.1's one habit — **before committing, run `git diff -- <that file>` and see that every hunk is yours.** That the habit did not survive an hour today is written there too. So this repository's commit attribution is **unreliable for shared files under `contracts/`**, and where who wrote what matters, one reads the records in §8.1 and §6.2.1 rather than the commits.
 
-    **그래서 이 결함은 남아 있고, 선택된 것이지 간과된 것이 아니다.** `git commit -- <paths>`는 계속 남의 hunk를 실어 가고, 어느 검사도 못 잡으며, 검사 41의 귀속은 그만큼 틀린 채로 남는다. 닫는 것은 §6.2.1의 습관 하나뿐이다 — **커밋 전에 `git diff -- <그 파일>`로 모든 hunk가 자기 것인지 본다.** 그 습관이 오늘 한 시간을 못 버텼다는 것도 거기 적혀 있다. 그러므로 이 저장소의 커밋 귀속은 **`contracts/`의 공유 파일에 대해 신뢰할 수 없고**, 누가 무엇을 썼는지가 중요한 자리에서는 커밋이 아니라 §8.1과 §6.2.1의 기록을 읽어야 한다.
+    **The conditions for reversing are written too**: if misattribution accumulates again in the same file, or if manager seats exceed four, the cost calculation changes. It is raised again then.
 
-    **되돌릴 조건도 적어 둔다**: 같은 파일에서 오귀속이 다시 누적되거나 매니저 좌석이 넷을 넘어서면 비용 계산이 바뀐다. 그때 다시 올린다.
+    **2026-09-20: both conditions are met.** There are **five** manager seats (manager-microscope, manager-simulation, manager-librarian, manager-librarian-2, manager-bridge), and misattribution happened **again in the same file** — `contracts/validate.py`, `779269b`. And that day **the mirror surfaced too** (§6.2.1): uncommitted edits being silently erased, and the two habits pushing against each other. **A worktree is the only thing that closes both at once** — if another's unfinished work is invisible, it can be neither carried nor erased. **The cost is still paid by the person, so the judgement is the person's, and architecture only raises that the conditions are met.**
 
-    **2026-09-20: 두 조건이 다 충족됐다.** 매니저 좌석이 **다섯**이고(manager-microscope · manager-simulation · manager-librarian · manager-librarian-2 · manager-bridge), 오귀속이 **같은 파일에서 다시** 났다 — `contracts/validate.py`, `779269b`. 그리고 그날 **거울상까지 드러났다**(§6.2.1): 커밋 안 된 편집이 조용히 지워지는 것, 그리고 두 습관이 서로를 밀어낸다는 것. **worktree는 그 둘을 한꺼번에 닫는 유일한 것**이다 — 남의 미완성이 보이지 않으면 실을 수도 지울 수도 없다. **비용은 여전히 사람이 치르므로 판단도 사람 것이고, 아키텍처는 조건이 충족됐다는 것만 올린다.**
+    **It was raised, and the person answered that it stays as it is (2026-09-20).** One working copy, one branch `main`, and no trace of a worktree were confirmed. **So a condition being met and a decision changing are different things, and this item keeps that distinction on the record** — the condition was "ask again", not "reverse it", it was asked, and the answer was the same.
 
-    **올렸고, 사람이 그대로 간다로 답했다 (2026-09-20).** 작업 사본 하나, 브랜치 `main` 하나, worktree 흔적 없음을 확인했다. **그러므로 조건이 충족된 것과 결정이 바뀌는 것은 다른 일이고, 이 항목은 그 구별을 기록으로 남긴다** — 조건은 "다시 물어라"였지 "뒤집어라"가 아니었고, 물었고, 답이 같았다.
+    **So the two defects remain, and remaining was chosen.** My commit carrying another's hunks, my edit being silently erased, and **the two habits that close them pushing against each other** (§6.2.1). Only two habits close them and neither closes the window between checking and committing — today that window was three minutes. **What reopens this item next time is a person, not a condition.** The conditions are already met, so they are not counted further. The original item is kept below.
 
-    **그래서 두 결함은 남고, 남는다는 것이 선택됐다.** 내 커밋이 남의 hunk를 싣는 것과 내 편집이 조용히 지워지는 것, 그리고 **그 둘을 닫는 습관이 서로를 밀어낸다**는 것(§6.2.1). 닫는 것은 습관 둘뿐이고 어느 쪽도 확인과 커밋 사이의 창을 닫지 못한다 — 오늘 그 창이 3분이었다. **다음에 이 항목을 다시 여는 것은 조건이 아니라 사람이다.** 조건은 이미 충족돼 있으므로 더 세지 않는다. 원래 항목은 아래에 남긴다.
+    **And there is a third habit that does not work on this file alone — manager-librarian-2 pointed it out on 2026-09-20.** What `librarian-3`'s `unguarded` records, **claiming paths by message before writing**, actually worked at the execution seats. It worked because that surface **decomposes into work units** — one card, one axis, one check. `contracts/validate.py` does not decompose: five seats **append checks to the same file.** "I have this file" is a sentence that blocks four, so nobody says it, and so a practice that works elsewhere **structurally does not work here.** `seats.json`'s `shared_in_contracts` already wrote *"a `paths` entry starting at `contracts/` looks like a division and is not one"*, and on 2026-09-20 that sentence got a measurement — since 2026-09-19 00:00, that one file has **49 commits / 5 seats / about 30 hours.** **Three habits still do not close it, because the third is a sentence this surface cannot use.**
 
-    **그리고 셋째 습관이 하나 있는데 이 파일에서만 안 듣는다 — 사서 매니저2가 2026-09-20에 짚었다.** `librarian-3`의 `unguarded`가 적은 것, **쓰기 전에 메시지로 경로를 선점하는 것**은 실행석에서 실제로 통했다. 통한 이유는 그 면이 **작업 단위로 쪼개지기 때문**이다 — 카드 하나, 축 하나, 검사 하나. `contracts/validate.py`는 쪼개지지 않는다: 다섯 좌석이 **같은 파일에 검사를 덧붙인다.** "이 파일 잡습니다"는 넷을 막는 말이라 아무도 하지 않고, 그래서 다른 데서 통한 관행이 **여기서만 구조적으로 통하지 않는다.** `seats.json`의 `shared_in_contracts`가 *"`paths`가 `contracts/`로 시작하는 것은 분할처럼 보이지만 분할이 아니다"*라고 이미 적어 두었고, 2026-09-20에 그 문장의 값이 실측됐다 — 2026-09-19 00:00 이후 그 한 파일에 **49 커밋 / 5 좌석 / 약 30시간**이다. **습관이 셋이어도 닫히지 않는 것은, 셋째가 이 면에서 쓸 수 없는 말이기 때문이다.**
+17-a. **(the original item, for the record)** Since introducing and reverting it on 2026-09-18 was **the person's decision** (§6.2.1), reverting the revert is the person's too. The `.mcp.json` absolute-path problem that was breaking isolation then has since been solved, so **the technical obstacle of that time is gone.**
 
-17-a. **(원래 항목, 기록용)** 2026-09-18에 도입했다 되돌린 것이 **사람의 결정**이었으므로(§6.2.1) 되돌리는 것도 사람의 결정이다. 그때 격리를 깨던 `.mcp.json` 절대경로 문제는 이후 해결됐으니 **당시의 기술적 장애물은 없다.**
+    **What is at stake.** Four managers share one working copy, `contracts/validate.py` is **the repository's highest-traffic file** written by all four, and there is no isolation. `git commit -- <paths>` carries another's hunks under your identity, and **no check catches it** (§6.2.1). Closing it by habit was attempted and **failed in both directions within an hour.**
 
-    **무엇이 걸려 있나.** 네 매니저가 한 작업본을 공유하고 `contracts/validate.py`는 넷이 모두 쓰는 **저장소 최고 트래픽 파일**이며 격리가 없다. `git commit -- <paths>`가 남의 hunk를 자기 신원으로 실어 가고, **어느 검사도 이것을 못 잡는다**(§6.2.1). 습관으로 닫으려 했고 **한 시간 만에 양방향으로 실패했다.**
+    **The cost is paid by the person**: manager sessions have to be relaunched in their own worktrees, and integration passes through §6.2.1's merge. So this is not a design judgement but **a judgement about operating cost**, and not architecture's to make.
+16. **There are two places an interval lives in an axis card — what compares them.** `inequalities[].interval` and `constraints[]` (the latter simply an array of `$ref: interval`), the same shape in two places. It may be a new row for §11-11 with an empty third column, and it may not — because the two may mean **different things** (one a per-inequality verdict, one the axis's output). The microscope manager raised it on 2026-09-19.
 
-    **대가는 사람이 치른다**: 매니저 세션을 각자 worktree에서 다시 띄워야 하고, 통합이 §6.2.1의 머지를 지나간다. 그래서 이것은 설계 판단이 아니라 **운영 비용에 대한 판단**이고, 아키텍처가 정할 것이 아니다.
-16. **축 카드에서 구간이 사는 자리가 둘이다 — 무엇이 둘을 대조하는가.** `inequalities[].interval`과 `constraints[]`(후자는 그냥 `$ref: interval`의 배열)이고, 같은 모양이 두 자리에 있다. §11-11의 셋째 열이 비어 있는 새 행일 수 있고, 아닐 수도 있다 — 둘이 **다른 것**을 뜻할 수도 있기 때문이다(하나는 부등식별 판정, 하나는 축의 산출). 현미경 매니저가 2026-09-19에 올렸다.
+    **Count before deciding.** §11-12 is today's lesson — before counting how many the `kind` argument would have fixed, that item's framing was plausible, and counting gave zero. So the question is not "should they merge" but **"have the two ever appeared simultaneously on the same parameter in the same card, and were the values equal when they did"**. If the answer is "never", the two places are different things and not a row for the table. The A4 and A6 revision passes through this place, so it gets counted then.
+15. **An envelope snapshot has nowhere to test failure.** What `contracts/examples/rejected/` does for cards, nothing does for snapshots. It surfaced when check 26 was implemented on 2026-09-19 — the missing-commit and missing-table branches actually fired during development, while **the branch where the entry text disagrees with the committed bytes has never fired.** Forcing it requires touching a real envelope, which is execution-seat property and blocked from a manager seat — **correctly blocked.** So this is not a permission problem but **a problem of having nowhere.**
 
-    **결정 전에 세어야 한다.** 오늘 §11-12가 그 교훈이다 — `kind` 인자가 몇 개를 고쳤을지 세어 보기 전에는 그 항목의 틀이 그럴듯했고, 세어 보니 0개였다. 그러니 묻는 것은 "합칠까"가 아니라 **"둘이 같은 카드에서 같은 parameter에 대해 동시에 나타난 적이 있는가, 나타났을 때 값이 같았는가"**다. 답이 "없다"면 두 자리는 다른 것이고 표에 넣을 행이 아니다. A4·A6 개정이 이 자리를 지나가므로 그때 같이 센다.
-15. **envelope 스냅샷에는 실패를 시험할 자리가 없다.** `contracts/examples/rejected/`가 카드에 해 주는 일을 스냅샷에는 아무것도 해 주지 않는다. 검사 26이 2026-09-19에 구현되면서 드러났다 — 커밋 부재·테이블 부재 분기는 개발 중 실제로 떴는데 **entry text가 커밋된 바이트와 어긋나는 분기는 아직 뜬 적이 없다.** 강제로 띄우려면 실물 envelope을 건드려야 하고, 그것은 실행석 소유라 매니저 좌석에서 막힌다 — **옳게 막혔다.** 그러니 이것은 권한 문제가 아니라 **자리가 없는 문제**다.
+    The value of this class is already written in §8: if a fixture stops failing, the check has stopped. Check 26 currently has **only half that guarantee.** What has to be decided is where the place goes — whether to add a snapshot class to `contracts/examples/rejected/`, or whether envelope fixtures get their own place. The latter adds a folder to §7 and check 13 has to know about it. The microscope manager named it rather than filling it.
 
-    이 부류의 값은 §8이 이미 적고 있다: 픽스처가 실패를 멈추면 검사가 멈춘 것이다. 검사 26은 지금 **절반만 그 보증을 갖는다.** 결정할 것은 자리를 어디에 두느냐다 — `contracts/examples/rejected/`에 스냅샷 부류를 더할지, 아니면 envelope 픽스처가 별도 자리를 갖는지. 후자라면 §7에 폴더가 하나 늘고 검사 13이 그것을 알아야 한다. 현미경 매니저가 메우지 않고 이름만 붙여 올렸다.
+    **Closed on 2026-09-19: what was needed was not permission to touch a real envelope but the fixture's shape.** The bridge manager produced it — **a snapshot that is a real export and not the one of the tree you sit in**, placed in `contracts/examples/rejected/check26_…/`. Take a byte-exact real export and have its `built_from_commit` name a **different** commit this repository actually has. `*_agent/envelope/` is untouched and no seat boundary is crossed — the fixture lives in `contracts/`, which is the manager's. **And the reason this works is the reason check 26's design is right**: it compares against git rather than the working tree, so a fixture can be **an honest export from another moment.**
 
-    **2026-09-19에 닫혔다: 필요한 것은 실물 envelope에 손댈 권한이 아니라 픽스처의 모양이었다.** 브리지 매니저가 냈다 — **진짜 export이되 자기가 앉은 트리의 것이 아닌 스냅샷**을 `contracts/examples/rejected/check26_…/`에 둔다. 바이트 그대로의 실제 export에 `built_from_commit`이 이 저장소가 실제로 가진 **다른** 커밋을 대게 하면 된다. `*_agent/envelope/`는 건드리지 않고 좌석 경계도 넘지 않는다 — 픽스처는 `contracts/`에 살고 그것은 매니저의 것이다. **그리고 이것이 되는 이유가 검사 26의 설계가 옳은 이유와 같다**: 작업 트리가 아니라 git에 대조하므로 픽스처가 **다른 순간의 정직한 export**일 수 있다.
+    **The dividing line is the one check 50's fixture drew.** An absent snapshot tests the wrong branch — "there is no snapshot" is not the divergence §4.3.2 describes. The divergence is **a real export that belongs to another commit.** Implementation is manager-librarian's (check 26 is theirs) and the folder is manager-bridge's. The two of you decide.
 
-    **가르는 선은 검사 50의 픽스처가 가른 것과 같다.** 없는 스냅샷은 엉뚱한 가지를 시험한다 — "스냅샷이 없다"는 §4.3.2가 말하는 갈라짐이 아니다. 갈라짐은 **진짜 export인데 다른 커밋의 것**이다. 구현은 manager-librarian(검사 26이 그쪽 것), 폴더는 manager-bridge. 둘이 정하십시오.
+14. ~~**Target accuracy**~~ → **Settled 2026-09-19: one decade.** The person decided — placing the value within a factor of ten is enough. **Both goal cards already carried `target_decade_resolution = 1 count`, so the number does not move**: what the settlement changed is not the value but **the source**, and `assumed:a_target` E5 ceases to be how a person's target is recorded (§5.3, §5.3.1). Four bounds are unblocked. The original item is kept below.
 
-14. ~~**목표 정확도**~~ → **2026-09-19 확정: 한 decade.** 사람이 정했다 — 값을 열 배 안으로 놓으면 충분하다. **양쪽 goal 카드가 이미 `target_decade_resolution = 1 count`를 들고 있었으므로 숫자는 움직이지 않는다**: 확정이 바꾼 것은 값이 아니라 **출처**이고, `assumed:a_target` E5가 사람의 목표를 기록하는 방식이기를 그친다(§5.3, §5.3.1). bound 넷이 풀린다. 원래 항목은 아래에 남긴다.
+14-a. **(the original item, for the record)** The microscope manager raised it on 2026-09-19: four bounds hang on this one thing, and **it does not arrive when the sample arrives next week** — because it is a person's target and not a fact about the sample. So it is cheaper to have **before** the sample in the ordering. Have it, and the axes unblock all at once when the lot number arrives; lack it, and the sample arrives and things stand in the same place.
 
-14-a. **(원래 항목, 기록용)** 현미경 매니저가 2026-09-19에 올렸다: bound 넷이 이것 하나에 걸려 있고, **다음 주에 시료가 도착해도 이것은 도착하지 않는다** — 시료 사실이 아니라 사람의 목표이기 때문이다. 그래서 순서상 시료보다 **먼저** 받아 두는 것이 값싸다. 받아 두면 lot 번호가 들어오는 시점에 축들이 한 번에 풀리고, 안 받아 두면 시료가 와도 같은 자리에 선다.
+    **Since explore is the default (P15), this may be a decade rather than a decimal** — not whether it is 10% or 30% but "is it the 10% decade or the 100% decade" is usually enough. Ask for a precise number and the person invents a precision that does not exist, and that makes one more E5 (§5.8).
 
-    **explore가 기본이므로(P15) 이것은 소수점이 아니라 decade여도 된다** — 10%인지 30%인지가 아니라 "10%대인가 100%대인가"면 대개 충분하다. 물어보는 쪽이 정밀한 숫자를 요구하면 사람이 없는 정밀도를 지어내고, 그것이 E5를 하나 더 만든다(§5.8).
+13. **The bead lot number — `thr-tracer-diffusivity-001` is stopped here. Only a person can answer, and it is a number, not a ruling.** The two sides of the first real round **are planning different samples**: the microscope side has `tracer_diameter` 5 µm (`operator_recall:kyuhwan_20260918`) and the plan being carried has `bead_diameter` 2 µm (`assumed:a_sample`). **Both are E5 and neither beats the other** — there is no ranking between a value stated from memory and one assumed.
 
-13. **비드 로트 번호 — `thr-tracer-diffusivity-001`이 여기서 멈춰 있다. 사람만 답할 수 있고, 판정이 아니라 번호다.** 첫 실물 라운드의 두 쪽이 **다른 시료를 계획하고 있다**: 현미경 쪽이 `tracer_diameter` 5 µm(`operator_recall:kyuhwan_20260918`), 나르고 있는 계획 쪽이 `bead_diameter` 2 µm(`assumed:a_sample`). **둘 다 E5이고 어느 쪽도 다른 쪽을 이기지 않는다** — 기억으로 말한 값과 가정한 값 사이에 순위가 없다.
+    **Where the difference leaves the tie is this item's grounds.** The diffusion coefficients are 2.5× apart, inside explore's tie band (§5.8, under 10× is a tie), while `tau_d` is **15.6×** apart — because it goes as d³. And `tau_d` sets the record length. So the two sides would **run experiments sixteen times apart and call it one comparison.** What was not a tie was hiding behind what was, and the bridge manager measured it from the disk and raised it.
 
-    **차이가 어디서 타이를 벗어나는지가 이 항목의 근거다.** 확산계수는 2.5배 차이로 explore의 타이 대역 안이지만(§5.8, 10x 미만은 타이), `tau_d`는 **15.6배** 차이다 — d³로 가기 때문이다. 그리고 `tau_d`가 기록 길이를 정한다. 그러므로 두 쪽이 **16배 떨어진 실험을 돌리면서 그것을 하나의 비교라고 부르게** 된다. 타이가 아닌 것이 타이인 것 뒤에 숨어 있었고, 브리지 매니저가 디스크에서 재서 올렸다.
+    **What ends it is the bead lot.** With a lot number both sides become `spec:<lot>` E3 and the estimates disappear. So what the person is asked is **not** "5 µm or 2 µm" — that is a ruling, and a ruling between two E5s only makes one more E5. What is asked is **the lot number.** `microscope execution` recorded that it has been due to receive that lot from the operator for several days, and that is now **the precondition for this repository's first real round.**
 
-    **끝내는 것은 비드 로트다.** 로트 번호가 있으면 양쪽이 `spec:<lot>` E3가 되고 추정이 사라진다. 그래서 사람에게 묻는 것은 "5 µm인가 2 µm인가"가 **아니다** — 그것은 판정이고, E5 둘 사이의 판정은 E5를 하나 더 만들 뿐이다. 묻는 것은 **로트 번호**다. `현미경 실행`이 그 로트를 며칠째 운영자에게 받기로 되어 있다고 적었고, 그것이 지금 **이 저장소 첫 실물 라운드의 선행 조건**이다.
+    **The reason this item is here at all is a contract requirement.** A thread's `open_question` has to name where the person's answer is recorded, and §11 is that place. While the item did not exist, that field ended in "not yet recorded in §11" — **a declaration one end of which nobody reads**, the shape that bit three times today. `bridge-85` was blocked on this.
+    **Updated the evening of 2026-09-19: the product was identified, and the two sides align now. Only the lot remains.** The person found the vendor page and named it **Abvigen `AFR-0500-COOH` — Red PS Fluorescent Particles, 5 µm-COOH**, and the microscope manager confirmed the same product key (`abvigen-red-5um-cooh`) **on disk** in `agentic-microscope`'s `data/particles.yaml`. **The reason that is a second trace rather than a re-confirmation of memory is that the file was written then** — not from today's memory.
 
-    **이 항목이 여기 있는 이유 자체가 계약의 요구다.** 스레드의 `open_question`은 사람의 답이 어디에 기록되는지를 대야 하고 §11이 그 예다. 항목이 없는 동안 그 필드는 "아직 §11에 기록되지 않았다"로 끝나 있었다 — **한쪽 끝을 아무도 읽지 않는 선언**이고, 오늘 세 번 물린 그 모양이다. `bridge-85`가 이것에 막혀 있었다.
+    **So the symmetry of the two values broke.** 5 µm now has one claim (`operator_recall:`) with **one contemporaneous document and one vendor catalogue** attached, and 2 µm is still `assumed:a_sample` — **a placeholder.** Exactly as §5.3 wrote today: **a blank is not objecting.** So **the simulation side aligns to 5 µm without waiting for the lot.** The grade stays E5 and the gap stays open — the uncertainty is not removed but **shared.** What alignment removes is not uncertainty but **the harm §11-13 records**, namely calling experiments sixteen times apart one comparison.
 
-    **2026-09-19 저녁 갱신: 제품이 식별됐고, 두 쪽을 지금 정렬한다. lot만 남았다.** 사람이 벤더 페이지를 찾아 **Abvigen `AFR-0500-COOH` — Red PS Fluorescent Particles, 5 µm-COOH**로 지목했고, 현미경 매니저가 `agentic-microscope`의 `data/particles.yaml`에서 같은 제품 키(`abvigen-red-5um-cooh`)를 **디스크에서** 확인했다. **그것이 기억의 재확인이 아니라 둘째 흔적인 이유는 그 파일이 그때 쓰였기 때문이다** — 지금의 기억이 아니다.
+    **The alignment is decided and not yet executed — and cannot be executed now.** The paragraph above is the record of a decision, and the cards are still 2 µm: `goal.json`, `plan_simulation_…`, `synthesis.json` and axes a1, a3, a4 all carry `bead_diameter 2 um assumed:a_sample E5`. **What blocks it is the same pin** — `r1_hashes.json` froze that plan as revision 1, and fixing the diameter moves `card_sha` and check 8 fails **exactly** as it does when moving the target. So **the diameter alignment and the target migration are not two tasks waiting together but one commit of revision 2.** Blocked by one pin and unblocked by one revision.
 
-    **그래서 두 값의 대칭이 깨졌다.** 5 µm은 이제 주장 하나(`operator_recall:`)에 **동시대 문서 하나와 벤더 카탈로그 하나**가 붙었고, 2 µm은 여전히 `assumed:a_sample` — **자리 채우기**다. §5.3이 오늘 적은 그대로: **빈칸은 반대하고 있지 않다.** 그러므로 **시뮬레이션 쪽은 lot을 기다리지 않고 5 µm으로 맞춘다.** 등급은 E5로 남고 갭은 열려 있다 — 불확실성이 사라지는 것이 아니라 **공유된다.** 정렬이 지우는 것은 불확실성이 아니라 **§11-13이 적은 해악**, 즉 16배 갈라진 실험을 하나의 비교라고 부르는 것이다.
+    **And this is not a field edit.** `tau_d = 20 s` is `computed:diffusive_time` from 2 µm and τ goes as d³, so matching the diameter makes **20 s become about 313 s** and every interval resting on record length moves with it. The 15.6× §11-13 records arrives **as arithmetic and not as a disagreement.** The bridge manager read the cards and raised it — architecture's handover list had written this so that it read as "alignment complete".
 
-    **정렬은 결정됐고 아직 실행되지 않았다 — 그리고 지금은 실행할 수 없다.** 위 문단은 결정의 기록이고, 카드는 여전히 2 µm이다: `goal.json`·`plan_simulation_…`·`synthesis.json`·축 a1·a3·a4가 전부 `bead_diameter 2 um assumed:a_sample E5`를 들고 있다. **막는 것은 같은 핀이다** — `r1_hashes.json`이 그 계획을 리비전 1로 얼렸고, 지름을 고치면 `card_sha`가 움직여 목표를 옮길 때와 **똑같이** 검사 8이 실패한다. 그러므로 **지름 정렬과 목표 마이그레이션은 같이 대기 중인 두 작업이 아니라 리비전 2의 한 커밋**이다. 핀 하나에 막히고 리비전 하나로 풀린다.
+    **Retracted the night of 2026-09-19: what is on the bench is not that product (`8646426`).** The two paragraphs above are the record from while the identification stood, and the person withdrew it. Two entries force it — `bottle_label_states_no_product` (an operator looked at the bottle and the label does not state the product identity) and `particles_show_on_the_green_605_path` (`calibration:` E2). The second is decisive: **particles emitting at 680 nm are not visible on the 605 band.** So it is not that the catalogue's 620/680 is wrong about these particles but **that these particles are not that catalogue item.**
 
-    **그리고 이것은 필드 수정이 아니다.** `tau_d = 20 s`가 2 µm에서 나온 `computed:diffusive_time`이고 τ는 d³로 가므로, 지름을 맞추면 **20 s가 약 313 s가 되고** 기록 길이에 기대는 모든 구간이 따라 움직인다. §11-13이 적은 15.6배가 **불일치가 아니라 산술로** 도착한다. 브리지 매니저가 카드를 읽고 올렸다 — 아키텍처의 인계 목록이 이것을 "정렬 완료"로 읽히게 적었다.
+    **The alignment survives, for a different reason than the one written above.** 5 µm **was never derived from the product** — it is `operator_recall:kyuhwan_20260918` and was so before the catalogue was found. The catalogue was the **second** trace, and with it gone the first remains. The asymmetry argument holds too: **a weak claim beats a placeholder that claims nothing** never rested on the catalogue. **What thinned is not the value but its support.**
 
-    **2026-09-19 밤 철회: 벤치에 있는 것은 그 제품이 아니다 (`8646426`).** 위 두 문단은 식별이 서 있던 동안의 기록이고, 사람이 그것을 거뒀다. entry 둘이 강제한다 — `bottle_label_states_no_product`(작업자가 병을 봤고 라벨이 제품 정체를 적고 있지 않다)와 `particles_show_on_the_green_605_path`(`calibration:` E2). 둘째가 결정적이다: **680 nm에서 방출하는 입자는 605 밴드로 보이지 않는다.** 그러니 카탈로그의 620/680이 이 입자에 대해 틀린 것이 아니라 **이 입자가 그 카탈로그 항목이 아니다.**
+    **And one thing inverts: the exit closed.** The paragraph above wrote *"reading the label next week makes that layer E3"*, and **the label has already been read** — on 2026-09-19, and it did not state a product. So **the doubt becomes permanent rather than pending**: the one cheap means that could have resolved it has already happened and did not. **Architecture wrote that exit into both §11-13 and the handover message, and both were already false at that moment.** The simulation manager caught it.
 
-    **정렬은 살아남고, 이유가 위에 적힌 것과 다르다.** 5 µm은 **제품에서 유도된 적이 없다** — `operator_recall:kyuhwan_20260918`이고 카탈로그를 찾기 전부터 그랬다. 카탈로그는 **둘째** 흔적이었고, 사라져도 첫째는 남는다. 비대칭 논거도 그대로다: **약한 주장이 아무것도 주장하지 않는 자리 채우기보다 낫다**는 것은 카탈로그에 기댄 적이 없다. **얇아진 것은 값이 아니라 받침이다.**
+    **The same night, the retraction was retracted.** The person ruled again: **the bottle is that product and the vendor page is wrong.** The librarian manager raised it first and **the person confirmed directly at the architecture seat** — *"confirmed the vendor page is wrong."* 016 holds that ruling. The occasion was a prior repository's four-band measurement, but **what was decisive was not the measurement but the asymmetry** — the Abvigen page already has **two unrelated errors** recorded against it, so *"the datasheet is wrong"* is **a much cheaper explanation** than *"the bottle is not that product"*, and **the silent label that was 015's evidence cannot distinguish the two.** Silence explains both hypotheses equally well.
 
-    **그리고 하나가 뒤집힌다: 출구가 닫혔다.** 위 문단이 *"다음 주에 라벨을 읽으면 그 층이 E3가 된다"*고 적었는데 **라벨은 이미 읽혔다** — 2026-09-19에, 그리고 제품을 말하지 않았다. 그래서 **의심이 보류가 아니라 영구**가 된다: 그것을 정리할 수 있었던 값싼 수단 하나가 이미 일어났고 정리하지 못했다. **아키텍처가 §11-13과 인계 메시지 양쪽에 그 출구를 적어 두었고, 둘 다 그 시점에 이미 거짓이었다.** 시뮬레이션 매니저가 잡았다.
-
-    **같은 밤, 철회가 철회됐다.** 사람이 다시 판정했다: **병은 그 제품이고 벤더 페이지가 틀렸다.** 사서 매니저가 먼저 올렸고 **사람이 아키텍처 자리에서 직접 확인했다** — *"벤더 페이지가 틀린 거 확인했어."* 016이 그 판정을 담는다. 계기는 이전 저장소의 네 대역 측정이었지만 **결정적이었던 것은 측정이 아니라 비대칭**이다 — Abvigen 페이지에 **무관한 오류가 이미 둘** 기록돼 있어서 *"데이터시트가 틀렸다"*가 *"병이 그 제품이 아니다"*보다 **훨씬 싼 설명**이고, **015의 증거였던 침묵하는 라벨은 그 둘을 구별하지 못한다.** 침묵은 두 가설을 똑같이 잘 설명한다.
-
-    **복원은 부분이다. 그리고 그 갈림이 어제 정한 개체/유형/잇는 주장 셋을 그대로 채운다.**
+    **The restoration is partial. And that split fills exactly the individual / type / joining-claim trio settled yesterday.**
 
     | | |
     |---|---|
-    | 식별 | **복원, E5.** 라벨은 여전히 침묵하고, 두 측정이 말하는 것은 *"Cy3 계열처럼 행동한다"*이지 *"이 카탈로그 번호다"*가 아니다 |
-    | 재질·지름 | **복원, E5.** 유형 스펙은 E3인데 **그것이 이 병에 적용된다는 것**이 E5다 |
-    | 방출·여기 | **복원하지 않는다.** 반증됐고, 독립된 두 관측이 같은 답을 냈다 |
+    | Identity | **restored, E5.** The label is still silent, and what the two measurements say is *"it behaves like a Cy3-family dye"*, not *"it is this catalogue number"* |
+    | Material and diameter | **restored, E5.** The type specification is E3, and **that it applies to this bottle** is E5 |
+    | Emission and excitation | **not restored.** Falsified, with two independent observations giving the same answer |
 
-    **그러므로 "출처가 닫혔다"는 위 문단이 틀렸다.** 닫히지 않았다 — 다만 **벤더 페이지는 여전히 출처가 아니고, 이유가 바뀌었다**: 식별이 없어서가 아니라 **그 페이지 자체가 신뢰 불가로 판정됐기 때문**이다.
+    **So the paragraph above saying "the source closed" is wrong.** It did not close — but **the vendor page is still not a source, and the reason changed**: not because there is no identification but **because that page itself was ruled untrustworthy.**
 
-    **그리고 지름의 두 근거가 이제 서로를 받친다.** 사람이 잰 5 µm(E2)과 카탈로그의 5 µm(유형 E3)이 **독립적으로 같은 값을 말한다.** 측정이 닫힌 출처의 대체재였던 몇 시간 전과 달리, 지금 둘은 서로의 확증이다 — 그리고 **측정 쪽이 여전히 높으므로 지름 판정은 바뀌지 않는다.**
+    **And the two grounds for the diameter now support each other.** The person's measured 5 µm (E2) and the catalogue's 5 µm (type, E3) **state the same value independently.** Unlike a few hours earlier, when the measurement was a substitute for a closed source, the two are now each other's corroboration — and **the measurement side is still higher, so the diameter ruling does not change.**
 
-    **2026-09-19 밤, 측정이 들어왔고 이 항목의 지름 쪽이 닫힌다.** 사람이 **직접 쟀다**: 지름 5 µm, **CV 2% 이내.** 그러면 `calibration:` **E2**이고, 이것은 **로트가 줬을 `spec:<lot>` E3보다 높다.** 그러므로 **로트는 지름에 대해 더는 필요하지 않다** — 이 항목이 사람에게 물어 온 것이 측정으로 답해졌고, 물어본 것보다 나은 것으로 답해졌다.
+    **The night of 2026-09-19 a measurement arrived and this item's diameter side closes.** The person **measured it directly**: diameter 5 µm, **CV within 2%.** That is `calibration:` **E2**, and **higher than the `spec:<lot>` E3 a lot would have given.** So **the lot is no longer needed for the diameter** — what this item was asking a person was answered by measurement, and answered with something better than what was asked.
 
-    **그리고 두 E5의 대칭 문제가 통째로 사라진다.** §11-13이 열린 이유가 *"둘 다 E5이고 어느 쪽도 다른 쪽을 이기지 않는다"*였는데, 이제 한쪽은 **측정**이고 다른 쪽은 여전히 `assumed:a_sample` 자리 채우기다. 정렬 논거가 "약한 주장이 빈칸을 이긴다"에서 **"측정이 빈칸을 이긴다"**로 올라간다 — 같은 결론에 훨씬 짧은 논거다.
+    **And the whole two-E5 symmetry problem disappears.** §11-13 was opened because *"both are E5 and neither beats the other"*, and now one side is **a measurement** and the other is still an `assumed:a_sample` placeholder. The alignment argument rises from "a weak claim beats a blank" to **"a measurement beats a blank"** — the same conclusion with a far shorter argument.
 
-    **점값이 분포가 된 것도 값이다.** CV ≤ 2%는 상한만 있는 무차원 bound이고, 단분산이 아래쪽 하나를 정리한다. **`D = k_BT/3πηd`이므로 `D ∝ 1/d`이고, 지수가 −1이면 상대 산포가 1:1로 넘어간다** — `ln D = const − ln d`에서 `δD/D = −δd/d`. 그러므로 **개체 간 확산계수의 CV는 지름의 CV와 같다**, 그것이 얼마든. 어느 쪽이든 explore의 타이 대역 한참 안이라 결론은 같다.
+    **That a point value became a distribution is also value.** CV ≤ 2% is a dimensionless bound with only an upper limit, and monodispersity settles one side below. **Since `D = k_BT/3πηd`, `D ∝ 1/d`, and with an exponent of −1 the relative spread carries over 1:1** — from `ln D = const − ln d`, `δD/D = −δd/d`. So **the CV of the diffusion coefficient across individuals equals the CV of the diameter**, whatever it is. Either way it is far inside explore's tie band, so the conclusion is the same.
 
-    **2026-09-19에 이 문단이 "지름 산포의 두 배쯤(D ∝ 1/d)이라 4%"라고 적고 있었고 틀렸다.** 두 배가 되려면 `1/d²`여야 한다. 4%는 "2% 이내"를 ±2%의 **전폭**으로 읽었을 때 나오는 숫자이고, 그것은 CV가 뜻하는 것도 `1/d`가 하는 일도 아니다. 시뮬레이션 매니저가 해석과 수치 양쪽으로 확인해 올렸다 — CV 2%로 40만 개를 뽑으니 들어간 것도 나온 것도 2.00%.
+    **On 2026-09-19 this paragraph said "about twice the diameter spread (D ∝ 1/d), so 4%", and it was wrong.** Twice would require `1/d²`. The 4% is the number you get reading "within 2%" as the **full width** of ±2%, and that is neither what CV means nor what `1/d` does. The simulation manager confirmed it both analytically and numerically and raised it — drawing 400,000 at CV 2% gave 2.00% in and 2.00% out.
 
-    **숫자를 다시 적지 않는 이유가 있다.** 이슈 019대로 `tracer_diameter_cv_upper_bound`가 `value: 2, unit: "1"` — 무차원 2, 즉 200% — 이고 퍼센트는 note에 있다. **note 없이는 틀리게 읽히는 value/unit 쌍**이므로, 지금 어느 숫자든 손으로 베끼면 019가 없애는 중인 그것을 굳힌다. **비율이 1:1로 넘어간다는 문장은 값에 의존하지 않으므로 숫자보다 강하다.** **지금 아무도 다분산을 고려하지 않고 있는데 고려하지 않아도 되는 이유가 어디에도 적혀 있지 않았다.** 이제 적힌다.
+    **There is a reason the number is not restated.** Per issue 019, `tracer_diameter_cv_upper_bound` is `value: 2, unit: "1"` — dimensionless 2, that is 200% — with the percentage in a note. **It is a value/unit pair that reads wrongly without the note**, so copying any number by hand now cements the very thing 019 is removing. **The statement that the ratio carries over 1:1 does not depend on the value and is therefore stronger than the number.** **Nobody is currently considering polydispersity and the reason it need not be considered was written nowhere.** Now it is.
 
-    **로트는 사라지지 않고 좁아진다.** `agentic-microscope`가 *"size CV and dye loading vary lot to lot"*이라고 적었는데 **size CV는 직접 쟀으므로 로트에서 풀렸고**, 남는 것은 **dye loading → `tracer_brightness`**다. 그것은 아직 안 쟀고 로트 의존이며 A1이 읽는다. **이 항목이 묻는 것이 "무슨 로트인가"에서 "밝기를 어떻게 얻을 것인가"로 좁아진다** — 그리고 그 답도 측정일 수 있다.
+    **The lot does not disappear; it narrows.** `agentic-microscope` wrote *"size CV and dye loading vary lot to lot"*, and **size CV was measured directly and so is released from the lot**, leaving **dye loading → `tracer_brightness`.** That has not been measured, is lot-dependent, and is read by A1. **What this item asks narrows from "which lot" to "how will brightness be obtained"** — and that answer may be a measurement too.
 
-    **출처가 닫히면 남는 길은 측정이다.** 로트 번호가 라벨에 있으면 `spec:<lot>`이 아직 가능하지만, 없으면 provenance로 가는 길이 전부 막힌 것이고 **그때 지름은 재는 것이다** — 현미경이 하는 일이 정확히 그것이고, 결과는 `measured:<run_id>` E1로 `spec:`의 E3보다 **높다.** 그러므로 이 항목이 사람에게 묻는 것이 바뀐다: **"이것이 무엇인가"에서 "라벨에 로트가 있는가, 없으면 지름을 재는 것을 첫 실물 측정으로 삼을 것인가"로.**
+    **When the source closes, what remains is measuring.** If the lot number is on the label, `spec:<lot>` is still possible; if not, every route to provenance is blocked and **then the diameter is measured** — which is exactly what a microscope does, and the result is `measured:<run_id>` E1, **higher** than `spec:`'s E3. So what this item asks the person changes: **from "what is this" to "is there a lot on the label, and if not, shall measuring the diameter be the first real measurement".**
 
-    **여전히 lot이다.** 제품 스펙은 `spec:AFR-0500-COOH` E3이지만 **우리 추적자가 그 제품이라는 것**은 아직 E5다 — 사람이 벤더 목록을 보고 식별했지 병의 라벨을 읽지 않았다. 다음 주에 라벨을 읽으면 그 한 겹이 E3가 되고, 유효 등급이 **자동으로** 올라간다. `agentic-microscope`에도 lot이 없고 그것은 **확정된 음성**이다 — 그 파일이 `lot:` 옆에 *"size CV and dye loading vary lot to lot -- record it"*이라고 적어 놓고 값을 비워 두었다.
+    **It is still the lot.** The product specification is `spec:AFR-0500-COOH` E3, and **that our tracer is that product** is still E5 — the person identified it from a vendor listing rather than reading the bottle's label. Reading the label next week makes that one layer E3, and the effective grade rises **automatically.** `agentic-microscope` has no lot either, and that is **a confirmed negative** — that file wrote *"size CV and dye loading vary lot to lot -- record it"* beside `lot:` and left the value empty.
 
-    **사람이 2026-09-19에 "다음 주"에 병 라벨을 읽겠다고 알렸다. 그때까지 이 보류는 대기이지 누구의 일에 난 구멍이 아니다.** 이 줄이 필요한 이유는 날짜 없는 미결 항목이 **오늘 쫓아야 할 것**으로 읽히기 때문이다 — `현미경 실행`이 이 lot을 "며칠째" 받기로 되어 있다고 적은 것이 그 상태였고, 예정된 대기와 놓친 공은 다른 것인데 기록이 둘을 구별하지 못했다. **날짜는 여기에만 둔다.** 스레드의 `open_question`이 이미 여기를 가리키므로 `status.json`에도 적으면 같은 사실이 두 자리에 살고 대조할 것이 없다 — 하필 그것을 가르친 바로 그 항목에서(§11-11).
+    **The person announced on 2026-09-19 that they would read the bottle's label "next week". Until then this hold is a wait and not a hole in anyone's work.** This line is needed because an undated open item reads as **something to chase today** — `microscope execution` recording that it has been due to receive this lot "for several days" was that state, and a scheduled wait and a dropped ball are different while the record could not tell them apart. **The date lives only here.** The thread's `open_question` already points here, so writing it in `status.json` too would put the same fact in two places with nothing to compare — in the very item that taught that (§11-11).
 
-    **시료가 같이 여는 것들**: `tracer_number_density`(A2·A3), `tracer_brightness`(A1 셋), `bleaching_rate`(A1·A3), 그리고 `tracer_diameter`. lot 번호 하나가 넷을 연다.
+    **What the sample opens together**: `tracer_number_density` (A2, A3), `tracer_brightness` (three of A1), `bleaching_rate` (A1, A3), and `tracer_diameter`. One lot number opens four.
 
-    **무차원 계획으로 우회하는 안은 검토했고 채택하지 않는다 — 나중에 새 안처럼 다시 제안되지 않도록 적어 둔다.** 양쪽이 초 대신 `tau_d`의 배수로 계획하면 `d`가 도착할 때 치환 한 번으로 환산된다는 것이고, 선례도 저장소에 있다(`axis_a5_budget.py`가 스스로 고른 기준 스텝에 대해 비용을 매기고 S4가 재척도한다). **거절하는 이유는 방아쇠가 결함이 아니라 일주일짜리 일정이기 때문이다.** 대가는 양쪽의 goal·plan 카드 개정과 무차원 단위 질문이 `units.json`에 하는 일이고, 그것은 **달력이 사는 구조 변경**이다. 그리고 `d`에 의존하지 않는 일은 이미 닿을 수 있다 — 현미경의 SNR·국소화 추론, 그리고 애초에 무차원인 A2의 통계. 브리지 매니저가 올리고 스스로 권하지 않았다.
+    **The workaround of planning dimensionlessly was considered and not adopted — written down so it is not re-proposed later as a new idea.** It is that both sides plan in multiples of `tau_d` rather than seconds, so one substitution converts when `d` arrives, and there is precedent in the repository (`axis_a5_budget.py` prices cost against a reference step it chose itself and S4 rescales). **It is refused because the trigger is a week-long schedule rather than a defect.** The price is revising both sides' goal and plan cards plus what a dimensionless-unit question does to `units.json`, and that is **a structural change where a calendar lives.** And the work not depending on `d` is already reachable — the microscope's SNR and localisation reasoning, and A2's statistics, which are dimensionless to begin with. The bridge manager raised it and did not recommend it.
 
-12. ~~**`kb_query`의 인자가 `observable`인 것이 맞는가**~~ → **2026-09-19 반박됨. 인자를 넓히지도 도구를 늘리지도 않는다.** 제가 이 항목을 "질문 쪽이 틀렸다"로 세웠는데 **틀이 틀렸다.** 사서 매니저가 로그 열여섯 줄을 전수 분류해서 보였다 — `kb_query` 열 번 중 아홉이 빈손이고, 그 아홉은 이렇게 갈린다:
+12. ~~**Is `observable` the right argument for `kb_query`**~~ → **Refuted 2026-09-19. Neither the argument is widened nor a tool added.** I set this item up as "the question side is wrong" and **the framing was wrong.** The librarian manager classified all sixteen log lines exhaustively and showed — nine of ten `kb_query` calls came back empty-handed, and those nine split like this:
 
-    | 무엇이었나 | n | 무엇이 고치나 |
+    | What it was | n | What fixes it |
     |---|---|---|
-    | 발행된 표에 있음 | 5 | `in_published_table` ✔ |
-    | **저장소가 다른 단어로 갖고 있음** | 3 | **kind도 새 도구도 못 고침** |
-    | 진짜로 없음 | 1 | `absent`가 맞음 |
+    | present in a published table | 5 | `in_published_table` ✔ |
+    | **the store has it under a different word** | 3 | **neither a kind nor a new tool fixes it** |
+    | genuinely absent | 1 | `absent` is correct |
 
-    **결정적인 질문: `kind` 인자가 있었으면 몇 개가 답을 받았나. 0개다.** `kind=observable, name=numerical_aperture`도 0건이고 `kind=device, name=objective`도 0건이다 — 저장소는 그것을 **`na`**로, **`objective_mrd70040…`**으로 갖고 있다. **kind 딱지는 동의어를 만들지 않는다.** 도구를 늘리는 쪽도 같은 이유로 0개이고, 그건 "도구 넷"을 공짜도 아닌 것에 깨는 일이다. 그리고 인자 이름 때문에 거절된 호출은 **한 건도 없다** — `subjects()`가 네 손잡이의 합집합이라 서버는 **처음부터 kind를 가리지 않는다.** 이름은 장식이었다.
+    **The decisive question: how many would have got an answer had there been a `kind` argument. Zero.** `kind=observable, name=numerical_aperture` gives zero and `kind=device, name=objective` gives zero — the store has them as **`na`** and **`objective_mrd70040…`**. **A kind tag does not create synonyms.** Adding a tool gives zero for the same reason, and that would break "four tools" for something not even free. And **not one call** was refused because of the argument's name — `subjects()` is the union of the four handles, so the server **never filtered by kind in the first place.** The name was decoration.
+    **The real remaining half is the log's column.** One column mixes table names, column names, entry_ids and observables, and §0.3-4's comparison quietly drifts on top of it. That **closes by renaming alone** (`observable` → `subject`), taking no kind. Cheap and honest. The migration is `query_log.py` and `FIELDS`, and with no consumers yet, now is cheapest.
 
-    **남는 진짜 절반은 로그 칸이다.** 한 칸에 표 이름·열 이름·entry_id·관측량이 섞이고 §0.3-4의 대조가 그 위에서 조용히 어긋난다. 그것은 **이름만 바꾸면 닫힌다**(`observable` → `subject`), kind를 받지 않고. 싸고 정직하다. 이관은 `query_log.py`와 `FIELDS`이고 소비자가 아직 없어 지금이 가장 싸다.
+11. **One fact lives in several places and nothing compares them — add a comparator, or reduce the places.** This shape appeared three times on 2026-09-18 and only one of the three is being kept.
 
-11. **한 사실이 여러 자리에 살고 아무것도 대조하지 않는다 — 비교기를 더할 것인가, 자리를 줄일 것인가.** 2026-09-18에 이 형태가 세 번 나왔고 셋 중 하나만 지켜지고 있다.
-
-    | 사실 | 사는 자리 | 대조 |
+    | Fact | Where it lives | Comparison |
     |---|---|---|
-    | 검사 하나 | §8 선언 · `def check_NN_` · `CHECKS` | **검사 42** |
-    | 경로 하나 | §7 트리 · `ALLOWED_PATHS` · `seats.json` | 검사 55 (2026-09-19) |
-    | 경계 하나 | `seats.json`의 `owns`/`paths` · `DESIGN_OWNED` · `AGENT_OF_PATH` | 검사 48 (2026-09-19) |
-    | **필드 하나의 뜻** | 스키마 설명 · 그것을 읽는 검사 코드 · **실제 데이터** | 없음 |
+    | one check | §8's declaration · `def check_NN_` · `CHECKS` | **check 42** |
+    | one path | the §7 tree · `ALLOWED_PATHS` · `seats.json` | check 55 (2026-09-19) |
+    | one boundary | `seats.json`'s `owns`/`paths` · `DESIGN_OWNED` · `AGENT_OF_PATH` | check 48 (2026-09-19) |
+    | **the meaning of one field** | the schema description · the check code that reads it · **the actual data** | none |
 
-    **넷째가 2026-09-18에 가장 비쌌다.** `derived`의 문서화된 뜻과 실제 용법이 **교집합 0으로** 갈라진 채 아무도 몰랐고, 그 위에 검사 하나를 승인했다가 되돌려야 했다. 드러난 것은 census를 돌린 뒤다 — 앞의 셋과 달리 **데이터를 세어 보기 전에는 보이지 않는다.**
+    **The fourth was the most expensive on 2026-09-18.** `derived`'s documented meaning and its actual usage had diverged **to an intersection of zero** with nobody knowing, and a check approved on top of it had to be reversed. It surfaced only after running a census — unlike the first three, **it is invisible until the data is counted.**
 
-    **뒤의 둘이 앞의 하나보다 실패 모드가 나쁘다.** 선언만 되고 구현이 없는 검사는 **돌지 않는다** — 조용한 구멍이다. 선언만 되고 허용목록에 없는 경로는 **옳은 작업을 게이트에서 거절한다**, 그리고 그것이 `--no-verify`로 답해지는 바로 그 상황이다(§6.2.1). 오늘은 두 매니저가 각자 벽에 부딪혀 각자 고쳐서 넘어갔다.
+    **The latter two have worse failure modes than the first.** A check declared with no implementation **does not run** — a silent hole. A path declared and not in the allow list **refuses correct work at the gate**, and that is exactly the situation answered with `--no-verify` (§6.2.1). Today two managers each hit the wall, each fixed it, and moved on.
 
-    **결정할 것은 비교기냐 자리 줄이기냐다.** 검사 42는 비교기를 택했지만, 그것은 §8의 선언이 산문이라 코드에서 도출할 수 없기 때문이다 — **선택이 아니라 제약이었다.** 경로와 경계는 다르다: `ALLOWED_PATHS`는 §7의 선언에서, `DESIGN_OWNED`와 `AGENT_OF_PATH`는 `seats.json`에서 **도출할 수 있다.** 그리고 도출이 비교기보다 낫다 — 비교기는 누군가 돌릴 때까지 둘이 갈라져 있는 것을 허용하지만, 도출은 **갈라지는 것 자체를 불가능하게 한다**(§0.4-6의 "한 선언에 파서는 하나"와 같은 논거, 한 단 위에서).
+    **What has to be decided is comparator versus fewer places.** Check 42 chose a comparator, but that is because §8's declaration is prose and cannot be derived from code — **a constraint, not a choice.** Paths and boundaries are different: `ALLOWED_PATHS` **can be derived** from §7's declarations, and `DESIGN_OWNED` and `AGENT_OF_PATH` from `seats.json`. And derivation beats a comparator — a comparator permits the two to stay diverged until somebody runs it, while derivation **makes diverging impossible** (the same argument as §0.4-6's "one declaration, one parser", one level up).
 
-    그러니 이 항목이 묻는 것은 "검사를 몇 개 더 만들까"가 아니라 **"정본을 어디에 둘까"**다. 후보는 `seats.json`(경계는 이미 거기 있다)과 §7 트리(경로의 사람용 정본)이고, P3대로라면 기계 판독 가능한 쪽이 정본이고 §7 트리가 그것에서 생성돼야 한다. 사서 매니저가 2026-09-18에 올렸다.
+    So what this item asks is not "how many more checks to build" but **"where does the record go".** The candidates are `seats.json` (boundaries are already there) and the §7 tree (the human-facing record of paths), and per P3 the machine-readable side is the record and the §7 tree should be generated from it. The librarian manager raised it on 2026-09-18.
 
-    **둘째 행도 같은 날 두 번 물렸고, 같은 방향으로 물렸다.** 아침에 `bridge/README.md`, 저녁에 `contracts/quantities.json`. **두 번 다 §7에 줄이 들어갔고 게이트는 계속 거절했다** — 거절하는 것은 `ALLOWED_PATHS`이기 때문이다. 반대 방향(정규식이 허용하는데 §7에 없음)은 한 번도 안 났다. **`ALLOWED_PATHS`를 고치는 사람은 자기가 정규식을 고치고 있다는 것을 알지만, §7에 줄을 넣는 사람은 자기가 선언했다고 믿는다.**
+    **The second row bit twice the same day too, and bit in the same direction.** `bridge/README.md` in the morning, `contracts/quantities.json` in the evening. **Both times a line went into §7 and the gate kept refusing** — because what refuses is `ALLOWED_PATHS`. The opposite direction (the regex permits and §7 lacks it) never happened once. **Someone editing `ALLOWED_PATHS` knows they are editing a regex, and someone putting a line into §7 believes they have declared it.**
 
-    **그리고 검사 13의 메시지가 두 번 다 틀린 파일을 가리켰다**: *"path is not declared in plan.md section 7"*. §7에 넣어도 안 풀린다. 저녁 건에서 사서 매니저가 아키텍처에게 "§7에 한 줄 필요합니다"라고 올렸고 아키텍처가 그 줄만 넣고 될 줄 알았다 — **둘 다 메시지를 믿었다.** 아침에 검사 41이 `owns`를 말하고 고쳐야 할 것은 `owns`가 아니었던 것과 같다. **가장 싼 수정이 새 검사가 아니라 메시지 한 줄**이고, 그것만으로 오늘 두 건이 다 예방됐다.
+    **And check 13's message pointed at the wrong file both times**: *"path is not declared in plan.md section 7"*. Putting it in §7 does not resolve it. In the evening case the librarian manager raised "§7 needs a line" to architecture, and architecture put in that line expecting it to work — **both believed the message.** The same as check 41 saying `owns` in the morning when what needed fixing was not `owns`. **The cheapest fix is not a new check but one line of message**, and that alone would have prevented both of today's cases.
 
-    **정본은 `ALLOWED_PATHS`로 둔다 (2026-09-19, 아키텍처).** 셋째 행과 달리 여기서는 **도출이 답이 아니다**: §7 트리는 사람용 서술이라 경로 말고도 이유·참조·설명을 담고, 그것을 생성물로 만들면 담긴 것이 사라진다. 그리고 §7을 파싱해 정규식을 도출하는 반대 방향은 **아침에 거절한 트리 파싱**이다. 그러므로 여기는 **비교기가 맞고, §11-11이 일반적으로 도출을 선호하는 것의 예외다** — 두 자리가 같은 것을 담고 있지 않기 때문이다.
+    **The record is settled as `ALLOWED_PATHS` (2026-09-19, architecture).** Unlike the third row, **derivation is not the answer here**: the §7 tree is human prose and carries reasons, references and explanations beyond paths, and making it generated loses what it carries. And the opposite direction, parsing §7 to derive the regex, is **the tree parsing refused in the morning.** So here **a comparator is right, and it is the exception to §11-11's general preference for derivation** — because the two places do not hold the same thing.
 
-    **검사 55 — §7 트리가 대는 파일 이름을 `ALLOWED_PATHS`가 허용하는지. manager-librarian.** 구조를 파싱하지 않는다: 필요한 것은 **§7이 대는 이름의 집합**이지 트리의 모양이 아니다. 47·48·50·51의 부류이고(§8이 한 번 적은 그 한계), **그래도 값이 있는 이유는 오늘 물린 것이 틀린 이름이 아니라 없는 이름이었기 때문**이다. **검사 13의 메시지를 `§7과 ALLOWED_PATHS 둘 다`로 고치는 것을 같은 커밋에 넣는다** — 검사가 잡는 것은 아무도 안 쓰는 경로의 조용한 어긋남이고, 메시지가 고치는 것은 **누가 실제로 부딪혔을 때 어디를 볼지**다. 둘은 다른 실패를 막는다.
+    **Check 55 — whether `ALLOWED_PATHS` permits the filenames the §7 tree names. manager-librarian.** It does not parse structure: what is needed is **the set of names §7 states**, not the tree's shape. It is the 47/48/50/51 class (the limit §8 wrote once), and **the reason it is worth it anyway is that what bit today was an absent name, not a wrong one.** **Fixing check 13's message to say `both §7 and ALLOWED_PATHS` goes in the same commit** — what the check catches is a quiet divergence on a path nobody uses, and what the message fixes is **where to look when somebody actually hits it.** The two prevent different failures.
 
-    **2026-09-19, 경계 행의 대가가 실제로 들어왔다 — 반나절.** 매니저 하나가 `bridge/README.md`를 쓰고 게이트에 거절당했다. 아키텍처가 `seats.json`의 네 매니저 `paths`에 README를 넣었고, 매니저가 `ALLOWED_PATHS`에 넣었고, **그래도 거절당했다.** 검사 41이 세 관문을 순서로 통과시키기 때문이다: 먼저 `seat_boundary_of(path)`가 경로를 범주로 분류하고, 그 범주가 `owns`에 없으면 거기서 죽는다. `paths`는 **그 뒤에서 좁히기만 한다.** 즉 **레지스트리는 소유를 부여할 수 없다.** 부여하는 것은 `validate.py` 안의 `DESIGN_OWNED` 정규식이고, 레지스트리는 그것을 깎을 수만 있다.
+    **2026-09-19, the boundary row's price actually came in — half a day.** A manager wrote `bridge/README.md` and was refused by the gate. Architecture put README into the four managers' `paths` in `seats.json`, the manager put it into `ALLOWED_PATHS`, and **it was still refused.** Because check 41 passes three gates in order: first `seat_boundary_of(path)` classifies the path into a category, and if that category is not in `owns` it dies there. `paths` **only narrows, afterwards.** That is, **the registry cannot grant ownership.** What grants is the `DESIGN_OWNED` regex inside `validate.py`, and the registry can only shave it.
 
-    그래서 양쪽이 각자 자기 절반을 옳게 고치고도 문이 열리지 않았고, 두 좌석 모두 상대의 절반을 의심했다. 매니저는 세 번을 "§7 대 검사기"로 보고했고 §7 트리 파서를 제안했다 — **틀린 수였다.** 뿌리는 §7이 아니라 이 표의 셋째 행, **레지스트리 대 검사기**다. 진단이 세 줄 읽기로 끝났는데 반나절이 걸린 이유는 증상이 원인을 가리키지 않았기 때문이다: 거절 메시지는 `owns`를 말하고, 고쳐야 할 것은 `owns`가 아니었다.
+    So both sides correctly fixed their own half and the door did not open, and each seat suspected the other's half. The manager reported it three times as "§7 versus the validator" and proposed a §7 tree parser — **the wrong move.** The root is not §7 but this table's third row, **registry versus validator.** The reason a diagnosis that ended in reading three lines took half a day is that the symptom did not point at the cause: the refusal message says `owns`, and `owns` was not what needed fixing.
 
-    **부여할 수 없는 `paths` 항목은 죽은 글자다.** 조용하다 — 아무것도 실패시키지 않고, 그저 아무것도 열지 않는다. 검사 48이 그것을 잡는다(그날 아침 상태에서 여덟 건). 트리 파싱 없이 레지스트리와 분류기만 읽는다.
+    **A `paths` entry that cannot grant is a dead letter.** It is quiet — it fails nothing and simply opens nothing. Check 48 catches it (eight cases in that morning's state). It reads the registry and the classifier only, with no tree parsing.
 
-    **정본은 `seats.json`으로 정한다 (2026-09-19, 아키텍처).** P3가 그렇게 말하고, 경계는 이미 거기 있고, 오늘 든 대가가 비교기 없는 두 자리의 값이다. `DESIGN_OWNED`와 `AGENT_OF_PATH`는 `seats.json`의 기계 판독 가능한 경계 표에서 **도출된다** — 지금 `boundaries`는 그 사실을 산문으로만 담고 있으므로 그 산문이 표가 되어야 하고, 그 파일은 아키텍처의 것이다. 검사 48은 **도출이 들어오면 은퇴한다**: 도출은 갈라지는 것 자체를 불가능하게 하고, 비교기는 갈라진 뒤에 알려줄 뿐이다. 그때까지는 48이 그물이다. §7 트리의 행(둘째)은 아직 열려 있고 같은 논거가 적용되지만 같은 결정은 아니다 — §7은 사람용 서술이라 `ALLOWED_PATHS`보다 담는 것이 많다.
-10. **worktree · 좌석 신원 · `refuse`의 순서 제약.** 셋이 맞물려 있고 순서를 틀리면 하나가 다른 것을 막는다. §6.2.3은 좌석 신원을 worktree의 git config에 두라고 하는데, **작업 사본이 하나뿐인 지금 `--local`을 걸면 모든 세션의 커밋이 그 신원으로 나간다.** 그래서 그 처방은 worktree 이전 전에는 적용할 수 없고, 그때까지 신원은 명령 접두사로만 살아 **초기화와 함께 사라진다.** 그 상태에서 `unknown_committer`를 `refuse`로 넘기면 **초기화 뒤 첫 커밋이 하드 실패한다** — 지금은 `report`라 조용히 미귀속으로 통과한다. 순서는 **worktree → 신원을 config로 → `refuse`**였다. 사서 매니저가 2026-09-18에 올렸다.
+    **The record is settled as `seats.json` (2026-09-19, architecture).** P3 says so, the boundaries are already there, and today's price is the value of two places with no comparator. `DESIGN_OWNED` and `AGENT_OF_PATH` are **derived** from a machine-readable boundary table in `seats.json` — `boundaries` currently holds that fact only as prose, so that prose has to become a table, and that file is architecture's. Check 48 **retires when the derivation lands**: derivation makes divergence impossible and a comparator only tells you afterwards. Until then 48 is the net. The §7 tree's row (the second) is still open and the same argument applies without being the same decision — §7 is human prose and carries more than `ALLOWED_PATHS`.
+10. **Worktrees, seat identity and `refuse` — an ordering constraint.** The three interlock and getting the order wrong makes one block another. §6.2.3 says to put the seat identity in the worktree's git config, and **with only one working copy, setting `--local` makes every session's commits go out under that identity.** So that prescription cannot apply before the worktree move, and until then the identity lives only as a command prefix and **disappears with a reset.** Flip `unknown_committer` to `refuse` in that state and **the first commit after a reset hard-fails** — today it is `report` and passes quietly unattributed. The order was **worktrees → identity in config → `refuse`**. The librarian manager raised it on 2026-09-18.
 
-    **2026-09-19에 그 순서의 첫 단계가 영구히 없어졌다 — 사람이 worktree를 주지 않기로 정했다(§11-17).** 그래서 이 항목이 묻던 것(세 단계를 한 번에 넘길지 나눠 넘길지)은 더 이상 질문이 아니고, **남은 질문은 `refuse`가 도달 가능한가**다.
+    **On 2026-09-19 the first step of that order disappeared permanently — the person decided not to give worktrees (§11-17).** So what this item asked (whether to take the three steps at once or separately) is no longer a question, and **the remaining question is whether `refuse` is reachable.**
 
-    **도달 불가능하다. 그리고 이유가 일정이 아니라 구조다.** worktree가 없으면 **한 에이전트의 두 세션이 디스크의 모든 것을 공유한다** — 같은 작업 사본, 같은 `.git/config`, 같은 디렉터리, 같은 `CLAUDE.md`. 그러므로 **디스크의 어떤 것도 둘을 구별할 수 없다.** `--local`을 걸면 모든 세션이 한 신원으로 커밋하고, `extensions.worktreeConfig`는 worktree가 없으면 걸 곳이 없다. 좌석 신원은 **세션의 성질**이고, 세션의 상태가 사는 유일한 자리는 **컨텍스트**이며, 컨텍스트는 초기화된다. `refuse`로 넘기면 **초기화 뒤 첫 커밋이 하드 실패**하고, 그것은 고칠 수 있는 실패가 아니라 **좌석이 자기가 누구인지 다시 들을 때까지 아무것도 못 하는 상태**다.
+    **It is unreachable. And the reason is structural rather than scheduling.** Without worktrees, **two sessions of one agent share everything on disk** — the same working copy, the same `.git/config`, the same directory, the same `CLAUDE.md`. So **nothing on disk can tell them apart.** Set `--local` and every session commits under one identity, and `extensions.worktreeConfig` has nowhere to attach with no worktrees. A seat identity is **a property of a session**, the only place a session's state lives is **context**, and context gets reset. Flip to `refuse` and **the first commit after a reset hard-fails**, and that is not a fixable failure but **a state where the seat can do nothing until it is told again who it is.**
 
-    **그래서 §6.2.2의 한 줄이 되돌아온다.** 2026-09-18에 *"좌석 지정이 사람의 일이라고 했지 좌석을 기억하는 것까지 사람의 일이라고 하지 않았다"*고 적었는데, 그것은 worktree config가 기억을 대신해 줄 것을 전제했다. 그 전제가 없어졌으므로 **초기화된 좌석은 사람에게 자기가 누구인지 다시 물어야 한다.** 그것이 초기화의 실제 비용이고, 지금까지 그 비용이 청구되지 않은 이유는 미귀속 커밋이 **조용히 통과**했기 때문이다.
+    **So one line of §6.2.2 comes back.** On 2026-09-18 it was written that *"seat assignment was said to be a person's job; remembering the seat was not"*, and that presumed the worktree config would stand in for the memory. With that premise gone, **a reset seat has to ask the person again who it is.** That is the real cost of a reset, and the reason that cost has not been billed until now is that unattributed commits **pass quietly.**
 
-    **그리고 그 비용이 얼마인지 2026-09-20에 세어 봤다: 아키텍처 좌석의 커밋 63개가 전부 미귀속이다.** 이 항목을 쓰고 §11-17을 닫고 `seats.json`에 좌석을 내고 남의 미귀속을 지적하는 동안, **그 좌석 자신이 하루 종일 사람 이메일로 커밋했다.** 접두사를 한 번도 안 붙였기 때문이고, 붙이지 않으면 조용히 통과하기 때문이다 — 이 문단이 서술하는 실패의 가장 큰 단일 사례가 이 문단을 쓴 좌석이다.
+    **And on 2026-09-20 that cost was counted: all 63 of the architecture seat's commits are unattributed.** While writing this item, closing §11-17, issuing seats in `seats.json` and pointing out others' unattributed commits, **that seat itself committed under the person's email all day.** Because it never once attached the prefix, and because not attaching it passes quietly — the single largest instance of the failure this paragraph describes is the seat that wrote it.
 
-    **경계는 지켜졌다는 것이 구별할 지점이다.** 그 63개가 만진 것은 `plan.md`·`CLAUDE.md`·`README.md`·`contracts/seats.json` 넷뿐이고 검사 35가 252 커밋 전부에 대해 통과한다. **틀린 것은 어디에 썼는가가 아니라 누가 썼는가이고**, 검사 41이 그것만 본다. 그래서 이 실패는 **작업을 훼손하지 않으면서 기록을 훼손한다** — 조용한 실패의 가장 나쁜 모양이다.
+    **The distinguishing point is that the boundary was kept.** Those 63 touched only four things — `plan.md`, `CLAUDE.md`, `README.md` and `contracts/seats.json` — and check 35 passes on all 252 commits. **What is wrong is not where it wrote but who wrote**, and check 41 looks only at that. So this failure **damages the record without damaging the work** — the worst shape of a quiet failure.
 
-    **소급 수정하지 않는다 — 그리고 이유가 "비싸다"보다 강하다: 이 저장소는 커밋 SHA를 식별자로 쓴다.** 2026-09-20에 세어 보니 `plan.md`·`CLAUDE.md`·`contracts/`·네 `tasks/`에 짧은 SHA 인용이 **124건**이고, 그중 **26건이 실재하는 커밋을 가리킨다** — `seats.json`의 `enforced_from`, `librarian-3`의 `registered_late`가 대는 범위, §8·§11의 근거 수십 개. **커밋터만 고치는 재작성도 그 뒤 모든 커밋의 SHA를 바꾸므로 124건이 전부 죽은 참조가 된다.** 그리고 **아무 검사도 SHA 인용을 확인하지 않으므로 조용히 죽는다** — 검사 47이 좌석 이름에 대해 하는 일을 SHA에 대해 하는 것이 없다. **귀속 공백은 기록돼 있고 보이지만, 깨진 인용은 안 보인다.** 그러므로 재작성이 공백보다 나쁘고, 남는 것은 세어서 적고 앞으로 안 그러는 것이다. 등록이 다음 커밋부터 효력이 있으므로(`librarian-3`의 `registered_late`) 이력을 고쳐 쓰는 것 말고는 방법이 없고, 252 커밋을 다시 쓰는 것은 **남의 작업을 전부 움직인다.** 대신 여기 세어 적고, 앞으로는 커밋마다 접두사를 붙인다:
+    **It is not fixed retroactively — and the reason is stronger than "expensive": this repository uses commit SHAs as identifiers.** Counting on 2026-09-20 found **124** short-SHA citations across `plan.md`, `CLAUDE.md`, `contracts/` and the four `tasks/`, of which **26 point at real commits** — `seats.json`'s `enforced_from`, the range `librarian-3`'s `registered_late` names, dozens of grounds in §8 and §11. **A rewrite changing only the committer changes the SHA of every commit after it, so all 124 become dead references.** And **no check confirms a SHA citation, so they die quietly** — nothing does for SHAs what check 47 does for seat names. **An attribution gap is recorded and visible; a broken citation is not.** So a rewrite is worse than the gap, and what remains is to count it, write it down, and not do it again. Since registration takes effect from the next commit (`librarian-3`'s `registered_late`), there is no way other than rewriting history, and rewriting 252 commits **moves everyone else's work.** Instead it is counted and written here, and from now the prefix goes on every commit:
 
     ```
     GIT_COMMITTER_NAME=architecture GIT_COMMITTER_EMAIL=architecture@seat.invalid \
-      git commit -- <경로>
+      git commit -- <paths>
     ```
 
-    `--local`은 안 된다 — 작업 사본이 하나라 모든 세션이 그 신원으로 나간다. **이 문단이 말하는 그것이고, 이 커밋이 그 접두사로 들어간 첫 번째다.**
+    `--local` will not do — there is one working copy, so every session goes out under that identity. **That is what this paragraph says, and this commit is the first to go in with that prefix.**
 
-**그러므로 `refuse`가 아니라 시끄러운 `report`로 간다.** `unknown_committer`는 `report`로 두되, **훅이 커밋 시점에 미귀속 경로를 이름으로 대고 경고한다.** 하드 실패는 좌석을 막고, 조용한 통과는 비용을 숨긴다. **경고는 막지 않으면서 보이게 한다** — 그리고 오늘 이 저장소가 배운 것이 정확히 그것이다: 세어지지 않는 결핍은 없는 결핍처럼 보인다. 훅은 매니저의 파일이므로 문안을 받아 배정한다.
+**So it goes to a loud `report` rather than `refuse`.** `unknown_committer` stays `report`, and **the hook names the unattributed paths and warns at commit time.** A hard failure blocks a seat and a quiet pass hides the cost. **A warning makes it visible without blocking** — and that is exactly what this repository learned today: a deficiency nobody counts looks like a deficiency that is not there. The hook is the manager's file, so the wording is handed down with the assignment.
 
-    **`refuse`가 다시 열리는 조건도 적어 둔다**: worktree가 돌아오거나(§11-17의 되돌릴 조건), 또는 세션이 자기 신원을 디스크에서 읽을 자리가 생기거나 — 후자는 **한 에이전트당 실행석이 하나뿐일 때만** 가능하고, D12가 실행석을 늘린 것이 그것을 닫았다. **속도를 위해 늘린 것이 귀속을 위해 필요한 것을 가져갔다**, 그리고 그 교환은 되돌릴 수 있는 채로 기록된다.
-9. ~~**S4의 타이브레이크 순서**~~ → **2026-09-19 확정: 고정 순서를 두지 않는다. 목적이 정한다.** 사람이 정했다 — 양보 순서는 이 장비의 성질이 아니라 **그 질문의 성질**이므로 goal 카드가 싣고 온다. 기본 순서도 두지 않는다: 카드가 순서를 싣지 않으면 S4는 **추측하지 않고 사람에게 올린다**(§4.5.1 (c)). 상세는 §4.5.4로 옮겼다. 번호는 비워 둔 채 남긴다.
+    **The conditions for reopening `refuse` are written too**: worktrees come back (§11-17's reversal conditions), or a place appears where a session can read its identity off disk — the latter is possible **only with one execution seat per agent**, and D12 multiplying execution seats closed it. **What was added for speed took what was needed for attribution**, and that trade is recorded as reversible.
+9. ~~**S4's tiebreak order**~~ → **Settled 2026-09-19: no fixed order. The purpose decides.** The person settled it — the concession order is a property of the question rather than of this instrument, so the goal card carries it in. No default order either: if a card carries no order, S4 **does not guess and escalates to the person** (§4.5.1 (c)). The detail moved to §4.5.4. The number is left empty.
+   **It is the same decision as §11-1.** Neither the vocabulary nor the order is fixed in advance; **the question brings it** — so that an unanticipated experiment can be taken. Having chosen the same side twice, it is written down as this repository's disposition: **instead of settling in advance what cannot be settled in advance, settle what to do when it is unsettled.** For the vocabulary that is "register it first", and for the order it is "escalate to the person".
 
-   **§11-1과 같은 결정이다.** 어휘도 순서도 미리 확정하지 않고 **질문이 가져오게** 한다 — 모르는 실험을 받을 수 있게. 두 번 같은 쪽을 고른 것이므로 이 저장소의 성향으로 적어 둔다: **미리 정할 수 없는 것을 미리 정하지 않는 대신, 정해지지 않았을 때 무엇을 할지를 정한다.** 어휘는 "먼저 등재하라", 순서는 "사람에게 올려라"다.
+8. **Registering derived quantities — half closed on 2026-09-19 and half open for want of anything to count.**
 
-8. **유도량의 등록 — 절반은 2026-09-19에 닫혔고 절반은 셀 것이 없어 열려 있다.**
+    **The closed half: derived quantities live in `quantities.json`. The same place as every other quantity.** Neither of the two options this item laid out — the same registry as observables, or a separate one. What appeared today is **a third shape**: `quantities.json` registers what can become a `numbers[].name`, and **`observables.json` is a subset of it** (§7). So the worry about `producible_by` and `window_required` sitting empty on derived quantities disappears — **those fields live on the narrow side, and living on the narrow side is why they exist.**
 
-    **닫힌 절반: 유도량은 `quantities.json`에 산다. 다른 모든 양과 같은 자리다.** 이 항목이 놓은 두 선택지 — 관측량과 같은 레지스트리냐 별도냐 — 중 어느 것도 아니다. 오늘 생긴 것은 **셋째 모양**이다: `quantities.json`이 `numbers[].name`이 될 수 있는 것을 등록하고, **`observables.json`은 그 부분집합**이다(§7). 그래서 `producible_by`·`window_required`가 유도량에 빈 채로 남는 걱정이 사라진다 — **그 필드들은 좁은 쪽에 살고, 좁은 쪽에 사는 것이 그 필드들이 있는 이유다.**
+    **And comparing the two lists did turn out to be needed, but it is one comparison with a direction: inclusion.** Every observable id has to be a registered quantity. Not synchronisation but one-way inclusion, so it is cheap. **And it does not hold today** — neither `tracer_diffusivity` nor `trapped_position_distribution` is in `quantities.json`. The registry started at nine and held only what is actually used as `subject:quantity`, and the observables did not go in. **What I wrote in §7 — "every observable is a quantity and not the reverse" — is a true statement about kinds and false about the files, and the reader reads the files.** It is issued as check 60.
 
-    **그리고 두 목록을 대조하는 일은 실제로 생겼지만 하나이고 방향이 있다: 포함.** 모든 observable id는 등록된 quantity여야 한다. 동기화가 아니라 한쪽 포함이라 싸다. **그런데 오늘 성립하지 않는다** — `tracer_diffusivity`와 `trapped_position_distribution` 둘 다 `quantities.json`에 없다. 레지스트리가 아홉으로 시작하면서 `subject:quantity`로 실제 쓰이는 것만 담았고, 관측량은 거기 안 들어갔다. **§7에 제가 쓴 "모든 observable은 quantity이고 역은 아니다"는 종류에 대한 참인 문장인데 파일에 대해서는 거짓이고, 읽는 쪽은 파일로 읽는다.** 검사 60으로 낸다.
+    **The open half: what catches the same quantity living under two names — there is nothing to count right now.** There are **two** derived quantities (`tau_d`, `tracer_number_density_from_diameter`), **their dimensions differ**, and the `tau_a`/`tau_d` case that produced this item is resolved with only one left. **Designing a duplicate detector from zero collisions is what §11-12 did**, and §8 wrote that as a rule today: **when you think you have found a class, count.**
 
-    **열린 절반: 같은 양이 두 이름으로 사는 것을 무엇이 잡는가 — 지금 셀 것이 없다.** 유도량이 **둘**이고(`tau_d`, `tracer_number_density_from_diameter`) **차원이 다르며**, 이 항목을 낳은 `tau_a`/`tau_d` 사례는 하나만 남아 해소됐다. **충돌 0건에서 중복 탐지기를 설계하는 것이 §11-12가 한 일**이고 오늘 §8이 그것을 규칙으로 적었다: **부류를 찾았다고 생각하면 세라.**
+    **So instead of a design there is a countable trigger: reopen this item when two registered quantities have the same dimension.** Then it is opened by a count rather than a judgement, and the shape is set from the real case at that moment. There is currently no pair with overlapping dimensions.
 
-    **그래서 설계 대신 셀 수 있는 방아쇠를 둔다: 등록된 양 둘이 같은 차원을 가질 때 이 항목을 다시 연다.** 그때는 판단이 아니라 계수가 열고, 그 시점의 실제 사례로 모양을 정한다. 지금 차원이 겹치는 쌍은 없다.
+### 11.1 Not open questions but M1 extraction tasks
 
-### 11.1 미결이 아니라 M1의 추출 과제
+The following two are not "things to be decided" but **things pulled out of a prior repository**, and they were extracted on 2026-09-17 (§10.2's device registry row, §10.3):
 
-다음 둘은 "정해야 할 것"이 아니라 **이전 저장소에서 꺼내 온 것**이며, 2026-09-17에 추출했다(§10.2의 장치 레지스트리 행, §10.3):
+- **Automatability per device** → `librarian_agent/kb/staging/devices.v0.json` (12 control channels)
+- **The list of valid optical paths** → `librarian_agent/kb/staging/optical_paths.v0.json` (5 configurations + 1 exclusion rule)
 
-- **장치별 자동화 가능 여부** → `librarian_agent/kb/staging/devices.v0.json` (제어 채널 12개)
-- **유효 광경로 목록** → `librarian_agent/kb/staging/optical_paths.v0.json` (구성 5개 + 배타 규칙 1개)
+**Why they are in `kb/staging/` and not `envelope/`**: device characteristics and optical paths are **knowledge**, and knowledge is owned by the librarian (P14, §4.3.2). `envelope/` holds only policy (safety limits) and **snapshots exported from the librarian's KB.** Snapshot export is M3's work, so until then the microscope agent reads these files by the direct read §4.3.0 permits.
 
-**`envelope/`가 아니라 `kb/staging/`에 둔 이유**: 장치 특성과 광경로는 **지식**이고, 지식은 사서가 소유한다(P14, §4.3.2). `envelope/`는 정책(안전 한계)과 **사서 KB에서 내보낸 스냅샷**만 담는다. 스냅샷 내보내기는 M3의 일이므로, 그때까지 현미경 에이전트는 §4.3.0이 허용하는 직접 읽기로 이 파일을 본다.
+**The storage form is not final.** The two files are flat tables and do not keep "one entry = one atomic claim" (§4.3). That was intended — the right decomposition depends on **how it will be queried**, and there was no querying side. Splitting into forty entries now would fix a shape on top of a guess.
 
-**저장 형태는 최종이 아니다.** 두 파일은 평평한 표이고, "한 entry = 한 원자적 주장"(§4.3)을 지키지 않는다. 의도된 것이었다 — 올바른 분해는 **어떻게 질의될지**에 달려 있고, 질의하는 쪽이 없었다. 지금 마흔 개 entry로 쪼개면 추측 위에 형태를 고정하게 된다.
+**That condition was released on 2026-09-17.** With `kb_query`'s argument shape and an entry's `validity` settled (§4.3.1) there is something to decompose against, and the reordering made the librarian first (§9). **Decomposition is the second task after M3's first, and the criterion is one: can this claim become wrong on its own.** A channel that goes quietly wrong with one rewiring is an entry in itself, and things that go wrong together are one entry. Until decomposed, these files sit in `staging/` and cannot be cited as a `kb:` source — because a `kb:` citation has to resolve to an entry with a grade. By the time the microscope needs these tables (position 2 in the order) they have to be entries already, and that is what the reordering buys.
 
-**2026-09-17에 그 조건이 풀렸다.** `kb_query`의 인자 모양과 entry의 `validity`를 확정했으므로(§4.3.1) 분해할 대상이 생겼고, 순서 재배열로 사서가 첫 번째가 됐다(§9). **분해는 M3의 첫 작업 뒤에 오는 두 번째 작업이고, 기준은 하나다: 이 주장이 혼자 틀려질 수 있는가.** 재배선 한 번에 조용히 틀려지는 채널 하나는 그 자체로 entry이고, 함께 틀려지는 것들은 한 entry다. 분해되기 전까지 이 파일들은 `staging/`에 있고 `kb:` 출처로 인용될 수 없다 — `kb:` 인용은 등급을 가진 entry로 해소돼야 하기 때문이다. 현미경이 이 표를 필요로 하는 시점(순서 2번)에는 이미 entry가 돼 있어야 하고, 그것이 재배열로 얻는 것이다.
+**On the numbering.** The list below **counts from 1 again.** Before this it continued §11's open-question numbers as 7–11, and as a result `§11-9` read as "open question 9" — a number that does not exist. That reference had in fact gone into `capabilities/microscope.json` as grounds, and this document repeated it once too. **The items in §11 are open questions and the items here are extraction rules.** The two lists do not continue each other.
 
-**번호에 대하여.** 아래 목록은 **1부터 다시 센다.** 그전에는 §11의 미결 질문 번호를 이어받아 7–11로 적혀 있었고, 그 결과 `§11-9`가 "미결 질문 9번"으로 읽혔다 — 존재하지 않는 번호다. 실제로 그 참조가 `capabilities/microscope.json`에 근거로 들어가 있었고, 이 문서도 한 번 그것을 되풀이했다. **§11의 항목은 미결 질문이고, 여기 항목은 추출 규칙이다.** 두 목록은 이어지지 않는다.
-
-**추출에서 지킨 것:**
-1. **소비자가 읽는 필드만.** 모든 필드에 "S3.0 / A4 / orchestrator 락 / O1 preflight 중 누가 이걸 읽나"를 물었고, 읽는 곳이 없는 필드는 버렸다 — 부품번호, 시리얼, 펌웨어, 스펙트럼 대역표, 사실별 검증 날짜, 그리고 각 사실이 정정·철회·재확인된 서술. **읽는 사람이 없는 필드는 아무도 모르게 낡는다.**
-2. **등급 상한 E3** (§10.3 규칙 1).
-3. **안전 한계는 추출하지 않았다** (규칙 4). 사람이 물리적으로 확인한 뒤 `envelope/safety.json`에 직접 쓴다.
-4. **검출 경로를 나르는 포트 위치는 일부러 안 가져왔다.** 이전 저장소에 적혀 있지만 그것은 재배선 한 번에 조용히 틀려지는 정수 하나다. gap으로 남겼다.
-5. **모른다고 적었다.** 운영자가 말했지만 대장에 없는 셋(모터라이즈드 XY 스테이지, 스피닝 디스크 속도·in/out, 별도 레이저 셔터)은 추측하지 않고 `gaps`에 넣었다.
+**What was kept in the extraction:**
+1. **Only fields a consumer reads.** Every field was asked "which of S3.0 / A4 / the orchestrator's locks / O1 preflight reads this", and fields with no reader were dropped — part numbers, serials, firmware, spectral band tables, per-fact verification dates, and narratives of each fact being corrected, retracted and re-confirmed. **A field with no reader goes stale with nobody knowing.**
+2. **An E3 grade ceiling** (§10.3 rule 1).
+3. **Safety limits were not extracted** (rule 4). A person confirms physically and writes them directly into `envelope/safety.json`.
+4. **The port positions carrying the detection paths were deliberately not taken.** They are written in the prior repository, and that is one integer that goes quietly wrong with one rewiring. Left as a gap.
+5. **What is unknown was written as unknown.** Three things the operator mentioned that are not in the register (the motorised XY stage, the spinning disk's speed and in/out, a separate laser shutter) were put in `gaps` rather than guessed.
 
 ---
 
-## 12. 이관 대기 사실
+## 12. Facts awaiting transfer
 
-KB가 아직 없으므로(pre-M0) 사람이 준 사실을 임시로 모아 둔다. **사서 마일스톤(M3, 실행 순서 1번)에서 각 항목은 출처와 등급을 갖춘 KB entry가 되고, 이 절은 비워진다** — 그것이 M3의 완료 조건 하나다(§9). 여기 있는 동안 이 값들은 계획의 근거가 될 수 없다(P2, P14).
+With no KB yet (pre-M0), facts the person supplied are collected here temporarily. **At the librarian milestone (M3, first in execution order) each item becomes a KB entry with a source and a grade and this section is emptied** — that is one of M3's completion conditions (§9). While they are here, these values cannot be the grounds of a plan (P2, P14).
 
-| 사실 | 미정인 것 | 왜 중요한가 |
+| Fact | What is undecided | Why it matters |
 |---|---|---|
-| 실험실 온도 20 °C | **설정값인가 측정값인가**, 그리고 변동 폭(±?)과 측정 위치(실내 / 시료 근처) | 온도는 두 경로로 들어온다: `k_BT`와 `η(T)`. 20 °C 부근에서 물의 점도는 대략 **℃당 2 % 남짓** 변하므로, ±1 °C 변동은 `τ_D`에 같은 크기의 변화를 만든다. 탐색 모드(§5.8)에서는 자릿수를 바꾸지 않으므로 무시할 수 있고, 확인 모드에서는 무시할 수 없다 — 그래서 설정값이 아니라 **시료 근처의 실제 값과 변동 폭**이 필요하다 |
+| Laboratory temperature 20 °C | **is it a setpoint or a measurement**, plus the variation (±?) and the measurement location (room / near the sample) | Temperature enters by two routes: `k_BT` and `η(T)`. Around 20 °C water's viscosity changes by roughly **2% per °C**, so a ±1 °C variation makes a change of the same size in `τ_D`. In explore mode (§5.8) it does not change the order of magnitude and can be ignored; in confirm mode it cannot — so what is needed is not a setpoint but **the actual value near the sample and its variation** |
 
-이 표의 형식 자체가 규칙이다: 사람이 숫자를 주면 값만 적지 않고 **무엇이 아직 미정인지**를 함께 적는다. "20 °C"는 그 자체로는 설정값인지 측정값인지 알 수 없고, 등급(E2인가 E5인가)이 거기서 갈린다.
+The form of this table is itself a rule: when a person gives a number, do not write the value alone but write **what is still undecided** with it. "20 °C" on its own cannot say whether it is a setpoint or a measurement, and the grade (E2 or E5) turns on exactly that.
