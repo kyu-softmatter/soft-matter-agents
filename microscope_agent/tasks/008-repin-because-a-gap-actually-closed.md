@@ -85,21 +85,31 @@ the vendor's published spectra are wrong. That question is with
 manager-librarian and the person; nothing here depends on its outcome, since
 λ comes from the filter and not from the dye.
 
-**And the pin is currently split.** `a1` sits at `kbv-67f9ad766d92` while
-`a2`–`a6` sit at `kbv-49feb73662b7`, six commits apart — found by the
-librarian seat. Check 33 wants siblings to agree, so this is a second reason
-the five move in one commit rather than one reason with a consequence.
+**The pin is no longer split — an earlier revision of this card said it was.**
+`a1` did sit at `kbv-67f9ad766d92` while the others sat at `kbv-49feb73662b7`.
+It does not now: all seven axis cards read `kbv-49feb73662b7` and check 33
+PASSes over 19 axis cards. The two other version strings still in the
+directory are narrative — `goal.json`'s note recording what it was re-pinned
+*from*, and a note in `a6`. **Do not go looking for a split.** Reported by a
+restarted execution session that read the tree before reading this card.
 
-**Re-read `librarian_agent/kb/index.json` immediately before you commit.** If
-it has moved, do not silently re-target: stop, and report which version it is
-now and whether the delta touches anything you asked. This instruction exists
-because the card that did not carry it named a version that was stale four
-minutes later, and the store has moved several times since.
+**Card 006 is discharged and this card's preconditions are met.** Check 49
+passes over 31 absent gaps, each carrying `near_names`; check 45 passes with
+seven cards whose service calls the log carries. The pixel sizes are in the
+store, and so is the wavelength A6 needs — `filter_ff01_595_31_32_passband`,
+**579.5–610.5 nm** at `spec:` E3, with which position is the red arm at
+`prior_run:` E3 from the prior project's own measurement. **Nothing is
+waiting on anything else. This card is runnable.**
 
-Moving to whatever is current at commit time is acceptable here, unlike in
-006 — the point is to reach a version where the pixel entries and the emission
-wavelength exist, not a particular one. What is not acceptable is the card and the commit disagreeing
-about which version that was.
+**What the re-pin is now expected to close**, so the report can be checked
+against it rather than accepted:
+
+- **A6's diffraction limit.** NA is E3 for six objectives and λ is E3, so the
+  interval is E3 — evaluate it at **both edges of the band**, not at a centre.
+- **A6's `effective_pixel_size`**, against the twelve calibrated entries.
+- Whatever else the seventeen entries added since the pin answer. Ask every
+  gap again; a gap that stays `absent` only because nobody re-asked is the
+  false absence check 49 exists to catch.
 
 ## Why this is separate from 006, and what that costs
 
