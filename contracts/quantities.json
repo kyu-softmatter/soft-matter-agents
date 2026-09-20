@@ -119,15 +119,8 @@
   ],
   "not_yet_registered": {
     "why": "Names in use that this file deliberately does not bless yet.",
-    "pending_015": [
-      "tracer_particle_density",
-      "tracer_stock_concentration",
-      "tracer_storage_temperature_min",
-      "tracer_storage_temperature_max",
-      "emission_wavelength",
-      "excitation_wavelength"
-    ],
-    "pending_015_reason": "All six carry the product identification withdrawn on 2026-09-19 (task 015), and four of them put the subject in the name, which rule 1 refuses. Registering them now would bless both at once. They come back when 015 settles what they are about and what they are called.",
+    "pending_015": [],
+    "pending_015_reason": "RELEASED 2026-09-19. The six ids listed here were deferred because they carried the product identification withdrawn by task 015 and four put the subject in the name. Both conditions are gone: 015 was superseded and reversed, and 017 renamed them -- none of the six strings exists in the store any more, they are now abvigen_product_*. The deferral was waiting on a task that was itself withdrawn, which nothing would have noticed: a block whose release condition can no longer occur reads exactly like a block still in force. Found by the execution seat verifying 017 rather than by anything here. They are not registered instead of deferred, because the growth rule is unchanged -- one entry when a question needs one -- and nothing has asked for these by name.",
     "plan_parameters": "Roughly half the 55 names in use are one agent's planning knobs -- save_interval_max, box_margin_factor, lag_to_record_ratio, storage_estimate. They follow the same rules and are registered when a question needs the name to mean one thing across a boundary, which for a knob is rarely."
   }
 }

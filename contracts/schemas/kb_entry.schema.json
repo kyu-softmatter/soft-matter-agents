@@ -159,6 +159,20 @@
       },
       "description": "contradictory entries are both kept and marked, never merged (4.3)"
     },
+    "refuted_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Entries that DISPROVE this one. Not `conflict_with`, which says two claims disagree and leaves the caller to decide by conditions -- that is the right shape when both could be true somewhere, and the wrong one when an observation on this bench showed a published value false here. Not `supersedes` either: nothing replaced this entry, it is simply wrong.\n\nAdded 2026-09-19 for the vendor's 620/680, which two independent measurements on two instruments contradict. Marked as a conflict, kb_conflicts told the caller to pick -- and picking is exactly what there is no longer a choice about.\n\n**The entry stays and its grade does not move.** Rule 8 keeps it so the next person who finds the data sheet meets a record that it was examined; and the grade derives from the source (check 43), so a vendor specification is E3 whether or not it is refuted. A refuted E3 is still an E3 -- which is the whole reason this field has to exist rather than being expressed as a regrade. What changes is not how good the evidence is, it is whether the claim is true here.\n\nWhatever serves this store must carry it in the projection a caller actually reads, beside grade and claim. 21c5325 fixed conflict_with being computed and left out of kb_query's fourteen fields; a refutation nobody sees is the same defect with higher stakes."
+    },
+    "refutes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The other side of `refuted_by`, on the entry doing the disproving. Both directions are written so a caller arriving from either end sees it, the way conflict_with is symmetric."
+    },
     "curated_by": {
       "type": "string",
       "description": "who put it here. Until M3 that is a person, not the librarian agent."

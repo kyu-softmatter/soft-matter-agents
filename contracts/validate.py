@@ -2813,8 +2813,11 @@ def check_44_subject_resolves(b: Bundle) -> list[Finding]:
     # check said so. The union is the expand step: a declared id resolves even
     # with no number of that name yet, and a de facto name still resolves while
     # contracts/quantities.json is being populated. The contract step -- drop
-    # the de facto half and require declaration -- waits on task 015, which
-    # owns six ids this file deliberately does not bless yet.
+    # the de facto half and require declaration -- was written as waiting on
+    # task 015, which was then withdrawn: the condition could no longer occur
+    # and a comment saying "waits on 015" read as a live block. It waits on
+    # nothing now except the registry covering the names in use, and the
+    # de facto half is the half that lets an entry be its own registry.
     declared_quantities: set[str] = set()
     _qreg = CONTRACTS / "quantities.json"
     if _qreg.exists():

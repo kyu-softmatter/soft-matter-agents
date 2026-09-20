@@ -68,13 +68,24 @@ Your §10.2.1 rulings were right and I am recording them as accepted:
 
 ## CONSTRAINTS
 
-- **Do not let the diameter come back as E3.** `bead_diameter` / `tracer_diameter`
-  gets weak support, not resolution. The simulation's `assumed:` 2 µm and the
-  microscope's `operator_recall:` 5 µm are still a live disagreement.
-- The person also stated **5 µm with CV within 2%**. The source is still being
-  asked for, so **do not grade it yet**. Note the shape though: the CV is an
-  interval, not a point value — upper bound, dimensionless, needs a `basis`.
-  And CV is lot-dependent, which the prior repository's own file says out loud.
+- ~~Do not let the diameter come back as E3 — it gets weak support, not
+  resolution.~~ **STALE, corrected 2026-09-19.** That was written before the
+  person measured it at 19:41: **5 µm, CV within 2%, `calibration:` E2**
+  (`48f8239`, §11-13). It is higher than the E3 a lot number would have given,
+  and because it is an **instance** measurement it **does not pass through the
+  E5 link** — it is about this bottle directly. So the diameter is resolved,
+  and the simulation's `assumed:` 2 µm is now disagreeing with an E2.
+  The execution seat caught that this file was written after the measurement
+  and still carried the old constraint.
+- **The diameter entry does not exist yet, and that is a P14 inversion** —
+  `plan.md` holds a fact `kb/entries/` does not. It was blocked on
+  `calibration:` requiring a `validity` that an instance-scoped measurement has
+  no interval shape for; **that is fixed as of `a675c4e`**: a `sample` subject
+  now satisfies the requirement, because the instance is the subject rather
+  than a condition. File it.
+- The CV is an interval, not a point value — upper bound, dimensionless, needs
+  a `basis`. CV is lot-dependent, which the prior repository's own file says
+  out loud, so `valid_until` carries the lot event.
 - Record the reversal itself. Rule 8's spirit applies to tasks: what was
   decided, on what evidence, and what overturned it.
 
