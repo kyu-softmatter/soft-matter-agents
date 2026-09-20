@@ -124,24 +124,36 @@ class Bundle:
 UNITS = json.loads((CONTRACTS / "units.json").read_text())
 LIMITS = json.loads((CONTRACTS / "validation_limits.json").read_text())
 
-# WHICH FILE IS THE DESIGN DOCUMENT OF RECORD. Settled 2026-09-20: Korean is
-# the canonical text and `plan.md` becomes a generated English rendering of
-# `plan_ko.md`. Three checks read the document directly -- 42 reads section 8,
+# WHICH FILE IS THE DESIGN DOCUMENT OF RECORD. `plan.md`, in English like
+# everything else here. Three checks read it directly -- 42 reads section 8,
 # 51 reads section 11, 55 reads section 7 -- and each names the file in its
-# own findings, so a rename with the name resolved three times is a rename
-# that half-lands.
+# own findings.
 #
-# ALLOWED_PATHS and SHARED_PATHS carry the new name BEFORE the file exists,
-# which is 7.1 rule 9's order: allowed alone leaves a path `unattributable`
-# and check 41 then refuses every seat, so the rename has to arrive after the
-# validator can both permit and attribute it. Doing it the other way reddens
-# the repository for as long as the two halves are apart.
+# THE PREFERENCE WAS THE OTHER WAY UNTIL 2026-09-20 AND HAD TO BE TURNED.
+# For a few hours the Korean text was canonical and `plan.md` a generated
+# rendering, so this line preferred `plan_ko.md` by mere existence. Then
+# architecture made `plan.md` the record and `8d61a3a` took the Korean out of
+# version control -- untracked and .gitignore'd, NOT deleted. Preference by
+# existence then picked a file that is in no commit:
 #
-# THE FALLBACK IS ANNOUNCED, NOT SILENT. Which file was read prints beside the
-# verdict, for the reason the tree line prints: a run that quietly read a
-# different file than the reader assumes is the shape 8.2 refuses, and the
-# defect is never the fallback itself, it is not saying so.
-DESIGN_DOC_NAME = "plan_ko.md" if (REPO / "plan_ko.md").exists() else "plan.md"
+#   a bare run in this working copy   -> plan_ko.md, stale, gitignored
+#   the commit gate                   -> plan.md, because the gate unpacks the
+#                                        INDEX to a scratch tree and an
+#                                        untracked file is not in the index
+#   a fresh clone, and anyone else    -> plan.md
+#
+# Two documents of record chosen by whether an ignored file happens to sit in
+# your checkout, and the stale one still said in its own section 0 that Korean
+# was canonical. The migration that made check 42 read either document was
+# verified against a DELETED plan_ko.md (`b0ca1bc`), which is true of a clone
+# and false here, and that gap is the whole defect: untracking is not deleting.
+#
+# THE FALLBACK IS ANNOUNCED, NOT SILENT, and it now says when the Korean copy
+# is present but out of version control -- an editor who opens the wrong file
+# gets no other warning. A run that quietly read a different file than its
+# reader assumes is the shape 8.2 refuses: the defect is never the fallback,
+# it is not saying which way the fallback went.
+DESIGN_DOC_NAME = "plan.md" if (REPO / "plan.md").exists() else "plan_ko.md"
 DESIGN_DOC = REPO / DESIGN_DOC_NAME
 
 KB_DIR = REPO / "librarian_agent" / "kb"
@@ -4516,21 +4528,31 @@ def run(roots: list[Path], include_rejected: bool = False, commit_range: str | N
 def describe_design_doc() -> str:
     """Which design document this run read, said out loud every time.
 
-    `plan_ko.md` is the canonical text and `plan.md` becomes a generated
-    English rendering of it (settled 2026-09-20). Until the rename lands, the
-    name resolves to whichever exists, and three checks -- 42, 51, 55 -- read
-    it. A run that quietly read a different file than its reader assumes is
-    the shape 8.2 refuses: the defect is not the fallback, it is not saying
-    which way the fallback went. Same reason the tree line exists.
+    `plan.md` is the record. `plan_ko.md` was canonical for a few hours on
+    2026-09-20 and then left version control without leaving the disk, so a
+    working copy can still hold it -- and a reader who opens it gets a stale
+    document with no sign that it is one. Saying so here is the only warning
+    there is. Same reason the tree line exists.
     """
     other = "plan.md" if DESIGN_DOC_NAME == "plan_ko.md" else "plan_ko.md"
     if not DESIGN_DOC.exists():
         return (f"design: neither {DESIGN_DOC_NAME} nor {other} is in this tree, so sections 7, 8 "
                 "and 11 were read from nothing")
-    if (REPO / other).exists():
-        return (f"design: {DESIGN_DOC_NAME}, the document of record; {other} is also present and "
-                "was not read")
-    return f"design: {DESIGN_DOC_NAME}, which is the only one present"
+    if not (REPO / other).exists():
+        return f"design: {DESIGN_DOC_NAME}, which is the only one present"
+    # Tracked or not changes what the other file IS: a second document, or a
+    # leftover that no clone has and nothing updates.
+    import subprocess
+    try:
+        tracked = subprocess.run(["git", "-C", str(GIT_REPO), "ls-files", "--error-unmatch", other],
+                                 capture_output=True, text=True).returncode == 0
+    except OSError:
+        tracked = True
+    if not tracked:
+        return (f"design: {DESIGN_DOC_NAME}, the document of record; {other} is also present, is "
+                "in no commit, and was not read -- editing it changes nothing")
+    return (f"design: {DESIGN_DOC_NAME}, the document of record; {other} is also present and "
+            "was not read")
 
 
 def describe_tree(staged: bool = False) -> str:
