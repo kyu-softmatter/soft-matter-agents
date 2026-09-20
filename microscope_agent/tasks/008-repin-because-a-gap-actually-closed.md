@@ -48,40 +48,42 @@ The store is at **`kbv-c7b156160a3a`** as of this card, 42 entries — and it
 is about to hold one more thing this fan-out needs, which is the wait
 condition below.
 
-**The wavelength is not settled, and an earlier revision of this card said it
-was. Read this before using either number.**
+**The wavelength is a band, and that is the right shape for A6.** The prior
+project's records give it: the red arm is **position 3, FF01-595/31**, passing
+**579.5–610.5 nm**. λ is not a peak and must not become one on the way into a
+card — their file says it outright, *four bandpasses bracket a band, they do
+not locate a peak*, and it is why they named a TRITC stand-in rather than
+inventing a number from the bracket.
 
-What happened, because the shape of the error matters more than the fact of
-it. The person said 555/605 came from the instrument; asked to narrow it, the
-options this seat offered named a *filter cube*, and that word was **this
-seat's, not theirs**. They picked the nearest option. The card then recorded
-`operator_read:` E3 on a filter passband and reasoned from it — including a
-loud claim that a dye emitting at 680 could not be seen through a filter
-passing 605, so the bead and the cube did not go together.
+**So do not write 605.** Evaluate the diffraction limit at both edges of the
+band. λ/(2·NA) at 579.5 and at 610.5 **is an interval**, which is what an axis
+returns anyway — an axis states a range and does not choose inside it
+(§4.5.2). A band is a better input here than a peak would have been, not a
+worse one.
 
-**That claim is withdrawn.** The cube holds a **multiband** filter. Its
-`555/605` marking names bands it passes, plural — not the band in use — and a
-multiband cube may pass a red window too, so nothing in it contradicts a
-680 nm dye. The inference was built on a single-band assumption this seat
-supplied and never checked.
+**Which position is the red arm was measured, not inferred.** They ran the red
+bead through all four single-band positions: 589–610 nm gave the strongest
+signal, and two anti-Stokes bands blueward of the excitation read 0.4% and
+establish the floor, so the numbers are quantitative rather than impressions.
+That is `prior_run:` E3 about **their** bench and does not cross as an SNR
+number for ours — but it does settle which position the red arm is.
 
-**The band is selected further down: single-band filters sit in the filter
-wheel.** So the wavelength A6 needs is the **single-band emission filter used
-for the red beads**, and it is a different fact from anything on the cube.
-The store's `emission_wheel_camera_mapping` says there are two wheels, first
-serving the red camera and second the blue — `operator_recall:` at **E5**,
-hedged with *probably*, so it does not settle which wheel or which position.
+**Two things the person still owes, and only one is about λ.** The
+position-to-part pairing over there was **inferred from the wheel label naming
+the excitation line**, not confirmed against the engraving — a downgrade
+condition under §10.2.1, and the same confirmation step already on the
+operator list. Until then the band is `prior_run:` with a continuity
+assumption on top. *Which* position is the red arm is measured; *which part*
+sits in it is not.
 
-**So A6 still abstains on `emission_wavelength`, and its `missing` should name
-the filter wheel band rather than the dye's peak.** Neither 680 (the dye's
-emission, `spec:` E3, a product-family fact) nor 605 (a multiband cube
-marking) is the number. The librarian has been asked for the prior project's
-filter records, which the person says exist; that request goes through §10.2.1
-like any other transfer.
-
-**A1's abstention does not change after all.** It stays *no number for
-`tracer_brightness`*. The "may produce no signal at all" reading was the same
-withdrawn inference and must not be carded.
+**And the earlier alarm in this card was wrong twice over.** It claimed a
+680 nm dye could not be seen through this path. Their measurement shows the
+red bead giving SNR 18.6 at 589–610 and 14.0 at 677–701 — visible in both,
+one broad emitter. They reached our exact observation and concluded the
+opposite of what this card had: that the product identification is right and
+the vendor's published spectra are wrong. That question is with
+manager-librarian and the person; nothing here depends on its outcome, since
+λ comes from the filter and not from the dye.
 
 **And the pin is currently split.** `a1` sits at `kbv-67f9ad766d92` while
 `a2`–`a6` sit at `kbv-49feb73662b7`, six commits apart — found by the
