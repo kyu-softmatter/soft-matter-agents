@@ -53,7 +53,7 @@
   "$defs": {
     "limit": {
       "type": "object",
-      "description": "A ceiling. value and unit only: this is a decision, not a measurement, so it carries no source and no grade -- P2's four parts describe a claim about the world, and a policy is not one. What it does carry is `confirmation` -- not a grade, but the record of whether anyone physically checked this particular ceiling (10.3 rule 4, tightened 2026-09-19).",
+      "description": "A ceiling. value and unit only: this is a decision, not a measurement, so it carries no source and no grade -- P2's four parts describe a claim about the world, and a policy is not one. What it does carry is `confirmation` -- not a grade, but the record of whether anyone physically checked this particular ceiling (10.3 rule 4, tightened 2026-09-19). As of 2026-09-20 a limit is EITHER a constant (`value`+`unit`) OR a lookup (`resolved_from`), never both and never neither. The two guard different events: a constant backstop catches a run that has already gone wrong, and a resolved ceiling binds in ordinary operation, every time. One file held only the first shape, so the second was being written as a number that was right for one objective.",
       "properties": {
         "value": {
           "type": "number",
@@ -126,14 +126,69 @@
               "additionalProperties": false
             }
           ]
+        },
+        "resolved_from": {
+          "type": "object",
+          "description": "A bound that is a LOOKUP rather than a constant. Added 2026-09-20 for the objective focus ceiling: the rule is `do not drive past the working distance of the objective in use`, and there is no single number for it -- the six objectives on this stand run from 20 mm to 130 um, a factor of 150. Writing one number would be right for one lens and wrong for five.\n\n**This does not put knowledge into envelope/safety. 10.3 rule 4 stands.** What the person writes is the POLICY -- that focus is the ceiling -- and that is a decision only they can make. The numbers stay in the store as graded vendor facts and are resolved at preflight. Nothing crosses; the limit names where to look instead of copying what is there, which is the same reason an envelope holds a snapshot rather than the store.\n\n`confirmation` is still required and still means what it meant. For a resolved limit, `physical` says someone checked that the catalogue value is where this lens actually focuses on this bench; `carried_over` says it is the catalogue's word and nobody has checked. Those are different states and the second is the honest one until someone does it.",
+          "properties": {
+            "quantity": {
+              "type": "string",
+              "description": "the quantity name the bound reads, e.g. working_distance"
+            },
+            "keyed_by": {
+              "type": "string",
+              "minLength": 10,
+              "description": "what selects which value -- the configuration or part that is in use"
+            },
+            "note": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "quantity",
+            "keyed_by"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
-        "value",
-        "unit",
         "confirmation"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "$comment": "A constant ceiling or floor.",
+          "required": [
+            "value",
+            "unit"
+          ],
+          "not": {
+            "required": [
+              "resolved_from"
+            ]
+          }
+        },
+        {
+          "$comment": "A bound resolved per configuration from the store.",
+          "required": [
+            "resolved_from"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "value"
+                ]
+              },
+              {
+                "required": [
+                  "unit"
+                ]
+              }
+            ]
+          }
+        }
+      ]
     },
     "target": {
       "type": "object",
