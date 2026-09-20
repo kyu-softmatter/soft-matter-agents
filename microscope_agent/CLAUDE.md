@@ -75,13 +75,20 @@ Not from here. This agent keeps **records** (`questions/`, `runs/`) and
 and cannot write here (D11), so **this session copies the export into its own
 `envelope/snapshot.json`**. The copy is deliberate: which KB version entered
 this agent's envelope, and when, is then a fact in this agent's own commit
-history. **Check 26 does not yet do this, whatever it sounds like.** It is a
-stub: it returns PENDING whether a snapshot is present or absent, so a
-diverged copy passes today exactly as a sound one does. Until it is
-implemented, verify the copy yourself — each entry's text hashing to its own
-`sha256`, each matching the store file byte for byte, `snapshot_hash`
-recomputing, `kb_version` agreeing with `index.json` — and say in your commit
-that you did, because nothing else will.
+history. **Check 26 does this now.** It was a stub when this paragraph was first
+written — it returned PENDING whether a snapshot was present or absent, so a
+diverged copy passed exactly as a sound one did, and the instruction here was
+to verify the copy by hand. That is no longer needed. It reads each entry's
+embedded text against `git show <built_from_commit>:librarian_agent/kb/
+entries/<id>.json` and each table against the file its `from` names, against
+that commit rather than against HEAD, so an older envelope stays honest.
+Today it reports `1 envelope snapshots hold the bytes the commit they name
+holds` — this agent's is its first consumer.
+
+What it still does **not** recompute is `snapshot_hash` or the per-part
+sha256s; both need the exporter's canonical form, and restating that here
+would put one rule in two places. Comparing the text against the committed
+bytes subsumes them.
 
 **Copy only bytes that are committed.** If the export is modified in the
 working copy, wait. A snapshot built from uncommitted bytes has no commit
