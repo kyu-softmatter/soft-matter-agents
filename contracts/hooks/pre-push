@@ -1,0 +1,220 @@
+#!/bin/sh
+# Refuse a push whose commits cross a session boundary, or whose generated
+# English plan.md is stale against the Korean original, or whose README has
+# stopped naming what the repository contains.
+#
+# WHY A SECOND GATE AT ALL. pre-commit judges one commit and can be skipped
+# with --no-verify, which leaves no trace. Its own comment names the remedy --
+# "the durable catch is running check 35 over a pushed range after the fact"
+# -- and after the fact is the part this replaces: a boundary crossing found
+# in pushed history is an archaeology problem, and found here it is an
+# unpushed commit. Nothing new is enforced. What changes is when.
+#
+# WHY IT REFUSES RATHER THAN UPDATES. The ask was that plan.md, plan_ko.md and
+# README go out current, and updating them is the obvious reading. A hook
+# cannot do it: rendering Korean design prose into English needs a model, and
+# P0 puts no model in a gate. Deterministic code can only compare and refuse.
+# So this says "these are out of step, here is the command" and stops.
+#
+# WHAT IT DOES NOT LOOK AT, said here because a gate that implies more than it
+# checks is worse than no gate:
+#   - whether the English rendering is a CORRECT translation. It compares a
+#     recorded hash of the source. A wrong translation of the right revision
+#     passes.
+#   - whether README's prose is true. It checks that every top-level entry is
+#     named and that relative links resolve. A README that names everything
+#     and describes it wrongly passes.
+#   - the content checks (1-34, 36-65) on the pushed tip. pre-commit judged
+#     each commit as it was made; re-judging them here would refuse a push for
+#     a failure that is already in history and cannot be fixed by not pushing.
+#     They are reported below and do not refuse.
+#
+# Install: git config core.hooksPath contracts/hooks   (same setting as pre-commit)
+#
+# `git push --no-verify` bypasses this and leaves no trace that it did, exactly
+# as --no-verify does for the commit gate. If you use it, say so where the next
+# reader will look. A hook makes the right thing easy, not the wrong thing
+# impossible.
+
+set -e
+
+REMOTE_NAME="$1"
+REPO=$(git rev-parse --show-toplevel)
+cd "$REPO"
+
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "pre-push: python3 not found; cannot run the gate" >&2
+    exit 1
+fi
+
+if command -v sha256sum >/dev/null 2>&1; then
+    sha256() { sha256sum | cut -d' ' -f1; }
+elif command -v shasum >/dev/null 2>&1; then
+    sha256() { shasum -a 256 | cut -d' ' -f1; }
+else
+    echo "pre-push: no sha256 tool; cannot compare the rendering. Ambiguity stops (P0)." >&2
+    exit 1
+fi
+
+ZERO='^0*$'
+REFUSED=0
+
+while read -r LOCAL_REF LOCAL_OID REMOTE_REF REMOTE_OID; do
+    [ -n "$LOCAL_OID" ] || continue
+    if echo "$LOCAL_OID" | grep -qE "$ZERO"; then
+        echo "pre-push: $REMOTE_REF is being deleted; nothing to check"
+        continue
+    fi
+
+    # The range. A ref the remote already has bounds itself. A new ref does
+    # not, so take the oldest commit no remote-tracking branch holds and stop
+    # one before it; at the root there is no "one before", and then the whole
+    # ref is checked and the line below says so rather than checking less and
+    # staying quiet.
+    if echo "$REMOTE_OID" | grep -qE "$ZERO"; then
+        OLDEST=$(git rev-list "$LOCAL_OID" --not --remotes="$REMOTE_NAME" 2>/dev/null | tail -1 || true)
+        if [ -n "$OLDEST" ] && git rev-parse -q --verify "${OLDEST}^" >/dev/null 2>&1; then
+            RANGE="${OLDEST}^..${LOCAL_OID}"
+        else
+            RANGE="$LOCAL_OID"
+            echo "pre-push: $LOCAL_REF is new to $REMOTE_NAME and nothing bounds it, so its whole"
+            echo "          history is being checked"
+        fi
+    else
+        RANGE="${REMOTE_OID}..${LOCAL_OID}"
+    fi
+
+    if [ -z "$(git rev-list "$RANGE" 2>/dev/null)" ]; then
+        echo "pre-push: $LOCAL_REF has nothing the remote lacks"
+        continue
+    fi
+
+    echo "pre-push: $LOCAL_REF  $RANGE  ($(git rev-list --count "$RANGE") commits)"
+
+    # Judge the pushed tip's own copy of the validator, not the working copy.
+    # Several sessions share one checkout, so the working copy is nobody's
+    # commit -- the same reason pre-commit unpacks the index instead.
+    EXPORT=$(mktemp -d "${TMPDIR:-/tmp}/sma-pre-push-XXXXXXXX")
+    git archive "$LOCAL_OID" | tar -x -C "$EXPORT"
+
+    # Checks 35 and 41 read the repository rather than the export, which has no
+    # .git. Both already iterate a range commit by commit -- 35 says so in its
+    # own docstring, because diffing the endpoints would aggregate two seats'
+    # work into one apparent crossing -- so one invocation covers every commit.
+    export SMA_GIT_REPO="$REPO"
+    OUT=$(python3 "$EXPORT/contracts/validate.py" --commit-range "$RANGE" 2>&1 || true)
+
+    BOUNDARY=$(echo "$OUT" | grep -E '^ *check (35|41) +FAIL' || true)
+    if [ -n "$BOUNDARY" ]; then
+        echo >&2
+        echo "$BOUNDARY" >&2
+        echo >&2
+        echo "pre-push: refused. A commit in this range crosses a session boundary or" >&2
+        echo "          cannot be attributed (6.2). It is in history already, so fix it" >&2
+        echo "          by adding the commit that corrects the record -- not by" >&2
+        echo "          rewriting what other sessions have built on." >&2
+        REFUSED=1
+    fi
+
+    OTHER=$(echo "$OUT" | grep -E '^ *check +[0-9]+ +FAIL' | grep -vE '^ *check (35|41) ' || true)
+    if [ -n "$OTHER" ]; then
+        echo "pre-push: the tip also fails these, and this hook does not refuse them --"
+        echo "          pre-commit judged each commit as it was made, and not pushing"
+        echo "          does not fix a failure already in history:"
+        echo "$OTHER" | sed 's#^#  #'
+    fi
+
+    # (2) The English rendering against the Korean original, both at the tip.
+    PLAN_EN=$(git show "$LOCAL_OID:plan.md" 2>/dev/null || true)
+    HEADER=$(echo "$PLAN_EN" | grep -m1 -oE '<!-- generated-from: plan_ko\.md sha256:[0-9a-f]{64} -->' || true)
+    if [ -z "$HEADER" ]; then
+        # PENDING, not a pass with a shrug. The English rendering does not
+        # exist yet; the day a header appears this begins refusing, and until
+        # then the run says which state it is in rather than saying nothing.
+        echo "pre-push: plan.md carries no generated-from header, so the rendering is"
+        echo "          not generated yet and nothing is compared. This enforces from"
+        echo "          the first header on."
+    else
+        RECORDED=$(echo "$HEADER" | grep -oE '[0-9a-f]{64}')
+        if ! git cat-file -e "$LOCAL_OID:plan_ko.md" 2>/dev/null; then
+            echo >&2
+            echo "pre-push: refused. plan.md says it was generated from plan_ko.md and that" >&2
+            echo "          file is not in the pushed tree. A rendering whose source is" >&2
+            echo "          absent cannot be checked and cannot be regenerated." >&2
+            REFUSED=1
+        else
+            ACTUAL=$(git show "$LOCAL_OID:plan_ko.md" | sha256)
+            if [ "$RECORDED" != "$ACTUAL" ]; then
+                echo >&2
+                echo "pre-push: refused. plan.md was generated from plan_ko.md at $RECORDED" >&2
+                echo "          and the pushed plan_ko.md hashes to $ACTUAL." >&2
+                # Name the sections, by finding the revision the recorded hash
+                # belongs to. A hash alone cannot say what changed; a hash that
+                # matches a committed revision can. Bounded, and it says so
+                # when the search comes up empty rather than implying none.
+                FOUND=""
+                for REV in $(git rev-list --max-count=200 "$LOCAL_OID" -- plan_ko.md); do
+                    if [ "$(git show "$REV:plan_ko.md" 2>/dev/null | sha256)" = "$RECORDED" ]; then
+                        FOUND="$REV"; break
+                    fi
+                done
+                if [ -n "$FOUND" ]; then
+                    echo "          Sections of plan_ko.md that moved since then:" >&2
+                    git diff "$FOUND" "$LOCAL_OID" -- plan_ko.md \
+                        | grep -E '^[+-]#{2,3} ' | sed 's#^#            #' | sort -u >&2 || true
+                else
+                    echo "          The recorded hash matches no plan_ko.md in the last 200 revisions" >&2
+                    echo "          of it, so the sections cannot be named. The rendering is older" >&2
+                    echo "          than the search, or was written against an uncommitted source." >&2
+                fi
+                echo "          Regenerate and commit plan.md, then push." >&2
+                REFUSED=1
+            fi
+        fi
+    fi
+
+    # (4) README, only what can be decided without reading it.
+    README=$(git show "$LOCAL_OID:README.md" 2>/dev/null || true)
+    if [ -z "$README" ]; then
+        echo >&2
+        echo "pre-push: refused. The pushed tree has no README.md." >&2
+        REFUSED=1
+    else
+        UNNAMED=""
+        for TOP in $(git ls-tree --name-only "$LOCAL_OID"); do
+            case "$TOP" in .*) continue ;; esac
+            echo "$README" | grep -qF "$TOP" || UNNAMED="$UNNAMED $TOP"
+        done
+        if [ -n "$UNNAMED" ]; then
+            echo >&2
+            echo "pre-push: refused. README.md names none of:$UNNAMED" >&2
+            echo "          A top-level entry the front door does not mention is one a" >&2
+            echo "          reader has no route to. This is the whole of what can be said" >&2
+            echo "          deterministically about a README being current." >&2
+            REFUSED=1
+        fi
+        DANGLING=""
+        for LINK in $(echo "$README" | grep -oE '\]\([^)]+\)' | sed 's/^](//;s/)$//'); do
+            case "$LINK" in http://*|https://*|mailto:*|\#*) continue ;; esac
+            TARGET=$(echo "$LINK" | sed 's/#.*$//;s/:[0-9]*$//')
+            [ -n "$TARGET" ] || continue
+            git cat-file -e "$LOCAL_OID:$TARGET" 2>/dev/null \
+                || DANGLING="$DANGLING $TARGET"
+        done
+        if [ -n "$DANGLING" ]; then
+            echo >&2
+            echo "pre-push: refused. README.md links resolve to nothing in the pushed" >&2
+            echo "          tree:$DANGLING" >&2
+            REFUSED=1
+        fi
+    fi
+
+    rm -rf "$EXPORT"
+done
+
+if [ "$REFUSED" -ne 0 ]; then
+    exit 1
+fi
+
+echo "pre-push: boundary, rendering and README all clear"
+exit 0
