@@ -1,0 +1,18 @@
+{
+  "entry_id": "abvigen_published_data_is_unreliable",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Abvigen's published product data for the Red PS Fluorescent Particles-COOH line carries documented errors, including a monoclonal-antibody filing and the product name printed in the Particle Size field, in addition to excitation and emission figures that instrument testing has disproved. Nothing on that page should be treated as load-bearing without independent confirmation.",
+  "identifiers": {
+    "supplier": "Abvigen Inc",
+    "catalogue_product": "AFR-0500-COOH"
+  },
+  "source": "prior_run:agentic-microscope@abvigen-verification-2026-09-06",
+  "grade": "E3",
+  "source_ref": "src_prior_abvigen_verification",
+  "validity_conditions": "ABOUT A PUBLISHER, NOT ABOUT A BOTTLE, which is the whole reason this one crossed when the measurements beside it did not. 10.3 rule 1 caps a run taken elsewhere at E3 and, worse, a value about another laboratory's bottle needs a same-stock E5 assumption before it means anything here. This claim needs neither: it is about a document, and this store holds that document (src_abvigen_red_ps_cooh_datasheet), so it is checkable rather than inherited. THIS IS WHAT REVERSED TASK 015. The observation on this bench -- green-excited particles visible at 605 -- is equally consistent with `the bottle is not the Abvigen product` and with `the bottle is the Abvigen product and the sheet is wrong`, and a label that says nothing does not separate them either. What separates them is that the page is independently known to be careless, which makes the second explanation far cheaper. Kept as an entry rather than left in a commit message because a reversal whose reason is not on disk gets re-reversed by the next person holding the same data sheet. WHAT IT DOES NOT SAY. It does not say every figure on the page is wrong, and it is not a licence to discard a published number because it is inconvenient. The seven entries taken from that sheet remain on disk at E3 about the type; two of them -- the excitation and emission peaks -- are marked disproved, and that marking rests on two independent instrument observations rather than on this entry. This entry lowers how much an unconfirmed figure from that supplier should be trusted; it does not by itself refute any particular one. 10.2.1: TRANSFER, slot KB entry, 10.3 rule 1, capped E3. NO `grade_tag`, following the seven prior_run entries already on disk, all of which carry none -- and that is a gap rather than a convention. 4.3.1 orders within E3 by grade_tag (peer_reviewed -> textbook -> vendor_spec -> preprint) and `prior_run` is not in that enum, so every prior-project item sorts last inside E3 by default rather than by anyone deciding it should. Against this store's own vendor_spec entries that ordering is arguably backwards here: this claim is an instrument verification of a vendor page, and it sorts below the page. Raised with manager-librarian, who owns the enum; not worked around by borrowing a tag that would describe the evidence falsely.",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

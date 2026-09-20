@@ -1,0 +1,12 @@
+{
+  "source_id": "src_prior_abvigen_verification",
+  "kind": "prior_run",
+  "identifier": "agentic-microscope, data/particles.yaml > abvigen-red-5um-cooh, with config/channels/abvigen-bangs-green-red-2color.yaml. Instrument verification of the Abvigen product's published spectra, dated 2026-09-05 and 2026-09-06.",
+  "accessed": "2026-09-19",
+  "grade_rule": "E3, grade_tag prior_run. 10.3 rule 1: a run taken elsewhere is not a run taken here, so nothing from this source exceeds E3 however well it was measured.",
+  "url": null,
+  "transfer_ruling": "10.2.1 TRANSFER. Row: the device registry and valid optical path table row of 10.2, whose prerequisite (the shape of the kb/staging/ tables) is met and which is open. Slot: KB entry, which the 2026-09-18 amendment names explicitly alongside the A1-A7 axes. 10.3 rule passed: rule 1, capped at E3, sourced to the finding rather than to the repository.",
+  "what_crossed": "ONE claim: that Abvigen's published data for this product is unreliable. That is a statement about a published document, not about any bottle, so it carries no same-stock assumption and can be checked against the data sheet this store already holds at src_abvigen_red_ps_cooh_datasheet.",
+  "what_did_not_cross": "The prior project's own numbers. Their measured emission band 589-610 nm, their ADU readings, their SNR figures. All DOWNGRADE or DISCARD: they are E3 about THEIR bottle, and applying them to ours would stack a same-stock E5 assumption on top -- while this bench's own E2 observation says the same thing about the object actually in front of us. Adding a weaker echo of a fact we already hold better is not worth the citation. The ADU figures are DISCARD outright: instrument-specific, no slot here.",
+  "note": "This is the source that reversed task 015. It was decisive not because it measured anything about our bottle but because it recorded that the vendor's page carries errors unrelated to spectra at all -- which is what made `the data sheet is wrong` cheaper than `the bottle is not the product`, where the observation alone could not separate the two."
+}
