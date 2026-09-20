@@ -4,14 +4,20 @@
   "kind": "claim",
   "claim": "Temperature enters the two sides differently, and the difference is not symmetric. In the simulation the thermostat realises the declared value, so citing a temperature there records WHY the number was chosen and is not evidence about the model's temperature -- the model's temperature is what was declared. In the experiment nothing actuates the sample and the only thermometer reads the room, so a temperature used there is INFERRED, and citing the same entry is a claim about the sample. The uncertainty therefore sits entirely on the experiment side.",
   "subject": [
-    { "kind": "quantity", "id": "temperature" },
-    { "kind": "observable", "id": "tracer_diffusivity" }
+    {
+      "kind": "quantity",
+      "id": "temperature"
+    },
+    {
+      "kind": "observable",
+      "id": "tracer_diffusivity"
+    }
   ],
   "source": "computed:temperature_asymmetry",
   "grade": "E4",
   "grade_tag": "computed",
   "source_ref": "src_store_derivation",
-  "validity_conditions": "Holds while both halves hold, and each is separately falsifiable. The experiment half rests on sample_temperature_not_actuated and on lab_ambient_temperature being a reading of the room: connect the temperature stage, or record where the thermometer sits relative to the sample, and it changes. The simulation half rests on the engine's thermostat realising its setpoint, which is a property of that engine and is NOT held in this store -- it is named here as an input rather than asserted as knowledge, and a simulation seat is the one that can confirm or refute it. E4 rather than E3 because a consequence is never better than the derivation that produced it, whatever the grade of its inputs. What this entry does NOT say is how large the experiment-side uncertainty is; that needs the thermometer's distance from the sample and how well the two track, and neither is known.",
+  "validity_conditions": "Holds while both halves hold, and each is separately falsifiable. The experiment half rests on sample_temperature_not_actuated and on lab_ambient_temperature being a reading of the room: connect the temperature stage, or record where the thermometer sits relative to the sample, and it changes. The simulation half rests on the engine's thermostat realising its setpoint, which is a property of that engine and is NOT held in this store -- it is named here as an input rather than asserted as knowledge, and a simulation seat is the one that can confirm or refute it. E4 rather than E3 because a consequence is never better than the derivation that produced it, whatever the grade of its inputs. What this entry does NOT say is how large the experiment-side uncertainty is; that needs the thermometer's distance from the sample and how well the two track, and neither is known. WHAT THIS ENTRY RESTS ON, NAMED, BECAUSE CHECK 62 FOUND IT HAD NO `inputs` AND THE PROSE IS WHERE THEY WERE. Three supports. (1) sample_temperature_not_actuated, E3 -- nothing drives the sample temperature. (2) no_thermometer_at_the_sample, E3 -- the only reading is the room's, which is what makes the experiment side INFERRED rather than measured. (3) the simulation engine's thermostat realising its declared setpoint, which this store does NOT hold and should not: it is a property of that engine, and only a simulation seat can confirm or refute it. AND NONE OF THE THREE CAN BE AN `input`. Check 62 builds its carriers from `numbers[].name` only, so a support has to be a QUANTITY to resolve; two of these three are claims carrying no numbers at all, and the third is not in the store. So the empty `inputs` was not an omission that writing a list would fix. WHAT THE SOURCE KIND IS DOING. `computed:` is right about the GRADE -- a consequence is capped at E4 and can be no better than its worst support, and max(E4, E3) is the E4 declared here. It is wrong about the SHAPE: `computed:` and `inputs` were built for a value composed from quantities, which is what tau_d and tracer_diffusivity_expected are, and this is a claim reasoned from claims. One prefix is doing two jobs and check 62 sees the seam. Raised with manager-librarian, who owns the source vocabulary: what is missing is a way to record SUPPORT BY CLAIM separately from INPUT BY QUANTITY. Nothing was invented here to make the check quieter.",
   "date": "2026-09-19",
   "supersedes": null,
   "conflict_with": [],
