@@ -44,7 +44,35 @@ produced and it should be said plainly in the report.
 
 ## The target version
 
-The store is at **`kbv-c7b156160a3a`** as of this card, 42 entries.
+The store is at **`kbv-c7b156160a3a`** as of this card, 42 entries — and it
+is about to hold one more thing this fan-out needs, which is the wait
+condition below.
+
+**Wait for the emission wavelength entry.** A6 abstains on two bounds for want
+of `emission_wavelength`, and the number now exists: **605 nm**, measured on
+this setup, so `calibration:` and **E2**. It beats the vendor sheet's 680 nm,
+which is `spec:AFR-0500-COOH` at E3 and describes the product family rather
+than this bottle. **Do not compute on either value yet** — the E2 entry is not
+in the store. A `calibration:` source requires `validity` and `valid_until`,
+and the `cal_id`, the date and the conditions are still being asked of the
+person. Computing now would cite a value with nothing for `kb_refs` to point
+at.
+
+**When it lands, A6's diffraction limit computes.** NA is E3 for all six
+objectives, λ is E2, and a computed value inherits the worst input (§5.8), so
+the interval is **E3**. That would be this fan-out's second real interval
+after A4's two.
+
+**Carry its validity onto anything built from it.** Dye loading varies lot to
+lot, so that calibration's `valid_until` is *discard when a new lot is
+opened*. 605 nm is a fact about **this bottle**, and an interval standing on
+it inherits that boundary. An A6 bound that outlives the bottle is a bound
+about nothing.
+
+**And the pin is currently split.** `a1` sits at `kbv-67f9ad766d92` while
+`a2`–`a6` sit at `kbv-49feb73662b7`, six commits apart — found by the
+librarian seat. Check 33 wants siblings to agree, so this is a second reason
+the five move in one commit rather than one reason with a consequence.
 
 **Re-read `librarian_agent/kb/index.json` immediately before you commit.** If
 it has moved, do not silently re-target: stop, and report which version it is
@@ -53,8 +81,8 @@ because the card that did not carry it named a version that was stale four
 minutes later, and the store has moved several times since.
 
 Moving to whatever is current at commit time is acceptable here, unlike in
-006 — the point is to reach a version where the pixel entries exist, not a
-particular one. What is not acceptable is the card and the commit disagreeing
+006 — the point is to reach a version where the pixel entries and the emission
+wavelength exist, not a particular one. What is not acceptable is the card and the commit disagreeing
 about which version that was.
 
 ## Why this is separate from 006, and what that costs
