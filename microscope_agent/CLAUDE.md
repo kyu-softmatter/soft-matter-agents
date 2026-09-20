@@ -464,6 +464,38 @@ permission is exactly the failure the rule names. A stage-driven calibration
 will want that number immediately; it comes from this instrument or from the
 person, not from there.
 
+## Some gaps close by acquiring, not by asking
+
+**`tracer_brightness` and `bleaching_rate` are not in any store for a new
+sample, and cannot be.** Stated by the person on 2026-09-19. They depend on
+this dye, this lot, this illumination and this camera together, so no vendor
+sheet and no prior run supplies them — for a sample that has been
+characterised before they may be known, and ours has not been.
+
+**The remedy is a named acquisition: image the particles alone.** Particles on
+the coverslip, nothing else, under the illumination the real record will use.
+That gives the photon rate per particle and the decay over time in one short
+run. It is a **pre-measurement**, and it comes before the measurement it
+unblocks.
+
+**So the abstention must name the remedy, not only the missing input.** A gap
+that waits on a person's decision and a gap that waits on a twenty-minute
+acquisition are different things with different next actions, and `no_input`
+with a `missing` list says neither. Write the acquisition into the reason:
+*what would close this, and who does it.*
+
+Six abstentions currently sit here — `tracer_brightness` in three A1 bounds,
+`bleaching_rate` in A1's `record_duration` and A3's. When those are next
+written, say that one bare-particle run closes all six. **A gap that names its
+own remedy is one somebody can act on; a gap that names only its absence
+waits for someone to work out what it wants.**
+
+**And it interacts with a constraint already on the goal card.** *The sample is
+consumed by the measurement and cannot be remounted.* A bare-particle run is
+not that sample — it is particles without it — so it does not spend the one
+mount. Say so, or the pre-measurement looks like it costs the thing it is
+protecting.
+
 ## What the operator still owes, and what each one unlocks
 
 Kept here rather than in a card because these are not missing values -- a
