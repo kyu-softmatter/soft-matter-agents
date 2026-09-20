@@ -282,10 +282,10 @@
               "overlap": {
                 "enum": [
                   "partial",
-                  "no_overlap",
-                  "unconstrained"
+                  "disjoint",
+                  "no_overlap"
                 ],
-                "description": "How the near-miss entry stood against the query. `no_overlap` was called `unconstrained` until 2026-09-18, when that word was needed for a field meaning something else in the same response object (4.3.1 rule 3). **`unconstrained` is accepted only while the rename crosses seats and will be removed.** It cannot be dropped in the same commit that adds `no_overlap`: a card already on disk carries the old value, that card belongs to another seat, and until this enum accepts the new value that seat cannot write it -- so removing first deadlocks. Expand, migrate, contract. Holder as of 2026-09-18: microscope_agent/questions/mic-20260918-001/goal.json."
+                "description": "How the near-miss entry stood against the query, and each word carries its own subject.\n\n`partial` -- the intervals intersect and the query is not fully covered; the uncovered part is named.\n`disjoint` -- the quantities WERE compared and their intervals do not intersect at all. Added 2026-09-19 because the verdict line was `full if not uncovered else partial`, with no branch for disjointness, so eight refractive-index entries pinned to single wavelengths came back `partial` against a query at 605 nm that intersects none of them. `partial` is an invitation to clip to the nearest edge, which is exactly the judgement 4.3.1 keeps on the caller's side. match() already computed the truth -- it writes `uncovered.<q>.disjoint: true` into the same row -- and the verdict a caller reads disagreed with it. Leaving it in `uncovered` alone would have repeated 21c5325, where conflict_with was computed correctly and left out of the projection anyone reads.\n`no_overlap` -- the entry constrains no quantity the query mentioned, so there was nothing to compare. This is about the SETS of quantities; `disjoint` is about the intervals. Task 004 separated those two meanings out of one word once, and reusing `no_overlap` here would have recollided them.\n\n`unconstrained` was this enum's name for `no_overlap` until 2026-09-18 and was kept while cards migrated. **Removed 2026-09-19, the contract step**: no card on disk carries it, verified before dropping it. The row-level `overlap` a caller sees in `entries[]` also has `full` and `unstated`; neither can reach here, because `nearest` holds only entries that were compared and fell short."
               },
               "uncovered": {
                 "$ref": "#/$defs/condition_range"
