@@ -48,36 +48,40 @@ The store is at **`kbv-c7b156160a3a`** as of this card, 42 entries — and it
 is about to hold one more thing this fan-out needs, which is the wait
 condition below.
 
-**The wavelength A6 needs is the filter band, and it is not the dye's peak.**
-Settled by the person on 2026-09-19, asked twice because the first question
-conflated two things: **555/605 is read off the filter cube's markings**. So
-it is `operator_read:` at **E3**, not a calibration at E2 — an earlier
-revision of this card said E2 and lot-bound, and both were wrong. A cube's
-marking does not depend on the bead lot, and no `cal_id` or validity date is
-needed to file it.
+**The wavelength is not settled, and an earlier revision of this card said it
+was. Read this before using either number.**
 
-**It does not conflict with the vendor's 680 nm.** Those are two different
-quantities: 680 is the dye's emission peak from the product sheet, 605 is
-what this instrument's emission filter passes. **A6 wants the second** — the
-diffraction limit is set by the light actually collected, not by where the
-dye would emit if you could see all of it.
+What happened, because the shape of the error matters more than the fact of
+it. The person said 555/605 came from the instrument; asked to narrow it, the
+options this seat offered named a *filter cube*, and that word was **this
+seat's, not theirs**. They picked the nearest option. The card then recorded
+`operator_read:` E3 on a filter passband and reasoned from it — including a
+loud claim that a dye emitting at 680 could not be seen through a filter
+passing 605, so the bead and the cube did not go together.
 
-**The mismatch is now a configuration finding, not a data conflict, and it is
-worse than a conflict.** A dye emitting at 680 read through a filter passing
-~605 returns almost nothing. Both facts can be true at once, and if they are,
-this bead and this cube do not go together. Two readings, and the second is
-the more likely: either the product identification is wrong — the person
-matched a vendor listing, not a bottle label, and this is the strongest
-evidence yet against it — or the cube named is not the one that will be used.
+**That claim is withdrawn.** The cube holds a **multiband** filter. Its
+`555/605` marking names bands it passes, plural — not the band in use — and a
+multiband cube may pass a red window too, so nothing in it contradicts a
+680 nm dye. The inference was built on a single-band assumption this seat
+supplied and never checked.
 
-**So A6 computes on 605 and says what it is standing next to.** With NA at E3
-and λ at E3 the interval is E3. But an A6 that returns a resolution while A1
-cannot say the tracer is visible has answered a narrower question than it
-looks, and the card should say so rather than leave S4 to notice.
+**The band is selected further down: single-band filters sit in the filter
+wheel.** So the wavelength A6 needs is the **single-band emission filter used
+for the red beads**, and it is a different fact from anything on the cube.
+The store's `emission_wheel_camera_mapping` says there are two wheels, first
+serving the red camera and second the blue — `operator_recall:` at **E5**,
+hedged with *probably*, so it does not settle which wheel or which position.
 
-**A1 changes too, and that is not this card's task** — its abstention stops
-being "no number for `tracer_brightness`" and becomes "this combination may
-produce no signal at all". Report it; I will card it.
+**So A6 still abstains on `emission_wavelength`, and its `missing` should name
+the filter wheel band rather than the dye's peak.** Neither 680 (the dye's
+emission, `spec:` E3, a product-family fact) nor 605 (a multiband cube
+marking) is the number. The librarian has been asked for the prior project's
+filter records, which the person says exist; that request goes through §10.2.1
+like any other transfer.
+
+**A1's abstention does not change after all.** It stays *no number for
+`tracer_brightness`*. The "may produce no signal at all" reading was the same
+withdrawn inference and must not be carded.
 
 **And the pin is currently split.** `a1` sits at `kbv-67f9ad766d92` while
 `a2`–`a6` sit at `kbv-49feb73662b7`, six commits apart — found by the
