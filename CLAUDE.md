@@ -149,6 +149,16 @@ that one key to `{}` to absent inside ten minutes while seats were quoting it
 to each other, and nothing anywhere records that it did. Settings are read at
 session start, so fixing it leaves a running session unchanged.
 
+**The cheapest test of whether the tools are there is to call one.** A probe
+costs nothing and dirties nothing: the server files a refusal with the
+arguments under `claimed` and `caller_id` null, and check 45 guards both
+sides of that -- `if cid` before the log line is counted, `if not cid` before
+a card is -- so an invented id can neither enter the log as a caller nor back
+a card. simulation-3 put off a probe over that worry and then checked; this
+seat then read the check expecting to find the guard missing, and found two.
+Both of those were a mechanism that sounded right and did not survive being
+run, which is what the rest of this file keeps saying.
+
 A seat without the librarian's tools gets no error — it proceeds on the
 degraded path, which is legitimate here, so a silent day looks like an
 ordinary one. The cards are not silent, though: `evidence` defaults to
