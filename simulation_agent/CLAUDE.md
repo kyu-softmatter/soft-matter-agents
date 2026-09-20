@@ -353,6 +353,47 @@ temperature uncertainty lives entirely on the experiment side.** Treating both
 as equally certain, or both as equally uncertain, puts it in the wrong place —
 and the gap is already named: `sample_adjacent_temperature` in `kb_gaps`.
 
+### What a run's observable is, which is not the same ruling
+
+The paragraph above settles an **input**. An observable is an **output**, and
+the two do not get the same answer.
+
+**The model cannot be wrong about its thermostat; it can be wrong about its
+diffusivity.** The number comes out of the integrator, the timestep, the save
+interval and the fit — and every one of those is a thing A1 through A4 exist to
+constrain, which is to say a thing that can be set badly. So a run's observable
+**is** a result of that run, not a restatement of what went in.
+
+**What it is a result about is the model.** E1 means this system measured this
+value under these conditions (§5.3), and what this system measured is the
+model's behaviour. It is about the world only as far as the model is valid,
+which is A7's question and not the estimator's. So a simulated observable is
+**never `measured:`** — reading it as E1 would make E1 mean "we ran code that
+produced a number" and collapse the distinction the grade exists to hold.
+
+**And how much a run tells you depends on the configuration, which is why this
+cannot be settled once for all of them.** `bd_overdamped` is free diffusion, so
+`D` is fixed analytically by the inputs through Stokes-Einstein: the first real
+run returned 2.128e-13 m²/s against an analytic 2.146e-13, **0.8 per cent
+apart** — and 6.4 per cent from the plan's own rounded 0.2 µm²/s, which is the
+plan being written to one significant figure rather than the run disagreeing.
+**That run confirms the integrator and the estimator. It carries no independent
+information about the diffusivity of anything.** A configuration with
+interactions or confinement would produce a number the inputs do not already
+determine, and that one would.
+
+So the grade a run's observable carries is not a property of "simulation". It
+is a property of **whether that configuration's output is independent of its
+inputs** — which is a fact about the declared model, and therefore belongs
+where models are declared, in `contracts/capabilities/simulation.json`.
+
+**Do not pick a source kind for it on the spot.** `SOURCE_GRADE` has no kind
+that fits: `measured:` claims the world, `computed:` says derive-me-from-inputs
+and takes no grade, `prior_run:` means a run that happened before this question.
+That gap is §5.3's and §5.3 is the architecture seat's. Until it is filled, a
+run's observable stays in the run's own `observables.json`, where it already
+is, and does not enter a card as a graded number.
+
 ## Axes
 
 A1 integration stability, A2 statistics, A3 finite size, A4 sampling, A5
