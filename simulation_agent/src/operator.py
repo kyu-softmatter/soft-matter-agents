@@ -204,7 +204,33 @@ def check_budget(plan: dict, budget: str, target: str) -> dict:
             "target": target,
             "reason": f"the envelope declares {sorted(targets)} and not {target!r}",
         }
-    ceilings = targets[target]
+    row = targets[target]
+    # 5e05d58 moved every ceiling one level down into a per-agent `limits`
+    # block and this read stayed flat, so it compared nothing while reporting
+    # that it had compared. Descend once -- and refuse rather than crash on a
+    # shape error, because read_envelope() checks the file's three
+    # self-declarations and does not validate it against
+    # envelope_safety.schema.json, so a malformed row arrives here intact.
+    if "limits" not in row:
+        return {
+            "status": "unavailable",
+            "target": target,
+            "reason": (
+                f"the {target!r} row carries no `limits` block, which "
+                "envelope_safety.schema.json requires of every target"
+            ),
+        }
+    ceilings = row["limits"]
+    if budget == SMOKE and "smoke_budget" not in ceilings:
+        return {
+            "status": "unavailable",
+            "target": target,
+            "reason": (
+                f"the {target!r} limits carry no `smoke_budget`, which the schema requires of "
+                "this agent. A smoke run that may spend the full budget tells you nothing "
+                "before the run it precedes"
+            ),
+        }
     limits = ceilings["smoke_budget"] if budget == SMOKE else ceilings
     compared, exceeded = [], []
     for cost_name, limit_name in (
