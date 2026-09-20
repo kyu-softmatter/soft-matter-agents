@@ -5,14 +5,14 @@
   "qid": "mic-20260918-001",
   "thread": "solo-mic-20260918-001",
   "round": 0,
-  "revision": 1,
+  "revision": 2,
   "author": "microscope_agent",
-  "created_at": "2026-09-19T18:51:43Z",
+  "created_at": "2026-09-20T07:05:20Z",
   "status": "VALIDATED",
-  "caller_id": "mic-20260918-001:v1:widefield_inline:a5",
+  "caller_id": "mic-20260918-001:v2:widefield_inline:a5",
   "config": "widefield_inline",
   "axis": "a5",
-  "kb_version": "kbv-49feb73662b7",
+  "kb_version": "kbv-7c77fa74ee5a",
   "method": "deterministic",
   "verdict": "abstain",
   "constraints": [],
@@ -81,31 +81,31 @@
     {
       "entry_id": "csuw1_disk_position_states",
       "grade": "E3",
-      "kb_version": "kbv-49feb73662b7",
+      "kb_version": "kbv-7c77fa74ee5a",
       "claim": "With the spinning disk in, the path is confocal. With the disk out, the same hardware serves both widefield fluorescence and brightfield. Disk-out is therefore not a configuration of its own but a req"
     },
     {
       "entry_id": "csuw1_disk_speed_exposure_constraint",
       "grade": "E3",
-      "kb_version": "kbv-49feb73662b7",
+      "kb_version": "kbv-7c77fa74ee5a",
       "claim": "An exposure taken through the spinning disk must last an integer multiple of the disk period, or stripes remain in the image, and nothing may be acquired while the disk is still spinning up to speed."
     },
     {
       "entry_id": "lab_ambient_temperature",
       "grade": "E3",
-      "kb_version": "kbv-49feb73662b7",
-      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. Because nothing actuates the sample temperature on this instrument, this is an ambient value of the "
+      "kb_version": "kbv-7c77fa74ee5a",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what m"
     },
     {
       "entry_id": "sample_temperature_not_actuated",
       "grade": "E3",
-      "kb_version": "kbv-49feb73662b7",
+      "kb_version": "kbv-7c77fa74ee5a",
       "claim": "Sample temperature is not under control on this instrument. A temperature stage exists but has never been connected, so nothing actuates the sample temperature and there is no setpoint to appeal to: a"
     },
     {
       "entry_id": "stand_ti2e_lock_groups",
       "grade": "E3",
-      "kb_version": "kbv-49feb73662b7",
+      "kb_version": "kbv-7c77fa74ee5a",
       "claim": "The coarse motorised xy stage is an element of the microscope body channel, on the body hub. The body's optical elements belong to the optical_path lock group while the motor stage belongs to the stag"
     }
   ],
@@ -115,11 +115,11 @@
       "observable": "drift_rate",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=drift_rate, caller_id=mic-20260918-001:v1:widefield_inline:a5, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=drift_rate, caller_id=mic-20260918-001:v2:widefield_inline:a5, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v1:widefield_inline:a5",
-      "asked_at": "2026-09-19T18:45:08+00:00",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v2:widefield_inline:a5",
+      "asked_at": "2026-09-20T07:05:01+00:00",
       "near_names": []
     },
     {
@@ -127,15 +127,15 @@
       "observable": "settling_time",
       "kind": "absent",
       "searched": [
-        "kb_query(observable=settling_time, caller_id=mic-20260918-001:v1:widefield_inline:a5, kb_version=kbv-49feb73662b7) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=settling_time, caller_id=mic-20260918-001:v2:widefield_inline:a5, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "kb_version": "kbv-49feb73662b7",
-      "asked_by": "mic-20260918-001:v1:widefield_inline:a5",
-      "asked_at": "2026-09-19T18:45:10+00:00",
+      "kb_version": "kbv-7c77fa74ee5a",
+      "asked_by": "mic-20260918-001:v2:widefield_inline:a5",
+      "asked_at": "2026-09-20T07:05:02+00:00",
       "near_names": []
     }
   ],
   "degraded": [],
-  "note": "Answered by the librarian service rather than by reading the store, which is what makes degraded empty: 5 entries came back with their own grades and 2 questions came back absent, all at the pinned kbv-49feb73662b7, and every call is in librarian_agent/queries/log.jsonl under this caller_id. Transport was a stdio client, this session's attached server having failed every call since 07:47:44Z. Six bounds, no constraint, and the six do not fail the same way -- which is the point of enumerating them. One abstains with grounds because the disk is out of this path. Two want a measurement nobody has made here: a drift rate and a settling time, both recorded as gaps. Two want something the person has never said -- a time budget and an availability window -- and neither is a gap, because the librarian was never the place to ask. And one wants an entry rather than a measurement. The PFS row is the finding. The interlock is real, it is enforced, and the contract now has exactly the right shape for it -- `precondition`, added on 2026-09-19 for A4's verifiability bound, which restricts no value and propagates to the plan. It cannot be used, because basis must resolve to a kb_ref and the service answers absent for pfs. One entry stating the interlock's behavioural half would turn this row from an abstention into a precondition S4 must carry. That entry does not exist, and the fact is sitting in the published devices table where no bound can cite it. `pfs` is not in kb_gaps although the service answered absent, and the omission is deliberate. The devices table carries the element and its interlock note, so recording absent would assert the store does not know something it does know in another place -- the false gap 004 exists to prevent. Two gaps are recorded and each was asked under at least two names before being written down.",
+  "note": "Answered by the librarian service rather than by reading the store, which is what makes degraded empty: 5 entries came back with their own grades and 2 questions came back absent, all at the pinned kbv-7c77fa74ee5a, and every call is in librarian_agent/queries/log.jsonl under this caller_id. Transport was a stdio client, this session's attached server having failed every call since 07:47:44Z. Six bounds, no constraint, and the six do not fail the same way -- which is the point of enumerating them. One abstains with grounds because the disk is out of this path. Two want a measurement nobody has made here: a drift rate and a settling time, both recorded as gaps. Two want something the person has never said -- a time budget and an availability window -- and neither is a gap, because the librarian was never the place to ask. And one wants an entry rather than a measurement. The PFS row is the finding. The interlock is real, it is enforced, and the contract now has exactly the right shape for it -- `precondition`, added on 2026-09-19 for A4's verifiability bound, which restricts no value and propagates to the plan. It cannot be used, because basis must resolve to a kb_ref and the service answers absent for pfs. One entry stating the interlock's behavioural half would turn this row from an abstention into a precondition S4 must carry. That entry does not exist, and the fact is sitting in the published devices table where no bound can cite it. `pfs` is not in kb_gaps although the service answered absent, and the omission is deliberate. The devices table carries the element and its interlock note, so recording absent would assert the store does not know something it does know in another place -- the false gap 004 exists to prevent. Two gaps are recorded and each was asked under at least two names before being written down.",
   "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
 }
