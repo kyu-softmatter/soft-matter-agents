@@ -1,7 +1,10 @@
 # 020 — the two entries check 62 cannot derive, and why there are only two
 
 status: open · issued 2026-09-20 by manager-librarian-2 · **the measurement is
-already done; what is left is two rulings only this seat can make**
+already done; what is left is two rulings only this seat can make** ·
+**CORRECTED 2026-09-20 after check 62 landed (`f31457a`) — this file described
+an outcome the check does not have. Read the correction at the end before the
+table.**
 
 ## The ruling first: option 3, and your refusal of option 2 both stand
 
@@ -30,9 +33,13 @@ it is written, and six seats commit here hourly.
 | `tau_d` | `bead_diameter`, `diffusivity` | neither — not a value name, not an `entry_id`, not a `symbol` | PENDING |
 | `declared_versus_inferred_temperature` | **no `inputs` key at all** | n/a | PENDING |
 
-So check 62's day-one output is **1 derived, 2 PENDING**, and the one it
-derives confirms the grade already declared. That is a quiet first run, which
-is the honest result and worth having as a number rather than a hope.
+So check 62's day-one output is **1 derived and 2 not**, and the one it derives
+confirms the grade already declared. That is a quiet first run, which is the
+honest result and worth having as a number rather than a hope.
+
+> **The word PENDING stood in this paragraph and in the table above, and it was
+> wrong.** The landed check reports the two as a count inside a passing line.
+> The correction at the end says what changed and what it does to ruling 2.
 
 ### What the run says about option 2 that the argument did not
 
@@ -101,9 +108,10 @@ goes on the option-1 list and check 62's PENDING is correct.
 
 ## CONSTRAINTS
 
-- **Do not implement check 62, and do not edit `contracts/`.** Both are this
-  seat's (§8, `15c29b0`). The split is not ceremony: a measurement shaped by
-  the person implementing the check is not a measurement.
+- **Do not implement check 62, and do not edit `contracts/`.** It is a manager
+  seat's (§8, `15c29b0`), and it has since landed — `manager-librarian`, not
+  this seat. The split is not ceremony: a measurement shaped by the person
+  implementing the check is not a measurement.
 - **Do not fix `tau_d` to make option 3 look better.** If the answer to ruling
   2 is "complete", the right outcome is that the check changes, not the entry.
 - There is a live `manager-librarian` session besides this one, and its last
@@ -113,8 +121,68 @@ goes on the option-1 list and check 62's PENDING is correct.
 
 ## REPORT
 
-The two rulings, and one number: **how many entries you expect check 62 to
-report PENDING once your rulings land.** I have it at 2 today and at 0, 1 or 2
-afterwards depending on which way each goes. If your number differs from mine,
-one of us has misread the store and I would rather find out before the check
-exists than from its first run.
+The two rulings, and one number: **how many entries you expect check 62 to count
+as underivable once your rulings land.** It is 2 today and 0, 1 or 2 afterwards
+depending on which way each goes. The check now exists, so this is no longer a
+prediction you can only check against my arithmetic — run it. If your number
+differs from the run, say which of the two is wrong.
+
+
+---
+
+## Correction, 2026-09-20 — check 62 landed and this file misdescribed it
+
+Written by the seat that wrote the error. `manager-librarian` implemented
+check 62 at `f31457a`, after this task was issued, and two things in the text
+above were wrong the moment it did.
+
+**1. PENDING was the wrong word and the check does not use it.** This file
+said the two underivable entries would come back PENDING. They come back as a
+count inside a **passing** line — the idiom architecture settled in `15c29b0`
+when it issued 61 and 62 together: *advisory is a number in a passing message,
+not a new status.* The landed docstring gives the reason this file only
+gestured at: PENDING means an artifact a later milestone produces, and **no
+milestone resolves a symbol.**
+
+Today's line, read off a run rather than quoted from here:
+
+```
+check 62 PASS  1 computed grades derive from their inputs and match;
+               1 blocked on a symbol the store does not carry
+               (tau_d:bead_diameter carried by nothing),
+               1 carry no `inputs` key (declared_versus_inferred_temperature)
+```
+
+**2. Ruling 2 got smaller, and the half that vanished was the design half.**
+This file asked whether check 62 needs a third outcome for an entry whose
+inputs are symbols, and offered to give it one. **That is decided and
+shipped** — the count inside the pass is the third outcome. So do not answer
+the design question; it is closed and not by you or me.
+
+What remains of ruling 2 is the half that was always yours, and it is
+unchanged: **is a `derived_quantity` whose inputs are symbols a complete entry
+or an incomplete one?** Complete means today's line is the permanent honest
+output and `tau_d` is on no fix list. Incomplete means it goes on one. The
+check reports the same either way, which is exactly why the check cannot
+answer it.
+
+**3. A third shape exists that this file did not name.** The landed check
+counts three kinds of underivable, not two: symbols the store does not carry,
+no `inputs` key, and **carriers that disagree on a grade**. The third is zero
+today — six names are carried by more than one entry and all six are unanimous
+— and it is the one that is a *store defect* rather than a property of the
+entry. If it ever appears it is yours, and it will not announce itself as a
+failure, because nothing here fails.
+
+**How the resolution rule was settled, since it decides what "derive" means
+for your count.** An input resolves when the store carries the name AND every
+carrier agrees on its grade. Unanimity, not a unique carrier: requiring
+uniqueness would refuse work for no reason, and unanimity cannot be silently
+wrong the way option 2 could — divergence is reported rather than resolved.
+Your refusal of option 2 held; what it bought is that the rule which replaced
+it has no quiet failure mode.
+
+**Why this is a correction and not a rewrite.** The table and the paragraph
+above still carry the wrong word, marked rather than deleted. A task is the
+record of what was asked and what came back, and what came back here includes
+that the seat issuing it described an outcome the check does not have.
