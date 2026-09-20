@@ -2160,6 +2160,37 @@ The check list:
 
     **An input resolves when the store carries that name and every carrier is unanimous on the grade.** Unanimity rather than uniqueness is arithmetic — six names ride on two or more entries and all six are unanimous, so demanding uniqueness would refuse without cause. And **unanimity cannot be quiet**: where they split, it names them rather than taking a side. **It asserts nothing about which value** — `pixel_size` is twelve different values under one grade. **It resolves a name's grade and not its value**, and that is the limit §8 records for this class.
     **Underivable is neither a failure nor PENDING.** It is not a failure because the entry is not wrong but because **there is nothing that can be said**, and not PENDING because that would mean *a later milestone produces it* and **no milestone resolves a symbol.** So it comes out as a number inside a passing message, split into three shapes — a symbol the store does not carry, **no `inputs` key at all**, and carrier disagreement. **The next action differs for all three.** The second is a different kind from the other two: the symbol is not failing to resolve, **what would resolve it is not written down.**
+66. **An irreversible action's run reads back whether the limit was kept** (§4.6.6.1, §2.1 rule 8).
+    Two failures block an irreversible action and one check bearing both cannot say which broke:
+    **57** is *the limit is unconfirmed* — a person did not measure — and reads the envelope and the
+    plan's `actions[]`; **66** is *the limit is confirmed and nothing read back whether it held* — a
+    machine cannot see — and reads the run record. **A confirmed ceiling bounds what may be
+    requested; it does not report what happened.**
+
+    **The field came with the check, because it did not exist.** §4.6.6.1 put this rule on the run
+    log's `verification` and `run_log.schema.json` had no such field — a rule written with nothing to
+    bear it. It is **optional in the schema on purpose**: which actions need a read-back depends on
+    reversibility, reversibility lives in the plan's `actions[]`, and a run log cannot see it. The
+    schema cannot judge it and the check can. The side effect is that two run logs written before the
+    field stay valid, which is the honest reading — **nobody asked them to record it, so their silence
+    is not a claim.**
+
+    **Three branches, each demonstrated.** No `verification` at all — **writing `none` is a statement
+    and writing nothing is not.** `verification: none` — rule 8. And `verification: readback` where the
+    channel table says `read_back: false`, which is **a log claiming the instrument did something it
+    cannot do**; those are `laser_combiner` and `optical_tweezers`, the two §4.6.6.1 rule 3 was written
+    for.
+
+    **The fixture is a group because reversibility is a fact of the plan** (§11-7): the directory holds
+    a run log and a plan together, and the plan half is **deliberately clean**, so check 57 says nothing
+    and the group fails on 66 alone. Verified in both directions — pointing the same dispatch at a
+    channel with read-back turns 66 green and the group reports `NOT REJECTED`, which is the harness
+    proving the check does not pass by accident.
+
+    **It deliberately does not fail a device the channel table does not know.** That is check 38's
+    finding and is already open under two names. **Two checks reddening on one defect makes the registry
+    look wrong twice.**
+
 56. Whether check 3's undecided threshold reports in the unit §11-2 settled — while the threshold is open, that one `UNDECIDED` line is **the only place in the repository that states the unit**, and it is read far more often than §11-2's body. While it said `counted E5 = [7, 5, 17]`, that line **was teaching a unit that had just been rejected** — and **a message pointing at the wrong thing is believed**: the same day check 13's message named §7 and two seats fixed only §7 and stayed blocked, and check 41's message named `owns` and half a day went. **It compares numbers, not wording** — it recomputes the counts and compares per plan, so reverting the unit fails even if the sentence still says `rationale`. The key in `validation_limits.json` moved with it to `max_rationales_per_plan`: **a message teaching rationale while the refusal is made on raw E5 is worse than either alone.** **The limit is written with it — a rationale count counts the *number* of guesses, not their *weight*.** One rationale holding up a whole plan is still 1, and that is the price of not counting chain length. Unwritten, a pass reads as "this plan has few assumptions"
 57. **An irreversible action rests on a confirmed limit** — the parameters of a `reversible: false` action in `actions[]` have to be bound by a limit in `envelope/safety.json`, and that limit's `confirmation` has to be **`physical`**. **`carried_over` is legal inside the envelope and not here**: forbid transcription and the file cannot exist until every ceiling is confirmed, and then nobody starts the file (§10.3 rule 4) — **and that licence ends in front of an irreversible action** (§4.6.6.1 rule 3). Whether it is irreversible, and the parameter list, **use exactly the `actions[]` check 22 reads**; a second definition would diverge (§11-11). Parameters and limits are joined by the naming rule the schema uses, `<quantity>_max` / `<quantity>_min`.
 58. **One fan-out reads one store** — every axis card under one `qid` and one configuration has to pin the same `kb_version`, and **a differing revision is not an exemption.** Check 33 asks the same thing and cannot see this: 33 groups by `(scope, qid, revision)` and **has to.** A revision is a re-run (§4.5.5) and `caller_id` has no revision component, so grouping without it makes **"caller_id reuse" fire on a card and the card that replaced it.** For that question it is right. **The price is that the same grouping is also used for `kb_version` agreement**, and then agreement holds trivially within each partition and **nothing looks across the partitions.**
