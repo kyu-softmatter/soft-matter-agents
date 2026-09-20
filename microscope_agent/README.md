@@ -93,11 +93,16 @@ table. Nothing crosses as itself: each item is ruled **transfer**, **downgrade**
 or **drop**, a transferred item names the A1–A7 slot it went into and the §10.3
 rule it passed, and an item that cannot name a slot is dropped (§10.2.1).
 
-**Safety limits never cross.** That project's laser readings sat in its own
-safety document, load-bearing, and were retracted as a measurement error —
-struck through rather than deleted, so the next reader meets the retraction
-where they meet the number. Copying brings the number and leaves the
-retraction behind, and that is the argument §10.3 rule 4 is made of.
+**Safety limits never cross.** That project's safety document carries a
+measured dial-to-milliwatt table and, struck through beside it, two readings
+retracted as a measurement error — the claim they supported, that
+low-magnification objectives pass more light, did not survive. Struck through
+rather than deleted, so the next reader meets the retraction where they meet
+the number. **Copying brings the number and leaves the retraction behind**,
+and that is the argument §10.3 rule 4 is made of. It is worth stating
+precisely: the table stands and two lines under it do not, and a summary that
+says *those readings were wrong* is as useless as one that says they were
+right.
 
 ## Where to look
 
