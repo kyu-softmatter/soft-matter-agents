@@ -95,8 +95,33 @@ answer: *the manager allocates by card*. This is that card.
 
 | | |
 |---|---|
-| **`simulation-2`** | **`004` — revision 2.** Hold it alone. |
-| **session 3** | the two small items below. **Do not open `004`.** |
+| **the next session with the librarian** | **`004` — revision 2.** |
+| **`simulation-2`** | hold, and hand `004` over. |
+
+**Reallocated 2026-09-20.** `004` is the librarian re-run by definition, and
+`simulation-2`'s window started before the MCP fix — settings are read at
+session start, so that session cannot get the tools no matter what the config
+now says. Session 3 closed. **So no live seat here can open `004`**, and the
+card waits for a session opened after the fix rather than sitting with a seat
+that cannot act on it. `simulation-3` is registered now and its identity is
+free.
+
+**Two things the arriving seat should read before starting, both learned the
+hard way on 2026-09-20:**
+
+- **The person's `envelope/safety.json` is guarded against `Write` and `Edit`
+  and nothing else.** A heredoc reaches it and the gate cannot see a file that
+  was written and reverted. `CLAUDE.md` now says so beside the path. Point
+  `operator.ENVELOPE` at a scratch copy instead — one line, same coverage.
+- **`failures.jsonl`'s row for `555317b` undercounts.** It says only `list`
+  under `smoke` reached the wrong-field message; it is **two of eight, not
+  one**, because `in` on a `str` is a substring test rather than a key test.
+  `simulation-2`'s later row carries the correction — the seat that wrote the
+  original had closed, and a post-mortem is append-only and another seat's, so
+  it was not edited in place. **Read both rows.** The sharper lesson is not
+  *check the type*: `in` means three different things — a key in a dict, an
+  element in a list, a substring in a str — and `str` is the likelier hand-edit,
+  a person leaving a note where an object belongs.
 
 **Why `004` goes to `simulation-2` and not to whoever is free.** It is one
 commit spanning `goal.json`, the plan JSON, the generated `.md` and
@@ -106,7 +131,7 @@ PENDING under `--strict` and a merge from it FAILs outright: giving the only
 open work to a seat that cannot land it stalls the work and the seat together.
 Registration is architecture's and has been asked for.
 
-**Session 3's two, which touch none of `004`'s files:**
+**Still open, and touching none of `004`'s files:**
 
 1. **Confirm the librarian, and fill the fourth row of `failures.jsonl`.**
    The cause of its absence is now known and it was not what the earlier rows

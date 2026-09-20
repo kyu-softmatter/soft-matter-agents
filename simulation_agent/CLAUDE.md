@@ -41,6 +41,27 @@ file, `README.md`, `tasks/` and `.claude/`, which are `manager-simulation`'s.
 The rest of the deny list points outside this tree, where nothing resolves from
 a session opened here — that file says which entries are which.
 
+**And those four are guarded against two tools out of the ones you actually
+use.** The denials are `Write(...)` and `Edit(...)`. They do not reach `sed -i`,
+a python heredoc, or a shell redirect, and §6.2 records that **every session in
+this repository has used the latter**. The commit gate does not close it either:
+it judges the tree a commit would create, and a file written and reverted was
+never staged. So the protection on the person's `envelope/safety.json` is real
+against two doors and open beside them — §2.1 rule 9's shape, a guard that is
+opt-in is not a chokepoint.
+
+**This is not hypothetical.** On 2026-09-20 a seat rewrote that file ten times
+through a heredoc while testing a type guard, twenty minutes after the person
+committed it. Values were unchanged and the bytes were restored exactly, and
+**nothing in the system caught it** — not the denials, not the gate. A habitual
+`git status` did, and the seat reported itself.
+
+**What to do instead costs one line.** `operator.ENVELOPE` is a module
+attribute: point it at a scratch copy and the same tests run against the same
+code without touching the file. The seat that did this found that afterwards,
+and none of the correctness of what it verified depended on using the real
+one.
+
 ## A round arrives in `inbox/`, and the envelope is the turn
 
 **`simulation_agent/inbox/<thread>/` is where the bridge delivers.** It holds
