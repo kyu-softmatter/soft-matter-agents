@@ -149,6 +149,16 @@ that one key to `{}` to absent inside ten minutes while seats were quoting it
 to each other, and nothing anywhere records that it did. Settings are read at
 session start, so fixing it leaves a running session unchanged.
 
+**The librarian's server code has the same shape and it was not written
+down.** Each session starts its own `mcp_server.py --serve`, four or five at
+a time, so **a fix to the server reaches only sessions started after it**.
+A seat that has been up since morning keeps calling the morning's server,
+with no signal that it is doing so -- the tools answer, the log fills, and
+nothing anywhere says which build replied. Nothing has gone wrong from this
+yet; the librarian checked the running processes and every one postdated the
+last server fix. Treat a server fix the way a settings fix is treated: it
+lands for whoever starts next, and everyone else has to be told.
+
 **The cheapest test of whether the tools are there is to call one.** A probe
 costs nothing and dirties nothing: the server files a refusal with the
 arguments under `claimed` and `caller_id` null, and check 45 guards both
