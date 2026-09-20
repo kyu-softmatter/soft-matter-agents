@@ -1,0 +1,48 @@
+{
+  "entry_id": "polystyrene_refractive_index_879nm",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Bulk polystyrene has a refractive index of 1.576 at a wavelength of 879 nm, measured at 20 degrees Celsius, with a stated accuracy of plus or minus 0.001.",
+  "numbers": [
+    {
+      "name": "refractive_index",
+      "value": 1.576,
+      "unit": "dimensionless",
+      "source": "literature:sultanova_2009",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "at 879 nm. The paper states the accuracy of its optical-polymer indices as +/-0.001, which is the last digit printed."
+    }
+  ],
+  "validity": {
+    "wavelength": {
+      "min": 879.0,
+      "max": 879.0,
+      "unit": "nm"
+    },
+    "temperature": {
+      "min": 19.8,
+      "max": 20.2,
+      "unit": "degC"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "refractive_index"
+    }
+  ],
+  "source": "literature:sultanova_2009",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_sultanova_2009_optical_polymers",
+  "validity_conditions": "MEASURED AT ONE WAVELENGTH, AND THIS ENTRY ASSERTS IT AT THAT WAVELENGTH ONLY. Polystyrene is dispersive: the same material reads 1.617 at 436.8 nm and 1.572 at 1052 nm in this one table, so an index quoted without a wavelength is not a fact about the material. `validity` pins the wavelength to a point, which means a query at any other wavelength comes back `no_overlap` and the gap is `condition_mismatch`, not `absent`. That is deliberate and it is the correct answer: the store is not permitted to interpolate, and the eight measured points of this series are filed as eight entries precisely so that a caller asking at 605 nm is told the value exists at other wavelengths rather than handed a number nobody measured. If a caller does interpolate, that is its judgement to make and its plan to record it in. THE DISPERSION RELATION IS NOT AVAILABLE FROM THIS SOURCE. The paper computes Cauchy-Schott coefficients and does not print them for polystyrene, so there is no formula entry to fall back on; see src_sultanova_2009_optical_polymers. TEMPERATURE IS A REAL CONDITION HERE, not boilerplate: the measurement was thermostatted at 20 degC with 0.2 degC stability, and that is what `validity` carries. BULK POLYSTYRENE PLATES, NOT BEADS. The samples were moulded plates 2.5 to 5.5 mm thick. This laboratory's tracers are the same polymer but not the same object -- they are carboxyl-modified microspheres (tracer_particle_material_and_shape). Using this for a bead is a substitution the caller is making, and a microsphere-specific reference exists and has not been obtained: Ma et al., Phys. Med. Biol. 48, 4165 (2003). WHY IT WAS SOURCED. The microscope seat's A6 needs an axial range and had refractive_index as an `absent` gap. The tracer data sheet does not state an index; polystyrene's is well known, and writing it from memory would have been E6, which enters nothing. This is that gap closed by citation instead. It is not on the critical path: A6 cannot use it until the excitation and emission wavelengths are settled, which is open (see tracer_emission_peak).",
+  "date": "2026-09-19",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "identifiers": {
+    "material": "polystyrene",
+    "table_row": "PS"
+  }
+}
