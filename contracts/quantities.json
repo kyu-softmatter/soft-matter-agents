@@ -13,25 +13,42 @@
   ],
   "open_collisions": [
     {
-      "names": ["bead_diameter", "tracer_diameter"],
+      "names": [
+        "bead_diameter",
+        "tracer_diameter"
+      ],
       "unit": "um",
       "where": "bead_diameter in simulation_agent (6 uses), tracer_diameter in microscope_agent (2 uses)",
       "why_it_matters": "One physical quantity under two words, held by the two agents whose values the bridge exists to put side by side. observables.json warns that two sides agreeing on a word while disagreeing on the estimator is worse than disagreeing openly; here they do not even agree on the word. Unresolved on purpose: which name survives is not this file's call to make unilaterally over two other seats' cards."
     },
     {
-      "names": ["diffusivity", "tracer_diffusivity"],
+      "names": [
+        "diffusivity",
+        "tracer_diffusivity"
+      ],
       "unit": "um^2/s",
       "where": "diffusivity in simulation_agent (6 uses); tracer_diffusivity is a registered observable",
       "why_it_matters": "The registered observable and the name the simulation actually writes are different strings. This is the same collision as the one above and it sits on the one observable the bridge is currently threading."
     },
     {
-      "names": ["na", "na_mrd70040", "na_mrd70170", "na_mrd70270", "na_mrd71670", "na_mrd71970", "na_mrd77400"],
+      "names": [
+        "na",
+        "na_mrd70040",
+        "na_mrd70170",
+        "na_mrd70270",
+        "na_mrd71670",
+        "na_mrd71970",
+        "na_mrd77400"
+      ],
       "unit": "1",
       "where": "na in librarian entries (6 uses), the six suffixed forms in microscope_agent",
       "why_it_matters": "Rule 1. The lens is the subject and it is in the name; task 009 made part numbers addressable through `identifiers` precisely so it would not have to be."
     },
     {
-      "names": ["temperature", "ambient_temperature"],
+      "names": [
+        "temperature",
+        "ambient_temperature"
+      ],
       "unit": "K",
       "where": "both in librarian entries",
       "why_it_matters": "Rule 1 again, on the locus rather than the subject. `ambient_temperature` is `temperature` read at the room, and `at` exists as of 7320f78 to say that. Listed below as a quantity anyway, because retiring a name in use is the work and not the declaration."
@@ -48,8 +65,9 @@
     {
       "id": "refractive_index",
       "definition": "The ratio of the speed of light in vacuum to its speed in the material, at a stated wavelength. Dispersive, so a value without a wavelength is not reusable.",
-      "unit": "dimensionless",
-      "kind": "physical"
+      "unit": "1",
+      "kind": "physical",
+      "note": "Unit is `1`, the name units.json uses. Written `dimensionless` in this file's first commit -- the registry has no such symbol, so rule 3 was broken by the file that states it, one commit after stating it. Eight kb entries still carry the other spelling."
     },
     {
       "id": "viscosity",
@@ -101,7 +119,14 @@
   ],
   "not_yet_registered": {
     "why": "Names in use that this file deliberately does not bless yet.",
-    "pending_015": ["tracer_particle_density", "tracer_stock_concentration", "tracer_storage_temperature_min", "tracer_storage_temperature_max", "emission_wavelength", "excitation_wavelength"],
+    "pending_015": [
+      "tracer_particle_density",
+      "tracer_stock_concentration",
+      "tracer_storage_temperature_min",
+      "tracer_storage_temperature_max",
+      "emission_wavelength",
+      "excitation_wavelength"
+    ],
     "pending_015_reason": "All six carry the product identification withdrawn on 2026-09-19 (task 015), and four of them put the subject in the name, which rule 1 refuses. Registering them now would bless both at once. They come back when 015 settles what they are about and what they are called.",
     "plan_parameters": "Roughly half the 55 names in use are one agent's planning knobs -- save_interval_max, box_margin_factor, lag_to_record_ratio, storage_estimate. They follow the same rules and are registered when a question needs the name to mean one thing across a boundary, which for a knob is rarely."
   }
