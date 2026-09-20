@@ -3283,7 +3283,15 @@ def check_42_check_registry(b: Bundle) -> list[Finding]:
                         f"{DESIGN_DOC_NAME} is not in this tree, so the declarations cannot be read")]
     body = plan.read_text()
     try:
-        section = body.split("## 8. 검증 계층")[1].split("### 8.1")[0]
+        # Split on the section NUMBER, not its title. This read
+        # "## 8. 검증 계층" until 2026-09-20 -- the only Korean literal left in
+        # this file -- so check 42 could parse the Korean document and nothing
+        # else, and deleting plan_ko.md failed it with "cannot find section 8's
+        # check list". A title is translated and renamed; a number is the
+        # identifier this repository already treats as load-bearing (11-5).
+        # Line 3953 was already doing it this way.
+        section = re.split(r"^## 8\.\s", body, maxsplit=1, flags=re.M)[1]
+        section = re.split(r"^### 8\.1", section, maxsplit=1, flags=re.M)[0]
     except IndexError:
         return [Finding(42, FAIL, f"cannot find section 8's check list in {DESIGN_DOC_NAME}",
                         DESIGN_DOC_NAME)]
