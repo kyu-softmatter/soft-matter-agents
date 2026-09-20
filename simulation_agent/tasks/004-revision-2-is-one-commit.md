@@ -40,51 +40,33 @@ where nobody can fix it. The exit is the next revision, which is this card.
 Six cards carry `bead_diameter`: `goal.json`, the plan, `synthesis.json`, and
 axes **a1, a3, a4**. Counted, not taken on trust — do the same before you edit.
 
-**2 µm → 5 µm.** This card said until 2026-09-19 that the product was
-identified as Abvigen `AFR-0500-COOH`, with a vendor page and a
-contemporaneous `data/particles.yaml` behind it. **That identification was
-withdrawn the same evening** (`8646426`, issue 015): the person ruled it is not
-what is on the bench, and two entries force it —
-`bottle_label_states_no_product` (E3, `operator_read`) and
-`particles_show_on_the_green_605_path` (E2, `calibration`), the second because
-particles emitting at 680 nm do not show through a 605 band.
+**2 µm → 5 µm, and it is a measurement.** The person measured the particles
+directly on 2026-09-19: **5 µm, CV within 2 per cent**, which is
+`calibration:` at **E2** — *above* the E3 a lot specification would have
+supplied. The question this has been putting to a person was answered by
+measurement, and answered better than it was asked.
 
-**The alignment survives the withdrawal, and it is worth seeing why.** 5 µm was
-never derived from the product. It is `operator_recall:kyuhwan_20260918` and it
-was that before the catalogue was found — the catalogue was a *second* trace,
-and losing it leaves the first standing. What is thinner is the support, not
-the value: one weak claim instead of two.
+So use `calibration:` at E2. Not `assumed:`, and not `operator_recall:` either
+— this card said `operator_recall:` E5 for several hours on the reasoning that
+a weak claim beats a blank, and that reasoning is now obsolete rather than
+wrong. **The argument shortens to "a measurement beats a blank."**
 
-**The grade stays E5 and the source kind does not.** Two seats disagreed here
-and this is the reading to follow, with the reason so you can overrule it if it
-is wrong:
+**The product thread no longer decides this, and it moved twice while this
+card was being written.** Identification was withdrawn (issue 015), then
+reversed when the person ruled the bottle is that product and the vendor page
+is wrong — the asymmetry being that the Abvigen page already had two unrelated
+errors on record, so *the datasheet is wrong* is a far cheaper explanation than
+*the bottle is not that product*, and a silent label cannot tell the two apart.
+**None of that matters for the diameter any more.** A measured value does not
+need the catalogue that was standing in for it. It still matters for the
+brightness — see below.
 
-- **`assumed:<rationale_id>` claims nothing about this setup** — it is a
-  placeholder put there to keep going. That is what 2 µm was, and `a_sample`
-  says so in as many words: *"No bead lot exists to quote."*
-- **`operator_recall:` is a claim about the world.** 5 µm now has a vendor
-  catalogue and a contemporaneous file behind it. It is weakly supported, not
-  unsupported.
-
-Both grade E5, and §5.3 was widened on 2026-09-19 to say why that is not a
-contradiction: they are E5 because the evidence is thin, not because they are
-the same kind of thing. **A blank is not disagreeing.** So `operator_recall:`,
-E5 unchanged, and `manager-bridge`'s advice to keep `assumed:` was written
-before that distinction landed.
-
-**Leave the lot gap open, and know that one exit is now shut.** This card
-said reading the label would lift the grade on its own. **The label was read**
-— on 2026-09-19, by the operator — **and it does not state a product
-identity.** So the doubt is permanent rather than pending: the one cheap thing
-that might have settled it has happened and did not. A lot number is still what
-would make either side `spec:` at E3, and nothing short of that will.
-
-That is the reverse of what this card said hours earlier, and the direction
-matters: it did not go stale because an instruction outlived its cause, the way
-the holds in `000` and `002` did. **A fact about the world changed under it.**
-The repair is the same and the lesson is not — no convention about how a card
-is written would have prevented this one, and re-reading before acting is what
-catches it.
+**The lot narrows rather than vanishing.** `agentic-microscope` recorded that
+size CV *and* dye loading both vary lot to lot. Size CV is now measured and out
+of the lot's hands; **dye loading is not** — that is `tracer_brightness`, still
+unmeasured, still lot-dependent, and read by A1. So the open question stops
+being *which lot* and becomes *how is brightness obtained*, and that answer may
+also turn out to be a measurement.
 
 Two consequences to work out rather than guess: `a_sample`'s statement is
 written around there being no value, and a number sourced `operator_recall:`
@@ -129,22 +111,51 @@ So A4 genuinely re-decides the window, S4 genuinely re-picks the point, and A5
 re-costs it. That is a fan-out, not a patch — which is what makes this a
 revision.
 
-## Do not expect the evidence to improve, because it will not
+## The evidence does improve, and this section said the opposite
 
-Revision 2 changes the physics and **not one grade.** `assumed:` is E5 and
-`operator_recall:` is E5, so the diameter moves kind without moving grade, and
-everything downstream inherits exactly what it inherited before.
+**This section said until 2026-09-19 that revision 2 would change the physics
+and not one grade.** That was written while the diameter was going from one E5
+source kind to another. Then the person measured it, and it is false.
 
-Counted, so nobody is surprised: the plan carries **17 E5 numbers — 8 assumed
-and 9 computed — and every one of the 9 inherits.** `diffusivity` is E5 because
-`bead_diameter` is; `tau_d` because both of those are; `integration_timestep_max`
-because `tau_d` is. None of the nine asserts E5 on its own. That is §5.8 working
-as written — one estimate in the chain makes the answer an order of magnitude.
+`bead_diameter` becomes E2, and §5.8 re-grades everything downstream to its
+worst input:
 
-So the honest summary of revision 2 is: **the two sides stop being a factor of
-fifteen apart, and nothing gets better evidenced.** Only a lot number does that,
-and the cheap route to one is now shut. Say this in the revision's own record
-rather than letting a reader infer from a re-run that the plan firmed up.
+| | was | becomes | why |
+|---|---|---|---|
+| `bead_diameter` | E5 `assumed:` | **E2** `calibration:` | measured |
+| `diffusivity` | E5 | **E3** | capped by `viscosity` and `temperature`, both `kb:` E3 |
+| `tau_d` | E5 | **E3** | same cap, through `diffusivity` |
+
+Across the question that is **24 E5 numbers down to 22**, and for the plan
+§11-2's unit goes **7 distinct rationales to 6** — `a_sample` stops being a
+rationale because the number stops being assumed. Check 3 will report that on
+its own; check 56 compares recomputed counts, so it follows the cards.
+
+**The two that improve are the two that are the physics.** Everything still E5
+is a *choice* — `dt_resolution_factor`, `max_lag_time`, `box_margin_factor`,
+the ensemble size. So the honest summary inverts: **the physics stops being an
+estimate and the choices stay choices**, which is a much better place to be
+than where this section had you.
+
+**And the binding constraint moves.** The weakest link in this agent's physics
+was the bead; now it is `lab_ambient_temperature` and `water_viscosity_293k`,
+both `kb:` E3. That is worth noticing rather than passing over: the temperature
+is a thermometer reading of **the room**, not the sample, and this question
+already carries `sample_adjacent_temperature` as an open gap. **The gap that
+was second-order behind the diameter is now the one holding the grade.**
+
+## Polydispersity, which nobody was accounting for
+
+A point value became a distribution and that settles something downstream that
+was never argued. **CV within 2 per cent puts the spread in diffusivity across
+particles at about 4 per cent**, since `D` goes as `1/d`. That is inside
+explore's tie band, where differences under 10× are ties (P15).
+
+So ignoring polydispersity is **safe, and until 2026-09-19 nothing said why**.
+A2 is where independent displacements are counted, so that is where the reason
+belongs. Write it down even though it changes no number — an unstated safety
+margin is indistinguishable from an oversight, and the next person to widen the
+CV has nothing to check against.
 
 ## C. The target, and your plan does not have one
 
