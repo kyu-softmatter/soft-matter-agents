@@ -2598,6 +2598,89 @@ def check_49_absent_searched_the_neighbourhood(b: Bundle) -> list[Finding]:
     return [Finding(49, PASS, f"{seen} absent gaps each searched the neighbourhood first")]
 
 
+def check_55_section_7_names_are_allowed(b: Bundle) -> list[Finding]:
+    """A file section 7 declares has to be one ALLOWED_PATHS would let exist.
+
+    Two places say where a file may live and nothing compared them (11-11).
+    Section 7 is the prose of record -- it carries reasons, references and
+    ownership that a generated tree would lose -- and ALLOWED_PATHS is what
+    actually refuses. Parsing section 7 to derive the regex was rejected: it
+    would throw away everything the tree says beyond a path.
+
+    The asymmetry is why this check runs one way. Someone editing ALLOWED_PATHS
+    knows they are editing a regex; someone adding a line to section 7 believes
+    they have declared the file. That happened twice on 2026-09-19 --
+    bridge/README.md in the morning, contracts/quantities.json in the evening
+    -- and never once the other way.
+
+    It reads names and the directory each sits under, and nothing else --
+    ordering, prose and the reasons the tree carries are not parsed, the
+    limitation section 8 records for checks 47, 48, 50 and 51. The first draft
+    read names alone, on the reasoning that the tree's shape was not needed;
+    rebuilding the real regression in a scratch tree showed it passing, because
+    a bare name finds some other directory whose pattern accepts it. A name
+    with nowhere to live is not the failure -- a name in the wrong place is.
+
+    What it deliberately does NOT catch, so nobody deletes it expecting more.
+    Anything under a placeholder directory -- questions/<qid>/, inbox/<thread>/
+    -- because the tree names a shape there and not a path; those subtrees are
+    skipped whole rather than resolved against the grandparent, which is what
+    the first run did to twenty-odd real files. A file that
+    exists and is allowed but sits somewhere section 7 never mentions, which is
+    check 13's job from the other side. And whether a declared file exists at
+    all: declaring a path and writing it are different acts, and 11-13's whole
+    point is that a gap should stay visible rather than be filled to make a
+    check quiet.
+    """
+    text = (REPO / "plan.md").read_text(encoding="utf-8") if (REPO / "plan.md").exists() else ""
+    m = re.search(r"^## 7\..*?^```\n(.*?)^```", text, re.S | re.M)
+    if not m:
+        return [Finding(55, PENDING, "plan.md has no section 7 tree block to read", "plan.md")]
+
+    # Indentation gives the containing directory, and the check needs it. The
+    # first draft read a flat set of names and asked whether ALLOWED_PATHS
+    # permits each SOMEWHERE -- built the real regression in a scratch tree
+    # (quantities.json removed from the regex) and the check passed, because
+    # some other directory's pattern accepts a .json of that name. A name with
+    # no place is not the failure; a name in the wrong place is.
+    paths: set[str] = set()
+    stack: list[tuple[int, str | None]] = []
+    for line in m.group(1).splitlines():
+        if not line.strip():
+            continue
+        indent = len(line) - len(line.lstrip())
+        tok = line.strip().split()[0]
+        while stack and stack[-1][0] >= indent:
+            stack.pop()
+        prefix = stack[-1][1] if stack else ""
+        placeholder = any(c in tok for c in "<>*{}|")
+        if tok.endswith("/"):
+            # A placeholder directory pushes None, so its children are skipped
+            # too. Without that, a file under questions/<qid>/ resolved to the
+            # grandparent and twenty-odd real paths were reported wrong.
+            if placeholder or prefix is None:
+                stack.append((indent, None))
+            else:
+                stack.append((indent, "" if tok == "rebuild/" else prefix + tok))
+        elif prefix is not None and not placeholder and re.fullmatch(r"[A-Za-z0-9_.\-]+\.[a-z]+", tok):
+            paths.add(prefix + tok)
+
+    out: list[Finding] = []
+    tested = 0
+    for path in sorted(paths):
+        if any(re.fullmatch(pat, path) for pat in ALLOWED_PATHS):
+            tested += 1
+            continue
+        out.append(Finding(55, FAIL,
+                           f"plan.md section 7 puts a file at {path!r} and ALLOWED_PATHS does not allow "
+                           "that path, so writing it there would fail check 13. Section 7 is the prose "
+                           "of record and ALLOWED_PATHS is what refuses; a line in one is not a "
+                           "declaration", "plan.md"))
+    if out:
+        return out
+    return [Finding(55, PASS, f"{tested} paths section 7 declares are paths ALLOWED_PATHS permits")]
+
+
 def check_43_entry_grade(b: Bundle) -> list[Finding]:
     """An entry's grade follows from its source kind, the way a card's does (5.3).
 
@@ -3646,7 +3729,7 @@ CHECKS = [
     check_28_precision, check_29_failure_record, check_30_lessons, check_31_candidate_preservation,
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
-    check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood,
+    check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood, check_55_section_7_names_are_allowed,
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision, check_53_deny_rules_do_not_block_reading,
