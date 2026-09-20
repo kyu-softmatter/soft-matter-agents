@@ -2088,6 +2088,19 @@ The check list:
 
     **It is PENDING today and not PASS.** The repository's only irreversible action `act_bleach_ref` rests on `illumination_power`, and the microscope envelope holds only the two P0 ranks highest, which does not yet include it. **Failing now would refuse something that could not have been done**, and it flips itself the moment any irreversible parameter gets a limit
 
+    **Upkeep moves to manager-microscope (2026-09-20), on the implementing seat's own reading.**
+    manager-simulation built the schema and the check, then pointed out that its own tree holds
+    **no irreversible action at all** — 57's only subject is the microscope's `act_bleach_ref`, and
+    manager-microscope owns both the `safety.json` and the `actions[]` it reads. The implementation
+    stays; who keeps it and builds its fixtures changes.
+
+    **The shared surface produced that, which is worth naming.** `envelope_safety.schema.json` is in
+    `contracts/`, which no manager owns alone, so the seat that reached for it designed **both
+    halves — including the half it cannot exercise.** The floor-versus-ceiling distinction came
+    entirely from `objective_clearance_min`, and **every limit in the simulation tree is a ceiling.**
+    A shared file does not make a seat the owner of what lives in it, and the seat drew that line
+    itself after crossing it.
+
     **And this check's draft earned §8's principle.** The draft refused `Bash(python3*hardware*)`, which is **the only denial actually enforced in the bridge setting and adjacent to P0.** The seat's first impulse was to delete it to make the tree green, and what stopped it was **the docstring having written in advance that the pattern is legitimate.** If a check does not say what it deliberately does not refuse, then when the check is wrong the reader suspects their own file
 
     **It was written by shape, not by name.** A naming rule would have refused `target_relative_error`, which is a statistics requirement an axis **derived** — a claim with a grade and a source. The line is not between names beginning with `target` but between **a person's decision and everything computed from it** (§5.3).
