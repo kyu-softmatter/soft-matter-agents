@@ -25,7 +25,7 @@ import sys
 import threading
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -124,7 +124,70 @@ class Channel:
         return (self.elements.get(element) or {}).get("lock_group", self.lock_group)
 
 
-def load_registry(path: Path | None = None) -> tuple[dict[str, Channel], str]:
+def _rows_and_provenance(data: dict, source: Path) -> tuple[list, dict]:
+    """The channel table, out of either shape the lookup can land on.
+
+    Two files answer to "registry". The flat table the librarian stages is a
+    JSON object with `channels[]` at the top level. This agent's
+    envelope/snapshot.json is not that shape: it is a published export copied
+    here (4.3.2), and it carries each table as the exact bytes under
+    `tables.<name>.text` beside the sha256 that proves them. Bytes rather than
+    a parsed object is the point -- a copy that had been re-serialised could
+    not be read back against the commit it names -- so the snapshot has to be
+    unwrapped before it looks like a registry.
+
+    Until 2026-09-20 this function read `channels[]` and nothing else, while
+    the snapshot sits FIRST in REGISTRY_LOOKUP. So the day the envelope gained
+    a snapshot, every run raised GapError on the file that is supposed to be
+    the normal source. It failed closed, which is the right direction and not
+    a defence: what stopped was the normal path.
+    """
+    if isinstance(data.get("channels"), list):
+        return data["channels"], {}
+    table = ((data.get("tables") or {}).get("devices") or {})
+    text = table.get("text")
+    if text is None:
+        raise GapError(f"{source} carries neither channels[] nor tables.devices")
+    rows = json.loads(text).get("channels")
+    if not isinstance(rows, list):
+        raise GapError(f"{source} carries tables.devices and that table has no channels[]")
+    return rows, {
+        "kb_version": data.get("kb_version"),
+        "built_from_commit": data.get("built_from_commit"),
+        "table_from": table.get("from"),
+    }
+
+
+def _name_index(channels: dict[str, Channel]) -> dict[str, tuple[str, str | None]]:
+    """Every name a plan may write, pointing at the channel that answers it.
+
+    A plan names a channel OR an element: "set the dia lamp" is the true
+    statement, and "set stand_ti2e" would lose which of that channel's ten
+    elements was meant. Check 38 accepts both against this same table, so the
+    two have to agree on what a name is -- this is built the way that check
+    builds it, every channel id plus every elements[].id pointing at its
+    channel.
+
+    A name that means two things is not resolved by preferring one of them. It
+    stops here, at load, before any command has been derived from it (2.1
+    rule 2).
+    """
+    index: dict[str, tuple[str, str | None]] = {cid: (cid, None) for cid in channels}
+    for channel in channels.values():
+        for element_id in channel.elements:
+            held = index.get(element_id)
+            if held is not None:
+                owner = held[0]
+                was = "a channel" if held[1] is None else f"an element of {owner!r}"
+                raise GapError(
+                    f"the name {element_id!r} is an element of {channel.id!r} and also {was}. "
+                    "An ambiguous name is not resolved by picking one of its meanings"
+                )
+            index[element_id] = (channel.id, element_id)
+    return index
+
+
+def load_registry(path: Path | None = None) -> tuple[dict[str, Channel], str, dict]:
     source = None
     if path is not None:
         source = path
@@ -138,9 +201,7 @@ def load_registry(path: Path | None = None) -> tuple[dict[str, Channel], str]:
             "no device registry found. Looked for " + ", ".join(str(p) for p in REGISTRY_LOOKUP)
         )
     data = json.loads(source.read_text())
-    rows = data.get("channels")
-    if not isinstance(rows, list):
-        raise GapError(f"{source} carries no channels[]")
+    rows, provenance = _rows_and_provenance(data, source)
 
     channels: dict[str, Channel] = {}
     for row in rows:
@@ -155,7 +216,7 @@ def load_registry(path: Path | None = None) -> tuple[dict[str, Channel], str]:
             elements=elements,
             raw=row,
         )
-    return channels, str(source.relative_to(REPO))
+    return channels, str(source.relative_to(REPO)), provenance
 
 
 # --------------------------------------------------------------------------- #
@@ -196,7 +257,8 @@ class Command:
 
 class Orchestrator:
     def __init__(self, registry_path: Path | None = None, backend: str = "mock") -> None:
-        self.channels, self.registry_source = load_registry(registry_path)
+        self.channels, self.registry_source, self.registry_provenance = load_registry(registry_path)
+        self.names = _name_index(self.channels)
         self.backend = backend
         self.clock = Clock.start()
         self.log: list[dict] = []
@@ -332,25 +394,113 @@ class Orchestrator:
 
     # -- running ------------------------------------------------------------ #
 
-    def preflight(self, channel_ids: list[str]) -> list[dict]:
-        """Ask every channel for its state before anything moves (O1).
+    def resolve(self, name: str) -> tuple[str, str | None]:
+        """A name the plan wrote -> the channel that answers it, and the element if it named one.
+
+        Resolving element to channel is this layer's job (4.6.7). Until
+        2026-09-20 it was nobody's: preflight looked names up in
+        self.channels only, so a plan naming `dia_lamp` or `nosepiece` --
+        which check 38 accepts against the same table -- raised GapError on a
+        perfectly good card.
+
+        A name in neither is still a GapError and stays one. The gap that was
+        closed is the one between two correct tables, not the one between a
+        card and the instrument.
+        """
+        try:
+            return self.names[name]
+        except KeyError:
+            raise GapError(
+                f"the plan names {name!r}, which is neither a channel nor an element in "
+                f"{self.registry_source}"
+            ) from None
+
+    def preflight(self, names: list[str]) -> list[dict]:
+        """Ask every channel the plan reaches for its state before anything moves (O1).
+
+        Takes the names the plan wrote, channels or elements, and asks the
+        channel behind each. Two names on one channel ask it once: the
+        question is about the channel, and asking twice would put two answers
+        for one state into the log.
 
         One failure stops the run here, with the instrument untouched.
         """
         results = []
-        for cid in channel_ids:
-            channel = self.channels.get(cid)
-            if channel is None:
-                raise GapError(f"the plan names channel {cid!r}, which the registry does not list")
+        reached: dict[str, list[str]] = {}
+        for name in names:
+            cid, element = self.resolve(name)
+            named_as = reached.setdefault(cid, [])
+            if element is not None and element not in named_as:
+                named_as.append(element)
+        for cid, named_as in reached.items():
+            channel = self.channels[cid]
             module = self.module_for(cid)
             state = module.preflight(channel.raw)
             verified = channel.verifiable and state.get("read_back") is not False
-            results.append({"channel": cid, "state": state, "verified": verified})
-            self.record(event="preflight", channel=cid, verified=verified, state=state)
+            results.append({"channel": cid, "named_as": named_as, "state": state,
+                            "verified": verified})
+            self.record(event="preflight", channel=cid, named_as=named_as,
+                        verified=verified, state=state)
             if not verified:
                 self.record(event="preflight_unverified", channel=cid,
                             note="state cannot be read back; this channel goes to a manual sheet")
         return results
+
+    def verification_of(self, channel_id: str, returned: object) -> tuple[str, str]:
+        """Did anything query this channel after the command and see what was commanded?
+
+        4.6.6.1 rule 3, and check 66 reads the answer off the log. Three
+        things are being kept apart:
+
+          - the channel cannot report at all. `laser_combiner` and
+            `optical_tweezers` are the pair that rule was written about
+          - the backend answered the write and nothing was queried after it.
+            **A return code is not a read-back**: on the Tweez 300 a zero
+            means the GUI accepted the text, and six distinct ways a command
+            can be ignored all return zero (tweez300_reports_nothing_back, E3)
+          - the state was queried after the write and matched what was sent
+
+        Only the third is `readback`. Everything else is `none`, which is a
+        statement rather than a silence -- 2.1 rule 8, no signal does not
+        permit, and check 66 fails an absent field harder than a `none`.
+
+        A DISAGREEMENT IS ALSO `none`, and is the loudest of them: the query
+        happened and the answer was no. It reads the backend's own report
+        rather than calling read() again here, because the backend that can
+        tell the difference is the one that already queried -- a second read
+        one step later answers a different question, about a state that has
+        had time to change.
+        """
+        channel = self.channels[channel_id]
+        if channel.read_back is not True:
+            return "none", (f"the channel table marks {channel_id} read_back "
+                            f"{channel.read_back!r}, so there is nothing to query")
+        if not isinstance(returned, dict) or "verified" not in returned:
+            return "none", ("the backend reported no read-back. What came back is the write's "
+                            "own return value, which says the command was accepted and not "
+                            "that the state holds")
+        disagreed = returned.get("disagreed") or []
+        if disagreed:
+            return "none", (f"{len(disagreed)} setting(s) read back different from what was "
+                            f"commanded")
+        verified = returned.get("verified") or []
+        if not verified:
+            return "none", "the backend was given no setting to verify, so it read nothing back"
+        return "readback", f"{len(verified)} setting(s) queried after the write and matched"
+
+    def _resolved(self, command: Command) -> Command:
+        """The same command, addressed to a channel instead of to whatever the plan named.
+
+        `channel` after this is always a channel id, because the locks, the
+        workers and the device modules are all per channel. `element` keeps
+        what the plan named, because a lock group can belong to the element
+        rather than to the channel -- the body's optics lock with the path
+        while its motor stage locks with the piezo that rides on it.
+        """
+        cid, element = self.resolve(command.channel)
+        if cid == command.channel and element is None:
+            return command
+        return replace(command, channel=cid, element=command.element or element)
 
     def dispatch(self, commands: list[Command], timeout: float = 30.0) -> list[dict]:
         """One worker per channel, ordered by the power rule, locks held.
@@ -359,7 +509,7 @@ class Orchestrator:
         machine. Different channels overlap, which is the only thing the
         parallelism is for.
         """
-        ordered = self.order(commands)
+        ordered = self.order([self._resolved(c) for c in commands])
         by_rank: dict[int, list[Command]] = defaultdict(list)
         for c in ordered:
             by_rank[0 if c.lowers_power else 2 if c.raises_power else 1].append(c)
@@ -385,14 +535,35 @@ class Orchestrator:
                             self.check_acquisition_allowed(command)
                             module = self.module_for(cid)
                             value = module.apply(command.params)
-                            out.append({"command": command.action, "ok": True, "returned": value})
-                            self.record(event="apply", channel=cid, action=command.action,
-                                        params=command.params, **{"from": command.from_field})
+                            verification, why = self.verification_of(cid, value)
+                            out.append({"command": command.action, "ok": True, "returned": value,
+                                        "verification": verification})
+                            detail = {}
+                            if isinstance(value, dict) and value.get("disagreed"):
+                                # On the apply event and not on one of its own:
+                                # a disagreement is a property of this dispatch,
+                                # and a second event carrying the same `from`
+                                # would be read as a second dispatch -- check 66
+                                # would report one command twice.
+                                detail["disagreed"] = value["disagreed"]
+                            self.record(event="apply", channel=cid, element=command.element,
+                                        action=command.action, params=command.params,
+                                        verification=verification, verification_note=why,
+                                        **detail, **{"from": command.from_field})
                         except Exception as exc:                # noqa: BLE001 - recorded, then re-raised by the caller
                             out.append({"command": command.action, "ok": False,
-                                        "error": f"{type(exc).__name__}: {exc}"})
-                            self.record(event="apply_failed", channel=cid, action=command.action,
-                                        error=str(exc), **{"from": command.from_field})
+                                        "error": f"{type(exc).__name__}: {exc}",
+                                        "verification": "none"})
+                            # A command that raised was never confirmed either, and the
+                            # field says so rather than going absent: check 66 reads an
+                            # absent `verification` as a run that does not stand, and a
+                            # failed dispatch is a fact about the run, not a gap in it.
+                            self.record(event="apply_failed", channel=cid, element=command.element,
+                                        action=command.action, error=str(exc),
+                                        verification="none",
+                                        verification_note=("the command raised; whether it took "
+                                                           "effect was never asked"),
+                                        **{"from": command.from_field})
                 results[cid] = out
 
             for cid, queue in per_channel.items():

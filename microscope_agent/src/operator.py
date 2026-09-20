@@ -156,7 +156,11 @@ def authorise(plan: dict, approvals: list[dict] | None = None) -> Authorisation:
             continue
         reasons.append(
             f"{card['__path']} is a scope_approval; its range still has to be checked against this "
-            "plan and against envelope/safety.json, which does not exist yet"
+            "plan and against envelope/safety.json, and neither comparison is implemented -- so "
+            "this route authorises nothing yet. It said until 2026-09-20 that the envelope does "
+            "not exist, which stopped being true at c1404bf and has been revised twice since; a "
+            "refusal reason describing a world two days gone sends its reader to fix the wrong "
+            "thing"
         )
 
     reasons.append(f"no plan_approval on disk names ({plan_id}, revision {revision})")
@@ -165,6 +169,226 @@ def authorise(plan: dict, approvals: list[dict] | None = None) -> Authorisation:
 
 def highest_tier(plan: dict) -> int:
     return max([int(a.get("tier", 0)) for a in plan.get("actions", [])] or [0])
+
+
+# --------------------------------------------------------------------------- #
+# O1 -- a limit that is a lookup becomes a number, before anything moves
+# --------------------------------------------------------------------------- #
+
+# Which lookup answers which quantity. `resolved_from.keyed_by` in the envelope
+# is prose -- the person saying what selects the value -- so it is not a field
+# a program dispatches on, and the resolution itself is written here and is
+# answerable to that sentence. A quantity with no resolver REFUSES: a lookup
+# this file does not know how to perform is not one it may skip.
+KEYED_BY_NOSEPIECE = "nosepiece_position"
+
+
+def load_snapshot() -> dict:
+    """The KB as this agent copied it, and the only store this file reads.
+
+    The librarian owns knowledge and cannot write here (P14, D11), so the copy
+    into envelope/ is deliberate: which KB version entered this envelope, and
+    when, is then a fact of this agent's own commit history. Reading
+    librarian_agent/kb/ at run time would resolve a limit against whatever the
+    store holds at that moment, and afterwards the run could not say what it
+    resolved against.
+    """
+    path = AGENT / "envelope" / "snapshot.json"
+    if not path.exists():
+        raise Refusal(
+            "envelope/snapshot.json does not exist, so a limit that resolves from the store has "
+            "nothing to resolve against. Absent is not permissive (2.1 rule 2)"
+        )
+    return json.loads(path.read_text())
+
+
+def _snapshot_entry(snap: dict, entry_id: str) -> dict:
+    held = (snap.get("entries") or {}).get(entry_id)
+    if held is None:
+        raise Refusal(
+            f"the snapshot at {snap.get('kb_version')} holds no entry {entry_id!r}. The limit "
+            "names where to look and nothing is there; a floor that disappears when its lookup "
+            "misses fails toward allowing everything"
+        )
+    return json.loads(held["text"])
+
+
+def _nosepiece(snap: dict) -> dict:
+    """The turret row of the device table, carried inside the snapshot.
+
+    Read from the snapshot rather than from the staged table for the same
+    reason the entries are: one store per run, named in the log.
+    """
+    text = ((snap.get("tables") or {}).get("devices") or {}).get("text")
+    if text is None:
+        raise Refusal("the snapshot carries no device table, so the turret cannot be read from it")
+    for channel in json.loads(text).get("channels", []) or []:
+        for element in channel.get("elements", []) or []:
+            if element.get("id") == "nosepiece":
+                return element
+    raise Refusal("the snapshot's device table has no nosepiece element")
+
+
+def objective_in_path(plan: dict, snap: dict) -> dict:
+    """Which of the six lenses this plan puts in front of the sample.
+
+    `objective_clearance_min` is keyed by it, and the six run from 20 mm to
+    0.13 mm -- a factor of 150, so the key is the whole of the answer.
+
+    The plan says it by driving the turret, and the only machine-readable way
+    it can is a number: numbers[] is where a card keeps its values, and an
+    objective's id is a string that is exact by designation (5.3), so what a
+    plan can carry is the POSITION. Matched against the table's own
+    `objectives[].position` rather than against a range written here -- this
+    turret is indexed from 0 and the table says so in an `index_note`, and
+    1-6 would be off by one on every lens.
+
+    THE FIELD NAME IS A DECISION MADE HERE. No plan has ever named an
+    objective, because S5 does not exist yet, so there is no contract to read
+    this off -- what a plan must carry is fixed by this function and reported
+    up rather than discovered. The alternative considered and rejected was
+    reading the turret back at preflight: a read-back is what the instrument
+    currently holds, and the floor has to bound what the plan drives to.
+    """
+    objectives = _nosepiece(snap).get("objectives") or []
+    key = {n.get("name"): n for n in plan.get("numbers", []) or []}.get(KEYED_BY_NOSEPIECE)
+    if key is None:
+        raise Refusal(
+            f"the plan carries no number named {KEYED_BY_NOSEPIECE!r}, so which objective is in "
+            "front of the sample is not stated. objective_clearance_min resolves from that "
+            "objective's working distance and the six on this stand run from 20 mm to 0.13 mm; "
+            "an unstated objective is not a forgiving one (2.1 rule 2)"
+        )
+    for row in objectives:
+        if row.get("position") == key.get("value"):
+            return row
+    raise Refusal(
+        f"{KEYED_BY_NOSEPIECE} is {key.get('value')!r} and this turret has positions "
+        f"{sorted(r.get('position') for r in objectives)}. It is indexed from 0, not from 1"
+    )
+
+
+def _working_distance(plan: dict, snap: dict) -> dict:
+    """The working distance of the objective the plan drives to.
+
+    TWO SHAPES COME BACK AND THE SECOND IS THE ONE THAT MATTERS. Five lenses
+    carry `working_distance`, a point. The 40x WI carries
+    `working_distance_min` and `working_distance_max` instead, because the
+    catalogue quotes a range for a correction-collar lens and the librarian
+    does not interpolate inside a quotation. Asking for the point name alone
+    answers for five of six and comes back EMPTY for the sixth -- not a range
+    to think about, nothing at all, which is the worse of the two: a range is
+    visible and an absence looks like a lookup that has not run.
+
+    FOR A FLOOR THE NEAR END BINDS. A floor answers *how close may it come*,
+    and the true working distance is at least the minimum at any collar
+    setting -- so 0.16 mm is not crossed before focus while 0.20 mm can be.
+    Taking the maximum would permit 40 um of approach the vendor never
+    promised.
+
+    The part number is checked against the table's, because the table's
+    `entry_ref` and the entry's `identifiers.part_number` are two statements
+    about the same lens written in two places, and a floor resolved off a
+    mis-wired reference would be the right shape and the wrong lens.
+    """
+    row = objective_in_path(plan, snap)
+    key = {"field": KEYED_BY_NOSEPIECE,
+           "value": {n.get("name"): n.get("value")
+                     for n in plan.get("numbers", []) or []}.get(KEYED_BY_NOSEPIECE),
+           "objective": row.get("id"),
+           "part_number": row.get("part_number")}
+    entry_id = row.get("entry_ref")
+    if not entry_id:
+        raise Refusal(
+            f"the turret row for objective {row.get('id')!r} names no entry_ref, so its working "
+            "distance has nowhere to be read from"
+        )
+    entry = _snapshot_entry(snap, entry_id)
+    part = (entry.get("identifiers") or {}).get("part_number")
+    if part and row.get("part_number") and part != row.get("part_number"):
+        raise Refusal(
+            f"the turret says position {row.get('position')} is {row.get('part_number')} and "
+            f"entry {entry_id!r} is about {part}. Two statements about one lens disagree and "
+            "neither is preferred here"
+        )
+    numbers = {n.get("name"): n for n in entry.get("numbers", []) or []}
+    exact = numbers.get("working_distance")
+    if exact is not None:
+        return {"value": exact.get("value"), "unit": exact.get("unit"), "entry": entry_id,
+                "number": "working_distance", "grade": exact.get("grade"), "key": key,
+                "note": "a point value, as five of the six lenses carry it"}
+    low, high = numbers.get("working_distance_min"), numbers.get("working_distance_max")
+    if low is None:
+        raise Refusal(
+            f"entry {entry_id!r} carries neither working_distance nor working_distance_min, so "
+            f"the floor for objective {row.get('id')!r} does not resolve. Not a default and not "
+            "a warning: the run stops (2.1 rule 2)"
+        )
+    return {"value": low.get("value"), "unit": low.get("unit"), "entry": entry_id,
+            "number": "working_distance_min", "grade": low.get("grade"), "key": key,
+            "note": (f"quoted as a range {low.get('value')} to "
+                     f"{(high or {}).get('value')} {low.get('unit')} across the correction "
+                     "collar. A floor takes the near end: the true working distance is at "
+                     "least the minimum at any collar setting, so this end is not crossed "
+                     "before focus and the far end can be")}
+
+
+RESOLVERS = {"working_distance": _working_distance}
+
+
+def resolve_limits(plan: dict, safety: dict) -> list[dict]:
+    """Every limit that is a lookup becomes a number here, or the run does not start.
+
+    A limit is EITHER a constant or a `resolved_from` lookup, never both and
+    never neither (envelope_safety.schema.json). A constant is already a bound
+    and is not touched. A lookup has no `value` and no `unit`, so anything
+    reading lim["value"] on one raises rather than mis-comparing -- that is
+    true today and stays true: the resolved number is returned beside the
+    limit and never written back into it.
+
+    REFUSING IS THE POINT. A floor that quietly disappears when its lookup
+    misses is the most dangerous failure this file has, because it fails
+    toward allowing everything -- a floor is where zero is dangerous, while a
+    ceiling is where zero is safe. So there is no default, no skip and no
+    warning the run proceeds past. There is also NO TOLERANCE: the limit came
+    from the person, and an operator that widened it at run time would be
+    changing an approved number.
+    """
+    snap: dict | None = None
+    resolved: list[dict] = []
+    for target in safety.get("targets", []) or []:
+        for name, limit in (target.get("limits") or {}).items():
+            spec = limit.get("resolved_from") if isinstance(limit, dict) else None
+            if not spec:
+                continue
+            quantity = spec.get("quantity")
+            resolver = RESOLVERS.get(quantity)
+            if resolver is None:
+                raise Refusal(
+                    f"limit {name!r} resolves from {quantity!r} and this operator has no way to "
+                    f"perform that lookup. A lookup nothing knows how to do is not one to skip: "
+                    f"the bound would be absent and absent is not permissive (2.1 rule 2)"
+                )
+            if snap is None:
+                snap = load_snapshot()
+            answer = resolver(plan, snap)
+            resolved.append({
+                "limit": name,
+                "target": target.get("target"),
+                "quantity": quantity,
+                "keyed_by": spec.get("keyed_by"),
+                "key": answer["key"],
+                "value": answer["value"],
+                "unit": answer["unit"],
+                "grade": answer["grade"],
+                "entry": answer["entry"],
+                "number": answer["number"],
+                "kb_version": snap.get("kb_version"),
+                "built_from_commit": snap.get("built_from_commit"),
+                "confirmation": (limit.get("confirmation") or {}).get("kind"),
+                "note": answer["note"],
+            })
+    return resolved
 
 
 # --------------------------------------------------------------------------- #
@@ -187,11 +411,23 @@ def derive_commands(plan: dict) -> list[orch.Command]:
     commands: list[orch.Command] = []
 
     for index, action in enumerate(plan.get("actions", [])):
+        # The field path names the action's ID and not its index. Check 66
+        # matches `actions[<id>]` against the plan's own actions[].id to find
+        # which dispatch carried something irreversible; an index matches no
+        # id, so a log written with one reads as a run that dispatched nothing
+        # irreversible at all -- a check passing because it found nothing to
+        # look at. An id also survives a revision that reorders the list.
+        aid = action.get("id")
+        if not aid:
+            raise Refusal(
+                f"actions[{index}] has no id. Every command names the action it came from and "
+                "an unnamed action cannot be named (4.6.1); plan.schema.json requires it"
+            )
         params: dict[str, dict] = {}
         for name in action.get("parameters", []) or []:
             if name not in numbers:
                 raise Refusal(
-                    f"actions[{index}] ({action.get('id')}) wants parameter {name!r}, which is not "
+                    f"actions[{aid}] wants parameter {name!r}, which is not "
                     "in numbers[]. The card holds its numbers in one place and nowhere else (5.2)"
                 )
             number = numbers[name]
@@ -206,7 +442,7 @@ def derive_commands(plan: dict) -> list[orch.Command]:
             channel=action.get("device", ""),
             action=verb,
             params=params,
-            from_field=f"actions[{index}]",
+            from_field=f"actions[{aid}]",
             raises_power=verb in POWER_UP,
             lowers_power=verb in POWER_DOWN,
             acquires=verb in ACQUIRE,
@@ -309,13 +545,27 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None) -> di
         "plan_id": plan.get("id"),
         "revision": plan.get("revision"),
         "approval": {"id": decision.approval_id, "kind": decision.kind},
-        "safety_policy_version": safety.get("version"),
+        # envelope_safety.schema.json calls it `policy_version`, and this read
+        # `version` -- a key no envelope has ever carried -- so every run would
+        # have recorded null for the one field that says which ceilings it ran
+        # under. The person raised the policy to 3 the same morning the focus
+        # ceiling changed shape, which is exactly the change a run has to be
+        # able to name afterwards.
+        "safety_policy_version": safety.get("policy_version"),
         "stop_criteria": [m.id for m in monitors],
         **o.log_header(),
     }
 
-    channels = sorted({c.channel for c in commands})
-    o.preflight(channels)
+    # O1. A limit that is a lookup becomes a number here, before preflight
+    # touches anything -- and refuses if it does not resolve. The resolution
+    # goes into the log rather than into the record's own fields: which
+    # objective keyed it, which quantity, which value and out of which
+    # kb_version. A resolved limit nobody can read back later is a limit
+    # nobody can audit.
+    for resolution in resolve_limits(plan, safety):
+        o.record(event="limit_resolved", **resolution)
+
+    o.preflight(sorted({c.channel for c in commands}))
     o.snapshot("before")
     o.dispatch(commands)
 
