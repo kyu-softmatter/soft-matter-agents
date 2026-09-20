@@ -251,19 +251,31 @@ The file also carries `policy_version` at the top, which every run log records
 as `safety_policy_version`. **Raise it whenever a ceiling moves**, or a run
 cannot say which policy it ran under.
 
-The numbers below are what the design discussion proposed for one `local`
-target. **They are a starting point for the person writing the file, not a
-ceiling anything can read**, and each still needs its own `confirmation`. Do
-not treat them as in force: the operator resolves ceilings at run time, finds
-no file, and refuses — which is correct. A ceiling written in an instruction
-file is not a ceiling, for the same reason a ceiling derived from the job is
-not one.
+**The person set these on 2026-09-19**, for one `local` target, without
+measuring anything — a decision, not a measurement:
 
-| | proposed for `local` |
+| | `local`, set 2026-09-19 |
 |---|---|
-| `wall_clock_max` | 4 h |
-| `storage_max` | 20 GB |
+| `wall_clock_max` | 2 h |
+| `storage_max` | 10 GB |
 | `smoke_budget` | 5 min / 500 MB |
+
+They replace the 4 h / 20 GB the design discussion had proposed. The reason
+given for going tighter rather than looser: **an unconfirmed limit is safer
+small, and raising a ceiling later is easier than lowering one** — a job that
+has been running inside 8 h for a month makes 2 h look like a regression, while
+2 h that turns out to pinch is one edit.
+
+**This table is still not a ceiling.** It is the record of what was decided, so
+that `envelope/safety.json` can cite something true when it says where its
+numbers came from. Until that file exists the operator resolves a ceiling,
+finds none, and refuses — which is correct. A ceiling written in an instruction
+file is not a ceiling, for the same reason a ceiling derived from the job is
+not one, and this paragraph is the one that keeps that true while the table
+sits here.
+
+Each of the four still needs its own `confirmation`, and for these it is
+`carried_over` naming this section: nobody has physically checked any of them.
 
 `smoke_budget` is separate because a smoke run that may spend the full budget
 tells you nothing before the run it is supposed to precede. It nests its own
