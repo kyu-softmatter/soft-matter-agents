@@ -764,7 +764,20 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
                "claim": e["claim"], "numbers": e.get("numbers") or [],
                "validity": e.get("validity"), "validity_conditions": e["validity_conditions"],
                "identifiers": e.get("identifiers"), "source": e.get("source"),
-               "source_ref": e["source_ref"], **m}
+               "source_ref": e["source_ref"],
+               # Rules 7 and 8 keep a contradicted or superseded entry rather
+               # than removing it, so the MARK is the whole of the protection
+               # -- and until 2026-09-19 this projection dropped both, while
+               # kb_get kept them. A screening fan-out calls kb_query, so the
+               # store answered a disputed number with its grade, its source
+               # and no sign that another entry contradicts it. validate.py's
+               # CLAIM_FIELDS says exactly why these two belong to a citing
+               # card: an entry gaining a contradiction is something the card
+               # has to know. Found when a vendor emission peak the person had
+               # measured differently came back clean at E3 -- a real
+               # citation, a passing gate, and the wrong number.
+               "conflict_with": e.get("conflict_with") or [],
+               "supersedes": e.get("supersedes"), **m}
         returned.append(row)
         for piece in uncovered_ranges(m):
             compared_and_short.append({"entry_id": eid, "overlap": "partial",
@@ -1284,6 +1297,27 @@ def _self_test() -> int:                                    # noqa: C901
             except Refused:
                 pass
 
+        # 8b. a contradiction reaches the tool a screen actually uses.
+        # Rules 7 and 8 do not remove a disputed or superseded entry, so the
+        # mark IS the protection; a projection that drops it hands out a
+        # contested number that looks uncontested. kb_get kept both fields and
+        # kb_query dropped them, and a screening fan-out calls kb_query.
+        marked = [e for e in store.entries.values() if e.get("conflict_with")]
+        if not marked:
+            bad("no entry carries conflict_with, so this property is untested "
+                "rather than passing -- rule 7 says conflicts are kept and marked")
+        for e in marked:
+            obs = (e.get("numbers") or [{}])[0].get("name") or e["entry_id"]
+            rows = kb_query(store, "selftest:conflict-mark", v, obs, None)["entries"]
+            row = next((r for r in rows if r["entry_id"] == e["entry_id"]), None)
+            if row is None:
+                bad(f"{e['entry_id']} carries a conflict and does not answer to {obs!r}")
+            elif sorted(row.get("conflict_with") or []) != sorted(e["conflict_with"]):
+                bad(f"kb_query dropped the conflict mark on {e['entry_id']}: "
+                    f"{row.get('conflict_with')!r} for {e['conflict_with']!r}")
+            elif "supersedes" not in row:
+                bad(f"kb_query dropped supersedes on {e['entry_id']}")
+
         # 9. a symbol returns a definition, and says whether it is dimensionless.
         # tau_d is a derived_quantity, not a group: kb_group keys on the symbol
         # and must serve both formula-carrying kinds, or re-filing an entry
@@ -1311,10 +1345,24 @@ def _self_test() -> int:                                    # noqa: C901
         except Refused:
             pass
 
-        # 11. conflicts: none recorded yet, and the shape holds
+        # 11. conflicts: the shape holds, including one side not yet filed.
+        # This asserted zero pairs until 2026-09-19, which was true when
+        # written and stopped being true the moment rule 7 was first used in
+        # anger -- the fourth assertion here to go stale for a good reason.
+        # "Nothing has happened yet" is not a property; what is checked now is
+        # the shape, and `dangling` in particular, because a contradiction
+        # whose other side cannot be entered yet is a real state and not an
+        # error: the person's measured value waits on a cal_id and a validity
+        # that only they can supply, and inventing either to make the pair
+        # resolve is the failure this leaves room for.
         c = kb_conflicts(store, cid, v)
-        if c["pairs"]:
-            bad(f"no entry names a conflict yet, so there are no pairs: {c['pairs']}")
+        for pair in c["pairs"]:
+            if len(pair["pair"]) != 2:
+                bad(f"a conflict pair is not a pair: {pair}")
+            if pair["dangling"] and pair["dangling"] in store.entries:
+                bad(f"{pair['dangling']} is called dangling and is in the store")
+            if not pair["dangling"] and len(pair["grades"]) != 2:
+                bad(f"a resolved pair reports {len(pair['grades'])} grades: {pair}")
 
         # 12. no write tool is exposed
         import types
