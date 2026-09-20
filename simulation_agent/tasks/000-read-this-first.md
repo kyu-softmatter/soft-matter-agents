@@ -87,13 +87,38 @@ itself.
 **And a hold names who lifts it.** If that is this seat, say so, because a card
 that holds on somebody unnamed holds forever.
 
-## What is startable right now
+## What is startable right now, in order
 
-**`001` is done** — `cards.observable()` returns the name alone and no card in
-`questions/` carries a `definition`. Nothing is blocked on the librarian, on an
-identity, or on a person. The open work is revision 2 of `sim-20260917-001`:
-the fan-out with the tools actually reachable, pinning the store as of that
-run, leaving revision 1 beside it.
+**1. `005` — one line, and it is the only thing between here and the first
+entry in `runs/`.** `check_budget` reads the envelope's old flat shape, which
+this seat's manager broke on 2026-09-19 when the schema gained a per-agent
+`limits` block. The person saved `envelope/safety.json` on 2026-09-20 at 10:33,
+so the path is live rather than hypothetical:
+
+```
+'smoke'  ->  KeyError: 'smoke_budget'
+'full'   ->  'unavailable'   compared=0
+```
+
+The card carries the fix and the verification. Check the shape against
+`contracts/schemas/envelope_safety.schema.json` rather than taking the diff —
+the seat that wrote both is the one that got it wrong.
+
+**2. Then a mock smoke run.** `runs/` is empty; nothing has ever run here,
+`mock_backend` included. §9.2 rule 4 puts the engine after the pipeline passes
+with mock, and §4.6 makes mock a first-class backend — so this run, not HOOMD,
+is the next real milestone. HOOMD is not installed and is not on PyPI
+(conda-forge only), which is correct rather than missing.
+
+**3. Then `004` — revision 2, one commit.** Four things converge on it and the
+card says why they are one: the diameter alignment, the target inline, the
+librarian re-run, and the `caller_id` at `:v2:`. It needs the librarian, which
+needs this session to have been approved for the server — see the root
+`CLAUDE.md` on why approval is per session and does not inherit.
+
+**Done, so do not restart them.** `001` (the observable definition). `003` (the
+`caller_id` migration — zero old-form ids remain and `issue()` takes the
+revision). `002` is not separate work; it folded into `004`.
 
 **And read the inbox section of `CLAUDE.md` before you need it.** Rounds from
 the bridge arrive in `simulation_agent/inbox/<thread>/`; an envelope sitting
