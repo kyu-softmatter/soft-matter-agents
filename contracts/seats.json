@@ -143,6 +143,28 @@
       "note": "The top tier of D12 (6.2). It writes what the rules are: plan.md, the repository's own instructions, ARCHITECT.md (this seat's own standing orders, deliberately out of CLAUDE.md because that file is loaded by all six sessions), and this registry. It owns this file because the tier being constrained must not own the file that says what it may touch -- a manager that could edit its own `paths` has no boundary, only a preference. pyproject.toml and uv.lock were added 2026-09-20. Boundary and narrowing are two gates and both must pass: seat_boundary_of puts them in `design`, and then no seat's `paths` covered them, so all five narrowed seats -- this one and the four managers -- were refused while only the unnarrowed design and human identities could have committed them. Put on this seat alone rather than on all five: a manager adding a dependency round-trips through architecture, which is real and rare, against the same two lines living in five places and drifting, which is 11-11 and silent. If the round-trip becomes expensive the answer is a shared prefix in paths, not five copies. docs/ was added 2026-09-20, beside README.md and for the same reason: it is the repository's front door and belongs to no agent. It went on this seat alone rather than on all five, the same call pyproject.toml and uv.lock got -- a manager needing a page change round-trips through architecture, which is real and rare, against the line living in five places and drifting, which is 11-11 and silent."
     },
     {
+      "seat": "architecture-2",
+      "committer_email": "architecture-2@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "plan.md",
+        "CLAUDE.md",
+        "ARCHITECT.md",
+        "README.md",
+        "docs/",
+        ".claude/",
+        ".mcp.json",
+        "contracts/seats.json",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "note": "The second architecture session, seated by the person on 2026-09-20 CONCURRENTLY with `architecture`, which is live and committed four times the same evening. Same shape as manager-librarian-2 beside manager-librarian. `owns` and `paths` are character-for-character architecture's, copied rather than retyped: a new identity is not a new boundary and nothing was widened. Not a reuse of `architecture` because one_identity_per_session forbids it -- and here that rule is not hypothetical, it had already been broken for one commit when this entry was written. The person chose this in the seat's own session after being shown that the two sessions were sharing an identity, which is how 6.2.2 requires it.",
+      "registered_late": "TWO COMMITS, AND THEY STAY UNDER `architecture`. fe9c0fb (docs/index.html) went out before anyone noticed the collision, and the commit that adds this entry cannot use it either -- check 41 resolves a committer against the registry at the COMMIT'S PARENT, so the registration itself has to be made under the old identity. Both are therefore indistinguishable in the history from the other session's four, which is exactly the loss one_identity_per_session names. Registration takes effect from the next commit on; it is not retroactive, and librarian-3's entry is the counter-example that had to be corrected for claiming otherwise. The rule is REGISTER FIRST, COMMIT SECOND, and this entry is one commit short of it rather than eight.",
+      "unguarded": "Shares the whole `design` boundary with `architecture` -- plan.md, CLAUDE.md, README.md, docs/ and this file -- with no worktree, since worktrees were reverted on 2026-09-18. That surface did not merely risk colliding on 2026-09-20, it collided all evening and in both directions. Three of this session's edits (ALLOWED_PATHS and SHARED_PATHS in validate.py, the section 7 docs/ declaration, the README fix, and architecture's own `paths` entry) landed inside OTHER sessions' commits, correct but misattributed; and one uncommitted edit of this session's was ERASED by another session's whole-file write, with no warning and no check that catches it. manager-librarian-2 observed the mirror of that within ten minutes on one file and raised it. 6.2.1 writes down only the first direction. Nothing refuses either. The practice that held for the librarian seats -- claim paths by message before writing -- is what is available here too, and it is a practice and not a guard."
+    },
+    {
       "seat": "manager-microscope",
       "committer_email": "manager-microscope@seat.invalid",
       "owns": [
