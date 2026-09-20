@@ -124,6 +124,26 @@ class Bundle:
 UNITS = json.loads((CONTRACTS / "units.json").read_text())
 LIMITS = json.loads((CONTRACTS / "validation_limits.json").read_text())
 
+# WHICH FILE IS THE DESIGN DOCUMENT OF RECORD. Settled 2026-09-20: Korean is
+# the canonical text and `plan.md` becomes a generated English rendering of
+# `plan_ko.md`. Three checks read the document directly -- 42 reads section 8,
+# 51 reads section 11, 55 reads section 7 -- and each names the file in its
+# own findings, so a rename with the name resolved three times is a rename
+# that half-lands.
+#
+# ALLOWED_PATHS and SHARED_PATHS carry the new name BEFORE the file exists,
+# which is 7.1 rule 9's order: allowed alone leaves a path `unattributable`
+# and check 41 then refuses every seat, so the rename has to arrive after the
+# validator can both permit and attribute it. Doing it the other way reddens
+# the repository for as long as the two halves are apart.
+#
+# THE FALLBACK IS ANNOUNCED, NOT SILENT. Which file was read prints beside the
+# verdict, for the reason the tree line prints: a run that quietly read a
+# different file than the reader assumes is the shape 8.2 refuses, and the
+# defect is never the fallback itself, it is not saying so.
+DESIGN_DOC_NAME = "plan_ko.md" if (REPO / "plan_ko.md").exists() else "plan.md"
+DESIGN_DOC = REPO / DESIGN_DOC_NAME
+
 KB_DIR = REPO / "librarian_agent" / "kb"
 KB_INDEX_PATH = KB_DIR / "index.json"
 
@@ -1249,7 +1269,7 @@ def check_12_synthesis_closure(b: Bundle) -> list[Finding]:
 
 
 ALLOWED_PATHS = [
-    r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock)$",
+    r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock)$",
     r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|seats\.json|validate\.py|validation_limits\.json)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
@@ -1307,7 +1327,7 @@ def check_13_paths(b: Bundle) -> list[Finding]:
         n += 1
         if not any(re.match(rx, rel) for rx in ALLOWED_PATHS):
             out.append(Finding(13, FAIL,
-                                "path is declared in neither plan.md section 7 nor ALLOWED_PATHS in this "
+                                f"path is declared in neither {DESIGN_DOC_NAME} section 7 nor ALLOWED_PATHS in this "
                                 "file, and it needs BOTH -- section 7 is the prose of record and "
                                 "ALLOWED_PATHS is what refuses. They are separate and nothing compares "
                                 "them (11-11). This message named only section 7 until 2026-09-19, and "
@@ -2123,7 +2143,7 @@ AGENT_OF_PATH = [
     (re.compile(r"^librarian_agent/"), "librarian_agent"),
     (re.compile(r"^bridge/"), "bridge"),
 ]
-SHARED_PATHS = re.compile(r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock|\.claude/|docs/)")
+SHARED_PATHS = re.compile(r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock|\.claude/|docs/)")
 # Both lists, because they answer different questions about the same file:
 # ALLOWED_PATHS says it may exist and SHARED_PATHS says whose boundary it is
 # in. A root file added to the first alone passes check 13 and classifies as
@@ -2704,10 +2724,11 @@ def check_55_section_7_names_are_allowed(b: Bundle) -> list[Finding]:
     point is that a gap should stay visible rather than be filled to make a
     check quiet.
     """
-    text = (REPO / "plan.md").read_text(encoding="utf-8") if (REPO / "plan.md").exists() else ""
+    text = DESIGN_DOC.read_text(encoding="utf-8") if DESIGN_DOC.exists() else ""
     m = re.search(r"^## 7\..*?^```\n(.*?)^```", text, re.S | re.M)
     if not m:
-        return [Finding(55, PENDING, "plan.md has no section 7 tree block to read", "plan.md")]
+        return [Finding(55, PENDING, f"{DESIGN_DOC_NAME} has no section 7 tree block to read",
+                        DESIGN_DOC_NAME)]
 
     # Indentation gives the containing directory, and the check needs it. The
     # first draft read a flat set of names and asked whether ALLOWED_PATHS
@@ -2744,10 +2765,10 @@ def check_55_section_7_names_are_allowed(b: Bundle) -> list[Finding]:
             tested += 1
             continue
         out.append(Finding(55, FAIL,
-                           f"plan.md section 7 puts a file at {path!r} and ALLOWED_PATHS does not allow "
+                           f"{DESIGN_DOC_NAME} section 7 puts a file at {path!r} and ALLOWED_PATHS does not allow "
                            "that path, so writing it there would fail check 13. Section 7 is the prose "
                            "of record and ALLOWED_PATHS is what refuses; a line in one is not a "
-                           "declaration", "plan.md"))
+                           "declaration", DESIGN_DOC_NAME))
     if out:
         return out
     return [Finding(55, PASS, f"{tested} paths section 7 declares are paths ALLOWED_PATHS permits")]
@@ -3129,14 +3150,16 @@ def check_42_check_registry(b: Bundle) -> list[Finding]:
     listed_block = re.search(r"^CHECKS = \[(.*?)^\]", src, re.S | re.M)
     listed = {int(m) for m in re.findall(r"check_(\d+)_", listed_block.group(1))} if listed_block else set()
 
-    plan = REPO / "plan.md"
+    plan = DESIGN_DOC
     if not plan.exists():
-        return [Finding(42, PENDING, "plan.md is not in this tree, so the declarations cannot be read")]
+        return [Finding(42, PENDING,
+                        f"{DESIGN_DOC_NAME} is not in this tree, so the declarations cannot be read")]
     body = plan.read_text()
     try:
         section = body.split("## 8. 검증 계층")[1].split("### 8.1")[0]
     except IndexError:
-        return [Finding(42, FAIL, "cannot find section 8's check list in plan.md", "plan.md")]
+        return [Finding(42, FAIL, f"cannot find section 8's check list in {DESIGN_DOC_NAME}",
+                        DESIGN_DOC_NAME)]
     declared = {int(m) for m in re.findall(r"^(\d+)\. ", section, re.M)}
     # Numbers section 8 records as in progress, with the seat that holds them.
     # A check is agreed, then implemented, then declared, so between the second
@@ -3154,13 +3177,13 @@ def check_42_check_registry(b: Bundle) -> list[Finding]:
         sides = [name for name, have in (("declared", n in declared), ("implemented", n in implemented)) if have]
         if len(sides) == 1:
             out.append(Finding(42, PENDING, f"check {n} is {sides[0]} and not the other, which section 8 records "
-                                            f"as in progress under {who}", "plan.md"))
+                                            f"as in progress under {who}", DESIGN_DOC_NAME))
         elif not sides:
             out.append(Finding(42, PENDING, f"check {n} is assigned to {who} and neither declared nor implemented",
-                               "plan.md"))
+                               DESIGN_DOC_NAME))
 
     for label, missing, where in (
-        ("declared but not implemented", declared - implemented - set(in_progress), "plan.md"),
+        ("declared but not implemented", declared - implemented - set(in_progress), DESIGN_DOC_NAME),
         ("implemented but not declared", implemented - declared - set(in_progress), "contracts/validate.py"),
         ("implemented but never run", implemented - listed, "contracts/validate.py"),
         ("run but not implemented", listed - implemented, "contracts/validate.py"),
@@ -3706,13 +3729,14 @@ def check_51_open_question_has_a_home(b: Bundle) -> list[Finding]:
     if not held:
         return [Finding(51, NA, "no thread is held")]
 
-    plan = REPO / "plan.md"
+    plan = DESIGN_DOC
     if not plan.exists():
-        return [Finding(51, PENDING, "plan.md is not in this tree, so the homes cannot be read")]
+        return [Finding(51, PENDING,
+                        f"{DESIGN_DOC_NAME} is not in this tree, so the homes cannot be read")]
     try:
         section = plan.read_text().split("## 11.")[1].split("## 12.")[0]
     except IndexError:
-        return [Finding(51, FAIL, "cannot find section 11 in plan.md", "plan.md")]
+        return [Finding(51, FAIL, f"cannot find section 11 in {DESIGN_DOC_NAME}", DESIGN_DOC_NAME)]
     recorded = {int(m) for m in re.findall(r"^(\d+)\. ", section, re.M)}
 
     out: list[Finding] = []
@@ -3727,10 +3751,10 @@ def check_51_open_question_has_a_home(b: Bundle) -> list[Finding]:
         missing = sorted(cited - recorded)
         if not cited:
             out.append(Finding(51, FAIL, "the open question names no recorded home. It has to say where the "
-                                         "answer gets written, as `plan.md 11-<n>`, or the only record of the "
+                                         f"answer gets written, as `{DESIGN_DOC_NAME} 11-<n>`, or the only record of the "
                                          "question is this ledger and nobody is obliged to read it", a.rel))
         elif missing:
-            out.append(Finding(51, FAIL, f"names plan.md 11-{missing[0]}, which section 11 does not have. A "
+            out.append(Finding(51, FAIL, f"names {DESIGN_DOC_NAME} 11-{missing[0]}, which section 11 does not have. A "
                                          f"question pointed at an entry that does not exist is not recorded, and "
                                          f"reads as though it were", a.rel))
     if out:
@@ -4255,6 +4279,26 @@ def run(roots: list[Path], include_rejected: bool = False, commit_range: str | N
     return findings
 
 
+def describe_design_doc() -> str:
+    """Which design document this run read, said out loud every time.
+
+    `plan_ko.md` is the canonical text and `plan.md` becomes a generated
+    English rendering of it (settled 2026-09-20). Until the rename lands, the
+    name resolves to whichever exists, and three checks -- 42, 51, 55 -- read
+    it. A run that quietly read a different file than its reader assumes is
+    the shape 8.2 refuses: the defect is not the fallback, it is not saying
+    which way the fallback went. Same reason the tree line exists.
+    """
+    other = "plan.md" if DESIGN_DOC_NAME == "plan_ko.md" else "plan_ko.md"
+    if not DESIGN_DOC.exists():
+        return (f"design: neither {DESIGN_DOC_NAME} nor {other} is in this tree, so sections 7, 8 "
+                "and 11 were read from nothing")
+    if (REPO / other).exists():
+        return (f"design: {DESIGN_DOC_NAME}, the document of record; {other} is also present and "
+                "was not read")
+    return f"design: {DESIGN_DOC_NAME}, which is the only one present"
+
+
 def describe_tree(staged: bool = False) -> str:
     """Which tree the verdict above is about.
 
@@ -4349,6 +4393,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"verdict: {counts[PASS]} passed, {counts[FAIL]} failed, "
           f"{counts[UNDECIDED]} undecided, {counts[PENDING]} pending, {counts[NA]} not applicable")
     print(describe_tree(args.staged))
+    print(describe_design_doc())
     if counts[UNDECIDED]:
         print("undecided means a threshold nobody has chosen; it is not a threshold that is satisfied")
     if counts[FAIL]:
