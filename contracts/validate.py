@@ -3757,6 +3757,63 @@ def check_54_kb_basis_resolves(b: Bundle) -> list[Finding]:
     return out or [Finding(54, PASS, f"{seen} kb: basis references resolve to the citing card's kb_refs")]
 
 
+def check_60_observables_are_registered_quantities(b: Bundle) -> list[Finding]:
+    """Every observable id is declared in contracts/quantities.json (section 7).
+
+    Section 7 says every observable is a quantity and not the reverse. That is
+    true of the KINDS and was false of the FILES: the quantity registry was
+    written on 2026-09-19 from the ids already used as `subject: {kind:
+    quantity}`, and neither observable was among them. A sentence true of
+    kinds and false of files is read by a person as the first and by code as
+    the second, and the reading side reads files.
+
+    The direction is what makes this cheap, and it is one way on purpose.
+    Nothing compares the two lists for agreement: `quantities.json` holds a
+    dozen names no observable will ever carry -- a coverslip thickness, a
+    pixel size -- and that is correct, because the two files answer different
+    questions. observables.json registers what two agents can PRODUCE and
+    COMPARE; quantities.json registers what a name MEANS. Only the inclusion
+    is enforced, so both may grow at their own rate as long as the smaller
+    stays inside the larger.
+
+    `not_yet_registered` is deliberately NOT honoured as an escape, unlike
+    check 47's `retired_names`. It exists for names in use that the registry
+    declines to bless yet, and an observable is not in that class: registering
+    one is the HARDER commitment of the two -- it carries an estimator, a
+    window parameter and a producible_by, and the bridge resolves
+    answerability against it. A name already blessed at that cost cannot be
+    pending at the cheaper one, and letting it be would make the section 7
+    sentence opt-out.
+
+    WHAT A PASS DOES NOT SAY: that the two entries agree. Units, definition
+    and wording are not compared -- an observable admits several units and a
+    quantity names one canonical one, so they cannot be equal and a check that
+    demanded it would be wrong. Section 8 states that limit for the kind that
+    reads a declaration rather than comprehends it.
+    """
+    observables = load_observables()
+    if not observables:
+        return [Finding(60, NA, "no observables are registered")]
+    qreg = CONTRACTS / "quantities.json"
+    if not qreg.exists():
+        return [Finding(60, PENDING, "contracts/quantities.json is not in this tree")]
+    try:
+        declared = {q["id"] for q in json.loads(qreg.read_text()).get("quantities", [])
+                    if isinstance(q, dict) and q.get("id")}
+    except (json.JSONDecodeError, AttributeError, TypeError):
+        return [Finding(60, NA, "contracts/quantities.json does not parse; check 1 owns that")]
+    out = [Finding(60, FAIL,
+                   f"observable {oid!r} is not declared in contracts/quantities.json. Section 7 "
+                   "requires every observable to be a registered quantity: the bridge compares two "
+                   "sides by quantity id, and an observable whose name means nothing in the registry "
+                   "is a comparison with no declared operand",
+                   "contracts/observables.json")
+           for oid in sorted(observables) if oid not in declared]
+    return out or [Finding(60, PASS,
+                           f"{len(observables)} observable ids are all declared quantities, of the "
+                           f"{len(declared)} the registry holds", "contracts/observables.json")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -3776,6 +3833,7 @@ CHECKS = [
     check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,
     check_56_undecided_names_the_settled_unit,
+    check_60_observables_are_registered_quantities,
     check_42_check_registry, check_41_seat_attribution,
 ]
 

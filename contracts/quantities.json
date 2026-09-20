@@ -123,6 +123,20 @@
       "unit": "um^2/s",
       "kind": "physical",
       "note": "Third name in a family of three and the one most likely to be mistaken for the others -- see open_collisions. Held as a derived_quantity with the formula rather than a value, so an improving input improves it; that is also why nothing may recompute it (plan.md 1295)."
+    },
+    {
+      "id": "tracer_diffusivity",
+      "definition": "The short-time translational self-diffusion coefficient of dilute spherical tracers in the sample: the proportionality between mean squared displacement and lag time in the free regime. What either side MEASURES OR MODELS, as distinct from what Stokes-Einstein predicts.",
+      "unit": "um^2/s",
+      "kind": "physical",
+      "note": "Registered here on 2026-09-20 because check 60 enforces section 7's inclusion, not because a new question arrived: the name was already blessed at the harder cost, as a registered observable with an estimator and a window. The canonical unit is the first of the two the observable admits (um^2/s, m^2/s) -- a quantity names one unit and an observable may admit several, which is why check 60 compares the ids and not the entries. Second name of the three in open_collisions and the one the bridge currently threads; `tracer_diffusivity_expected` is a different claim and not a synonym."
+    },
+    {
+      "id": "trapped_position_distribution",
+      "definition": "The per-axis standard deviation of a trapped particle's in-plane position about the trap centre, over a declared record length. A width, measured without assuming the trap is harmonic.",
+      "unit": "um",
+      "kind": "physical",
+      "note": "THE NAME OVERSTATES WHAT THE QUANTITY IS, and it is registered under it anyway. The observable reports a scalar -- sigma -- while the full histogram stays with the raw data, so the registered quantity is a width and the name says distribution. Not renamed here: capabilities/*.json and the bridge resolve answerability against this id, and which name survives is not this file's call to make unilaterally over two other seats' cards -- the same refusal open_collisions records for bead_diameter against tracer_diameter. Rule 1 is not violated (no subject, no locus in the string), so nothing refuses it; this note is the record that it was seen rather than missed. Canonical unit um, of the um and nm the observable admits."
     }
   ],
   "not_yet_registered": {
