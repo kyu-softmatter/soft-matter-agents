@@ -1156,6 +1156,7 @@ Every number is `{value, unit, source, grade}`. **The source says where it came 
 | `prior_run:<project>@<sha>` | E3 — **a run over there is not a run over here** (§10.3 rule 1). The ceiling for a measurement brought from a prior repository; measured again here it rises to E1 |
 | `operator_recall:<who>_<date>` | E5 — a value the operator **stated from memory** |
 | `computed:<formula_id>` | **max(E4, worst input grade)** |
+| `simulated:<run_id>` | **max(E4, worst input grade)** — and only a source at all when the configuration's output is not fixed by its input (below) |
 | `assumed:<rationale_id>` | E5 |
 
 **What an inference rests on, when it is not a quantity: `supports` (2026-09-20).** `inputs` names
@@ -1192,6 +1193,37 @@ premise underneath it is unverifiable here, with a name attached to who could ve
 **Resolution rule**: when a claim and a placeholder hold different values for the same quantity, **move to the claim.** Keeping the placeholder is **planning with a number nobody ever asserted**, and if the two sides then diverge from that state, the harm §11-13 records — calling two diverged experiments one comparison — happens with no grounds. After moving, the grade stays E5 and the gap stays open. **The uncertainty is not removed but shared**, and that is the honest state.
 
 **And do not merge a target with a margin.** On 2026-09-19 `axis_bd_overdamped_a2.json` carried `target_relative_error 0.1` as `assumed:a_statistics` E5, and that is **a margin the axis chose for itself while there was no target.** The target a person stated is a different fact, and **only one of the two had just arrived.** The reason not to merge them is not the value but the cost — statistics go as 1/ε², so 10% and 30% are **nine times the samples**, and the end the axis tightened to on its own is the expensive one. Today it is free because A5 says "too small a job for this axis to bite", but the moment a real budget exists, **an unreviewed 0.1 is where the computation flows.** It is written down so a later reader does not see `0.1` and think a person chose it.
+
+**A simulation run is not `measured:` (2026-09-20).** E1 means *this system measured this value under
+these conditions*, and what this system measured is **the model's behaviour**. It reaches the world only
+as far as the model is valid, which is A7's question and not the estimator's. Reading it as E1 makes E1
+mean *the code ran and a number came out*, and the distinction the scale exists for is gone. The
+simulation manager ruled that half; this is the other half, which is the source kind.
+
+**`simulated:` grades like `computed:` and for the same reason, one level up.** `computed:` is E4 at best
+**because the formula is itself an assumption**. A run's output is E4 at best because **the model is**.
+What differs is the obligation, not the grade: `computed:` owes a recomputation (check 17) and a run is
+not re-derivable, so the kind is separate while the rule is identical. It follows its worst input down
+the same way.
+
+**And it is only a source when the run carries something the inputs did not.** In `bd_overdamped` the
+diffusivity is fixed analytically by the input, so the first run's 2.128e-13 against the analytic
+2.146e-13 — **0.8 per cent** — confirms the integrator and the estimator and **says nothing independent
+about any diffusivity.** A card wanting that number cites the input, not the run. A configuration with
+interactions or confinement produces a number the inputs do not determine, and there the run is the
+source.
+
+**So the grade is a property of the configuration, not of simulation.** Whether a configuration's output
+is independent of its input is a fact about the declared model, so it is declared in
+`capabilities/simulation.json` and read from there — the same shape as every other capability judgement
+(§4.5.2). **This does not break P2**: the grade is still derived from the source rather than
+self-reported, and what it is derived through is a table written in advance.
+
+**Until the kind exists, a run's observables stay in `runs/<id>/observables.json` and do not enter a card
+as a graded number.** That is the honest state and the simulation seat chose it: the run is **recorded
+and not done**, and the absence of result-card code in `src/` is not a defect while there is nothing
+those cards could legally say.
+
 
 A dimensionless group is not a new source kind. It uses `computed:` with a **`derived: true` mark** (§5.7) — the grade rule is the same, so no row is added. The mark is needed because the validator has to recompute the defining expression (check 17).
 
