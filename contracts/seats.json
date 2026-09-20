@@ -135,9 +135,11 @@
         "README.md",
         ".claude/",
         ".mcp.json",
-        "contracts/seats.json"
+        "contracts/seats.json",
+        "pyproject.toml",
+        "uv.lock"
       ],
-      "note": "The top tier of D12 (6.2). It writes what the rules are: plan.md, the repository's own instructions, ARCHITECT.md (this seat's own standing orders, deliberately out of CLAUDE.md because that file is loaded by all six sessions), and this registry. It owns this file because the tier being constrained must not own the file that says what it may touch -- a manager that could edit its own `paths` has no boundary, only a preference."
+      "note": "The top tier of D12 (6.2). It writes what the rules are: plan.md, the repository's own instructions, ARCHITECT.md (this seat's own standing orders, deliberately out of CLAUDE.md because that file is loaded by all six sessions), and this registry. It owns this file because the tier being constrained must not own the file that says what it may touch -- a manager that could edit its own `paths` has no boundary, only a preference. pyproject.toml and uv.lock were added 2026-09-20. Boundary and narrowing are two gates and both must pass: seat_boundary_of puts them in `design`, and then no seat's `paths` covered them, so all five narrowed seats -- this one and the four managers -- were refused while only the unnarrowed design and human identities could have committed them. Put on this seat alone rather than on all five: a manager adding a dependency round-trips through architecture, which is real and rare, against the same two lines living in five places and drifting, which is 11-11 and silent. If the round-trip becomes expensive the answer is a shared prefix in paths, not five copies."
     },
     {
       "seat": "manager-microscope",

@@ -137,7 +137,10 @@ directory cannot tell architecture from manager — both sit at the root — so
 that one comes from the person who seated you. `contracts/seats.json` then
 **narrows** a seat inside the boundaries it owns; it cannot widen one. Which
 paths a boundary holds is a table in the validator, so a path added to a seat's
-`paths` that the validator classifies elsewhere grants nothing (§11-11).
+`paths` that the validator classifies elsewhere grants nothing — **and the
+reverse bites too**: a path the validator classifies into a boundary you own,
+which no seat's `paths` covers, grants nothing either. Boundary and narrowing
+are two gates and a path needs both (§11-11).
 
 **Numbers carry four parts (P2).** `{value, unit, source, grade}`. The grade
 E1–E6 is derived from the source, never self-reported. E6 — a value a model
