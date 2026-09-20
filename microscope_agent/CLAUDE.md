@@ -467,8 +467,11 @@ would quietly become nobody's.
 
 | | unlocks |
 |---|---|
-| **Target relative error on the trap displacement** | A7's floor, `x_min = sigma_loc / target`. The goal's decade resolution and SNR target are neither: SNR is about detecting the bead, `x_min` about resolving how far it moved |
-| **Bead lot number** | Not a value -- a source. The diameter is E5 on recall; a lot number makes it `spec:<lot>` at E3, and `gamma` rises with it |
+| **Target relative error on the trap displacement** | A7's floor, `x_min = sigma_loc / target`, and A2's `frame_count`. **Still owed** — on 2026-09-19 the person settled the *goal's* decade resolution, and this is not that. A decade says how coarsely the answer may land; `x_min` says how finely a displacement must be resolved. SNR is a third thing again |
+| **Bead diameter** | The disputed number: `operator_recall:` 5 µm here against `assumed:` 2 µm on the simulation side. It goes as the cube, so `tau_d` differs **15.6×** — outside explore's tie band, and it is what holds the bridge round `thr-tracer-diffusivity-001` at `turn: human`. Also gates A2's and A3's `tracer_number_density`, which is a column in the vendor table until a diameter selects a row |
+| **Bead lot number** | Not a value — a source. The diameter is E5 on recall; a lot makes it `spec:<lot>` at E3. Absent in the prior project too, where the schema says *record it* beside an empty field, so this can only come from the bottle |
+| **Dilution factor** | The vendor sheet's 10 mg/ml is the **stock**. What is under the objective is nowhere on disk, so even a known diameter does not give a number density. **No card has asked for this yet**, which is why it would not surface on its own |
+| **Filter wheel part designation, red path** | λ for A6's diffraction limit and axial range. The cube is multiband, so its `555/605` marking is not the band in use; single-band filters in the wheel select it. One designation is enough — the band then follows from the manufacturer at `spec:` E3, the way NA did, and with NA already E3 the diffraction limit computes at E3 |
 | **Working height above the coverslip** | The wall correction scales with it. The +16% quoted in A7 is true only at 10 um, and nothing has said what the height is |
 
 Take one off this list when it lands in a card with a source and a grade.
