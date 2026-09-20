@@ -464,8 +464,167 @@ def _self_test() -> int:
     except ValueError:
         pass
 
+    # envelope_lag, against a built tree rather than against the live one.
+    # It has to be exercised on a lag, and the live repository is allowed to
+    # have none -- on the day this was written the microscope closed its 34
+    # while the code was being written, so a property that waited for a real
+    # lag would have passed by having nothing to look at. Same defect as the
+    # one this file's table assertion had and as property 8b in mcp_server.py:
+    # an invariant that needs an example cannot tell absent from broken.
+    import tempfile
+
+    real_repo, real_exports, real_agents = REPO, EXPORTS, AGENTS
+    try:
+        with tempfile.TemporaryDirectory() as d:
+            cases = 0
+
+            def fixture(published, envelope):
+                # A fresh subtree per case. Reusing one tree made the
+                # missing-envelope case pass by reading the PREVIOUS case's
+                # envelope, which is a test that cannot fail for the reason it
+                # names -- caught by the case failing when it should not have.
+                nonlocal cases
+                cases += 1
+                root = Path(d) / f"case{cases}"
+                exp = root / "exports"
+                exp.mkdir(parents=True)
+                for a, (kv, n) in published.items():
+                    (exp / f"snapshot_{a}.json").write_text(
+                        json.dumps({"kb_version": kv, "entry_count": n}))
+                for a, body in envelope.items():
+                    (root / a / "envelope").mkdir(parents=True, exist_ok=True)
+                    (root / a / "envelope" / "snapshot.json").write_text(
+                        body if isinstance(body, str) else json.dumps(body))
+                globals()["REPO"], globals()["EXPORTS"] = root, exp
+                globals()["AGENTS"] = {a: () for a in published}
+                return "\n".join(envelope_lag())
+
+            out = fixture({"a": ("kbv-1", 83)}, {"a": {"kb_version": "kbv-1", "entry_count": 83}})
+            if not out.strip():
+                bad("envelope_lag printed nothing when everything was current; silence and "
+                    "clean read the same and one of them is a tool that stopped working")
+            if "current with the published export: a" not in out:
+                bad(f"a current envelope was not named: {out!r}")
+
+            out = fixture({"a": ("kbv-2", 83)}, {"a": {"kb_version": "kbv-1", "entry_count": 49}})
+            if "a: 34 entries behind" not in out:
+                bad(f"a lagging envelope was not named with its distance: {out!r}")
+            if "only the consuming agent can close this" not in out:
+                bad("the report named a gap without saying who can close it, which invites "
+                    "the reader to assume the reporter will (018)")
+
+            # kb_version hashes every entry, so an EDIT moves it with no count
+            # change. Reporting the delta alone would say "0 entries behind".
+            out = fixture({"a": ("kbv-2", 83)}, {"a": {"kb_version": "kbv-1", "entry_count": 83}})
+            if "0 entries behind" in out or "same entry count, different content" not in out:
+                bad(f"an edited store read as no difference at equal count: {out!r}")
+
+            out = fixture({"a": ("kbv-1", 83)}, {})
+            # Matched on the header, not on the word "behind": the correct
+            # output for this case CONTAINS "behind", inside "not behind".
+            if "not matching the published export" in out or "no envelope yet" not in out:
+                bad(f"a missing envelope was reported as a lag rather than as not started: {out!r}")
+    finally:
+        globals()["REPO"], globals()["EXPORTS"], globals()["AGENTS"] = (
+            real_repo, real_exports, real_agents)
+
     print("self-test: ok" if ok else "self-test: FAILED")
     return 0 if ok else 1
+
+
+def envelope_lag() -> list[str]:
+    """Which consumers have not copied the published export yet. ADVISORY.
+
+    Three things looked at snapshots and none of them looked at this. Check 26
+    compares an envelope against the commit it NAMES, which is integrity, and
+    it is right to pass an honest envelope of any age. `check()` above compares
+    the exports against the store, which is the publisher's end. Nobody
+    compared an export against the envelope that copied it, so a microscope
+    envelope sat 34 entries behind inside a repository reading `0 failed`, and
+    the only reason anyone noticed was a manager opening two files by hand.
+
+    NOT A FINDING, AND NOT SOFTNESS. A stale envelope is not a defect: a
+    consumer may pin deliberately, and an agent that has not run today is in
+    breach of nothing. Make it fail and the gate reddens whenever a seat is
+    idle, which on 2026-09-19 was most of them -- and a gate that reddens for
+    correct inaction is one people learn to skip. What was missing is not a
+    prohibition, it is a number nobody has to go and compute.
+
+    THIS HALF TELLS THE PUBLISHER, AND THE PUBLISHER CANNOT ACT ON IT. The fix
+    for a stale envelope is a re-copy and only the consumer can do that, but
+    `--check` is the librarian's tool and the consumer never runs it. The other
+    half is a validator check, which every seat does run; it needs a check
+    number, the numbers are architecture's, and that seat is not up. So the
+    limitation is printed in the output rather than only recorded here: a tool
+    that reports a gap without saying who can close it invites the reader to
+    assume the reporter will.
+    """
+    behind, current, absent = [], [], []
+    for agent in sorted(AGENTS):
+        target = EXPORTS / f"snapshot_{agent}.json"
+        if not target.exists():
+            continue                      # nothing published, so nothing to lag behind
+        env = REPO / agent / "envelope" / "snapshot.json"
+        if not env.exists():
+            # Not behind -- not started. 4.3.2 leaves copying to each agent,
+            # and an agent that has never copied has not fallen behind.
+            absent.append(agent)
+            continue
+        try:
+            copy = json.loads(env.read_text())
+        except json.JSONDecodeError as exc:
+            behind.append(("consumer", f"{agent}: envelope/snapshot.json does not parse ({exc})"))
+            continue
+        published = json.loads(target.read_text())
+        if copy.get("kb_version") == published.get("kb_version"):
+            current.append(agent)
+            continue
+        # kb_version is a hash over every entry, so an EDIT moves it exactly as
+        # an addition does. Reporting only a count delta would print "0 behind"
+        # for a store that really has changed, which is the same rule this
+        # agent's CLAUDE.md already had to learn once about adding versus
+        # editing mid-fan-out.
+        delta = (published.get("entry_count") or 0) - (copy.get("entry_count") or 0)
+        if delta > 0:
+            how_far, whose = f"{delta} entries behind", "consumer"
+        elif delta < 0:
+            # Only reachable when the exports are the stale side, which
+            # check() reports above. Kept because the alternative is calling
+            # it "behind", and a row that says behind while the number says
+            # ahead is the kind of line a reader trusts and should not.
+            how_far, whose = (f"{-delta} entries AHEAD of the published export, so the "
+                              f"exports are the stale side, not this envelope"), "publisher"
+        else:
+            how_far, whose = ("same entry count, different content -- entries were edited "
+                              "rather than added, and kb_version covers both"), "consumer"
+        behind.append((whose, f"{agent}: {how_far} (envelope at {copy.get('kb_version')}, "
+                              f"published {published.get('kb_version')})"))
+
+    out = []
+    if behind:
+        # The header does not say "behind": one of the rows it can carry says
+        # the opposite, and a heading that contradicts a row under it is worse
+        # than a vague one.
+        out.append("envelopes not matching the published export (ADVISORY, not a failure):")
+        out += [f"  {line}" for _, line in behind]
+        whose = {w for w, _ in behind}
+        if "consumer" in whose:
+            out.append("  only the consuming agent can close this by re-copying; this tool "
+                       "is the publisher's and the consumer does not run it")
+        if "publisher" in whose:
+            out.append("  the AHEAD rows are the publisher's to close by republishing, "
+                       "which is this tool's own end")
+    if current:
+        # Named whether or not anything is behind, and said out loud when
+        # nothing is. Silence and clean read the same, and one of the two is a
+        # tool that stopped working -- so an empty report has to be a sentence.
+        # Printing these only when the behind-list was empty would also have
+        # hidden the more useful reading: which consumers kept up while another
+        # did not.
+        out.append(f"envelopes current with the published export: {', '.join(current)}")
+    if absent:
+        out.append(f"no envelope yet, which is not behind: {', '.join(absent)}")
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -488,6 +647,12 @@ def main(argv: list[str] | None = None) -> int:
         for p in problems:
             print(p)
         print("exports are current" if not problems else "exports are stale")
+        # Advisory, and deliberately after the verdict line so it cannot be
+        # mistaken for part of it. The exit code is the publisher's end only:
+        # a consumer being behind is not this tool's failure and must not
+        # become one (018).
+        for line in envelope_lag():
+            print(line)
         return 1 if problems else 0
     for t in publish():
         snap = json.loads(t.read_text())
