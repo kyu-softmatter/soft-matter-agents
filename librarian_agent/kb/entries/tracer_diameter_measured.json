@@ -14,12 +14,12 @@
     },
     {
       "name": "tracer_diameter_cv_upper_bound",
-      "value": 2,
+      "value": 0.02,
       "unit": "1",
       "source": "calibration:tracer_diameter_20260919",
       "grade": "E2",
       "precision": "significant_figures",
-      "note": "per cent, as an UPPER BOUND -- the person said within 2 per cent, not 2 per cent. Dimensionless, so the unit is `1` and the per-cent is carried here rather than in a unit the registry does not have. What the spread is OF -- how many particles, sized how -- is not recorded and is a gap."
+      "note": "A FRACTION, AND IT READS CORRECTLY WITHOUT THIS NOTE -- 0.02 dimensionless is the whole claim. It was `value: 2, unit: \"1\"` for a day, which evaluates to 200 per cent, with the per-cent carried in prose right here because the registry had no unit for it. The reasoning was honest and it put the fact where nothing computes: a distinction living only in a note is one a query cannot act on, which is the shape this store spent two days removing from elsewhere before reproducing it here (019). AN UPPER BOUND, NOT A POINT VALUE -- the person said within 2 per cent, not 2 per cent, so 0.02 is a ceiling on the spread and not its size. REGISTERING A `percent` UNIT WAS OFFERED AND DECLINED. It is multiplicative and would survive the registry's operations, unlike degC, so the offer was sound; what it costs is a second dimensionless spelling beside `1`, which puts a conversion in the path of every query comparing dimensionless quantities, for the readability of one number. The store fixed `dimensionless` versus `1` yesterday and that was a true synonym while this would not be -- but the cost lands on consumers either way. If CVs become common the trade flips and this should be revisited. WHAT THE SPREAD IS OF is not recorded -- how many particles, sized how -- and is a gap."
     }
   ],
   "subject": [
