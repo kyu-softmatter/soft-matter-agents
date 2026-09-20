@@ -215,20 +215,20 @@
       "description": "The simulation agent's ceilings. Derived from what simulation_agent/src/operator.py and axis_a5_budget.py read.",
       "properties": {
         "wall_clock_max": {
-          "$ref": "#/$defs/limit"
+          "$ref": "#/$defs/ceiling"
         },
         "storage_max": {
-          "$ref": "#/$defs/limit"
+          "$ref": "#/$defs/ceiling"
         },
         "smoke_budget": {
           "type": "object",
           "description": "Separate because a smoke run allowed the full budget tells you nothing before the run it precedes. Its two ceilings are limits in their own right and each carries its own confirmation.",
           "properties": {
             "wall_clock_max": {
-              "$ref": "#/$defs/limit"
+              "$ref": "#/$defs/ceiling"
             },
             "storage_max": {
-              "$ref": "#/$defs/limit"
+              "$ref": "#/$defs/ceiling"
             }
           },
           "required": [
@@ -250,27 +250,27 @@
       "description": "The microscope agent's ceilings, specified by manager-microscope 2026-09-19 with a ground for each. Ordered as P0 orders harm: people, then instrument, then sample.",
       "properties": {
         "optical_power_max": {
-          "$ref": "#/$defs/limit",
+          "$ref": "#/$defs/ceiling",
           "$comment": "PEOPLE. A7's total_optical_power bound abstains on missing: [safety_power_limit], and trap_laser_power_has_no_software_path (E3) says the dial is a hand control with no software path -- so a written ceiling is the only control there is. 2.1 rule 4 presumes an output that has one."
         },
         "objective_clearance_min": {
-          "$ref": "#/$defs/limit",
+          "$ref": "#/$defs/floor",
           "$comment": "INSTRUMENT, and a FLOOR rather than a ceiling -- the smallest gap allowed between front element and sample. nosepiece_write_runs_no_escape (E3): a Micro-Manager nosepiece write runs no objective escape, so the incoming lens arrives at the height the outgoing one left, against working distances of 0.13 mm at 100x oil. The prior repository put its own travel range in a SAFETY.md and 10.3 rule 4 forbids carrying it -- that prohibition is itself the argument for this field."
         },
         "stage_velocity_max": {
-          "$ref": "#/$defs/limit",
+          "$ref": "#/$defs/ceiling",
           "$comment": "INSTRUMENT. The person's standing preference of 2026-09-19 is that relative motion is driven by the piezo stage rather than by steering the trap, and a stage running away in front of a 0.13 mm working distance is the same collision. A7 owns stage_velocity and abstains on piezo_bandwidth, piezo_settling_time and stage_max_velocity."
         },
         "stage_acceleration_max": {
-          "$ref": "#/$defs/limit",
+          "$ref": "#/$defs/ceiling",
           "$comment": "INSTRUMENT. Paired with velocity: a bounded speed reached instantly is not a bounded move."
         },
         "illumination_power_max": {
-          "$ref": "#/$defs/limit",
+          "$ref": "#/$defs/ceiling",
           "$comment": "SAMPLE. A3's illumination_power abstains on sample_heating_rate. Lowest in P0's order and still a limit."
         },
         "exposure_time_max": {
-          "$ref": "#/$defs/limit",
+          "$ref": "#/$defs/ceiling",
           "$comment": "SAMPLE. Dose is power times time; bounding one without the other bounds nothing."
         }
       },
@@ -280,6 +280,14 @@
       ],
       "$comment": "Only the two P0 ranks highest are required. Requiring all six would mean nothing can be written until every one is settled, and then nobody starts the file -- the same argument that made carried_over legal. A limit that is absent is not permissive: the operator resolves it, finds nothing and refuses.",
       "additionalProperties": false
+    },
+    "ceiling": {
+      "$ref": "#/$defs/limit",
+      "description": "A MAXIMUM. Exceeding it refuses. Named `<quantity>_max`. Zero here fails SAFE -- a ceiling of zero permits nothing, so the mistake stops the run rather than allowing it."
+    },
+    "floor": {
+      "$ref": "#/$defs/limit",
+      "description": "A MINIMUM. Falling below it refuses. Named `<quantity>_min`. Zero here fails PERMISSIVE, which is why the direction is named rather than left to the suffix: a floor of zero permits everything. The same number is safe in a ceiling and is the most dangerous value in a floor, and on 2026-09-20 a floor briefly held zero -- objective_clearance_min, where zero means the front element may touch the coverslip, against a nosepiece write that runs no escape and a 0.13 mm working distance.\n\nWHAT THIS SPLIT DOES NOT BUY. `exclusiveMinimum` stops zero and passes 0.001, which means the same thing. A schema cannot know what is too small for a given quantity -- that is a domain fact. So for a floor the `confirmation` carries more weight than for a ceiling: `physical` with a `how` a reader can judge is the only thing standing between a floor and a number that is technically positive and practically absent."
     }
   },
   "allOf": [
