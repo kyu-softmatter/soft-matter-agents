@@ -120,3 +120,38 @@ live with and the ruling should be yours.**
 is the same pair of names as row one here.** Answer it once; if the two tasks
 end up saying different things about `working_distance_min`/`_max`, one of them
 is wrong and I would rather find that out from you than from a card.
+
+---
+
+## CORRECTED 2026-09-20, after `abd284d` landed — two changes, one of them yours
+
+**Your framing of the failure is sharper than mine and replaces row one.** I
+wrote it as *five came back when six exist*. You wrote it as: a preflight
+asking "`working_distance` for the lens in use" gets **nothing** for the 40×,
+and *"an absence looks like a lookup that has not run yet."* That is the same
+defect and the better statement of it, because it says why the caller cannot
+notice — the absence is **per subject**, and the server only ever sees **per
+name**, so the whole-answer gap test cannot fire on it. Five of six is how it
+looked from outside; empty-for-one-lens is what it was.
+
+**The numbers moved, as this file said they would.** Re-run at
+`kbv-d3e5a7c4a0d2`, 85 entries, HEAD `abd284d`:
+
+```
+working_distance   5 entries  0 gaps
+  neighbourhood -> ['working_distance_is_measured_to_the_coverslip',
+                    'working_distance_max', 'working_distance_min']
+  after subtraction: all three survive
+pixel_size        12 entries  0 gaps   neighbourhood 8 -> [] after subtraction
+na                 6 entries  0 gaps   neighbourhood 0 -> []
+```
+
+Your new inference entry joined the neighbourhood, because its **entry id**
+contains the name. Subtraction does not remove it — it was not returned. I do
+not think that is wrong here: a caller asking what the working distance is has
+some business knowing the convention is only inferred. But note the pressure it
+shows, and **do not act on it in this task**: the neighbourhood is computed over
+entry ids, so it grows whenever an id embeds a quantity name, while
+`contracts/quantities.json` now exists as the registry of what a quantity name
+*is*. If that turns into noise, the question is whether the handle set should
+prefer registered names — and that is a separate task with its case beside it.
