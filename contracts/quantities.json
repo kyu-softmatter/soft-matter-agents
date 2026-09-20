@@ -1,0 +1,108 @@
+{
+  "schema_version": "0.1",
+  "note": "The declared registry of quantity names. `subject: {kind: quantity}` resolves against this, and so does numbers[].name. Sibling to observables.json, not a merge with it: that file registers what two agents can PRODUCE and COMPARE, and its entries carry an estimator, a window and a producible_by because comparability is what it exists for. Most named numbers here are produced by nobody and compared with nothing -- a coverslip thickness, a pixel size -- and giving them an estimator to make them fit would be inventing registry structure so a subject resolves, which is the move this repository refused three times on 2026-09-19. Every observable is a quantity; not every quantity is an observable.",
+  "why_this_exists": "Until 2026-09-19 `quantity` was the one subject kind with no registry, and kb_entry.schema.json said so in its own description -- 'a de facto registry rather than a declared one'. A census that day found 55 distinct numbers[].name across 124 uses with nothing checking any of them, and the collisions were already there: bead_diameter in the simulation against tracer_diameter in the microscope, for one quantity the bridge exists to compare. No two names carried different units, so the store was still coherent and this was the cheap moment.",
+  "status": "rules_fixed_content_open",
+  "growth": "One entry when a question needs one, the same rule observables.json uses and for the same reason: an unused entry is a definition nobody has tested against data. This file starts with the ids already used as `subject: {kind: quantity}` and defensible from entries on disk, not with all 55 names in use.",
+  "rules": [
+    "A name states the QUANTITY, and never its subject or its locus. This is rule one because both violations were already on disk when the file was written. `tracer_particle_density` puts the subject in the string -- and when check 44 refused the subject field on those entries the claim did not disappear, it moved into the name where nothing checks it. `ambient_temperature` puts the locus in the string, which `at` now carries. `na_mrd70040` does both. A name that asserts its own subject is a subject nothing can refuse.",
+    "One name, one quantity, across every card and the store. This is check 36's rule for `symbol` applied to names. What it buys is that the bridge comparing two values can ask whether they are the same quantity by id rather than by string equality on whatever each side happened to call it.",
+    "A unit is part of the identity, not an annotation. Two entries writing one name with different units are two quantities, and the registry names the canonical one. No collision of that kind existed on 2026-09-19, which is why the registry can be written from observed usage rather than imposed on it.",
+    "Being registered here says a name is well defined. It does not say a value exists, is measured, or is good -- those are the entry's business and its grade's.",
+    "Plan parameters are quantities too and follow the same rules, but they are marked, because the bridge only has to reconcile names across agents for the physical ones. Nobody compares one agent's box_margin_factor with another's."
+  ],
+  "open_collisions": [
+    {
+      "names": ["bead_diameter", "tracer_diameter"],
+      "unit": "um",
+      "where": "bead_diameter in simulation_agent (6 uses), tracer_diameter in microscope_agent (2 uses)",
+      "why_it_matters": "One physical quantity under two words, held by the two agents whose values the bridge exists to put side by side. observables.json warns that two sides agreeing on a word while disagreeing on the estimator is worse than disagreeing openly; here they do not even agree on the word. Unresolved on purpose: which name survives is not this file's call to make unilaterally over two other seats' cards."
+    },
+    {
+      "names": ["diffusivity", "tracer_diffusivity"],
+      "unit": "um^2/s",
+      "where": "diffusivity in simulation_agent (6 uses); tracer_diffusivity is a registered observable",
+      "why_it_matters": "The registered observable and the name the simulation actually writes are different strings. This is the same collision as the one above and it sits on the one observable the bridge is currently threading."
+    },
+    {
+      "names": ["na", "na_mrd70040", "na_mrd70170", "na_mrd70270", "na_mrd71670", "na_mrd71970", "na_mrd77400"],
+      "unit": "1",
+      "where": "na in librarian entries (6 uses), the six suffixed forms in microscope_agent",
+      "why_it_matters": "Rule 1. The lens is the subject and it is in the name; task 009 made part numbers addressable through `identifiers` precisely so it would not have to be."
+    },
+    {
+      "names": ["temperature", "ambient_temperature"],
+      "unit": "K",
+      "where": "both in librarian entries",
+      "why_it_matters": "Rule 1 again, on the locus rather than the subject. `ambient_temperature` is `temperature` read at the room, and `at` exists as of 7320f78 to say that. Listed below as a quantity anyway, because retiring a name in use is the work and not the declaration."
+    }
+  ],
+  "quantities": [
+    {
+      "id": "pixel_size",
+      "definition": "The distance at the sample plane that one detector pixel spans. Depends on the objective, the intermediate magnification and the binning, so a value is a claim about one combination of the three and not about the instrument.",
+      "unit": "um",
+      "kind": "physical",
+      "note": "The canonical datum for axis A6, which reads pixel size directly; magnification is the derived convenience (plan.md 1137). Backed by twelve calibration entries."
+    },
+    {
+      "id": "refractive_index",
+      "definition": "The ratio of the speed of light in vacuum to its speed in the material, at a stated wavelength. Dispersive, so a value without a wavelength is not reusable.",
+      "unit": "dimensionless",
+      "kind": "physical"
+    },
+    {
+      "id": "viscosity",
+      "definition": "Dynamic viscosity: the ratio of shear stress to shear rate in the fluid.",
+      "unit": "Pa*s",
+      "kind": "physical",
+      "note": "Strongly temperature dependent -- roughly two percent per kelvin for water -- so a value carries its temperature."
+    },
+    {
+      "id": "temperature",
+      "definition": "Thermodynamic temperature. Where it was read is a property of the number and belongs in `at`, not in the name.",
+      "unit": "K",
+      "kind": "physical"
+    },
+    {
+      "id": "ambient_temperature",
+      "definition": "Temperature of the room air. Registered because it is in use, and flagged: by rule 1 this is `temperature` with `at` naming the room, and the name predates that field.",
+      "unit": "K",
+      "kind": "physical",
+      "note": "See open_collisions. Retiring a name already on disk is migration work, not a declaration."
+    },
+    {
+      "id": "coverslip_thickness",
+      "definition": "Thickness of the coverglass between the objective and the sample, as mounted.",
+      "unit": "um",
+      "kind": "physical"
+    },
+    {
+      "id": "na",
+      "definition": "Numerical aperture: the refractive index of the medium times the sine of the half-angle of the accepted cone. A property of an objective at a stated immersion.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Which lens is the subject, addressable through identifiers.part_number since task 009. Not a suffix on the name -- see open_collisions."
+    },
+    {
+      "id": "tau_d",
+      "definition": "Diffusive time: the time a sphere needs to diffuse its own diameter. A derived quantity with a formula rather than a stored value, and it keeps a dimension -- length squared over a diffusivity is a time.",
+      "unit": "s",
+      "kind": "physical",
+      "note": "Filed as dimensionless_group with no unit for its first day; that is why kb_entry's kind enum now separates derived_quantity from dimensionless_group."
+    },
+    {
+      "id": "illumination_power",
+      "definition": "Optical power delivered along an illumination path. Where in the path it is measured changes the number, so it belongs in `at`.",
+      "unit": "W",
+      "kind": "physical",
+      "note": "The trapping laser's is neither readable nor settable from software, so a value for it is an operator reading of a hand control and not a device readback."
+    }
+  ],
+  "not_yet_registered": {
+    "why": "Names in use that this file deliberately does not bless yet.",
+    "pending_015": ["tracer_particle_density", "tracer_stock_concentration", "tracer_storage_temperature_min", "tracer_storage_temperature_max", "emission_wavelength", "excitation_wavelength"],
+    "pending_015_reason": "All six carry the product identification withdrawn on 2026-09-19 (task 015), and four of them put the subject in the name, which rule 1 refuses. Registering them now would bless both at once. They come back when 015 settles what they are about and what they are called.",
+    "plan_parameters": "Roughly half the 55 names in use are one agent's planning knobs -- save_interval_max, box_margin_factor, lag_to_record_ratio, storage_estimate. They follow the same rules and are registered when a question needs the name to mean one thing across a boundary, which for a knob is rarely."
+  }
+}

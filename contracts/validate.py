@@ -1204,7 +1204,7 @@ def check_12_synthesis_closure(b: Bundle) -> list[Finding]:
 
 ALLOWED_PATHS = [
     r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json)$",
-    r"^contracts/(units\.md|units\.json|observables\.json|seats\.json|validate\.py|validation_limits\.json)$",
+    r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|seats\.json|validate\.py|validation_limits\.json)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",
@@ -1255,7 +1255,13 @@ def check_13_paths(b: Bundle) -> list[Finding]:
             continue
         n += 1
         if not any(re.match(rx, rel) for rx in ALLOWED_PATHS):
-            out.append(Finding(13, FAIL, "path is not declared in plan.md section 7 (7.1 rule 7)", rel))
+            out.append(Finding(13, FAIL,
+                                "path is declared in neither plan.md section 7 nor ALLOWED_PATHS in this "
+                                "file, and it needs BOTH -- section 7 is the prose of record and "
+                                "ALLOWED_PATHS is what refuses. They are separate and nothing compares "
+                                "them (11-11). This message named only section 7 until 2026-09-19, and "
+                                "both a manager and the architecture seat edited section 7 alone and "
+                                "watched the check keep failing (7.1 rule 7)", rel))
             continue
         parts = rel.split("/")
         if parts[0].endswith("_agent") or parts[0] == "bridge":
@@ -2657,6 +2663,21 @@ def check_44_subject_resolves(b: Bundle) -> list[Finding]:
     config_ids = {c["id"] for c in (paths or {}).get("configurations", []) if c.get("id")}
     observable_ids = set(load_observables())
 
+    # The declared half of the quantity registry, added 2026-09-19. Until then
+    # `quantity` was the one subject kind with no declared registry and this
+    # check said so. The union is the expand step: a declared id resolves even
+    # with no number of that name yet, and a de facto name still resolves while
+    # contracts/quantities.json is being populated. The contract step -- drop
+    # the de facto half and require declaration -- waits on task 015, which
+    # owns six ids this file deliberately does not bless yet.
+    declared_quantities: set[str] = set()
+    _qreg = CONTRACTS / "quantities.json"
+    if _qreg.exists():
+        try:
+            declared_quantities = {q["id"] for q in
+                                   json.loads(_qreg.read_text()).get("quantities", [])}
+        except (json.JSONDecodeError, KeyError, TypeError):
+            declared_quantities = set()
     quantity_names: set[str] = set()
     for c in b.cards:
         if "__unreadable__" in c.data:
@@ -2676,7 +2697,7 @@ def check_44_subject_resolves(b: Bundle) -> list[Finding]:
     registries = {"device": (device_ids, dev_rel or "the device table"),
                   "configuration": (config_ids, path_rel or "the optical path table"),
                   "observable": (observable_ids, "contracts/observables.json"),
-                  "quantity": (quantity_names, "the names used in numbers[]")}
+                  "quantity": (quantity_names | declared_quantities, "the names used in numbers[] or declared in contracts/quantities.json")}
 
     out: list[Finding] = []
     resolved, without = 0, []
