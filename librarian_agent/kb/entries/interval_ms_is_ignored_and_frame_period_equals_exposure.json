@@ -1,0 +1,18 @@
+{
+  "entry_id": "interval_ms_is_ignored_and_frame_period_equals_exposure",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "startSequenceAcquisition's intervalMs argument is ignored: the frame period equals the exposure exactly, because readout is pipelined. A frame rate cannot be obtained by asking for it.",
+  "source": "prior_run:agentic-microscope@safety-2026-09-03",
+  "grade": "E3",
+  "source_ref": "src_prior_safety_memo",
+  "validity_conditions": "AN ARGUMENT THAT IS ACCEPTED AND DISCARDED, so a caller that sets it believes it has scheduled something. The consequence is arithmetic rather than approximate: 30.000 fps requires a 33.333 ms exposure, because the period IS the exposure. So frame rate and exposure are one setting wearing two names, and an axis that treats them as independent has one more degree of freedom than the instrument has. THE ACHIEVED RATE IS A SEPARATE FACT FROM THE REQUESTED ONE and only the achieved one is evidence. Reporting a requested rate as though it were measured is how this becomes silent. Note the interaction with elapsed_time_is_quantised_to_one_ms: the obvious way to report the achieved rate is also compromised, so the two have to be read together. 10.2.1: TRANSFER. Row: 10.2's hardware-control-path row, whose prerequisite -- the four device-interface functions -- is met, and whose own rule says it does not wait for `envelope/` because wrapping a control path needs no safety limit. Slot: KB entry, named in the 2026-09-18 amendment. Rule: 10.3 rule 1, capped E3. Confirming it on this instrument promotes it to E1 and supersedes this entry.",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "identifiers": {
+    "call": "startSequenceAcquisition",
+    "ignored_argument": "intervalMs"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "entry_id": "pixeltype_misreports_bit_depth",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "MicroManager's PixelType property reports 12bit while the data delivered is 16-bit, so trusting the property scales every count by a factor of sixteen.",
+  "source": "prior_run:agentic-microscope@safety-2026-09-03",
+  "grade": "E3",
+  "source_ref": "src_prior_safety_memo",
+  "validity_conditions": "A READ-BACK THAT IS WRONG, WHICH IS THE WORST KIND: it answers, so nothing errors. The prior project's evidence was a single 512x512 frame holding 12,441 distinct values with a modal spacing of 1 LSB and a maximum of 34,917 -- and 34,917 cannot occur in 12 bits, whose ceiling is 4,095, so the maximum alone settles it. Those counts are that project's measurement of their frame and are not entered as numbers here; what transfers is that the property lies. WHY IT MATTERS BEYOND SCALING. A bit depth is read to decide saturation, and a sixteenfold error in the ceiling means a frame can be called safe at 85 per cent of a ceiling that is actually sixteen times higher, or clipped without anything noticing. 10.2.1: TRANSFER. Row: 10.2's hardware-control-path row, whose prerequisite -- the four device-interface functions -- is met, and whose own rule says it does not wait for `envelope/` because wrapping a control path needs no safety limit. Slot: KB entry, named in the 2026-09-18 amendment. Rule: 10.3 rule 1, capped E3. Confirming it on this instrument promotes it to E1 and supersedes this entry.",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "identifiers": {
+    "property": "PixelType",
+    "reported": "12bit",
+    "actual": "16-bit"
+  }
+}

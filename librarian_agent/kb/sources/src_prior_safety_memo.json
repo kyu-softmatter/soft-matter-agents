@@ -7,5 +7,31 @@
   "what_crossed": "Control-path facts only -- how a device is driven, what it reports back, what it does not. 10.2's hardware-control-path row is open and says in its own rule that it does not wait for envelope/, because wrapping a control path needs no safety limit.",
   "what_did_not": "Every numeric limit, permitted range, forbidden-device ruling and operating procedure. 10.3 rule 4 makes those non-transferable; the person writes envelope/safety.json after confirming physically, and this memo is reference material for that person rather than a source for this store. The discarded items are listed in the commit that brought the rest.",
   "caution": "The document's own status line says it was a first draft, not reviewed by the operator, and its open-questions section is stale against its body -- it lists the Z retract direction as unmeasured while the body records the measurement two days later. Items taken from it were cross-checked against the body rather than read off the summary.",
-  "license_note": "No text reproduced; facts restated and re-placed into this store's decomposition."
+  "license_note": "No text reproduced; facts restated and re-placed into this store's decomposition.",
+  "section_7_pass": {
+    "ruled_on": "2026-09-20",
+    "why_a_second_pass": "Task 014 took this document's control-path facts and DEFERRED its section 7, correctly: acquisition and clock semantics are a different slot set and deserve their own ruling rather than being swept in on the end of another. The deferral was then never written to disk -- it lived in a report and in context -- and is recorded in failures.jsonl as of 56fc39a. This is that ruling.",
+    "transferred": [
+      "pixeltype_misreports_bit_depth",
+      "interval_ms_is_ignored_and_frame_period_equals_exposure",
+      "elapsed_time_is_quantised_to_one_ms",
+      "dropped_frames_raise_nothing",
+      "host_clock_is_not_the_experiment_clock",
+      "live_view_degrades_timing",
+      "trapped_bead_is_the_one_that_does_not_translate"
+    ],
+    "discarded": [
+      {
+        "item": "Relative and absolute time conventions coexist and mixing them is silent -- `Clock.now_s()` is already relative, a raw `perf_counter()` is not, and subtracting the anchor from both put marks fifteen minutes away from their own frames.",
+        "ruling": "DISCARD",
+        "why": "IT IS ABOUT THEIR CODE, NOT ABOUT THE INSTRUMENT. `Clock.now_s()` is a function in the prior project's own source; the bug is that two of their conventions met in one subtraction. This repository's orchestrator clocks are a separate design that has not been written yet, so there is no slot to name -- and 10.2.1 is explicit that an item which cannot name its slot is discarded. Transferring it would mean importing the shape of their clock API in order to describe a defect in it, which is precisely the transplanting the rule exists to prevent. THE FIFTEEN-MINUTE ERROR IS WORTH KNOWING AND IS NOT KNOWLEDGE ABOUT THIS SYSTEM. If our orchestrator later grows two time conventions, that is the moment to design against it, and 11 is where the question goes -- not here."
+      },
+      {
+        "item": "Never backfill a missing timestamp from host time; count it as `frames_without_timestamp`.",
+        "ruling": "DISCARD from the store, RAISED as a contract question",
+        "why": "THE PROHIBITION IS A PROCEDURE AND THIS STORE HOLDS KNOWLEDGE. Same line that keeps `we do not exceed Y` out while `the maximum output is X` stays in. The FACT underneath -- that an invented timestamp is indistinguishable from a measured one once written -- is already carried by host_clock_is_not_the_experiment_clock and by dropped_frames_raise_nothing, so entering it again would be a third copy of one idea. WHAT IS ACTIONABLE IS THE COUNTER. `frames_without_timestamp` is a field, and 10.2.1's amended slot list includes a contract field -- but contracts/ is manager-owned, so this goes up as a request rather than being filed here. Recorded as discarded from the STORE and not as discarded from the system."
+      }
+    ],
+    "note": "Seven of nine transferred, two discarded. Until this pass the repository's `drop` count under 10.2.1 was zero, which manager-bridge and the microscope manager had both flagged as worth watching -- a classification scheme that has never rejected anything is not obviously classifying. These two are the first, and neither was discarded for being wrong: one describes another codebase and the other is policy."
+  }
 }

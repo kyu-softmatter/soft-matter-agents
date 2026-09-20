@@ -1,0 +1,32 @@
+{
+  "entry_id": "live_view_degrades_timing",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Running a live view during an acquisition degrades command timing by roughly twenty times: a TCP round trip measured 2.93 ms with no viewer and 51.4 ms with the viewer running, and the piezo took two overruns under it.",
+  "source": "prior_run:agentic-microscope@safety-2026-09-03",
+  "grade": "E3",
+  "source_ref": "src_prior_safety_memo",
+  "validity_conditions": "A MEASURED INTERFERENCE, ENTERED AS KNOWLEDGE AND NOT AS A RULE. The numbers are the prior project's measurement on their session and are E3 here; what they establish is that observing an acquisition is not free and costs about a factor of twenty on command latency, enough to produce actual piezo overruns rather than merely slower commands. THE INSTRUCTION THAT ACCOMPANIED IT IS NOT ENTERED. `Do not watch a run you intend to measure from` is an operating procedure, and this store holds knowledge rather than policy -- the same line that keeps `we do not exceed Y` out while `the maximum output is X` stays in. A person or a plan writes the prohibition; this entry is the reason one would. 10.2.1: TRANSFER. Row: 10.2's hardware-control-path row, whose prerequisite -- the four device-interface functions -- is met, and whose own rule says it does not wait for `envelope/` because wrapping a control path needs no safety limit. Slot: KB entry, named in the 2026-09-18 amendment. Rule: 10.3 rule 1, capped E3. Confirming it on this instrument promotes it to E1 and supersedes this entry.",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "numbers": [
+    {
+      "name": "command_round_trip_quiet",
+      "value": 2.93,
+      "unit": "ms",
+      "source": "prior_run:agentic-microscope@safety-2026-09-03",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "command_round_trip_with_live_view",
+      "value": 51.4,
+      "unit": "ms",
+      "source": "prior_run:agentic-microscope@safety-2026-09-03",
+      "grade": "E3",
+      "precision": "significant_figures"
+    }
+  ]
+}

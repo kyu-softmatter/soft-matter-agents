@@ -1,0 +1,28 @@
+{
+  "entry_id": "elapsed_time_is_quantised_to_one_ms",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The ElapsedTime-ms metadata field is quantised to 1 ms, so a median frame interval reads as an exact integer and the jitter computed from consecutive intervals reads as exactly zero.",
+  "source": "prior_run:agentic-microscope@safety-2026-09-03",
+  "grade": "E3",
+  "source_ref": "src_prior_safety_memo",
+  "validity_conditions": "QUANTISATION THAT IMITATES PRECISION. At a 33.333 ms period the median interval reads exactly 33.000 and the jitter reads exactly 0.000 -- and zero jitter is not a plausible measurement, so the number that looks best is the one that proves the field cannot support the calculation. Anything reporting timing stability from consecutive intervals of this field is reporting the quantiser. THE RATE IS STILL OBTAINABLE, from the span across n-1 intervals rather than from the intervals themselves, because the quantisation error does not accumulate over a long span. That is a method and belongs to whoever computes it; what is entered here is the field's resolution. 10.2.1: TRANSFER. Row: 10.2's hardware-control-path row, whose prerequisite -- the four device-interface functions -- is met, and whose own rule says it does not wait for `envelope/` because wrapping a control path needs no safety limit. Slot: KB entry, named in the 2026-09-18 amendment. Rule: 10.3 rule 1, capped E3. Confirming it on this instrument promotes it to E1 and supersedes this entry.",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "numbers": [
+    {
+      "name": "elapsed_time_resolution",
+      "value": 1,
+      "unit": "ms",
+      "source": "prior_run:agentic-microscope@safety-2026-09-03",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the quantisation step of the metadata field, not a measurement uncertainty"
+    }
+  ],
+  "identifiers": {
+    "field": "ElapsedTime-ms"
+  }
+}

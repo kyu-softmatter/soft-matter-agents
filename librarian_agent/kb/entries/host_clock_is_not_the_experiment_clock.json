@@ -1,0 +1,14 @@
+{
+  "entry_id": "host_clock_is_not_the_experiment_clock",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The host clock and MicroManager's frame timestamp series are separate clocks. Mapping host timestamps onto the frame series after the fact is a correlation between two clocks, not a synchronisation of them.",
+  "source": "prior_run:agentic-microscope@safety-2026-09-03",
+  "grade": "E3",
+  "source_ref": "src_prior_safety_memo",
+  "validity_conditions": "TWO CLOCKS, AND THE JOIN IS AN INFERENCE. Anything stamped by the host -- a stage move, a trigger, an operator action -- sits on a different timebase from the frames, and aligning them afterwards produces an association whose error nobody has measured. It is not that the offset is large; it is that it is unquantified, so a latency derived across the boundary inherits an unknown. THIS IS THE FACT, NOT THE RULE THAT FOLLOWS FROM IT. Whether the orchestrator may cross that boundary, and what it must record when it does, is a decision for the clock design and not something this entry settles. 10.2.1: TRANSFER. Row: 10.2's hardware-control-path row, whose prerequisite -- the four device-interface functions -- is met, and whose own rule says it does not wait for `envelope/` because wrapping a control path needs no safety limit. Slot: KB entry, named in the 2026-09-18 amendment. Rule: 10.3 rule 1, capped E3. Confirming it on this instrument promotes it to E1 and supersedes this entry.",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

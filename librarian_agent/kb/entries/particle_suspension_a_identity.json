@@ -17,6 +17,7 @@
   },
   "source": "assumed:person_ruling_20260919",
   "grade": "E5",
+  "grade_tag": "person_ruling",
   "source_ref": "src_person_ruling_20260919",
   "valid_until": {
     "date": "2036-09-19",

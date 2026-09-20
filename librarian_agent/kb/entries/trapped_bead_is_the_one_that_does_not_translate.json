@@ -1,0 +1,14 @@
+{
+  "entry_id": "trapped_bead_is_the_one_that_does_not_translate",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In a crowded field, brightness does not identify the trapped bead. The discriminator that works is motion relative to the stage: the trapped bead is the only object that does not translate when the stage moves.",
+  "source": "prior_run:agentic-microscope@safety-2026-09-03",
+  "grade": "E3",
+  "source_ref": "src_prior_safety_memo",
+  "validity_conditions": "A NEGATIVE AND A POSITIVE, AND THE NEGATIVE IS THE EXPENSIVE HALF. The prior project found six blobs within 27,200 to 29,140 counts producing six plausible-but-wrong fits -- so brightness does not merely fail, it fails while returning a confident answer, which is worse than returning none. The working discriminator is kinematic rather than photometric and needs a stage move to exist, so it is not available from a single static frame. ENTERED AS A METHOD FACT, and its slot is an axis rather than a control path: whoever identifies a trapped bead reads it. The ADU counts are that project's field and are not entered as numbers -- the transferable content is that a brightness discriminator is unreliable in a crowded field and why. 10.2.1: TRANSFER. Row: 10.2's hardware-control-path row, whose prerequisite -- the four device-interface functions -- is met, and whose own rule says it does not wait for `envelope/` because wrapping a control path needs no safety limit. Slot: KB entry, named in the 2026-09-18 amendment. Rule: 10.3 rule 1, capped E3. Confirming it on this instrument promotes it to E1 and supersedes this entry.",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan"
+}

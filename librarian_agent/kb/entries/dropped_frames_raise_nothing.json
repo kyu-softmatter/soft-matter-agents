@@ -1,0 +1,18 @@
+{
+  "entry_id": "dropped_frames_raise_nothing",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "MMCore raises no error and writes no record when it drops a frame. Gaps in the ImageNumber sequence are the only evidence, and MicroManager's own metadata files do not record the loss.",
+  "source": "prior_run:agentic-microscope@safety-2026-09-03",
+  "grade": "E3",
+  "source_ref": "src_prior_safety_memo",
+  "validity_conditions": "A SILENT FAILURE WITH EXACTLY ONE WITNESS, and the witness is not where anyone looks -- the metadata file that is supposed to describe the acquisition is the thing that does not record it. So a series with missing frames is indistinguishable from a complete one unless ImageNumber is checked explicitly, and every derived quantity computed from frame count or elapsed span is wrong by an amount nothing reports. IT COMPOUNDS THE OTHER TWO. The rate cannot be taken from the requested interval, the jitter cannot be taken from consecutive timestamps, and the frame count cannot be trusted without a separate check -- three independent defects in the same measurement, none of which announces itself. 10.2.1: TRANSFER. Row: 10.2's hardware-control-path row, whose prerequisite -- the four device-interface functions -- is met, and whose own rule says it does not wait for `envelope/` because wrapping a control path needs no safety limit. Slot: KB entry, named in the 2026-09-18 amendment. Rule: 10.3 rule 1, capped E3. Confirming it on this instrument promotes it to E1 and supersedes this entry.",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "identifiers": {
+    "component": "MMCore",
+    "only_evidence": "ImageNumber gaps"
+  }
+}
