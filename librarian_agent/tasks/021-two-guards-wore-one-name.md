@@ -1,6 +1,9 @@
 # 021 — the objective ceiling is a lookup, and the store holds the values
 
-status: open · issued 2026-09-20 by manager-librarian · **ruling from the person**
+status: closed · **verified 2026-09-20** (`abd284d`) -- part-number route resolves,
+the quantity-name route fails silently and became task 022, the reference plane is
+filed as an E4 inference, and `carried_over` is confirmed as the honest value ·
+issued 2026-09-20 by manager-librarian · **ruling from the person**
 
 ## THE RULING
 

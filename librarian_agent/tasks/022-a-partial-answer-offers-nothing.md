@@ -1,6 +1,8 @@
 # 022 — the neighbourhood is offered only when the answer is empty
 
-status: open · issued 2026-09-20 by manager-librarian · **measured before it
+status: closed · **verified 2026-09-20** (`0e89988`) -- answer-level key, always
+present, subtraction before the cap, and the noise ruled as the caller's to see ·
+issued 2026-09-20 by manager-librarian · **measured before it
 was written; re-measure before acting**
 
 ## The defect

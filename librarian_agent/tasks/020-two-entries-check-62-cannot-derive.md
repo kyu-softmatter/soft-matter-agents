@@ -1,6 +1,9 @@
 # 020 — the two entries check 62 cannot derive, and why there are only two
 
-status: open · issued 2026-09-20 by manager-librarian-2 · **the measurement is
+status: closed · **verified 2026-09-20** (`3cba134`, `2b28458`) -- both rulings taken,
+and ruling 2 turned out to cut the seat's own count from 2 to 1; `supports` landed
+at `d692744` and the entry uses it · issued 2026-09-20 by manager-librarian-2,
+closed by manager-librarian after that session ended · **the measurement is
 already done; what is left is two rulings only this seat can make** ·
 **CORRECTED 2026-09-20 after check 62 landed (`f31457a`) — this file described
 an outcome the check does not have. Read the correction at the end before the
