@@ -1,8 +1,9 @@
 {
   "schema_version": "0.1",
   "note": "Thresholds the validator needs. null means nobody has chosen it yet, and an unchosen threshold is not a satisfied threshold: the check reports UNDECIDED rather than passing. --strict turns UNDECIDED into failure.",
-  "max_e5_per_plan": null,
-  "max_e5_per_plan_open_question": "plan.md 11-2",
+  "max_rationales_per_plan": null,
+  "max_rationales_per_plan_open_question": "plan.md 11-2",
+  "max_rationales_per_plan_note": "Renamed from max_e5_per_plan on 2026-09-19 with the unit it counts (11-2). The old name outlived its meaning by minutes and only validate.py read it, so the rename is two files; a key that names the wrong unit teaches the wrong unit to whoever sets the threshold.",
   "max_configs_after_screening": 3,
   "max_axes": 7,
   "max_subagents_per_question": 21,

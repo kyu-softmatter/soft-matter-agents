@@ -565,6 +565,7 @@ def check_02_units(b: Bundle) -> list[Finding]:
 def check_03_source_and_grade(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     e5_by_plan: dict[str, int] = {}
+    rationales_by_plan: dict[str, set] = {}
     total = 0
     for c in b.cards:
         if "__unreadable__" in c.data:
@@ -579,14 +580,33 @@ def check_03_source_and_grade(b: Bundle) -> list[Finding]:
                 out.append(Finding(3, FAIL, f"{n.get('name')}: E6 may not appear in a card", c.rel))
             if n.get("grade") == "E5" and c.kind == "plan":
                 e5_by_plan[c.rel] = e5_by_plan.get(c.rel, 0) + 1
-    cap = LIMITS.get("max_e5_per_plan")
+                # 11-2's unit, settled 2026-09-19: distinct rationales, not raw
+                # E5. A computed E5 almost always inherits -- of this
+                # repository's 17 in one plan, 9 did and none asserted E5 on its
+                # own (5.8) -- so the raw count measures how long the derivation
+                # chain is, not how much was guessed. Worse, capping the raw
+                # count rewards dropping `formula` and `inputs`, which is what
+                # check 17 reads: a cap that pays for hiding a derivation is
+                # inverted, and unlike a bypassed gate it leaves a green card
+                # rather than a trace.
+                src = str(n.get("source", ""))
+                if src.startswith("assumed:"):
+                    rationales_by_plan.setdefault(c.rel, set()).add(src.split(":", 1)[1])
+    cap = LIMITS.get("max_rationales_per_plan")
+    counted = {rel: len(r) for rel, r in rationales_by_plan.items()}
+    for rel in e5_by_plan:
+        counted.setdefault(rel, 0)
     if cap is None:
-        counts = ", ".join(f"{k}: {v}" for k, v in e5_by_plan.items()) or "none"
-        out.append(Finding(3, UNDECIDED, f"per-plan E5 cap is unset ({LIMITS['max_e5_per_plan_open_question']}); counted E5 = [{counts}]"))
+        counts = ", ".join(f"{k}: {v}" for k, v in sorted(counted.items())) or "none"
+        out.append(Finding(3, UNDECIDED, f"per-plan cap on distinct assumption rationales is unset "
+                                         f"({LIMITS['max_rationales_per_plan_open_question']}); counted "
+                                         f"rationales = [{counts}]. Not raw E5, which counts chain length: "
+                                         f"the same plans hold "
+                                         + ", ".join(f"{k}: {v}" for k, v in sorted(e5_by_plan.items()))))
     else:
-        for rel, n in e5_by_plan.items():
+        for rel, n in sorted(counted.items()):
             if n > cap:
-                out.append(Finding(3, FAIL, f"{n} E5 numbers exceed the cap of {cap}", rel))
+                out.append(Finding(3, FAIL, f"{n} distinct assumption rationales exceed the cap of {cap}", rel))
     if not any(f.status == FAIL for f in out):
         out.insert(0, Finding(3, PASS, f"{total} numbers carry a source and a grade, no E6"))
     return out
@@ -3194,6 +3214,65 @@ def check_47_registry_prose_names_real_seats(b: Bundle) -> list[Finding]:
         "instruction that cannot be followed", "contracts/seats.json")]
 
 
+def check_56_undecided_names_the_settled_unit(b: Bundle) -> list[Finding]:
+    """Check 3's open threshold reports distinct rationales, not raw E5.
+
+    11-2 settled the unit on 2026-09-19 and left the threshold open, which is
+    an unusual state to be in and the reason this check exists: for as long as
+    a cap is unset, the UNDECIDED line is the only place the repository says
+    what would be capped. It is read far more often than 11-2 is. While it said
+    `counted E5 = [7, 5, 17]` it was teaching the unit that had just been
+    rejected -- and a message pointing at the wrong thing is believed, which
+    this repository has now counted several times.
+
+    Why the unit moved is worth having here rather than one file away. A
+    computed E5 almost always inherits: of one plan's 17, nine were computed
+    and every one of them took E5 from an assumed input, none asserting it
+    alone (5.8). So the raw count measures derivation length. Capping it would
+    reward dropping `formula` and `inputs` -- the fields check 17 reads -- and
+    that is worse than a bypassed gate, because a bypass leaves a trace and a
+    hidden derivation leaves a green card.
+
+    WHAT THE UNIT DOES NOT MEASURE, and the declaration says so too: a
+    rationale count counts how many times a guess was made, never how much
+    weight one carries. A single rationale holding up an entire plan counts as
+    one. That is the price of not counting chain length, and leaving it unsaid
+    would let a pass read as "this plan assumes little".
+
+    The check compares numbers rather than wording. It recomputes the counts
+    and requires each to appear against its plan, so reverting the unit fails
+    it even if the sentence still says `rationale`.
+    """
+    plans = [c for c in b.cards if c.kind == "plan" and "__unreadable__" not in c.data]
+    if not plans:
+        return [Finding(56, NA, "no plan cards to count")]
+    expect: dict[str, int] = {}
+    for c in plans:
+        rats = {str(n.get("source", "")).split(":", 1)[1]
+                for n in c.data.get("numbers", []) or []
+                if n.get("grade") == "E5" and str(n.get("source", "")).startswith("assumed:")}
+        expect[c.rel] = len(rats)
+
+    undecided = [f for f in check_03_source_and_grade(b) if f.status == UNDECIDED]
+    if not undecided:
+        return [Finding(56, NA, "check 3 reports no open threshold, so a cap is set and there is no "
+                                "UNDECIDED line to teach a unit")]
+    msg = " ".join(f.message for f in undecided)
+    if "rationale" not in msg:
+        return [Finding(56, FAIL, "check 3's UNDECIDED line never says what it counts. While the threshold "
+                                  "is open this line is the only place the repository states the unit "
+                                  "(11-2)", "contracts/validate.py")]
+    wrong = [f"{rel}: {n}" for rel, n in sorted(expect.items()) if f"{rel}: {n}" not in msg]
+    if wrong:
+        return [Finding(56, FAIL, f"check 3's UNDECIDED line does not report the distinct-rationale count "
+                                  f"for {len(wrong)} plan(s) -- expected {wrong[0]!r}. 11-2 settled the unit "
+                                  f"as distinct rationales; a line reporting raw E5 teaches the unit that "
+                                  f"was rejected, and whoever sets the threshold reads this line and not "
+                                  f"11-2", "contracts/validate.py")]
+    return [Finding(56, PASS, f"check 3's open threshold reports distinct rationales for {len(expect)} plans, "
+                              f"which is 11-2's settled unit")]
+
+
 def check_50_delivery_has_a_reader(b: Bundle) -> list[Finding]:
     """A delivered envelope has a receiver with a reason to read it.
 
@@ -3548,6 +3627,7 @@ CHECKS = [
     check_54_kb_basis_resolves,
     check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,
+    check_56_undecided_names_the_settled_unit,
     check_42_check_registry, check_41_seat_attribution,
 ]
 
