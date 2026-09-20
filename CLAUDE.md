@@ -226,8 +226,16 @@ table, not this paragraph.
 
 Until 2026-09-16 a SessionStart hook injected `~/.claude/knowledge/`, a
 read-only mirror of the first two, into every session on this machine, and its
-filenames did leak terminology into this design. The mirror and the hook entry
-have since been removed. If either returns, this rule still applies.
+filenames did leak terminology into this design. The hook entry is gone from
+`~/.claude/settings.json` and the mirrored content is gone, but **the
+machinery is not**: as of 2026-09-20 `~/.claude/knowledge/` still holds
+`session-hook.sh` and `sync.sh`, both executable, so one command repopulates
+it. Nothing today injects anything -- the one registered SessionStart hook
+runs `agent-layer-check.sh`, which names none of the three. What else on this
+machine carries the names is inert: shell history, `.claude.json` backups, a
+saved plan, and one user-level skill that carries them **in order to forbid
+them**, which a grep for leaks will flag and a reader must not.
+If the mirror returns, this rule still applies.
 
 They do hold useful material — hardware control paths, device specs, concrete
 values such as NA, axis calculation logic, and a record of what went wrong.
