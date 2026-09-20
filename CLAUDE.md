@@ -108,6 +108,28 @@ Tool denials are not inert, and a denial aimed inside the agent's own tree
 resolves normally. See §6.2. Sessions communicate only through file cards and read-only
 librarian MCP calls, so every transfer leaves a trace on disk. See §6.2.
 
+**Launching a session in its own directory splits MCP approval.** Claude
+Code keys projects by working directory, so one repository becomes several
+things to approve — seven entries as of 2026-09-19, all empty. The root
+`.mcp.json` is inherited; **the approval is not**, and the two behaving
+differently is why a seat can have the server registered and the tools
+missing. Approve by server name at the user level rather than per path.
+Settings are read at session start, so a running session is unaffected.
+
+A seat without the librarian's tools gets no error — it proceeds on the
+degraded path, which is legitimate here, so a silent day looks like an
+ordinary one. The cards are not silent, though: `evidence` defaults to
+degraded and only clears when the server answers, so no card ever claims
+the librarian answered when it did not. That makes this a schedule problem
+rather than an evidence one.
+
+Launching everything from the root is not the fix. Beyond the root being a
+top-tier seat, an agent's **inward** denials are relative paths —
+`envelope/safety.json`, `approvals/**`, `inbox/**` — which resolve only
+from that agent's directory. From the root they name nothing, so the
+guards on the person's two folders and the bridge's one all drop at once.
+See §6.2.
+
 **Which session am I?** The working directory says it. If it is an agent
 directory, read that agent's `CLAUDE.md` and stay inside it. If it is the
 repository root, this is a top-tier seat: specify, do not implement. The
