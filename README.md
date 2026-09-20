@@ -50,9 +50,9 @@ their axis list differs.
 
 | | |
 |---|---|
-| **microscope** / **simulation** | the two that execute. Same pipeline, seven axes vs six |
-| **librarian** | the only knowledge store. Answers read-only, and records what it could **not** answer |
-| **bridge** | carries cards between the two executing agents. Reads their `questions/`, writes their `inbox/`, and touches no number |
+| `microscope_agent/` · `simulation_agent/` | the two that execute. Same pipeline, seven axes vs six |
+| `librarian_agent/` | the only knowledge store. Answers read-only, and records what it could **not** answer |
+| `bridge/` | carries cards between the two executing agents. Reads their `questions/`, writes their `inbox/`, and touches no number |
 | `contracts/` | the only shared code: card schemas, units, the observable vocabulary, `validate.py` |
 
 Each agent directory is self-contained on purpose: taking `microscope_agent/`
@@ -88,6 +88,7 @@ rather than passing.
 | `contracts/` | the only shared code: card schemas, the unit registry, the observable vocabulary, and `validate.py` |
 | `<agent>/README.md` | what that agent is and what it does today |
 | `docs/` | the public page — one screen, for someone who was sent a link and will not open this repository |
+| `pyproject.toml`, `uv.lock` | the dependencies and the exact versions they resolve to. `uv sync` gives the pipeline and not the engine: HOOMD is conda-forge only, which is deliberate — the validator and the mock backend are all a machine needs |
 
 ## Running the gate
 
