@@ -129,6 +129,23 @@ So A4 genuinely re-decides the window, S4 genuinely re-picks the point, and A5
 re-costs it. That is a fan-out, not a patch — which is what makes this a
 revision.
 
+## Do not expect the evidence to improve, because it will not
+
+Revision 2 changes the physics and **not one grade.** `assumed:` is E5 and
+`operator_recall:` is E5, so the diameter moves kind without moving grade, and
+everything downstream inherits exactly what it inherited before.
+
+Counted, so nobody is surprised: the plan carries **17 E5 numbers — 8 assumed
+and 9 computed — and every one of the 9 inherits.** `diffusivity` is E5 because
+`bead_diameter` is; `tau_d` because both of those are; `integration_timestep_max`
+because `tau_d` is. None of the nine asserts E5 on its own. That is §5.8 working
+as written — one estimate in the chain makes the answer an order of magnitude.
+
+So the honest summary of revision 2 is: **the two sides stop being a factor of
+fifteen apart, and nothing gets better evidenced.** Only a lot number does that,
+and the cheap route to one is now shut. Say this in the revision's own record
+rather than letting a reader infer from a re-run that the plan firmed up.
+
 ## C. The target, and your plan does not have one
 
 `5e3ea6a` is the worked example; copy its shape. But **check your own tree
