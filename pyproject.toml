@@ -1,0 +1,22 @@
+[project]
+name = "soft-matter-agents"
+version = "0.1.0"
+description = "Contracts and agent code for the four soft-matter agents. Not published; this file exists so a second machine resolves the same versions."
+requires-python = ">=3.11"
+
+# Everything contracts/validate.py and simulation_agent/src/ import that is not
+# stdlib. Counted from the source rather than listed from memory:
+#   grep -hoE '^\s*(import|from) [a-z_]+' contracts/validate.py simulation_agent/src/*.py
+dependencies = [
+  "jsonschema>=4.0",   # check 1 validates every card against contracts/schemas/
+  "referencing>=0.30", # the $ref registry check 1 builds; jsonschema does not pull it for this use
+  "numpy>=1.26",       # mock_backend integrates in SI with it
+]
+
+# HOOMD-blue is deliberately absent and cannot be added here: it is not on PyPI.
+# It ships through conda-forge, so the engine is a separate install on any
+# machine, and `uv sync` gets the pipeline but not the engine. That split is
+# real rather than an oversight -- section 9.2 rule 4 attaches the engine only
+# after the pipeline passes with mock_backend, which is a first-class backend
+# (4.6), so a machine that can run the validator and the mock can do all of
+# M2's verification without HOOMD present.
