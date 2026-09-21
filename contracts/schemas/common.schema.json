@@ -221,7 +221,9 @@
           "description": "what an assumption's gap_ref points at"
         },
         "observable": {
-          "type": "string"
+          "type": "string",
+          "description": "the name that was asked for",
+          "$comment": "A PATTERN BELONGS HERE AND IS NOT HERE YET, because adding it today would redden another agent's cards. `numbers[].name` is constrained to ^[a-z][a-z0-9_]*$ and this field, which names the same kind of thing, is constrained to nothing. Measured 2026-09-20: of 37 kb_gaps across every card, 34 are name-shaped and 3 are an English sentence -- `temperature at the sample rather than in the room`, repeated across the three cards of sim-20260917-001. Those three are honest: they carry `degraded: [\"librarian_agent\"]` and their `searched` says the entries were read by hand while the service was down, so no server produced them and nothing shaped them. That is what the degraded path is FOR, and it is also the one place a gap meets no constraint at all -- the server sets `observable` from the query argument, so on the served path the caller's own name is the only shape there is. The line the pattern draws is between name-shaped-but-unregistered, which is common and is often the very reason a gap exists, and not-a-name, which is 3. It must NOT require registration in quantities.json: manager-microscope measured that wider form at 31 and it is unusable. The migration is one edit -- that gap wants `observable: temperature` with the locus carried separately, which is exactly what `at` was added for on 2026-09-19, so the sentence is the earliest instance of the problem that field already solved. Add the pattern once the three cards are fixed; simulation_agent had no session on the day this was found."
         },
         "condition_range": {
           "$ref": "#/$defs/condition_range"
