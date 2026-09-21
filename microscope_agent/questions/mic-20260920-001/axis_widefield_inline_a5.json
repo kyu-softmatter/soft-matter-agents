@@ -1,0 +1,110 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260920-001-widefield_inline-a5",
+  "qid": "mic-20260920-001",
+  "thread": "solo-mic-20260920-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-21T05:25:18Z",
+  "status": "DRAFT",
+  "caller_id": "mic-20260920-001:v1:widefield_inline:a5",
+  "config": "widefield_inline",
+  "axis": "a5",
+  "kb_version": "kbv-1dabfd5ad58d",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "focus_drift_over_record",
+      "parameter": "record_length",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "No drift rate has ever been measured on this instrument -- asked as drift_rate, focus_drift and stage_drift, absent all three times -- and nothing here licenses calling drift negligible instead. Two served entries say why the opposite is more likely: sample temperature is not actuated at all, so the dominant driver of mechanical and thermal drift is uncontrolled, and the ambient reading that stands in for it says in its own validity_conditions that where the thermometer sits was not recorded, so it is not established as a sample-adjacent temperature. The tolerance is the other half and it is not the librarian's: how far focus may wander is a property of the measurement. A6 separately bounds the depth of field, and this axis does not reach for that -- an axis does not take a sibling's output as input (4.5.3 rule b).",
+      "missing": [
+        "drift_rate",
+        "focus_tolerance"
+      ]
+    },
+    {
+      "inequality": "pfs_across_configuration_change",
+      "parameter": "pfs_state",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "This is the one bound on this axis that is known, bites, and cannot be written. 2.1 interlock 3 disables focus stabilisation across turret and path changes and re-acquires it after, and the registry carries a pfs element saying so. The shape that fits is a precondition -- it restricts no value and requires something of the plan -- and precondition.basis must resolve to a name in numbers[] or to a kb_ref on this card. The service answers absent for both `pfs` and `perfect_focus`, so there is no entry to cite, and the interlock itself is policy rather than knowledge (2.1) and is enforced by the operator whatever this card says. So the honest state is no_input, and what is missing is an entry rather than a measurement: the fact exists, in the published devices table, in a form no bound can stand on.",
+      "missing": [
+        "pfs_behaviour"
+      ]
+    },
+    {
+      "inequality": "disk_spin_up_before_acquisition",
+      "parameter": "acquisition_start",
+      "state": "abstained",
+      "kind": "not_constraining",
+      "reason": "Both halves of the disk constraint are served and neither bites here. Nothing may be acquired while the disk is spinning up, and an exposure taken through it must be an integer multiple of the disk period -- and on widefield_inline the disk is out, which the served entry makes a required selector value on this configuration rather than a configuration of its own. No disk in the path means no spin-up to wait for. Recorded as not_constraining and not as no_input deliberately: the disk period is indeed absent from the store, but this row does not abstain for want of it. Not knowing a number and not needing it are different, and folding them together would make this configuration look blocked on a measurement it does not use. The row returns to force on any configuration that puts the disk back in."
+    },
+    {
+      "inequality": "settling_after_configuration_change",
+      "parameter": "settling_time",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "Asked as settling_time and as thermal_equilibration, absent both times, and none of the entries served here carries one. This is the mechanical and thermal half of re-settling, distinct from the disk above: after the turret rotates, the stage moves or the path changes, something has to stop moving before a record starts, and no number on this instrument says how long that takes. It is a measurement rather than a lookup -- one the operator can make once and the store can then hold.",
+      "missing": [
+        "settling_time"
+      ]
+    },
+    {
+      "inequality": "total_duration_within_budget",
+      "parameter": "total_session_time",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "Nothing states how long this question may take. The budget is the person's and was never the librarian's, so it is named here and not recorded as a gap -- a gap claims the store was asked and could not supply, and the store is not where a diary lives. The other side of the bound is equally out of reach: the total is exposures plus overheads plus settling, and how long the record must be is A2's parameter. This axis states the bound and does not reach across for it (4.5.3 rule b).",
+      "missing": [
+        "session_time_budget"
+      ]
+    },
+    {
+      "inequality": "schedule_serialisation",
+      "parameter": "instrument_window",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "No availability window is stated, and that half is the person's rather than the store's. The other half stops for a more interesting reason. stand_ti2e_lock_groups is served at E3 and carries the arrangement -- the body's optical elements in the optical_path group, the motor stage in the stage group, because the piezo rides on the motor stage -- but its own validity_conditions mark the scheduling consequence, that stage moves serialise with port and filter changes, as design rather than a hardware reading, and say it is not stamped as one. So the serialisation this row would rest on exists as a consequence nobody measured. This axis does not promote it: a bound resting on an unstamped consequence would carry the entry's E3 while claiming something the entry declines to claim.",
+      "missing": [
+        "instrument_availability_window"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "focus_drift_rate_absent",
+      "observable": "drift_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=drift_rate, caller_id=mic-20260920-001:v1:widefield_inline:a5, kb_version=kbv-1dabfd5ad58d) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-1dabfd5ad58d",
+      "asked_by": "mic-20260920-001:v1:widefield_inline:a5",
+      "asked_at": "2026-09-21T05:24:12+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "mechanical_settling_time_absent",
+      "observable": "settling_time",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=settling_time, caller_id=mic-20260920-001:v1:widefield_inline:a5, kb_version=kbv-1dabfd5ad58d) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-1dabfd5ad58d",
+      "asked_by": "mic-20260920-001:v1:widefield_inline:a5",
+      "asked_at": "2026-09-21T05:24:15+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "Answered by the librarian service rather than by reading the store, which is what makes degraded empty: 0 entries came back with their own grades and 2 questions came back absent, all at the pinned kbv-1dabfd5ad58d, and every call is in librarian_agent/queries/log.jsonl under this caller_id. Transport was a stdio client, this session's attached server having failed every call since 07:47:44Z. Six bounds, no constraint, and the six do not fail the same way -- which is the point of enumerating them. One abstains with grounds because the disk is out of this path. Two want a measurement nobody has made here: a drift rate and a settling time, both recorded as gaps. Two want something the person has never said -- a time budget and an availability window -- and neither is a gap, because the librarian was never the place to ask. And one wants an entry rather than a measurement. The PFS row is the finding. The interlock is real, it is enforced, and the contract now has exactly the right shape for it -- `precondition`, added on 2026-09-19 for A4's verifiability bound, which restricts no value and propagates to the plan. It cannot be used, because basis must resolve to a kb_ref and the service answers absent for pfs. One entry stating the interlock's behavioural half would turn this row from an abstention into a precondition S4 must carry. That entry does not exist, and the fact is sitting in the published devices table where no bound can cite it. `pfs` is not in kb_gaps although the service answered absent, and the omission is deliberate. The devices table carries the element and its interlock note, so recording absent would assert the store does not know something it does know in another place -- the false gap 004 exists to prevent. Two gaps are recorded and each was asked under at least two names before being written down.",
+  "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
+}

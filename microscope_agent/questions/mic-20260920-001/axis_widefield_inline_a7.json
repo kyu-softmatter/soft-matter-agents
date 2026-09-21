@@ -1,0 +1,111 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260920-001-widefield_inline-a7",
+  "qid": "mic-20260920-001",
+  "thread": "solo-mic-20260920-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-21T05:28:44Z",
+  "status": "DRAFT",
+  "caller_id": "mic-20260920-001:v1:widefield_inline:a7",
+  "config": "widefield_inline",
+  "axis": "a7",
+  "kb_version": "kbv-1dabfd5ad58d",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "escape_velocity_window",
+      "parameter": "trap_velocity",
+      "state": "abstained",
+      "kind": "not_requested",
+      "reason": "this goal drives nothing: it asks for 'tracer_brightness' on an imaging configuration with no perturbation composed in, so there is no commanded motion or power for this bound to be about. The missing inputs are listed anyway -- they are what would have to be measured before a driven plan could be made",
+      "missing": [
+        "trap_stiffness",
+        "model_limit_offset"
+      ]
+    },
+    {
+      "inequality": "sampling_above_corner",
+      "parameter": "sampling_rate",
+      "state": "abstained",
+      "kind": "not_requested",
+      "reason": "this goal drives nothing: it asks for 'tracer_brightness' on an imaging configuration with no perturbation composed in, so there is no commanded motion or power for this bound to be about. The missing inputs are listed anyway -- they are what would have to be measured before a driven plan could be made",
+      "missing": [
+        "trap_stiffness"
+      ]
+    },
+    {
+      "inequality": "resolvable_offset_floor",
+      "parameter": "resolvable_offset",
+      "state": "abstained",
+      "kind": "not_requested",
+      "reason": "this goal drives nothing: it asks for 'tracer_brightness' on an imaging configuration with no perturbation composed in, so there is no commanded motion or power for this bound to be about. The missing inputs are listed anyway -- they are what would have to be measured before a driven plan could be made",
+      "missing": [
+        "localisation_error",
+        "target_relative_error"
+      ]
+    },
+    {
+      "inequality": "settling_before_measurement",
+      "parameter": "settling_time",
+      "state": "abstained",
+      "kind": "not_requested",
+      "reason": "this goal drives nothing: it asks for 'tracer_brightness' on an imaging configuration with no perturbation composed in, so there is no commanded motion or power for this bound to be about. The missing inputs are listed anyway -- they are what would have to be measured before a driven plan could be made",
+      "missing": [
+        "trap_stiffness",
+        "target_relative_error"
+      ]
+    },
+    {
+      "inequality": "trap_splitting_stiffness",
+      "parameter": "trap_count",
+      "state": "abstained",
+      "kind": "not_requested",
+      "reason": "this goal drives nothing: it asks for 'tracer_brightness' on an imaging configuration with no perturbation composed in, so there is no commanded motion or power for this bound to be about. The missing inputs are listed anyway -- they are what would have to be measured before a driven plan could be made",
+      "missing": [
+        "total_optical_power",
+        "trap_stiffness",
+        "minimum_trap_spacing"
+      ]
+    },
+    {
+      "inequality": "stage_motion_envelope",
+      "parameter": "stage_velocity",
+      "state": "abstained",
+      "kind": "not_requested",
+      "reason": "this goal drives nothing: it asks for 'tracer_brightness' on an imaging configuration with no perturbation composed in, so there is no commanded motion or power for this bound to be about. The missing inputs are listed anyway -- they are what would have to be measured before a driven plan could be made",
+      "missing": [
+        "piezo_bandwidth",
+        "piezo_settling_time",
+        "stage_max_velocity"
+      ]
+    },
+    {
+      "inequality": "power_within_safety",
+      "parameter": "total_optical_power",
+      "state": "abstained",
+      "kind": "not_requested",
+      "reason": "this goal drives nothing: it asks for 'tracer_brightness' on an imaging configuration with no perturbation composed in, so there is no commanded motion or power for this bound to be about. The missing inputs are listed anyway -- they are what would have to be measured before a driven plan could be made",
+      "missing": [
+        "safety_power_limit"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [],
+  "degraded": [],
+  "note": "",
+  "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
+}
