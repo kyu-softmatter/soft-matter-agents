@@ -5854,9 +5854,15 @@ def check_72_verdicts_follow_their_numbers(b: Bundle) -> list[Finding]:
                 out.append(Finding(72, UNDECIDED,
                     f"deviation on {dev.get('parameter')!r} says within_tolerance=True and "
                     f"{planned.get('value')} {planned.get('unit')} differs from {actual.get('value')} "
-                    f"{actual.get('unit')}. Nothing in contracts/ can express what tolerance that rests "
-                    f"on -- `within_tolerance` is the only tolerance concept there and no plan, envelope "
-                    f"or schema gives it a value, so this verdict is not checkable rather than wrong", c.rel))
+                    f"{actual.get('unit')}. Not checkable rather than wrong: one boolean is carrying "
+                    f"three different claims -- exact reproduction, DEVICE QUANTISATION (the device "
+                    f"could not do otherwise), and a declared tolerance (a difference this size does "
+                    f"not matter). Only the first is derivable here. The store already holds the "
+                    f"second for another device -- kb:csuw1_disk_speed_exposure_constraint says an "
+                    f"exposure through the spinning disk must be an integer multiple of the disk "
+                    f"period -- and the camera's grid is filed as the gap `camera_exposure_grid` in "
+                    f"kb/staging/devices.v0.json. When that lands, a deviation of this shape stops "
+                    f"being a tolerance claim and becomes a grid one, which is checkable", c.rel))
         est = c.data.get("estimation")
         if isinstance(est, dict) and "followed" in est:
             n_est += 1
