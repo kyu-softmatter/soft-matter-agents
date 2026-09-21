@@ -178,6 +178,20 @@ the server directly with its log redirected would work and is the wrong
 answer: it buys a manager the store's semantics while removing the one thing
 the isolation is for.
 
+**Testing the server's behaviour is a different act and is not refused.**
+Asking the service for a fact and measuring how the code behaves are not the
+same thing: the `caller_id` isolation exists so a fact taken from the store
+lands on a card carrying `kb_refs`, and a measurement of what the code does
+produces no fact about the world to land anywhere. So a manager verifying a
+server fix, or mutation-testing a check against a synthetic tree, is doing
+its own job and needs no issued id. **The line is what may be kept**: a test
+may see store contents in passing and may carry none of it into a card or a
+KB entry -- that path is a query and needs an id. §6.2 rule 3 still decides
+*who*: running or reading code in `librarian_agent/src/` is that agent's
+side, not every manager's. The librarian asked for this line on 2026-09-20
+after being refused twice, having done the measuring kind and not the asking
+kind.
+
 **The cheapest test of whether the tools are there is to call one.** A probe
 costs nothing and dirties nothing: the server files a refusal with the
 arguments under `claimed` and `caller_id` null, and check 45 guards both
@@ -190,9 +204,13 @@ run, which is what the rest of this file keeps saying.
 
 A seat without the librarian's tools gets no error — it proceeds on the
 degraded path, which is legitimate here, so a silent day looks like an
-ordinary one. The cards are not silent, though: `evidence` defaults to
-degraded and only clears when the server answers, so no card ever claims
-the librarian answered when it did not. That makes this a schedule problem
+ordinary one. The cards are not silent, though: **`degraded`** carries the
+librarian's name until the server answers and only then empties, so no card
+ever claims the librarian answered when it did not. This file called that
+field `evidence` until 2026-09-20; `evidence` is in `scope_approval.schema.json`
+and in no card schema, while `degraded` is in `common.schema.json` and so in
+every card. The mechanism was always real and enforced -- check 45 tests an
+empty `degraded` against the query log -- and only the name here was wrong. That makes this a schedule problem
 rather than an evidence one.
 
 Launching everything from the root is not the fix. Beyond the root being a
