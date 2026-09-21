@@ -94,3 +94,80 @@ The `kb_query('pixel_size_100x_zoom_1x')` row after the change, with
 `valid_until` in it. And the twelve: how many of the fifteen carry an event,
 what the three that do say, and whether anything in the store already implies
 what ends a pixel-size calibration here.
+
+---
+
+## REASSIGNED 2026-09-20 — the named holder is gone, and item 4 is already done
+
+**`사서 실행석3` implements this, items 1–3.** `실행석` has left; `ListAgents`
+no longer lists it and a message to it bounced. Verified here rather than
+taken: `librarian_agent/src/mcp_server.py` is clean at `5c64112` with nothing
+uncommitted, so **nobody holds the file.** The constraint above named a holder
+to prevent a second collision, and there is no longer anyone to collide with.
+Waiting for that ruling rather than deciding it was the right read.
+
+## Item 4 is answered, and it makes the question twelve times smaller
+
+**The twelve are one calibration event, not twelve.** Counted here:
+
+```
+valid_until {date} only      12   source calibration:cal-pixel-size-20260919   <- all twelve
+valid_until {date, event}     3   three different sources
+```
+
+**One `event` fills all twelve.** Ask the person about
+`cal-pixel-size-20260919`, not about twelve pixel sizes.
+
+**And the 2041 date was not invented.** The entries' own
+`validity_conditions` say it: *"Valid for fifteen years as the operator
+stated, anchored to 2026-09-19 because the day the measurement was taken was
+not recorded."* So my "never expires wearing an expiry" reading was right
+about the effect and **wrong about the cause** — this is not neglect, it is
+an empty `event` slot beside a date the operator gave.
+
+What the store already implies, as candidates and not as an answer — the seat
+looked rather than reasoned, and none of these is entered:
+
+1. `objective_change_invalidates_trap_calibration` (E3) literally says
+   *"Changing the objective silently invalidates ... the GUI's
+   pixel-to-micrometre magnification"*. Different subject, closest sentence
+   on disk.
+2. **An objective change does not end these twelve — it selects among them.**
+   Each row carries `nominal_magnification` and `intermediate_magnification`
+   as identifiers. What ends one is **a different physical objective at the
+   same nominal magnification.**
+3. **A camera change ends all twelve at once** — pixel size is sensor pitch
+   over magnification, and `camera_sensor_geometry` holds the 6.5 µm pitch.
+   That entry has no `valid_until` of its own.
+4. A change in the optics between objective and camera. **Nothing in the
+   store covers this one.**
+
+## And the argument for the twelve is not the argument for the three
+
+The seat corrected its own case and the correction stands. *"The event, not
+the date, is what invalidates"* reaches **the three**. For **the twelve** the
+argument is the schema's: E2 requires a validity period, so **the field's
+existence is what separates E2 from E5**, and a caller reading a pixel size
+through `kb_query` cannot see that the thing holding the grade up exists at
+all. Different reasons, same ruling — carry all fifteen.
+
+## One more into the same commit
+
+`mcp_server.py:1935`, self-test 17, added by 030:
+
+```python
+plain = kb_query(...)["entries"][0]        # no guard
+```
+
+Block 8b, four blocks above, guards the same query with
+`if not any_row: bad(...)`. Measured on a synthetic tree: remove the one
+entry that answers to `viscosity` and 8b reports *"the projection cannot be
+checked"* while 17 raises `IndexError`. **Exactly one entry in the store
+answers to `viscosity`**, so one rename or supersede turns a diagnosis into a
+stack trace.
+
+And 8b was split in two on 2026-09-19 for this reason, its own comment
+saying it *"could not tell two different failures apart and started reporting
+the wrong one"*. **Four blocks away, the same lesson was walked into again** —
+which is another line for 032: a fix does not reach what the block beside it
+already learned. Two lines, and 031 is touching the self-test anyway.
