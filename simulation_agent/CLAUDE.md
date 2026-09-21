@@ -478,3 +478,29 @@ git status --short -- librarian_agent/queries/log.jsonl     # uncommitted = your
 
 If it is uncommitted, **ask the librarian seat to land it; do not commit it
 yourself.** It is that agent's file, and check 35 is what says so.
+
+**And before a fan-out, check the envelope against what is published.** The
+two halves of this are not symmetric and both were learned the hard way on
+2026-09-21.
+
+*Before*: sibling axes of one fan-out must pin one store. That is what
+check 58 exists for, and it cannot see a fan-out that has not started, so an
+envelope a version behind at the moment you launch produces cards that are
+internally consistent and collectively wrong. Re-copy first.
+
+*During*: **do not re-copy mid-flight.** `simulation-4` was offered a newer
+store while revision 2's fan-out was running and declined, on the ground that
+moving the store between siblings makes them see different knowledge — which
+is the same hazard arriving from the other direction. The librarian seat
+holds the store still while a fan-out is up, so **tell it when you are about
+to launch one**; that coordination lives in messages and has no file.
+
+```bash
+python3 -c "import json;print(json.load(open('simulation_agent/envelope/snapshot.json'))['kb_version'])"
+ls librarian_agent/kb/exports/snapshot_simulation_agent.json   # the publisher's copy; compare kb_version
+```
+
+A gap is not automatically a problem: on 2026-09-21 the envelope sat one
+entry behind and the missing entry was a microscope pixel-size row that no
+card in this tree cites — counted, not assumed. What makes it a problem is
+launching across it.
