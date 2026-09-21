@@ -143,13 +143,27 @@
             },
             "note": {
               "type": "string"
+            },
+            "fallback": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "description": "Names to try, in order, when `quantity` does not resolve for a key. ABSENT MEANS AN UNRESOLVED KEY IS A REFUSAL, which is the fail-closed default P0 asks for: a limit that silently resolves to nothing is no limit.\n\nWhy it exists, 2026-09-20. `objective_clearance_min` resolves `working_distance` keyed by the objective, and five of the six carry it. The 40x water-immersion lens carries `working_distance_min` 0.16 mm and `working_distance_max` 0.2 mm instead, because a correction collar moves it -- so for that one lens the ceiling resolved to nothing and no backstop stood behind it. The store is right to hold the pair: a quoted range compressed into one value stops being a quotation, and which end binds is a policy choice that 10.3 rule 4 keeps out of the knowledge store.\n\nSo the choice is made HERE, by the person, in the policy file. Each name listed must be at least as conservative as `quantity` itself, and saying why is the note's job -- the schema cannot know which end of a range is the safe one. For the case above it is the minimum: the true working distance is at least the minimum at any collar setting, so a ceiling there is never passed before focus while one at the maximum can be."
             }
           },
           "required": [
             "quantity",
             "keyed_by"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "dependentRequired": {
+            "fallback": [
+              "note"
+            ]
+          }
         }
       },
       "required": [
