@@ -301,11 +301,17 @@ def time_base(log: dict) -> dict:
 # criterion's `metric` string: a metric is prose in the plan and a number name
 # is an identifier here, and pairing them by string similarity is the kind of
 # guess that fails silently when a plan is reworded.
+# The second element says whether the number came out of the ESTIMATOR rather
+# than off the trajectory record, and that decides whether the criterion is
+# evaluable when the estimator did not run as declared. A duration and a step
+# displacement are read off the record and mean the same thing however the fit
+# went; a decade count and a relative standard error are the fit's output and
+# mean nothing once the fit range is not the one the vocabulary pins.
 OBSERVED = {
-    "planned_duration_reached": "total_simulated_time_actual",
-    "step_displacement_diverged": "max_step_displacement",
-    "within_target_decade": "decades_from_prediction",
-    "statistics_met": "relative_standard_error",
+    "planned_duration_reached": ("total_simulated_time_actual", False),
+    "step_displacement_diverged": ("max_step_displacement", False),
+    "within_target_decade": ("decades_from_prediction", True),
+    "statistics_met": ("relative_standard_error", True),
 }
 
 
@@ -378,6 +384,14 @@ def build(run_id: str, clock=None) -> dict:
 
     # -- numbers this run read ---------------------------------------------- #
     def read(name, value_si, unit, inputs, note=None):
+        # A metric the record does not carry produces NO number, rather than a
+        # number standing on nothing. The criterion that wanted it then comes
+        # out `met: null` -- which is the operator's own rule, that a metric
+        # the backend did not report is not a pass but simply not evaluated.
+        # Runs made before the operator recorded the step displacement land
+        # here.
+        if value_si is None:
+            return None
         n = reading(name, value_si, unit, run_id, inputs, note)
         numbers.append(n)
         return n
@@ -412,25 +426,34 @@ def build(run_id: str, clock=None) -> dict:
               "computed: number: check 17's formula language has + - * / ** and no logarithm, so "
               "a decade count cannot be written as an arithmetic the validator can redo"),
     )
+    # Every one of these is `.get`, and the arithmetic below guards for None,
+    # for the reason `read` returns None at all: a field the record does not
+    # carry must reach the criterion as "not evaluated" rather than as a
+    # KeyError. `max_single_step_displacement` is the live case -- the operator
+    # has only recorded it since 2026-09-21, so the two runs before that lack
+    # it, and a subscript here would have crashed on them instead of saying so.
+    steps, frames = meta.get("steps_taken"), meta.get("frames_saved")
+    sim_time = meta.get("simulated_time")
     duration_actual = read(
-        "total_simulated_time_actual", meta["simulated_time"], duration_planned["unit"],
+        "total_simulated_time_actual", sim_time, duration_planned["unit"],
         [dt_planned, duration_planned],
         note=("steps_taken * dt, read off an integer step count rather than accumulated. Summing "
               "dt ten thousand times gives 19.999999999999794 against a planned end of 20 s, and "
               "a comparison at a boundary is a decision rather than a measurement"),
     )
     max_step = read(
-        "max_step_displacement", meta["max_single_step_displacement"], box_length["unit"],
+        "max_step_displacement", meta.get("max_single_step_displacement"), box_length["unit"],
         [dt_planned, temperature, viscosity, bead_diameter],
         note="the largest single-step displacement any tracer took, which is what the divergence criterion watches",
     )
     dt_actual = read(
-        "integration_timestep_actual", meta["simulated_time"] / meta["steps_taken"],
+        "integration_timestep_actual", (sim_time / steps) if sim_time is not None and steps else None,
         dt_planned["unit"], [dt_planned, duration_planned],
         note="the timestep the run actually integrated at, as simulated time over steps taken",
     )
     save_actual = read(
-        "save_interval_actual", meta["simulated_time"] / (meta["frames_saved"] - 1),
+        "save_interval_actual",
+        (sim_time / (frames - 1)) if sim_time is not None and frames and frames > 1 else None,
         save_planned["unit"], [save_planned, duration_planned],
         note="the interval frames actually landed at, as simulated time over saved intervals",
     )
@@ -443,16 +466,25 @@ def build(run_id: str, clock=None) -> dict:
     )
 
     # -- criteria ----------------------------------------------------------- #
+    # `estimation` is computed BEFORE the criteria and handed to them, because
+    # whether the declared estimator actually ran is what decides whether the
+    # criteria standing on its output can be evaluated at all.
+    estimation = estimation_of(run, save_planned, window_planned)
     by_name = {n["name"]: n for n in numbers}
-    criteria = evaluate_criteria(plan, by_name, meta)
+    criteria = evaluate_criteria(plan, by_name, meta, estimation)
 
     # -- deviations ---------------------------------------------------------- #
-    deviations = [
+    # A deviation row needs both sides. When the record does not carry the
+    # actual the row is dropped rather than written against nothing -- and
+    # unlike a criterion, `deviations` has no third state to say so, which is
+    # the same hole `met` had until 1b2276a. Noted rather than worked around:
+    # every row here has both sides today.
+    deviations = [d for d in (
         deviation("integration_timestep", dt_planned, dt_actual),
         deviation("total_simulated_time", duration_planned, duration_actual),
         deviation("save_interval", save_planned, save_actual),
         deviation("max_lag_time", window_planned, window_actual),
-    ]
+    ) if d is not None]
 
     outcome = outcome_of(meta)
 
@@ -488,7 +520,7 @@ def build(run_id: str, clock=None) -> dict:
         "deviations": deviations,
         "time_base": clock(run["log"]),
         "targets": targets_from(plan, qid),
-        "estimation": estimation_of(run, save_planned, window_planned),
+        "estimation": estimation,
     })
     card.update(cards.tail(
         numbers,
@@ -509,7 +541,7 @@ def build(run_id: str, clock=None) -> dict:
     return card
 
 
-def evaluate_criteria(plan: dict, by_name: dict, meta: dict) -> list[dict]:
+def evaluate_criteria(plan: dict, by_name: dict, meta: dict, estimation: dict) -> list[dict]:
     """Every stop and success criterion the plan declares, evaluated.
 
     Every one, not the ones with an obvious answer: `minItems: 1` in the schema
@@ -517,39 +549,64 @@ def evaluate_criteria(plan: dict, by_name: dict, meta: dict) -> list[dict]:
     no number for stops the card rather than being dropped -- a criterion
     silently missing from the evaluation reads as a criterion that was met.
 
-    **A criterion cannot say it was not evaluable, and on a broken run that
-    matters.** `met` is a required boolean, so every criterion comes out true or
-    false whatever the run did. The operator does not have this problem: its
-    `evaluate` skips a metric the backend does not report, on the stated
-    grounds that "a metric the backend does not report is not a pass: it is
-    simply not evaluated". The card cannot express that.
+    **A criterion can say it was not evaluated, and two things here make it.**
+    `met` became `boolean | null` on 2026-09-21 (`1b2276a`), with a
+    `why_unevaluated` the schema demands whenever it is null and refuses
+    otherwise -- the same idiom as `approval_id`, where the key stays required
+    so that "could not" cannot be written the same way as "did not say". This
+    module asked for the field against its own output and is the first thing
+    to write it.
 
-    What it costs is visible on an aborted run. The record ends early, the
-    estimator fits the lags that exist, `estimation.followed` goes false
-    because the window it actually fitted is shorter than the one the plan
-    declared -- and the two success criteria still come out `met: true`,
-    evaluated against a number produced by a fit range the vocabulary does not
-    pin. That is the failure `estimation` exists to prevent, one level down:
-    `comparable` rests on the same estimator having run, and a `met: true`
-    standing on `followed: false` is a comparison nobody should make.
+    **The estimator did not run as declared.** On an aborted run the record
+    ends early, the estimator fits the lags that exist, and
+    `estimation.followed` goes false because the window it fitted is shorter
+    than the one the plan declared. A criterion standing on the fit's output
+    then compares a number the vocabulary's estimator did not produce -- which
+    is the failure `estimation` exists to prevent, one level down, since
+    `comparable` rests on the same estimator having run. Those criteria come
+    out null; the ones read off the trajectory record do not, because a
+    duration and a step displacement mean the same thing however the fit went.
 
-    Nothing here is false -- `outcome`, `followed` and `met` are each correct,
-    and a reader who joins the three sees it. What is missing is a way to say
-    it in the field that carries the claim, and `result.schema.json` is not
-    this seat's. Raised beside the `time_base` question, and found the same
-    way: by running the module against runs that did not go well.
+    **The record does not carry the metric.** Then there is no number to
+    compare and the criterion is null for the operator's own stated reason: a
+    metric the backend did not report is not a pass, it is simply not
+    evaluated. A criterion this module has no mapping for at all is a different
+    thing and still stops the card -- silently missing from the evaluation, it
+    would read as met.
+
+    `observed_number` is kept on a null criterion. The number exists and is
+    real; what is withheld is the verdict. Dropping it would also leave a
+    `simulated:` number named by no field, which check 21 refuses outright --
+    two rules pointing the same way.
     """
     out = []
     for kind, key in (("stop", "stop_criteria"), ("success", "success_criteria")):
         for cr in plan.get(key) or []:
             cid = cr["id"]
-            name = OBSERVED.get(cid)
-            if name is None or name not in by_name:
+            mapping = OBSERVED.get(cid)
+            if mapping is None:
                 raise Unwritable(
                     f"the plan declares criterion {cid!r} and this module has no number for it. "
                     "result.schema.json requires every criterion to be evaluated, so the card "
-                    "stops here rather than shipping one the reader would count as met"
+                    "stops here rather than shipping one the reader would count as met. This is "
+                    "not the null case: null says a run could not answer a criterion this module "
+                    "knows how to ask, and here it does not know how to ask"
                 )
+            name, from_estimator = mapping
+
+            if name not in by_name:
+                out.append(unevaluated(cid, kind, None,
+                    f"the run record carries no value for {cr.get('metric')!r}, so there is nothing "
+                    "to compare. A metric the run did not report is not a pass"))
+                continue
+            if from_estimator and not estimation.get("followed", True):
+                why = "; ".join(estimation.get("deviations") or ["the declared estimator did not run"])
+                out.append(unevaluated(cid, kind, name,
+                    f"this criterion reads the estimator's output and the estimator did not run as "
+                    f"the vocabulary declares -- {why}. Comparing it would compare a number that "
+                    f"estimator did not produce"))
+                continue
+
             threshold = operator.si({**by_name[threshold_name(cr, plan)], "name": cid})
             observed = operator.si(by_name[name])
             met = operator.COMPARATORS[cr["comparator"]](observed, threshold)
@@ -564,6 +621,17 @@ def evaluate_criteria(plan: dict, by_name: dict, meta: dict) -> list[dict]:
                     "this card cannot both be right"
                 )
             out.append({"id": cid, "kind": kind, "met": met, "observed_number": name})
+    return out
+
+
+def unevaluated(cid: str, kind: str, name: str | None, why: str) -> dict:
+    """A criterion that could not be evaluated, with the reason the schema
+    demands. `observed_number` travels when there is one: the number is real
+    and only the verdict is withheld."""
+    out = {"id": cid, "kind": kind, "met": None}
+    if name:
+        out["observed_number"] = name
+    out["why_unevaluated"] = why
     return out
 
 
@@ -584,7 +652,7 @@ def threshold_name(criterion: dict, plan: dict) -> str:
     return renamed.get(criterion["number"], criterion["number"])
 
 
-def deviation(parameter: str, planned: dict, actual: dict) -> dict:
+def deviation(parameter: str, planned: dict, actual: dict | None) -> dict | None:
     """Planned against actual for one parameter the run reports back.
 
     Only parameters the run **reports back** are here -- four of the plan's
@@ -593,6 +661,8 @@ def deviation(parameter: str, planned: dict, actual: dict) -> dict:
     and report agreement that nothing measured. When a backend that quantises
     its inputs arrives, the row appears with it.
     """
+    if actual is None:
+        return None
     same = operator.si(planned) == operator.si(actual)
     return {
         "parameter": parameter,
