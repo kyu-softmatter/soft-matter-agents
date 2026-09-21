@@ -52,7 +52,7 @@ A safety ceiling does not unblock A7; the kind is `not_requested`.
 | `focus_tolerance` | A5. How far focus may wander is a property of the measurement, not of the instrument |
 | `session_time_budget`, `instrument_availability_window` | A5 |
 | dilution factor | `tracer_number_density`. The vendor's 10 mg/ml is **stock**; what is under the objective is nowhere on disk and **no card has asked yet** |
-| bead lot number | turns the diameter from `operator_recall:` E5 into `spec:<lot>` E3. Only the bottle has it |
+| ~~bead lot number~~ | **Struck 2026-09-20. Not owed and never arriving**: `bottle_label_states_no_product` (E3, `operator_read`) records that the label states no product identity, so this is a confirmed negative rather than a pending item. The diameter it would have graded is already `calibration:` **E2** from a direct measurement, which is **above** what a lot would have given |
 
 ## D. Closed by acquiring, not by asking — card 016
 

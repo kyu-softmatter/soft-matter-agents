@@ -87,8 +87,14 @@ you re-query against them:
   self-citation and is now check 69 against the librarian
 - **oil is not a universal constant.** It is a specific product's spec. If
   the bottle on the bench is not identified, the honest entry is a gap
-  pointing at the person — the same shape as the bead lot number, where
-  what is missing is not a number but a source
+  pointing at the person — a gap where what is missing is not a number but a
+  **source**. The bead lot was that shape too and is no longer a live
+  comparison: the label was examined on 2026-09-19 and states no product
+  identity, so that one is a **confirmed negative** rather than a pending
+  item. **Take the shape and not the ending** — the oil may still be
+  identifiable by someone reading the bottle, and the bead lot is settled as
+  unidentifiable. A gap waiting on a look and a gap whose look already
+  happened are different states
 
 So expect A6 to close on air and water objectives and **stay open on oil**,
 and expect that to be correct rather than incomplete.
