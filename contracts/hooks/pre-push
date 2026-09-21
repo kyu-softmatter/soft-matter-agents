@@ -1,7 +1,16 @@
 #!/bin/sh
-# Refuse a push whose commits cross a session boundary, or whose generated
-# English plan.md is stale against the Korean original, or whose README has
+# Refuse a push whose commits cross a session boundary, or whose README has
 # stopped naming what the repository contains.
+#
+# It also compared a generated English plan.md against a Korean plan_ko.md
+# until 2026-09-20. That arrangement ended -- plan.md is the record again and
+# the Korean left version control -- so the branch was removed. What it did
+# in its last hours is the reason it is worth naming here: it printed "plan.md
+# carries no generated-from header, so the rendering is not generated yet"
+# on eight pushes, describing a future that had been cancelled, and the seat
+# reading it read past it every time. A gate that narrates a state nobody is
+# in teaches its reader to skip its output, which costs the lines that do
+# matter.
 #
 # WHY A SECOND GATE AT ALL. pre-commit judges one commit and can be skipped
 # with --no-verify, which leaves no trace. Its own comment names the remedy --
@@ -10,17 +19,17 @@
 # in pushed history is an archaeology problem, and found here it is an
 # unpushed commit. Nothing new is enforced. What changes is when.
 #
-# WHY IT REFUSES RATHER THAN UPDATES. The ask was that plan.md, plan_ko.md and
-# README go out current, and updating them is the obvious reading. A hook
-# cannot do it: rendering Korean design prose into English needs a model, and
-# P0 puts no model in a gate. Deterministic code can only compare and refuse.
-# So this says "these are out of step, here is the command" and stops.
+# WHY IT REFUSES RATHER THAN UPDATES. The ask was that the documents go out
+# current, and updating them is the obvious reading. A hook cannot do it:
+# deciding what prose should say needs a model, and P0 puts no model in a
+# gate. Deterministic code can only compare and refuse. So this says "these
+# are out of step, here is the command" and stops. That constraint is what
+# made the two-document arrangement unworkable in the first place -- a hash
+# bound the pair and no generator existed, so every edit to the record was
+# two hand-edits and a recomputed header.
 #
 # WHAT IT DOES NOT LOOK AT, said here because a gate that implies more than it
 # checks is worse than no gate:
-#   - whether the English rendering is a CORRECT translation. It compares a
-#     recorded hash of the source. A wrong translation of the right revision
-#     passes.
 #   - whether README's prose is true. It checks that every top-level entry is
 #     named and that relative links resolve. A README that names everything
 #     and describes it wrongly passes.
@@ -44,15 +53,6 @@ cd "$REPO"
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "pre-push: python3 not found; cannot run the gate" >&2
-    exit 1
-fi
-
-if command -v sha256sum >/dev/null 2>&1; then
-    sha256() { sha256sum | cut -d' ' -f1; }
-elif command -v shasum >/dev/null 2>&1; then
-    sha256() { shasum -a 256 | cut -d' ' -f1; }
-else
-    echo "pre-push: no sha256 tool; cannot compare the rendering. Ambiguity stops (P0)." >&2
     exit 1
 fi
 
@@ -124,54 +124,14 @@ while read -r LOCAL_REF LOCAL_OID REMOTE_REF REMOTE_OID; do
         echo "$OTHER" | sed 's#^#  #'
     fi
 
-    # (2) The English rendering against the Korean original, both at the tip.
-    PLAN_EN=$(git show "$LOCAL_OID:plan.md" 2>/dev/null || true)
-    HEADER=$(echo "$PLAN_EN" | grep -m1 -oE '<!-- generated-from: plan_ko\.md sha256:[0-9a-f]{64} -->' || true)
-    if [ -z "$HEADER" ]; then
-        # PENDING, not a pass with a shrug. The English rendering does not
-        # exist yet; the day a header appears this begins refusing, and until
-        # then the run says which state it is in rather than saying nothing.
-        echo "pre-push: plan.md carries no generated-from header, so the rendering is"
-        echo "          not generated yet and nothing is compared. This enforces from"
-        echo "          the first header on."
-    else
-        RECORDED=$(echo "$HEADER" | grep -oE '[0-9a-f]{64}')
-        if ! git cat-file -e "$LOCAL_OID:plan_ko.md" 2>/dev/null; then
-            echo >&2
-            echo "pre-push: refused. plan.md says it was generated from plan_ko.md and that" >&2
-            echo "          file is not in the pushed tree. A rendering whose source is" >&2
-            echo "          absent cannot be checked and cannot be regenerated." >&2
-            REFUSED=1
-        else
-            ACTUAL=$(git show "$LOCAL_OID:plan_ko.md" | sha256)
-            if [ "$RECORDED" != "$ACTUAL" ]; then
-                echo >&2
-                echo "pre-push: refused. plan.md was generated from plan_ko.md at $RECORDED" >&2
-                echo "          and the pushed plan_ko.md hashes to $ACTUAL." >&2
-                # Name the sections, by finding the revision the recorded hash
-                # belongs to. A hash alone cannot say what changed; a hash that
-                # matches a committed revision can. Bounded, and it says so
-                # when the search comes up empty rather than implying none.
-                FOUND=""
-                for REV in $(git rev-list --max-count=200 "$LOCAL_OID" -- plan_ko.md); do
-                    if [ "$(git show "$REV:plan_ko.md" 2>/dev/null | sha256)" = "$RECORDED" ]; then
-                        FOUND="$REV"; break
-                    fi
-                done
-                if [ -n "$FOUND" ]; then
-                    echo "          Sections of plan_ko.md that moved since then:" >&2
-                    git diff "$FOUND" "$LOCAL_OID" -- plan_ko.md \
-                        | grep -E '^[+-]#{2,3} ' | sed 's#^#            #' | sort -u >&2 || true
-                else
-                    echo "          The recorded hash matches no plan_ko.md in the last 200 revisions" >&2
-                    echo "          of it, so the sections cannot be named. The rendering is older" >&2
-                    echo "          than the search, or was written against an uncommitted source." >&2
-                fi
-                echo "          Regenerate and commit plan.md, then push." >&2
-                REFUSED=1
-            fi
-        fi
-    fi
+    # (2) was the English rendering against the Korean original. Removed
+    # 2026-09-20 with the two-document arrangement it enforced: plan.md is
+    # the record again and plan_ko.md left version control, so there is no
+    # pair to compare. Its last act was to print, on eight pushes, that the
+    # rendering was "not generated yet" and that it would "enforce from the
+    # first header on" -- a future that had been cancelled. The number is
+    # left as a gap rather than closed up, so that this paragraph has
+    # somewhere to sit. (3) was removed earlier and the gap is the same kind.
 
     # (4) README, only what can be decided without reading it.
     README=$(git show "$LOCAL_OID:README.md" 2>/dev/null || true)
@@ -216,5 +176,5 @@ if [ "$REFUSED" -ne 0 ]; then
     exit 1
 fi
 
-echo "pre-push: boundary, rendering and README all clear"
+echo "pre-push: boundary and README all clear"
 exit 0
