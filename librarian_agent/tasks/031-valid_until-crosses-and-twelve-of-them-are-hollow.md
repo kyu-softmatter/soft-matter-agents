@@ -171,3 +171,42 @@ saying it *"could not tell two different failures apart and started reporting
 the wrong one"*. **Four blocks away, the same lesson was walked into again** —
 which is another line for 032: a fix does not reach what the block beside it
 already learned. Two lines, and 031 is touching the self-test anyway.
+
+---
+
+## ITEM 4 IS NOW A RULING, 2026-09-21 — fill it, do not count it
+
+The person answered. **The event is the camera being replaced**, and the
+**date does not move** — asked whether to re-anchor, they had no preference,
+so the recorded 2026-09-19 fallback stands and the entries' own sentence
+explaining it stays true.
+
+**Write the same `event` into all twelve.** They share one source,
+`calibration:cal-pixel-size-20260919`, so this is one fact and not twelve.
+
+Why the camera and not the objective, which is the part I would have got
+wrong on my own: pixel size is the sensor pitch over the magnification, so
+**a different sensor ends all twelve at once**, while a different objective
+only *selects* among them — each row carries `nominal_magnification` and
+`intermediate_magnification` as identifiers, not as conditions.
+
+The text is yours to write and it should say the mechanism, not just the
+trigger — the other three events all name *the physical thing this claim is
+about being replaced*, and the mechanism is what makes this one checkable.
+`camera_sensor_geometry` holds the Kinetix 22's 6.5 µm pitch and is what
+these values rest on; name it.
+
+```
+valid_until: { "date": "2041-09-19", "event": "<the camera is replaced, and why that ends it>" }
+```
+
+**One thing to report and not to fix:** `camera_sensor_geometry` has no
+`valid_until` of its own. Twelve E2 entries will now name a camera change as
+their terminating event while the entry holding the camera's geometry carries
+no expiry at all. That may be right — a sensor pitch is a specification and
+not a measurement that ages — but it is worth one sentence from you either
+way, because the twelve now depend on it.
+
+This goes in the same pass as items 1–3. It moves `kb_version`, so items 1–3
+(server only, no version move) and this (entries, version moves) are two
+commits, and **tell me before publishing.**
