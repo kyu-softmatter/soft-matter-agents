@@ -20,6 +20,10 @@
   "source": "prior_run:agentic-microscope@safety-2026-09-03",
   "grade": "E3",
   "source_ref": "src_prior_safety_memo",
+  "valid_until": {
+    "date": "2036-09-17",
+    "event": "either body is replaced, OR the two bodies are moved between arms. THE SECOND HALF IS WHY THIS IS NOT cameras_both_kinetix22's EVENT: this claim is a mapping from two serial numbers to two arms, so exchanging the bodies falsifies it while leaving `both are Kinetix 22` true and leaving every pixel size untouched. A reader treating the two camera entries as one fact with one expiry gets this one wrong. WHAT A STALE MAPPING COSTS: the serials are the only way to tell the bodies apart -- this claim says so itself, that they are distinguished by serial rather than by label -- so it misroutes every per-arm fact with nothing to contradict it. THE DATE IS AN OUTER BOUND on the same reasoning as cameras_both_kinetix22, ten years from 2026-09-17, and nobody stated it for this entry either."
+  },
   "validity_conditions": "Ruled TRANSFER under 10.2.1 and passed 10.3 rule 1, so it caps at E3 -- a run taken in another project is not a run taken here. 10.2's hardware-control-path row is open and says in its own rule that it does not wait for envelope/, because wrapping a control path needs no safety limit. Slot: O1 preflight, which has to know which body it opened. The labels are the thing not to trust: this store already records that the two bodies are the same model, so nothing about a frame distinguishes them, and it already records one instance of this instrument's paper record diverging from its hardware. A serial is addressable, so either number now finds this entry.",
   "date": "2026-09-19",
   "supersedes": null,
