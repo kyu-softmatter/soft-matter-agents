@@ -765,7 +765,7 @@
         "element": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]*$",
-          "description": "the element the selector sits on, as the device registry names it -- an element and not its channel, because a channel carries several and naming it says nothing (check 38)"
+          "description": "What the selector sits on, as the device registry names it. **A channel OR an element**, which is check 38's rule and not a looser one: the point is that a channel carrying SEVERAL selectors does not say which, so `stand_ti2e` is wrong and `nosepiece` is right. Six of the ten channels carry no elements at all -- both cameras among them -- and for those the channel IS the addressable thing and naming it is unambiguous. This description said `an element and not its channel` until 2026-09-21, which read check 38's caution as a prohibition and left every element-less channel with nowhere to put a selector; an execution seat found it holding the camera-mode setting with the slot supposedly open."
         },
         "value": {
           "type": "string",

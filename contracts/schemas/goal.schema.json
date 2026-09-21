@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "goal.schema.json",
-  "title": "goal — why we are asking, and what we want to know (4.5.1, 5.1)",
+  "title": "goal \u2014 why we are asking, and what we want to know (4.5.1, 5.1)",
   "allOf": [
     {
       "$ref": "common.schema.json#/$defs/common_head"
@@ -166,6 +166,13 @@
       "type": "string",
       "pattern": "^thr-[a-z0-9-]+:r[1-9][0-9]*$",
       "description": "Present when this goal was written from a delivered round (5.1): the thread and round it came from. It is how the bridge learns the round was taken. The bridge already reads the executing agents' questions/ (6.2-3), so this closes the loop with no write across a boundary and no second copy of whose turn it is -- the thread ledger stays the only place that says that."
+    },
+    "selectors": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/selector"
+      },
+      "description": "Discrete settings the PERSON chose, arriving here because this is where a person's decision enters the pipeline. Same $defs as the plan's, deliberately: a selector the person fixes and a selector the plan commands are the same kind of thing, and S5 carries one into the other rather than re-deriving it.\n\nAdded 2026-09-21, one stage late. `system_configuration.selectors` landed on the plan the same day and the goal did not get one, so the stage that EMITS a selector had a slot and the stage that RECEIVES the person's choice did not. S5 stopped on exactly that: the person had chosen which camera collects, and the card could not hold the answer. Third instance in two days of a rule with no field -- `run_log.verification`, `plan.preconditions`, and this."
     }
   },
   "required": [
