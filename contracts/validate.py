@@ -1252,7 +1252,11 @@ def check_11_axis_independence(b: Bundle) -> list[Finding]:
 # In an agent directory one question owns one flat folder, so the names are
 # goal.json and synthesis.json. contracts/examples/ holds several questions side
 # by side, so a suffix is allowed here too.
-ORIGIN_RE = re.compile(r"^(axis_[a-z0-9_]+\.json|goal[a-z0-9_]*\.json|synthesis[a-z0-9_]*\.json|plan_[a-z0-9_.-]+\.json)#[a-z][a-z0-9_]*$")
+# `artifact_name` prefixes a later revision's file with `v<N>_`, and an origin
+# has to be able to name one. Without this the goal is the only artifact that
+# cannot be revisioned, two revisions' cards point at one goal.json, and one of
+# them is necessarily wrong -- which is what 46 check 12 failures were.
+ORIGIN_RE = re.compile(r"^(?:v[0-9]+_)?(axis_[a-z0-9_]+\.json|goal[a-z0-9_]*\.json|synthesis[a-z0-9_]*\.json|plan_[a-z0-9_.-]+\.json)#[a-z][a-z0-9_]*$")
 
 
 def check_12_synthesis_closure(b: Bundle) -> list[Finding]:

@@ -141,8 +141,17 @@ worst input:
 | | was | becomes | why |
 |---|---|---|---|
 | `bead_diameter` | E5 `assumed:` | **E2** `calibration:` | measured |
-| `diffusivity` | E5 | **E3** | capped by `viscosity` and `temperature`, both `kb:` E3 |
-| `tau_d` | E5 | **E3** | same cap, through `diffusivity` |
+| `diffusivity` | E5 | **E4** | `computed:` is E4 at best because the formula is itself an assumption, and it then follows its worst input down. The worst inputs here are `viscosity` and `temperature` at `kb:` E3, and E4 is worse than E3, so it stays E4 |
+| `tau_d` | E5 | **E4** | same, through `diffusivity` |
+
+**This table said E3 for both until `시뮬레이션 세션 4` measured it against
+§5.3 and against the store.** The error was reading "capped by its inputs" as
+"takes its inputs' grade". `computed:` is **E4 at best** — the formula is an
+assumption however good the inputs are — and `max(E4, worst input)` takes the
+**worse** of the two, so an E3 input does not pull it up to E3. The store says
+the same thing about the same calculation in as many words, under
+`tracer_diffusivity_expected`. A grade written into a manager's card is still
+a self-reported grade until something derives it, which is the whole of P2.
 
 Across the question that is **24 E5 numbers down to 22**, and for the plan
 §11-2's unit goes **7 distinct rationales to 6** — `a_sample` stops being a
@@ -182,7 +191,7 @@ Counted across this question's axis cards:
 a5 and a7 abstain, so they have nothing to grade.
 
 **And the measurement does not move one of them.** Re-run with `bead_diameter`
-at E2 and `diffusivity` and `tau_d` at E3: **all four stay E5**, each held there
+at E2 and `diffusivity` and `tau_d` at E4: **all four stay E5**, each held there
 by a choice rather than by the physics —
 
 - **a1** by `dt_resolution_factor`
