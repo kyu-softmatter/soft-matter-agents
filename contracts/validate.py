@@ -1098,14 +1098,58 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
         elif verdict == "consistent" and not against:
             out.append(Finding(8, FAIL, "consistent against nothing: compared_against must name the counterpart card (4.4 rule 2)", c.rel))
 
+    # What each round's ledger says the source card was, so supersession can
+    # be recomputed instead of believed (4.4 rule 5).
+    pinned: dict[tuple, tuple] = {}
+    for h in ledgers:
+        src = h.data.get("source") or {}
+        pinned[(str(h.data.get("thread")), h.data.get("round"))] = (src.get("path"), src.get("revision"))
+
     for thread, cards in sorted(by_thread.items()):
         seen: dict[tuple, int] = {}
         for c in sorted(cards, key=lambda x: x.data.get("round") or 0):
+            rnd = c.data.get("round") or 0
             key = (c.data.get("direction"), (c.data.get("answerability") or {}).get("observable"))
+            sup = c.data.get("supersedes")
+            if sup is not None:
+                # A round may replace an earlier one when the source moved
+                # under it. The claim is not taken: both ledgers already
+                # record the source, so "it moved" is derivable. Conditions
+                # are deliberately NOT in the duplicate key -- keying on them
+                # would let a writer open a second round by nudging one
+                # number, which is a verdict the writer chooses, and rule 5
+                # exists to stop exactly that. Naming the superseded round
+                # and making the ledgers agree cannot be faked.
+                was, now = pinned.get((thread, sup)), pinned.get((thread, rnd))
+                if was is None or now is None:
+                    out.append(Finding(8, FAIL, f"round {rnd} says it supersedes round {sup} and one of the "
+                                                f"two has no ledger, so nothing records what either round "
+                                                f"was built on and the supersession cannot be recomputed "
+                                                f"(4.4 rule 5)", c.rel))
+                elif was[0] != now[0]:
+                    out.append(Finding(8, FAIL, f"round {rnd} says it supersedes round {sup}, but round {sup} "
+                                                f"carried {was[0]} and this one carries {now[0]}. A "
+                                                f"superseding round carries a later revision of the SAME "
+                                                f"card; a different card is a different question", c.rel))
+                elif was[1] == now[1]:
+                    out.append(Finding(8, FAIL, f"round {rnd} says it supersedes round {sup} and both pin "
+                                                f"{was[0]} at revision {was[1]}. The source did not move, so "
+                                                f"this is a repeat and not a supersession -- a repeat "
+                                                f"re-asks what was answered, and re-asking is a knowledge "
+                                                f"reference in status.json (4.4 rule 5)", c.rel))
+                if any(f.path == c.rel and "supersede" in f.message for f in out):
+                    # One defect, one finding. Falling through would add the
+                    # repeat message on top and report the same round twice
+                    # under two different names.
+                    seen[key] = rnd
+                    continue
+                if True:
+                    seen[key] = rnd
+                    continue
             if key in seen:
-                out.append(Finding(8, FAIL, f"round {c.data.get('round')} asks {key[1]!r} in the same direction as round {seen[key]}; a repeat is a knowledge reference recorded in status.json, not another round (4.4 rule 5)", c.rel))
+                out.append(Finding(8, FAIL, f"round {rnd} asks {key[1]!r} in the same direction as round {seen[key]}; a repeat is a knowledge reference recorded in status.json, not another round (4.4 rule 5). If the source card moved under round {seen[key]}, say so with `supersedes`: that is a different thing and it is legal", c.rel))
             else:
-                seen[key] = c.data.get("round") or 0
+                seen[key] = rnd
         delivered = [c for c in cards if c.data.get("status") == "VALIDATED"]
         if delivered and not any(str(s.data.get("thread")) == thread for s in statuses):
             out.append(Finding(8, FAIL, f"thread {thread} has a delivered envelope and no thread ledger; without one line saying whose turn it is, four windows are four windows nobody follows (6.2)", delivered[0].rel))
@@ -5285,10 +5329,19 @@ def check_73_a_result_names_an_approval_and_a_run_that_exist(b: Bundle) -> list[
     THE RUN HALF SPLITS, and the split is the expand-migrate-contract idiom
     this file uses elsewhere. A run id that names no directory is a defect
     once the agent has runs at all, and is an artifact a later milestone
-    produces when it has none -- `microscope_agent/runs/` does not exist, so
-    `contracts/examples/result.json` names `run-20260917-001` and nothing is
-    yet capable of holding it. Failing that today would refuse an example for
-    being ahead of M1. It flips the moment that agent writes its first run.
+    produces when it has none. The agent is taken from the card's PATH, so
+    `contracts/examples/result.json` counts as `contracts`, which has no
+    `runs/` and never will -- an example is illustrative and its run id is
+    fictional by design, so it stays exempt rather than demanding a fake
+    directory.
+
+    THAT IS DELIBERATE AND THIS PARAGRAPH SAID OTHERWISE UNTIL 2026-09-21.
+    It claimed the verdict flips the moment that agent writes its first run.
+    `microscope_agent` has now written one -- `run-20260921-001`, the first
+    on this side -- and the example did not flip, because its agent by path
+    is `contracts` and not the author it names. The behaviour is right and
+    the sentence was wrong: what flips is a run id inside an agent tree, and
+    that is now the only thing this half can fail on.
     """
     results = [c for c in b.of_kind("result") if "__unreadable__" not in c.data]
     if not results:
@@ -5352,9 +5405,9 @@ def check_73_a_result_names_an_approval_and_a_run_that_exist(b: Bundle) -> list[
     if ahead:
         return [Finding(73, PENDING,
                         f"{resolved} approval reference(s) resolve and {tier01} say null for Tier 0-1; "
-                        f"{len(ahead)} run id(s) name an agent that has written no runs at all, which "
-                        f"M1 produces: {ahead[0]}. This becomes a failure for that agent the moment it "
-                        f"writes its first run")]
+                        f"{len(ahead)} run id(s) sit outside any agent tree and so open no directory: "
+                        f"{ahead[0]}. An example's run id is fictional by design and stays exempt; what "
+                        f"fails is a run id inside an agent tree that names no run")]
     return [Finding(73, PASS, f"{resolved} result(s) name an approval that covers their plan revision "
                               f"and {tier01} say null for Tier 0-1; every run id opens a directory")]
 
