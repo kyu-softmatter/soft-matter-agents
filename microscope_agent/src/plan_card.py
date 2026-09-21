@@ -239,7 +239,12 @@ def carried_from_goal(goal: dict, bounded: set[str]) -> list[dict]:
     does not. And a number a target names, which is a decision about the
     answer rather than a setting for the run.
     """
+    # BOTH TARGET FORMS. The old one names a numbers[] entry; the new one is
+    # inline and names its own metric (5.3.1). Reading only `number` made a
+    # correctly written target invisible here, the same way it did in A6.
     named_by_target = {t.get("number") for t in goal.get("targets", []) or []}
+    named_by_target |= {t.get("metric") for t in goal.get("targets", []) or []}
+    named_by_target.discard(None)
     out = []
     for number in goal.get("numbers", []) or []:
         name = number.get("name")
@@ -323,18 +328,58 @@ def assemble(qid: str, revision: int = 1,
                 conditions.append({"parameter": n["name"], "number": n["name"],
                                    "device": device})
 
-    # A goal-side target is carried, never recomputed (5.2, check 52).
-    target = next((n for n in goal.get("numbers") or []
-                   if n.get("name") == "target_decade_resolution"), None)
-    success = []
-    if target is not None:
-        numbers.append({**{k: v for k, v in target.items() if k != "note"},
-                        "origin": "goal.json#target_decade_resolution"})
-        success.append({"id": "ok_decade", "metric": "diffusivity_decades_resolved",
-                        "comparator": ">=", "number": "target_decade_resolution",
-                        "statement": "the diffusivity is placed within one decade"})
-    else:
-        unfillable.append("success_criteria: the goal card carries no target to compare against")
+    # ONE CRITERION PER TARGET, BUILT FROM THE TARGET.
+    #
+    # Until 2026-09-21 this read `goal["numbers"]` for the literal name
+    # `target_decade_resolution` and never looked at `goal["targets"]` at
+    # all, so it reported "the goal card carries no target" about a card
+    # carrying two. The contract moved and the reader did not: a target is
+    # INLINE now, because it is a decision and a decision is correct by
+    # being made, so it carries no source and no grade -- and inline is what
+    # makes a grade inexpressible rather than merely absent (5.3.1).
+    #
+    # And the criterion was hardcoded to one question: metric, statement and
+    # threshold were all mic-20260918-001's diffusivity. A shape fix alone
+    # would have left this run emitting a criterion about a quantity it does
+    # not measure -- AND IT WOULD HAVE PASSED CHECK 6, which recomputes a
+    # verdict against the criterion a card states and never asks whether the
+    # criterion is about the right thing.
+    #
+    # The target is carried and NOT copied into numbers[]: `criterion.target`
+    # exists for exactly this, added when the target left numbers[] and the
+    # criterion had nothing to point at. Copying it back would make a grade
+    # expressible on something that must not have one.
+    success, carried_targets = [], []
+    for spec in goal.get("targets", []) or []:
+        metric, kind = spec.get("metric"), spec.get("kind")
+        if not metric or not kind:
+            continue
+        if "number" in spec:                    # the superseded by-reference form
+            unfillable.append(
+                f"success_criteria[{metric}]: this target names numbers[{spec['number']}] rather "
+                "than carrying its value, which is the form 5.3.1 superseded. Migrating it is "
+                "the goal card's owner's, not this stage's")
+            continue
+        shape = {
+            "decade_resolution": (f"{metric}_decades_resolved", ">=",
+                                  f"{metric} is placed within {spec['value']} decade"
+                                  + ("s" if spec["value"] != 1 else "")),
+            "uncertainty": (f"{metric}_relative_error", "<=",
+                            f"{metric} is known to within {spec['value']} {spec['unit']}"),
+            "detection": (metric, "<=",
+                          f"{metric} reaches {spec['value']} {spec['unit']}"),
+        }.get(kind)
+        if shape is None:
+            unfillable.append(
+                f"success_criteria[{metric}]: target kind {kind!r} has no criterion shape in this "
+                "stage. Inventing one would be this stage deciding what the person's target means")
+            continue
+        criterion_metric, comparator, statement = shape
+        carried_targets.append({k: v for k, v in spec.items() if k != "note"})
+        success.append({"id": f"ok_{metric}", "metric": criterion_metric,
+                        "comparator": comparator, "target": metric, "statement": statement})
+    if not success and not any(u.startswith("success_criteria") for u in unfillable):
+        unfillable.append("success_criteria: the goal card states no target to compare against")
 
     # The window a window_required observable depends on (5.7, check 40).
     # NOT DEFAULTED, and that is deliberate. A window says WHICH PART of the
@@ -400,6 +445,7 @@ def assemble(qid: str, revision: int = 1,
         "cost": {"wall_clock": "", "numbers": []},
         "stop_criteria": [],
         "success_criteria": success,
+        "targets": carried_targets,
         "open_risks": [],
         "numbers": numbers,
         "degraded": [],
