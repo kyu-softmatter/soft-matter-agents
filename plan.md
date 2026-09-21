@@ -1798,6 +1798,9 @@ rebuild/
     capabilities/          the "producible observables" table per configuration (modality) -- S3.0's input
     hooks/                 the commit-time gate. Installed with `core.hooksPath` (8)
     examples/              one hand-written set of cards + cards that must fail
+    history_fixtures.py    builds throwaway repositories for the four checks that read
+                           history (26, 35, 41, 46). Built and not stored (§11-7); 35 and
+                           41 are covered, 26 and 46 are not yet
       rejected/            one file = one fixture
         check<NN>_<what>/  a defect that takes two files to express (11-7)
   microscope_agent/                 three top-level folders + CLAUDE.md
@@ -1998,7 +2001,7 @@ src/devices/dev_*.py         imports neither a sibling nor anything above
 
 | Number | What | Seat holding it |
 |---|---|---|
-| 67 | whether a KB entry's `validity` conditions use declared units, the way check 2 requires of `numbers[]` | librarian |
+| 67 | whether a KB entry uses declared units **everywhere a quantity appears in it** -- `numbers[]` and `validity` conditions both, the way check 2 requires of cards | librarian |
 | 65 | whether the four checks that read history (26, 35, 41, 46) have a test that builds a repository | manager-bridge |
 | 63 | whether a tie verdict comes out carrying the worse grade of the two values compared (§5.8.1) | manager-bridge |
 | 59 | whether the hook names and warns about the paths of an unattributed commit | manager-bridge |
