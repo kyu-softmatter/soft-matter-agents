@@ -85,6 +85,37 @@
       ],
       "additionalProperties": false
     },
+    "preconditions": {
+      "type": "array",
+      "description": "What an axis required OF THE PLAN rather than of a value. common.schema.json's `precondition` says it plainly -- **it does not intersect, it propagates**: if any axis returns one the plan must carry it, and folding it into an allowed_set would see it silently dropped the first time S4 took an intersection.\n\nThis slot did not exist until 2026-09-21 and the omission had already cost something: `conditions` requires every entry to point at a `numbers[]` name, a precondition names no number, so **S5 was discarding A4's `verified_selectors` without saying it did**. A rule a schema states and no field can hold is a rule that runs on whoever remembers it.\n\nNOT `required`, because a plan with no preconditions is ordinary. What is not ordinary is a plan missing one an axis returned -- and no schema can see that, because the axis cards are other files. That comparison is a check and it is owed.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "parameter": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "the name the axis used, so the two match without reading prose"
+          },
+          "requires": {
+            "type": "string",
+            "minLength": 10,
+            "description": "what the plan must do, carried from the axis as an instruction and not paraphrased. Restating it in the planner's own words would put one rule in two wordings, and by the next revision it would be two rules (P3)"
+          },
+          "from_axis": {
+            "type": "string",
+            "pattern": "^a[1-7]$",
+            "description": "which axis required it. A precondition that cannot name its axis is one the plan invented, and a plan does not get to require things of itself"
+          },
+          "basis": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "what the axis stood on, carried across unchanged"
+          }
+        },
+        "required": ["parameter", "requires", "from_axis"],
+        "additionalProperties": false
+      }
+    },
     "conditions": {
       "type": "array",
       "minItems": 1,
