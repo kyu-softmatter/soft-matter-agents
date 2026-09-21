@@ -815,10 +815,22 @@ def check_06_criteria(b: Bundle) -> list[Finding]:
             cr, _kind = declared[cid]
             if ev.get("met") is None:
                 continue        # not evaluated; the schema makes it say why
-            obs, thr = rnums.get(str(ev.get("observed_number"))), pnums.get(str(cr.get("number")))
+            obs = rnums.get(str(ev.get("observed_number")))
+            # A threshold is either a claim about the world, in numbers[], or a
+            # DECISION, inline in targets[] with no source and no grade (5.3.1).
+            # The criterion schema says this check resolves either; it resolved
+            # only the first, and the two criteria that matter most in
+            # revision 2 -- within_target_decade and window_insensitive -- are
+            # the target-valued ones. simulation-6 found it by writing the half
+            # the gate was leaving to the writer.
+            if cr.get("target"):
+                thr = next((tg for tg in (plan.data.get("targets") or [])
+                            if tg.get("metric") == cr["target"]), None)
+            else:
+                thr = pnums.get(str(cr.get("number")))
             comp = cr.get("comparator")
             if obs is None or thr is None or comp not in COMPARATORS:
-                continue        # a target-valued threshold, or a number this run does not carry
+                continue        # a threshold neither form resolves, or a number this run does not carry
             lhs, rhs = as_si(obs), as_si(thr)
             if lhs is None or rhs is None:
                 continue        # check 2 owns unconvertible units
@@ -5782,6 +5794,84 @@ def check_63_a_tie_carries_the_worse_grade(b: Bundle) -> list[Finding]:
     return [Finding(63, PASS, f"{checked} ties carry the worse grade of the two values they compared")]
 
 
+def check_72_verdicts_follow_their_numbers(b: Bundle) -> list[Finding]:
+    """The remaining verdict fields agree with the numbers beside them (8).
+
+    Every number in a result card is checked and, until check 6 took `met`,
+    no verdict was. That is P2 one layer up: P2 stops a model asserting a
+    NUMBER, and nothing stopped it asserting a JUDGEMENT drawn from numbers
+    whose sourcing is impeccable. A verdict the writer can choose is not a
+    gate, so each one here is recomputed rather than read.
+
+    `within_tolerance` is the harder half, and the first version of this check
+    got it wrong in a way worth keeping. It demanded exact reproduction and
+    failed the microscope fixture for using 8 ms where 7 was planned -- the
+    camera quantises exposure, the note says so, and refusing that is refusing
+    correct work. Exact reproduction is the SIMULATION's case, and writing it
+    as the rule is 8.2's pattern running the other way: a rule written for one
+    side hitting the other unchanged.
+
+    So it splits by what the numbers can support. Equal supports `true` and
+    refutes `false`. Unequal supports `false`. Unequal with `true` is the
+    interesting one: it is not wrong, it rests on a threshold **nothing in the
+    contract can express** -- `within_tolerance` is the only tolerance concept
+    in contracts/, and no plan, envelope or schema declares a value for it. So
+    that case reports UNDECIDED, the same way an unchosen threshold does
+    everywhere else here, rather than asserting a verdict this checker is in
+    no position to reach.
+
+    `estimation.followed`: true means the declared estimator ran as declared,
+    and `estimation.deviations` is where a departure is listed. The two cannot
+    disagree. This half was architecture's suggestion; the pairing with
+    `deviations` rather than with prose is what makes it recomputable.
+    """
+    results = b.of_kind("result")
+    if not results:
+        return [Finding(72, NA, "no result cards")]
+    out: list[Finding] = []
+    n_dev = n_est = undecided = 0
+    for c in results:
+        nums = c.numbers()
+        for dev in c.data.get("deviations") or []:
+            planned, actual = nums.get(str(dev.get("planned_number"))), nums.get(str(dev.get("actual_number")))
+            if planned is None or actual is None:
+                out.append(Finding(72, FAIL, f"deviation on {dev.get('parameter')!r} names "
+                                             f"{dev.get('planned_number')!r} and {dev.get('actual_number')!r}, "
+                                             f"and this card does not carry both", c.rel))
+                continue
+            lhs, rhs = as_si(planned), as_si(actual)
+            if lhs is None or rhs is None:
+                continue        # check 2 owns a unit that does not convert
+            n_dev += 1
+            claimed, equal = bool(dev.get("within_tolerance")), lhs == rhs
+            if equal and not claimed:
+                out.append(Finding(72, FAIL,
+                    f"deviation on {dev.get('parameter')!r} says within_tolerance=False and "
+                    f"{planned.get('value')} {planned.get('unit')} against {actual.get('value')} "
+                    f"{actual.get('unit')} is exact reproduction", c.rel))
+            elif not equal and claimed:
+                undecided += 1
+                out.append(Finding(72, UNDECIDED,
+                    f"deviation on {dev.get('parameter')!r} says within_tolerance=True and "
+                    f"{planned.get('value')} {planned.get('unit')} differs from {actual.get('value')} "
+                    f"{actual.get('unit')}. Nothing in contracts/ can express what tolerance that rests "
+                    f"on -- `within_tolerance` is the only tolerance concept there and no plan, envelope "
+                    f"or schema gives it a value, so this verdict is not checkable rather than wrong", c.rel))
+        est = c.data.get("estimation")
+        if isinstance(est, dict) and "followed" in est:
+            n_est += 1
+            listed = bool(est.get("deviations"))
+            if bool(est.get("followed")) == listed:
+                out.append(Finding(72, FAIL,
+                    f"estimation says followed={est.get('followed')} and lists "
+                    f"{len(est.get('deviations') or [])} departures from the estimator; a departure listed "
+                    f"is a departure, and none listed is none", c.rel))
+    if not any(f.status == FAIL for f in out):
+        out.append(Finding(72, PASS, f"{n_dev - undecided} of {n_dev} tolerance verdicts and {n_est} "
+                                     f"estimator verdicts follow from what sits beside them"))
+    return out
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -5813,7 +5903,7 @@ CHECKS = [
     check_67_entry_units_are_declared,
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,
-    check_71_every_check_is_assigned_to_a_seat_that_can_write_it,
+    check_72_verdicts_follow_their_numbers, check_71_every_check_is_assigned_to_a_seat_that_can_write_it,
     check_42_check_registry, check_41_seat_attribution,
 ]
 
