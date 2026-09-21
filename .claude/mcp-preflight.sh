@@ -20,7 +20,18 @@ ROOT="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null)}"
 [ -n "$ROOT" ] || exit 0
 [ -f "$ROOT/.mcp.json" ] || exit 0
 
-python3 - "$ROOT" "$PWD" <<'PY' 2>/dev/null || exit 0
+# Resolve the interpreter rather than naming python3: a stock Windows install
+# provides `python` and no `python3`, and the machine where this check matters
+# most is the one where naming it would make the CHECKER the thing that goes
+# silent. If neither exists, say so without needing either.
+PYBIN="$(command -v python3 2>/dev/null || command -v python 2>/dev/null)"
+if [ -z "$PYBIN" ]; then
+  printf '\n  librarian MCP: THIS SESSION MAY HAVE NO TOOLS\n'
+  printf '    - no python3 and no python on PATH, so the server cannot start\n\n'
+  exit 0
+fi
+
+"$PYBIN" - "$ROOT" "$PWD" <<'PY' 2>/dev/null || exit 0
 import json, os, sys
 
 root, cwd = sys.argv[1], sys.argv[2]
@@ -60,9 +71,17 @@ for path, entry in (home.get("projects") or {}).items():
        and SERVER in (entry.get("disabledMcpjsonServers") or []):
         problems.append("~/.claude.json projects[%s] disables %r" % (path, SERVER))
 
-# 4. the interpreter the server is launched with
-if os.system("command -v python3 >/dev/null 2>&1") != 0:
-    problems.append("python3 is not on PATH, so the server cannot start")
+# 4. the interpreter the server is launched with. .mcp.json resolves it rather
+#    than naming python3, so either name is fine and neither is not.
+import shutil
+if not (shutil.which("python3") or shutil.which("python")):
+    problems.append("neither python3 nor python is on PATH, so the server cannot start")
+if not shutil.which("git"):
+    problems.append("git is not on PATH, and .mcp.json locates the server with "
+                    "git rev-parse --show-toplevel")
+if not shutil.which("sh"):
+    problems.append("sh is not on PATH -- on Windows this comes with Git for Windows, "
+                    "which a clone of this repository already needed")
 
 if problems:
     print("")

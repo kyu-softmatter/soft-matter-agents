@@ -2011,6 +2011,14 @@ src/devices/dev_*.py         imports neither a sibling nor anything above
 
 **The separation path (following D1)**: so that physically separating onto the microscope PC later means detaching `microscope_agent/` plus `contracts/` and nothing else, the microscope agent does not read another agent's directory directly. What it reads is `contracts/`, its own directory, and the cards the bridge placed on its side.
 
+**The machine on the other end is Windows, and it is the one the microscope is plugged into (2026-09-20).** Two consequences, and they are not the same question.
+
+*While the whole repository is cloned there*, the server runs and only the launch was wrong. `.mcp.json` named `python3`, which **a stock Windows install does not have** -- it provides `python` -- so the interpreter is now resolved rather than named. `sh` and `git` are not a risk: both arrive with Git for Windows, which cloning this repository already required. `.claude/mcp-preflight.sh` resolves the interpreter the same way, because the machine where that check matters most is the one where naming `python3` would make **the checker** the thing that goes silent. Four branches were run before this was written -- healthy, a planted deny, no interpreter, no git -- and the no-interpreter branch prints without needing one.
+
+*After separation, the server is not there at all.* The path above detaches `microscope_agent/` plus `contracts/` **and nothing else**, so `librarian_agent/src/` -- where `mcp_server.py` lives -- does not travel. That is not a portability defect to fix: §4.3's table already rules the case, and the ruling is **proceed on `envelope/snapshot.*` alone and carry `degraded: [librarian]`**. So keeping the tools alive on the microscope PC is a goal only while the whole tree is cloned there. Wanting them alive *after* separation is a different design -- a librarian reachable over a network, which the stdio subprocess the four tools run on does not do -- and nobody has asked for it. **What must not happen is that question being answered by accident**, by someone copying `librarian_agent/` across to make a red line go away; the red line is the design saying the snapshot is what that machine reads.
+
+**And it is the machine that can move the objective.** Everything P0 and §2.1 describe stops being hypothetical the day a session runs there: `envelope/safety.json` holds limits a person confirmed on that bench, check 57 wants `physical` confirmation before an irreversible parameter, and an ambiguity stops rather than proceeds. None of that is new here; what is new is that it will be load-bearing.
+
 ---
 ## 8. The validation layer
 
