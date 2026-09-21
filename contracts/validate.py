@@ -2672,21 +2672,64 @@ def check_36_symbol_collision(b: Bundle) -> list[Finding]:
     return out or [Finding(36, PASS if n else NA, f"{n} symbol definitions do not collide" if n else "no symbols defined")]
 
 
+def agent_of_config(config: str) -> str | None:
+    """Which agent's capability table declares this configuration.
+
+    4.6.9's fourth time base is for a side that reads no clock, and that is a
+    property of the declared model rather than of where a card sits -- a
+    fixture lives in contracts/examples/ and still belongs to one side. So this
+    reads the table, the same route check 21 takes to the independence
+    declaration.
+    """
+    for f in sorted((CONTRACTS / "capabilities").glob("*.json")):
+        if f.name == "capabilities.schema.json":
+            continue
+        try:
+            table = json.loads(f.read_text())
+        except Exception:
+            continue
+        for c in table.get("configurations") or []:
+            if c.get("config") == config:
+                return table.get("agent")
+    return None
+
+
 def check_37_time_base(b: Bundle) -> list[Finding]:
     results = b.of_kind("result")
     if not results:
         return [Finding(37, NA, "no result cards")]
     out: list[Finding] = []
+    plan_cfg = {
+        str(pc.data.get("id")): ((pc.data.get("system_configuration") or {}).get("config"))
+        for pc in b.of_kind("plan")
+        if isinstance(pc.data.get("system_configuration"), dict)
+    }
     for c in results:
         tb = c.data.get("time_base") or {}
         align = tb.get("alignment")
         if align == "software_monotonic":
             out.append(Finding(37, FAIL, "physics rests on the software monotonic clock; use a trigger counter or a device timestamp (4.6.9)", c.rel))
+        if align == "model_step_index":
+            # The fourth means is for a side whose time is an integer step count
+            # and reads no clock (4.6.9, 53e5561). An instrument result must not
+            # leave by this door: on that side a step index would be a software
+            # timestamp wearing another name, which is the thing the rule
+            # forbids. Read from the capability table, not from the path -- a
+            # fixture sits in contracts/examples/ and still belongs to one side.
+            cfg = plan_cfg.get(str(c.data.get("plan_id") or ""))
+            who = agent_of_config(cfg) if cfg else None
+            if who is None:
+                out.append(Finding(37, FAIL, f"rests on a model step index, but no capability table declares this card's "
+                                             f"configuration ({cfg!r}), so nothing says this side reads no clock (4.6.9)", c.rel))
+            elif who != "simulation_agent":
+                out.append(Finding(37, FAIL, f"rests on a model step index and its configuration {cfg!r} belongs to {who}, "
+                                             f"which has a clock; there a step index is a software timestamp under another "
+                                             f"name (4.6.9)", c.rel))
         if not tb.get("t0_wall"):
             out.append(Finding(37, FAIL, "no t0_wall: events cannot be placed on a common axis", c.rel))
     if not list(REPO.glob("*_agent/runs/*/log.json")):
         out.append(Finding(37, PENDING, "per-event offsets need run logs from M1"))
-    return out or [Finding(37, PASS, f"{len(results)} results rest on a hardware time base")]
+    return out or [Finding(37, PASS, f"{len(results)} results rest on a time base 4.6.9 admits")]
 
 
 def _optical_path_table() -> tuple[dict | None, str]:
@@ -5537,12 +5580,17 @@ def check_59_the_hook_reports_an_unattributed_commit(b: Bundle) -> list[Finding]
     body = src.split("def check_41_seat_attribution", 1)[-1].split("\ndef ")[0]
     missing = [n for n in needles if n not in body]
     if missing:
-        return [Finding(59, FAIL, f"the hook greps for {missing[0]!r} to report an unattributed commit and "
-                                  f"check 41 no longer says that, so the warning is emitted and never "
-                                  f"shown. A grep that matches nothing is indistinguishable from a commit "
-                                  f"that was attributed", rel)]
-    return [Finding(59, PASS, f"the hook greps for {needles[0]!r} and check 41 still says it, so an "
-                              f"unattributed commit is reported rather than passed in silence")]
+        return [Finding(59, FAIL, f"the hook greps for a phrase of {len(missing[0])} characters to report "
+                                  f"an unattributed commit and check 41 no longer says it, so the warning "
+                                  f"is emitted and never shown. A grep that matches nothing is "
+                                  f"indistinguishable from a commit that was attributed. Compare the hook "
+                                  f"against check 41's finding", rel)]
+    # Deliberately not quoting the needle back. Printing it put the phrase
+    # into a passing line, the hook's grep matched that, and the gate
+    # reported an attributed commit as unattributed -- a check describing a
+    # string became an instance of it. Say the length instead.
+    return [Finding(59, PASS, f"the hook looks for the {len(needles[0])}-character phrase check 41 emits "
+                              f"for an unattributed commit, and check 41 still emits it")]
 
 
 CHECKS = [

@@ -198,8 +198,10 @@
           "enum": [
             "trigger_counter",
             "device_timestamp",
-            "software_monotonic"
-          ]
+            "software_monotonic",
+            "model_step_index"
+          ],
+          "description": "How events are placed on a common axis (4.6.9). The first three name hardware or the OS. `model_step_index` is the fourth, ranked with the first for the same reason -- the index IS the time and there is no jitter -- and is for a side that reads no clock at all: a simulation's time is steps_taken * dt, an integer count times a fixed step. It is not an exception to 4.6.9's rule but a case the rule never reached: the rule forbids computing physics from a software TIMESTAMP, and a step index is not a timestamp. Check 37 accepts it only where the configuration is declared in the simulation capability table, so an instrument result cannot leave by this door."
         }
       },
       "required": [
