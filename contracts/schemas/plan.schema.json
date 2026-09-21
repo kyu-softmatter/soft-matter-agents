@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "plan.schema.json",
-  "title": "plan — the execution plan (5.4)",
+  "title": "plan \u2014 the execution plan (5.4)",
   "allOf": [
     {
       "$ref": "common.schema.json#/$defs/common_head"
@@ -77,6 +77,13 @@
             "null"
           ],
           "description": "simulation side: physical model / engine"
+        },
+        "selectors": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/selector"
+          },
+          "description": "The discrete settings this plan commands. Part of WHAT IT IS MEASURED WITH rather than a condition, because a condition points into numbers[] by name and a selector is not a number.\n\nAdded 2026-09-21, when S5 could not write an acquire action: widefield_inline declares two detectors, both Kinetix 22, and the device table says the arms differ only by the dichroic in the port -- so which camera collects is the csuw1_port setting, and this object had additionalProperties false and nowhere to put it. The plan knew the answer and the contract could not hold it."
         }
       },
       "required": [
@@ -108,11 +115,17 @@
           },
           "basis": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "what the axis stood on, carried across unchanged"
           }
         },
-        "required": ["parameter", "requires", "from_axis"],
+        "required": [
+          "parameter",
+          "requires",
+          "from_axis"
+        ],
         "additionalProperties": false
       }
     },

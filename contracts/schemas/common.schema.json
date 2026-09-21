@@ -87,7 +87,7 @@
         },
         "derived": {
           "type": "boolean",
-          "description": "This computed value is a NAMED quantity: it carries a `symbol`, and one symbol means one definition across every card and the store (check 36). **It does not mean dimensionless.** A census on 2026-09-18 found 6 uses, all six carrying a unit (five `s`, one `N*s/m`), against 20 numbers with the dimensionless unit `1`, none of them derived — zero overlap. The documented meaning had never once been used, and six authors had independently read it as written here. Uses a computed: source; not a separate source kind."
+          "description": "This computed value is a NAMED quantity: it carries a `symbol`, and one symbol means one definition across every card and the store (check 36). **It does not mean dimensionless.** A census on 2026-09-18 found 6 uses, all six carrying a unit (five `s`, one `N*s/m`), against 20 numbers with the dimensionless unit `1`, none of them derived \u2014 zero overlap. The documented meaning had never once been used, and six authors had independently read it as written here. Uses a computed: source; not a separate source kind."
         },
         "symbol": {
           "type": "string",
@@ -757,6 +757,37 @@
       ],
       "description": "Why there is no interval, and the three are a field rather than a sentence because the next action differs: measure something, write down that it does not bind here, or nothing at all. A sentence loses that distinction and the reader has to guess it back.",
       "$comment": "Lifted out of axis.schema.json on 2026-09-20, unchanged, for the same reason as bound_state."
+    },
+    "selector": {
+      "$comment": "A DISCRETE SETTING THE PLAN COMMANDS, and it carries no source and no grade for the same reason $defs/target does not: it is a decision, and a decision is correct by being made. A grade says how far a claim about the world can be trusted, and 'put the port at red_only' makes no claim -- it issues an instruction.\n\nTHAT IS WHY IT COULD NOT LIVE IN numbers[]. numbers[] requires value, unit, source and grade, and a selector has none of the four: its value is a string the device keys on, it has no dimension, and the two provenance fields are inexpressible rather than missing. On 2026-09-21 a seat needed to record that the camera mode is DynamicRange and wrote it in prose because 'the contract has nowhere else for it'; the objective escaped the same wall only because the turret publishes a POSITION, so nosepiece_position could be a number that already existed. A camera-mode index would have been one a seat invented.\n\n`selects` is the field that earns its place. A card citing read_noise while the store holds four -- one per camera mode -- is ambiguous, and naming what the choice determines makes the join explicit instead of leaving a reader to infer it.",
+      "type": "object",
+      "properties": {
+        "element": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "the element the selector sits on, as the device registry names it -- an element and not its channel, because a channel carries several and naming it says nothing (check 38)"
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the position or label commanded, as the device keys it. A string on purpose: the labels are strings and a numeric encoding a seat invents is not one the instrument answers to"
+        },
+        "selects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "the quantity names this choice picks among, where the store holds one per setting"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "element",
+        "value"
+      ],
+      "additionalProperties": false
     }
   }
 }
