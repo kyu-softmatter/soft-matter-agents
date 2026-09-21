@@ -125,7 +125,7 @@ OWNED = (
         parameter="axial_range",
         statement="the axial range that stays in focus must cover the tracer's axial excursion "
                   "over the record: n*lambda/NA**2 >= axial_excursion",
-        needs=("emission_wavelength", "immersion_refractive_index"),
+        needs=("emission_wavelength", "refractive_index"),
         derived_from="4.5.3 A6 'axial resolution'",
     ),
 )
@@ -137,13 +137,25 @@ GAP_IDS = {
     "magnification": "magnification_is_not_a_number",
     "sensor_active_area": "sensor_active_area_absent",
     "emission_wavelength": "emission_wavelength_absent",
-    # Asked under the specific name from revision 3 on. Under the bare
-    # `refractive_index` the store answers with eight polystyrene entries -- the
-    # TRACER's index, not the immersion medium's -- so the generic name closed
-    # this gap with the wrong quantity. A false closure is what check 49 exists
-    # against, met here from the opposite side to the usual: not a name the store
-    # uses that the caller missed, but a name they share for different things.
-    "immersion_refractive_index": "immersion_refractive_index_absent",
+    # REVISION 3 ASKED `immersion_refractive_index` AND REVISION 4 UNDOES IT.
+    # The hazard revision 3 named is real and is unchanged: the bare name
+    # returns eight polystyrene entries at E3, which is the TRACER's material
+    # and not the immersion medium, and an axis that took them would compute
+    # an axial range from the wrong substance with nothing going red.
+    #
+    # The remedy was in the wrong place. quantities.json rule 1: a name states
+    # the quantity and never its subject -- and the rule says in its own text
+    # why, that when check 44 refused the subject field the claim moved into
+    # the name, "where nothing checks it. A name that asserts its own subject
+    # is a subject nothing can refuse." That is exactly what happened here:
+    # gluing `immersion` onto the front made the query miss, the miss read as
+    # `absent`, and the axis abstained for a reason that was not true. The
+    # wrong name produced the safer outcome, which is why it survived a day.
+    #
+    # Asking the registered name and REFUSING THE ANSWER IN PROSE is the form
+    # that keeps both: the name is checkable, and the eight entries are
+    # recorded as near-misses on the subject rather than silently missed.
+    "refractive_index": "immersion_medium_refractive_index_gap",
 }
 
 # The name a missing input goes by on the card, where that differs from the
@@ -398,15 +410,28 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                 kind="no_input", missing=missing,
                 reason="One of three inputs is present, and the split between the other two is "
                        "worth reading. NA is served for all six objectives. The immersion medium "
-                       "is answered and the refractive index is not: asking for `immersion` "
-                       "returns in_published_table, pointing at the devices table's immersion "
-                       "column, while asking for `refractive_index` returns absent -- so the "
-                       "store knows these lenses take air, water and oil, and holds no index for "
-                       "any of them. A medium name is a string identifier; turning one into a "
+                       "is answered and its refractive index is not, and the second half needs "
+                       "saying precisely because the query does not say it: asking for "
+                       "`immersion` returns in_published_table, pointing at the devices table's "
+                       "immersion column, while asking for `refractive_index` returns EIGHT "
+                       "entries at E3 and every one of them is polystyrene -- the tracer's "
+                       "material, not the medium the lens sits in. The name is answered and the "
+                       "subject is not, and kb_query has no subject argument, so the server "
+                       "reports no gap at all and the discrimination is the caller's: its own "
+                       "description says to read `identifiers` on each row to tell a class "
+                       "apart. Asking from the subject side instead -- kb_query(water) -- "
+                       "returns the 40x water objective and nothing about water. So the store "
+                       "knows which medium each lens takes and holds no index for any of the "
+                       "three. A medium name is a string identifier; turning one into a "
                        "number here would be this axis inventing knowledge, which P14 puts in "
-                       "the librarian's hands and P2 grades E6 and refuses. One literature entry "
-                       "closes it. The wavelength is the same input missing from "
-                       "lateral_resolution. Worth recording even if all three arrived: the "
+                       "the librarian's hands and P2 grades E6 and refuses. And the eight are "
+                       "not a fallback at any grade: a bead is not an immersion medium, so they "
+                       "are not a worse answer to this question, they are an answer to another "
+                       "one. One literature entry per medium closes it. The wavelength is the "
+                       "same input missing from lateral_resolution, and it is not independent "
+                       "of this one -- the index is dispersive, so pinning it at a measured "
+                       "wavelength may move this gap from absent to condition_mismatch rather "
+                       "than close it. Worth recording even if all three arrived: the "
                        "requirement side is not available to this axis either, because how far a "
                        "tracer wanders out of focus during a record is the diffusivity -- which "
                        "is this question's observable, the thing being measured -- times the "

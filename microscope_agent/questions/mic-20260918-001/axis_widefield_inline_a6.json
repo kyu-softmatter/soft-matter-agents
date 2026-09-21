@@ -5,11 +5,11 @@
   "qid": "mic-20260918-001",
   "thread": "solo-mic-20260918-001",
   "round": 0,
-  "revision": 3,
+  "revision": 4,
   "author": "microscope_agent",
   "created_at": "2026-09-20T06:20:45Z",
   "status": "VALIDATED",
-  "caller_id": "mic-20260918-001:v3:widefield_inline:a6",
+  "caller_id": "mic-20260918-001:v4:widefield_inline:a6",
   "config": "widefield_inline",
   "axis": "a6",
   "kb_version": "kbv-7c77fa74ee5a",
@@ -97,9 +97,9 @@
       "parameter": "axial_range",
       "state": "abstained",
       "kind": "no_input",
-      "reason": "One of three inputs is present, and the split between the other two is worth reading. NA is served for all six objectives. The immersion medium is answered and the refractive index is not: asking for `immersion` returns in_published_table, pointing at the devices table's immersion column, while asking for `refractive_index` returns absent -- so the store knows these lenses take air, water and oil, and holds no index for any of them. A medium name is a string identifier; turning one into a number here would be this axis inventing knowledge, which P14 puts in the librarian's hands and P2 grades E6 and refuses. One literature entry closes it. The wavelength is the same input missing from lateral_resolution. Worth recording even if all three arrived: the requirement side is not available to this axis either, because how far a tracer wanders out of focus during a record is the diffusivity -- which is this question's observable, the thing being measured -- times the record length, which is A2's parameter. So this bound would still state a range and let S4 intersect it, rather than deciding it here.",
+      "reason": "One of three inputs is present, and the split between the other two is worth reading. NA is served for all six objectives. The immersion medium is answered and its refractive index is not, and the second half needs saying precisely because the query does not say it: asking for `immersion` returns in_published_table, pointing at the devices table's immersion column, while asking for `refractive_index` returns EIGHT entries at E3 and every one of them is polystyrene -- the tracer's material, not the medium the lens sits in. The name is answered and the subject is not, and kb_query has no subject argument, so the server reports no gap at all and the discrimination is the caller's: its own description says to read `identifiers` on each row to tell a class apart. Asking from the subject side instead -- kb_query(water) -- returns the 40x water objective and nothing about water. So the store knows which medium each lens takes and holds no index for any of the three. A medium name is a string identifier; turning one into a number here would be this axis inventing knowledge, which P14 puts in the librarian's hands and P2 grades E6 and refuses. And the eight are not a fallback at any grade: a bead is not an immersion medium, so they are not a worse answer to this question, they are an answer to another one. One literature entry per medium closes it. The wavelength is the same input missing from lateral_resolution, and it is not independent of this one -- the index is dispersive, so pinning it at a measured wavelength may move this gap from absent to condition_mismatch rather than close it. Worth recording even if all three arrived: the requirement side is not available to this axis either, because how far a tracer wanders out of focus during a record is the diffusivity -- which is this question's observable, the thing being measured -- times the record length, which is A2's parameter. So this bound would still state a range and let S4 intersect it, rather than deciding it here.",
       "missing": [
-        "immersion_refractive_index"
+        "refractive_index"
       ]
     }
   ],
@@ -370,18 +370,53 @@
       ]
     },
     {
-      "gap_id": "immersion_refractive_index_absent",
-      "observable": "immersion_refractive_index",
-      "kind": "absent",
+      "gap_id": "immersion_medium_refractive_index_gap",
+      "observable": "refractive_index",
+      "kind": "condition_mismatch",
       "searched": [
-        "kb_query(observable=immersion_refractive_index, caller_id=mic-20260918-001:v3:widefield_inline:a6, kb_version=kbv-7c77fa74ee5a) -> absent, searched ['kb/entries', 'kb/exports']"
+        "kb_query(observable=refractive_index, caller_id=mic-20260918-001:v4:widefield_inline:a6, kb_version=kbv-7c77fa74ee5a) -> 8 entries at E3, gaps [], near_names []. Every one is bulk polystyrene (identifiers.material), which is the TRACER's material and not the medium this objective sits in. The name is answered and the subject is not",
+        "kb_query(observable=water, caller_id=mic-20260918-001:v4:widefield_inline:a6, kb_version=kbv-7c77fa74ee5a) -> 1 entry, objective_mrd77400, the 40x WI lens whose identifiers.immersion is water. The store knows which medium the lens takes and holds no property of the medium itself. The subject side answers and the quantity side is empty, which is the mirror of the line above and is why the two are recorded together"
+      ],
+      "nearest": [
+        {
+          "entry_id": "polystyrene_refractive_index_436_8nm",
+          "overlap": "no_overlap"
+        },
+        {
+          "entry_id": "polystyrene_refractive_index_486_1nm",
+          "overlap": "no_overlap"
+        },
+        {
+          "entry_id": "polystyrene_refractive_index_587_6nm",
+          "overlap": "no_overlap"
+        },
+        {
+          "entry_id": "polystyrene_refractive_index_632_8nm",
+          "overlap": "no_overlap"
+        },
+        {
+          "entry_id": "polystyrene_refractive_index_703nm",
+          "overlap": "no_overlap"
+        },
+        {
+          "entry_id": "polystyrene_refractive_index_833nm",
+          "overlap": "no_overlap"
+        },
+        {
+          "entry_id": "polystyrene_refractive_index_879nm",
+          "overlap": "no_overlap"
+        },
+        {
+          "entry_id": "polystyrene_refractive_index_1052nm",
+          "overlap": "no_overlap"
+        }
+      ],
+      "near_names": [
+        "water_viscosity_293k"
       ],
       "kb_version": "kbv-7c77fa74ee5a",
-      "asked_by": "mic-20260918-001:v3:widefield_inline:a6",
-      "asked_at": "2026-09-20T06:03:26+00:00",
-      "near_names": [
-        "refractive_index"
-      ]
+      "asked_by": "mic-20260918-001:v4:widefield_inline:a6",
+      "asked_at": "2026-09-21T03:06:28+00:00"
     },
     {
       "gap_id": "magnification_is_not_a_number",
@@ -409,5 +444,5 @@
     }
   ],
   "degraded": [],
-  "note": "Answered by the librarian service rather than by reading the store, which is what makes degraded empty here: 32 entries came back with their own grades and 4 questions came back absent, all at the pinned kbv-7c77fa74ee5a, and every call is in librarian_agent/queries/log.jsonl under this caller_id. The transport was a stdio client rather than this session's attached server, which has failed every call since 07:47:44Z: same server file, same pin, same caller_id, same log, and the answers carry the same answered_from. What the transport cannot change is what the service said. The finding this axis exists to report: NA is in the store six times and the query for it says absent. kb_query(observable=numerical_aperture) returns kind=absent at this pin, while objective_mrd70040 and its five siblings each carry numbers[].name = na at E3. Nothing is indexed under that observable name, so the query misses what the store holds. A gap recorded off that query would have been false, and this card would have been the second in this fan-out to carry one. 001 and 004 both expected the diffraction limit to compute here, and it still does not, but only half of the reason survives. The wavelength has arrived and it is a band rather than a peak -- the red arm is position 3 and the filter there passes 579.5 to 610.5 nm, at E3 -- so the inputs the six objectives were said to carry are now complete on the instrument side, and nyquist above computes from exactly them. What is still missing is not the librarian's: a required lateral resolution is a property of the question, and this goal card states no spatial target at all. Its only target is one decade on a diffusivity, which is not a length. So the diffraction limit is computable and there is nothing to compare it against. Revision 2 exists to finish the second-name check revision 1 could not. 004 requires it because an empty kb_query is not evidence of absence in this store -- eight of ten such calls missed knowledge held under another name. Every one of the five gaps here was asked twice: under its own name, and then by entry id against whatever at this pin could hold it. The wavelength and the index were the two left open, and both are now settled as absent -- csuw1_dichroic_slots, csuw1_port_is_the_camera_splitter, csuw1_shutter_gates_confocal_excitation, laser_shutter_on_the_combiner were fetched and none of them carries a number. Nothing in the five verdicts moved; what moved is that they are now checked rather than assumed. One answer came back as neither an entry nor an absence. `immersion` returns in_published_table, naming the devices table in this agent's own snapshot and the column, with a sha256. It is not recorded as a gap on this card, for two reasons worth separating. The medium is already in hand from the six objective entries' identifiers, so nothing here depends on the pointer. And the pointer does not resolve against this agent's envelope: the served hash is the table as of the pinned kbv-49feb73662b7, while envelope/snapshot.json holds kbv-67f9ad766d92, and the two tables differ. A caller that pins an older version than its snapshot is told to look somewhere its own copy does not match. That is a finding for the librarian and the manager, not something to bake into a card as a hash nobody can verify. constraints[] is empty and there is one candidate it could have held: the NA set. It is six discrete values and `interval` can only say a continuous range, so returning it would license S4 to choose an NA of 0.9 that this nosepiece does not have. Abstaining is the honest outcome, and the contract gap is the same one A4 raised from the other side -- a bound with grounds that constrains something other than a number. Two axes met it independently; it is raised with manager-microscope, not worked around."
+  "note": "Answered by the librarian service rather than by reading the store, which is what makes degraded empty here: 32 entries came back with their own grades and 4 questions came back absent, all at the pinned kbv-7c77fa74ee5a, and every call is in librarian_agent/queries/log.jsonl under this caller_id. The transport was a stdio client rather than this session's attached server, which has failed every call since 07:47:44Z: same server file, same pin, same caller_id, same log, and the answers carry the same answered_from. What the transport cannot change is what the service said. The finding this axis exists to report: NA is in the store six times and the query for it says absent. kb_query(observable=numerical_aperture) returns kind=absent at this pin, while objective_mrd70040 and its five siblings each carry numbers[].name = na at E3. Nothing is indexed under that observable name, so the query misses what the store holds. A gap recorded off that query would have been false, and this card would have been the second in this fan-out to carry one. 001 and 004 both expected the diffraction limit to compute here, and it still does not, but only half of the reason survives. The wavelength has arrived and it is a band rather than a peak -- the red arm is position 3 and the filter there passes 579.5 to 610.5 nm, at E3 -- so the inputs the six objectives were said to carry are now complete on the instrument side, and nyquist above computes from exactly them. What is still missing is not the librarian's: a required lateral resolution is a property of the question, and this goal card states no spatial target at all. Its only target is one decade on a diffusivity, which is not a length. So the diffraction limit is computable and there is nothing to compare it against. Revision 2 exists to finish the second-name check revision 1 could not. 004 requires it because an empty kb_query is not evidence of absence in this store -- eight of ten such calls missed knowledge held under another name. Every one of the five gaps here was asked twice: under its own name, and then by entry id against whatever at this pin could hold it. The wavelength and the index were the two left open, and both are now settled as absent -- csuw1_dichroic_slots, csuw1_port_is_the_camera_splitter, csuw1_shutter_gates_confocal_excitation, laser_shutter_on_the_combiner were fetched and none of them carries a number. Nothing in the five verdicts moved; what moved is that they are now checked rather than assumed. One answer came back as neither an entry nor an absence. `immersion` returns in_published_table, naming the devices table in this agent's own snapshot and the column, with a sha256. It is not recorded as a gap on this card, for two reasons worth separating. The medium is already in hand from the six objective entries' identifiers, so nothing here depends on the pointer. And the pointer does not resolve against this agent's envelope: the served hash is the table as of the pinned kbv-49feb73662b7, while envelope/snapshot.json holds kbv-67f9ad766d92, and the two tables differ. A caller that pins an older version than its snapshot is told to look somewhere its own copy does not match. That is a finding for the librarian and the manager, not something to bake into a card as a hash nobody can verify. constraints[] is empty and there is one candidate it could have held: the NA set. It is six discrete values and `interval` can only say a continuous range, so returning it would license S4 to choose an NA of 0.9 that this nosepiece does not have. Abstaining is the honest outcome, and the contract gap is the same one A4 raised from the other side -- a bound with grounds that constrains something other than a number. Two axes met it independently; it is raised with manager-microscope, not worked around. REVISION 4, 2026-09-20, ONE GAP RE-ASKED AND NOTHING ELSE RE-RUN. Revision 3 recorded this axis's index gap under the name `immersion_refractive_index`, which is quantities.json rule 1's exact recurrence path -- the subject carried inside the name, where nothing can refuse it -- and the server had already said so: that gap carried `near_names: [\"refractive_index\"]` and nothing acted on it. The correction is not a rename. Asking the registered name returns eight polystyrene entries at E3, the tracer's material, and taking them would have produced an axial range from the wrong substance with nothing going red; the broken rule is what prevented that, so this card is worse in naming and was luckier in outcome. What is written now is what the two queries actually returned, and the kind is `condition_mismatch` rather than `absent` because entries under this name exist -- what fails is the subject. THE SERVER CANNOT REPORT THAT, and the limit is worth recording: kb_query takes no subject argument, so it returned no gap at all, and its own description puts the discrimination on the caller -- read `identifiers` on each row to tell a class apart. The kb_gap schema has no subject field either (additionalProperties false), so the subject lives in this prose and in `nearest`, which is the structural reason rule 1 was broken here rather than a lapse. Raised with manager-microscope. The other gaps and every kb_ref on this card still carry `asked_by: ...:v3:...`: they were asked at revision 3, at this same pin, and nothing re-asked them, so their answers stand and saying otherwise would claim calls that were not made. The pin stays kbv-7c77fa74ee5a -- all seven siblings are there and re-pinning one alone is what check 58 exists to catch. One caution for whoever reads the query log: `v4` also appears there at 06:11 UTC against kbv-bf4f559baf68, from a full re-fan-out that produced no card. Sort those lines by pin, not by caller_id."
 }
