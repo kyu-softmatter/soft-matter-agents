@@ -249,9 +249,19 @@ def definition_entry(name: str) -> dict:
 def artifact_name(base: str, revision: int) -> str:
     """A card's filename for a given revision (4.5.5, 7.1 rule 3).
 
-    Revision 1 keeps the bare name and every later revision takes an `r<N>_`
+    Revision 1 keeps the bare name and every later revision takes a `v<N>_`
     prefix, so the revisions of one question sit side by side in one flat
     folder rather than replacing each other.
+
+    **`v` and not `r`, because check 13 reads the two letters as two fields.**
+    `r<N>_` is a ROUND and `v<N>_` is a REVISION (7.1 rule 3), and the check
+    compares the number in the prefix against whichever field the letter names.
+    This function returned `r<N>_` until 2026-09-20, after a6ab72b split the
+    two: every card of this question carries `round: 0`, so the first
+    revision-2 artifact generated would have been named `r2_` and failed check
+    13 against a round of 0 -- the exact failure a6ab72b's own comment
+    describes, still reachable because the validator moved and this did not.
+    Found before generating revision 2 rather than by it.
 
     **This is the mechanism that removes a question nobody could answer.** A
     re-run that rewrote revision 1 in place had to decide, each time, which
@@ -262,7 +272,7 @@ def artifact_name(base: str, revision: int) -> str:
     """
     if revision < 1:
         raise ValueError(f"revision {revision} is not a revision")
-    return base if revision == 1 else f"r{revision}_{base}"
+    return base if revision == 1 else f"v{revision}_{base}"
 
 
 def question_revision(qid: str) -> int:
