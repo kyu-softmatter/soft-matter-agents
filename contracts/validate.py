@@ -5103,16 +5103,26 @@ def check_58_one_fanout_reads_one_store(b: Bundle) -> list[Finding]:
     asked in the same pass -- including the kb_version agreement, which then
     holds trivially inside each partition.
 
-    A revision counts re-runs of **one axis**, not of the fan-out. Six axes at
-    revision 2 and one still at revision 1 are one fan-out, and S4 will
-    intersect all seven. Intersecting intervals derived against different
-    stores compares two knowledge states, and the abstentions are the worse
-    half: an axis at an older pin reports `absent` for what the newer store
-    holds, and nothing downstream can tell that from a real absence.
+    Intersecting intervals derived against different stores compares two
+    knowledge states, and the abstentions are the worse half: an axis at an
+    older pin reports `absent` for what the newer store holds, and nothing
+    downstream can tell that from a real absence.
 
-    So this ignores revision on purpose and looks only at the store. Not a
-    duplicate of 33 -- the half of 33's question that 33's grouping had to
-    give up.
+    **What counts as one fan-out is the set S4 reads together, and that is the
+    artifact prefix, not the `revision` field.** This docstring said a revision
+    counts re-runs of one axis and ignored the field on those grounds. The
+    field turned out to mean two things at once: `mic-20260918-001` carries
+    seven axes at revisions 2, 4 and 5 in one unprefixed filename set, all
+    pinned to one store -- a per-axis counter -- while `sim-20260917-001`
+    re-ran its whole fan-out and wrote `v2_axis_*` alongside, question-level
+    per 4.5.5. Grouping by the field is wrong for the microscope and ignoring
+    it is wrong for the simulation; grouping by the prefix is right for both,
+    because `v2_axis_*` and `axis_*` are exactly the two sets S4 reads
+    separately. Which of the two meanings 4.5.5 intends is a real question and
+    it is architecture's -- this check no longer depends on the answer.
+
+    Not a duplicate of 33 -- the half of 33's question that 33's grouping had
+    to give up.
 
     When written, mic-20260918-001 had six axes at kbv-7c77fa74ee5a and a5
     alone at kbv-49feb73662b7, six commits and fifty-eight entries apart, and
@@ -5129,17 +5139,19 @@ def check_58_one_fanout_reads_one_store(b: Bundle) -> list[Finding]:
         qid, cfg, ver = c.data.get("qid"), c.data.get("config"), c.data.get("kb_version")
         if not qid or not ver:
             continue
-        groups.setdefault((card_scope(c), qid, cfg), []).append((ver, c))
+        m = re.match(r"^v(\d+)_", pathlib.Path(c.rel).name)
+        fanout = m.group(1) if m else "1"
+        groups.setdefault((card_scope(c), qid, cfg, fanout), []).append((ver, c))
     if not groups:
         return [Finding(58, NA, "no axis cards")]
-    for (_where, qid, cfg), members in sorted(groups.items(), key=lambda kv: str(kv[0])):
+    for (_where, qid, cfg, fanout), members in sorted(groups.items(), key=lambda kv: str(kv[0])):
         by_ver: dict[str, list[str]] = {}
         for ver, c in members:
             by_ver.setdefault(ver, []).append(c.data.get("axis") or c.rel)
         if len(by_ver) > 1:
             spread = "; ".join(f"{v} <- {', '.join(sorted(a))}" for v, a in sorted(by_ver.items()))
             out.append(Finding(58, FAIL,
-                f"the fan-out for {qid} on {cfg} reads {len(by_ver)} stores: {spread}. S4 intersects "
+                f"the fan-out for {qid} on {cfg} (artifacts at v{fanout}) reads {len(by_ver)} stores: {spread}. S4 intersects "
                 "these together, and an axis left at an older pin reports absent for what the newer "
                 "store holds -- indistinguishable downstream from a real absence. Re-derive the "
                 "stragglers; do not re-pin them without re-asking", members[0][1].rel))
