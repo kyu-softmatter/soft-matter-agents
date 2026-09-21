@@ -95,24 +95,32 @@ answer: *the manager allocates by card*. This is that card.
 
 | | |
 |---|---|
-| **`simulation-3`** | **`004` — revision 2.** The person decided it. |
-| **`simulation-2`** | hand `004` over; it cannot reach the librarian. |
-| **a third session** | the `budget.json` split below — **ask first**, it collides with `004`. |
+| **the live simulation execution session** | **`004` — revision 2.** |
 
-**`004` → `simulation-3`, 2026-09-20.** The person told the architecture seat
-and it came down through this one, which is the right route: execution
-allocation is the manager's. `simulation-3` is registered, its two commits pass
-checks 35 and 41, and it **waited for an allocation rather than opening `004`
-itself** — which is what made allocating possible instead of merging.
+**The person decided `004` goes to the simulation execution seat**, told the
+architecture seat, and it came down through this one — execution allocation is
+the manager's. At that moment the seat was `simulation-3`, and **this card named
+the identity instead of the work.**
 
-`simulation-2` hands it over because its window opened before the MCP fix and
-settings are read at session start, so that seat cannot get the librarian
-whatever the config now says. `004` is the librarian re-run by definition.
+**`simulation-3` closed. The allocation did not move with it.**
+`a_vacated_identity_is_not_inherited` says the next session takes a **new**
+identity rather than the freed one, so a card pointing at `simulation-3` points
+at a seat that will not exist again — **the same dangling-reference shape
+`seats.json` recorded for `seat/simulation-1`**, where a name that resolved to
+nothing was deciding who may commit.
 
-**`004` and the `budget.json` split both touch `src/plan_card.py`.** They cannot
-run at once in a tree with no worktree. `004` goes first; the split waits or
-takes the files `004` does not hold. Whoever picks up the split, say so here
-before starting.
+**So the allocation is to the work and to whichever session holds it.** That is
+not overriding the person: the decision was *the simulation execution seat does
+`004`*, and only the label went stale. `simulation`, `-2`, `-3` and `-4` are all
+registered and all vacated; a session opening now takes the next name, which is
+**the person's to seat directly (§6.2.2)** and is not registered yet —
+registration is architecture's and blocks nothing, since the gate runs
+`--staged` rather than `--strict`.
+
+**One session holds `004` at a time.** It is one commit across `goal.json`, the
+plan JSON, the generated `.md` and `src/plan_card.py`, and there is no worktree.
+If a second simulation session opens, it does not open `004` — say so here
+first.
 
 **Two things the arriving seat should read before starting, both learned the
 hard way on 2026-09-20:**
