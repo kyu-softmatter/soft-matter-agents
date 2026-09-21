@@ -92,6 +92,13 @@ if echo "$STAGED" | grep -q '^contracts/validate\.py$'; then
     # under `sh -n` -- the failure is at expansion time, inside $( ), so it
     # surfaced only when a commit actually ran, and then it blocked every
     # seat's commit in the repository rather than just the author's.
+    #
+    # And the commit that ADDED this guard ran this hook and still did not
+    # catch it, because validate.py was not staged in it, so the branch below
+    # never executed. A guard behind a condition is unverified until a commit
+    # MEETS that condition -- "the hook ran and passed" is not the same claim.
+    # It is verified now, in a clone: removing a check HEAD has is refused,
+    # by name, through the real hook path.
     _H=$(mktemp) && _I=$(mktemp)
     git show HEAD:contracts/validate.py 2>/dev/null | sed -n 's/^def \(check_[0-9]*\)_.*/\1/p' | sort -u > "$_H"
     git show :contracts/validate.py                 | sed -n 's/^def \(check_[0-9]*\)_.*/\1/p' | sort -u > "$_I"
