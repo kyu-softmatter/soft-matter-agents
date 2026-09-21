@@ -118,7 +118,12 @@ fi
 # already records what this costs -- an unattributed commit gets no boundary
 # checking at all, because nothing says whose paths those were -- so the one
 # thing standing between that and silence was a line nobody printed.
-ATTRIB=$(echo "$OUT" | grep "carry no attribution" || true)
+# The colon is load-bearing: check 41 writes "...carry no attribution: <paths>"
+# and anything that merely QUOTES that phrase does not. Without it this
+# matched check 59's own passing line, which names the phrase in order to
+# say the hook still looks for it, and the gate warned that an attributed
+# commit was unattributed -- on the commit that added the check.
+ATTRIB=$(echo "$OUT" | grep "carry no attribution:" || true)
 if [ -n "$ATTRIB" ]; then
     echo >&2
     echo "pre-commit: this commit carries no attribution. It is allowed and is" >&2
