@@ -108,12 +108,25 @@ def _units() -> dict:
     return query_log._contract("units.json", "units")
 
 
-def _si(value: float, unit: str) -> tuple[float, tuple]:
+def _si(value: float, unit: str, where: str = "") -> tuple[float, tuple]:
+    """A value in SI, with its dimension. `where` says whose unit this is.
+
+    `where` exists because these two refusals were the only ones in the module
+    that named nothing. `_interval_si` already computes the site -- `entry
+    <id>, <quantity>` or `query, <quantity>` -- and threw it away on the two
+    messages a caller was most likely to see, so an unregistered unit came
+    back as a bare "unit 'degC' is not in contracts/units.json". A caller
+    reading that has no way to tell whether the bad unit was in its own query
+    or in one row of the store, and the natural reading is its own fault. On
+    2026-09-20 that reading was wrong: eight entries carried `degC` and every
+    query that bounded temperature was refused (task 024, 025).
+    """
+    at = f"{where}: " if where else ""
     u = _units().get(unit)
     if u is None:
-        raise Refused(f"unit {unit!r} is not in contracts/units.json, which is the registry (5.7)")
+        raise Refused(f"{at}unit {unit!r} is not in contracts/units.json, which is the registry (5.7)")
     if u.get("si_factor") is None:
-        raise Refused(f"unit {unit!r} has no plain conversion (it needs a temperature), so it cannot bound a condition")
+        raise Refused(f"{at}unit {unit!r} has no plain conversion (it needs a temperature), so it cannot bound a condition")
     return value * u["si_factor"], tuple(sorted(u["dim"].items()))
 
 
@@ -139,8 +152,8 @@ def _interval_si(bound: dict, where: str) -> tuple[float, float, tuple]:
     hi = bound.get("max")
     if lo is None and hi is None:
         raise Refused(f"{where}: an interval needs at least one of min or max")
-    lo_si, dim = _si(lo if lo is not None else 0.0, unit)
-    hi_si, _ = _si(hi if hi is not None else 0.0, unit)
+    lo_si, dim = _si(lo if lo is not None else 0.0, unit, where)
+    hi_si, _ = _si(hi if hi is not None else 0.0, unit, where)
     return (lo_si if lo is not None else float("-inf"),
             hi_si if hi is not None else float("inf"), dim)
 
@@ -330,6 +343,32 @@ class Store:
 # matching
 # --------------------------------------------------------------------------- #
 
+def check_query_conditions(condition_range: dict | None) -> None:
+    """Refuse a query whose OWN intervals cannot be compared, before any entry.
+
+    Two different faults reached a caller through one message until
+    2026-09-20, and only one of them was the caller's: an interval the QUERY
+    malformed, and an interval one ENTRY malformed. Both surfaced from the
+    same `_interval_si` call inside the hit loop, so both came back as a
+    refusal of the call, and a caller cannot act on the second -- it does not
+    own the store and cannot see which row is bad.
+
+    Splitting them starts here. Whatever is wrong with the query is wrong
+    once, not once per entry, and is refused before the loop; anything the
+    loop then raises is necessarily the store's and is reported per entry
+    rather than refused. That is what lets the loop's handler be
+    unconditional instead of guessing whose fault it caught.
+
+    ONE BEHAVIOUR CHANGES BEYOND ATTRIBUTION, and it is the honest direction.
+    A malformed query against a name NOTHING answers to used to produce a
+    clean `absent` gap, because no entry existed to raise on. It now refuses.
+    `absent` asserts that no claim exists, and nothing was validly asked, so
+    the store was never in a position to make that assertion.
+    """
+    for q, bound in (condition_range or {}).items():
+        _interval_si(bound, f"query, {q}")
+
+
 def match(entry: dict, condition_range: dict | None) -> dict:
     """How an entry's validity stands against a query's conditions.
 
@@ -374,7 +413,7 @@ def match(entry: dict, condition_range: dict | None) -> dict:
         # entry's own bound is carried, converted into the unit the caller
         # asked in, and becomes the other end of the piece.
         unit = query[q]["unit"]
-        factor, _ = _si(1.0, unit)
+        factor, _ = _si(1.0, unit, f"query, {q}")
         out: dict[str, Any] = {"unit": unit}
         if not _ge(q_lo, e_lo) and e_lo != float("-inf"):
             out["below_min"] = query[q].get("min")
@@ -789,13 +828,38 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
     store = _preflight(store, caller_id, kb_version, "kb_query")
     if purpose not in purposes():
         raise Refused(f"purpose {purpose!r} is not in contracts/schemas/goal.schema.json")
+    check_query_conditions(condition_range)
 
     hits = sorted((eid for eid, e in store.entries.items() if store.answers_to(e, observable)),
                   key=store.sort_key)
-    returned, compared_and_short = [], []
+    returned, compared_and_short, unusable = [], [], []
     for eid in hits:
         e = store.entries[eid]
-        m = match(e, condition_range)
+        # ONE MALFORMED ENTRY MAY COST ITS OWN ROW AND NEVER ANOTHER ENTRY'S.
+        # This call was bare until 2026-09-20, so a single entry whose
+        # `validity` named a unit the registry does not hold took down the
+        # whole answer: measured at 0491daa, reverting one of ten entries to
+        # `degC` turned "10 entries, 0 gaps" into "REFUSED, 0 entries". Nine
+        # well-formed entries at the right conditions became unreachable
+        # because a tenth was wrong, and the caller was told its QUERY was
+        # refused -- so the natural repair, re-ask differently, could not
+        # work and would end in a gap that is not a gap (task 025).
+        #
+        # The query's own intervals were checked before the loop, so whatever
+        # arrives here is the store's fault and not the caller's, and the
+        # handler needs no test for which. `continue` rather than a partial
+        # row: a row without `overlap` would be a comparison result for a
+        # comparison that did not happen.
+        #
+        # NOT SILENT, WHICH IS THE WHOLE CONDITION ON DOING IT THIS WAY. 022
+        # settled that a partial answer looking complete is worse than a
+        # missing one, so the skip is carried at answer level in `unusable`,
+        # in the log line, and -- when it costs everything -- in a refusal.
+        try:
+            m = match(e, condition_range)
+        except Refused as exc:
+            unusable.append({"entry_id": eid, "reason": str(exc)})
+            continue
         row = {"entry_id": eid, "grade": e["grade"], "grade_tag": e.get("grade_tag"),
                "claim": e["claim"], "numbers": e.get("numbers") or [],
                "validity": e.get("validity"), "validity_conditions": e["validity_conditions"],
@@ -863,6 +927,33 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
     # is the two-spellings defect this store keeps paying for; if the gap's
     # neighbourhood and the answer's neighbourhood could differ, a caller
     # reading one and citing the other would be right by accident.
+    # WHEN NOTHING CAN BE SERVED, REFUSE -- AND NAME THE ROWS.
+    #
+    # This is not a second policy bolted beside the first; it is what keeps
+    # the first one honest. Skipping exists so a bad row does not cost a good
+    # row. Here there is no good row to protect, so the skip buys nothing and
+    # costs the one thing the answer still has to say truthfully: `absent`
+    # asserts that NOTHING ANSWERS TO THE NAME, and ten entries answering to
+    # it and failing to compare is not that. Letting the empty `returned`
+    # fall through would emit exactly that lie -- the same mislabelling this
+    # function was corrected for twice already (004, and the
+    # `condition_mismatch` on an uncompared query).
+    #
+    # So: `not returned` past this point means `hits` was empty, and `absent`
+    # is true again by construction rather than by care.
+    #
+    # The refusal names every entry and its reason, which is the half of 025
+    # that holds whichever boundary wins. Nobody can read this as their own
+    # query being wrong: the query was validated before the loop.
+    if hits and not returned:
+        raise Refused(
+            f"{len(unusable)} of {len(unusable)} entries answering to {observable!r} could not be "
+            "compared against the asked conditions, so there is nothing to return. This is the "
+            "store's fault and not the query's -- the query's own intervals were checked first. "
+            "The librarian fixes the entries; re-asking will not help. "
+            + "; ".join(f"{u['entry_id']}: {u['reason']}" for u in unusable)
+        )
+
     near = near_names(store, observable,
                       exclude={h for r in returned
                                  for h in store.subjects(store.entries[r["entry_id"]])})
@@ -948,6 +1039,18 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
               # fix reaches it; that needs a different mechanism and 022 says
               # not in this task.
               "near_names": near,
+              # ALWAYS PRESENT, EMPTY INCLUDED, for the reason `near_names`
+              # above is: present-and-empty says every entry answering to the
+              # name was compared, and absent would say the question was
+              # never asked. A caller reading a short `entries` list has no
+              # other way to tell "the store holds no more" from "the store
+              # holds more and could not compare them", and those decide
+              # opposite next actions -- record a gap, or tell the librarian.
+              #
+              # Deterministic: the rows come out in `hits` order, which is
+              # store.sort_key, so the same (query, kb_version) yields the
+              # same list (4.3.1 rule 2).
+              "unusable": unusable,
               "grade_summary": grade_summary(store, [r["entry_id"] for r in returned]),
               "kb_version": store.kb_version,
               "answered_from": _provenance(store)}
@@ -955,7 +1058,20 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
          observable=observable, condition_range=condition_range,
          returned=[{"entry_id": r["entry_id"], "grade": r["grade"]} for r in returned],
          gaps=[g["kind"] for g in gaps],
-         coverage={r["entry_id"]: r["overlap"] for r in returned})
+         coverage={r["entry_id"]: r["overlap"] for r in returned},
+         # Logged so the defect is countable from disk rather than from
+         # whoever happened to read an answer. The store has settled one
+         # "did this ever bite?" question by counting already -- 0 of 417
+         # calls served by a stale build -- and could not have without the
+         # field being there before anyone asked.
+         #
+         # OMITTED WHEN EMPTY, which is the opposite of the rule the ANSWER
+         # follows two lines below, and deliberately. An answer is read by a
+         # caller deciding what to do next, so silence and clean have to look
+         # different there. A log line is counted, and `unusable: null` on
+         # every clean line would make the count read as a field every call
+         # carries rather than an event that happened.
+         **({"unusable": [u["entry_id"] for u in unusable]} if unusable else {}))
     return answer
 
 
@@ -1656,6 +1772,90 @@ def _self_test() -> int:                                    # noqa: C901
                 props = set(schema.get("properties") or {})
                 if not {"caller_id", "kb_version"} <= props:
                     bad(f"tool {t_.name} exposes {sorted(props)}; caller_id and kb_version are the wire contract")
+
+        # 16. ONE MALFORMED ENTRY COSTS ITS OWN ROW AND NO OTHER (025).
+        #
+        # It sits at the end and every case below gets its OWN log, which is
+        # not tidiness. Case 13's determinism witness compares answers keyed
+        # by (tool, kb_version, observable, condition_range, agent), and
+        # these cases serve a DELIBERATELY corrupted store at the real
+        # kb_version -- so a clean and a corrupted answer to one key, in one
+        # log, is a determinism violation. The witness caught this test
+        # writing them to a shared log on the first run. It was right: two
+        # answers to one key IS the violation, whatever the intent, and the
+        # fix is to keep a store nobody would serve out of the log a real
+        # caller's guarantee is audited from.
+        import copy as _copy
+        q_temp = {"temperature": {"min": 293, "max": 293, "unit": "K"}}
+        degc = {"min": 19.8, "max": 20.2, "unit": "degC"}
+        logs: list[Path] = []
+
+        def _log_for(name: str) -> Path:
+            p = Path(d) / f"unusable-{name}" / "log.jsonl"
+            p.parent.mkdir(parents=True, exist_ok=True)
+            logs.append(p)
+            return p
+
+        def _store_with(name, mutate):
+            ents = _copy.deepcopy(store.entries)
+            mutate(ents)
+            return Store(log=_log_for(name), _index=store.index, _entries=ents)
+
+        whole = kb_query(Store(log=_log_for("clean")), cid, v, "refractive_index", q_temp)
+        if whole["unusable"]:
+            bad(f"a clean store reported {whole['unusable']} unusable")
+        elif "unusable" not in whole:
+            bad("`unusable` must be present and empty, or silence and clean read the same")
+        n_whole = len(whole["entries"])
+        if n_whole < 2:
+            bad(f"this case needs at least two entries under refractive_index, found {n_whole}")
+
+        victim = sorted(whole["entries"], key=lambda r: r["entry_id"])[0]["entry_id"]
+
+        def _one(ents):
+            ents[victim]["validity"]["temperature"] = dict(degc)
+        one_store = _store_with("one", _one)
+        one = kb_query(one_store, cid, v, "refractive_index", q_temp)
+        if [u["entry_id"] for u in one["unusable"]] != [victim]:
+            bad(f"the skipped entry must be named, got {one['unusable']}")
+        elif len(one["entries"]) != n_whole - 1:
+            bad(f"one bad entry cost {n_whole - len(one['entries'])} rows, not 1")
+        elif victim not in one["unusable"][0]["reason"] or "degC" not in one["unusable"][0]["reason"]:
+            bad(f"the reason names neither the entry nor the unit: {one['unusable'][0]['reason']}")
+
+        # Nothing left to protect -> refuse, and name every row. An empty
+        # answer here would reach the gap branch and emit `absent`, which
+        # asserts that no claim exists under the name. Ten claims exist.
+        def _all(ents):
+            for e_ in ents.values():
+                t_ = (e_.get("validity") or {}).get("temperature")
+                if t_:
+                    t_.update(degc)
+        try:
+            kb_query(_store_with("all", _all), cid, v, "refractive_index", q_temp)
+            bad("a store where every matching entry is malformed must refuse, not answer emptily")
+        except Refused as exc:
+            if victim not in str(exc):
+                bad(f"the total refusal does not name the entries: {exc}")
+
+        # The caller's OWN bad unit is still refused, and now says so. This is
+        # the half that must not regress into the entry path: a query fault
+        # and a store fault shared one message until 2026-09-20.
+        try:
+            kb_query(Store(log=_log_for("queryfault")), cid, v, "refractive_index",
+                     {"temperature": {"min": 19, "max": 21, "unit": "degC"}})
+            bad("a query bounding a condition in an unregistered unit must be refused")
+        except Refused as exc:
+            if "query, temperature" not in str(exc):
+                bad(f"a query-side unit fault must say it is the query's: {exc}")
+
+        for p in logs:
+            if query_log.verify(p):
+                bad(f"{p.parent.name} did not audit clean: {query_log.verify(p)}")
+        marks = [json.loads(x).get("unusable")
+                 for p in logs for x in p.read_text().splitlines() if x.strip()]
+        if [m for m in marks if m] != [[victim]]:
+            bad(f"exactly the one skipping answer should carry `unusable` in the log, got {marks}")
 
         # Look for THIS process's session id rather than comparing bytes.
         # Four other sessions call the live server, so the shared log changes

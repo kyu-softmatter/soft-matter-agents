@@ -62,7 +62,15 @@ DEFAULT_LOG = AGENT / "queries" / "log.jsonl"
 TOOLS = ("kb_query", "kb_get", "kb_conflicts", "kb_group")
 FIELDS = ("asked_at", "caller_id", "kb_version", "tool", "purpose",
           "observable", "condition_range", "returned", "gaps", "coverage",
-          "outcome", "reason", "claimed", "server_session")
+          "outcome", "reason", "claimed", "server_session", "unusable")
+
+# `unusable` is the entry ids that answered to the name and could not be
+# compared, so the server skipped them and served the rest (task 025). It is
+# written only when there were some. It belongs in the log and not only in
+# the answer for the same reason `outcome: refused` does: an event that
+# happens to one caller and is reported only to that caller is one nobody can
+# count afterwards, and "did this ever bite?" is the question this repository
+# keeps having to settle from disk rather than from memory.
 
 # `caller_id` is the argument a caller passed, and the server cannot check
 # that the process on the other end is the seat that id names. On 2026-09-19
