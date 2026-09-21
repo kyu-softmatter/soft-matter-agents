@@ -136,7 +136,25 @@ server was reachable has to name the gap it stands on (check 39).
 7. **Conflicts are kept, not merged.** Both entries stay, each naming the other
    in `conflict_with`, with the difference in conditions written down.
 8. **Nothing is deleted.** A superseded entry stays and the new one points back
-   with `supersedes`.
+   with `supersedes`. **A RENAME IS NOT A SUPERSEDE, and rule 8 does not
+   reach it.** What rule 8 keeps is a *claim* that was replaced, so the next
+   reader meets the record that it was once believed and reviewed. An
+   identifier change with the same value, the same source and the same
+   conditions replaces no claim — and a supersede chain there would leave
+   **two entries asserting one number**, which is concealment wearing
+   preservation's clothes. Ruled 2026-09-20 on
+   `camera_qe_curve_is_the_kinetix_graph` → `camera_qe_at_600nm_from_the_kinetix_graph`,
+   the second rename after 017's, and the seat's own reading of the rule was
+   the right one.
+
+   **What a rename does owe, and both were missed once:**
+   - **Every prose mention of the dead id, in every sibling entry.** A `grep`
+     of the store, not of the renamed file. `camera_qe_peak` still named the
+     old id in its own text after the rename.
+   - **Nothing published is corrupted by this** — a snapshot is immutable and
+     carries its `kb_version`, so a consumer pinned to the old one holds a
+     store that is internally consistent and simply older. That is what a
+     version is for, and it is why publication does not argue for a supersede.
 9. **E1 and E2 need a recorded measurement event, not a claim.** A measurement
    this system made comes in as a result card from an execution agent, and only
    this session turns it into an entry. **Nothing else is a path for E1.** E2
