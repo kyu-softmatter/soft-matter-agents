@@ -227,7 +227,7 @@
     },
     "curated_by": {
       "type": "string",
-      "description": "who put it here. Until M3 that is a person, not the librarian agent."
+      "description": "Who put it here -- the seat identity when a seat did, the person when the person did. This said \"until M3 that is a person, not the librarian agent\" until 2026-09-20, and that sentence was a prediction about who would do the work rather than a record of who did. Measured the day it was removed, by comparing each entry against the committer that ADDED its file: 83 of 87 entries say `kyuhwan` and were added by a librarian seat, 2 say `seat:librarian` and were, and 2 say `kyuhwan` and were. So the field agreed with the committer on 4 entries out of 87. A rule that tells you what to write stops the field recording anything: `kyuhwan` on those 83 cannot now be read as \"the person chose this\" rather than \"the schema said to put this\", and the two cases are different -- the person really did supply the pixel-size calibration and the laser power, while a seat found, read and judged the 1938 water index. THE 83 ARE NOT BEING REWRITTEN: which of them the person actually curated is no longer recoverable from the file, and guessing would replace one false record with another. What changes is that a seat now writes itself, so the field starts meaning something again from here."
     }
   },
   "addressable_identifiers": {

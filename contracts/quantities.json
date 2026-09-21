@@ -78,7 +78,7 @@
       "definition": "The ratio of the speed of light in vacuum to its speed in the material, at a stated wavelength. Dispersive, so a value without a wavelength is not reusable.",
       "unit": "1",
       "kind": "physical",
-      "note": "Unit is `1`, the name units.json uses. Written `dimensionless` in this file's first commit -- the registry has no such symbol, so rule 3 was broken by the file that states it, one commit after stating it. Eight kb entries still carry the other spelling."
+      "note": "Unit is `1`, the name units.json uses. Written `dimensionless` in this file's first commit -- the registry has no such symbol, so rule 3 was broken by the file that states it, one commit after stating it. Eight kb entries carried the other spelling when this was written; measured 0 on 2026-09-20, all eight fixed on 2026-09-19. The sentence outlived the condition by a day and was copied out of here into task 024 as a live constraint, which is the failure this repository keeps naming -- a count read off prose instead of a run, by the seat that had told three others not to."
     },
     {
       "id": "viscosity",
