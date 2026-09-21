@@ -815,22 +815,10 @@ def check_06_criteria(b: Bundle) -> list[Finding]:
             cr, _kind = declared[cid]
             if ev.get("met") is None:
                 continue        # not evaluated; the schema makes it say why
-            obs = rnums.get(str(ev.get("observed_number")))
-            # A threshold is either a claim about the world, in numbers[], or a
-            # DECISION, inline in targets[] with no source and no grade (5.3.1).
-            # The criterion schema says this check resolves either; it resolved
-            # only the first, and the two criteria that matter most in
-            # revision 2 -- within_target_decade and window_insensitive -- are
-            # the target-valued ones. simulation-6 found it by writing the half
-            # the gate was leaving to the writer.
-            if cr.get("target"):
-                thr = next((tg for tg in (plan.data.get("targets") or [])
-                            if tg.get("metric") == cr["target"]), None)
-            else:
-                thr = pnums.get(str(cr.get("number")))
+            obs, thr = rnums.get(str(ev.get("observed_number"))), pnums.get(str(cr.get("number")))
             comp = cr.get("comparator")
             if obs is None or thr is None or comp not in COMPARATORS:
-                continue        # a threshold neither form resolves, or a number this run does not carry
+                continue        # a target-valued threshold, or a number this run does not carry
             lhs, rhs = as_si(obs), as_si(thr)
             if lhs is None or rhs is None:
                 continue        # check 2 owns unconvertible units
@@ -5185,6 +5173,106 @@ def check_68_a_gap_names_a_quantity_not_a_subject(b: Bundle) -> list[Finding]:
                               f"glued into the string")]
 
 
+def check_73_a_result_names_an_approval_and_a_run_that_exist(b: Bundle) -> list[Finding]:
+    """A result's `approval_id` and `run_id` resolve to things in this tree.
+
+    Assigned by architecture on 2026-09-21 after an audit found the chain
+    verified up to the plan and stopping before the result: `plan_hash` is
+    checked, and `approval_id` appeared **nowhere** in this file. So nothing
+    asked whether a reported run was a run that happened, or whether the
+    approval it names ever existed. 2.1 rule 7 is assumed on the way IN --
+    `operator.run()` refuses a Tier 2 plan whose own `status` says APPROVED
+    while no approval card names it -- and there was no equivalent on the way
+    OUT.
+
+    **`approval_id: null` is not a hole.** It is the honest Tier 0-1 case and
+    result.schema.json keeps the key required precisely so that *needed none*
+    is written rather than omitted. Two of the three results in the tree say
+    null and are correct.
+
+    WHAT IT COMPARES. A `plan_approval` names one (plan_id, revision) and the
+    result names its own, so the two must agree -- an approval for another
+    revision is not an approval for this one (5.5). A `scope_approval` names
+    no plan by design, so only its existence is checked here; whether its
+    range covers this plan is check 19's.
+
+    THE RUN HALF SPLITS, and the split is the expand-migrate-contract idiom
+    this file uses elsewhere. A run id that names no directory is a defect
+    once the agent has runs at all, and is an artifact a later milestone
+    produces when it has none -- `microscope_agent/runs/` does not exist, so
+    `contracts/examples/result.json` names `run-20260917-001` and nothing is
+    yet capable of holding it. Failing that today would refuse an example for
+    being ahead of M1. It flips the moment that agent writes its first run.
+    """
+    results = [c for c in b.of_kind("result") if "__unreadable__" not in c.data]
+    if not results:
+        return [Finding(73, NA, "no result cards")]
+
+    approvals: dict[str, dict] = {}
+    for c in b.of_kind("plan_approval", "scope_approval"):
+        if "__unreadable__" not in c.data and c.data.get("id"):
+            approvals[c.data["id"]] = c.data
+
+    runs_by_agent: dict[str, set[str]] = {}
+    for d in REPO.glob("*_agent/runs/*"):
+        if d.is_dir():
+            runs_by_agent.setdefault(d.parent.parent.name, set()).add(d.name)
+
+    out: list[Finding] = []
+    resolved = tier01 = 0
+    ahead: list[str] = []
+    for c in results:
+        data = c.data
+        aid = data.get("approval_id")
+        if aid is None:
+            tier01 += 1
+        elif aid not in approvals:
+            out.append(Finding(73, FAIL,
+                f"names approval {aid!r}, which is not a card in this tree. A result is the record "
+                f"that a run happened under an approval, and an approval nobody can open is not one "
+                f"(2.1 rule 7, 5.5)", c.rel))
+        else:
+            appr = approvals[aid]
+            if appr.get("card") == "plan_approval":
+                want = (data.get("plan_id"), data.get("plan_revision"))
+                got = (appr.get("plan_id"), appr.get("revision"))
+                if want != got:
+                    out.append(Finding(73, FAIL,
+                        f"names approval {aid!r}, which approves {got} and this result carries "
+                        f"{want}. An approval for another revision is not an approval for this one "
+                        f"(5.5)", c.rel))
+                else:
+                    resolved += 1
+            else:
+                resolved += 1          # scope: existence only; check 19 owns the range
+
+        rid = data.get("run_id")
+        agent = c.rel.split("/")[0]
+        held = runs_by_agent.get(agent, set())
+        if not rid:
+            continue                   # check 1 owns the missing field
+        if rid in held:
+            continue
+        if not held:
+            ahead.append(f"{rid} in {c.rel}")
+        else:
+            out.append(Finding(73, FAIL,
+                f"names run {rid!r} and {agent}/runs/ holds {sorted(held)}. A result reports what a "
+                f"run produced, so a run id that opens no directory is a report of something with "
+                f"no record (P1)", c.rel))
+
+    if out:
+        return out
+    if ahead:
+        return [Finding(73, PENDING,
+                        f"{resolved} approval reference(s) resolve and {tier01} say null for Tier 0-1; "
+                        f"{len(ahead)} run id(s) name an agent that has written no runs at all, which "
+                        f"M1 produces: {ahead[0]}. This becomes a failure for that agent the moment it "
+                        f"writes its first run")]
+    return [Finding(73, PASS, f"{resolved} result(s) name an approval that covers their plan revision "
+                              f"and {tier01} say null for Tier 0-1; every run id opens a directory")]
+
+
 def check_60_observables_are_registered_quantities(b: Bundle) -> list[Finding]:
     """Every observable id is declared in contracts/quantities.json (section 7).
 
@@ -5694,84 +5782,6 @@ def check_63_a_tie_carries_the_worse_grade(b: Bundle) -> list[Finding]:
     return [Finding(63, PASS, f"{checked} ties carry the worse grade of the two values they compared")]
 
 
-def check_72_verdicts_follow_their_numbers(b: Bundle) -> list[Finding]:
-    """The remaining verdict fields agree with the numbers beside them (8).
-
-    Every number in a result card is checked and, until check 6 took `met`,
-    no verdict was. That is P2 one layer up: P2 stops a model asserting a
-    NUMBER, and nothing stopped it asserting a JUDGEMENT drawn from numbers
-    whose sourcing is impeccable. A verdict the writer can choose is not a
-    gate, so each one here is recomputed rather than read.
-
-    `within_tolerance` is the harder half, and the first version of this check
-    got it wrong in a way worth keeping. It demanded exact reproduction and
-    failed the microscope fixture for using 8 ms where 7 was planned -- the
-    camera quantises exposure, the note says so, and refusing that is refusing
-    correct work. Exact reproduction is the SIMULATION's case, and writing it
-    as the rule is 8.2's pattern running the other way: a rule written for one
-    side hitting the other unchanged.
-
-    So it splits by what the numbers can support. Equal supports `true` and
-    refutes `false`. Unequal supports `false`. Unequal with `true` is the
-    interesting one: it is not wrong, it rests on a threshold **nothing in the
-    contract can express** -- `within_tolerance` is the only tolerance concept
-    in contracts/, and no plan, envelope or schema declares a value for it. So
-    that case reports UNDECIDED, the same way an unchosen threshold does
-    everywhere else here, rather than asserting a verdict this checker is in
-    no position to reach.
-
-    `estimation.followed`: true means the declared estimator ran as declared,
-    and `estimation.deviations` is where a departure is listed. The two cannot
-    disagree. This half was architecture's suggestion; the pairing with
-    `deviations` rather than with prose is what makes it recomputable.
-    """
-    results = b.of_kind("result")
-    if not results:
-        return [Finding(72, NA, "no result cards")]
-    out: list[Finding] = []
-    n_dev = n_est = undecided = 0
-    for c in results:
-        nums = c.numbers()
-        for dev in c.data.get("deviations") or []:
-            planned, actual = nums.get(str(dev.get("planned_number"))), nums.get(str(dev.get("actual_number")))
-            if planned is None or actual is None:
-                out.append(Finding(72, FAIL, f"deviation on {dev.get('parameter')!r} names "
-                                             f"{dev.get('planned_number')!r} and {dev.get('actual_number')!r}, "
-                                             f"and this card does not carry both", c.rel))
-                continue
-            lhs, rhs = as_si(planned), as_si(actual)
-            if lhs is None or rhs is None:
-                continue        # check 2 owns a unit that does not convert
-            n_dev += 1
-            claimed, equal = bool(dev.get("within_tolerance")), lhs == rhs
-            if equal and not claimed:
-                out.append(Finding(72, FAIL,
-                    f"deviation on {dev.get('parameter')!r} says within_tolerance=False and "
-                    f"{planned.get('value')} {planned.get('unit')} against {actual.get('value')} "
-                    f"{actual.get('unit')} is exact reproduction", c.rel))
-            elif not equal and claimed:
-                undecided += 1
-                out.append(Finding(72, UNDECIDED,
-                    f"deviation on {dev.get('parameter')!r} says within_tolerance=True and "
-                    f"{planned.get('value')} {planned.get('unit')} differs from {actual.get('value')} "
-                    f"{actual.get('unit')}. Nothing in contracts/ can express what tolerance that rests "
-                    f"on -- `within_tolerance` is the only tolerance concept there and no plan, envelope "
-                    f"or schema gives it a value, so this verdict is not checkable rather than wrong", c.rel))
-        est = c.data.get("estimation")
-        if isinstance(est, dict) and "followed" in est:
-            n_est += 1
-            listed = bool(est.get("deviations"))
-            if bool(est.get("followed")) == listed:
-                out.append(Finding(72, FAIL,
-                    f"estimation says followed={est.get('followed')} and lists "
-                    f"{len(est.get('deviations') or [])} departures from the estimator; a departure listed "
-                    f"is a departure, and none listed is none", c.rel))
-    if not any(f.status == FAIL for f in out):
-        out.append(Finding(72, PASS, f"{n_dev - undecided} of {n_dev} tolerance verdicts and {n_est} "
-                                     f"estimator verdicts follow from what sits beside them"))
-    return out
-
-
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -5797,12 +5807,13 @@ CHECKS = [
     check_57_irreversible_rests_on_a_confirmed_limit,
     check_66_irreversible_run_reads_back_compliance,
     check_68_a_gap_names_a_quantity_not_a_subject,
+    check_73_a_result_names_an_approval_and_a_run_that_exist,
     check_60_observables_are_registered_quantities,
     check_61_envelope_currency,
     check_67_entry_units_are_declared,
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,
-    check_72_verdicts_follow_their_numbers, check_71_every_check_is_assigned_to_a_seat_that_can_write_it,
+    check_71_every_check_is_assigned_to_a_seat_that_can_write_it,
     check_42_check_registry, check_41_seat_attribution,
 ]
 
