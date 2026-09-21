@@ -64,6 +64,58 @@ class PlanError(RuntimeError):
 # --------------------------------------------------------------------------- #
 
 
+def _turret() -> dict:
+    """The nosepiece row of the published device table, read from this agent's envelope.
+
+    One reader, because there are now two directions through this table --
+    a chosen pair down to a position, and a position the goal card names back
+    up to a pair -- and two mappings between a lens and a turret position is
+    one mapping too many. The position is the turret's own, indexed from 0,
+    which the table states in an `index_note`.
+    """
+    snapshot = AGENT / "envelope" / "snapshot.json"
+    if not snapshot.exists():
+        raise PlanError("envelope/snapshot.json is absent, so a nosepiece position cannot be resolved")
+    snap = json.loads(snapshot.read_text())
+    devices = json.loads(((snap.get("tables") or {}).get("devices") or {}).get("text") or "{}")
+    turret = next((e for c in devices.get("channels", []) or []
+                   for e in (c.get("elements") or []) if e.get("id") == "nosepiece"), None)
+    if turret is None:
+        raise PlanError("the snapshot's device table has no nosepiece element")
+    return turret
+
+
+def pair_from_goal(goal: dict) -> tuple[str | None, str]:
+    """The pair the person already chose, assembled from the parts the goal card names.
+
+    A6 returns ONE name -- `objective_zoom_pair` -- and a goal card answers in
+    the two settings the instrument actually takes: a turret position and an
+    intermediate magnification. S5 looked for a number called
+    objective_zoom_pair, found none, and reported an unresolved tie over a
+    choice that had been made hours earlier. The choice was never missing; it
+    was spelled in two names.
+
+    This is selector_numbers() run backwards and through the same turret row.
+    It returns the pair and never a verdict: whether the pair is permitted is
+    the axis's to say, and the caller checks it against the set.
+    """
+    numbers = {n.get("name"): n for n in goal.get("numbers") or []}
+    position, zoom = numbers.get("nosepiece_position"), numbers.get("intermediate_magnification")
+    if position is None or zoom is None:
+        missing = [n for n, v in (("nosepiece_position", position),
+                                  ("intermediate_magnification", zoom)) if v is None]
+        return None, f"the goal card names no {' and no '.join(missing)}"
+    row = next((o for o in _turret().get("objectives", [])
+                if o.get("position") == position.get("value")), None)
+    if row is None:
+        held = [o.get("position") for o in _turret().get("objectives", [])]
+        return None, (f"the goal card names nosepiece_position {position.get('value')!r} and this "
+                      f"turret holds positions {held}; the table is indexed from 0")
+    magnification = str(row.get("id", "")).split("-")[0]
+    return (f"{magnification}@{zoom.get('value'):g}x",
+            f"position {position.get('value')} is the {row.get('id')} lens ({row.get('part_number')})")
+
+
 def selector_numbers(chosen_pair: str) -> list[dict]:
     """`100x@1x` -> the two numbers a plan can actually carry.
 
@@ -79,16 +131,7 @@ def selector_numbers(chosen_pair: str) -> list[dict]:
     than counted here, because this turret is indexed from 0 and the table
     says so in an `index_note`: 1-6 would be off by one on every lens.
     """
-    snapshot = AGENT / "envelope" / "snapshot.json"
-    if not snapshot.exists():
-        raise PlanError("envelope/snapshot.json is absent, so a nosepiece position cannot be resolved")
-    snap = json.loads(snapshot.read_text())
-    devices = json.loads(((snap.get("tables") or {}).get("devices") or {}).get("text") or "{}")
-    turret = next((e for c in devices.get("channels", []) or []
-                   for e in (c.get("elements") or []) if e.get("id") == "nosepiece"), None)
-    if turret is None:
-        raise PlanError("the snapshot's device table has no nosepiece element")
-
+    turret = _turret()
     magnification, _, zoom = chosen_pair.partition("@")
     row = next((o for o in turret.get("objectives", [])
                 if str(o.get("id", "")).split("-")[0] == magnification), None)
@@ -131,6 +174,28 @@ def choose_from_set(allowed: dict, goal: dict) -> tuple[str | None, str]:
     values = allowed.get("values") or []
     if len(values) == 1:
         return values[0], "one value survived the intersection, so nothing was chosen"
+
+    # The answer may already be on the goal card under other names. Read it
+    # before calling this a tie -- 4.5.1 (c) sends a question to the person,
+    # and asking one that has been answered is the same defect as guessing.
+    # A refusal here is deliberate and is NOT a tie: a person's choice does
+    # not override an axis, so a goal naming a pair the axis excluded is an
+    # error in the goal, named as one.
+    if allowed.get("parameter") == "objective_zoom_pair":
+        pair, how = pair_from_goal(goal)
+        if pair is not None and pair in values:
+            return pair, (f"the goal card chose this, in parts: {how}, at intermediate "
+                          f"magnification {pair.split('@')[1]}. The pair is one of the "
+                          f"{len(values)} this bound permits, so nothing was guessed and nobody "
+                          "is asked again. A person's setting is a setting and not evidence: it "
+                          "raises no grade and supports no other number")
+        if pair is not None:
+            return None, (f"the goal card chooses {pair!r} ({how}) and this bound does not permit "
+                          f"it: A6 admitted {sorted(values)} on Nyquist grounds and excluded the "
+                          "rest. A person's choice does not override an axis, so this is an error "
+                          "in the goal card rather than an instruction to this stage, and S2 "
+                          "owns it. Fix the goal or re-derive A6; do not widen the set here")
+
     preference = [p for p in (goal.get("configuration_preference") or []) if p in values]
     if preference:
         return preference[0], (f"the goal card's configuration_preference names {preference[0]!r}, "
@@ -195,12 +260,22 @@ def mandatory_fields() -> list[str]:
                   set(head["$defs"]["common_head"].get("required") or []))
 
 
-def assemble(qid: str, revision: int = 1, created_at: str | None = None) -> tuple[dict, list[str]]:
+def assemble(qid: str, revision: int = 1,
+             created_at: str | None = None) -> tuple[dict, list[str], list[dict]]:
     """Build as much of the plan as the axes support, and list what is unfillable.
 
-    Returns (card, unfillable). `unfillable` names mandatory fields with no
-    source and says which silence is behind each, so the next action is a
-    person or a measurement rather than a re-read of this file.
+    Returns (card, unfillable, preconditions). `unfillable` names mandatory
+    fields with no source and says which silence is behind each, so the next
+    action is a person or a measurement rather than a re-read of this file.
+
+    The third is returned rather than dropped. A precondition PROPAGATES --
+    the schema says so in as many words: if any axis returns one, the plan
+    must carry it -- and plan.schema.json declares no field that can hold
+    one. `conditions` cannot: every condition points into numbers[] by name,
+    and a requirement on the plan's form is not a number. So this stage
+    receives them and can place none of them, which is a gap in the contract
+    and not a decision this stage may make quietly. They come back so the
+    caller can say so out loud.
     """
     goal, _configs, by_config = s4.load_fanout(qid)
     card4, detail, why = s4.synthesise(qid, revision)
@@ -210,6 +285,7 @@ def assemble(qid: str, revision: int = 1, created_at: str | None = None) -> tupl
     if config is None:
         raise PlanError(f"S4 chose no configuration: {why}")
     d = detail[config]
+    preconditions = list(d.get("preconditions") or [])
 
     numbers = list(card4.get("numbers") or [])
     conditions = [{"parameter": p["parameter"], "number": p["number"]}
@@ -229,11 +305,23 @@ def assemble(qid: str, revision: int = 1, created_at: str | None = None) -> tupl
             unfillable.append(f"{parameter}: {reason}")
             continue
         if parameter == "objective_zoom_pair":
+            # When the pair came off the goal card, its two parts are already
+            # here -- carried_from_goal put them in above -- and adding them
+            # again would put one quantity in two places at two grades, which
+            # is the drift check 9 exists against. The condition gains the
+            # device it belongs to instead, which is the part that was missing.
+            present = {n["name"] for n in numbers}
             for n in selector_numbers(value):
+                device = ("nosepiece" if n["name"] == "nosepiece_position"
+                          else "intermediate_magnification")
+                if n["name"] in present:
+                    for c in conditions:
+                        if c["parameter"] == n["name"]:
+                            c["device"] = device
+                    continue
                 numbers.append(n)
                 conditions.append({"parameter": n["name"], "number": n["name"],
-                                   "device": "nosepiece" if n["name"] == "nosepiece_position"
-                                   else "intermediate_magnification"})
+                                   "device": device})
 
     # A goal-side target is carried, never recomputed (5.2, check 52).
     target = next((n for n in goal.get("numbers") or []
@@ -316,7 +404,7 @@ def assemble(qid: str, revision: int = 1, created_at: str | None = None) -> tupl
         "numbers": numbers,
         "degraded": [],
     }
-    return card, unfillable
+    return card, unfillable, preconditions
 
 
 def to_markdown(card: dict) -> str:
@@ -371,7 +459,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--write", action="store_true")
     args = parser.parse_args(argv)
     try:
-        card, unfillable = assemble(args.qid, args.revision)
+        card, unfillable, preconditions = assemble(args.qid, args.revision)
     except (PlanError, s4.SynthesisError) as exc:
         print(f"S5 refused: {exc}", file=sys.stderr)
         return 2
@@ -380,6 +468,25 @@ def main(argv: list[str] | None = None) -> int:
           f"{len(card['numbers'])} number(s), {len(card['conditions'])} condition(s)")
     for n in card["numbers"]:
         print(f"  number  {n['name']:28} {n['value']} {n['unit']:6} {n['grade']}  {n['source']}")
+    # Said in both directions -- before a refusal and before a write -- because
+    # the write is the dangerous one: a plan that omits a precondition an axis
+    # returned is a plan missing a requirement, and nothing downstream would
+    # show it. This stage does not invent a field to put them in; the contract
+    # is manager-microscope's and the gap is reported there.
+    if preconditions:
+        print(f"\n  {len(preconditions)} precondition(s) reached this stage and the plan contract "
+              "has no field to carry them:", file=sys.stderr)
+        for pre in preconditions:
+            bound = pre.get("bound") or {}
+            print(f"    {bound.get('parameter', '?')} <- {pre.get('axis', '?')}: "
+                  f"{str(bound.get('requires', ''))[:160]}", file=sys.stderr)
+        print("    plan.schema.json declares card, goal_id, synthesis_id, purpose, intent, "
+              "observable,\n    system_configuration, conditions, actions, envelope_check, cost, "
+              "stop_criteria,\n    success_criteria, alternatives_rejected, open_risks, "
+              "compare_arms, compare_variable\n    and targets -- and `conditions` points into "
+              "numbers[] by name, so a requirement on\n    the plan's FORM has nowhere to go. "
+              "Raised with manager-microscope.", file=sys.stderr)
+
     if not unfillable:
         if args.write:
             out = QUESTIONS / args.qid / f"plan_microscope_{args.qid}.json"

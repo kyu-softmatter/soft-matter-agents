@@ -289,9 +289,25 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
             # name a selector, and that is what is returned.
             run.outcomes.append(axc.Outcome(
                 inequality_id=ineq.id, parameter=ineq.parameter, state="returned",
-                allowed_set={
+                # NOT an allowed_set, and the difference is the whole of this
+                # bound. A set is a menu: S4 intersects it and S5 picks one
+                # value, and picking here is meaningless because BOTH values
+                # are true at once -- this channel is in both lock groups
+                # simultaneously and nobody chooses between them. Emitted as a
+                # set through revision 1, S5 read two values, found nothing to
+                # order them by and sent a tie to the person under 4.5.1 (c)
+                # that no answer could settle. What the bound actually asks is
+                # a property of the plan's FORM, which is what a precondition
+                # is for: it propagates instead of intersecting, and A4 already
+                # uses one on this same card for verified_selectors.
+                precondition={
                     "parameter": "lock_group",
-                    "values": ["optical_path", "stage"],
+                    "requires": (
+                        "Name every selector this configuration holds as an ELEMENT and never as "
+                        "a channel: stand_ti2e carries optical_path and stage at the same time, "
+                        "so a command that names the channel has not said which lock it takes, "
+                        "and the scheduler cannot serialise what it cannot identify."
+                    ),
                     "basis": ["kb:stand_ti2e_lock_groups"],
                 },
                 reason="Exclusivity on this configuration has to be evaluated per element and "
@@ -300,7 +316,9 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                        "because the piezo rides on the motor stage -- so a plan that names the "
                        "channel has not said which lock its command takes. The constraint is "
                        "therefore on the plan's form: a selector this configuration holds is "
-                       "named as an element. Note what is NOT claimed here: the entry's own "
+                       "named as an element. Both groups hold simultaneously and NEITHER is "
+                       "chosen, which is why this returns a precondition and not a set of two "
+                       "values; a set would say pick one, and there is nothing to pick. Note what is NOT claimed here: the entry's own "
                        "validity_conditions mark the scheduling consequence -- that stage moves "
                        "serialise with port and filter changes -- as a design consequence rather "
                        "than a reading, and it is not stamped as one, so this axis does not "
