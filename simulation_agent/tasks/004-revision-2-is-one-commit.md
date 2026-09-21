@@ -375,6 +375,67 @@ That is not §E's business and it is not `004`'s either; it wants its own card,
 and it is the reason a criterion has to be **evaluated** and not merely
 declared.
 
+## E2. Two rulings asked for, and criterion 1 was the wrong question
+
+**Ordering: the result-card writer does not come before `004`.** The argument
+that it must — a plan declaring criteria nobody evaluates is §E's theatre one
+level up — is the right shape and points at a different dependency than
+`plan_card.py` did. **`004` does not produce a result card.** A plan declares;
+a run under it produces observables; a **result card** evaluates the criteria
+against them, and `result.schema.json` requires `criteria_evaluation` for
+exactly that. So the order is plan → run → result, and the criteria being
+unevaluated when `004` lands is the design rather than a gap.
+
+`plan_card.py` and the error model both feed **into** revision 2's artifacts,
+which is why they had to precede it. The result-card writer **consumes** them.
+Different direction, different ordering. **What it must precede is the first
+claim that a criterion was met**, which is where `006` already puts it.
+
+**And the split has a name here:** both proposed criteria are `success_criteria`
+and neither is a `stop_criteria`. They are computed from a finished fit, so
+they cannot stop anything — `operator.py` evaluates stop criteria during a run
+and is right not to touch these.
+
+## E3. Criterion 1's threshold — the number is not the open question
+
+`simulation-4` declined to set it after seeing run 002 at 2.0σ, on the grounds
+that a threshold chosen with the number in view is fitted to it. **That was the
+right refusal and it exposed something better: the criterion as written tests
+the wrong thing.**
+
+| | |
+|---|---|
+| run 002, single | **2.0σ** — about one run in twenty |
+| 32-seed mean | **0.15σ** — the estimator is unbiased |
+
+**A systematic short-lag artifact shows in the mean; a fluctuation shows in a
+single run. One run's intercept cannot separate them.** So no threshold on a
+single run's intercept does the job criterion 1 was written for — set it tight
+and it refuses good runs at the fluctuation rate, set it loose and it cannot
+catch a small artifact. The number was never where the difficulty was.
+
+**So state criterion 1 on what a single run can actually answer**, and say what
+it cannot:
+
+- **Per run: the intercept is within 3σ of zero**, on the block-resampled error
+  and not the fit's own. Loose on purpose — this is a guard against a gross
+  short-lag failure, not a test of bias, and at ~0.3 % false refusal it will not
+  teach anyone to route around it.
+- **Across runs: the mean intercept is consistent with zero.** This is the test
+  that catches an artifact, it needs an ensemble, and **it is not a criterion a
+  single plan can carry.** Record it as what a campaign checks, so the next seat
+  does not mistake the per-run guard for the real one.
+
+**Run 002 passes the first at 2.0σ and is ordinary rather than good** — the seat
+said so plainly rather than reporting a clean pass, which is why the threshold
+could be set at all.
+
+**3σ is this seat's and is revisable.** It is set from the asymmetry, not from
+the observation: a false refusal costs a re-run, and this job is 270× under
+budget, while a false acceptance puts a biased number into a card with a grade
+on it. That asymmetry argues tight — and the mean test above is where tightness
+actually buys something, so the per-run guard can afford to be loose.
+
 ## D. Mechanics, and the corner nobody has been round
 
 - **`v2_` prefix**, not `r2_` — rounds and revisions were one sentence until
