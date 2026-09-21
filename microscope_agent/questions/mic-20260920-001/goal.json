@@ -1,11 +1,11 @@
 {
   "card": "goal",
   "schema_version": "0.1",
-  "id": "goal-mic-20260920-001-r1",
+  "id": "goal-mic-20260920-001-r3",
   "qid": "mic-20260920-001",
   "thread": "solo-mic-20260920-001",
   "round": 0,
-  "revision": 1,
+  "revision": 3,
   "author": "microscope_agent",
   "created_at": "2026-09-21T05:08:02Z",
   "status": "VALIDATED",
@@ -74,34 +74,57 @@
     },
     {
       "name": "nosepiece_position",
-      "value": 1,
+      "value": 5,
       "unit": "count",
       "source": "assumed:a_operating_point",
       "grade": "E5",
       "precision": "significant_figures",
       "at": "stand_ti2e",
-      "note": "Position 1 is the 10x, NA 0.45, air, 4 mm working distance, on a turret indexed FROM 0 (nosepiece_position_indexing). Chosen and not derived, for four reasons that are all about not importing an open gap into a pre-measurement: air needs no immersion index, which is A6's open condition_mismatch; the pixel size of the 10x at zoom 1x is calibrated on this instrument at E2, so a rate per particle is expressible per sample area without a gap; the widest calibrated field gives the most well-separated particles, which is what the estimator asks for; and a 4 mm working distance sits far above any clearance floor. It is carried in numbers[] because objective_clearance_min resolves from the objective in the path and a plan without it is refused at preflight."
+      "note": "Position 5 is the 100x oil, CFI Plan Apo Lambda D 100X Oil, MRD71970, NA 1.45, working distance 0.13 mm, on a turret indexed FROM 0 (nosepiece_position_indexing) -- so this is the sixth of six and a check assuming 1 through 6 is off by one on every position. THE PERSON CHOSE IT, on 2026-09-20, resolving A6's objective_zoom_pair tie under 4.5.1 branch (c). That is a tie-break and not a discriminator: it raises no grade, supports no number and has nothing to falsify, which is why this number stays assumed: at E5. Recorded as the person's choice rather than as a seat's so that M5 can tell a tie resolved by preference from a tie resolved by evidence. It is carried in numbers[] because objective_clearance_min resolves from the objective in the path, and a Tier 1 plan without it is refused at preflight."
+    },
+    {
+      "name": "intermediate_magnification",
+      "value": 1,
+      "unit": "1",
+      "source": "assumed:a_operating_point",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "at": "stand_ti2e",
+      "note": "1x, the second half of the person's pair. Named explicitly because the objective alone does not fix the sampling: the calibrated pixel size is keyed by the PAIR, and at 1.5x it is a different row. This is the nominal designation written as a number and it is not a measurement of magnification -- 5.3's rule against a designation wearing a derived precision is exactly what 20.078x broke. The measured quantity of this pair is pixel_size_100x_zoom_1x, 0.065 um at E2, which is where any sampling calculation starts."
     }
   ],
   "assumptions": [
     {
       "rationale_id": "a_operating_point",
-      "statement": "The exposure, the line intensity and the objective are a starting point supplied by the person, not an optimum derived by any axis. Nothing in the store bounds an acquisition of these particles, because the photon rate per particle is exactly what is missing -- so the whole operating point rests on that absence rather than on a number.",
+      "statement": "The whole operating point is supplied by the person and derived by no axis. The exposure and the line intensity are a STARTING POINT -- nothing in the store bounds an acquisition of these particles, because the photon rate per particle is exactly what is missing, so there was no number for an axis to reason from. The objective and the intermediate magnification are a TIE-BREAK under 4.5.1 (c): S5 handed objective_zoom_pair to the person on mic-20260918-001 because four pairs satisfied every bound and nothing distinguished them, and the person answered 100x at 1x. The two kinds are held in one assumption because they share one grade and one retirement, and they are named apart here because they are not the same act.",
       "numbers": [
         "exposure_time",
         "illumination_line_intensity_permille",
-        "nosepiece_position"
+        "nosepiece_position",
+        "intermediate_magnification"
       ],
-      "falsifier": "one bare-particle record at this operating point: frames that saturate, or particles that cannot be segmented from background, retire it, and so does a decay too fast to fit inside the record. Any of the three ends the assumption by measuring the thing it stands in for.",
+      "falsifier": "one bare-particle record at this operating point. Frames that saturate, particles that cannot be segmented from the background, or a decay too fast to fit inside the record each retire the starting point by measuring the thing it stands in for. The tie-break half is not falsified by anything -- a preference has nothing to be wrong about -- and it is retired instead by A6 returning a field_of_view or lateral_resolution bound that discriminates, which needs inputs the person still holds.",
       "gap_ref": "tracer_brightness_absent"
     }
   ],
   "kb_refs": [
     {
-      "entry_id": "particles_show_on_the_green_605_path",
-      "grade": "E2",
+      "entry_id": "camera_red_mm_control_path",
+      "grade": "E3",
       "kb_version": "kbv-1dabfd5ad58d",
-      "claim": "The particles in the bottle in use fluoresce under Aura3 green excitation and are visible through the 605 band of the emission filter wheel. This establishes that their emission overlaps the bands thi"
+      "claim": "On the prior project's configuration the red Kinetix is the MMCore device label `Kinetix_red`, mapped to the PVCAM camera `Camera-2`. Binning is reached as a device property named `Binning`; exposure "
+    },
+    {
+      "entry_id": "cameras_both_kinetix22",
+      "grade": "E3",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "Both cameras are Kinetix 22. They are the same model, so pixel size, quantum efficiency, read noise and full-well capacity are the same on both arms, and the two arms of the splitter are photometrical"
+    },
+    {
+      "entry_id": "emission_wheel_camera_mapping",
+      "grade": "E5",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "The first emission filter wheel serves the red camera and the second serves the blue camera. The operator stated this from memory, with the word probably, and the blue half is the complementary half o"
     },
     {
       "entry_id": "light_engine_line_intensity_is_per_mille",
@@ -128,22 +151,22 @@
       "claim": "On the prior project's configuration the MMCore device label `LightEngine` is the Lumencor Spectra III 8-NII-XS on COM3, serial 28145, firmware 3.5.4. The label is not `SpectraIII`; that is the produc"
     },
     {
-      "entry_id": "camera_red_mm_control_path",
+      "entry_id": "objective_mrd71970",
       "grade": "E3",
       "kb_version": "kbv-1dabfd5ad58d",
-      "claim": "On the prior project's configuration the red Kinetix is the MMCore device label `Kinetix_red`, mapped to the PVCAM camera `Camera-2`. Binning is reached as a device property named `Binning`; exposure "
+      "claim": "Nikon CFI Plan Apo Lambda D 100X Oil, part number MRD71970: an oil-immersion 100x objective of numerical aperture 1.45 with a working distance of 0.13 mm, specified for 170 micrometre coverglass."
     },
     {
-      "entry_id": "cameras_both_kinetix22",
-      "grade": "E3",
+      "entry_id": "particles_show_on_the_green_605_path",
+      "grade": "E2",
       "kb_version": "kbv-1dabfd5ad58d",
-      "claim": "Both cameras are Kinetix 22. They are the same model, so pixel size, quantum efficiency, read noise and full-well capacity are the same on both arms, and the two arms of the splitter are photometrical"
+      "claim": "The particles in the bottle in use fluoresce under Aura3 green excitation and are visible through the 605 band of the emission filter wheel. This establishes that their emission overlaps the bands thi"
     },
     {
-      "entry_id": "emission_wheel_camera_mapping",
-      "grade": "E5",
+      "entry_id": "pixel_size_100x_zoom_1x",
+      "grade": "E2",
       "kb_version": "kbv-1dabfd5ad58d",
-      "claim": "The first emission filter wheel serves the red camera and the second serves the blue camera. The operator stated this from memory, with the word probably, and the blue half is the complementary half o"
+      "claim": "With the 100x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.065 micrometres at the sample plane, measured by the operator on this instrument."
     }
   ],
   "kb_gaps": [
@@ -229,6 +252,7 @@
     "ONE PLAN, ONE OBSERVABLE, AND THE SECOND AS A DECLARED BY-PRODUCT. tracer_brightness is this question's observable; bleaching_rate comes off the same record and is declared here rather than left implied. The estimators make that honest: bleaching_rate's estimator IS tracer_brightness's applied frame by frame to the same frames, so the second needs no additional action, no additional exposure and no second approval. The alternative the card offered -- two revisions over one record -- was refused for a specific reason: a revision replaces its predecessor, an approval and a round ledger pin a plan AT a revision (checks 7 and 8), and a record produced under revision 1 of a card that has since become revision 2 leaves 'which plan ran' unanswerable. Two results from one plan is a fact about this acquisition; two revisions would be a fiction about its history.",
     "THE SAMPLE IS NOT SPENT. mic-20260918-001's goal carries the constraint that the sample is consumed by the measurement and cannot be remounted. Bare particles on a coverslip are NOT that sample -- they are particles without it -- so this pre-measurement does not spend the one mount it exists to protect. Said explicitly because a run that costs the thing it protects would be the wrong trade and nothing else on the card says otherwise.",
     "THE MASTER STATE GATE, AND IT IS THE ONE FAILURE THAT LOOKS LIKE A RESULT. light_engine_master_state_gates_every_line (E3): each Lumencor engine has a master `State` property gating the whole device, and with it at 0 no light leaves the engine however the line and its intensity are set. Nothing errors, and BOTH the line property and the intensity property read back exactly as written -- so every signal a caller would normally trust says the light is on. What it cost where it was measured: a field whose median was BELOW the dark frame and a ratio computed almost entirely on the camera's hot pixels, and it looked like a result. A brightness and a bleaching measurement are precisely the two quantities that still return a number when the light is off. So the plan carries the master State as a preflight CONDITION and the operator verifies it rather than trusting the write. A return code is not a verification (2.1); here even a correct read-back is not one.",
+    "WHAT THE 100x OIL COSTS, SAID HERE BECAUSE THE CHOICE IS THE PERSON'S AND THE CONSEQUENCES ARE NOT. Three of them. (1) NA 1.45 is the largest of the six, which is the right end of the trade for measuring a photon rate -- this is the one that argues for the choice. (2) It is an OIL objective, so A6's open gap on the immersion medium's refractive index now sits inside this question rather than beside it: the store answers `refractive_index` with eight polystyrene entries, which are the TRACER's material and not the medium the lens sits in, and that is a condition_mismatch and not an absence. Nothing in this pre-measurement needs the index -- a photon rate is not computed from it -- so it does not block, and it will block the axial range the moment anything asks for one. (3) The working distance, 0.13 mm, is the SHORTEST of the six and is exactly equal to the envelope's constant backstop objective_clearance_absolute_min of 130 um, so on this objective the lookup and the backstop coincide and the clearance margin is zero. That is a consequence of the choice and not a defect, and it is written down here so that the first plan that moves z on this objective meets it as a known fact rather than as a surprise.",
     "AND AUTOSHUTTER WILL NOT OPEN IT FOR YOU. On the configuration these entries were read from, Core.Shutter is `LightEngine`, so MMCore's autoshutter never opens the Aura, and autoshutter is off during a measurement by policy anyway. Nothing else opens the engine. This is why the master State is a step a plan issues and verifies, not a property it may assume.",
     "NAME MM LABELS, NOT PRODUCT NAMES, AND NOT CHANNEL IDS. getLoadedDevices() returns MM labels: `LightEngine`, `Aura`, `Kinetix_red`, `Nosepiece`. `SpectraIII` and `AuraIII` are product names and a plan naming one fails preflight as a MISSING DEVICE, which reads as the wrong stand rather than the wrong string. The second half matters more here: naming widefield_source_a would assert the disputed branch mapping, and setting a source's intensity is exactly what widefield_inline's own note says stands on that gap. A plan written in MM labels is verifiable at preflight and asserts nothing about the branch.",
     "WHICH ENGINE AND WHICH LINE, AND THE EVIDENCE IS THIS BENCH'S. The only evidence that these particles fluoresce at all on this instrument is particles_show_on_the_green_605_path (E2): they fluoresce under Aura green excitation and are visible through the 605 band. So the line driven is the Aura's GREEN and the record is taken through that band. The vendor's 620 nm excitation and 680 nm emission are NOT used: both are refuted by that same observation, which the store records as refutes/refuted_by rather than as a conflict, because there are no conditions under which a particle emitting at 680 nm shows through a 605 band under green excitation.",
@@ -237,6 +261,10 @@
     "EXPOSURE AND ROI ARE NOT DEVICE PROPERTIES. They are core-level calls, setExposure and setROI; `Binning` is the only device property of the camera in the record (camera_red_mm_control_path, E3). A preflight that looks for an exposure in getDevicePropertyNames() will not find it and must not report it missing. The nosepiece has the same shape -- a state device read with getStateLabel, with no Position property -- and its positions run 0 through 5, so any check assuming 1 through 6 is off by one on every position.",
     "THE CRITERION IS DECLARED BEFORE THE DATA. bleaching_rate's estimator declares a SINGLE EXPONENTIAL fitted to the population median, and that declaration is made here, before the run. If the residual says a single exponential is wrong, THAT IS A RESULT: it is reported as one and a better-fitting curve is not substituted afterwards. This is the one discipline on this card that is not ordinary engineering, and it is written on the goal rather than left to the result card because after the data exists it is no longer a declaration.",
     "WHAT IS ASKED FOR AND IS NOT THERE. Six gaps, all service-answered at kbv-1dabfd5ad58d with the librarian reachable, so degraded is empty and every one of them is looked-for-and-absent rather than nobody-checked. Two of them -- tracer_brightness and bleaching_rate -- are the point of the question and close by acquiring. light_engine_output_power is the missing dial-to-milliwatt calibration and is what illumination_power_max will one day be compared against; until it exists the commanded per-mille integer is the only honest form of the setting. light_engine_channel_sets is which lines this stand's engines actually carry: the Spectra is an 8-channel engine whose channel set is unread, so GREEN is named from this bench's own observation rather than from a channel list. excitation_wavelength returned absent under that name and its near names lead to the refuted vendor figure, which is not used.",
-    "MOCK FIRST. operator.run(backend='mock') writes a run log with no instrument, no MMCore configuration and no approval, and that pass is M1's own completion wording. Nothing in this question moves hardware until a person has closed the branch assignment and loaded a configuration."
+    "MOCK FIRST. operator.run(backend='mock') writes a run log with no instrument, no MMCore configuration and no approval, and that pass is M1's own completion wording. Nothing in this question moves hardware until a person has closed the branch assignment and loaded a configuration.",
+    "THE PIN, AND WHY IT IS NOT THE STORE'S CURRENT ONE. Everything here was asked at kbv-1dabfd5ad58d, which is the version in this agent's envelope/snapshot.json and the last one the librarian published and committed. The store's working index reads further ahead -- kbv-3d0db7d01c4a on disk while the server reported kbv-f13a3eedb47b minutes later -- and NEITHER is servable: asked at kbv-3d0db7d01c4a the service refused, `a version that was never committed is not servable`, because it hashes a working tree nobody else can reproduce. S3.0 pinned the fan-out from that live index until this question found it; it now pins from the envelope, which is the copy this agent can prove the provenance of.",
+    "REVISION 3 IS A RESTORATION AND THE NUMBER IS WHY IT IS NOT 1. Two microscope seats were given card 016 nineteen minutes apart and both wrote this card. r1 is microscope-3's, and it reached HEAD by riding into microscope-1's commit 33f62de -- `git commit -- <paths>` builds its index from the WORKTREE state of the paths it names, so another seat's edit arrives under your identity (6.2.1), and naming a directory rather than a file hid it. r2 is microscope-1's and survives in f614a9f. This is microscope-3's fuller version, two kb_refs and two notes beyond what reached HEAD, and it is r3 rather than r1 because committing different bytes under an id already in the history is the thing raising a revision exists to prevent. Nothing of r2 is lost: it was compared field by field against this one and held nothing this lacks.",
+    "THE UNIT IS IN THE NAME BECAUSE units.json HAS NOWHERE ELSE FOR IT. `illumination_line_intensity_permille` carries 100 with unit `1`, so read literally the number is one hundred dimensionless rather than a tenth. quantities.json rule 3 makes a unit part of a quantity's identity, which defends putting it in the name -- but the clean answer is a per-mille unit in units.json, which that registry CAN express: multiplicative, si_factor 0.001, dimensionless, exactly the shape `mm` has for length. Until then the name is load-bearing and a reader who trusts value-and-unit alone is off by a thousand. Raised with manager-microscope.",
+    "WHAT `degraded: []` ON THIS CARD IS AND IS NOT BACKED BY. It is true -- the six gaps were service-answered at kbv-1dabfd5ad58d under caller_id mic-20260920-001:v1:s2 -- and NOTHING IN THE VALIDATOR CAN CONFIRM IT. Check 45 compares the claim against the query log for cards carrying a `caller_id`, and goal.schema.json declares no such field, so every goal card is skipped whatever it claims. Measured 2026-09-20: that caller appears zero times in HEAD's log and this card passed. The axis cards of the same fan-out ARE checked and one is currently refused for exactly the missing line. So the one card where S2's own queries land is the one the guard cannot reach. Raised with manager-microscope."
   ]
 }
