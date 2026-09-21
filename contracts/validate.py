@@ -1300,7 +1300,7 @@ def check_12_synthesis_closure(b: Bundle) -> list[Finding]:
 
 ALLOWED_PATHS = [
     r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock)$",
-    r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|seats\.json|validate\.py|validation_limits\.json)$",
+    r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|seats\.json|validate\.py|validation_limits\.json|history_fixtures\.py)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",
