@@ -475,12 +475,13 @@ def caller_id(qid: str, config: str, axis: str, revision: int = 1) -> str:
     return f"{qid}:v{revision}:{config}:{axis}"
 
 
-def fan_out(result: Screening, qid: str, limits: dict | None = None) -> list[dict]:
+def fan_out(result: Screening, qid: str, limits: dict | None = None,
+            revision: int = 1) -> list[dict]:
     """One sub-agent per (candidate, axis), with its id issued here."""
     limits = limits or load_limits()
     ceiling = int(limits.get("max_subagents_per_question", 21))
     jobs = [
-        {"caller_id": caller_id(qid, c.config, axis), "config": c.config, "axis": axis,
+        {"caller_id": caller_id(qid, c.config, axis, revision), "config": c.config, "axis": axis,
          "kb_version": result.kb_version}
         for c in result.candidates for axis in AXES
     ]
@@ -489,7 +490,7 @@ def fan_out(result: Screening, qid: str, limits: dict | None = None) -> list[dic
     return jobs
 
 
-def to_configs(result: Screening, goal: dict, qid: str) -> dict:
+def to_configs(result: Screening, goal: dict, qid: str, revision: int = 1) -> dict:
     """questions/<qid>/configs.json -- the audit record of what survived.
 
     `artifact: "screening"` is what makes the validator read this file at all:
@@ -520,7 +521,8 @@ def to_configs(result: Screening, goal: dict, qid: str) -> dict:
         "preference_honoured": result.preference_honoured,
         "preference_refused": result.preference_refused,
         "priority_terms_not_evaluable_here": result.undiscriminating,
-        "fan_out": fan_out(result, qid) if not result.cap_unresolved and result.candidates else [],
+        "fan_out": (fan_out(result, qid, revision=revision)
+                    if not result.cap_unresolved and result.candidates else []),
         "degraded": result.degraded,
         "screened_against": ("contracts/capabilities/microscope.json and contracts/observables.json only; "
                              "no lessons (P16). The kb_version above is a pin and not an input to the screen: "
@@ -638,6 +640,10 @@ def main(argv: list[str] | None = None) -> int:
         description="S3.0: screen configurations for a goal card and record the result."
     )
     parser.add_argument("goal", type=Path, help="path to the goal card (4.5.1)")
+    parser.add_argument("--revision", type=int, default=1,
+                        help="the fan-out revision; a re-run at a new pin is a new one (4.5.5), "
+                             "and the caller_ids it issues carry it as v<N>. Without this the "
+                             "record said v1 while the cards it launched said v2")
     parser.add_argument("--force", action="store_true",
                         help="overwrite an existing record for this qid")
     parser.add_argument("--dry-run", action="store_true",
@@ -665,7 +671,7 @@ def main(argv: list[str] | None = None) -> int:
         if result.refused:
             record = to_refusal(result, goal, qid, created_at)
         else:
-            record = to_configs(result, goal, qid)
+            record = to_configs(result, goal, qid, args.revision)
     except ScreeningError as exc:
         # to_configs calls fan_out, which refuses to issue more sub-agents than
         # the ceiling allows. That is the absence of a record, not a record.

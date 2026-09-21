@@ -137,6 +137,45 @@ ABSENT = {
 }
 
 
+def _values_for(responses: dict, name: str) -> list[tuple[str, object]]:
+    """Every served value carrying this quantity's name, with the entry it is in."""
+    return [(eid, num.get("value"))
+            for eid, e in sorted(responses["entries"].items())
+            for num in (e.get("numbers") or []) if num.get("name") == name]
+
+
+def _one_value(responses: dict, name: str) -> bool:
+    """A name is answered when exactly one served value carries it.
+
+    THREE WAYS AN ANSWER IS NOT A VALUE, AND THIS AXIS MEETS ALL THREE.
+
+    Nothing carries the name -- the store said something and holds no
+    number for it. That is the relation case A2 met, where
+    tracer_diffusivity_expected arrived as a formula with `numbers: []`, and
+    the librarian measured it at 49 of 106 entries.
+
+    SEVERAL THINGS CARRY IT, which is this axis's case and the sharpest of
+    the three. `read_noise` returns FOUR entries -- 1.6, 2.0, 1.2 and 0.7
+    electrons across the Kinetix22's DynamicRange, Speed, Sensitivity and
+    SubElectron modes, a span of 2.9x -- and the store says in the entries
+    themselves that a caller who does not name a mode gets four and no
+    single answer, and that this is the correct refusal. `quantum_efficiency`
+    returns two, the datasheet's peak 0.95 and a 600 nm point of 0.96 read
+    by eye off the WRONG BODY'S graph, which the source refused to
+    normalise. Taking the first of either would be picking a number by
+    iteration order and calling it evidence.
+
+    And the subject case, which A6 carries: one value, right name, wrong
+    thing -- an index for a medium this lens is not in.
+
+    So what selects among four read noises is the CAMERA MODE, and no plan
+    has chosen one. That is a condition a plan must carry, not a number the
+    store is missing, and naming it is more useful than an abstention that
+    says `read_noise` and stops.
+    """
+    return len({v for _, v in _values_for(responses, name)}) == 1
+
+
 def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str) -> axc.AxisRun:
     """Every inequality A1 owns, each with a range or a reason it has none."""
     run = axc.AxisRun(axis=AXIS, caller_id=caller_id, config=config,
@@ -195,11 +234,7 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         # this axis has a number -- and testing only `n in absent` sends a
         # bound with nothing to evaluate into the `failed` branch, which says
         # the axis has no code when what it has is no value.
-        missing = [n for n in ineq.needs
-                   if n in absent or not any(
-                       num.get("name") == n
-                       for e in responses["entries"].values()
-                       for num in (e.get("numbers") or []))]
+        missing = [n for n in ineq.needs if n in absent or not _one_value(responses, n)]
         if missing:
             reason = "; ".join(ABSENT[m] for m in missing if m in ABSENT)
             if ineq.id == "motion_blur" and "pixel_size" not in missing:

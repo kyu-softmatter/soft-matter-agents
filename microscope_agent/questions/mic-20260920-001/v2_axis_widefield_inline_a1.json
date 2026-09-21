@@ -1,0 +1,194 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260920-001-widefield_inline-a1",
+  "qid": "mic-20260920-001",
+  "thread": "solo-mic-20260920-001",
+  "round": 0,
+  "revision": 2,
+  "author": "microscope_agent",
+  "created_at": "2026-09-21T06:00:09Z",
+  "status": "DRAFT",
+  "caller_id": "mic-20260920-001:v2:widefield_inline:a1",
+  "config": "widefield_inline",
+  "axis": "a1",
+  "kb_version": "kbv-e8f4a5610aa6",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "disk_period_multiple",
+      "parameter": "exposure_time",
+      "state": "abstained",
+      "kind": "not_constraining",
+      "reason": "this configuration's optical path is 'widefield_inline' and the disk is out of it: the store records that disk-in is the confocal path while disk-out serves widefield fluorescence and brightfield, and the exposure rule applies to an exposure taken through the disk. So the rule was evaluated and does not bite here. On the confocal configuration the same inequality would abstain with kind no_input instead, because the disk period itself is not in the store -- which is why the two cannot be one word"
+    },
+    {
+      "inequality": "snr_floor",
+      "parameter": "exposure_time",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the camera entry enters no sensor number, and says so explicitly; same entry, same absence; nothing describes the fluorophore on these beads -- not the dye, not a photon rate, not a labelling density",
+      "missing": [
+        "read_noise",
+        "quantum_efficiency",
+        "tracer_brightness"
+      ]
+    },
+    {
+      "inequality": "detection_limit",
+      "parameter": "tracer_signal_per_frame",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the camera entry enters no sensor number, and says so explicitly; nothing describes the fluorophore on these beads -- not the dye, not a photon rate, not a labelling density",
+      "missing": [
+        "read_noise",
+        "tracer_brightness"
+      ]
+    },
+    {
+      "inequality": "background_budget",
+      "parameter": "background_rate",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no background measurement exists on this instrument; nothing describes the fluorophore on these beads -- not the dye, not a photon rate, not a labelling density",
+      "missing": [
+        "background_rate",
+        "tracer_brightness"
+      ]
+    },
+    {
+      "inequality": "motion_blur",
+      "parameter": "exposure_time",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no expected diffusivity is served at this pin, and the name is not what is wrong. `tracer_diffusivity_expected` is a registered quantity, and kb_group -- the tool for an entry shaped like a derivation rather than a value -- is REFUSED here: no formula carries that symbol at this version. Following the service's own near name returns one E4 entry about how a temperature enters an experiment differently from a simulation, which is not a diffusivity. So the remedy is a re-pin and not a rename, and not a computation here either: knowledge lives in one place (P14), and computing it in this axis would put the drag in two files, which 4.5.2.1 forbids because the two would eventually disagree. The other side of this bound is served, and saying so is the point of this revision: asking for `pixel_size` -- the registered quantity, with the locus out of the name -- returns twelve entries at E2, measured at the sample plane on this instrument and keyed by objective and intermediate magnification. They are in this card's kb_refs and were in revision 4's too, while revision 4 recorded the same quantity as a gap. What is still not a librarian's to hold is WHICH of the twelve applies: that is the objective-and-zoom pair, S4 chooses it, and A6 returns the pairs that satisfy Nyquist where this axis may not read them (4.5.3 rule b). One condition rides with them -- every one is valid at 1x1 binning and the query passed no binning, so the service reported binning `unasked`; at another binning the value scales and this bound needs re-asking rather than re-using",
+      "missing": [
+        "tracer_diffusivity_expected"
+      ]
+    },
+    {
+      "inequality": "snr_sustained_over_window",
+      "parameter": "record_duration",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no bleaching rate exists for this fluorophore. The coupling is what makes this bound matter on this configuration rather than in general: widefield fluorescence bleaches while the record runs, and the observable is a diffusivity read from the mean squared displacement over the whole window. Falling signal-to-noise raises the localisation error, so the displacement variance is inflated in the later part of the record and the fitted slope is biased. A bleaching rate is what turns that from a direction into a bound",
+      "missing": [
+        "bleaching_rate"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [
+    {
+      "entry_id": "camera_qe_at_600nm_from_the_kinetix_graph",
+      "grade": "E3",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "claim": "At 600 nm the quantum efficiency carried for the Photometrics Kinetix22 is 0.96, and it is not the Kinetix22's own figure: it is one point of the Kinetix's datasheet graph, read off by eye."
+    },
+    {
+      "entry_id": "camera_qe_peak",
+      "grade": "E3",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "claim": "The Photometrics Kinetix22 has a stated peak quantum efficiency of 0.95, which is the figure its own datasheet gives."
+    },
+    {
+      "entry_id": "camera_read_noise_dynamicrange",
+      "grade": "E3",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "claim": "In its DynamicRange mode the Photometrics Kinetix22 has a read noise of 1.6 electrons rms, as specified by the datasheet's CAMERA MODES table."
+    },
+    {
+      "entry_id": "camera_read_noise_sensitivity",
+      "grade": "E3",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "claim": "In its Sensitivity mode the Photometrics Kinetix22 has a read noise of 1.2 electrons rms, as specified by the datasheet's CAMERA MODES table."
+    },
+    {
+      "entry_id": "camera_read_noise_speed",
+      "grade": "E3",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "claim": "In its Speed mode the Photometrics Kinetix22 has a read noise of 2.0 electrons rms, as specified by the datasheet's CAMERA MODES table."
+    },
+    {
+      "entry_id": "camera_read_noise_subelectron",
+      "grade": "E3",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "claim": "In its SubElectron mode the Photometrics Kinetix22 has a read noise of 0.7 electrons rms, as specified by the datasheet's CAMERA MODES table."
+    },
+    {
+      "entry_id": "pixel_size_100x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "claim": "With the 100x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.065 micrometres at the sample plane, measured by the operator on this instrument."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "background_rate",
+      "observable": "background_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=background_rate, caller_id=mic-20260920-001:v2:widefield_inline:a1, kb_version=kbv-e8f4a5610aa6) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-e8f4a5610aa6",
+      "asked_by": "mic-20260920-001:v2:widefield_inline:a1",
+      "asked_at": "2026-09-21T05:58:38+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "tracer_bleaching",
+      "observable": "bleaching_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=bleaching_rate, caller_id=mic-20260920-001:v2:widefield_inline:a1, kb_version=kbv-e8f4a5610aa6) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-e8f4a5610aa6",
+      "asked_by": "mic-20260920-001:v2:widefield_inline:a1",
+      "asked_at": "2026-09-21T05:58:41+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "disk_period",
+      "observable": "disk_period",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=disk_period, caller_id=mic-20260920-001:v2:widefield_inline:a1, kb_version=kbv-e8f4a5610aa6) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-e8f4a5610aa6",
+      "asked_by": "mic-20260920-001:v2:widefield_inline:a1",
+      "asked_at": "2026-09-21T05:58:45+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "tracer_photophysics",
+      "observable": "tracer_brightness",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_brightness, caller_id=mic-20260920-001:v2:widefield_inline:a1, kb_version=kbv-e8f4a5610aa6) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-e8f4a5610aa6",
+      "asked_by": "mic-20260920-001:v2:widefield_inline:a1",
+      "asked_at": "2026-09-21T05:58:35+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "expected_diffusivity",
+      "observable": "tracer_diffusivity_expected",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_diffusivity_expected, caller_id=mic-20260920-001:v2:widefield_inline:a1, kb_version=kbv-e8f4a5610aa6) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-e8f4a5610aa6",
+      "asked_by": "mic-20260920-001:v2:widefield_inline:a1",
+      "asked_at": "2026-09-21T05:58:50+00:00",
+      "near_names": [
+        "tracer_diffusivity"
+      ]
+    }
+  ],
+  "degraded": [],
+  "note": "Every bound here abstains, and 5 of the 6 abstain for want of an input rather than because they do not apply. Read as a list, the inputs are: background_rate, bleaching_rate, disk_period, tracer_brightness -- none of them exotic and none guessable (P2) -- and, separately, tracer_diffusivity_expected, which no one measures: it is a derived entry the store holds at a later version than this card's pin. Revisions 1 and 2 of this card read the store's files and carried degraded: [librarian_agent]; revision 3 asked the service and carries none. Not one bound moved -- the same six, the same kinds, the same reasons -- so what changed is the standing of the claim rather than the claim. Two differences are worth naming. The gaps went from four to eight because each observable is now its own call and its own answer, where before this axis chose what to group. And the near-misses are gone: revision 2 named cameras_both_kinetix22 against read_noise, and the viscosity and ambient temperature against the expected diffusivity, all judged by this axis; the service returns nearest empty for every one. Those were the axis answering its own question in a field that says the service answered it, so their absence is the more honest state -- but the entries they named are still there and still nearly relevant, and at this pin the service cannot see that, because 17 of the 25 entries carry no machine-readable validity to match against. What changed in this revision is one name and no number. The pixel-size input was asked under `pixel_size_in_sample` through revision 4 and is asked under `pixel_size` from here on: the registered quantity is the pixel size and `in_sample` is the locus, which quantities.json rule 1 keeps out of a name, and the gap this axis recorded under the long name was answered under the short one by twelve E2 entries that were already in its own kb_refs. A6 had the same rule broken in the other direction, with the subject in front. Nothing here re-grades, re-computes or re-pins anything. The sixth is different and the difference is the point: the disk rule was evaluated against this configuration's optical path and does not constrain it. That is an answer, not a missing one, and recording it with the same word as the other five would lose it.",
+  "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
+}
