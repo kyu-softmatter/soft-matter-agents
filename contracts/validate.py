@@ -4345,6 +4345,245 @@ def check_54_kb_basis_resolves(b: Bundle) -> list[Finding]:
                            f"{seen} kb: basis references resolve, each to the card that asked")]
 
 
+def check_67_entry_units_are_declared(b: Bundle) -> list[Finding]:
+    """A KB entry uses declared units everywhere a quantity appears in it.
+
+    Check 2 requires this of cards. Entries had it only for `numbers[]`, by
+    check 43's grade derivation happening to touch them, and `validity` was
+    unguarded -- which is where it bit. On 2026-09-20 eight polystyrene
+    entries carried `validity.temperature` in `degC`, a unit units.json does
+    not hold and says it never can: the registry is multiplicative and an
+    offset scale has no place in it.
+
+    It was not cosmetic. `mcp_server._si` raises on an unregistered unit and
+    the matching loop did not catch it, so ANY query naming a temperature
+    condition was refused outright -- ten well-formed entries unreachable
+    because a unit in one of them could not be converted, and the caller told
+    its query was at fault. Task 025 moved that boundary in the server; this
+    is the commit-time half, and it is the half that stops the entry being
+    written in the first place.
+
+    Both places, because the same quantity appears in both and only one was
+    checked. A value in `numbers[]` and a bound in `validity` are the same
+    claim about the same dimension.
+    """
+    if not KB_DIR.exists() or not (KB_DIR / "entries").exists():
+        return [Finding(67, NA, "no knowledge store")]
+    try:
+        units = set(json.loads((CONTRACTS / "units.json").read_text()).get("units", {}))
+    except (OSError, json.JSONDecodeError, AttributeError):
+        return [Finding(67, NA, "contracts/units.json is not readable, so nothing can be compared")]
+
+    out: list[Finding] = []
+    seen = 0
+    for path in sorted((KB_DIR / "entries").glob("*.json")):
+        try:
+            e = json.loads(path.read_text())
+        except json.JSONDecodeError:
+            continue
+        eid = e.get("entry_id")
+        where: list[tuple[str, str]] = []
+        for n in e.get("numbers") or []:
+            if isinstance(n, dict) and n.get("unit"):
+                where.append((f"numbers[{n.get('name')}]", n["unit"]))
+        for q, r in (e.get("validity") or {}).items():
+            if isinstance(r, dict) and r.get("unit"):
+                where.append((f"validity[{q}]", r["unit"]))
+        for place, unit in where:
+            seen += 1
+            if unit not in units:
+                out.append(Finding(67, FAIL,
+                    f"{eid} {place} uses unit {unit!r}, which contracts/units.json does not "
+                    "declare. The registry is what makes a bound comparable; an undeclared unit "
+                    "in `validity` refuses every query that names that condition, not just this "
+                    "entry (5.7)", _rel(path)))
+    if out:
+        return out
+    return [Finding(67, PASS, f"{seen} units across entry numbers and validity are declared")]
+
+
+def check_69_no_entry_cites_itself(b: Bundle) -> list[Finding]:
+    """A `kb:` source in an entry may not resolve to the entry it lives in.
+
+    `kb:<entry_id>` is how a CARD cites the store and inherits the cited
+    entry's grade. An entry writing it about itself is a loop: the grade is
+    derived from the grade of the thing being derived, so it rests on nothing
+    and comes out looking derived. Check 43 reads the prefix and is satisfied,
+    because the prefix is legal; what is wrong is where it points.
+
+    One in the store on 2026-09-20 and it was the dangerous one to leave:
+    `water_viscosity_293k`, whose top-level `source` correctly says
+    `literature:src_water_properties` while its number says
+    `kb:water_viscosity_293k`. It was cited to another seat as the precedent
+    to follow for a new entry, so the one-off was about to become three.
+    """
+    if not KB_DIR.exists() or not (KB_DIR / "entries").exists():
+        return [Finding(69, NA, "no knowledge store")]
+    out: list[Finding] = []
+    seen = 0
+    for path in sorted((KB_DIR / "entries").glob("*.json")):
+        try:
+            e = json.loads(path.read_text())
+        except json.JSONDecodeError:
+            continue
+        eid = e.get("entry_id")
+        for n in e.get("numbers") or []:
+            if not isinstance(n, dict):
+                continue
+            src = str(n.get("source") or "")
+            if not src.startswith("kb:"):
+                continue
+            seen += 1
+            if src[3:] == eid:
+                out.append(Finding(69, FAIL,
+                    f"{eid} numbers[{n.get('name')}] is sourced {src}, which is this entry. A "
+                    "grade derived from its own grade rests on nothing, and check 43 cannot see "
+                    "it because the prefix is legal. An entry states where its knowledge came "
+                    "from; `kb:` is how a CARD says it got it from the librarian", _rel(path)))
+    if out:
+        return out
+    return [Finding(69, PASS, f"{seen} kb: sources inside entries point elsewhere")]
+
+
+# The one determinism violation the log already holds, named rather than cut
+# away by a watermark. Two server builds 37 minutes apart on 2026-09-19
+# answered `immersion` at kbv-49feb73662b7 two ways, either side of the fix to
+# `published_table_for`. It is real, it happened, and an append-only log
+# cannot forget it.
+KNOWN_LOG_DIVERGENCE = {
+    ('["kb_query", "kbv-49feb73662b7", "mic", "immersion", null]',
+     '[[], ["in_published_table"], {}]',
+     '[[], ["absent"], {}]'),
+}
+
+
+def check_70_one_version_one_answer(b: Bundle) -> list[Finding]:
+    """One `kb_version` never answered the same question two ways (4.3.1 rule 2).
+
+    Determinism is what lets a fan-out's siblings be compared: pin the
+    version, and the constraints they derive rest on one knowledge state. The
+    librarian's own `query_log.verify()` has audited this since the log
+    existed and NOTHING RAN IT -- no check called it, so it fired only when a
+    seat happened to audit something else. It found the violation below that
+    way, while checking whether its own change had dirtied the log.
+
+    RE-IMPLEMENTED HERE AND NOT IMPORTED. `contracts/` may not import an
+    agent's source (check 16's direction), so the comparison exists twice, the
+    same cost check 61 pays for `envelope_lag()` and for the same reason: one
+    copy is the librarian's tool and one runs in every seat's gate. If the two
+    disagree about a line, one of them is wrong and neither is authoritative.
+
+    The key is the tool, the version, the question, and the caller's AGENT --
+    the prefix of the caller_id, not the whole of it. 4.3.1 rule 1 isolates by
+    caller_id and rule 2 forbids depending on call history; the agent is
+    neither, it is an argument, and one answer legitimately varies with it
+    because a gap pointing into a published table names the asker's own
+    snapshot. Keying on the whole caller_id would compare nothing, since every
+    axis has its own id.
+
+    EXCLUDED BY NAME, NOT BY WATERMARK. The log is append-only, so the one
+    violation it holds can never be removed, and a check over the whole log
+    would be red from birth and red forever. A watermark -- verify from line N
+    -- would forgive every violation before it, including ones nobody has
+    found. Naming the one pair forgives exactly the one pair: 412 answered
+    calls stay under audit, and a second violation anywhere, including earlier
+    in the log, still fires.
+    """
+    log = KB_DIR.parent / "queries" / "log.jsonl"
+    if not log.exists():
+        return [Finding(70, NA, "no query log, so nothing has been answered twice")]
+
+    seen: dict[str, tuple[int, str]] = {}
+    out: list[Finding] = []
+    answered = 0
+    forgiven = 0
+    for n, line in enumerate(log.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip():
+            continue
+        try:
+            rec = json.loads(line)
+        except json.JSONDecodeError:
+            continue                       # check 29's business, not this one
+        if rec.get("outcome") == "refused":
+            continue                       # nothing was answered
+        answered += 1
+        agent = str(rec.get("caller_id") or "").split("-", 1)[0]
+        qk = json.dumps([rec.get("tool"), rec.get("kb_version"), agent,
+                         rec.get("observable"), rec.get("condition_range")], sort_keys=True)
+        ak = json.dumps([rec.get("returned"), rec.get("gaps"), rec.get("coverage")],
+                        sort_keys=True)
+        if qk not in seen:
+            seen[qk] = (n, ak)
+            continue
+        first_line, first_ak = seen[qk]
+        if first_ak == ak:
+            continue
+        if (qk, first_ak, ak) in KNOWN_LOG_DIVERGENCE:
+            forgiven += 1
+            continue
+        out.append(Finding(70, FAIL,
+            f"line {n} answered the same query at the same kb_version as line {first_line} "
+            f"differently. query={qk}; then={first_ak}; now={ak}. 4.3.1 rule 2 is what lets a "
+            "fan-out's siblings be compared, and this is that guarantee failing",
+            _rel(log)))
+    if out:
+        return out
+    tail = (f"; the 1 known divergence of 2026-09-19 is excluded by name, so a second one "
+            f"anywhere in the log still fires") if forgiven else ""
+    return [Finding(70, PASS,
+                    f"{answered} answered calls, {len(seen)} distinct questions, one answer "
+                    f"each{tail}", _rel(log))]
+
+
+def check_71_every_check_is_assigned_to_a_seat_that_can_write_it(b: Bundle) -> list[Finding]:
+    """Every check in section 8's table is held by a seat that holds `contracts/`.
+
+    Checks live in `contracts/validate.py`. An execution seat writes only
+    inside its own agent directory, so assigning one a check is not a backlog
+    item, it is an impossibility -- the seat cannot discharge it however long
+    it holds it. The librarian seat hit exactly that on 2026-09-20: it read
+    that check 67 was declared, assigned to it, and pending, and reported that
+    it could not write the file.
+
+    Two of seven were in that state and both had been written that same day,
+    by the seat that owns the table. Nothing looked until an execution seat
+    walked into the wall and said so, which is what this check replaces.
+
+    It reads `paths` in seats.json rather than the boundary table, because
+    holding the boundary is not enough: 11-11 makes a path need both, and the
+    narrowing is the half that says WHICH manager. `design` covers every
+    manager and architecture at once, so a boundary test would pass a seat
+    that cannot touch contracts/ at all.
+    """
+    rows = re.findall(r"^\| (\d+) \| (.+?) \| ([a-z0-9\-]+) \|\s*$",
+                      DESIGN_DOC.read_text(encoding="utf-8") if DESIGN_DOC.exists() else "",
+                      re.M)
+    if not rows:
+        return [Finding(71, NA, f"no seat-bearing check rows found in {DESIGN_DOC_NAME}")]
+    try:
+        seats = json.loads((CONTRACTS / "seats.json").read_text())["seats"]
+    except (OSError, json.JSONDecodeError, KeyError):
+        return [Finding(71, NA, "contracts/seats.json is not readable, so nothing can be compared")]
+    can_write = {s.get("seat") for s in seats
+                 if any(str(p).startswith("contracts/") or str(p) == "contracts/"
+                        for p in (s.get("paths") or []))}
+    out = []
+    for number, _what, seat in rows:
+        if seat not in can_write:
+            known = "is not a seat in seats.json" if seat not in {s.get("seat") for s in seats} \
+                    else "holds no path under contracts/ in seats.json"
+            out.append(Finding(71, FAIL,
+                f"section 8 assigns check {number} to {seat!r}, which {known}. A check lives in "
+                "contracts/validate.py, so a seat that cannot write it cannot discharge the "
+                "assignment -- that is an impossibility rather than a backlog, and it reads as a "
+                "backlog", DESIGN_DOC_NAME))
+    if out:
+        return out
+    return [Finding(71, PASS,
+                    f"{len(rows)} assigned checks are held by seats that hold contracts/",
+                    DESIGN_DOC_NAME)]
+
+
 def check_66_irreversible_run_reads_back_compliance(b: Bundle) -> list[Finding]:
     """An irreversible action's run says whether compliance was read back (4.6.6.1).
 
@@ -4749,6 +4988,14 @@ CHECKS = [
     check_66_irreversible_run_reads_back_compliance,
     check_60_observables_are_registered_quantities,
     check_61_envelope_currency,
+    check_67_entry_units_are_declared,
+    # check_69_no_entry_cites_itself is written above and deliberately NOT
+    # registered yet: it catches one real defect, water_viscosity_293k's
+    # number sourcing itself, and registering it now reddens the tree for
+    # every seat until a one-line fix lands in a directory this one may not
+    # write. Asked for; registered the moment it is in.
+    check_70_one_version_one_answer,
+    check_71_every_check_is_assigned_to_a_seat_that_can_write_it,
     check_42_check_registry, check_41_seat_attribution,
 ]
 
