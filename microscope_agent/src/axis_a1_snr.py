@@ -187,7 +187,19 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         # From the service's gaps, not from ABSENT. Built from the static table,
         # an input the store gained went on being reported missing -- the false
         # absence check 49 exists against, arriving through a hardcoded list.
-        missing = [n for n in ineq.needs if n in absent]
+        # An entry answering to a name is not a value for it. A2 met this when
+        # tracer_diffusivity_expected arrived as a formula carrying
+        # `numbers: []`, and the librarian then measured the scope: 49 of 106
+        # entries come back with no numbers, mostly `claim`s that correctly
+        # hold none. So `not a gap` means the store said something, not that
+        # this axis has a number -- and testing only `n in absent` sends a
+        # bound with nothing to evaluate into the `failed` branch, which says
+        # the axis has no code when what it has is no value.
+        missing = [n for n in ineq.needs
+                   if n in absent or not any(
+                       num.get("name") == n
+                       for e in responses["entries"].values()
+                       for num in (e.get("numbers") or []))]
         if missing:
             reason = "; ".join(ABSENT[m] for m in missing if m in ABSENT)
             if ineq.id == "motion_blur" and "pixel_size" not in missing:
