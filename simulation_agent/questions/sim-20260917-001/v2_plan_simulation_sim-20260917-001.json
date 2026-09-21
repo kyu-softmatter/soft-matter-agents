@@ -443,16 +443,16 @@
   ],
   "kb_refs": [
     {
-      "entry_id": "tracer_diameter_measured",
-      "grade": "E2",
-      "kb_version": "kbv-1dabfd5ad58d",
-      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
-    },
-    {
       "entry_id": "lab_ambient_temperature",
       "grade": "E3",
       "kb_version": "kbv-1dabfd5ad58d",
       "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's."
+    },
+    {
+      "entry_id": "no_thermometer_at_the_sample",
+      "grade": "E3",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "There is no thermometer beside the sample. The only thermometer in the laboratory reads the room, so any temperature attributed to the sample is a room reading applied to it."
     },
     {
       "entry_id": "sample_temperature_not_actuated",
@@ -461,10 +461,16 @@
       "claim": "Sample temperature is not under control on this instrument. A temperature stage exists but has never been connected, so any temperature a plan uses is an ambient value of the room, not a commanded one."
     },
     {
-      "entry_id": "water_viscosity_293k",
-      "grade": "E3",
+      "entry_id": "tau_d",
+      "grade": "E4",
       "kb_version": "kbv-1dabfd5ad58d",
-      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+      "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
+    },
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
     },
     {
       "entry_id": "tracer_diffusivity_expected",
@@ -473,37 +479,48 @@
       "claim": "The expected translational diffusivity of a tracer sphere in a bulk fluid is the Stokes-Einstein value, k_B T over 3 pi eta d. It is a prediction, not a measurement of how the particles actually move."
     },
     {
-      "entry_id": "tau_d",
-      "grade": "E4",
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
       "kb_version": "kbv-1dabfd5ad58d",
-      "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
     }
   ],
   "kb_gaps": [
     {
-      "gap_id": "sample_temperature_absent",
-      "observable": "sample_temperature",
+      "gap_id": "temperature_at_the_sample_absent",
+      "observable": "temperature",
+      "at": "sample",
       "kind": "absent",
       "searched": [
-        "kb_query(observable='sample_temperature') against the service at kbv-1dabfd5ad58d",
+        "kb_query(observable='temperature') against the service at kbv-1dabfd5ad58d",
         "kb/entries",
         "kb/exports"
       ],
       "nearest": [
         {
-          "entry_id": "sample_temperature_not_actuated",
+          "entry_id": "no_thermometer_at_the_sample",
           "overlap": "partial"
         },
         {
           "entry_id": "lab_ambient_temperature",
           "overlap": "partial"
+        },
+        {
+          "entry_id": "room_temperature_is_controlled",
+          "overlap": "partial"
+        },
+        {
+          "entry_id": "sample_temperature_not_actuated",
+          "overlap": "partial"
         }
       ],
-      "kb_version": "kbv-1dabfd5ad58d",
       "near_names": [
+        "abvigen_product_storage_temperature_max",
+        "abvigen_product_storage_temperature_min",
         "sample_temperature_not_actuated",
-        "temperature"
-      ]
+        "temperature_stage"
+      ],
+      "kb_version": "kbv-1dabfd5ad58d"
     },
     {
       "gap_id": "tracer_diffusivity_measured",

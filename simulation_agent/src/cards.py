@@ -39,16 +39,32 @@ AUTHOR = "simulation_agent"
 # It was absent here until 2026-09-20 while the validator already had it, so
 # `grade_for("simulated:run-...")` raised on a source the gate accepts. That is
 # the 11-11 shape -- one fact in two places -- and this copy is this agent's.
+# 5.3's table, and it has to be 5.3's WHOLE table.
+#
+# This is the second copy -- contracts/validate.py holds the first -- and a
+# partial copy of a table is worse than no copy, because `grade_for` raises on
+# a kind it has never heard of rather than grading it. `prior_run` and
+# `literature` went into the validator on 2026-09-18 (877d652) and never
+# arrived here, so for two days `grade_for("prior_run:...")` raised ValueError
+# against the 26 store entries that carry that source. Nobody hit it because
+# nothing in this agent had cited one yet; the gap was found by counting the
+# two tables against each other, not by a failure.
+#
+# `simulated` was the one that drew attention, because it was new. It was not
+# the only one missing, and that is the lesson: what is new gets noticed and
+# what went stale does not.
 SOURCE_GRADE = {
     "measured": "E1",
     "calibration": "E2",
     "spec": "E3",
+    "prior_run": "E3",        # another project ran it; 10.3 rule 1 caps it here
+    "literature": "E3",       # published, and not a vendor specification
     "operator_read": "E3",
     "operator_recall": "E5",
-    "computed": None,
-    "simulated": None,
+    "computed": None,         # max(E4, worst input)
+    "simulated": None,        # max(E4, worst input) too -- the model is the assumption
     "assumed": "E5",
-    "kb": None,
+    "kb": None,               # inherited from kb_refs
 }
 
 
