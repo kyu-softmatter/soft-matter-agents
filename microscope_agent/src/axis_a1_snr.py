@@ -57,7 +57,7 @@ GAP_IDS = {
     "quantum_efficiency": "camera_quantum_efficiency",
     "tracer_brightness": "tracer_photophysics",
     "background_rate": "background_rate",
-    "pixel_size_in_sample": "pixel_size_in_sample",
+    "pixel_size": "pixel_size",
     "tracer_diffusivity_expected": "expected_diffusivity",
     "bleaching_rate": "tracer_bleaching",
 }
@@ -97,7 +97,7 @@ OWNED = (
         parameter="exposure_time",
         statement="exposure short enough that a freely diffusing tracer does not smear across "
                   "more than one pixel within a frame",
-        needs=("pixel_size_in_sample", "tracer_diffusivity_expected"),
+        needs=("pixel_size", "tracer_diffusivity_expected"),
         derived_from="4.5.3 A1 'artifacts', the blur case",
     ),
     axc.Inequality(
@@ -118,22 +118,21 @@ ABSENT = {
     "tracer_brightness": "nothing describes the fluorophore on these beads -- not the dye, not "
                          "a photon rate, not a labelling density",
     "background_rate": "no background measurement exists on this instrument",
-    "pixel_size_in_sample":
-        "the store does not answer to this name and the quantity is there anyway: the gap "
-        "carries near_names [pixel_size], and under that name twelve E2 entries give the "
-        "pixel size AT THE SAMPLE PLANE, measured on this instrument per objective and "
-        "zoom. So this is not a measurement anybody is missing. What is missing is WHICH "
-        "of the twelve applies -- the objective-and-zoom pair, which S4 chooses and no "
-        "librarian holds. A6 returns the four pairs that satisfy Nyquist and this axis may "
-        "not read that (4.5.3 rule b); once the pair is fixed this bound is arithmetic, "
-        "because the expected diffusivity is served now too",
-    "tracer_diffusivity_expected": "no expected diffusivity is in the store. It is computable -- "
-                                   "Stokes-Einstein on the viscosity, the diameter and the "
-                                   "ambient temperature, all three of which exist -- and that is "
-                                   "why it belongs in the store as an entry rather than here: "
-                                   "knowledge lives in one place (P14), and computing it in this "
-                                   "axis would also put the drag in two files, which 4.5.2.1 "
-                                   "forbids because the two would eventually disagree",
+    "pixel_size": "no sample-plane pixel size is served at this pin under the registered "
+                  "quantity name. Through revision 4 this axis asked under "
+                  "`pixel_size_in_sample` and read the empty answer as a missing "
+                  "measurement, while twelve calibrations sat in this card's own kb_refs the "
+                  "whole time: quantities.json rule 1, the locus glued on behind the name",
+    "tracer_diffusivity_expected":
+        "no expected diffusivity is served at this pin, and the name is not what is wrong. "
+        "`tracer_diffusivity_expected` is a registered quantity, and kb_group -- the tool for "
+        "an entry shaped like a derivation rather than a value -- is REFUSED here: no formula "
+        "carries that symbol at this version. Following the service's own near name returns "
+        "one E4 entry about how a temperature enters an experiment differently from a "
+        "simulation, which is not a diffusivity. So the remedy is a re-pin and not a rename, "
+        "and not a computation here either: knowledge lives in one place (P14), and computing "
+        "it in this axis would put the drag in two files, which 4.5.2.1 forbids because the "
+        "two would eventually disagree",
     "bleaching_rate": "no bleaching rate exists for this fluorophore",
 }
 
@@ -150,6 +149,18 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
     run.kb_refs = axc.refs_from(responses, pin)
     run.kb_gaps = axc.gaps_from(responses, pin, caller_id, GAP_IDS)
     absent = {g["observable"] for g in responses["gaps"]}
+
+    # A gap's `searched` is the record of the calls that came back empty, and one
+    # call is not always the whole search: when the service offers a near name,
+    # following it is a second call and the answer to it is part of what this
+    # axis found out. gaps_from writes one line, from the response it was given,
+    # so the extra lines come from the responses file too -- never from a table
+    # here. A table would print a call that a later run did not make, which is
+    # the same false-record shape the comment below this one is about.
+    for extra in responses.get("follow_ups") or []:
+        for gap in run.kb_gaps:
+            if gap["observable"] == extra["observable"]:
+                gap["searched"].append(extra["line"])
 
     for ineq in OWNED:
         if ineq.id == "disk_period_multiple":
@@ -179,6 +190,21 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         missing = [n for n in ineq.needs if n in absent]
         if missing:
             reason = "; ".join(ABSENT[m] for m in missing if m in ABSENT)
+            if ineq.id == "motion_blur" and "pixel_size" not in missing:
+                reason += (
+                    ". The other side of this bound is served, and saying so is the point of this "
+                    "revision: asking for `pixel_size` -- the registered quantity, with the locus "
+                    "out of the name -- returns twelve entries at E2, measured at the sample plane "
+                    "on this instrument and keyed by objective and intermediate magnification. They "
+                    "are in this card's kb_refs and were in revision 4's too, while revision 4 "
+                    "recorded the same quantity as a gap. What is still not a librarian's to hold is "
+                    "WHICH of the twelve applies: that is the objective-and-zoom pair, S4 chooses it, "
+                    "and A6 returns the pairs that satisfy Nyquist where this axis may not read them "
+                    "(4.5.3 rule b). One condition rides with them -- every one is valid at 1x1 "
+                    "binning and the query passed no binning, so the service reported binning "
+                    "`unasked`; at another binning the value scales and this bound needs re-asking "
+                    "rather than re-using"
+                )
             if ineq.id == "snr_sustained_over_window":
                 reason += (
                     ". The coupling is what makes this bound matter on this configuration rather "
@@ -200,12 +226,18 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                    "a gap in this file, not an abstention (4.5.2.1)",
         ))
 
+    # Counted off this run, not written out. The sentence this replaces listed the
+    # missing inputs by hand and went on listing `the pixel size in the sample`
+    # after the quantity turned out to be served -- a prose count outliving the
+    # thing it counted, which is the failure this repository keeps naming.
+    no_input = sum(1 for o in run.outcomes if o.kind == "no_input")
+    measurements = sorted(absent - {"tracer_diffusivity_expected"})
     run.notes.append(
-        "Every bound here abstains, and five of the six abstain for want of a number rather than "
-        "because they do not apply. Read as a list of measurements, that is: the camera's read "
-        "noise and quantum efficiency, the pixel size in the sample, the tracers' brightness and "
-        "bleaching rate, and a background rate. None of them is exotic and none can be guessed "
-        "(P2), which is the whole content of this card."
+        f"Every bound here abstains, and {no_input} of the {len(OWNED)} abstain for want of an "
+        f"input rather than because they do not apply. Read as a list, the inputs are: "
+        f"{', '.join(measurements)} -- none of them exotic and none guessable (P2) -- and, "
+        "separately, tracer_diffusivity_expected, which no one measures: it is a derived entry the "
+        "store holds at a later version than this card's pin."
     )
     run.notes.append(
         "Revisions 1 and 2 of this card read the store's files and carried "
@@ -222,6 +254,26 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         "the service cannot see that, because 17 of the 25 entries carry no machine-readable "
         "validity to match against."
     )
+    run.notes.append(
+        "What changed in this revision is one name and no number. The pixel-size input was asked "
+        "under `pixel_size_in_sample` through revision 4 and is asked under `pixel_size` from here "
+        "on: the registered quantity is the pixel size and `in_sample` is the locus, which "
+        "quantities.json rule 1 keeps out of a name, and the gap this axis recorded under the long "
+        "name was answered under the short one by twelve E2 entries that were already in its own "
+        "kb_refs. A6 had the same rule broken in the other direction, with the subject in front. "
+        "Nothing here re-grades, re-computes or re-pins anything."
+    )
+    if "tracer_diffusivity_expected" in absent and pin == "kbv-7c77fa74ee5a":
+        run.notes.append(
+            "The second gap card 015 expected to close does not close at this pin, and it was "
+            "measured rather than argued: an entry named tracer_diffusivity_expected exists in this "
+            "repository's store and is outside this pin's history -- it was added at 03fe7a3, which "
+            "is not an ancestor of a4e1449, the commit the service says kbv-7c77fa74ee5a resolves "
+            "to. The same fan-out asked for it at kbv-bf4f559baf68 earlier on 2026-09-20 and got "
+            "coverage rather than a gap, so the absence is this pin's and not the store's. It "
+            "closes by re-pinning the whole fan-out, which check 58 will not let one card do alone, "
+            "and until then motion_blur stays unbounded on that input."
+        )
     if not through_the_disk:
         run.notes.append(
             "The sixth is different and the difference is the point: the disk rule was evaluated "
