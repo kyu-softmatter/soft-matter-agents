@@ -329,12 +329,69 @@ class MockBackend:
         slope_se = float(
             np.sqrt((residual ** 2).sum() / dof / ((weights * (lags - np.average(lags, weights=weights ** 2))) ** 2).sum())
         )
+        # The intercept's own uncertainty, from the same weighted fit.
+        #
+        # It is reported because the intercept is the estimator's stated
+        # diagnostic -- observables.json leaves it free "so that localisation
+        # error stays out of the slope" -- and this backend has no localisation
+        # error, so a free-regime fit should return an intercept consistent with
+        # zero. Without its uncertainty that sentence cannot be tested: run
+        # run-20260920-002's intercept is 7.3 per cent of the MSD at the
+        # shortest lag and 0.07 per cent at the longest, and with no standard
+        # error beside it there is no way to tell sampling noise from a
+        # short-lag artifact. That is unjudgeable rather than wrong, and one
+        # number closes it.
+        #
+        # For a weighted straight-line fit the two variances share a
+        # denominator: with Sw = sum(w^2), Swx = sum(w^2 x), Swxx = sum(w^2 x^2)
+        # and D = Sw*Swxx - Swx^2, var(slope) = s^2*Sw/D and
+        # var(intercept) = s^2*Swxx/D. So the ratio is Swxx/Sw and the intercept
+        # follows from the slope error already computed, with no second fit and
+        # no second convention to drift from it.
+        w2 = weights ** 2
+        intercept_se = float(slope_se * np.sqrt((w2 * lags ** 2).sum() / w2.sum()))
+        # BOTH STANDARD ERRORS BELOW ARE TOO SMALL, AND BY A MEASURED AMOUNT.
+        #
+        # The fit treats the MSD points as independent observations. They are
+        # not: every lag is computed from the same trajectories, so the points
+        # are strongly correlated along the curve, and a weighted least squares
+        # that ignores that returns a parameter error far tighter than the
+        # estimator actually achieves. The weights here account for how many
+        # displacements enter each lag and not for the correlation between
+        # lags.
+        #
+        # Measured over eight seeds of this configuration, comparing the actual
+        # spread of the estimate against what the fit quotes:
+        #
+        #     diffusivity   true scatter / quoted SE   ~41x
+        #     intercept     true scatter / quoted SE    ~8x
+        #
+        # The estimator itself is sound -- across those seeds the mean sits
+        # -0.06 per cent from the analytic Stokes-Einstein value, and the mean
+        # intercept is consistent with zero. What is wrong is only the error
+        # bar, and it is wrong in the dangerous direction.
+        #
+        # This matters to two criteria and not to the number. Run
+        # run-20260920-002's intercept reads 6.4 sigma from zero against the
+        # quoted error and 0.0 sigma against the measured scatter, so a
+        # free-regime test evaluated against these would fail on an artifact
+        # and send someone hunting a bug that is not there. And the plan's
+        # `statistics_met`, which compares relative_standard_error against a
+        # target, is comparing against a number about forty times too small --
+        # it passes trivially and certifies nothing.
+        #
+        # Reported as they are, with this note, rather than silently rescaled:
+        # the honest uncertainty for this configuration comes from the spread
+        # across seeds, and choosing how to report that is revision 2's, not a
+        # fudge factor's.
         diffusivity = float(slope) / (2 * DIMENSIONS)
         return {
             "diffusivity": diffusivity,
             "diffusivity_standard_error": slope_se / (2 * DIMENSIONS),
             "relative_standard_error": abs(slope_se / float(slope)) if slope else None,
             "intercept": float(intercept),
+            "intercept_standard_error": intercept_se,
+            "intercept_over_shortest_lag_msd": float(intercept / msd[0]) if msd[0] else None,
             "lags_used": len(lags),
             "shortest_lag": float(lags[0]),
             "longest_lag": float(lags[-1]),
