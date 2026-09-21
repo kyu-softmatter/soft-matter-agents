@@ -2050,7 +2050,7 @@ src/devices/dev_*.py         imports neither a sibling nor anything above
 |---|---|---|
 | 73 | whether a result's `approval_id` and `run_id` resolve -- to an approval card that exists and covers this plan revision, and to a run directory in this tree. `plan_hash` is checked and these two are not, so the approval chain is verified up to the plan and not at the result | manager-microscope |
 | 74 | whether a card's `from_round` resolves, was delivered to this agent, and still pins the revision its source is at | manager-bridge |
-| 72 | whether a result's verdict fields agree with the numbers beside them -- `criteria_evaluation[].met` against its criterion and `observed_number`, `deviations[].within_tolerance` against `planned_number` and `actual_number` | manager-simulation |
+| 72 | whether the **remaining** verdict fields agree with the numbers beside them -- `deviations[].within_tolerance` against `planned_number` and `actual_number`, and `estimation.followed`. The `met` half is done: `1b2276a` landed it as check 6 ten minutes after this row was written, independently, and the run reads *10 criteria recompute to the verdict the cards state* | manager-simulation |
 | 53 | whether an agent setting's `deny` contains a pattern that blocks reading | manager-microscope |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
