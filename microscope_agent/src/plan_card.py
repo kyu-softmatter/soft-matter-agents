@@ -35,6 +35,7 @@ sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.curdir) != _HERE]
 import argparse                                                  # noqa: E402
 import importlib.util                                            # noqa: E402
 import json                                                      # noqa: E402
+from fractions import Fraction                                   # noqa: E402
 from datetime import datetime, timezone                          # noqa: E402
 from pathlib import Path                                         # noqa: E402
 
@@ -257,6 +258,38 @@ def carried_from_goal(goal: dict, bounded: set[str]) -> list[dict]:
     return out
 
 
+def axc_elements() -> set[str]:
+    """Every element id in the registry, from this agent's own snapshot."""
+    snapshot = AGENT / "envelope" / "snapshot.json"
+    if not snapshot.exists():
+        return set()
+    snap = json.loads(snapshot.read_text())
+    text = ((snap.get("tables") or {}).get("devices") or {}).get("text")
+    if not text:
+        return set()
+    return {e["id"] for ch in json.loads(text).get("channels", []) or []
+            for e in ch.get("elements") or [] if e.get("id")}
+
+
+def axc_detectors(config: str) -> list[str]:
+    """The detectors the optical-path table declares for a configuration.
+
+    Read from this agent's own snapshot, which is where the published table
+    lives for us (P14). Two for widefield_inline, which is the whole reason
+    the acquire action cannot be written without a choice.
+    """
+    snapshot = AGENT / "envelope" / "snapshot.json"
+    if not snapshot.exists():
+        return []
+    snap = json.loads(snapshot.read_text())
+    text = ((snap.get("tables") or {}).get("optical_paths") or {}).get("text")
+    if not text:
+        return []
+    row = next((c for c in json.loads(text).get("configurations", []) or []
+                if c.get("id") == config), None)
+    return list((row or {}).get("detectors") or [])
+
+
 def mandatory_fields() -> list[str]:
     """Read off plan.schema.json, so this list cannot drift from the contract."""
     schema = json.loads((CONTRACTS / "schemas" / "plan.schema.json").read_text())
@@ -273,14 +306,12 @@ def assemble(qid: str, revision: int = 1,
     fields with no source and says which silence is behind each, so the next
     action is a person or a measurement rather than a re-read of this file.
 
-    The third is returned rather than dropped. A precondition PROPAGATES --
-    the schema says so in as many words: if any axis returns one, the plan
-    must carry it -- and plan.schema.json declares no field that can hold
-    one. `conditions` cannot: every condition points into numbers[] by name,
-    and a requirement on the plan's form is not a number. So this stage
-    receives them and can place none of them, which is a gap in the contract
-    and not a decision this stage may make quietly. They come back so the
-    caller can say so out loud.
+    The third is returned as well as carried. `preconditions` landed in
+    plan.schema.json on 2026-09-21 and this stage was discarding A4's two
+    until then -- silently, because `conditions` points into numbers[] by
+    name and a requirement on the plan's FORM is not a number. They are now
+    written into the card AND reported, because a plan that drops one an
+    axis returned is missing a requirement and nothing downstream shows it.
     """
     goal, _configs, by_config = s4.load_fanout(qid)
     card4, detail, why = s4.synthesise(qid, revision)
@@ -291,6 +322,19 @@ def assemble(qid: str, revision: int = 1,
         raise PlanError(f"S4 chose no configuration: {why}")
     d = detail[config]
     preconditions = list(d.get("preconditions") or [])
+
+    # CARRIED UNCHANGED, AND `requires` IS NOT PARAPHRASED. The schema says
+    # why: restating it in the planner's words would put one rule in two
+    # wordings, and the next revision would make it two rules (P3).
+    carried_pre = []
+    for pre in preconditions:
+        bound = pre.get("bound") or {}
+        row = {"parameter": bound.get("parameter", ""),
+               "requires": bound.get("requires", ""),
+               "from_axis": pre.get("axis", "")}
+        if bound.get("basis"):
+            row["basis"] = list(bound["basis"])
+        carried_pre.append(row)
 
     numbers = list(card4.get("numbers") or [])
     conditions = [{"parameter": p["parameter"], "number": p["number"]}
@@ -411,15 +455,145 @@ def assemble(qid: str, revision: int = 1,
             f"one. Open: {', '.join(open_names)}")
     if not any(n["name"] for n in numbers):
         unfillable.append("numbers: nothing was bounded, so the card has no values to carry")
-    unfillable.append(
-        "actions: no axis bounded an acquisition parameter, so there is no exposure, frame rate "
-        "or record length for an acquire action to carry. A1 and A2 own those and both abstain")
-    unfillable.append(
-        "stop_criteria: a criterion compares a metric against a number in numbers[] (5.4), and "
-        "the drift, dose and duration bounds that would supply one are A3's and A5's, which abstain")
-    unfillable.append(
-        "cost: no duration is bounded, so wall_clock would be a number this stage invented "
-        "(4.5.4 rule 4 forbids it one stage earlier and it is no better here)")
+    have = {n["name"] for n in numbers}
+    actions: list[dict] = []
+
+    # THE FRAME COUNT IS AN INTEGER OR THERE IS NONE. Dividing in binary
+    # floats is the same trap as summing in them: 60/0.1 lands on 600 and
+    # 0.3/0.1 lands on 2.9999999999999996, and which happens depends on
+    # values S4 chose. Fraction over the decimal text divides exactly, so a
+    # record that is not a whole number of exposures is REFUSED rather than
+    # rounded -- rounding it would move a number the person set.
+    #
+    # An integer count is also what the operator must derive its elapsed time
+    # from. frames x exposure rounds once; a running sum rounds once per
+    # frame and reports a finished run as unfinished.
+    record_length = next((n["value"] for n in numbers if n["name"] == "record_length"), None)
+    exposure_time = next((n["value"] for n in numbers if n["name"] == "exposure_time"), None)
+    frame_count = None
+    if record_length is not None and exposure_time:
+        ratio = Fraction(str(record_length)) / Fraction(str(exposure_time))
+        if ratio.denominator == 1:
+            frame_count = int(ratio)
+            numbers.append({
+                "name": "frame_count", "value": frame_count, "unit": "count",
+                "source": "computed:record_length_over_exposure_time", "grade": "E5",
+                "precision": "significant_figures",
+                "note": ("the frame period equals the exposure on this camera -- readout is "
+                         "pipelined and the interval setting is ignored -- so the frames cover "
+                         f"the record with no dead time and {frame_count} x {exposure_time:g} s "
+                         f"is {record_length:g} s exactly, not approximately. E5 because both "
+                         "inputs are the person's starting point and a computed value inherits "
+                         "the worst of them")})
+            have.add("frame_count")
+
+    # A CONDITION BECOMES A SET ACTION WHEN THE REGISTRY NAMES ITS ELEMENT,
+    # and not otherwise. The match is by name and nothing here guesses: an
+    # element id exactly, or an element id with `_position` after it, which
+    # is how a selector's parameter is written. `intermediate_magnification`
+    # is an element and matches the first way; `nosepiece_position` matches
+    # the second. Check 38 takes an element as a plan device name, so
+    # naming the element rather than stand_ti2e is the right grain -- that
+    # channel carries nine of them and naming the channel loses which.
+    #
+    # What does NOT match gets no action and is named in the refusal. An
+    # exposure belongs to a camera and there are two; a window is an
+    # instruction to the estimator and no device does it at all.
+    elements = axc_elements()
+    unplaced: list[str] = []
+    for condition in conditions:
+        parameter = condition["parameter"]
+        device = condition.get("device") or (
+            parameter if parameter in elements else
+            parameter[:-len("_position")] if parameter.endswith("_position")
+            and parameter[:-len("_position")] in elements else None)
+        if device is None:
+            unplaced.append(parameter)
+            continue
+        condition["device"] = device
+        actions.append({"id": f"act_set_{parameter}", "device": device,
+                        "action": f"set_{parameter}", "reversible": True,
+                        "parameters": [parameter], "tier": 1})
+
+    # AND ONE ACQUIRE, IF THE CONFIGURATION NAMES ONE DETECTOR.
+    #
+    # It names two. widefield_inline declares camera_red and camera_blue, and
+    # which one collects depends on the band -- a fact this question's goal
+    # states in prose, with real evidence behind it, and which no field on any
+    # card can carry: a detector is a SELECTOR, a string naming a channel, and
+    # conditions[] point into numbers[] where a value is a number. That is the
+    # same wall as the camera mode and the objective, and the objective only
+    # escaped it because the turret publishes a POSITION.
+    #
+    # So the choice is named rather than taken. Reading it out of the goal's
+    # prose would be this stage deciding which arm the light goes down on the
+    # strength of a sentence nothing checks.
+    detectors = [d for d in (axc_detectors(config) or []) if d]
+    if "record_length" not in have or "exposure_time" not in have:
+        unfillable.append(
+            "actions: an acquire action needs a record length and an exposure, and the plan "
+            "carries " + (", ".join(sorted(have & {"record_length", "exposure_time"})) or "neither"))
+    elif frame_count is None:
+        unfillable.append(
+            f"actions[acquire]: {record_length:g} s of record is not a whole number of "
+            f"{exposure_time:g} s exposures, so the acquire action has no frame count. Rounding "
+            "one out would move the record length, and the record length came from the person")
+    elif len(detectors) != 1:
+        unfillable.append(
+            f"actions[acquire]: {config!r} declares {len(detectors)} detectors "
+            f"({', '.join(detectors)}) and nothing on a card says which collects. The device "
+            "table settles that it cannot be read off the cameras -- both are Kinetix 22, and "
+            "'the 561 dichroic in the port is the only thing making the arms differ'. So the "
+            "choice is the csuw1_port selector plus the emission band, and this plan can state "
+            "neither: the port is a required_selector with no slot on the card (the camera-mode "
+            "wall again), and the band waits on the red-path filter designation, which is an "
+            "open debt. Everything else the acquire needs is here -- "
+            f"{frame_count} frames of {exposure_time:g} s. Only the device is missing")
+    else:
+        actions.append({"id": "act_acquire", "device": detectors[0], "action": "acquire_series",
+                        "reversible": True,
+                        "parameters": ["exposure_time", "frame_count"], "tier": 1})
+    if unplaced:
+        print(f"  {len(unplaced)} condition(s) got no set action, because no registry element "
+              f"carries the name: {', '.join(unplaced)}. Three kinds, and only one is a gap. "
+              "record_length and exposure_time are the ACQUIRE action's parameters and want no "
+              "set of their own. The two windows are instructions to the estimator and no "
+              "device performs them at all. Only the line intensity is a real gap: it belongs "
+              "to an engine the path table declines to confirm (lapp_branch_assignment).",
+              file=sys.stderr)
+
+    # THE STOP CRITERION IS THE PLANNED END, and `on_met` says so: `complete`
+    # rather than `continue`, because reaching the record length is the run
+    # finishing and not a guard being violated.
+    stop_criteria: list[dict] = []
+    if frame_count is not None:
+        stop_criteria.append({
+            "id": "sc_frame_count", "metric": "frames_acquired", "comparator": ">=",
+            "number": "frame_count", "on_met": "complete",
+            "statement": (f"the acquisition stops at {frame_count} frames, which is the planned "
+                          f"end and not a guard. It counts FRAMES and not seconds on purpose: an "
+                          "elapsed time accumulated a step at a time lands a hair off the "
+                          "boundary and reports a finished run as unfinished, and the direction "
+                          "of the error moves with the exposure. A frame count is an integer and "
+                          "compares exactly. No tolerance is added -- the limit came from the "
+                          "person and an operator that widens it is changing an approved number")})
+    else:
+        unfillable.append(
+            "stop_criteria: a criterion compares a metric against a number in numbers[] (5.4) "
+            "and no frame count could be derived")
+
+    # COST IS ARITHMETIC OVER THE PLAN, and says what it does not cover.
+    if frame_count is not None:
+        cost = {"wall_clock": (f"{frame_count} frames x {exposure_time:g} s = "
+                               f"{record_length:g} s of acquisition. That is a FLOOR and not an "
+                               "estimate: setup, focusing and settling are not bounded -- A5 "
+                               "abstains on the settling time and nothing bounds the session "
+                               "budget -- so the only part of the wall clock this plan can do "
+                               "arithmetic on is the record itself"),
+                "numbers": ["frame_count", "exposure_time", "record_length"]}
+    else:
+        cost = {"wall_clock": "", "numbers": []}
+        unfillable.append("cost: no duration is on the card, so wall_clock would be invented here")
 
     card = {
         "card": "plan",
@@ -438,12 +612,13 @@ def assemble(qid: str, revision: int = 1,
         "intent": goal.get("intent", "explore"),
         "observable": {"name": (goal.get("observable") or {}).get("name")},
         "system_configuration": {"config": config, "optical_path": None, "devices": [], "model": None},
+        "preconditions": carried_pre,
         "conditions": conditions,
-        "actions": [],
+        "actions": actions,
         "envelope_check": {"checked_against": [], "status": "unavailable",
                            "note": "no condition is bounded, so nothing was compared"},
-        "cost": {"wall_clock": "", "numbers": []},
-        "stop_criteria": [],
+        "cost": cost,
+        "stop_criteria": stop_criteria,
         "success_criteria": success,
         "targets": carried_targets,
         "open_risks": [],
@@ -520,18 +695,17 @@ def main(argv: list[str] | None = None) -> int:
     # show it. This stage does not invent a field to put them in; the contract
     # is manager-microscope's and the gap is reported there.
     if preconditions:
-        print(f"\n  {len(preconditions)} precondition(s) reached this stage and the plan contract "
-              "has no field to carry them:", file=sys.stderr)
+        print(f"\n  {len(preconditions)} precondition(s) reached this stage and are carried into "
+              "the plan's `preconditions` (slot added 2026-09-21):", file=sys.stderr)
         for pre in preconditions:
             bound = pre.get("bound") or {}
             print(f"    {bound.get('parameter', '?')} <- {pre.get('axis', '?')}: "
                   f"{str(bound.get('requires', ''))[:160]}", file=sys.stderr)
-        print("    plan.schema.json declares card, goal_id, synthesis_id, purpose, intent, "
-              "observable,\n    system_configuration, conditions, actions, envelope_check, cost, "
-              "stop_criteria,\n    success_criteria, alternatives_rejected, open_risks, "
-              "compare_arms, compare_variable\n    and targets -- and `conditions` points into "
-              "numbers[] by name, so a requirement on\n    the plan's FORM has nowhere to go. "
-              "Raised with manager-microscope.", file=sys.stderr)
+        print("    Until that slot existed this stage dropped them without saying so, because "
+              "a\n    precondition names no number and `conditions` points into numbers[] by "
+              "name.\n    Nothing yet compares the plan's list against the axis cards' -- the "
+              "schema\n    says that check is owed, and it is not this file's to write.",
+              file=sys.stderr)
 
     if not unfillable:
         if args.write:

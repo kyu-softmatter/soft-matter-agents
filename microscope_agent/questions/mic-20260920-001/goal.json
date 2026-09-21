@@ -1,11 +1,11 @@
 {
   "card": "goal",
   "schema_version": "0.1",
-  "id": "goal-mic-20260920-001-r4",
+  "id": "goal-mic-20260920-001-r5",
   "qid": "mic-20260920-001",
   "thread": "solo-mic-20260920-001",
   "round": 0,
-  "revision": 4,
+  "revision": 5,
   "author": "microscope_agent",
   "created_at": "2026-09-21T05:08:02Z",
   "status": "VALIDATED",
@@ -91,20 +91,66 @@
       "precision": "significant_figures",
       "at": "stand_ti2e",
       "note": "1x, the second half of the person's pair. Named explicitly because the objective alone does not fix the sampling: the calibrated pixel size is keyed by the PAIR, and at 1.5x it is a different row. This is the nominal designation written as a number and it is not a measurement of magnification -- 5.3's rule against a designation wearing a derived precision is exactly what 20.078x broke. The measured quantity of this pair is pixel_size_100x_zoom_1x, 0.065 um at E2, which is where any sampling calculation starts."
+    },
+    {
+      "name": "record_length",
+      "value": 60,
+      "unit": "s",
+      "source": "assumed:a_operating_point",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "Given by the person on 2026-09-21. Same source and grade as the other four operating-point numbers on purpose: it is a starting point the person chose and not a value any axis derived, and a choice does not become evidence by being made by a person. At 0.1 s exposure it is about 600 frames -- DERIVED as record_length over exposure_time and computed once, never accumulated frame by frame: a duration summed step by step lands a hair off the boundary and reports a completed run as unfinished, and the direction of the error flips with the step. No epsilon either; widening a number the person gave is changing an approved value at run time."
+    },
+    {
+      "name": "brightness_window",
+      "value": 6,
+      "unit": "s",
+      "source": "assumed:a_brightness_window",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "THE FIRST TENTH OF THE RECORD, declared before the run and adjudicated after it. Brightness measured across a record in which the sample bleached is depressed by the bleaching, so the window wants to be short enough that the decay over it is negligible -- and NOTHING KNOWS THE DECAY RATE, because measuring it is what this run is for. That circle is not broken by picking a better number; it is broken by declaring one and letting the fit judge it. WHY A TENTH. Two pressures in opposite directions and one fact that makes the choice cheap. Longer is more biased; shorter is noisier, and at 0.1 s exposure a tenth is about 60 frames, which supports the median over particles and frames the estimator asks for. The fact: the window is an ANALYSIS parameter and not a command. The run acquires all 600 frames whatever this says, so being wrong costs a re-derivation over the same data and not a second acquisition. That is what makes a declared fraction honest here rather than a guess with consequences."
+    },
+    {
+      "name": "bleach_window",
+      "value": 60,
+      "unit": "s",
+      "source": "assumed:a_bleach_window",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "The whole record, which is what the record is for: the decay is the thing being measured and a fit over part of it throws away the part that constrains the constant most. Stated rather than assumed because a window is which part of the record an estimator ran over, and `the whole of it` is an answer that has to be written down like any other."
     }
   ],
   "assumptions": [
     {
       "rationale_id": "a_operating_point",
-      "statement": "The whole operating point is supplied by the person and derived by no axis. The exposure and the line intensity are a STARTING POINT -- nothing in the store bounds an acquisition of these particles, because the photon rate per particle is exactly what is missing, so there was no number for an axis to reason from. The objective and the intermediate magnification are a TIE-BREAK under 4.5.1 (c): S5 handed objective_zoom_pair to the person on mic-20260918-001 because four pairs satisfied every bound and nothing distinguished them, and the person answered 100x at 1x. The two kinds are held in one assumption because they share one grade and one retirement, and they are named apart here because they are not the same act.",
+      "statement": "The whole operating point is supplied by the person and derived by no axis. The exposure and the line intensity are a STARTING POINT -- nothing in the store bounds an acquisition of these particles, because the photon rate per particle is exactly what is missing, so there was no number for an axis to reason from. The objective and the intermediate magnification are a TIE-BREAK under 4.5.1 (c): S5 handed objective_zoom_pair to the person on mic-20260918-001 because four pairs satisfied every bound and nothing distinguished them, and the person answered 100x at 1x. The record length is a THIRD kind and joins them here because it shares their grade and their retirement: 60 s is a budget the person set, not a duration any axis derived -- A1 and A3 both abstain on record_duration for want of the same decay constant. A choice is not evidence, whoever made it, so it stays E5 and the fact that a person made it does not promote it. The three kinds are held in one assumption because they share one grade and one retirement, and they are named apart here because they are not the same act.",
       "numbers": [
         "exposure_time",
         "illumination_line_intensity_permille",
+        "record_length",
         "nosepiece_position",
         "intermediate_magnification"
       ],
       "falsifier": "one bare-particle record at this operating point. Frames that saturate, particles that cannot be segmented from the background, or a decay too fast to fit inside the record each retire the starting point by measuring the thing it stands in for. The tie-break half is not falsified by anything -- a preference has nothing to be wrong about -- and it is retired instead by A6 returning a field_of_view or lateral_resolution bound that discriminates, which needs inputs the person still holds.",
       "gap_ref": "tracer_brightness_absent"
+    },
+    {
+      "rationale_id": "a_brightness_window",
+      "statement": "The first tenth of the record is short enough that bleaching over it does not move the brightness by anything the one-decade target would notice. It is a declared fraction -- one tenth -- and not a derived length, because deriving one needs the decay constant, which bleaching_rate_absent says the store has not got and which this run exists to supply. So the window is set before the run and adjudicated after it by the fit, which is the honest order.",
+      "numbers": [
+        "brightness_window"
+      ],
+      "falsifier": "the bleach fit over the full 60 s, which this same run produces, gives a decay constant whose product with 6 s is not small -- and then the brightness is re-derived on a shorter window FROM THE SAME DATA, with no second acquisition. That is the criterion declared before the run and the result saying whether the criterion was right; the forbidden order is reading the curve first and then choosing the window that makes the brightness look clean",
+      "gap_ref": "bleaching_rate_absent"
+    },
+    {
+      "rationale_id": "a_bleach_window",
+      "statement": "The decay constant is fitted over the whole record. The whole record, rather than some part of it, for the same reason the brightness window is a declared fraction: choosing a shorter fit range would need a prior estimate of the decay, and bleaching_rate_absent is exactly the absence of one. The full record is the choice that assumes least.",
+      "numbers": [
+        "bleach_window"
+      ],
+      "falsifier": "a residual showing the single exponential declared in the estimator does not describe the whole record -- which is a RESULT and not a licence to refit a better-shaped curve over a shorter stretch",
+      "gap_ref": "bleaching_rate_absent"
     }
   ],
   "kb_refs": [
