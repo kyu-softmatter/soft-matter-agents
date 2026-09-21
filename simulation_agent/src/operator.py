@@ -659,6 +659,12 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     # Both are kept: the fit's own stays inside `fit` with its own note, and
     # nothing is silently rescaled.
     uncertainty = backend.block_uncertainty(window)
+    # Whether the fit agrees with itself across the window. Revision 2's
+    # `window_insensitive` compares it against the decade target, and nothing
+    # recorded it -- so the criterion was declared and unevaluable. It is
+    # separate from the error bars on purpose: both of those describe scatter
+    # at one window, and this one asks whether the window itself was right.
+    halves = backend.window_halves(window)
     final = backend.read()
     cards.write(out / "trajectory_meta.json", {
         "run_id": run_id,
@@ -686,6 +692,7 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         "window_si": window,
         "fit": fit,
         "uncertainty": uncertainty,
+        "window_sensitivity": halves,
         "msd_curve": backend.mean_squared_displacement(window),
     })
     cards.write(out / "log.json", {

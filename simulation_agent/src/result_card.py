@@ -332,6 +332,24 @@ OBSERVED = {
     "step_displacement_diverged": ("max_step_displacement", False),
     "within_target_decade": ("decades_from_prediction", True),
     "statistics_met": ("relative_standard_error", True),
+    # Revision 2's two. Both are the estimator's output and both are new
+    # measurements rather than new readings of old ones: the intercept in
+    # block sigma came with the honest error bar, and the window split had to
+    # be added to the backend because a criterion was declared against a
+    # quantity nothing computed.
+    "free_regime_intercept": ("intercept_in_block_sigma", True),
+    "window_insensitive": ("window_half_disagreement", True),
+}
+
+# A plan number this card renames on the way in, because the card holds a
+# planned and an actual side where the plan holds one. Read by the carry loop
+# and by the threshold lookup, so the two cannot drift.
+RENAMED = {
+    "total_simulated_time_point": "total_simulated_time_planned",
+    "box_length_min_dilution": "box_length",
+    "max_lag_time": "max_lag_time_planned",
+    "integration_timestep_point": "integration_timestep_planned",
+    "save_interval_max": "save_interval_planned",
 }
 
 
@@ -390,8 +408,19 @@ def build(run_id: str, clock=None) -> dict:
     save_planned = carry("save_interval_max", "save_interval_planned")
     window_planned = carry("max_lag_time", "max_lag_time_planned")
     box_length = carry("box_length_min_dilution", "box_length")
-    target_decade = carry("target_decade_resolution")
-    target_rel_error = carry("target_relative_error")
+    # Every OTHER number a criterion compares against, taken from the plan's
+    # own criteria rather than listed here. Revision 1 names
+    # `target_decade_resolution` and `target_relative_error`; revision 2 has no
+    # `target_decade_resolution` at all -- the target left numbers[] for the
+    # inline `targets[]` shape -- and adds `intercept_sigma_max`. A hardcoded
+    # list refused revision 2 with "the plan has no number named
+    # target_decade_resolution", which was true and not the point.
+    held = {n.get("origin", "").split("#")[-1] for n in numbers}
+    for cr in (plan.get("stop_criteria") or []) + (plan.get("success_criteria") or []):
+        source = cr.get("number")
+        if source and source not in held:
+            carry(source, RENAMED.get(source))
+            held.add(source)
 
     # What the card asserts about the system. For this configuration that is
     # the prediction and not the reading (5.3): the diffusivity of free
@@ -403,7 +432,21 @@ def build(run_id: str, clock=None) -> dict:
                     dt_planned, save_planned, window_planned]
 
     # -- numbers this run read ---------------------------------------------- #
+    # **A reading is in this card because a field names it.** The criteria one
+    # revision declares are not the criteria another does, and a number no
+    # field names is refused outright by check 21 -- rightly, since nothing
+    # then says it is this run's reading rather than a claim. Revision 1 does
+    # not declare `free_regime_intercept`, and its run record carries the
+    # intercept anyway, so emitting every reading the record can supply would
+    # put an unnamed `simulated:` number on a revision-1 card.
+    wanted = {name for cr in (plan.get("stop_criteria") or []) + (plan.get("success_criteria") or [])
+              for name, _ in [OBSERVED.get(cr["id"], (None, None))] if name}
+    wanted |= {"integration_timestep_actual", "total_simulated_time_actual",
+               "save_interval_actual", "max_lag_time_actual"}   # the deviation side
+
     def read(name, value_si, unit, inputs, note=None):
+        if name not in wanted:
+            return None
         # A metric the record does not carry produces NO number, rather than a
         # number standing on nothing. The criterion that wanted it then comes
         # out `met: null` -- which is the operator's own rule, that a metric
@@ -454,6 +497,26 @@ def build(run_id: str, clock=None) -> dict:
     # it, and a subscript here would have crashed on them instead of saying so.
     steps, frames = meta.get("steps_taken"), meta.get("frames_saved")
     sim_time = meta.get("simulated_time")
+    # Revision 2's two, from the same run record. Both are absent from a
+    # revision-1 run and neither revision-1 criterion asks for them, so `read`
+    # returning None is never reached there -- but it is the honest behaviour
+    # if a plan ever asks a run that predates the measurement.
+    read(
+        "intercept_in_block_sigma", unc.get("intercept_in_sigma"), "1", model_inputs,
+        note=("the MSD fit's intercept over the block-resampled error on it. This backend has no "
+              "localisation error for a free intercept to absorb, so a nonzero one is the window "
+              "and not the physics"),
+    )
+    read(
+        "window_half_disagreement",
+        (run["observables"].get("window_sensitivity") or {}).get("log10_ratio"),
+        "count", model_inputs,
+        note=("log10 of the diffusivity fitted over the first half of the lag range against the "
+              "second, in absolute value. It is what separates converged from precise: a fit "
+              "reaching past the free regime disagrees with itself across the window while each "
+              "half stays tight, and neither error bar can report that because every block spans "
+              "the same lags"),
+    )
     duration_actual = read(
         "total_simulated_time_actual", sim_time, duration_planned["unit"],
         [dt_planned, duration_planned],
@@ -490,8 +553,9 @@ def build(run_id: str, clock=None) -> dict:
     # whether the declared estimator actually ran is what decides whether the
     # criteria standing on its output can be evaluated at all.
     estimation = estimation_of(run, save_planned, window_planned)
+    targets = targets_from(plan, qid)
     by_name = {n["name"]: n for n in numbers}
-    criteria = evaluate_criteria(plan, by_name, meta, estimation)
+    criteria = evaluate_criteria(plan, by_name, meta, estimation, targets)
 
     # -- deviations ---------------------------------------------------------- #
     # A deviation row needs both sides. When the record does not carry the
@@ -539,7 +603,7 @@ def build(run_id: str, clock=None) -> dict:
         "criteria_evaluation": criteria,
         "deviations": deviations,
         "time_base": clock(run["log"]),
-        "targets": targets_from(plan, qid),
+        "targets": targets,
         "estimation": estimation,
     })
     card.update(cards.tail(
@@ -561,7 +625,28 @@ def build(run_id: str, clock=None) -> dict:
     return card
 
 
-def evaluate_criteria(plan: dict, by_name: dict, meta: dict, estimation: dict) -> list[dict]:
+def threshold_si(criterion: dict, plan: dict, by_name: dict, targets: list[dict]) -> float | None:
+    """What a criterion compares against, in SI, from either shape it takes.
+
+    A threshold is a claim about the world or a decision (5.3.1), and revision 2
+    moved one of them from `numbers[]` to inline `targets[]` -- where a grade is
+    inexpressible rather than merely absent, because a decision is correct by
+    being made. So a criterion carries either `number:` or `target:`, and both
+    resolve here. Check 6 recomputes only the first kind, skipping a
+    target-valued threshold; this module answers both, so the two agree where
+    they overlap and this one goes further.
+    """
+    if criterion.get("number"):
+        return operator.si({**by_name[threshold_name(criterion, plan)], "name": criterion["id"]})
+    metric = criterion.get("target")
+    for t in targets:
+        if t.get("metric") == metric:
+            return operator.si({"value": t["value"], "unit": t["unit"], "name": criterion["id"]})
+    return None
+
+
+def evaluate_criteria(plan: dict, by_name: dict, meta: dict, estimation: dict,
+                      targets: list[dict]) -> list[dict]:
     """Every stop and success criterion the plan declares, evaluated.
 
     Every one, not the ones with an obvious answer: `minItems: 1` in the schema
@@ -627,7 +712,13 @@ def evaluate_criteria(plan: dict, by_name: dict, meta: dict, estimation: dict) -
                     f"estimator did not produce"))
                 continue
 
-            threshold = operator.si({**by_name[threshold_name(cr, plan)], "name": cid})
+            threshold = threshold_si(cr, plan, by_name, targets)
+            if threshold is None:
+                out.append(unevaluated(cid, kind, name,
+                    f"the plan compares this against the target on {cr.get('target')!r} and this "
+                    "card states no target for that metric, so there is no threshold to compare "
+                    "against"))
+                continue
             observed = operator.si(by_name[name])
             met = operator.COMPARATORS[cr["comparator"]](observed, threshold)
             # A stop criterion that ended the run has already been evaluated
@@ -656,20 +747,8 @@ def unevaluated(cid: str, kind: str, name: str | None, why: str) -> dict:
 
 
 def threshold_name(criterion: dict, plan: dict) -> str:
-    """The card's own name for the number a criterion compares against.
-
-    The plan's criteria point at the plan's names; this card renamed four of
-    them on the way in, because `max_lag_time` and `total_simulated_time_point`
-    each have a planned and an actual side here and the plan has only one.
-    """
-    renamed = {
-        "total_simulated_time_point": "total_simulated_time_planned",
-        "box_length_min_dilution": "box_length",
-        "max_lag_time": "max_lag_time_planned",
-        "integration_timestep_point": "integration_timestep_planned",
-        "save_interval_max": "save_interval_planned",
-    }
-    return renamed.get(criterion["number"], criterion["number"])
+    """The card's own name for the number a criterion compares against."""
+    return RENAMED.get(criterion["number"], criterion["number"])
 
 
 def deviation(parameter: str, planned: dict, actual: dict | None) -> dict | None:
@@ -724,6 +803,13 @@ def targets_from(plan: dict, qid: str) -> list[dict]:
     carries the decision only as a graded number, which is the shape check 52
     calls the wrong copy to trust.
     """
+    # Revision 2's plan carries `targets[]` itself, in the inline shape; the
+    # revision-1 plan predates the field and states the decision only as a
+    # graded number, which is the copy check 52 calls the wrong one to trust.
+    # Prefer the plan and fall back to the goal, so a card is never without the
+    # accuracy its run was held to.
+    if plan.get("targets"):
+        return [dict(t) for t in plan["targets"]]
     goal = cards.load_goal(qid)
     named = {n["name"]: n for n in goal.get("numbers") or []}
     out = []

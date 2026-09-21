@@ -332,6 +332,77 @@ class MockBackend:
         slope, intercept = np.polyfit(lags, msd, 1, w=np.sqrt(independent))
         return float(slope) / (2 * DIMENSIONS), float(intercept)
 
+    def window_halves(self, max_lag_time: float) -> dict:
+        """The same estimator over each half of the lag range, and the gap.
+
+        **This is what separates converged from precise, and no error bar
+        reports it.** A fit that reaches past the free regime disagrees with
+        itself across the window while each half stays tight: the first half
+        sees the free slope, the second sees whatever hindrance has set in, and
+        a standard error computed over the whole range describes neither. The
+        block estimate cannot see it either -- every block spans the same lags,
+        so they agree with each other about the same wrong slope.
+
+        Revision 2's `window_insensitive` compares
+        `log10(D_first_half / D_second_half)` against the decade target. Nothing
+        recorded it, so the criterion could not be evaluated at all; this is the
+        measurement it names.
+
+        The same estimator over both halves, restricted to a slice of the lag
+        range rather than refitted differently -- a half fitted another way
+        would measure the difference between two estimators and report it as
+        physics, which is the mistake `fit_over` carries the same warning
+        about.
+        """
+        curve = self.mean_squared_displacement(max_lag_time)
+        if len(curve) < 4:
+            return {
+                "method": "lag_range_halves",
+                "log10_ratio": None,
+                "reason": (f"the window holds {len(curve)} lags and a split needs at least two "
+                           "fittable points on each side"),
+            }
+        mid = len(curve) // 2
+        first = self.fit_lag_slice(curve, 0, mid)
+        second = self.fit_lag_slice(curve, mid, len(curve))
+        if first is None or second is None or second[0] == 0:
+            return {
+                "method": "lag_range_halves",
+                "log10_ratio": None,
+                "reason": "one half of the window did not yield a fittable slope",
+            }
+        return {
+            "method": "lag_range_halves",
+            "split_lag": float(curve[mid][0]),
+            "first_half": {"diffusivity": first[0], "lags": [curve[0][0], curve[mid - 1][0]]},
+            "second_half": {"diffusivity": second[0], "lags": [curve[mid][0], curve[-1][0]]},
+            "log10_ratio": float(abs(np.log10(first[0] / second[0]))) if first[0] > 0 and second[0] > 0 else None,
+            "note": (
+                "the declared estimator run over each half of the lag range. A fit reaching past "
+                "the free regime disagrees with itself here while each half stays tight, and "
+                "neither the fit's own error nor the block estimate can report that -- every "
+                "block spans the same lags"
+            ),
+        }
+
+    def fit_lag_slice(self, curve: list, lo: int, hi: int) -> "tuple[float, float] | None":
+        """The estimator over `curve[lo:hi]`, weighted by that slice's own shifts.
+
+        The shift indices are the slice's real ones and not `1..n`: the weight
+        is how many independent displacements entered each lag, about
+        `n_frames // shift`, so renumbering a slice from one would weight the
+        second half as if it were the first and quietly change the estimator.
+        """
+        part = curve[lo:hi]
+        if len(part) < 2:
+            return None
+        lags = np.asarray([c[0] for c in part])
+        msd = np.asarray([c[1] for c in part])
+        shifts = np.arange(lo + 1, hi + 1)
+        independent = self.unwrapped.shape[0] * np.maximum(len(self.frames) // shifts, 1)
+        slope, intercept = np.polyfit(lags, msd, 1, w=np.sqrt(independent))
+        return float(slope) / (2 * DIMENSIONS), float(intercept)
+
     def block_uncertainty(self, max_lag_time: float) -> dict:
         """An honest standard error, from tracers that really are independent.
 
