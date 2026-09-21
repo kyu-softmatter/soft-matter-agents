@@ -71,6 +71,41 @@ if [ -n "$CONTEXT" ]; then
     [ "$TOTAL" -gt 24 ] && echo "    ... and $((TOTAL - 24)) more"
 fi
 
+# A commit that REMOVES a check HEAD has is almost always a stale base, and that
+# is the half the hunk names above do not reach. They show what your commit
+# touches; they cannot show what it silently rewinds.
+#
+# The surgical route -- build a temp index from HEAD, drop your own blob in,
+# commit -- stops you CARRYING another seat's work and does nothing about
+# OVERWRITING it, because `git read-tree HEAD` freezes a base that HEAD then
+# moves off. On 2026-09-21 two seats used that route within the hour and the
+# second reverted the first: read-tree ran before the other commit landed, so
+# the blob was correct against a HEAD that no longer existed. Fifth incident in
+# one file in one day, and the first in this direction.
+#
+# Narrow on purpose: only validate.py, only `def check_NN_`. The check registry
+# makes a vanished check unambiguous in a way a vanished function is not, and a
+# rule wide enough to cover every deletion would fire on every refactor.
+if echo "$STAGED" | grep -q '^contracts/validate\.py$'; then
+    GONE=$(comm -23 \
+        <(git show HEAD:contracts/validate.py 2>/dev/null | sed -n 's/^def \(check_[0-9]*\)_.*/\1/p' | sort -u) \
+        <(git show :contracts/validate.py        | sed -n 's/^def \(check_[0-9]*\)_.*/\1/p' | sort -u))
+    if [ -n "$GONE" ]; then
+        echo >&2
+        echo "pre-commit: refused. This commit removes checks that HEAD has:" >&2
+        echo "$GONE" | sed 's#^#    #' >&2
+        echo >&2
+        echo "            Almost certainly a stale base: HEAD moved between the" >&2
+        echo "            moment your index was built and now, so committing it" >&2
+        echo "            rewinds whatever landed in between. Rebuild the index" >&2
+        echo "            against the CURRENT HEAD and commit again." >&2
+        echo >&2
+        echo "            If you mean to delete a check, say so in the message" >&2
+        echo "            and use --no-verify, which leaves no trace of its own." >&2
+        exit 1
+    fi
+fi
+
 # And say what is being left behind, because this hook no longer looks at it. A
 # green gate now means the commit is green, not that the working copy is.
 #
