@@ -1,0 +1,39 @@
+{
+  "entry_id": "air_refractive_index_605nm_288k",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Dry air at 15 degrees Celsius and 760 mm of mercury has a refractive index of 1.000276265 at a wavelength of 605.0 nm, from interferometric measurements whose probable error at this temperature is 3.1 in the seventh decimal of the index.",
+  "numbers": [
+    {
+      "name": "refractive_index",
+      "value": 1.000276265,
+      "unit": "1",
+      "source": "literature:meggers_peters_1918",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "Table 5 of the paper, 6050 A row, prints the refractivity (n-1)10^7 = 2762.65, which is n = 1.000276265. An exact grid point on the table's 50 A step, so nothing is interpolated. Confirmed on the page image at 400 dpi. Cross-checked inside its own row: the table also prints the vacuum correction (n*lambda - lambda) = 1.6714 A at this wavelength, and 6050 A x 2762.65e-7 = 1.67140 A, so the refractivity and the correction agree to five figures and the digits were read right. Rewriting a printed refractivity as an index is a change of form and not a derivation. The probable error is 3.1 in (n-1)10^7, so the last two decimals shown sit inside the noise; they are kept as printed rather than rounded."
+    }
+  ],
+  "validity": {
+    "wavelength": { "min": 605.0, "max": 605.0, "unit": "nm" },
+    "temperature": { "min": 288.15, "max": 288.15, "unit": "K" },
+    "pressure": { "min": 101325, "max": 101325, "unit": "Pa" }
+  },
+  "subject": [
+    { "kind": "quantity", "id": "refractive_index" }
+  ],
+  "source": "literature:meggers_peters_1918",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_meggers_peters_1918_air_index",
+  "validity_conditions": "THE WAVELENGTH IS THE ONE ASKED FOR AND THE TEMPERATURE IS NOT, and both are where the source puts them. 6050 A is a printed row on this table's 50 A grid, so the wavelength A6 works at enters exactly. 15 degC is the only temperature this paper tabulates in the visible -- it measured dry air at 0, 15 and 30 degC and printed a wavelength table at 15 degC alone -- so a query at bench temperature comes back disjoint on temperature and the gap is `condition_mismatch`, not `absent`. THE SIZE OF THAT MISMATCH IS STATED SO THE CALLER CAN JUDGE IT, WHICH IS THE CALLER'S JOB AND NOT THIS ENTRY'S. The paper's three Cauchy equations give (n-1)10^7 of 2875.66, 2726.43 and 2589.72 at 0, 15 and 30 degC, so the temperature dependence is about -1e-6 per kelvin; five kelvin is therefore about 5e-6 in n, against an n-1 of 2.8e-4 and an axial range reported to one significant figure. Whether that is negligible is a judgement the caller records in its plan. Deciding it here would be this store choosing conditions, which it does not do. THE SAME HOLDS FOR PRESSURE AND HUMIDITY: refractivity is very nearly proportional to density, so a 1 kPa departure from 101.325 kPa moves n by about 2.7e-6; and the measurement is on DRY air, while the air over this bench carries water vapour, which lowers n by of order 1e-6 per 10 per cent relative humidity in the visible. Humidity is not in `validity` because the source tabulates no humidity argument, and asserting a bound the source does not state would be worse than leaving it to prose. TEMPERATURE AND PRESSURE ARE IN REGISTRY UNITS: contracts/units.json cannot register an offset unit, so 15 degC is carried as 288.15 K, and 760 mm of mercury as the 101325 Pa that defines the standard atmosphere. Both conversions are exact. WHY IT WAS SOURCED. Three of the six objectives in the device table are dry -- MRD70040, MRD70170, MRD70270, `immersion: air` -- and A6's axial_range needs the index of the medium they work in, at the wavelength the person fixed at 605 nm on 2026-09-20 (task 026). RELATION TO THE 590 nm ENTRY. air_refractive_index_590nm_288k stands and is not superseded: a different wavelength, equally measured, filed when the wavelength was still open.",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "identifiers": {
+    "immersion": "air",
+    "material": "air",
+    "table_row": "6050"
+  }
+}

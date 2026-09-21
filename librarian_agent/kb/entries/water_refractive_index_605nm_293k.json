@@ -1,0 +1,38 @@
+{
+  "entry_id": "water_refractive_index_605nm_293k",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Distilled water at 20 degrees Celsius has a refractive index of 1.3325138 at a wavelength of 605.0 nm, at atmospheric pressure, from measurements whose stated accuracy is plus or minus 1e-6.",
+  "numbers": [
+    {
+      "name": "refractive_index",
+      "value": 1.3325138,
+      "unit": "1",
+      "source": "literature:tilton_taylor_1938",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "Table 7 of RP1085, the 6050 A column of the 6000-6500 A block, 20 degC row, printed as 25138 under a column heading of 1.33. BOTH ARGUMENTS ARE TABULATED POINTS, so nothing is interpolated: 6050 A is a column and 20 degC is a row. Confirmed on the page image at 600 dpi, header and row both. Two internal cross-checks: the value sits between the printed 6000 A (1.3326612) and 6100 A (1.3323694) entries of the same row, and (26612-25138)/50 = 29.48e-7 per A against the table's own printed dispersion row, which gives 29.50e-7 per A at 6000 A. The paper's stated accuracy is +/-1e-6, so the last printed digit is not significant; the digits are kept as printed rather than rounded, because rounding here would be this store deciding how much of another laboratory's number to believe."
+    }
+  ],
+  "validity": {
+    "wavelength": { "min": 605.0, "max": 605.0, "unit": "nm" },
+    "temperature": { "min": 293.15, "max": 293.15, "unit": "K" }
+  },
+  "subject": [
+    { "kind": "quantity", "id": "refractive_index" }
+  ],
+  "source": "literature:tilton_taylor_1938",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_tilton_taylor_1938_water_index",
+  "validity_conditions": "ONE WAVELENGTH AND ONE TEMPERATURE, BOTH PINNED TO POINTS, AND BOTH ARE WHERE THE SOURCE PUTS THEM RATHER THAN WHERE THE QUESTION WANTED THEM. It happens that the question wanted exactly these: the person fixed A6's wavelength at 605 nm on 2026-09-20 and this bench runs near 20 degC, and the table carries both as arguments. That is luck about the grid, not a licence -- a query at 604 nm or at 22 degC comes back disjoint and the gap is `condition_mismatch`, because the store may not interpolate. THE TABLE'S OWN HEADNOTE OFFERS INTERPOLATION AND THIS ENTRY DOES NOT TAKE IT. Table 7 is a double-entry table of 6,776 listings that the abstract says was computed to yield sixth-decimal data BY LINEAR INTERPOLATION. That sentence is about values between grid points; this value is ON two grid points, so reading it is reading, and a caller wanting 604 nm may interpolate and record that as its own assumption (4.3.1). THE GRID IS NOT UNIFORM AND THAT IS THE FACT THAT MADE THIS ENTRY POSSIBLE. Table 7 steps 20 A in the ultraviolet and blue and switches to 50 A at 5500 A, presumably because dispersion flattens and a coarser grid still supports the interpolation the headnote promises. This seat reported the 20 A step as the whole grid on 2026-09-20, from reading the first block only, and concluded that 6050 A was unavailable and that water would have to be bracketed at 6040 and 6060. That was wrong in the direction that costs an answer: the value was printed all along. Task 026 was written on the wrong statement and is corrected here. THE PRESSURE IS NOT PINNED: the measurements were made in hollow prisms at laboratory pressure and the paper tabulates no pressure argument, so no bound is asserted rather than one being invented. TEMPERATURE IS IN KELVIN because contracts/units.json cannot register an offset unit; 20 degC is a tabulation argument held by platinum resistance thermometry, so the exact conversion 293.15 K is used. The 1938 scale predates ITS-90 and differs by of order a millikelvin here. DISTILLED WATER, NOT THIS BENCH'S SUSPENSION (particle_suspension_a); applying this index to that is a substitution the caller makes. RELATION TO THE SODIUM-LINE ENTRY. water_refractive_index_589_26nm_293k stands and is not superseded: it is a different wavelength and both are measured. This one is the wavelength A6 actually collects at.",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "identifiers": {
+    "immersion": "water",
+    "material": "water",
+    "table_row": "6050"
+  }
+}
