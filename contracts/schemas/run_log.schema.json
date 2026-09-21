@@ -5,10 +5,16 @@
   "description": "Not a card: the operator's record of one run. Derived from the artifact microscope_agent/src/operator.py already writes, not invented alongside it. Until this existed the file carried neither `card` nor `artifact`, so the collector skipped it and every check that names a run log -- 14, 15, 23, 37 -- had nothing to read and reported PENDING forever. The cost of that is specific: command provenance and the time base are the two things a run log exists to prove, and neither was being checked. The simulation side has no orchestrator and no device registry (4.6.8), so the fields that come from one are optional here; what is required is what both sides must answer for.",
   "type": "object",
   "properties": {
-    "artifact": { "const": "run_log" },
-    "schema_version": { "const": "0.1" },
-
-    "run_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "artifact": {
+      "const": "run_log"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
     "plan_id": {
       "type": "string",
       "description": "the plan this run carried out. A run exists because a plan did (4.6)"
@@ -22,22 +28,40 @@
       "type": "object",
       "description": "null id and kind is the honest state of a Tier 0-1 run: it needed no approval card, and saying so is different from failing to record one (6).",
       "properties": {
-        "id": { "type": ["string", "null"] },
-        "kind": { "enum": ["plan_approval", "scope_approval", null] }
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "plan_approval",
+            "scope_approval",
+            null
+          ]
+        }
       },
-      "required": ["id", "kind"],
+      "required": [
+        "id",
+        "kind"
+      ],
       "additionalProperties": false
     },
     "safety_policy_version": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "which envelope/safety.json was in force. Policy changes, and a run has to say which policy it ran under or the record cannot be read back later (2.1)"
     },
     "stop_criteria": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "description": "ids of the monitors compiled from the plan. Stopping is a comparison against these, not a judgement (4.6.1)"
     },
-
     "t0_wall": {
       "type": "string",
       "description": "wall-clock at t0, ISO 8601. Places the run in history; it does not order events"
@@ -46,8 +70,9 @@
       "type": "number",
       "description": "the monotonic origin every event offset is measured from (4.6.9)"
     },
-    "time_base_note": { "type": "string" },
-
+    "time_base_note": {
+      "type": "string"
+    },
     "backend": {
       "type": "string",
       "description": "which backend ran it. mock is a first-class value: a plan runs unchanged on mock and on the engine, and that is the working definition of reproducibility (4.6.5)"
@@ -56,19 +81,34 @@
       "type": "string",
       "description": "instrument side only: where the device registry was read from. Absent on the simulation side, which has no devices/ (4.6.8)"
     },
-
     "events": {
       "type": "array",
-      "items": { "$ref": "#/$defs/event" }
+      "items": {
+        "$ref": "#/$defs/event"
+      }
     },
-    "finished_at": { "type": "string" }
+    "finished_at": {
+      "type": "string"
+    },
+    "plan_path": {
+      "type": "string",
+      "description": "The plan file this run actually opened, repo-relative. `plan_id` and `revision` are copied from inside the card and agree with themselves whichever file was opened, so until 3eda760 nothing in a run record could distinguish 'ran revision 1 deliberately' from 'ran revision 1 because operator.py built the filename without a revision and could not see revision 2'. That second case ran the discarded experiment and finished green (tasks/009).\n\nOptional, because three runs predate the field and P1 does not rewrite them; absent means the record cannot make that distinction, which is a fact about the record and not a defect in it. The operator now refuses a mismatch between the filename and the card's own `revision` at the one point where both are in hand, so this field and that refusal are two halves: the refusal stops the pair from lying, this says which file the pair came from."
+    }
   },
   "required": [
-    "artifact", "schema_version", "run_id", "plan_id", "revision",
-    "approval", "t0_wall", "t0_mono", "backend", "events", "finished_at"
+    "artifact",
+    "schema_version",
+    "run_id",
+    "plan_id",
+    "revision",
+    "approval",
+    "t0_wall",
+    "t0_mono",
+    "backend",
+    "events",
+    "finished_at"
   ],
   "additionalProperties": false,
-
   "$defs": {
     "event": {
       "type": "object",
@@ -79,18 +119,31 @@
           "description": "offset from t0_mono. Every event carries one, or the log cannot be put on a single timeline (check 37)"
         },
         "time_base": {
-          "enum": ["software", "device", "trigger"],
+          "enum": [
+            "software",
+            "device",
+            "trigger"
+          ],
           "description": "where this offset came from. software orders the log and nothing else: it carries OS scheduling jitter of milliseconds. A time a physical value depends on comes from a trigger counter or a device timestamp, and check 37 is what holds that line (4.6.9)"
         },
-        "event": { "type": "string" },
-        "channel": { "type": "string" },
-        "action": { "type": "string" },
+        "event": {
+          "type": "string"
+        },
+        "channel": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
         "from": {
           "type": "string",
           "description": "the plan.json field path this event was derived from. Commands are derived, never composed (4.6.1)"
         },
         "verification": {
-          "enum": ["readback", "none"],
+          "enum": [
+            "readback",
+            "none"
+          ],
           "description": "Whether the instrument was asked to confirm this command took effect. 4.6.6.1 rule 3 put its rule on this field and nothing carried it until 2026-09-20: the subsection says the run record carries `verification: none` for a channel that cannot be confirmed, and no such field existed. A rule written with nothing to hold it is the class counted most often that day.\n\n`readback` means the channel's state was QUERIED AFTER the command and matched what was commanded. A return code is not a read-back: on the Tweez 300 a zero means the GUI accepted the text, and six distinct ways a command can be ignored all return zero (tweez300_reports_nothing_back, E3). An acknowledgement is `none`.\n\nOPTIONAL ON PURPOSE, and check 66 rather than this schema is what requires it. Which actions need a read-back depends on reversibility, and reversibility lives on the plan's actions[] where a run log cannot see it -- an irreversible action requires one, a reversible one may legitimately go without. Leaving it out of `required` also keeps the two run logs written before the field existed valid, which is the honest reading: nothing asked them to record a read-back, so their silence is not a claim."
         },
         "params": {
@@ -100,18 +153,27 @@
             "type": "object",
             "properties": {
               "value": {},
-              "unit": { "type": "string" },
-              "grade": { "$ref": "common.schema.json#/$defs/grade" },
+              "unit": {
+                "type": "string"
+              },
+              "grade": {
+                "$ref": "common.schema.json#/$defs/grade"
+              },
               "from": {
                 "type": "string",
                 "description": "field path in plan.json, e.g. numbers[exposure_time]. A parameter that cannot name its origin does not go out"
               }
             },
-            "required": ["from"]
+            "required": [
+              "from"
+            ]
           }
         }
       },
-      "required": ["t_mono", "time_base"]
+      "required": [
+        "t_mono",
+        "time_base"
+      ]
     }
   }
 }

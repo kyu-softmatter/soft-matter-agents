@@ -331,7 +331,29 @@ number.** The engine realises the declared value exactly: it is a coordinate of
 the model, the way simulated time is, and not a measurement. Citing
 `kb:lab_ambient_temperature` records *why that value was chosen* — to match the
 lab so a round trip compares like with like — and is not evidence about the
-model, which cannot be wrong about its own thermostat.
+model.
+
+**Exactly, and not because the thermostat is good: because there is no
+thermostat.** This paragraph said the model "cannot be wrong about its own
+thermostat", which reached the right conclusion through a mechanism this
+configuration does not have. `bd_overdamped` integrates a position-only Wiener
+increment, `positions + normal(0, sqrt(2*D*dt))` with `D = k_B*T/(3*pi*eta*d)`.
+No velocity is represented, so there is no kinetic energy and nothing to
+thermostat: **temperature is a parameter of the noise amplitude, and a
+parameter has no mechanism that could fail to realise it.**
+
+The difference decides which confirmation the claim needs, which is why it is
+declared in `contracts/capabilities/simulation.json` as
+`temperature_realisation` rather than left here as prose. A thermostat holding
+a setpoint is empirical, engine-specific and **falsifiable** — one with inertia
+loses it at large `dt` or to a flying ice cube. A noise amplitude cannot. So
+the store's premise that *the engine's thermostat realises the setpoint* is a
+**category error against this engine**: not true, not false, unanswerable. If a
+configuration with inertia is ever added, the other kind of confirmation
+becomes the right one, and the capability field is what marks the change
+instead of it happening silently. Measured from the integrator by
+`simulation-2`; `simulation-4` found that this paragraph's reason was the wrong
+one.
 
 The experiment's side is not exact. That entry leaves open where the
 thermometer was, room air or near the sample, and
