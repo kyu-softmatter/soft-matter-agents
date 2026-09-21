@@ -5483,6 +5483,68 @@ def check_65_history_checks_have_a_built_repository(b: Bundle) -> list[Finding]:
                               f"builds one; run {rel} to see them fire")]
 
 
+def check_59_the_hook_reports_an_unattributed_commit(b: Bundle) -> list[Finding]:
+    """The gate says out loud when a commit carries no attribution.
+
+    `seats.json` sets `unknown_committer` to `report` rather than `refuse`, so
+    a seat that has not adopted an identity is not blocked -- and the registry
+    records what that costs: an unattributed commit gets **no boundary
+    checking at all**, because nothing says whose paths those were. The report
+    is the only thing between that and silence.
+
+    Nothing reported, for as long as both halves existed. Check 41 returns
+    PENDING for it, PENDING is not a failure, and the hook printed only on
+    failure -- so a commit with zero coverage passed without a word. A policy
+    of `report` that reports nothing is a declaration whose other end nobody
+    reads, in the gate itself.
+
+    **What this compares is the two halves against each other**, which is the
+    part a reader should not mistake for a spelling check. The finding check
+    41 emits and the string the hook greps for are one fact in two files, and
+    changing the wording in either one silently stops the warning -- the hook
+    keeps running, finds nothing, and says nothing, which is
+    indistinguishable from a commit that was attributed. So the phrase is
+    read out of this file rather than written here, and the hook is required
+    to carry the same one.
+
+    What it does not check, so nobody expects more: that the hook prints the
+    paths rather than a count, that it does not refuse (the policy is
+    `report`), or that any of it runs. Those are read by eye and by
+    `contracts/history_fixtures.py`, whose check 41 fixture builds an
+    unattributed commit and asserts the PENDING.
+    """
+    hook = REPO / "contracts" / "hooks" / "pre-commit"
+    rel = "contracts/hooks/pre-commit"
+    if not hook.exists():
+        return [Finding(59, FAIL, "the pre-commit hook is missing, so nothing reports an unattributed "
+                                  "commit and nothing runs the validator at commit time", rel)]
+
+    text = hook.read_text()
+    needles = re.findall(r'ATTRIB=\$\(echo "\$OUT" \| grep "([^"]+)"', text)
+    if not needles:
+        return [Finding(59, FAIL, "the hook does not look for an unattributed commit at all. check 41 "
+                                  "returns PENDING for one, PENDING is not a failure, and a hook that "
+                                  "prints only on failure passes it in silence -- which is what "
+                                  "`report` meant in practice until 2026-09-20", rel)]
+
+    # The relation runs this way round on purpose: the hook's needle has to
+    # occur in what check 41 says, not the other way about. Check 41's
+    # sentence is free to grow -- it gained the path list the same day --
+    # and the warning survives that. What it may not do is move out from
+    # under the needle, which is the change that stops the warning while
+    # both halves keep running and neither says anything.
+    src = (CONTRACTS / "validate.py").read_text()
+    body = src.split("def check_41_seat_attribution", 1)[-1].split("\ndef ")[0]
+    missing = [n for n in needles if n not in body]
+    if missing:
+        return [Finding(59, FAIL, f"the hook greps for {missing[0]!r} to report an unattributed commit and "
+                                  f"check 41 no longer says that, so the warning is emitted and never "
+                                  f"shown. A grep that matches nothing is indistinguishable from a commit "
+                                  f"that was attributed", rel)]
+    return [Finding(59, PASS, f"the hook greps for {needles[0]!r} and check 41 still says it, so an "
+                              f"unattributed commit is reported rather than passed in silence")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -5498,7 +5560,8 @@ CHECKS = [
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision,
-    check_65_history_checks_have_a_built_repository, check_53_deny_rules_do_not_block_reading,
+    check_65_history_checks_have_a_built_repository,
+    check_59_the_hook_reports_an_unattributed_commit, check_53_deny_rules_do_not_block_reading,
     check_54_kb_basis_resolves, check_58_one_fanout_reads_one_store,
     check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,
