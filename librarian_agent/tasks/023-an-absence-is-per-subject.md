@@ -1,7 +1,7 @@
 # 023 — an absence is per subject, and everything that watches is per name
 
-status: **HELD, not open** · recorded 2026-09-20 by manager-librarian · no work
-is ordered by this file
+status: **TRIGGER MET 2026-09-20, raised to architecture** · recorded and
+updated 2026-09-20 by manager-librarian · still no work ordered by this file
 
 **Read this only when the queue is otherwise empty.** It is a question with no
 answer yet, written down because the session that found it ended and the
@@ -55,6 +55,72 @@ across three seats and it is not being decided here on one case.
 A second case. One case is where a mechanism gets designed for the case; two
 is where it gets designed for the shape. If a caller misses a per-subject
 absence again, under a different quantity, that is the day.
+
+## IT WAS THE SAME DAY. The second case, measured
+
+Found by the librarian execution seat reading this file with an empty queue,
+and produced by their own 024 work a few hours earlier. Re-run here at
+`kbv-137828bc0b27`, 92 entries, log diverted:
+
+```
+CASE 1   kb_query('working_distance')                 5 entries, 0 gaps
+         missing: objective_mrd77400, held as _min / _max
+
+CASE 2   kb_query('refractive_index', 605nm/293.15K)  14 entries, 0 gaps
+              full      1   water_refractive_index_605nm_293k
+              disjoint 13   including all three air entries, on temperature
+         A6 needs air, water and oil. water answered; air and oil recorded
+         nowhere.
+```
+
+**Same shape, two different routes to the silence.** Case 1 has no
+`condition_range`, so the gap clause that would fire cannot. Case 2 is
+*covered* — one entry matched, so the clause is suppressed. A gap predicate
+that can go quiet two independent ways is not one mechanism with a hole; it
+is the shape this file named.
+
+**And case 2 is the stronger one.** Case 1's missing value was in the store
+under another name, so 022's `near_names` can point at it. Case 2's oil is
+**not in the store at all** — there is no name to point at, and still no gap.
+That is 022's mechanism measured out of reach rather than argued out of it.
+
+## A fourth candidate appeared, was measured, and died
+
+The seat proposed it and killed it in the same pass: leave the server
+per-name and make the SUBJECT an addressable handle, turning a per-subject
+question into a per-name one with no contract change — the trick that made
+`immersion` work in 024. Measured:
+
+```
+kb_query('oil',   no conditions)   2 entries, 0 gaps
+kb_query('oil',   605nm/293.15K)   2 entries, 0 gaps      <- nothing exists
+kb_query('air',   605nm/293.15K)   6 entries, condition_mismatch
+kb_query('water', 605nm/293.15K)   4 entries, 0 gaps      <- covered, correct
+```
+
+**Exactly inverted.** The medium that exists at the wrong temperature is
+recorded; the medium that does not exist at all is not. The reason is
+unpleasant: two oil LENSES answer the handle, so `returned` is not empty and
+`absent` cannot fire, and the lenses share no condition with the query, so
+`condition_mismatch` cannot fire either.
+
+**The join that 024 built to make the hole visible is what hides it from the
+record.** The seat's own note said the hole "is visible at the handle" and
+that was true; visible and recorded are two things, and this file exists
+because they are.
+
+## What the two cases decide
+
+Candidate 4 is dead. Candidates 1 and 2 are unchanged and still carry
+`kb_group`'s objection. **The evidence points at candidate 3**: in both cases
+the assumption was the caller's — six objectives in one, three media in the
+other — and in neither could the server have known it. A party that did not
+hold the assumption cannot record its failure.
+
+Raised to architecture on 2026-09-20 rather than decided here: it is a
+contract change across three seats, and this file has said from the first
+line that it would not be settled on one case. It is now not being settled on
+two, either — it is being handed up with two.
 
 ## Not in this file
 
