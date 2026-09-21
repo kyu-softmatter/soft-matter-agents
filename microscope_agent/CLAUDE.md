@@ -552,6 +552,39 @@ exceed them.
 
 ## Before committing
 
+**A card that says the service answered cannot be committed before the
+librarian has committed the query log.** Check 45 tests an empty `degraded`
+against `queries/log.jsonl`, and the gate judges **the tree your commit would
+create** -- so a card whose supporting line exists only in the shared working
+copy passes here and fails there. On 2026-09-20 the log stood at 230 committed
+lines against 547 on disk, and **every served card in every agent was
+uncommittable** for as long as that held. Nothing had recorded the constraint,
+and the seat that hit it could not fix it: `librarian_agent/` is outside this
+boundary and check 35 refuses the write.
+
+So before committing a card with `degraded: []`, check the line is in HEAD:
+
+```bash
+git show HEAD:librarian_agent/queries/log.jsonl | grep -c '<your caller_id>'
+```
+
+Zero means **wait and report upward**, not work around. The card is correct;
+the ordering is what is not satisfied yet.
+
+**`git commit -- <directory>` does not include untracked files inside it.**
+Naming `questions/mic-20260920-001` committed the two tracked files and left
+the new card behind. This is the other edge of *naming a path is not naming a
+change*: there another seat's edit rides in, here **your own new file drops
+out**. The gate prints what is going in, and reading that list is what caught
+it. Name new files individually, or `git add` them first.
+
+**`to_card()` writes DRAFT and every committed axis card is VALIDATED.** The
+promotion has been done by hand each time and is written nowhere, which means
+it depends on whoever is at the keyboard remembering. Until that is settled,
+raise it deliberately after the validator passes and say in the commit message
+that you did. It is raised as a question for this seat.
+
+
 ```bash
 python3 contracts/validate.py
 ```

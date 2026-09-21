@@ -31,7 +31,38 @@ same keying `objective_zoom_pair` uses.
 
 **This unblocks `motion_blur`**, whose other input is below.
 
-## 2. `tracer_diffusivity_expected` — the store has it, as a derivation
+## 2. `tracer_diffusivity_expected` — WITHDRAWN. I read the wrong tree
+
+**This item was wrong and the seat holding the card proved it.** Everything
+below the line was written from HEAD; the card is pinned to
+`kbv-7c77fa74ee5a`, and **the entry is not there.** `03fe7a3` added it and
+`03fe7a3` is not an ancestor of `a4e1449`, which is the commit the pin
+resolves to. I checked that myself after being told: `git merge-base
+--is-ancestor` says no.
+
+The seat asked the service rather than the filesystem, at the card's own pin,
+and got a refusal both ways -- `kb_group` on the symbol and on
+`tracer_diffusivity`. The same fan-out asking the same name at
+`kbv-bf4f559baf68` had coverage. **So the store has it and this pin does
+not**, and `absent` was the honest answer all along.
+
+**That makes it card 008's, not this one's** -- re-pinning the whole fan-out
+-- and check 58 is what stops this card moving alone. Leave the gap as the
+service returned it.
+
+**This is the error this repository keeps naming, committed by the seat that
+keeps naming it.** I read the store at HEAD and the card at its pin and did
+not notice they were different trees. The instruction is to read the tree the
+run names *with* the run, and I did not.
+
+The text below is kept because the shape of the claim is still worth knowing
+-- an entry that holds a derivation rather than a value does answer a
+`kb_group` and not a value query -- but **it does not apply at this pin and
+is not work for this card.**
+
+---
+
+### (withdrawn) the store has it, as a derivation
 
 A1 and A2 both record it `absent`. The entry exists, and was committed on
 2026-09-19 under a message that names them:
