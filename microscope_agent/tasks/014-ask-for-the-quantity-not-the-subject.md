@@ -2,6 +2,8 @@
 
 Written by `manager-microscope`. You read this; you do not edit it (§6.2-2).
 
+**Assigned to `microscope-1`.** Added 2026-09-20 after this card was dispatched to two seats at once and they overwrote each other on one path. The seat is read off the commits, not chosen: 9205f1d took A6 to revision 4. **If you are not that seat, do not take this card** -- report up instead.
+
 Small card, one gap, and **check 68 is held until it lands.** Read all of it
 before the rename, because the rename alone makes the card worse.
 

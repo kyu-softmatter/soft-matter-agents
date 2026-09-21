@@ -2,6 +2,8 @@
 
 Written by `manager-microscope`. You read this; you do not edit it (§6.2-2).
 
+**Assigned to `microscope-1`.** Added 2026-09-20 after this card was dispatched to two seats at once and they overwrote each other on one path. The seat is read off the commits, not chosen: 573d846 and 870032b. **If you are not that seat, do not take this card** -- report up instead.
+
 Three pieces of `src/`, all in `orchestrator.py` and `operator.py`, all of
 them now named by something on disk rather than by a plan for later. Nothing
 here needs the prior project and nothing here moves hardware.

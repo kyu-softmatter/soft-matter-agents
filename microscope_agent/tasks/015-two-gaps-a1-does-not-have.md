@@ -2,6 +2,8 @@
 
 Written by `manager-microscope`. You read this; you do not edit it (§6.2-2).
 
+**Assigned to `microscope-5`.** Added 2026-09-20 after this card was dispatched to two seats at once and they overwrote each other on one path. The seat is read off the commits, not chosen: the seat the person seated on 2026-09-20; its row in contracts/seats.json is missing and architecture owns that file, so its work is finished and uncommitted. **If you are not that seat, do not take this card** -- report up instead.
+
 Found while counting what blocks an end-to-end run, which is the person's
 immediate goal. **Two of A1's eight gaps are not gaps**, and one of them is
 answered inside A1's own card.

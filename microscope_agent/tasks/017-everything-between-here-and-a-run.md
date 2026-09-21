@@ -2,6 +2,8 @@
 
 Written by `manager-microscope`. You read this; you do not edit it (§6.2-2).
 
+**Not assigned: this one is a reference, not work.** Every seat may read it; none should act on it without the card that names the step.
+
 The person asked for the complete list. This is it, counted off runs on
 tree `630724b`+ rather than recalled. **Re-run the commands before acting**;
 several entries moved twice today.

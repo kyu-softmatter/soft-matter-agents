@@ -550,6 +550,26 @@ confirmed them physically. They were deliberately not extracted from the prior
 project (§10.3 rule 4). No plan, no scope approval, and no human approval may
 exceed them.
 
+## A card names its seat, and that is not decoration
+
+**Cards 012 to 016 named no seat, four microscope seats were alive, and on
+2026-09-20 one card went to two of them.** Both wrote `questions/
+mic-20260920-001/goal.json`. The second overwrote the first's revision in the
+worktree, and the first then committed the overwrite under its own name
+believing it was committing its own work -- `git commit -- <path>` takes the
+worktree state of that path, so nothing refused it and no check saw it.
+
+**The manager seat could not tell them apart either.** It wrote to one seat
+that `nosepiece_position` was already 5 while that seat's card said 1; it had
+read the other seat's file at the same path. **The collision was visible in
+the manager's own message and went unnoticed**, which is why the remedy is
+not "look more carefully".
+
+So: **take no card that does not name you**, and report up instead. A chat
+message is not an assignment -- the card is, and if the card is silent the
+assignment does not exist yet. Cards 000 and 004 through 011 already named
+their seat; the gap was 012 onward and it is closed.
+
 ## Before committing
 
 **A card that says the service answered cannot be committed before the

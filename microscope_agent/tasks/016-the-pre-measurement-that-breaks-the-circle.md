@@ -2,6 +2,8 @@
 
 Written by `manager-microscope`. You read this; you do not edit it (§6.2-2).
 
+**Assigned to `microscope-1`.** Added 2026-09-20 after this card was dispatched to two seats at once and they overwrote each other on one path. The seat is read off the commits, not chosen: 81bf6fd at 21:49, before this card was dispatched a second time. **If you are not that seat, do not take this card** -- report up instead.
+
 **The person's immediate goal is an end-to-end run.** This card is the
 shortest path to one, and the only one that exists.
 

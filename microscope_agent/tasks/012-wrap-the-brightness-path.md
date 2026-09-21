@@ -2,6 +2,8 @@
 
 Written by `manager-microscope`. You read this; you do not edit it (§6.2-2).
 
+**Assigned to `microscope-1`.** Added 2026-09-20 after this card was dispatched to two seats at once and they overwrote each other on one path. The seat is read off the commits, not chosen: 7be956b wrapped the three channels. **If you are not that seat, do not take this card** -- report up instead.
+
 Specified in `plan.md` §4.6.6.1 (`4de4924`), which the person settled on
 2026-09-20. **Read it rather than this card where the two differ** — this one
 sequences the work and names what is yours; that one is the decision.
