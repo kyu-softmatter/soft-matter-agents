@@ -1,7 +1,7 @@
 {
   "artifact": "envelope_safety",
   "schema_version": "0.1",
-  "policy_version": "2",
+  "policy_version": "3",
   "agent": "microscope",
   "written_by": "kyuhwan",
   "written_at": "2026-09-20",
@@ -21,17 +21,19 @@
     "how": "Measured at the sample plane with a Thorlabs power meter across the dial range, by the person recording it here. The bench work predates this entry; what is dated today is this person confirming it holds for this instrument as configured."
   }
 },
-        "objective_clearance_min": {
-          "value": 130,
-          "unit": "um",
-          "note": "A floor, not a ceiling: the objective may not come closer than this.",
-          "confirmation": {
-            "kind": "physical",
-            "by": "kyuhwan",
-            "on": "2026-09-20",
-            "how": "Approach test on the stage."
-          }
-        }
+"objective_clearance_min": {
+  "resolved_from": {
+    "quantity": "working_distance",
+    "keyed_by": "the objective in the nosepiece position the plan drives to",
+    "note": "Six objectives span 20 mm to 0.13 mm, a factor of 150. One constant is right for one lens and wrong for five -- which is what 130 um was doing: the 100x oil value applied to all six."
+  },
+  "confirmation": {
+    "kind": "carried_over",
+    "from": "Nikon catalogue working distances, held as kb entries objective_mrd70040 / 70170 / 70270 / 71670 / 71970 / 77400",
+    "on": "2026-09-20",
+    "note": "Catalogue values. Nobody has checked where these lenses actually focus on this bench; carried_over is the honest kind until someone does."
+  }
+}
       }
     }
   ]
