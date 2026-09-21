@@ -1,0 +1,30 @@
+{
+  "entry_id": "objective_change_selects_a_pixel_size_row",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Changing the objective does not end the twelve per-objective pixel-size calibration rows; it selects which of them applies. A caller that swaps to another objective reads the row naming that objective, at the intermediate magnification in use.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "nosepiece"
+    },
+    {
+      "kind": "quantity",
+      "id": "pixel_size"
+    }
+  ],
+  "identifiers": {
+    "calibration": "cal-pixel-size-20260919"
+  },
+  "source": "assumed:person_ruling_20260921",
+  "grade": "E5",
+  "grade_tag": "person_ruling",
+  "source_ref": "src_person_ruling_20260921",
+  "date": "2026-09-21",
+  "curated_by": "seat:librarian-3",
+  "valid_until": {
+    "date": "2041-09-19",
+    "event": "cal-pixel-size-20260919 is superseded by a new pixel-size calibration. The DATE IS NOT CHOSEN, it is inherited: this claim is about that calibration, so it cannot outlive the calibration's own outer bound, which is the operator's stated fifteen years anchored to 2026-09-19. A claim about a measurement that outlived the measurement would assert something about a number nobody is standing behind any more."
+  },
+  "validity_conditions": "The twelve entries pixel_size_<mag>_zoom_<zoom>, at 1x1 binning, on this instrument.\n\nWHY THIS IS AN ENTRY AND NOT SOMETHING A READER COULD WORK OUT. The structure is visible -- each row carries `nominal_magnification` and `intermediate_magnification` in `identifiers` rather than in `validity`, and the rows say themselves that those are nominal designations, exact by definition. What is NOT visible is whether that structure is a claim about the instrument or a filing convention, and the store already holds a sentence pointing the other way: objective_change_invalidates_trap_calibration says, in so many words, that changing the objective silently invalidates a pixel-to-micrometre calibration. A reader meeting both had no way to tell which applies where. This entry is the person answering that, asked directly on 2026-09-21.\n\nTHE TWO ARE DIFFERENT AND THE DIFFERENCE IS COUNTABLE. The tweezers hold ONE calibration, and an objective change falsifies it -- worse, neither of the tweezers' two calibrations is readable over TCP, so nothing reports the loss. This calibration holds TWELVE rows INDEXED BY objective, so the same physical action moves the caller between rows instead of destroying one. Both statements are true at once and neither generalises to the other's subject.\n\nWHAT THIS DOES NOT SAY. It does not say that nothing ends these rows. A camera change would end all twelve at once -- pixel size at the sample plane is the sensor pitch over the magnification, and camera_sensor_geometry carries the Kinetix22's 6.5 um pitch -- and so would a change in the optics between objective and camera, which the store holds nothing about. Neither was put to the person, so neither is entered and neither is denied; `valid_until` on the twelve therefore still carries a bare date and no event. See src_person_ruling_20260921 for what was asked and what came back. Looked-for-and-absent and nobody-checked are not the same claim (4.3.1), and that distinction holds outside a gap as well as inside one.\n\nGRADE. E5 because the source is a person's ruling, derived from that and not declared (rule 3). The confidence a reader should put on it is higher than E5 usually signals, because the store's own structure corroborates it -- but corroboration is not a source, and inflating the grade to match a feeling is what the derivation rule exists to prevent."
+}

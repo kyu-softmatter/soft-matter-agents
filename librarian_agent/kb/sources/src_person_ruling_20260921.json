@@ -1,0 +1,11 @@
+{
+  "source_id": "src_person_ruling_20260921",
+  "kind": "person_ruling",
+  "identifier": "Rulings the person (kyuhwan) made on 2026-09-21 about the standing of the pixel-size calibration cal-pixel-size-20260919, in answer to a direct question about what ends its twelve rows before their stated fifteen years.",
+  "accessed": "2026-09-21",
+  "grade_rule": "E5, via the `assumed:` prefix, exactly as src_person_ruling_20260919 argued it. A ruling is not a reading (operator_read, E3), not a recollection (operator_recall, E5) and not a calibration event (E2). It takes E5 because what stands behind it is the person's judgement rather than an observation, and the grade says so whether the judgement is good or bad.",
+  "what_was_asked_and_what_came_back": "Asked which of four candidates the store implies would end the twelve pixel-size rows -- a recalibration, an objective change, a camera change, or a change in the optics between objective and camera. Two came back: there will be no recalibration and the present values stand, and a change of objective means reading a different row rather than losing one. The other two were not addressed.",
+  "one_of_the_two_is_an_intent_and_the_store_has_no_kind_for_it": "SAID OUT LOUD BECAUSE IT IS A SEAM AND NOT A TIDY FIT. `person_ruling` is defined in the 2026-09-19 record as a judgement that can only be overturned by new evidence. The objective-change half is exactly that -- a reading of how the calibration is structured. The no-recalibration half is a DECISION about future action, which new evidence does not overturn and the person simply can reverse. The store has no source kind for an intent, inventing one is not this seat's to do, and the alternatives are worse: operator_recall would say he remembered it, and leaving it out of the entries would send the next reader to ask the person a question he has already answered. Filed under person_ruling and flagged here so the seam is visible rather than smoothed over.",
+  "license_note": "Identifier only.",
+  "note": "Kept separate from src_person_ruling_20260919 for the same reason that record was kept separate from the recall of its own day: a source record is per occasion, and folding two days' rulings into one would make the date on an entry stop saying when the person said it."
+}
