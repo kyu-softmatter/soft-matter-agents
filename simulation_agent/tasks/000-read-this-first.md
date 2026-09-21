@@ -104,6 +104,20 @@ with a condition anyone could run. So every row carries one.
 |---|---|---|
 | **`004` — revision 2** | done, landed at `946831c` | `git log --oneline -1 -- simulation_agent/questions/sim-20260917-001/v2_goal.json` |
 | **`007` — the result-card writer** | taken | `ls simulation_agent/src/result_card.py 2>/dev/null && echo TAKEN \|\| echo OPEN` |
+| **`008` — measure what the writer writes** | done, `c4fd0f8` | `python3 -c "import json;print(any(str(json.loads(l).get('task','')).startswith('008') for l in open('simulation_agent/failures.jsonl') if l.strip()))"` |
+
+**`008` leaves nothing in the tree on purpose**, so `ls` cannot count it and the
+row names where its report landed instead. The condition is not decoration: two
+seats asked for `008` after it was finished, one of them the same hour, and both
+were reading a message rather than the disk. `simulation-4` proposed a condition of this
+shape while declining to start without a row — which is the rule working.
+
+**The first version of this row was written against the proposed string and
+returned 0**, because the record that exists is tagged `task: "008"` and not
+what anyone had guessed. A condition is only worth the row if you run it
+before committing it; this one was caught in the minute between writing and
+committing, which is the only reason it is a footnote instead of a fourth
+allocation collision.
 
 A message saying a card is yours is a **notice**; the condition is the record.
 When the two disagree, the disk wins and the notice was stale — including a
