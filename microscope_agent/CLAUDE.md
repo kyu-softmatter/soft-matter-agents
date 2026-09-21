@@ -550,6 +550,18 @@ confirmed them physically. They were deliberately not extracted from the prior
 project (§10.3 rule 4). No plan, no scope approval, and no human approval may
 exceed them.
 
+**Editing a card does not reach a session that is already running.** The
+rule above is necessary and it is not sufficient. A session reads its card at
+start and holds it; a reassignment written into the file afterwards is
+invisible to it. On 2026-09-20 card `010` was moved to another seat at 22:47
+and the seat it was taken from committed it at 22:50, having never seen the
+line that said not to.
+
+**So re-read your card file immediately before you commit.** That is the only
+guard that works from inside a session, it costs one `cat`, and it catches
+both directions -- a card taken from you, and a card given to you while you
+were working on something else.
+
 ## DRAFT is what a generator may write; VALIDATED is what you assert
 
 `to_card()` writes `DRAFT` and every axis card committed here is
