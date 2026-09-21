@@ -1,0 +1,535 @@
+{
+  "card": "ask_experiment",
+  "schema_version": "0.1",
+  "id": "ask-thr-tie-overclaimed-r1",
+  "qid": "sim-20260917-001",
+  "thread": "thr-tie-overclaimed",
+  "round": 2,
+  "revision": 1,
+  "author": "bridge",
+  "created_at": "2026-09-19T07:30:45Z",
+  "status": "VALIDATED",
+  "direction": "simulation_to_experiment",
+  "trigger": "plan_completion",
+  "payload_card": {
+    "card": "plan",
+    "schema_version": "0.1",
+    "id": "plan-sim-20260917-001",
+    "qid": "sim-20260917-001",
+    "thread": "solo-sim-20260917-001",
+    "round": 0,
+    "revision": 1,
+    "author": "simulation_agent",
+    "created_at": "2026-09-17T12:30:00Z",
+    "status": "VALIDATED",
+    "goal_id": "goal-sim-20260917-001-r1",
+    "synthesis_id": "synthesis-sim-20260917-001",
+    "purpose": "characterize",
+    "intent": "explore",
+    "observable": {
+      "name": "tracer_diffusivity"
+    },
+    "system_configuration": {
+      "config": "bd_overdamped",
+      "optical_path": null,
+      "devices": [
+        "hoomd_backend"
+      ],
+      "model": "overdamped Brownian dynamics of spherical tracers in an implicit solvent, no pair interactions, periodic boundaries in all three directions"
+    },
+    "conditions": [
+      {
+        "parameter": "integration_timestep",
+        "number": "integration_timestep_point"
+      },
+      {
+        "parameter": "total_simulated_time",
+        "number": "total_simulated_time_point"
+      },
+      {
+        "parameter": "save_interval",
+        "number": "save_interval_max"
+      },
+      {
+        "parameter": "box_length",
+        "number": "box_length_min_dilution"
+      },
+      {
+        "parameter": "max_lag_time",
+        "number": "max_lag_time"
+      },
+      {
+        "parameter": "n_particles",
+        "number": "n_particles"
+      },
+      {
+        "parameter": "temperature",
+        "number": "temperature"
+      },
+      {
+        "parameter": "viscosity",
+        "number": "viscosity"
+      },
+      {
+        "parameter": "bead_diameter",
+        "number": "bead_diameter"
+      }
+    ],
+    "actions": [
+      {
+        "id": "integrate",
+        "device": "hoomd_backend",
+        "action": "integrate the declared configuration for the planned duration, saving frames at the planned interval",
+        "reversible": true,
+        "parameters": [
+          "integration_timestep",
+          "total_simulated_time",
+          "save_interval",
+          "box_length",
+          "max_lag_time",
+          "n_particles",
+          "temperature",
+          "viscosity",
+          "bead_diameter"
+        ],
+        "tier": 1
+      },
+      {
+        "id": "estimate_diffusivity",
+        "device": "hoomd_backend",
+        "action": "fit the mean squared displacement against lag over lags below the window and report the slope with its spread",
+        "reversible": true,
+        "parameters": [
+          "max_lag_time",
+          "n_particles"
+        ],
+        "tier": 0
+      }
+    ],
+    "envelope_check": {
+      "checked_against": [
+        "simulation_agent/envelope/safety.json"
+      ],
+      "status": "unavailable",
+      "note": "The file is absent, so there is no allowance to compare the estimated cost against, and A5 abstained for the same reason. Its shape is declared -- contracts/schemas/envelope_safety.schema.json landed fifteen seconds before this question's first cards were written -- so what is missing is the person's file and not the contract. This is not a claim that the run is inside budget; it is the record that nothing was available to check it against."
+    },
+    "cost": {
+      "wall_clock": "under a second of compute; the job is a million particle-steps with no pair interactions",
+      "numbers": [
+        "wall_clock_estimate",
+        "storage_estimate"
+      ],
+      "note": "estimates of an unrun job, from A5. The smoke run's own log replaces them with measured values"
+    },
+    "stop_criteria": [
+      {
+        "id": "planned_duration_reached",
+        "metric": "simulated_time",
+        "comparator": ">=",
+        "number": "total_simulated_time_point",
+        "on_met": "complete",
+        "statement": "stop when the run reaches the planned duration; running longer would be a different plan"
+      },
+      {
+        "id": "step_displacement_diverged",
+        "metric": "max_single_step_displacement",
+        "comparator": ">",
+        "number": "box_length_min_dilution",
+        "on_met": "fault",
+        "statement": "a tracer moving more than the box in one step is a diverged integration; stop and keep the run, because divergence is a result"
+      }
+    ],
+    "success_criteria": [
+      {
+        "id": "within_target_decade",
+        "metric": "log10_ratio_of_measured_to_expected_diffusivity",
+        "comparator": "<=",
+        "number": "target_decade_resolution",
+        "window": "lags below max_lag_time",
+        "statement": "the fitted diffusivity sits within the target decade of the free Stokes-Einstein expectation"
+      },
+      {
+        "id": "statistics_met",
+        "metric": "relative_standard_error_of_fitted_diffusivity",
+        "comparator": "<=",
+        "number": "target_relative_error",
+        "window": "lags below max_lag_time",
+        "statement": "the spread across tracers is small enough that the decade is decided by the physics and not by the sampling"
+      }
+    ],
+    "alternatives_rejected": [
+      {
+        "what": "integration_timestep at A1's ceiling",
+        "reason": "A1 allows a far coarser step, set from the diffusive time, but a saved frame would then fall between steps; the step is set a decade below the save interval instead",
+        "grounds": [
+          "integration_timestep_max",
+          "save_interval_max"
+        ]
+      },
+      {
+        "what": "box_length at the periodic-image bound",
+        "reason": "the image bound is cleared by a much smaller box, but that box puts a thousand tracers about a diameter apart, which is not the dilute limit the observable is defined in; the dilution bound binds instead",
+        "grounds": [
+          "box_length_min_images",
+          "box_length_min_dilution"
+        ]
+      }
+    ],
+    "open_risks": [
+      "No resource envelope exists, so nothing in this plan says the run is affordable. A5 abstained rather than passing, and the envelope check reports unavailable.",
+      "The librarian was never reached, so temperature, viscosity and the expected diffusivity are all estimates. Every interval in this plan rests on them, and one estimate in the chain makes the answer an order of magnitude (P15).",
+      "The expected diffusivity is what the run is checked against, and it was derived from the same Stokes-Einstein relation the engine is expected to reproduce. Agreement therefore tests the integration and the sampling, not the physical model.",
+      "Nothing here is fitted to experimental data, and no experimental counterpart has been measured. A bridge round would be the first comparison, and comparable is still false for this observable.",
+      "The temperature is the same number on both sides and not the same kind of number. Here the thermostat realises it exactly: it is a coordinate of the model, carrying no uncertainty of its own. The entry it was chosen from is an operator reading whose validity leaves the thermometer's position open, and nothing on the instrument actuates the sample temperature. So in a comparison the whole temperature uncertainty sits on the experimental side, and treating the two as equally certain -- or equally uncertain -- would misplace it."
+    ],
+    "numbers": [
+      {
+        "name": "integration_timestep_point",
+        "value": 0.002,
+        "unit": "s",
+        "source": "computed:operating_point_of_bd_overdamped",
+        "grade": "E5",
+        "origin": "synthesis.json#integration_timestep_point",
+        "precision": "order_of_magnitude",
+        "note": "ten steps per saved frame, so every frame lands on a step. Well inside A1's ceiling, which A1 set from the diffusive time rather than from the sampling"
+      },
+      {
+        "name": "total_simulated_time_point",
+        "value": 20,
+        "unit": "s",
+        "source": "computed:operating_point_of_bd_overdamped",
+        "grade": "E5",
+        "origin": "synthesis.json#total_simulated_time_point",
+        "precision": "order_of_magnitude",
+        "note": "two decades above the statistical floor. A decade was not enough: it made the record as long as the window, and then the longest lag carries one displacement per tracer"
+      },
+      {
+        "name": "save_interval_max",
+        "value": 0.02,
+        "unit": "s",
+        "source": "computed:two_decades_below_the_window",
+        "grade": "E5",
+        "origin": "synthesis.json#save_interval_max",
+        "precision": "order_of_magnitude",
+        "note": "upper bound. Saving more often costs storage, which is A5's, not A4's"
+      },
+      {
+        "name": "box_length_min_dilution",
+        "value": 100,
+        "unit": "um",
+        "source": "computed:spacing_times_particles_per_edge",
+        "grade": "E5",
+        "origin": "synthesis.json#box_length_min_dilution",
+        "precision": "order_of_magnitude",
+        "note": "the binding bound here: dilution costs a hundred microns, images only nine"
+      },
+      {
+        "name": "max_lag_time",
+        "value": 2,
+        "unit": "s",
+        "source": "assumed:a_window",
+        "grade": "E5",
+        "origin": "synthesis.json#max_lag_time",
+        "precision": "order_of_magnitude",
+        "note": "the window the estimator is evaluated over, set below tau_d so the free regime is what is sampled. tracer_diffusivity is window_required, so this travels with the plan as a condition"
+      },
+      {
+        "name": "n_particles",
+        "value": 1000,
+        "unit": "count",
+        "source": "assumed:a_ensemble",
+        "grade": "E5",
+        "origin": "synthesis.json#n_particles",
+        "precision": "order_of_magnitude",
+        "note": "tracers per box. Non-interacting, so the ensemble is a statistics knob rather than a physical density -- but the box still has to hold them dilutely (A3)"
+      },
+      {
+        "name": "temperature",
+        "value": 293,
+        "unit": "K",
+        "source": "kb:lab_ambient_temperature",
+        "grade": "E3",
+        "origin": "synthesis.json#temperature",
+        "precision": "significant_figures",
+        "note": "the operator's thermometer reading of the room. It is not established to be the sample's temperature -- see the gap"
+      },
+      {
+        "name": "viscosity",
+        "value": 0.001,
+        "unit": "Pa*s",
+        "source": "kb:water_viscosity_293k",
+        "grade": "E3",
+        "origin": "synthesis.json#viscosity",
+        "precision": "significant_figures",
+        "note": "pure water. The entry's validity runs 288 to 298 K, and the temperature above is inside it"
+      },
+      {
+        "name": "bead_diameter",
+        "value": 2,
+        "unit": "um",
+        "source": "assumed:a_sample",
+        "grade": "E5",
+        "origin": "synthesis.json#bead_diameter",
+        "precision": "order_of_magnitude",
+        "note": "the tracer the question is about. No bead lot is on hand, so this is the intended size rather than a specification"
+      },
+      {
+        "name": "diffusivity",
+        "value": 0.2,
+        "unit": "um^2/s",
+        "source": "computed:stokes_einstein",
+        "grade": "E5",
+        "origin": "synthesis.json#diffusivity",
+        "precision": "order_of_magnitude",
+        "note": "bulk Stokes-Einstein: sphere, bulk, no slip. Those assumptions stay in the value. This is the expectation the run is checked against, and the engine derives its own from the same bath rather than being handed this number"
+      },
+      {
+        "name": "tau_d",
+        "value": 20,
+        "unit": "s",
+        "source": "computed:diffusive_time",
+        "grade": "E5",
+        "origin": "synthesis.json#tau_d",
+        "precision": "order_of_magnitude",
+        "note": "the librarian's definition (kb:tau_d), not a second one. Its validity -- spherical tracer, bulk fluid, no slip, overdamped -- is this configuration exactly"
+      },
+      {
+        "name": "lag_to_record_ratio",
+        "value": 0.1,
+        "unit": "1",
+        "source": "computed:operating_point_of_bd_overdamped",
+        "grade": "E5",
+        "origin": "synthesis.json#lag_to_record_ratio",
+        "precision": "order_of_magnitude",
+        "note": "the window as a share of the record. The vocabulary requires the window to satisfy a statistical bound as well as the physical one, and this is the number that shows it"
+      },
+      {
+        "name": "lag_to_record_ratio_max",
+        "value": 0.1,
+        "unit": "1",
+        "source": "assumed:a_window_statistics",
+        "grade": "E5",
+        "origin": "synthesis.json#lag_to_record_ratio_max",
+        "precision": "order_of_magnitude",
+        "note": "the largest share of the record one lag may span. At a ratio of one the longest lag has a single displacement per tracer"
+      },
+      {
+        "name": "target_decade_resolution",
+        "value": 1,
+        "unit": "count",
+        "source": "assumed:a_target",
+        "grade": "E5",
+        "origin": "goal.json#target_decade_resolution",
+        "precision": "order_of_magnitude",
+        "note": "one decade is enough: the question is whether the engine reproduces the free value at all"
+      },
+      {
+        "name": "target_relative_error",
+        "value": 0.1,
+        "unit": "1",
+        "source": "assumed:a_statistics",
+        "grade": "E5",
+        "origin": "axis_bd_overdamped_a2.json#target_relative_error",
+        "precision": "order_of_magnitude",
+        "note": "ten per cent, which is well inside the one decade the goal asks for"
+      },
+      {
+        "name": "storage_estimate",
+        "value": 0.02,
+        "unit": "GB",
+        "source": "assumed:a_cost_reference",
+        "grade": "E5",
+        "origin": "axis_bd_overdamped_a5.json#storage_estimate",
+        "precision": "order_of_magnitude",
+        "note": "of order a thousand frames of a thousand tracers at three double coordinates each, a few tens of megabytes"
+      },
+      {
+        "name": "wall_clock_estimate",
+        "value": 0.0001,
+        "unit": "core_h",
+        "source": "assumed:a_cost_reference",
+        "grade": "E5",
+        "origin": "axis_bd_overdamped_a5.json#wall_clock_estimate",
+        "precision": "order_of_magnitude",
+        "note": "of order ten million particle-steps with no pair interactions; the run is still far too small for this axis to bind"
+      },
+      {
+        "name": "integration_timestep_max",
+        "value": 0.2,
+        "unit": "s",
+        "source": "computed:resolution_of_shortest_time",
+        "grade": "E5",
+        "origin": "synthesis.json#integration_timestep_max",
+        "precision": "order_of_magnitude",
+        "note": "upper bound only; nothing in A1 bounds the step from below"
+      },
+      {
+        "name": "box_length_min_images",
+        "value": 9,
+        "unit": "um",
+        "source": "computed:margin_over_rms_displacement",
+        "grade": "E5",
+        "origin": "synthesis.json#box_length_min_images",
+        "precision": "order_of_magnitude",
+        "note": "a tracer must not reach its own periodic image within the fit window"
+      }
+    ],
+    "assumptions": [
+      {
+        "rationale_id": "a_sample",
+        "statement": "The tracer size is a property of the question rather than a result. No bead lot exists to quote, so a micron-scale sphere is the intended size and not a specification.",
+        "numbers": [
+          "bead_diameter"
+        ],
+        "falsifier": "a bead lot specification replaces this with an E3 value and every interval resting on it moves"
+      },
+      {
+        "rationale_id": "a_ensemble",
+        "statement": "One thousand tracers is a round ensemble that makes the statistics cheap and keeps the cube root exact at ten per edge. Nothing physical picks this number.",
+        "numbers": [
+          "n_particles"
+        ],
+        "falsifier": "a statistics interval this ensemble cannot satisfy inside budget replaces it"
+      },
+      {
+        "rationale_id": "a_window",
+        "statement": "The fit window sits below the diffusive time so the free regime is what is sampled. The exact upper end is an estimate until A4 constrains it.",
+        "numbers": [
+          "max_lag_time"
+        ],
+        "falsifier": "an A4 interval that excludes this value replaces it"
+      },
+      {
+        "rationale_id": "a_window_statistics",
+        "statement": "A lag may span at most about a tenth of the record, so that every lag in the fit is determined by many displacements rather than by one. The vocabulary requires the window to satisfy this statistical bound as well as the physical one but deliberately fixes no fraction -- a number chosen in the contract would be a threshold nobody measured -- so the value is declared here and carried into the plan.",
+        "numbers": [
+          "lag_to_record_ratio_max"
+        ],
+        "falsifier": "a weighted fit whose slope is unchanged when the longest lag is shortened retires this fraction"
+      },
+      {
+        "rationale_id": "a_target",
+        "statement": "Screening accuracy is one decade. The run answers whether the engine reproduces free diffusion, not what the coefficient is to three figures.",
+        "numbers": [
+          "target_decade_resolution"
+        ],
+        "falsifier": "a question needing the coefficient rather than its decade restates this target and switches the intent to confirm"
+      },
+      {
+        "rationale_id": "a_statistics",
+        "statement": "A ten per cent statistical error needs of order one hundred independent samples, from the square-root scaling of an ensemble mean. The target is set at ten per cent rather than at the goal's full decade so that the statistical error is not what decides the decade.",
+        "numbers": [
+          "target_relative_error"
+        ],
+        "falsifier": "a seed-to-seed spread wider than ten per cent at this sample count retires the prefactor and raises the floor"
+      },
+      {
+        "rationale_id": "a_cost_reference",
+        "statement": "Cost is estimated at a reference step of ten milliseconds over a window of a few seconds, with one interaction-free force evaluation per particle per step. Nothing has been benchmarked on this machine, so both figures are order-of-magnitude estimates of an unrun job.",
+        "numbers": [
+          "storage_estimate",
+          "wall_clock_estimate"
+        ],
+        "falsifier": "a smoke run's own log replaces both estimates with measured values"
+      }
+    ],
+    "kb_refs": [
+      {
+        "entry_id": "lab_ambient_temperature",
+        "grade": "E3",
+        "kb_version": "kbv-9bc3910f1886",
+        "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator."
+      },
+      {
+        "entry_id": "sample_temperature_not_actuated",
+        "grade": "E3",
+        "kb_version": "kbv-9bc3910f1886",
+        "claim": "Sample temperature is not under control on this instrument, so any temperature a plan uses is an ambient value of the room rather than a commanded one."
+      },
+      {
+        "entry_id": "water_viscosity_293k",
+        "grade": "E3",
+        "kb_version": "kbv-9bc3910f1886",
+        "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+      },
+      {
+        "entry_id": "tau_d",
+        "grade": "E4",
+        "kb_version": "kbv-9bc3910f1886",
+        "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
+      }
+    ],
+    "kb_gaps": [
+      {
+        "gap_id": "sample_adjacent_temperature",
+        "observable": "temperature at the sample rather than in the room",
+        "kind": "absent",
+        "searched": [
+          "librarian_agent/kb/entries, read directly while the MCP service is down (4.3.0)",
+          "librarian_agent/kb/distilled"
+        ],
+        "nearest": [
+          {
+            "entry_id": "lab_ambient_temperature",
+            "overlap": "partial"
+          },
+          {
+            "entry_id": "sample_temperature_not_actuated",
+            "overlap": "partial"
+          }
+        ],
+        "kb_version": "kbv-9bc3910f1886"
+      },
+      {
+        "gap_id": "tracer_diffusivity_measured",
+        "observable": "tracer_diffusivity",
+        "kind": "absent",
+        "searched": [
+          "librarian_agent/kb/entries, read directly while the MCP service is down (4.3.0)"
+        ],
+        "kb_version": "kbv-9bc3910f1886"
+      }
+    ],
+    "degraded": [
+      "librarian_agent"
+    ]
+  },
+  "payload_hash": "sha256:d357a7a646931d6f7a1f26ac27a25ac54f1599f8db52c3a0ee8ad7a00d1db548",
+  "answerability": {
+    "observable": "tracer_diffusivity",
+    "checked_against": "microscope.json",
+    "producible": "yes",
+    "producing_configs": [
+      "confocal",
+      "transmitted",
+      "widefield_inline",
+      "widefield_side"
+    ],
+    "substitutes": []
+  },
+  "unit_consistency": {
+    "verdict": "no_counterpart",
+    "compared_against": null,
+    "note": "The opening round carries the first card of the thread, so there is nothing on the microscope side to compare units against. From round two on this verdict would mean the comparison was skipped."
+  },
+  "numbers": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "value_comparison": {
+    "observable": "tracer_diffusivity",
+    "verdict": "tie",
+    "grade": "E2",
+    "of": [
+      {
+        "card": "result-fixture-sim",
+        "number": "diffusivity"
+      },
+      {
+        "card": "result-fixture-mic",
+        "number": "diffusivity"
+      }
+    ]
+  },
+  "note": "Fixture for check 63: an E2 tie between an E2 measurement and an E5 placeholder. The values really are inside the band; what is false is what the agreement is worth."
+}

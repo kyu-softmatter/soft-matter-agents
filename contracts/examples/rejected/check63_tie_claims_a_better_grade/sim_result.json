@@ -1,0 +1,15 @@
+{
+  "card": "result",
+  "schema_version": "0.1",
+  "id": "result-fixture-sim",
+  "qid": "fixture-sim",
+  "numbers": [
+    {
+      "name": "diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "assumed:a_sample",
+      "grade": "E5"
+    }
+  ]
+}

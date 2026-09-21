@@ -5593,6 +5593,95 @@ def check_59_the_hook_reports_an_unattributed_commit(b: Bundle) -> list[Finding]
                               f"for an unattributed commit, and check 41 still emits it")]
 
 
+def check_63_a_tie_carries_the_worse_grade(b: Bundle) -> list[Finding]:
+    """A tie is a verdict about two values, and it carries a grade too (5.8.1).
+
+    P15's 10x band compares two VALUES. It does not compare two bodies of
+    evidence, and on 2026-09-19 that gap had teeth: the simulation held
+    `bead_diameter` 2 um as `assumed:` E5 while the store held the tracer
+    diameter at 5 um as `calibration:` E2. Since D goes as 1/d the
+    diffusivities are 2.5x apart, inside the band, so formally a tie -- and
+    the band **endorsed keeping the placeholder**, because a difference
+    inside it is no disagreement to report. The distance between the values
+    had not moved at all and whether a conclusion could stand had changed
+    entirely.
+
+    The answer is not a narrower band and not a new threshold. 5.8 already
+    says a computed value inherits the worst input in its chain; the rule
+    simply had not been applied to comparison. **So does the verdict of a
+    comparison.** A tie between E2 and E5 is an E5 tie, and `worse()` -- the
+    function 5.8 already uses for the chain -- is the one this reads with.
+
+    **It is the ungraded tie that misleads.** "No disagreement at E5" reads
+    correctly; "no disagreement" alone reads as agreement, which is a far
+    stronger statement than two placeholders can support.
+
+    Recomputed, never read. The grade is derived from the two operands' own
+    numbers, and a card claiming better than they support is refused the way
+    check 8 refuses an answerability verdict the tables do not support: a
+    verdict the writer can choose is not a gate (check 21's rule).
+
+    This does not say the weaker value is wrong. A model may run at a
+    diameter that is not on the bench, as long as the choice is recorded as a
+    choice -- what changed is that a placeholder stopped being the best
+    available and became a choice against evidence.
+    """
+    asks = [c for c in b.of_kind("ask_simulation", "ask_experiment") if c.data.get("value_comparison")]
+    if not asks:
+        return [Finding(63, NA, "no round compares two values yet; the opening round of a thread has no "
+                                "counterpart to compare against (4.4)")]
+
+    numbers_by_card: dict[str, dict[str, dict]] = {}
+    for c in b.cards:
+        cid = c.data.get("id")
+        if cid:
+            numbers_by_card[cid] = {n.get("name"): n for n in c.data.get("numbers") or []}
+
+    out: list[Finding] = []
+    checked = 0
+    for c in asks:
+        vc = c.data["value_comparison"]
+        if vc.get("verdict") != "tie":
+            continue
+        operands = vc.get("of") or []
+        if len(operands) != 2:
+            out.append(Finding(63, FAIL, "reports a tie and does not name the two values it compared, so "
+                                         "the grade it carries rests on nothing that can be read back "
+                                         "(5.8.1)", c.rel))
+            continue
+        grades, unresolved = [], []
+        for o in operands:
+            num = numbers_by_card.get(o.get("card"), {}).get(o.get("number"))
+            if num is None or not num.get("grade"):
+                unresolved.append(f"{o.get('card')}#{o.get('number')}")
+            else:
+                grades.append(num["grade"])
+        if unresolved:
+            out.append(Finding(63, FAIL, f"reports a tie against {', '.join(unresolved)}, which this tree "
+                                         f"does not carry as a graded number, so the tie's own grade "
+                                         f"cannot be recomputed (5.8.1)", c.rel))
+            continue
+        want = worse(*grades)
+        got = vc.get("grade")
+        checked += 1
+        if got is None:
+            out.append(Finding(63, FAIL, f"reports a tie between {grades[0]} and {grades[1]} and carries no "
+                                         f"grade. It is the ungraded tie that misleads -- 'no disagreement' "
+                                         f"reads as agreement, where 'no disagreement at {want}' reads "
+                                         f"correctly (5.8.1)", c.rel))
+        elif got != want:
+            out.append(Finding(63, FAIL, f"reports a {got} tie between a {grades[0]} value and a {grades[1]} "
+                                         f"one. A comparison inherits the worse of what it compared, the "
+                                         f"way a computed value inherits the worst input in its chain "
+                                         f"(5.8, 5.8.1), so this is a {want} tie", c.rel))
+    if out:
+        return out
+    if not checked:
+        return [Finding(63, NA, "no round reports a tie; a comparison that found a difference carries no "
+                                "grade of its own")]
+    return [Finding(63, PASS, f"{checked} ties carry the worse grade of the two values they compared")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -5609,7 +5698,8 @@ CHECKS = [
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision,
     check_65_history_checks_have_a_built_repository,
-    check_59_the_hook_reports_an_unattributed_commit, check_53_deny_rules_do_not_block_reading,
+    check_59_the_hook_reports_an_unattributed_commit,
+    check_63_a_tie_carries_the_worse_grade, check_53_deny_rules_do_not_block_reading,
     check_54_kb_basis_resolves, check_58_one_fanout_reads_one_store,
     check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,

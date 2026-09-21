@@ -1,0 +1,15 @@
+{
+  "card": "result",
+  "schema_version": "0.1",
+  "id": "result-fixture-mic",
+  "qid": "fixture-mic",
+  "numbers": [
+    {
+      "name": "diffusivity",
+      "value": 0.2,
+      "unit": "um^2/s",
+      "source": "measured:run_20260920",
+      "grade": "E1"
+    }
+  ]
+}

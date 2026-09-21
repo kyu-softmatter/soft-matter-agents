@@ -149,6 +149,63 @@
         "plan_completion"
       ],
       "description": "What opened this round. The bridge never opens one itself (4.4), so these two are the whole list. `plan_completion` is the plan card reaching its finished state -- validated, past DRAFT -- and not a run finishing: a completed plan is what tells the other side what to measure, and a plan crossing is the normal opening of a thread. `human` is a person handing a card over, and it is the only way a result crosses, because a finished run opening a round by itself would be a second automatic trigger and 4.4 grants one. Note what this does not mean: a plan crossing is not a comparison. M4's condition is two results measured for the same observable, and that needs a run on each side; carrying a plan is how the second side learns which run to do."
+    },
+    "value_comparison": {
+      "type": "object",
+      "description": "The third gate, and the only one that compares two VALUES. Answerability asks whether the other side can produce the observable at all and unit_consistency asks whether the two sides mean the same units; neither looks at what the numbers say. From round two on there is a counterpart, and putting a measurement beside a model is what this agent is for (4.4).",
+      "properties": {
+        "observable": {
+          "type": "string"
+        },
+        "verdict": {
+          "enum": [
+            "tie",
+            "differs",
+            "no_counterpart"
+          ],
+          "description": "tie means the two values are inside P15's band (5.8), differs means outside it, no_counterpart means the opening round has nothing to compare against."
+        },
+        "grade": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/grade"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required on a tie and derived, never chosen: it is the WORSE of the two values compared (5.8.1). A computed value inherits the worst input in its chain and so does the verdict of a comparison -- no new threshold, the rule 5.8 already had, applied to comparison. A tie between E2 and E5 is an E5 tie, and it is the UNGRADED tie that misleads: 'no disagreement at E5' reads correctly where 'no disagreement' alone reads as agreement. Check 63 recomputes it from the two operands and refuses a card that claims better, the way check 8 recomputes answerability -- a verdict the writer can choose is not a gate."
+        },
+        "of": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "The two numbers compared, by the card that carries each and its name in that card's numbers[]. The grades are not repeated here: they live on those numbers, and a copy beside them is a second place to be wrong (11-11).",
+          "items": {
+            "type": "object",
+            "properties": {
+              "card": {
+                "type": "string",
+                "description": "the id of the card carrying the number"
+              },
+              "number": {
+                "type": "string",
+                "description": "its name in that card's numbers[]"
+              }
+            },
+            "required": [
+              "card",
+              "number"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "observable",
+        "verdict"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
