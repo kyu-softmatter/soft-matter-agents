@@ -517,10 +517,19 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         **{"from": "actions[integrate]"},
         handle=submission.get("handle"),
         state=submission.get("state"),
+        # `value_si` and `unit_in_plan`, the two names `provenance` uses, and
+        # not `value`/`unit`. Pairing a converted value with the plan's unit
+        # made every dispatched parameter read as a number in a unit it is not
+        # in: the box went into the log as `9.999999999999999e-05 um` for a
+        # 100 um box, and the bead as `2e-06 um` for a 2 um bead. Both are the
+        # right value and the wrong label, which is the one shape P2 exists to
+        # refuse -- and this is a run log rather than a card, so no check looks
+        # at it. The plan's own unit is kept because what the parameter was
+        # written as is part of what was dispatched.
         params={
             entry["parameter"]: {
-                "value": entry["value_si"],
-                "unit": entry["unit_in_plan"],
+                "value_si": entry["value_si"],
+                "unit_in_plan": entry["unit_in_plan"],
                 "grade": entry["grade"],
                 "from": entry["from"],
             }
@@ -592,11 +601,32 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     })
     window = params["max_lag_time"]
     fit = backend.fit_diffusivity(window)
+    # An honest error bar beside the fit's own, and not instead of it (006,
+    # d7b47e3). The weighted fit treats a hundred MSD points as independent
+    # observations when every lag comes from the same trajectories, and
+    # measured over 32 seeds of this configuration its quoted error is about
+    # 36 times too small. The backend estimates the same quantity from blocks
+    # of tracers, which are independent by construction here.
+    #
+    # It is recorded because a criterion is evaluated against it. `statistics_met`
+    # compares a relative standard error against a target, and a result card
+    # carries that comparison permanently -- so the run record has to hold the
+    # number the card should use, or the card reaches for the only one on disk.
+    # Both are kept: the fit's own stays inside `fit` with its own note, and
+    # nothing is silently rescaled.
+    uncertainty = backend.block_uncertainty(window)
+    final = backend.read()
     cards.write(out / "trajectory_meta.json", {
         "run_id": run_id,
-        "frames_saved": backend.read().get("frames_saved"),
-        "simulated_time": backend.read().get("simulated_time"),
-        "steps_taken": backend.read().get("steps_taken"),
+        "frames_saved": final.get("frames_saved"),
+        "simulated_time": final.get("simulated_time"),
+        "steps_taken": final.get("steps_taken"),
+        # The metric the divergence criterion compares against, at the end of
+        # the run. Without it the summary cannot answer a stop criterion the
+        # plan declares, and a reader has to reconstruct it out of the last
+        # event in the log -- which exists, and is the event stream rather than
+        # the summary of what the run reached.
+        "max_single_step_displacement": final.get("max_single_step_displacement"),
         "stopped_by": stopped_by["id"] if stopped_by else None,
         # Read off the criterion's own on_met rather than inferred from when it
         # fired. A result card's outcome rests on this, so it has to be a fact
@@ -611,6 +641,7 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         "window_parameter": "max_lag_time",
         "window_si": window,
         "fit": fit,
+        "uncertainty": uncertainty,
         "msd_curve": backend.mean_squared_displacement(window),
     })
     cards.write(out / "log.json", {
