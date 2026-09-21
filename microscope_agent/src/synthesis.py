@@ -93,6 +93,40 @@ def load_fanout(qid: str) -> tuple[dict, dict, dict[str, dict[str, dict]]]:
     return goal, configs, by_config
 
 
+def not_run(configs: dict, by_config: dict[str, dict[str, dict]]) -> dict[str, list[str]]:
+    """What S3.0 sent out and S4 did not get back, per configuration.
+
+    A CARD THAT IS ABSENT IS NOT A CARD THAT SAID NOTHING, and without this
+    the two are the same thing downstream. S3.0's fan_out is the list of
+    caller_ids it issued, so it is the only record of what was supposed to
+    exist; an axis or a whole configuration that was never run simply does
+    not appear in the directory, and S4 grouping by what it finds would
+    report the remainder as if that were the whole question.
+
+    This is 4.5.2.1's rule one level up. There it is an axis that says
+    nothing about two of its five inequalities and reads as `this axis does
+    not constrain there`; here it is a configuration nobody ran and reads as
+    a configuration that was never a candidate. Both are silence wearing the
+    shape of an answer.
+
+    It matters immediately rather than hypothetically: on 2026-09-20 the
+    person narrowed mic-20260920-001 to one of the three configurations S3.0
+    screened in, which is a legitimate decision about what to spend, and
+    without this the other two would have vanished from the synthesis with
+    nothing recording that they were screened in and skipped.
+    """
+    issued: dict[str, set[str]] = {}
+    for row in configs.get("fan_out", []) or []:
+        issued.setdefault(row["config"], set()).add(row["axis"])
+    missing: dict[str, list[str]] = {}
+    for config, axes in sorted(issued.items()):
+        have = set(by_config.get(config) or {})
+        gap = sorted(axes - have)
+        if gap:
+            missing[config] = gap
+    return missing
+
+
 def one_store(cards: list[dict]) -> str:
     """Every card of one fan-out reads one store, or the intersection is not one.
 
@@ -311,10 +345,19 @@ def synthesise(qid: str, revision: int = 1, created_at: str | None = None) -> di
     goal, configs, by_config = load_fanout(qid)
     created_at = created_at or datetime.now(timezone.utc).isoformat(timespec="seconds")
     pin = one_store([c for cards in by_config.values() for c in cards.values()])
+    skipped = not_run(configs, by_config)
 
     per_config = []
     detail: dict[str, dict] = {}
-    for config in sorted(by_config):
+    for config in sorted(set(by_config) | set(skipped)):
+        if config not in by_config:
+            # Screened in and not run at all. It gets a row so the card cannot
+            # read as if S3.0 had never offered it, and `empty` is false
+            # because an empty intersection is a finding and this is not one.
+            per_config.append({"config": config, "empty": False, "axis_files": ["(not run)"]})
+            detail[config] = {"allowed_sets": {}, "preconditions": [], "conflicts": [],
+                              "unbounded": [], "origins": {}}
+            continue
         cards = by_config[config]
         intervals, sets, preconditions = [], [], []
         origins: dict[str, list[str]] = {}
@@ -354,8 +397,15 @@ def synthesise(qid: str, revision: int = 1, created_at: str | None = None) -> di
                           "conflicts": conflicts, "unbounded": unbounded_of(cards),
                           "origins": origins}
 
-    survivors = [r["config"] for r in per_config if not r["empty"]]
+    # A configuration whose axes did not all run is NOT a survivor. It has not
+    # been intersected, so calling it one would make "nothing contradicted it"
+    # mean "nothing looked".
+    survivors = [r["config"] for r in per_config if not r["empty"] and r["config"] not in skipped]
     chosen, why, priority, source = choose_config(survivors, goal)
+    if skipped:
+        why += (". Not intersected, because S3.0 screened them in and not every axis ran: "
+                + "; ".join(f"{c} is missing {', '.join(a)}" for c, a in sorted(skipped.items()))
+                + ". They are not empty and they are not survivors -- nothing looked")
 
     numbers: list[dict] = []
     operating_point: list[dict] = []
