@@ -74,8 +74,10 @@ validator, so it stops every session.
 ## 3. A §7 line for `contracts/history_fixtures.py`
 
 The §11-7 history fixtures are written and firing 3/3 and cannot be committed:
-check 13 needs the path declared in **both** §7 and `ALLOWED_PATHS`, and §7 is
-architecture's. Full design, the held file's location and the suggested §7
+check 13 needs the path declared in **both** §7 of `plan.md` and
+`ALLOWED_PATHS`, and §7 is architecture's. (§7 was in `plan_ko.md` when this
+was written; the design document came back to an English `plan.md` on
+2026-09-20 and 003 records the move.) Full design, the held file's location and the suggested §7
 text are in **`bridge/tasks/003`**.
 
 ---

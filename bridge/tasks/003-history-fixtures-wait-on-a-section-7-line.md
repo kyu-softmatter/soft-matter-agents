@@ -45,9 +45,16 @@ as done.
 ## Why it is not in the tree
 
 Check 13 refuses a new path under `contracts/` that is not declared in **both**
-§7 of `plan_ko.md` and `ALLOWED_PATHS` in `validate.py`. The second is this
-seat's; **the first is architecture's**, and `plan_ko.md` is in that seat's
-`paths`. No architecture session was running when this was built.
+§7 of the design document and `ALLOWED_PATHS` in `validate.py`. The second is
+this seat's; **the first is architecture's**. No architecture session was
+running when this was built.
+
+That document moved while this note waited. It was `plan.md` in Korean, then
+`plan_ko.md` with `plan.md` generated from it, and since 2026-09-20 it is
+`plan.md` in English again with no exception to the language rule. An
+untracked `plan_ko.md` is still sitting on disk; it is architecture's to
+remove. This note said `plan_ko.md` until the reversal — corrected here rather
+than left to age, which is the whole reason the note exists.
 
 It was briefly staged, then unstaged: a staged file in a shared index rides
 into whatever another session commits next. And it was then moved out of the
@@ -63,12 +70,13 @@ about 150 lines and the design is above.
 
 Architecture inserts the §7 line. Suggested text:
 
-> `contracts/history_fixtures.py` — 이력을 읽는 검사(26·35·41·46)의 픽스처.
-> 저장소를 **보관하지 않고 만든다**(§11-7). 각 픽스처는 임시 저장소를 짓고
-> `contracts/`를 복사해 **그 사본의 검증기**를 거기서 돌리므로 파일 쪽과 git 쪽이
-> 모두 픽스처 안에서 풀린다. 묶음 픽스처와 같이 **자기가 어느 검사의 것인지와
-> 기대 판정을 밝히고**, 계수는 그 검사에서 그 판정이 나올 것을 요구한다.
-> `python3 contracts/history_fixtures.py`.
+> `contracts/history_fixtures.py` — fixtures for the checks that read history
+> (26, 35, 41, 46). The repositories are **built, not stored** (§11-7): each
+> fixture makes a temporary repository, copies `contracts/` into it and runs
+> **that copy of the validator** there, so the file side and the git side both
+> resolve inside the fixture. Like a group fixture it **names the check it is
+> for and the verdict it expects**, and counting requires that verdict from
+> that check. Run with `python3 contracts/history_fixtures.py`.
 
 Then this seat adds the `ALLOWED_PATHS` entry in the same commit as the file,
 and CLAUDE.md's command list gains the run line beside `--expect-fail`.
