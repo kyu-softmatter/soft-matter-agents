@@ -3275,6 +3275,41 @@ def check_64_every_rejected_fixture_is_reached(b: Bundle) -> list[Finding]:
                     f"{len(reached)} rejected fixtures are iterated and {len(inputs)} are inputs to one")]
 
 
+def _judge(what: str, src: str, declared, rel, out: list, b, index_grades: dict) -> None:
+    """One source string against one declared grade, for an entry or a number in it.
+
+    Lifted out of check 43's entry branch on 2026-09-20 so the two levels
+    cannot drift. They had already drifted the only way that matters: the
+    number level was not judged at all.
+    """
+    prefix, ref = src.split(":", 1)
+    expected = SOURCE_GRADE.get(prefix, "missing")
+    if declared == "E6":
+        out.append(Finding(43, FAIL, f"{what}: E6 is a value a model produced and may not enter the store (4.3)", rel))
+        return
+    if expected == "missing":
+        out.append(Finding(43, FAIL, f"{what}: unknown source kind {prefix!r}", rel))
+    elif expected is not None:
+        if declared != expected:
+            out.append(Finding(43, FAIL, f"{what}: source {prefix}: derives {expected}, it says {declared} (self-reported grades fail)", rel))
+    elif prefix in ("computed", "simulated"):
+        if declared not in ("E4", "E5"):
+            out.append(Finding(43, FAIL, f"{what}: {prefix}: is E4 at best and never better, it says {declared}", rel))
+        if prefix == "simulated":
+            cfg = config_of_run(ref, b)
+            if cfg is None:
+                out.append(Finding(43, FAIL, f"{what}: source simulated:{ref} but that run's configuration cannot be resolved, so 5.3's independence declaration cannot be read", rel))
+            else:
+                ok, why = configuration_is_its_own_source(cfg)
+                if not ok:
+                    out.append(Finding(43, FAIL, f"{what}: a run's reading may not be carried into the store as a standing fact -- {why}", rel))
+    elif prefix == "kb":
+        if ref not in index_grades:
+            out.append(Finding(43, FAIL, f"{what}: cites kb:{ref}, which the index has no grade for to inherit", rel))
+        elif declared != index_grades[ref]:
+            out.append(Finding(43, FAIL, f"{what}: inherits kb:{ref}, graded {index_grades[ref]} in the store, and says {declared}", rel))
+
+
 def check_43_entry_grade(b: Bundle) -> list[Finding]:
     """An entry's grade follows from its source kind, the way a card's does (5.3).
 
@@ -3302,6 +3337,7 @@ def check_43_entry_grade(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     without: list[str] = []
     derived = 0
+    numbers_derived = 0
     for p in files:
         try:
             rel = str(p.relative_to(REPO))
@@ -3315,6 +3351,29 @@ def check_43_entry_grade(b: Bundle) -> list[Finding]:
         declared = e.get("grade")
         if declared == "E6":
             out.append(Finding(43, FAIL, f"{eid}: E6 is a value a model produced and may not enter the store (4.3)", rel))
+        # EVERY NUMBER INSIDE THE ENTRY, BY THE SAME RULE. Until 2026-09-20
+        # this loop read the entry's own `source` and stopped, so the store
+        # had a door: put a run's reading in `numbers[]` and write the ENTRY's
+        # source as `literature:`, and it walked in. simulation-3 measured
+        # both halves -- entry-level `simulated:` fails, the same string one
+        # level down passes -- and three documents said the store was the
+        # furthest "nowhere else" a non-independent run's reading could not
+        # reach. It was, of the entry's label. Not of the entry.
+        #
+        # And the wider half, which that probe also exposed: a number here
+        # could declare ANY grade from any source. Check 21 derives this for a
+        # card's numbers and nothing did it for an entry's, so E1 from a
+        # `literature:` source passed.
+        for n in e.get("numbers") or []:
+            if not isinstance(n, dict):
+                continue
+            nsrc = str(n.get("source") or "")
+            if ":" not in nsrc:
+                continue                    # the field is optional while the store catches up
+            numbers_derived += 1
+            _judge(f"{eid} numbers[{n.get('name')}]", nsrc, n.get("grade"), rel, out, b,
+                   index_grades)
+
         src = str(e.get("source") or "")
         if ":" not in src:
             without.append(eid)
@@ -3356,8 +3415,8 @@ def check_43_entry_grade(b: Bundle) -> list[Finding]:
     if without:
         shown = ", ".join(sorted(without)[:5])
         more = f" and {len(without) - 5} more" if len(without) > 5 else ""
-        return [Finding(43, PENDING, f"{derived} entry grades derive from their source; {len(without)} carry no `source` yet, so those grades are still self-reported ({shown}{more}). The librarian seat fills the field, and then it becomes required")]
-    return [Finding(43, PASS, f"{derived} entry grades follow from their source kind")]
+        return [Finding(43, PENDING, f"{derived} entry grades and {numbers_derived} numbers inside them derive from their source; {len(without)} carry no `source` yet, so those grades are still self-reported ({shown}{more}). The librarian seat fills the field, and then it becomes required")]
+    return [Finding(43, PASS, f"{derived} entry grades and {numbers_derived} numbers inside them follow from their source kind")]
 
 
 def check_44_subject_resolves(b: Bundle) -> list[Finding]:
