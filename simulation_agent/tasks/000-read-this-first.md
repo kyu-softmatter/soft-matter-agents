@@ -232,6 +232,41 @@ on which files happen to be present, and if both exist and disagree it picks one
 silently — P0 stops on ambiguity rather than choosing. **Land `budget.json` in
 the same commit as the operator change** and there is no window to bridge.
 
+**Landed 2026-09-20 (`8f954d0`, `simulation-4`):** `operator.py`,
+`axis_a5_budget.py`, `plan_card.py`, `envelope/budget.json`. No fallback.
+`check_budget` reads `budget.json` and returns `inside` with two ceilings
+compared. **Removing `safety.json` is the person's and is the only step left.**
+
+**Two consequences for whoever holds `004`, because revision 2's cards will
+differ from revision 1's and that is correct.**
+
+- **`axis_a5_budget`'s `abstain_reason` is now derived from whether the file
+  exists**, not asserted. With `budget.json` present, the a5 card of revision 2
+  says *an allowance exists and this axis does not yet turn it into an interval
+  — the abstention is this agent's unfinished work and not a missing ceiling*.
+  **The verdict stays `abstain`**, so the card's structure does not move; one
+  reason string does.
+- **`plan_card.envelope_check()` now calls `check_budget`**, so revision 2's
+  plan is born `status: "inside"` where revision 1 said `"unavailable"`, and the
+  generated `.md` renders that. Both differences are revision 1 being an honest
+  record of a time when the file was absent — cite it, do not take it as input.
+
+**And `envelope_check` gained a refusal nobody asked for, which is the good
+kind.** A plan carries no execution-target field, so if the envelope ever
+declares more than one target the check falls to `unavailable` rather than
+guessing which. `CLAUDE.md` says a second target is a data change and not a
+code change; this is what keeps that true — **the day it happens the plan stops
+instead of quietly comparing against the wrong machine.**
+
+**`safety_policy_version` keeps its name — ruled here, since the field is
+`run_log.schema.json`'s and that is this seat's.** The value now comes from a
+file called `budget.json`, which reads like a mismatch and is not one. The field
+names **what the run ran under**, and a policy is not its filename. If the name
+tracked the file, every rename would make every past run log retroactively
+wrong — and a run log is the one artifact that must stay true about a moment
+that has passed (P1). A comment in `operator.py` notes the tension and stops at
+*raised rather than changed*; this is the ruling that comment is missing.
+
 **Then, and only then, `manager-simulation` tightens two things** — removing
 `simulation_limits` from `envelope_safety.schema.json`, and narrowing
 `ALLOWED_PATHS` from `envelope/[anything]` to the declared names per agent, so
