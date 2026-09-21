@@ -150,6 +150,56 @@ coming up to speed or while the optical-path lock is held. PFS is disabled
 across turret and path changes and **re-acquired after** — confirm it
 re-acquired rather than assuming it did.
 
+## 4e. The exposure grid — set it and read it back
+
+**The store does not hold what exposures this camera can actually take, and
+it cannot be looked up.** The librarian searched five handles
+(`exposure_time`, `exposure`, `line_time`, `readout_time`, `frame_rate`) and
+all five came back empty; it is now a recorded gap, `camera_exposure_grid`
+in `devices.v0.json`. So this one is a measurement.
+
+**And it is a measurement rather than a query for a structural reason.**
+Exposure is not a device property — it is the core-level `setExposure` call
+(`camera_red_mm_control_path`, E3) — and **a core call publishes no
+allowed-values list.** There is nothing to read. The only way to learn the
+grid is to set a value and read back what the camera actually took.
+
+**The test**: set a series of exposures across the range the plan will use,
+read each back, and record where the requested and the taken diverge. Ten
+values spanning 1 ms to 1 s is enough to find the step; the pre-measurement
+asks for 100 ms and that point matters most.
+
+**Why it is worth the ten minutes.** A planned exposure and an actual
+exposure that differ are three different claims and the contract can only
+say one of them today:
+
+| | what it asserts |
+|---|---|
+| exact | there is no difference |
+| **quantisation** | **the device could not do otherwise** |
+| declared tolerance | the difference does not matter |
+
+`contracts/examples/result.json` records `exposure_time` planned 0.007 s and
+actual 0.008 s as `within_tolerance: true`, and check 72 reports UNDECIDED
+on it — **not wrong, uncheckable**, because `within_tolerance` is the only
+tolerance concept in `contracts/` and nothing declares a value for it. With
+a grid, *"the actual is the nearest settable point to the planned"* becomes
+derivable instead, and the verdict stops resting on a word.
+
+**The same shape is already in the store for a different device.**
+`csuw1_disk_speed_exposure_constraint` (E3): *an exposure through the
+spinning disk must last an integer multiple of the disk period, or stripes
+remain.* **Quantisation, named as quantisation.** It does not bind
+`widefield_inline`, which is why A1's `disk_period_multiple` abstains as
+`not_constraining` and is right to — but it is the precedent for what the
+camera entry should look like.
+
+**One thing it settles for free**:
+`interval_ms_is_ignored_and_frame_period_equals_exposure` — readout is
+pipelined, so **frame period equals exposure exactly.** A frame-rate
+constraint reduces to an exposure constraint, so this grid is the only place
+that needs closing.
+
 ## 5. The one that needs an acquisition, not a look
 
 **`lapp_branch_assignment` cannot be closed by reading a label.** The
