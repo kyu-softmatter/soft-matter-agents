@@ -89,6 +89,32 @@ hunk is yours. Checking does not close it either: the window is between the
 check and the commit, and it measured three minutes once. No check catches
 any of this. See §6.2.
 
+**And `git checkout -- <path>` is the same hazard inverted, which this file
+did not say.** The commit form *takes* another seat's uncommitted edits under
+your identity; the checkout form *destroys* them. It restores that path from
+HEAD and discards **every** seat's uncommitted work in it, not just yours, and
+**there is no path-scoped way to undo only your own edits to a shared file** --
+I confirmed both halves in a scratch repository rather than assuming them. The
+trap is that a seat which has absorbed the warning above reaches for checkout
+as the safe way out and does the worse thing; `manager-bridge` did exactly
+that on 2026-09-20 and took 92 uncommitted lines of another seat's check with
+it, having written half of the warning it was obeying. It had the worktree
+diff saved outside the tree and restored inside the minute. **Before reverting
+a shared path, save `git diff -- <path>` somewhere outside the tree** -- it is
+the only copy of the other seat's work that will exist.
+
+**A check and its fixtures land in the same commit.** `--expect-fail N/N`
+reports that every fixture *present* still fails and can say nothing about one
+that is gone, because a fixture that was never committed is a file git never
+knew: the rule above -- a fixture that stops failing means a check stopped
+working -- does not reach it. On 2026-09-20 `bad_gap_name_carries_its_locus.json`
+left index, disk, every commit and every loose object; two seats searched
+independently, walking unreachable and dangling blobs, and found nothing. A
+check committed without its fixtures is a check whose evidence exists only in
+a working copy anyone can revert. Neither of these gets a check of its own:
+nothing at commit time can tell whose hunk is whose, and a fixture that was
+never committed leaves nothing to compare against (§11-17).
+
 ## Rules that bind every session here
 
 **Safety outranks everything (P0).** People first, then instruments, then
