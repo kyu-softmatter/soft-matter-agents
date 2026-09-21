@@ -2219,6 +2219,18 @@ def check_29_failure_record(b: Bundle) -> list[Finding]:
     # so the one record the discipline depends on was the one the gate blocked.
     kinds = {"validator_failure", "refusal", "deviation", "scope_voided", "success",
              "abandoned_attempt"}
+    # `task` was a free string and nothing compared it to a task file.
+    # Measured 2026-09-20: 12 of 22 distinct values resolve to no task, and
+    # two of them are whole sentences sitting in an id field. That is not
+    # carelessness -- the field forces a name on work that never came from a
+    # queue, so a seat with an empty queue writes `none-queue-empty`, and a
+    # seat auditing its own output writes a paragraph. `occasion` is the
+    # honest third option, and it keeps what those rows actually say instead
+    # of flattening them into one reserved token.
+    task_files = list((REPO / "librarian_agent" / "tasks").glob("*.md"))
+    for agent in ("microscope_agent", "simulation_agent", "bridge"):
+        task_files += list((REPO / agent / "tasks").glob("*.md"))
+    invented: list[str] = []
     n_records = 0
     for p in files:
         for i, line in enumerate(p.read_text().splitlines(), 1):
@@ -2233,14 +2245,30 @@ def check_29_failure_record(b: Bundle) -> list[Finding]:
             missing = required - set(rec)
             if missing:
                 out.append(Finding(29, FAIL, f"line {i}: missing {sorted(missing)}", str(p.relative_to(REPO))))
-            owners = {k for k in ("qid", "task") if rec.get(k)}
+            owners = {k for k in ("qid", "task", "occasion") if rec.get(k)}
             if not owners:
-                out.append(Finding(29, FAIL, f"line {i}: names neither a qid nor a task, so nothing says what this attempt belonged to", str(p.relative_to(REPO))))
-            elif len(owners) == 2:
-                out.append(Finding(29, FAIL, f"line {i}: names both a qid and a task; one record belongs to one of them", str(p.relative_to(REPO))))
+                out.append(Finding(29, FAIL, f"line {i}: names no qid, task or occasion, so nothing says what this attempt belonged to", str(p.relative_to(REPO))))
+            elif len(owners) > 1:
+                out.append(Finding(29, FAIL, f"line {i}: names {sorted(owners)}; one record belongs to one of them", str(p.relative_to(REPO))))
+            t = rec.get("task")
+            if t:
+                stem = str(t).split()[0].split("--")[0].strip()
+                if not any(q.stem == stem or q.stem.startswith(stem + "-")
+                           for q in task_files):
+                    invented.append(f"{p.parent.name}:{str(t)[:40]}")
             if rec.get("kind") not in kinds:
                 out.append(Finding(29, FAIL, f"line {i}: unknown kind {rec.get('kind')!r}", str(p.relative_to(REPO))))
-    return out or [Finding(29, PASS, f"{n_records} failure records in {len(files)} files are well formed")]
+    if out:
+        return out
+    tail = ""
+    if invented:
+        tail = (f"; {len(invented)} name a `task` that is no task file -- work that did not come "
+                f"from a queue has to invent one, and an invented id is a name nothing can refuse "
+                f"({invented[0]}). `occasion` is the field for those and is now accepted; "
+                f"ADVISORY until the existing rows migrate, because they sit in three agents' "
+                f"trees and no one seat can clear them")
+    return [Finding(29, PASS,
+                    f"{n_records} failure records in {len(files)} files are well formed{tail}")]
 
 
 def check_30_lessons(b: Bundle) -> list[Finding]:
@@ -5319,6 +5347,71 @@ def check_58_one_fanout_reads_one_store(b: Bundle) -> list[Finding]:
         f"{len(groups)} fan-outs each read one store, across revisions")]
 
 
+def check_65_history_checks_have_a_built_repository(b: Bundle) -> list[Finding]:
+    """A check that reads git history has a fixture that builds one.
+
+    `--expect-fail contracts/examples/rejected` proves a check still works by
+    handing it a card. A check whose evidence is history cannot be reached
+    that way, and until 2026-09-20 the four that read it had no fixture at
+    all -- their only evidence was a sentence in a commit message, which is
+    what 11-7 calls a check nobody has tested.
+
+    **The four are derived, not listed.** Restating them here would put the
+    same fact in two places with nothing comparing them (11-11), and the copy
+    would go stale the first time someone writes a fifth. What this reads is
+    which check functions touch `GIT_REPO` or a commit range, which is what
+    reading history means in this file. So a new history-reading check that
+    arrives without a fixture fails here, on the commit that adds it.
+
+    Reads a declaration and not a run; section 8 states that limit once, for
+    this kind. It sees that a fixture is listed for each check and that the
+    builder it names exists -- not that running it still produces the verdict
+    it claims. Running them from here was rejected on cost: each builds a
+    repository and runs a second validator inside it, seconds apiece on a
+    gate that runs for every commit in every session.
+    `python3 contracts/history_fixtures.py` is what proves they fire.
+    """
+    src = (CONTRACTS / "validate.py").read_text()
+    reads_history = set()
+    for m in re.finditer(r"(?m)^def check_(\d+)_\w+\(", src):
+        n = int(m.group(1))
+        # This check reads source for a token and therefore matches itself:
+        # the words it searches for are in its own body. It reads files and
+        # no history, so excluding it is not a hole -- and the exclusion is
+        # named rather than silent, because the first run of this check
+        # failed on exactly this and the reason is not visible from the
+        # message it produced.
+        if n == 65:
+            continue
+        body = src[m.end():].split("\ndef ")[0]
+        if "GIT_REPO" in body or "commit_range" in body:
+            reads_history.add(n)
+    if not reads_history:
+        return [Finding(65, NA, "no check reads git history")]
+
+    harness = CONTRACTS / "history_fixtures.py"
+    rel = "contracts/history_fixtures.py"
+    if not harness.exists():
+        return [Finding(65, FAIL, f"{len(reads_history)} checks read git history and {rel} does not exist, "
+                                  f"so none of them has ever been seen to fail (11-7)", rel)]
+    text = harness.read_text()
+    listed = {int(n): name for n, name in
+              re.findall(r'(?m)^\s*\((\d+),\s*"[A-Z/]+",\s*"[^"]*",\s*(\w+)\)', text)}
+
+    out: list[Finding] = []
+    for n in sorted(reads_history - set(listed)):
+        out.append(Finding(65, FAIL, f"check {n} reads git history and {rel} builds no repository for it, "
+                                     f"so nothing has ever watched it fail (11-7)", rel))
+    for n, builder in sorted(listed.items()):
+        if f"def {builder}(" not in text:
+            out.append(Finding(65, FAIL, f"the fixture listed for check {n} names {builder}, which this "
+                                         f"file does not define", rel))
+    if out:
+        return out
+    return [Finding(65, PASS, f"{len(reads_history)} checks read git history and each has a fixture that "
+                              f"builds one; run {rel} to see them fire")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -5333,7 +5426,8 @@ CHECKS = [
     check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood, check_62_computed_grade_derived, check_64_every_rejected_fixture_is_reached, check_55_section_7_names_are_allowed,
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
-    check_52_target_is_a_decision, check_53_deny_rules_do_not_block_reading,
+    check_52_target_is_a_decision,
+    check_65_history_checks_have_a_built_repository, check_53_deny_rules_do_not_block_reading,
     check_54_kb_basis_resolves, check_58_one_fanout_reads_one_store,
     check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,
