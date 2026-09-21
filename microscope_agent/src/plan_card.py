@@ -150,6 +150,43 @@ def choose_from_set(allowed: dict, goal: dict) -> tuple[str | None, str]:
 # --------------------------------------------------------------------------- #
 
 
+def carried_from_goal(goal: dict, bounded: set[str]) -> list[dict]:
+    """The operator's own numbers, carried onto the plan with where they came from.
+
+    NOT A WAY ROUND THE AXES, and the distinction is the whole of it. S4
+    chooses a point inside an intersection; there are questions where no
+    intersection can exist, because the parameter the axes would bound is
+    the very quantity the run exists to measure. A pre-measurement for
+    tracer_brightness is one: A1 bounds an exposure from a brightness, and
+    the brightness is this question's observable. The axes are not failing
+    there, they are correct, and the operating point has to come from the
+    person or the question cannot be asked at all.
+
+    The mechanism is the contract's and not a new one. `origin` is
+    `<file>#<name>` and check 12 already compares a carried number against
+    the card it names, the same way it compares S4's carried numbers today.
+    So a number that came from the person is traceable to the goal card that
+    recorded their words, and a reader can tell it from one an axis derived
+    by looking at where it points.
+
+    WHAT IS NOT CARRIED. A number an axis DID bound -- S4 chose a point
+    inside it and that point wins, because it rests on evidence and this
+    does not. And a number a target names, which is a decision about the
+    answer rather than a setting for the run.
+    """
+    named_by_target = {t.get("number") for t in goal.get("targets", []) or []}
+    out = []
+    for number in goal.get("numbers", []) or []:
+        name = number.get("name")
+        if name in bounded or name in named_by_target:
+            continue
+        out.append({**{k: v for k, v in number.items() if k != "note"},
+                    "origin": f"goal.json#{name}",
+                    "note": ("carried from the goal card unchanged. No axis bounded it and none "
+                             "could: " + str(number.get("note", ""))[:400])})
+    return out
+
+
 def mandatory_fields() -> list[str]:
     """Read off plan.schema.json, so this list cannot drift from the contract."""
     schema = json.loads((CONTRACTS / "schemas" / "plan.schema.json").read_text())
@@ -179,6 +216,12 @@ def assemble(qid: str, revision: int = 1, created_at: str | None = None) -> tupl
                   for p in card4.get("operating_point") or []]
     unfillable: list[str] = []
 
+    # The operator's own settings, where no axis bounded the parameter.
+    bounded = {n["name"] for n in numbers}
+    for number in carried_from_goal(goal, bounded):
+        numbers.append(number)
+        conditions.append({"parameter": number["name"], "number": number["name"]})
+
     # The discrete bounds, where a value can be chosen without a person.
     for parameter, allowed in sorted(d["allowed_sets"].items()):
         value, reason = choose_from_set(allowed, goal)
@@ -204,6 +247,28 @@ def assemble(qid: str, revision: int = 1, created_at: str | None = None) -> tupl
                         "statement": "the diffusivity is placed within one decade"})
     else:
         unfillable.append("success_criteria: the goal card carries no target to compare against")
+
+    # The window a window_required observable depends on (5.7, check 40).
+    # NOT DEFAULTED, and that is deliberate. A window says WHICH PART of the
+    # record the estimator ran over, and a short-lag and a long-lag answer
+    # land in one column under one name without it. No axis produces one and
+    # the person did not state one, so it is named as open rather than filled
+    # with a plausible range -- a window this stage invents is a measurement
+    # nobody chose.
+    observable = (goal.get("observable") or {}).get("name")
+    vocab = {o["id"]: o for o in
+             json.loads((CONTRACTS / "observables.json").read_text()).get("observables", [])}
+    spec = vocab.get(observable) or {}
+    if spec.get("window_required"):
+        want = spec.get("window_parameter")
+        if want and want not in {c["parameter"] for c in conditions}:
+            unfillable.append(
+                f"conditions[{want}]: {observable!r} is window_required and nothing states the "
+                f"window. Check 40 rejects the plan without it, and it is not a default: the "
+                f"window is which part of the record the estimator ran over, and a short-lag "
+                f"and a long-lag answer land in one column under one name without it. The "
+                f"estimator says what the window means and not what it should be: "
+                f"{str(spec.get('estimator', ''))[:180]}")
 
     if not conditions:
         open_names = sorted({u["parameter"] for u in d["unbounded"] if u.get("kind") == "no_input"})
