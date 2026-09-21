@@ -386,39 +386,53 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                    "that is a gap in this file, not an abstention (4.5.2.1)",
         ))
 
+    # THE NOTES BELOW ARE COMPUTED FROM THIS RUN AND WERE HARD-CODED PROSE
+    # UNTIL 2026-09-20. They described one fan-out -- a pin of
+    # kbv-49feb73662b7, five answers of `absent`, a store of 25 entries
+    # against 49 -- and they travelled unchanged onto every card this module
+    # wrote afterwards, so the first card of the next question asserted a pin
+    # it was not at and answers it did not get. Prose that outlives its run is
+    # the failure this repository keeps counting; a note that cannot be
+    # computed should not be a note.
+    served = sorted(responses.get("entries") or {})
+    kinds: dict[str, list[str]] = {}
+    for g in responses.get("gaps") or []:
+        kinds.setdefault(g.get("kind", "?"), []).append(g["observable"])
     run.notes.append(
-        "Four entries that bear on this axis exist in the store and cannot be cited here, "
-        "because they were entered after the version this fan-out is pinned to and the pin does "
-        "not move while its siblings hold it (check 33). Named so the absence is visible rather "
-        "than silent: nosepiece_write_runs_no_escape, which says a Micro-Manager write to the "
-        "nosepiece does NOT run the stand's objective escape, so the retract is a step a plan "
-        "issues and verifies rather than a property it may assume -- that is a precondition this "
-        "axis would otherwise return; objective_change_invalidates_trap_calibration; "
-        "tweez300_reports_nothing_back, which would strengthen the verifiability precondition "
-        "though the tweezers are not in this configuration; and "
-        "trap_laser_power_has_no_software_path. At kbv-49feb73662b7 the store holds 25 entries "
-        "and the current version holds 49, so this card is answering against two thirds of what "
-        "is now known. That is the cost of the pin, and it is worth paying only while the "
-        "siblings need it."
+        f"Answered by the librarian service rather than by reading the store, which is what "
+        f"makes degraded empty here: {len(served)} entries came back with their own grades and "
+        + "; ".join(f"{len(v)} came back {k} ({', '.join(sorted(v))})"
+                    for k, v in sorted(kinds.items()))
+        + f", all at the pinned {pin}, and every call is in "
+          f"librarian_agent/queries/log.jsonl under this caller_id."
     )
+
+    in_table = kinds.get("in_published_table") or []
+    if in_table:
+        run.notes.append(
+            f"{len(in_table)} of the answers are `in_published_table` and not absences: the "
+            f"service named the snapshot, the table and the column, and the axis read there. "
+            f"An earlier note on this module said the server loads index.json and entries/ only "
+            f"so no version of it could serve these -- that stopped being true when the kind was "
+            f"added, and the answers above are the service doing exactly what it could not. "
+            f"What still stops the bounds is not the reading: `basis` takes a numbers[] name or "
+            f"`kb:<entry_id>` and a published table is neither, so the value is in hand and "
+            f"cannot be grounded. Raised with manager-microscope."
+        )
+
+    envelope = axc.AGENT / "envelope" / "snapshot.json"
+    if envelope.exists():
+        held = json.loads(envelope.read_text())
+        if held.get("kb_version") != pin:
+            run.notes.append(
+                f"This agent's envelope is at {held.get('kb_version')} and this fan-out is "
+                f"pinned to {pin}, so entries entered since the pin exist and cannot be cited "
+                f"here -- the pin does not move while its siblings hold it (check 33). That is "
+                f"the cost of the pin and it is worth paying only while the siblings need it."
+            )
+
     run.notes.append(
-        "Answered by the librarian service rather than by reading the store, which is what makes "
-        "degraded empty here: five entries came back with their own grades and five questions "
-        "came back absent, all at the pinned kbv-49feb73662b7, and every call is in "
-        "librarian_agent/queries/log.jsonl under this caller_id. The served digests were checked "
-        "byte for byte against the pinned commit's blobs."
-    )
-    run.notes.append(
-        "Two of five bounds return and three abstain, and the split is not about physics. The "
-        "three that abstain all want the device registry or the optical-path table, which live "
-        "in kb/staging/; the server's Store loads index.json and entries/ only, so no version of "
-        "the service can serve them. 001 picked A4 first because the registry is the one table "
-        "with real content -- and that content is in the half of the store the service does not "
-        "carry. The fix is the librarian decomposing staging into entries (11.1), not a different "
-        "pin."
-    )
-    run.notes.append(
-        "constraints[] is empty while two bounds returned, and that is the contract rather than "
+        "constraints[] is empty while bounds returned, and that is the contract rather than "
         "the axis: interval requires {parameter, unit, basis} with numeric min/max, and A4's "
         "answers are discrete and per-selector. The ledger item forbids additional properties, "
         "so the constraint is carried in reason where S4 can read it and cannot intersect it. "

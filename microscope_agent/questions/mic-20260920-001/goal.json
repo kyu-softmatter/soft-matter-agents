@@ -1,19 +1,18 @@
 {
   "card": "goal",
   "schema_version": "0.1",
-  "id": "goal-mic-20260920-001-r2",
+  "id": "goal-mic-20260920-001-r1",
   "qid": "mic-20260920-001",
   "thread": "solo-mic-20260920-001",
   "round": 0,
-  "revision": 2,
+  "revision": 1,
   "author": "microscope_agent",
-  "created_at": "2026-09-20T22:40:00Z",
-  "status": "DRAFT",
+  "created_at": "2026-09-21T05:08:02Z",
+  "status": "VALIDATED",
   "purpose": "characterize",
   "intent": "explore",
   "observable": {
-    "name": "tracer_brightness",
-    "definition": "The detected signal rate of one tracer under the illumination and exposure this card states, separated from background. Measured here because it cannot be asked for: it depends on this dye, this lot, this illumination and this camera together, so no vendor sheet and no prior run holds one."
+    "name": "tracer_brightness"
   },
   "targets": [
     {
@@ -21,7 +20,14 @@
       "kind": "decade_resolution",
       "value": 1,
       "unit": "count",
-      "note": "One decade is what unblocks A1. Its detection limit and SNR floor compare a per-particle rate against read noise and background, and those comparisons are decided by an order of magnitude, not by a percentage. Asking for more would make this pre-measurement longer than the measurement it exists to unblock."
+      "note": "One decade. This number exists to unblock A1's SNR bound and A1's exposure, and a decade of photon rate is a decade of SNR, which is what explore's own precision rule already delivers on any chain containing an estimate (5.8). Tighter would be a claim about a measurement nobody has made."
+    },
+    {
+      "metric": "bleaching_rate",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "The by-product's target, stated rather than implied. A3's bleaching bound and A1's record_duration both compare a decay constant against a record length, and a decade separates 'bleaches inside the record' from 'does not'."
     }
   ],
   "priority": [
@@ -31,19 +37,19 @@
     "cost"
   ],
   "sample_contrast": [
-    "label_free",
     "fluorescence"
   ],
   "sample_contrast_provenance": {
-    "source": "operator_recall:kyuhwan_20260917",
-    "grade": "E5"
+    "source": "kb:particles_show_on_the_green_605_path",
+    "grade": "E2"
   },
   "configuration_preference": [
     "widefield_inline"
   ],
   "configuration_preference_by": {
     "who": "kyuhwan",
-    "at": "2026-09-17T21:07:15-07:00"
+    "at": "2026-09-17T21:07:15-07:00",
+    "reason": "Carried from the tie-break the person gave on mic-20260918-001 and not re-asked. It is read only if S3.0's cap is unresolved (4.5.1 c); if the screen returns at most the cap it changes nothing here."
   },
   "requested_by": "human",
   "numbers": [
@@ -51,111 +57,186 @@
       "name": "exposure_time",
       "value": 0.1,
       "unit": "s",
-      "source": "assumed:a_exposure_start",
-      "grade": "E5",
-      "precision": "order_of_magnitude",
-      "note": "Given by the person on 2026-09-20 as a STARTING POINT and not a derived optimum, and the difference is the reason this is `assumed:` at E5 rather than anything stronger. No axis produced it and none could -- bounding an exposure needs the brightness this run exists to measure. The commanded value is exactly 0.1 s; the precision is order_of_magnitude because what is known is `about a tenth of a second`, not that tenth to one figure."
-    },
-    {
-      "name": "illumination_setting",
-      "value": 100,
-      "unit": "count",
-      "source": "assumed:a_illumination_start",
+      "source": "assumed:a_operating_point",
       "grade": "E5",
       "precision": "significant_figures",
-      "note": "THE PERSON'S 10 PER CENT, AS THE INSTRUMENT TAKES IT: 100, not 10 and not 0.1. Revision 1 wrote `0.1, unit 1` and that was wrong. light_engine_line_intensity_is_per_mille (E3) says each line is two MMCore properties -- `<NAME>` at 0 or 1 and `<NAME>_Intensity` on 0 to 1000 -- so the scale is PER-MILLE and 10 per cent commands 100, while writing 10 would command one per cent. The same tenfold trap is recorded as having already bitten in the prior project, where 5 per cent was written as 50 and 5 would have given 0.5 per cent. The trap is the scale and not the person's number. UNIT `count` IS THE NEAREST LAWFUL ONE AND NOT THE RIGHT ONE. The honest unit is per-mille, which units.json can express -- it is multiplicative, si_factor 0.001, dimensionless, exactly the shape of `mm` for length -- and does not hold. `1` would make this 100 times over rather than a tenth, so `count` is used, the same way nosepiece_position uses it for an index. Raised with manager-microscope. STILL NOT A POWER. There is no calibration from this scale to milliwatts, so writing illumination_power here would assert one nobody has done (kb_gap illumination_dial_to_power)."
+      "note": "The person's 100 ms, as the starting point of the pre-measurement. NOT a derived optimum: no axis produced it and none could, because the quantity that would bound an exposure is the one this question exists to measure."
+    },
+    {
+      "name": "illumination_line_intensity_permille",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_operating_point",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "at": "widefield_source_a",
+      "note": "The person's 10 per cent, resolved against light_engine_line_intensity_is_per_mille (E3): the MMCore property <LINE>_Intensity takes 0 to 1000, so 10 per cent is the integer 100 and writing 10 would command 1 per cent. The scale is the trap, not the person's number -- the same source records 5 per cent written as 50. This is a COMMANDED SETTING and not a power: no dial-to-milliwatt calibration exists in the store, so writing it as illumination_power would assert a calibration nobody has done."
     },
     {
       "name": "nosepiece_position",
-      "value": 5,
+      "value": 1,
       "unit": "count",
-      "source": "assumed:a_objective_choice",
+      "source": "assumed:a_operating_point",
       "grade": "E5",
       "precision": "significant_figures",
-      "note": "Position 5 is the 100x oil lens; the turret is indexed from 0, which the device table states in its own index_note. `precision` is significant_figures because the enum offers only that and order_of_magnitude: an integer index is exact and the vocabulary has no word for exact, so the nearer of the two is used rather than understating it as an order of magnitude. The grade is E5 because CHOOSING the lens is unevidenced, which is a different thing from the index being exact. Required at all because objective_clearance_min resolves from the objective in the path and refuses without it."
+      "at": "stand_ti2e",
+      "note": "Position 1 is the 10x, NA 0.45, air, 4 mm working distance, on a turret indexed FROM 0 (nosepiece_position_indexing). Chosen and not derived, for four reasons that are all about not importing an open gap into a pre-measurement: air needs no immersion index, which is A6's open condition_mismatch; the pixel size of the 10x at zoom 1x is calibrated on this instrument at E2, so a rate per particle is expressible per sample area without a gap; the widest calibrated field gives the most well-separated particles, which is what the estimator asks for; and a 4 mm working distance sits far above any clearance floor. It is carried in numbers[] because objective_clearance_min resolves from the objective in the path and a plan without it is refused at preflight."
     }
   ],
   "assumptions": [
     {
-      "rationale_id": "a_exposure_start",
-      "statement": "A tenth of a second is where the person chose to start. It is not claimed to be right, only to be a place a first frame can be taken from.",
+      "rationale_id": "a_operating_point",
+      "statement": "The exposure, the line intensity and the objective are a starting point supplied by the person, not an optimum derived by any axis. Nothing in the store bounds an acquisition of these particles, because the photon rate per particle is exactly what is missing -- so the whole operating point rests on that absence rather than on a number.",
       "numbers": [
-        "exposure_time"
-      ],
-      "falsifier": "saturated or empty frames in the first record retire it, and this run is the thing that looks"
-    },
-    {
-      "rationale_id": "a_illumination_start",
-      "statement": "Ten per cent of the source's scale is where the person chose to start. The scale is now known to be per-mille, so the commanded value is 100; what stays unevidenced is the choice of ten per cent, not the encoding.",
-      "numbers": [
-        "illumination_setting"
-      ],
-      "falsifier": "a first record that is saturated or dark at this setting retires it, and this run is the thing that looks"
-    },
-    {
-      "rationale_id": "a_objective_choice",
-      "statement": "The 100x oil lens, chosen so the result transfers. Brightness is not objective-independent -- collection scales with NA -- so a rate measured at one lens does not carry to another, and the pre-measurement has to be taken at a lens the real measurement is allowed to use. A6 returned four objective-and-zoom pairs that satisfy Nyquist for the diffusivity question and 100x is the only magnification appearing at both zooms, so it is the choice most likely to still be permitted when S4 picks. THAT CARD IS CITED AS A RECORD AND NOT USED AS AN INPUT (4.5.5): no bound here rests on it, and this remains a choice with a falsifier rather than a derived value.",
-      "numbers": [
+        "exposure_time",
+        "illumination_line_intensity_permille",
         "nosepiece_position"
       ],
-      "falsifier": "S4 choosing a pair other than 100x for mic-20260918-001 retires this and the pre-measurement is retaken at the lens it chose"
+      "falsifier": "one bare-particle record at this operating point: frames that saturate, or particles that cannot be segmented from background, retire it, and so does a decay too fast to fit inside the record. Any of the three ends the assumption by measuring the thing it stands in for.",
+      "gap_ref": "tracer_brightness_absent"
     }
   ],
-  "constraint_notes": [
-    "ONE ACQUISITION, TWO OBSERVABLES, AND THIS CARD DECIDES WHICH WAY. A plan carries one observable, and the two come off one record: the bleaching estimator is the brightness estimator applied frame by frame. So this is ONE plan whose observable is tracer_brightness, with bleaching_rate as a DECLARED BY-PRODUCT of the same record, and not two revisions over one record -- two revisions would imply two acquisitions and this is one. Two result cards come off the one run. The consequence to carry: the record length is set by the BY-PRODUCT rather than by the observable, because brightness is answered in the first frames and a decay constant needs the decay.",
-    "The sample is not spent. mic-20260918-001's constraint is that the sample is consumed by the measurement and cannot be remounted; bare particles on a coverslip are NOT that sample -- particles without it. So this pre-measurement does not cost the one mount it exists to protect, and saying so here is the point: without this sentence it reads as if it did.",
-    "The single exponential is declared BEFORE the run. bleaching_rate's estimator fixes it, and if the residual says it is wrong THAT IS THE RESULT -- a better-fitting curve is not swapped in afterwards. Stating it on the goal card rather than only in the vocabulary is deliberate: a criterion chosen after the data is not a result, it is a description of the data (5.4).",
-    "Both numbers leave as result cards for the librarian (P14) and both carry the illumination setting with them. A bleaching rate without its illumination cannot be used by another plan -- the observable's own note says so -- and the same is true of a brightness. The objective travels with them for the same reason, which the vocabulary does NOT yet say: tracer_brightness's definition names illumination and exposure and not the lens, while collection efficiency scales with NA. Raised with manager-microscope.",
-    "Which branch the widefield source sits on is unconfirmed, and this question runs widefield_inline. The registry row says it outright -- role text, `unconfirmed: [branch_assignment]`, `confirmed_by: null`, `gap_ref: lapp_branch_assignment` -- so if source_a is not the inline branch, a run does not know which configuration it is. A configuration is the identity of an optical path and not a label. Carried as a kb_gap and proceeding ON MOCK ONLY: mock moves nothing, so the ambiguity costs nothing until real light. It must be closed before the instrument runs.",
-    "THE MASTER STATE IS A CONDITION THIS RUN VERIFIES, and it is the one failure this acquisition is shaped to imitate. `State` at 0 gates the whole engine: no light leaves it however a line and its intensity are set, and NOTHING REPORTS AN ERROR AND BOTH PROPERTIES READ BACK EXACTLY AS WRITTEN (light_engine_master_state_gates_every_line, E3). This run measures brightness and bleaching, and with no light both come out `measured` -- the prior project produced a field whose median was below a dark frame and a ratio computed from hot pixels, and it looked like a result. So the plan carries the master state as a condition the run reads back, and a written-and-read-back property is this defect's SYMPTOM rather than its refutation. 2.1 rule 8 in its sharpest form.",
-    "THE PLAN NAMES `LightEngine`, NOT `widefield_source_a`, AND THAT IS WHAT LETS THIS GO BEFORE THE BRANCH GAP CLOSES. getLoadedDevices() returns MMCore labels, so a plan naming `LightEngine` is verified at preflight and asserts nothing about which branch the source sits on. Naming widefield_source_a would assert the disputed mapping -- widefield_inline's own note says a plan that names a source, sets its power or patterns it with the DMD stands on that gap, and setting an intensity is precisely that. MM labels are not product names: `LightEngine` is the Spectra III, `Nosepiece` the Ti2-E. `SpectraIII` fails as device-not-found, which reads as the wrong stand rather than the wrong name.",
-    "Exposure and ROI are CORE CALLS and not properties -- setExposure and setROI -- so a preflight looking for them in a device's property list will not find them; only Binning is a property. The turret is the same shape, a state device read with getStateLabel and set with setState, with no Position property (nosepiece_is_an_mmcore_state_device, E3). None of this bites on mock. It is written into the plan now anyway: fixing it when real light arrives is late, and the master-state failure is the kind where the fault looks like a result."
-  ],
   "kb_refs": [
+    {
+      "entry_id": "particles_show_on_the_green_605_path",
+      "grade": "E2",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "The particles in the bottle in use fluoresce under Aura3 green excitation and are visible through the 605 band of the emission filter wheel. This establishes that their emission overlaps the bands thi"
+    },
     {
       "entry_id": "light_engine_line_intensity_is_per_mille",
       "grade": "E3",
       "kb_version": "kbv-1dabfd5ad58d",
-      "claim": "Each light line is two MMCore properties, `<NAME>` at 0 or 1 and `<NAME>_Intensity` on 0 to 1000; the intensity scale is per-mille, so 10 per cent is 100 and 10 is one per cent."
+      "claim": "On both Lumencor engines each light line is exposed as two MMCore properties, `<NAME>` taking 0 or 1 and `<NAME>_Intensity` taking 0 to 1000. The intensity scale is per-mille, not per cent: an operato"
     },
     {
       "entry_id": "light_engine_master_state_gates_every_line",
       "grade": "E3",
       "kb_version": "kbv-1dabfd5ad58d",
-      "claim": "A master property `State` at 0 gates the whole engine: no light leaves it however a line and its intensity are set, and nothing reports an error or reads back wrongly."
+      "claim": "Both Lumencor engines carry a master property `State`, taking 0 or 1, which gates the whole device. With State at 0 no light leaves the engine however a line and its intensity are set, and nothing rep"
     },
     {
-      "entry_id": "nosepiece_is_an_mmcore_state_device",
+      "entry_id": "mm_label_aura_is_the_aura_iii",
       "grade": "E3",
       "kb_version": "kbv-1dabfd5ad58d",
-      "claim": "The turret is the MMCore label `Nosepiece`, a state device: read with getStateLabel and set with setState, with no Position property."
+      "claim": "On the prior project's configuration the MMCore device label `Aura` is the Lumencor Aura III 5-NII-WA on COM7, serial 30859, firmware 3.14.7. The label is not `AuraIII`; that is the product name."
+    },
+    {
+      "entry_id": "mm_label_lightengine_is_the_spectra_iii",
+      "grade": "E3",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "On the prior project's configuration the MMCore device label `LightEngine` is the Lumencor Spectra III 8-NII-XS on COM3, serial 28145, firmware 3.5.4. The label is not `SpectraIII`; that is the produc"
+    },
+    {
+      "entry_id": "camera_red_mm_control_path",
+      "grade": "E3",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "On the prior project's configuration the red Kinetix is the MMCore device label `Kinetix_red`, mapped to the PVCAM camera `Camera-2`. Binning is reached as a device property named `Binning`; exposure "
+    },
+    {
+      "entry_id": "cameras_both_kinetix22",
+      "grade": "E3",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "Both cameras are Kinetix 22. They are the same model, so pixel size, quantum efficiency, read noise and full-well capacity are the same on both arms, and the two arms of the splitter are photometrical"
+    },
+    {
+      "entry_id": "emission_wheel_camera_mapping",
+      "grade": "E5",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "The first emission filter wheel serves the red camera and the second serves the blue camera. The operator stated this from memory, with the word probably, and the blue half is the complementary half o"
     }
   ],
   "kb_gaps": [
     {
-      "gap_id": "illumination_dial_to_power",
-      "observable": "illumination_power",
+      "gap_id": "tracer_brightness_absent",
+      "observable": "tracer_brightness",
       "kind": "absent",
-      "kb_version": "kbv-1dabfd5ad58d",
       "searched": [
-        "envelope/snapshot.json entries, by hand: no calibration relates this source's commanded setting to a power at the sample plane"
+        "kb_query(observable=tracer_brightness, caller_id=mic-20260920-001:v1:s2, kb_version=kbv-1dabfd5ad58d) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
-      "near_names": [
-        "trap_laser_power_has_no_software_path"
-      ]
+      "kb_version": "kbv-1dabfd5ad58d",
+      "asked_by": "mic-20260920-001:v1:s2",
+      "asked_at": "2026-09-21T05:00:58+00:00",
+      "near_names": []
     },
     {
-      "gap_id": "lapp_branch_assignment",
-      "observable": "widefield_source_branch",
+      "gap_id": "bleaching_rate_absent",
+      "observable": "bleaching_rate",
       "kind": "absent",
-      "kb_version": "kbv-1dabfd5ad58d",
       "searched": [
-        "envelope/snapshot.json tables.devices: the widefield_source_a row declares its own branch_assignment unconfirmed and points at this gap_ref; the table states the gap rather than filling it"
+        "kb_query(observable=bleaching_rate, caller_id=mic-20260920-001:v1:s2, kb_version=kbv-1dabfd5ad58d) -> absent, searched ['kb/entries', 'kb/exports']"
       ],
+      "kb_version": "kbv-1dabfd5ad58d",
+      "asked_by": "mic-20260920-001:v1:s2",
+      "asked_at": "2026-09-21T05:01:01+00:00",
       "near_names": []
+    },
+    {
+      "gap_id": "light_engine_output_power_absent",
+      "observable": "light_engine_output_power",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=light_engine_output_power, caller_id=mic-20260920-001:v1:s2, kb_version=kbv-1dabfd5ad58d) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-1dabfd5ad58d",
+      "asked_by": "mic-20260920-001:v1:s2",
+      "asked_at": "2026-09-21T05:06:24+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "light_engine_channel_sets_absent",
+      "observable": "light_engine_channel_sets",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=light_engine_channel_sets, caller_id=mic-20260920-001:v1:s2, kb_version=kbv-1dabfd5ad58d) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-1dabfd5ad58d",
+      "asked_by": "mic-20260920-001:v1:s2",
+      "asked_at": "2026-09-21T05:06:26+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "lapp_branch_assignment_absent",
+      "observable": "lapp_branch_assignment",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=lapp_branch_assignment, caller_id=mic-20260920-001:v1:s2, kb_version=kbv-1dabfd5ad58d) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-1dabfd5ad58d",
+      "asked_by": "mic-20260920-001:v1:s2",
+      "asked_at": "2026-09-21T05:06:33+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "excitation_wavelength_absent",
+      "observable": "excitation_wavelength",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=excitation_wavelength, caller_id=mic-20260920-001:v1:s2, kb_version=kbv-1dabfd5ad58d) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-1dabfd5ad58d",
+      "asked_by": "mic-20260920-001:v1:s2",
+      "asked_at": "2026-09-21T05:01:44+00:00",
+      "near_names": [
+        "abvigen_product_excitation_wavelength",
+        "wavelength"
+      ]
     }
   ],
-  "degraded": [
-    "librarian_agent"
+  "degraded": [],
+  "constraint_notes": [
+    "WHY THIS QUESTION EXISTS. mic-20260918-001 cannot produce a plan and neither can mic-20260919-001: S5 refuses six mandatory fields, and the chain behind every one of them closes on tracer_brightness, which for a sample that has never been characterised cannot be asked for. The person settled that on 2026-09-19 -- brightness and bleaching depend on this dye, this lot, this illumination and this camera together, so no vendor sheet and no prior run holds one. This question breaks the circle from outside by making the missing number the observable.",
+    "ONE PLAN, ONE OBSERVABLE, AND THE SECOND AS A DECLARED BY-PRODUCT. tracer_brightness is this question's observable; bleaching_rate comes off the same record and is declared here rather than left implied. The estimators make that honest: bleaching_rate's estimator IS tracer_brightness's applied frame by frame to the same frames, so the second needs no additional action, no additional exposure and no second approval. The alternative the card offered -- two revisions over one record -- was refused for a specific reason: a revision replaces its predecessor, an approval and a round ledger pin a plan AT a revision (checks 7 and 8), and a record produced under revision 1 of a card that has since become revision 2 leaves 'which plan ran' unanswerable. Two results from one plan is a fact about this acquisition; two revisions would be a fiction about its history.",
+    "THE SAMPLE IS NOT SPENT. mic-20260918-001's goal carries the constraint that the sample is consumed by the measurement and cannot be remounted. Bare particles on a coverslip are NOT that sample -- they are particles without it -- so this pre-measurement does not spend the one mount it exists to protect. Said explicitly because a run that costs the thing it protects would be the wrong trade and nothing else on the card says otherwise.",
+    "THE MASTER STATE GATE, AND IT IS THE ONE FAILURE THAT LOOKS LIKE A RESULT. light_engine_master_state_gates_every_line (E3): each Lumencor engine has a master `State` property gating the whole device, and with it at 0 no light leaves the engine however the line and its intensity are set. Nothing errors, and BOTH the line property and the intensity property read back exactly as written -- so every signal a caller would normally trust says the light is on. What it cost where it was measured: a field whose median was BELOW the dark frame and a ratio computed almost entirely on the camera's hot pixels, and it looked like a result. A brightness and a bleaching measurement are precisely the two quantities that still return a number when the light is off. So the plan carries the master State as a preflight CONDITION and the operator verifies it rather than trusting the write. A return code is not a verification (2.1); here even a correct read-back is not one.",
+    "AND AUTOSHUTTER WILL NOT OPEN IT FOR YOU. On the configuration these entries were read from, Core.Shutter is `LightEngine`, so MMCore's autoshutter never opens the Aura, and autoshutter is off during a measurement by policy anyway. Nothing else opens the engine. This is why the master State is a step a plan issues and verifies, not a property it may assume.",
+    "NAME MM LABELS, NOT PRODUCT NAMES, AND NOT CHANNEL IDS. getLoadedDevices() returns MM labels: `LightEngine`, `Aura`, `Kinetix_red`, `Nosepiece`. `SpectraIII` and `AuraIII` are product names and a plan naming one fails preflight as a MISSING DEVICE, which reads as the wrong stand rather than the wrong string. The second half matters more here: naming widefield_source_a would assert the disputed branch mapping, and setting a source's intensity is exactly what widefield_inline's own note says stands on that gap. A plan written in MM labels is verifiable at preflight and asserts nothing about the branch.",
+    "WHICH ENGINE AND WHICH LINE, AND THE EVIDENCE IS THIS BENCH'S. The only evidence that these particles fluoresce at all on this instrument is particles_show_on_the_green_605_path (E2): they fluoresce under Aura green excitation and are visible through the 605 band. So the line driven is the Aura's GREEN and the record is taken through that band. The vendor's 620 nm excitation and 680 nm emission are NOT used: both are refuted by that same observation, which the store records as refutes/refuted_by rather than as a conflict, because there are no conditions under which a particle emitting at 680 nm shows through a 605 band under green excitation.",
+    "WHICH LEAVES THE CONFIGURATION LABEL UNCONFIRMED, AND THAT IS CARRIED AS A GAP. widefield_source_a and _b are both recorded `unconfirmed: [branch_assignment]` with gap_ref lapp_branch_assignment, so whether the Aura is the inline branch or the side-coupled one is not established. Naming the MM label means the plan does not assert it. It also means this run's CONFIGURATION NAME is not confirmed to be the configuration that physically runs -- which costs nothing on the mock backend, where no light moves, and must be closed by a person at the bench before real light. Closed by reading, not by reasoning: the prior project's record was right and its .cfg labels were swapped, which turned the light off and cost a diagnosis session, and the branch was booked as falsified for two days.",
+    "WHICH CAMERA, AND ONE LINK IN IT IS E5. The 605 band is the red arm, so the record is taken on `Kinetix_red` (camera_red_mm_control_path, E3, which also maps it to PVCAM Camera-2). The two bodies are the same model and photometrically equivalent (cameras_both_kinetix22, E3), so the arm is not chosen for sensitivity -- it is chosen because that is where the band is. The link from the 605 wheel to the red camera is emission_wheel_camera_mapping at E5, an operator recall carrying the word probably, and it is not promoted here by the fact that a spectral splitter puts one wheel on each arm. It settles with one acquisition: move one wheel and see which camera's image changes. camera_blue is deliberately not named anywhere in this question: its MM control path is in no entry, so naming it would be an inference and not a reading.",
+    "EXPOSURE AND ROI ARE NOT DEVICE PROPERTIES. They are core-level calls, setExposure and setROI; `Binning` is the only device property of the camera in the record (camera_red_mm_control_path, E3). A preflight that looks for an exposure in getDevicePropertyNames() will not find it and must not report it missing. The nosepiece has the same shape -- a state device read with getStateLabel, with no Position property -- and its positions run 0 through 5, so any check assuming 1 through 6 is off by one on every position.",
+    "THE CRITERION IS DECLARED BEFORE THE DATA. bleaching_rate's estimator declares a SINGLE EXPONENTIAL fitted to the population median, and that declaration is made here, before the run. If the residual says a single exponential is wrong, THAT IS A RESULT: it is reported as one and a better-fitting curve is not substituted afterwards. This is the one discipline on this card that is not ordinary engineering, and it is written on the goal rather than left to the result card because after the data exists it is no longer a declaration.",
+    "WHAT IS ASKED FOR AND IS NOT THERE. Six gaps, all service-answered at kbv-1dabfd5ad58d with the librarian reachable, so degraded is empty and every one of them is looked-for-and-absent rather than nobody-checked. Two of them -- tracer_brightness and bleaching_rate -- are the point of the question and close by acquiring. light_engine_output_power is the missing dial-to-milliwatt calibration and is what illumination_power_max will one day be compared against; until it exists the commanded per-mille integer is the only honest form of the setting. light_engine_channel_sets is which lines this stand's engines actually carry: the Spectra is an 8-channel engine whose channel set is unread, so GREEN is named from this bench's own observation rather than from a channel list. excitation_wavelength returned absent under that name and its near names lead to the refuted vendor figure, which is not used.",
+    "MOCK FIRST. operator.run(backend='mock') writes a run log with no instrument, no MMCore configuration and no approval, and that pass is M1's own completion wording. Nothing in this question moves hardware until a person has closed the branch assignment and loaded a configuration."
   ]
 }
