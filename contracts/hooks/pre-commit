@@ -92,19 +92,40 @@ fi
 # survived every manual verification on 2026-09-17.
 export SMA_GIT_REPO="$REPO"
 
-# --quiet on the way through, verbose on the way out. A passing commit does not
-# need forty lines; a refused one needs the line that refused it. Without the
-# re-run the hook said only that something failed, and three refusals in a row
-# looked like a flapping repository rather than one broken check.
+# Run once and keep the output. A passing commit does not need forty lines,
+# so only selected lines are printed -- but the run that decides has to be the
+# run that is quoted. It used to run --quiet and then run AGAIN to say what
+# failed, which is two judgements of two trees a moment apart, and which the
+# 2026-09-20 attribution warning could not use at all: PENDING is not a
+# failure, so the second run never happened and the warning had nowhere to go.
 echo "pre-commit: contracts"
-if ! python3 "$EXPORT/contracts/validate.py" --staged --quiet; then
-    python3 "$EXPORT/contracts/validate.py" --staged 2>&1 | grep -E "FAIL|UNDECIDED" >&2 || true
+OUT=$(python3 "$EXPORT/contracts/validate.py" --staged 2>&1)
+STATUS=$?
+if [ "$STATUS" -ne 0 ]; then
+    echo "$OUT" | grep -E "FAIL|UNDECIDED" >&2 || true
     echo >&2
     echo "pre-commit: refused. The failures above are in the tree this commit" >&2
     echo "            would create, so they are this commit's. Fix them, or" >&2
     echo "            commit with --no-verify and say in the message why the" >&2
     echo "            gate was bypassed." >&2
     exit 1
+fi
+
+# An unattributed commit passes and must not pass silently. seats.json sets
+# unknown_committer to `report`, so a seat that has not adopted an identity is
+# not blocked -- and until now nothing reported: check 41 returns PENDING,
+# PENDING is not a failure, and the hook printed only on failure. The registry
+# already records what this costs -- an unattributed commit gets no boundary
+# checking at all, because nothing says whose paths those were -- so the one
+# thing standing between that and silence was a line nobody printed.
+ATTRIB=$(echo "$OUT" | grep "carry no attribution" || true)
+if [ -n "$ATTRIB" ]; then
+    echo >&2
+    echo "pre-commit: this commit carries no attribution. It is allowed and is" >&2
+    echo "            not checked -- no seat owns these paths, so no later sweep" >&2
+    echo "            will attribute them. Adopt a seat identity, or accept that" >&2
+    echo "            the record will not say who wrote this:" >&2
+    echo "$ATTRIB" | sed 's#^#  #' >&2
 fi
 
 echo "pre-commit: the cards that must fail"
