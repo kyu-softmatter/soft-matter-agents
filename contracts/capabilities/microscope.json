@@ -46,7 +46,9 @@
           "requires_composition": [
             "trapping"
           ]
-        }
+        },
+        "tracer_brightness",
+        "bleaching_rate"
       ],
       "requires_contrast": "fluorescence"
     },
@@ -69,7 +71,9 @@
           "requires_composition": [
             "trapping"
           ]
-        }
+        },
+        "tracer_brightness",
+        "bleaching_rate"
       ],
       "requires_contrast": "fluorescence"
     },
@@ -92,7 +96,9 @@
           "requires_composition": [
             "trapping"
           ]
-        }
+        },
+        "tracer_brightness",
+        "bleaching_rate"
       ],
       "requires_contrast": "fluorescence"
     },

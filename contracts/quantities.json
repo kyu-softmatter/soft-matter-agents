@@ -147,6 +147,20 @@
       "unit": "um",
       "kind": "physical",
       "note": "THE NAME OVERSTATES WHAT THE QUANTITY IS, and it is registered under it anyway. The observable reports a scalar -- sigma -- while the full histogram stays with the raw data, so the registered quantity is a width and the name says distribution. Not renamed here: capabilities/*.json and the bridge resolve answerability against this id, and which name survives is not this file's call to make unilaterally over two other seats' cards -- the same refusal open_collisions records for bead_diameter against tracer_diameter. Rule 1 is not violated (no subject, no locus in the string), so nothing refuses it; this note is the record that it was seen rather than missed. Canonical unit um, of the um and nm the observable admits."
+    },
+    {
+      "id": "tracer_brightness",
+      "definition": "The detected signal rate a single tracer delivers, under the illumination and detector stated with it. It is a property of dye, lot, illumination and camera TOGETHER, not of the particle, which is why no vendor sheet holds one.",
+      "unit": "Hz",
+      "kind": "physical",
+      "note": "The unit is a rate of detected events per second. Without a camera gain calibration the detector reports counts rather than photons, so a value here is counts per second unless its entry says otherwise -- the gain that would convert them is its own gap. Registered 2026-09-20 because a pre-measurement needs the name; the person settled on 2026-09-19 that for a new sample this closes by imaging the particles alone rather than by asking."
+    },
+    {
+      "id": "bleaching_rate",
+      "definition": "The decay constant of tracer signal under continuous illumination: the reciprocal of the time over which emission falls by 1/e at a stated illumination. Like tracer_brightness it is a property of the combination and not of the dye alone.",
+      "unit": "Hz",
+      "kind": "physical",
+      "note": "A rate constant, so 1/s. Illumination belongs with it: the same particles bleach faster under more light, and a value carrying no illumination is not transferable. Registered 2026-09-20 alongside tracer_brightness, which the same acquisition produces."
     }
   ],
   "not_yet_registered": {

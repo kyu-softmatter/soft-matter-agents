@@ -44,6 +44,36 @@
       ],
       "comparable": false,
       "note": "Deliberately the width and not the stiffness. sigma^2 = k_BT/k assumes a harmonic trap, and that assumption is not confirmed here -- sigma is measured without it, and a stiffness can be derived later with the assumption written down (P15). Whether the particle is trapped at all is not a separate observable but this distribution's success criterion: bounded or not. window_required is true because sigma converges from below: a short record undersamples the tails and understates it, and exposure-time averaging shaves it again, so a sigma written without its window is not one number."
+    },
+    {
+      "id": "tracer_brightness",
+      "definition": "The detected signal rate of a single tracer under stated illumination and exposure: what one particle contributes to a frame, separated from background. Registered so a pre-measurement has an observable to name; it is the input six abstentions across A1 and A3 are waiting on.",
+      "units": [
+        "Hz"
+      ],
+      "estimator": "Segment single, well-separated tracers in each frame, integrate the signal over a fixed aperture around each centroid, subtract a local background estimated from an annulus outside it, and divide by the exposure time to give a rate. Report the median over particles and frames within the window, with the inter-particle spread, because the distribution over particles is what A1's detection limit needs and a mean hides it. Particles within one aperture diameter of another are excluded rather than deblended.",
+      "window_required": true,
+      "window_parameter": "brightness_window",
+      "producible_by": [
+        "experiment"
+      ],
+      "comparable": false,
+      "note": "One side only, which the schema allows and the bridge honours by refusing to ask the other for it. A simulation does not have a dye, a lot or a camera, so there is nothing on that side to compare against -- this is not a gap in the vocabulary but the fact that made the person rule this closes by acquiring."
+    },
+    {
+      "id": "bleaching_rate",
+      "definition": "The decay constant of tracer signal under continuous illumination at a stated setting. Produced by the same acquisition as tracer_brightness and registered with it.",
+      "units": [
+        "Hz"
+      ],
+      "estimator": "Take the per-particle brightness trace over the record using the tracer_brightness estimator frame by frame, and fit a single exponential in time to the population median. Report the decay constant with its fit spread and the illumination it was taken at. A single exponential is declared BEFORE the run and is not chosen after seeing the curve; if the residual shows it is wrong, that is a result and the criterion is not swapped for a better-fitting one.",
+      "window_required": true,
+      "window_parameter": "bleach_window",
+      "producible_by": [
+        "experiment"
+      ],
+      "comparable": false,
+      "note": "The illumination setting is part of the value and not context: the same particles bleach faster under more light. A rate reported without it cannot be carried to another plan."
     }
   ]
 }
