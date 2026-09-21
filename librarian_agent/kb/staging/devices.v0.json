@@ -516,6 +516,18 @@
   ],
   "gaps": [
     {
+      "what": "the camera's settable exposure grid -- whether setExposure takes a continuum or snaps to a quantum, and what that quantum is",
+      "gap_id": "camera_exposure_grid",
+      "why_it_matters": "a result card reporting planned 0.007 s and actual 0.008 s currently says `within_tolerance: true`, and check 72 returns UNDECIDED on it because nothing in contracts/ declares a tolerance. manager-simulation's reading is that this is not a tolerance at all but QUANTIZATION -- the device could not do otherwise -- and those are different claims: exact reproduction says there is no difference, a tolerance says the difference does not matter, quantization says no closer setting exists. Three claims in one boolean, and none of them checkable. With the grid on disk, `is actual the nearest settable point to planned` becomes a DERIVABLE verdict, the shape checks 6 and 72 already use.",
+      "kind": "absent",
+      "searched": [
+        "every camera_* entry in the store at kbv-a54fe073bef7: the four camera_read_noise_* rows carry read_noise and nothing else, so the line_time the grid might have been derived from is not there",
+        "the five handles a caller would reach for -- exposure_time, exposure, line_time, readout_time, frame_rate -- all return nothing",
+        "camera_red_mm_control_path, which answers HOW exposure is set and not WITH WHAT: `exposure and ROI are not device properties at all but core-level calls, setExposure and setROI`. That is itself part of the answer -- a core-level call has no property allowed-values list to read a grid off, so closing this means setting and reading back rather than querying"
+      ],
+      "status": "open, and NARROWER THAN IT LOOKS because the store already holds one exposure grid that is not the camera's. csuw1_disk_speed_exposure_constraint (E3, operator_read) says an exposure through the spinning disk must last AN INTEGER MULTIPLE OF THE DISK PERIOD or stripes remain -- quantization, stated as such, for the disk rather than the sensor. So the shape is already in the store and the missing one is the camera's. Note also interval_ms_is_ignored_and_frame_period_equals_exposure: the frame period equals the exposure exactly because readout is pipelined, so a frame-rate constraint reduces to an exposure one and this gap is the only place to close it. Raised by manager-microscope on 2026-09-21; recorded here rather than left in a message because the two other open questions it is to be bundled with -- what ends the pixel-size calibration, camera change and optical path -- have already outlived three sessions today."
+    },
+    {
       "what": "per-device safety limits",
       "why_it_matters": "every Tier 2 action is compared against them",
       "kind": "inaccessible",
