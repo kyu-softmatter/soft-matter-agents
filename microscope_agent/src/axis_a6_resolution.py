@@ -566,6 +566,9 @@ def main(argv: list[str] | None = None) -> int:
                              "siblings have to agree (check 33)")
     parser.add_argument("--responses", required=True, type=Path,
                         help="what the librarian returned for this caller_id at that pin")
+    parser.add_argument("--prefix", default="",
+                        help="filename prefix for a re-run of the whole fan-out, e.g. v2_ "
+                             "(4.5.5); empty overwrites the card in place")
     parser.add_argument("--revision", type=int, default=1,
                         help="the card's revision. Raised on any edit (5.4), and the caller_id "
                              "has to carry the same number: check 33 wants qid:v<revision>:"
@@ -585,7 +588,10 @@ def main(argv: list[str] | None = None) -> int:
     run = evaluate(goal, args.config, args.caller_id, responses, args.kb_version)
     axc.report(run)
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    rc = axc.write(run, goal, goal.get("qid", ""), created_at)
+    # --revision was parsed and dropped here until 2026-09-20, so every card
+    # this axis wrote was revision 1 whatever the fan-out asked for -- a
+    # re-run's card would have claimed to be the first.
+    rc = axc.write(run, goal, goal.get("qid", ""), created_at, args.revision, args.prefix)
     if rc == 0 and args.revision != 1:
         # axis_common.to_card() writes revision 1, which is right for a first
         # run and wrong for every re-run. Patched here rather than there: that

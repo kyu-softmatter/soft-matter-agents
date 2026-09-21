@@ -402,8 +402,24 @@ def report(run: AxisRun) -> None:
         print(f"  note: {note}")
 
 
-def write(run: AxisRun, goal: dict, qid: str, created_at: str, revision: int = 1) -> int:
-    """Write the card, or refuse and print the ledger so the work is not lost."""
+def write(run: AxisRun, goal: dict, qid: str, created_at: str, revision: int = 1,
+          prefix: str = "") -> int:
+    """Write the card, or refuse and print the ledger so the work is not lost.
+
+    `prefix` is how a RE-RUN OF THE WHOLE FAN-OUT lands beside the one it
+    replaces rather than on top of it. 4.5.5 says earlier outputs are not
+    deleted and sit alongside under a `v2_` prefix, and until 2026-09-20 this
+    function could not do that: the filename was fixed, so a re-derivation
+    overwrote the card it was re-deriving and P9's record went with it.
+
+    That is why mic-20260918-001 carries seven axes at revisions 2, 4 and 5 in
+    one unprefixed set -- the field became a per-axis counter because the
+    filename left it nowhere else to go -- while sim-20260917-001, which had
+    the prefix, is question-level as 4.5.5 intends. Check 58 groups by the
+    PREFIX for exactly this reason: `v2_axis_*` and `axis_*` are the two sets
+    S4 reads separately, and the revision field means two different things
+    across the two agents.
+    """
     try:
         card = to_card(run, goal, qid, created_at, revision)
     except AxisError as exc:
@@ -411,7 +427,7 @@ def write(run: AxisRun, goal: dict, qid: str, created_at: str, revision: int = 1
         print("\nledger, in full:")
         print(json.dumps([o.as_dict() for o in run.outcomes], ensure_ascii=False, indent=2))
         return 3
-    out = AGENT / "questions" / qid / f"axis_{run.config}_{run.axis}.json"
+    out = AGENT / "questions" / qid / f"{prefix}axis_{run.config}_{run.axis}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(card, ensure_ascii=False, indent=2) + "\n")
     print(f"wrote {out.relative_to(REPO)}")

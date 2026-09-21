@@ -38,6 +38,7 @@ sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.curdir) != _HERE]
 
 import argparse                                                  # noqa: E402
 import json                                                      # noqa: E402
+import re                                                        # noqa: E402
 import math                                                      # noqa: E402
 from datetime import datetime, timezone                          # noqa: E402
 from pathlib import Path                                         # noqa: E402
@@ -80,8 +81,19 @@ def load_fanout(qid: str) -> tuple[dict, dict, dict[str, dict[str, dict]]]:
         )
     configs = json.loads(configs_path.read_text())
 
+    # THE NEWEST PREFIX SET, NOT EVERY CARD IN THE FOLDER. A re-run of a whole
+    # fan-out writes `v2_axis_*` beside `axis_*` rather than over it (4.5.5),
+    # and check 58 groups by that prefix because the two are exactly the sets
+    # S4 reads separately. Globbing `axis_*` alone would keep reading the
+    # superseded set after a re-pin -- the pin moves, the cards are rewritten,
+    # and S4 intersects the old ones -- so the highest prefix present wins and
+    # the rest stay on disk as the record P9 keeps them for.
+    prefixes = sorted({m.group(1) for p in folder.glob("v*_axis_*.json")
+                       if (m := re.match(r"(v\d+_)axis_", p.name))},
+                      key=lambda s: int(s[1:-1]))
+    prefix = prefixes[-1] if prefixes else ""
     by_config: dict[str, dict[str, dict]] = {}
-    for path in sorted(folder.glob("axis_*.json")):
+    for path in sorted(folder.glob(f"{prefix}axis_*.json")):
         card = json.loads(path.read_text())
         slot = by_config.setdefault(card["config"], {})
         held = slot.get(card["axis"])
