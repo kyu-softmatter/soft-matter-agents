@@ -98,6 +98,22 @@
       "note": "The fourth simulation execution seat, seated 2026-09-20. Same shape as simulation-2 and -3. Minted on a relay from simulation-2, which reports the person opened a fourth session; the person has not said so here, so the same withdrawal clue applies as on simulation-3 and only the person closes it. simulation-2 asked specifically that simulation-3 NOT be lent to this window: session 3 closed and came back up and is running now, so the name is not vacant, and two windows on one identity is the hole one_identity_per_session names. That is the microscope-3 precedent applied before the fact rather than after -- a name that looks free is the case that rule exists for."
     },
     {
+      "seat": "simulation-5",
+      "committer_email": "simulation-5@seat.invalid",
+      "owns": [
+        "simulation_agent"
+      ],
+      "note": "The fifth simulation execution seat, first commit e75d891 on 2026-09-20 22:06, two commits, both inside simulation_agent. Registered 2026-09-21, so **both predate this row and are permanently unattributed** -- the registry is read at the commit's parent and registration is never retroactive (6.2.1). Minted on a relay: the occupying session reports the person chose this name for it, and the person has not said so in the architecture session. **The seat argued the clue is unnecessary here because it asked the person directly rather than being told by another seat, and the argument is a good one** -- and the clue stays anyway, because its worth is that it is automatic. A clue that a well-argued case removes is a clue only for seats that argue badly. One word from the person removes it."
+    },
+    {
+      "seat": "simulation-6",
+      "committer_email": "simulation-6@seat.invalid",
+      "owns": [
+        "simulation_agent"
+      ],
+      "note": "The sixth simulation execution seat, nine commits from cd05dd0 (2026-09-20 22:32) to 5f8d17c (2026-09-21 09:29), all inside simulation_agent, including 23c2838 -- **the first result card to reach an agent tree**. All nine predate this row and are permanently unattributed. **Its window is named 'simulation 5' and its seat is simulation-6**, which the next reader needs: two sessions were given the name simulation-5 by two people within minutes, one committed under it first, and **the one holding commits kept the name while the one holding none moved** -- moving the other way would have added a row to the record for nothing. one_identity_per_session is the hole that avoided, and check 41 cannot tell two sessions on one name apart. Minted on a relay: the occupying session reports the person chose this name for it, and the person has not said so in the architecture session. **The seat argued the clue is unnecessary here because it asked the person directly rather than being told by another seat, and the argument is a good one** -- and the clue stays anyway, because its worth is that it is automatic. A clue that a well-argued case removes is a clue only for seats that argue badly. One word from the person removes it."
+    },
+    {
       "seat": "librarian",
       "committer_email": "librarian@seat.invalid",
       "owns": [
