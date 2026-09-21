@@ -861,6 +861,44 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
             unusable.append({"entry_id": eid, "reason": str(exc)})
             continue
         row = {"entry_id": eid, "grade": e["grade"], "grade_tag": e.get("grade_tag"),
+               # WHAT KIND OF THING THIS IS, AND THE HANDLE TO FETCH IT WITH.
+               # A `derived_quantity` or a `dimensionless_group` carries a
+               # RELATION and no numbers, so until 2026-09-20 it came back as
+               # a claim string and `numbers: []` -- and 49 of 106 entries
+               # answer with empty numbers, so emptiness distinguished
+               # nothing. The relation was the whole content of the entry and
+               # none of it crossed. Third time the projection has silently
+               # dropped a field the entry holds; 21c5325 was the first two,
+               # `conflict_with` and `refuted_by`, and a mark nobody can see
+               # is not a mark. This one is worse in kind: those dropped
+               # WARNINGS ABOUT an answer, and this dropped the answer, in a
+               # shape that reads as answered-and-empty rather than missing.
+               #
+               # `symbol` GOES WITH `kind` AND NOT INSTEAD OF IT. The point of
+               # carrying `kind` is to send the caller to kb_group, which is
+               # the tool for a relation and which takes a SYMBOL -- so `kind`
+               # alone names a door and withholds the key. That is not
+               # hypothetical: manager-librarian probed kb_group with an
+               # entry_id, was refused, and nearly recorded "a formula entry
+               # neither tool can reach". The entry_id and the symbol differ
+               # on exactly the entries this matters for --
+               # tracer_number_density_from_diameter answers to the symbol
+               # abvigen_product_number_density.
+               #
+               # The formula ITSELF is deliberately not here. kb_group exists
+               # because a symbol is looked up by symbol, wants a relation
+               # rather than a value, and takes no condition range; folding
+               # that into kb_query would make the return shape depend on the
+               # arguments and grow a branch in every caller. Carrying the
+               # discriminator and the handle removes the silence without
+               # undoing the split.
+               #
+               # Both always present, `symbol` null on the 103 entries that
+               # have none, the way `supersedes` is already carried. There is
+               # no absent-versus-empty distinction to protect here: an entry
+               # without a symbol and an entry whose symbol is unknown are not
+               # two different things.
+               "kind": e["kind"], "symbol": e.get("symbol"),
                "claim": e["claim"], "numbers": e.get("numbers") or [],
                "validity": e.get("validity"), "validity_conditions": e["validity_conditions"],
                "identifiers": e.get("identifiers"), "source": e.get("source"),
@@ -1856,6 +1894,50 @@ def _self_test() -> int:                                    # noqa: C901
                  for p in logs for x in p.read_text().splitlines() if x.strip()]
         if [m for m in marks if m] != [[victim]]:
             bad(f"exactly the one skipping answer should carry `unusable` in the log, got {marks}")
+
+        # 17. A RELATION DOES NOT COME BACK LOOKING LIKE AN EMPTY VALUE (030).
+        #
+        # The pair `kind` + `symbol` is tested together and not separately,
+        # because separately is exactly the bug that was nearly shipped:
+        # `kind` tells a caller to use kb_group and `symbol` is the argument
+        # kb_group takes, so either alone leaves the caller where it started.
+        rel_log = Path(d) / "relation" / "log.jsonl"
+        rel_log.parent.mkdir(parents=True, exist_ok=True)
+        formula_kinds = {"derived_quantity", "dimensionless_group"}
+        formula_ids = sorted(eid for eid, e in store.entries.items()
+                             if e.get("kind") in formula_kinds)
+        if not formula_ids:
+            bad("no formula entry in the store, so case 17 tests nothing")
+        for eid in formula_ids:
+            r = kb_query(Store(log=rel_log), cid, v, eid)
+            hit = [x for x in r["entries"] if x["entry_id"] == eid]
+            if not hit:
+                bad(f"{eid} does not answer to its own id")
+                continue
+            row = hit[0]
+            if row.get("kind") not in formula_kinds:
+                bad(f"{eid}: kb_query does not say it is a relation, kind={row.get('kind')!r}")
+            elif not row.get("symbol"):
+                bad(f"{eid}: kind says relation and no symbol came with it, "
+                    "so the caller cannot reach kb_group")
+            elif row["numbers"]:
+                bad(f"{eid} is a relation and carries numbers[]")
+            else:
+                # The handle has to WORK, not merely be present. One of the
+                # three has an entry_id its symbol does not match, and
+                # kb_group refuses the id -- which is the probe error that
+                # made this case necessary, reproduced here on purpose.
+                g = kb_group(Store(log=rel_log), cid, v, row["symbol"])
+                if not g.get("formula"):
+                    bad(f"{eid}: kb_group({row['symbol']!r}) returned no formula")
+
+        # Every entry carries the two keys, so a caller may read them without
+        # testing for their presence; `symbol` is null where there is none.
+        plain = kb_query(Store(log=rel_log), cid, v, "viscosity")["entries"][0]
+        if "kind" not in plain or "symbol" not in plain:
+            bad("kind and symbol must be on every row, not only on relations")
+        elif plain["symbol"] is not None:
+            bad(f"a claim entry reported symbol={plain['symbol']!r}")
 
         # Look for THIS process's session id rather than comparing bytes.
         # Four other sessions call the live server, so the shared log changes
