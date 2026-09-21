@@ -4989,6 +4989,80 @@ def check_71_every_check_is_assigned_to_a_seat_that_can_write_it(b: Bundle) -> l
                     DESIGN_DOC_NAME)]
 
 
+# 5.3, ruled 2026-09-21: a claim about THIS BENCH says what ends it. The
+# source prefix is what separates the two kinds and nothing new had to be
+# judged -- `spec:` and `literature:` are about a product or the world and do
+# not age, while these five are about what somebody saw on this instrument at
+# a moment.
+BENCH_SOURCES = ("operator_read", "operator_recall", "calibration", "measured", "prior_run")
+
+
+def check_75_a_bench_claim_says_what_ends_it(b: Bundle) -> list[Finding]:
+    """An entry about this bench says what ends it, or says it does not know.
+
+    5.3's ruling has three sayable answers and silence is not one of them:
+    the event, or that no event ends it and why, or that the event is unknown
+    and what would settle it. **All three are statements**, so what this
+    counts is the entries that make none -- which is why it could be written
+    before the classification of them finished. Sorting the backlog by WHICH
+    event refines the answers; it does not change what is counted.
+
+    WHY THE PREFIX DECIDES IT. `spec:` and `literature:` are claims about a
+    product or about the world and do not age -- 42 of the 44 such entries
+    carry no expiry and that is correct. The five in BENCH_SOURCES are claims
+    about what somebody saw on this instrument at a moment, and a re-cabling
+    or a swap ends them. The librarian seat found the distinction by
+    correcting its manager: asked which entry the twelve pixel sizes depend
+    on, this seat named `camera_sensor_geometry` (`spec:Kinetix22`, a claim
+    about a MODEL) and the answer was `cameras_both_kinetix22`
+    (`operator_read:`, a claim about THIS BENCH).
+
+    ADVISORY WHILE THE BACKLOG STANDS, a failure at zero -- the shape check 29
+    took the same day for `task`/`occasion`, and for the same reason: 49
+    entries in a tree this seat may not write cannot be made a failure that
+    blocks every other seat. Architecture set no deadline deliberately,
+    because a deadline nobody enforces is one more rule without a mechanism;
+    so the only thing between the backlog and being forgotten is that this
+    counts it.
+
+    WHAT IT DOES NOT CHECK. Whether the named event is the right one. Twelve
+    entries name a camera change and nothing here can tell that a camera
+    change is what actually ends a pixel size -- that took the person. This
+    check reads presence, and §8.2's line about a filled field is the reason
+    it says so out loud: a field nothing looks inside is where the
+    longest-lived defects live, and the fifteen-year `date` beside an empty
+    `event` is the instance that produced this rule.
+    """
+    if not KB_DIR.exists() or not (KB_DIR / "entries").exists():
+        return [Finding(75, NA, "no knowledge store")]
+    SAYS = ("event", "no_event", "event_unknown")
+    silent, spoken, product = [], 0, 0
+    for path in sorted((KB_DIR / "entries").glob("*.json")):
+        try:
+            e = json.loads(path.read_text())
+        except json.JSONDecodeError:
+            continue
+        if str(e.get("source") or "").split(":")[0] not in BENCH_SOURCES:
+            product += 1
+            continue
+        vu = e.get("valid_until") or {}
+        if any(vu.get(k) for k in SAYS):
+            spoken += 1
+        else:
+            silent.append(str(e.get("entry_id")))
+    if not silent:
+        return [Finding(75, PASS,
+                        f"{spoken} bench-source entries say what ends them, and the {product} "
+                        f"product-source entries are not asked to")]
+    return [Finding(75, PASS,
+                    f"{spoken} bench-source entries say what ends them and {len(silent)} say "
+                    f"nothing ({', '.join(silent[:3])}...). ADVISORY: 5.3 gives three sayable "
+                    f"answers -- the event, no event and why, or unknown and what would settle it "
+                    f"-- and this becomes a failure when the silent count is 0. The {product} "
+                    f"product-source entries are not asked to say anything",
+                    "librarian_agent/kb/entries")]
+
+
 def check_66_irreversible_run_reads_back_compliance(b: Bundle) -> list[Finding]:
     """An irreversible action's run says whether compliance was read back (4.6.6.1).
 
@@ -5910,6 +5984,7 @@ CHECKS = [
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,
     check_72_verdicts_follow_their_numbers, check_71_every_check_is_assigned_to_a_seat_that_can_write_it,
+    check_75_a_bench_claim_says_what_ends_it,
     check_42_check_registry, check_41_seat_attribution,
 ]
 

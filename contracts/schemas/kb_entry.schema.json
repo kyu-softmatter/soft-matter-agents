@@ -193,10 +193,21 @@
           "type": "string",
           "minLength": 10,
           "description": "the occurrence that ends it, e.g. the next recalibration of this objective. The superseding entry then names this one in `supersedes`."
+        },
+        "no_event": {
+          "type": "string",
+          "minLength": 20,
+          "description": "Why NOTHING ends this claim. A real answer, not a failure to find one -- a claim about how a driver behaves is not ended by anything on this bench, and saying so is a statement somebody can contradict. Added 2026-09-21 with `event_unknown` on architecture's 5.3 ruling: a bench-source entry has to say what ends it, and before this the only sayable answer was a named event, so an entry with no terminator had to stay silent."
+        },
+        "event_unknown": {
+          "type": "string",
+          "minLength": 20,
+          "description": "That the terminating event is not known, and WHAT WOULD SETTLE IT -- the same shape `supports` requires of `who_could_confirm`, for the same reason: an admission that names nobody who could resolve it is a shrug rather than a record. Use this instead of leaving the field out. Architecture's 5.3 ruling is that \"there is no event that ends this, because ...\" is countable and refutable while a blank is neither, and that is what makes the backlog visible at all."
         }
       },
       "minProperties": 1,
-      "additionalProperties": false
+      "additionalProperties": false,
+      "$comment": "FOUR SAYABLE ANSWERS, AND SILENCE IS NOT ONE. `date` for what expires by the clock, `event` for what ends it, `no_event` for nothing ending it with the reason, `event_unknown` for not knowing plus what would settle it. Measured 2026-09-21 on the day the ruling landed: 49 bench-source entries carried no `valid_until` at all and every one of them was legal, because the field was optional outside `calibration:`. The twelve pixel-size calibrations are why that stopped being acceptable -- they carried a fifteen-year `date` with `event` empty, so the field looked filled and nothing in it did any work, and the emptiness surfaced only when the person was asked what ends a pixel-size calibration. Check 75 counts the silent ones."
     },
     "supersedes": {
       "type": [
