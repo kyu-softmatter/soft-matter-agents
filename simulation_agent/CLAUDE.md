@@ -35,8 +35,8 @@ rather than using `-A`, and use `git commit -- <paths>`.
 
 **Four paths inside this tree are not yours**, and they matter more than the
 outward ones because they are the ones a session here can actually reach:
-`envelope/safety.json` and `approvals/`, which only the person writes (P0 rule
-7, §7.1 rule 5); `inbox/`, which only the bridge writes (§7.1 rule 8); and this
+`approvals/`, which only the person writes (§7.1 rule 5); `inbox/`, which only
+the bridge writes (§7.1 rule 8); and this
 file, `README.md`, `tasks/` and `.claude/`, which are `manager-simulation`'s.
 The rest of the deny list points outside this tree, where nothing resolves from
 a session opened here — that file says which entries are which.
@@ -46,8 +46,8 @@ use.** The denials are `Write(...)` and `Edit(...)`. They do not reach `sed -i`,
 a python heredoc, or a shell redirect, and §6.2 records that **every session in
 this repository has used the latter**. The commit gate does not close it either:
 it judges the tree a commit would create, and a file written and reverted was
-never staged. So the protection on the person's `envelope/safety.json` is real
-against two doors and open beside them — §2.1 rule 9's shape, a guard that is
+never staged. So a denial on a path inside this tree is real against two doors
+and open beside them — §2.1 rule 9's shape, a guard that is
 opt-in is not a chokepoint.
 
 **This is not hypothetical.** On 2026-09-20 a seat rewrote that file ten times
@@ -228,75 +228,42 @@ roughly `N × steps` and `N × 3 × (steps / save_interval) × bytes`. Ceilings 
 policy: a ceiling derived from what the job needs is not a ceiling, and
 §4.2's *does not submit an over-budget job on its own* would be unenforceable.
 
-`envelope/safety.json` is written by a person (§10.3 rule 4) and holds a **list
-of execution targets**, each with its own ceilings.
+`envelope/budget.json` holds a **list of execution targets**, each with its own
+ceilings. **There is no `safety.json` in this tree** (§7): the grade of harm
+differs — get a laser ceiling wrong and you lose an eye, get the wall clock
+wrong and you lose a night — and putting the same lock on the same door was
+never decided. `contracts/schemas/envelope_budget.schema.json` is what the gate
+applies; read it rather than this section if the two disagree.
 
-**The file does not exist yet**, and its shape moved on 2026-09-19
-(`5af6bb8`). Read `contracts/schemas/envelope_safety.schema.json` rather than
-this section if the two disagree — the schema is what the gate applies.
+**What the split removes is the physical-confirmation requirement and Tier 3**,
+both of which were meaningless about a disk quota. **P0 rule 7 binds `safety.*`
+only.** So this seat may write `budget.json` — its `.claude/settings.json` no
+longer denies anything under `envelope/` except what is not this agent's.
 
-**Every limit now has to say whether anyone actually checked it.** That is the
-change, and it is per limit rather than per file. A file-level signature is the
-bulk stamp: one name over twelve ceilings, saying which of them a person
-confirmed — none of them. The confirmation is not a grade and §10.3 rule 4 is
-unchanged; a ceiling is still a policy with no source and no grade. What is
-recorded is the **event** of confirming, which is something that happened
-rather than something claimed.
+**Every limit says who chose it, not who checked it.** `chosen_by` carries `by`,
+`on` and an optional `rationale`, and the schema refuses a `confirmation` or a
+`grade` pushed into a limit — so the lower bar is expressed rather than merely
+permitted. It is a lower bar on purpose: what a budget needs is that somebody
+who knows that machine picked the number. **`chosen_by` is required**, because a
+ceiling nobody will own is a ceiling nobody will raise when it pinches, and the
+failure mode of an unowned budget is someone quietly working around it.
+`rationale` is optional and is the first thing a later reader wants.
 
-**Copying a limit from elsewhere is legal, and visible.** Exactly one of two
-shapes per limit:
+**The file exists as of 2026-09-20** and carries the ceilings below.
 
-```json
-"wall_clock_max": {
-  "value": 4, "unit": "h",
-  "confirmation": {
-    "kind": "physical", "by": "Takuya", "on": "2026-09-19",
-    "how": "ran the 4 h job on this workstation and watched thermals and the disk"
-  }
-},
-"storage_max": {
-  "value": 20, "unit": "GB",
-  "confirmation": {
-    "kind": "carried_over", "from": "lab workstation provisioning note", "on": "2026-09-19"
-  }
-}
-```
-
-`how` has a ten-character floor because **"confirmed" is not a how** — a later
-reader has to be able to tell whether what was done would catch the thing the
-limit exists to catch. Forbidding `carried_over` was considered and refused:
-it would mean confirming every ceiling before the file can exist at all, and
-then nobody starts the file. A rule that refuses correct work gets bypassed.
-
-The file also carries `policy_version` at the top, which every run log records
-as `safety_policy_version`. **Raise it whenever a ceiling moves**, or a run
-cannot say which policy it ran under.
-
-**The person set these on 2026-09-19**, for one `local` target, without
-measuring anything — a decision, not a measurement:
-
-| | `local`, set 2026-09-19 |
+| | `local`, chosen 2026-09-19 |
 |---|---|
 | `wall_clock_max` | 2 h |
 | `storage_max` | 10 GB |
 | `smoke_budget` | 5 min / 500 MB |
 
-They replace the 4 h / 20 GB the design discussion had proposed. The reason
-given for going tighter rather than looser: **an unconfirmed limit is safer
-small, and raising a ceiling later is easier than lowering one** — a job that
-has been running inside 8 h for a month makes 2 h look like a regression, while
-2 h that turns out to pinch is one edit.
-
-**This table is still not a ceiling.** It is the record of what was decided, so
-that `envelope/safety.json` can cite something true when it says where its
-numbers came from. Until that file exists the operator resolves a ceiling,
-finds none, and refuses — which is correct. A ceiling written in an instruction
-file is not a ceiling, for the same reason a ceiling derived from the job is
-not one, and this paragraph is the one that keeps that true while the table
-sits here.
-
-Each of the four still needs its own `confirmation`, and for these it is
-`carried_over` naming this section: nobody has physically checked any of them.
+Nothing here was measured, and the file says so: all four are `chosen_by` with
+the reason the person gave — **an unconfirmed limit is safer small, and raising
+a ceiling later is easier than lowering one.** They do not bind today; the first
+plan wants four ten-thousandths of the wall clock and a five-hundredth of the
+storage. **`a_cost_reference`'s falsifier is what ends that** — a smoke run's own
+log replaces both estimates with measured values, and the ceilings get revisited
+against numbers rather than against guesses.
 
 `smoke_budget` is separate because a smoke run that may spend the full budget
 tells you nothing before the run it is supposed to precede. It nests its own

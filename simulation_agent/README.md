@@ -68,7 +68,9 @@ Three consequences, all of them things it is tempting not to do:
 
 Predicted wall clock and storage are arithmetic over the plan's own parameters,
 so this agent computes them. The limits they are compared against are policy
-and live in `envelope/safety.json`, which **a person writes** (§10.3 rule 4). A
+and live in `envelope/budget.json`, which **a person chooses** — `chosen_by`
+rather than a measurement, because P0 rule 7 binds `safety.*` and a disk quota
+is not one (§7). A
 ceiling derived from what the job turned out to need is not a ceiling, and
 §4.2's *does not submit an over-budget job on its own* would have nothing to
 mean.
@@ -89,7 +91,7 @@ written into an instruction file is not a limit.
 | `questions/<qid>/` | the goal, the axis cards, the synthesis, the plan |
 | `runs/<run_id>/` | config, trajectory metadata, observables, log |
 | `inbox/<thread>/` | rounds delivered by the bridge. Read here, written only there |
-| `envelope/` | `safety.json`, the person's; `snapshot.json`, this agent's |
+| `envelope/` | `budget.json`, the ceilings; `snapshot.json`, the store's copy. **No `safety.json`** — nothing here is irreversible (§7) |
 | `approvals/` | the person's, and the only folder a person writes into |
 | `plan.md` §4.2, §4.5 | what this agent is, in full |
 
