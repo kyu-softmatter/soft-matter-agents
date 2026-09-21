@@ -204,3 +204,47 @@ not this card's, and not the simulation side's to push.
 This is the same shape as yesterday's A6 gap: **the name matched and the
 answer changed.** Matching a name and not looking at the answer is what
 lets it through quietly.
+
+
+### And a round 2 is not available yet — the bridge says so
+
+`manager-bridge` verified the pin independently and added the half neither
+this seat nor the simulation side had:
+
+**r1 cannot be amended.** A round is an event, not a mutable statement. The
+delivered copy must match the thread copy byte for byte by `canon_sha`, the
+ledger pins revision 1, and P1 says the delivery happened and the file is
+its record. So the correction has to be a **round 2**.
+
+**And the wire refuses one today.** Check 8 treats a second round with the
+same direction and the same observable as a **repeat** (§4.4 rule 5). That
+rule exists to stop a question being re-asked after it was answered, and
+this is not that: **the source moved under the round.** It is a gap in the
+contract, it is `manager-bridge`'s, and it is with architecture.
+
+**So the practical instruction for this card is narrow and it is a stop.**
+
+**Do not design an acquisition against `mic-20260919-001` until r2 exists.**
+Screening and the cap can proceed — they do not touch `max_lag_time`. What
+must not happen is a record length, an exposure count, a photodamage budget
+or a drift budget derived from a 2 s window, because **an acquisition built
+for 2 s answers a 30 s question without failing.** It becomes a different
+experiment, and that is the failure mode that leaves nothing behind.
+
+**If design work has already been spent at 2 s, it is not wasted for the
+reason it looks.** It is not wrong arithmetic; **the question changed under
+it.** Write that in the failure record rather than deleting the work, and
+say which revision it was against — the next seat will otherwise read it as
+an error and look for the mistake.
+
+### The shape underneath, because it will recur
+
+**The delivery path exists and the retraction path does not.** An inbox
+envelope is immutable by design (§7.1 rule 8), `status.json` is not ours to
+read, and no field anywhere says *the sender has moved on*. So a round going
+stale in our hands has **no channel at all**.
+
+It was carried to us by a chat message, out of band, leaving no record —
+which is precisely what check 50 was written about, one level on. **This
+paragraph is the record**, and it is here rather than in a reply for that
+reason.
