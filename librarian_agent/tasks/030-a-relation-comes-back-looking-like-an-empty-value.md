@@ -93,3 +93,62 @@ and say so.
 
 Which option and why, the same `kb_query('tau_d')` row after the change, and
 whether any other omitted key is load-bearing.
+
+---
+
+## CORRECTED 2026-09-20, by both consumer managers and by re-measuring
+
+**A2 was not an instance. Strike it.** manager-microscope counted their card:
+`kb_group` 0, `kb_query` 4, `kb_get` 0, pinned at `kbv-7c77fa74ee5a` — and at
+that pin `tracer_diffusivity_expected` **did not exist** (`03fe7a3` added it
+later and is no ancestor). `absent` was the correct answer for the ordinary
+reason. I wrote that A2 "is reported to have broken on exactly this" and
+flagged it unverified; verified, it did not.
+
+**It hits on the next round, though, and that is worse.** After a re-pin the
+entry exists, so A2 stops seeing *nothing* and starts seeing *something empty*
+— and with 49 of 106 entries answering with empty `numbers`, the axis cannot
+tell which of the two it is in. **So this closes before the fan-out re-pins,
+not after.**
+
+**`kb_group` is clean. Measured:**
+
+```
+kb_group('tau_d')                        kind formula symbol unit inputs validity  all present
+kb_group('tracer_diffusivity_expected')  all present
+kb_group('abvigen_product_number_density')  all present
+```
+
+So the defect is `kb_query`'s projection **alone**, and option 2 gets cheaper:
+carrying `kind` tells a caller to use the tool that already works.
+
+**My own probe error, recorded so the next reader does not repeat it.** I
+first called `kb_group('tracer_number_density_from_diameter')` — the entry_id
+— and got a refusal, and nearly wrote up "a formula entry neither tool can
+reach". `kb_group` takes a **symbol**, which its contract says plainly, and
+that entry's symbol is `abvigen_product_number_density`. By symbol it answers.
+The refusal was mine.
+
+## The cause is here without the symptom, and simulation found it
+
+manager-simulation counted their side: no card read an empty `numbers` as an
+absence. But the reason is not reassuring — **the cards carry their own copy
+of the store's formula.**
+
+```
+tau_d:  6 card copies of the relation, 6 character-identical to the store's
+```
+
+Measured across every card in the repository. One relation in two places,
+agreeing today, with **nothing comparing them** — check 17 recomputes from the
+card's formula and never against the store's. That is §11-11's shape, and it
+exists *because* of this defect: a card has no way to ask the store for a
+formula, so each wrote its own.
+
+**So the question underneath the three options is the one both consumer
+managers reached independently:** can a card ask whether the relation it used
+is the store's? Today it cannot, by either tool — `kb_group` will hand over
+the formula, but nothing puts that beside what the card wrote. Answering the
+projection question does not answer this one, and this one should not be
+smuggled into 030. **Report it as a separate finding if your fix leaves it
+open, and it probably will.**
