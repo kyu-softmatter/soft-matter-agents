@@ -1648,6 +1648,46 @@ def check_20_alternatives(b: Bundle) -> list[Finding]:
     return out or [Finding(20, PASS, "rejected configurations carry numeric grounds")]
 
 
+def config_of_run(run_id: str, b: Bundle) -> str | None:
+    """run_id -> the plan it carried out -> the configuration that plan names."""
+    for log in REPO.glob(f"*_agent/runs/{run_id}/log.json"):
+        try:
+            plan_id = str(json.loads(log.read_text()).get("plan_id") or "")
+        except Exception:
+            return None
+        for pc in b.of_kind("plan"):
+            if str(pc.data.get("id")) == plan_id:
+                sc = pc.data.get("system_configuration")
+                return sc.get("config") if isinstance(sc, dict) else None
+    return None
+
+
+def number_roles(card) -> dict[str, set[str]]:
+    """Which role each number is put to by the fields that name it (5.3).
+
+    `values[]` is the card asserting something about the system; the comparison
+    terms -- `criteria_evaluation[].observed_number`, `deviations[]`' two sides
+    -- assert nothing beyond the run. A kind that branched on role would have to
+    be chosen by the writer; the field already says it.
+    """
+    roles: dict[str, set[str]] = {}
+    def mark(n, role):
+        if isinstance(n, str) and n:
+            roles.setdefault(n, set()).add(role)
+    for v in card.data.get("values") or []:
+        if isinstance(v, dict):
+            mark(v.get("number"), "claim")
+            mark(v.get("uncertainty"), "claim")
+    for e in card.data.get("criteria_evaluation") or []:
+        if isinstance(e, dict):
+            mark(e.get("observed_number"), "reading")
+    for d in card.data.get("deviations") or []:
+        if isinstance(d, dict):
+            mark(d.get("actual_number"), "reading")
+            mark(d.get("planned_number"), "reading")
+    return roles
+
+
 def check_21_grade_derivation(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     n = 0
@@ -1700,17 +1740,26 @@ def check_21_grade_derivation(b: Bundle) -> list[Finding]:
                 if declared != expect:
                     out.append(Finding(21, FAIL, f"{name}: {prefix} from {grades or 'constants'} gives max(E4, worst) = {expect}, card says {declared}", c.rel))
                 if prefix == "simulated":
-                    # A run is not automatically a source. 5.3 puts that judgement
+                    # A run is not automatically evidence. 5.3 puts that judgement
                     # in the capability table, reached from the plan this result
-                    # stands on, so a number the inputs already fix cannot cite
-                    # the run that reproduced it.
+                    # stands on. But the declaration governs only whether the
+                    # number may ALSO stand as a claim about the world, and the
+                    # role is already visible in the field that names it: values[]
+                    # asserts, observed_number and actual_number report what the
+                    # run read. So an undeclared configuration refuses everywhere
+                    # and a non-independent one refuses under values[] alone.
                     cfg = plan_configs.get(str(c.data.get("plan_id") or ""))
+                    roles = number_roles(c).get(name, set())
                     if cfg is None:
                         out.append(Finding(21, FAIL, f"{name}: source simulated:{ref} but no plan card names this card's system_configuration, so the 5.3 judgement cannot be read", c.rel))
                     else:
                         ok, why = configuration_is_its_own_source(cfg)
-                        if not ok:
-                            out.append(Finding(21, FAIL, f"{name}: {why}", c.rel))
+                        if ok:
+                            pass
+                        elif "claim" in roles:
+                            out.append(Finding(21, FAIL, f"{name}: named from values[], where the card asserts something about the system, and {why}", c.rel))
+                        elif not roles:
+                            out.append(Finding(21, FAIL, f"{name}: source simulated:{ref} and no field names it, so nothing says it is this run's reading rather than a claim; {why}", c.rel))
     return out or [Finding(21, PASS, f"{n} grades follow from their sources")]
 
 
@@ -3270,6 +3319,18 @@ def check_43_entry_grade(b: Bundle) -> list[Finding]:
             # at best because the model is -- same rule, different obligation.
             if declared not in ("E4", "E5"):
                 out.append(Finding(43, FAIL, f"{eid}: {prefix}: is E4 at best and never better, the entry says {declared}", rel))
+            if prefix == "simulated":
+                # 5.3: a reading the run's own inputs already fix may be named
+                # from the comparison fields of that run's result card and
+                # nowhere else. The store is the furthest "nowhere else" there
+                # is -- an entry here is the reading offered as a standing fact.
+                cfg = config_of_run(ref, b)
+                if cfg is None:
+                    out.append(Finding(43, FAIL, f"{eid}: source simulated:{ref} but that run's configuration cannot be resolved, so 5.3's independence declaration cannot be read", rel))
+                else:
+                    ok, why = configuration_is_its_own_source(cfg)
+                    if not ok:
+                        out.append(Finding(43, FAIL, f"{eid}: a run's reading may not be carried into the store as a standing fact -- {why}", rel))
         elif prefix == "kb":
             if ref not in index_grades:
                 out.append(Finding(43, FAIL, f"{eid}: cites kb:{ref}, which the index has no grade for to inherit", rel))
