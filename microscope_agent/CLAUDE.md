@@ -550,6 +550,51 @@ confirmed them physically. They were deliberately not extracted from the prior
 project (§10.3 rule 4). No plan, no scope approval, and no human approval may
 exceed them.
 
+## DRAFT is what a generator may write; VALIDATED is what you assert
+
+`to_card()` writes `DRAFT` and every axis card committed here is
+`VALIDATED`. The promotion has been done by hand each time and was written
+nowhere, so it depended on whoever was at the keyboard remembering. That is
+now a rule, and the rule is that **the generator is right to write DRAFT.**
+
+**A generator that stamped its own output VALIDATED would be the card
+approving itself**, which is P4 -- the same reason `operator.authorise()`
+refuses a plan whose own `status` says APPROVED while no approval card names
+it. `to_card()` cannot know whether the validator passed, because the
+validator has not run yet when it writes the file.
+
+So the order is fixed and it is one way:
+
+1. `to_card()` writes the card as `DRAFT`
+2. **run `python3 contracts/validate.py`** and read the tree it names
+3. only then raise the status to `VALIDATED`, and **say in the commit message
+   that you did**
+
+Raising it before step 2 is the thing the field exists to prevent. `VALIDATED`
+is load-bearing downstream: check 8 will not deliver a round without it, and
+will not match an ask against the ledger without it -- so a card promoted on
+optimism travels.
+
+**Do not automate step 3 inside `to_card()`.** An automatic promotion is
+indistinguishable from an honest one and the field stops carrying anything.
+
+## REGISTER FIRST, COMMIT SECOND
+
+**A seat's row must be in `contracts/seats.json` before that seat commits,
+and a row added later does not fix an earlier commit.** Check 41 reads the
+registry from the commit's **parent** tree, deliberately -- otherwise a
+commit that widened a seat would be judged by the widening it just made.
+
+So the window is not a delay, it is permanent. On 2026-09-20 `microscope-5`
+committed card 015's output at `aeaa27b` before its row landed at `a18f714`;
+`aeaa27b`'s parent has no such seat, `--commit-range` still reports it
+unattributed, and **no re-commit fixes it** short of rewriting history that
+other seats have already built on. That commit stays unattributed and
+`--strict` keeps counting it.
+
+Nothing is broken and nothing is to be fixed. What is owed is the record,
+which is this paragraph. §6.2.1 carries the rule.
+
 ## A card names its seat, and that is not decoration
 
 **Cards 012 to 016 named no seat, four microscope seats were alive, and on
