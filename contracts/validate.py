@@ -4225,12 +4225,44 @@ def check_54_kb_basis_resolves(b: Bundle) -> list[Finding]:
     rests on something this card never obtained, which is the false-grounding
     that an empty basis was going to be.
 
+    **A CARRIED BOUND RESOLVES AGAINST THE CARD IT CAME FROM** (4.5.4, ruled
+    2026-09-20 at 061ee6d). A synthesis card carries bounds up from the axes
+    and does not query: 4.5.4 rule 4 forbids S4 a caller_id. So every `kb:`
+    basis it carries would fail the paragraph above, and microscope-1 raised
+    that as a contradiction with two ways out -- a new carriage marker, or an
+    exemption. It is neither. The marker exists, and so does the right card:
+    `allowed_sets[].from_axes` and `preconditions[].axis` name the axis, the
+    axis asked under its own caller_id, and its `kb_refs` hold what came back.
+
+    So this is not an exemption, it is the correct card. Carriage preserves
+    the isolation record rather than spending it, and the guarantee the
+    widening was declared with is the same one: the entry was obtained by
+    somebody who asked for it.
+
+    AT LEAST ONE of the named axes must cite it, not all of them. An
+    allowed_set that is an intersection of two axes has a basis drawn from
+    whichever contributed each part, and requiring every axis to cite every
+    entry would refuse a correctly carried bound. What it still catches is the
+    one that matters: an entry no named axis ever obtained.
+
     This covers the `kb:` form only, which is what 8 declares. The other half
     -- a basis naming a number that is not in numbers[] -- is still
     unguarded: check 2 compares units for basis entries it finds and skips
     the ones it does not, so a basis naming nothing passes. Reported rather
     than folded in here.
     """
+    # (config, axis) -> what that axis card obtained. Built once, because a
+    # carried bound resolves against the axis and not against its carrier.
+    axis_refs: dict[tuple, set] = {}
+    axis_seen: set = set()
+    for c in b.cards:
+        if "__unreadable__" in c.data or c.data.get("card") != "axis":
+            continue
+        key = (c.data.get("config"), c.data.get("axis"))
+        axis_seen.add(key[0])
+        axis_refs[key] = {r.get("entry_id") for r in (c.data.get("kb_refs") or [])
+                          if isinstance(r, dict)}
+
     out: list[Finding] = []
     seen = 0
     for c in b.cards:
@@ -4240,12 +4272,38 @@ def check_54_kb_basis_resolves(b: Bundle) -> list[Finding]:
                 if isinstance(r, dict)}
         found: list[tuple] = []
 
-        def walk(node):
+        def carried(node):
+            """A synthesis wrapper around an axis bound: which axes to resolve against."""
+            if not isinstance(node.get("bound"), dict) or "config" not in node:
+                return None
+            names = node.get("from_axes") or ([node["axis"]] if node.get("axis") else None)
+            if not isinstance(names, list) or not names:
+                return None
+            return node["config"], [n for n in names if isinstance(n, str)]
+
+        def walk(node, refs=refs, whose=None):
             if isinstance(node, dict):
+                c_and_axes = carried(node)
+                if c_and_axes:
+                    cfg, axes = c_and_axes
+                    union: set = set()
+                    known = [a for a in axes if (cfg, a) in axis_refs]
+                    for a in known:
+                        union |= axis_refs[(cfg, a)]
+                    # A named axis this run never collected cannot vouch for
+                    # anything. Say which, rather than passing on an empty set
+                    # that would fail with the wrong message.
+                    missing = [a for a in axes if (cfg, a) not in axis_refs]
+                    walk(node["bound"], union,
+                         (cfg, axes, missing) if missing else (cfg, axes, []))
+                    for k, v in node.items():
+                        if k != "bound":
+                            walk(v, refs, whose)
+                    return
                 if isinstance(node.get("basis"), list) and "parameter" in node:
                     for x in node["basis"]:
                         if isinstance(x, str) and x.startswith("kb:"):
-                            found.append((node.get("parameter"), x[3:]))
+                            found.append((node.get("parameter"), x[3:], refs, whose))
                 # Same rule, second field. 5.3 let `inputs` name the store on
                 # 2026-09-20 for the reason that let `basis` do it, and the
                 # claim that made that safe was this check. A widening whose
@@ -4254,17 +4312,28 @@ def check_54_kb_basis_resolves(b: Bundle) -> list[Finding]:
                 if isinstance(node.get("inputs"), list) and "name" in node:
                     for x in node["inputs"]:
                         if isinstance(x, str) and x.startswith("kb:"):
-                            found.append((node.get("name"), x[3:]))
+                            found.append((node.get("name"), x[3:], refs, whose))
                 for v in node.values():
-                    walk(v)
+                    walk(v, refs, whose)
             elif isinstance(node, list):
                 for v in node:
-                    walk(v)
+                    walk(v, refs, whose)
 
         walk(c.data)
-        for parameter, entry_id in found:
+        for parameter, entry_id, against, whose in found:
             seen += 1
-            if entry_id not in refs:
+            if entry_id in against:
+                continue
+            if whose:
+                cfg, axes, missing = whose
+                gone = (f"; this run holds no axis card for {missing} under {cfg!r}, so those "
+                        f"could not vouch for it") if missing else ""
+                out.append(Finding(54, FAIL,
+                    f"the carried bound on {parameter!r} rests on kb:{entry_id}, which none of the "
+                    f"axes it came from ({', '.join(axes)}) cites in kb_refs. A carried bound "
+                    "resolves against the card that asked (4.5.4), and no card here asked for "
+                    f"this{gone}", c.rel))
+            else:
                 out.append(Finding(54, FAIL,
                     f"the bound on {parameter!r} rests on kb:{entry_id}, which this card does not "
                     "cite in kb_refs. A bound may rest on knowledge this card obtained; resting it "
@@ -4272,7 +4341,8 @@ def check_54_kb_basis_resolves(b: Bundle) -> list[Finding]:
                     "would have been (5.3.2)", c.rel))
     if not seen:
         return [Finding(54, PENDING, "no bound rests on a kb: basis yet")]
-    return out or [Finding(54, PASS, f"{seen} kb: basis references resolve to the citing card's kb_refs")]
+    return out or [Finding(54, PASS,
+                           f"{seen} kb: basis references resolve, each to the card that asked")]
 
 
 def check_66_irreversible_run_reads_back_compliance(b: Bundle) -> list[Finding]:
