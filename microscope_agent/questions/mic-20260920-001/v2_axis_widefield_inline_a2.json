@@ -1,0 +1,121 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260920-001-widefield_inline-a2",
+  "qid": "mic-20260920-001",
+  "thread": "solo-mic-20260920-001",
+  "round": 0,
+  "revision": 2,
+  "author": "microscope_agent",
+  "created_at": "2026-09-21T16:02:12Z",
+  "status": "DRAFT",
+  "caller_id": "mic-20260920-001:v2:widefield_inline:a2",
+  "config": "widefield_inline",
+  "axis": "a2",
+  "kb_version": "kbv-e8f4a5610aa6",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "record_length_vs_diffusive_time",
+      "parameter": "record_duration",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no expected diffusivity is in the store. The service was asked and answered absent. The relation is served and so, since kbv-bf4f559baf68, is the second one: tracer_diffusivity_expected came back at E4 as a formula over the ambient temperature, the viscosity and the diameter, and the service supplies all three -- the diameter now at E2, measured on this instrument. So the floor computes: about 0.09 um^2/s, and a diffusive time near 300 s, which cross-checks against the simulation side's independent 312 s from a 2 um bead. **The bound is not written because the card cannot say what it rests on.** check 17 accepts `inputs` naming this card's own numbers[] or a CONSTANT, and these three are store entries. 5.3.2 widened `basis` to take kb:<entry_id> for exactly this case; `inputs` did not get the same widening, and the resolving machinery (check 54) already exists. Copying the three into numbers[] is the workaround plan.md 1295 names in its own words -- recomputing what the store holds is a bypass rather than an estimate -- and the precedent it cites was wrong by a factor of four. So the bound waits on the contract, and the number it would carry is written here so the wait is visible",
+      "missing": [
+        "tracer_diffusivity_expected"
+      ]
+    },
+    {
+      "inequality": "displacement_samples_per_lag",
+      "parameter": "frame_count",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no target relative error exists anywhere. It is not the goal's decade resolution and not its signal-to-noise target: a decade says how coarsely the answer may land, SNR says whether the tracer is detectable, and neither says how precisely a displacement has to be resolved. Only the operator can state it; no localisation error has been measured on this instrument, and it cannot be derived here either, since it needs the pixel size and the signal-to-noise actually achieved",
+      "missing": [
+        "target_relative_error",
+        "localisation_error"
+      ]
+    },
+    {
+      "inequality": "ensemble_size",
+      "parameter": "tracer_count",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "nothing states how many tracers are in the sample or in a field: no concentration, no count, no dilution record",
+      "missing": [
+        "tracer_number_density"
+      ]
+    },
+    {
+      "inequality": "independent_repeats",
+      "parameter": "repeat_count",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no target relative error exists anywhere. It is not the goal's decade resolution and not its signal-to-noise target: a decade says how coarsely the answer may land, SNR says whether the tracer is detectable, and neither says how precisely a displacement has to be resolved. Only the operator can state it; no localisation error has been measured on this instrument, and it cannot be derived here either, since it needs the pixel size and the signal-to-noise actually achieved. And this bound is blocked a second time, by the goal rather than by the store: \"THE SAMPLE IS NOT SPENT. mic-20260918-001's goal carries the constraint that the sample is consumed by the measurement and cannot be remounted. Bare particles on a coverslip are NOT that sample -- they are particles without it -- so this pre-measurement does not spend the one mount it exists to protect. Said explicitly because a run that costs the thing it protects would be the wrong trade and nothing else on the card says otherwise.\". So the repeat count is capped at one independent mount whatever the statistics turn out to need. That is a coupling S4 has to see rather than a bound this axis states -- how many repeats are POSSIBLE is the goal's constraint, how many are NEEDED is A2's -- and if the requirement ever exceeds one mount the question is infeasible as posed rather than merely expensive",
+      "missing": [
+        "target_relative_error",
+        "localisation_error"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "tracer_diffusivity_expected",
+      "grade": "E4",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "claim": "The expected translational diffusivity of a tracer sphere in a bulk fluid is the Stokes-Einstein value, k_B T over 3 pi eta d. It is a prediction from the viscosity, the temperature and the diameter, "
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "localisation_error",
+      "observable": "localisation_error",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=localisation_error, caller_id=mic-20260920-001:v2:widefield_inline:a2, kb_version=kbv-e8f4a5610aa6) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-e8f4a5610aa6",
+      "asked_by": "mic-20260920-001:v2:widefield_inline:a2",
+      "asked_at": "2026-09-21T16:01:05+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "target_relative_error_never_stated",
+      "observable": "target_relative_error",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=target_relative_error, caller_id=mic-20260920-001:v2:widefield_inline:a2, kb_version=kbv-e8f4a5610aa6) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-e8f4a5610aa6",
+      "asked_by": "mic-20260920-001:v2:widefield_inline:a2",
+      "asked_at": "2026-09-21T16:01:03+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "tracer_loading",
+      "observable": "tracer_number_density",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_number_density, caller_id=mic-20260920-001:v2:widefield_inline:a2, kb_version=kbv-e8f4a5610aa6) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-e8f4a5610aa6",
+      "asked_by": "mic-20260920-001:v2:widefield_inline:a2",
+      "asked_at": "2026-09-21T16:01:11+00:00",
+      "near_names": [
+        "tracer_number_density_from_diameter"
+      ]
+    }
+  ],
+  "degraded": [],
+  "note": "Answered by the librarian service rather than by reading the store, which is what makes degraded empty: 2 entries came back with their own grades and 3 questions came back absent, all at the pinned kbv-e8f4a5610aa6, and every call is in librarian_agent/queries/log.jsonl under this caller_id. The counts and the version here are computed rather than typed -- cards carried a stale pin in this sentence after a re-pin because they were typed. All four bounds abstain and the four missing inputs are not alike. Two are measurements nobody has taken here -- the localisation error and the tracer loading. One is derivable and deliberately not derived: the expected diffusivity, which belongs in the store as an entry because two axes already need it. The fourth is not a measurement at all: the target relative error is a decision only the operator can make, and the goal's decade resolution and SNR target are neither substitute. Read as a to-do list, that is two experiments, one KB entry and one question for a person. The repeats bound carries the sharpest thing in this card and it is not a number: the sample cannot be remounted, so one mount is all there is. Every statistical demand this axis cannot yet compute has to fit inside a single record on a single mount, and if it does not, no amount of instrument time buys the difference.",
+  "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
+}

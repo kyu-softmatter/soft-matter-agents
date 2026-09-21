@@ -592,17 +592,16 @@ def main(argv: list[str] | None = None) -> int:
     # this axis wrote was revision 1 whatever the fan-out asked for -- a
     # re-run's card would have claimed to be the first.
     rc = axc.write(run, goal, goal.get("qid", ""), created_at, args.revision, args.prefix)
-    if rc == 0 and args.revision != 1:
-        # axis_common.to_card() writes revision 1, which is right for a first
-        # run and wrong for every re-run. Patched here rather than there: that
-        # file is shared with the other microscope seat and nothing refuses a
-        # collision in it, so a change to it is asked for by card (6.2.1).
-        out = (axc.AGENT / "questions" / goal.get("qid", "")
-               / f"axis_{args.config}_{AXIS}.json")
-        card = json.loads(out.read_text())
-        card["revision"] = args.revision
-        out.write_text(json.dumps(card, ensure_ascii=False, indent=2) + "\n")
-        print(f"revision -> {args.revision}")
+    # THE REVISION IS `write`'s NOW, AND A SECOND MECHANISM FOR IT WAS WORSE
+    # THAN NONE. A block here used to re-open the written card and force the
+    # revision in, because to_card() ignored the argument -- an honest patch
+    # at the time, and its own comment said it sat here rather than in
+    # axis_common because that file is shared. Once `write` took the revision
+    # the two overlapped, and the block reopened the UNPREFIXED path: a re-run
+    # writing `v2_axis_...` then reached back and stamped revision 2 into the
+    # v1 card it was supposed to be landing beside. Both A5 and A6 did it, and
+    # it showed up as check 11 reading the two as siblings of each other and
+    # check 33 seeing a v1 caller_id on a revision-2 card.
     return rc
 
 

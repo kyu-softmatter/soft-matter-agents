@@ -185,8 +185,21 @@ def gaps_from(responses: dict, pin: str, caller_id: str, gap_ids: dict[str, str]
         # this-name (check 49).
         if gap.get("near_names") is not None:
             out[-1]["near_names"] = gap["near_names"]
-        if kind == "in_published_table" and observable in published:
-            out[-1]["published_in"] = published[observable]
+        if kind == "in_published_table":
+            # THE SERVER'S OWN ANSWER FIRST, and the module's table only as a
+            # fallback. `published_in` names the snapshot, the table, the
+            # column and a sha256, and all four are properties of the VERSION
+            # that answered -- the devices table was republished between
+            # kbv-1dabfd5ad58d and kbv-e8f4a5610aa6 and its digest went from
+            # 69c56ea6 to dae8c0c2. A module constant cannot track that, so
+            # restating it from one would have put a hash on the card that the
+            # card's own pin never had: the same defect as the stale notes,
+            # arriving through a field instead of through prose.
+            served = gap.get("published_in")
+            if served:
+                out[-1]["published_in"] = served
+            elif observable in published:
+                out[-1]["published_in"] = published[observable]
         # The service's near-misses, not the axis's. An axis that added its own
         # here would be answering its own question inside a field that says the
         # service answered it.
