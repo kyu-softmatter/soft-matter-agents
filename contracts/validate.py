@@ -4442,6 +4442,13 @@ def check_69_no_entry_cites_itself(b: Bundle) -> list[Finding]:
                     "from; `kb:` is how a CARD says it got it from the librarian", _rel(path)))
     if out:
         return out
+    if seen == 0:
+        # Zero is the right end state and it must not read as a dead counter.
+        # 61 settled the idiom: all-clear says so, because silence and clean
+        # look the same and one of them is a check that stopped working.
+        return [Finding(69, PASS, "no entry number carries a kb: source at all, which is where "
+                                  "this ends: `kb:` is how a CARD says it got a value from the "
+                                  "librarian, and an entry has no use for a card's prefix")]
     return [Finding(69, PASS, f"{seen} kb: sources inside entries point elsewhere")]
 
 
@@ -4989,11 +4996,7 @@ CHECKS = [
     check_60_observables_are_registered_quantities,
     check_61_envelope_currency,
     check_67_entry_units_are_declared,
-    # check_69_no_entry_cites_itself is written above and deliberately NOT
-    # registered yet: it catches one real defect, water_viscosity_293k's
-    # number sourcing itself, and registering it now reddens the tree for
-    # every seat until a one-line fix lands in a directory this one may not
-    # write. Asked for; registered the moment it is in.
+    check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,
     check_71_every_check_is_assigned_to_a_seat_that_can_write_it,
     check_42_check_registry, check_41_seat_attribution,
