@@ -104,7 +104,7 @@ with a condition anyone could run. So every row carries one.
 |---|---|---|
 | **`004` — revision 2** | done, landed at `946831c` | `git log --oneline -1 -- simulation_agent/questions/sim-20260917-001/v2_goal.json` |
 | **`007` — the result-card writer** | taken | `ls simulation_agent/src/result_card.py 2>/dev/null && echo TAKEN \|\| echo OPEN` |
-| **`012` — round 2, and the id that refuses it** | open | `grep -q 'r{revision}' simulation_agent/src/plan_card.py && echo OPEN \|\| echo TAKEN` |
+| **`012` — round 2, and the id that refuses it** | open | `ls bridge/threads/thr-tracer-diffusivity-001/r2_ask_experiment.json 2>/dev/null && echo DONE \|\| echo BLOCKED` — blocked on 4.4/7.1, not on this tree |
 | **`011` — thirteen rows name no task** | open | `python3 -c "import json;print(sum(1 for l in open('simulation_agent/failures.jsonl') if l.strip() and json.loads(l).get('occasion')))"` — 0 means open |
 | **`010` — attach the engine** | open | `ls simulation_agent/src/hoomd_backend.py 2>/dev/null && echo TAKEN \|\| echo OPEN` |
 | **`009` — the operator resolves a revision** | open | `grep -q artifact_name simulation_agent/src/operator.py && echo TAKEN || echo OPEN` |

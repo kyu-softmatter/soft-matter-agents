@@ -11,88 +11,75 @@ replaces, and the two ledgers have to agree that the source moved.
 The bridge does not open a round by itself — **this seat requests it and the
 bridge writes it** (§4.4, and `status.json` records r1 was opened that way).
 
-## It would be refused today, and the reason is here
+## It is refused, and not by anything in this tree
 
-Check 8 compares the two ledgers' **card id**:
+**This card first said `src/plan_card.py:117`'s `-r{revision}` suffix was the
+cause. That was wrong**, and `simulation-6` measured it before changing the
+line rather than after — which is the only reason the wrong fix did not land.
 
-> *a superseding round carries a later revision of the SAME card; a different
-> card is a different question*
-
-```
-r1_hashes.json  card_id  plan-sim-20260917-001        revision 1
-revision 2      id       plan-sim-20260917-001-r2     revision 2
-```
-
-`src/plan_card.py:117`:
+Check 8's supersession test compares the ledgers' **`source.path`**, not
+`card_id`:
 
 ```python
-f"plan-{qid}" + ("" if revision == 1 else f"-r{revision}"),
+pinned[(thread, round)] = (src.get("path"), src.get("revision"))
+...
+elif was[0] != now[0]:          # path
 ```
 
-**Revision 1 has no suffix and revision 2 does**, so the two revisions of one
-plan are two card ids, and the supersession reads as a different question.
+Its own fixture settles it. `check08_supersedes_a_different_card` varies
+**only the path** — `card_id` identical, `revision` identical — and is
+expected to fail. So "the same card" means **the same file**, deliberately.
 
-## The id should be stable, and three things say so independently
+## And that cannot be satisfied by anyone following §7.1 rule 3
 
-- **The microscope's revision-2 cards keep their id.** All six
-  `v2_axis_widefield_inline_*` carry `revision: 2` with the id unchanged.
-  Ours is the only card in the repository whose id moves with its revision.
-- **`plan_approval` and `result` each require `plan_id` AND `plan_revision`
-  as separate fields.** If the id carried the revision, the second would be
-  redundant — and worse, an approval naming `plan-sim-20260917-001` at
-  revision 2 would match no card at all. There are no approval cards yet
-  because every run has been Tier 0-1, so this has not bitten; it is waiting
-  for the first Tier 2 plan.
-- **Revision 1 itself.** The suffix is conditional on `revision == 1`, which
-  means the scheme already agrees the bare form is the card's name and then
-  stops using it.
+§7.1 rule 3 gives each revision its own filename, so revision 2 lives at
+`v2_plan_simulation_sim-20260917-001.json`. Check 8 requires a superseding
+round's source path to **equal** the superseded round's.
 
-## What it touches — six files, and one of them is append-only
+**Both cannot hold.** A superseding round is not blocked by this agent's id
+scheme; it is structurally impossible for any agent that revisions its files
+the way the repository requires. §7.1 is `plan.md` and check 8 is
+`contracts/` — neither is this seat's, and it is raised rather than worked
+around.
 
-```
-src/plan_card.py                              the generator
-questions/…/v2_plan_simulation_….json         the card
-questions/…/v2_plan_simulation_….md           generated, follows the JSON (P3)
-questions/…/result_run-20260921-001.json      plan_id
-runs/run-20260921-001/config.json             plan_id
-runs/run-20260921-001/log.json                plan_id  ← append-only (7.1 rule 9)
-failures.jsonl                                a row mentions it in prose
-```
+## The run-log question is answered, and the seat answered it
 
-**The run log is the hard one and this card does not rule on it.** §7.1
-rule 9 makes it append-only, and `011` just showed the line that distinguishes
-a rewrite from a key correction: nothing there was wrong, the field was
-missing. Here the field is not missing — the value would change, and the value
-is what the run actually stood on at the time. That is a different case from
-`011` and possibly from `555317b` too, where a wrong count was fixed by a new
-row rather than in place.
+This card asked what to do about `-r2` sitting in an append-only log. The
+answer measured out cleanly: **the log keeps what it recorded, because that
+is what the run stood on.** Changing revision 2's id moves its hash from
+`sha256:e5019a12…` to `sha256:6c38e64d…`, and three committed artifacts pin
+the old one — the run config, the result card's `plan_hash`, and the log's
+`plan_id`. `cards.refuse_overwrite` refuses the edit for the right reason: a
+fixed revision is one content. **An id does not move under a committed run.**
 
-**Work out the least-bad path and say which you took and why.** If the honest
-answer is that the log keeps `-r2` because that is what was true when it ran,
-then the ledger for r2 has to pin the plan card and not the log, and that is
-worth writing down. If regenerating revision 2 changes its hash, say what that
-does to `result_run-20260921-001.json`'s `plan_hash` and to the run that
-cites it — **a card whose hash moved under a result is the thing `plan_hash`
-exists to catch**, so do not let it pass silently.
+## The id argument still stands, for later cards only
 
-## Then request round 2
+All three grounds hold — the microscope's revision-2 cards keep their ids,
+`plan_approval` and `result` each require `plan_id` **and** `plan_revision`,
+and the suffix is already conditional on `revision == 1`. But that is an
+argument about **cards not yet generated**, and changing the line without
+regenerating would leave the function unable to rebuild the card on disk,
+which is the property `refuse_overwrite` exists to hold. **Do not do half of
+it.** If it is worth doing it needs a revision that a question actually
+asked for, and no question has.
 
-The payload is the **revision-2 plan card**, not the result card. The ask
-schema's `trigger` says `plan_completion` is the plan reaching its finished
-state "**and not a run finishing**", and r1 carried a plan. r2 must carry
-`supersedes: 1` and its own `r2_hashes.json` pinning the same card at
-revision 2; the bridge writes both and verified the accepting path in an
-isolated tree.
+## So: nothing to do here until the contradiction is ruled
 
-**The result card crossing is a separate round and not this one.** Do not
-bundle it to save a trip — r1's payload being a plan is why the microscope
-built an acquisition on it, and a round that carries two kinds of card at
-once makes the receiver guess which one it is answering.
+Requesting round 2 today files an envelope that check 8 refuses for a reason
+nobody in this tree can fix, which is the surest way to spend another day.
+`simulation-6` stopped rather than doing half, and that was right.
 
-## Why this is worth the detour
+**What is ready and waits**: `run-20260921-001`, `result_run-20260921-001.json`,
+both revision 2, six criteria met. The payload when the round opens is the
+**revision-2 plan card**, not the result — the ask schema's `trigger` calls
+`plan_completion` the plan reaching its finished state "**and not a run
+finishing**", and r1 carried a plan. The result crossing is a separate round;
+do not bundle them, because r1's payload being a plan is why the microscope
+built an acquisition on it.
 
-The microscope has been holding a 2 s window for over a day while the current
-plan says 30 s, and it has already built on it: `mic-20260919-001/goal.json`
-carries `from_round: thr-tracer-diffusivity-001:r1`. That is not a round
-waiting to be read, it is a round that was read. Every day this stays open is
-a day of acquisition design against a superseded bead.
+## Why it still matters that this is open
+
+The microscope has held a 2 s window for over a day while the current plan
+says 30 s, and it has already built on it: `mic-20260919-001/goal.json`
+carries `from_round: thr-tracer-diffusivity-001:r1`. Not a round waiting to
+be read — a round that was read.
