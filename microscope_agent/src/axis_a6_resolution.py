@@ -307,9 +307,46 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
     goal_side_absent = [n for n in GOAL_SIDE
                         if axc.goal_number(goal, n) is None and n not in goal_targets]
 
+    # An entry answering to a name is not a value for the SUBJECT asked about,
+    # and `refractive_index` is where that bites hardest on this axis. Task 024
+    # landed the immersion indices and they arrived per medium: asking the
+    # class handle `water` returns three measured indices at E3 -- 589.26, 595
+    # and 605 nm, tagged identifiers.immersion -- beside the water objective,
+    # which is exactly the join 024 was for. Asking `oil` returns the two oil
+    # LENSES and no index at all. So the bound closes for a water objective and
+    # does not for an oil one, and testing `refractive_index in absent` cannot
+    # see the difference: the name is answered either way. A2 met the same
+    # shape from the other side, where a formula answered and carried no value.
+    served = responses["entries"]
+    served_media = {(e.get("identifiers") or {}).get("immersion")
+                    for e in served.values()
+                    if any(n.get("name") == "refractive_index"
+                           for n in (e.get("numbers") or []))}
+    served_media.discard(None)
+
     for ineq in OWNED:
         missing = [MISSING_NAMES.get(n, n) for n in ineq.needs
                    if n in absent or n in goal_side_absent]
+        if "refractive_index" in ineq.needs and "refractive_index" not in missing:
+            wanted = {(e.get("identifiers") or {}).get("immersion")
+                      for e in served.values()
+                      if (e.get("identifiers") or {}).get("part_number")}
+            wanted.discard(None)
+            uncovered = sorted(wanted - served_media)
+            if uncovered:
+                missing.append("refractive_index")
+                run.notes.append(
+                    f"The immersion indices arrived per medium and this axis reports which. "
+                    f"Media with an index served: {sorted(served_media) or 'none'}. Media an "
+                    f"objective on this turret uses and no index answers for: "
+                    f"{uncovered}. So depth_of_field closes for a lens in "
+                    f"{sorted(served_media) or 'no medium'} and stays open for one in "
+                    f"{uncovered} -- which is what task 024 said to expect, because an "
+                    f"immersion oil is a specific product's specification rather than a "
+                    f"universal constant, and the bottle on this bench is not identified. "
+                    f"What is missing is a source, not a measurement -- the same shape as the "
+                    f"bead lot number."
+                )
 
         if ineq.id == "lateral_resolution":
             run.outcomes.append(axc.Outcome(
