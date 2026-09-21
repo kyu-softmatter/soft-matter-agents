@@ -152,12 +152,31 @@ session start, so fixing it leaves a running session unchanged.
 **The librarian's server code has the same shape and it was not written
 down.** Each session starts its own `mcp_server.py --serve`, four or five at
 a time, so **a fix to the server reaches only sessions started after it**.
-A seat that has been up since morning keeps calling the morning's server,
-with no signal that it is doing so -- the tools answer, the log fills, and
-nothing anywhere says which build replied. Nothing has gone wrong from this
-yet; the librarian checked the running processes and every one postdated the
-last server fix. Treat a server fix the way a settings fix is treated: it
-lands for whoever starts next, and everyone else has to be told.
+A seat that has been up since morning keeps calling the morning's server
+with no signal that it is doing so. **This file said nothing anywhere records
+which build replied, and that was wrong**: every logged call carries
+`server_session: srv-<pid>-<epoch>`, and the epoch is the server's start time.
+Decode two of them against `ps` and they match to the second. So the question
+is countable from disk, for every past call and not just the processes alive
+now, by comparing each call's server start against the last commit to touch
+`mcp_server.py` at that moment. **The librarian counted it: 0 of 417 calls
+across 69 server sessions were served by a stale build.** The risk is real and
+has never once bitten. Treat a server fix the way a settings fix is treated --
+it lands for whoever starts next and everyone else has to be told -- and
+settle whether it bit by counting, not by checking what is running now.
+
+**A manager seat cannot query the store, and that is the design working.**
+The four issued `caller_id` forms are all a question's -- `<qid>:v<N>:<config>:<axis>`
+and its siblings -- and a manager has no question, so there is no card for an
+answer to land on. A query that leaves a log line and no `kb_refs` anywhere is
+exactly what the card contract exists to prevent, so **no manager form should
+be minted.** Two manager seats hit this refusal within minutes on 2026-09-20
+and both read it as a gap; it is not. What a manager needs from the store it
+gets **through an execution seat that holds a caller_id** — that route is
+already seated, already leaves the trace, and needs no new mechanism. Running
+the server directly with its log redirected would work and is the wrong
+answer: it buys a manager the store's semantics while removing the one thing
+the isolation is for.
 
 **The cheapest test of whether the tools are there is to call one.** A probe
 costs nothing and dirties nothing: the server files a refusal with the
