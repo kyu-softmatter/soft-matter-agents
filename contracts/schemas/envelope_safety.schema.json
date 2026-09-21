@@ -272,6 +272,10 @@
           "$ref": "#/$defs/floor",
           "$comment": "INSTRUMENT, and a FLOOR rather than a ceiling -- the smallest gap allowed between front element and sample. nosepiece_write_runs_no_escape (E3): a Micro-Manager nosepiece write runs no objective escape, so the incoming lens arrives at the height the outgoing one left, against working distances of 0.13 mm at 100x oil. The prior repository put its own travel range in a SAFETY.md and 10.3 rule 4 forbids carrying it -- that prohibition is itself the argument for this field."
         },
+        "objective_clearance_absolute_min": {
+          "$ref": "#/$defs/constant_floor",
+          "$comment": "INSTRUMENT, and the second of two guards on one hazard. The person ruled on 2026-09-20 that rising to the working distance is fine and past it is not, was asked whether that is one guard or two, and answered BOTH, asking for the names to be split. Only one landed -- and not by oversight: `limits` enumerates its names and there was no second clearance name to land in. The ruling existed and the place for it did not, which is why the surviving half read as complete.\n\nThe two catch different events. `objective_clearance_min` resolves the working distance of the lens actually in the nosepiece and binds in ordinary operation, every time. This one is a single number for all six and binds only when something has already gone wrong -- a wrong key, a mis-seated nosepiece, a bad store value, a resolver that returned something too small.\n\nBOTH ARE MINIMA ON CLEARANCE, SO THE LARGER OF THE TWO BINDS. An operator that reads one and not the other, or takes the last it parsed, has one guard and a decoration.\n\nThe value the store implies is 130 um, the tightest catalogue working distance across the six (100x Oil, MRD71970), with the 40x WI at 160 um once the person's 0.16 mm ruling is applied. At 130 um it never binds while the lookup is right. Implied is not chosen: this file is the person's and the number is theirs."
+        },
         "stage_velocity_max": {
           "$ref": "#/$defs/ceiling",
           "$comment": "INSTRUMENT. The person's standing preference of 2026-09-19 is that relative motion is driven by the piezo stage rather than by steering the trap, and a stage running away in front of a 0.13 mm working distance is the same collision. A7 owns stage_velocity and abstains on piezo_bandwidth, piezo_settling_time and stage_max_velocity."
@@ -303,6 +307,21 @@
     "floor": {
       "$ref": "#/$defs/limit",
       "description": "A MINIMUM. Falling below it refuses. Named `<quantity>_min`. Zero here fails PERMISSIVE, which is why the direction is named rather than left to the suffix: a floor of zero permits everything. The same number is safe in a ceiling and is the most dangerous value in a floor, and on 2026-09-20 a floor briefly held zero -- objective_clearance_min, where zero means the front element may touch the coverslip, against a nosepiece write that runs no escape and a 0.13 mm working distance.\n\nWHAT THIS SPLIT DOES NOT BUY. `exclusiveMinimum` stops zero and passes 0.001, which means the same thing. A schema cannot know what is too small for a given quantity -- that is a domain fact. So for a floor the `confirmation` carries more weight than for a ceiling: `physical` with a `how` a reader can judge is the only thing standing between a floor and a number that is technically positive and practically absent."
+    },
+    "constant_floor": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/limit"
+        },
+        {
+          "not": {
+            "required": [
+              "resolved_from"
+            ]
+          }
+        }
+      ],
+      "description": "A floor that may not be a lookup. Every other limit may be either, and this one may not, because what it is for is being independent of the lookup: a backstop that resolves the same way the thing it backs up resolves is not a backstop, it is a second copy of the same failure."
     }
   },
   "allOf": [
