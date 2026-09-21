@@ -83,7 +83,7 @@ cover. **`valid_until` alone.**
 - Server only. **No entry changes, so `kb_version` does not move** and there
   is nothing to publish. If the twelve turn into edits, that is the next task
   and it moves.
-- `실행석` holds `mcp_server.py` and lands this. `사서 실행석3`: this is why
+- `seat:librarian` holds `mcp_server.py` and lands this. `seat:librarian-3`: this is why
   you are being told rather than asked — you backed out of that file once
   today and recorded it, and I would rather name the holder than have you
   find out by collision twice.
@@ -99,7 +99,7 @@ what ends a pixel-size calibration here.
 
 ## REASSIGNED 2026-09-20 — the named holder is gone, and item 4 is already done
 
-**`사서 실행석3` implements this, items 1–3.** `실행석` has left; `ListAgents`
+**`seat:librarian-3` implements this, items 1–3.** `seat:librarian` has left; `ListAgents`
 no longer lists it and a message to it bounced. Verified here rather than
 taken: `librarian_agent/src/mcp_server.py` is clean at `5c64112` with nothing
 uncommitted, so **nobody holds the file.** The constraint above named a holder
@@ -210,3 +210,22 @@ way, because the twelve now depend on it.
 This goes in the same pass as items 1–3. It moves `kb_version`, so items 1–3
 (server only, no version move) and this (entries, version moves) are two
 commits, and **tell me before publishing.**
+
+
+---
+
+## A correction to this file's own vocabulary, 2026-09-21
+
+Two lines above named `실행석` and `사서 실행석3` — **session window titles,
+not seats.** Replaced with the registered identities, `seat:librarian` and
+`seat:librarian-3`, which is what `seats.json` holds and what check 41 reads.
+Confirmed off the commits rather than assumed: `5c64112` is
+`seat:librarian`, `5d60856` is `seat:librarian-3`.
+
+Two reasons, and the second is the one that matters. The language rule says
+everything in this repository is English with no exception. And **a window
+title is not a seat**: it is chosen by whoever opened the session, it can
+repeat, and it changes without anything recording that it did — so a task
+naming one names something no registry holds and nothing can refuse. That is
+the same shape as every other name-nothing-checks found here this week, and
+this seat wrote it into its own task file while fixing that shape elsewhere.
