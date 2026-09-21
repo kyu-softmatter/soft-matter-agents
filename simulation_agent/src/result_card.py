@@ -48,9 +48,12 @@ is within tolerance and anything else is a deviation a person should look at.
 All four of the read-back parameters are exact today, so the strict rule costs
 nothing and stays honest the day one of them stops being.
 
-**One field cannot be written yet**: see `time_base`. **A second thing cannot
-be said at all**: see `evaluate_criteria` on why a criterion on a broken run
-comes out true or false when the honest answer is neither.
+**Two things could not be written when this module was first built, and both
+were answered by trying to write them.** `time_base.alignment` had no honest
+value on this side until 4.6.9 gained `model_step_index` (`53e5561`), and a
+criterion could not report that it was not evaluable until `met` became
+nullable (`1b2276a`). Neither was found by reading the contracts. See
+`time_base` and `evaluate_criteria`.
 
 Every refusal branch in here has been run, against synthetic records built by
 altering a real run's four files -- diverged, aborted, a record too short to
@@ -245,51 +248,37 @@ def reading(name: str, value_si: float, unit: str, run_id: str,
 
 
 def time_base(log: dict) -> dict:
-    """Which clock the physics rests on -- and on this side, none of the three.
+    """Which clock the physics rests on -- and on this side, none of them.
 
-    `result.schema.json` requires `alignment`, and 4.6.9 enumerates the only
-    three values it may take, in priority order: a common hardware trigger's
-    counter, a device's hardware timestamp, or a software monotonic clock. Check
-    37 fails the third outright, with the right reason for the side it was
-    written for: OS scheduling jitter enters at the millisecond scale, so
-    physics may not be computed from a soft timestamp.
+    `model_step_index`, the fourth means, added to 4.6.9 on 2026-09-21
+    (`53e5561`, schema at `85508a9`) after this module could not write the
+    field at all. The three that existed were written for an instrument: two
+    name hardware the engine does not have, and `software_monotonic` says the
+    physics rides the soft clock, which here it does not. A simulation's time
+    is `steps_taken * dt` -- an integer count times a fixed step -- which is
+    why the operator records it in `trajectory_meta.json` and says so in the
+    log's own `time_base_note`.
 
-    **A simulation's physics rests on none of them.** Simulated time is
-    `steps_taken * dt`, read off an integer step count -- a coordinate of the
-    model, not a reading of any clock, which is why the operator records it in
-    `trajectory_meta.json` and says so in the log's own `time_base_note`. The
-    lag axis the diffusivity is fitted against is that coordinate. The run log's
-    `t0_wall`/`t0_mono` place the run in history and order its events, and no
-    number in this card comes off them.
+    **It is ranked with the first means and for the same reason**: the index IS
+    the time and there is no jitter. And it is not an exception to 4.6.9's
+    rule but a case the rule never reached -- the rule forbids computing
+    physics from a software TIMESTAMP, and a step index is not a timestamp. The
+    guard is live on this side too, and bites the day a run here reads a clock.
 
-    So the three values divide into two that claim hardware this tree does not
-    have and one that claims the physics rides a clock it does not ride. The
-    field cannot be filled truthfully, and the nearest value is the one that
-    makes the check fire -- correctly, on a false premise.
+    `t0_wall` and `t0_mono` still come off the log. They place the run in
+    history and order its events; no number in this card is computed from
+    them, which is the whole distinction the fourth value exists to record.
 
-    **Raised, not decided.** 4.6.9 is plan.md's and check 37 is the validator's;
-    neither is this seat's (6.2). Two shapes the answer could take, so that
-    whoever rules it can see the choice rather than invent it:
-
-    * the enum gains a fourth member for a time base that is a model coordinate,
-      and check 37 passes it the way it passes a trigger counter -- for the same
-      reason, that the index IS the time and there is no jitter; or
-    * check 37 stops reading the log's alignment as the physics' alignment, and
-      a result says separately where the times used in physics came from -- which
-      is the thing 4.6.9's rule is actually about and the thing no field records.
-
-    The first is one word and leaves the check reading a field that means two
-    things on two sides. The second is the sharper distinction and costs a
-    field. This module has no preference it is entitled to.
+    Check 37 accepts this value only where the configuration is declared in the
+    simulation capability table, so an instrument result cannot leave by this
+    door. Nothing here has to assert which side it is on -- the plan names the
+    configuration and the table answers.
     """
-    raise Blocked(
-        "time_base.alignment has no honest value on this side: trigger_counter and "
-        "device_timestamp claim hardware the engine does not have, and software_monotonic "
-        "says the physics rests on the soft clock when it rests on the integer step count "
-        "(4.6.9, check 37). Raised with architecture; see the docstring for the two shapes "
-        f"an answer could take. The log's own t0_wall is {log.get('t0_wall')!r} and its "
-        "time_base_note already says this."
-    )
+    return {
+        "t0_wall": log["t0_wall"],
+        "t0_mono": log["t0_mono"],
+        "alignment": "model_step_index",
+    }
 
 
 # --------------------------------------------------------------------------- #
