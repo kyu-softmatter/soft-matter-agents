@@ -87,9 +87,16 @@ fi
 # makes a vanished check unambiguous in a way a vanished function is not, and a
 # rule wide enough to cover every deletion would fire on every refactor.
 if echo "$STAGED" | grep -q '^contracts/validate\.py$'; then
-    GONE=$(comm -23 \
-        <(git show HEAD:contracts/validate.py 2>/dev/null | sed -n 's/^def \(check_[0-9]*\)_.*/\1/p' | sort -u) \
-        <(git show :contracts/validate.py        | sed -n 's/^def \(check_[0-9]*\)_.*/\1/p' | sort -u))
+    # Temp files rather than <(...): this hook is #!/bin/sh and process
+    # substitution is a bash extension. It parsed clean under `bash -n` and
+    # under `sh -n` -- the failure is at expansion time, inside $( ), so it
+    # surfaced only when a commit actually ran, and then it blocked every
+    # seat's commit in the repository rather than just the author's.
+    _H=$(mktemp) && _I=$(mktemp)
+    git show HEAD:contracts/validate.py 2>/dev/null | sed -n 's/^def \(check_[0-9]*\)_.*/\1/p' | sort -u > "$_H"
+    git show :contracts/validate.py                 | sed -n 's/^def \(check_[0-9]*\)_.*/\1/p' | sort -u > "$_I"
+    GONE=$(comm -23 "$_H" "$_I")
+    rm -f "$_H" "$_I"
     if [ -n "$GONE" ]; then
         echo >&2
         echo "pre-commit: refused. This commit removes checks that HEAD has:" >&2
