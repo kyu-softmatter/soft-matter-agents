@@ -30,8 +30,19 @@ missing number.
 
 ```
 exposure_time   100 ms   ->  0.1 s
-illumination    10%      ->  0.1, unit `1`
+illumination    10%      ->  100, per-mille        <- CORRECTED 2026-09-20
 ```
+
+**The illumination line above was wrong when this card was written and is
+corrected here.** It said `0.1, unit 1`, which conflates the physical
+fraction with the commanded value. `light_engine_line_intensity_is_per_mille`
+(E3) says each line is two MMCore properties -- `<NAME>` at 0/1 and
+`<NAME>_Intensity` on **0-1000**. The scale is per-mille, not percent, so the
+person's 10% commands **100**. Writing `10` gives one per cent.
+
+**That tenfold error already bit once**, over there: the same source records
+5% written as 50 and warns that 5 gives 0.5%. The trap is the scale and not
+the person's number.
 
 **These are a starting point, not a derived optimum, and the difference has
 to survive into the card.** No axis produced them and none could. They enter
@@ -48,6 +59,47 @@ Name it as one, and record the missing mW as its own gap — that gap is what
 or 0–255 is not in the store; 10% is not a number until it is. Requested
 from the librarian with the MMCore property names. **If it has not arrived,
 that is a `kb_gap` and not a guess.**
+
+## Three things the store said after this card was written
+
+All six entries below are `prior_run:agentic-microscope` at E3, published in
+`kbv-1dabfd5ad58d`. **Re-copy the envelope first** -- it is at
+`kbv-499312508852` and these are in the gap, so an old pin cannot see them.
+
+**A master `State` gates every line, and it is silent.** Lines on, intensity
+set, `State = 0`: no light, **no error, and both properties read back exactly
+as written** (`light_engine_master_state_gates_every_line`). Over there the
+first run produced a field whose median was below a dark frame and a ratio
+computed from hot pixels -- **and it looked like a result.**
+
+This acquisition is exactly what that failure imitates. It measures
+brightness and bleaching, and with no light both come out "measured". **Put
+the master state in the plan as a condition the run verifies**, and remember
+a written-and-read-back property is this defect's symptom rather than its
+refutation.
+
+**Name `LightEngine`, not `widefield_source_a`** -- and this is what lets the
+pre-measurement go before the branch gap closes. `getLoadedDevices()` returns
+MM labels, so a plan naming `LightEngine` **is verified at preflight and
+asserts nothing about the branch**. Naming `widefield_source_a` asserts the
+disputed mapping, and `widefield_inline`'s own note says a plan that *"names
+a source, sets its power, or patterns it with the DMD stands on this gap"* --
+setting an intensity is precisely that.
+
+MM labels are not product names: `LightEngine` is the Spectra III, `Aura` the
+Aura III, `Kinetix_red` the Kinetix 22, `Nosepiece` the Ti2-E. Calling it
+`SpectraIII` fails as *device not found*, which reads as the wrong stand
+rather than the wrong name.
+
+**Exposure and ROI are core calls, not properties** -- `setExposure`,
+`setROI`. They are absent from the property list, so a preflight looking for
+them there will not find them; only `Binning` is a device property. The
+nosepiece is the same shape: a **state device**, read with `getStateLabel`,
+with no `Position` property (`nosepiece_is_an_mmcore_state_device`).
+
+**None of this bites on mock.** It goes in the plan now anyway: fixing it
+when real light arrives is late, and the master-state failure is the kind
+where the fault looks like a result.
 
 ## The question
 
