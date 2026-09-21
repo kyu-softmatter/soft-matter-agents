@@ -350,7 +350,18 @@ def assemble(qid: str, revision: int = 1,
             row["basis"] = list(bound["basis"])
         carried_pre.append(row)
 
+    cited = {b[3:] for pre in carried_pre for b in pre.get("basis") or []
+             if isinstance(b, str) and b.startswith("kb:")}
+    carried_refs, seen = [], set()
+    for axis_card in (by_config.get(config) or {}).values():
+        for ref in axis_card.get("kb_refs") or []:
+            entry = ref.get("entry_id")
+            if entry in cited and entry not in seen:
+                seen.add(entry)
+                carried_refs.append(ref)
+
     numbers = list(card4.get("numbers") or [])
+    carried_assumptions: list[dict] = []
     conditions = [{"parameter": p["parameter"], "number": p["number"]}
                   for p in card4.get("operating_point") or []]
     unfillable: list[str] = []
@@ -490,13 +501,31 @@ def assemble(qid: str, revision: int = 1,
         if ratio.denominator == 1:
             frame_count = int(ratio)
             numbers.append({
-                "name": "frame_count", "value": frame_count, "unit": "count",
+                # UNIT `1` AND NOT `count`, WHICH LOOKS WRONG AND IS RIGHT.
+                # `count` carries dimension N, and record_length /
+                # exposure_time is s/s, which is dimensionless. The reason is
+                # that exposure_time is seconds PER FRAME and units.json has
+                # no way to say "per frame", so the N cancels where nothing
+                # can see it. Writing `count` would make the card claim a
+                # dimension its own formula does not produce; check 17 caught
+                # exactly that.
+                "name": "frame_count", "value": frame_count, "unit": "1",
                 "source": "computed:record_length_over_exposure_time", "grade": "E5",
                 "precision": "significant_figures",
+                "formula": "record_length / exposure_time",
+                # Without these the grade rule sees a value computed from
+                # constants, which is E4, and refuses an E5 as over-modest
+                # in the wrong direction -- max(E4, worst input) is only
+                # E5 once the inputs are named. Both are the person's
+                # starting point, so E5 is what it inherits.
+                "inputs": ["record_length", "exposure_time"],
                 "note": ("the frame period equals the exposure on this camera -- readout is "
                          "pipelined and the interval setting is ignored -- so the frames cover "
                          f"the record with no dead time and {frame_count} x {exposure_time:g} s "
-                         f"is {record_length:g} s exactly, not approximately. E5 because both "
+                         f"is {record_length:g} s exactly, not approximately. It counts FRAMES "
+                         "despite the dimensionless unit: the exposure is seconds per frame and "
+                         "units.json cannot say per-frame, so the amount cancels silently. E5 "
+                         "because both "
                          "inputs are the person's starting point and a computed value inherits "
                          "the worst of them")})
             have.add("frame_count")
@@ -571,10 +600,33 @@ def assemble(qid: str, revision: int = 1,
     detectors = [d for d in (axc_detectors(config) or []) if d]
     # A selector that names a detector in `selects` IS the choice, made where
     # a decision belongs. Nothing here reads prose and nothing infers.
-    chosen_detector = next((d for s in selectors for d in (s.get("selects") or [])
-                            if d in detectors), None)
+    decided_by = next(((s, d) for s in selectors for d in (s.get("selects") or [])
+                       if d in detectors), None)
+    chosen_detector = decided_by[1] if decided_by else None
     if chosen_detector is not None:
         detectors = [chosen_detector]
+
+    # A DETECTOR CHOSEN BY DECISION RATHER THAN BOUNDED BY AN AXIS IS A RISK,
+    # and the run is its falsifier. Written here rather than as a success
+    # criterion because it is not what this run measures: criteria carry a
+    # comparator and a threshold, and "the light arrived on the arm we
+    # pointed it at" has neither. A reader a month from now needs to know
+    # WHY a run went ahead on a decision, and this is the field that says so.
+    open_risks: list[str] = []
+    if decided_by is not None:
+        selector, detector = decided_by
+        open_risks.append(
+            f"The detector is {detector}, selected by setting {selector['element']} to "
+            f"{selector['value']!r}. That is the person's DECISION and not a bound any axis "
+            "returned -- the store's chain to this arm ends at an E5 recall carrying the word "
+            "`probably`, and the store declines to promote it. THIS RUN ADJUDICATES IT: if no "
+            "particles appear on this arm, the recalled emission-wheel-to-camera mapping is "
+            "inverted, and that is a RESULT rather than a failure -- the result card carries "
+            "the correction to the librarian. It costs nothing to find out this way, because "
+            "bare particles are not the mount and the one mount is not spent. The reading that "
+            "would have settled it beforehand is one visit to the emission wheel, which also "
+            "closes light_path_port and filter_turret_1; it is on card 018 and comes before the "
+            "measurement this run unblocks, not before this run.")
     if "record_length" not in have or "exposure_time" not in have:
         unfillable.append(
             "actions: an acquire action needs a record length and an exposure, and the plan "
@@ -611,6 +663,9 @@ def assemble(qid: str, revision: int = 1,
               "device performs them at all. Only the line intensity is a real gap: it belongs "
               "to an engine the path table declines to confirm (lapp_branch_assignment).",
               file=sys.stderr)
+
+    carried_assumptions[:] = [a for a in goal.get("assumptions") or []
+                              if {n for n in a.get("numbers") or []} & have]
 
     # THE STOP CRITERION IS THE PLANNED END, and `on_met` says so: `complete`
     # rather than `continue`, because reaching the record length is the run
@@ -657,8 +712,14 @@ def assemble(qid: str, revision: int = 1,
         "created_at": created_at,
         "status": "DRAFT",
         "goal_id": goal.get("id"),
-        "purpose": ("Measure the tracer diffusivity on the configuration S3.0 screened and S4 "
-                    "chose, under the conditions the axes bounded."),
+        # Carried from the goal, both of them. `purpose` is an enum and held a
+        # SENTENCE -- and the sentence said "measure the tracer diffusivity",
+        # which is mic-20260918-001's question and not this one's. Two faults
+        # in one field: the wrong type, and a claim about what this run
+        # measures that was wrong. A free-text purpose is not a thing the
+        # plan contract has, and it should not be: the goal decides what the
+        # question is for and the plan carries it.
+        "purpose": goal["purpose"],
         "intent": goal.get("intent", "explore"),
         "observable": {"name": (goal.get("observable") or {}).get("name")},
         "system_configuration": {
@@ -679,8 +740,27 @@ def assemble(qid: str, revision: int = 1,
         "stop_criteria": stop_criteria,
         "success_criteria": success,
         "targets": carried_targets,
-        "open_risks": [],
+        "open_risks": open_risks,
         "numbers": numbers,
+        # An assumed: number is meaningless without the assumption that
+        # explains it, so the two travel together. Carried unchanged for the
+        # same reason a precondition is: rewording a falsifier makes it a
+        # second falsifier by the next revision (P3).
+        "assumptions": carried_assumptions,
+        # WHAT THE CARRIED PRECONDITIONS REST ON. A precondition's `basis`
+        # names `kb:<entry_id>`, and check 54 is right to refuse a card that
+        # rests a bound on an entry it never cites: a plan carrying A4's
+        # requirement without A4's evidence looks grounded and is not.
+        # Filtered to what is actually cited rather than copying every
+        # kb_ref in the fan-out -- citing more than the card rests on is the
+        # same defect pointing the other way.
+        "kb_refs": carried_refs,
+        # An assumption names the gap it stands on, so the gap has to be
+        # here too or the naming points at nothing -- looked-for-and-absent
+        # and nobody-checked are the distinction check 39 exists to keep,
+        # and it collapses if the card carries the claim without the gap.
+        "kb_gaps": [g for g in goal.get("kb_gaps") or []
+                    if g.get("gap_id") in {a.get("gap_ref") for a in carried_assumptions}],
         "degraded": [],
     }
     return card, unfillable, preconditions
@@ -722,9 +802,17 @@ def to_markdown(card: dict) -> str:
                            ("success_criteria", "Success criteria")):
         if card.get(field):
             lines += [f"## {heading}", ""]
-            lines += [f"- **{c['id']}**: {c.get('statement','')} "
-                      f"(`{c['metric']}` {c['comparator']} `numbers[{c['number']}]`)"
-                      for c in card[field]]
+            # Exactly one of `number` and `target`, and they are rendered
+            # apart because they are not the same kind of thing: a number is
+            # a graded claim about the world and a target is a decision the
+            # person made. Reading `number` unconditionally crashed the
+            # moment S5 started carrying targets, which is the shape of the
+            # mistake -- one field assumed where the contract says two.
+            lines += [
+                f"- **{c['id']}**: {c.get('statement','')} (`{c['metric']}` {c['comparator']} "
+                + (f"`numbers[{c['number']}]`)" if c.get("number") is not None
+                   else f"`targets[{c['target']}]`, a decision and not a graded value)")
+                for c in card[field]]
             lines.append("")
     if card.get("open_risks"):
         lines += ["## Open risks", ""] + [f"- {r}" for r in card["open_risks"]] + [""]

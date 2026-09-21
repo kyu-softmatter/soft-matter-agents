@@ -1,0 +1,377 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "id": "plan-mic-20260920-001-r1",
+  "qid": "mic-20260920-001",
+  "thread": "solo-mic-20260920-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-21T18:01:00+00:00",
+  "status": "VALIDATED",
+  "goal_id": "goal-mic-20260920-001-r7",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_brightness"
+  },
+  "system_configuration": {
+    "config": "widefield_inline",
+    "optical_path": "widefield_inline",
+    "model": null,
+    "devices": [
+      "camera_red",
+      "csuw1_disk_position",
+      "csuw1_port",
+      "intermediate_magnification",
+      "lapp_branch",
+      "nosepiece"
+    ],
+    "selectors": [
+      {
+        "element": "csuw1_port",
+        "value": "empty",
+        "selects": [
+          "camera_red"
+        ],
+        "note": "The person confirmed the red arm on 2026-09-21. A DECISION and not a derivation: the store holds three entries pointing this way and the last link is emission_wheel_camera_mapping at E5 carrying the word `probably`, which the store itself declines to promote -- red_path_605_is_the_ff01_595_31_filter refuses to name a device for that exact reason. Being chosen is the whole of the basis; a decision carries no grade because it makes no claim. `empty` is the path table's word for the slot that reaches red only and is NOT a Micro-Manager label anybody has read -- the operator resolves it before a real run (card 018). AND THIS RUN IS THE FALSIFIER: no particles on this arm means the recalled mapping is inverted, which is a result rather than a failure, and it costs nothing because bare particles are not the mount."
+      },
+      {
+        "element": "camera_red",
+        "value": "DynamicRange",
+        "selects": [
+          "read_noise"
+        ],
+        "note": "Stated by the person on 2026-09-20 and in prose on this card until now, because $defs/selector's first version required `element` to be an ELEMENT and neither camera declares one. c7ca2e5 corrected that to channel-or-element, which is check 38's actual rule. `selects` earns its place here: the store holds FOUR read_noise entries, one per camera mode, so a card citing read_noise without naming the mode is ambiguous and A1 was right to emit an allowed_set rather than pick. This is where the pick belongs."
+      },
+      {
+        "element": "csuw1_disk_position",
+        "value": "out",
+        "selects": [],
+        "note": "stated as a value by the optical-path table and read across unchanged"
+      },
+      {
+        "element": "lapp_branch",
+        "value": "inline",
+        "selects": [],
+        "note": "stated as a value by the optical-path table and read across unchanged"
+      }
+    ]
+  },
+  "preconditions": [
+    {
+      "parameter": "lock_group",
+      "requires": "Name every selector this configuration holds as an ELEMENT and never as a channel: stand_ti2e carries optical_path and stage at the same time, so a command that names the channel has not said which lock it takes, and the scheduler cannot serialise what it cannot identify.",
+      "from_axis": "a4",
+      "basis": [
+        "kb:stand_ti2e_lock_groups"
+      ]
+    },
+    {
+      "parameter": "verified_selectors",
+      "requires": "establish the loaded state by acquiring an image, not by reading a selector back; a plan that treats a returned position as a verification is refused",
+      "from_axis": "a4",
+      "basis": [
+        "kb:csuw1_port_slots",
+        "kb:csuw1_disk_position_is_the_bright_selector",
+        "kb:csuw1_disk_position_states"
+      ]
+    }
+  ],
+  "conditions": [
+    {
+      "parameter": "exposure_time",
+      "number": "exposure_time"
+    },
+    {
+      "parameter": "illumination_line_intensity_permille",
+      "number": "illumination_line_intensity_permille"
+    },
+    {
+      "parameter": "nosepiece_position",
+      "number": "nosepiece_position",
+      "device": "nosepiece"
+    },
+    {
+      "parameter": "intermediate_magnification",
+      "number": "intermediate_magnification",
+      "device": "intermediate_magnification"
+    },
+    {
+      "parameter": "record_length",
+      "number": "record_length"
+    },
+    {
+      "parameter": "brightness_window",
+      "number": "brightness_window"
+    },
+    {
+      "parameter": "bleach_window",
+      "number": "bleach_window"
+    }
+  ],
+  "actions": [
+    {
+      "id": "act_set_nosepiece_position",
+      "device": "nosepiece",
+      "action": "set_nosepiece_position",
+      "reversible": true,
+      "parameters": [
+        "nosepiece_position"
+      ],
+      "tier": 1
+    },
+    {
+      "id": "act_set_intermediate_magnification",
+      "device": "intermediate_magnification",
+      "action": "set_intermediate_magnification",
+      "reversible": true,
+      "parameters": [
+        "intermediate_magnification"
+      ],
+      "tier": 1
+    },
+    {
+      "id": "act_acquire",
+      "device": "camera_red",
+      "action": "acquire_series",
+      "reversible": true,
+      "parameters": [
+        "exposure_time",
+        "frame_count"
+      ],
+      "tier": 1
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [],
+    "status": "unavailable",
+    "note": "no condition is bounded, so nothing was compared"
+  },
+  "cost": {
+    "wall_clock": "600 frames x 0.1 s = 60 s of acquisition. That is a FLOOR and not an estimate: setup, focusing and settling are not bounded -- A5 abstains on the settling time and nothing bounds the session budget -- so the only part of the wall clock this plan can do arithmetic on is the record itself",
+    "numbers": [
+      "frame_count",
+      "exposure_time",
+      "record_length"
+    ]
+  },
+  "stop_criteria": [
+    {
+      "id": "sc_frame_count",
+      "metric": "frames_acquired",
+      "comparator": ">=",
+      "number": "frame_count",
+      "on_met": "complete",
+      "statement": "the acquisition stops at 600 frames, which is the planned end and not a guard. It counts FRAMES and not seconds on purpose: an elapsed time accumulated a step at a time lands a hair off the boundary and reports a finished run as unfinished, and the direction of the error moves with the exposure. A frame count is an integer and compares exactly. No tolerance is added -- the limit came from the person and an operator that widens it is changing an approved number"
+    }
+  ],
+  "success_criteria": [
+    {
+      "id": "ok_tracer_brightness",
+      "metric": "tracer_brightness_decades_resolved",
+      "comparator": ">=",
+      "target": "tracer_brightness",
+      "statement": "tracer_brightness is placed within 1 decade"
+    },
+    {
+      "id": "ok_bleaching_rate",
+      "metric": "bleaching_rate_decades_resolved",
+      "comparator": ">=",
+      "target": "bleaching_rate",
+      "statement": "bleaching_rate is placed within 1 decade"
+    }
+  ],
+  "targets": [
+    {
+      "metric": "tracer_brightness",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count"
+    },
+    {
+      "metric": "bleaching_rate",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count"
+    }
+  ],
+  "open_risks": [
+    "The detector is camera_red, selected by setting csuw1_port to 'empty'. That is the person's DECISION and not a bound any axis returned -- the store's chain to this arm ends at an E5 recall carrying the word `probably`, and the store declines to promote it. THIS RUN ADJUDICATES IT: if no particles appear on this arm, the recalled emission-wheel-to-camera mapping is inverted, and that is a RESULT rather than a failure -- the result card carries the correction to the librarian. It costs nothing to find out this way, because bare particles are not the mount and the one mount is not spent. The reading that would have settled it beforehand is one visit to the emission wheel, which also closes light_path_port and filter_turret_1; it is on card 018 and comes before the measurement this run unblocks, not before this run."
+  ],
+  "numbers": [
+    {
+      "name": "exposure_time",
+      "value": 0.1,
+      "unit": "s",
+      "source": "assumed:a_operating_point",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "origin": "goal.json#exposure_time",
+      "note": "carried from the goal card unchanged. No axis bounded it and none could: The person's 100 ms, as the starting point of the pre-measurement. NOT a derived optimum: no axis produced it and none could, because the quantity that would bound an exposure is the one this question exists to measure."
+    },
+    {
+      "name": "illumination_line_intensity_permille",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_operating_point",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "at": "widefield_source_a",
+      "origin": "goal.json#illumination_line_intensity_permille",
+      "note": "carried from the goal card unchanged. No axis bounded it and none could: The person's 10 per cent, resolved against light_engine_line_intensity_is_per_mille (E3): the MMCore property <LINE>_Intensity takes 0 to 1000, so 10 per cent is the integer 100 and writing 10 would command 1 per cent. The scale is the trap, not the person's number -- the same source records 5 per cent written as 50. This is a COMMANDED SETTING and not a power: no dial-to-milliwatt calibration exi"
+    },
+    {
+      "name": "nosepiece_position",
+      "value": 5,
+      "unit": "count",
+      "source": "assumed:a_operating_point",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "at": "stand_ti2e",
+      "origin": "goal.json#nosepiece_position",
+      "note": "carried from the goal card unchanged. No axis bounded it and none could: Position 5 is the 100x oil, CFI Plan Apo Lambda D 100X Oil, MRD71970, NA 1.45, working distance 0.13 mm, on a turret indexed FROM 0 (nosepiece_position_indexing) -- so this is the sixth of six and a check assuming 1 through 6 is off by one on every position. THE PERSON CHOSE IT, on 2026-09-20, resolving A6's objective_zoom_pair tie under 4.5.1 branch (c). That is a tie-break and not a discriminato"
+    },
+    {
+      "name": "intermediate_magnification",
+      "value": 1,
+      "unit": "1",
+      "source": "assumed:a_operating_point",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "at": "stand_ti2e",
+      "origin": "goal.json#intermediate_magnification",
+      "note": "carried from the goal card unchanged. No axis bounded it and none could: 1x, the second half of the person's pair. Named explicitly because the objective alone does not fix the sampling: the calibrated pixel size is keyed by the PAIR, and at 1.5x it is a different row. This is the nominal designation written as a number and it is not a measurement of magnification -- 5.3's rule against a designation wearing a derived precision is exactly what 20.078x broke. The measure"
+    },
+    {
+      "name": "record_length",
+      "value": 60,
+      "unit": "s",
+      "source": "assumed:a_operating_point",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "goal.json#record_length",
+      "note": "carried from the goal card unchanged. No axis bounded it and none could: Given by the person on 2026-09-21. Same source and grade as the other four operating-point numbers on purpose: it is a starting point the person chose and not a value any axis derived, and a choice does not become evidence by being made by a person. At 0.1 s exposure it is about 600 frames -- DERIVED as record_length over exposure_time and computed once, never accumulated frame by frame: a duratio"
+    },
+    {
+      "name": "brightness_window",
+      "value": 6,
+      "unit": "s",
+      "source": "assumed:a_brightness_window",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "goal.json#brightness_window",
+      "note": "carried from the goal card unchanged. No axis bounded it and none could: THE FIRST TENTH OF THE RECORD, declared before the run and adjudicated after it. Brightness measured across a record in which the sample bleached is depressed by the bleaching, so the window wants to be short enough that the decay over it is negligible -- and NOTHING KNOWS THE DECAY RATE, because measuring it is what this run is for. That circle is not broken by picking a better number; it is brok"
+    },
+    {
+      "name": "bleach_window",
+      "value": 60,
+      "unit": "s",
+      "source": "assumed:a_bleach_window",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "goal.json#bleach_window",
+      "note": "carried from the goal card unchanged. No axis bounded it and none could: The whole record, which is what the record is for: the decay is the thing being measured and a fit over part of it throws away the part that constrains the constant most. Stated rather than assumed because a window is which part of the record an estimator ran over, and `the whole of it` is an answer that has to be written down like any other."
+    },
+    {
+      "name": "frame_count",
+      "value": 600,
+      "unit": "1",
+      "source": "computed:record_length_over_exposure_time",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "formula": "record_length / exposure_time",
+      "inputs": [
+        "record_length",
+        "exposure_time"
+      ],
+      "note": "the frame period equals the exposure on this camera -- readout is pipelined and the interval setting is ignored -- so the frames cover the record with no dead time and 600 x 0.1 s is 60 s exactly, not approximately. It counts FRAMES despite the dimensionless unit: the exposure is seconds per frame and units.json cannot say per-frame, so the amount cancels silently. E5 because both inputs are the person's starting point and a computed value inherits the worst of them"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_operating_point",
+      "statement": "The whole operating point is supplied by the person and derived by no axis. The exposure and the line intensity are a STARTING POINT -- nothing in the store bounds an acquisition of these particles, because the photon rate per particle is exactly what is missing, so there was no number for an axis to reason from. The objective and the intermediate magnification are a TIE-BREAK under 4.5.1 (c): S5 handed objective_zoom_pair to the person on mic-20260918-001 because four pairs satisfied every bound and nothing distinguished them, and the person answered 100x at 1x. The record length is a THIRD kind and joins them here because it shares their grade and their retirement: 60 s is a budget the person set, not a duration any axis derived -- A1 and A3 both abstain on record_duration for want of the same decay constant. A choice is not evidence, whoever made it, so it stays E5 and the fact that a person made it does not promote it. The three kinds are held in one assumption because they share one grade and one retirement, and they are named apart here because they are not the same act.",
+      "numbers": [
+        "exposure_time",
+        "illumination_line_intensity_permille",
+        "record_length",
+        "nosepiece_position",
+        "intermediate_magnification"
+      ],
+      "falsifier": "one bare-particle record at this operating point. Frames that saturate, particles that cannot be segmented from the background, or a decay too fast to fit inside the record each retire the starting point by measuring the thing it stands in for. The tie-break half is not falsified by anything -- a preference has nothing to be wrong about -- and it is retired instead by A6 returning a field_of_view or lateral_resolution bound that discriminates, which needs inputs the person still holds.",
+      "gap_ref": "tracer_brightness_absent"
+    },
+    {
+      "rationale_id": "a_brightness_window",
+      "statement": "The first tenth of the record is short enough that bleaching over it does not move the brightness by anything the one-decade target would notice. It is a declared fraction -- one tenth -- and not a derived length, because deriving one needs the decay constant, which bleaching_rate_absent says the store has not got and which this run exists to supply. So the window is set before the run and adjudicated after it by the fit, which is the honest order.",
+      "numbers": [
+        "brightness_window"
+      ],
+      "falsifier": "the bleach fit over the full 60 s, which this same run produces, gives a decay constant whose product with 6 s is not small -- and then the brightness is re-derived on a shorter window FROM THE SAME DATA, with no second acquisition. That is the criterion declared before the run and the result saying whether the criterion was right; the forbidden order is reading the curve first and then choosing the window that makes the brightness look clean",
+      "gap_ref": "bleaching_rate_absent"
+    },
+    {
+      "rationale_id": "a_bleach_window",
+      "statement": "The decay constant is fitted over the whole record. The whole record, rather than some part of it, for the same reason the brightness window is a declared fraction: choosing a shorter fit range would need a prior estimate of the decay, and bleaching_rate_absent is exactly the absence of one. The full record is the choice that assumes least.",
+      "numbers": [
+        "bleach_window"
+      ],
+      "falsifier": "a residual showing the single exponential declared in the estimator does not describe the whole record -- which is a RESULT and not a licence to refit a better-shaped curve over a shorter stretch",
+      "gap_ref": "bleaching_rate_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "csuw1_disk_position_is_the_bright_selector",
+      "grade": "E3",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "claim": "The element the configuration calls csuw1_bright, offered as confocal or bright field, and the element it calls csuw1_disk_position, offered as in or out, are one mechanism recorded twice under two na"
+    },
+    {
+      "entry_id": "csuw1_disk_position_states",
+      "grade": "E3",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "claim": "With the spinning disk in, the path is confocal. With the disk out, the same hardware serves both widefield fluorescence and brightfield. Disk-out is therefore not a configuration of its own but a req"
+    },
+    {
+      "entry_id": "csuw1_port_slots",
+      "grade": "E3",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "claim": "The port/splitter carries three slots, and the split is spectral rather than by intensity: one slot is empty and sends light to the red camera only, one holds a 561 nm dichroic and sends light to both"
+    },
+    {
+      "entry_id": "stand_ti2e_lock_groups",
+      "grade": "E3",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "claim": "The coarse motorised xy stage is an element of the microscope body channel, on the body hub. The body's optical elements belong to the optical_path lock group while the motor stage belongs to the stag"
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "tracer_brightness_absent",
+      "observable": "tracer_brightness",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_brightness, caller_id=mic-20260920-001:v1:s2, kb_version=kbv-1dabfd5ad58d) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-1dabfd5ad58d",
+      "asked_by": "mic-20260920-001:v1:s2",
+      "asked_at": "2026-09-21T05:00:58+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "bleaching_rate_absent",
+      "observable": "bleaching_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=bleaching_rate, caller_id=mic-20260920-001:v1:s2, kb_version=kbv-1dabfd5ad58d) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-1dabfd5ad58d",
+      "asked_by": "mic-20260920-001:v1:s2",
+      "asked_at": "2026-09-21T05:01:01+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": []
+}
