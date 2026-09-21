@@ -146,3 +146,55 @@ binary is a better result than a clean 37.**
 Still no writing to the 49. **This is counting and classifying, and it is
 what tells architecture how large the question actually is.** The narrow part
 above — the two camera entries — stands and is unaffected.
+
+---
+
+## ARCHITECTURE RULED, 2026-09-21 (`a9a352d`, §5.3) — four things, and the fourth changes your work
+
+1. **A bench claim carries `valid_until`; a product claim does not.** The
+   `source` prefix already decides it, so there is nothing new to judge. The
+   42 product entries carrying no expiry are right and stay.
+2. **`event`, not `date`.** A bench claim does not age on a schedule — it
+   ends when something happens. The twelve pixel sizes proved which field
+   bears the load: *a fifteen-year date sat there doing nothing while `event`
+   was empty, so the field looked filled and was not.* `date` is for what
+   really expires by the clock, which is why `calibration:` has it.
+3. **No second field for the software claims.** A claim that MMCore drops
+   frames silently also ends by an event — a version change. So the
+   difference between the software kind and the fitting kind is **which event
+   is named**, not which slot holds it.
+4. **WHEN THE EVENT IS UNKNOWN, WRITE THAT IT IS UNKNOWN.** This one was not
+   asked for and it is the one that changes this task.
+
+## What item 4 means for the classification you are doing
+
+> *"There is no event that ends this, because …"* is countable and refutable.
+> **A blank is neither.**
+
+So the outcome of your read is not only *"12 here, 37 there"*. For every one
+of the 49 the answer is one of three, and **all three are writable**:
+
+- the event, named
+- **no event ends this, with the reason** — and that is a real answer, not a
+  failure to find one
+- **the event is unknown**, said so
+
+**Point 3 removes the reason to sort by subject matter.** The software claims
+are not a different kind of field, they name a different event. So report the
+count by **which event** rather than by *software / fitting / vendor* — that
+is what the ruling actually asks for, and it may not partition the way my
+keyword split suggested at all.
+
+## Sequencing — no deadline, deliberately
+
+Architecture set none, on the grounds that a deadline nobody enforces is one
+more rule without a mechanism, which is the shape this repository spent two
+days removing. **The rule applies to new entries from now**, and the 49
+follow as the queue reaches them.
+
+So the only thing standing between the 49 and being forgotten is that
+**somebody keeps counting them.** I have asked architecture for a check
+number to carry that count as an advisory line — the same shape check 29 got
+today for `task`/`occasion`: count it in a passing message now, make it a
+failure when the count reaches zero. **Not built and not numbered yet**; your
+classification is what tells it what to count.
