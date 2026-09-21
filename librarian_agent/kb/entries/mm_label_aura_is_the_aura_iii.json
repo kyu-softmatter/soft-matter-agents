@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1",
+  "kind": "claim",
+  "grade": "E3",
+  "source": "prior_run:agentic-microscope@34a432c",
+  "source_ref": "src_prior_mm_device_reported_20260903",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "entry_id": "mm_label_aura_is_the_aura_iii",
+  "claim": "On the prior project's configuration the MMCore device label `Aura` is the Lumencor Aura III 5-NII-WA on COM7, serial 30859, firmware 3.14.7. The label is not `AuraIII`; that is the product name.",
+  "validity_conditions": "THE SAME SPLIT AS ITS SIBLING: `AuraIII` is the product name in the prior module's docstring and scope profiles, and every call site writes `Aura`. Filed separately from mm_label_lightengine_is_the_spectra_iii under rule 1, because the two mappings are refutable one at a time -- a stand could have one label renamed and not the other. AND ONE ASYMMETRY THAT IS NOT A NAMING FACT: the prior configuration's `Core.Shutter` is `LightEngine`, not `Aura`, so MMCore's autoshutter never opens this engine. Recorded here rather than in a separate entry because it is a property of this label's relationship to the core on that configuration, and it is the reason a plan that switches engines and keeps its shutter handling gets a dark frame. IT DOES NOT CLOSE lapp_branch_assignment: which channel id is this engine is a different mapping, and this entry carries no device subject for that reason. WHAT WOULD RAISE IT: getLoadedDevices() on this stand. Slot: a KB entry and the device registry. Rule passed: 10.3 rule 1.",
+  "identifiers": {
+    "mm_label": "Aura",
+    "model": "Aura III 5-NII-WA",
+    "serial": "30859"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1",
+  "kind": "claim",
+  "grade": "E3",
+  "source": "prior_run:agentic-microscope@34a432c",
+  "source_ref": "src_prior_mm_device_reported_20260903",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "entry_id": "mm_label_lightengine_is_the_spectra_iii",
+  "claim": "On the prior project's configuration the MMCore device label `LightEngine` is the Lumencor Spectra III 8-NII-XS on COM3, serial 28145, firmware 3.5.4. The label is not `SpectraIII`; that is the product name.",
+  "validity_conditions": "THE MM LABEL AND THE PRODUCT NAME ARE DIFFERENT STRINGS AND ONLY ONE OF THEM IS WHAT getLoadedDevices() RETURNS. `SpectraIII` appears in the prior module's docstring and as a registry name in its scope profiles; every actual call site writes `LightEngine`. A plan naming SpectraIII fails preflight against a stand where the label is LightEngine, and the failure looks like a missing device rather than a wrong name. IT DOES NOT CLOSE lapp_branch_assignment, AND CANNOT. That gap asks which of the channel ids widefield_source_a and widefield_source_b is which ENGINE. This entry maps an MM LABEL to an engine. The two mappings are independent, so knowing LightEngine is the Spectra leaves the channel-id question exactly where it was -- which is why this entry is keyed by model and carries no device subject, the same reasoning devices.v0.json gives for keying its light_engines block by model designation rather than channel id. WHAT IT DOES BUY is a name a plan can use WITHOUT standing on that gap: getLoadedDevices() returns MM labels, so a plan written in MM labels is comparable at preflight and asserts nothing about the branch. WHAT WOULD RAISE IT: getLoadedDevices() on this stand. Slot: a KB entry and the device registry. Rule passed: 10.3 rule 1.",
+  "identifiers": {
+    "mm_label": "LightEngine",
+    "model": "Spectra III 8-NII-XS",
+    "serial": "28145"
+  }
+}

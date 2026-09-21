@@ -1,0 +1,24 @@
+{
+  "schema_version": "0.1",
+  "kind": "claim",
+  "grade": "E3",
+  "source": "prior_run:agentic-microscope@34a432c",
+  "source_ref": "src_prior_mm_device_reported_20260903",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "entry_id": "nosepiece_is_an_mmcore_state_device",
+  "claim": "On the prior project's configuration the objective turret is the MMCore device label `Nosepiece`, a state device: the position is read with getStateLabel and set with setState, and its labels carry the objective designation, for example `6-Plan Apo LmbdD0.13 100x Oil`.",
+  "validity_conditions": "THE POSITION IS NOT A NAMED PROPERTY. A state device answers getState and getStateLabel; there is no `Position` property to compare against getDevicePropertyNames(), which is what the request assumed. A plan naming one will not find it. THE LABEL IS THE LAB'S OWN STRING AND CARRIES THE OBJECTIVE, so it is also how the prior project recovered which objective is in the path. That makes it a nominal designation and a string (5.3), never a number: the prior project's `20.078x` is the case that rule exists for -- a nominal magnification wearing a value back-calculated from a calibration -- and a magnification must not be parsed back out of this label into a number here. THE LABEL SET IS NOT ENTERED. Which position carries which objective is falsified by one person turning the turret, and nosepiece_objective_assignment already says position-to-lens is the one claim on this device a single swap falsifies. What crosses is the INTERFACE, which a swap does not touch. NOT A SAFETY CLAIM. The prior module marks this device as one of three where a move can collide and records that rotating the turret does not retract Z. That is device behaviour and it is named here so nobody reads its absence as its absence -- but it is not entered as a limit, and 10.3 rule 4 keeps limits out: a person writes those after confirming physically. WHAT WOULD RAISE IT: getLoadedDevices() and getDeviceType() on this stand. Slot: a KB entry and the device registry's nosepiece row. Rule passed: 10.3 rule 1.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "nosepiece"
+    }
+  ],
+  "identifiers": {
+    "mm_label": "Nosepiece",
+    "parent_stand": "Ti2-E"
+  }
+}

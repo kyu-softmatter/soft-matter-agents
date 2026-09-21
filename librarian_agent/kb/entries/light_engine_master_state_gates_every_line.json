@@ -1,0 +1,18 @@
+{
+  "schema_version": "0.1",
+  "kind": "claim",
+  "grade": "E3",
+  "source": "prior_run:agentic-microscope@34a432c",
+  "source_ref": "src_prior_mm_device_reported_20260903",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "entry_id": "light_engine_master_state_gates_every_line",
+  "claim": "Both Lumencor engines carry a master property `State`, taking 0 or 1, which gates the whole device. With State at 0 no light leaves the engine however a line and its intensity are set, and nothing reports an error or reads back wrongly.",
+  "validity_conditions": "THREE PROPERTIES, NOT TWO, AND THE THIRD FAILS SILENTLY. Setting `<NAME> = 1` and `<NAME>_Intensity = 50` is not enough; with the master `State` at 0 the camera returns a frame indistinguishable from a dark frame. There is no exception, and both the line property and the intensity property read back exactly as written, so every signal a caller would normally trust says the light is on. FILED SEPARATELY FROM THE PER-MILLE SCALE UNDER RULE 1: the scale could be right and the master absent, or the reverse, and a stand could be reconfigured to change one without the other. WHAT IT COST THERE, kept as the reason this is worth an entry rather than a note: a run that set only the two line properties produced a field whose median was BELOW the dark frame and a ratio computed almost entirely on the camera's own hot pixels, and it looked like a result. The guard the prior project adopted -- after enabling light, snap through the widest filter and require the median to rise above the dark frame, else refuse -- is a PREFLIGHT SHAPE and belongs to O1 if this system wants it; it is named here and not entered as a rule, because a check is designed and not transferred (10.2.1). COMPOUNDING IT: on that configuration `Core.Shutter` is `LightEngine`, so autoshutter never opens the Aura, and autoshutter is off during a measurement by their own policy. Nothing else opens the engine for you. WHAT WOULD RAISE IT: getDevicePropertyNames() on this stand, plus one acquisition with State at 0 and a line at full to confirm the frame is dark. Slot: a KB entry and the device registry's control-channel columns. Rule passed: 10.3 rule 1.",
+  "identifiers": {
+    "vendor": "Lumencor",
+    "master_property": "State"
+  }
+}

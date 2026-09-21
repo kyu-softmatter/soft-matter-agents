@@ -1,0 +1,18 @@
+{
+  "schema_version": "0.1",
+  "kind": "claim",
+  "grade": "E3",
+  "source": "prior_run:agentic-microscope@34a432c",
+  "source_ref": "src_prior_mm_device_reported_20260903",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "entry_id": "light_engine_line_intensity_is_per_mille",
+  "claim": "On both Lumencor engines each light line is exposed as two MMCore properties, `<NAME>` taking 0 or 1 and `<NAME>_Intensity` taking 0 to 1000. The intensity scale is per-mille, not per cent: an operator's 10 per cent is 100, and writing 10 sets one per cent.",
+  "validity_conditions": "THIS IS THE RANGE THE REQUEST ASKED FOR AND IT IS NONE OF THE THREE IT OFFERED. Not 0-100, not 0-1, not 0-255: `intensity_unit: \"per-mille (0-1000)\"` appears in the `device_reported:` block of each engine, recorded as read live over MMCore on 2026-09-03. SO THE OPERATOR'S 10 PER CENT RESOLVES TO 100. The factor-of-ten error is not hypothetical there: the source records 5 per cent being written as 50, and warns in the same file that typing 5 gives 0.5 per cent. LINES ARE NAMED, NOT NUMERIC. The Spectra III reports VIOLET, BLUE, CYAN, TEAL, GREEN, YELLOW, RED, NIR; the Aura III reports UV, CYAN, GREEN, RED, NIR. So the property is per LINE and there is no device-level intensity: a plan must name which line it is driving. THE CENTRE WAVELENGTHS OF THOSE LINES DID NOT CROSS. The prior file carries two lists of numeric wavelengths and says twice that they were read from NIS-Elements diagram icons and that the device contradicts them. A line NAME is a nominal designation and a string (5.3); a centre wavelength is a measurement, and that one is not made here. A RANGE IS NOT A LIMIT. 0 to 1000 is what the adapter accepts. What may be commanded on this instrument is envelope/safety.json's and a person's, and 10.3 rule 4 keeps limits out of here entirely. WHAT WOULD RAISE IT: getDevicePropertyNames() and getPropertyLowerLimit/UpperLimit on this stand. Slot: a KB entry and the device registry's control-channel columns. Rule passed: 10.3 rule 1.",
+  "identifiers": {
+    "vendor": "Lumencor",
+    "intensity_property_suffix": "_Intensity"
+  }
+}

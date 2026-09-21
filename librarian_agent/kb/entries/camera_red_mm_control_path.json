@@ -1,0 +1,24 @@
+{
+  "schema_version": "0.1",
+  "kind": "claim",
+  "grade": "E3",
+  "source": "prior_run:agentic-microscope@34a432c",
+  "source_ref": "src_prior_mm_device_reported_20260903",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "entry_id": "camera_red_mm_control_path",
+  "claim": "On the prior project's configuration the red Kinetix is the MMCore device label `Kinetix_red`, mapped to the PVCAM camera `Camera-2`. Binning is reached as a device property named `Binning`; exposure and ROI are not device properties at all but core-level calls, setExposure and setROI.",
+  "validity_conditions": "THE ASK PRESUMED THREE PROPERTY NAMES AND THERE IS ONE. `Binning` is a device property -- `core.getProperty(cam, \"Binning\")` and `core.setProperty(cam, \"Binning\", value)` both appear as call sites. Exposure and ROI are reached through the CORE, `core.setExposure(ms)` and `core.setROI(x, y, w, h)`, so they are not names a plan can compare against getLoadedDevices() or getDevicePropertyNames() and a preflight that looks for them there will not find them. That is a fact about the MMCore interface and not about this stand, but it is the answer to what was asked. THE PVCAM MAPPING IS NOT COSMETIC: `Kinetix_blue` is `Camera-1` and `Kinetix_red` is `Camera-2`, from a dict constant, and the two cameras are the same model, so the mapping is the only thing telling them apart in the library. WHAT WOULD RAISE IT: running getLoadedDevices() on this stand. The label is whatever a person loaded, and a configuration read elsewhere is E3 by 10.3 rule 1 for exactly that reason. Slot: a KB entry and the device registry's camera_red row. Rule passed: 10.3 rule 1.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "camera_red"
+    }
+  ],
+  "identifiers": {
+    "model": "Kinetix 22",
+    "mm_label": "Kinetix_red"
+  }
+}
