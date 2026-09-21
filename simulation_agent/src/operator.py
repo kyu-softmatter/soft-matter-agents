@@ -439,13 +439,53 @@ def evaluate(monitors: list[dict], state: dict) -> list[dict]:
 
 
 def run(qid: str, run_id: str, backend=None, seed: int = 1,
-        budget: str = SMOKE, target: str = "local") -> Path:
+        budget: str = SMOKE, target: str = "local",
+        revision: int | None = None) -> Path:
     """O1 preflight, O2 dispatch, O3 monitor, O4 record.
 
     Raises Refused before creating anything if the gate is shut.
+
+    **A revision is a different experiment, not a newer copy of one**, which
+    is why a runner has to know about revisions at all. This resolved
+    `plan_simulation_<qid>.json` unconditionally until 2026-09-20 -- revision
+    1's filename -- so once the question moved to revision 2 the operator ran
+    the discarded plan: 2 um beads where the measurement said 5 um, with the
+    window and the record length that went with them. **It did not fail.** It
+    wrote `rev 1` and finished green, and check 15 then compared that log
+    against revision 1's card and found them agreeing.
+
+    That is the same hardcoded-filename fault `load_goal` had, and it is worse
+    here for a reason worth keeping: a goal is CITED, so reading a stale one
+    produces a value mismatch that check 12 shows you 46 times. A plan is
+    EXECUTED, so reading a stale one produces a perfectly consistent run of the
+    wrong experiment, and nothing anywhere disagrees.
+
+    The default is the question's current revision; pass one explicitly to
+    repeat an older run on purpose. Both are legitimate and the log has to tell
+    them apart -- see below.
     """
-    plan_path = cards.question_dir(qid) / f"plan_simulation_{qid}.json"
+    revision = cards.question_revision(qid) if revision is None else revision
+    plan_path = cards.question_dir(qid) / cards.artifact_name(
+        f"plan_simulation_{qid}.json", revision)
+    if not plan_path.exists():
+        raise Refused(
+            f"revision {revision} of {qid} has no plan at "
+            f"{plan_path.relative_to(cards.REPO)}. A revision is a different experiment, so "
+            "there is nothing to fall back to: running the previous revision's plan under this "
+            "one's number is the fault this resolution exists to stop."
+        )
     plan = json.loads(plan_path.read_text())
+    # The filename says which revision was resolved and the card says which
+    # revision it is. They are two independent claims and this is the only
+    # place both are in hand, so it is the only place they can be compared --
+    # a card whose name and content disagree would otherwise run happily and
+    # log whichever of the two was asked for.
+    if int(plan.get("revision", -1)) != revision:
+        raise Refused(
+            f"{plan_path.name} is revision {revision} by its name and {plan.get('revision')!r} "
+            "by its own field; one of the two is wrong and this run cannot say which plan it "
+            "carried out until that is settled (5.5)"
+        )
 
     if plan["status"] not in ("VALIDATED", "APPROVED"):
         raise Refused(
@@ -590,7 +630,11 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         "run_id": run_id,
         "qid": qid,
         "plan_id": plan["id"],
-        "plan_revision": plan["revision"],
+        # The RESOLVED revision, not the card's own field. They are equal --
+        # run() refuses the pair when they are not -- and which one is written
+        # is still the difference between recording what was opened and
+        # recording what the thing opened says about itself.
+        "plan_revision": revision,
         "plan_hash": plan_hash(plan),
         "approval": approval,
         "envelope_check": envelope,
@@ -649,7 +693,21 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         "schema_version": "0.1",
         "run_id": run_id,
         "plan_id": plan["id"],
-        "revision": plan["revision"],
+        # Likewise, and here it is the point of the card: a later reader has to
+        # be able to tell "ran revision 1 on purpose" from "ran revision 1
+        # because the code could not see revision 2". Taken from the plan's own
+        # field, the log says the same thing in both cases -- every plan agrees
+        # with itself about which revision it is, whichever file was opened.
+        # Taken from the resolution, it says which file this run actually read.
+        #
+        # THE LOG CANNOT NAME THE FILE OUTRIGHT. run_log.schema.json is
+        # additionalProperties: false and has no field for a path, so
+        # (plan_id, revision) is the whole vocabulary available for it. That is
+        # why run() cross-checks the filename against the card's field instead:
+        # the pair is only as good as the guarantee that the name and the
+        # content agree, and nothing else was making that guarantee. A field
+        # naming the resolved path would say it directly and is the manager's.
+        "revision": revision,
         "approval": approval,
         # The field is named in run_log.schema.json and the value now comes out of
         # envelope/budget.json, so the name says `safety` about a file that is
