@@ -1,0 +1,52 @@
+{
+  "schema_version": "0.1",
+  "kind": "claim",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "entry_id": "camera_sensor_geometry",
+  "claim": "The Photometrics Kinetix22 sensor is a 2400 by 2400 pixel back-illuminated sCMOS array on a 6.5 micrometre pitch, which is 15.6 by 15.6 mm and a 22 mm diagonal.",
+  "numbers": [
+    {
+      "name": "sensor_pixels_x",
+      "value": 2400,
+      "unit": "count",
+      "source": "spec:Kinetix22",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "sensor_pixels_y",
+      "value": 2400,
+      "unit": "count",
+      "source": "spec:Kinetix22",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "pixel_size",
+      "value": 6.5,
+      "unit": "um",
+      "source": "spec:Kinetix22",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "THE SENSOR'S PITCH. Not the effective pitch, which is this times the binning factor, and not the pixel size at the sample plane, which only a measurement on this instrument gives. The store's pixel_size_at_sample_plane gap names all three under one word and says it does not close when this arrives; it does not."
+    }
+  ],
+  "validity_conditions": "THIS CLOSES THE sensor_pixel_pitch GAP AND CLOSES NOTHING ELSE. That gap's `searched` ruled the prior project CLOSED on 2026-09-19, on the ground that 10.2's DEVICE-REGISTRY row is about control channels, automatability and read-back and has no slot for a sensor specification. That ruling was right about that row and is not what opened this: 10.2's DEVICE-SPECIFICATION row names pixel size explicitly and was waiting on a person-written envelope/safety.json, which now exists (c1404bf, extended beb1c98). A route that was closed for want of a slot is not the same as a route that was waiting on a condition, and only the second one opened. IT MUST NOT BE DIVIDED BY A MAGNIFICATION. The sample-plane pixel size is a separate fact and a separate gap, and the prior project's `20.078x` is what that rule exists for -- a calibrated quantity wearing a nominal name. 5.3 refuses it from one side and task 009 from the other. ONE ENTRY ANSWERS FOR BOTH ARMS because cameras_both_kinetix22 says they are the same model; that is what licenses a single pitch to serve camera_red and camera_blue, and it is a claim with its own grade rather than an assumption made here. WHAT WOULD RAISE IT: nothing short of measuring, and nobody needs to -- an array size and a pitch are fixed by manufacture. What would make it more trustworthy is reading the sheet rather than a transcription of it. Slot: A6 `field_of_view`. Rules passed: 10.3 rule 1 for the cap, rule 2 for sourcing to the device document.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "camera_red"
+    }
+  ],
+  "source": "spec:Kinetix22",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_photometrics_kinetix22_datasheet_20241021",
+  "identifiers": {
+    "model": "Kinetix 22",
+    "chip": "GPixel GSense GSENSE6510 CMOS"
+  }
+}

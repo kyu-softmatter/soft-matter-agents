@@ -1,0 +1,37 @@
+{
+  "schema_version": "0.1",
+  "kind": "claim",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "entry_id": "camera_read_noise_subelectron",
+  "claim": "In its SubElectron mode (16-bit, 8x CMS) the Photometrics Kinetix22 has a read noise of 0.7 electrons rms, as specified by the datasheet's CAMERA MODES table. This is the lowest read noise of the four, and the slowest by far.",
+  "numbers": [
+    {
+      "name": "read_noise",
+      "value": 0.7,
+      "unit": "count",
+      "source": "spec:Kinetix22",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "electrons rms, in the SubElectron mode only. `count` is the unit because the registry has no electron unit; the quantity is a number of electrons and the dimension is right. The datasheet tabulates 1.6, 2.0, 1.2 and 0.7 across the four modes, a span of 2.9x, so a value quoted without its mode is not a fact about this camera."
+    }
+  ],
+  "validity_conditions": "ONE MODE, AND THE ENTRY CANNOT BE READ FLATLY BECAUSE THERE IS NOTHING FLAT IN IT. The Kinetix22's read noise is a property of the selected camera mode, and the datasheet's CAMERA MODES table gives FOUR: DynamicRange 1.6, Speed 2.0, Sensitivity 1.2, SubElectron 0.7 electrons. They are filed as four entries for the reason the eight polystyrene wavelengths are eight: the datasheet could be wrong about one mode and right about the others, and a mode can be added or withdrawn by a firmware revision. A caller that does not name a mode gets four entries and no single answer, which is the correct refusal. THE TASK ASKED FOR THREE AND THERE ARE FOUR. 029 said three values and `M1/M2/M3`. Three is the mode count of the KINETIX, the 3200-row body, which the same file carries as a separate entry; the installed camera is the KINETIX22, confirmed 2026-08-19 as two bodies on PCIe and matched to the purchase record. The fourth mode is SubElectron at 0.7 electrons -- the lowest of all four, and the one an SNR-limited question would reach for first. Carrying three would have lost exactly the mode A1 most wants. THE UNIT IS `count` AND THE QUANTITY IS ELECTRONS RMS. contracts/units.json has no electron unit; `count` is its only dimensionally honest home (dimension N) and it is registered, so a card citing this inherits a unit the registry holds. Registering an electron unit, and registering `read_noise` as a quantity, are both raised with manager-librarian -- neither file is this seat's. WHAT WOULD RAISE IT ABOVE E3: nothing about reading the sheet, which is still E3. Only measuring the read noise on this camera -- a dark series at the named mode -- makes it E1, and then this entry is superseded rather than edited (rule 8). NOT THE SAME NUMBER AS THE FLAT ONE THE PRIOR PROJECT KEPT. That file sets a single read_noise_e of 1.6 at the top of the block and warns in place that if a third consumer ever reads it flatly and computes, it must be made mode-aware instead. A1 computes SNR and is that third consumer, so this store is mode-aware from its first commit rather than flattened and fixed later. Slot: A1 `snr_floor`. Rules passed: 10.3 rule 1 for the E3 cap, rule 2 for sourcing to the device document.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "camera_red"
+    }
+  ],
+  "source": "spec:Kinetix22",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_photometrics_kinetix22_datasheet_20241021",
+  "identifiers": {
+    "model": "Kinetix 22",
+    "camera_mode": "SubElectron",
+    "bit_depth_designation": "16-bit, 8x CMS"
+  }
+}

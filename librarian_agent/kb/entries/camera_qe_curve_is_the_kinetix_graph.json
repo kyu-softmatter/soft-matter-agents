@@ -1,0 +1,41 @@
+{
+  "schema_version": "0.1",
+  "kind": "claim",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "source": "prior_run:agentic-microscope@34a432c",
+  "grade": "E3",
+  "source_ref": "src_prior_detector_curve_and_branch_20260920",
+  "entry_id": "camera_qe_curve_is_the_kinetix_graph",
+  "claim": "The quantum-efficiency curve held for the Kinetix22 is not the Kinetix22's. It is the Kinetix's datasheet graph, read off by eye, borrowed as a one-time exception authorised by the person on 2026-08-19. At 600 nm it reads 0.96.",
+  "numbers": [
+    {
+      "name": "quantum_efficiency",
+      "value": 0.96,
+      "unit": "1",
+      "source": "prior_run:agentic-microscope@34a432c",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "the 600 nm point of the borrowed curve, which is tabulated on a coarse grid from 200 to 1100 nm. `order_of_magnitude` is declared deliberately: the curve was read off a printed graph by eye and the source marks it `qe_verified: false`, so two decimals are what was written down and not what is known. 600 nm is the grid point beside the band this path collects; any other tabulated point can be filed on request, and none of them is measured here."
+    }
+  ],
+  "validity": {
+    "wavelength": {
+      "min": 600.0,
+      "max": 600.0,
+      "unit": "nm"
+    }
+  },
+  "validity_conditions": "THE CURVE IS NOT RESCALED AND THAT REFUSAL IS THE POINT OF THIS ENTRY. It peaks at 0.97 while the Kinetix22's own datasheet states 0.95, and the source declined to normalise one to the other because, in its words, the 2 per cent gap sits well inside the error of reading a graph by eye, so normalising the peak `would imply a precision neither source has` and would break traceability back to the Kinetix graph. THAT IS CARRIED HERE SO THE NEXT READER DOES NOT DO THE ARITHMETIC THE SOURCE DECLINED TO DO. Scaling this curve by 0.95/0.97 produces a number with five figures of apparent agreement and no more evidence than it started with. IT IS THE WRONG BODY'S GRAPH, and that is a substitution the caller is making, not a fact this entry establishes. The two cameras share a sensor family and differ in array size; whether their QE curves coincide is not something either datasheet says. The same shape as the polystyrene plates standing in for beads. IT IS NOT camera_qe_peak. That entry is the Kinetix22's own documented 0.95 at E3 vendor_spec and survives if this curve is withdrawn; this one is a borrowed graph at E3 prior_run. They are separate files because they have different sources, different subjects and different failure modes, and because the source itself keeps them apart. WHAT WOULD RAISE IT: a real digitisation of the Kinetix22's own QE curve, which the source names as the action that would let it set `qe_verified: true` -- asking Photometrics for the curve as CSV. That is an action outside this repository. Slot: A1. Rule passed: 10.3 rule 1.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "camera_red"
+    }
+  ],
+  "identifiers": {
+    "model": "Kinetix 22"
+  }
+}

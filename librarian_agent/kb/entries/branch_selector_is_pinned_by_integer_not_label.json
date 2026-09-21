@@ -1,0 +1,18 @@
+{
+  "schema_version": "0.1",
+  "kind": "claim",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "source": "prior_run:agentic-microscope@34a432c",
+  "grade": "E3",
+  "source_ref": "src_prior_detector_curve_and_branch_20260920",
+  "entry_id": "branch_selector_is_pinned_by_integer_not_label",
+  "claim": "On the prior project's bench the Lapp branch selector's enum names were false and its integer state was true: the configuration declared the label-to-position mapping inverted, so every label the device reported was the wrong name for the position it was in. The discipline that follows is to select that branch by integer and never by name.",
+  "validity_conditions": "WHAT CROSSES IS THE DISCIPLINE, NOT THE LABEL, AND THE DIFFERENCE IS THE WHOLE ENTRY. Their `mirror_in`/`mirror_out` strings and their State-to-position mapping are DOWNGRADE under 10.2.1 and are not entered: a label that was wrong there is not evidence here, and copying it would import the defect rather than the lesson. WHAT IT COST THEM: following the labels turned the light off, cost a diagnosis session, and the branch stood BOOKED AS FALSIFIED FOR TWO DAYS before the operator's own mapping showed the mislabelled enum was the fault. The record is worse than that: two further sites had been written by name and would have silently selected the BLOCKING position the moment the labels were corrected. Fixing the names would have broken the working config. Their repair was to convert every functional reference to the integer and to leave the `Label` lines in place only because the GUI needs names to show, with nothing selecting a position by one. WHY THIS MATTERS HERE RATHER THAN THERE: lapp_branch_assignment is open in this store and its own status already says it is settled by ACQUIRING and not by read-back. This entry supplies the reason that sentence is true -- this is the selector whose label and state read back consistently with each other for weeks while the mapping between them was inverted, so every signal a caller would normally trust agreed, and agreed wrongly. IT NARROWS lapp_branch_assignment AND DOES NOT CLOSE IT. The open question is which of widefield_source_a and widefield_source_b is which engine on THIS bench. Nothing here answers that: it is another bench's configuration defect, and 10.3 rule 1 caps it at E3 for exactly that reason. What it changes is what would count as an answer -- a label read back from this stand is not one, and a plan that pins the integer is not exposed to the mapping being wrong. That is a narrowing, and manager-microscope should read it as one. ONE DISCREPANCY IN THE RELAY, recorded rather than smoothed: task 029 quotes the source as saying `State 1 is the Aura position`. The document says State 1 is the measured light-passing position, confirmed 2026-09-04 and re-confirmed 2026-09-06, and separately that the operator gave `mirror_in <-> State 1` on 2026-09-05. Those may be the same position on that bench; the document does not say so, and neither does this entry. NO NUMBERS AND NO `validity`: this is a claim about how a device must be addressed, not a quantity, so a query's condition_range comes back unconstrained rather than satisfied. Slot: A4, device combination. Rule passed: 10.3 rule 2 -- what is taken is sourced to the operator's measurement and the applied configuration, not to the prior repository's prose about them.",
+  "identifiers": {
+    "selector": "lapp_branch",
+    "prior_label": "LappMainBranch1"
+  }
+}

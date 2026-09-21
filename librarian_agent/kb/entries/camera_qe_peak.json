@@ -1,0 +1,35 @@
+{
+  "schema_version": "0.1",
+  "kind": "claim",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "entry_id": "camera_qe_peak",
+  "claim": "The Photometrics Kinetix22 has a stated peak quantum efficiency of 0.95, which is the figure its own datasheet gives.",
+  "numbers": [
+    {
+      "name": "quantum_efficiency",
+      "value": 0.95,
+      "unit": "1",
+      "source": "spec:Kinetix22",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the PEAK, not the QE at any wavelength a question cares about. The datasheet states it as 95 per cent and gives the wavelength dependence only as a graph."
+    }
+  ],
+  "validity_conditions": "A PEAK IS NOT A VALUE AT A WAVELENGTH, and for this camera the difference is large. The borrowed curve in camera_qe_curve_is_the_kinetix_graph falls from its maximum near 550 nm to about 0.42 at 850 nm, so using the peak at a red or near-infrared band overstates the collected signal badly. `validity` carries no wavelength bound because the datasheet attaches none to this figure -- a peak is a maximum over the range, not a claim at a point -- and inventing one would be worse than leaving it unbounded. THIS IS THE FIGURE THAT SURVIVES IF THE CURVE IS EVER REMOVED, which is why it is entered separately from it and at a different grade and source. WHAT WOULD RAISE IT: measuring QE on this camera, which no axis has asked for. Slot: A1. Rules passed: 10.3 rule 1 for the cap, rule 2 for sourcing to the device document. Registering `quantum_efficiency` as a quantity is raised with manager-librarian.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "camera_red"
+    }
+  ],
+  "source": "spec:Kinetix22",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_photometrics_kinetix22_datasheet_20241021",
+  "identifiers": {
+    "model": "Kinetix 22"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "source_id": "src_prior_detector_curve_and_branch_20260920",
+  "kind": "prior_run",
+  "identifier": "agentic-microscope at 34a432c: data/detectors.yaml's Kinetix22 qe_curve block and its `Not rescaled, deliberately` note, and kb/systems/dualcam-config-corrections-pending.md section 1 with its applied-state table.",
+  "accessed": "2026-09-20",
+  "grade_rule": "E3, grade_tag absent -- `prior_run` has no place in the E3 grade_tag enum, which is raised. 10.3 rule 1 caps a run taken elsewhere at E3.",
+  "transfer_ruling": "10.2.1 TRANSFER for both. The QE curve: 10.2's device-specification row, which waits on envelope/safety.json -- written by the person at c1404bf and extended at beb1c98, so the row is open. Slot A1. The branch record: 10.3 rule 2 and slot A4, and WHAT TRANSFERS IS THE DISCIPLINE AND NOT THE LABEL. Their enum names were false and their integer was true; a label that was wrong there is not evidence here, so every label-keyed string is downgrade and none is entered as a fact about this bench.",
+  "what_did_not_cross": "Their `mirror_in`/`mirror_out` strings and their State-to-position mapping: DOWNGRADE, not entered. Full well and dark current: DROPPED by manager-microscope and not re-adjudicated here -- they sit in the same mode block as the read noise, which is exactly how a value gets carried by proximity. The `.cfg` itself. `20.078x`, which 5.3 already refuses.",
+  "note": "029 quotes the branch record as saying `State 1 is the Aura position`. The document says `State 1 is the measured light-passing position (2026-09-04, re-confirmed 2026-09-06)` and, from the operator on 2026-09-05, `mirror_in <-> State 1`. Those may be the same position on that bench and the document does not say so; what is entered is what the document says."
+}

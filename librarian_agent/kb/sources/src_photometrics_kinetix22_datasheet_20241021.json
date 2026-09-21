@@ -1,0 +1,9 @@
+{
+  "source_id": "src_photometrics_kinetix22_datasheet_20241021",
+  "kind": "vendor_spec",
+  "identifier": "Photometrics Kinetix22 CMOS Camera Datasheet, Revision Date 2024-10-21 (Teledyne Photometrics). The read noise figures are its \"CAMERA MODES\" table; the sensor array and pixel pitch are its sensor block; qe_peak is its stated peak.",
+  "accessed": "2026-09-20",
+  "grade_rule": "E3, grade_tag vendor_spec. A published specification is not a measurement taken here.",
+  "how_it_was_reached_and_the_limit_of_that": "LOCATED THROUGH agentic-microscope@34a432c's data/detectors.yaml, WHICH TRANSCRIBES IT. 10.3 rule 2 says a vendor specification is recorded with the instrument documentation as its source and that the prior repository is an index telling you where to look, not a source -- so the source is the datasheet, and that is what these entries cite. THE PDF ITSELF HAS NOT BEEN READ BY THIS SEAT. What is known is that a file marked `transcribed verbatim` says the datasheet says this. Same route as the Semrock passbands under src_prior_filter_records. THE RISK IS NOT HYPOTHETICAL IN THIS DOCUMENT: the transcription carries a warning that Rev A3-05112021's Line Time row is wrong by exactly 4/3 because it divides the 3200-row body's readout by 2400 rows, and that Rev 2024-10-21 corrects it. A revision of this sheet has already been wrong about this camera. WHAT WOULD SETTLE IT: reading the sheet. That is an action that leaves the repository, so it is with the person -- the same route the sensor_pixel_pitch gap already named as the right one.",
+  "note": "`spec:Kinetix22` normalises the model because the source pattern forbids a space; `identifiers` keeps `Kinetix 22` as the device table writes it. That convention was ruled in the sensor_pixel_pitch gap before this entry existed."
+}
