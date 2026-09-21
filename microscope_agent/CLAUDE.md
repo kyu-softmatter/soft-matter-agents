@@ -46,6 +46,33 @@ breaks §7's separation path — detaching to the microscope PC takes
 `microscope_agent/` and `contracts/` and leaves `bridge/` behind, so a round
 read from there becomes invisible the moment the instrument is separated.
 
+**An envelope in the inbox says it is your turn. It does not say its numbers
+are current.** The envelope is immutable by design — §7.1 rule 8 — and the
+only file that moves is `bridge/threads/…/status.json`, which is not
+delivered. So a payload carries its values frozen, with a `payload_hash` over
+them, and **there is no signal anywhere in the inbox when the sending side
+has moved on.** On 2026-09-20 `thr-tracer-diffusivity-001` r1 carried
+`plan-sim-20260917-001` revision 1 while revision 2 existed, with
+`bead_diameter` 2 µm → 5 µm and `max_lag_time` 2 s → 30 s.
+
+**The two halves of a payload age differently, and this is the part to
+hold on to:**
+
+- **Numbers the store backs correct themselves.** The bead diameter arrived
+  as `assumed:` E5 and the store now has `calibration:` E2 for the same
+  quantity. An axis queries the librarian and gets the current one, so the
+  stale value never enters our card. **Do not copy a payload number into a
+  goal card** — P3's reason, and this is the second one.
+- **Design choices do not.** `max_lag_time` is the sending side's window, not
+  a fact about the world, so nothing in the store contradicts it and no
+  query will correct it. **A 2 s window and a 30 s window are different
+  experiments**, and on this side the window is record length, which is what
+  exposure count, photodamage and drift budget all hang off.
+
+So when a round's payload names a design parameter, **cite it as the
+round's, with the revision**, and say so in the card. `from_round` records
+which round; it does not record that the round was still current.
+
 **Taking a round is S2, and it is assigned by a task card like an axis is.**
 Do not start one because you saw it. Two seats share this tree and a round
 that both might assume the other took is worse than one nobody took, because

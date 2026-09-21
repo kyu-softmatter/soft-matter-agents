@@ -163,3 +163,44 @@ cite it — the artifact has `preference_is_not_evidence` for exactly this.
 This is the same shape as card 019's `lock_group`: **a field that looks like
 it should cut and does not.** Both cost time because the shape was not
 written down. It is now.
+
+
+## The payload this round carries is revision 1, and revision 2 exists
+
+Reported by `manager-simulation` on 2026-09-21 and confirmed here against
+the inbox file. `r1_ask_experiment.json`'s `payload_card` is
+`plan-sim-20260917-001` **revision 1**:
+
+```
+max_lag_time    2 s        assumed:a_window          E5     -> revision 2 says 30 s
+bead_diameter   2 um       assumed:a_sample          E5     -> revision 2 says 5 um, kb E2
+diffusivity     0.2 um^2/s computed:stokes_einstein  E5     -> revision 2 says 0.09
+```
+
+**The envelope is not wrong and must not be edited** — §7.1 rule 8 makes it
+immutable and writing into your own inbox is forging a delivery. What is
+missing is a signal, and there is none: the payload is frozen with a hash
+over it and only `bridge/threads/…/status.json` moves.
+
+**Two halves, and only one of them is a problem.**
+
+The **bead diameter fixes itself**: the store now carries `calibration:` E2
+for it, an axis queries and gets that, and the payload's E5 never enters a
+card of ours. `goal.json` here already carries no payload numbers, which is
+P3 working.
+
+**`max_lag_time` does not fix itself.** It is the sending side's *design
+choice*, so no store entry contradicts it and no query corrects it. On this
+side the window is **record length**, and exposure count, photodamage and
+drift budget all hang off it. **A 2 s window and a 30 s window are different
+experiments and neither one fails.**
+
+**So do not take `max_lag_time` from this payload as if it were current.**
+If a bound needs it, cite it as *the round's revision 1 value* and record
+that revision 2 exists. Whether the right answer is a round 2 or a
+correction to round 1 is **the bridge's call** and has been raised there —
+not this card's, and not the simulation side's to push.
+
+This is the same shape as yesterday's A6 gap: **the name matched and the
+answer changed.** Matching a name and not looking at the answer is what
+lets it through quietly.
