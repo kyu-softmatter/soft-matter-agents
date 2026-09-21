@@ -1410,10 +1410,75 @@ def check_14_command_provenance(b: Bundle) -> list[Finding]:
 
 
 def check_15_approval_precedes_run(b: Bundle) -> list[Finding]:
-    runs = list(REPO.glob("*_agent/runs/*"))
+    """6.1: a run above Tier 1 stands on a person's approval, and that approval
+    exists BEFORE it. A Tier 0-1 run needs none and says so with a null id --
+    which is why the null case is checked as hard as the other one: it is a
+    claim about the plan's tier, and the plan is on disk to contradict it.
+    """
+    runs = [d for d in REPO.glob("*_agent/runs/*") if d.is_dir()]
     if not runs:
         return [Finding(15, NA, "no runs on disk")]
-    return [Finding(15, PENDING, "run directories exist; approval precedence not implemented yet")]
+    plans = {str(c.data.get("id")): c for c in b.of_kind("plan")}
+    approvals = {str(c.data.get("plan_id") or c.rel): c for c in b.of_kind("plan_approval")}
+    scopes = b.of_kind("scope_approval")
+    out: list[Finding] = []
+    checked = 0
+    for d in sorted(runs):
+        rel = str(d.relative_to(REPO))
+        log_path = d / "log.json"
+        if not log_path.exists():
+            out.append(Finding(15, FAIL, "run directory with no log.json, so nothing records what it stood on (4.6)", rel))
+            continue
+        try:
+            log = json.loads(log_path.read_text())
+        except Exception as exc:
+            out.append(Finding(15, FAIL, f"unreadable run log: {exc}", rel))
+            continue
+        checked += 1
+        appr = log.get("approval") or {}
+        aid, t0 = appr.get("id"), str(log.get("t0_wall") or "")
+        plan = plans.get(str(log.get("plan_id") or ""))
+        if plan is None:
+            out.append(Finding(15, PENDING, f"plan {log.get('plan_id')!r} is not in this run, so the tier it claims cannot be read", rel))
+            continue
+        tiers = [a.get("tier") for a in (plan.data.get("actions") or []) if isinstance(a.get("tier"), int)]
+        top = max(tiers) if tiers else None
+        if aid is None:
+            if top is None:
+                out.append(Finding(15, FAIL, f"null approval, but {plan.data.get('id')} declares no action tier to justify it (6.1)", rel))
+            elif top >= 2:
+                out.append(Finding(15, FAIL, f"null approval on a plan whose top action tier is {top}; Tier 2 takes a person and nothing in an agent may write one (6.1)", rel))
+            else:
+                out.append(Finding(15, PASS, f"Tier {top} run, no approval needed and the null says so rather than omitting it", rel))
+            continue
+        card = approvals.get(str(log.get("plan_id") or ""))
+        if card is not None:
+            a = card.data
+            if str(a.get("plan_revision")) != str(log.get("revision")):
+                out.append(Finding(15, FAIL, f"approval is for revision {a.get('plan_revision')} and the run carried revision {log.get('revision')}", rel))
+            elif a.get("plan_hash") != plan.data.get("plan_hash", a.get("plan_hash")):
+                out.append(Finding(15, FAIL, "approval names a different plan hash than the plan it approves", rel))
+            elif t0 and str(a.get("approved_at") or "") > t0:
+                out.append(Finding(15, FAIL, f"approval {aid} is dated {a.get('approved_at')}, after the run started at {t0}; an approval that follows its run approved nothing", rel))
+            else:
+                out.append(Finding(15, PASS, f"run stands on {aid}, granted before it started", rel))
+            continue
+        live = [s for s in scopes if str(s.data.get("id") or "") == str(aid)]
+        if not live:
+            out.append(Finding(15, FAIL, f"run names approval {aid!r} and no plan_approval or scope_approval with that id is on disk", rel))
+            continue
+        s = live[0].data
+        if s.get("voided"):
+            out.append(Finding(15, FAIL, f"scope approval {aid} is voided", rel))
+        elif t0 and str(s.get("valid_until") or "") < t0:
+            out.append(Finding(15, FAIL, f"scope approval {aid} expired {s.get('valid_until')} before the run at {t0}", rel))
+        elif isinstance(s.get("runs_used"), int) and isinstance(s.get("max_runs"), int) and s["runs_used"] > s["max_runs"]:
+            out.append(Finding(15, FAIL, f"scope approval {aid} is past its {s['max_runs']} runs", rel))
+        else:
+            out.append(Finding(15, PASS, f"run stands on live scope approval {aid}", rel))
+    if checked and not out:
+        return [Finding(15, PASS, f"{checked} runs, each preceded by what 6.1 requires of its tier")]
+    return out
 
 
 def check_16_dependency_direction(b: Bundle) -> list[Finding]:
