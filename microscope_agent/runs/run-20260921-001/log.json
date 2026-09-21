@@ -1,0 +1,756 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260921-001",
+  "plan_id": "plan-mic-20260920-001-r1",
+  "revision": 1,
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "4",
+  "stop_criteria": [
+    "sc_frame_count"
+  ],
+  "t0_wall": "2026-09-21T18:04:49.415+00:00",
+  "t0_mono": 1311817.473453333,
+  "backend": "mock",
+  "registry_source": "microscope_agent/envelope/snapshot.json",
+  "time_base_note": "software offsets order the log and nothing else. A value physics depends on comes from a trigger counter or a device timestamp (4.6.9)",
+  "events": [
+    {
+      "t_mono": 0.001196,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "limit": "objective_clearance_min",
+      "target": "bench",
+      "quantity": "working_distance",
+      "keyed_by": "the objective in the nosepiece position the plan drives to",
+      "key": {
+        "field": "nosepiece_position",
+        "value": 5,
+        "objective": "100x-oil",
+        "part_number": "MRD71970"
+      },
+      "value": 0.13,
+      "unit": "mm",
+      "grade": "E3",
+      "entry": "objective_mrd71970",
+      "number": "working_distance",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "built_from_commit": "c708120ccac07ab3d670808b057ee16dfa5e0701",
+      "confirmation": "carried_over",
+      "note": "a point value, as five of the six lenses carry it"
+    },
+    {
+      "t_mono": 0.001944,
+      "time_base": "software",
+      "event": "preflight",
+      "channel": "camera_red",
+      "named_as": [],
+      "verified": true,
+      "state": {
+        "channel": "camera_red",
+        "ready": true,
+        "read_back": true,
+        "automatable": "full",
+        "backend": "mock"
+      }
+    },
+    {
+      "t_mono": 0.001948,
+      "time_base": "software",
+      "event": "preflight",
+      "channel": "confocal_csuw1",
+      "named_as": [
+        "csuw1_disk_position",
+        "csuw1_port"
+      ],
+      "verified": true,
+      "state": {
+        "channel": "confocal_csuw1",
+        "ready": true,
+        "read_back": true,
+        "automatable": "full",
+        "backend": "mock"
+      }
+    },
+    {
+      "t_mono": 0.00195,
+      "time_base": "software",
+      "event": "preflight",
+      "channel": "stand_ti2e",
+      "named_as": [
+        "intermediate_magnification",
+        "lapp_branch",
+        "nosepiece"
+      ],
+      "verified": true,
+      "state": {
+        "channel": "stand_ti2e",
+        "ready": true,
+        "read_back": true,
+        "automatable": "full",
+        "backend": "mock"
+      }
+    },
+    {
+      "t_mono": 0.001956,
+      "time_base": "software",
+      "event": "snapshot",
+      "label": "before",
+      "states": {
+        "stand_ti2e": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "confocal_csuw1": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "camera_red": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "camera_blue": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "widefield_source_a": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "widefield_source_b": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "laser_combiner": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "dmd": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "piezo_stage": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "optical_tweezers": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        }
+      }
+    },
+    {
+      "t_mono": 0.00206,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "confocal_csuw1",
+      "element": "csuw1_port",
+      "action": "select_csuw1_port",
+      "params": {
+        "csuw1_port": {
+          "value": "empty",
+          "from": "system_configuration.selectors[csuw1_port]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the backend reported no read-back. What came back is the write's own return value, which says the command was accepted and not that the state holds",
+      "from": "system_configuration.selectors[csuw1_port]"
+    },
+    {
+      "t_mono": 0.002065,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "confocal_csuw1",
+      "element": "csuw1_disk_position",
+      "action": "select_csuw1_disk_position",
+      "params": {
+        "csuw1_disk_position": {
+          "value": "out",
+          "from": "system_configuration.selectors[csuw1_disk_position]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the backend reported no read-back. What came back is the write's own return value, which says the command was accepted and not that the state holds",
+      "from": "system_configuration.selectors[csuw1_disk_position]"
+    },
+    {
+      "t_mono": 0.002111,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "camera_red",
+      "element": null,
+      "action": "select_camera_red",
+      "params": {
+        "camera_red": {
+          "value": "DynamicRange",
+          "from": "system_configuration.selectors[camera_red]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the backend reported no read-back. What came back is the write's own return value, which says the command was accepted and not that the state holds",
+      "from": "system_configuration.selectors[camera_red]"
+    },
+    {
+      "t_mono": 0.002146,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "stand_ti2e",
+      "element": "lapp_branch",
+      "action": "select_lapp_branch",
+      "params": {
+        "lapp_branch": {
+          "value": "inline",
+          "from": "system_configuration.selectors[lapp_branch]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the backend reported no read-back. What came back is the write's own return value, which says the command was accepted and not that the state holds",
+      "from": "system_configuration.selectors[lapp_branch]"
+    },
+    {
+      "t_mono": 0.002148,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "stand_ti2e",
+      "element": "nosepiece",
+      "action": "set_nosepiece_position",
+      "params": {
+        "nosepiece_position": {
+          "value": 5,
+          "unit": "count",
+          "grade": "E5",
+          "from": "numbers[nosepiece_position]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the backend reported no read-back. What came back is the write's own return value, which says the command was accepted and not that the state holds",
+      "from": "actions[act_set_nosepiece_position]"
+    },
+    {
+      "t_mono": 0.00215,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "stand_ti2e",
+      "element": "intermediate_magnification",
+      "action": "set_intermediate_magnification",
+      "params": {
+        "intermediate_magnification": {
+          "value": 1,
+          "unit": "1",
+          "grade": "E5",
+          "from": "numbers[intermediate_magnification]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the backend reported no read-back. What came back is the write's own return value, which says the command was accepted and not that the state holds",
+      "from": "actions[act_set_intermediate_magnification]"
+    },
+    {
+      "t_mono": 0.002192,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "camera_red",
+      "element": null,
+      "action": "acquire_series",
+      "params": {
+        "exposure_time": {
+          "value": 0.1,
+          "unit": "s",
+          "grade": "E5",
+          "from": "numbers[exposure_time]"
+        },
+        "frame_count": {
+          "value": 600,
+          "unit": "1",
+          "grade": "E5",
+          "from": "numbers[frame_count]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the backend reported no read-back. What came back is the write's own return value, which says the command was accepted and not that the state holds",
+      "from": "actions[act_acquire]"
+    },
+    {
+      "t_mono": 0.002207,
+      "time_base": "software",
+      "event": "snapshot",
+      "label": "after",
+      "states": {
+        "stand_ti2e": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "nosepiece_position": {
+              "value": 5,
+              "unit": "count",
+              "grade": "E5",
+              "from": "numbers[nosepiece_position]"
+            },
+            "intermediate_magnification": {
+              "value": 1,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[intermediate_magnification]"
+            },
+            "exposure_time": {
+              "value": 0.1,
+              "unit": "s",
+              "grade": "E5",
+              "from": "numbers[exposure_time]"
+            },
+            "frame_count": {
+              "value": 600,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[frame_count]"
+            }
+          },
+          "aborted": false,
+          "backend": "mock"
+        },
+        "confocal_csuw1": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "nosepiece_position": {
+              "value": 5,
+              "unit": "count",
+              "grade": "E5",
+              "from": "numbers[nosepiece_position]"
+            },
+            "intermediate_magnification": {
+              "value": 1,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[intermediate_magnification]"
+            },
+            "exposure_time": {
+              "value": 0.1,
+              "unit": "s",
+              "grade": "E5",
+              "from": "numbers[exposure_time]"
+            },
+            "frame_count": {
+              "value": 600,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[frame_count]"
+            }
+          },
+          "aborted": false,
+          "backend": "mock"
+        },
+        "camera_red": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "nosepiece_position": {
+              "value": 5,
+              "unit": "count",
+              "grade": "E5",
+              "from": "numbers[nosepiece_position]"
+            },
+            "intermediate_magnification": {
+              "value": 1,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[intermediate_magnification]"
+            },
+            "exposure_time": {
+              "value": 0.1,
+              "unit": "s",
+              "grade": "E5",
+              "from": "numbers[exposure_time]"
+            },
+            "frame_count": {
+              "value": 600,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[frame_count]"
+            }
+          },
+          "aborted": false,
+          "backend": "mock"
+        },
+        "camera_blue": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "nosepiece_position": {
+              "value": 5,
+              "unit": "count",
+              "grade": "E5",
+              "from": "numbers[nosepiece_position]"
+            },
+            "intermediate_magnification": {
+              "value": 1,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[intermediate_magnification]"
+            },
+            "exposure_time": {
+              "value": 0.1,
+              "unit": "s",
+              "grade": "E5",
+              "from": "numbers[exposure_time]"
+            },
+            "frame_count": {
+              "value": 600,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[frame_count]"
+            }
+          },
+          "aborted": false,
+          "backend": "mock"
+        },
+        "widefield_source_a": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "nosepiece_position": {
+              "value": 5,
+              "unit": "count",
+              "grade": "E5",
+              "from": "numbers[nosepiece_position]"
+            },
+            "intermediate_magnification": {
+              "value": 1,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[intermediate_magnification]"
+            },
+            "exposure_time": {
+              "value": 0.1,
+              "unit": "s",
+              "grade": "E5",
+              "from": "numbers[exposure_time]"
+            },
+            "frame_count": {
+              "value": 600,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[frame_count]"
+            }
+          },
+          "aborted": false,
+          "backend": "mock"
+        },
+        "widefield_source_b": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "nosepiece_position": {
+              "value": 5,
+              "unit": "count",
+              "grade": "E5",
+              "from": "numbers[nosepiece_position]"
+            },
+            "intermediate_magnification": {
+              "value": 1,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[intermediate_magnification]"
+            },
+            "exposure_time": {
+              "value": 0.1,
+              "unit": "s",
+              "grade": "E5",
+              "from": "numbers[exposure_time]"
+            },
+            "frame_count": {
+              "value": 600,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[frame_count]"
+            }
+          },
+          "aborted": false,
+          "backend": "mock"
+        },
+        "laser_combiner": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "nosepiece_position": {
+              "value": 5,
+              "unit": "count",
+              "grade": "E5",
+              "from": "numbers[nosepiece_position]"
+            },
+            "intermediate_magnification": {
+              "value": 1,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[intermediate_magnification]"
+            },
+            "exposure_time": {
+              "value": 0.1,
+              "unit": "s",
+              "grade": "E5",
+              "from": "numbers[exposure_time]"
+            },
+            "frame_count": {
+              "value": 600,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[frame_count]"
+            }
+          },
+          "aborted": false,
+          "backend": "mock"
+        },
+        "dmd": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "nosepiece_position": {
+              "value": 5,
+              "unit": "count",
+              "grade": "E5",
+              "from": "numbers[nosepiece_position]"
+            },
+            "intermediate_magnification": {
+              "value": 1,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[intermediate_magnification]"
+            },
+            "exposure_time": {
+              "value": 0.1,
+              "unit": "s",
+              "grade": "E5",
+              "from": "numbers[exposure_time]"
+            },
+            "frame_count": {
+              "value": 600,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[frame_count]"
+            }
+          },
+          "aborted": false,
+          "backend": "mock"
+        },
+        "piezo_stage": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "nosepiece_position": {
+              "value": 5,
+              "unit": "count",
+              "grade": "E5",
+              "from": "numbers[nosepiece_position]"
+            },
+            "intermediate_magnification": {
+              "value": 1,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[intermediate_magnification]"
+            },
+            "exposure_time": {
+              "value": 0.1,
+              "unit": "s",
+              "grade": "E5",
+              "from": "numbers[exposure_time]"
+            },
+            "frame_count": {
+              "value": 600,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[frame_count]"
+            }
+          },
+          "aborted": false,
+          "backend": "mock"
+        },
+        "optical_tweezers": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "nosepiece_position": {
+              "value": 5,
+              "unit": "count",
+              "grade": "E5",
+              "from": "numbers[nosepiece_position]"
+            },
+            "intermediate_magnification": {
+              "value": 1,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[intermediate_magnification]"
+            },
+            "exposure_time": {
+              "value": 0.1,
+              "unit": "s",
+              "grade": "E5",
+              "from": "numbers[exposure_time]"
+            },
+            "frame_count": {
+              "value": 600,
+              "unit": "1",
+              "grade": "E5",
+              "from": "numbers[frame_count]"
+            }
+          },
+          "aborted": false,
+          "backend": "mock"
+        }
+      }
+    }
+  ],
+  "finished_at": "2026-09-21T18:04:49+00:00"
+}

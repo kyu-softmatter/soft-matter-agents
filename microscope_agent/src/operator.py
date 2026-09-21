@@ -443,6 +443,44 @@ def derive_commands(plan: dict) -> list[orch.Command]:
     numbers = {n["name"]: n for n in plan.get("numbers", [])}
     commands: list[orch.Command] = []
 
+    # SELECTORS FIRST, AND THEY ARE COMMANDS. `$defs/selector` calls one "a
+    # discrete setting the plan COMMANDS", and until the slot existed this
+    # function had nothing to read them from -- so the first mock run set the
+    # nosepiece and the magnification and acquired on camera_red WITHOUT
+    # setting the port that puts the light on that arm. The commands were all
+    # correct and the run was meaningless.
+    #
+    # They go before the actions because the order is physical: the path is
+    # made, then the acquisition happens down it. Nothing sorts them among
+    # themselves -- the plan's order is the plan's, and an operator that
+    # reordered a path would be deciding something.
+    #
+    # A selector's params carry no unit and no grade, and the keys are ABSENT
+    # rather than null. run_log.schema.json requires only `from` and types the
+    # other two, so a null fails on its type while an omission is lawful --
+    # and the omission is the true statement: a selector is a decision, a
+    # decision makes no claim about the world, and there is nothing for a
+    # grade to measure. Writing null said "this has a grade and it is
+    # missing", which is a different and false thing. `from` still points at
+    # the exact field, which is what check 14 reads.
+    for selector in plan.get("system_configuration", {}).get("selectors", []) or []:
+        element = selector.get("element", "")
+        if not element:
+            raise Refusal(
+                "a selector with no `element` names nothing to command; "
+                "common.schema.json requires it"
+            )
+        commands.append(orch.Command(
+            channel=element,
+            action=f"select_{element}",
+            params={element: {
+                "value": selector.get("value"),
+                "from": f"system_configuration.selectors[{element}]",
+            }},
+            from_field=f"system_configuration.selectors[{element}]",
+            tier=1,
+        ))
+
     for index, action in enumerate(plan.get("actions", [])):
         # The field path names the action's ID and not its index. Check 66
         # matches `actions[<id>]` against the plan's own actions[].id to find

@@ -508,11 +508,23 @@ class Orchestrator:
         Commands for the same channel run in sequence because the channel is one
         machine. Different channels overlap, which is the only thing the
         parallelism is for.
+
+        AN ACQUIRING COMMAND RANKS LAST, after everything on every other
+        channel. The first mock run of a real plan showed why: the acquire
+        sat at the neutral rank, so camera_red's acquisition overlapped
+        stand_ti2e's nosepiece and magnification, and the frames were taken
+        while the objective was still changing. Each command was correct, the
+        channel locks all held, and the run was meaningless -- the failure is
+        between channels, which is exactly where the parallelism lives.
+
+        It ranks after `raises_power` too, and that is the point rather than
+        an accident: illumination has to be up before the light is collected.
         """
         ordered = self.order([self._resolved(c) for c in commands])
         by_rank: dict[int, list[Command]] = defaultdict(list)
         for c in ordered:
-            by_rank[0 if c.lowers_power else 2 if c.raises_power else 1].append(c)
+            by_rank[3 if c.acquires else
+                    0 if c.lowers_power else 2 if c.raises_power else 1].append(c)
 
         outcomes: list[dict] = []
         for rank in sorted(by_rank):
