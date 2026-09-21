@@ -431,3 +431,28 @@ python3 contracts/validate.py
 
 Zero failures, and understand every UNDECIDED and PENDING line rather than
 reading past it. An unchosen threshold is not a satisfied threshold.
+
+**And if you queried the librarian, your commit waits on the librarian seat.**
+Check 45 tests an empty `degraded` against `librarian_agent/queries/log.jsonl`,
+and that file is outside this agent's boundary, so **you cannot commit the
+evidence for your own cards.** The gate judges the tree your commit would
+create; if your calls are not yet committed over there, your cards read as
+claims with nothing behind them and the gate refuses them — correctly.
+
+This is not a rule to work around, it is a schedule to know about. On
+2026-09-20 it held `004` until the librarian seat landed 318 log lines at
+`19b55ee`, and **microscope-1 was blocked at the same moment for the same
+reason.** The microscope's earlier seven passed only because those lines were
+already committed, not because that seat did anything differently. Nothing
+anywhere else records this.
+
+So: after a fan-out, check whether your calls are in a commit before you plan
+around landing your cards.
+
+```bash
+git log --oneline -1 -- librarian_agent/queries/log.jsonl
+git status --short -- librarian_agent/queries/log.jsonl     # uncommitted = your evidence is not in the tree yet
+```
+
+If it is uncommitted, **ask the librarian seat to land it; do not commit it
+yourself.** It is that agent's file, and check 35 is what says so.
