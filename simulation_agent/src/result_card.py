@@ -48,7 +48,18 @@ is within tolerance and anything else is a deviation a person should look at.
 All four of the read-back parameters are exact today, so the strict rule costs
 nothing and stays honest the day one of them stops being.
 
-**One field cannot be written yet**: see `time_base`.
+**One field cannot be written yet**: see `time_base`. **A second thing cannot
+be said at all**: see `evaluate_criteria` on why a criterion on a broken run
+comes out true or false when the honest answer is neither.
+
+Every refusal branch in here has been run, against synthetic records built by
+altering a real run's four files -- diverged, aborted, a record too short to
+fit, a run with no honest error bar, a half-written run directory, a run that
+does not exist. That exercise found one defect in this module, in the refusal
+path that reports a missing run: it built a repository-relative path, which
+raises when `RUNS` points outside the repository, and pointing `RUNS` outside
+the repository is exactly how the exercise is run. A refusal that raises
+instead of refusing is 005's shape and was fixed rather than noted.
 """
 
 from __future__ import annotations
@@ -86,11 +97,29 @@ class Unwritable(Exception):
 # --------------------------------------------------------------------------- #
 
 
+def shown(path: Path) -> str:
+    """A path as a message should print it: repository-relative when it is
+    inside the repository, and absolute when it is not."""
+    try:
+        return str(path.relative_to(cards.REPO))
+    except ValueError:
+        return str(path)
+
+
 def read_run(run_id: str) -> dict:
     """The four files of a run, or a refusal naming the one that is missing."""
     d = RUNS / run_id
     if not d.is_dir():
-        raise Unwritable(f"{d.relative_to(cards.REPO)} does not exist; there is no run to report")
+        # `relative_to` and not a plain path, because a repository-relative one
+        # is what every other message here prints -- but it RAISES when the
+        # path is outside the repository, and `RUNS` is a module attribute
+        # precisely so it can be pointed at a scratch directory (the same move
+        # CLAUDE.md prescribes for `operator.ENVELOPE`). So the documented way
+        # to exercise this module made its refusal raise ValueError instead of
+        # refusing: the behaviour was right and the reporting was not, which is
+        # 005's defect in a second place. Found by pointing RUNS at a scratch
+        # directory and asking for a run that was not there.
+        raise Unwritable(f"{shown(d)} does not exist; there is no run to report")
     out = {}
     for key, name in (
         ("config", "config.json"),
@@ -487,6 +516,28 @@ def evaluate_criteria(plan: dict, by_name: dict, meta: dict) -> list[dict]:
     is a floor and the plan's four are the target. A criterion this module has
     no number for stops the card rather than being dropped -- a criterion
     silently missing from the evaluation reads as a criterion that was met.
+
+    **A criterion cannot say it was not evaluable, and on a broken run that
+    matters.** `met` is a required boolean, so every criterion comes out true or
+    false whatever the run did. The operator does not have this problem: its
+    `evaluate` skips a metric the backend does not report, on the stated
+    grounds that "a metric the backend does not report is not a pass: it is
+    simply not evaluated". The card cannot express that.
+
+    What it costs is visible on an aborted run. The record ends early, the
+    estimator fits the lags that exist, `estimation.followed` goes false
+    because the window it actually fitted is shorter than the one the plan
+    declared -- and the two success criteria still come out `met: true`,
+    evaluated against a number produced by a fit range the vocabulary does not
+    pin. That is the failure `estimation` exists to prevent, one level down:
+    `comparable` rests on the same estimator having run, and a `met: true`
+    standing on `followed: false` is a comparison nobody should make.
+
+    Nothing here is false -- `outcome`, `followed` and `met` are each correct,
+    and a reader who joins the three sees it. What is missing is a way to say
+    it in the field that carries the claim, and `result.schema.json` is not
+    this seat's. Raised beside the `time_base` question, and found the same
+    way: by running the module against runs that did not go well.
     """
     out = []
     for kind, key in (("stop", "stop_criteria"), ("success", "success_criteria")):
