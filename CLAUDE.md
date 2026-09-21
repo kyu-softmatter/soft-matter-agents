@@ -160,8 +160,15 @@ Decode two of them against `ps` and they match to the second. So the question
 is countable from disk, for every past call and not just the processes alive
 now, by comparing each call's server start against the last commit to touch
 `mcp_server.py` at that moment. **The librarian counted it: 0 of 417 calls
-across 69 server sessions were served by a stale build.** The risk is real and
-has never once bitten. Treat a server fix the way a settings fix is treated --
+across 69 server sessions were served by a stale build.** That count settles
+less than this file first claimed of it. It asks whether a call's server
+predated the last `mcp_server.py` commit at that call's moment, and **two
+servers can each be current when they answer and still answer differently** if
+a commit lands between them. That happened: on 2026-09-19, 37 minutes apart,
+one `kb_version` was asked the same question twice under two builds and
+returned `in_published_table` and then `absent`. §4.3.1 rule 2 failed and the
+log keeps it, because the log is append-only. So the hazard has bitten once,
+the 0-of-417 metric does not see it, and check 70 is the one that will. Treat a server fix the way a settings fix is treated --
 it lands for whoever starts next and everyone else has to be told -- and
 settle whether it bit by counting, not by checking what is running now.
 

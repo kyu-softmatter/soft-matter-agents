@@ -1763,8 +1763,7 @@ GIT_COMMITTER_EMAIL=manager-microscope@seat.invalid git commit -m …
 
 ```
 rebuild/
-  plan.md                  the English rendering, generated from plan_ko.md
-  plan_ko.md               this document. The record (0, language convention)
+  plan.md                  this document. The record, in English (0, language convention)
   README.md                for **someone who has read neither**. What it is, what it becomes today, where to look
   CLAUDE.md                the monorepo's common rules (P0-P16, a summary of the card contracts).
                              **All six sessions read it, so its length is multiplied by six**
@@ -1780,7 +1779,7 @@ rebuild/
   docs/                    **the public introduction page** (GitHub Pages, `/docs` on `main`). Its reader is one step
                              further out than README's -- **someone with no intention of opening the repository**,
                              someone who was sent a link. Written in English (the only exception to the language rule
-                             is plan_ko.md).
+                             is none -- plan_ko.md left version control on 2026-09-20).
                              **It points rather than restates** -- 7's README rule applied once more at the document
                              layer, and **numbers especially are kept out** (they go stale on being written; wrong
                              three times in one day in `CLAUDE.md`).
@@ -1943,8 +1942,7 @@ rebuild/
 
 | | Reader | Character |
 |---|---|---|
-| `plan_ko.md` | someone changing the structure | **the record.** Korean, and allowed to be long |
-| `plan.md` | someone who does not read Korean | **generated.** The English rendering of the record; where they disagree, the Korean wins |
+| `plan.md` | someone changing the structure | **the record.** English, and allowed to be long. It was Korean, and for part of one day it was a rendering generated from `plan_ko.md`; that pair ended on 2026-09-20 and this row said otherwise for the rest of it |
 | `CLAUDE.md` | every session | **binding rules.** Read six times, so it has to be short |
 | `README.md` | **someone who has read neither** | what it is, what it becomes today, where to look |
 | `docs/index.html` | **someone who will not even open README** | an outsider sent a link. Within 30 seconds, only *what is this system trying to do* |
@@ -2017,9 +2015,11 @@ src/devices/dev_*.py         imports neither a sibling nor anything above
 
 | Number | What | Seat holding it |
 |---|---|---|
-| 69 | whether a KB entry's `numbers[]` cites the entry it lives in -- a `kb:` source resolving to its own id, which leaves the grade resting on nothing | librarian |
+| 71 | whether every check in this table is assigned to a seat holding `contracts/` -- an execution seat cannot write `validate.py`, so assigning one a check is not a backlog but an impossibility | manager-librarian |
+| 69 | whether a KB entry's `numbers[]` cites the entry it lives in -- a `kb:` source resolving to its own id, which leaves the grade resting on nothing | manager-librarian |
 | 68 | whether a `kb_gaps[].observable` ends in `_<a registered quantity>`, which is a subject smuggled into a name where nothing refuses it (`quantities.json` rule 1) | manager-microscope |
-| 67 | whether a KB entry uses declared units **everywhere a quantity appears in it** -- `numbers[]` and `validity` conditions both, the way check 2 requires of cards | librarian |
+| 70 | whether one `kb_version` ever answered the same question two ways -- `query_log.verify()` over the whole log, excluding the one pair of 2026-09-19 by name rather than by watermark | manager-librarian |
+| 67 | whether a KB entry uses declared units **everywhere a quantity appears in it** -- `numbers[]` and `validity` conditions both, the way check 2 requires of cards | manager-librarian |
 | 65 | whether the four checks that read history (26, 35, 41, 46) have a test that builds a repository | manager-bridge |
 | 63 | whether a tie verdict comes out carrying the worse grade of the two values compared (§5.8.1) | manager-bridge |
 | 59 | whether the hook names and warns about the paths of an unattributed commit | manager-bridge |
@@ -2303,7 +2303,7 @@ What is recorded — all append-only in `questions/<qid>/failures.jsonl`:
 
 **Discoveries come from the place where you wrote down what you did not confirm.** On 2026-09-18 a seat counted its day and said — **all four of the wrong ones were places it believed it had confirmed, and the one right one came from a place where it had written down what it had not confirmed.** That day it wrote **a limit** into its own fix — "the check was made to survive the conflict, not to remove it" — and that sentence exposed §4.3.1's defect (the server's isolation unit has no revision). What was written as a limit became a discovery. So a report carries not only **what was confirmed** but **what was not** — the latter is where the next defect lives.
 
-**Finding the class and sweeping two thirds of it, in the same hour, in the same table.** 1619917 corrected §9's M2 and M4 rows for citing §11-1 after it was settled, and quoted the paragraph saying it "blocks three of the four" -- then left M1, the third. It was found an hour later only because someone asked about a different agent. **The commit that names a class is the most dangerous place to under-sweep**, because it reads as the sweep. The M1 row had a second closed blocker too, `envelope/safety.json`, which the person wrote on 2026-09-20; two dead conditions in one cell, in the column a person reads to choose the day. **And the hour after fixing a class is when a seat is least guarded against it** -- `manager-microscope` fixed a counting error in check 29 and made the same kind of error hours later, counting an E2 grade string as an entry, which an execution seat caught. Three instances in one day, each by the seat that had just written the correction. The guard that works is not resolve harder: it is that **someone else counted**, which happened all three times and is the only reason all three are here.
+**Finding the class and sweeping two thirds of it, in the same hour, in the same table.** 1619917 corrected §9's M2 and M4 rows for citing §11-1 after it was settled, and quoted the paragraph saying it "blocks three of the four" -- then left M1, the third. It was found an hour later only because someone asked about a different agent. **The commit that names a class is the most dangerous place to under-sweep**, because it reads as the sweep. The M1 row had a second closed blocker too, `envelope/safety.json`, which the person wrote on 2026-09-20; two dead conditions in one cell, in the column a person reads to choose the day. **It happened a fifth time the same evening**: §0's language section was corrected in the morning and `plan_ko.md` stayed described as the record in four other places -- the §7 layout, a parenthesis about the language exception, and a two-row table where the record says of itself that it is generated. Another seat found one of the four and this seat found the rest only by going to look. **And the hour after fixing a class is when a seat is least guarded against it** -- `manager-microscope` fixed a counting error in check 29 and made the same kind of error hours later, counting an E2 grade string as an entry, which an execution seat caught. Three instances in one day, each by the seat that had just written the correction. The guard that works is not resolve harder: it is that **someone else counted**, which happened all three times and is the only reason all three are here.
 
 **A refusal keyed on a field name lifts by itself, and what it was deferring does not arrive with it (2026-09-20).** `microscope-1` stopped S4 rather than write a synthesis card missing three bounds, and wrote the refusal to read the schema at run time so it would dissolve the day the fields are declared -- correct, and the trap is in the same sentence. **The code that would write those rows was the code deleted when the refusal went in.** Declare the fields and the gate opens onto exactly the defect it was built to stop: a card that goes out missing the 34 rows, quietly, with nothing refusing it, because the refusal keyed on the field name and the field now exists. The seat found this itself and put `carry()` in beside the refusal, same file, same schema read, so the two move together. **A guard whose release is automatic needs its replacement written before the release, not after** -- otherwise the safest-looking form of deferral is the one that fails silently.
 
