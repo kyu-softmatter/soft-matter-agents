@@ -2,7 +2,23 @@
 
 Written by `manager-microscope`. You read this; you do not edit it (§6.2-2).
 
-**This card is `microscope-4`'s**, minted today and active in
+**REASSIGNED to `microscope-5` on 2026-09-20.** `microscope-4` holds no
+commit in the last twenty and the round has been sitting since 02:53Z, so
+the card moves rather than the work waiting on a seat that is not there.
+**This is the only way a card changes hands** — it is edited, not relayed:
+a chat message is not an assignment (see `CLAUDE.md`). `microscope-4` is not
+to pick this up; if that seat returns, report up and I will card it
+something else.
+
+**DO NOT RE-COPY THE ENVELOPE while this runs.** `microscope-1` is finishing
+a1 on `mic-20260920-001`, whose fan-out is pinned to `kbv-1dabfd5ad58d`, and
+`pin_kb_version()` now reads the envelope. Moving it would pin a1 to a
+different store from its six siblings and check 58 would refuse the set.
+Your S3.0 mints a **new** fan-out, so it pins to whatever the envelope holds
+and collides with nothing — that is why this card can run now and the re-pin
+cannot.
+
+~~This card was `microscope-4`'s~~, minted today and active in
 `contracts/seats.json`. Confirm that yourself before committing — a seat named
 in chat is not a seat until the registry says so, and this card cannot give
 you one (§6.2.2).
