@@ -1,0 +1,38 @@
+{
+  "entry_id": "water_refractive_index_595nm_293k",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Distilled water at 20 degrees Celsius has a refractive index of 1.3328114 at a wavelength of 595.0 nm, at atmospheric pressure, from measurements whose stated accuracy is plus or minus 1e-6.",
+  "numbers": [
+    {
+      "name": "refractive_index",
+      "value": 1.3328114,
+      "unit": "1",
+      "source": "literature:tilton_taylor_1938",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "Table 7 of RP1085, the 5950 A column of the 5500-5950 block, 20 degC row, printed as 28114 under a column heading of 1.33. Both arguments are tabulated points, so nothing is interpolated; header and row were confirmed on the page image at 600 dpi, including that 5950 A is the last WAVELENGTH column and the one to its right is the temperature-derivative column labelled (lambda = 6000 A). Cross-checked against the other table in the same paper: Table 5 gives 1.3329877 at 5892.6 A and this block gives 1.3329648 at 5900 A, a difference of 3.1e-7 per A, which is the dispersion the neighbouring columns show. The paper's stated accuracy is +/-1e-6, so the last printed digit is not significant; the digits are kept as printed rather than rounded."
+    }
+  ],
+  "validity": {
+    "wavelength": { "min": 595.0, "max": 595.0, "unit": "nm" },
+    "temperature": { "min": 293.15, "max": 293.15, "unit": "K" }
+  },
+  "subject": [
+    { "kind": "quantity", "id": "refractive_index" }
+  ],
+  "source": "literature:tilton_taylor_1938",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_tilton_taylor_1938_water_index",
+  "validity_conditions": "WHY 595 AND NOT ONLY 605. Task 026 carried a ruling that A6's wavelength is 605 nm and warned that 605 must not enter as a reading of a filter designated 595. Asked directly on 2026-09-20, the person settled it: 605 IS THE BENCH'S NAME FOR THE FF01-595/31-32 FILTER, not a separate measured band. The store holds four single-band emission filters -- 432/36, 515/30, 595/31, 680/42 -- and no 605 filter, which is consistent with that. So the number with a source is 595, from filter_ff01_595_31_32_passband at E3 vendor_spec, and 605 is a nickname with no entry of its own. This entry is the index at the designated centre. The 605 nm entries stay: they are equally measured, they are what the bench's own name points at, and 595 against 605 is 1.7 per cent on a quantity A6 reports to one significant figure, so under P15 the two are a tie on the physics and differ only in which one a query matches. Filing both is what lets the store answer either without interpolating. ONE WAVELENGTH AND ONE TEMPERATURE, PINNED TO POINTS. A query at any other comes back disjoint and the gap is `condition_mismatch`; the store may not interpolate, and Table 7's headnote offering sixth-decimal data by linear interpolation is about values BETWEEN grid points, which this is not. THE SOURCE PRINTS ITS OWN TEMPERATURE DEPENDENCE and it is worth more than an estimate: the column to the right of 5950 A gives -10^7 x dn/dt = 885.9 at 20 degC near 6000 A, so dn/dt is about -8.9e-5 per kelvin. Five kelvin is 4.4e-4 in n. Whether that matters is the caller's judgement to record, not this entry's to apply. THE PRESSURE IS NOT PINNED: the paper tabulates no pressure argument, so no bound is asserted rather than one invented. Temperature is in kelvin because contracts/units.json cannot register an offset unit; 20 degC is a tabulation argument, so the exact 293.15 K is used. DISTILLED WATER, NOT THIS BENCH'S SUSPENSION (particle_suspension_a).",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "identifiers": {
+    "immersion": "water",
+    "material": "water",
+    "table_row": "5950"
+  }
+}

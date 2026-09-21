@@ -1,0 +1,39 @@
+{
+  "entry_id": "air_refractive_index_595nm_288k",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Dry air at 15 degrees Celsius and 760 mm of mercury has a refractive index of 1.000276398 at a wavelength of 595.0 nm, from interferometric measurements whose probable error at this temperature is 3.1 in the seventh decimal of the index.",
+  "numbers": [
+    {
+      "name": "refractive_index",
+      "value": 1.000276398,
+      "unit": "1",
+      "source": "literature:meggers_peters_1918",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "Table 5 of the paper, 5950 A row, prints the refractivity (n-1)10^7 = 2763.98, which is n = 1.000276398. An exact grid point on the table's 50 A step, so nothing is interpolated. Cross-checked inside its own row: the table prints the vacuum correction (n*lambda - lambda) = 1.6446 A, and 5950 A x 2763.98e-7 = 1.64457 A. The probable error is 3.1 in (n-1)10^7, so the last two decimals shown sit inside the noise; they are kept as printed."
+    }
+  ],
+  "validity": {
+    "wavelength": { "min": 595.0, "max": 595.0, "unit": "nm" },
+    "temperature": { "min": 288.15, "max": 288.15, "unit": "K" },
+    "pressure": { "min": 101325, "max": 101325, "unit": "Pa" }
+  },
+  "subject": [
+    { "kind": "quantity", "id": "refractive_index" }
+  ],
+  "source": "literature:meggers_peters_1918",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_meggers_peters_1918_air_index",
+  "validity_conditions": "WHY 595 AND NOT ONLY 605. The person settled on 2026-09-20 that 605 is the bench's name for the FF01-595/31-32 filter rather than a separate band: the store holds four single-band emission filters -- 432/36, 515/30, 595/31, 680/42 -- and no 605 filter. So the wavelength with a source of its own is 595, from filter_ff01_595_31_32_passband at E3 vendor_spec, and 605 is a nickname that gets no entry. air_refractive_index_605nm_288k stays, equally measured and equally a grid point; 595 against 605 is 1.7 per cent on a quantity reported to one significant figure, a tie under P15, so the two differ in which query matches and not in the physics. Both are filed so the store answers either without interpolating. THE TEMPERATURE IS STILL NOT THE ROOM'S, and that is the axis this source cannot close: it measured dry air at 0, 15 and 30 degC and printed a wavelength table at 15 degC alone, so a query at bench temperature comes back disjoint on temperature and the gap is `condition_mismatch`, not `absent`. THE SIZE OF EVERY MISMATCH IS STATED SO THE CALLER CAN JUDGE IT. The paper's three Cauchy equations give (n-1)10^7 of 2875.66, 2726.43 and 2589.72 at 0, 15 and 30 degC, so about -1e-6 per kelvin: five kelvin is about 5e-6 in n against an n-1 of 2.8e-4. Refractivity is nearly proportional to density, so 1 kPa off 101.325 kPa moves n by about 2.7e-6. And the measurement is on DRY air while the bench's air carries water vapour, which lowers n by of order 1e-6 per 10 per cent relative humidity in the visible; humidity is absent from `validity` because the source tabulates none, and asserting an unstated bound would be worse than prose. Deciding whether any of this matters is the caller's, and the entry's job is to make the decision possible. Temperature and pressure are in registry units: 15 degC as 288.15 K, 760 mm of mercury as the 101325 Pa that defines the standard atmosphere, both exact. WHY IT WAS SOURCED: three of the six objectives are dry -- MRD70040, MRD70170, MRD70270 -- and A6's axial_range needs the index of the medium they work in (task 026).",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "identifiers": {
+    "immersion": "air",
+    "material": "air",
+    "table_row": "5950"
+  }
+}
