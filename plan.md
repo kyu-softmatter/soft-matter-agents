@@ -807,6 +807,10 @@ The axes are **a fixed list** and do not change per question. Some axes abstaini
 
 Why forbid it: once the synthesis stage starts querying, S3's parallel independence becomes meaningless. One final agent ends up judging everything alone again.
 
+**Carrying is not querying, and the distinction was already built before it was asked about (2026-09-20).** `microscope-1` found that the three bounds S4 has to carry all cite `kb:` sources, that check 54 requires a `kb:` basis to resolve against the **citing** card's `kb_refs`, and that rule 4 means S4 never asked for any of them -- and read it as a contradiction in this document with two ways out, a new carry marker or an exemption in 54. **Neither is needed.** A synthesis card already carries values with `origin: <file>#<name>` on `$defs.number` in `common.schema.json`, and check 12 already verifies them: the run reads *70 carried numbers match their source*. A carried bound is the same act on a different object, so it takes the same field, and **check 54 resolves a carried `kb:` basis against the `kb_refs` of the card `origin` names** -- not an exemption but the right card, since that is the one that did the asking. Nothing new is invented and the condition is already on disk.
+
+**And rule 4 is untouched by this, which is the test of the reading.** What rule 4 protects is S3's parallel independence, and a carry does not reach it: the query already happened, in one axis card, under that axis's own `caller_id`, isolated exactly as intended, and the `origin` chain keeps which caller asked identifiable. Carrying preserves the isolation record rather than defeating it. **What was actually missing was documentation, not mechanism** -- `origin` is described for numbers only, so a seat meeting the bound case read an absence as a conflict.
+
 #### 4.5.5 S5 — outputs and identifiers (system designer)
 
 - `plan_<agent>_<qid>.json` — the record. It carries every mandatory item in §5.4. It has to pass the validator to be `VALIDATED` (§5.5).
