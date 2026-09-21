@@ -1304,7 +1304,7 @@ def check_12_synthesis_closure(b: Bundle) -> list[Finding]:
 
 
 ALLOWED_PATHS = [
-    r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock)$",
+    r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock)$",
     r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|seats\.json|validate\.py|validation_limits\.json|history_fixtures\.py)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
@@ -2364,6 +2364,16 @@ AGENT_OF_PATH = [
     (re.compile(r"^librarian_agent/"), "librarian_agent"),
     (re.compile(r"^bridge/"), "bridge"),
 ]
+# `plan_ko.md` is deliberately still here, and deliberately gone from
+# ALLOWED_PATHS. The two lists answer different questions and the same name
+# means different things to each. ALLOWED_PATHS asks what may exist on disk
+# now, and the Korean record left version control on 2026-09-20 -- so keeping
+# it there would silently permit a resurrection the person decided against.
+# SHARED_PATHS is read by checks 35 and 41, which walk HISTORY, and three
+# commits touched that file. Removing it from here reddens all three at once:
+# verified by doing it, which produced `seat 'architecture' owns ['design'];
+# this path is unattributable's` on 952205c, 31f86c1 and 8d61a3a. A path
+# classifier for history must keep every name history ever had.
 SHARED_PATHS = re.compile(r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock|\.claude/|docs/)")
 # Both lists, because they answer different questions about the same file:
 # ALLOWED_PATHS says it may exist and SHARED_PATHS says whose boundary it is
