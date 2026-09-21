@@ -1,0 +1,154 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-mic-20260920-001-r1",
+  "qid": "mic-20260920-001",
+  "thread": "solo-mic-20260920-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-20T22:40:00Z",
+  "status": "DRAFT",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_brightness",
+    "definition": "The detected signal rate of one tracer under the illumination and exposure this card states, separated from background. Measured here because it cannot be asked for: it depends on this dye, this lot, this illumination and this camera together, so no vendor sheet and no prior run holds one."
+  },
+  "targets": [
+    {
+      "metric": "tracer_brightness",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "One decade is what unblocks A1. Its detection limit and SNR floor compare a per-particle rate against read noise and background, and those comparisons are decided by an order of magnitude, not by a percentage. Asking for more would make this pre-measurement longer than the measurement it exists to unblock."
+    }
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "sample_contrast": [
+    "label_free",
+    "fluorescence"
+  ],
+  "sample_contrast_provenance": {
+    "source": "operator_recall:kyuhwan_20260917",
+    "grade": "E5"
+  },
+  "configuration_preference": [
+    "widefield_inline"
+  ],
+  "configuration_preference_by": {
+    "who": "kyuhwan",
+    "at": "2026-09-17T21:07:15-07:00"
+  },
+  "requested_by": "human",
+  "numbers": [
+    {
+      "name": "exposure_time",
+      "value": 0.1,
+      "unit": "s",
+      "source": "assumed:a_exposure_start",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "Given by the person on 2026-09-20 as a STARTING POINT and not a derived optimum, and the difference is the reason this is `assumed:` at E5 rather than anything stronger. No axis produced it and none could -- bounding an exposure needs the brightness this run exists to measure. The commanded value is exactly 0.1 s; the precision is order_of_magnitude because what is known is `about a tenth of a second`, not that tenth to one figure."
+    },
+    {
+      "name": "illumination_setting",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_illumination_start",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "The person's 10 per cent, as a COMMANDED SETTING on the widefield source and deliberately NOT as illumination_power. The store holds no calibration from this source's scale to milliwatts, so writing a power here would assert a calibration nobody has done (kb_gap illumination_dial_to_power). And it is not yet a number: whether the scale runs 0-1, 0-100 or 0-255 is not in the store either (kb_gap illumination_scale_range), so 0.1 is written as the fraction the person meant and the scale it is a fraction OF is open."
+    },
+    {
+      "name": "nosepiece_position",
+      "value": 5,
+      "unit": "count",
+      "source": "assumed:a_objective_choice",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "Position 5 is the 100x oil lens; the turret is indexed from 0, which the device table states in its own index_note. `precision` is significant_figures because the enum offers only that and order_of_magnitude: an integer index is exact and the vocabulary has no word for exact, so the nearer of the two is used rather than understating it as an order of magnitude. The grade is E5 because CHOOSING the lens is unevidenced, which is a different thing from the index being exact. Required at all because objective_clearance_min resolves from the objective in the path and refuses without it."
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_exposure_start",
+      "statement": "A tenth of a second is where the person chose to start. It is not claimed to be right, only to be a place a first frame can be taken from.",
+      "numbers": [
+        "exposure_time"
+      ],
+      "falsifier": "saturated or empty frames in the first record retire it, and this run is the thing that looks"
+    },
+    {
+      "rationale_id": "a_illumination_start",
+      "statement": "Ten per cent of the source's scale is where the person chose to start, on a scale whose range is not yet known.",
+      "numbers": [
+        "illumination_setting"
+      ],
+      "falsifier": "the scale arriving as 0-255 rather than 0-1 changes what was commanded, and the record has to be retaken rather than reinterpreted"
+    },
+    {
+      "rationale_id": "a_objective_choice",
+      "statement": "The 100x oil lens, chosen so the result transfers. Brightness is not objective-independent -- collection scales with NA -- so a rate measured at one lens does not carry to another, and the pre-measurement has to be taken at a lens the real measurement is allowed to use. A6 returned four objective-and-zoom pairs that satisfy Nyquist for the diffusivity question and 100x is the only magnification appearing at both zooms, so it is the choice most likely to still be permitted when S4 picks. THAT CARD IS CITED AS A RECORD AND NOT USED AS AN INPUT (4.5.5): no bound here rests on it, and this remains a choice with a falsifier rather than a derived value.",
+      "numbers": [
+        "nosepiece_position"
+      ],
+      "falsifier": "S4 choosing a pair other than 100x for mic-20260918-001 retires this and the pre-measurement is retaken at the lens it chose"
+    }
+  ],
+  "constraint_notes": [
+    "ONE ACQUISITION, TWO OBSERVABLES, AND THIS CARD DECIDES WHICH WAY. A plan carries one observable, and the two come off one record: the bleaching estimator is the brightness estimator applied frame by frame. So this is ONE plan whose observable is tracer_brightness, with bleaching_rate as a DECLARED BY-PRODUCT of the same record, and not two revisions over one record -- two revisions would imply two acquisitions and this is one. Two result cards come off the one run. The consequence to carry: the record length is set by the BY-PRODUCT rather than by the observable, because brightness is answered in the first frames and a decay constant needs the decay.",
+    "The sample is not spent. mic-20260918-001's constraint is that the sample is consumed by the measurement and cannot be remounted; bare particles on a coverslip are NOT that sample -- particles without it. So this pre-measurement does not cost the one mount it exists to protect, and saying so here is the point: without this sentence it reads as if it did.",
+    "The single exponential is declared BEFORE the run. bleaching_rate's estimator fixes it, and if the residual says it is wrong THAT IS THE RESULT -- a better-fitting curve is not swapped in afterwards. Stating it on the goal card rather than only in the vocabulary is deliberate: a criterion chosen after the data is not a result, it is a description of the data (5.4).",
+    "Both numbers leave as result cards for the librarian (P14) and both carry the illumination setting with them. A bleaching rate without its illumination cannot be used by another plan -- the observable's own note says so -- and the same is true of a brightness. The objective travels with them for the same reason, which the vocabulary does NOT yet say: tracer_brightness's definition names illumination and exposure and not the lens, while collection efficiency scales with NA. Raised with manager-microscope.",
+    "Which branch the widefield source sits on is unconfirmed, and this question runs widefield_inline. The registry row says it outright -- role text, `unconfirmed: [branch_assignment]`, `confirmed_by: null`, `gap_ref: lapp_branch_assignment` -- so if source_a is not the inline branch, a run does not know which configuration it is. A configuration is the identity of an optical path and not a label. Carried as a kb_gap and proceeding ON MOCK ONLY: mock moves nothing, so the ambiguity costs nothing until real light. It must be closed before the instrument runs."
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "illumination_scale_range",
+      "observable": "illumination_setting_scale",
+      "kind": "absent",
+      "kb_version": "kbv-499312508852",
+      "searched": [
+        "envelope/snapshot.json entries, by hand: no entry states the widefield source's commanded scale or its MMCore property name",
+        "envelope/snapshot.json handles: the store answers to illumination_power, line_power and rated_max_power, none of which is this source's scale"
+      ],
+      "near_names": [
+        "illumination_power",
+        "line_power",
+        "rated_max_power"
+      ]
+    },
+    {
+      "gap_id": "illumination_dial_to_power",
+      "observable": "illumination_power",
+      "kind": "absent",
+      "kb_version": "kbv-499312508852",
+      "searched": [
+        "envelope/snapshot.json entries, by hand: no calibration relates this source's commanded setting to a power at the sample plane"
+      ],
+      "near_names": [
+        "trap_laser_power_has_no_software_path"
+      ]
+    },
+    {
+      "gap_id": "lapp_branch_assignment",
+      "observable": "widefield_source_branch",
+      "kind": "absent",
+      "kb_version": "kbv-499312508852",
+      "searched": [
+        "envelope/snapshot.json tables.devices: the widefield_source_a row declares its own branch_assignment unconfirmed and points at this gap_ref; the table states the gap rather than filling it"
+      ],
+      "near_names": []
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

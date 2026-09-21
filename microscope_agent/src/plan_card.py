@@ -100,12 +100,13 @@ def selector_numbers(chosen_pair: str) -> list[dict]:
         )
     return [
         {"name": "nosepiece_position", "value": row["position"], "unit": "count",
-         "source": f"kb:{row['entry_ref']}", "grade": "E3", "precision": "exact",
+         "source": f"kb:{row['entry_ref']}", "grade": "E3", "precision": "significant_figures",
          "note": (f"position {row['position']} is the {row['id']} lens ({row['part_number']}). "
                   "The turret is indexed from 0, which the device table states in its own "
                   "index_note; this is read from there and not counted here")},
         {"name": "intermediate_magnification", "value": float(zoom.rstrip("x")), "unit": "1",
-         "source": "computed:allowed_set_choice", "grade": "E4", "precision": "exact",
+         "source": "computed:allowed_set_choice", "grade": "E4",
+         "precision": "significant_figures",
          "note": f"the zoom half of the pair {chosen_pair!r} A6's Nyquist bound permits"},
     ]
 
