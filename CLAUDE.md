@@ -57,6 +57,19 @@ and every one of both must still be rejected — a fixture that stops failing
 means a check stopped working. **Read every count off the run, never off
 prose**: three counts written into this file were wrong within a day.
 
+**`--commit-range` freezes the data and not the checker.** It selects which
+commits are judged and then judges them with **the `contracts/validate.py`
+sitting in the shared working copy**, which never re-execs the committed one.
+So a run over frozen history still changes verdict when another seat is
+mid-edit in the validator, which is the opposite of what the flag looks like
+it buys. On 2026-09-20 two seats reported `check 48` failing on
+`contracts/seats.json`; clean archives of both HEADs passed, and the seat that
+had run `--commit-range aeaa27b~1..aeaa27b` re-ran the identical range later
+and got `PASS`. One variable moved between the two: `manager-bridge` had
+uncommitted hunks in the validator's path classifier and reverted them. That
+is a controlled comparison and not a proof -- the hunks were destroyed with
+`git checkout` and cannot be re-read.
+
 **And read the tree the run names with it.** Several sessions share one
 working copy, so a bare run is **nobody's commit** — a failure in it may be
 another session's work in progress. The validator says which tree it used on
