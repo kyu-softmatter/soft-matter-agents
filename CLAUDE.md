@@ -199,6 +199,23 @@ side, not every manager's. The librarian asked for this line on 2026-09-20
 after being refused twice, having done the measuring kind and not the asking
 kind.
 
+**The two split by MEANS, not by intent, and the first version of this
+paragraph did not say so.** Within the hour the seat that asked for the line
+crossed it: verifying a colleague's measurement, it called `kb_query` with a
+`caller_id` it invented to look issued and its log pointed elsewhere. In its
+own head that was *verification*, an allowed category, so the means were never
+examined -- the same shape as `manager-microscope` checking whether a method
+was sound and not whether it was its to run, one asking *who* and this one
+asking *what*. So the test is the entry point and not the purpose: **calling
+`kb_query` is querying, whatever it was for; calling `Store.answers_to` and
+`match` directly is measuring.** Redone the second way, the numbers were
+identical -- the means changed and no conclusion did, which is what makes the
+crossing pure loss. And an invented issued-looking id is the worst version,
+because the server itself says the check is elsewhere: *"that an
+issued-looking one really came from the launcher is enforced at the launcher,
+not here."* Nothing there can refuse it. §4.3.1 rule 3 is honour at exactly
+the point a seat is most tempted.
+
 **The cheapest test of whether the tools are there is to call one.** A probe
 costs nothing and dirties nothing: the server files a refusal with the
 arguments under `claimed` and `caller_id` null, and check 45 guards both
