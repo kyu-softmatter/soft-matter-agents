@@ -186,6 +186,7 @@ SOURCE_GRADE = {
     "operator_read": "E3",    # the operator read it off the instrument
     "operator_recall": "E5",  # the operator stated it from memory
     "computed": None,         # max(E4, worst input)
+    "simulated": None,        # max(E4, worst input) too -- the model is the assumption (5.3)
     "assumed": "E5",
     "kb": None,               # inherited from kb_refs
 }
@@ -1585,6 +1586,13 @@ def check_20_alternatives(b: Bundle) -> list[Finding]:
 def check_21_grade_derivation(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     n = 0
+    # A result card names its plan and the plan names the configuration; that is
+    # the only route from a `simulated:` number to the 5.3 declaration.
+    plan_configs = {
+        str(pc.data.get("id")): ((pc.data.get("system_configuration") or {}).get("config"))
+        for pc in b.of_kind("plan")
+        if isinstance(pc.data.get("system_configuration"), dict)
+    }
     for c in b.cards:
         if "__unreadable__" in c.data:
             continue
@@ -1618,15 +1626,51 @@ def check_21_grade_derivation(b: Bundle) -> list[Finding]:
                         out.append(Finding(21, FAIL, f"{name}: kb entry {ref!r} is not in the store", c.rel))
                     elif stored.get("grade") != declared:
                         out.append(Finding(21, FAIL, f"{name}: the store grades {ref} as {stored.get('grade')}, card claims {declared}", c.rel))
-            elif prefix == "computed":
+            elif prefix in ("computed", "simulated"):
                 inputs = num.get("inputs") or []
                 grades = [nums[i]["grade"] for i in inputs if i in nums]
                 expect = "E4"
                 for g in grades:
                     expect = worse(expect, g)
                 if declared != expect:
-                    out.append(Finding(21, FAIL, f"{name}: computed from {grades or 'constants'} gives max(E4, worst) = {expect}, card says {declared}", c.rel))
+                    out.append(Finding(21, FAIL, f"{name}: {prefix} from {grades or 'constants'} gives max(E4, worst) = {expect}, card says {declared}", c.rel))
+                if prefix == "simulated":
+                    # A run is not automatically a source. 5.3 puts that judgement
+                    # in the capability table, reached from the plan this result
+                    # stands on, so a number the inputs already fix cannot cite
+                    # the run that reproduced it.
+                    cfg = plan_configs.get(str(c.data.get("plan_id") or ""))
+                    if cfg is None:
+                        out.append(Finding(21, FAIL, f"{name}: source simulated:{ref} but no plan card names this card's system_configuration, so the 5.3 judgement cannot be read", c.rel))
+                    else:
+                        ok, why = configuration_is_its_own_source(cfg)
+                        if not ok:
+                            out.append(Finding(21, FAIL, f"{name}: {why}", c.rel))
     return out or [Finding(21, PASS, f"{n} grades follow from their sources")]
+
+
+def configuration_is_its_own_source(config: str) -> tuple[bool, str]:
+    """5.3: a run is a source only where the configuration produces a number its
+    inputs do not determine, and that is declared in the capability table rather
+    than judged here. Undeclared is not a permission -- it fails.
+    """
+    for f in sorted((CONTRACTS / "capabilities").glob("*.json")):
+        if f.name == "capabilities.schema.json":
+            continue
+        try:
+            table = json.loads(f.read_text())
+        except Exception:
+            continue
+        for c in table.get("configurations") or []:
+            if c.get("config") != config:
+                continue
+            decl = c.get("output_independent_of_input")
+            if not isinstance(decl, dict):
+                return False, f"configuration {config!r} has not declared output_independent_of_input in {f.name} (5.3); undeclared is not a permission"
+            if not decl.get("independent"):
+                return False, f"configuration {config!r} declares its output fixed by its input ({f.name}); the card cites the input, not the run (5.3)"
+            return True, ""
+    return False, f"configuration {config!r} is in no capability table, so nothing declares whether a run of it is a source"
 
 
 def check_22_irreversible(b: Bundle) -> list[Finding]:
@@ -3155,11 +3199,12 @@ def check_43_entry_grade(b: Bundle) -> list[Finding]:
         elif expected is not None:
             if declared != expected:
                 out.append(Finding(43, FAIL, f"{eid}: source {prefix}: derives {expected}, the entry says {declared} (self-reported grades fail)", rel))
-        elif prefix == "computed":
+        elif prefix in ("computed", "simulated"):
             # the formula is itself an assumption, so a computed value is E4 at
-            # best and follows its worst input down (5.3)
+            # best and follows its worst input down (5.3). A run's output is E4
+            # at best because the model is -- same rule, different obligation.
             if declared not in ("E4", "E5"):
-                out.append(Finding(43, FAIL, f"{eid}: computed: is E4 at best and never better, the entry says {declared}", rel))
+                out.append(Finding(43, FAIL, f"{eid}: {prefix}: is E4 at best and never better, the entry says {declared}", rel))
         elif prefix == "kb":
             if ref not in index_grades:
                 out.append(Finding(43, FAIL, f"{eid}: cites kb:{ref}, which the index has no grade for to inherit", rel))

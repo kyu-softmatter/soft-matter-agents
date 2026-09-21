@@ -1,0 +1,200 @@
+{
+  "card": "result",
+  "schema_version": "0.1",
+  "id": "result-sim-20260920-002-r1",
+  "qid": "mic-20260917-001",
+  "thread": "solo-mic-20260917-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T09:40:00Z",
+  "status": "DONE",
+  "plan_id": "plan-mic-20260917-001-r1",
+  "plan_revision": 1,
+  "plan_hash": "sha256:0ea6db8e9b28147d78507089882c56076c962e23c1bb122c80597fb774c03fb9",
+  "run_id": "run-20260917-001",
+  "observable": {
+    "name": "tracer_diffusivity"
+  },
+  "outcome": "DONE",
+  "values": [
+    {
+      "metric": "tracer_diffusivity",
+      "number": "diffusivity_measured",
+      "uncertainty": "diffusivity_uncertainty"
+    }
+  ],
+  "criteria_evaluation": [
+    {
+      "id": "sc_drift",
+      "kind": "stop",
+      "met": true,
+      "observed_number": "drift_observed"
+    },
+    {
+      "id": "ok_decade",
+      "kind": "success",
+      "met": true,
+      "observed_number": "decades_resolved"
+    }
+  ],
+  "deviations": [
+    {
+      "parameter": "exposure_time",
+      "planned_number": "exposure_time_planned",
+      "actual_number": "exposure_time_actual",
+      "within_tolerance": true,
+      "note": "the camera quantises exposure, so the nearest settable value was used"
+    },
+    {
+      "parameter": "record_length",
+      "planned_number": "record_length_planned",
+      "actual_number": "record_length_actual",
+      "within_tolerance": true
+    }
+  ],
+  "time_base": {
+    "t0_wall": "2026-09-17T09:32:00Z",
+    "t0_mono": 184512.21,
+    "alignment": "trigger_counter"
+  },
+  "new_facts": [
+    {
+      "claim": "Tracer diffusivity in this sample sits in the same decade as the bulk Stokes-Einstein estimate for a two micrometre sphere in water at room temperature.",
+      "numbers": [
+        "diffusivity_measured",
+        "diffusivity_uncertainty",
+        "bead_diameter"
+      ],
+      "validity_conditions": "this sample and holder, 20 um from the wall, room air setpoint, brightfield tracking",
+      "proposed_grade": "E1"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "diffusivity_measured",
+      "value": 0.18,
+      "unit": "um^2/s",
+      "source": "measured:run-20260917-001",
+      "grade": "E1"
+    },
+    {
+      "name": "diffusivity_uncertainty",
+      "value": 0.02,
+      "unit": "um^2/s",
+      "source": "measured:run-20260917-001",
+      "grade": "E1"
+    },
+    {
+      "name": "decades_resolved",
+      "value": 1,
+      "unit": "count",
+      "source": "measured:run-20260917-001",
+      "grade": "E1"
+    },
+    {
+      "name": "drift_observed",
+      "value": 0.4,
+      "unit": "um",
+      "source": "measured:run-20260917-001",
+      "grade": "E1"
+    },
+    {
+      "name": "exposure_time_actual",
+      "value": 0.008,
+      "unit": "s",
+      "source": "measured:run-20260917-001",
+      "grade": "E1"
+    },
+    {
+      "name": "record_length_actual",
+      "value": 201,
+      "unit": "s",
+      "source": "measured:run-20260917-001",
+      "grade": "E1"
+    },
+    {
+      "name": "exposure_time_planned",
+      "value": 0.007,
+      "unit": "s",
+      "source": "computed:geometric_middle",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "plan_microscope_mic-20260917-001.json#exposure_time"
+    },
+    {
+      "name": "record_length_planned",
+      "value": 200,
+      "unit": "s",
+      "source": "computed:ten_diffusive_times",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "origin": "plan_microscope_mic-20260917-001.json#record_length"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 2,
+      "unit": "um",
+      "source": "spec:bead_lot_ds01",
+      "grade": "E3",
+      "origin": "plan_microscope_mic-20260917-001.json#bead_diameter"
+    },
+    {
+      "name": "diffusivity_predicted",
+      "value": 0.2,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "origin": "plan_microscope_mic-20260917-001.json#diffusivity"
+    },
+    {
+      "name": "drift_tolerance",
+      "value": 1,
+      "unit": "um",
+      "source": "assumed:a_drift",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "plan_microscope_mic-20260917-001.json#drift_tolerance"
+    },
+    {
+      "name": "target_decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "source": "assumed:a_target",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "plan_microscope_mic-20260917-001.json#target_decade_resolution"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_drift",
+      "statement": "Carried from the plan: a drift of one micrometre over the record leaves the mean squared displacement dominated by diffusion.",
+      "numbers": [
+        "drift_tolerance"
+      ],
+      "falsifier": "a drift-corrected and an uncorrected diffusivity differing by more than a decade"
+    },
+    {
+      "rationale_id": "a_target",
+      "statement": "Carried from the goal: one decade of resolution answers the question.",
+      "numbers": [
+        "target_decade_resolution"
+      ],
+      "falsifier": "two candidate regimes inside one decade"
+    }
+  ],
+  "kb_refs": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "estimation": {
+    "vocabulary_version": "obs-4778293234e6",
+    "followed": false,
+    "deviations": [
+      "no fit was run: this card is a hand-written example of the round trip, not the output of an estimator"
+    ],
+    "note": "False rather than true because nobody ran the declared weighted fit here. An example that claimed to have followed it would be teaching the field to be filled in rather than answered."
+  }
+}

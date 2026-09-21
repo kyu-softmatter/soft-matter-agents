@@ -13,7 +13,11 @@
       ],
       "produces": [
         "tracer_diffusivity"
-      ]
+      ],
+      "output_independent_of_input": {
+        "independent": false,
+        "why": "the tracer diffusivity is fixed analytically by the input: run-20260920-001 gave 2.128e-13 against the analytic 2.146e-13, 0.8 per cent, which confirms the integrator and the estimator and says nothing independent about any diffusivity (5.3). A card wanting that number cites the input, not the run. A configuration with interactions or confinement would declare true."
+      }
     }
   ]
 }

@@ -132,6 +132,16 @@
           },
           "description": "optional and normally omitted. The axis list is fixed and an axis that does not apply abstains (4.5.3); pruning axes here would drop a constraint where nothing records that it was dropped."
         },
+        "output_independent_of_input": {
+          "type": "object",
+          "description": "5.3: a run is a source (`simulated:<run_id>`) only where the configuration produces a number its inputs do not determine. That is a fact about the declared model, so it is declared here and read from there rather than judged per card. Absent means undeclared, which is not a permission.",
+          "properties": {
+            "independent": {"type": "boolean"},
+            "why": {"type": "string", "minLength": 20}
+          },
+          "required": ["independent", "why"],
+          "additionalProperties": false
+        },
         "requires_contrast": {
           "$ref": "common.schema.json#/$defs/contrast",
           "description": "What the sample has to provide for this configuration to see anything. A configuration survives the screen when this value is in the goal's sample_contrast: membership, not equality. Comparing with == drops brightfield from a fluorescent question, which leaves exactly three candidates against a cap of three -- a resolved cap and a fan-out at the ceiling, both produced by the comparison rather than by the instrument. A cut that appears for the wrong reason is worse than no cut. The fact was prose in `label`, where deterministic code could not reach it; a perturbation configuration produces nothing and needs none."
