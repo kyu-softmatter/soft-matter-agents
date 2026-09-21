@@ -68,10 +68,29 @@ entry in.
 
 **Where the diffusivity does belong, then.** `values[]` still has to say
 something, and for this configuration the answer the card asserts is the
-**predicted** number — `computed:stokes_einstein`, E4, the one the plan
-already carries. The run's reading sits beside it as the comparison term. That
-is the honest shape of a verification run: the claim is the model's, the
-reading is the run's, and the card shows them meeting.
+**predicted** number — `computed:stokes_einstein`, the one the plan already
+carries. The run's reading sits beside it as the comparison term. That is the
+honest shape of a verification run: the claim is the model's, the reading is
+the run's, and the card shows them meeting.
+
+**Do not read a grade off this card. Carry the plan's.** An earlier draft here
+wrote "E4" beside that source, and a grade stated in a task card is a
+self-reported grade, which is the one thing P2 exists to stop. The rule is
+`max(E4, worst input)` and it resolves differently per revision, because the
+input moved:
+
+| the plan you stand on | `bead_diameter` | so `diffusivity` |
+|---|---|---|
+| revision 1 | `assumed:a_sample` E5 | **E5** |
+| revision 2 | `kb:tracer_diameter_measured` E2 | **E4** |
+
+`run-20260920-002` carries `plan-sim-20260917-001` at **revision 1**, so a
+result card for that run carries **E5** — the measurement that improved it
+landed in revision 2 and that run predates it. Take the number from the plan
+card the run names; do not recompute the grade and do not match it to a
+sentence written here. `simulation-5` asked this before writing anything, and
+asking was right: the moment a seat adjusts a grade to fit prose, the grade is
+self-reported whatever the prose said.
 
 ## What to build
 
