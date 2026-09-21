@@ -112,14 +112,26 @@ nothing was deciding who may commit.
 **So the allocation is to the work and to whichever session holds it.** That is
 not overriding the person: the decision was *the simulation execution seat does
 `004`*, and only the label went stale. **`simulation-4` is held, not vacated** — the person seated this session in it
-directly and it carries `8f954d0`, `0459a07` and `49da893`. This card said all
-four were free until `simulation-4` corrected it, which would have walked the
-next session straight into `one_identity_per_session`: two sessions under one
-name, check 41 unable to tell them apart, and **the pass being the defect**.
-`simulation`, `-2` and `-3` are vacated. A session opening now takes the next
-name, **the person's to seat directly (§6.2.2)**; registration is
+directly and it carries `8f954d0`, `0459a07` and `49da893`.
+
+**This card no longer says which identities are free, because it was wrong
+about that twice.** It first said all four were, which `simulation-4`
+corrected; the correction then left `simulation-2` listed as vacated while
+that session was live and had sixteen commits from `b5e4cbb` to `2ccb6a6`,
+and it said so itself. Both errors point the same way — a session reading the
+list takes a name another session holds, and then two sessions sit under one
+identity with check 41 unable to tell them apart, which is
+`one_identity_per_session` and **the pass being the defect**.
+
+**Which names are live is `contracts/seats.json`'s fact and it is
+architecture's to keep.** A card restating it is one fact in two places with
+nothing comparing them (§11-11), and the copy is the one that goes stale,
+because a seat is minted by the person and registered over there while this
+file is edited by whoever last had a reason to. So: **read the registry, and
+if you need a name, the person seats you directly (§6.2.2) — a seat is not
+something this card or another session can hand you.** Registration is
 architecture's and blocks nothing, since the gate runs `--staged` rather than
-`--strict`.
+`--strict`. `simulation-2` raised the structural half of this.
 
 **One session holds `004` at a time.** It is one commit across `goal.json`, the
 plan JSON, the generated `.md` and `src/plan_card.py`, and there is no worktree.
