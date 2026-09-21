@@ -271,6 +271,20 @@ def axc_elements() -> set[str]:
             for e in ch.get("elements") or [] if e.get("id")}
 
 
+def axc_required_selectors(config: str) -> dict:
+    """The selectors this configuration requires, as the path table states them."""
+    snapshot = AGENT / "envelope" / "snapshot.json"
+    if not snapshot.exists():
+        return {}
+    snap = json.loads(snapshot.read_text())
+    text = ((snap.get("tables") or {}).get("optical_paths") or {}).get("text")
+    if not text:
+        return {}
+    row = next((c for c in json.loads(text).get("configurations", []) or []
+                if c.get("id") == config), None)
+    return dict((row or {}).get("required_selectors") or {})
+
+
 def axc_detectors(config: str) -> list[str]:
     """The detectors the optical-path table declares for a configuration.
 
@@ -528,7 +542,39 @@ def assemble(qid: str, revision: int = 1,
     # So the choice is named rather than taken. Reading it out of the goal's
     # prose would be this stage deciding which arm the light goes down on the
     # strength of a sentence nothing checks.
+    # SELECTORS. Two kinds, and only one of them is this stage's to derive.
+    #
+    # The optical-path table states some required_selectors as a VALUE the
+    # device keys on -- csuw1_disk_position `out`, lapp_branch `inline` --
+    # and those are read straight across. It states others as a description:
+    # light_path_port `the imaging port`, filter_turret_1 `the multiband
+    # cube`. A description is not a label, and $defs/selector says why an
+    # index must not be invented to fill the gap: "a numeric encoding a seat
+    # invents is not one the instrument answers to". Those are commanded and
+    # unrecorded until somebody reads the labels.
+    #
+    # The port that picks the camera is neither -- it is the person's
+    # decision, and it enters on the goal card. `selectors` is not a field
+    # goal.schema.json declares, so this reads what is there and refuses
+    # when it is not, rather than guessing from the store: the chain to
+    # camera_red ends at an E5 recall carrying the word `probably`, and the
+    # store declines to promote it.
+    literal = {"csuw1_disk_position", "lapp_branch"}
+    selectors = [{"element": e, "value": v, "selects": [],
+                  "note": "stated as a value by the optical-path table and read across unchanged"}
+                 for e, v in sorted((axc_required_selectors(config) or {}).items())
+                 if e in literal and isinstance(v, str)]
+    from_goal = [s for s in (goal.get("selectors") or []) if isinstance(s, dict)]
+    selectors = from_goal + [s for s in selectors
+                             if s["element"] not in {g.get("element") for g in from_goal}]
+
     detectors = [d for d in (axc_detectors(config) or []) if d]
+    # A selector that names a detector in `selects` IS the choice, made where
+    # a decision belongs. Nothing here reads prose and nothing infers.
+    chosen_detector = next((d for s in selectors for d in (s.get("selects") or [])
+                            if d in detectors), None)
+    if chosen_detector is not None:
+        detectors = [chosen_detector]
     if "record_length" not in have or "exposure_time" not in have:
         unfillable.append(
             "actions: an acquire action needs a record length and an exposure, and the plan "
@@ -540,14 +586,18 @@ def assemble(qid: str, revision: int = 1,
             "one out would move the record length, and the record length came from the person")
     elif len(detectors) != 1:
         unfillable.append(
-            f"actions[acquire]: {config!r} declares {len(detectors)} detectors "
-            f"({', '.join(detectors)}) and nothing on a card says which collects. The device "
-            "table settles that it cannot be read off the cameras -- both are Kinetix 22, and "
-            "'the 561 dichroic in the port is the only thing making the arms differ'. So the "
-            "choice is the csuw1_port selector plus the emission band, and this plan can state "
-            "neither: the port is a required_selector with no slot on the card (the camera-mode "
-            "wall again), and the band waits on the red-path filter designation, which is an "
-            "open debt. Everything else the acquire needs is here -- "
+            "actions[acquire]: the person confirmed the red arm on 2026-09-21 and no field "
+            "carries it. goal.schema.json declares no `selectors` and check 1 refuses one; "
+            "plan.schema.json gained system_configuration.selectors the same day -- so the "
+            "slot exists where a selector is EMITTED and not where the decision ENTERS. "
+            "Deriving camera_red from the store instead is refused here on purpose: the chain "
+            "ends at emission_wheel_camera_mapping, E5, with the word `probably`, and "
+            "red_path_605_is_the_ff01_595_31_filter declines to name the device for that exact "
+            "reason. Raised with manager-microscope. "
+            f"{config!r} declares {len(detectors)} detectors ({', '.join(detectors)}) and "
+            "the device table settles that the cameras cannot break the tie themselves: both "
+            "are Kinetix 22, and 'the 561 dichroic in the port is the only thing making the "
+            "arms differ'. Everything else the acquire needs is here -- "
             f"{frame_count} frames of {exposure_time:g} s. Only the device is missing")
     else:
         actions.append({"id": "act_acquire", "device": detectors[0], "action": "acquire_series",
@@ -611,7 +661,15 @@ def assemble(qid: str, revision: int = 1,
                     "chose, under the conditions the axes bounded."),
         "intent": goal.get("intent", "explore"),
         "observable": {"name": (goal.get("observable") or {}).get("name")},
-        "system_configuration": {"config": config, "optical_path": None, "devices": [], "model": None},
+        "system_configuration": {
+            "config": config, "optical_path": config, "model": None,
+            # Every element and channel this plan touches, deduplicated and
+            # ordered -- the actions' devices plus the selectors' elements.
+            # minItems 1, so an empty one is a schema failure and not a
+            # blank to be filled later.
+            "devices": sorted({a["device"] for a in actions}
+                              | {s["element"] for s in selectors}),
+            "selectors": selectors},
         "preconditions": carried_pre,
         "conditions": conditions,
         "actions": actions,
