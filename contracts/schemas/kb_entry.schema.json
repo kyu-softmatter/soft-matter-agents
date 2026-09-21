@@ -243,7 +243,9 @@
       "serial",
       "lot",
       "nominal_magnification",
-      "immersion"
+      "immersion",
+      "filter_designation",
+      "path_label"
     ],
     "not_addressable_examples": [
       "position",
@@ -253,7 +255,8 @@
       "port",
       "channel",
       "position_index_base"
-    ]
+    ],
+    "growth_2026_09_20": "Two added at the librarian seat's request, both against the criterion above. `filter_designation` is the centre/width string printed on the part -- FF01-595/31-32 is the part number and 595/31 is how anyone refers to it -- and a re-cabling does not change it, so it is addressable by the same argument as part_number. `path_label` is what this bench CALLS an optical path, which is a fact about the people and not about the placement: `605` names the 595/31 emission path here, a nickname the person confirmed on 2026-09-20 and which no filter in the store is designated. Both are class handles rather than item handles, like `immersion`.\n\nThe case that asked for them: red_path_605_is_the_ff01_595_31_filter records that those two strings name one thing, and until these keys were addressable a caller could reach the entry by `FF01-595/31-32` and by `filter_centre_wavelength` but not by `605` or `595/31` -- the two forms an operator actually types. The seat stored both keys before asking rather than taking the list itself, so the join turns on with no edit to any entry."
   },
   "required": [
     "entry_id",
