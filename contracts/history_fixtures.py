@@ -41,9 +41,8 @@ PENDING rather than pretending the rule is stricter than it is.
 Every fixture must still fire, with the verdict it names. One that stops
 firing means a check stopped working.
 
-Two of the four are covered so far, 35 and 41. Checks 26 and 46 need a
-built history too and are not here yet; that is a gap in the fixtures, not
-in the checks.
+All four are covered: 35 and 41 landed first, 26 and 46 followed once the
+harness had somewhere to put them.
 """
 
 from __future__ import annotations
@@ -151,11 +150,82 @@ def fixture_41_unregistered_committer(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
-# (check, expected verdict, builder)
+def fixture_26_snapshot_is_a_copy_of_another_commit(repo: Path) -> str:
+    """An envelope snapshot whose embedded text belongs to a different commit.
+
+    Check 26 can fail nine ways and its own docstring pins which one a fixture
+    must be: the line runs between "this is not a copy of anything" -- a bogus
+    commit, an absent entry, a missing `built_from_commit` -- and "this IS a
+    copy, of something else". Only the second is 4.3.2's divergence, and only
+    the second is reachable by accident: the others need a snapshot nobody
+    could have produced.
+
+    So this builds the honest mistake. The entry is exported at one commit,
+    the store moves, and the snapshot keeps the newer text while still naming
+    the older commit -- an export that was real when it was taken and is now a
+    copy of something else. Nothing about it looks wrong from inside the file.
+    """
+    start = base(repo)
+    write(repo, "librarian_agent/kb/index.json", {"entries": ["e1"]})
+    write(repo, "librarian_agent/kb/entries/e1.json", {"entry_id": "e1", "claim": "as first written"})
+    exported_at = commit(repo, "the store as it was exported", "librarian_agent", seat="librarian")
+
+    write(repo, "librarian_agent/kb/entries/e1.json", {"entry_id": "e1", "claim": "after the store moved"})
+    commit(repo, "the store moves on", "librarian_agent", seat="librarian")
+
+    newer = (repo / "librarian_agent/kb/entries/e1.json").read_text()
+    write(repo, "microscope_agent/envelope/snapshot.json", {
+        "snapshot_version": "0.1",
+        "agent": "microscope_agent",
+        "kb_version": "kbv-fixture",
+        "built_from_commit": exported_at,
+        "entry_count": 1,
+        "entries": {"e1": {"text": newer}},
+        "tables": {},
+    })
+    commit(repo, "carry a snapshot that names one commit and holds another's bytes",
+           "microscope_agent", seat="microscope-1")
+    return f"{start}..HEAD"
+
+
+def fixture_46_vocabulary_pin_that_never_stood(repo: Path) -> str:
+    """A result pinning a vocabulary version no commit ever held.
+
+    `estimation.vocabulary_version` is what makes `comparable` mean the same
+    estimator ran on both sides. A pin that resolves nowhere says nothing --
+    a version that was never committed hashes a working tree, and there is
+    nothing to read back. Older is normal and is not the failure: the
+    vocabulary grows an entry at a time and a result records what it ran
+    against.
+    """
+    start = base(repo)
+    write(repo, "microscope_agent/questions/q/result.json", {
+        "card": "result",
+        "schema_version": "0.1",
+        "id": "result-fixture-001",
+        "qid": "q",
+        "estimation": {
+            "vocabulary_version": "obs-000000000000",
+            "followed": True,
+        },
+    })
+    commit(repo, "a result pinning a vocabulary that never stood",
+           "microscope_agent", seat="microscope-1")
+    return f"{start}..HEAD"
+
+
+# (check, expected verdict, a phrase the finding must carry, builder)
+#
+# The phrase is not decoration. Check 26 can fail nine ways and only two of
+# them are the divergence 4.3.2 means; a fixture that fails on one of the
+# other seven passes this harness and tests nothing it claims to. Naming the
+# check was enough while each fixture had one way to fail. It is not any more.
 FIXTURES = [
-    (35, "FAIL", fixture_35_one_commit_two_boundaries),
-    (41, "FAIL", fixture_41_seat_writes_outside_its_own),
-    (41, "PENDING", fixture_41_unregistered_committer),
+    (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
+    (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
+    (41, "PENDING", "not a seat in", fixture_41_unregistered_committer),
+    (26, "FAIL", "does not match the committed bytes", fixture_26_snapshot_is_a_copy_of_another_commit),
+    (46, "FAIL", "obs-000000000000", fixture_46_vocabulary_pin_that_never_stood),
 ]
 
 
@@ -181,13 +251,13 @@ def findings_for(repo: Path, commit_range: str) -> list[tuple[int, str, str]]:
 
 def main() -> int:
     ok, broken = 0, []
-    for want, verdict, build in FIXTURES:
+    for want, verdict, phrase, build in FIXTURES:
         with tempfile.TemporaryDirectory(prefix="sma-history-") as tmp:
             repo = Path(tmp) / "repo"
             repo.mkdir()
             commit_range = build(repo)
             found = findings_for(repo, commit_range)
-            mine = [f for f in found if f[0] == want and f[1] == verdict]
+            mine = [f for f in found if f[0] == want and f[1] == verdict and phrase in f[2]]
             if mine:
                 ok += 1
                 word = "rejected" if verdict == "FAIL" else "reported"
@@ -195,8 +265,11 @@ def main() -> int:
                 print(f"      {mine[0][2][:150]}")
             else:
                 got = sorted({(f[0], f[1]) for f in found if f[1] in ("FAIL", "PENDING")})
-                broken.append(f"{build.__name__} is a fixture for check {want} {verdict} and did not get it"
-                              + (f" (saw {got})" if got else " (nothing fired)"))
+                loose = [f for f in found if f[0] == want and f[1] == verdict]
+                why = (f" -- check {want} did say {verdict}, on {loose[0][2][:90]!r}, which is a different "
+                       f"branch than {phrase!r}") if loose else (f" (saw {got})" if got else " (nothing fired)")
+                broken.append(f"{build.__name__} is a fixture for check {want} {verdict} carrying {phrase!r}"
+                              + why)
     print(f"history: {ok}/{len(FIXTURES)} built repositories answered as intended")
     for b in broken:
         print(f"  NOT REJECTED  {b}")
