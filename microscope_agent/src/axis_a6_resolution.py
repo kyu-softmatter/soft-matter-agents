@@ -289,9 +289,21 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
     run.kb_gaps = axc.gaps_from(responses, pin, caller_id, GAP_IDS)
     run.numbers = _na_numbers(responses)
 
-    # Stated rather than assumed: a spatial target would be a number on the goal
-    # card, and the axis looks for one before saying there is none.
+    # Stated rather than assumed: a spatial target is on the goal card, and the
+    # axis looks for one before saying there is none.
+    #
+    # BOTH TARGET FORMS, because the one this read is the superseded one. A
+    # target names numbers[] in the old form and carries its own value inline
+    # in the new one (5.3.1), and the new form is the only one a requirement
+    # may use: common.schema.json's `source` says a number the operator CHOSE
+    # -- a target, a tolerance, a budget -- carries neither source nor grade,
+    # and numbers[] forces both. So reading `number` alone looked past exactly
+    # the form a correctly written target has to take. Found 2026-09-20 when
+    # the person answered this axis's own abstention with 100 nm and the
+    # answer would have been invisible.
     goal_targets = {t.get("number") for t in goal.get("targets", [])}
+    goal_targets |= {t.get("metric") for t in goal.get("targets", [])}
+    goal_targets.discard(None)
     goal_side_absent = [n for n in GOAL_SIDE
                         if axc.goal_number(goal, n) is None and n not in goal_targets]
 

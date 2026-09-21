@@ -1,11 +1,11 @@
 {
   "card": "goal",
   "schema_version": "0.1",
-  "id": "goal-mic-20260918-001-r6",
+  "id": "goal-mic-20260918-001-r7",
   "qid": "mic-20260918-001",
   "thread": "solo-mic-20260918-001",
   "round": 0,
-  "revision": 6,
+  "revision": 7,
   "author": "microscope_agent",
   "created_at": "2026-09-18T14:24:58Z",
   "status": "VALIDATED",
@@ -20,6 +20,13 @@
       "metric": "tracer_diffusivity",
       "number": "target_decade_resolution",
       "kind": "decade_resolution"
+    },
+    {
+      "metric": "required_lateral_resolution",
+      "kind": "detection",
+      "value": 100,
+      "unit": "nm",
+      "note": "Stated by the person on 2026-09-20, answering A6's lateral_resolution abstention. KIND IS THE NEAREST OF THREE AND NOT A FIT: the enum offers uncertainty, decade_resolution and detection, and a required RESOLUTION -- two things this far apart must be distinguishable -- is none of them exactly. `detection` is chosen because it is the only one that reads as a threshold that must be reached. Raised with manager-microscope, who owns the enum. AND EXPECT A REFUSAL RATHER THAN A BOUND. At NA 1.45 with the red path's passband centred near 595 nm the diffraction limit is about 205 nm, so 100 nm is not reachable on this instrument and A6 should say so outright. That is a valid outcome (4.5.6) and it is written as stated rather than softened: a requirement this axis edits is not the person's requirement. If what was meant is how finely a single particle's CENTRE must be located, that is localisation_error and a different quantity -- the question is asked, not assumed."
     }
   ],
   "priority": [
@@ -39,9 +46,10 @@
   "constraint_notes": [
     "sample is consumed by the measurement and cannot be remounted",
     "no calibration of the stage is available for this sample holder",
-    "The tracer diameter is here as a number now, but it is still kb_gap tracer_geometry: it is knowledge and belongs in the librarian's store as an entry (P14), not only on this card.",
+    "The tracer diameter on this card is 5 um at E5 from an operator recall of 2026-09-18, and IT IS NO LONGER THE BEST EVIDENCE FOR THAT NUMBER. kb_gap tracer_geometry closed on 2026-09-19: the store holds `tracer_diameter_measured`, 5 um with a coefficient of variation no greater than 2 per cent, measured directly on this bottle, `calibration:tracer_diameter_20260919` at E2, subject particle_suspension_a. A2 and A3 already cite that entry; anything needing the diameter cites it and not this card. This number is left at E5 rather than restamped, because this card was written on the degraded path before the measurement existed and rewriting its provenance now would claim knowledge it did not have. The person restated 5 um on 2026-09-20 and that restatement changes nothing: a recall does not raise a measurement, and the measurement already agrees with it. Note also what E2 beats -- the note on the number still says a lot number would make it spec: at E3, and a direct measurement on this bottle is better than that.",
     "Re-pinned from kbv-9bc3910f1886 to kbv-49feb73662b7 on 2026-09-18 (task 002). The tau_d near-miss for tracer_radius was re-read against the re-filed entry and the verdict does not move -- but neither of its reasons is the old one. It is no_overlap now because the entry carries no machine-readable validity, which kb_entry.schema.json makes no_overlap rather than a silent match; and because the relation reversed direction. Filed as a dimensionless group, tau_d was unrelated to a length. Filed as a derived_quantity in seconds over bead_diameter**2/diffusivity, it names this gap's own target as an input: it does not partially answer tracer_radius, it consumes it. Inverting it to d = sqrt(tau_d*D) yields nothing, because the store holds no tau_d value and D is this question's observable. So the gap is upstream of the entry rather than adjacent to it, and that is the finding: closing tracer_geometry with a lot number does not just raise the diameter to E3, it makes tau_d computable.",
-    "Renumbered from mic-20260917-001 on 2026-09-18. contracts/examples/ uses that qid for eleven fixtures, two of them a human-signed plan_approval and a result, so the fixtures cannot move and a real question sharing the id made siblings of two unrelated sets: check 33 caught it as axis cards citing two kb_versions under one qid. Revisions 1 to 4 are under the old qid in this agent's history."
+    "Renumbered from mic-20260917-001 on 2026-09-18. contracts/examples/ uses that qid for eleven fixtures, two of them a human-signed plan_approval and a result, so the fixtures cannot move and a real question sharing the id made siblings of two unrelated sets: check 33 caught it as axis cards citing two kb_versions under one qid. Revisions 1 to 4 are under the old qid in this agent's history.",
+    "The person set a session time budget of 3 minutes on 2026-09-20, answering A5's total_duration_within_budget. IT IS IN PROSE BECAUSE THE CONTRACT HAS NOWHERE ELSE FOR IT, which is worth recording rather than working around: numbers[] is closed to it because a budget is a decision and carries neither source nor grade; targets[] is closed to it because its `kind` enum is uncertainty / decade_resolution / detection and a budget is none of the three; and constraint_notes is free text, so no axis can compare against it. Raised with manager-microscope. AND THE BOUND WOULD NOT CLOSE EVEN WITH A HOME. A5 says so in its own reason: the other side of total_duration_within_budget is exposures plus overheads plus settling, and how long the record must be is A2's parameter, which A5 may not reach across for (4.5.3 rule b). So this is recorded so it is not lost, and it closes nothing today."
   ],
   "numbers": [
     {
