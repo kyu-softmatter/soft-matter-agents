@@ -59,6 +59,14 @@
       "note": "The fourth microscope execution seat, seated by the person on 2026-09-20 and registered on their word rather than on an inference -- the rule directly above. Not microscope-2: that entry has no commits but belongs to the 2026-09-18 worktree session, and a name is not reused whether or not anything was written under it, because the registry's job is to say which session made a commit and a reused name cannot. Same owns as the other three and no paths: microscope_agent/ cannot honestly be divided between seats doing one agent's work, so what this buys is attribution and not refusal."
     },
     {
+      "seat": "microscope-5",
+      "committer_email": "microscope-5@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "note": "The fifth microscope execution seat, seated 2026-09-20. Same shape as microscope-4: owns the agent directory, no paths. Minted on a relay -- manager-microscope reports the person seated it and says plainly that it received that by relay and cannot verify it, which is the right way to hand one over. The person has not said so in the architecture session, so the same withdrawal clue applies as on microscope-4, simulation-3 and simulation-4: if the person did not seat a fifth microscope session, withdraw this. Registered ahead of the person's confirmation because it blocks a chain -- the seat has finished work it cannot commit, check 41 refuses an unregistered committer, and check 68's implementation waits behind that commit. Registering first is also the rule: the registry is read at the commit's parent, so this row has to exist before that seat's first commit and cannot be added by it (6.2.1)."
+    },
+    {
       "seat": "simulation",
       "committer_email": "simulation@seat.invalid",
       "owns": [
