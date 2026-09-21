@@ -59,7 +59,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     if not caller_id.endswith(f":{AXIS}"):
         raise ValueError(f"{caller_id!r} was issued to another axis; this module is {AXIS}")
 
-    goal = cards.load_goal(qid)
+    goal = cards.load_goal(qid, revision)
     requested = driving_requested(goal)
     capabilities = json.loads(
         (cards.CONTRACTS / "capabilities" / "simulation.json").read_text()

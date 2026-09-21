@@ -49,7 +49,7 @@ MODEL = (
 
 
 def build(qid: str, created_at: str, revision: int = 1) -> dict:
-    goal = cards.load_goal(qid)
+    goal = cards.load_goal(qid, revision)
     syn = json.loads((cards.question_dir(qid) / cards.artifact_name(
         "synthesis.json", revision)).read_text())
     config = syn["chosen_config"]
@@ -64,7 +64,6 @@ def build(qid: str, created_at: str, revision: int = 1) -> dict:
         "viscosity",
         "bead_diameter",
         "diffusivity",
-        "target_decade_resolution",
         # The window's two bounds. contracts/observables.json requires
         # max_lag_time to satisfy both -- below the diffusive time so the
         # tracer is still free, and short enough against the record that every
@@ -80,9 +79,9 @@ def build(qid: str, created_at: str, revision: int = 1) -> dict:
     # carried. target_relative_error comes from A2 rather than the synthesis
     # because the synthesis had no reason to hold a success threshold.
     wanted = [("synthesis.json", n) for n in dict.fromkeys(point.values())]
-    wanted += [("synthesis.json", n) for n in extra if n != "target_decade_resolution"]
-    wanted += [("goal.json", "target_decade_resolution")]
+    wanted += [("synthesis.json", n) for n in extra]
     wanted += [("axis_bd_overdamped_a2.json", "target_relative_error")]
+    wanted += [("axis_bd_overdamped_a4.json", "intercept_sigma_max")]
     wanted += [
         ("axis_bd_overdamped_a5.json", "storage_estimate"),
         ("axis_bd_overdamped_a5.json", "wall_clock_estimate"),
@@ -97,13 +96,12 @@ def build(qid: str, created_at: str, revision: int = 1) -> dict:
     ]
     # Derived cards resolve to this revision's filenames. `goal.json` does not:
     # its revisions 2 to 6 were written in place before 4.5.5's revision rule
-    # was applied here, so one goal file exists on disk where the rule wants
-    # several. The earlier revisions are in git history, and putting them back
-    # on disk is a separate repair rather than something to paper over here.
-    wanted = [
-        (f if f == "goal.json" else cards.artifact_name(f, revision), n)
-        for f, n in wanted
-    ]
+    # The goal used to be exempted here -- `f if f == "goal.json" else ...` --
+    # which is what kept one goal file on disk where 4.5.5 wants one per
+    # revision. That exemption made revision 1 and revision 2 mutually
+    # exclusive, because check 12 resolves an origin by filename alone. Every
+    # card of a revision now takes that revision's name, the goal included.
+    wanted = [(cards.artifact_name(f, revision), n) for f, n in wanted]
     numbers = synthesis.carry_from(qid, config, wanted)
     assumptions = synthesis.assumptions_for(qid, numbers)
 
@@ -131,6 +129,7 @@ def build(qid: str, created_at: str, revision: int = 1) -> dict:
             "devices": ["hoomd_backend"],
             "model": MODEL,
         },
+        targets=[dict(t) for t in goal.get("targets", [])],
         conditions=conditions,
         actions=[
             {
@@ -179,7 +178,7 @@ def build(qid: str, created_at: str, revision: int = 1) -> dict:
                 "id": "within_target_decade",
                 "metric": "log10_ratio_of_measured_to_expected_diffusivity",
                 "comparator": "<=",
-                "number": "target_decade_resolution",
+                "target": "tracer_diffusivity",
                 "window": "lags below max_lag_time",
                 "statement": "the fitted diffusivity sits within the target decade of the free Stokes-Einstein expectation",
             },
@@ -191,6 +190,32 @@ def build(qid: str, created_at: str, revision: int = 1) -> dict:
                 "window": "lags below max_lag_time",
                 "statement": "the spread across tracers is small enough that the decade is decided by the physics and not by the sampling",
             },
+            {
+                "id": "free_regime_intercept",
+                "metric": "msd_fit_intercept_in_block_sigma",
+                "comparator": "<=",
+                "number": "intercept_sigma_max",
+                "window": "lags below max_lag_time",
+                "statement": (
+                    "the MSD fit's intercept is consistent with zero against the block-resampled "
+                    "error, so the lags that were fitted are in the free regime the estimator "
+                    "assumes. This backend has no localisation error for a free intercept to "
+                    "absorb, so a nonzero one means the window and not the physics"
+                ),
+            },
+            {
+                "id": "window_insensitive",
+                "metric": "log10_ratio_of_first_half_to_second_half_diffusivity",
+                "comparator": "<=",
+                "target": "tracer_diffusivity",
+                "window": "lags below max_lag_time, split at the midpoint",
+                "statement": (
+                    "the fit agrees with itself across the window: D over the first half of the "
+                    "lag range against D over the second. This is what separates converged from "
+                    "precise -- a fit reaching past the free regime disagrees with itself across "
+                    "the window while each half stays tight, and no error bar reports that"
+                ),
+            },
         ],
         alternatives_rejected=[
             {
@@ -201,10 +226,11 @@ def build(qid: str, created_at: str, revision: int = 1) -> dict:
             for r in syn.get("rejected", [])
         ],
         open_risks=[
-            "No resource envelope exists, so nothing in this plan says the run is affordable. A5 abstained rather than passing, and the envelope check reports unavailable.",
-            "The librarian was never reached, so temperature, viscosity and the expected diffusivity are all estimates. Every interval in this plan rests on them, and one estimate in the chain makes the answer an order of magnitude (P15).",
+            "A5 abstains, so no interval in this plan is constrained by the budget. The ceilings exist in envelope/budget.json and the operator compares against them at run time, but at plan time the cost side stands alone -- a cheap run is not the same fact as a run inside a known allowance.",
+            "The intercept guard cannot detect a systematic short-lag artifact. A bias shows in the mean intercept over an ensemble and a fluctuation shows in a single run, and no threshold on one run's intercept separates them. What catches an artifact is a campaign whose mean intercept is consistent with zero, and that is not a criterion one plan can carry.",
+            "The fit's own standard errors understate the spread by roughly 36x for the diffusivity and 7x for the intercept, measured across 32 seeds: the weighted least squares treats correlated MSD points as independent. The criteria here read the block-resampled error instead, and any reader comparing against relative_standard_error is comparing against a number far too small.",
             "The expected diffusivity is what the run is checked against, and it was derived from the same Stokes-Einstein relation the engine is expected to reproduce. Agreement therefore tests the integration and the sampling, not the physical model.",
-            "Nothing here is fitted to experimental data, and no experimental counterpart has been measured. A bridge round would be the first comparison, and comparable is still false for this observable.",
+            "Nothing here is fitted to experimental data, and no experimental counterpart has been measured. A bridge round would be the first comparison, and comparable is still false for this observable. The store was asked at this revision and holds no measured tracer_diffusivity -- only the Stokes-Einstein prediction, which is the same relation this run is checked against.",
             "The temperature is the same number on both sides and not the same kind of number. Here the thermostat realises it exactly: it is a coordinate of the model, carrying no uncertainty of its own. The entry it was chosen from is an operator reading whose validity leaves the thermometer's position open, and nothing on the instrument actuates the sample temperature. So in a comparison the whole temperature uncertainty sits on the experimental side, and treating the two as equally certain -- or equally uncertain -- would misplace it.",
         ],
     )
@@ -322,6 +348,33 @@ def fmt(value: float) -> str:
     return "%g" % value
 
 
+def target_phrase(metric: str | None, t: dict | None) -> str:
+    """A target in words, said by its kind rather than by its unit.
+
+    A `decade_resolution` target of 1 is ONE DECADE, and rendering it as its
+    raw pair -- "1 count" -- is accurate about the JSON and close to
+    meaningless to a reader, which is the opposite of what the generated
+    Markdown is for. 5.8 says an explore target is stated in decades, so this
+    says it that way.
+
+    **And it keeps check 9 honest about what it can see.** That check reads
+    every number-and-unit pair out of the Markdown and asks for it in
+    `numbers[]`. A target is deliberately NOT in `numbers[]` -- inline is what
+    makes a grade inexpressible (5.3.1) -- so any target rendered as a
+    quantity is a pair the check will refuse. "1 count" did refuse, the first
+    time a plan with an inline target was ever rendered; manager-bridge's
+    example plan had no Markdown, so this path had never run. An `uncertainty`
+    target still renders as a real quantity and will hit the same wall: the
+    blind spot is check 9's and is raised rather than worked around here.
+    """
+    if t is None:
+        return f"the target for `{metric}`, which this plan does not carry"
+    if t.get("kind") == "decade_resolution":
+        n = fmt(t["value"])
+        return f"the target for `{metric}`: {n} decade" + ("" if t["value"] == 1 else "s")
+    return f"the target for `{metric}`: {fmt(t['value'])} {t['unit']}"
+
+
 def render(card: dict) -> str:
     """The human-readable twin, generated from the JSON (P3, 5.6).
 
@@ -384,7 +437,16 @@ def render(card: dict) -> str:
         add(f"**{title}**")
         add("")
         for cr in card[kind]:
-            add(f"- `{cr['metric']}` {cr['comparator']} {quantity(cr['number'])} — {cr.get('statement', '')}")
+            # A criterion compares against a number OR against the target, and
+            # check 6 has resolved either since d5af7b1. This rendered only the
+            # first and raised KeyError on the second, so the pair that made a
+            # target inline could not be written out at all.
+            if "number" in cr:
+                against = quantity(cr["number"])
+            else:
+                t = next((t for t in card.get("targets", []) if t["metric"] == cr.get("target")), None)
+                against = target_phrase(cr.get("target"), t)
+            add(f"- `{cr['metric']}` {cr['comparator']} {against} — {cr.get('statement', '')}")
         add("")
 
     add("## The window, and both of its bounds")

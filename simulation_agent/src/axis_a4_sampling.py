@@ -50,7 +50,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     if not caller_id.endswith(f":{AXIS}"):
         raise ValueError(f"{caller_id!r} was issued to another axis; this module is {AXIS}")
 
-    goal = cards.load_goal(qid)
+    goal = cards.load_goal(qid, revision)
     numbers, assumptions = cards.carry(
         goal, ["max_lag_time", "bead_diameter", "diffusivity"]
     )
@@ -69,7 +69,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     numbers.append(
         cards.num(
             "save_interval_max",
-            0.02,
+            0.3,
             "s",
             "computed:two_decades_below_the_window",
             formula="lag_coverage_factor * max_lag_time",
@@ -81,7 +81,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     numbers.append(
         cards.num(
             "tau_d",
-            20,
+            300,
             "s",
             "computed:diffusive_time",
             formula="bead_diameter**2/diffusivity",
@@ -95,9 +95,49 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
             note="kb:tau_d, applied to this card's own inputs rather than read from A1 (4.5.3 rule b). The entry says this time sets the shortest record an MSD can be read from, which is exactly what this axis needs it for",
         )
     )
+    numbers.append(
+        cards.num(
+            "intercept_sigma_max",
+            3,
+            "1",
+            "assumed:a_intercept_guard",
+            precision="order_of_magnitude",
+            note=(
+                "how far the MSD fit's intercept may sit from zero, in standard errors of the "
+                "BLOCK-RESAMPLED uncertainty and not the fit's own. The fit treats correlated MSD "
+                "points as independent and quotes an error about 36x too small (measured over 32 "
+                "seeds), so the same criterion against the fit's error would refuse a sound run: "
+                "run-20260920-002 reads 6.5 sigma there and 2.0 sigma here"
+            ),
+        )
+    )
+    assumptions.append(
+        {
+            "rationale_id": "a_intercept_guard",
+            "gap_ref": "msd_intercept_tolerance_absent",
+            "statement": (
+                "Three standard errors is a guard against a gross short-lag failure, not a test of "
+                "bias, and it is set from the asymmetry rather than from any observation: a false "
+                "refusal costs one re-run of a job sitting far under budget, while a false "
+                "acceptance puts a biased number into a graded card. IT CANNOT DETECT AN ARTIFACT, "
+                "and saying so is the point -- a systematic short-lag error shows in the MEAN over "
+                "runs while a fluctuation shows in a single one, and no threshold on a single "
+                "run's intercept separates them. Tight refuses good runs at the fluctuation rate; "
+                "loose misses a small artifact. The test that catches an artifact is that the mean "
+                "intercept over an ensemble of runs is consistent with zero, which needs a "
+                "campaign and is not a criterion one plan can carry."
+            ),
+            "numbers": ["intercept_sigma_max"],
+            "falsifier": (
+                "a campaign whose mean intercept is inconsistent with zero, which would show this "
+                "guard passing runs it cannot judge"
+            ),
+        }
+    )
     assumptions.append(
         {
             "rationale_id": "a_lag_coverage",
+            "gap_ref": "lag_coverage_factor_absent",
             "statement": "Two decades of lag below the window is enough to see whether the mean squared displacement is linear in lag at all, which is what a free-diffusion claim rests on. Fewer decades would fit a slope through a line nobody checked was straight.",
             "numbers": ["lag_coverage_factor"],
             "falsifier": "a fit whose residuals are flat over one decade retires the second decade",
@@ -136,7 +176,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     card.update(cards.tail(
             numbers,
             assumptions=assumptions,
-                        **cards.evidence(kb_result, FALLBACK_REFS),
+                        **cards.evidence(kb_result, FALLBACK_REFS + cards.carried_kb_refs(goal, numbers)),
     ))
     card["note"] = (
         "The window the goal chose sits an order of magnitude inside the diffusive time. "

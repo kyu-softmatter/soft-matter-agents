@@ -1,0 +1,257 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260917-001-bd_overdamped-a3-r2",
+  "qid": "sim-20260917-001",
+  "thread": "solo-sim-20260917-001",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-21T05:10:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260917-001:v2:bd_overdamped:a3",
+  "config": "bd_overdamped",
+  "axis": "a3",
+  "kb_version": "kbv-1dabfd5ad58d",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "box_length",
+      "unit": "um",
+      "min": 9,
+      "basis": [
+        "box_length_min_images"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "parameter": "box_length",
+      "unit": "um",
+      "min": 100,
+      "basis": [
+        "box_length_min_dilution"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "bulk Stokes-Einstein: sphere, bulk, no slip. Those assumptions stay in the value. The relation is the librarian's (kb:tracer_diffusivity_expected), not a second one -- recomputing a quantity the store holds is a detour, and citing it is what gets the one name. This is the expectation the run is checked against, and the engine derives its own from the same bath rather than being handed this number",
+      "origin": "v2_goal.json#diffusivity"
+    },
+    {
+      "name": "max_lag_time",
+      "value": 30,
+      "unit": "s",
+      "source": "assumed:a_window",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the window the estimator is evaluated over, set below tau_d so the free regime is what is sampled. Held at the tenth of tau_d revision 1 used: at the new tau_d the old 2 s would have been under one per cent of it, which samples only the shortest lags. tracer_diffusivity is window_required, so this travels with the plan as a condition. A4 constrains it",
+      "origin": "v2_goal.json#max_lag_time"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the tracer the question is about, measured directly by the operator on 2026-09-19 with a coefficient of variation no greater than 2 per cent. Cited as kb: rather than calibration: -- the grade is E2 either way, but this agent holds no calibration and the citation is what puts the entry in kb_refs",
+      "origin": "v2_goal.json#bead_diameter"
+    },
+    {
+      "name": "particles_per_edge",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_ensemble",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "cube root of n_particles, carried as its own number because the cube root of a count is not a count dimensionally",
+      "origin": "v2_goal.json#particles_per_edge"
+    },
+    {
+      "name": "box_margin_factor",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_box_margin",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how many rms displacements of clearance the box needs before an image matters"
+    },
+    {
+      "name": "box_length_min_images",
+      "value": 20,
+      "unit": "um",
+      "source": "computed:margin_over_rms_displacement",
+      "grade": "E5",
+      "formula": "box_margin_factor * (2 * diffusivity * max_lag_time) ** 0.5",
+      "inputs": [
+        "box_margin_factor",
+        "diffusivity",
+        "max_lag_time"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a tracer must not reach its own periodic image within the fit window"
+    },
+    {
+      "name": "spacing_factor",
+      "value": 5,
+      "unit": "1",
+      "source": "assumed:a_dilution",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "mean centre-to-centre spacing in particle diameters"
+    },
+    {
+      "name": "box_length_min_dilution",
+      "value": 300,
+      "unit": "um",
+      "source": "computed:spacing_times_particles_per_edge",
+      "grade": "E5",
+      "formula": "spacing_factor * bead_diameter * particles_per_edge",
+      "inputs": [
+        "spacing_factor",
+        "bead_diameter",
+        "particles_per_edge"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the binding bound here: dilution costs a hundred microns, images only nine"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_ensemble",
+      "statement": "One thousand tracers is a round ensemble that makes the statistics cheap and keeps the cube root exact at ten per edge. Nothing physical picks this number.",
+      "numbers": [
+        "particles_per_edge"
+      ],
+      "falsifier": "a statistics interval this ensemble cannot satisfy inside budget replaces it",
+      "gap_ref": "tracer_ensemble_size_absent"
+    },
+    {
+      "rationale_id": "a_window",
+      "statement": "The fit window sits below the diffusive time so the free regime is what is sampled, at the same tenth of it revision 1 chose. The exact upper end is an estimate until A4 constrains it.",
+      "numbers": [
+        "max_lag_time"
+      ],
+      "falsifier": "an A4 interval that excludes this value replaces it",
+      "gap_ref": "msd_fit_window_absent"
+    },
+    {
+      "rationale_id": "a_box_margin",
+      "gap_ref": "box_margin_factor_absent",
+      "statement": "Ten root-mean-square displacements of clearance keeps the image contribution to the mean squared displacement far below the ten per cent statistical error. It is a margin rather than a measured threshold.",
+      "numbers": [
+        "box_margin_factor"
+      ],
+      "falsifier": "a run at a smaller box that reproduces the same diffusivity retires the margin"
+    },
+    {
+      "rationale_id": "a_dilution",
+      "gap_ref": "tracer_spacing_factor_absent",
+      "statement": "Dilute means the mean spacing is large compared with the particle, and five diameters is the conventional reading of that. The tracers do not interact in this model, so this bound protects the meaning of the observable rather than the physics of the run.",
+      "numbers": [
+        "spacing_factor"
+      ],
+      "falsifier": "a vocabulary entry that states a volume fraction for dilute replaces this with that number"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "declared_versus_inferred_temperature",
+      "grade": "E4",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "Temperature enters the two sides differently. The simulation's thermostat realises the declared value; the experiment infers it from a room reading. The uncertainty sits entirely on the experiment side."
+    },
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "tracer_diffusivity_measured",
+      "observable": "tracer_diffusivity",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [
+        {
+          "entry_id": "tracer_diffusivity_expected",
+          "overlap": "partial"
+        }
+      ],
+      "near_names": [
+        "tracer_diffusivity_expected"
+      ],
+      "kb_version": "kbv-1dabfd5ad58d"
+    },
+    {
+      "gap_id": "box_margin_factor_absent",
+      "observable": "box_margin_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-1dabfd5ad58d"
+    },
+    {
+      "gap_id": "tracer_spacing_factor_absent",
+      "observable": "tracer_spacing_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-1dabfd5ad58d"
+    },
+    {
+      "gap_id": "tracer_ensemble_size_absent",
+      "observable": "tracer_ensemble_size",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-1dabfd5ad58d"
+    },
+    {
+      "gap_id": "msd_fit_window_absent",
+      "observable": "msd_fit_window",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-1dabfd5ad58d"
+    }
+  ],
+  "degraded": [],
+  "note": "Boundary conditions are periodic in all three directions; that is what makes the image bound apply at all. A wall would replace it with a different inequality."
+}

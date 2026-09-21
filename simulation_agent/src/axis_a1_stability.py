@@ -58,7 +58,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     if not caller_id.endswith(f":{AXIS}"):
         raise ValueError(f"{caller_id!r} was issued to another axis; this module is {AXIS}")
 
-    goal = cards.load_goal(qid)
+    goal = cards.load_goal(qid, revision)
     numbers, assumptions = cards.carry(goal, ["bead_diameter", "diffusivity"])
     grades = {n["name"]: n["grade"] for n in numbers}
 
@@ -72,7 +72,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     numbers.append(
         cards.num(
             "tau_d",
-            20,
+            300,
             "s",
             "computed:diffusive_time",
             formula="bead_diameter**2/diffusivity",
@@ -99,7 +99,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     numbers.append(
         cards.num(
             "integration_timestep_max",
-            0.2,
+            3,
             "s",
             "computed:resolution_of_shortest_time",
             formula="dt_resolution_factor * tau_d",
@@ -111,6 +111,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     assumptions += [
         {
             "rationale_id": "a_dt_factor",
+            "gap_ref": "integration_timestep_resolution_factor_absent",
             "statement": "Two decades below the shortest resolved time is the usual margin for an overdamped integrator, but it is a convention rather than a derivation: no convergence scan on this model has been run.",
             "numbers": ["dt_resolution_factor"],
             "falsifier": "a timestep scan showing the diffusivity flat over a wider range of steps replaces this factor with a measured one",
@@ -149,7 +150,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
         cards.tail(
             numbers,
             assumptions=assumptions,
-                        **cards.evidence(kb_result, FALLBACK_REFS),
+                        **cards.evidence(kb_result, FALLBACK_REFS + cards.carried_kb_refs(goal, numbers)),
         )
     )
     card["note"] = (

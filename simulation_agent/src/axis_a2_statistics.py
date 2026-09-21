@@ -38,7 +38,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     if not caller_id.endswith(f":{AXIS}"):
         raise ValueError(f"{caller_id!r} was issued to another axis; this module is {AXIS}")
 
-    goal = cards.load_goal(qid)
+    goal = cards.load_goal(qid, revision)
     numbers, assumptions = cards.carry(goal, ["max_lag_time", "n_particles"])
     grades = {n["name"]: n["grade"] for n in numbers}
 
@@ -65,7 +65,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     numbers.append(
         cards.num(
             "total_simulated_time_min",
-            0.2,
+            3,
             "s",
             "computed:independent_samples_over_ensemble",
             formula="independent_samples_min * max_lag_time / n_particles",
@@ -134,7 +134,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
             },
         ],
     )
-    card.update(cards.tail(numbers, assumptions=assumptions, **cards.evidence(kb_result, [])))
+    card.update(cards.tail(numbers, assumptions=assumptions, **cards.evidence(kb_result, cards.carried_kb_refs(goal, numbers))))
     card["note"] = (
         "The ensemble is taken from the goal rather than bounded here: the tracers do not "
         "interact, so trading particles against time is free along this axis. A3 is where "

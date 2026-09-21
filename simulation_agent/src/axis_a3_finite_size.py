@@ -42,7 +42,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     if not caller_id.endswith(f":{AXIS}"):
         raise ValueError(f"{caller_id!r} was issued to another axis; this module is {AXIS}")
 
-    goal = cards.load_goal(qid)
+    goal = cards.load_goal(qid, revision)
     numbers, assumptions = cards.carry(
         goal,
         ["diffusivity", "max_lag_time", "bead_diameter", "particles_per_edge"],
@@ -62,7 +62,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     numbers.append(
         cards.num(
             "box_length_min_images",
-            9,
+            20,
             "um",
             "computed:margin_over_rms_displacement",
             formula="box_margin_factor * (2 * diffusivity * max_lag_time) ** 0.5",
@@ -88,7 +88,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     numbers.append(
         cards.num(
             "box_length_min_dilution",
-            100,
+            300,
             "um",
             "computed:spacing_times_particles_per_edge",
             formula="spacing_factor * bead_diameter * particles_per_edge",
@@ -104,12 +104,14 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     assumptions += [
         {
             "rationale_id": "a_box_margin",
+            "gap_ref": "box_margin_factor_absent",
             "statement": "Ten root-mean-square displacements of clearance keeps the image contribution to the mean squared displacement far below the ten per cent statistical error. It is a margin rather than a measured threshold.",
             "numbers": ["box_margin_factor"],
             "falsifier": "a run at a smaller box that reproduces the same diffusivity retires the margin",
         },
         {
             "rationale_id": "a_dilution",
+            "gap_ref": "tracer_spacing_factor_absent",
             "statement": "Dilute means the mean spacing is large compared with the particle, and five diameters is the conventional reading of that. The tracers do not interact in this model, so this bound protects the meaning of the observable rather than the physics of the run.",
             "numbers": ["spacing_factor"],
             "falsifier": "a vocabulary entry that states a volume fraction for dilute replaces this with that number",
@@ -145,7 +147,7 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
             },
         ],
     )
-    card.update(cards.tail(numbers, assumptions=assumptions, **cards.evidence(kb_result, [])))
+    card.update(cards.tail(numbers, assumptions=assumptions, **cards.evidence(kb_result, cards.carried_kb_refs(goal, numbers))))
     card["note"] = (
         "Boundary conditions are periodic in all three directions; that is what makes the "
         "image bound apply at all. A wall would replace it with a different inequality."

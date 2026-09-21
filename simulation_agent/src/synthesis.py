@@ -211,7 +211,7 @@ OPERATING_POINT = {
         "computed": [
             {
                 "name": "integration_timestep_point",
-                "value": 0.002,
+                "value": 0.03,
                 "unit": "s",
                 "formula": "save_interval_max / 10",
                 "inputs": ["save_interval_max"],
@@ -219,7 +219,7 @@ OPERATING_POINT = {
             },
             {
                 "name": "total_simulated_time_point",
-                "value": 20,
+                "value": 300,
                 "unit": "s",
                 "formula": "100 * total_simulated_time_min",
                 "inputs": ["total_simulated_time_min"],
@@ -282,7 +282,7 @@ def build(qid: str, configs: list[str], created_at: str, revision: int = 1) -> d
             "every configuration came out empty; S4 ends in a refusal card, not a plan (P5)"
         )
 
-    goal = cards.load_goal(qid)
+    goal = cards.load_goal(qid, revision)
     spec = OPERATING_POINT[chosen]
     # The table names revision-1 files. Resolve each to this revision's name,
     # so `origin` points at the card that actually produced the number rather

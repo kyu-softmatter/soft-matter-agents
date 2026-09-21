@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
@@ -24,9 +25,20 @@ AGENT = REPO / "simulation_agent"
 
 AUTHOR = "simulation_agent"
 
-# The same table the validator derives grades with (5.3). `computed` and `kb`
-# are None because neither is fixed by the prefix alone: a computed value takes
-# the worst of its inputs, and a kb value takes the grade the entry carried.
+# The same table the validator derives grades with (5.3). `computed`, `simulated`
+# and `kb` are None because none of the three is fixed by the prefix alone: a
+# computed value takes the worst of its inputs, a simulated one does the same,
+# and a kb value takes the grade the entry carried.
+#
+# `simulated` grades like `computed` and for the reason one level up. `computed:`
+# is E4 at best because the formula is itself an assumption; a run's output is E4
+# at best because the model is. What differs is the obligation and not the grade:
+# a computed number owes a recomputation (check 17) and a run owes none, because
+# there is no formula to re-evaluate -- an integrator emitted it.
+#
+# It was absent here until 2026-09-20 while the validator already had it, so
+# `grade_for("simulated:run-...")` raised on a source the gate accepts. That is
+# the 11-11 shape -- one fact in two places -- and this copy is this agent's.
 SOURCE_GRADE = {
     "measured": "E1",
     "calibration": "E2",
@@ -34,6 +46,7 @@ SOURCE_GRADE = {
     "operator_read": "E3",
     "operator_recall": "E5",
     "computed": None,
+    "simulated": None,
     "assumed": "E5",
     "kb": None,
 }
@@ -47,7 +60,7 @@ def grade_for(source: str, input_grades: list[str] | None = None) -> str:
     fixed = SOURCE_GRADE[prefix]
     if fixed is not None:
         return fixed
-    if prefix == "computed":
+    if prefix in ("computed", "simulated"):
         worst = max(input_grades or ["E4"])
         return max("E4", worst)
     raise ValueError("a kb: source takes its grade from the kb_ref, not from here")
@@ -59,6 +72,15 @@ def num(name: str, value: float, unit: str, source: str, **kw) -> dict:
     `inputs` and `formula` are required by the validator when the source is
     computed:, and the grade then follows from the inputs' grades -- so they
     are passed as (name, grade) pairs rather than bare names.
+
+    A `simulated:` number takes `inputs` and **no formula**. The grade is
+    derived the same way, max(E4, worst input), because a reading is no
+    stronger than what was fed to the model that produced it; what it does not
+    have is an arithmetic anyone can redo, so check 17 asks nothing of it and
+    passing a formula here would invent an obligation the source cannot meet.
+    Inputs are optional and omitting them says the reading stands on nothing
+    graded, which lands it at E4 -- so an omission reads as a stronger claim
+    than the truth, and every caller here names them.
     """
     inputs: list[tuple[str, str]] = kw.pop("inputs", [])
     out = {"name": name, "value": value, "unit": unit, "source": source}
@@ -68,6 +90,15 @@ def num(name: str, value: float, unit: str, source: str, **kw) -> dict:
         out["grade"] = grade_for(source, [g for _, g in inputs])
         out["formula"] = kw.pop("formula")
         out["inputs"] = [n for n, _ in inputs]
+    elif source.startswith("simulated:"):
+        if "formula" in kw:
+            raise ValueError(
+                f"{name}: a simulated number has no formula -- an integrator emitted it, and a "
+                "formula would promise a recomputation nobody can perform"
+            )
+        out["grade"] = grade_for(source, [g for _, g in inputs])
+        if inputs:
+            out["inputs"] = [n for n, _ in inputs]
     else:
         out["grade"] = grade_for(source)
     for key in ("precision", "derived", "symbol", "origin", "note"):
@@ -116,8 +147,44 @@ def question_dir(qid: str) -> Path:
     return AGENT / "questions" / qid
 
 
-def load_goal(qid: str) -> dict:
-    return json.loads((question_dir(qid) / "goal.json").read_text())
+def goal_path(qid: str, revision: int | None = None) -> Path:
+    """Where a question's goal for a given revision lives.
+
+    **A question has one goal PER REVISION, not one goal.** 4.5.5 gives every
+    revision its own files and `artifact_name` names them; the goal was the one
+    card exempted from that, by a special case in `plan_card` and `synthesis`
+    reading `goal.json` whatever the revision. The exemption was known -- the
+    comment beside it called putting the revisions back on disk "a separate
+    repair" -- and this is that repair.
+
+    **What the exemption cost is that two revisions cannot coexist.** Check 12
+    resolves a carried number's `origin` by FILENAME and reads no revision
+    (validate.py:1284), so while every revision's cards cite `goal.json#x`,
+    they all resolve to whichever revision that file currently holds. Bumping
+    the goal to revision 2 therefore broke all six revision-1 axis cards at
+    once -- 46 failures, none of them about anything being wrong. The rule that
+    revision 1 stays on disk and the rule that the goal moves were not both
+    satisfiable.
+
+    With no revision given this returns the LATEST on disk, which is what
+    `question_revision` asks for and what a caller who has not chosen a
+    revision means.
+    """
+    directory = question_dir(qid)
+    if revision is not None:
+        return directory / artifact_name("goal.json", revision)
+    found = [(1, directory / "goal.json")] if (directory / "goal.json").exists() else []
+    for path in directory.glob("v*_goal.json"):
+        m = re.fullmatch(r"v(\d+)_goal\.json", path.name)
+        if m:
+            found.append((int(m.group(1)), path))
+    if not found:
+        return directory / "goal.json"          # so the caller's error names the plain name
+    return max(found)[1]
+
+
+def load_goal(qid: str, revision: int | None = None) -> dict:
+    return json.loads(goal_path(qid, revision).read_text())
 
 
 def pick(card: dict, *names: str) -> dict[str, dict]:
@@ -154,7 +221,10 @@ def carry(goal: dict, names: list[str]) -> tuple[list[dict], list[dict]]:
         # number would have to bring its own inputs along -- A1 would end up
         # holding a temperature it has no use for, and the axis card would
         # grow a copy of the whole derivation chain.
-        carried["origin"] = f"goal.json#{n['name']}"
+        # The filename comes off the goal's own revision rather than being
+        # spelled here. A carried number has to resolve to the goal it was
+        # actually carried from, and check 12 matches on the filename alone.
+        carried["origin"] = f"{artifact_name('goal.json', int(goal['revision']))}#{n['name']}"
         numbers.append(carried)
     wanted = set(names)
     assumptions = []
@@ -191,18 +261,50 @@ def evidence(kb_result: dict | None, fallback_refs: list[dict] | None = None) ->
     changes with the service is not the values but **the discovery of what is
     missing**, and that is why `degraded` is about gaps rather than about
     citations.
+
+    **"Either way" is what this said and not what it did until 2026-09-20.**
+    The served branch returned the served entries alone and dropped the
+    fallbacks, so a card that carried a `kb:` number and then reached the
+    service lost the citation for it -- check 25 caught three of them the first
+    time revision 2 ran with the librarian on. The two lists answer different
+    questions, which is why neither replaces the other: the served entries are
+    what this axis asked, and the fallbacks are what its carried numbers
+    already stand on. Merged by `entry_id`, served winning, because the served
+    copy is the one whose pin was checked on this call.
     """
+    fallbacks = list(fallback_refs or [])
     if not kb_result or kb_result.get("served_by") != SERVED_BY:
         return {
-            "kb_refs": list(fallback_refs or []),
+            "kb_refs": fallbacks,
             "kb_gaps": [],
             "degraded": ["librarian_agent"],
         }
+    merged = {r.get("entry_id"): r for r in fallbacks}
+    merged.update({r.get("entry_id"): r for r in (kb_result.get("entries") or [])})
     return {
-        "kb_refs": list(kb_result.get("entries") or []),
+        "kb_refs": [merged[k] for k in sorted(merged)],
         "kb_gaps": list(kb_result.get("gaps") or []),
         "degraded": [],
     }
+
+
+def carried_kb_refs(goal: dict, numbers: list[dict]) -> list[dict]:
+    """The goal's citations for whichever `kb:` numbers were carried here.
+
+    A number sourced `kb:<entry>` is a citation, and check 25 asks the card
+    holding it to carry the record of what was cited. `carry` brings the number
+    and the goal keeps the reference, so without this the two separate the
+    moment a number leaves the goal -- which is what happened to
+    `bead_diameter` in three axis cards as soon as it stopped being `assumed:`
+    and became a citation of the store.
+
+    Only the entries actually cited by these numbers, not the goal's whole
+    list: a card that cites the reference it did not use is as wrong as one
+    that omits the reference it did.
+    """
+    wanted = {str(n.get("source", ""))[3:] for n in numbers
+              if str(n.get("source", "")).startswith("kb:")}
+    return [dict(r) for r in (goal.get("kb_refs") or []) if r.get("entry_id") in wanted]
 
 
 def observable(name: str) -> dict:
@@ -276,7 +378,13 @@ def artifact_name(base: str, revision: int) -> str:
 
 
 def question_revision(qid: str) -> int:
-    """The revision the question is currently on, from its goal card."""
+    """The revision the question is currently on: the latest goal on disk.
+
+    Not "what goal.json says" any more -- that file is revision 1's and stays
+    revision 1's. `goal_path` with no revision picks the highest `v<N>_goal`
+    present, so raising a question's revision is writing its new goal rather
+    than editing the old one in place.
+    """
     return int(load_goal(qid)["revision"])
 
 

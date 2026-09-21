@@ -1,0 +1,104 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260917-001-bd_overdamped-a5-r2",
+  "qid": "sim-20260917-001",
+  "thread": "solo-sim-20260917-001",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-21T05:10:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260917-001:v2:bd_overdamped:a5",
+  "config": "bd_overdamped",
+  "axis": "a5",
+  "kb_version": "kbv-1dabfd5ad58d",
+  "method": "llm_estimate",
+  "verdict": "abstain",
+  "abstain_reason": "An allowance exists -- simulation_agent/envelope/budget.json declares one -- and this axis does not yet turn it into an allowed interval over the settable parameters. So the abstention is this agent's unfinished work and not a missing ceiling, which are different facts and were reported as the same one until 2026-09-20. The operator compares the cost against these ceilings at run time either way (4.6 O1), so nothing runs over budget on the strength of this abstention; what is missing is the constraint at plan time. The cost side is recorded in numbers[] as before.",
+  "numbers": [
+    {
+      "name": "n_particles",
+      "value": 1000,
+      "unit": "count",
+      "source": "assumed:a_ensemble",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "tracers per box. Non-interacting, so the ensemble is a statistics knob rather than a physical density -- but the box still has to hold them dilutely (A3)",
+      "origin": "v2_goal.json#n_particles"
+    },
+    {
+      "name": "max_lag_time",
+      "value": 30,
+      "unit": "s",
+      "source": "assumed:a_window",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the window the estimator is evaluated over, set below tau_d so the free regime is what is sampled. Held at the tenth of tau_d revision 1 used: at the new tau_d the old 2 s would have been under one per cent of it, which samples only the shortest lags. tracer_diffusivity is window_required, so this travels with the plan as a condition. A4 constrains it",
+      "origin": "v2_goal.json#max_lag_time"
+    },
+    {
+      "name": "reference_timestep",
+      "value": 0.01,
+      "unit": "s",
+      "source": "assumed:a_cost_reference",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "A5's own reference step for costing, chosen rather than read from A1 (4.5.3 rule b)"
+    },
+    {
+      "name": "storage_estimate",
+      "value": 0.02,
+      "unit": "GB",
+      "source": "assumed:a_cost_reference",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "of order a thousand frames of a thousand tracers at three double coordinates each, a few tens of megabytes"
+    },
+    {
+      "name": "wall_clock_estimate",
+      "value": 0.0001,
+      "unit": "core_h",
+      "source": "assumed:a_cost_reference",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "of order ten million particle-steps with no pair interactions; the run is still far too small for this axis to bind"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_ensemble",
+      "statement": "One thousand tracers is a round ensemble that makes the statistics cheap and keeps the cube root exact at ten per edge. Nothing physical picks this number.",
+      "numbers": [
+        "n_particles"
+      ],
+      "falsifier": "a statistics interval this ensemble cannot satisfy inside budget replaces it",
+      "gap_ref": "tracer_ensemble_size_absent"
+    },
+    {
+      "rationale_id": "a_window",
+      "statement": "The fit window sits below the diffusive time so the free regime is what is sampled, at the same tenth of it revision 1 chose. The exact upper end is an estimate until A4 constrains it.",
+      "numbers": [
+        "max_lag_time"
+      ],
+      "falsifier": "an A4 interval that excludes this value replaces it",
+      "gap_ref": "msd_fit_window_absent"
+    },
+    {
+      "rationale_id": "a_cost_reference",
+      "statement": "Cost is estimated at a reference step of ten milliseconds over a window of a few seconds, with one interaction-free force evaluation per particle per step. Nothing has been benchmarked on this machine, so both figures are order-of-magnitude estimates of an unrun job.",
+      "numbers": [
+        "reference_timestep",
+        "storage_estimate",
+        "wall_clock_estimate"
+      ],
+      "falsifier": "a smoke run's own log replaces both estimates with measured values"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "note": "The estimates say this job is trivially small, which is exactly why abstaining rather than passing matters: a cheap run is not the same fact as a run inside a known budget, and only the second one is what the envelope check is asking about."
+}
