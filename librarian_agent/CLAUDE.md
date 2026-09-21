@@ -243,18 +243,45 @@ in every agent, was uncommittable; the premeasurement fan-out of 21 cards was
 waiting on it. It is not a judgement call — the diff is append-only, so there
 is nothing in it to weigh.
 
-**Commit as this seat, every time:**
+**Commit as the seat the person sat you in, every time:**
 
 ```bash
-GIT_COMMITTER_NAME='seat:librarian' GIT_COMMITTER_EMAIL=librarian@seat.invalid \
-  git commit -- librarian_agent
+GIT_COMMITTER_NAME='seat:librarian-N' GIT_COMMITTER_EMAIL=librarian-N@seat.invalid \
+  git commit -- librarian_agent/<the files you changed>
 ```
 
-The identity is written here rather than remembered because a prefix that lives
-only in context disappears with a clear, and the next commit then goes out under
-the person's name and check 41 reports it unattributed (§6.2.3). Name paths; the
-working copy and the git index are shared, so `-a` and `-A` take whatever
-another seat has staged.
+`seats.json` registers **three** librarian execution identities — `librarian`,
+`librarian-2`, `librarian-3` — and the one you use is **the one the person
+seated you as**, not a default. Read it off `seats.json`; do not pick.
+
+**This block said `seat:librarian` flatly until 2026-09-20, and following it
+exactly is what broke attribution.** Counted that day: 89 commits under
+`seat:librarian` with more than one live session writing them, against 20 and
+1 under the other two. `seats.json`'s own `one_identity_per_session` calls
+that a hole — *"two sessions sharing one identity is not a seat, it is a hole:
+check 41 cannot tell them apart and passes their mixture"* — and records it
+happening twice on 2026-09-17 with the check passing both times. Here it was
+not an accident; the instruction caused it. A seat that obeyed this line
+became indistinguishable, and the seat that found the defect is legible only
+because it disobeyed. It cost a real misdirection the same day: a seat
+looking for whoever it had collided with in `mcp_server.py` wrote to the
+wrong session, and that was settled only when the other counted its eight
+commits and showed none of them touched the file.
+
+The identity is written in this file rather than remembered because a prefix
+that lives only in context disappears with a clear, and the next commit goes
+out under the person's name with check 41 reporting it unattributed (§6.2.3).
+That reasoning was right and only the flat string was wrong.
+
+**NAME FILES, NOT `librarian_agent/`.** A directory path is not safer than
+`-a`; it is the same hazard spelled differently. `git commit -- <path>` builds
+its index from the **worktree** state of everything under that path, so every
+other librarian session's uncommitted edit under `librarian_agent/` rides in
+under your identity — and this block prescribed exactly that on the line above
+while warning only about `-a` and `-A`. On 2026-09-20 obeying it would have
+committed another seat's 82 uncommitted lines of `mcp_server.py` under the
+wrong name. The gate prints what differs from what you are committing; read
+that list before you answer yes.
 
 `kb_version` is a content hash over every entry. Cards pin it, so siblings in one
 fan-out read the same knowledge and a question rerun at the same version gives
