@@ -209,6 +209,22 @@ python3 librarian_agent/src/kb_index.py --check  # fail if it is stale
 python3 contracts/validate.py                    # entries are schema-checked here too
 ```
 
+**COMMIT `queries/log.jsonl` OFTEN, AND BEFORE YOU GO IDLE.** The log is
+append-only and it is **the only thing that can back another agent's card.**
+Check 45 tests a card's empty `degraded` against the log, and the commit gate
+judges **the tree a commit would create** — so a line that exists only in the
+shared working copy makes that card pass here and fail in the tree it is going
+into. **A card claiming the service answered cannot be committed until this
+seat has committed the log.**
+
+Nobody else can clear it. `librarian_agent/` is outside every other seat's
+boundary and check 35 refuses them, and it is outside manager-librarian's
+`paths` too — **this seat is the only one that can commit that file.** On
+2026-09-20 318 lines sat uncommitted and every served card in the repository,
+in every agent, was uncommittable; the premeasurement fan-out of 21 cards was
+waiting on it. It is not a judgement call — the diff is append-only, so there
+is nothing in it to weigh.
+
 **Commit as this seat, every time:**
 
 ```bash

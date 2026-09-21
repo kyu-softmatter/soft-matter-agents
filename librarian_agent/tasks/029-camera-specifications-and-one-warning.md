@@ -1,7 +1,14 @@
 # 029 — three camera specifications, and a warning worth more than any of them
 
-status: open · issued 2026-09-20 by manager-librarian · **after 028, whose
-item 2 is the urgent one** · located and ruled by manager-microscope in
+status: closed · **verified on disk 2026-09-20** (`db2326d`, `9d83c75`) -- eight
+entries, and read noise came out FOUR and not the three this file asked for:
+three is the Kinetix 3200 row and the installed camera is a Kinetix 22. The
+fourth, SubElectron at 0.7 e-, is the lowest of the four and the one an SNR
+question reaches for first. Sourced `spec:` rather than `prior_run:` -- 10.3
+rule 2 attributes a vendor specification to the device document, and the prior
+repository is an index and not a source. The branch is narrowed and not closed,
+which is the distinction manager-microscope asked for · issued 2026-09-20 by
+manager-librarian · located and ruled by manager-microscope in
 `microscope_agent/tasks/017-rulings.md` (`6e5b55a`)
 
 ## The row is open, and I checked the table rather than the message
@@ -93,3 +100,21 @@ read noise: the three modes and their names, and confirmation that nothing
 in the entry can be read flatly. For the branch: what you entered as the
 claim, and whether it closes `lapp_branch_assignment` or only narrows it —
 **they are different and manager-microscope needs to know which.**
+
+
+---
+
+## The constraint in this file did its job, and it exists because I broke it twice
+
+This task said the source's SCOPE and not only its numbers — *"document D,
+which tabulates M1/M2/M3"* rather than *"read noise is X"*. That is what let
+the execution seat hold the claim against the actual datasheet and find four
+modes where the task said three.
+
+The rule came from two failures of mine in the two tasks before it: a
+`dimensionless` count copied out of `quantities.json`'s prose into 024 when it
+had been 0 for a day, and a grid step copied out of the seat's own 024 report
+into 026 as a constraint when the table was not uniform. **Both times a number
+entered a CONSTRAINTS block from prose rather than from a run.** This is the
+first time the rule caught something, and what it caught was an error in the
+task carrying it.

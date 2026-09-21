@@ -161,6 +161,20 @@
       "unit": "Hz",
       "kind": "physical",
       "note": "A rate constant, so 1/s. Illumination belongs with it: the same particles bleach faster under more light, and a value carrying no illumination is not transferable. Registered 2026-09-20 alongside tracer_brightness, which the same acquisition produces."
+    },
+    {
+      "id": "read_noise",
+      "definition": "The rms uncertainty a camera's readout adds to a pixel, in electrons, for ONE readout mode. A value without its mode is not a fact about the camera: the Kinetix 22 offers four and they span an order of magnitude, so naming the quantity without the mode is the same error as naming a working distance without the objective.",
+      "unit": "e",
+      "kind": "physical",
+      "note": "Registered 2026-09-20 for 029. The store holds four entries, one per mode, and the task that asked for them said three -- three is the Kinetix 3200 row and the installed camera is a Kinetix 22. The execution seat caught it because the task stated the SCOPE of its source rather than just its numbers, which is the habit two earlier tasks of mine lacked."
+    },
+    {
+      "id": "quantum_efficiency",
+      "definition": "The probability that a photon incident on the sensor produces a counted photoelectron, at a stated wavelength. Dimensionless -- electrons per photon -- and strongly wavelength dependent, so a value without a wavelength is not reusable.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Registered 2026-09-20 for 029. The vendor peak is what the store carries for now, by the person's ruling that the vendor value is the basis until a measurement is taken here. THE CURVE IS NOT AN ENTRY AND THERE IS NO FIELD FOR ONE: 5.3 makes a model's digitisation of a rendered curve an E6 inference that may enter neither a card nor the KB, and the legal shapes are already carried -- a scalar here, points a PERSON read as one entry each with the wavelength pinned, or a vendor numeric table beside the other tables. See the $comment on common.schema.json's `number`."
     }
   ],
   "not_yet_registered": {
