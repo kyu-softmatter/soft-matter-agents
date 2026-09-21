@@ -42,6 +42,21 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/mcp-preflight.sh\"",
+            "$comment": "says out loud when this session will have no librarian tools; reports and never blocks (plan.md 11-18)"
+          }
+        ]
+      }
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "librarian"
+  ]
 }
