@@ -160,12 +160,86 @@ PUBLISHED = {
                                   "table": "optical_paths", "sha256": "020c5369ab0645b06061c96e5af94df5f05761ec0b167e7c76f05dba0e69ec2c"},
 }
 
+def read_published(pin: str, table: str) -> tuple[dict | None, str]:
+    """The table the service pointed at, read out of this agent's own snapshot.
+
+    `in_published_table` means *read it from your own copy*, and 4.3.1 grew
+    the kind for exactly these five names after `absent` sent a caller
+    outside the building for what it already held. The next action the kind
+    prescribes is this function, so the axis performs it instead of treating
+    the answer as silence.
+
+    ONLY AT ITS OWN PIN. The envelope moves when the librarian publishes and
+    a pinned card does not, so reading the current copy for a card pinned
+    older would cite a table the pin never saw -- which is the second of the
+    two errors `gaps_from` refuses, and refusing it there and committing it
+    here would be the same mistake with a different hand. When the two
+    disagree it reads nothing and says which is which.
+    """
+    snapshot = axc.AGENT / "envelope" / "snapshot.json"
+    if not snapshot.exists():
+        return None, "there is no envelope/snapshot.json to read it from"
+    snap = json.loads(snapshot.read_text())
+    if snap.get("kb_version") != pin:
+        return None, (f"this agent's envelope is at {snap.get('kb_version')} and this fan-out is "
+                      f"pinned to {pin}, so reading it here would cite a table this pin never "
+                      f"saw")
+    held = (snap.get("tables") or {}).get(table)
+    if held is None:
+        return None, f"the envelope's snapshot carries no `{table}` table"
+    return json.loads(held["text"]), (f"read from envelope/snapshot.json tables.{table} at {pin}, "
+                                      f"sha256 {held['sha256'][:12]}")
+
+
+def devices_finding(config: str, pin: str) -> str:
+    """What the channel table actually says about this configuration's devices."""
+    table, how = read_published(pin, "devices")
+    if table is None:
+        return f"The axis could not read it either: {how}."
+    rows = {c["id"]: c for c in table.get("channels", []) or []}
+    declared = (axc.configuration(config).get("devices") or [])
+    lines = []
+    for device in declared:
+        row = rows.get(device)
+        if row is None:
+            lines.append(f"{device}: not a channel row")
+            continue
+        cond = row.get("automatable_condition")
+        lines.append(f"{device}: driver {row.get('driver')!r}, automatable "
+                     f"{row.get('automatable')!r}, read_back {row.get('read_back')!r}"
+                     + (f", automatable_condition {cond!r}" if cond else ""))
+    return (f"THE AXIS READ IT, {how}, and this is what it says for the {len(declared)} devices "
+            f"this configuration declares -- " + "; ".join(lines) + ".")
+
+
+def path_finding(config: str, pin: str) -> str:
+    """Whether the optical-path table lists this configuration, and with what."""
+    table, how = read_published(pin, "optical_paths")
+    if table is None:
+        return f"The axis could not read it either: {how}."
+    row = next((c for c in table.get("configurations", []) or [] if c.get("id") == config), None)
+    if row is None:
+        listed = sorted(c.get("id") for c in table.get("configurations", []) or [])
+        return (f"THE AXIS READ IT, {how}, and this configuration is not in it: the table lists "
+                f"{listed}.")
+    keys = sorted(k for k in row if k != "id")
+    return (f"THE AXIS READ IT, {how}, and the table does list {config!r}, carrying {keys}. What "
+            f"it does not carry is the thing this bound is about: a list of selector-state "
+            f"TUPLES that are known to pass light. A configuration being listed is not a "
+            f"validated combination.")
+
+
 STAGING_NOTE = (
-    "The service answered absent and said what it searched: kb/entries only, and it does not "
-    "search outside the store (4.3.1). The gap records that answer, because a card records what "
-    "it was told -- but the answer is not the whole truth and this is where the rest of it "
-    "goes: it is in this agent's own envelope/snapshot.json, under tables.devices and "
-    "tables.optical_paths, published by the librarian and pinned by sha256. Read there, "
+    "THIS PARAGRAPH SAID `absent` UNTIL 2026-09-20 AND THE SERVICE HAD STOPPED SAYING IT. At "
+    "kbv-49feb73662b7 the answer was `absent`; at this fan-out's own pin the service answers "
+    "`in_published_table` to all five and names the snapshot, the table, the column and a "
+    "sha256. The card carried both claims at once -- its kb_gaps said in_published_table while "
+    "the reason beside them said the service answered absent -- because `evaluate` collected "
+    "every gap into one dict called `absent` and never looked at the kind. One file, two "
+    "contradictory statements about the same call, and nothing could catch it because each "
+    "half was well formed. Where the answer is: this agent's own envelope/snapshot.json, under "
+    "tables.devices and tables.optical_paths, published by the librarian and pinned by sha256. "
+    "Read there, "
     "all six devices this configuration declares are channel rows with drivers, all six are "
     "`automatable: full`, all six carry `read_back: true`, and the DMD alone carries "
     "`automatable_condition: core_requirement` -- full only on a core pinned to device interface "
@@ -194,7 +268,13 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
     run = axc.AxisRun(axis=AXIS, caller_id=caller_id, config=config, kb_version=pin,
                       owned=OWNED, degraded=[])
 
-    absent = {g["observable"]: g for g in responses["gaps"]}
+    # ONE DICT CALLED `absent` HELD BOTH KINDS AND THAT IS HOW THE CARD CAME TO
+    # CONTRADICT ITSELF. `in_published_table` is not an absence: its next action
+    # is *read your own snapshot*, while `absent`'s is *search outside, then ask
+    # a person* (4.3.1). Collapsing them made the reason say the service
+    # answered absent while the kb_gaps beside it said otherwise.
+    gaps = {g["observable"]: g for g in responses["gaps"]}
+    absent = gaps                      # still every unanswered name, for `needs`
     run.kb_refs = axc.refs_from(responses, pin)
     run.kb_gaps = axc.gaps_from(responses, pin, caller_id, GAP_IDS, PUBLISHED)
 
@@ -263,8 +343,20 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
             continue
 
         if missing:
-            reason = (f"the service was asked for {', '.join(missing)} at {pin} and answered "
-                      f"absent. " + STAGING_NOTE)
+            in_table = [n for n in missing if gaps[n].get("kind") == "in_published_table"]
+            nowhere = [n for n in missing if gaps[n].get("kind") != "in_published_table"]
+            said = []
+            if in_table:
+                said.append(f"{', '.join(in_table)} -> in_published_table, which names where it "
+                            f"is rather than saying it is missing")
+            if nowhere:
+                said.append(f"{', '.join(nowhere)} -> absent")
+            reason = (f"the service was asked for {', '.join(missing)} at {pin} and answered: "
+                      + "; ".join(said) + ". ")
+            if in_table:
+                reason += (devices_finding(config, pin) if ineq.id != "path_tuple_valid"
+                           else path_finding(config, pin)) + " "
+            reason += STAGING_NOTE
             if ineq.id == "selector_automatable":
                 reason += (
                     " One selector is answered and it is not enough: the port is automatable in "
