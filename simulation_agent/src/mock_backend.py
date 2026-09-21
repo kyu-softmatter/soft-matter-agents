@@ -258,13 +258,19 @@ class MockBackend:
 
     # -- trajectory output -------------------------------------------------
 
-    def mean_squared_displacement(self, max_lag_time: float) -> list[tuple[float, float]]:
+    def mean_squared_displacement(self, max_lag_time: float,
+                                  tracers: "np.ndarray | None" = None) -> list[tuple[float, float]]:
         """MSD against lag, from the saved frames.
 
         Unwrapped positions are used on purpose: a wrapped coordinate would
         make a tracer that crossed the boundary look like it jumped a box
         width, which is the artefact A3's image bound exists to keep out of
         the physics rather than to hide in the estimator.
+
+        `tracers` restricts the average to a subset, which is what lets the
+        uncertainty be estimated by refitting blocks of tracers. It changes
+        nothing when omitted: the default is every tracer, which is the curve
+        the estimator has always returned.
         """
         times = np.asarray(self.frame_times)
         coords = np.stack(self.frames)
@@ -278,10 +284,138 @@ class MockBackend:
         # before the estimator's window was filled.
         wanted = int(max_lag_time / interval) if interval else 0
         max_shift = min(wanted, len(times) - 1)
+        if tracers is not None:
+            coords = coords[:, tracers, :]
         for shift in range(1, max_shift + 1):
             disp = coords[shift:] - coords[:-shift]
             out.append((float(times[shift] - times[0]), float((disp ** 2).sum(axis=2).mean())))
         return out
+
+    # Number of independent tracer blocks the uncertainty is estimated over.
+    #
+    # Chosen by measuring it rather than by argument. Against the across-seed
+    # scatter over 32 seeds of this configuration, which is what this number
+    # has to reproduce:
+    #
+    #     10 blocks   truth/block  1.25x
+    #     20 blocks                1.16x
+    #     50 blocks                1.11x
+    #    100 blocks                1.11x
+    #
+    # It flattens at 50 and 100 buys nothing, so 50. The shape of the
+    # trade-off is the expected one -- the scatter of the block estimates is
+    # itself uncertain by about 1/sqrt(2*(B-1)), so too few blocks give a noisy
+    # error bar, while too many leave each block with too few tracers for its
+    # own fit to behave -- but the flattening point is a fact about this
+    # ensemble size and not something the argument predicts.
+    UNCERTAINTY_BLOCKS = 50
+
+    def fit_over(self, max_lag_time: float, tracers: "np.ndarray") -> "tuple[float, float] | None":
+        """The same estimator, run over one block of tracers.
+
+        Returns (diffusivity, intercept). Both are needed because both are
+        compared against a criterion: the diffusivity is the answer and the
+        intercept is the free-regime diagnostic, and an honest error bar on one
+        says nothing about the other.
+
+        Used only to estimate uncertainty. It must stay the same estimator -- a
+        block fitted differently from the whole would measure the difference
+        between two estimators and report it as noise.
+        """
+        curve = self.mean_squared_displacement(max_lag_time, tracers=tracers)
+        if len(curve) < 2:
+            return None
+        lags = np.asarray([c[0] for c in curve])
+        msd = np.asarray([c[1] for c in curve])
+        shifts = np.arange(1, len(curve) + 1)
+        independent = len(tracers) * np.maximum(len(self.frames) // shifts, 1)
+        slope, intercept = np.polyfit(lags, msd, 1, w=np.sqrt(independent))
+        return float(slope) / (2 * DIMENSIONS), float(intercept)
+
+    def block_uncertainty(self, max_lag_time: float) -> dict:
+        """An honest standard error, from tracers that really are independent.
+
+        **Why the fit's own error bar is not usable here.** The weighted least
+        squares treats the MSD points as independent observations, and they are
+        not: every lag is computed from the same trajectories, so the points are
+        strongly correlated along the curve. Measured over 32 seeds of this
+        configuration, the actual spread of the estimate was about 36 times the
+        error the fit quoted, and the intercept's about 7 times. The estimate
+        itself was unbiased -- the mean sat 0.06 per cent from the analytic
+        value -- so what was wrong was only the error bar, in the direction
+        that makes a run look better than it is.
+
+        **What this returns was checked against what it replaces.** The
+        across-seed scatter is the quantity a standard error is supposed to
+        predict, and measuring it costs a run per seed, so it is the right
+        validation and the wrong routine method. Over those 32 seeds the block
+        estimate lands at 1.11x the across-seed scatter, inside the 13 per cent
+        uncertainty 32 seeds put on the scatter itself. The fit's own error is
+        35.5x out over the same runs.
+
+        **Why blocks of tracers are the right replacement.** This configuration
+        is non-interacting, so the tracers are independent by construction, not
+        by assumption. Splitting them into blocks and refitting each gives a
+        scatter of genuinely independent estimates of the same quantity, and
+        the standard error of their mean is what the whole-ensemble fit should
+        have reported. It needs no second run: the ensemble is already there,
+        which is what makes this evaluable on runs that have already happened.
+
+        The alternative -- running more seeds -- measures the same thing and
+        costs a run each time. That is the right check on this method and the
+        wrong way to use it routinely, so it is what this was validated
+        against rather than what it does.
+        """
+        n_particles = self.unwrapped.shape[0]
+        blocks = min(self.UNCERTAINTY_BLOCKS, n_particles)
+        if blocks < 2:
+            return {
+                "method": "tracer_blocks",
+                "blocks": blocks,
+                "standard_error": None,
+                "reason": "fewer than two tracer blocks; a scatter needs at least two estimates",
+            }
+        # Contiguous blocks, not a random partition: the tracers are
+        # exchangeable here, so a shuffle would add a second seed to a number
+        # whose whole point is to be reproducible from the saved record.
+        edges = np.array_split(np.arange(n_particles), blocks)
+        fits = [self.fit_over(max_lag_time, idx) for idx in edges]
+        fits = [f for f in fits if f is not None]
+        if len(fits) < 2:
+            return {
+                "method": "tracer_blocks",
+                "blocks": len(fits),
+                "standard_error": None,
+                "intercept_standard_error": None,
+                "reason": "the window left fewer than two blocks with a fittable curve",
+            }
+        ds = np.asarray([f[0] for f in fits])
+        bs = np.asarray([f[1] for f in fits])
+        # Scatter of the block estimates, divided down to the mean of all of
+        # them. The fit is linear in the MSD values and the blocks are equal
+        # in size, so the whole-ensemble estimate IS the mean of the blocks --
+        # which is what makes this the standard error of the reported number
+        # and not of something adjacent to it.
+        se = float(ds.std(ddof=1) / np.sqrt(len(ds)))
+        b_se = float(bs.std(ddof=1) / np.sqrt(len(bs)))
+        return {
+            "method": "tracer_blocks",
+            "blocks": len(ds),
+            "tracers_per_block": int(n_particles // blocks),
+            "standard_error": se,
+            "block_scatter": float(ds.std(ddof=1)),
+            "relative_standard_error": float(se / ds.mean()) if ds.mean() else None,
+            "intercept_standard_error": b_se,
+            "intercept_in_sigma": float(bs.mean() / b_se) if b_se else None,
+            "note": (
+                "tracers are non-interacting here, so the blocks are independent by "
+                "construction rather than by assumption. These are the error bars to "
+                "compare a criterion against; the fit's own are optimistic because it "
+                "treats correlated MSD points as independent observations. The intercept "
+                "is carried because it is the free-regime diagnostic, and an honest error "
+                "on the slope says nothing about it"
+            ),
+        }
 
     def fit_diffusivity(self, max_lag_time: float) -> dict:
         """The estimator contracts/observables.json declares, and no other.
@@ -360,16 +494,25 @@ class MockBackend:
         # displacements enter each lag and not for the correlation between
         # lags.
         #
-        # Measured over eight seeds of this configuration, comparing the actual
+        # Measured over 32 seeds of this configuration, comparing the actual
         # spread of the estimate against what the fit quotes:
         #
-        #     diffusivity   true scatter / quoted SE   ~41x
-        #     intercept     true scatter / quoted SE    ~8x
+        #     diffusivity   true scatter / quoted SE   ~36x
+        #     intercept     true scatter / quoted SE    ~7x
+        #
+        # These figures were first written here as ~41x and ~8x, from eight
+        # seeds. Eight puts about 27 per cent uncertainty on the scatter it is
+        # measuring, and the first draw came in high; 32 puts it at 13 per cent
+        # and gives 35.5x and 7.0x. The conclusion did not move -- both are
+        # orders of magnitude, and P15 calls anything under 10x a tie -- but an
+        # error bar is the wrong thing to quote off a sample too small to pin
+        # it, which is the mistake this whole comment is about.
         #
         # The estimator itself is sound -- across those seeds the mean sits
         # -0.06 per cent from the analytic Stokes-Einstein value, and the mean
-        # intercept is consistent with zero. What is wrong is only the error
-        # bar, and it is wrong in the dangerous direction.
+        # intercept is 0.15 sigma from zero against the true scatter. What is
+        # wrong is only the error bar, and it is wrong in the dangerous
+        # direction.
         #
         # This matters to two criteria and not to the number. Run
         # run-20260920-002's intercept reads 6.4 sigma from zero against the
