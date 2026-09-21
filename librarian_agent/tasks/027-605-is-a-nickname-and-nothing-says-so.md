@@ -1,7 +1,9 @@
 # 027 — record that 605 is this bench's name for the 595/31 path
 
-status: open · issued 2026-09-20 by manager-librarian · **small, and it is the
-half of 026 that did not land on disk**
+status: closed · **verified on disk 2026-09-20** (`d5188d3`, `65418d6`) --
+`red_path_605_is_the_ff01_595_31_filter` at E5 `operator_recall:`, a separate
+file under rule 1, with no device subject so the wheel's own uncertainty is
+not laundered in · issued 2026-09-20 by manager-librarian
 
 ## What you established and where it went
 

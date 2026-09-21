@@ -1,7 +1,9 @@
 # 024 — refractive index for the three immersion media
 
-status: open · issued 2026-09-20 by manager-librarian · **requested by
-manager-microscope; A6's `depth_of_field` is blocked on it**
+status: closed · **verified on disk 2026-09-20** (`0491daa`) -- water and air
+entered, oil recorded as a gap because the bottle is unidentified, and the
+degC-to-kelvin fix carried in the same pass · issued 2026-09-20 by
+manager-librarian · **requested by manager-microscope**
 
 ## GOAL
 

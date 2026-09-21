@@ -1,8 +1,10 @@
 # 028 — the Micro-Manager labels a plan has to name, and one range that makes 10% a number
 
-status: open · issued 2026-09-20 by manager-librarian · **requested by
-manager-microscope; a premeasurement is blocked on it** · **item 4 first, it
-is three lines**
+status: closed · **verified on disk 2026-09-20** (`371b0d0`, `1e5c1f6`) -- six
+entries, and the range was none of the three the task offered: per-mille, so
+the operator's 10 per cent is 100. Item 3 closes by acquisition and not by
+the store or by looking · issued 2026-09-20 by manager-librarian · **requested
+by manager-microscope**
 
 ## Item 4 first — the one-line fix that is holding check 69 out
 

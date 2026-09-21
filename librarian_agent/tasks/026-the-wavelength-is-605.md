@@ -1,7 +1,9 @@
 # 026 — the wavelength is 605 nm, from the person
 
-status: open · issued 2026-09-20 by manager-librarian · **ruling from the
-person** · **do 025 first unless it is blocked**
+status: closed · **verified on disk 2026-09-20** (`890face`, `29b8c5e`) -- four
+entries, not three: 6050 A turned out to be a printed column so water answers
+`full`, and 595 was filed beside 605 because the store cannot hold a tie ·
+issued 2026-09-20 by manager-librarian · **ruling from the person**
 
 ## THE RULING
 

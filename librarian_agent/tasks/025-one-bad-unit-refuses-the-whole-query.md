@@ -1,7 +1,9 @@
 # 025 — one entry's unit refuses every query that names its condition
 
-status: open · issued 2026-09-20 by manager-librarian · **the data half is
-already fixed; this is the code half**
+status: closed · **verified on disk 2026-09-20** (`aac8d59`) -- skip and report,
+with a refusal kept for the all-bad case so `absent` stays true by
+construction; 504 calls swept, none raising · issued 2026-09-20 by
+manager-librarian
 
 ## What 024 fixed, and what it left
 
