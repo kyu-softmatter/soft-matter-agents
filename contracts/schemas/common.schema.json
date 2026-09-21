@@ -318,6 +318,11 @@
         "asked_at": {
           "type": "string",
           "format": "date-time"
+        },
+        "at": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "WHERE the asked-for quantity was wanted, when that is not the whole of what the question is about. Same vocabulary as a number's `at`: a registry id, or the reserved word `ambient` for the room.\n\nIt is here because quantities.json rule 1 forbids a name from stating its own subject or locus, and a gap had nowhere else to put one. `sample_temperature` is the registered quantity `temperature` with `sample` glued on, and the rule records exactly this recurrence: check 44 refused the subject FIELD, so the claim moved into the name, where nothing could refuse it. `at` on a number already carried the locus for values; a gap is where a locus is most load-bearing, because 'the store has no temperature' and 'the store has no temperature AT THE SAMPLE' are different findings and the second is usually the true one.\n\nThis pairs with `observable`, which is also what the caller asked rather than what the service returned -- the two together are the question, and `searched`, `nearest`, `near_names` and `kb_version` are the answer. `kb_query` does not take a locus argument yet, so today a caller states this and the service derives the gap_id from the observable alone; when the tool grows the argument the pair travels together and the id can carry it. Until then this is still strictly better than the name carrying it, because a field can be refused and a substring cannot."
         }
       },
       "required": [
