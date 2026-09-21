@@ -216,8 +216,8 @@ commits, and **tell me before publishing.**
 
 ## A correction to this file's own vocabulary, 2026-09-21
 
-Two lines above named `실행석` and `사서 실행석3` — **session window titles,
-not seats.** Replaced with the registered identities, `seat:librarian` and
+Two lines above named sessions by their **window titles**, in Korean, rather
+than by seat. Replaced with the registered identities, `seat:librarian` and
 `seat:librarian-3`, which is what `seats.json` holds and what check 41 reads.
 Confirmed off the commits rather than assumed: `5c64112` is
 `seat:librarian`, `5d60856` is `seat:librarian-3`.
@@ -229,3 +229,10 @@ repeat, and it changes without anything recording that it did — so a task
 naming one names something no registry holds and nothing can refuse. That is
 the same shape as every other name-nothing-checks found here this week, and
 this seat wrote it into its own task file while fixing that shape elsewhere.
+
+*And this note quoted the two titles when it was first written, which left
+Korean in the file that had just been cleaned of it. Described instead. The
+same question stands over `contracts/validate.py:3714`, which quotes the
+Korean section heading the check used to split on — that one is raised and
+not decided, because paraphrasing it costs the comment the exact string it is
+about, and a quotation of a removed string is not the same act as using one.*
