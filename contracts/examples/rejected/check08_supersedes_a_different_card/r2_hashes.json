@@ -6,8 +6,8 @@
   "ask_card": "r2_ask_experiment.json",
   "source": {
     "path": "simulation_agent/questions/sim-20260917-001/synthesis.json",
-    "card_id": "plan-sim-20260917-001",
-    "revision": 1,
+    "card_id": "synthesis-sim-20260917-001",
+    "revision": 2,
     "status": "VALIDATED",
     "sha256": "sha256:e3ab814b382fee8bc8cf088bddbc5685c22931c0d3bd8f925c9a0eca9d16ed95"
   },

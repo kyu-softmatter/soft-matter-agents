@@ -232,6 +232,21 @@ ARTIFACT_SCHEMA = {
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]
 
 
+def without_revision_marks(text: str | None) -> str:
+    """A revision decorates THREE things, and none of them is the card.
+
+    Revising a card changes its filename (7.1 rule 3's `v<N>_` prefix), its
+    `id` (a `-r<N>` suffix) and its `revision` field. So neither the path nor
+    the id is stable across revisions, and an identity test built on either
+    one refuses the revision it exists to allow -- which is what the first
+    version of the supersession test did with paths, and what its replacement
+    would have done with ids. What is stable is the pair with the decoration
+    stripped, which is why this strips both marks rather than one.
+    """
+    t = re.sub(r"(^|/)v[0-9]+_", r"\1", text or "")
+    return re.sub(r"-r[0-9]+$", "", t)
+
+
 def worse(a: str, b: str) -> str:
     return a if GRADE_ORDER.index(a) >= GRADE_ORDER.index(b) else b
 
@@ -1103,7 +1118,8 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
     pinned: dict[tuple, tuple] = {}
     for h in ledgers:
         src = h.data.get("source") or {}
-        pinned[(str(h.data.get("thread")), h.data.get("round"))] = (src.get("path"), src.get("revision"))
+        pinned[(str(h.data.get("thread")), h.data.get("round"))] = (
+            src.get("card_id"), src.get("revision"), src.get("path"))
 
     for thread, cards in sorted(by_thread.items()):
         seen: dict[tuple, int] = {}
@@ -1120,20 +1136,42 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
                 # number, which is a verdict the writer chooses, and rule 5
                 # exists to stop exactly that. Naming the superseded round
                 # and making the ledgers agree cannot be faked.
+                # Compared by card_id and not by path. 7.1 rule 3 gives each
+                # revision its own filename -- revision 2 of a plan is
+                # `v2_plan_…json` beside revision 1's `plan_…json` -- so a
+                # path comparison makes a supersession structurally
+                # impossible: no agent can revise by the rule and pass it.
+                # The first version of this did exactly that, and its
+                # isolation test passed only because the fixture kept one
+                # path across two revisions, a shape the real tree cannot
+                # hold. manager-simulation measured it.
+                #
+                # card_id is not self-declared here: line ~1190 already
+                # requires the ledger's card_id and revision to equal the
+                # payload's, and the payload's hash is checked against the
+                # source card on disk. The path still has to name the same
+                # card once rule 3's prefix is stripped, so a renamed file
+                # is not a way in.
                 was, now = pinned.get((thread, sup)), pinned.get((thread, rnd))
                 if was is None or now is None:
                     out.append(Finding(8, FAIL, f"round {rnd} says it supersedes round {sup} and one of the "
                                                 f"two has no ledger, so nothing records what either round "
                                                 f"was built on and the supersession cannot be recomputed "
                                                 f"(4.4 rule 5)", c.rel))
-                elif was[0] != now[0]:
+                elif without_revision_marks(was[0]) != without_revision_marks(now[0]):
                     out.append(Finding(8, FAIL, f"round {rnd} says it supersedes round {sup}, but round {sup} "
                                                 f"carried {was[0]} and this one carries {now[0]}. A "
                                                 f"superseding round carries a later revision of the SAME "
                                                 f"card; a different card is a different question", c.rel))
+                elif without_revision_marks(was[2]) != without_revision_marks(now[2]):
+                    out.append(Finding(8, FAIL, f"round {rnd} says it supersedes round {sup} and the two "
+                                                f"ledgers name one card_id under two different files, "
+                                                f"{was[2]} and {now[2]}. Stripping 7.1 rule 3's v<N>_ "
+                                                f"prefix they are still different, so one of the ledgers "
+                                                f"is pointing somewhere it should not", c.rel))
                 elif was[1] == now[1]:
                     out.append(Finding(8, FAIL, f"round {rnd} says it supersedes round {sup} and both pin "
-                                                f"{was[0]} at revision {was[1]}. The source did not move, so "
+                                                f"{was[2]} at revision {was[1]}. The source did not move, so "
                                                 f"this is a repeat and not a supersession -- a repeat "
                                                 f"re-asks what was answered, and re-asking is a knowledge "
                                                 f"reference in status.json (4.4 rule 5)", c.rel))
