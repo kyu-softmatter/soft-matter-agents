@@ -26,12 +26,27 @@ design seat.
 
 from __future__ import annotations
 
-import importlib.util
-import json
+import os
 import sys
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from pathlib import Path
+
+# The docstring above says this collision from the other side: loading our
+# dependencies by path keeps THIS file from shadowing the standard `operator`
+# for them. Running this file as a script is the remaining direction, and it
+# needs the other half -- python3 src/operator.py puts src/ at the head of
+# sys.path, `enum` does `from operator import or_` during interpreter
+# start-up, and it lands here instead, mid-way through our own `import json`.
+# screening.py and synthesis.py carry the same four lines. Three modules
+# working around one filename is the argument for the rename, which is
+# plan.md 7's and the design seat's.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.curdir) != _HERE]
+
+import argparse                                                  # noqa: E402
+import importlib.util                                            # noqa: E402
+import json                                                      # noqa: E402
+from dataclasses import dataclass, field                         # noqa: E402
+from datetime import datetime, timezone                          # noqa: E402
+from pathlib import Path                                         # noqa: E402
 
 AGENT = Path(__file__).resolve().parent.parent
 REPO = AGENT.parent
@@ -131,7 +146,25 @@ def authorise(plan: dict, approvals: list[dict] | None = None) -> Authorisation:
     for card in approvals:
         if card.get("card") != "plan_approval":
             continue
-        if card.get("plan_id") != plan_id or card.get("revision") != revision:
+        if card.get("plan_id") != plan_id:
+            continue
+        # `plan_revision` is the field plan_approval.schema.json declares for
+        # this, and what was read here until 2026-09-20 was `revision` -- the
+        # APPROVAL CARD'S OWN revision, which common_head gives every card.
+        # The two agree in the one approval on disk and agree for no reason:
+        # bump a plan to r2 and issue a fresh approval, and the new card is at
+        # its own revision 1 against a plan at 2, so a valid approval is
+        # refused. Revise the approval instead and it matches a plan revision
+        # it was never about. Absent is refused rather than fallen back on --
+        # a fallback here would re-create the coincidence it replaces.
+        if "plan_revision" not in card:
+            reasons.append(
+                f"{card['__path']} names this plan and carries no `plan_revision`, which is the "
+                "field that says which revision was approved (plan_approval.schema.json). An "
+                "approval that cannot name a revision does not cover one (5.5)"
+            )
+            continue
+        if card.get("plan_revision") != revision:
             continue
         got = card.get("plan_hash")
         if got != wanted:
@@ -597,3 +630,75 @@ def write_run(record: dict, deviations: list[dict] | None = None) -> Path:
     (folder / "log.json").write_text(json.dumps(record, indent=2) + "\n")
     (folder / "deviations.json").write_text(json.dumps(deviations or [], indent=2) + "\n")
     return folder
+
+
+# --------------------------------------------------------------------------- #
+# the way in
+# --------------------------------------------------------------------------- #
+
+
+def main(argv: list[str] | None = None) -> int:
+    """S6 from a command line, which it had no way in from until 2026-09-20.
+
+    Two halves were missing and only together are they a run. There was no
+    entry point at all -- no `__main__` here or in orchestrator.py, so the
+    only caller S6 ever had was a Python session someone typed by hand. And
+    `run()` returns the record without writing it, so even that left nothing
+    on disk: `write_run` existed, was correct, and nobody called it. A run
+    that leaves no record is not a run (P1, P9), and 4.6's [O4] is the stage
+    that makes it one.
+
+    `--write` is opt-in rather than the default because `run()` reaches the
+    instrument on a real backend and the directory is append-only -- a
+    mistyped run id cannot be taken back, and P9 says to raise the id rather
+    than overwrite. On mock nothing is at stake and the flag still costs one
+    word, which is the right price for the one that leaves a trace.
+
+    A refusal exits 2 and prints why. That is the normal outcome of a plan
+    that is not approved, of an envelope that is absent and of a limit whose
+    lookup does not resolve, and none of the three is an error in this file.
+    """
+    parser = argparse.ArgumentParser(description="S6: carry out an approved plan (4.6)")
+    parser.add_argument("--plan", required=True, type=Path, help="path to plan_<agent>_<qid>.json")
+    parser.add_argument("--run-id", required=True,
+                        help="runs/<run_id>/ is created and never overwritten (P9)")
+    parser.add_argument("--backend", default="mock",
+                        help="mock is a first-class backend, not a test double (4.6.5)")
+    parser.add_argument("--write", action="store_true",
+                        help="write runs/<run_id>/; without it the record is printed and dropped")
+    args = parser.parse_args(argv)
+
+    try:
+        record = run(args.plan, run_id=args.run_id, backend=args.backend)
+    except Refusal as exc:
+        print(f"REFUSED: {exc}", file=sys.stderr)
+        return 2
+    except orch.InterlockError as exc:
+        print(f"INTERLOCK: {exc}", file=sys.stderr)
+        return 2
+
+    print(f"run {record['run_id']}: plan {record['plan_id']} revision {record['revision']}, "
+          f"backend {record['backend']}, policy {record['safety_policy_version']}")
+    print(f"  registry {record['registry_source']}")
+    for event in record["events"]:
+        line = f"  {event['t_mono']:>9.3f}s {event['event']}"
+        if event.get("channel"):
+            line += f" {event['channel']}"
+        if event.get("element"):
+            line += f"/{event['element']}"
+        if event.get("verification"):
+            line += f"  verification={event['verification']}"
+        if event["event"] == "limit_resolved":
+            line += (f" {event['limit']}={event['value']} {event['unit']} "
+                     f"({event['key']['objective']}, {event['kb_version']})")
+        print(line)
+    if args.write:
+        folder = write_run(record)
+        print(f"  wrote {folder.relative_to(REPO)}")
+    else:
+        print("  not written: pass --write to create runs/<run_id>/")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
