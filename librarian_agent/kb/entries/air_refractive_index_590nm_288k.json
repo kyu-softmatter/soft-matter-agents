@@ -1,0 +1,39 @@
+{
+  "entry_id": "air_refractive_index_590nm_288k",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Dry air at 15 degrees Celsius and 760 mm of mercury has a refractive index of 1.000276466 at a wavelength of 590.0 nm, from interferometric measurements whose probable error at this temperature is 3.1 in the seventh decimal of the index.",
+  "numbers": [
+    {
+      "name": "refractive_index",
+      "value": 1.000276466,
+      "unit": "1",
+      "source": "literature:meggers_peters_1918",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "Table 5 of the paper, 5900 A row, prints the refractivity (n-1)10^7 = 2764.66, which is n = 1.000276466. Rewriting a printed refractivity as an index is a change of form and not a derivation: no other quantity enters and nothing is fitted. The digits are kept as printed; the paper's probable error is 3.1 in (n-1)10^7 at this temperature, so the last two decimals shown are inside the noise, and rounding them away here would be this store deciding how much of another laboratory's number to believe. NEAR ENOUGH TO UNITY THAT THE DIFFERENCE MAY NOT MATTER: n-1 is 2.8e-4, so anything computed from this differs from the same thing computed with n = 1 by 0.03 per cent. Whether that is negligible is the caller's call, and the reason to hold the measured value anyway is the grade -- assuming unity would be an `assumed:` E5 and would cap whatever it feeds at E5, while this is E3."
+    }
+  ],
+  "validity": {
+    "wavelength": { "min": 590.0, "max": 590.0, "unit": "nm" },
+    "temperature": { "min": 288.15, "max": 288.15, "unit": "K" },
+    "pressure": { "min": 101325, "max": 101325, "unit": "Pa" }
+  },
+  "subject": [
+    { "kind": "quantity", "id": "refractive_index" }
+  ],
+  "source": "literature:meggers_peters_1918",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_meggers_peters_1918_air_index",
+  "validity_conditions": "ONE WAVELENGTH, ONE TEMPERATURE, ONE PRESSURE, AND ALL THREE ARE PINNED TO POINTS. A query at any other comes back disjoint and the gap is `condition_mismatch`, not `absent`; the store may not interpolate. THE SOURCE PRINTS A 50 A GRID FROM 2000 A TO 10000 A, so any wavelength that lands on a grid point can be filed exactly and on request -- 6050 A among them, which is the emission path's nominal 605 nm centre. 5900 A was chosen because it is the grid point beside the sodium D line, where water's index is also stated, so the two immersion media are held in the same spectral neighbourhood. THE SIZE OF EACH MISMATCH, so a caller can judge rather than guess: across 5400 to 6150 A the printed refractivity moves from 2772.75 to 2761.40, i.e. n changes by 1.1e-6 over that whole span; the paper's three temperature sets give (n-1)10^7 of 2875.66, 2726.43 and 2589.72 at 0, 15 and 30 degC at infinite wavelength, so the temperature dependence is about -1e-6 per kelvin; and refractivity is very nearly proportional to density, so a 1 kPa departure from 101.325 kPa moves n by about 2.7e-6. All three are far below the precision an axial range is quoted to, and saying so is the caller's judgement to record, not this entry's to apply. DRY AIR. The measurement is on dry air; the air over this bench carries water vapour, which lowers the index by of order 1e-6 per 10 per cent relative humidity in the visible. Humidity is not a quantity in `validity` because the source does not tabulate it, and asserting a bound the source does not state would be worse than leaving it to prose. TEMPERATURE IS IN KELVIN BECAUSE THE REGISTRY HAS NO OTHER OPTION: contracts/units.json cannot register an offset unit and says temperature is carried in kelvin everywhere, so the source's 15 degC is carried as 288.15 K and its 760 mm of mercury as the 101325 Pa that defines the standard atmosphere. Both conversions are exact. WHY IT WAS SOURCED. Three of the six objectives in the device table are dry (MRD70040, MRD70170, MRD70270, `immersion: air`), and A6's axial_range needs the index of the medium they work in. `immersion: air` is on this entry so those objectives and this index come back from one kb_query on the class handle (task 024).",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "identifiers": {
+    "immersion": "air",
+    "material": "air",
+    "table_row": "5900"
+  }
+}

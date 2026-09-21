@@ -1,0 +1,38 @@
+{
+  "entry_id": "water_refractive_index_589_26nm_293k",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Distilled water at 20 degrees Celsius has a refractive index of 1.3329877 at the sodium D wavelength of 589.26 nm in air, at atmospheric pressure, from measurements whose stated accuracy is plus or minus 1e-6.",
+  "numbers": [
+    {
+      "name": "refractive_index",
+      "value": 1.3329877,
+      "unit": "1",
+      "source": "literature:tilton_taylor_1938",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "Table 5 of RP1085, 20 degC row, column headed 5892.6 A Sodium. The table prints seven decimals with the leading digits carried at the head of each column; this row is the one where the sodium column's leading digits change from 1.333 to 1.332, which is the way a reader gets 1.3339877 by mistake. The paper's stated accuracy is +/-1e-6 in the index and the average of its 133 residuals is 1.2e-6, so the last printed digit is not significant and the seventh decimal is at the edge; the digits are kept as printed rather than rounded, because rounding here would be this store deciding how much of another laboratory's number to believe."
+    }
+  ],
+  "validity": {
+    "wavelength": { "min": 589.26, "max": 589.26, "unit": "nm" },
+    "temperature": { "min": 293.15, "max": 293.15, "unit": "K" }
+  },
+  "subject": [
+    { "kind": "quantity", "id": "refractive_index" }
+  ],
+  "source": "literature:tilton_taylor_1938",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_tilton_taylor_1938_water_index",
+  "validity_conditions": "MEASURED AT ONE WAVELENGTH AND ONE TEMPERATURE, AND THIS ENTRY ASSERTS IT AT THOSE ONLY. Water is dispersive and its index moves with temperature: the same table reads 1.3427422 at 4046.6 A and 1.3300195 at 7065.2 A at this temperature, and 1.3339493 at this wavelength at 0 degC. `validity` pins both to points, so a query at any other wavelength or temperature comes back disjoint and the gap is `condition_mismatch`, not `absent`. That is the correct answer and it is deliberate: the store may not interpolate, and the paper's own Table 7 exists precisely so that a caller who wants an intermediate value can interpolate it and record that as its own assumption. THE SIZE OF THE MISMATCH IS SMALL AND IS NOT THE STORE'S TO APPLY. Across the whole visible range the index moves by 0.013, and from 20 to 25 degC by about 0.0005; a caller working to three decimals will usually find the mismatch immaterial, and saying so is its judgement to record in its plan, not this entry's to pre-empt. THE PRESSURE IS NOT PINNED. The measurements were made on water in hollow prisms at laboratory pressure; the paper does not tabulate a pressure argument, so no pressure bound is asserted rather than a bound being invented. TEMPERATURE IS IN KELVIN BECAUSE THE REGISTRY HAS NO OTHER OPTION. The table's argument is 20 degC; contracts/units.json cannot register an offset unit and says temperature is carried in kelvin everywhere, so this entry carries 293.15 K. The exact conversion is used, not 293, because 20 degC here is a tabulation argument held by platinum resistance thermometry and not a reading given to the nearest degree. The 1938 scale predates ITS-90 and differs from it by of order a millikelvin in this range. DISTILLED WATER, NOT THIS BENCH'S SUSPENSION. The sample was distilled water of specific conductance 0.6 to 1.3e-6 per ohm-cm, pH 6.1, nearly but not fully air-saturated. The suspension on this bench (particle_suspension_a) is not that, and applying this index to it is a substitution the caller is making. WHY IT WAS SOURCED. A6's axial_range needs the index of the immersion medium and had it as a gap named immersion_refractive_index; the store answered `refractive_index` with eight polystyrene entries, which are the bead material and not an immersion medium (task 024). `immersion: water` is on this entry so the water objective and this index come back from one kb_query on the class handle.",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "identifiers": {
+    "immersion": "water",
+    "material": "water",
+    "table_row": "5892.6"
+  }
+}
