@@ -51,6 +51,26 @@ fi
 echo "pre-commit: committing"
 echo "$STAGED" | sed 's#^#  #'
 
+# And name what inside them is changing, because the filename is not enough to
+# recognise your own work. `git commit -- <path>` builds its index from the
+# WORKTREE state of that path, so another session's edit to the same file rides
+# in under your identity; twice on 2026-09-20 a commit here carried a second
+# seat's checks, and both times the committer had read the diff and still not
+# seen it, because what was printed was a path that was genuinely theirs too.
+#
+# A hunk header carries the enclosing function, so `def check_41_...` appears
+# next to `def check_06_...` and a commit that touches five checks says five
+# names. That is the smallest thing that would have caught either case. It does
+# not close the window between reading and committing -- nothing here can -- it
+# removes "there was no way to see it at commit time".
+CONTEXT=$(git diff --cached -U0 | sed -n 's/^@@ .* @@ \(.*\)$/\1/p' | sed 's/[[:space:]]*$//' | sort -u)
+if [ -n "$CONTEXT" ]; then
+    echo "pre-commit: inside them"
+    echo "$CONTEXT" | head -24 | cut -c1-92 | sed 's#^#    #'
+    TOTAL=$(echo "$CONTEXT" | wc -l | tr -d ' ')
+    [ "$TOTAL" -gt 24 ] && echo "    ... and $((TOTAL - 24)) more"
+fi
+
 # And say what is being left behind, because this hook no longer looks at it. A
 # green gate now means the commit is green, not that the working copy is.
 #
