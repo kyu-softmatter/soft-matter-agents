@@ -200,6 +200,41 @@ pipelined, so **frame period equals exposure exactly.** A frame-rate
 constraint reduces to an exposure constraint, so this grid is the only place
 that needs closing.
 
+## 4f. Open the emission wheel and read the label in the red position
+
+**One reading closes four things**, and the store says so itself in two
+entries independently: *"opening the emission wheel and reading the
+designation on the filter in the red position, which would be
+`operator_read:` at E3."*
+
+What it closes:
+
+| | now | after |
+|---|---|---|
+| `red_path_605_is_the_ff01_595_31_filter` | E5 `operator_recall` | **E3** |
+| `emission_wheel_camera_mapping` | E5, and its text says **`probably`** | **E3** |
+| which position carries the filter | **not recorded at all** | recorded |
+| the person's standing debt, *filter wheel part designation, red path* | open | closed |
+
+**Do it before any real light.** The pre-measurement runs on `camera_red`
+as **the person's decision** (2026-09-21), not as anything derived — the
+chain from *particles show on the 605 path* (E2) to a camera runs through
+`emission_wheel_camera_mapping` at E5, and the store refuses to make that
+link on purpose: *"naming the device here would carry that uncertainty into
+this entry as though it were settled, which is the laundering this store
+keeps removing."* This seat made exactly that inference and an execution
+seat caught it by asking the service instead of taking the message.
+
+**So the decision stands and is unverified, deliberately.** The mock run
+does not care. The first real run does.
+
+**And the run is its own falsifier, at no cost.** The store records it:
+*move one wheel and see which camera's image changes.* A bare-particle
+acquisition does not spend the sample, so if no image lands on
+`camera_red`, **that is a result** — a refutation of the `probably` — and
+the result card carries a mapping correction back to the librarian rather
+than a failed run.
+
 ## 5. The one that needs an acquisition, not a look
 
 **`lapp_branch_assignment` cannot be closed by reading a label.** The
