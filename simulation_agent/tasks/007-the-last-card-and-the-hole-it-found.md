@@ -31,41 +31,61 @@ That is the §11-11 shape — one fact in two places — and the copy in your tr
 is yours to move. Mirror §5.3: fixed `None`, then `max(E4, worst input)` the
 way `computed` already does there.
 
-## And then you will hit this, so hit it knowing
+## The thing that was blocked is answered, and it is one line
 
-**For `bd_overdamped` the run may not cite itself.** §5.3 is explicit: the
-tracer diffusivity is fixed analytically by the input, so `2.128e-13` against
-the analytic `2.146e-13` confirms the integrator and the estimator and
-**says nothing independent about any diffusivity**. The capability table now
-declares that (`output_independent_of_input: {independent: false}`) and
-check 21 enforces it, so a number sourced `simulated:run-20260920-002` on a
-card standing on this plan **fails**.
+**This section said a verification run had no legal way to state what it saw.
+Architecture ruled it the same day (`a8c6470`) and the gate now carries the
+ruling (`88c496a`), so build straight through it.**
 
-Now try to write the card anyway and watch where it jams:
+`simulated:<run_id>` is **one kind with two roles, and the field already says
+which.** The independence declaration governs only whether the number may
+*also* stand as a claim about the world:
 
-- `values[].number` names an entry in `numbers[]`, which needs a source.
-- `criteria_evaluation[].observed_number` names one too.
-- `deviations[].actual_number` names one too.
+| field | role | `bd_overdamped` |
+|---|---|---|
+| `values[].number`, `values[].uncertainty` | the card **asserts** something about the system | **refused** — the evidence is the input, and citing the run launders the input's grade |
+| `criteria_evaluation[].observed_number` | what the run **read** | allowed |
+| `deviations[].actual_number`, `.planned_number` | what the run **read** | allowed |
+| named by no field at all | nothing says which | **refused** — undeclared is not a permission |
 
-**What this run observed has no legal source kind.** It is not `measured:` —
-a simulation is not a measurement, §5.3 settled that on 2026-09-20. It is not
-`computed:` — nothing derived it by formula, an integrator emitted it. And
-`simulated:` is exactly what the table just refused for this configuration.
+So the function this card told you to isolate returns `simulated:<run_id>`
+unchanged. Do not branch it on role: the writer choosing a kind is exactly
+what the ruling avoided.
 
-**Do not invent one and do not route around it.** Writing it as `computed:`
-would be self-reporting a grade through a kind that owes a recomputation
-(check 17) it cannot produce, and that is worse than the gap. This is §5.3
-and §5.3 is architecture's, so it is raised, not decided here.
+**The grade is unchanged, `max(E4, worst input)`.** It says how far the
+reading could be trusted as a claim; the field restriction says it is not
+being offered as one. Neither was weakened for the other, so an E5 on an
+`observed_number` is not a defect to tidy — a reader meeting it learns the
+true thing, that this reading is no stronger than what went into it.
 
-**What you can build while it is open**, because none of it depends on the
-answer: everything the card needs that is not the observed value itself.
-`time_base` from the run log's `t0_wall`/`t0_mono` and its alignment,
-`estimation` by reference rather than by copying the vocabulary's text
-(the schema says so, and `001` says why), `outcome`, `deviations`' planned
-side from the plan, `criteria_evaluation`'s `id`/`kind` for every stop and
-success criterion the plan declares — `minItems: 1` and **every** one, not
-the ones that are easy. Leave `met` and `observed_number` for last; they are
-the two that wait.
+**And what it may never feed.** A `simulated:` number under
+`independent: false` may be named from those comparison fields **and nowhere
+else**: never from `values[]`, never carried into another card, never into a
+KB entry. All three are enforced now, so you will be refused rather than
+trusted — `ORIGIN_RE` does not accept `result_*.json` as an origin at all, and
+check 43 resolves the run to its plan to its configuration before letting an
+entry in.
 
-Build it so the blocked part is one function returning the observed number's
-source, and the rest does not know. When §5.3 answers, that is the only edit.
+**Where the diffusivity does belong, then.** `values[]` still has to say
+something, and for this configuration the answer the card asserts is the
+**predicted** number — `computed:stokes_einstein`, E4, the one the plan
+already carries. The run's reading sits beside it as the comparison term. That
+is the honest shape of a verification run: the claim is the model's, the
+reading is the run's, and the card shows them meeting.
+
+## What to build
+
+Everything the card needs, with nothing now waiting on anyone:
+
+- `time_base` from the run log's `t0_wall`/`t0_mono` and its alignment
+- `estimation` **by reference**, not by copying the vocabulary's text — the
+  schema says so and `001` says why
+- `outcome`, one of `DONE` / `FAILED` / `NOT_CONVERGED`
+- `deviations`, planned from the plan and actual from the run. An empty list
+  is a claim, not a default — the schema says that in as many words
+- `criteria_evaluation` for **every** stop and success criterion the plan
+  declares, not the ones that are easy. `minItems: 1` is a floor, not a target
+- `values[]` asserting the predicted number, with the reading beside it
+
+`approval_id` is `null` for both runs and that is correct, not a placeholder:
+check 15 verifies it against `plan-sim-20260917-001`'s tier 1 and tier 0.
