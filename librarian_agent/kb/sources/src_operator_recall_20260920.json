@@ -1,0 +1,9 @@
+{
+  "source_id": "src_operator_recall_20260920",
+  "kind": "operator_recall",
+  "identifier": "Things the operator (kyuhwan) stated from memory on 2026-09-20, as distinct from what he read at the instrument the same day.",
+  "accessed": "2026-09-20",
+  "grade_rule": "E5. What was remembered and what was seen do not take the same grade (5.3), and which of the two a statement is, is a question for the person rather than an inference from how confident it sounds.",
+  "license_note": "Identifier only.",
+  "note": "Kept separate from a read source for the same day, so the grade follows from which source an entry cites rather than from prose inside it. WHAT WAS ASKED, because the answer's grade turns on the form of the question: the person was asked where the number 605 came from, with three options offered -- read off the filter wheel, a nickname for the 595/31 filter, or stated from memory -- and chose the second. So the statement is about what this bench CALLS a path. Nobody went to the wheel and looked, which is what would make it a reading."
+}

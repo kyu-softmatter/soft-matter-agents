@@ -1,0 +1,23 @@
+{
+  "entry_id": "red_path_605_is_the_ff01_595_31_filter",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "What this bench calls the 605 path or the 605 band is the FF01-595/31-32 single-band emission filter, not a separate filter designated 605. The two names are one optical path; 605 is a local name and 595/31 is the designation.",
+  "validity_conditions": "AN IDENTIFICATION, NOT A MEASUREMENT, AND IT LICENSES NOTHING ABOUT A BAND. It says two names refer to one filter. It does NOT say the path collects at 605 nm: the designated centre is 595 with a 31 nm width, which is filter_ff01_595_31_32_passband at E3 vendor_spec, and 605 sits inside that passband at 579.5 to 610.5 nm near the red edge. No numeric condition applies here, so a query's condition_range comes back unconstrained rather than satisfied. WHY IT IS A SEPARATE FILE FROM THE FLUORESCENCE OBSERVATION. particles_show_on_the_green_605_path records that the particles in the bottle are visible through this band; this records which filter the band is. Each can be refuted without the other -- someone could open the wheel and find a different filter in that position while the particles still fluoresced, or the filter could be confirmed while the observation turns out to have been on another sample. Rule 1 makes that two files. THE GRADE IS E5 BECAUSE NOBODY LOOKED. The person was asked directly where the number 605 came from, with three options offered -- read off the filter wheel, a nickname for the 595/31 filter, or stated from memory -- and chose the nickname. That is a statement about what the bench calls a path, made from memory; it is not a reading at the instrument, and 5.3 does not let the two take the same grade. WHAT WOULD CLOSE IT: opening the emission wheel and reading the designation on the filter in the red position, which would be `operator_read:` at E3. That is also what would settle WHICH POSITION carries it, which this entry does not claim. NO DEVICE SUBJECT, DELIBERATELY. The obvious one is filter_wheel_em1, and emission_wheel_camera_mapping puts that wheel on the red camera at E5 with the word `probably`. Naming the device here would carry that uncertainty into this entry as though it were settled, which is the laundering this store keeps removing. The subject is the quantity the identification bears on. THE REFRACTIVE-INDEX ENTRIES DO NOT REST ON THIS. water_refractive_index_595nm_293k, water_refractive_index_605nm_293k and the two air entries each stand on a printed grid point in their own source, and each would be exactly as true if this identification were overturned tomorrow. What this decides is only which of them a caller's query matches.",
+  "subject": [
+    { "kind": "quantity", "id": "filter_centre_wavelength" }
+  ],
+  "source": "operator_recall:kyuhwan_20260920",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_operator_recall_20260920",
+  "date": "2026-09-20",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian",
+  "identifiers": {
+    "part_number": "FF01-595/31-32",
+    "path_label": "605",
+    "filter_designation": "595/31"
+  }
+}
