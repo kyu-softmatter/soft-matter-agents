@@ -317,6 +317,7 @@ def synthesise(qid: str, revision: int = 1, created_at: str | None = None) -> di
     for config in sorted(by_config):
         cards = by_config[config]
         intervals, sets, preconditions = [], [], []
+        origins: dict[str, list[str]] = {}
         for axis in sorted(cards):
             for row in cards[axis].get("inequalities", []) or []:
                 if row.get("state") != "returned":
@@ -325,8 +326,13 @@ def synthesise(qid: str, revision: int = 1, created_at: str | None = None) -> di
                     intervals.append((axis, row["interval"]))
                 if row.get("allowed_set"):
                     sets.append((axis, row["allowed_set"]))
+                    origins.setdefault(row["allowed_set"]["parameter"], []).append(
+                        f"{Path(cards[axis]['__path']).name}#{row['inequality']}")
                 if row.get("precondition"):
-                    preconditions.append({"axis": axis, **row["precondition"]})
+                    preconditions.append({
+                        "axis": axis,
+                        "origin": f"{Path(cards[axis]['__path']).name}#{row['inequality']}",
+                        "bound": row["precondition"]})
         merged, conflicts = intersect_intervals(intervals)
         chosen_sets, set_conflicts = intersect_sets(sets)
         conflicts += set_conflicts
@@ -345,7 +351,8 @@ def synthesise(qid: str, revision: int = 1, created_at: str | None = None) -> di
             row["conflict"] = conflicts[0]
         per_config.append(row)
         detail[config] = {"allowed_sets": chosen_sets, "preconditions": preconditions,
-                          "conflicts": conflicts, "unbounded": unbounded_of(cards)}
+                          "conflicts": conflicts, "unbounded": unbounded_of(cards),
+                          "origins": origins}
 
     survivors = [r["config"] for r in per_config if not r["empty"]]
     chosen, why, priority, source = choose_config(survivors, goal)
@@ -400,7 +407,54 @@ def synthesise(qid: str, revision: int = 1, created_at: str | None = None) -> di
     } for r in per_config if r["empty"]]
     if rejected:
         card["rejected"] = rejected
+    carry(card, detail)
     return card, detail, why
+
+
+def carry(card: dict, detail: dict) -> None:
+    """Write the three carried fields, but only into a contract that has them.
+
+    Lifting the refusal and leaving the card silent would be worse than the
+    refusal: `homeless` keys on the field NAMES, so the day they are declared
+    it stops refusing, and without this the card would then be written
+    missing exactly the rows the refusal existed to protect. The two have to
+    move together, so they are in one file and this comment is the reason.
+
+    Shape, measured rather than assumed. `config` and `origin` sit BESIDE the
+    bound and not inside it, because common.schema.json's `interval`,
+    `allowed_set` and `precondition` are all `additionalProperties: false` --
+    so `allOf: [{$ref: allowed_set}, {properties: {config, origin}}]` is
+    REJECTED, which this seat proposed to architecture before checking and
+    had to withdraw. Nesting costs one level and needs no change to
+    common.schema.json at all.
+
+    `origin` is `<file>#<inequality>`, the form check 12 already reads for a
+    carried number, pointing at the axis card that asked. That is what makes
+    a carried `kb:` basis resolvable: not an exemption from check 54 but the
+    right card to resolve against, because that card is the one that asked
+    (architecture's ruling, 061ee6d).
+
+    If the declared shape differs from this one, check 1 fails on the written
+    card. That is the intended outcome -- a loud mismatch beats a card that
+    validates by leaving things out.
+    """
+    schema = json.loads((REPO / "contracts" / "schemas" / "synthesis.schema.json").read_text())
+    declared = set(schema.get("properties") or {})
+    for config, d in sorted(detail.items()):
+        if "allowed_sets" in declared:
+            for parameter, allowed in sorted(d["allowed_sets"].items()):
+                bound = {k: v for k, v in allowed.items() if k not in ("from_axes",)}
+                card.setdefault("allowed_sets", []).append({
+                    "config": config,
+                    "origin": d["origins"].get(parameter, [""])[0],
+                    "bound": bound})
+        if "preconditions" in declared:
+            for pre in d["preconditions"]:
+                card.setdefault("preconditions", []).append({
+                    "config": config, "origin": pre["origin"], "bound": pre["bound"]})
+        if "unbounded" in declared:
+            for row in d["unbounded"]:
+                card.setdefault("unbounded", []).append({"config": config, **row})
 
 
 # --------------------------------------------------------------------------- #
