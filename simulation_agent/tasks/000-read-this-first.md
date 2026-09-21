@@ -111,11 +111,15 @@ nothing was deciding who may commit.
 
 **So the allocation is to the work and to whichever session holds it.** That is
 not overriding the person: the decision was *the simulation execution seat does
-`004`*, and only the label went stale. `simulation`, `-2`, `-3` and `-4` are all
-registered and all vacated; a session opening now takes the next name, which is
-**the person's to seat directly (§6.2.2)** and is not registered yet —
-registration is architecture's and blocks nothing, since the gate runs
-`--staged` rather than `--strict`.
+`004`*, and only the label went stale. **`simulation-4` is held, not vacated** — the person seated this session in it
+directly and it carries `8f954d0`, `0459a07` and `49da893`. This card said all
+four were free until `simulation-4` corrected it, which would have walked the
+next session straight into `one_identity_per_session`: two sessions under one
+name, check 41 unable to tell them apart, and **the pass being the defect**.
+`simulation`, `-2` and `-3` are vacated. A session opening now takes the next
+name, **the person's to seat directly (§6.2.2)**; registration is
+architecture's and blocks nothing, since the gate runs `--staged` rather than
+`--strict`.
 
 **One session holds `004` at a time.** It is one commit across `goal.json`, the
 plan JSON, the generated `.md` and `src/plan_card.py`, and there is no worktree.

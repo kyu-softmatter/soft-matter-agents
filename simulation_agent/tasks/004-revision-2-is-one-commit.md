@@ -331,6 +331,50 @@ is the point — M2's third stage is not short of runs.
 the first time it is being exercised rather than described. A criterion picked
 after seeing run 002's numbers would be fitted to them.
 
+## E1. The error model is fixed outside `004`, and before it
+
+**Asked and ruled 2026-09-20.** `simulation-4` put the intercept's standard
+error in (`49da893`), measured it across eight seeds, and found the estimator
+sound and both error bars far too small — the intercept reads **6.4σ** against
+the quoted error and **0.0σ** against the actual seed-to-seed spread, with `D`
+unbiased at −0.06 per cent of the analytic value. **The cause is ordinary**: the
+fit treats a hundred MSD points as independent when every lag comes from the
+same trajectories, so the weights count displacements per lag and not the
+correlation between lags.
+
+**So criterion 1 is the right criterion and would fail on an artifact if
+declared against today's error bars.** The card said to read the intercept as
+unjudgeable rather than as a defect; judged properly it **passes**.
+
+**The fix goes outside `004` and before it — the same ruling `plan_card.py`
+got, for the same reason.** `004` is one commit because **one pin blocks its
+four items and one revision bump releases them**; an error model is neither
+pinned nor revision-gated, so folding it in widens a commit already carrying
+four. `simulation-4` applied that argument to `49da893` itself and then asked
+whether it holds here — it does.
+
+**Outside does not mean later.** `plan_card.py` went outside *and first*, and so
+does this. The worry that criterion 1 would then sit declared-but-unevaluated
+until revision 3 only follows if outside meant afterwards. **Fix the error
+model, then generate revision 2 against honest bars**, and the criterion is
+evaluable in the revision that declares it.
+
+**The honest uncertainty comes from the seed-to-seed spread and the ensemble
+already exists.** How to report it is a design decision for revision 2 and not
+a fudge factor — the measured ratios are beside the code rather than folded
+into it, which is what makes it one.
+
+**And a separate finding, larger than it looks.** `statistics_met` compares
+`relative_standard_error` against `target_relative_error`: **0.1 against
+3.7e-4, a factor of 270.** It passes automatically and proves nothing — and
+with the honest error bar it still passes, by about seven. **Nobody noticed
+because nothing evaluates it**: `operator.py` contains the string
+`success_criteria` **zero times**, against four for `stop_criteria`. Verified.
+So this question's success criteria have been decorative since revision 1.
+That is not §E's business and it is not `004`'s either; it wants its own card,
+and it is the reason a criterion has to be **evaluated** and not merely
+declared.
+
 ## D. Mechanics, and the corner nobody has been round
 
 - **`v2_` prefix**, not `r2_` — rounds and revisions were one sentence until
