@@ -4,15 +4,28 @@
   "kind": "claim",
   "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood.",
   "numbers": [
-    { "name": "viscosity", "value": 0.001, "unit": "Pa*s", "source": "kb:water_viscosity_293k", "grade": "E3" }
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "literature:src_water_properties",
+      "grade": "E3"
+    }
   ],
-  "validity_conditions": "pure water, 288 to 298 K, atmospheric pressure. Not valid for the buffer or glycerol mixtures, and not valid without stating the temperature: the value carries a temperature dependence steep enough to matter in confirm mode.",
+  "validity_conditions": "pure water, 288 to 298 K, atmospheric pressure. Not valid for the buffer or glycerol mixtures, and not valid without stating the temperature: the value carries a temperature dependence steep enough to matter in confirm mode. THE NUMBER CITED THIS ENTRY AS ITS OWN SOURCE UNTIL 2026-09-20. It read `kb:water_viscosity_293k`, which left the grade resting on nothing: `kb:<entry_id>` is how a CARD cites the store and INHERITS the entry's grade, and an entry using it points at itself and inherits from itself. The top-level `source` was right the whole time -- `literature:src_water_properties` -- so the fix is the number saying what the entry already said. The grade does not move: `literature` derives E3 either way, which is why check 43 passed it and why it survived. Measured before the fix: one self-citing number in 92 entries, and the only `kb:`-sourced number in the store at all, which is what it should be, since no entry has any business carrying a card's prefix. Check 69 was written for exactly this and held out of the registry until it was clear (a020c32), so no seat's gate reddened over a defect only this one could fix.",
   "validity": {
-    "temperature": { "min": 288, "max": 298, "unit": "K" }
+    "temperature": {
+      "min": 288,
+      "max": 298,
+      "unit": "K"
+    }
   },
   "source": "literature:src_water_properties",
   "subject": [
-    { "kind": "quantity", "id": "viscosity" }
+    {
+      "kind": "quantity",
+      "id": "viscosity"
+    }
   ],
   "grade": "E3",
   "grade_tag": "textbook",
