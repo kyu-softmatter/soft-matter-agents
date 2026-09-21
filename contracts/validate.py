@@ -1309,7 +1309,16 @@ ALLOWED_PATHS = [
     r"^microscope_agent/tasks/[A-Za-z0-9_.-]+$",
     r"^simulation_agent/tasks/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/CLAUDE\.md$",
-    r"^(microscope|simulation)_agent/envelope/[A-Za-z0-9_.-]+$",
+    # Declared names per agent, not any filename. This read
+    # `envelope/[A-Za-z0-9_.-]+` until 2026-09-20, which accepted anything --
+    # so section 7's envelope lines described a tree rather than binding one,
+    # and simulation_agent/envelope/safety.json lived there for a day while
+    # section 7 said it was not in that tree. The two agents differ on purpose
+    # (7): the microscope holds a safety policy the person confirms, and the
+    # simulation holds a budget nobody needs to measure, because a disk quota
+    # is not a laser.
+    r"^microscope_agent/envelope/(safety|snapshot)\.json$",
+    r"^simulation_agent/envelope/(budget|snapshot)\.json$",
     r"^(microscope|simulation)_agent/approvals/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/inbox/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/questions/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
