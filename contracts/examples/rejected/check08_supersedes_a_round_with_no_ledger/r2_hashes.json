@@ -1,0 +1,17 @@
+{
+  "artifact": "round_hashes",
+  "schema_version": "0.1",
+  "thread": "thr-sup-noledger",
+  "round": 2,
+  "ask_card": "r2_ask_experiment.json",
+  "source": {
+    "path": "simulation_agent/questions/sim-20260917-001/plan_simulation_sim-20260917-001.json",
+    "card_id": "plan-sim-20260917-001",
+    "revision": 2,
+    "status": "VALIDATED",
+    "sha256": "sha256:e3ab814b382fee8bc8cf088bddbc5685c22931c0d3bd8f925c9a0eca9d16ed95"
+  },
+  "payload_sha256": "sha256:d357a7a646931d6f7a1f26ac27a25ac54f1599f8db52c3a0ee8ad7a00d1db548",
+  "verified_at": "2026-09-19T07:30:45Z",
+  "note": "The source hash leaves status out (card_sha), so the approval this plan is due to receive does not read as tampering; the state it was read in is pinned in source.status instead."
+}

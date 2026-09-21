@@ -206,6 +206,14 @@
         "verdict"
       ],
       "additionalProperties": false
+    },
+    "supersedes": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "description": "The round this one replaces, when the source card moved to a new revision under it (4.4 rule 5). A repeat re-asks what was answered; a superseding round asks the same question of a source that changed, and nothing was answered. NOT a claim: check 8 recomputes it from the two rounds' ledgers, which already record the source revision, and refuses a round that says it supersedes one whose revision did not move. Conditions are deliberately not in the duplicate key -- that would let a writer open a second round by nudging one number, which is a verdict the writer chooses. Naming the superseded round and having the ledgers corroborate it cannot be faked."
     }
   },
   "required": [

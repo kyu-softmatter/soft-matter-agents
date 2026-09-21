@@ -1137,15 +1137,11 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
                                                 f"this is a repeat and not a supersession -- a repeat "
                                                 f"re-asks what was answered, and re-asking is a knowledge "
                                                 f"reference in status.json (4.4 rule 5)", c.rel))
-                if any(f.path == c.rel and "supersede" in f.message for f in out):
-                    # One defect, one finding. Falling through would add the
-                    # repeat message on top and report the same round twice
-                    # under two different names.
-                    seen[key] = rnd
-                    continue
-                if True:
-                    seen[key] = rnd
-                    continue
+                # One defect, one finding, whether the claim held or not:
+                # falling through would add the repeat message on top and
+                # report the same round twice under two names.
+                seen[key] = rnd
+                continue
             if key in seen:
                 out.append(Finding(8, FAIL, f"round {rnd} asks {key[1]!r} in the same direction as round {seen[key]}; a repeat is a knowledge reference recorded in status.json, not another round (4.4 rule 5). If the source card moved under round {seen[key]}, say so with `supersedes`: that is a different thing and it is legal", c.rel))
             else:

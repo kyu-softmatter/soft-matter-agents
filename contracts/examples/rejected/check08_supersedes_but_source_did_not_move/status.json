@@ -1,0 +1,12 @@
+{
+  "artifact": "thread_status",
+  "schema_version": "0.1",
+  "thread": "thr-sup-unmoved",
+  "round": 2,
+  "turn": "microscope_agent",
+  "state": "open",
+  "updated_at": "2026-09-21T00:00:00Z",
+  "blocked_pairs": [],
+  "substitutions": [],
+  "note": "Fixture ledger, so the group exercises supersession and not the missing-ledger rule."
+}
