@@ -93,9 +93,22 @@ Two simulation sessions are open and there is **no worktree**, so nothing
 refuses a collision — `seats.json` says so under `microscope-3` and names the
 answer: *the manager allocates by card*. This is that card.
 
-| | |
-|---|---|
-| **the live simulation execution session** | **`004` — revision 2.** |
+**Allocation is a fact about disk, not about a message.** `007` was handed out
+in a message and nowhere else, and within the hour two seats both believed it
+was theirs: one had written 692 lines of `src/result_card.py` while the other
+was being told to start. Nothing was lost only because the second seat checked
+the tree before writing. `004` did not go that way, because it had a row here
+with a condition anyone could run. So every row carries one.
+
+| what | who | is it open? — run this, do not ask |
+|---|---|---|
+| **`004` — revision 2** | done, landed at `946831c` | `git log --oneline -1 -- simulation_agent/questions/sim-20260917-001/v2_goal.json` |
+| **`007` — the result-card writer** | taken | `ls simulation_agent/src/result_card.py 2>/dev/null && echo TAKEN \|\| echo OPEN` |
+
+A message saying a card is yours is a **notice**; the condition is the record.
+When the two disagree, the disk wins and the notice was stale — including a
+notice from this seat. Tell the manager rather than writing over it, which is
+what `simulation-5` did.
 
 **The person decided `004` goes to the simulation execution seat**, told the
 architecture seat, and it came down through this one — execution allocation is
