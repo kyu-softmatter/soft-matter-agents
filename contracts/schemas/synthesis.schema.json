@@ -154,6 +154,107 @@
     "tie_break": {
       "type": "string",
       "description": "how a same-decade tie was broken (5.8, P16)"
+    },
+    "allowed_sets": {
+      "type": "array",
+      "description": "Discrete-set bounds carried up from the axes. 5.3.2 gave the AXIS contract `allowed_set` and `precondition` on 2026-09-19 and did not give them to this one, so a fan-out whose bounds were all of those two shapes had nowhere to land and S4 stood at exit 3. WRAPPED RATHER THAN FLAT, and not by preference. `common.schema.json#/$defs/allowed_set` sets `additionalProperties: false`, which is not annotation-aware: a sibling `config` beside a `$ref` to it is rejected by the referenced subschema no matter what the outer schema allows. So the flat shape cannot reuse the axis vocabulary, only duplicate it -- and a second copy of a bound's fields is how the two contracts come to disagree. The envelope carries what synthesis adds; `bound` is the axis's own shape, byte for byte.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string"
+          },
+          "from_axes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "which axes produced it -- more than one when the set is an intersection. This is what check 54 resolves a carried `kb:` basis against: the axis card asked for the entry under its own caller_id, and naming the axis keeps that record rather than asking this card to have cited what it never queried."
+          },
+          "bound": {
+            "$ref": "common.schema.json#/$defs/allowed_set"
+          }
+        },
+        "required": [
+          "config",
+          "from_axes",
+          "bound"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "preconditions": {
+      "type": "array",
+      "description": "Requirements on the plan carried up from the axes. One axis each, unlike an allowed_set: a precondition is an instruction and two axes issuing the same one are two records, not one intersection. WRAPPED RATHER THAN FLAT, and not by preference. `common.schema.json#/$defs/allowed_set` sets `additionalProperties: false`, which is not annotation-aware: a sibling `config` beside a `$ref` to it is rejected by the referenced subschema no matter what the outer schema allows. So the flat shape cannot reuse the axis vocabulary, only duplicate it -- and a second copy of a bound's fields is how the two contracts come to disagree. The envelope carries what synthesis adds; `bound` is the axis's own shape, byte for byte.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string"
+          },
+          "axis": {
+            "type": "string"
+          },
+          "bound": {
+            "$ref": "common.schema.json#/$defs/precondition"
+          }
+        },
+        "required": [
+          "config",
+          "axis",
+          "bound"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "unbounded": {
+      "type": "array",
+      "description": "Every inequality that did NOT return a bound, with why. This is the field that matters most and it is the one with no prior art: a card carrying the three inequalities that spoke and silent about the thirty-four that did not reads as a nearly-determined configuration, which is the reading 4.5.2.1 exists to refuse. The vocabulary is the axis card's own -- `state`, `kind`, `reason`, `missing` -- because an unbounded inequality here is the same fact the axis already recorded, carried rather than restated.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string"
+          },
+          "axis": {
+            "type": "string"
+          },
+          "inequality": {
+            "type": "string",
+            "minLength": 3
+          },
+          "parameter": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "state": {
+            "$ref": "common.schema.json#/$defs/bound_state"
+          },
+          "kind": {
+            "$ref": "common.schema.json#/$defs/unbound_kind"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 10
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "config",
+          "axis",
+          "inequality",
+          "parameter",
+          "state"
+        ],
+        "additionalProperties": false
+      },
+      "$comment": "state is deliberately not restricted to the three non-returned values. An inequality that returned an interval already lands in per_config[].intersection, but nothing should have to know that to write this list, and a card that enumerates all 37 with three of them marked `returned` is more legible than one that enumerates 34 and leaves the reader to subtract."
     }
   },
   "required": [

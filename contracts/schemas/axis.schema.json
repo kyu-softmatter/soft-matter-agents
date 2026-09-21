@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "axis.schema.json",
-  "title": "axis \u2014 one (configuration, axis) constraint from S3 (4.5.2)",
+  "title": "axis — one (configuration, axis) constraint from S3 (4.5.2)",
   "allOf": [
     {
       "$ref": "common.schema.json#/$defs/common_head"
@@ -63,21 +63,10 @@
             "pattern": "^[a-z][a-z0-9_]*$"
           },
           "state": {
-            "enum": [
-              "returned",
-              "abstained",
-              "not_run",
-              "failed"
-            ],
-            "description": "Four, and never folded into fewer. Merging `abstained` with `failed` makes an axis that honestly reported no grounds (P5) look like one that died, and the first is normal while the second must stop the plan."
+            "$ref": "common.schema.json#/$defs/bound_state"
           },
           "kind": {
-            "enum": [
-              "no_input",
-              "not_constraining",
-              "not_requested"
-            ],
-            "description": "Why there is no interval, and the three are a field rather than a sentence because the next action differs: measure something, write down that it does not bind here, or nothing at all. A sentence loses that distinction and the reader has to guess it back."
+            "$ref": "common.schema.json#/$defs/unbound_kind"
           },
           "reason": {
             "type": "string",

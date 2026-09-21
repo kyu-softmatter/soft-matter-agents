@@ -87,7 +87,7 @@
         },
         "derived": {
           "type": "boolean",
-          "description": "This computed value is a NAMED quantity: it carries a `symbol`, and one symbol means one definition across every card and the store (check 36). **It does not mean dimensionless.** A census on 2026-09-18 found 6 uses, all six carrying a unit (five `s`, one `N*s/m`), against 20 numbers with the dimensionless unit `1`, none of them derived \u2014 zero overlap. The documented meaning had never once been used, and six authors had independently read it as written here. Uses a computed: source; not a separate source kind."
+          "description": "This computed value is a NAMED quantity: it carries a `symbol`, and one symbol means one definition across every card and the store (check 36). **It does not mean dimensionless.** A census on 2026-09-18 found 6 uses, all six carrying a unit (five `s`, one `N*s/m`), against 20 numbers with the dimensionless unit `1`, none of them derived — zero overlap. The documented meaning had never once been used, and six authors had independently read it as written here. Uses a computed: source; not a separate source kind."
         },
         "symbol": {
           "type": "string",
@@ -732,6 +732,25 @@
         "basis"
       ],
       "additionalProperties": false
+    },
+    "bound_state": {
+      "enum": [
+        "returned",
+        "abstained",
+        "not_run",
+        "failed"
+      ],
+      "description": "Four, and never folded into fewer. Merging `abstained` with `failed` makes an axis that honestly reported no grounds (P5) look like one that died, and the first is normal while the second must stop the plan.",
+      "$comment": "Lifted out of axis.schema.json on 2026-09-20, unchanged, so a synthesis card can say the same four words about a bound it carried. Two copies of an enum is how two cards come to disagree about what `abstained` means."
+    },
+    "unbound_kind": {
+      "enum": [
+        "no_input",
+        "not_constraining",
+        "not_requested"
+      ],
+      "description": "Why there is no interval, and the three are a field rather than a sentence because the next action differs: measure something, write down that it does not bind here, or nothing at all. A sentence loses that distinction and the reader has to guess it back.",
+      "$comment": "Lifted out of axis.schema.json on 2026-09-20, unchanged, for the same reason as bound_state."
     }
   }
 }
