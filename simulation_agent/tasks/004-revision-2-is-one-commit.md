@@ -274,6 +274,63 @@ Verified. It does not migrate a target — it **acquires** one.
 The person confirmed one decade (`ad38bb0`, §11-14 closed), so **the value does
 not move.** What moves is that it stops being this agent's E5 assumption.
 
+## E. Revision 2 declares a convergence criterion, and it is not an equilibration one
+
+**The person instructed this and §9's M2 condition records it.** Revision 1 has
+none: `stop_criteria` are `planned_duration_reached` and
+`step_displacement_diverged`, `success_criteria` are accuracy and statistical
+error, and the strings `equilib` and `converg` appear nowhere in the card.
+Both smoke runs ended by reaching their planned duration.
+
+**First, what this configuration does not need.** `bd_overdamped` is free,
+non-interacting Brownian motion. **There is nothing to equilibrate** — no
+interactions, no structure to relax, no initial configuration that decays into
+a steady one. Writing an equilibration criterion here would be theatre, and
+this seat would rather say so than produce a number that looks like diligence.
+**That is a fact about this configuration and not about simulation**: a config
+with interactions or confinement has a real transient and would need one, and
+`capabilities/simulation.json` is where that difference is declared.
+
+**What it does need is a free-regime criterion**, and the two are not the same
+thing. `relative_standard_error = 3.7e-4` is the **tightness of the line**, not
+evidence that the line was fitted to the right thing. A fit can be precise and
+wrong — sample lags where the MSD is not linear and it will be both.
+
+**The estimator already names the diagnostic.** `observables.json` says the
+intercept is *"left free so that localisation error stays out of the slope"*.
+So for a backend with **no localisation error** — and `mock_backend` integrates
+exactly and reads coordinates straight — **the intercept should be consistent
+with zero.** It is the one number in the fit that says whether the free regime
+is what was sampled.
+
+**Run 002's is not obviously zero, and nobody can say whether that matters.**
+`intercept = 1.89e-15 m²`, which is **7 to 10 per cent** of the MSD at the
+shortest lag depending on dimensionality, and 0.1 per cent at the longest.
+**`observables.json` reports no standard error for the intercept**, only for
+the slope — so there is no way to tell sampling noise from a short-lag artifact.
+**Do not read this as a defect: read it as unjudgeable.** Reporting the
+intercept's uncertainty is the first thing revision 2 needs, because without it
+the criterion below cannot be evaluated at all.
+
+**Two criteria, and design them rather than take them:**
+
+1. **The intercept is consistent with zero**, scaled against the MSD at the
+   shortest lag rather than absolutely — an absolute threshold is meaningless
+   across diffusivities. Needs the intercept's standard error.
+2. **The fit is insensitive to the window.** `D` over the first half of the lag
+   range against `D` over the second half, agreeing within the target. This is
+   the one that actually separates *converged* from *precise*: a fit reaching
+   past the free regime disagrees with itself across the window while each half
+   stays tight.
+
+Both are computed from data already taken. **Neither needs a longer run**, which
+is the point — M2's third stage is not short of runs.
+
+**Declared in the plan, evaluated by the operator, and chosen before the run.**
+`CLAUDE.md` calls that the single hardest discipline on this side, and this is
+the first time it is being exercised rather than described. A criterion picked
+after seeing run 002's numbers would be fitted to them.
+
 ## D. Mechanics, and the corner nobody has been round
 
 - **`v2_` prefix**, not `r2_` — rounds and revisions were one sentence until
