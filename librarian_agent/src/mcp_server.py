@@ -929,7 +929,38 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
                # is not a mark. Same stakes, higher.
                "refuted_by": e.get("refuted_by") or [],
                "refutes": e.get("refutes") or [],
-               "supersedes": e.get("supersedes"), **m}
+               "supersedes": e.get("supersedes"),
+               # AN EXPIRY NOBODY CAN SEE IS NOT AN EXPIRY (031, and the
+               # fourth instance of 21c5325's shape). kb_get carried this
+               # verbatim and kb_query had no such key at all, so the tool a
+               # screening fan-out actually calls handed out fifteen entries
+               # whose validity ends as though it did not -- FOURTEEN OF THEM
+               # E2, including all twelve per-objective pixel sizes, which is
+               # the largest E2 block the store has.
+               #
+               # The field is what separates E2 from E5. kb_entry.schema.json
+               # requires a calibration to carry a validity period AND a
+               # condition range, "or a calibration could claim the
+               # second-highest grade in the scale with nothing holding the
+               # claim up". Dropping it here left the caller unable to see
+               # that anything holds the grade up at all.
+               #
+               # And on the three that carry an `event`, the event is the
+               # half that bites: particles_show_on_the_green_605_path says a
+               # ten-year date alone "would say the observation still holds
+               # the day after somebody swaps the filter wheel". A caller
+               # cannot honour a condition it is never shown.
+               #
+               # PRESENT ON EVERY ROW, `null` WHERE THERE IS NONE -- the
+               # precedent `supersedes` set and `symbol` followed in 030.
+               # 022's absent-versus-empty distinction does not apply: an
+               # entry with no expiry and an entry whose expiry is unknown
+               # are not two different things. THAT SENTENCE IS ONLY TRUE
+               # ONCE NOTHING IS DROPPING THE FIELD, which is what this line
+               # makes so and what it was not while the key was missing --
+               # before this change a reader could not tell the two apart,
+               # and afterwards there is nothing to tell apart.
+               "valid_until": e.get("valid_until"), **m}
         returned.append(row)
         for piece in uncovered_ranges(m):
             # Carry the row's own verdict rather than hardcoding one. This is
@@ -1668,6 +1699,67 @@ def _self_test() -> int:                                    # noqa: C901
                     bad(f"kb_query dropped {field} on {e['entry_id']}: "
                         f"{row.get(field)!r} for {e[field]!r}")
 
+        # 8d. AN EXPIRY REACHES THE TOOL A SCREEN ACTUALLY USES (031).
+        #
+        # Deliberately 8b's idiom and deliberately beside it, because it is
+        # 8b's subject: a field the entry holds, that kb_get delivers and
+        # kb_query dropped. Fourth instance of that shape -- conflict_with and
+        # refuted_by at 21c5325, kind and symbol at 030, this. The split is
+        # 8b's too, and for 8b's reason: KEY PRESENCE is checked against every
+        # row and needs no example, because the defect mode is a field missing
+        # from the dict literal; VALUE FIDELITY is checked against whatever the
+        # store actually carries.
+        #
+        # What makes it heavier than the other three is the grade. The schema
+        # requires a calibration to carry a validity period so that E2 has
+        # something holding it up, so a dropped `valid_until` does not merely
+        # hide a caveat -- it hides the thing that distinguishes the grade.
+        vu_rows = kb_query(store, "selftest:valid-until", v, "pixel_size", None)["entries"]
+        if not vu_rows:
+            bad("the projection cannot be checked: nothing answers to `pixel_size`")
+        for row in vu_rows:
+            if "valid_until" not in row:
+                bad("kb_query's projection has no 'valid_until' key at all, so no "
+                    f"entry could ever deliver its expiry ({row['entry_id']})")
+                break
+
+        expiring = [e for e in store.entries.values() if e.get("valid_until")]
+        if not expiring:
+            bad("no entry carries a valid_until, so value fidelity is untested "
+                "rather than passing -- the field is what holds an E2 calibration "
+                "up, and delivering it is the whole of what makes the grade "
+                "readable by a caller")
+        for e in expiring:
+            obs = (e.get("numbers") or [{}])[0].get("name") or e["entry_id"]
+            rows = kb_query(store, "selftest:valid-until", v, obs, None)["entries"]
+            row = next((r for r in rows if r["entry_id"] == e["entry_id"]), None)
+            if row is None:
+                bad(f"{e['entry_id']} carries an expiry and does not answer to {obs!r}")
+                continue
+            # Compared whole rather than by `date`. Twelve of the fifteen are a
+            # bare date and three carry an `event`, and the event is the half
+            # that actually invalidates -- so a comparison that read `date`
+            # only would pass while dropping the part that matters, which is
+            # this defect reappearing inside its own test.
+            if row.get("valid_until") != e["valid_until"]:
+                bad(f"kb_query altered valid_until on {e['entry_id']}: "
+                    f"{row.get('valid_until')!r} for {e['valid_until']!r}")
+
+        # Null where there is none, on every row, so a caller may read the key
+        # without testing for it. Same shape as `symbol` in case 17.
+        no_expiry = next(e for e in store.entries.values() if not e.get("valid_until"))
+        obs = (no_expiry.get("numbers") or [{}])[0].get("name") or no_expiry["entry_id"]
+        rows = kb_query(store, "selftest:valid-until", v, obs, None)["entries"]
+        row = next((r for r in rows if r["entry_id"] == no_expiry["entry_id"]), None)
+        if row is None:
+            bad(f"{no_expiry['entry_id']} does not answer to {obs!r}")
+        elif "valid_until" not in row:
+            bad(f"{no_expiry['entry_id']} has no expiry and the key is absent "
+                "rather than null, so a caller still has to test for it")
+        elif row["valid_until"] is not None:
+            bad(f"{no_expiry['entry_id']} has no expiry and reported "
+                f"{row['valid_until']!r}")
+
         # 8c. every unit in the store is one units.json defines -- INCLUDING the
         # entry-level `unit`, which four separate censuses on 2026-09-19 all
         # missed because every one of them walked numbers[] only. That field is
@@ -1933,11 +2025,28 @@ def _self_test() -> int:                                    # noqa: C901
 
         # Every entry carries the two keys, so a caller may read them without
         # testing for their presence; `symbol` is null where there is none.
-        plain = kb_query(Store(log=rel_log), cid, v, "viscosity")["entries"][0]
-        if "kind" not in plain or "symbol" not in plain:
+        #
+        # GUARDED, because 8b guards the identical query four blocks up and
+        # this block shipped without it. Exactly ONE entry in the store answers
+        # to `viscosity` -- water_viscosity_293k -- so one rename or one
+        # supersede turns this line into `IndexError: list index out of range`
+        # and the self-test stops reporting and starts crashing. Reproduced
+        # against a synthetic store with that entry removed before this was
+        # written, rather than argued.
+        #
+        # And this is why 8b was split in two on 2026-09-19: a form that
+        # cannot tell two failures apart reports the wrong one. The lesson was
+        # already on disk, in this function, four blocks away, when this case
+        # was added -- which is 032's shape said once more. A FIX DOES NOT
+        # REACH WHAT THE BLOCK BESIDE IT ALREADY LEARNED.
+        plain_rows = kb_query(Store(log=rel_log), cid, v, "viscosity")["entries"]
+        if not plain_rows:
+            bad("case 17 cannot be checked: nothing answers to `viscosity`, so "
+                "the every-row half of this case tested nothing")
+        elif "kind" not in plain_rows[0] or "symbol" not in plain_rows[0]:
             bad("kind and symbol must be on every row, not only on relations")
-        elif plain["symbol"] is not None:
-            bad(f"a claim entry reported symbol={plain['symbol']!r}")
+        elif plain_rows[0]["symbol"] is not None:
+            bad(f"a claim entry reported symbol={plain_rows[0]['symbol']!r}")
 
         # Look for THIS process's session id rather than comparing bytes.
         # Four other sessions call the live server, so the shared log changes
