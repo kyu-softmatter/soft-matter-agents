@@ -91,3 +91,58 @@ The two entries, with an expiry or with a reason. And if while looking you
 find that some of the 49 obviously cannot expire — a claim about how MMCore
 behaves is not a claim about this bench's wiring — say so, because that would
 split the 49 before anyone has to rule on it.
+
+---
+
+## THE SPLIT IS NOW ORDERED, 2026-09-21 — and do not confirm my 37
+
+The person ruled: **classify the 49 and re-count.** This moves from the
+REPORT line into the task.
+
+**My 37 is a keyword match and nothing more.** I grepped the claims for
+`mmcore`, `driver`, `raises no error`, `misreports`, `quantised`,
+`live view`, `host clock` and similar, got 12, and subtracted. **It is not a
+measurement and you must not reproduce it by construction.** If reading the
+49 gives 34 or 41, that number is the answer and mine was scaffolding. A
+number I hand you in a task has been wrong three times in two days — twice
+copied out of prose, once, here, produced by a regex — so treat it as the
+shape of a question and not as a total to hit.
+
+## The criterion, and it is a question about the claim's subject
+
+For each of the 49, ask **what would have to change in the world for this to
+stop being true.**
+
+- **The instrument's fitting** — a re-cabling, a turret change, a swap, a new
+  coverslip box. These age with the bench and are the ones the policy
+  question is about. `csuw1_dichroic_slots`, `nosepiece_objective_assignment`,
+  `coverslip_thickness_in_use`, `cameras_both_kinetix22`.
+- **A software version** — `dropped_frames_raise_nothing`,
+  `elapsed_time_is_quantised_to_one_ms`,
+  `interval_ms_is_ignored_and_frame_period_equals_exposure`. True of MMCore
+  and not of this bench's wiring. They can still end, but by a different
+  event, and a rule written for the first kind would say the wrong thing
+  about them.
+
+**DO NOT FORCE 49 INTO TWO BUCKETS.** At least two are neither:
+`abvigen_published_data_is_unreliable` is a claim about **a vendor's
+published data**, and `bottle_label_states_no_product` is a claim about **a
+label on a bottle**. Those do not age with the instrument or with MMCore.
+If a third or fourth kind is there, name it — **finding that the axis is not
+binary is a better result than a clean 37.**
+
+## What to report
+
+1. **The count per kind**, off a read of each claim, with the kinds named by
+   what would falsify them rather than by subject matter.
+2. **The ones you could not place**, by name. A claim you cannot classify is
+   the interesting one: it usually means the claim is doing two things, which
+   is rule 1's business.
+3. **For the instrument-fitting kind only**: does a single event cover most of
+   them, the way one calibration covered the twelve pixel sizes? If a
+   re-cabling ends fifteen of them, the policy question shrinks the same way
+   the pixel-size question did — **one event, not fifteen.**
+
+Still no writing to the 49. **This is counting and classifying, and it is
+what tells architecture how large the question actually is.** The narrow part
+above — the two camera entries — stands and is unaffected.
