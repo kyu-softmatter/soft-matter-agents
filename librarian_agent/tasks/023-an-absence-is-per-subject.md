@@ -59,8 +59,23 @@ absence again, under a different quantity, that is the day.
 ## IT WAS THE SAME DAY. The second case, measured
 
 Found by the librarian execution seat reading this file with an empty queue,
-and produced by their own 024 work a few hours earlier. Re-run here at
-`kbv-137828bc0b27`, 92 entries, log diverted:
+and produced by their own 024 work a few hours earlier.
+
+**Measured through `Store.answers_to` and `match` directly rather than
+`kb_query`**, by the seat at `42017f1` and re-measured here at `fdb08a4`,
+both at `kbv-137828bc0b27` with 92 entries. No `kb_query` call means no log
+line existed, so there was nothing to divert and no caller_id to invent.
+
+The sha is pinned beside the version because 025 changed `match` today: the
+same question against a pre-025 build answers the `oil` row differently. A
+`kb_version` alone says which knowledge answered and not which code did.
+
+*This file said "log diverted" until the seat corrected it. The first
+verification here did divert a log, and did it by calling `kb_query` under a
+made-up issued-looking caller_id — which is the thing 4.3.1 rule 3 forbids
+and which this seat had said out loud, hours earlier, that it would not do.
+Redone by the method above; the numbers are unchanged and the method is
+not.*
 
 ```
 CASE 1   kb_query('working_distance')                 5 entries, 0 gaps
