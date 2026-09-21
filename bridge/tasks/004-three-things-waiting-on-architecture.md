@@ -1,4 +1,10 @@
-# 004 — three things that need the architecture seat
+# 004 — three things that needed the architecture seat (CLOSED)
+
+**All three closed 2026-09-20, within about an hour of an architecture session
+existing again.** §11-16 closed as counted (`c23396c`), check 67 declared and
+then widened to the whole entry rather than `validity` alone, and the §7 line
+landed (`de09eb1`) so the fixtures are in the tree (`2840333`). Kept as the
+record of what "finished work waiting on one seat" looked like from inside.
 
 Written on 2026-09-20 with no architecture session running and every other
 design seat closed. Each of these was finished or counted by `manager-bridge`

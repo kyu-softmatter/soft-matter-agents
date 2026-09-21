@@ -1,7 +1,13 @@
-# 003 — the history fixtures are written and cannot land yet
+# 003 — the history fixtures (CLOSED)
 
-**State: built, tested, 3/3 firing, and held outside the repository.** What it
-waits on is one line in §7 that this seat may not write.
+**Closed 2026-09-20. The file landed at `2840333`** — `contracts/history_fixtures.py`,
+running 3/3. What it waited on was §7, and check 55 showed the order: the
+`ALLOWED_PATHS` half goes first (`0a456c6`), the §7 line follows (`de09eb1`,
+architecture). Everything below is the record of the wait and is kept for the
+two things it cost, not as an open item.
+
+**State while it waited: built, tested, 3/3 firing, held outside the
+repository.** The file is now in the tree and nothing is held.
 
 ## What it is
 
@@ -62,9 +68,8 @@ tree entirely, because check 13 reads files on disk rather than the index, so
 merely leaving it there put a red line in every other session's run — nobody's
 commit, and noise for everyone until the declaration lands.
 
-**Held at** `/private/tmp/claude-501/-Users-kyuhwan-Desktop-rebuild/a1d663-hold/history_fixtures.py`.
-Temporary storage. If it is gone, rebuild it from this note — the harness is
-about 150 lines and the design is above.
+It was held at `/private/tmp/…/a1d663-hold/history_fixtures.py` for two days.
+That copy is stale now; the file in `contracts/` is the one.
 
 ## What unblocks it
 
