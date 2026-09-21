@@ -157,3 +157,27 @@ entry ids, so it grows whenever an id embeds a quantity name, while
 `contracts/quantities.json` now exists as the registry of what a quantity name
 *is*. If that turns into noise, the question is whether the handle set should
 prefer registered names — and that is a separate task with its case beside it.
+
+
+---
+
+## HOW THESE NUMBERS WERE TAKEN, added 2026-09-20 after the rule that names it
+
+Every measurement in this file was taken by calling `kb_query` with the log
+pointed at a temp path and **a fabricated issued-looking `caller_id`**. On
+2026-09-20 architecture settled the test that names that: **calling
+`kb_query` is a query whatever it was for; calling `Store.answers_to` and
+`match` directly is a measurement.** The entry point decides, not the
+purpose. Inventing an issued-looking id is the worst version, because the
+server's own refusal says the launcher is the only thing that can check it —
+so rule 3 is honoured at the seat or nowhere.
+
+**The findings stand and were reproduced by somebody else.** The librarian
+seat implemented this task and described the same defect from its own runs
+(`0e89988`): five of six objectives returned, the sixth carrying
+`working_distance_min` and `_max`, no gap, so no neighbourhood. Nothing here
+rests on my probe alone.
+
+This note is here rather than only in a commit because a task file that shows
+a measurement and not its method hands the next seat a recipe. That is
+§6.2.2's third face, and this file is one of the two that earned it.
