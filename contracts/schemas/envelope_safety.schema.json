@@ -138,7 +138,8 @@
             "keyed_by": {
               "type": "string",
               "minLength": 10,
-              "description": "what selects which value -- the configuration or part that is in use"
+              "description": "what selects which value -- the configuration or part that is in use",
+              "$comment": "KEYED_BY IS PROSE, AND THAT IS WHY NOTHING CAN CHECK THE LOOKUP. Measured 2026-09-20, the day the first one landed. microscope_agent/envelope/safety.json sets objective_clearance_min to resolve `working_distance` keyed by \"the objective in the nosepiece position the plan drives to\". Five of the six objectives carry `working_distance`. The sixth, objective_mrd77400 (40x WI), carries `working_distance_min` 0.16 and `working_distance_max` 0.2 instead, because a correction collar moves it -- so for that one lens the lookup resolves to NOTHING. A check in contracts/ can count the carriers of a quantity; it cannot tell that the key domain has six members and five are covered, because the domain is stated in a sentence. Naming a registry here instead of describing one would make the domain enumerable and the shortfall checkable. Not changed today: envelope/safety.json is the person's file (2.1 rule 7) and this would be a rewrite of it, which is theirs. Recorded here so the next seat does not write a check that passes by counting five. What guards it meanwhile is the operator's own resolution failing closed, which is microscope_agent/src/operator.py and not this file -- check 57 does not cover it, since 57 asks whether a limit's confirmation is `physical` and says nothing about whether the limit RESOLVES."
             },
             "note": {
               "type": "string"
