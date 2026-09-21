@@ -148,8 +148,26 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
     served = responses["entries"]
     no_remount = consumed_sample_note(goal)
 
+    def has_a_value(name: str) -> bool:
+        """An entry answering to a name is not a value for it.
+
+        `tracer_diffusivity_expected` is served at E4 and carries
+        `numbers: []` -- it is the Stokes-Einstein RELATION, filed as a
+        formula precisely so that it improves when its inputs do. A bound
+        that needs a number still has none. Testing only `name in absent`
+        made the relation's arrival look like the value's: the name stopped
+        being a gap, `missing` emptied, and the bound fell through to
+        `failed`, which says `every input is present and this axis has no
+        code` -- while the code for it is right below and its own reason
+        explains at length why the bound cannot be written. The axis
+        contradicted itself the moment the librarian answered, and answering
+        is the good case.
+        """
+        entry = served.get(name)
+        return bool(entry and (entry.get("numbers") or []))
+
     for ineq in OWNED:
-        missing = [n for n in ineq.needs if n in absent]
+        missing = [n for n in ineq.needs if n in absent or not has_a_value(n)]
         if not missing:
             run.outcomes.append(axc.Outcome(
                 inequality_id=ineq.id, parameter=ineq.parameter, state="failed",
@@ -158,9 +176,13 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
             ))
             continue
 
-        reason = "; ".join(ABSENT[m] for m in missing)
+        reason = "; ".join(
+            ABSENT.get(m, f"{m} answered as a relation rather than a value: the store holds the "
+                          f"formula and no number, so this bound has nothing to evaluate")
+            for m in missing)
 
-        if ineq.id == "record_length_vs_diffusive_time" and "tau_d" in served:
+        if ineq.id == "record_length_vs_diffusive_time" and (
+                "tau_d" in served or "tracer_diffusivity_expected" in served):
             reason += (
                 ". The relation is served and so, since kbv-bf4f559baf68, is the second one: "
                 "tracer_diffusivity_expected came back at E4 as a formula over the ambient "
