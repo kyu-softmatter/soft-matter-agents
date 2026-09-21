@@ -143,14 +143,45 @@ def read_run(run_id: str) -> dict:
 def plan_of(run: dict) -> tuple[dict, Path]:
     """The plan a run carried out, read back from disk rather than from the run.
 
-    `config.json` holds a `plan_hash` taken at dispatch, so the plan on disk can
-    be checked to be the one that ran instead of being assumed to be. A plan
-    that has moved since the run is not a plan this card may quote: the numbers
-    it would carry would be numbers the run never saw.
+    **Resolved by the revision the RUN carried, not the one the question is on
+    now.** `operator.run` resolves the latest revision because it is about to
+    execute one; a result is about a run that already happened, so it cites the
+    revision that ran and keeps citing it after the question has moved on. The
+    two resolutions differ on purpose and both go through `cards.artifact_name`,
+    which is the one place that knows a revision's filename.
+
+    This read `plan_simulation_<qid>.json` until 2026-09-21 -- the same
+    hardcoded revision-1 filename `009` found in `operator.py:447`, written into
+    this module before that card existed. **The consequence differed, because
+    one of the two checks a hash.** The operator ran the discarded plan and
+    finished green; here the hash from `config.json` did not match and the card
+    was refused -- correctly, and with a message saying the plan had changed
+    since the run, when what had happened was that the wrong revision's file was
+    opened. Right behaviour, wrong reporting: `005`'s shape, and the third time
+    today.
+
+    The hash check stays. It is the second of two independent gates: the
+    revision says which file, and the hash says the file has not moved since the
+    run read it.
     """
     qid = run["config"]["qid"]
-    path = cards.question_dir(qid) / f"plan_simulation_{qid}.json"
+    revision = int(run["config"].get("plan_revision") or 1)
+    path = cards.question_dir(qid) / cards.artifact_name(
+        f"plan_simulation_{qid}.json", revision)
+    if not path.exists():
+        raise Unwritable(
+            f"{run['config'].get('run_id')} carried revision {revision} of {qid} and "
+            f"{shown(path)} does not exist. A revision is a different experiment, so there is "
+            "nothing to fall back to: citing another revision's plan under this run's number "
+            "would be the fault this resolution exists to stop"
+        )
     plan = json.loads(path.read_text())
+    if int(plan.get("revision", -1)) != revision:
+        raise Unwritable(
+            f"{path.name} is revision {revision} by its name and {plan.get('revision')!r} by its "
+            "own field. Two independent claims disagree and this card cannot say which plan the "
+            "run stood on"
+        )
     now = operator.plan_hash(plan)
     was = run["config"]["plan_hash"]
     if now != was:
