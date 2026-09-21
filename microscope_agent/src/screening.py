@@ -81,20 +81,49 @@ def load_limits() -> dict:
     return json.loads((CONTRACTS / "validation_limits.json").read_text())
 
 
-def pin_kb_version() -> str | None:
-    """Fix the knowledge version for the whole fan-out (4.3.1).
-
-    Siblings reading different KBs are not independent -- the difference is
-    itself a channel between them -- and the question stops being reproducible.
-    Returns None when no store is reachable; the caller then runs degraded.
-    """
-    path = REPO / "librarian_agent" / "kb" / "index.json"
+def read_kb_version(path: Path) -> str | None:
     if not path.exists():
         return None
     try:
         return json.loads(path.read_text()).get("kb_version")
     except json.JSONDecodeError:
         return None
+
+
+ENVELOPE_SNAPSHOT = REPO / "microscope_agent" / "envelope" / "snapshot.json"
+STORE_INDEX = REPO / "librarian_agent" / "kb" / "index.json"
+
+
+def pin_kb_version() -> tuple[str | None, str]:
+    """Fix the knowledge version for the whole fan-out (4.3.1), from the envelope.
+
+    Siblings reading different KBs are not independent -- the difference is
+    itself a channel between them -- and the question stops being reproducible.
+
+    THE PIN COMES FROM THIS AGENT'S ENVELOPE AND NOT FROM THE STORE'S LIVE
+    INDEX, and the reason is that the live index can name a version that does
+    not exist for anybody else. It is written whenever the librarian edits the
+    store, committed or not, so it hashes a working tree. Measured on
+    2026-09-20: index.json read kbv-3d0db7d01c4a, the running server reported
+    the store at kbv-f13a3eedb47b minutes later, and a kb_query pinned to the
+    first was REFUSED -- `a version that was never committed is not servable`.
+    Pinning the fan-out there would hand every axis a pin the service cannot
+    answer, and 21 cards would come back degraded for a reason none of them
+    could name.
+
+    envelope/snapshot.json is the opposite case: a byte copy of a published
+    export, carrying the commit it was built from, checked by check 26 against
+    the entries as that commit holds them. It is also what 4.3.2 gives an
+    executing agent instead of a store of its own.
+
+    The store index stays as a fallback for a tree with no envelope yet, and
+    the caller is told which was used, because a pin read off a working tree
+    is a different claim from one read off a committed export.
+    """
+    pinned = read_kb_version(ENVELOPE_SNAPSHOT)
+    if pinned:
+        return pinned, "envelope"
+    return read_kb_version(STORE_INDEX), "store_index"
 
 
 def librarian_service_available() -> bool:
@@ -170,6 +199,7 @@ class Screening:
     rejected: list[Rejection]
     kb_version: str | None
     cap: int
+    pin_source: str = "store_index"
     cap_unresolved: bool = False
     cap_resolved_by: str | None = None
     preference_honoured: str | None = None
@@ -211,7 +241,8 @@ def screen(goal: dict, capabilities: dict | None = None) -> Screening:
         reason = ("the vocabulary is fixed and does not define it"
                   if status == "populated" else
                   "the vocabulary is provisional and has not named it yet, which is undecided rather than impossible")
-        return Screening(observable, [], [Rejection("(vocabulary)", reason)], pin_kb_version(), cap)
+        pinned, pin_source = pin_kb_version()
+        return Screening(observable, [], [Rejection("(vocabulary)", reason)], pinned, cap, pin_source)
 
     for config_id in sorted(by_id):
         configuration = by_id[config_id]
@@ -250,12 +281,23 @@ def screen(goal: dict, capabilities: dict | None = None) -> Screening:
             grounds=grounds,
         ))
 
-    result = Screening(observable, candidates, rejected, pin_kb_version(), cap)
-    if not librarian_service_available():
+    pinned, pin_source = pin_kb_version()
+    result = Screening(observable, candidates, rejected, pinned, cap, pin_source)
+    if pin_source != "envelope" and not librarian_service_available():
         # Keyed on a missing kb_version this said the opposite of the truth: a
         # store that read fine left degraded empty, which is the claim that the
         # librarian answered. A store that cannot be read at all is a different
         # fact and stays visible as a null kb_version.
+        #
+        # NARROWED 2026-09-20, and narrowed rather than dropped. This stage
+        # asks the store nothing: it screens against contracts/ and the one
+        # thing it took from outside was the pin. Taken from the envelope, that
+        # is this agent's own hash-checked copy of a published export, which
+        # 4.3.2 gives an executing agent precisely so it need not read the
+        # store -- so nothing was missed and naming the librarian here would
+        # report a degraded pass that did not happen. Taken from the store's
+        # index, the stage did read the store's files, which is the degraded
+        # path as 4.3.2 defines it, and the field still says so.
         result.degraded.append("librarian_agent")
     if len(candidates) > cap:
         apply_cap(result, goal, by_id)
@@ -480,7 +522,10 @@ def to_configs(result: Screening, goal: dict, qid: str) -> dict:
         "priority_terms_not_evaluable_here": result.undiscriminating,
         "fan_out": fan_out(result, qid) if not result.cap_unresolved and result.candidates else [],
         "degraded": result.degraded,
-        "screened_against": "contracts/capabilities/microscope.json and contracts/observables.json only; no lessons (P16)",
+        "screened_against": ("contracts/capabilities/microscope.json and contracts/observables.json only; "
+                             "no lessons (P16). The kb_version above is a pin and not an input to the screen: "
+                             f"it was read from {'microscope_agent/envelope/snapshot.json' if result.pin_source == 'envelope' else 'librarian_agent/kb/index.json'}, "
+                             f"which is {'a committed published export this agent copied' if result.pin_source == 'envelope' else 'the store working tree and may name a version the service cannot answer'}"),
         **({"preference_is_not_evidence":
             "a human tie-break settles which capable configuration to spend the "
             "fan-out on and justifies nothing in the plan: no grade, no number, "
