@@ -17,6 +17,14 @@
       "output_independent_of_input": {
         "independent": false,
         "why": "the tracer diffusivity is fixed analytically by the input: run-20260920-001 gave 2.128e-13 against the analytic 2.146e-13, 0.8 per cent, which confirms the integrator and the estimator and says nothing independent about any diffusivity (5.3). A card wanting that number cites the input, not the run. A configuration with interactions or confinement would declare true."
+      },
+      "executed_by": {
+        "module": "mock_backend",
+        "why": "src/hoomd_backend.py is in section 7's tree and is not written, and HOOMD is neither installed nor on PyPI for this platform. Both runs of this configuration -- run-20260920-001 and -002 -- were the mock's, and so is the 0.8 per cent agreement that output_independent_of_input cites as its evidence. The evidence is not wrong; what was wrong is that `devices` alone said hoomd_backend and a reader learned something false about every run on disk. Found by simulation-2 on 2026-09-21 while reading the integrator for a different question."
+      },
+      "temperature_realisation": {
+        "kind": "constitutive",
+        "why": "the integrator is a position-only Wiener increment, positions + normal(0, sqrt(2*D*dt)) with D = k_B*T/(3*pi*eta*d). No velocity is represented, so there is no kinetic energy and nothing to thermostat: temperature is a parameter of the noise amplitude and there is no mechanism that could fail to realise it. That is the same reason mass-based time units do not enter the overdamped limit (5.7), which this configuration's label already says. So the store's premise that the engine's thermostat realises the setpoint is TRUE here and true for a stronger reason than it states, and it asks for an empirical confirmation this configuration cannot supply. Measured from the code by simulation-2, not read off the label."
       }
     }
   ]

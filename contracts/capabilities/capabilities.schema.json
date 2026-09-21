@@ -132,6 +132,26 @@
           },
           "description": "optional and normally omitted. The axis list is fixed and an axis that does not apply abstains (4.5.3); pruning axes here would drop a constraint where nothing records that it was dropped."
         },
+        "executed_by": {
+          "type": "object",
+          "description": "The module that actually runs this configuration, when that is not the one `devices` names. `devices` names the channel a plan may have to drive -- the declared model's engine -- and stays what the model says; this says what answered. They diverge whenever a backend is named before it is written, and a reader of `devices` alone then learns something false about every run on disk.",
+          "properties": {
+            "module": {"type": "string"},
+            "why": {"type": "string", "minLength": 20}
+          },
+          "required": ["module", "why"],
+          "additionalProperties": false
+        },
+        "temperature_realisation": {
+          "type": "object",
+          "description": "How the declared temperature becomes the model's temperature. A fact about the declared model, the same kind as output_independent_of_input and here for the same reason (5.3): it decides WHICH CONFIRMATION the claim needs, and that is not something a card may choose per question.\n\n`constitutive` means temperature enters as a parameter -- of a noise amplitude, say -- so there is no mechanism that could fail to realise it and no empirical check to run. `thermostat` means a mechanism holds it, which is engine- and configuration-specific and CAN fail: a Langevin thermostat with inertia loses its setpoint at large dt or to a flying ice cube. Asking a constitutive configuration to confirm its thermostat is the wrong kind of question, and -- the reason this is a field -- a configuration with inertia added later would silently need the other kind with nothing marking the change.",
+          "properties": {
+            "kind": {"enum": ["constitutive", "thermostat"]},
+            "why": {"type": "string", "minLength": 20}
+          },
+          "required": ["kind", "why"],
+          "additionalProperties": false
+        },
         "output_independent_of_input": {
           "type": "object",
           "description": "5.3: a run is a source (`simulated:<run_id>`) only where the configuration produces a number its inputs do not determine. That is a fact about the declared model, so it is declared here and read from there rather than judged per card. Absent means undeclared, which is not a permission.",
