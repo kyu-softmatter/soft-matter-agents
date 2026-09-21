@@ -4871,6 +4871,97 @@ def check_66_irreversible_run_reads_back_compliance(b: Bundle) -> list[Finding]:
                               f"that can report it")]
 
 
+def check_68_a_gap_names_a_quantity_not_a_subject(b: Bundle) -> list[Finding]:
+    """A gap names the QUANTITY it wanted, never the subject or the locus.
+
+    quantities.json rule 1, and this check is the sentence that rule wrote
+    about itself: when check 44 refused the `subject` field on those entries
+    the claim did not disappear, "**it moved into the name where nothing
+    checks it. A name that asserts its own subject is a subject nothing can
+    refuse.**" That clause stayed literally true until 2026-09-20 -- nothing
+    read `kb_gaps[].observable` against the registry at all.
+
+    BOTH DIRECTIONS, because the two instances went opposite ways. An A6 card
+    carried `immersion_refractive_index`: the registered quantity with a
+    SUBJECT in front. An A1 card carried `pixel_size_in_sample`: the
+    registered quantity with a LOCUS behind. Rule 1 names both --
+    `tracer_particle_density` and `na_mrd70040` for the first,
+    `ambient_temperature` for the second -- and an `endswith` test alone
+    catches only half. The half it misses was found by reading data, not by
+    reasoning about the rule.
+
+    NARROW ON PURPOSE, and the wide form was measured and thrown away.
+    Failing every gap name the registry does not hold gives 31 findings and
+    is unusable: a gap pointing at an unregistered name is normal, and is
+    frequently the very reason it is a gap.
+
+    THE GUARD THAT MATTERS: a name that is ITSELF registered is skipped
+    before either test. Without it `tracer_diffusivity_expected` -- a
+    registered quantity in its own right -- trips the prefix rule against
+    `tracer_diffusivity`. The seat fixing the A1 card warned of this before
+    the check landed.
+
+    WHAT THIS DOES NOT BUY, which matters more than what it does. **Naming
+    hygiene, not safety.** On the A6 instance the malformed name was the
+    SAFER outcome: asked by its registered name, `refractive_index` returns
+    eight entries at E3 and every one is polystyrene -- the bead material,
+    not the immersion medium. The bad name returned `absent` and the axis
+    abstained; the good name would have handed it eight numbers for the wrong
+    substance, produced an `axial_range` computed from a bead, and reddened
+    nothing. **Rule 1 being broken is what stopped it.** What the danger
+    needs is the subject matching, which is check 44's ground. This check is
+    worth having because a name nothing can refuse is a permanent hole, not
+    because it closes that one.
+    """
+    qreg = CONTRACTS / "quantities.json"
+    if not qreg.exists():
+        return [Finding(68, PENDING, "contracts/quantities.json is not in this tree")]
+    try:
+        doc = json.loads(qreg.read_text())
+        registered = {q["id"] for q in doc.get("quantities", [])
+                      if isinstance(q, dict) and q.get("id")}
+    except (json.JSONDecodeError, AttributeError, TypeError):
+        return [Finding(68, NA, "contracts/quantities.json does not parse; check 1 owns that")]
+    if not registered:
+        return [Finding(68, NA, "the quantity registry is empty")]
+
+    pending = set(doc.get("not_yet_registered") or [])
+    out: list[Finding] = []
+    seen = 0
+    for c in b.cards:
+        if "__unreadable__" in c.data:
+            continue
+        for g in c.data.get("kb_gaps") or []:
+            if not isinstance(g, dict):
+                continue
+            name = g.get("observable")
+            if not isinstance(name, str) or not name:
+                continue
+            seen += 1
+            if name in registered or name in pending:
+                continue                  # a registered name is its own quantity
+            glued = [(q, "subject", name[: -(len(q) + 1)]) for q in registered
+                     if name.endswith("_" + q)]
+            glued += [(q, "locus", name[len(q) + 1:]) for q in registered
+                      if name.startswith(q + "_")]
+            if not glued:
+                continue                  # unregistered, and that is a gap's prerogative
+            quantity, kind, extra = max(glued, key=lambda t: len(t[0]))
+            out.append(Finding(68, FAIL,
+                f"gap {g.get('gap_id')!r} asks for {name!r}, which is the registered quantity "
+                f"{quantity!r} with the {kind} {extra!r} glued to it. quantities.json rule 1: a "
+                f"name states the quantity and never its subject or its locus, because a name "
+                f"that asserts its own subject is a subject nothing can refuse -- check 44 "
+                f"refuses the `subject` field and cannot see into a string. Ask for "
+                f"{quantity!r} and carry {extra!r} where it can be refused", c.rel))
+    if out:
+        return out
+    if not seen:
+        return [Finding(68, NA, "no cards record kb_gaps")]
+    return [Finding(68, PASS, f"{seen} gap names state a quantity without a subject or a locus "
+                              f"glued into the string")]
+
+
 def check_60_observables_are_registered_quantities(b: Bundle) -> list[Finding]:
     """Every observable id is declared in contracts/quantities.json (section 7).
 
@@ -5180,6 +5271,7 @@ CHECKS = [
     check_56_undecided_names_the_settled_unit,
     check_57_irreversible_rests_on_a_confirmed_limit,
     check_66_irreversible_run_reads_back_compliance,
+    check_68_a_gap_names_a_quantity_not_a_subject,
     check_60_observables_are_registered_quantities,
     check_61_envelope_currency,
     check_67_entry_units_are_declared,

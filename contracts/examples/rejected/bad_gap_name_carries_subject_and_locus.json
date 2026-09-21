@@ -1,0 +1,76 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260917-968-widefield_inline-a6",
+  "qid": "mic-20260917-968",
+  "thread": "solo-mic-20260917-968",
+  "round": 1,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T00:00:00+00:00",
+  "status": "VALIDATED",
+  "config": "widefield_inline",
+  "axis": "a6",
+  "kb_version": "kbv-0000000968aa",
+  "verdict": "abstain",
+  "inequalities": [
+    {
+      "inequality": "nyquist_sampling",
+      "parameter": "pixel_size",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "The pixel size at the sample plane was asked for and did not come back, so there is nothing to compare a diffraction-limited spot against.",
+      "missing": [
+        "pixel_size_in_sample"
+      ]
+    },
+    {
+      "inequality": "depth_of_field",
+      "parameter": "axial_range",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "The immersion medium's refractive index was asked for and did not come back.",
+      "missing": [
+        "immersion_refractive_index"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "pixel_size_in_sample_absent",
+      "observable": "pixel_size_in_sample",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=pixel_size_in_sample, caller_id=mic-20260917-968:v1:widefield_inline:a6, kb_version=kbv-0000000968aa) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-0000000968aa",
+      "asked_by": "mic-20260917-968:v1:widefield_inline:a6",
+      "asked_at": "2026-09-17T00:00:00+00:00",
+      "near_names": [
+        "pixel_size"
+      ]
+    },
+    {
+      "gap_id": "immersion_refractive_index_absent",
+      "observable": "immersion_refractive_index",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=immersion_refractive_index, caller_id=mic-20260917-968:v1:widefield_inline:a6, kb_version=kbv-0000000968aa) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-0000000968aa",
+      "asked_by": "mic-20260917-968:v1:widefield_inline:a6",
+      "asked_at": "2026-09-17T00:00:00+00:00",
+      "near_names": [
+        "refractive_index"
+      ]
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "caller_id": "mic-20260917-968:v1:widefield_inline:a6",
+  "note": "REJECTED FIXTURE for check 68, and it holds BOTH directions on purpose. `pixel_size_in_sample` is the registered quantity `pixel_size` with the LOCUS `in_sample` behind it; `immersion_refractive_index` is the registered quantity `refractive_index` with the SUBJECT `immersion` in front. quantities.json rule 1 refuses both -- a name states the quantity and never its subject or its locus -- and rule 1 names an example of each, `ambient_temperature` and `tracer_particle_density`.\n\nONE FIXTURE FOR BOTH BECAUSE HALF A FIXTURE DIES QUIETLY. The check was first written with `endswith` alone, which catches the subject form and walks past the locus form, and the live locus instance survived a check written for the other shape. A fixture guarding one direction would let the narrowing happen again with nothing going red. Both live instances are reproduced here because both happened, a day apart, in opposite directions.\n\nWhat it does NOT demonstrate is safety. On the real A6 card the malformed name was the safer outcome: asked by its registered name, `refractive_index` returned eight entries and every one was polystyrene, the bead material rather than the immersion medium. Rule 1 being broken is what stopped a bead's index from becoming an axial range. The subject matching is check 44's ground, not this one's.",
+  "method": "deterministic"
+}
