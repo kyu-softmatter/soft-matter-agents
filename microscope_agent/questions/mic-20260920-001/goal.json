@@ -1,11 +1,11 @@
 {
   "card": "goal",
   "schema_version": "0.1",
-  "id": "goal-mic-20260920-001-r1",
+  "id": "goal-mic-20260920-001-r2",
   "qid": "mic-20260920-001",
   "thread": "solo-mic-20260920-001",
   "round": 0,
-  "revision": 1,
+  "revision": 2,
   "author": "microscope_agent",
   "created_at": "2026-09-20T22:40:00Z",
   "status": "DRAFT",
@@ -58,12 +58,12 @@
     },
     {
       "name": "illumination_setting",
-      "value": 0.1,
-      "unit": "1",
+      "value": 100,
+      "unit": "count",
       "source": "assumed:a_illumination_start",
       "grade": "E5",
-      "precision": "order_of_magnitude",
-      "note": "The person's 10 per cent, as a COMMANDED SETTING on the widefield source and deliberately NOT as illumination_power. The store holds no calibration from this source's scale to milliwatts, so writing a power here would assert a calibration nobody has done (kb_gap illumination_dial_to_power). And it is not yet a number: whether the scale runs 0-1, 0-100 or 0-255 is not in the store either (kb_gap illumination_scale_range), so 0.1 is written as the fraction the person meant and the scale it is a fraction OF is open."
+      "precision": "significant_figures",
+      "note": "THE PERSON'S 10 PER CENT, AS THE INSTRUMENT TAKES IT: 100, not 10 and not 0.1. Revision 1 wrote `0.1, unit 1` and that was wrong. light_engine_line_intensity_is_per_mille (E3) says each line is two MMCore properties -- `<NAME>` at 0 or 1 and `<NAME>_Intensity` on 0 to 1000 -- so the scale is PER-MILLE and 10 per cent commands 100, while writing 10 would command one per cent. The same tenfold trap is recorded as having already bitten in the prior project, where 5 per cent was written as 50 and 5 would have given 0.5 per cent. The trap is the scale and not the person's number. UNIT `count` IS THE NEAREST LAWFUL ONE AND NOT THE RIGHT ONE. The honest unit is per-mille, which units.json can express -- it is multiplicative, si_factor 0.001, dimensionless, exactly the shape of `mm` for length -- and does not hold. `1` would make this 100 times over rather than a tenth, so `count` is used, the same way nosepiece_position uses it for an index. Raised with manager-microscope. STILL NOT A POWER. There is no calibration from this scale to milliwatts, so writing illumination_power here would assert one nobody has done (kb_gap illumination_dial_to_power)."
     },
     {
       "name": "nosepiece_position",
@@ -86,11 +86,11 @@
     },
     {
       "rationale_id": "a_illumination_start",
-      "statement": "Ten per cent of the source's scale is where the person chose to start, on a scale whose range is not yet known.",
+      "statement": "Ten per cent of the source's scale is where the person chose to start. The scale is now known to be per-mille, so the commanded value is 100; what stays unevidenced is the choice of ten per cent, not the encoding.",
       "numbers": [
         "illumination_setting"
       ],
-      "falsifier": "the scale arriving as 0-255 rather than 0-1 changes what was commanded, and the record has to be retaken rather than reinterpreted"
+      "falsifier": "a first record that is saturated or dark at this setting retires it, and this run is the thing that looks"
     },
     {
       "rationale_id": "a_objective_choice",
@@ -106,30 +106,37 @@
     "The sample is not spent. mic-20260918-001's constraint is that the sample is consumed by the measurement and cannot be remounted; bare particles on a coverslip are NOT that sample -- particles without it. So this pre-measurement does not cost the one mount it exists to protect, and saying so here is the point: without this sentence it reads as if it did.",
     "The single exponential is declared BEFORE the run. bleaching_rate's estimator fixes it, and if the residual says it is wrong THAT IS THE RESULT -- a better-fitting curve is not swapped in afterwards. Stating it on the goal card rather than only in the vocabulary is deliberate: a criterion chosen after the data is not a result, it is a description of the data (5.4).",
     "Both numbers leave as result cards for the librarian (P14) and both carry the illumination setting with them. A bleaching rate without its illumination cannot be used by another plan -- the observable's own note says so -- and the same is true of a brightness. The objective travels with them for the same reason, which the vocabulary does NOT yet say: tracer_brightness's definition names illumination and exposure and not the lens, while collection efficiency scales with NA. Raised with manager-microscope.",
-    "Which branch the widefield source sits on is unconfirmed, and this question runs widefield_inline. The registry row says it outright -- role text, `unconfirmed: [branch_assignment]`, `confirmed_by: null`, `gap_ref: lapp_branch_assignment` -- so if source_a is not the inline branch, a run does not know which configuration it is. A configuration is the identity of an optical path and not a label. Carried as a kb_gap and proceeding ON MOCK ONLY: mock moves nothing, so the ambiguity costs nothing until real light. It must be closed before the instrument runs."
+    "Which branch the widefield source sits on is unconfirmed, and this question runs widefield_inline. The registry row says it outright -- role text, `unconfirmed: [branch_assignment]`, `confirmed_by: null`, `gap_ref: lapp_branch_assignment` -- so if source_a is not the inline branch, a run does not know which configuration it is. A configuration is the identity of an optical path and not a label. Carried as a kb_gap and proceeding ON MOCK ONLY: mock moves nothing, so the ambiguity costs nothing until real light. It must be closed before the instrument runs.",
+    "THE MASTER STATE IS A CONDITION THIS RUN VERIFIES, and it is the one failure this acquisition is shaped to imitate. `State` at 0 gates the whole engine: no light leaves it however a line and its intensity are set, and NOTHING REPORTS AN ERROR AND BOTH PROPERTIES READ BACK EXACTLY AS WRITTEN (light_engine_master_state_gates_every_line, E3). This run measures brightness and bleaching, and with no light both come out `measured` -- the prior project produced a field whose median was below a dark frame and a ratio computed from hot pixels, and it looked like a result. So the plan carries the master state as a condition the run reads back, and a written-and-read-back property is this defect's SYMPTOM rather than its refutation. 2.1 rule 8 in its sharpest form.",
+    "THE PLAN NAMES `LightEngine`, NOT `widefield_source_a`, AND THAT IS WHAT LETS THIS GO BEFORE THE BRANCH GAP CLOSES. getLoadedDevices() returns MMCore labels, so a plan naming `LightEngine` is verified at preflight and asserts nothing about which branch the source sits on. Naming widefield_source_a would assert the disputed mapping -- widefield_inline's own note says a plan that names a source, sets its power or patterns it with the DMD stands on that gap, and setting an intensity is precisely that. MM labels are not product names: `LightEngine` is the Spectra III, `Nosepiece` the Ti2-E. `SpectraIII` fails as device-not-found, which reads as the wrong stand rather than the wrong name.",
+    "Exposure and ROI are CORE CALLS and not properties -- setExposure and setROI -- so a preflight looking for them in a device's property list will not find them; only Binning is a property. The turret is the same shape, a state device read with getStateLabel and set with setState, with no Position property (nosepiece_is_an_mmcore_state_device, E3). None of this bites on mock. It is written into the plan now anyway: fixing it when real light arrives is late, and the master-state failure is the kind where the fault looks like a result."
   ],
-  "kb_refs": [],
-  "kb_gaps": [
+  "kb_refs": [
     {
-      "gap_id": "illumination_scale_range",
-      "observable": "illumination_setting_scale",
-      "kind": "absent",
-      "kb_version": "kbv-499312508852",
-      "searched": [
-        "envelope/snapshot.json entries, by hand: no entry states the widefield source's commanded scale or its MMCore property name",
-        "envelope/snapshot.json handles: the store answers to illumination_power, line_power and rated_max_power, none of which is this source's scale"
-      ],
-      "near_names": [
-        "illumination_power",
-        "line_power",
-        "rated_max_power"
-      ]
+      "entry_id": "light_engine_line_intensity_is_per_mille",
+      "grade": "E3",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "Each light line is two MMCore properties, `<NAME>` at 0 or 1 and `<NAME>_Intensity` on 0 to 1000; the intensity scale is per-mille, so 10 per cent is 100 and 10 is one per cent."
     },
+    {
+      "entry_id": "light_engine_master_state_gates_every_line",
+      "grade": "E3",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "A master property `State` at 0 gates the whole engine: no light leaves it however a line and its intensity are set, and nothing reports an error or reads back wrongly."
+    },
+    {
+      "entry_id": "nosepiece_is_an_mmcore_state_device",
+      "grade": "E3",
+      "kb_version": "kbv-1dabfd5ad58d",
+      "claim": "The turret is the MMCore label `Nosepiece`, a state device: read with getStateLabel and set with setState, with no Position property."
+    }
+  ],
+  "kb_gaps": [
     {
       "gap_id": "illumination_dial_to_power",
       "observable": "illumination_power",
       "kind": "absent",
-      "kb_version": "kbv-499312508852",
+      "kb_version": "kbv-1dabfd5ad58d",
       "searched": [
         "envelope/snapshot.json entries, by hand: no calibration relates this source's commanded setting to a power at the sample plane"
       ],
@@ -141,7 +148,7 @@
       "gap_id": "lapp_branch_assignment",
       "observable": "widefield_source_branch",
       "kind": "absent",
-      "kb_version": "kbv-499312508852",
+      "kb_version": "kbv-1dabfd5ad58d",
       "searched": [
         "envelope/snapshot.json tables.devices: the widefield_source_a row declares its own branch_assignment unconfirmed and points at this gap_ref; the table states the gap rather than filling it"
       ],
