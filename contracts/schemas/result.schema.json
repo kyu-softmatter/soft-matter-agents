@@ -23,7 +23,10 @@
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
     "approval_id": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "the plan_approval or scope_approval this run stood on (check 15). null says the run was Tier 0-1 and needed none, which is the operator's own wording for the autonomous case; the key stays required so that 'needed none' cannot be written the same way as 'failed to record one'."
     },
     "run_id": {
@@ -100,10 +103,19 @@
             ]
           },
           "met": {
-            "type": "boolean"
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "null says the criterion could not be evaluated, which is a third state and not a soft false. The operator already has it -- `evaluate` skips a metric the backend did not report, on the ground that an unreported metric is not a pass but simply not evaluated -- and the card could not say it, so every criterion came out true or false whatever the run did. A required `why_unevaluated` keeps null from becoming a shrug."
           },
           "observed_number": {
             "type": "string"
+          },
+          "why_unevaluated": {
+            "type": "string",
+            "minLength": 15,
+            "description": "Why the criterion could not be evaluated. Required when `met` is null and refused otherwise."
           }
         },
         "required": [
@@ -111,7 +123,33 @@
           "kind",
           "met"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "met": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "met"
+              ]
+            },
+            "then": {
+              "required": [
+                "why_unevaluated"
+              ]
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "why_unevaluated"
+                ]
+              }
+            }
+          }
+        ]
       }
     },
     "deviations": {

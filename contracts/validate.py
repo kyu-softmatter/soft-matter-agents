@@ -747,7 +747,34 @@ def check_05_envelope(b: Bundle) -> list[Finding]:
     return [Finding(5, PENDING, f"{n} ceilings convert; comparing a plan's conditions against them is not implemented yet")]
 
 
+COMPARATORS = {
+    "<": lambda a, s: a < s, "<=": lambda a, s: a <= s, ">": lambda a, s: a > s,
+    ">=": lambda a, s: a >= s, "==": lambda a, s: a == s, "!=": lambda a, s: a != s,
+}
+
+
+def as_si(num: dict) -> float | None:
+    """A number in SI, or None when it does not convert -- check 2 owns that."""
+    try:
+        f = si_factor(str(num.get("unit")), None)
+        return None if f is None else float(num["value"]) * f
+    except (TypeError, ValueError, KeyError):
+        return None
+
+
 def check_06_criteria(b: Bundle) -> list[Finding]:
+    """The criteria contract: declared before execution, and evaluated from what
+    was declared rather than asserted alongside it.
+
+    The second half was missing and cost nothing to add. `met` could be flipped
+    against the card's own `observed_number` and the gate stayed green -- found
+    by mutating a card (tasks/008). Nothing new has to be read: the plan's
+    comparator, the threshold and the observed value are all in this bundle, so
+    the gate does the same arithmetic the writer does. That matters beyond this
+    one case: arithmetic only the writer performs is an opt-in guard, and the
+    same arithmetic in the gate is a chokepoint (2.1 rule 9). `simulation-6`
+    asked for it against its own module.
+    """
     out: list[Finding] = []
     plans = b.of_kind("plan")
     if not plans:
@@ -770,6 +797,40 @@ def check_06_criteria(b: Bundle) -> list[Finding]:
                                                     f"{cr['target']!r}, which this card does not state", c.rel))
                 elif cr.get("number") not in nums:
                     out.append(Finding(6, FAIL, f"{kind}[{cr.get('id')}] points at {cr.get('number')!r}, which is not in numbers[]", c.rel))
+    by_plan = {str(pc.data.get("id")): pc for pc in plans}
+    recomputed = 0
+    for rc in b.of_kind("result"):
+        plan = by_plan.get(str(rc.data.get("plan_id") or ""))
+        if plan is None:
+            continue
+        declared = {str(cr.get("id")): (cr, kind)
+                    for kind in ("stop_criteria", "success_criteria")
+                    for cr in (plan.data.get(kind) or [])}
+        pnums, rnums = plan.numbers(), rc.numbers()
+        for ev in rc.data.get("criteria_evaluation") or []:
+            cid = str(ev.get("id"))
+            if cid not in declared:
+                out.append(Finding(6, FAIL, f"evaluates {cid!r}, which {plan.data.get('id')} does not declare", rc.rel))
+                continue
+            cr, _kind = declared[cid]
+            if ev.get("met") is None:
+                continue        # not evaluated; the schema makes it say why
+            obs, thr = rnums.get(str(ev.get("observed_number"))), pnums.get(str(cr.get("number")))
+            comp = cr.get("comparator")
+            if obs is None or thr is None or comp not in COMPARATORS:
+                continue        # a target-valued threshold, or a number this run does not carry
+            lhs, rhs = as_si(obs), as_si(thr)
+            if lhs is None or rhs is None:
+                continue        # check 2 owns unconvertible units
+            got = COMPARATORS[comp](lhs, rhs)
+            recomputed += 1
+            if got != bool(ev.get("met")):
+                out.append(Finding(6, FAIL,
+                    f"{cid}: says met={ev.get('met')} and {obs.get('value')} {obs.get('unit')} "
+                    f"{comp} {thr.get('value')} {thr.get('unit')} is {got}. A card does not get to assert "
+                    f"what its own numbers decide", rc.rel))
+    if recomputed and not any(f.status == FAIL for f in out):
+        out.append(Finding(6, PASS, f"{recomputed} criteria recompute to the verdict the cards state"))
     return out or [Finding(6, PASS, f"{len(plans)} plans declare machine-readable stop and success criteria")]
 
 
@@ -3820,9 +3881,19 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
                                 f"{pre}a merge by {email!r}, which is not a seat in contracts/seats.json: "
                                 f"check 35 does not read merges, so these {len(paths)} paths the merge "
                                 f"contributed would be checked by nothing (6.2.1)")]
+            # Name them. A count is unactionable here in a way it is not
+            # elsewhere: for every other finding the path is in the finding,
+            # and this is the one case where nothing downstream will ever
+            # look -- check 35 still counts boundaries, but no seat owns
+            # these paths, so no later sweep attributes them. "17 paths carry
+            # no attribution" tells a reader that something is wrong and not
+            # what. Capped, because an unattributed merge of a long branch
+            # would otherwise print a screenful.
+            shown = ", ".join(sorted(paths)[:8])
+            more = f", and {len(paths) - 8} more" if len(paths) > 8 else ""
             return [Finding(41, unknown_status,
                             f"{pre}committer {email!r} is not a seat in contracts/seats.json, so these "
-                            f"{len(paths)} paths carry no attribution")]
+                            f"{len(paths)} paths carry no attribution: {shown}{more}")]
         owns, narrow = set(seat.get("owns", [])), seat.get("paths")
         # excludes subtracts from whatever owns and paths grant. It exists so a
         # tier cannot hold the file that says what it may touch: a manager able
