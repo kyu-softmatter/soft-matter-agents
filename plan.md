@@ -889,6 +889,8 @@ It takes an approved plan, breaks it into per-module work and dispatches it, wat
 
 **Rule: the LLM does not synthesise instrument or simulation commands.** Every command is derived mechanically from values in `plan.json`, and every command in the log carries a `from` field pointing at the field it came from (§8 check 14).
 
+**One amendment, 2026-09-22 (§13).** Two trials put a *decision* model -- typed choice plus confidence, no strings -- on the normal path: as a watcher that can only **flag**, and as a focus-search judge that only **picks among branches the plan declared**. Neither synthesises a command, neither can abort or permit, and the rule above is untouched; §13 holds the shape and the reasons. Until that section existed this table said "not involved" and was the only statement, so the pointer is here to keep the two from saying different things (§4.3.1 had two subsections in conflict once, 2026-09-19).
+
 The reason is simple — in an irreversible action, a probabilistic output only adds risk (P4, P8). Where the LLM is needed is "writing up, so a person can read it, what happened that the plan did not anticipate", and even then the abort is already finished by Python.
 
 #### 4.6.2 Why both the JSON and the Markdown are read
@@ -2923,3 +2925,44 @@ With no KB yet (pre-M0), facts the person supplied are collected here temporaril
 | Laboratory temperature 20 °C | **is it a setpoint or a measurement**, plus the variation (±?) and the measurement location (room / near the sample) | Temperature enters by two routes: `k_BT` and `η(T)`. Around 20 °C water's viscosity changes by roughly **2% per °C**, so a ±1 °C variation makes a change of the same size in `τ_D`. In explore mode (§5.8) it does not change the order of magnitude and can be ignored; in confirm mode it cannot — so what is needed is not a setpoint but **the actual value near the sample and its variation** |
 
 The form of this table is itself a rule: when a person gives a number, do not write the value alone but write **what is still undecided** with it. "20 °C" on its own cannot say whether it is a setpoint or a measurement, and the grade (E2 or E5) turns on exactly that.
+
+---
+
+## 13. A decision model on the run — two trials (2026-09-22)
+
+On 2026-09-22 the person looked at **Jev**, TypeSafe AI's "System One Model" (`typesafe.ai`, read that day): it returns no strings, only a **typed decision** -- `Choice` among declared options, `Score` on a rubric, or a truth value -- each with a probability and a **confidence**, meant to be composed in code with thresholds for when software acts and when it asks a person. The site's speed and cost figures are its own evaluations and are not repeated here as facts (P4). What the person asked for is **two trials**, and neither is analysis of the observable. Both are about **the experiment itself while it runs** -- particles settling out of the field, drift, focus walking off, no sample under the objective -- which is the one place this document had no eyes. O3 watches only what the plan named (`stop_criteria` compiled into comparisons, §4.6), and the LLM's place on the exception path (§4.6.1) is **after** the fact, writing the report. Between the two, a run going quietly wrong is seen by a person or by nobody, and a session that ends with a wasted sample is a wasted sample nobody flagged.
+
+**What the two trials share, and why this is not a repeal of §4.6.1.** The model *judges*; code *checks and acts* (P4). Its confidence is a **signal** in the sense of rule 8 -- it can refuse and cannot permit -- and never a `number` in a card: a model's figure has no row in §5.3 and gets none, for the reason a `decision:` kind was refused there. If a flag is to become a claim about the world ("the sample bleached"), it becomes one through a deterministic metric recorded in `deviations.json`, not through the flag. Jev is the named candidate because it is the model whose *shape* is this; the requirement is the shape, so the model is substitutable and the trials measure the shape.
+
+### 13.1 Trial 1 -- an advisory watcher during the run
+
+**What it is asked.** The run's state rendered as text -- metrics computed deterministically from frames and device reads (particle count in field, drift estimate, intensity trend, focus metric), plus the event log -- and one question: *is this still the experiment the plan describes?* Answered as a `Choice` among declared options, e.g. `as_planned | particles_lost | drifting | focus_lost | unsure`, with confidence. **Not** "what is the diffusion coefficient": the question is the experiment's own uncertainty, not the physics.
+
+**The shape it may take.** Each line is a consequence of a rule already here, not a new one:
+
+1. **Flag only.** It cannot abort, cannot permit, cannot destroy a `scope_approval`. Rule 8 makes `as_planned 0.95` change nothing; rule 1 keeps abort with the compiled monitors. And §6.1 condition 4 destroys a scope approval on a `stop_criteria` violation, so a flag is **a distinct event kind** (`watcher_flag`, not `stop_criterion_violated`) precisely so that a noisy dial cannot summon the person fifty times a day -- §6.1's own named failure.
+2. **The output is an event in `log.json`**, append-only (P9), carrying the choice and the confidence as a signal. It enters no card's `numbers[]` (E6).
+3. **Shadow mode first, and no threshold is chosen.** It records over real runs and acts on none of them, and then **a person** chooses the threshold off that record -- §11-2's pattern, a sample gives grounds and does not choose. The same record is where the model's calibration claim is **counted on our data** rather than believed.
+4. **The run says whether the watcher was on.** A dead API is silence, and silence looks like a good run; the same mechanism as `degraded` (§3.1) applies, so no run reads as watched when it was not.
+5. **What leaves the machine is the text rendering, never raw frames.** That state leaves the machine at all was raised on 2026-09-22 and the person asked for the trial with it named.
+
+**Order.** After the first real run under deterministic monitors. Its `deviations.json` is the first sample of what the plan did not anticipate, and so of what the watcher should be asked; declaring the options before it is inventing the anomalies (P10).
+
+### 13.2 Trial 2 -- finding the sample and the focus
+
+**What it is asked.** The screen rendered as text -- focus metrics (sharpness and its kin, computed deterministically from the frame: E4 on E1 frames), particle count, current position -- and a typed choice among branches the plan declared, e.g. `in_focus | step_up | step_down | no_sample_here | unsure`. **The question the trial answers is whether it finds focus, and a field with sample in it, well.** A single sharpness maximum is ambiguous between the coverslip, a dust plane and the particle plane, and says nothing about whether there is sample in the field at all; whether a model over several weak signals does better than the metric alone is **what the trial measures, not what it assumes.**
+
+**The shape it may take.**
+
+1. **The model picks a branch; code derives the command.** §4.6.1's rule stands whole: every move comes mechanically from plan fields -- step size, search range, move-count ceiling, the list of fields to visit -- and carries `from` (check 14). The branch is a judgment (P4); the command is not the model's.
+2. **Bounds are the plan's and the envelope's.** The search range and steps lie inside `envelope/` limits and the plan's declared range, with a ceiling on moves. **The search touches no output**: illumination is what the plan set (rule 4), so the frames the search spends are charged to A3's sample-health budget, not hidden beside it.
+3. **PFS off for the search** -- interlock 3 (§4.6.8), and the third case `devices/micromanager.py` reported up: a held focus fights a sweep and the curve recorded is of a plane never visited.
+4. **Tier 1.** A focus move is reversible. A plan in which an *irreversible* parameter would be set by the model's choice is not this trial and stays under rule 3.
+5. **What is recorded.** Each decision as an event with choice and confidence; **the position found is a device read**, never the model's number.
+6. **Success is declared before starting (§9.3).** The reference is the person's manual focus on the same fields, and beside it the deterministic metric-maximum baseline; the tolerance is a fraction of the depth of field, from the KB with a source; N fields; hits, misses and `unsure` counted apart. `unsure` is an abstention and is not a miss (P5) -- collapsing them is §4.5.2.1's collapsed-states failure on a new object.
+
+### 13.3 What this amends and who does it
+
+- **§4.6.1's table** said the LLM is not on the normal path. Both trials put a decision model there, flag-only and branch-only, and a pointer now sits under that table so the two places do not disagree. The command rule is unchanged.
+- **Nothing in §2.1 moves.** Safety stays with deterministic code; ambiguity stops; a signal refuses and never permits.
+- **The work is the microscope agent's execution layer** -- O3 for the watcher, `devices/` and the operator for the search -- and it is that seat's to implement. This section is the specification and its reasons, in the tier §6.2 gives the root: specify, do not implement.
