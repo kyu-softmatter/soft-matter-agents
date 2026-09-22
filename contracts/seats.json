@@ -144,7 +144,8 @@
       "committer_email": "bridge@seat.invalid",
       "owns": [
         "bridge"
-      ]
+      ],
+      "note": "The first bridge execution seat. This row carried no note until 2026-09-22, when bridge-4 noticed while passing that its two siblings had one and it did not -- so the oldest seat in this boundary was the least explained. Closed; the name is not reused."
     },
     {
       "seat": "bridge-2",
@@ -161,6 +162,14 @@
         "bridge"
       ],
       "note": "The third bridge execution seat, opened 2026-09-19 after bridge and bridge-2 both closed. Neither freed name is reused: two sessions under one identity collapse in the history with no way to tell them apart, and both vacated entries stay listed so the commits already under them keep their attribution."
+    },
+    {
+      "seat": "bridge-4",
+      "committer_email": "bridge-4@seat.invalid",
+      "owns": [
+        "bridge"
+      ],
+      "note": "The fourth bridge execution seat, opened 2026-09-22 while bridge, bridge-2 and bridge-3 are all closed. Not a reuse of any of them: a name is not reused whether or not it carried commits (microscope-4's reasoning), and bridge-3's last commit f4726be was 2026-09-19 19:53. Two commits predate this row and are PERMANENTLY UNATTRIBUTED -- d7d3ff7 and 07e7958, seven paths, all of them classified into the bridge boundary including the two under microscope_agent/inbox/, which is 7.1 rule 8's delivery and not a crossing; check 35 reads both commits as staying inside one boundary. 07e7958 is the first superseding round, carrying the correction that 4.4 rule 5 refused as a repeat until 2026-09-21. Minted on a relay: the seat says the person chose this identity when asked, and said plainly that it was relaying rather than being seated by a peer, so the same withdrawal clue applies as elsewhere and one word from the person removes it."
     },
     {
       "seat": "architecture",
