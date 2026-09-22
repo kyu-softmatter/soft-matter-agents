@@ -2645,6 +2645,18 @@ Rule 1 looks inconvenient and it is the only way the grade system means anything
 
 2. **The E5 ceiling**: how many estimates are allowed in one plan? Zero and nothing can be done; unlimited and the grade system is meaningless. **It is settled only after both conditions hold**: ① gap detection is on (the librarian service), and ② plans made in that state have accumulated into a sample. Concurrent construction advances neither — when the librarian comes on is not fixed by an order, so ①'s moment is itself open (§9). Until then check 3 is `UNDECIDED`.
 
+    **State on 2026-09-22, counted rather than recalled.** ① **is met and has been since 2026-09-19** -- check 45 reads 24 cards whose calls the query log carries. ② is the open one, and the sample is **three real plans**, since two of check 3's five are `contracts/examples/` fixtures and **two of the three are revisions of one question**. So the sample is thinner than the count of five suggests, and whether three plans over two questions is a sample is itself the person's call.
+
+    **And the choosing needs to name which number it is choosing, because the two differ by more than a factor of two:**
+
+    | plan | distinct rationales | E5 chain length |
+    |---|---|---|
+    | `mic-20260920-001` | 3 | 8 |
+    | `sim-20260917-001` | 7 | 17 |
+    | `v2_sim-20260917-001` | 6 | 14 |
+
+    Check 3 counts **distinct rationales** and says so in its own line. A cap on that limits **how many different things a plan is allowed to guess about**; a cap on chain length limits **how much of the plan rests on guessing at all**. The first is the one that keeps a plan honest about its own shape, and the second is what P15 already governs through precision inheritance. **Recording both here so the choice is made against the pair and not against whichever number the run happened to print.** And the paragraph above still holds: a sample gives grounds for choosing and does not do the choosing.
+
     **The unit was settled on 2026-09-19: the number of distinct `rationale_id`s. Not the raw E5 count.** The threshold is still undecided and waits on condition ②, but **what to count does not have to wait for a sample** — that is settled by argument and not by data. And without settling the unit first, once the sample accumulates you get **a sample of the wrong thing counted.**
 
     **A raw count counts the length of the derivation chain, not the guessing.** The simulation manager counted three plans and raised it, and architecture confirmed:
