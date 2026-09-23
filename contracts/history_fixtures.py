@@ -369,7 +369,7 @@ def findings_for(repo: Path, commit_range: str,
                          capture_output=True, text=True, cwd=repo, env=env)
     found = []
     for line in (out.stdout + out.stderr).splitlines():
-        m = re.match(r"\s*check\s+(\d+)\s+(PASS|FAIL|UNDECIDED|PENDING|N/A)\s+(.*)", line)
+        m = re.match(r"\s*check\s+(\d+)\s+(PASS|FAIL|UNDECIDED|PENDING|LOST|N/A)\s+(.*)", line)
         if m:
             found.append((int(m.group(1)), m.group(2), m.group(3)))
     return found

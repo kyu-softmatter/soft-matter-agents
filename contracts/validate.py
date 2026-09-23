@@ -4,18 +4,24 @@
 One program checks every card. No model takes part in it (P4): the exit code is
 the only truth.
 
-Each of the 37 checks reports one of five verdicts, and the distinction matters
-more than the count:
+Each check reports one of six verdicts, and the distinction matters more than
+the count. The four that are not PASS or N/A split by WHAT WOULD CLOSE THEM:
 
   PASS       the check ran and found nothing wrong
-  FAIL       the check ran and found something wrong
-  UNDECIDED  the check needs a threshold nobody has chosen yet. An unchosen
-             threshold is not a satisfied threshold (P0 rule 2, fail-closed)
-  PENDING    the check needs artifacts a later milestone produces
+  FAIL       the check ran and found something wrong -- closed by fixing it
+  UNDECIDED  the check needs a threshold nobody has chosen yet -- closed by
+             choosing. An unchosen threshold is not a satisfied threshold
+             (P0 rule 2, fail-closed)
+  PENDING    the check needs artifacts a later milestone produces -- closed by
+             producing them
+  LOST       the artifact existed, is gone, and NO WORK BRINGS IT BACK. Closed
+             by nothing. Reported and never refused
   N/A        no artifact of that kind exists yet, so there was nothing to check
 
 --strict turns UNDECIDED and PENDING into failures, which is what CI should use
-once the milestones they wait on have landed.
+once the milestones they wait on have landed. It does NOT promote LOST: a run
+that can never go green no matter what anyone does is a run people stop
+making, and then the strict mode guards nothing.
 --expect-fail inverts the meaning of the run: every card given must produce at
 least one FAIL, and a card that stops failing breaks the run. A check nobody
 tests is a check that quietly stopped working.
@@ -57,6 +63,13 @@ REPO = CONTRACTS.parent
 GIT_REPO = Path(os.environ.get("SMA_GIT_REPO") or REPO)
 
 PASS, FAIL, UNDECIDED, PENDING, NA = "PASS", "FAIL", "UNDECIDED", "PENDING", "N/A"
+# Declared 2026-09-23 (8). The four non-PASS verdicts split by whether work can
+# close them: FAIL by fixing, UNDECIDED by choosing, PENDING by producing, and
+# LOST by nothing at all. So LOST is reported, never refused, and --strict does
+# NOT promote it -- a --strict that can never go green because of something that
+# happened once teaches seats to stop running it, which is the same failure as a
+# gate that refuses correct work.
+LOST = "LOST"
 
 # --------------------------------------------------------------------------- #
 # findings
@@ -5414,18 +5427,24 @@ def check_66_irreversible_run_reads_back_compliance(b: Bundle) -> list[Finding]:
     if out:
         return out
     if (unresolved_plan or superseded) and not cleared:
-        why = []
+        # Two verdicts, because the two causes are closed by different work --
+        # and one of them by none. Reported separately rather than summed: a
+        # single line carrying both would have to pick a verdict, and picking
+        # either makes half the count a lie about what would fix it.
+        split: list[Finding] = []
         if superseded:
-            why.append(f"{len(superseded)} name a revision that was OVERWRITTEN by a later one at the "
-                       f"same path, so the plan they carried out is in no tree and the run cannot be "
-                       f"read against what it was approved to do ({'; '.join(superseded[:3])}). This is "
-                       f"not an artifact a milestone has yet to produce -- it existed and was replaced, "
-                       f"which is the record P16 keeps")
+            split.append(Finding(66, LOST,
+                f"{len(superseded)} run log(s) name a plan revision that was OVERWRITTEN by a later one "
+                f"at the same path, so which of their actions are irreversible cannot be read "
+                f"({'; '.join(superseded[:3])}). NOT PENDING: it is not an artifact a milestone has yet "
+                f"to produce -- it existed, a run carried it out, and it was replaced, so the run can "
+                f"never be read against what it was approved to do. That is the record P16 keeps and no "
+                f"work brings it back. What stops the NEXT one is the v<N>_ convention (8)"))
         if unresolved_plan:
-            why.append(f"{unresolved_plan} name a plan no revision of which is on disk")
-        return [Finding(66, PENDING, f"{unresolved_plan + len(superseded)} run log(s) name a plan that is "
-                                     f"not in this tree, so which of their actions are irreversible "
-                                     f"cannot be read (check 15 owns that link): " + "; ".join(why))]
+            split.append(Finding(66, PENDING,
+                f"{unresolved_plan} run log(s) name a plan no revision of which is on disk, so which of "
+                f"their actions are irreversible cannot be read (check 15 owns that link)"))
+        return split
     if not cleared:
         return [Finding(66, PASS, f"{len(logs)} run log(s) dispatched no irreversible action; there is "
                                   f"nothing whose compliance had to be read back")]
@@ -6737,7 +6756,8 @@ def main(argv: list[str] | None = None) -> int:
     include_rejected = args.expect_fail or any(REJECTED in r.parts for r in roots)
     findings = run(roots, include_rejected, args.commit_range, args.staged)
 
-    counts = {s: sum(1 for f in findings if f.status == s) for s in (PASS, FAIL, UNDECIDED, PENDING, NA)}
+    counts = {s: sum(1 for f in findings if f.status == s)
+              for s in (PASS, FAIL, UNDECIDED, PENDING, LOST, NA)}
     if not args.quiet:
         for f in findings:
             if f.status == PASS and args.expect_fail:
@@ -6784,11 +6804,16 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     print(f"verdict: {counts[PASS]} passed, {counts[FAIL]} failed, "
-          f"{counts[UNDECIDED]} undecided, {counts[PENDING]} pending, {counts[NA]} not applicable")
+          f"{counts[UNDECIDED]} undecided, {counts[PENDING]} pending, "
+          + (f"{counts[LOST]} lost, " if counts[LOST] else "")
+          + f"{counts[NA]} not applicable")
     print(describe_tree(args.staged))
     print(describe_design_doc())
     if counts[UNDECIDED]:
         print("undecided means a threshold nobody has chosen; it is not a threshold that is satisfied")
+    if counts[LOST]:
+        print("lost means the artifact existed and is gone; no work closes it, and --strict "
+              "does not promote it")
     if counts[FAIL]:
         return 1
     if args.strict and (counts[UNDECIDED] or counts[PENDING]):
