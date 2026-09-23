@@ -53,3 +53,13 @@ A3 needs the ranges before it can say where that part is.
 
 041 reads this result as its finite-size premise. Landing 042 first removes
 an assumption from 041's A3.
+
+## Revision 2 — the person ruled (2026-09-23)
+
+**2D, WCA, so the system is interacting and this question does not close
+at S2.** One operating point held across arms, Pe 10 and φ 0.1, the centre
+of 041's grid. Arms at 1, 10 and 100 persistence lengths (50 µm at this
+anchor); the largest is expected to exceed the `local` budget, and that
+refusal is a result about the reachable range. The P15 tension stands: at
+decade resolution a box passes as size-independent unless the regime
+changes. Same configuration request as 041.

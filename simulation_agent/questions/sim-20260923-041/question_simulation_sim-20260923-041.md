@@ -80,3 +80,14 @@ above the persistence time. A3 bounds the box against the persistence
 length and, at high density, against cluster size. A4 resolves lags below
 the persistence time without aliasing. A5 costs the reduced sweep. A7
 abstains, undriven, and says so.
+
+## Revision 2 — the person ruled (2026-09-23)
+
+**2D. WCA. Two axes: Péclet number and packing fraction.** Recorded in
+`v2_goal.json`; decisions carry no grade. Everything else is held at an
+SI anchor taken from the store — the bottle's 5 µm sphere in water at the
+room's 293 K — with D_T and D_R computed from it (E4) and D_R thermally
+tied to D_T as a stated assumption. Pe runs 1 to 100 and φ 0.01 to 0.5 in
+decade steps, nine operating points. The configuration request to
+`manager-simulation` is now exact: `abp_wca_2d`, active, WCA repulsion,
+undriven. Still zero candidates at S3.0 until it is declared.
