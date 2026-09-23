@@ -140,6 +140,43 @@ P0 is not a slogan but **a list of enforced rules**, all of them enforced by cod
 
 1. **Safety is an interlock, not a judgement.** An action that can endanger a person or an instrument is not placed on an LLM judgement path (§4.6.1). Every safety limit lives in `envelope/` as a machine-readable value under Tier 3 protection.
 2. **Ambiguity stops (fail-closed).** When state cannot be read back, when the evidence grade is insufficient, or when the validator cannot decide, the default is **stop, not proceed**.
+
+**Rule 2 is being broken today, in one of four places, and the other three hide it (2026-09-23).** Four
+sites infer a device's role from how its identifier is spelled. `manager-microscope` measured them and the
+split is in the **failure direction**: `RETRACT_HINTS`, `STABILISER = "pfs"` and `if element != "nosepiece"`
+**refuse** when the spelling does not match, and `shutters()`, which tests `"shutter" in element_id`,
+**closes what it recognised and carries on.** An unrecognised shutter therefore stays open while a lamp
+runs, and §4.6.8's first interlock exists precisely because a shutter is faster than a lamp. **This is not
+a gap to fill but rule 2 in breach**, and the three fail-closed siblings are why it survived: the class
+looked handled.
+
+**And the partial case is the silent one, which is the wrong way round.** Measured over two channels:
+
+| channels | recognised | `abort_shutter_gap` recorded |
+|---|---|---|
+| both `*_shutter` | 2 | 0 |
+| **one `*_blanking`** | **1** | **0** |
+| both `*_blanking` | 0 | 1 |
+
+Total omission is recorded and **partial omission records nothing**, because the warning is computed over
+the global list once, so **one correctly-named channel masks the absence of every other.** The general
+form: **a guard whose warning is computed over a set cannot report a partial failure of that set**, and
+partial is the case that actually happens. `*_blanking` is not a hypothetical spelling -- the store's
+`lunf_per_line_power_is_not_transmittable` says a combiner line is reachable only by blanking.
+
+**The element row takes a `role`, and the field is authoritative, never the spelling.** Enumerated, with at
+least `objective_z`, `fast_shutter`, `focus_stabiliser` and `objective_turret`, and all four sites read it
+instead of matching text. **But the defect was never "spelling" -- it was substring matching on an
+identifier**, and `"shutter" in role` is the same defect one layer up, which is why `microscope-1` forbade
+inferring from a role string while asking for the field. So the rule is narrower and harder than "add a
+field": **an enumerated field is compared by equality; an identifier is never tested by substring.** A guard
+that pattern-matches text is a guard whose scope a spelling decides, and under P0 nothing decides where a
+safety guard applies except a declaration.
+
+Ruled from `manager-microscope`'s measurements and not from the code: `microscope_agent/src/` is that
+agent's and §6.2 rule 3 does not let this seat read it. **What a top-tier seat can check is that the
+numbers were produced by running rather than reading**, and they were -- three configurations, two
+channels, counted.
 3. **Irreversible actions take E1–E3 evidence only.** When a value resting on `E4` (computed) or `E5` (estimated) enters as a parameter of an irreversible action, it is not covered by a `scope_approval` and **an individual human approval is forced** (§5.3, §6.1).
 4. **Power goes up last and comes down first.** A command raising a light source or laser output is at the very end of a parallel set; a command lowering it is at the very front. An abort begins with cutting output (§4.6.8).
 5. **While a person has hands on the instrument, automatic commands are forbidden.** With a `manual` instruction sheet open, the orchestrator issues no command at all to that device group. The lock releases only when a person's confirmation closes the sheet — this is lockout/tagout in software (§8, check 23).
