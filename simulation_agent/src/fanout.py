@@ -207,6 +207,17 @@ def plan_queries(qid: str) -> list[dict]:
     under sim-20260923-201. What is fixed here is only the crash below.
     """
     goal = cards.load_goal(qid)
+    # A configuration with its own module plans its own queries (src/configs.py):
+    # the symbol set below is bd_overdamped's, as the paragraph above says.
+    from . import configs as _configs
+    _revision = cards.question_revision(qid)
+    _own = []
+    for _config in screen(goal["observable"]["name"]):
+        _mod = _configs.module_for(_config)
+        if _mod is not None:
+            _own += _mod.plan_queries(qid, _revision, _config, issue)
+    if _own:
+        return _own
     nums = {n["name"]: n for n in goal["numbers"]}
     missing = [n for n in ("temperature", "bead_diameter") if n not in nums]
     if missing:
@@ -305,8 +316,13 @@ if __name__ == "__main__":
             print(f"{q['tool']}(caller_id={q['caller_id']!r}, **{q['args']})")
             print(f"    why: {q['why']}")
         raise SystemExit(0)
+    kb_results = None
+    if len(sys.argv) > 3 and sys.argv[3] == "--results":
+        # answers the session collected from the librarian, keyed by caller_id,
+        # each {"served_by": "librarian_mcp", "entries": [...], "gaps": [...]}
+        kb_results = json.loads(open(sys.argv[4]).read())
     try:
-        for config, files in run(qid, created_at).items():
+        for config, files in run(qid, created_at, kb_results).items():
             print(f"{config}: {len(files)} axis cards")
             for name in files:
                 print(f"  {name}")

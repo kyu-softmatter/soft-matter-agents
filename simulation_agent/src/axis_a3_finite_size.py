@@ -27,12 +27,18 @@ from __future__ import annotations
 import sys
 
 from . import cards
+from . import axes_abp
 
 AXIS = "a3"
 
 
 def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: str,
           kb_result: dict | None = None, revision: int = 1) -> dict:
+    if axes_abp.is_active(config):
+        # The active configurations are a different physics; every number below is
+        # bd_overdamped's. Dispatched rather than branched so this file regenerates
+        # its own cards byte for byte (axes_abp).
+        return axes_abp.build(AXIS, qid, config, created_at, caller_id, kb_version, kb_result, revision)
     """The caller_id is injected by the fan-out executor, never chosen here.
 
     4.3.1 rule 3: a sub-agent that picks its own id can impersonate a
@@ -41,6 +47,12 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     """
     if not caller_id.endswith(f":{AXIS}"):
         raise ValueError(f"{caller_id!r} was issued to another axis; this module is {AXIS}")
+    # A configuration with its own module answers for itself (src/configs.py).
+    # bd_overdamped has none and falls through to the body below, unchanged.
+    from . import configs as _configs
+    _card = _configs.dispatch(AXIS, qid, config, created_at, caller_id, kb_version, kb_result, revision)
+    if _card is not None:
+        return _card
 
     goal = cards.load_goal(qid, revision)
     numbers, assumptions = cards.carry(

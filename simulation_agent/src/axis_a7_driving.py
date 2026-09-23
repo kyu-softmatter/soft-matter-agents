@@ -58,6 +58,12 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     """
     if not caller_id.endswith(f":{AXIS}"):
         raise ValueError(f"{caller_id!r} was issued to another axis; this module is {AXIS}")
+    # A configuration with its own module answers for itself (src/configs.py).
+    # bd_overdamped has none and falls through to the body below, unchanged.
+    from . import configs as _configs
+    _card = _configs.dispatch(AXIS, qid, config, created_at, caller_id, kb_version, kb_result, revision)
+    if _card is not None:
+        return _card
 
     goal = cards.load_goal(qid, revision)
     requested = driving_requested(goal)
