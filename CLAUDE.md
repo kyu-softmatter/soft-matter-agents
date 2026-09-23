@@ -111,7 +111,27 @@ for noticing: a plain commit adds a line to `git log`, an amend changes the
 content under an existing line, so **with the message unchanged nobody looks
 at all**. The only visible trace was that the amended commit's predecessor
 still said `probe`. `manager-microscope` made that point; I had called the
-two the same shape. The gate
+two the same shape.
+
+**And the index is not the hazard's root, which I learned by repeating it
+inside the hour.** The second time I checked `git diff --cached` first, found
+it empty, and amended anyway -- and swallowed **26 files of another seat's
+already-committed work**, because **`--amend` targets HEAD and HEAD moves.**
+Another session's commit completed between the check and the amend, so the
+commit I rewrote was not the one I had made. An empty index proves nothing
+about whose commit you are about to replace. **So the rule is not "check the
+index before amending" but simply: do not `--amend` in this working copy.**
+A wrong message is cheap and a rewritten commit is not; correct it by adding
+a commit that says what the badly-named one contains. That second incident
+was undone -- `--amend` with an empty index keeps the tree, so the replaced
+commit and its replacement had identical trees and `git update-ref` back to
+the original restored it with nothing lost -- but it was undoable only
+because nobody had committed on top in the ninety seconds it existed.
+
+**A long commit message passed as `$(cat <<'EOF' ...)` has now failed
+silently twice**, leaving the commit unmade while the command reported
+nothing. Both times the recovery attempt was an amend, which is how one
+failure became two. **Write the message to a file and use `git commit -F`.** The gate
 lists separately whatever differs from what is going in, because nothing checks
 that. `--no-verify` bypasses it and leaves no trace, so say so in the
 message.

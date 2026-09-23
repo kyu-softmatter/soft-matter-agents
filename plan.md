@@ -2444,7 +2444,16 @@ is in `contracts/`, which is a manager's, so one commit carrying both is refused
 implemented at `73ed73f` and said so. **The rule I was copying works only because both halves have one
 owner** -- a check and its fixtures are both the manager's, so *land them together* is achievable there
 and is nonsense here. **A same-commit rule is a claim about ownership, not about discipline**, and
-before writing one the question is whether the two halves are in one boundary. Where they are not, the
+before writing one the question is whether the two halves are in one boundary.
+
+**Commit `8dd8637` carries this subsection's real content under the message `wip: capturing gate
+output`, and that is left as it is (2026-09-23).** The message is wrong because a long one passed as a
+command substitution failed silently -- twice -- and the short probe that replaced it was never renamed.
+**Both renaming attempts were `git commit --amend`, and the second one rewrote `simulation-10`'s commit**,
+taking 26 of its files under this seat's identity, because an amend targets HEAD and HEAD had moved while
+the index was being checked. It was undone by `git update-ref`, losing nothing, and only because nobody
+had committed on top of it for ninety seconds. **The conclusion is that a bad message is not worth an
+amend here**, and the record correcting it is this paragraph rather than a rewritten header. Where they are not, the
 order is what can be required: declaration first when the declaration sets scope, implementation first
 when the declaration would otherwise describe something that does not exist -- and check 42 already
 reports the gap either way, which is why neither order is unsafe.
