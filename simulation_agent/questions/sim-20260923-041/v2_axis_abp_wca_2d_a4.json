@@ -1,0 +1,208 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-041-abp_wca_2d-a4-r2",
+  "qid": "sim-20260923-041",
+  "thread": "solo-sim-20260923-041",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T19:55:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-041:v2:abp_wca_2d:a4",
+  "config": "abp_wca_2d",
+  "axis": "a4",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "save_interval",
+      "unit": "s",
+      "max": 1.0,
+      "basis": [
+        "save_interval_max"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "parameter": "fit_lag_range_lower_bound",
+      "unit": "s",
+      "min": 1000.0,
+      "basis": [
+        "fit_lag_range_lower_bound_min"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "parameter": "max_lag_time",
+      "unit": "s",
+      "min": 3000.0,
+      "basis": [
+        "max_lag_time_min"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "persistence_time_expected",
+      "value": 100,
+      "unit": "s",
+      "source": "computed:persistence_time_2d",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "1/rotational_diffusivity",
+      "inputs": [
+        "rotational_diffusivity"
+      ],
+      "note": "the 2D relation tau_p = 1/D_R, the person's dimension. It is the input-side expectation the registered persistence_time estimator is read against, and not a result",
+      "origin": "v2_goal.json#persistence_time_expected"
+    },
+    {
+      "name": "lag_coverage_factor",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_lag_coverage",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "save interval as a fraction of the persistence time: two decades of ballistic lag below the crossover"
+    },
+    {
+      "name": "save_interval_max",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:two_decades_below_persistence",
+      "grade": "E5",
+      "formula": "lag_coverage_factor*persistence_time_expected",
+      "inputs": [
+        "lag_coverage_factor",
+        "persistence_time_expected"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "upper bound. The crossover and the short-time slope live below tau_p, and a save interval near tau_p would record only the diffusive tail"
+    },
+    {
+      "name": "plateau_factor",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_plateau",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how many persistence times into the lag the effective diffusivity is read; the same input A2 derives its reference lag from, not A2's output (4.5.3 rule b)"
+    },
+    {
+      "name": "fit_lag_range_lower_bound_min",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "computed:plateau_lag",
+      "grade": "E5",
+      "formula": "plateau_factor*persistence_time_expected",
+      "inputs": [
+        "plateau_factor",
+        "persistence_time_expected"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the window parameter of effective_translational_diffusivity; a value read earlier is D_T under that name (contracts/observables.json)"
+    },
+    {
+      "name": "window_span_factor",
+      "value": 3,
+      "unit": "1",
+      "source": "assumed:a_window_span",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how many times the lower bound the MSD window extends, so the fit has lags to fit"
+    },
+    {
+      "name": "max_lag_time_min",
+      "value": 3000.0,
+      "unit": "s",
+      "source": "computed:span_over_lower_bound",
+      "grade": "E5",
+      "formula": "window_span_factor*fit_lag_range_lower_bound_min",
+      "inputs": [
+        "window_span_factor",
+        "fit_lag_range_lower_bound_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the window parameter of mean_squared_displacement, bounded from BELOW here: opposite to tracer_diffusivity, whose window is bounded from above to stay free"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_lag_coverage",
+      "gap_ref": "lag_coverage_factor_absent",
+      "statement": "Two decades of lag below the persistence time is what it takes to see the ballistic slope of two, the crossover, and the approach to one on one curve; fewer would fit a slope through a crossover nobody resolved.",
+      "numbers": [
+        "lag_coverage_factor"
+      ],
+      "falsifier": "an msd_loglog_slope that reads two over the whole first decade retires the second"
+    },
+    {
+      "rationale_id": "a_plateau",
+      "gap_ref": "plateau_factor_absent",
+      "statement": "Ten persistence times is where the free active MSD is within a few per cent of its asymptotic slope. Interactions can lengthen the approach, which is a result.",
+      "numbers": [
+        "plateau_factor"
+      ],
+      "falsifier": "a fitted slope that still drifts between ten and thirty persistence times raises this factor"
+    },
+    {
+      "rationale_id": "a_window_span",
+      "gap_ref": "window_span_factor_absent",
+      "statement": "A fit over lags from ten to thirty persistence times spans half a decade, enough for a weighted slope and short enough that the longest lag stays inside A2's record ratio.",
+      "numbers": [
+        "window_span_factor"
+      ],
+      "falsifier": "a slope that changes with the upper end of the fit by more than the statistical error widens the span"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "lag_coverage_factor_absent",
+      "observable": "lag_coverage_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v2:abp_wca_2d:a4",
+      "asked_at": "2026-09-23T19:45:51+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "plateau_factor_absent",
+      "observable": "plateau_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v2:abp_wca_2d:a4",
+      "asked_at": "2026-09-23T19:45:54+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "window_span_factor_absent",
+      "observable": "window_span_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v2:abp_wca_2d:a4",
+      "asked_at": "2026-09-23T19:45:57+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "Three windows, one per registered observable that this plan reads: the save interval for msd_loglog_slope and the crossover, the lower bound for effective_translational_diffusivity, and the span for mean_squared_displacement. A4 says nothing about the integration step."
+}

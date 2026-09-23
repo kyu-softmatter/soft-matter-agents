@@ -1,0 +1,206 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-042-abp_wca_2d-a3-r2",
+  "qid": "sim-20260923-042",
+  "thread": "solo-sim-20260923-042",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T19:55:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-042:v2:abp_wca_2d:a3",
+  "config": "abp_wca_2d",
+  "axis": "a3",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "abstain_reason": "The box is the compare variable of this question. The inequality this axis owns -- the box against the persistence length and the other dynamical lengths -- is the hypothesis the arms test, so bounding the box here would forbid the arms the question exists to run. The arms are recorded in numbers[] and the abstention is the record that the axis was asked (P1).",
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the SI anchor: the particle in the bottle. An active particle of this size is a model choice, not a claim that these beads self-propel; the anchor exists because cards are authoritative in physical units (D7) and the store holds this diameter at E2",
+      "origin": "v2_goal.json#bead_diameter"
+    },
+    {
+      "name": "persistence_length_expected",
+      "value": 50,
+      "unit": "um",
+      "source": "computed:persistence_length_2d",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "peclet*bead_diameter",
+      "inputs": [
+        "peclet",
+        "bead_diameter"
+      ],
+      "note": "v0/D_R in 2D with v0 = Pe*d*D_R; the length the box is compared against. An expectation from the inputs, not a result. E5 because peclet is an assumed input and the worst input decides (P15)",
+      "origin": "v2_goal.json#persistence_length_expected"
+    },
+    {
+      "name": "packing_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_operating_point",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "held across arms; the centre of 041's density decades",
+      "origin": "v2_goal.json#packing_fraction"
+    },
+    {
+      "name": "box_over_persistence_length_min",
+      "value": 1,
+      "unit": "1",
+      "source": "assumed:a_box_arms",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the smallest arm, where a particle meets its own image within one persistence length",
+      "origin": "v2_goal.json#box_over_persistence_length_min"
+    },
+    {
+      "name": "box_over_persistence_length_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_box_arms",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the largest arm; expected to exceed the local budget",
+      "origin": "v2_goal.json#box_over_persistence_length_max"
+    },
+    {
+      "name": "box_length_smallest_arm",
+      "value": 50.0,
+      "unit": "um",
+      "source": "computed:arm_times_persistence_length",
+      "grade": "E5",
+      "formula": "box_over_persistence_length_min*persistence_length_expected",
+      "inputs": [
+        "box_over_persistence_length_min",
+        "persistence_length_expected"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the smallest arm: a particle meets its own image within one persistence length"
+    },
+    {
+      "name": "box_length_largest_arm",
+      "value": 5000.0,
+      "unit": "um",
+      "source": "computed:arm_times_persistence_length",
+      "grade": "E5",
+      "formula": "box_over_persistence_length_max*persistence_length_expected",
+      "inputs": [
+        "box_over_persistence_length_max",
+        "persistence_length_expected"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the largest arm"
+    },
+    {
+      "name": "n_particles_largest_arm",
+      "value": 100000.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "formula": "4*packing_fraction*box_length_largest_arm**2/(pi*bead_diameter**2)",
+      "inputs": [
+        "packing_fraction",
+        "box_length_largest_arm",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "what the largest arm costs in particles at the held packing fraction; A5 says whether it is affordable"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_operating_point",
+      "statement": "One point in the middle of 041's grid, so the two questions share a condition and 041 can cite this result as its finite-size premise.",
+      "numbers": [
+        "packing_fraction"
+      ],
+      "falsifier": "041's S4 chooses a different centre, or a store entry places this point inside the clustered regime, where the box question has a different answer",
+      "gap_ref": "packing_fraction_absent"
+    },
+    {
+      "rationale_id": "a_box_arms",
+      "statement": "Arms at one, ten and a hundred persistence lengths, because the question compares the box with the persistence length and explore steps in decades.",
+      "numbers": [
+        "box_over_persistence_length_min",
+        "box_over_persistence_length_max"
+      ],
+      "falsifier": "an A5 cost above the local ceiling drops the largest arm; an A3 interval that puts the size-independent regime below one persistence length adds a smaller one",
+      "gap_ref": "finite_size_effect_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "mean_squared_displacement_absent",
+      "observable": "mean_squared_displacement",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-042:v2:abp_wca_2d:a3",
+      "asked_at": "2026-09-23T19:46:32+00:00",
+      "condition_range": {
+        "bead_diameter": {
+          "max": 5,
+          "min": 5,
+          "unit": "um"
+        },
+        "temperature": {
+          "max": 293,
+          "min": 293,
+          "unit": "K"
+        }
+      },
+      "near_names": []
+    },
+    {
+      "gap_id": "finite_size_effect_absent",
+      "observable": "finite_size_effect",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-042:v2:abp_wca_2d:a3",
+      "asked_at": "2026-09-23T19:46:35+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "packing_fraction_absent",
+      "observable": "packing_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-042:v2:abp_wca_2d:a3",
+      "asked_at": "2026-09-23T19:51:34+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "Periodic in both directions; unwrapped coordinates in the estimator, or the image bound becomes an artefact of the analysis and not of the system."
+}

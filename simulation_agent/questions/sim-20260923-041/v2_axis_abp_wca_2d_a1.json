@@ -1,0 +1,326 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-041-abp_wca_2d-a1-r2",
+  "qid": "sim-20260923-041",
+  "thread": "solo-sim-20260923-041",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T19:55:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-041:v2:abp_wca_2d:a1",
+  "config": "abp_wca_2d",
+  "axis": "a1",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "max": 0.01,
+      "basis": [
+        "integration_timestep_max"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the SI anchor: the particle in the bottle. An active particle of this size is a model choice, not a claim that these beads self-propel; the anchor exists because cards are authoritative in physical units (D7) and the store holds this diameter at E2",
+      "origin": "v2_goal.json#bead_diameter"
+    },
+    {
+      "name": "translational_diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "D_T, the thermal translational diffusivity of the anchor sphere. Same relation as sim-20260917-001 and kb:tracer_diffusivity_expected",
+      "origin": "v2_goal.json#translational_diffusivity"
+    },
+    {
+      "name": "rotational_diffusivity",
+      "value": 0.01,
+      "unit": "1/s",
+      "source": "computed:stokes_einstein_debye",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(pi*viscosity*bead_diameter**3)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "D_R, THERMALLY TIED to D_T through the sphere's rotational drag -- 3*D_T/bead_diameter**2. The person did not rule on the tie and this is the assumption a_thermal_rotation; the store holds nothing on rotational diffusivity (gap rotational_diffusivity_absent). In 2D the persistence time is 1/D_R, about a hundred seconds at this anchor",
+      "origin": "v2_goal.json#rotational_diffusivity"
+    },
+    {
+      "name": "persistence_time_expected",
+      "value": 100,
+      "unit": "s",
+      "source": "computed:persistence_time_2d",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "1/rotational_diffusivity",
+      "inputs": [
+        "rotational_diffusivity"
+      ],
+      "note": "the 2D relation tau_p = 1/D_R, the person's dimension. It is the input-side expectation the registered persistence_time estimator is read against, and not a result",
+      "origin": "v2_goal.json#persistence_time_expected"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "a parameter of the noise amplitude, realised exactly by the model; the room's reading is why this value was chosen",
+      "origin": "v2_goal.json#temperature"
+    },
+    {
+      "name": "peclet_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "two decades up; v0 = Pe*bead_diameter*rotational_diffusivity, so of order 5 um/s at this anchor",
+      "origin": "v2_goal.json#peclet_max"
+    },
+    {
+      "name": "wca_epsilon",
+      "value": 4e-21,
+      "unit": "J",
+      "source": "assumed:a_wca_stiffness",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the WCA well depth, taken as one k_B*T at 293 K so the repulsion is hard-sphere-like at Pe of order one. At high Pe the active force can drive overlaps deep into the potential; A1 owns the contact stiffness and this is what it will move",
+      "origin": "v2_goal.json#wca_epsilon"
+    },
+    {
+      "name": "diffusive_time",
+      "value": 300.0,
+      "unit": "s",
+      "source": "computed:diffusive_time",
+      "grade": "E4",
+      "formula": "bead_diameter**2/translational_diffusivity",
+      "inputs": [
+        "bead_diameter",
+        "translational_diffusivity"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "kb:tau_d's relation, d**2/D, applied to this card's inputs. NOT carried under the symbol tau_d: check 36 compares a symbol's formula text across cards and the store spells the input `diffusivity`, while this goal names the same quantity translational_diffusivity to keep it apart from the rotational one. Same relation, different formal-parameter name, so the symbol is left off rather than a second spelling registered. For an active particle it is the LONGEST of the candidate times, not the one that binds"
+    },
+    {
+      "name": "self_propulsion_speed_max",
+      "value": 5.0,
+      "unit": "um/s",
+      "source": "computed:steric_peclet_number",
+      "grade": "E5",
+      "formula": "peclet_max*bead_diameter*rotational_diffusivity",
+      "inputs": [
+        "peclet_max",
+        "bead_diameter",
+        "rotational_diffusivity"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "v0 at the top of the Peclet range, from Pe = v0/(d*D_R), the steric convention (peclet_number_steric). The fastest particle sets the shortest active time"
+    },
+    {
+      "name": "active_step_time",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:diameter_over_speed",
+      "grade": "E5",
+      "formula": "bead_diameter/self_propulsion_speed_max",
+      "inputs": [
+        "bead_diameter",
+        "self_propulsion_speed_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the time to self-propel one diameter; a step longer than a fraction of it moves a particle through a neighbour"
+    },
+    {
+      "name": "wca_curvature_prefactor",
+      "value": 57,
+      "unit": "1",
+      "source": "literature:wca_potential_curvature_at_minimum",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "U''(r_min) of the WCA potential in units of epsilon over sigma squared: 4*(156/2**(7/3) - 42/2**(4/3)) = 57.1. Exact arithmetic on the published form, not a fit"
+    },
+    {
+      "name": "contact_relaxation_time",
+      "value": 5.0,
+      "unit": "s",
+      "source": "computed:drag_over_stiffness",
+      "grade": "E5",
+      "formula": "k_B*temperature*bead_diameter**2/(wca_curvature_prefactor*wca_epsilon*translational_diffusivity)",
+      "inputs": [
+        "temperature",
+        "bead_diameter",
+        "wca_curvature_prefactor",
+        "wca_epsilon",
+        "translational_diffusivity"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "gamma/k with gamma = k_B*T/D_T and k = 57*epsilon/d**2: the time an overlap relaxes at the potential minimum. Under strong activity particles sit deeper in the wall where the curvature is larger, so this is a LOWER estimate of the stiffness and an UPPER one of the time; the falsifier on a_wca_stiffness is what catches that"
+    },
+    {
+      "name": "shortest_resolved_time",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:smallest_candidate_time",
+      "grade": "E5",
+      "formula": "active_step_time",
+      "inputs": [
+        "active_step_time"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the smallest of active_step_time (1 s), contact_relaxation_time (5 s), persistence_time_expected (100 s), diffusive_time (300 s). The formula grammar has no min(), so the comparison is made here and the formula names the winner"
+    },
+    {
+      "name": "dt_resolution_factor",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_dt_factor",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how far below the shortest resolved time the step must sit: two decades"
+    },
+    {
+      "name": "integration_timestep_max",
+      "value": 0.01,
+      "unit": "s",
+      "source": "computed:resolution_of_shortest_time",
+      "grade": "E5",
+      "formula": "dt_resolution_factor*shortest_resolved_time",
+      "inputs": [
+        "dt_resolution_factor",
+        "shortest_resolved_time"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "upper bound only; nothing in A1 bounds the step from below"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_thermal_rotation",
+      "statement": "D_R is tied to D_T by the sphere's rotational drag, D_R = 3 D_T / d^2, because the person fixed the anchor and not D_R separately, and a thermal sphere is the one relation that introduces no free number.",
+      "numbers": [
+        "rotational_diffusivity"
+      ],
+      "falsifier": "the person rules D_R an independent axis, or the store gains an entry for the anchor's rotational diffusivity that disagrees by more than a decade",
+      "gap_ref": "rotational_diffusivity_absent"
+    },
+    {
+      "rationale_id": "a_wca_stiffness",
+      "statement": "One k_B T of WCA well depth makes the repulsion hard-sphere-like at low Pe; whether it stays so at the top of the Pe range is A1's question.",
+      "numbers": [
+        "wca_epsilon"
+      ],
+      "falsifier": "an A1 interval that finds the contact overlap at peclet_max exceeding a stated fraction of the diameter replaces this value, and it is then a swept quantity again",
+      "gap_ref": "active_brownian_particle_absent"
+    },
+    {
+      "rationale_id": "a_sweep_decades",
+      "statement": "Two decades of Pe and nearly two of packing fraction, in decade steps, because the person reduced the sweep to these two axes and explore answers in decades. The ends are guesses at where the free and the clustered regimes sit.",
+      "numbers": [
+        "peclet_max"
+      ],
+      "falsifier": "an A5 cost above the local ceiling at the dense, high-Pe corner drops that corner and says so; a store entry placing the clustering threshold outside this range moves the ends",
+      "gap_ref": "packing_fraction_absent"
+    },
+    {
+      "rationale_id": "a_dt_factor",
+      "gap_ref": "integration_timestep_resolution_factor_absent",
+      "statement": "Two decades below the shortest resolved time is the usual margin for an overdamped integrator; it is a convention and no convergence scan on this model has been run.",
+      "numbers": [
+        "dt_resolution_factor"
+      ],
+      "falsifier": "a timestep scan on this configuration showing the effective diffusivity flat over a wider range of steps replaces this factor with a measured one"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2."
+    },
+    {
+      "entry_id": "tau_d",
+      "grade": "E4",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
+    },
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "integration_timestep_resolution_factor_absent",
+      "observable": "integration_timestep_resolution_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v2:abp_wca_2d:a1",
+      "asked_at": "2026-09-23T19:45:34+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "packing_fraction_absent",
+      "observable": "packing_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v2:abp_wca_2d:a1",
+      "asked_at": "2026-09-23T19:51:14+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "active_brownian_particle_absent",
+      "observable": "active_brownian_particle",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v2:abp_wca_2d:a1",
+      "asked_at": "2026-09-23T19:51:17+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "The binding time is active_step_time, not the diffusive time bd_overdamped uses. The contact time is estimated at the potential minimum and is the weakest number here. S4 picks the step inside the interval (4.5.2)."
+}
