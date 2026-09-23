@@ -12,6 +12,11 @@ by who can supply it.
 
 ### 1. From the person
 
+**Answered 2026-09-23**: purpose `characterize`; 2D, periodic boundaries; purely
+repulsive Yukawa potential. Strength and screening length are the swept
+parameters and still have no decades. Items below that these answers close
+are left as written, as the record of what was asked.
+
 - **Purpose.** Proposed `characterize` (quantify a property over a swept range,
   intent `explore`, answers in decades). Confirm, or say `compare` and name the
   one variable that differs between arms.

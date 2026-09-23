@@ -34,7 +34,10 @@
     "the observable name is UNREGISTERED and no configuration produces it; the same two requests up as in 001. In addition this configuration is DRIVEN, so A7 stops abstaining: quasi-staticity, the strain to reach steady state and the range where the overdamped model holds all become live inequalities, and the direction relative to the lattice is a settable parameter A7 owns",
     "'lattice direction' presupposes that 001 relaxes to an ordered structure. If it does not at the chosen conditions, principal, perpendicular and diagonal have no referent; the driven question inherits that as a precondition, and it is a result of 001 and not an assumption to make here",
     "the driving velocity, its range, and how a single particle is driven (prescribed displacement or constant force) are unspecified. The two are different models with different A7 conditions, and the person's word is 'prescribed velocity'; taken literally that is a kinematic constraint, and the configuration declaration has to say which",
-    "the librarian was reached: two kb_query calls under this id returned absent (see kb_gaps), and two under 001's id returned absent for the shared system"
+    "the librarian was reached: two kb_query calls under this id returned absent (see kb_gaps), and two under 001's id returned absent for the shared system",
+    "ANSWERED BY THE PERSON 2026-09-23: purpose `characterize` confirmed (it was proposed above); the system is TWO-DIMENSIONAL with PERIODIC boundaries; the interparticle potential is a PURELY REPULSIVE YUKAWA (screened Coulomb), u(r) proportional to exp(-kappa r)/r with no attractive well. The prefactor and the screening length kappa^-1 are the 'strength' and 'range' the question sweeps and are not numbers here: their decades are still the person's or S3's",
+    "still open with the person, additional to 001: how the particle is driven (prescribed velocity or constant force) and what relaxes (global order parameter, or the wake behind the particle)",
+    "still open with the person: the estimator of 'relaxed', the swept decades of strength, range and density, and the target accuracy"
   ],
   "kb_gaps": [
     {

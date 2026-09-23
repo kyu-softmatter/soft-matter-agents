@@ -12,6 +12,11 @@ is not repeated. What is additional:
 
 ### 1. From the person
 
+**Answered 2026-09-23**: purpose `characterize`; 2D, periodic boundaries; purely
+repulsive Yukawa potential. Strength and screening length are the swept
+parameters and still have no decades. Items below that these answers close
+are left as written, as the record of what was asked.
+
 - **Purpose.** Proposed `characterize` (three parameters swept: velocity,
   interaction strength, direction). If direction-against-direction is the
   real interest, say `compare` with `compare_variable: driving_direction`; S4
