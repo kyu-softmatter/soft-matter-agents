@@ -196,6 +196,18 @@
           "note": "selects which widefield source reaches the sample. WHICH engine each state selects is not confirmed. This is also the one element on this instrument with a recorded history of an inverted label-to-state mapping -- see label_warning in optical_paths.v0.json, where a branch selector read back consistently wrong for weeks and only an image showed which position passed light. The element with that history is the element whose engine assignment is unverified, and those two facts are worth reading together rather than one at a time."
         },
         {
+          "id": "z_drive",
+          "read_back": true,
+          "source": "prior_run:agentic-microscope@34a432c",
+          "grade": "E3",
+          "gap_ref": "z_drive_lock_group",
+          "entry_ref": "mm_label_zdrive_is_the_focus_axis",
+          "note": "the focus axis. The channel role said FOCUS and no element was one, while the store asserted at E3 that smaller Z is retracted -- motion claimed and the mover unaddressed. MM label `ZDrive`, read from code positions and not from the relay; it is in the entry rather than here because every id in this table is this store's own name and not a device label. READ_BACK IS THE ELEMENT'S OWN and not the channel's: `core.getPosition(\"ZDrive\")` appears at four call sites, so the position can be read after a move, which is what an interlock requiring verification == readback needs. LOCK_GROUP IS DELIBERATELY ABSENT -- see the gap. WHAT IT MOVES is not claimed: the document does not settle whether the objective or the sample carriage travels, and on an inverted stand that decides which way a collision closes.",
+          "ruling": "transfer (10.2.1)",
+          "slot": "the device registry element row, plus a KB entry. Consumer: O1 preflight and the turret-rotation interlock.",
+          "rule_passed": "10.3 rule 1"
+        },
+        {
           "id": "motor_stage",
           "lock_group": "stage",
           "source": "operator_read:kyuhwan_20260917",
@@ -515,6 +527,17 @@
     }
   ],
   "gaps": [
+    {
+      "what": "which lock group the z_drive element belongs to",
+      "gap_id": "z_drive_lock_group",
+      "why_it_matters": "a lock group schedules real motion. If z_drive is put in a group it does not belong to, moves serialise that need not and -- worse -- moves that must serialise may not",
+      "kind": "absent",
+      "searched": [
+        "the prior project at 34a432c, which has no lock-group concept at all. The nearest thing is COLLISION_DEVICES = {Nosepiece, ZDrive, PFSOffset}, and hardware/focus.py rules it out in its own words: ZDrive's membership in COLLISION_DEVICES guards writes to ZDrive PROPERTIES, not Z motion. So the one candidate the document offers is explicitly not about motion",
+        "manager-microscope reasoned it should serialise with rotation, because nosepiece_write_runs_no_escape says Z does not move on a software turret write. They flagged that as their own inference and it is not a registry value, so it is not taken"
+      ],
+      "status": "open. The element row is entered without the field rather than with a guess: a guessed lock group is not a missing fact, it is a false schedule for real motion, and nothing downstream would report it. WHAT WOULD CLOSE IT: the operator saying which moves on this stand must not run concurrently with a focus move -- a bench question and not a store question, and the answer is a person's rather than a document's."
+    },
     {
       "what": "the camera's settable exposure grid -- whether setExposure takes a continuum or snaps to a quantum, and what that quantum is",
       "gap_id": "camera_exposure_grid",

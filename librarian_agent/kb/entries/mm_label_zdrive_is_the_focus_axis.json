@@ -1,0 +1,24 @@
+{
+  "entry_id": "mm_label_zdrive_is_the_focus_axis",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "On the prior project's configuration the focus axis is the MMCore device label `ZDrive`, moved with setPosition and read with getPosition. Its position is the focus coordinate on this stand.",
+  "validity_conditions": "THE LABEL WAS READ FROM CODE POSITIONS AND NOT FROM THE RELAY, which is the whole point of entering it here. It reached this seat as a quotation manager-microscope flagged as unverified -- `ZDrive` in a 28-device list -- and a relayed label is exactly what 10.3 rule 3 keeps out. Verified independently in machine-readable positions: the named constant `Z_DEVICE = \"ZDrive\"`, the set `COLLISION_DEVICES = frozenset({\"Nosepiece\", \"ZDrive\", \"PFSOffset\"})` in three files, `core.getPosition(\"ZDrive\")` at four call sites, and two tests asserting the name. The relay was right and that is not why it is entered. The same discipline caught the opposite case under 028: a docstring named the light engines `SpectraIII`/`AuraIII` while every call site wrote `LightEngine` and `Aura`. THE MM LABEL IS NOT THE REGISTRY ID. Every element on `stand_ti2e` is named in this store's own snake_case -- `nosepiece` for `Nosepiece`, `motor_stage` for `XYStage`, `lapp_branch` for `LappMainBranch1` -- so the element row added with this entry is `z_drive` and the MM label lives here, in `identifiers.mm_label`, the way 028 filed the camera and the engines. Task 035 asked for the MM label in the row's `id`; the table's own convention says otherwise and the convention wins, because an id that is sometimes a registry name and sometimes a device label is not an id. WHAT IT DRIVES IS NOT ENTERED. The document calls the motion `stage motion` in one place and gives `SAMPLE_Z_WINDOW_UM` as `where the sample sits in ZDrive coordinates`, which does not settle whether the objective or the sample carriage moves. On an inverted stand that distinction decides which way a collision closes, so it is left unclaimed rather than inferred. IT CORROBORATES A CLAIM THIS STORE ALREADY HOLDS AT E3. z_retract_direction_is_measured says smaller Z is retracted; the prior document carries `Z_RETRACT_DIRECTION = -1`, measured by the same operator on 2026-09-05, and records that the configurations have said `FocusDirection,ZDrive,1` since 2026-09-06. Two records of one measurement, agreeing. The grade does not rise -- it is the same operator and the same instrument, not a second measurement -- and the store's entry does not need this one. WHAT WOULD RAISE IT: getLoadedDevices() on this stand. Slot: a KB entry and the device registry's stand_ti2e elements. Rule passed: 10.3 rule 1 for the E3 cap, and the label comes from the configuration it was read in.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "stand_ti2e"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@34a432c",
+  "grade": "E3",
+  "source_ref": "src_prior_mm_device_reported_20260903",
+  "date": "2026-09-22",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-2",
+  "identifiers": {
+    "mm_label": "ZDrive",
+    "parent_stand": "Ti2-E"
+  }
+}
