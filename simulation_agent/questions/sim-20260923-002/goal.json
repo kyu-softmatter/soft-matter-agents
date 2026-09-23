@@ -18,7 +18,7 @@
   "caller_id": "sim-20260923-002:v1:s2",
   "purpose": "characterize",
   "observable": {
-    "name": "driven_tracer_relaxation_time"
+    "name": "structural_relaxation_time"
   },
   "targets": [],
   "priority": [
@@ -36,8 +36,9 @@
     "the driving velocity, its range, and how a single particle is driven (prescribed displacement or constant force) are unspecified. The two are different models with different A7 conditions, and the person's word is 'prescribed velocity'; taken literally that is a kinematic constraint, and the configuration declaration has to say which",
     "the librarian was reached: two kb_query calls under this id returned absent (see kb_gaps), and two under 001's id returned absent for the shared system",
     "ANSWERED BY THE PERSON 2026-09-23: purpose `characterize` confirmed (it was proposed above); the system is TWO-DIMENSIONAL with PERIODIC boundaries; the interparticle potential is a PURELY REPULSIVE YUKAWA (screened Coulomb), u(r) proportional to exp(-kappa r)/r with no attractive well. The prefactor and the screening length kappa^-1 are the 'strength' and 'range' the question sweeps and are not numbers here: their decades are still the person's or S3's",
-    "still open with the person, additional to 001: how the particle is driven (prescribed velocity or constant force) and what relaxes (global order parameter, or the wake behind the particle)",
-    "still open with the person: the estimator of 'relaxed', the swept decades of strength, range and density, and the target accuracy"
+    "ANSWERED BY THE PERSON 2026-09-23 (second reply): the estimator of 'relaxed' is the bond-orientational order parameter psi6 approaching its plateau; the swept ranges and the target accuracy are S3's to bound, not stated. The plateau criterion is a number and is S3's too (a threshold nobody has chosen is UNDECIDED, not satisfied)",
+    "the drive is a PRESCRIBED VELOCITY: the driven particle's position is imposed, a kinematic constraint, not a constant force. Answered by the person 2026-09-23",
+    "OBSERVABLE RENAMED 2026-09-23 from driven_tracer_relaxation_time to structural_relaxation_time: the person chose psi6 for both questions, so this is the same estimator under the conditions driving_velocity and driving_direction, and one estimator is one id (observables.json rule 2). 001 is the zero-velocity row. The kb_gaps row keeps the old name because it records what was asked of the store"
   ],
   "kb_gaps": [
     {

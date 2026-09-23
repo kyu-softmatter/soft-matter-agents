@@ -16,6 +16,7 @@ is not repeated. What is additional:
 repulsive Yukawa potential. Strength and screening length are the swept
 parameters and still have no decades. Items below that these answers close
 are left as written, as the record of what was asked.
+**Answered 2026-09-23, second reply**: 'relaxed' is psi6 reaching its plateau; ranges and target accuracy are S3's to bound. The drive is a prescribed velocity. With one estimator on both questions this question's observable is `structural_relaxation_time` under driving conditions, and no second id is owed.
 
 - **Purpose.** Proposed `characterize` (three parameters swept: velocity,
   interaction strength, direction). If direction-against-direction is the
