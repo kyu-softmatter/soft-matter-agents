@@ -47,6 +47,7 @@ OBSERVED = {
     "step_displacement_diverged": ("max_step_displacement", False),
     "statistics_met": ("relative_standard_error", True),
     "arms_agree_within_decade": ("arm_disagreement_decades", True),
+    "within_decade_of_free_expectation": ("decades_from_free_expectation", True),
     "window_insensitive": ("window_half_disagreement", True),
 }
 
@@ -130,7 +131,8 @@ def build(run_id: str) -> dict:
     qid = run["config"]["qid"]
     arm = run["config"].get("compare_arm")
     if arm is None:
-        raise Unwritable(f"{run_id} names no compare arm; this module writes cards for arms of a compare")
+        raise Unwritable(f"{run_id} names no compare arm or sweep point; this module writes cards for one condition set of an active plan")
+    is_sweep = bool(plan.get("sweep"))
     fit = run["observables"]["fit"]; unc = run["observables"].get("uncertainty") or {}; meta = run["meta"]
     if fit.get("diffusivity") is None:
         raise Unwritable(f"{run_id} produced no fitted effective diffusivity -- {fit.get('reason')!r}")
@@ -144,18 +146,29 @@ def build(run_id: str) -> dict:
 
     temperature = carry("temperature"); viscosity = carry("viscosity"); bead = carry("bead_diameter")
     d_r = carry("rotational_diffusivity"); carry("translational_diffusivity"); eps = carry("wca_epsilon")
-    pe = carry("peclet"); phi = carry("packing_fraction"); carry("persistence_time_expected")
+    if is_sweep:
+        cell = next(p for p in plan["sweep"]["points"] if p["point"] == arm)
+        cell_cond = {c["parameter"]: c["number"] for c in cell["conditions"]}
+        pe = carry(cell_cond["peclet_number_steric"], "peclet")
+        phi = carry(cell_cond["packing_fraction"], "packing_fraction")
+    else:
+        pe = carry("peclet"); phi = carry("packing_fraction")
+    carry("persistence_time_expected")
     carry("target_relative_error")
-    dt_p = carry("integration_timestep_point", RENAMED["integration_timestep_point"])
+    dt_p = carry(cell_cond["integration_timestep"] if is_sweep else "integration_timestep_point", RENAMED["integration_timestep_point"])
     dur_p = carry("total_simulated_time_point", RENAMED["total_simulated_time_point"])
     save_p = carry("save_interval_point", RENAMED["save_interval_point"])
     win_p = carry("max_lag_time_point", RENAMED["max_lag_time_point"])
     low_p = carry("fit_lag_range_lower_bound_point", RENAMED["fit_lag_range_lower_bound_point"])
-    arm_conditions = {a["arm"]: a["conditions"] for a in plan.get("compare_arms") or []}
-    box_src = next(c["number"] for c in arm_conditions[arm] if c["parameter"] == "box_length")
-    box = carry(box_src, "box_length")
-    n_src = f"n_particles_arm_{arm}" if f"n_particles_arm_{arm}" in {n["name"] for n in plan["numbers"]} else "n_particles_largest_arm"
-    n_p = carry(n_src, "n_particles")
+    if is_sweep:
+        box = carry(cell_cond["box_length"], "box_length")
+        n_p = carry(f"n_particles_{arm}", "n_particles")
+    else:
+        arm_conditions = {a["arm"]: a["conditions"] for a in plan.get("compare_arms") or []}
+        box_src = next(c["number"] for c in arm_conditions[arm] if c["parameter"] == "box_length")
+        box = carry(box_src, "box_length")
+        n_src = f"n_particles_arm_{arm}" if f"n_particles_arm_{arm}" in {n["name"] for n in plan["numbers"]} else "n_particles_largest_arm"
+        n_p = carry(n_src, "n_particles")
 
     model_inputs = [temperature, viscosity, bead, d_r, eps, pe, phi, box, n_p, dt_p, save_p, win_p, low_p]
 
@@ -177,7 +190,13 @@ def build(run_id: str) -> dict:
     pt = (run["observables"].get("persistence_time") or {}).get("persistence_time")
     read("persistence_time", pt, "s", model_inputs,
          note="decay time of the orientational autocorrelation fitted on a log scale over lags where it stays above 0.05; the input-side expectation is persistence_time_expected")
-    other = other_arm_fit(plan, run_id, arm)
+    if is_sweep:
+        lvl = arm.split("_")[0]
+        free = carry(f"effective_diffusivity_free_pe_{lvl}", "effective_diffusivity_free_expectation")
+        read("decades_from_free_expectation", abs(math.log10(fit["diffusivity"] / (free["value"] * result_card.si_factor(free["unit"])))), "count",
+             model_inputs + [free],
+             note="log10 of this cell's effective diffusivity over the free active particle's closed-form value at the same Peclet number, in absolute value: the question's own criterion. Not computed: -- the formula grammar has no logarithm")
+    other = other_arm_fit(plan, run_id, arm) if not is_sweep else None
     if other is not None:
         other_run, other_fit = other
         read("arm_disagreement_decades", abs(math.log10(fit["diffusivity"] / other_fit["diffusivity"])), "count", model_inputs,

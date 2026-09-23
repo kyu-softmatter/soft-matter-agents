@@ -527,13 +527,27 @@ def arm_view(plan: dict, arm: str | None) -> tuple[dict, dict | None]:
     """
     if arm is None:
         return plan, None
+    # One name serves both shapes a plan can take: an arm of a compare or a
+    # point of a sweep (plan.schema.json: a card carries one or the other,
+    # never both). Either is a condition set appended to the shared ones,
+    # and either may carry its own cost under the plan's per-arm or per-cell
+    # numbers. A skipped sweep point is refused: S4 dropped it with numbers,
+    # and running it anyway would be the operator overruling the plan.
     arms = {a.get("arm"): a for a in plan.get("compare_arms") or []}
-    if arm not in arms:
-        raise Refused(f"the plan has no compare arm named {arm!r}; it has {sorted(arms)}")
+    points = {p.get("point"): p for p in (plan.get("sweep") or {}).get("points") or []}
+    if arm in arms:
+        chosen = arms[arm]
+    elif arm in points:
+        chosen = points[arm]
+        if chosen.get("skipped"):
+            raise Refused(f"sweep point {arm!r} was skipped by S4: {chosen['skipped']}. The operator does not run a cell the plan dropped (4.6)")
+    else:
+        raise Refused(f"the plan has no compare arm or sweep point named {arm!r}; it has arms {sorted(arms)} and points {sorted(points)}")
     view = dict(plan)
-    view["conditions"] = list(plan["conditions"]) + list(arms[arm]["conditions"])
+    view["conditions"] = list(plan["conditions"]) + list(chosen["conditions"])
     nums = {n["name"]: n for n in plan["numbers"]}
-    steps, coords = nums.get(f"particle_steps_arm_{arm}"), nums.get(f"coordinates_stored_arm_{arm}")
+    steps = nums.get(f"particle_steps_arm_{arm}") or nums.get(f"particle_steps_{arm}")
+    coords = nums.get(f"coordinates_stored_arm_{arm}") or nums.get(f"coordinates_stored_{arm}")
     rate, bytes_per = nums.get("particle_step_rate"), nums.get("bytes_per_coordinate")
     cost = None
     if steps and coords and rate and bytes_per:
