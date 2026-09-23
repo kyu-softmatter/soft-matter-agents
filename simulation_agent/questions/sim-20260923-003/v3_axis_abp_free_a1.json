@@ -1,0 +1,100 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-003-abp_free-a1-r3",
+  "qid": "sim-20260923-003",
+  "thread": "solo-sim-20260923-003",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T21:50:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-003:v3:abp_free:a1",
+  "config": "abp_free",
+  "axis": "a1",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "max": 1.0,
+      "basis": [
+        "integration_timestep_max"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "rotational_diffusivity",
+      "value": 0.01,
+      "unit": "1/s",
+      "source": "computed:stokes_einstein_debye",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "note": "the sphere's own Stokes-Einstein-Debye value, 3*D_T/d^2. This revision sits ON the realisable centre rather than off it, so every number here describes one physical particle. Unit 1/s and not rad^2/s: the registry gives rad the dimension A, so rad^2/s cannot enter any formula check 17 can evaluate, and a radian is dimensionless",
+      "formula": "3*translational_diffusivity/bead_diameter**2",
+      "inputs": [
+        "translational_diffusivity",
+        "bead_diameter"
+      ],
+      "origin": "v3_goal.json#rotational_diffusivity"
+    },
+    {
+      "name": "persistence_time_expected",
+      "value": 100,
+      "unit": "s",
+      "source": "computed:inverse_rotational_diffusivity",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "note": "1/((d-1)*D_R) is 1/D_R in two dimensions. Consistent with the rotational diffusivity above BY CONSTRUCTION, which revision 2 was not: it carried the sweep top for one and the sweep bottom for the other, and A1 failed check 17 on the mismatch",
+      "formula": "1/rotational_diffusivity",
+      "inputs": [
+        "rotational_diffusivity"
+      ],
+      "origin": "v3_goal.json#persistence_time_expected"
+    },
+    {
+      "name": "dt_resolution_factor",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_dt_factor",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how far below the persistence time the step must sit: two decades. Measured on a reference Euler-Maruyama integrator by simulation-9: the bias in the effective diffusivity is +0.6 per cent at D_R*dt = 0.2 and +0.02 per cent at 0.02, so two decades holds it under the statistical error; the declared engine's scheme may carry a different coefficient and the same group"
+    },
+    {
+      "name": "integration_timestep_max",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:resolution_of_persistence_time",
+      "grade": "E5",
+      "formula": "dt_resolution_factor*persistence_time_expected",
+      "inputs": [
+        "dt_resolution_factor",
+        "persistence_time_expected"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "upper bound only. The free model has no length scale, so no displacement per step is constrained; the orientation held fixed over one step is the only error the integrator makes, and D_R*dt is the only group it can depend on"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_dt_factor",
+      "gap_ref": "integration_timestep_resolution_factor_absent",
+      "statement": "Two decades below the persistence time is a convention; a reference integrator measured the bias at that factor as two hundredths of a per cent, which is far inside the target error, but the declared engine has not been scanned.",
+      "numbers": [
+        "dt_resolution_factor"
+      ],
+      "falsifier": "a timestep scan on hoomd_backend showing the effective diffusivity flat over a wider range of D_R*dt replaces this factor with a measured one"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "note": "One inequality, D_R*dt << 1. The diffusive time and the self-propulsion step of the interacting branch are not computed here because the free model has no diameter for them to stand on; a bound resting on an absent quantity is not a safe bound but an expensive one. Revision 2's cards carried that bound and are left as written (4.5.5)."
+}

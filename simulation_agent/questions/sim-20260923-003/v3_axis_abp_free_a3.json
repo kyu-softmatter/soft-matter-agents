@@ -1,0 +1,79 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-003-abp_free-a3-r3",
+  "qid": "sim-20260923-003",
+  "thread": "solo-sim-20260923-003",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T21:50:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-003:v3:abp_free:a3",
+  "config": "abp_free",
+  "axis": "a3",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "abstain_reason": "Nothing couples a free active particle to its periodic image: with no pair potential and unwrapped coordinates the MSD and every quantity read off it are independent of the box. There is no inequality to emit. The box has only to hold the ensemble, which is A5's cost and not A3's physics.",
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the laboratory's tracer, measured by the operator on 2026-09-19. Provenance of D_T and of the sweep's centre, NOT a parameter of abp_free",
+      "origin": "v3_goal.json#bead_diameter"
+    },
+    {
+      "name": "peclet_max",
+      "value": 60,
+      "unit": "1",
+      "source": "assumed:a_peclet_point",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "THE STERIC CONVENTION v0/(d*D_R), 57.7 at this point, carried only because axes_abp's formulas read that name. Not the collapse variable",
+      "origin": "v3_goal.json#peclet_max"
+    },
+    {
+      "name": "persistence_length_max",
+      "value": 300.0,
+      "unit": "um",
+      "source": "computed:steric_peclet_number",
+      "grade": "E5",
+      "formula": "peclet_max*bead_diameter",
+      "inputs": [
+        "peclet_max",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "v0/D_R in 2D with v0 = Pe*d*D_R; recorded so the box can be compared to it even though nothing here bounds the box"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_peclet_point",
+      "statement": "The thermal Peclet number is set to 100 at this single operating point, where Lambda = 1e4 and the maximum log-log slope is 1.98. Chosen so the ballistic regime is present rather than marginal: at Pe_thermal of 10 the maximum slope is 1.79 and at 1 it is 1.12.",
+      "numbers": [
+        "peclet_max"
+      ],
+      "falsifier": "a run whose maximum log-log slope falls below 1.9, which would mean this point does not reach the regime it was chosen to reach",
+      "gap_ref": "self_propulsion_speed_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    }
+  ],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "note": "The abstention is the physics of the free model, not a missing input."
+}
