@@ -104,6 +104,7 @@ with a condition anyone could run. So every row carries one.
 |---|---|
 | **`004` — revision 2** | `git log --oneline -1 -- simulation_agent/questions/sim-20260917-001/v2_goal.json` |
 | **`007` — the result-card writer** | `ls simulation_agent/src/result_card.py 2>/dev/null && echo TAKEN \|\| echo OPEN` |
+| **`019` — detect the engine, say so when missing** | `cd simulation_agent && python3 -c "from src import engine_check" 2>/dev/null && grep -q 'stopgap' simulation_agent/src/environment.yml && echo TAKEN \|\| echo OPEN` |
 | **`018` — HOOMD is the default backend** | `cd simulation_agent && python3 -c "import inspect;from src import operator as o;print('mock_backend.MockBackend' in inspect.getsource(o.run))" | grep -q False && echo TAKEN \|\| echo OPEN` |
 | **`017` — a comment in the present tense** | `grep -q 'operator records' simulation_agent/src/mock_backend.py && echo OPEN \|\| echo TAKEN` — text form, last resort: this card IS about a comment |
 | **`016` — the seed fallback** | `cd simulation_agent && python3 -c "from src.operator import backend_seed;backend_seed(type('N',(),{})())" 2>&1 | grep -q Refused && echo TAKEN \|\| echo OPEN` |
