@@ -124,7 +124,16 @@ working -- does not reach it. On 2026-09-20 `bad_gap_name_carries_its_locus.json
 left index, disk, every commit and every loose object; two seats searched
 independently, walking unreachable and dangling blobs, and found nothing. A
 check committed without its fixtures is a check whose evidence exists only in
-a working copy anyone can revert. Neither of these gets a check of its own:
+a working copy anyone can revert.
+
+**And a rule with no fixture at all is outside that sentence entirely.** On
+2026-09-22 a seat tidying §4.4 rule 5 switched its duplicate test off for
+every round and `--expect-fail` read **31/31** -- because a plain repeat had
+no fixture, so there was nothing to stop failing. *A fixture that stops
+failing means a check stopped working* only reaches rules a fixture covers.
+**The completing half is to watch the new fixture fail**: the same seat added
+one, switched the check off again, and saw 16/17. A fixture you have never
+watched fail is a fixture you do not know tests anything. Neither of these gets a check of its own:
 nothing at commit time can tell whose hunk is whose, and a fixture that was
 never committed leaves nothing to compare against (§11-17).
 
