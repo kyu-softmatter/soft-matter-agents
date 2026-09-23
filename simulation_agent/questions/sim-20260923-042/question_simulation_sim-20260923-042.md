@@ -27,7 +27,7 @@ specific to this question and are asked before anything else.
    diffusivity are typically a fraction of the value — every box would pass
    as size-independent. If the minimum box is wanted at that resolution, the
    intent is `confirm` with an `intent_rationale` and a stated target on
-   `effective_diffusivity` (check 32). Confirm is not cheap.
+   `effective_translational_diffusivity` (check 32). Confirm is not cheap.
 
 ### Also from the person
 

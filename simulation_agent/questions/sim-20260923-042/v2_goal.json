@@ -17,7 +17,7 @@
   },
   "targets": [
     {
-      "metric": "effective_diffusivity",
+      "metric": "effective_translational_diffusivity",
       "kind": "decade_resolution",
       "value": 1,
       "unit": "count",

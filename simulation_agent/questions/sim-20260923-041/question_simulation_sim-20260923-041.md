@@ -47,7 +47,7 @@ Register five observables; the estimator is part of each identity
 | proposed id | window | the choice the estimator forces |
 |---|---|---|
 | `mean_squared_displacement` | yes | lag grid; averaged over particles and time origins; unwrapped coordinates |
-| `effective_diffusivity` | yes | slope of the MSD at lags well above the persistence time, fit window declared |
+| `effective_translational_diffusivity` | yes | slope of the MSD at lags well above the persistence time, fit window declared |
 | `persistence_time` | yes | fitted from the orientational autocorrelation, or taken as 1/((d−1) D_R) from the input — the first is a measurement, the second restates the input |
 | `persistence_length` | yes | v0 × persistence_time, or fitted from the MSD crossover |
 | `dynamical_crossover_time` | yes | where the log-log slope of the MSD passes a stated value between 2 and 1 |
