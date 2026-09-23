@@ -25,7 +25,20 @@ from __future__ import annotations
 
 import numpy as np
 
-DIMENSIONS = 3
+# The number of coordinate COLUMNS a frame carries. HOOMD stores three for
+# every particle whatever the box is; in a two-dimensional box the third is
+# identically zero. This is an array width and NOT the physical
+# dimensionality, and conflating the two is what made the old constant look
+# harmless: as `DIMENSIONS = 3` it was both, correct as a width always and
+# correct as a physics number only for `bd_overdamped`.
+SPATIAL_COMPONENTS = 3
+
+# Kept as the old name so nothing importing it breaks, and deliberately NOT
+# used in any division. `D = slope/(2d)` now reads the dimensionality the
+# configuration declares (capabilities/simulation.json `dimensions.n`), which
+# is 2 for four of the six declared configurations. A 2D run read at d = 3
+# returns two thirds of the true diffusivity, plausibly and silently.
+DIMENSIONS = SPATIAL_COMPONENTS
 
 
 class Estimator:
@@ -39,7 +52,22 @@ class Estimator:
     physics rather than to hide in the estimator.
     """
 
-    def __init__(self, frame_times: list, frames: list) -> None:
+    def __init__(self, frame_times: list, frames: list, dimensions: int) -> None:
+        """`dimensions` is the configuration's, and there is no default.
+
+        A default would be the whole defect back: whichever number it held
+        would be right for some configurations and quietly wrong for the
+        rest, and the caller that forgot to pass one would get a plausible
+        answer rather than an error. It is declared in
+        `contracts/capabilities/simulation.json` as `dimensions.n` and the
+        backend passes it through from the plan.
+        """
+        if dimensions not in (2, 3):
+            raise ValueError(
+                f"dimensions must be 2 or 3, got {dimensions!r}. It is the configuration's "
+                "declared `dimensions.n` and is not something this estimator may assume"
+            )
+        self.dimensions = int(dimensions)
         self.frame_times = list(frame_times)
         self.frames = list(frames)
 
@@ -123,7 +151,7 @@ class Estimator:
         shifts = np.arange(1, len(curve) + 1)
         independent = len(tracers) * np.maximum(self.n_frames // shifts, 1)
         slope, intercept = np.polyfit(lags, msd, 1, w=np.sqrt(independent))
-        return float(slope) / (2 * DIMENSIONS), float(intercept)
+        return float(slope) / (2 * self.dimensions), float(intercept)
 
     def window_halves(self, max_lag_time: float) -> dict:
         """The same estimator over each half of the lag range, and the gap.
@@ -194,7 +222,7 @@ class Estimator:
         shifts = np.arange(lo + 1, hi + 1)
         independent = self.n_particles * np.maximum(self.n_frames // shifts, 1)
         slope, intercept = np.polyfit(lags, msd, 1, w=np.sqrt(independent))
-        return float(slope) / (2 * DIMENSIONS), float(intercept)
+        return float(slope) / (2 * self.dimensions), float(intercept)
 
     def block_uncertainty(self, max_lag_time: float) -> dict:
         """An honest standard error, from tracers that really are independent.
@@ -391,10 +419,10 @@ class Estimator:
         # the honest uncertainty for this configuration comes from the spread
         # across seeds, and choosing how to report that is revision 2's, not a
         # fudge factor's.
-        diffusivity = float(slope) / (2 * DIMENSIONS)
+        diffusivity = float(slope) / (2 * self.dimensions)
         return {
             "diffusivity": diffusivity,
-            "diffusivity_standard_error": slope_se / (2 * DIMENSIONS),
+            "diffusivity_standard_error": slope_se / (2 * self.dimensions),
             "relative_standard_error": abs(slope_se / float(slope)) if slope else None,
             "intercept": float(intercept),
             "intercept_standard_error": intercept_se,

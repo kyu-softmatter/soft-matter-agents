@@ -130,6 +130,14 @@ class Reduced:
     def length_in(self, metres: float) -> float:
         return float(metres) / self.length
 
+    def speed_in(self, metres_per_second: float) -> float:
+        """A speed in SI -> the engine's. sigma/tau, with tau = sigma^2/D."""
+        return float(metres_per_second) * self.time / self.length
+
+    def rate_in(self, per_second: float) -> float:
+        """A rate in SI -> the engine's. A rotational diffusivity is 1/time."""
+        return float(per_second) * self.time
+
     def length_out(self, reduced) -> "np.ndarray | float":
         return np.asarray(reduced) * self.length if isinstance(reduced, np.ndarray) else float(reduced) * self.length
 
@@ -168,6 +176,53 @@ def to_engine(params: dict) -> dict:
         "kT": 1.0,
         "gamma": 1.0,
         "diameter": 1.0,
+        # The configuration's declared dimensionality (capabilities/
+        # simulation.json `dimensions.n`), carried into the engine record so a
+        # run says which `d` its diffusivity was divided by. 3 is a FALLBACK
+        # and not a default in disguise: it is what every plan in this tree
+        # predating the field meant, all of them bd_overdamped, and the
+        # preflight report prints it so a wrong one is visible rather than
+        # silent. The active path overrides it below.
+        "dimensions": int(params.get("dimensions", 3)),
+        **_active_to_engine(params, units),
+    }
+
+
+# --- the active configurations ------------------------------------------- #
+#
+# `abp_free` declares hoomd_backend as its executed_by, so the active path
+# belongs in this file and not beside it. It is ADDITIVE: a plan carrying
+# neither `self_propulsion_speed` nor `rotational_diffusivity` takes exactly
+# the path it took before, so every bd_overdamped card regenerates unchanged.
+#
+# What makes a run active is the PLAN, not a flag: the two parameters are the
+# model, and a plan that has them is a plan for a model that has them.
+
+ACTIVE_KEYS = ("self_propulsion_speed", "rotational_diffusivity")
+
+
+def is_active(params: dict) -> bool:
+    """Whether this plan describes a self-propelled particle."""
+    return all(k in params and params[k] is not None for k in ACTIVE_KEYS)
+
+
+def _active_to_engine(params: dict, units: "Reduced") -> dict:
+    """The active parameters in engine units, or nothing at all.
+
+    `active_force` and not `active_speed`: HOOMD's md.force.Active applies a
+    FORCE, and the overdamped velocity it produces is force/gamma. gamma is 1
+    in this unit system, so the two are numerically equal here -- and writing
+    the multiplication out is what keeps that an arithmetic fact rather than a
+    coincidence somebody later reads as an identity.
+    """
+    if not is_active(params):
+        return {}
+    v0 = units.speed_in(params["self_propulsion_speed"])
+    return {
+        "active_speed": v0,
+        "active_force": v0 * 1.0,
+        "rotational_diffusion": units.rate_in(params["rotational_diffusivity"]),
+        "dimensions": 2,
     }
 
 
@@ -431,6 +486,8 @@ class HoomdBackend:
 
     def _start_engine(self, p: dict):
         """Build and start a Brownian-dynamics simulation in reduced units."""
+        if "active_force" in p:
+            return self._start_engine_active(p)
         hoomd = self.engine
         device = self.device or hoomd.device.CPU()
         sim = hoomd.Simulation(device=device, seed=self.seed)
@@ -459,6 +516,78 @@ class HoomdBackend:
         sim.operations.integrator = integrator
         return sim
 
+    def _start_engine_active(self, p: dict):
+        """A free active Brownian particle in two dimensions (`abp_free`).
+
+        Three things differ from the passive build and each is the model and
+        not a setting.
+
+        **Two dimensions.** The configuration declares 2D, so the box is flat
+        and the orientation lives in the plane. It is not a smaller version of
+        the 3D run: the closed form carries (d-1) in the rotational term, so a
+        3D box would give a different MSD under the same numbers.
+
+        **The propulsion is a FORCE here and a SPEED in the plan.** HOOMD's
+        `md.force.Active` applies a force; the overdamped velocity it produces
+        is force/gamma, and gamma is 1 in this unit system. `to_engine` does
+        that multiplication explicitly so the equality stays arithmetic. This
+        is also where the person's ruling of 2026-09-23 lands: the plan
+        declares a fixed SPEED, and for a free particle a fixed force along
+        the orientation produces exactly that -- the two coincide with nothing
+        to push against, and separate the moment there is.
+
+        **Rotational diffusion is an updater, not an integrator method.**
+        `integrate_rotational_dof` stays off: the orientation is not evolved by
+        a torque, it is diffused directly at D_R by
+        `md.update.ActiveRotationalDiffusion`. Turning both on would drive the
+        orientation twice.
+        """
+        hoomd = self.engine
+        device = self.device or hoomd.device.CPU()
+        sim = hoomd.Simulation(device=device, seed=self.seed)
+        box = p["box_length"]
+
+        snapshot = hoomd.Snapshot()
+        if snapshot.communicator.rank == 0:
+            snapshot.configuration.box = [box, box, 0, 0, 0, 0]
+            snapshot.particles.N = p["n_particles"]
+            snapshot.particles.types = ["tracer"]
+            rng = np.random.default_rng(self.seed)
+            start = np.zeros((p["n_particles"], 3))
+            start[:, :2] = rng.uniform(-box / 2, box / 2, size=(p["n_particles"], 2))
+            snapshot.particles.position[:] = start
+            # A uniform in-plane orientation, as a rotation about z. Starting
+            # every particle pointing the same way would put a coherent drift
+            # in the first persistence time and the MSD would carry it.
+            theta = rng.uniform(0.0, 2.0 * np.pi, p["n_particles"])
+            quaternion = np.zeros((p["n_particles"], 4))
+            quaternion[:, 0] = np.cos(theta / 2.0)
+            quaternion[:, 3] = np.sin(theta / 2.0)
+            snapshot.particles.orientation[:] = quaternion
+            snapshot.particles.moment_inertia[:] = np.tile([0.0, 0.0, 1.0], (p["n_particles"], 1))
+        sim.create_state_from_snapshot(snapshot)
+
+        brownian = hoomd.md.methods.Brownian(filter=hoomd.filter.All(), kT=p["kT"])
+        brownian.gamma["tracer"] = p["gamma"]
+        brownian.gamma_r["tracer"] = [1.0, 1.0, 1.0]
+        active = hoomd.md.force.Active(filter=hoomd.filter.All())
+        active.active_force["tracer"] = (p["active_force"], 0.0, 0.0)
+        integrator = hoomd.md.Integrator(
+            dt=p["integration_timestep"], methods=[brownian], forces=[active],
+            integrate_rotational_dof=False,
+        )
+        sim.operations.integrator = integrator
+        sim.operations.updaters.append(
+            hoomd.md.update.ActiveRotationalDiffusion(
+                trigger=1, active_force=active,
+                rotational_diffusion=p["rotational_diffusion"],
+            )
+        )
+        # No pair potential: `abp_free` declares one particle with no
+        # interaction, no wall and no obstacle, and adding one here would
+        # change the model without changing the card that says which ran.
+        return sim
+
     def _snapshot_positions(self, sim, box_reduced: float) -> np.ndarray:
         """Unwrapped positions, in SI metres.
 
@@ -473,7 +602,21 @@ class HoomdBackend:
         snap = sim.state.get_snapshot()
         position = np.asarray(snap.particles.position, dtype=float)
         image = np.asarray(snap.particles.image, dtype=float)
-        unwrapped_reduced = position + image * box_reduced
+        # PER AXIS, and not one scalar. The box has three edge lengths and
+        # `box_reduced` is only their common value when it is a cube. That was
+        # true of every run this file had ever made -- bd_overdamped is a cubic
+        # 3D box -- and it is false the moment a two-dimensional configuration
+        # arrives, where Lz is 0.
+        #
+        # It is not a tidy-up. HOOMD keeps incrementing the z IMAGE FLAG in a
+        # flat box even though z never moves and Lz is zero: measured on
+        # 2026-09-23, image[2] = 2001 with z identically 0. Multiplied by the
+        # scalar 4000 that put 40 metres of displacement on an axis the model
+        # does not have, and the mean squared displacement came out 1e11 times
+        # the closed form. Reading the edge lengths off the box makes Lz = 0
+        # cancel it with no special case for two dimensions.
+        edges = np.asarray(snap.configuration.box[:3], dtype=float)
+        unwrapped_reduced = position + image * edges
         return unwrapped_reduced * self.units.length
 
     # -- trajectory output --------------------------------------------------
@@ -483,7 +626,12 @@ class HoomdBackend:
     # them, which is what lets two runs be compared at all.
 
     def estimator(self) -> estimator_module.Estimator:
-        return estimator_module.Estimator(self.frame_times, self.frames)
+        # The dimensionality is the configuration's and is never assumed here:
+        # `D = slope/(2d)` with d = 3 on a two-dimensional run returns two
+        # thirds of the true diffusivity, plausibly and with nothing failing.
+        return estimator_module.Estimator(
+            self.frame_times, self.frames, to_engine(self.params)["dimensions"]
+        )
 
     def mean_squared_displacement(self, max_lag_time: float,
                                   tracers: "np.ndarray | None" = None) -> list[tuple[float, float]]:

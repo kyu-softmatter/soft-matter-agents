@@ -40,7 +40,15 @@ from . import estimator as estimator_module
 from . import physics
 
 NAME = "mock_backend"
-DIMENSIONS = 3
+# The number of coordinate COLUMNS a frame carries, not the physical
+# dimensionality. The two were one constant until 2026-09-23, when four of
+# the six declared configurations turned out to be two-dimensional while
+# `D = slope/(2d)` divided by 3. This mock only ever runs `bd_overdamped`,
+# which IS three-dimensional, so it was never wrong here -- and the constant
+# is split anyway, because a number that is right for one configuration and
+# silent about the rest is the shape that bit the estimator.
+SPATIAL_COMPONENTS = 3
+DIMENSIONS = SPATIAL_COMPONENTS
 
 # The states `read()` may report. SUBMITTED is the one worth naming: it is
 # neither running nor failed, it is nearly instant locally and real in a
@@ -304,7 +312,11 @@ class MockBackend:
     # arrangement as before the estimator moved out.
 
     def estimator(self) -> estimator_module.Estimator:
-        return estimator_module.Estimator(self.frame_times, self.frames)
+        # Explicit, from the plan, with 3 as the fallback this mock has always
+        # meant: it runs bd_overdamped and nothing else.
+        return estimator_module.Estimator(
+            self.frame_times, self.frames, int((self.params or {}).get("dimensions", 3))
+        )
 
     def mean_squared_displacement(self, max_lag_time: float,
                                   tracers: "np.ndarray | None" = None) -> list[tuple[float, float]]:
