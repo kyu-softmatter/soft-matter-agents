@@ -168,8 +168,15 @@ export SMA_GIT_REPO="$REPO"
 # 2026-09-20 attribution warning could not use at all: PENDING is not a
 # failure, so the second run never happened and the warning had nowhere to go.
 echo "pre-commit: contracts"
-OUT=$(python3 "$EXPORT/contracts/validate.py" --staged 2>&1)
-STATUS=$?
+# `set -e` is on, and a failing command substitution in a plain assignment
+# aborts the script THERE -- before STATUS is read and before a word of the
+# refusal is printed. That is what this looked like from a seat's chair on
+# 2026-09-22: "pre-commit: contracts", exit 1, silence, five times, and the
+# cause only came out of running the hook by hand under `sh -x`. The old
+# two-run form was exempt because a command in an `if` condition is; the
+# capture-once rewrite lost that exemption and nobody noticed, because the
+# hook only breaks this way when a check actually fails.
+OUT=$(python3 "$EXPORT/contracts/validate.py" --staged 2>&1) && STATUS=0 || STATUS=$?
 if [ "$STATUS" -ne 0 ]; then
     echo "$OUT" | grep -E "FAIL|UNDECIDED" >&2 || true
     echo >&2
