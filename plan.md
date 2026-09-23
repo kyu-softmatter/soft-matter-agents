@@ -2281,10 +2281,22 @@ settles nothing about whether one of them should be deleted.
 **"Can this be a check?" is two questions and the cheap one is second (2026-09-23).** *Does the mechanism stand*, and *does that mechanism touch only what the validator is allowed to touch*. `manager-simulation` asked the first, built a regeneration test -- rebuild each axis card from its current generator and compare -- ran it over six modules and got five exact matches and one real mismatch, and only then found it cannot be a check: §7.1 rule 1 says `contracts/` imports nothing, so the validator cannot import an agent's generator, and check 16 catches the import. **The second question would have ended it before the first began.** Two checks the same seat landed that morning, 78 and 79, read what the validator already reads -- git history and `.gitignore` -- and this one needed it to read what it may not. So reachability is a property of the *subject*, not of the effort, and it is knowable first. **The seat also declined the workaround that would have passed**: running the generator through `subprocess` evades check 16's grep and breaks the rule intact, which is the means-not-intent line §6.2's ruling drew that same day, met from the other side and refused. The test itself is not wasted -- it belongs in the agent, because knowing one's own generator is the agent's business and not the validator's -- and it carries one limit: `kb_refs`, `kb_gaps` and `degraded` are injected at fan-out and cannot be re-derived, so a card tampered with in exactly those fields is invisible to it.
 
 **And a stale falsifier in the current revision is a third option, not two (2026-09-23).** What prompted the above was `a_cost_reference`'s falsifier saying HOOMD is not installed, which stopped being true on 2026-09-22. The seat ruled that the card is not edited, and that is right: a revision records what was claimed then, and editing in place makes the record say it knew tomorrow's fact. **But leaving the card is not leaving the item.** A falsifier whose condition has come true **has fired**, and a fired falsifier is an event that calls for a new revision -- P16 gives every lesson a falsification condition precisely so that meeting it does something. So the answer is neither *edit* nor *leave*. **I said "supersede it" and the mechanism I named does not
-exist**: `manager-simulation` checked, and a grep finds `supersede` in four schemas while **reading the
-fields finds no card that can supersede a card** -- `ask.supersedes` is a *round* integer, and
-`observable`, `kb_entry` and `scope_approval` supersede store entries. A grep finds a name and not a
-meaning, which is the shape of half the errors in this document. Cutting a revision would express it and
+exist.** Counted without truncating: `supersede` appears in four schemas and **three of them carry a
+field** -- `ask.supersedes` is a *round* integer, `kb_entry.supersedes` and `observable.supersedes` /
+`superseded_by` name store entries -- while `scope_approval` has the word in prose and no field at all.
+**No card can supersede a card.**
+
+**Two people produced a short list of that set by two different routes, and the remedies differ.**
+`manager-simulation` named three and I recorded its reason as *a grep finds a name and not a meaning*.
+That was **my** half: my own grep returned four, which looked for a moment like a refutation, and only
+reading the fields showed it was a confirmation -- the remedy there is to read the field. **Its half was
+not that.** It had piped its grep through `head -14` and then enumerated from what the screen showed;
+`kb_entry` was never misread, it was never displayed. (`scope_approval` it saw and correctly did not
+count.) So the remedy there is different: **`head` is fine for finding and not for enumerating**, and
+the moment a list is being built from a tool's output the truncation has to come off. The seat named it
+as the third time that day it had read a tool's answer as complete -- a regex cut two characters instead
+of three, a probe using an extensionless `docs/x`, and this. **I had recorded its error as mine**, and
+an error filed under the wrong cause teaches a defence against something that did not happen. Cutting a revision would express it and
 is a fan-out with a `caller_id` and librarian queries -- **heavy machinery for a sentence whose numbers
 do not move.**
 
