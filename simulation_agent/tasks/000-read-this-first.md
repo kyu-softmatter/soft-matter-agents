@@ -104,6 +104,7 @@ with a condition anyone could run. So every row carries one.
 |---|---|
 | **`004` — revision 2** | `git log --oneline -1 -- simulation_agent/questions/sim-20260917-001/v2_goal.json` |
 | **`007` — the result-card writer** | `ls simulation_agent/src/result_card.py 2>/dev/null && echo TAKEN \|\| echo OPEN` |
+| **`014` — a default that names a backend** | `grep -q 'mock_backend.NAME)' simulation_agent/src/operator.py && echo OPEN \|\| echo TAKEN` |
 | **`013` — write the trajectory** | `find simulation_agent/runs -type f ! -name '*.json' -print -quit | grep -q . && echo TAKEN \|\| echo OPEN` |
 | **`012` — round 2, and the id that refuses it** | `ls bridge/threads/thr-tracer-diffusivity-001/r2_ask_experiment.json 2>/dev/null && echo DONE \|\| echo BLOCKED` — blocked on 4.4/7.1, not on this tree |
 | **`011` — thirteen rows name no task** | `python3 -c "import json;print(sum(1 for l in open('simulation_agent/failures.jsonl') if l.strip() and json.loads(l).get('occasion')))"` — 0 means open |
