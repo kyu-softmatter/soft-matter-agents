@@ -1861,14 +1861,24 @@ rebuild/
   CLAUDE.md                the monorepo's common rules (P0-P16, a summary of the card contracts).
                              **All six sessions read it, so its length is multiplied by six**
   ARCHITECT.md             standing orders for the architecture position. It binds one position only, so it is not in CLAUDE.md
-  pyproject.toml           the dependency manifest. **Only the three counted from the source and filtered through
-                             `sys.stdlib_module_names`** -- `jsonschema`, `referencing`, `numpy`. `referencing` is
-                             separate because check 1 builds a `$ref` registry itself. **HOOMD cannot go here** --
-                             it is not on PyPI and is conda-forge only, so `uv sync` gives the pipeline and not the
-                             engine. That separation matches §9.2 rule 4 and §4.6: the mock is a first-class backend,
-                             so **a machine running only the validator and the mock does all of M2's validation**
-  uv.lock                  the exact versions that manifest resolves to. **Without it another machine resolves
-                             different ones** -- the person's requirement of "easy on another computer too" hangs on this file
+  pyproject.toml           **two manifests in one file since 2026-09-22.** `[project]` still holds the PyPI side --
+                             `jsonschema`, `referencing`, `numpy`, counted from the source and filtered through
+                             `sys.stdlib_module_names`; `referencing` is separate because check 1 builds a `$ref`
+                             registry itself. `[tool.pixi.*]` holds the conda side, which is where the other three
+                             imports live: `mcp` and `pymmcore-plus` are on conda-forge, and **HOOMD is only there**.
+                             The pixi tables state **a different dependency set per platform**, which is the whole
+                             reason that tool was chosen: `win-64` has no HOOMD build, so `sim` is declared on
+                             `osx-arm64` and `linux-64` only and solving for Windows does not fail, it simply has no
+                             simulation environment. `gsd` is deliberately absent until the commit that first imports it.
+                             **Nothing in the pixi tables has been solved** -- pixi is not installed here, so they are
+                             a specification and not yet a fact, and the file says so in its own comment
+  uv.lock                  the exact versions the `[project]` manifest resolves to. **Without it another machine
+                             resolves different ones** -- the person's requirement of "easy on another computer too"
+                             hung on this file, and **it is being handed over rather than kept**: `pixi.lock` will
+                             carry that property for all three platforms and both channels, at which point this file
+                             pins an environment nobody uses. It stays until `pixi.lock` exists and has been run
+                             against, because **deleting the only thing that currently holds the property, in advance
+                             of the thing that will replace it, is how a requirement goes missing between two commits**
   docs/                    **the public introduction page** (GitHub Pages, `/docs` on `main`). Its reader is one step
                              further out than README's -- **someone with no intention of opening the repository**,
                              someone who was sent a link. Written in English (the only exception to the language rule

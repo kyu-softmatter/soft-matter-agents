@@ -4,19 +4,72 @@ version = "0.1.0"
 description = "Contracts and agent code for the four soft-matter agents. Not published; this file exists so a second machine resolves the same versions."
 requires-python = ">=3.11"
 
-# Everything contracts/validate.py and simulation_agent/src/ import that is not
-# stdlib. Counted from the source rather than listed from memory:
-#   grep -hoE '^\s*(import|from) [a-z_]+' contracts/validate.py simulation_agent/src/*.py
+# Everything the tree imports that is not stdlib. Counted from the source with
+# an AST walk over every .py outside .venv, not listed from memory: six, of
+# which this list held three until 2026-09-22. See section 7.
 dependencies = [
   "jsonschema>=4.0",   # check 1 validates every card against contracts/schemas/
   "referencing>=0.30", # the $ref registry check 1 builds; jsonschema does not pull it for this use
   "numpy>=1.26",       # mock_backend integrates in SI with it
 ]
 
-# HOOMD-blue is deliberately absent and cannot be added here: it is not on PyPI.
-# It ships through conda-forge, so the engine is a separate install on any
-# machine, and `uv sync` gets the pipeline but not the engine. That split is
-# real rather than an oversight -- section 9.2 rule 4 attaches the engine only
-# after the pipeline passes with mock_backend, which is a first-class backend
-# (4.6), so a machine that can run the validator and the mock can do all of
-# M2's verification without HOOMD present.
+# mcp and pymmcore-plus are imported and are NOT in the list above, because
+# this list is what `uv` can resolve and the two of them belong with the conda
+# side below. pymmcore-plus is imported by microscope_agent and is not
+# installed on this machine at all. HOOMD-blue cannot go here under any
+# circumstances: it is not on PyPI under any of its three names.
+
+# ---------------------------------------------------------------------------
+# pixi: the conda side. Chosen by the person on 2026-09-22 over environment.yml
+# because it is the only tool that states conda-forge and PyPI in one lockfile
+# AND states a different dependency set per platform, which this repository
+# needs -- win-64 has no HOOMD build at all.
+#
+# NOTHING BELOW HAS BEEN SOLVED. pixi is not installed on this machine, so no
+# pixi.lock exists and no run has confirmed that these tables resolve. What IS
+# measured, by dry-run solve on 2026-09-22 against conda-forge:
+#
+#   package         osx-arm64   linux-64   win-64
+#   hoomd 7.2.0     yes         yes        NO BUILD
+#   pymmcore-plus   yes         yes        yes (with the win-64 pymmcore binary)
+#   mcp 2.2.0       noarch      noarch     noarch
+#   jsonschema / referencing / numpy       all three platforms
+#
+#   hoomd 7.2.0 resolves with python 3.12 and 3.13 on both platforms that have
+#   it. Unpinned it pulls python 3.14, which is why python is pinned below.
+# ---------------------------------------------------------------------------
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+# win-64 is here for the microscope on the Windows host. The simulation engine
+# does not exist for it; the engine lives in WSL2, which is linux-64.
+platforms = ["osx-arm64", "linux-64", "win-64"]
+
+[tool.pixi.dependencies]
+python = "3.12.*"
+jsonschema = ">=4.0"
+referencing = ">=0.30"
+numpy = ">=1.26"
+mcp = ">=2.0"
+
+# The simulation engine. Declared on the two platforms that have a build, so
+# solving for win-64 does not fail -- it simply has no `sim` environment.
+[tool.pixi.feature.sim]
+platforms = ["osx-arm64", "linux-64"]
+
+[tool.pixi.feature.sim.dependencies]
+hoomd = ">=7.2"
+
+# The microscope's device layer. Imported by microscope_agent today and
+# installed nowhere, which is the half of the manifest gap that bites first.
+[tool.pixi.feature.mic.dependencies]
+pymmcore-plus = ">=0.12"
+
+# gsd is deliberately absent. simulation_agent work item 013 will write
+# trajectories with it and has not landed, so declaring it now would declare a
+# reader that does not exist -- the same defect as the three-of-six gap, from
+# the other side. It goes in the commit that first imports it.
+
+[tool.pixi.environments]
+sim = ["sim"]
+mic = ["mic"]
