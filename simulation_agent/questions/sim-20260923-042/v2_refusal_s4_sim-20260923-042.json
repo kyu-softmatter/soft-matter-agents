@@ -1,0 +1,85 @@
+{
+  "card": "refusal",
+  "schema_version": "0.1",
+  "id": "refusal-sim-20260923-042-s4-r2",
+  "qid": "sim-20260923-042",
+  "thread": "solo-sim-20260923-042",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T20:40:00Z",
+  "status": "REFUSED",
+  "stage": "S4",
+  "refused_what": "box arm(s) large of the compare over box_size: the box at 100 persistence lengths at the held packing fraction",
+  "reason_code": "budget_exceeded",
+  "counterexample": [
+    {
+      "parameter": "particle_steps",
+      "required_number": "particle_steps_arm_large",
+      "limit_number": "particle_steps_max",
+      "statement": "the large arm needs particle_steps_arm_large = 6e+11 against particle_steps_max = 7e+10, at the step, record and save interval the intersection allows; the save interval is already at A4's ceiling and the step a decade under A1's, so no settable parameter inside the intervals brings this arm under the ceiling"
+    },
+    {
+      "parameter": "coordinates_stored",
+      "required_number": "coordinates_stored_arm_large",
+      "limit_number": "coordinates_stored_max",
+      "statement": "the large arm needs coordinates_stored_arm_large = 6e+09 against coordinates_stored_max = 1e+09, at the step, record and save interval the intersection allows; the save interval is already at A4's ceiling and the step a decade under A1's, so no settable parameter inside the intervals brings this arm under the ceiling"
+    }
+  ],
+  "alternatives": [
+    {
+      "what": "raise the local ceilings, or add an execution target with a larger disk and wall clock, by the factors the counterexample states; the arm then runs unchanged",
+      "requires": "a person's edit to simulation_agent/envelope/budget.json -- a ceiling is a decision and this agent does not raise its own"
+    },
+    {
+      "what": "store a subsample of the particles' coordinates rather than all of them, which lowers coordinates_stored without touching the physics; the wall-clock excess needs the first alternative regardless",
+      "requires": "a revision that declares the subsample as a condition, because the MSD estimator's particle average then reads a declared subset"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "particle_steps_max",
+      "value": 70000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_times_rate",
+      "grade": "E5",
+      "origin": "v2_axis_abp_wca_2d_a5.json#particle_steps_max",
+      "precision": "order_of_magnitude",
+      "note": "the product n_particles*total_simulated_time/integration_timestep may not exceed this. A5 constrains the product and not any factor, and takes none of them from A1 or A2 (4.5.3 rule b)"
+    },
+    {
+      "name": "coordinates_stored_max",
+      "value": 1000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_over_bytes",
+      "grade": "E4",
+      "origin": "v2_axis_abp_wca_2d_a5.json#coordinates_stored_max",
+      "precision": "order_of_magnitude",
+      "note": "the product 2*n_particles*total_simulated_time/save_interval may not exceed this, two coordinates per particle per frame in two dimensions"
+    },
+    {
+      "name": "particle_steps_arm_large",
+      "value": 600000000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_arm_large",
+      "precision": "order_of_magnitude",
+      "note": "the large arm's cost in particle-steps, against A5's ceiling particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_arm_large",
+      "value": 6000000000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#coordinates_stored_arm_large",
+      "precision": "order_of_magnitude",
+      "note": "the large arm's stored coordinates, against A5's ceiling coordinates_stored_max"
+    }
+  ],
+  "assumptions": [],
+  "kb_refs": [],
+  "kb_gaps": [],
+  "degraded": []
+}
