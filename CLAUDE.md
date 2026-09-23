@@ -200,7 +200,12 @@ as another seat's -- which is what happened five times in a row to one seat
 before it found the cause. **`GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` as
 environment variables beat both**, which is why the seats using that form were
 unaffected; I confirmed the precedence with `git var` rather than assuming it.
-**Run `git var GIT_COMMITTER_IDENT` before trusting who you are** -- it costs
+**`conda` as a bare command is broken in every session here for the same kind
+of reason** -- `__conda_exe:6: permission denied`, from a shell function in
+`~/.claude/shell-snapshots/`, which this harness writes per session. The
+absolute binary and `condabin/conda` both work. **Call conda by absolute
+path**; one seat read the failure as a broken machine and lost half a day,
+and its retraction is in §7. **Run `git var GIT_COMMITTER_IDENT` before trusting who you are** -- it costs
 nothing and answers exactly, the way calling one tool answers whether the
 tools are there. The file is in no tree, so the gate cannot see it, and the
 hook made it worse by exiting 1 after `pre-commit: contracts` with no FAIL

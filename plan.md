@@ -960,7 +960,9 @@ Modules and devices receive **only their own parameters.** There is no direct de
 #### 4.6.5 The backend boundary
 
 - One fixed interface: `preflight() / apply(params) / read() / abort()`. HOOMD-blue or a camera looks the same shape to the operator.
-- **`src/devices/mock.py` is a first-class backend.** The whole pipeline has to run with no hardware and no HOOMD, and M2–M3's validation is done on the mock (§9).
+- **`src/devices/mock.py` is a first-class backend, and where HOOMD is present it does not run (amended by the person, 2026-09-22).** The pipeline still has to run with no hardware and no HOOMD -- that is what keeps the mock first-class -- but **the engine's presence decides which one executes**, rather than the mock running first by default. The mock's remaining occasions are exactly the machines where HOOMD is not installed.
+- **A mock-only run says so and says what to do about it (2026-09-22).** Falling back quietly is what the amendment forbids: finding no HOOMD, the operator runs the mock **and emits an install instruction naming the platform it is on** -- conda-forge on `linux-64` and `osx-arm64`, and for Windows the separate route, because `win-64` has no HOOMD build at all and the engine lives in WSL2 (§7). The instruction is text for a person and changes no verdict; a run on the mock stays a valid run. **The point is that the mock stops being an invisible default**, the same shape as `degraded` carrying the librarian's name: the reduced path is legitimate and never silent.
+- **What the amendment costs, stated once.** §9.2 rule 4 used the mock as an *order* -- validate the pipeline before attaching the engine -- and on a machine with HOOMD that order no longer happens by itself. The discipline is not repealed but it stops being automatic, so it now depends on someone choosing the mock deliberately. **The instrument half of rule 4 is untouched** and stays untouched: hardware-last is P0's, and a simulation engine has no safety dimension, which is the whole reason the two halves can part.
 - **A backend holds no policy.** Judging limits is the envelope's and the operator's work; a backend relays commands and returns state. Put a condition judgement in a backend and the envelope exists in two places.
 - Swapping the backend does not change the plan. The same plan.json runs unchanged on the mock and on the real instrument — that is the practical definition of reproducibility (S3).
 - **The file-splitting criterion is the control channel.** If one body SDK handles ten elements, one file `dev_body.py` takes those ten. Split a file per element and several files hold the same SDK handle, and at that moment the single entry point (§4.6.8) breaks.
@@ -2149,8 +2151,40 @@ because an environment file is where it stops being invisible.
 (`pymmcore-plus-0.12.0-pyhd8ed1ab_1` with the `pymmcore-12.5.0.75.0` win-64
 binary) and is on PyPI as well; `hoomd` is on neither for that platform. So
 the two dependency sets are not symmetric, and the asymmetry runs the useful
-way: **a conda manifest can fully serve the Windows microscope machine, and no
-manifest of any kind can put the simulation engine on it.**
+way: **a conda manifest can fully serve the Windows microscope machine.**
+
+**That sentence ended "and no manifest of any kind can put the simulation
+engine on it", and the simulation design seat corrected it within the hour.**
+It is true of the *platform* and false of the *machine*. `linux-64` carries
+HOOMD on conda-forge -- 68 versions, the same 7.2.0 -- and **WSL2 is
+`linux-64`**, which is the route the person has since named for the Windows
+machine. So the split stops being between two machines and becomes **two
+environments inside one**: the microscope on the Windows host, where
+`pymmcore-plus` has a `win-64` build, and the simulation in WSL2. Three
+platforms then rather than two, and the conclusion that a manifest must state
+a different dependency set per platform is sharpened by this rather than
+weakened. **I measured two subdirs and wrote a claim about every machine** --
+the same error as reading a count off prose, committed in the act of
+correcting someone else's count, and caught because the other seat queried
+the channel's repodata instead of trusting my two solves.
+
+**`conda` as a bare command fails in every session here, and it is this
+tool's doing (2026-09-22).** `conda --version` returns
+`__conda_exe:6: permission denied`; the absolute binary and `condabin/conda`
+both return `conda 25.7.0`. `type __conda_exe` names a shell function from
+`~/.claude/shell-snapshots/snapshot-zsh-<epoch>-<id>.sh` -- **a file this
+harness writes per session**, not the person's shell configuration and not
+the conda installation. Two seats confirmed it independently against two
+different snapshot files. **So call conda by absolute path here.** The
+correction matters beyond convenience: the simulation design seat lost half a
+day to this, reported it as a machine fault, and it entered the risk case
+against making conda a repository precondition -- *if conda breaks, the
+repository stops working rather than the engine*. That risk is still real and
+**the evidence offered for it was not evidence of it**, which the seat
+retracted itself. A fault in the tooling that looks like a fault in the
+machine is the environment's version of §8.2's class where a contract says
+something and there is nowhere to put it: the symptom is recorded truthfully
+and attributed one layer too far down.
 
 **Which is why the conda decision does not carry mock removal with it
 (2026-09-22).** Told that the person had settled on conda-installed HOOMD by
@@ -2611,7 +2645,7 @@ With no order, §6.2.1's rules turn from advice into **requirements.** Four sess
 1. **The integration point is the contract, not the code.** If one agent ever waits for another agent's code, that means an order is needed, which means the contract is insufficient. What is waited on is the schemas in `contracts/` and the declarations in `capabilities/`, and both are in M0.
 2. **No `git add -A`, use `git commit -- <paths>`, and the pre-commit gate** (§6.2.1, §8). On 2026-09-17 one commit held three sessions' work, and hours later the index held two sessions' files mixed. What happened even with an order happens daily under concurrent construction.
 3. **There is one design seat at a time, and if two are needed, divide the owned paths first** (§6.2.1). The contract is the integration point for all four, so editing the contract in two places at once shakes all four at once.
-4. **Hardware connection is the last item of every stage.** Validation is done on the mock, and the real instrument and HOOMD are attached after the pipeline passes on the mock (§4.6.5).
+4. **Hardware connection is the last item of every stage.** Validation is done on the mock, and the real instrument is attached after the pipeline passes on the mock (§4.6.5). **The engine half of this rule ended on 2026-09-22**: where HOOMD is installed it runs and the mock does not, so on any machine that has one the pipeline is validated on the engine. The two halves parted because only one is P0's -- an instrument can injure a person and a simulation engine cannot -- and keeping them fused would have let a software convenience argue about a safety ordering. **Deliberate mock validation stays available and is now a choice rather than the default**, which is the cost recorded in §4.6.5.
 
 **The store and the service are still separate** (§4.3.0). `kb/` has existed since M0 as a store a person curates, and M3 is the work of putting a service on top of it. Entering stays the work of the person and the librarian session (`curated_by`), and what the service does automatically is **queries, `gaps` and conflict detection.**
 
