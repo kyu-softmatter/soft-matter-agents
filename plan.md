@@ -175,8 +175,31 @@ safety guard applies except a declaration.
 
 Ruled from `manager-microscope`'s measurements and not from the code: `microscope_agent/src/` is that
 agent's and §6.2 rule 3 does not let this seat read it. **What a top-tier seat can check is that the
-numbers were produced by running rather than reading**, and they were -- three configurations, two
-channels, counted.
+numbers were produced by running rather than reading** -- and within the hour that rule was shown to be
+half of what is needed.
+
+**"Four" was one file, and the denominator is the part no top-tier seat can check (2026-09-23).** Told
+the rule, the seat went looking for its shape in the code and found the sites are **duplicated across two
+files**: `orchestrator.py`'s `RETRACT_HINTS` tuple is written again inline in `plan_card.py`, same five
+members, **different order**; `"pfs" in elements` stands in two places and `"nosepiece"` in two more. And
+the two copies do not even select alike -- the planner takes `next(...)`, **the first match in its own
+order**, while the interlock takes `sorted()` of **all** matches, a difference invisible while exactly one
+element matches. **Being identical today is the dangerous state and not the safe one**, because nothing
+compares them, so whichever side is edited first drifts silently -- and that edit is already scheduled:
+when `role` lands, someone moves the interlock and the planner keeps guessing. The seat declined to merge
+the two lists behind an import, on the grounds that sharing a wrong thing is not removing it, and that is
+right.
+
+So the correction to the sentence above: **its number came from running, and its denominator came from
+choosing which file to run over.** Running and running over everything are different acts, and **only the
+seat inside the boundary can see which one it did.** A top-tier seat ruling on a measurement it may not
+reproduce can ask *was this run* and cannot ask *was this all*; the second has to be asked of the seat, in
+words, and the answer believed. That is not a defect in §6.2 rule 3 -- it is the price of it, and it was
+unpriced until now.
+
+**The two clauses earned their split immediately.** `"pfs" in elements` is membership in a list of
+identifiers, which is an **equality** test -- the substring clause does not reach it, and the
+declared-field clause does. Written as one clause, two of the three real sites would have been missed.
 3. **Irreversible actions take E1–E3 evidence only.** When a value resting on `E4` (computed) or `E5` (estimated) enters as a parameter of an irreversible action, it is not covered by a `scope_approval` and **an individual human approval is forced** (§5.3, §6.1).
 4. **Power goes up last and comes down first.** A command raising a light source or laser output is at the very end of a parallel set; a command lowering it is at the very front. An abort begins with cutting output (§4.6.8).
 5. **While a person has hands on the instrument, automatic commands are forbidden.** With a `manual` instruction sheet open, the orchestrator issues no command at all to that device group. The lock releases only when a person's confirmation closes the sheet — this is lockout/tagout in software (§8, check 23).
@@ -1665,6 +1688,30 @@ the very step §2.1 requires before each one. That seat's sentence is the rule: 
 turn than to skip gets skipped.** So a safety field is not a place where more is safer. It is a claim, it is
 wrong when overstated the same as when understated, and **overstating it routes the person around the guard
 rather than through it**, which ends with the guard weaker than if the field had been honest.
+
+**And what stood that error up was one check's side effect, which is thinner than it sounds
+(2026-09-23).** `microscope-1` observed that its own reasoning was not corrected by a person but by
+check 66, and asked what pushes back when a seat leans toward filling a safety field -- because if §2.1
+carries only prose here, the next seat makes the same move and meets the same check, which is an
+acceptable ending but a lucky one. `manager-microscope` sharpened it and the sharpening is the finding:
+**66 does not ask whether an irreversible marking is correct.** It asks whether an irreversible action
+verifies compliance, so the seat was caught **because it enlarged what 66 counts** -- overfill a field in
+a place 66 does not watch and nothing fires at all. So *one check stands it up* is itself an
+overstatement, and the honest position is that **nothing systematic guards against overstating a safety
+field.** Understating one is caught everywhere, by every gate this document describes; overstating one is
+caught by luck. That asymmetry is the opposite of the one P0 wants, and it is recorded here without a
+remedy because inventing one now would be the same reflex the paragraph above warns about.
+
+**And a card ordering "test it by measurement" manufactures the artefact it tests with (2026-09-23).**
+`plan-mic-20260920-001-r5` is byte-identical to r4 but for its id and revision number. It exists because
+`manager-microscope`'s card asked for a revision that would exercise the displacement convention, and the
+seat wrote that down rather than inventing a substantive change to justify it -- which is the right
+choice, and the cost belongs to whoever wrote the card. **A convention verified by running leaves one
+empty revision behind**, and that is cheaper than a convention verified by reading, which is what the
+rest of this document keeps concluding. It is named here so the next reader of that directory does not
+take r5 for a design change. The seat also made `displace()` **refuse** rather than overwrite an existing
+`v<N>_` copy whose contents differ: replacing it would rebuild, one directory across, the defect the
+convention exists to remove.
 | A plan covered by a `scope_approval` | its evidence must be **E1–E3 only** |
 | An E2 source's expiry has passed | plans using that value cannot execute; calibration has to come first |
 | A plan's E5 count exceeds the ceiling | validator failure (§8 check 3) |
@@ -2368,6 +2415,22 @@ That last clause is what makes the verdict mean anything -- **the four non-PASS 
 work can close them**: FAIL by fixing, UNDECIDED by choosing, PENDING by producing, and LOST by nothing at
 all. A `--strict` that can never go green because of 2026-09-21 teaches seats to stop running it.
 
+**`goal_id` is required by two schemas and resolved by no check, and its home is 66 (2026-09-23).**
+`grep goal_id contracts/validate.py` returns nothing while `plan.schema.json` and `screening.schema.json`
+both demand the field. It does not dangle today **only because both plans happen to pin revision 7, which
+is the current one** -- the six earlier goal revisions are in no tree, so the first goal revision after
+this makes every plan naming an older id dangle, which is precisely what plan revisions did to three run
+logs. **And this one would be quieter than that**: check 66 at least said it could not read something,
+and here no line is emitted at all. `manager-microscope` proposed check 73, on the grounds that it already
+resolves `approval_id` and `run_id`, and rightly declined to widen its declared scope by itself. **The
+home is 66 and not 73.** What `goal_id` needs is not only resolution but 66's two-way split -- overwritten
+at the same path is `LOST`, never produced is `PENDING` -- and that split rests on the `-r<N>` stem
+machinery 66 already carries. Giving it a new number means **a second copy of stem-splitting**, which is
+the `RETRACT_HINTS` defect recorded above: two implementations, identical on the day they are written,
+compared by nothing. So 66's declaration is widened from run logs naming plans to **cards naming a
+revision of another card**, in the same commit as the implementation, because a declaration edited in
+silence is the same drift one layer up.
+
 **Plan revisions take the axis cards' convention, and it costs no consumer anything (2026-09-23).** Axis
 cards already solved this: a displaced set is left on disk under a `v<N>_` prefix and **the live file keeps
 its plain name**, which is why seven `v2_axis_...` stand in `mic-20260920-001/` beside the current ones. The
@@ -2412,7 +2475,7 @@ is never touched. The revision comes later, with `013`, and then the corrected c
 
 | Number | What | Seat holding it |
 |---|---|---|
-| _(empty)_ | 74, 77, 78 and 79 all reached declaration on 2026-09-23; **an empty table is the normal state** and a row outliving its declaration is the staleness this table exists to prevent | |
+| 80 | whether any code decides a device's role from how an identifier is **written** rather than from a declared field (§2.1 rule 2). **Three forms and the third is the one a first probe misses**: a substring test on an identifier (`"shutter" in element_id`), membership in a literal tuple or list of identifiers (`"pfs" in elements`, which is an *equality* test and invisible to a substring-only probe), and equality with a bare literal (`== "nosepiece"`, found by eye and not by `manager-microscope`'s probe). **String literals are excluded** -- that probe scored 3 of 5, and both false positives were text quoting the test, one of them a message another seat had just written. Both agent trees, not one: the count that started this was four and came from reading one file. **It lands with fixtures that have been watched failing**; the rule has none today, which is 2026-09-22's 31/31 exactly | manager-microscope |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
 
