@@ -760,6 +760,14 @@ A6 became necessary once imaging became a first-class modality. It did not exist
 > **(a) Variables appearing together in one inequality are owned by one axis.**
 > **(b) No axis requires another axis's *output* as an input.**
 
+**A5's cost estimate could never satisfy (b), and the fix is that it was never an axis output (2026-09-22).** The estimate is of what the **chosen operating point** costs, and the chosen point is S4's output, so A5 cannot see it: rev 2's plan said 0.02 GB and was right, rev 3 multiplied the record by ten through `10*tau_d` and the estimate did not follow -- 0.024 GB against 0.240, twelve times low, with the wall clock 125 times off the same day from the same structure. **A5 was not wrong by its own standard; it was measuring a different job.**
+
+**A5 is not the odd axis, though, and the paragraph below already says so** -- exposure time is constrained by A1, A3, A5 and A6 at once and S4 intersects them, so A5 emits bounds exactly like its siblings. **What does not belong to any axis is the estimate**, which needs a point to exist before it can be computed. So the bound stays in A5 and **the estimate moves to synthesis**, where the operating point is, and (b) is untouched because synthesis is not an axis. The estimate then inherits the grade of the point it is computed from, the same as `10*tau_d`, and `envelope_check: inside` finally stands on a number describing the job the plan declares.
+
+**Two gaps were composing, which is why nothing caught it.** Check 5 -- comparing a plan's conditions against the ceilings -- is PENDING and says so in its own line, so nobody reads the ceiling; and the number offered to it described a different job. **A claim can be empty twice over**, and `inside` was. `manager-simulation` counted the safety envelope as the largest single block of *declared and unread* this morning; this is that block's other face, and the two meet here.
+
+**Leaving it to the falsifier is the current state and is a *when* problem, not a *whether* one.** It did fire today -- after the run, when the plan had already claimed `inside` and the run had already been spent.
+
 Several axes each producing an interval on **the same parameter** is normal — exposure time is constrained by A1, A3, A5 and A6 all at once, and taking that intersection is exactly S4's job. The problem is elsewhere:
 
 - Break (a) and **the same inequality is duplicated across two axes.** If a driving axis and a motion axis each write the escape condition `v_max ~ k·x_max/γ`, the two will necessarily diverge. One inequality belongs in one place.
