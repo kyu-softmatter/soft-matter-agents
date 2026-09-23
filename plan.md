@@ -1478,6 +1478,28 @@ check 7 FAIL  plan_hash does not match the plan (status excluded)  [plan_approva
 ### 5.4 What a plan must have
 
 - `purpose` — why this measurement is being made (`screen`/`characterize`/`compare`/`verify`/`troubleshoot`/`feed`, §4.5.1)
+
+**A `characterize` over a product space has no home, and it is not a comparison (2026-09-23).** A 3x3
+grid in `(Pe, phi)` fits nowhere: `conditions` gives each entry **one** name for one number, nine
+revisions would make *the next grid point* and *the question changed* the same event, and `compare_arms`
+is refused by check 34, which requires arms to differ in exactly one variable. **Check 34 is not the
+obstacle to work around -- it is the definition doing its job.** So the ruling is that `sweep` is its own
+field and not a flavour of `compare_arms`, and what separates them is **the claim each card ends with**:
+a comparison claims something *about a difference between two states*, which is why attribution needs one
+variable to move; a sweep claims something *about a function over a region*, where no point is privileged
+and nothing is attributed to a single change. A comparison with one arm is meaningless; a sweep with one
+point is simply a run. **A card carries one or the other and never both** -- a card doing both is two
+questions -- and check 34's rule stays confined to `compare_arms`.
+
+**The shape follows this document's usual grain: declare the region, record the points, and let the gap
+show.** `sweep.axes` names each varying quantity with its levels, which states the intended region and
+makes *is this grid complete* a question with an answer; `sweep.points` is the array of condition sets
+actually executed, the form `manager-simulation` proposed, whose invariant is that **every point shares
+all conditions except those the axes name**. Axes alone cannot express a grid deliberately left ragged --
+a corner skipped because it diverges -- and points alone cannot say a corner is missing rather than never
+intended. **Together the omission is visible instead of silent**, which is the same reason a plan
+declares its stop criterion before the run. Schemas are `manager-simulation`'s; this fixes what the
+contract must mean, not how the JSON spells it. `041` waiting rather than inventing a field was right.
 - `intent` — `explore` | `confirm`. How the target is expressed and how comparison works divide here (§5.8)
 - `observable` — what is being measured or computed. **One id from `contracts/observables.json`**, with the definition, `estimator` and window requirement read from that entry. It is not that the name suffices but that **the name is the reference to that entry**, and a card restating the definition splits the copy (§5.1). Until 2026-09-18 this line read "the definition too; the name alone is insufficient" — **it was never wrong.** It was written when there was no vocabulary to point at, and then there was no way other than writing the definition into the card. It survived after the vocabulary existed and became **the grounds forcing a second copy**
 - `system_configuration` — **by which configuration it is obtained**: device set, optical path and modality (microscope), or model and engine (simulation)
@@ -2537,7 +2559,7 @@ is never touched. The revision comes later, with `013`, and then the corrected c
 
 | Number | What | Seat holding it |
 |---|---|---|
-| _(empty)_ | 80 reached declaration on 2026-09-23 with two of its forms declared ahead of implementation; **an empty table is the normal state** |  |
+| 81 | whether every **relative import in an agent's source resolves inside the tree a commit would create**. On 2026-09-23 `e8b8382` made five axis modules import a module that was in nobody's commit and passed the gate, because **the gate runs the validator and the validator may not import agent code** (check 16: contracts imports nothing). So a commit that breaks a whole fan-out goes green. Read **statically** -- the import is parsed, never executed -- which is why it clears the reachability question the same way check 16 does, using the same extraction. Measured: 5 detections against the broken commit, 0 against the tree now, over 47 relative imports. **Two limits belong in the declaration.** It catches the *symptom* of a sweep-in and not the sweep-in: three happened that day and only one broke an import. And the commit it would have refused is the whole of `e8b8382`, so **a seat that named only its own paths is blocked by another's hunk** -- correct to block, and not what the check claims to be about | manager-simulation |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
 
