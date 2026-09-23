@@ -31,7 +31,8 @@
     },
     "run_id": {
       "type": "string",
-      "pattern": "^run-[0-9]{8}-[0-9]{3}$"
+      "pattern": "^run-[0-9]{8}-[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "The run this card reports, matching a directory under that agent's `runs/`.\n\nThe date stays required because it is what makes an id sortable and say WHEN. The three-digit sequence does not, as of 2026-09-22. It was declared here and nowhere else -- no check reads it, plan.md names no run-id format -- and what it enforced was exactly the thing that broke: a sequence number is read by taking the highest one, four seats read it independently, and one of them read a stale maximum and overwrote another seat's run. So the pattern was requiring the failure mode.\n\nWhat it cost was records. Eight committed runs did not match -- the ten-seed sweep and run-20260922-default-engine -- so none of them could ever carry a result card, including the run-20260922-hoomd-s1 / -s1b pair that is the evidence for 014's defect. A contract that refuses a record already on disk is refusing correct work.\n\nUniqueness is not what this pattern gave and is not what replaces it: nothing checks it, three digits never guaranteed it, and it holds today because ids are scoped per agent (run-20260921-001 and run-20260922-001 each exist in two trees and that is fine) and because the operator now refuses a directory that already exists. Atomic allocation is the other half and is the execution seat's."
     },
     "observable": {
       "type": "object",
