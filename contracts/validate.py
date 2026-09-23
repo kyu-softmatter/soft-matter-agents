@@ -5354,6 +5354,7 @@ def check_66_irreversible_run_reads_back_compliance(b: Bundle) -> list[Finding]:
 
     out: list[Finding] = []
     cleared = unresolved_plan = 0
+    superseded: list[str] = []
     for log in logs:
         doc = log.data
         plan = plans.get(doc.get("plan_id"))
@@ -5363,7 +5364,22 @@ def check_66_irreversible_run_reads_back_compliance(b: Bundle) -> list[Finding]:
             # Which plan a run carried out is check 15's question, not this
             # one. Counted so the pass line cannot read as "all verified"
             # when it means "nothing was resolvable".
-            unresolved_plan += 1
+            # "not in this tree" has two causes and they are not the same
+            # failure. A plan a later milestone has not produced yet is
+            # PENDING in the ordinary sense. A plan that WAS produced and
+            # then overwritten by its own next revision is the record being
+            # destroyed (P16), and it looks identical from here unless the
+            # stem is checked. `plan-<qid>-r<N>` -- drop the revision and see
+            # whether a plan for the same question is sitting on disk under a
+            # different number. Card 027's lesson pointed back at this check:
+            # a line that names a cause has to have looked at that cause.
+            stem = re.sub(r"-r\d+$", "", str(doc.get("plan_id") or ""))
+            standing = sorted(pid for pid in plans
+                              if pid and re.sub(r"-r\d+$", "", pid) == stem and stem)
+            if standing:
+                superseded.append(f"{doc.get('plan_id')} (on disk now: {', '.join(standing)})")
+            else:
+                unresolved_plan += 1
             continue
         by_id = {a.get("id"): a for a in plan.get("actions", []) or []}
         irreversible = {aid for aid, a in by_id.items() if not a.get("reversible")}
@@ -5397,10 +5413,19 @@ def check_66_irreversible_run_reads_back_compliance(b: Bundle) -> list[Finding]:
 
     if out:
         return out
-    if unresolved_plan and not cleared:
-        return [Finding(66, PENDING, f"{unresolved_plan} run log(s) name a plan that is not in this tree, "
-                                     f"so which of their actions are irreversible cannot be read "
-                                     f"(check 15 owns that link)")]
+    if (unresolved_plan or superseded) and not cleared:
+        why = []
+        if superseded:
+            why.append(f"{len(superseded)} name a revision that was OVERWRITTEN by a later one at the "
+                       f"same path, so the plan they carried out is in no tree and the run cannot be "
+                       f"read against what it was approved to do ({'; '.join(superseded[:3])}). This is "
+                       f"not an artifact a milestone has yet to produce -- it existed and was replaced, "
+                       f"which is the record P16 keeps")
+        if unresolved_plan:
+            why.append(f"{unresolved_plan} name a plan no revision of which is on disk")
+        return [Finding(66, PENDING, f"{unresolved_plan + len(superseded)} run log(s) name a plan that is "
+                                     f"not in this tree, so which of their actions are irreversible "
+                                     f"cannot be read (check 15 owns that link): " + "; ".join(why))]
     if not cleared:
         return [Finding(66, PASS, f"{len(logs)} run log(s) dispatched no irreversible action; there is "
                                   f"nothing whose compliance had to be read back")]
