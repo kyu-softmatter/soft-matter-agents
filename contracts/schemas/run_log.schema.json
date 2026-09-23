@@ -168,11 +168,84 @@
               "from"
             ]
           }
+        },
+        "deletion": {
+          "type": "object",
+          "description": "A trajectory's positions were removed from this run directory (4.3.2, 2026-09-22). Deletion is the one operation that destroys the evidence for its own justification, so this records which DECLARED thing fired rather than why someone thought it should go.\n\nIt lives on a log event and not in trajectory_meta.json because that file has no schema: section 4 names it as an output and contracts/schemas/ does not hold it, so a deletion recorded there would be prose in an untyped file -- the defect this policy exists to avoid, inside the clause meant to preserve a record. The log is already an append-only record with a schema, and 13.1 put the watcher's output there for the same reason. trajectory_meta.json keeps saying what the trajectory WAS -- frames, steps, maximum displacement, stop reason -- which is what survives the data.",
+          "properties": {
+            "what": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "description": "repo-relative paths removed, as they were named before removal"
+            },
+            "bytes_freed": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "triggered_by": {
+              "type": "object",
+              "description": "The declared thing that fired. There is deliberately NO free-text reason field: a sentence here would make the trigger a verdict the writer chooses, which is the shape check 6 and check 72 exist to stop, and deletion is its most expensive version because a wrong claim leaves something to read and a deleted trajectory leaves nothing. The reason is the criterion's own `statement` in the plan, by reference -- the same move as `estimation` naming the vocabulary instead of copying it.",
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "criterion",
+                    "falsifier"
+                  ],
+                  "description": "a stop/success criterion the plan declared before the run, or a named assumption falsifier that fired"
+                },
+                "id": {
+                  "type": "string",
+                  "description": "the criterion's `id` or the assumption's `rationale_id`"
+                },
+                "declared_in": {
+                  "type": "string",
+                  "description": "the plan card id and revision that declared it, e.g. plan-sim-20260917-001-r3. The revision is the load-bearing half: an opinion formed after a run has to become a declared criterion in a NEW revision before it can delete anything, and this field is where that shows."
+                },
+                "observed_number": {
+                  "type": "string",
+                  "description": "name of the number that failed it, when the criterion compares one"
+                }
+              },
+              "required": [
+                "kind",
+                "id",
+                "declared_in"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "what",
+            "triggered_by"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
         "t_mono",
         "time_base"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "deletion"
+            ]
+          },
+          "then": {
+            "properties": {
+              "event": {
+                "const": "trajectory_deleted"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          }
+        }
       ]
     }
   }
