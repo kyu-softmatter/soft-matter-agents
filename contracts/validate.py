@@ -408,7 +408,15 @@ def card_env(card: Card) -> tuple[dict[str, tuple[float, dict]], list[str]]:
 # discovery
 # --------------------------------------------------------------------------- #
 
-SKIP_DIRS = {".git", "__pycache__", ".venv", "node_modules"}
+# Every directory .gitignore excludes wholesale belongs here, because the
+# validator walks the tree itself and does not read .gitignore. `.pixi` was
+# missing on 2026-09-23 and one `pixi install` put 271 MB inside the shared
+# working copy, which check 13 reported as 10757 failures for every seat at
+# once. Check 79 compares the two lists so the next one is a word, not an
+# outage. The comparison runs one way: .gitignore also holds file patterns
+# like *.pyc that have no business in a directory skip list, and `.git` is
+# never in .gitignore at all.
+SKIP_DIRS = {".git", "__pycache__", ".venv", ".pixi", "node_modules"}
 
 
 REJECTED = "rejected"
@@ -6378,6 +6386,130 @@ def check_77_a_deletion_names_a_declared_trigger(b: Bundle) -> list[Finding]:
     return out or [Finding(77, PASS, f"{n} deletions each name a declared trigger that fired")]
 
 
+def check_78_history_paths_classify(b: Bundle) -> list[Finding]:
+    r"""Every path the history has touched classifies into a boundary some seat owns.
+
+    Check 55's reverse direction. That one asks whether a file section 7
+    declares is one ALLOWED_PATHS would let exist; this one asks whether a
+    path that exists classifies anywhere. A path that classifies nowhere is
+    not a cosmetic gap -- no seat owns `unattributable`, so check 41 refuses
+    the commit whoever makes it, and the file is one no seat can commit.
+    `pyproject.toml` and `uv.lock` were exactly that on 2026-09-19.
+
+    It is NOT a claim that ALLOWED_PATHS and SHARED_PATHS agree. They must
+    keep disagreeing: `plan_ko.md` is deliberately in the second and
+    deliberately not the first, because the Korean record left version
+    control and permitting it on disk would allow a resurrection the person
+    decided against, while checks 35 and 41 still walk three commits that
+    touched it. Only the permitted direction is fixed -- known to the
+    classifier and absent from disk is normal; permitted on disk and known
+    to no boundary is the failure.
+
+    HISTORY-WIDE AND NOT LIVE-TREE, and the difference is the whole value.
+    Removing `plan_ko\.md` from SHARED_PATHS passes a live-tree version,
+    because that file is not on disk to be counted; the history version
+    reports 1. Measured by doing it in a scratch clone rather than reasoned
+    about: the same removal reddens checks 35 and 41 on 952205c, 31f86c1 and
+    8d61a3a. Architecture proposed that removal on 2026-09-23 after reading
+    the comment directly above the regex, which is how a comment in the
+    closest position prose can occupy still failed to hold, and is what this
+    check is worth.
+
+    Scope starts at the enforcement line. What precedes it is OUT OF SCOPE
+    rather than PENDING: PENDING names an artifact a later milestone
+    produces, and no milestone will make a commit from before the gate
+    attributable.
+    """
+    import subprocess
+
+    seats = load_seats() or {}
+    line = seats.get("enforced_from")
+    if not line:
+        return [Finding(78, PENDING, "seats.json names no `enforced_from`, so this sweep has no start")]
+
+    # The premise, asserted rather than assumed: this check only means
+    # something while no seat owns the empty classification. If one ever
+    # does, `unattributable` stops being uncommittable and the finding below
+    # would be reporting a state that is fine.
+    owned = {bnd for st in (seats.get("seats") or []) for bnd in (st.get("owns") or [])}
+    if "unattributable" in owned:
+        return [Finding(78, NA, "a seat owns `unattributable`, so a path classifying nowhere is committable "
+                                "by that seat and this check's premise no longer holds")]
+
+    try:
+        out = subprocess.run(["git", "-C", str(GIT_REPO), "log", "--no-merges", "--name-only",
+                              "--format=", f"{line}..HEAD"],
+                             capture_output=True, text=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError) as exc:
+        return [Finding(78, PENDING, f"cannot read history since the enforcement line {line[:7]}: {exc}")]
+
+    paths = {p for p in out.splitlines() if p.strip()}
+    if not paths:
+        return [Finding(78, NA, f"no commit since the enforcement line {line[:7]} touched a path")]
+
+    orphans = sorted(p for p in paths if seat_boundary_of(p) == "unattributable")
+    if orphans:
+        return [Finding(78, FAIL,
+                        f"{len(orphans)} path(s) the history has touched since {line[:7]} classify into no "
+                        f"boundary, so no seat can commit them and check 41 refuses whoever tries: "
+                        f"{', '.join(orphans[:6])}"
+                        + (f" and {len(orphans) - 6} more" if len(orphans) > 6 else ""),
+                        orphans[0])]
+    return [Finding(78, PASS,
+                    f"{len(paths)} paths touched since {line[:7]} each classify into a boundary a seat owns")]
+
+
+def check_79_gitignored_dirs_are_skipped(b: Bundle) -> list[Finding]:
+    """A directory .gitignore excludes wholesale has to be in SKIP_DIRS.
+
+    Two lists answer one question -- what is not this repository's content --
+    and they sit in two files with two owners, and nothing compared them.
+    The validator walks the tree itself and does not read .gitignore, so an
+    entry in the first and not the second is not ignored, it is walked.
+
+    On 2026-09-23 `.pixi/` was in .gitignore and not in SKIP_DIRS. One
+    `pixi install` put 271 MB inside the shared working copy and check 13
+    reported 10757 failures -- for every seat at once, because the working
+    copy is shared, and with no seat having done anything wrong. The cost of
+    the missing word was an outage; the cost of this check is that the next
+    one is a word.
+
+    It reads only entries ending in `/`, and that narrowness is deliberate.
+    .gitignore also holds file patterns like `*.pyc` and `.DS_Store`, which
+    have no business in a directory-skip list. The comparison runs one way
+    for the same reason: SKIP_DIRS legitimately holds `.git`, which is never
+    in .gitignore, and `node_modules` defensively.
+    """
+    gi = REPO / ".gitignore"
+    if not gi.exists():
+        return [Finding(79, PENDING, ".gitignore is not in this tree, so there is nothing to compare SKIP_DIRS against")]
+
+    declared: list[str] = []
+    for raw in gi.read_text().splitlines():
+        entry = raw.strip()
+        if not entry or entry.startswith("#") or entry.startswith("!") or not entry.endswith("/"):
+            continue
+        # A pattern is not a directory name. `**/x/` and `build/*/` exclude by
+        # shape, and SKIP_DIRS matches a directory's own name, so neither has
+        # a single name to compare.
+        if any(c in entry for c in "*?[]"):
+            continue
+        declared.append(entry.strip("/").lstrip("/"))
+
+    if not declared:
+        return [Finding(79, NA, ".gitignore excludes no directory wholesale, so SKIP_DIRS has nothing to cover")]
+
+    missing = sorted(d for d in declared if d not in SKIP_DIRS)
+    if missing:
+        return [Finding(79, FAIL,
+                        f".gitignore excludes {', '.join(missing)} and SKIP_DIRS does not, so the validator "
+                        f"walks {'them' if len(missing) > 1 else 'it'} -- content that is not this "
+                        f"repository's, reported as this repository's failures",
+                        ".gitignore")]
+    return [Finding(79, PASS,
+                    f"{len(declared)} directories .gitignore excludes are all in SKIP_DIRS")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -6390,6 +6522,7 @@ CHECKS = [
     check_32_purpose, check_33_caller_isolation, check_34_compare_arms, check_35_session_boundary,
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
     check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood, check_62_computed_grade_derived, check_64_every_rejected_fixture_is_reached, check_55_section_7_names_are_allowed,
+    check_78_history_paths_classify, check_79_gitignored_dirs_are_skipped,
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision,

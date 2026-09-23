@@ -267,6 +267,70 @@ def fixture_76_an_export_says_it_could_not_have_seen_it(repo: Path) -> str:
 fixture_76_an_export_says_it_could_not_have_seen_it.env = {"SMA_GIT_REPO": "/nonexistent/real/repo"}
 
 
+def fixture_78_a_classifier_edit_orphans_a_path_in_history(repo: Path) -> str:
+    """An edit to the path classifier that orphans a file already in history.
+
+    This is the event check 78 exists for, built rather than described.
+    Architecture proposed exactly it on 2026-09-23 -- removing `plan_ko\\.md`
+    from SHARED_PATHS -- after reading the comment directly above the regex
+    saying not to. A live-tree check passes that edit, because the orphaned
+    file is not on disk to be counted. Only a sweep over history sees it.
+
+    `enforced_from` is rewritten here, and it is the one field a fixture may
+    honestly rewrite: it names a commit, and a SHA from the real repository
+    does not exist in this one, so `git log` would error and the check would
+    report PENDING instead of the failure. `owns` and `boundaries` are left
+    exactly as the real registry has them, for the reason `base` gives.
+    """
+    start = base(repo)
+    seats = json.loads((repo / "contracts" / "seats.json").read_text())
+    seats["enforced_from"] = start
+    write(repo, "contracts/seats.json", seats)
+    commit(repo, "the enforcement line, named for this repository",
+           "contracts/seats.json", seat="architecture")
+
+    write(repo, "README.md", "# fixture, and a root file the classifier knows\n")
+    commit(repo, "a root file both lists carry", "README.md", seat="architecture")
+
+    # The edit itself: SHARED_PATHS stops knowing the name, and ALLOWED_PATHS
+    # keeps permitting it. Targeted at that line rather than at the first
+    # occurrence in the file -- DESIGN_OWNED carries `README\\.md|` too, for
+    # an agent's own README, and hitting that one would test nothing.
+    v = repo / "contracts" / "validate.py"
+    lines = v.read_text().splitlines(keepends=True)
+    for i, line in enumerate(lines):
+        if line.startswith("SHARED_PATHS = "):
+            lines[i] = line.replace("README\\.md|", "", 1)
+            break
+    else:
+        raise AssertionError("no SHARED_PATHS assignment to edit")
+    v.write_text("".join(lines))
+    commit(repo, "the classifier stops knowing a name history still carries",
+           "contracts/validate.py", seat="architecture")
+    return f"{start}..HEAD"
+
+
+def fixture_79_gitignore_excludes_a_directory_the_walker_enters(repo: Path) -> str:
+    """A directory .gitignore excludes wholesale and SKIP_DIRS does not hold.
+
+    Not a history fixture, and it is here because what it needs is a whole
+    repository with a root `.gitignore` in it, which is what this file builds
+    and the rejected-cards folder cannot -- those are cards, and neither of
+    the two lists this compares is a card.
+
+    The real event was `.pixi/` on 2026-09-23: in .gitignore, absent from
+    SKIP_DIRS, and one `pixi install` turned 271 MB of somebody else's
+    package cache into 10757 check-13 failures for every seat sharing the
+    working copy. `build/` stands in for it so the fixture keeps failing
+    after `.pixi` is in both lists, which it now is.
+    """
+    start = base(repo)
+    write(repo, ".gitignore", "__pycache__/\n.venv/\n.pixi/\nbuild/\n*.pyc\n")
+    commit(repo, "a .gitignore naming a directory the walker still enters",
+           ".gitignore", seat="architecture")
+    return f"{start}..HEAD"
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -275,6 +339,8 @@ FIXTURES = [
     (46, "FAIL", "obs-000000000000", fixture_46_vocabulary_pin_that_never_stood),
     (76, "PASS", "disabledMcpjsonServers", fixture_76_a_local_settings_file_is_named),
     (76, "N/A", "could not have been found", fixture_76_an_export_says_it_could_not_have_seen_it),
+    (78, "FAIL", "classify into no boundary", fixture_78_a_classifier_edit_orphans_a_path_in_history),
+    (79, "FAIL", "SKIP_DIRS does not", fixture_79_gitignore_excludes_a_directory_the_walker_enters),
 ]
 
 
