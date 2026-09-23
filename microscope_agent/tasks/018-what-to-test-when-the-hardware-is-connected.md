@@ -297,6 +297,21 @@ and will not say so.
 **c. The glass-interface to target-plane offset**, and the parfocality
 offsets between ports and channels.
 
+**e. The parfocality residual**, stage-one lens against each target lens.
+**NEW.** This is what sets the approach margin in card 026 step 6: the
+handed-over interface Z is a target rather than a destination, and how far
+it can miss decides whether two stages are enough or a third is needed. It
+is one of two unmeasured terms in that inequality, so **until it is measured
+the stage-one lens cannot be chosen at all.**
+
+**f. The 40× WI's working distance at collar 0.17.** **NEW, and it is a
+by-product of c rather than another visit** — focus on the interface and
+read the encoder. The person fixed the collar at 0.17 mm today and the store
+still carries only the catalogue's 0.16 and 0.20, both E3, with nothing at
+0.17; I checked. Picking an end is wrong in both directions by up to 40 µm,
+and at 40× water that is entirely out of focus. **Measured here it stands
+above the catalogue's E3** rather than beside it.
+
 ### d. The PFS offset sign — the third collision direction
 
 Three devices can drive into the sample: the Z drive, the nosepiece, and
