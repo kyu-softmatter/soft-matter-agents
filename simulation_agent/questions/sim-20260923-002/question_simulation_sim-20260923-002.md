@@ -31,8 +31,18 @@ is not repeated. What is additional:
 
 ### 2. From `manager-simulation`
 
-- Register the observable, proposed id `driven_tracer_relaxation_time`,
-  `window_required: true`.
+- **One name or two is decided by the estimator, not by the driving.** If
+  the person answers "what relaxes" (item 1) with the same order parameter or
+  correlation function that defines 001's `structural_relaxation_time`, this
+  is **the same quantity under a different condition** and takes the same id,
+  with `driving_velocity` and `driving_direction` as conditions and 001 as the
+  zero-velocity row — the vocabulary's rule that a word means one estimator
+  cuts the other way too. Only if the answer is a different estimator (the
+  wake's recovery behind the particle, or a steady-state deformation field) is
+  a second id owed, and `driven_tracer_relaxation_time` is then the proposal.
+  Corrected 2026-09-23 on manager-simulation's question; the first version of
+  this file asked for the second id unconditionally. The S2 queries were made
+  under that name and the gap row keeps it, because a log line is a record.
 - Declare `bd_pairwise_driven_tracer`: 001's model plus one particle under the
   chosen drive. **Driven**, so A7 is live and no longer abstains.
 
