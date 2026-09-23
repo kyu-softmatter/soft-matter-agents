@@ -99,7 +99,19 @@ copy — the index is unpacked to a scratch directory and the validator runs
 there. With `git commit -- <paths>` git builds a temporary index first, so what
 is judged is your paths on top of HEAD and another session's half-finished edit
 neither enters your commit nor refuses it. A plain `git commit` has no such
-index: whatever anyone staged is your commit, and is judged as yours. The gate
+index: whatever anyone staged is your commit, and is judged as yours. **`git commit --amend` is
+the same hazard and worse, and this file did not say so until it happened
+(2026-09-23).** An amend with no paths rebuilds the commit from **the index**,
+so another seat's staged files become yours -- and because the probe form
+`git commit -- <paths>` builds a *temporary* index and never updates the real
+one, your own work may not be in that index at all: an amend after it can
+**replace your commit's contents entirely with somebody else's**. That is
+what `28761d4` is. It is worse than a plain commit in the way that matters
+for noticing: a plain commit adds a line to `git log`, an amend changes the
+content under an existing line, so **with the message unchanged nobody looks
+at all**. The only visible trace was that the amended commit's predecessor
+still said `probe`. `manager-microscope` made that point; I had called the
+two the same shape. The gate
 lists separately whatever differs from what is going in, because nothing checks
 that. `--no-verify` bypasses it and leaves no trace, so say so in the
 message.
