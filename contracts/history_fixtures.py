@@ -331,12 +331,14 @@ def fixture_79_gitignore_excludes_a_directory_the_walker_enters(repo: Path) -> s
     return f"{start}..HEAD"
 
 
-def fixture_80_three_forms_and_four_that_must_not_fire(repo: Path) -> str:
-    """All three declared forms in one file, beside four that must stay quiet.
+def fixture_80_five_forms_and_five_that_must_not_fire(repo: Path) -> str:
+    """All five declared forms in one file, beside five that must stay quiet.
 
     The check exists because two probes each missed a different form, so a
-    fixture carrying only one of them would pass while the check saw two
-    thirds of the rule. All three are planted.
+    fixture carrying only some of them would pass while the check saw part of
+    the rule. All five are planted, including the two declared after the
+    first three: a dictionary access with no `Compare` node, and a prefix
+    test on a name bound from a registry accessor.
 
     **The quiet four matter as much.** A refusal message that QUOTES the test
     was a false positive of the first probe -- the message is real, another
@@ -345,7 +347,9 @@ def fixture_80_three_forms_and_four_that_must_not_fire(repo: Path) -> str:
     the exclusion rather than assert it. Beside it: an assignment of declared
     ids, which can be a legitimate fact about a module; equality against a
     path id, which is the rule being KEPT; and a fragment under the length
-    floor.
+    floor. And the fifth quiet case is the sharp one: the SAME `startswith`
+    call on a name bound from anything else, which parses a source prefix and
+    must not be counted -- 21 of the 23 such calls in the real trees are that.
     """
     head = base(repo)
     write(repo, "librarian_agent/kb/staging/devices.v0.json", {
@@ -366,13 +370,20 @@ SUBJECT_80 = """\"\"\"A module carrying one of each form, and four that must not
 RETRACT_HINTS = ("z_drive", "pfs")          # an assignment: out of scope on purpose
 
 
-def decide(element_id, elements, element, path):
+def decide(element_id, elements, element, path, state, channel, source):
     if "shutter" in element_id:             # FORM 1 substring
         return "shutter"
     if "pfs" in elements:                   # FORM 2 membership
         return "stabiliser"
     if element == "nosepiece":              # FORM 3 equality
         return "turret"
+    if state.get("nosepiece"):              # FORM 4 key-access
+        return "seated"
+    for e in channel.element_ids():
+        if e.startswith("focus"):           # FORM 5 prefix, receiver from the registry
+            return e
+    if source.startswith("kb:"):            # the same call, parsing a prefix: QUIET
+        return "kb"
     if path == "confocal":                  # a path id: the rule being KEPT
         return "path"
     if "z" in element_id:                   # under the length floor
@@ -432,7 +443,7 @@ FIXTURES = [
     (78, "FAIL", "classify into no boundary", fixture_78_a_classifier_edit_orphans_a_path_in_history),
     (79, "FAIL", "SKIP_DIRS does not", fixture_79_gitignore_excludes_a_directory_the_walker_enters),
     (81, "FAIL", "is in no file of this tree", fixture_81_an_agent_module_imports_what_is_in_no_commit),
-    (80, "PASS", "3 site(s) decide a device's role", fixture_80_three_forms_and_four_that_must_not_fire),
+    (80, "PASS", "5 site(s) decide a device's role", fixture_80_five_forms_and_five_that_must_not_fire),
 ]
 
 

@@ -4897,16 +4897,41 @@ def check_80_a_role_is_read_not_spelled(b: Bundle) -> list[Finding]:
     what this rule asks for rather than what it forbids, and folding them in
     turns the rule against itself.
 
-    **WHAT IT DOES NOT REACH, stated rather than left to be discovered.**
-    Assignments are out of scope -- `RETRACT_HINTS = ("focus", "z_drive",
-    ...)` and `WRAPPED = ("widefield_source_a", ...)` have one shape and the
-    second is legitimate, a fact about which channels that module wraps, where
-    the module is the authority. Nothing here can separate them and a check
-    that guesses is the defect one layer up. Also outside: `startswith` and
-    `endswith` on an identifier, which are the rule's spirit and not among the
-    three declared forms, and `state.get("nosepiece")`, a dictionary access
-    with no `Compare` node at all -- `microscope-1` found that fourth shape
-    after the three were ruled.
+    **TWO MORE FORMS, declared 2026-09-23 after the first three and
+    implemented here.** `state.get("nosepiece")` is a dictionary access with
+    no `Compare` node at all, so the AST walk above cannot see it;
+    `microscope-1` found it by reading. Implementing it unasked would have
+    made the guard's scope set by something other than a declaration, which
+    is the defect this rule removes committed by the seat removing it, so it
+    was declared first. It brought a second site nobody had counted:
+    `plan_card.py` keys on `intermediate_magnification` the same way. A
+    subscript is the same shape and there are none today, which this counts
+    so that it stays a measured fact.
+
+      key-access  `state.get("nosepiece")`   a declared id as a dict key
+      prefix      `e.startswith("focus")`    on a name bound from the registry
+
+    **The fifth form needed a criterion and the honest one is brittle.**
+    `retract_elements()` matches `startswith("focus")` and `endswith("_focus")`
+    on element ids, and neither literal is a declared id or a fragment of one
+    -- they hedge against spellings the registry does not have, which is the
+    rule's own point. But there are 23 `startswith`/`endswith` calls on
+    literals in these trees and 21 parse source prefixes (`kb:`, `computed:`)
+    and file extensions. **Flagging all 23 is a check people learn to skip.**
+    So the criterion is the RECEIVER's binding: a name bound by iterating
+    `element_ids()`, `elements`, `channels` or `channel_ids` is holding a
+    registry id, and a `startswith` on it is deciding a role. That set of
+    accessor names is recognised by spelling, which is this check's own
+    version of the defect it hunts -- **rename the accessor and this form goes
+    quiet.** It is said here and in the finding rather than implied, and the
+    line prints the denominator (counted / total) so the gap is visible on
+    every run.
+
+    **WHAT IT STILL DOES NOT REACH.** Assignments -- `RETRACT_HINTS =
+    ("focus", "z_drive", ...)` and `WRAPPED = ("widefield_source_a", ...)`
+    have one shape and the second is legitimate, a fact about which channels
+    that module wraps, where the module is the authority. Nothing here can
+    separate them and a check that guesses is the defect one layer up.
 
     **ADVISORY WHILE THE BACKLOG STANDS, a failure at zero**, which is check
     29's and check 75's shape for their reason: the sites sit in two agents'
@@ -4952,7 +4977,17 @@ def check_80_a_role_is_read_not_spelled(b: Bundle) -> list[Finding]:
             return "substring"
         return None
 
+    # Two accessors that hand out registry ids. Recognised by NAME, which is
+    # this check's own brittleness and is said out loud rather than implied:
+    # rename `element_ids()` and form 5 goes quiet. The alternative was to
+    # flag every `.startswith`/`.endswith` on a literal in both trees, which
+    # is 23 sites of which 21 parse source prefixes (`kb:`, `computed:`) and
+    # file extensions -- a check that cries at 21 correct lines is a check
+    # people learn to skip.
+    REGISTRY_ACCESSORS = {"element_ids", "elements", "channels", "channel_ids"}
+
     sites: list[str] = []
+    prefix_total = 0
     sources = sorted(REPO.glob("*_agent/src/**/*.py")) + sorted(REPO.glob("bridge/src/**/*.py"))
     for src in sources:
         try:
@@ -4960,7 +4995,52 @@ def check_80_a_role_is_read_not_spelled(b: Bundle) -> list[Finding]:
         except (SyntaxError, OSError, ValueError):
             continue
         where = str(src.relative_to(REPO))
+
+        # FORM 5. Which names in this file are bound by iterating a registry
+        # accessor -- `for e in channel.element_ids()`. A `.startswith` on one
+        # of those is deciding a device's role; the same call on a name bound
+        # from anything else is parsing a string, and this cannot tell the
+        # difference except through the binding.
+        from_registry: set[str] = set()
         for node in ast.walk(tree):
+            gens = getattr(node, "generators", None) or []
+            if isinstance(node, (ast.For, ast.AsyncFor)):
+                gens = [node]
+            for gen in gens:
+                it = getattr(gen, "iter", None)
+                name = None
+                if isinstance(it, ast.Call) and isinstance(it.func, ast.Attribute):
+                    name = it.func.attr
+                elif isinstance(it, ast.Attribute):
+                    name = it.attr
+                elif isinstance(it, ast.Call) and isinstance(it.func, ast.Attribute) \
+                        and isinstance(it.func.value, ast.Attribute):
+                    name = it.func.value.attr
+                if name in REGISTRY_ACCESSORS and isinstance(gen.target, ast.Name):
+                    from_registry.add(gen.target.id)
+
+        for node in ast.walk(tree):
+            # FORM 4, declared 2026-09-23: a dictionary access keyed by a
+            # declared id. No `Compare` node at all, which is why the first
+            # three forms walk past it -- `microscope-1` found it by reading.
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+                if node.func.attr == "get" and node.args \
+                        and isinstance(node.args[0], ast.Constant) \
+                        and node.args[0].value in ids:
+                    sites.append(f"{where}:{node.lineno} key-access {node.args[0].value!r}")
+                if node.func.attr in ("startswith", "endswith") and node.args \
+                        and isinstance(node.args[0], ast.Constant) \
+                        and isinstance(node.args[0].value, str):
+                    prefix_total += 1
+                    recv = node.func.value
+                    if isinstance(recv, ast.Name) and recv.id in from_registry:
+                        sites.append(f"{where}:{node.lineno} {node.func.attr} "
+                                     f"{node.args[0].value!r}")
+            # A subscript keyed by a declared id is the same shape as form 4
+            # and there are none today; it is counted so that stays a fact.
+            if isinstance(node, ast.Subscript) and isinstance(node.slice, ast.Constant) \
+                    and node.slice.value in ids:
+                sites.append(f"{where}:{node.lineno} key-access [{node.slice.value!r}]")
             if not isinstance(node, ast.Compare):
                 continue
             for op, comparator in zip(node.ops, node.comparators):
@@ -4986,11 +5066,14 @@ def check_80_a_role_is_read_not_spelled(b: Bundle) -> list[Finding]:
     return [Finding(80, PASS,
         f"{len(sites)} site(s) decide a device's role from how an identifier is written, over "
         f"{len(sources)} source file(s) and the {len(ids)} channel and element ids declared: "
-        f"{'; '.join(sites)}. ADVISORY WHILE THE BACKLOG STANDS, a failure at zero -- these sit in "
+        f"{'; '.join(sites)}. Of {prefix_total} startswith/endswith call(s) on a literal in these "
+        f"trees, only those whose receiver is bound from a registry accessor are counted: the rest "
+        f"parse source prefixes and file extensions, and NOTHING HERE CAN TELL THEM APART EXCEPT "
+        f"THAT BINDING -- rename the accessor and that form goes quiet. "
+        f"ADVISORY WHILE THE BACKLOG STANDS, a failure at zero -- these sit in "
         f"agent trees this seat may not write and none can go until an element row carries a `role` "
         f"to read instead, so failing here would block every seat on an artifact none of them owns. "
-        f"Assignments, startswith/endswith and dictionary access are outside the three declared "
-        f"forms and the docstring says why [{rel}]")]
+        f"Assignments stay outside every form and the docstring says why [{rel}]")]
 
 
 def check_54_kb_basis_resolves(b: Bundle) -> list[Finding]:
