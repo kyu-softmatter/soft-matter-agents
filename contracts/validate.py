@@ -5366,6 +5366,28 @@ def check_66_irreversible_run_reads_back_compliance(b: Bundle) -> list[Finding]:
             reads_back[el["id"]] = rb
 
     out: list[Finding] = []
+    def _stem(cid: str) -> str:
+        return re.sub(r"-r\d+$", "", str(cid or ""))
+
+    # goal_id, ruled into this check rather than 73 on 2026-09-23 (8): what it
+    # needs is not resolution alone but the two-way split this check already
+    # has. Two schemas require the field and nothing read it, so a goal
+    # revision could orphan every plan pinning the last one with no line
+    # anywhere -- quieter than the plan case, which at least said "not in
+    # this tree".
+    goals = {c.data.get("id") for c in b.of_kind("goal") if "__unreadable__" not in c.data}
+    goal_lost: list[str] = []
+    goal_absent: list[str] = []
+    for plan_card in b.of_kind("plan"):
+        gid = plan_card.data.get("goal_id")
+        if not gid or gid in goals:
+            continue
+        standing = sorted(g for g in goals if g and _stem(g) == _stem(gid) and _stem(gid))
+        if standing:
+            goal_lost.append(f"{plan_card.rel} pins {gid} (on disk now: {', '.join(standing)})")
+        else:
+            goal_absent.append(f"{plan_card.rel} pins {gid}")
+
     cleared = unresolved_plan = 0
     superseded: list[str] = []
     for log in logs:
@@ -5386,9 +5408,8 @@ def check_66_irreversible_run_reads_back_compliance(b: Bundle) -> list[Finding]:
             # whether a plan for the same question is sitting on disk under a
             # different number. Card 027's lesson pointed back at this check:
             # a line that names a cause has to have looked at that cause.
-            stem = re.sub(r"-r\d+$", "", str(doc.get("plan_id") or ""))
-            standing = sorted(pid for pid in plans
-                              if pid and re.sub(r"-r\d+$", "", pid) == stem and stem)
+            stem = _stem(doc.get("plan_id"))
+            standing = sorted(pid for pid in plans if pid and _stem(pid) == stem and stem)
             if standing:
                 superseded.append(f"{doc.get('plan_id')} (on disk now: {', '.join(standing)})")
             else:
@@ -5424,8 +5445,20 @@ def check_66_irreversible_run_reads_back_compliance(b: Bundle) -> list[Finding]:
             else:
                 cleared += 1
 
+    goal_out: list[Finding] = []
+    if goal_lost:
+        goal_out.append(Finding(66, LOST,
+            f"{len(goal_lost)} plan(s) pin a goal revision that was OVERWRITTEN at the same path "
+            f"({'; '.join(goal_lost[:3])}). The plan was built against that goal and cannot be read "
+            f"against it now. Closed by nothing; what stops the next one is the v<N>_ convention, and "
+            f"REPINNING IS NOT THE FIX -- a plan moved to the current goal claims one it never read"))
+    if goal_absent:
+        goal_out.append(Finding(66, PENDING,
+            f"{len(goal_absent)} plan(s) pin a goal no revision of which is on disk "
+            f"({'; '.join(goal_absent[:3])})"))
+
     if out:
-        return out
+        return out + goal_out
     if (unresolved_plan or superseded) and not cleared:
         # Two verdicts, because the two causes are closed by different work --
         # and one of them by none. Reported separately rather than summed: a
@@ -5444,12 +5477,12 @@ def check_66_irreversible_run_reads_back_compliance(b: Bundle) -> list[Finding]:
             split.append(Finding(66, PENDING,
                 f"{unresolved_plan} run log(s) name a plan no revision of which is on disk, so which of "
                 f"their actions are irreversible cannot be read (check 15 owns that link)"))
-        return split
+        return split + goal_out
     if not cleared:
         return [Finding(66, PASS, f"{len(logs)} run log(s) dispatched no irreversible action; there is "
-                                  f"nothing whose compliance had to be read back")]
+                                  f"nothing whose compliance had to be read back")] + goal_out
     return [Finding(66, PASS, f"{cleared} irreversible dispatch(es) read compliance back from a channel "
-                              f"that can report it")]
+                              f"that can report it")] + goal_out
 
 
 def check_68_a_gap_names_a_quantity_not_a_subject(b: Bundle) -> list[Finding]:
