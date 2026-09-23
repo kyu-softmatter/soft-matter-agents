@@ -69,7 +69,10 @@ from . import hoomd_backend
 from . import physics
 
 NAME = "abp_backend"
-DIMENSIONS = estimator_abp.DIMENSIONS
+# The physics this backend builds is two-dimensional: the box it creates has
+# L_z = 0, which is how HOOMD declares a 2D system, and the estimator is told
+# so explicitly rather than reading a module constant of its own.
+DIMENSIONS = 2
 
 SUBMITTED, RUNNING, COMPLETE, ABORTED, FAILED = hoomd_backend.SUBMITTED, hoomd_backend.RUNNING, hoomd_backend.COMPLETE, hoomd_backend.ABORTED, hoomd_backend.FAILED
 TERMINAL = hoomd_backend.TERMINAL
@@ -294,7 +297,7 @@ class AbpBackend:
     # -- estimation, delegated ------------------------------------------------ #
 
     def estimator(self) -> estimator_abp.ActiveEstimator:
-        return estimator_abp.ActiveEstimator(self.frame_times, self.frames, self.orientations)
+        return estimator_abp.ActiveEstimator(self.frame_times, self.frames, self.orientations, dimensions=DIMENSIONS)
 
     def _lower(self) -> float:
         return float(self.params["fit_lag_range_lower_bound"])

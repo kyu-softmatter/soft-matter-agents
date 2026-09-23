@@ -35,14 +35,21 @@ from __future__ import annotations
 
 import numpy as np
 
-DIMENSIONS = 2
+# HOOMD stores three coordinates whatever the physics; the estimator reads the
+# first `dimensions` of them. `dimensions` is an ARGUMENT with no default: a
+# default would hand a caller that forgot it a plausible number instead of an
+# error, which is how a 3D estimator once read a 2D system (window 3, 8c4c386).
+SPATIAL_COMPONENTS = 3
 UNCERTAINTY_BLOCKS = 50
 
 
 class ActiveEstimator:
-    def __init__(self, frame_times: list, frames: list, orientations: list | None = None) -> None:
+    def __init__(self, frame_times: list, frames: list, orientations: list | None, dimensions: int) -> None:
+        if dimensions not in (2, 3):
+            raise ValueError(f"dimensions must be 2 or 3, not {dimensions!r}")
+        self.dimensions = int(dimensions)
         self.frame_times = np.asarray(list(frame_times), dtype=float)
-        self.frames = [np.asarray(f)[:, :DIMENSIONS] for f in frames]
+        self.frames = [np.asarray(f)[:, :self.dimensions] for f in frames]
         self.orientations = [np.asarray(o, dtype=float) for o in (orientations or [])]
 
     @property
@@ -84,7 +91,7 @@ class ActiveEstimator:
         independent = n_particles * np.maximum(self.n_frames // shifts, 1)
         w = np.sqrt(independent)
         slope, intercept = np.polyfit(lags, msd, 1, w=w)
-        return float(slope) / (2 * DIMENSIONS), float(intercept), int(keep.sum()), float(lags.min()), float(lags.max())
+        return float(slope) / (2 * self.dimensions), float(intercept), int(keep.sum()), float(lags.min()), float(lags.max())
 
     def fit_effective_diffusivity(self, lower: float, max_lag_time: float) -> dict:
         curve = self.mean_squared_displacement(max_lag_time)
@@ -97,7 +104,7 @@ class ActiveEstimator:
         d, b, n, lo, hi = fit
         return {"quantity": "effective_translational_diffusivity", "diffusivity": d, "intercept": b,
                 "lags_used": n, "shortest_lag": lo, "longest_lag": hi, "fit_lag_range_lower_bound": lower,
-                "max_lag_time": max_lag_time, "dimensions": DIMENSIONS,
+                "max_lag_time": max_lag_time, "dimensions": self.dimensions,
                 "estimator": "contracts/observables.json: effective_translational_diffusivity -- weighted least squares of MSD on lag over lags at or above the declared lower bound, slope over 2*d, weights sqrt of independent displacements per lag"}
 
     def block_uncertainty(self, lower: float, max_lag_time: float) -> dict:
