@@ -4142,11 +4142,22 @@ def check_45_undegraded_is_backed_by_the_log(b: Bundle) -> list[Finding]:
 
     out: list[Finding] = []
     backed, degraded = 0, 0
+    unfalsifiable: list[str] = []
     for c in b.cards:
         if "__unreadable__" in c.data:
             continue
         cid = c.data.get("caller_id")
         if not cid:
+            # Skipping is right for a card that asked nothing. It is NOT right
+            # for one claiming the service answered: `degraded: []` with
+            # `kb_refs` is that claim, and with no id this check can neither
+            # corroborate nor refute it -- the card is simply outside the only
+            # mechanism that would test it. `caller_id` reached common_head on
+            # 2026-09-22 and these predate it, so they are counted and not
+            # failed.
+            if (c.data.get("degraded") == [] or c.data.get("degraded") is None) \
+                    and c.data.get("kb_refs"):
+                unfalsifiable.append(c.rel)
             continue
         if any("librarian" in str(d) for d in c.data.get("degraded") or []):
             degraded += 1
@@ -4165,6 +4176,15 @@ def check_45_undegraded_is_backed_by_the_log(b: Bundle) -> list[Finding]:
                 'should say ["librarian_agent"] (3.1 rule 2), or the id was chosen rather than issued '
                 "(4.3.1). The log corroborates a claim and cannot verify one, so this is the weaker "
                 "direction only: no line at all", c.rel))
+    if out:
+        return out
+    if unfalsifiable:
+        out.append(Finding(45, PENDING,
+            f"{len(unfalsifiable)} card(s) claim the librarian answered -- `degraded` empty and "
+            f"`kb_refs` filled -- and carry no `caller_id`, so this check skips them and the claim "
+            f"is neither corroborated nor refuted: {unfalsifiable[0]}. The field reached "
+            f"common_head on 2026-09-22 and these predate it; this becomes a failure once they "
+            f"carry one"))
     if out:
         return out
     if backed == 0:

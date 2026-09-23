@@ -581,6 +581,10 @@
           "items": {
             "$ref": "#/$defs/agent"
           }
+        },
+        "caller_id": {
+          "$ref": "#/$defs/caller_id",
+          "description": "The issued id the calls behind this card were made under. In `common_head` since 2026-09-22, and it was in `axis.schema.json` alone before that -- so an axis card could point at the calls that back it and a goal or a plan could not.\n\nThat is not cosmetic. Check 45 tests `degraded: []` against the query log and its first line is `if not cid: continue`, so a card claiming the service answered while carrying no id is **skipped, not checked** -- the claim can be neither corroborated nor refuted. Three cards were in that position when this landed: two goals and a plan, all with `degraded: []` and between one and ten `kb_refs`. `microscope-5` found it after writing a goal whose three calls existed in the log and had nowhere in the card to be named.\n\nOPTIONAL, because a card that asks the service nothing has no id to give and should not be made to invent one -- and an invented id is the failure 4.3.1 rule 3 names. What should hold is narrower: a card with `degraded: []` and a non-empty `kb_refs` has queried, and that one carries an id. Check 45 counts the exceptions rather than failing them while the three migrate."
         }
       },
       "required": [
