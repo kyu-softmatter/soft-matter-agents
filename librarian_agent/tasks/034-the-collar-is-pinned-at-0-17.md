@@ -1,7 +1,11 @@
 # 034 — the 40× collar is pinned at 0.17 mm, and the store already said so
 
-status: open · issued 2026-09-22 by manager-librarian · **relayed fact from
-the person, via microscope-5** · **small, and it closes nothing**
+status: closed · **verified on disk 2026-09-23** (`013edb6`, published
+`8fe3e43`) -- `objective_40x_collar_setting` at `operator_read:` E3, because
+the seat asked the person which of the two ways they knew it and they had
+looked at the scale. The gap went from `condition_mismatch` to `absent`:
+the condition is met and the value is still missing · issued 2026-09-22 by
+manager-librarian · **relayed fact from the person, via microscope-5**
 
 ## The fact
 
@@ -97,3 +101,18 @@ asked. Confirm the gap is still open and say which kind it now is. And say
 whether anything else in the store was waiting on the same condition — the
 `validity_conditions` sentence above suggests this entry was not the only one
 holding its breath.
+
+
+---
+
+## What the seat did that this file only asked for
+
+**It asked the person.** The task said *if the grade turns on how they know
+it, ask them directly* — the seat gave two options, read-off-the-scale or
+recalled, and the person had looked. **E3 because of the answer, not because
+of the relay.** Recalled would have been E5.
+
+**And it named the number better than this file did.** `coverslip_thickness`
+rather than `collar_setting`, under rule 1 — a name states the quantity and
+not its subject. The consequence is the useful part: **the glass on the bench
+and the thickness the lens is correcting for now come back from one query.**
