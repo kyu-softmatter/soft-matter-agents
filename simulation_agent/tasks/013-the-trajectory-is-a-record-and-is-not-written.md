@@ -70,32 +70,41 @@ later needs the units, the ordering and what index 0 means without reading the
 backend. Two lines in `trajectory_meta.json` cost nothing and are the only
 thing that will still be there.
 
-## Deleting a bad trajectory is NOT in this card
+## Deleting one is settled, and it is not this card's work either
 
-The person also asked that a trajectory found bad later be deleted with the
-reason recorded. **That is a principle change and this seat cannot card it.**
+This card said deletion was a principle change and refused to card it. **That
+was raised and answered the same day**, and the answer is worth knowing while
+you write the writing half.
+
+**No principle blocked it.** Architecture read P9 and found P12's cost column
+had cited it for something it does not say: P9 governs the RECORD -- *a
+correction is a new revision, never an overwrite* -- and says nothing about
+the data a record points at. Dropping positions while the run log and
+`trajectory_meta.json` stay is neither a correction nor an overwrite. P12's
+column is corrected (`4ccaef9`), and the person approved the policy directly
+in that session (`c438c30`).
+
+**So a trajectory may be deleted, and the trigger has to be derivable.** The
+contract for it is already in place and you do not have to design any of it:
 
 ```
-P12's cost column   "Outputs accumulate without limit and are not deleted (P9)."
-P9                  "Logs are append-only. A correction is a new revision, never an overwrite."
-§4.3.2 Record row   "that agent, append-only"
+run_log.schema.json   a `deletion` event carrying `what` and `triggered_by`
+triggered_by.kind     criterion | falsifier -- nothing else
+triggered_by.declared_in   the plan card AND its revision
+triggered_by.recorded_in   required for a falsifier: where its firing is recorded
+no free-text reason field, and additionalProperties refuses one
+check 77              resolves all of it, and is NA until a deletion exists
 ```
 
-Three places say outputs are not deleted, and one of them lists it as a cost
-the design **accepted on purpose**. Root `CLAUDE.md`: if work would violate a
-principle, the work is wrong, not the principle — and changing one means
-editing `plan.md` first, in the same commit, with the reason. `plan.md` is
-architecture's.
+**There is deliberately no prose reason.** The reason is the criterion's own
+`statement` in the plan, by reference -- the same move `estimation` makes
+against the vocabulary. A sentence there would make the trigger a verdict the
+writer chooses, and deletion is the most expensive version of that: a wrong
+claim leaves something to read, a deleted trajectory leaves nothing.
 
-**It is raised, not dropped**, and with the part this seat can contribute:
-a deletion trigger has to be **derivable**, not a verdict someone chooses.
-That is the whole of today — check 6 recomputes `met`, check 72 recomputes
-`within_tolerance`, and `simulation-2` caught a false backend label because
-the numbers disagreed with it. A seat that may delete a trajectory by
-declaring it bad is an unchecked verdict destroying evidence. If the principle
-moves, the trigger should key on what is already declared: the result card's
-criteria, or a named `falsifier` firing. An opinion formed later has to
-**become** a declared criterion before it can delete anything.
-
-**Do not implement deletion on the strength of this card.** Write the
-trajectory; the rest waits on architecture.
+**None of this is your job in this card.** Write the trajectory. Deleting one
+needs a criterion to have fired, and nothing has. What this section is for is
+so you build the writing half knowing the shape that will later remove it --
+in particular that `trajectory_meta.json` must keep meaning something after
+the positions are gone, which is why it stays a summary and does not grow to
+hold the deletion.
