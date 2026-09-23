@@ -28,9 +28,33 @@ from __future__ import annotations
 
 import json
 import math
+import sys
 
 from . import cards
 from .physics import K_B
+
+# 7.2's diagram says planning-stage code "imports contracts only", so the
+# rounding rule is CALLED rather than copied. It cannot be a bare import: the
+# agent runs as `python3 -m src.fanout` from simulation_agent/, where the
+# repository root is not on the path, so the root is put there the way
+# cards.py and physics.py already locate it.
+#
+# `cards.py`'s docstring says this module "reads contracts/ as data and
+# imports nothing from it (7.2 rule 2)". Rule 2 says planning code knows no
+# DEVICE; it says nothing about contracts, and the diagram above it permits
+# this import outright. That mis-citation is why SOURCE_GRADE is a second
+# copy, and cards.py records what the copy cost: two days where
+# grade_for("prior_run:...") raised against 26 store entries, found by
+# counting the two tables and not by a failure.
+#
+# The objection to importing it -- that the shared working copy's validator
+# moves under you -- is real and does not apply here. The cards are judged by
+# that same volatile file, so a shared rule keeps generation and judgement in
+# agreement while a copy drifts silently out of it.
+_ROOT = str(cards.REPO)
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+from contracts.validate import round_to_sig  # noqa: E402
 
 ENVELOPE = cards.AGENT / "envelope" / "budget.json"
 
@@ -131,9 +155,28 @@ def _head(axis, qid, config, created_at, caller_id, kb_version, revision, **kw):
     )
 
 
-def _interval(parameter, unit, basis, **bound):
-    return {"parameter": parameter, "unit": unit, **bound,
-            "basis": [basis], "precision": "order_of_magnitude"}
+def _interval(parameter, unit, basis, varies_with=None, **bound):
+    """An allowed range, and whether it is a function of the sweep.
+
+    `varies_with` names the sweep axes the bound moves with, so S4 evaluates
+    it per point instead of intersecting it across the whole sweep. ABSENCE IS
+    A CLAIM that the bound is constant over the sweep, so every interval below
+    either carries the field or means that -- there is no third state, and an
+    omission here is now a wrong assertion rather than a missing one.
+
+    The field exists because of this configuration. Intersecting the timestep
+    from the stiff corner with the record length from the soft one combines
+    two claims about different points, which is a category error and not a
+    narrow answer, and it catches nothing because it still produces a number.
+    Here both bounds go as the same local gamma/k_t, so the cost is flat
+    across three decades of stiffness at 1e5 steps a point, while one interval
+    per parameter gives 1e8 -- a factor equal to the stiffness range exactly.
+    """
+    out = {"parameter": parameter, "unit": unit, **bound,
+           "basis": [basis], "precision": "order_of_magnitude"}
+    if varies_with:
+        out["varies_with"] = list(varies_with)
+    return out
 
 
 def _ineq(text, parameter, interval=None, precondition=None):
@@ -146,21 +189,15 @@ def _ineq(text, parameter, interval=None, precondition=None):
 
 
 def _one(x: float) -> float:
-    """One significant figure, ties away from zero.
+    """One significant figure, by the validator's own rule.
 
     `f"{x:.0e}"` is NOT this: Python formats half-to-even, so 25 becomes 2e+01
-    while contracts/validate.py's `round_to_sig` gives 30 and check 17 fails
-    on a number that is right. Copied from the validator's rule rather than
-    approximated, because the two have to agree exactly or every borderline
-    value is a false failure. Found by running it (a7's soft-corner speed).
+    while check 17 recomputes 30 and fails a number that is right. Found by
+    running it, on a7's soft-corner speed. This was a copy of the validator's
+    eight lines for one commit; it calls them now, because two implementations
+    of one rounding rule is the 11-11 shape and the copy is the half that rots.
     """
-    if x == 0:
-        return 0.0
-    exp = math.floor(math.log10(abs(x)))
-    scale = 10 ** (0 - exp)
-    scaled = abs(x) * scale
-    rounded = math.floor(scaled) + (1 if scaled - math.floor(scaled) >= 0.5 else 0)
-    return math.copysign(rounded / scale, x)
+    return round_to_sig(x, 1)
 
 
 def _anchors(goal, numbers, assumptions, axis):
@@ -261,17 +298,17 @@ def a1(goal, numbers, assumptions):
     return dict(
         method="deterministic", verdict="feasible",
         constraints=[
-            _interval("integration_timestep", "s", "dt_max_drift", max=dt_drift),
-            _interval("integration_timestep", "s", "dt_max_noise", max=dt_noise),
-            _interval("integration_timestep", "s", "dt_max_relaxation", max=dt_relax),
+            _interval("integration_timestep", "s", "dt_max_drift", ["trap_stiffness", "flow_speed"], max=dt_drift),
+            _interval("integration_timestep", "s", "dt_max_noise", ["trap_stiffness"], max=dt_noise),
+            _interval("integration_timestep", "s", "dt_max_relaxation", ["trap_stiffness"], max=dt_relax),
         ],
         inequalities=[
             _ineq("v*dt << sigma at the fastest point of the sweep", "integration_timestep",
-                  interval=_interval("integration_timestep", "s", "dt_max_drift", max=dt_drift)),
+                  interval=_interval("integration_timestep", "s", "dt_max_drift", ["trap_stiffness", "flow_speed"], max=dt_drift)),
             _ineq("sqrt(2*D*dt) << sigma at the stiffest point", "integration_timestep",
-                  interval=_interval("integration_timestep", "s", "dt_max_noise", max=dt_noise)),
+                  interval=_interval("integration_timestep", "s", "dt_max_noise", ["trap_stiffness"], max=dt_noise)),
             _ineq("dt << gamma/k_t at the stiffest point", "integration_timestep",
-                  interval=_interval("integration_timestep", "s", "dt_max_relaxation", max=dt_relax)),
+                  interval=_interval("integration_timestep", "s", "dt_max_relaxation", ["trap_stiffness"], max=dt_relax)),
         ],
         note="S4 takes the tightest, which is the drift bound. All three are recorded "
              "because which one binds moves with the sweep: at the slow end the drift bound "
@@ -342,13 +379,13 @@ def a2(goal, numbers, assumptions):
     return dict(
         method="deterministic", verdict="feasible",
         constraints=[
-            _interval("record_length", "s", "record_length_floor_soft_corner", min=t_floor_soft),
+            _interval("record_length", "s", "record_length_floor_soft_corner", ["trap_stiffness"], min=t_floor_soft),
         ],
         inequalities=[
             _ineq("record_length >> gamma/k_t, at the softest point of the sweep",
                   "record_length",
                   interval=_interval("record_length", "s", "record_length_floor_soft_corner",
-                                     min=t_floor_soft)),
+                                     ["trap_stiffness"], min=t_floor_soft)),
             _ineq("record_length >= 2*(gamma/k_t)/((offset/sigma)*target_relative_error)**2",
                   "record_length",
                   precondition={
@@ -405,7 +442,12 @@ def a3(goal, numbers, assumptions):
                   "box_edge",
                   interval=_interval("box_edge", "um", "box_edge_min", min=box)),
         ],
-        note="THIS AXIS IS NEARLY VACUOUS HERE AND SAYS SO RATHER THAN ABSTAINING. There is "
+        note="THE BOX BOUND CARRIES NO `varies_with`, AND THAT IS NOW AN ASSERTION. It is "
+             "the one bound here that really is constant over the sweep: a box sized for "
+             "the largest excursion anywhere fits every corner, and with no neighbour list "
+             "it costs nothing to carry that size at the tight corners. Every other "
+             "interval this configuration emits goes as the local gamma/k_t and says so. "
+             "THIS AXIS IS NEARLY VACUOUS HERE AND SAYS SO RATHER THAN ABSTAINING. There is "
              "one particle, no pair potential and no wall, so there is no periodic image to "
              "meet and nothing in the physics depends on the box at all -- the bound above "
              "is a recording convention, not a physical constraint. It also costs nothing: "
@@ -461,13 +503,13 @@ def a4(goal, numbers, assumptions):
     return dict(
         method="deterministic", verdict="feasible",
         constraints=[_interval("save_interval", "s", "save_interval_max",
-                               min=dt_save_min, max=dt_save_max)],
+                               ["trap_stiffness"], min=dt_save_min, max=dt_save_max)],
         inequalities=[
             _ineq("save_interval << gamma/k_t, so the relaxation is resolved", "save_interval",
-                  interval=_interval("save_interval", "s", "save_interval_max", max=dt_save_max)),
+                  interval=_interval("save_interval", "s", "save_interval_max", ["trap_stiffness"], max=dt_save_max)),
             _ineq("save_interval >= 0.01*gamma/k_t, because a mean gains nothing from "
                   "correlated samples", "save_interval",
-                  interval=_interval("save_interval", "s", "save_interval_min", min=dt_save_min)),
+                  interval=_interval("save_interval", "s", "save_interval_min", ["trap_stiffness"], min=dt_save_min)),
         ],
         note="A two-sided interval, and the lower half is the unusual one. The save interval "
              "should scale with the LOCAL relaxation time at each stiffness rather than being "
@@ -655,18 +697,18 @@ def a7(goal, numbers, assumptions):
     return dict(
         method="deterministic", verdict="feasible",
         constraints=[
-            _interval("flow_speed", "um/s", "flow_speed_max_soft_corner", max=v_soft_max),
-            _interval("startup_discard", "s", "startup_discard_soft_corner", min=startup_soft),
+            _interval("flow_speed", "um/s", "flow_speed_max_soft_corner", ["trap_stiffness"], max=v_soft_max),
+            _interval("startup_discard", "s", "startup_discard_soft_corner", ["trap_stiffness"], min=startup_soft),
         ],
         inequalities=[
             _ineq("the imposed speed realises the declared dimensionless offset at each "
                   "stiffness", "flow_speed",
                   interval=_interval("flow_speed", "um/s", "flow_speed_max_soft_corner",
-                                     max=v_soft_max)),
+                                     ["trap_stiffness"], max=v_soft_max)),
             _ineq("startup_discard >> gamma/k_t, so the record begins at steady state",
                   "startup_discard",
                   interval=_interval("startup_discard", "s", "startup_discard_soft_corner",
-                                     min=startup_soft)),
+                                     ["trap_stiffness"], min=startup_soft)),
             _ineq("Reynolds number << 1, so the overdamped model holds", "flow_speed",
                   precondition={
                       "parameter": "flow_speed",

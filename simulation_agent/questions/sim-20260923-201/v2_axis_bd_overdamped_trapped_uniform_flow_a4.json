@@ -24,7 +24,10 @@
       "basis": [
         "save_interval_max"
       ],
-      "precision": "order_of_magnitude"
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
     }
   ],
   "inequalities": [
@@ -39,7 +42,10 @@
         "basis": [
           "save_interval_max"
         ],
-        "precision": "order_of_magnitude"
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
       }
     },
     {
@@ -53,7 +59,10 @@
         "basis": [
           "save_interval_min"
         ],
-        "precision": "order_of_magnitude"
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
       }
     }
   ],

@@ -42,7 +42,7 @@
       }
     }
   ],
-  "note": "THIS AXIS IS NEARLY VACUOUS HERE AND SAYS SO RATHER THAN ABSTAINING. There is one particle, no pair potential and no wall, so there is no periodic image to meet and nothing in the physics depends on the box at all -- the bound above is a recording convention, not a physical constraint. It also costs nothing: with no interaction there is no neighbour list, so enlarging the box is free, which is the opposite of every other configuration where A3 and A5 trade against each other. The bound is still written down because the trajectory is stored in unwrapped coordinates (013) and a reader needs to know the offset never wrapped.",
+  "note": "THE BOX BOUND CARRIES NO `varies_with`, AND THAT IS NOW AN ASSERTION. It is the one bound here that really is constant over the sweep: a box sized for the largest excursion anywhere fits every corner, and with no neighbour list it costs nothing to carry that size at the tight corners. Every other interval this configuration emits goes as the local gamma/k_t and says so. THIS AXIS IS NEARLY VACUOUS HERE AND SAYS SO RATHER THAN ABSTAINING. There is one particle, no pair potential and no wall, so there is no periodic image to meet and nothing in the physics depends on the box at all -- the bound above is a recording convention, not a physical constraint. It also costs nothing: with no interaction there is no neighbour list, so enlarging the box is free, which is the opposite of every other configuration where A3 and A5 trade against each other. The bound is still written down because the trajectory is stored in unwrapped coordinates (013) and a reader needs to know the offset never wrapped.",
   "numbers": [
     {
       "name": "bead_diameter",

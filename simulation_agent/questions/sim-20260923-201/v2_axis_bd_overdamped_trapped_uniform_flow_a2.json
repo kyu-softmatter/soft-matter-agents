@@ -23,7 +23,10 @@
       "basis": [
         "record_length_floor_soft_corner"
       ],
-      "precision": "order_of_magnitude"
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
     }
   ],
   "inequalities": [
@@ -38,7 +41,10 @@
         "basis": [
           "record_length_floor_soft_corner"
         ],
-        "precision": "order_of_magnitude"
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
       }
     },
     {

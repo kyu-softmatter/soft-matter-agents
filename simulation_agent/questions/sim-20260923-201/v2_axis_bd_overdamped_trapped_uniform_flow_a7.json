@@ -23,7 +23,10 @@
       "basis": [
         "flow_speed_max_soft_corner"
       ],
-      "precision": "order_of_magnitude"
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
     },
     {
       "parameter": "startup_discard",
@@ -32,7 +35,10 @@
       "basis": [
         "startup_discard_soft_corner"
       ],
-      "precision": "order_of_magnitude"
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
     }
   ],
   "inequalities": [
@@ -47,7 +53,10 @@
         "basis": [
           "flow_speed_max_soft_corner"
         ],
-        "precision": "order_of_magnitude"
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
       }
     },
     {
@@ -61,7 +70,10 @@
         "basis": [
           "startup_discard_soft_corner"
         ],
-        "precision": "order_of_magnitude"
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
       }
     },
     {
