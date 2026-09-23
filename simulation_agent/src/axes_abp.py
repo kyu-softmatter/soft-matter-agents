@@ -35,9 +35,27 @@ What changes, axis by axis, and why:
   table and abstains for any undriven configuration.
 
 `abp_free` is screened alongside `abp_wca_2d` because both produce the MSD.
-A1 drops the contact time for it and A3 abstains for it -- nothing couples a
-free particle to the box -- and S4 is where the person's ruling of 2026-09-23
-(WCA) selects between them, recorded as a rejection with its reason.
+For it A1 keeps one inequality, D_R*dt << 1, and A3 abstains -- nothing
+couples a free particle to the box. Which of the two S4 selects is THIS
+question's ruling and not a property of the configurations: for
+sim-20260923-041/042 the person ruled WCA on 2026-09-23, so abp_free is the
+rejected arm there, and a free-particle question rejects the other way.
+
+**A1 for abp_free was wrong in revision 2 of 041 and 042, and the cards on
+disk keep it.** The first version computed the same candidate times for the
+free configuration as for the interacting one -- the diffusive time and the
+time to self-propel one diameter, both of which use a diameter the free model
+does not have and a Peclet convention (steric) the registry defines only
+where an interaction length exists. The bound came out a factor Pe_steric
+too tight: safe, and two decades of compute at Pe 100, resting on a quantity
+the model lacks. simulation-9 (window 3) found it reading the module and
+measured the free model's actual error: with orientation held fixed over a
+step the relative bias in the effective diffusivity is +12 per cent at
+D_R*dt = 1, +0.6 per cent at 0.2 and +0.02 per cent at 0.02, invariant when
+D_T is moved four decades -- so the one dimensionless group is D_R*dt. The
+free branch below now emits that inequality alone. The revision-2 cards are
+not rewritten (4.5.5); the correction reaches the record at the next
+revision, and this paragraph is the record until then.
 
 Every value is written at one significant figure from the SI recomputation,
 the way check 17 compares an order-of-magnitude number.
@@ -120,6 +138,12 @@ def a1(qid, config, created_at, caller_id, kb_version, kb_result, revision):
     Pe = _val(numbers, pe)
 
     candidates = {}
+    if not _is_wca(config):
+        # The free model has no length: no contact, no neighbour, no diameter
+        # for the step to be compared against. One step must not rotate the
+        # orientation appreciably, and that is the whole of A1 here.
+        return _a1_free(qid, config, created_at, caller_id, kb_version, kb_result, revision,
+                        goal, numbers, assumptions, g, DR)
     tau_d = d * d / D
     numbers.append(cards.num("diffusive_time", oom(tau_d, "s"), "s", "computed:diffusive_time",
         formula="bead_diameter**2/translational_diffusivity",
@@ -190,6 +214,43 @@ def a1(qid, config, created_at, caller_id, kb_version, kb_result, revision):
         + ("For the free active configuration there is no contact time, so activity alone binds. " if not _is_wca(config) else
            "The contact time is estimated at the potential minimum and is the weakest number here. ")
         + "S4 picks the step inside the interval (4.5.2)."
+    )
+    return card
+
+
+def _a1_free(qid, config, created_at, caller_id, kb_version, kb_result, revision,
+             goal, numbers, assumptions, g, DR):
+    """A1 for a free active particle: D_R*dt << 1 and nothing else."""
+    # Drop the carried numbers a free model has no use for; the persistence
+    # time and the rotational diffusivity are what the bound reads.
+    keep = {"rotational_diffusivity", "persistence_time_expected"}
+    numbers = [n for n in numbers if n["name"] in keep]
+    assumptions = [a for a in assumptions if any(n in keep for n in a.get("numbers", []))]
+    numbers.append(cards.num("dt_resolution_factor", 0.01, "1", "assumed:a_dt_factor", precision="order_of_magnitude",
+        note="how far below the persistence time the step must sit: two decades. Measured on a reference Euler-Maruyama integrator by simulation-9: the bias in the effective diffusivity is +0.6 per cent at D_R*dt = 0.2 and +0.02 per cent at 0.02, so two decades holds it under the statistical error; the declared engine's scheme may carry a different coefficient and the same group"))
+    dt_max = 0.01 / DR
+    numbers.append(cards.num("integration_timestep_max", oom(dt_max, "s"), "s", "computed:resolution_of_persistence_time",
+        formula="dt_resolution_factor*persistence_time_expected",
+        inputs=[("dt_resolution_factor", "E5"), ("persistence_time_expected", g["persistence_time_expected"])],
+        precision="order_of_magnitude",
+        note="upper bound only. The free model has no length scale, so no displacement per step is constrained; the orientation held fixed over one step is the only error the integrator makes, and D_R*dt is the only group it can depend on"))
+    assumptions.append({
+        "rationale_id": "a_dt_factor", "gap_ref": "integration_timestep_resolution_factor_absent",
+        "statement": "Two decades below the persistence time is a convention; a reference integrator measured the bias at that factor as two hundredths of a per cent, which is far inside the target error, but the declared engine has not been scanned.",
+        "numbers": ["dt_resolution_factor"],
+        "falsifier": "a timestep scan on hoomd_backend showing the effective diffusivity flat over a wider range of D_R*dt replaces this factor with a measured one",
+    })
+    card = _head("a1", qid, config, created_at, caller_id, kb_version, revision,
+        method="deterministic", verdict="feasible",
+        constraints=[{"parameter": "integration_timestep", "unit": "s", "max": oom(dt_max, "s"),
+                      "basis": ["integration_timestep_max"], "precision": "order_of_magnitude"}])
+    card.update(cards.tail(numbers, assumptions=assumptions,
+        **cards.evidence(kb_result, cards.carried_kb_refs(goal, numbers))))
+    card["note"] = (
+        "One inequality, D_R*dt << 1. The diffusive time and the self-propulsion step of the "
+        "interacting branch are not computed here because the free model has no diameter for "
+        "them to stand on; a bound resting on an absent quantity is not a safe bound but an "
+        "expensive one. Revision 2's cards carried that bound and are left as written (4.5.5)."
     )
     return card
 
