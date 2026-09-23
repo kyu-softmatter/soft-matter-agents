@@ -130,6 +130,19 @@ host**, where `pymmcore-plus` has a native build and the instrument is
 attached, and **the simulation agent runs inside WSL2**. They are two
 environments on one computer, and `pyproject.toml` states both.
 
+**The device adapters are a separate step and no manifest can hold them.**
+`pymmcore` is the binding to Micro-Manager's core, not the per-device
+binaries that talk to a camera or a stage. Those ship with Micro-Manager, so
+`pixi install -e mic` gives an environment where every import resolves and
+**nothing reaches the instrument**:
+
+```
+pixi run -e mic mmcore install
+```
+
+The environment looking right is the failure mode here, which is why this
+paragraph sits next to the command rather than in a troubleshooting section.
+
 `conda` itself has a quirk worth knowing here: inside a Claude Code session on
 this machine the bare command fails with `__conda_exe: permission denied`,
 which comes from the session's own shell snapshot and not from conda. Call it

@@ -2168,6 +2168,21 @@ not landed. A manifest that lists it would be declaring a reader that does not
 exist, which is the class this subsection is about, arriving from the other
 side.
 
+**The manifest can state the microscope's Python side completely and cannot
+state its device layer at all (2026-09-23).** `pymmcore` is *"Python bindings
+for MMCore, Micro-Manager's device control layer"* -- the **core**, not the
+adapters. The adapters are the per-device binaries that actually talk to a
+camera or a stage, they ship with Micro-Manager rather than with any Python
+package, and `pymmcore-plus` documents fetching them as a separate step after
+installation (`mmcore install`). So on the Windows machine `pixi install -e
+mic` will stand, every import will resolve, and **nothing will reach the
+instrument** until that second step runs. **A lockfile that is complete about
+its own subject can still leave the job undone**, and the failure mode is the
+quiet one: the environment looks right. This is the `declared with no reader`
+class turned around once more -- here everything declared has a reader and
+the thing with no declaration is the one that touches hardware. It is named
+in §7 because a manifest is where someone will look for it and not find it.
+
 **`pymmcore_plus` is imported by `microscope_agent` and is not installed
 (2026-09-22).** The device layer imports a package absent from the run
 environment. That is `manager-microscope`'s to act on, and it is recorded here
