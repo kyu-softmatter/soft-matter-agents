@@ -44,6 +44,7 @@ sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.curdir) != _HERE]
 import argparse                                                  # noqa: E402
 import importlib.util                                            # noqa: E402
 import json                                                      # noqa: E402
+from fractions import Fraction                                   # noqa: E402
 from dataclasses import dataclass, field                         # noqa: E402
 from datetime import datetime, timezone                          # noqa: E402
 from pathlib import Path                                         # noqa: E402
@@ -393,6 +394,28 @@ def resolve_limits(plan: dict, safety: dict) -> list[dict]:
         for name, limit in (target.get("limits") or {}).items():
             spec = limit.get("resolved_from") if isinstance(limit, dict) else None
             if not spec:
+                # A CONSTANT IS A LIMIT AND IT USED TO FALL OUT HERE. `continue`
+                # walked past every limit that was already a number, so
+                # objective_clearance_absolute_min -- the backstop -- never
+                # entered this list and nothing downstream could see it. The
+                # envelope says in as many words what that costs: "An operator
+                # that reads one and not the other, or takes the last it
+                # parsed, has one guard and a decoration."
+                #
+                # It is returned rather than skipped precisely BECAUSE it needs
+                # no resolving: the comparison takes the larger of the two
+                # floors, and a floor it cannot see is a floor it cannot take
+                # the larger of.
+                if isinstance(limit, dict) and limit.get("value") is not None:
+                    resolved.append({
+                        "kind": "constant",
+                        "limit": name,
+                        "target": target.get("target"),
+                        "value": limit["value"],
+                        "unit": limit.get("unit"),
+                        "confirmation": (limit.get("confirmation") or {}).get("kind"),
+                        "note": limit.get("note"),
+                    })
                 continue
             quantity = spec.get("quantity")
             resolver = RESOLVERS.get(quantity)
@@ -406,6 +429,7 @@ def resolve_limits(plan: dict, safety: dict) -> list[dict]:
                 snap = load_snapshot()
             answer = resolver(plan, snap)
             resolved.append({
+                "kind": "lookup",
                 "limit": name,
                 "target": target.get("target"),
                 "quantity": quantity,
@@ -422,6 +446,154 @@ def resolve_limits(plan: dict, safety: dict) -> list[dict]:
                 "note": answer["note"],
             })
     return resolved
+
+
+_UNITS: dict | None = None
+
+
+def si(value: float, unit: str) -> Fraction:
+    """A magnitude in SI, converted through contracts/units.json and nowhere else.
+
+    Two floors on one quantity arrive as 0.13 mm and 130 um, and comparing
+    them means converting. Doing that with a factor written here would put
+    the unit table in two places (P3), and the second copy is the one that
+    goes stale.
+
+    EXACT RATIONALS, NOT FLOATS, AND A RUN CAUGHT WHY. In binary,
+    130 * 1e-6 is 0.00013 and 0.13 * 1e-3 is 0.00013000000000000002. Those
+    are the same clearance written two ways, and the comparison refused one
+    and permitted the other -- a plan asking for exactly the person's floor
+    was rejected or accepted depending on which unit somebody typed it in.
+    The two limits in this envelope coincide EXACTLY, so this boundary is
+    not a corner case here, it is the only case.
+
+    It is the rule already written for a record length arriving one ULP
+    short of its planned end: a comparison at a boundary is a decision, not
+    a measurement, and the size of the error has nothing to do with the size
+    of the consequence. AND NO EPSILON -- widening a floor by a tolerance is
+    changing the person's number at run time, which is the one thing an
+    operator may never do. Fraction over the decimal text is exact, so the
+    two spellings compare equal because they are equal.
+
+    AN UNKNOWN UNIT REFUSES. A floor is where zero is dangerous, so a
+    conversion this cannot do has to stop the run rather than fall back to
+    the raw magnitude -- treating 130 as metres would pass everything and
+    treating 0.13 as metres would fail everything, and only one of those is
+    noticeable.
+    """
+    global _UNITS
+    if _UNITS is None:
+        _UNITS = json.loads((CONTRACTS / "units.json").read_text())["units"]
+    row = _UNITS.get(unit)
+    if row is None:
+        raise Refusal(
+            f"unit {unit!r} is not in contracts/units.json, so this magnitude cannot be "
+            "compared against anything. A limit that cannot be converted is not one to "
+            "compare loosely (2.1 rule 2)"
+        )
+    return Fraction(str(value)) * Fraction(str(row["si_factor"]))
+
+
+# A floor is named `<quantity>_min` and a ceiling `<quantity>_max`
+# (envelope_safety.schema.json), so the quantity a limit bounds comes off its
+# own name -- except for one, and the schema says why in prose a reader can
+# check and code cannot:
+#
+#   "the person ... asked for the names to be split. Only one landed -- and
+#    not by oversight: `limits` enumerates its names and there was no second
+#    clearance name to land in."
+#
+# So `objective_clearance_absolute_min` reads as a floor on
+# `objective_clearance_absolute`, a quantity nothing measures, and the
+# sentence that says otherwise -- "BOTH ARE MINIMA ON CLEARANCE" -- is in a
+# $comment. This map is that sentence, and it is the whole of the
+# hand-written part. A `bounds` field on the limit would retire it; raised.
+BOUNDS = {"objective_clearance_absolute": "objective_clearance"}
+
+
+def binding_limits(resolved: list[dict]) -> dict[str, dict]:
+    """Per quantity, the one limit that actually binds.
+
+    Minima: the LARGER binds. Maxima: the smaller. Stated by the envelope for
+    the clearance pair and true of any two bounds in the same direction --
+    obeying both is obeying the tighter one, and there is no case where
+    reading only one is right.
+    """
+    binding: dict[str, dict] = {}
+    for row in resolved:
+        name = str(row.get("limit", ""))
+        if name.endswith("_min"):
+            quantity, tighter = name[:-len("_min")], max
+        elif name.endswith("_max"):
+            quantity, tighter = name[:-len("_max")], min
+        else:
+            raise Refusal(
+                f"limit {name!r} names no direction. A floor is `<quantity>_min` and a "
+                "ceiling `<quantity>_max` (envelope_safety.schema.json); a limit whose "
+                "direction has to be guessed is one that could be applied backwards"
+            )
+        quantity = BOUNDS.get(quantity, quantity)
+        # `si` is a Fraction and stays one all the way to the comparison. The
+        # log needs JSON, so the float goes in beside it under a name that
+        # says it is the lossy one -- and nothing compares that field.
+        exact = si(row["value"], row["unit"])
+        row = {**row, "quantity_bounded": quantity,
+               "direction": "min" if tighter is max else "max",
+               "si": exact, "si_float": float(exact)}
+        held = binding.get(quantity)
+        if held is None or tighter(row["si"], held["si"]) == row["si"] != held["si"]:
+            binding[quantity] = row
+    return binding
+
+
+def check_envelope(plan: dict, resolved: list[dict]) -> list[dict]:
+    """Compare the plan's numbers against the limits, and REFUSE on a breach.
+
+    Until this existed `resolve_limits` ran, wrote its answer to the log and
+    nothing read it -- a floor that was recorded and not enforced, which
+    reads in a log exactly like one that held.
+
+    Every comparison is returned, including the ones with nothing on the
+    plan's side, because `compared: null` and a comparison that passed are
+    different facts and a log that shows only breaches cannot tell them
+    apart.
+    """
+    numbers = {n["name"]: n for n in plan.get("numbers") or []}
+    out: list[dict] = []
+    for quantity, limit in sorted(binding_limits(resolved).items()):
+        number = numbers.get(quantity)
+        row = {"quantity": quantity, "limit": limit["limit"], "direction": limit["direction"],
+               "limit_value": limit["value"], "limit_unit": limit["unit"],
+               "limit_si_float": limit["si_float"],
+               "binds_over": sorted(r["limit"] for r in resolved
+                                    if BOUNDS.get(str(r["limit"]).rsplit("_", 1)[0],
+                                                  str(r["limit"]).rsplit("_", 1)[0]) == quantity)}
+        if number is None:
+            # NOT A PASS. The plan states no value for this quantity, so this
+            # limit had nothing to act on -- which is a true statement about
+            # this plan and not a verdict about the instrument. A quantity a
+            # plan never names can still be moved by an action: a turret
+            # rotation changes the clearance without any number saying so,
+            # and the interlock in orchestrator.py is what covers that.
+            row["compared"] = None
+            out.append(row)
+            continue
+        got = si(number["value"], number["unit"])
+        row["compared"] = {"value": number["value"], "unit": number["unit"],
+                           "si_float": float(got)}
+        breached = got < limit["si"] if limit["direction"] == "min" else got > limit["si"]
+        row["within"] = not breached
+        if breached:
+            raise Refusal(
+                f"{quantity} is {number['value']} {number['unit']} and "
+                f"{limit['limit']} is {limit['value']} {limit['unit']}, which it "
+                f"{'falls below' if limit['direction'] == 'min' else 'exceeds'}. No plan, "
+                "no scope approval and no human approval may exceed a limit in "
+                "envelope/safety.json (2.1 rule 7). Nothing is widened to fit: the number "
+                "is the person's"
+            )
+        out.append(row)
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -633,12 +805,31 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None) -> di
     # objective keyed it, which quantity, which value and out of which
     # kb_version. A resolved limit nobody can read back later is a limit
     # nobody can audit.
-    for resolution in resolve_limits(plan, safety):
+    resolutions = resolve_limits(plan, safety)
+    for resolution in resolutions:
         o.record(event="limit_resolved", **resolution)
+
+    # AND THEN COMPARED, which is the half that was missing. A resolution
+    # written to the log and never read is indistinguishable from a floor
+    # that held.
+    for comparison in check_envelope(plan, resolutions):
+        o.record(event="limit_compared", **comparison)
 
     o.preflight(sorted({c.channel for c in commands}))
     o.snapshot("before")
-    o.dispatch(commands)
+    dispatched = o.dispatch(commands)
+
+    # A COMMAND THAT DID NOT HAPPEN STOPS THE PLAN. dispatch's return value
+    # was read by nobody, so a refusal inside it left no mark on the run's
+    # outcome -- the log said apply_failed and the operator carried on to the
+    # acquire. A plan is the set of its steps; one of them refusing is not a
+    # partial success to be reported afterwards.
+    failed = [r for batch in dispatched for rows in batch["results"].values()
+              for r in rows if r.get("ok") is False]
+    if failed:
+        o.abort(reason=("a command was refused or failed, so the plan did not happen as "
+                        "approved: " + "; ".join(f"{r['command']}: {r['error']}"
+                                                 for r in failed)[:400]))
 
     if observe is not None:
         for monitor in monitors:
@@ -718,6 +909,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"run {record['run_id']}: plan {record['plan_id']} revision {record['revision']}, "
           f"backend {record['backend']}, policy {record['safety_policy_version']}")
     print(f"  registry {record['registry_source']}")
+    refused = [e for e in record["events"] if e["event"] == "apply_failed"]
     for event in record["events"]:
         line = f"  {event['t_mono']:>9.3f}s {event['event']}"
         if event.get("channel"):
@@ -727,14 +919,38 @@ def main(argv: list[str] | None = None) -> int:
         if event.get("verification"):
             line += f"  verification={event['verification']}"
         if event["event"] == "limit_resolved":
-            line += (f" {event['limit']}={event['value']} {event['unit']} "
-                     f"({event['key']['objective']}, {event['kb_version']})")
+            # A constant carries no key and no kb_version -- that is what
+            # makes it a backstop rather than a second copy of the lookup --
+            # so this reads them only when they are there. It said
+            # event['key']['objective'] unconditionally and crashed the
+            # moment constants started being resolved alongside lookups.
+            line += f" {event['limit']}={event['value']} {event['unit']} ({event['kind']}"
+            if event.get("key"):
+                line += f": {event['key'].get('objective')}, {event.get('kb_version')}"
+            line += ")"
+        if event["event"] == "limit_compared":
+            got = event.get("compared")
+            line += (f" {event['quantity']} {'>=' if event['direction'] == 'min' else '<='} "
+                     f"{event['limit_value']} {event['limit_unit']} [{event['limit']}"
+                     + (f", the larger of {len(event['binds_over'])}"
+                        if len(event.get("binds_over") or []) > 1 else "") + "] "
+                     + (f"plan says {got['value']} {got['unit']}: "
+                        + ("within" if event.get("within") else "BREACH")
+                        if got else "the plan states no such number, so nothing was compared"))
         print(line)
     if args.write:
         folder = write_run(record)
         print(f"  wrote {folder.relative_to(REPO)}")
     else:
         print("  not written: pass --write to create runs/<run_id>/")
+    if refused:
+        # Non-zero, because a run whose commands were refused is not a run
+        # that happened. The log is still written -- what was refused and why
+        # is the record (P1) -- and the exit code is what a caller reads.
+        print(f"  REFUSED: {len(refused)} command(s) did not happen, and the plan stopped there")
+        for event in refused:
+            print(f"    {event.get('element') or event['channel']}: {event['error']}")
+        return 1
     return 0
 
 

@@ -1,0 +1,609 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260922-001",
+  "plan_id": "plan-mic-20260920-001-r1",
+  "revision": 1,
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "4",
+  "stop_criteria": [
+    "sc_frame_count"
+  ],
+  "t0_wall": "2026-09-23T01:25:42.227+00:00",
+  "t0_mono": 1368263.386344708,
+  "backend": "mock",
+  "registry_source": "microscope_agent/envelope/snapshot.json",
+  "time_base_note": "software offsets order the log and nothing else. A value physics depends on comes from a trigger counter or a device timestamp (4.6.9)",
+  "events": [
+    {
+      "t_mono": 0.001112,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "optical_power_max",
+      "target": "bench",
+      "value": 1020,
+      "unit": "mW",
+      "confirmation": "physical",
+      "note": "Laser output at the sample plane. The highest point the dial reached under measurement; the next point up over-ranged the meter and is an extrapolation, not a measurement."
+    },
+    {
+      "t_mono": 0.001118,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "lookup",
+      "limit": "objective_clearance_min",
+      "target": "bench",
+      "quantity": "working_distance",
+      "keyed_by": "the objective in the nosepiece position the plan drives to",
+      "key": {
+        "field": "nosepiece_position",
+        "value": 5,
+        "objective": "100x-oil",
+        "part_number": "MRD71970"
+      },
+      "value": 0.13,
+      "unit": "mm",
+      "grade": "E3",
+      "entry": "objective_mrd71970",
+      "number": "working_distance",
+      "kb_version": "kbv-e8f4a5610aa6",
+      "built_from_commit": "c708120ccac07ab3d670808b057ee16dfa5e0701",
+      "confirmation": "carried_over",
+      "note": "a point value, as five of the six lenses carry it"
+    },
+    {
+      "t_mono": 0.00112,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "objective_clearance_absolute_min",
+      "target": "bench",
+      "value": 130,
+      "unit": "um",
+      "confirmation": "physical",
+      "note": "An absolute floor on clearance, independent of which objective is seated. It is the tightest working distance across the six (100x Oil, MRD71970), so it never binds while the lookup above is right, and it catches a lookup that has gone wrong -- a wrong key, a mis-seated nosepiece, a bad store value. Both limits are minima on clearance, so the LARGER of the two binds."
+    },
+    {
+      "t_mono": 0.001256,
+      "time_base": "software",
+      "event": "limit_compared",
+      "quantity": "objective_clearance",
+      "limit": "objective_clearance_min",
+      "direction": "min",
+      "limit_value": 0.13,
+      "limit_unit": "mm",
+      "limit_si_float": 0.00013,
+      "binds_over": [
+        "objective_clearance_absolute_min",
+        "objective_clearance_min"
+      ],
+      "compared": null
+    },
+    {
+      "t_mono": 0.001258,
+      "time_base": "software",
+      "event": "limit_compared",
+      "quantity": "optical_power",
+      "limit": "optical_power_max",
+      "direction": "max",
+      "limit_value": 1020,
+      "limit_unit": "mW",
+      "limit_si_float": 1.02,
+      "binds_over": [
+        "optical_power_max"
+      ],
+      "compared": null
+    },
+    {
+      "t_mono": 0.001357,
+      "time_base": "software",
+      "event": "preflight",
+      "channel": "camera_red",
+      "named_as": [],
+      "verified": true,
+      "state": {
+        "channel": "camera_red",
+        "ready": true,
+        "read_back": true,
+        "automatable": "full",
+        "backend": "mock"
+      }
+    },
+    {
+      "t_mono": 0.00136,
+      "time_base": "software",
+      "event": "preflight",
+      "channel": "confocal_csuw1",
+      "named_as": [
+        "csuw1_disk_position",
+        "csuw1_port"
+      ],
+      "verified": true,
+      "state": {
+        "channel": "confocal_csuw1",
+        "ready": true,
+        "read_back": true,
+        "automatable": "full",
+        "backend": "mock"
+      }
+    },
+    {
+      "t_mono": 0.001361,
+      "time_base": "software",
+      "event": "preflight",
+      "channel": "stand_ti2e",
+      "named_as": [
+        "intermediate_magnification",
+        "lapp_branch",
+        "nosepiece"
+      ],
+      "verified": true,
+      "state": {
+        "channel": "stand_ti2e",
+        "ready": true,
+        "read_back": true,
+        "automatable": "full",
+        "backend": "mock"
+      }
+    },
+    {
+      "t_mono": 0.001366,
+      "time_base": "software",
+      "event": "snapshot",
+      "label": "before",
+      "states": {
+        "stand_ti2e": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "confocal_csuw1": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "camera_red": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "camera_blue": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "widefield_source_a": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "widefield_source_b": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "laser_combiner": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "dmd": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "piezo_stage": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        },
+        "optical_tweezers": {
+          "state": {},
+          "aborted": false,
+          "backend": "mock"
+        }
+      }
+    },
+    {
+      "t_mono": 0.001451,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "confocal_csuw1",
+      "element": "csuw1_port",
+      "action": "select_csuw1_port",
+      "params": {
+        "csuw1_port": {
+          "value": "empty",
+          "from": "system_configuration.selectors[csuw1_port]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the backend reported no read-back. What came back is the write's own return value, which says the command was accepted and not that the state holds",
+      "from": "system_configuration.selectors[csuw1_port]"
+    },
+    {
+      "t_mono": 0.001457,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "confocal_csuw1",
+      "element": "csuw1_disk_position",
+      "action": "select_csuw1_disk_position",
+      "params": {
+        "csuw1_disk_position": {
+          "value": "out",
+          "from": "system_configuration.selectors[csuw1_disk_position]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the backend reported no read-back. What came back is the write's own return value, which says the command was accepted and not that the state holds",
+      "from": "system_configuration.selectors[csuw1_disk_position]"
+    },
+    {
+      "t_mono": 0.001506,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "camera_red",
+      "element": null,
+      "action": "select_camera_red",
+      "params": {
+        "camera_red": {
+          "value": "DynamicRange",
+          "from": "system_configuration.selectors[camera_red]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the backend reported no read-back. What came back is the write's own return value, which says the command was accepted and not that the state holds",
+      "from": "system_configuration.selectors[camera_red]"
+    },
+    {
+      "t_mono": 0.001548,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "stand_ti2e",
+      "element": "lapp_branch",
+      "action": "select_lapp_branch",
+      "params": {
+        "lapp_branch": {
+          "value": "inline",
+          "from": "system_configuration.selectors[lapp_branch]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the backend reported no read-back. What came back is the write's own return value, which says the command was accepted and not that the state holds",
+      "from": "system_configuration.selectors[lapp_branch]"
+    },
+    {
+      "t_mono": 0.001564,
+      "time_base": "software",
+      "event": "apply_failed",
+      "channel": "stand_ti2e",
+      "element": "nosepiece",
+      "action": "set_nosepiece_position",
+      "error": "refusing to rotate the nosepiece to 5, and preflight returned no seated position, so whether this rotates at all is unknown. The stand runs no escape on a Micro-Manager write, so the incoming objective arrives at the outgoing one's height. pfs is not disabled. PFS is a collision device alongside the Z drive and the nosepiece, and 2.1 requires it off across a turret change and re-acquired after. The element exists and reads back, so a plan can issue this ALSO: the objective is not retracted, AND NO PLAN CAN RETRACT IT. No element in the device registry drives focus: stand_ti2e's role names focus and its nine elements do not include it, so there is nothing for an action to address and check 38 would refuse a plan that invented a name. This is not a plan defect and it is not fixable in this agent -- the registry is the librarian's",
+      "verification": "none",
+      "verification_note": "the command raised; whether it took effect was never asked",
+      "from": "actions[act_set_nosepiece_position]"
+    },
+    {
+      "t_mono": 0.001631,
+      "time_base": "software",
+      "event": "abort_begin",
+      "reason": "a command was refused or failed, so the plan did not happen as approved: set_nosepiece_position: InterlockError: refusing to rotate the nosepiece to 5, and preflight returned no seated position, so whether this rotates at all is unknown. The stand runs no escape on a Micro-Manager write, so the incoming objective arrives at the outgoing one's height. pfs is not disabled. PFS is a collision device alongside the Z drive and the nosepiece, and 2.1 requires it off across a"
+    },
+    {
+      "t_mono": 0.001641,
+      "time_base": "software",
+      "event": "abort_end",
+      "report": {
+        "reason": "a command was refused or failed, so the plan did not happen as approved: set_nosepiece_position: InterlockError: refusing to rotate the nosepiece to 5, and preflight returned no seated position, so whether this rotates at all is unknown. The stand runs no escape on a Micro-Manager write, so the incoming objective arrives at the outgoing one's height. pfs is not disabled. PFS is a collision device alongside the Z drive and the nosepiece, and 2.1 requires it off across a",
+        "shutters": [
+          {
+            "channel": "confocal_csuw1",
+            "element": "csuw1_shutter",
+            "closed": true
+          },
+          {
+            "channel": "laser_combiner",
+            "element": "laser_shutter",
+            "closed": true
+          }
+        ],
+        "channels": [
+          {
+            "channel": "stand_ti2e",
+            "aborted": true
+          },
+          {
+            "channel": "confocal_csuw1",
+            "aborted": true
+          },
+          {
+            "channel": "camera_red",
+            "aborted": true
+          },
+          {
+            "channel": "camera_blue",
+            "aborted": true
+          },
+          {
+            "channel": "widefield_source_a",
+            "aborted": true
+          },
+          {
+            "channel": "widefield_source_b",
+            "aborted": true
+          },
+          {
+            "channel": "laser_combiner",
+            "aborted": true
+          },
+          {
+            "channel": "dmd",
+            "aborted": true
+          },
+          {
+            "channel": "piezo_stage",
+            "aborted": true
+          },
+          {
+            "channel": "optical_tweezers",
+            "aborted": true
+          }
+        ]
+      }
+    },
+    {
+      "t_mono": 0.001646,
+      "time_base": "software",
+      "event": "snapshot",
+      "label": "after",
+      "states": {
+        "stand_ti2e": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "element": "laser_shutter",
+            "state": "closed"
+          },
+          "aborted": true,
+          "backend": "mock"
+        },
+        "confocal_csuw1": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "element": "laser_shutter",
+            "state": "closed"
+          },
+          "aborted": true,
+          "backend": "mock"
+        },
+        "camera_red": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "element": "laser_shutter",
+            "state": "closed"
+          },
+          "aborted": true,
+          "backend": "mock"
+        },
+        "camera_blue": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "element": "laser_shutter",
+            "state": "closed"
+          },
+          "aborted": true,
+          "backend": "mock"
+        },
+        "widefield_source_a": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "element": "laser_shutter",
+            "state": "closed"
+          },
+          "aborted": true,
+          "backend": "mock"
+        },
+        "widefield_source_b": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "element": "laser_shutter",
+            "state": "closed"
+          },
+          "aborted": true,
+          "backend": "mock"
+        },
+        "laser_combiner": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "element": "laser_shutter",
+            "state": "closed"
+          },
+          "aborted": true,
+          "backend": "mock"
+        },
+        "dmd": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "element": "laser_shutter",
+            "state": "closed"
+          },
+          "aborted": true,
+          "backend": "mock"
+        },
+        "piezo_stage": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "element": "laser_shutter",
+            "state": "closed"
+          },
+          "aborted": true,
+          "backend": "mock"
+        },
+        "optical_tweezers": {
+          "state": {
+            "csuw1_port": {
+              "value": "empty",
+              "from": "system_configuration.selectors[csuw1_port]"
+            },
+            "csuw1_disk_position": {
+              "value": "out",
+              "from": "system_configuration.selectors[csuw1_disk_position]"
+            },
+            "camera_red": {
+              "value": "DynamicRange",
+              "from": "system_configuration.selectors[camera_red]"
+            },
+            "lapp_branch": {
+              "value": "inline",
+              "from": "system_configuration.selectors[lapp_branch]"
+            },
+            "element": "laser_shutter",
+            "state": "closed"
+          },
+          "aborted": true,
+          "backend": "mock"
+        }
+      }
+    }
+  ],
+  "finished_at": "2026-09-23T01:25:42+00:00"
+}

@@ -115,6 +115,10 @@ class Channel:
         """An automation that cannot be checked is not an automation (4.6.6-5)."""
         return self.read_back is True
 
+    def element_ids(self) -> list[str]:
+        """Every element this channel declares, by id."""
+        return list(self.elements)
+
     def element_lock_group(self, element: str) -> str:
         """A lock group belongs to an element, not only to a channel.
 
@@ -266,6 +270,15 @@ class Orchestrator:
         self._channel_locks = {cid: threading.Lock() for cid in self.channels}
         self._group_locks: dict[str, threading.Lock] = defaultdict(threading.Lock)
         self._manual_open: dict[str, str] = {}      # lock_group -> sheet id
+        # What preflight read back, kept so an interlock can ask whether a
+        # write actually changes anything. It was discarded before, so the
+        # turret check had no way to tell a rotation from a no-op.
+        self._preflight_state: dict[str, dict] = {}
+        # Elements this dispatch has commanded AND READ BACK. Membership is
+        # what an interlock requires: a retract that was issued and not
+        # verified is an assumption, and 2.1 says an unverified state does
+        # not proceed.
+        self._completed: set[str] = set()
         self._aborted = threading.Event()
         self._modules: dict[str, object] = {}
 
@@ -365,6 +378,94 @@ class Orchestrator:
         self.record(event="manual_sheet_closed", lock_group=lock_group, sheet=sheet,
                     confirmed_by=confirmed_by)
 
+    # A turret rotation is a collision hazard and the plan must clear it first
+    # (2.1, microscope_agent/CLAUDE.md). Two things have to have happened:
+    # focus stabilisation off, and the objective retracted AND VERIFIED.
+    #
+    # The retract element is looked up rather than named, so the day the
+    # registry gains a focus drive this interlock starts passing on its own.
+    # Today it finds none: stand_ti2e's `role` says the body carries "objective
+    # and filter turrets, output port, intermediate magnification, FOCUS,
+    # transmitted lamp" and its nine elements are nosepiece, filter_turret_1,
+    # filter_turret_2, light_path_port, intermediate_magnification, pfs,
+    # dia_lamp, lapp_branch, motor_stage. The channel row names focus and the
+    # element list has no such row, so a plan has nothing to name.
+    RETRACT_HINTS = ("focus", "z_drive", "z_axis", "objective_z", "z")
+    STABILISER = "pfs"
+
+    def retract_elements(self) -> list[str]:
+        """Every element in the registry that could perform an objective retract."""
+        return sorted(
+            e for channel in self.channels.values()
+            for e in channel.element_ids()
+            if e in self.RETRACT_HINTS or e.startswith("focus") or e.endswith("_focus")
+        )
+
+    def check_turret_rotation_allowed(self, command: Command) -> None:
+        """No nosepiece write until the objective is clear of the sample.
+
+        `nosepiece_write_runs_no_escape` (E3): the stand runs its own escape
+        when a person rotates at the stand or in NIS, and runs NONE for a
+        Micro-Manager write -- Z does not move, so the incoming objective
+        arrives at whatever height the outgoing one was left at, against a
+        working distance of 0.13 mm at 100x oil. CLAUDE.md says the retract
+        is a step a plan ISSUES AND VERIFIES and not a property it may
+        assume; nothing was enforcing that.
+
+        A WRITE IS TREATED AS A ROTATION UNLESS THE READ-BACK PROVES
+        OTHERWISE. The commanded position may equal the seated one, in which
+        case nothing turns -- but that is a fact about the instrument, not
+        about the plan, and only preflight can supply it. When preflight
+        returned no position the operator does not know, and 2.1 rule 2 makes
+        not-knowing stop rather than proceed. The mock returns none, so on
+        mock this always refuses, which is the correct thing for a mock to
+        do about a hazard it cannot model.
+        """
+        element = command.element or command.channel
+        if element != "nosepiece":
+            return
+
+        state = self._preflight_state.get(command.channel) or {}
+        seated = state.get("nosepiece")
+        commanded = next((p.get("value") for p in command.params.values()), None)
+        if seated is not None and commanded is not None and seated == commanded:
+            self.record(event="turret_no_rotation", channel=command.channel,
+                        element=element, seated=seated, commanded=commanded,
+                        note="the commanded position is the seated one, so nothing rotates")
+            return
+
+        done = self._completed
+        missing = []
+        if self.STABILISER not in done:
+            missing.append(
+                f"{self.STABILISER} is not disabled. PFS is a collision device alongside the Z "
+                "drive and the nosepiece, and 2.1 requires it off across a turret change and "
+                "re-acquired after. The element exists and reads back, so a plan can issue this")
+        retracts = self.retract_elements()
+        if not retracts:
+            missing.append(
+                "the objective is not retracted, AND NO PLAN CAN RETRACT IT. No element in the "
+                "device registry drives focus: stand_ti2e's role names focus and its nine "
+                "elements do not include it, so there is nothing for an action to address and "
+                "check 38 would refuse a plan that invented a name. This is not a plan defect "
+                "and it is not fixable in this agent -- the registry is the librarian's")
+        elif not (set(retracts) & done):
+            missing.append(
+                f"the objective is not retracted; {' or '.join(retracts)} must be commanded and "
+                "VERIFIED before this write. A retract that was issued and not read back is an "
+                "assumption, and stand_ti2e reads back, so here there is no excuse for one")
+
+        if missing:
+            raise InterlockError(
+                "refusing to rotate the nosepiece"
+                + (f" from {seated!r} to {commanded!r}" if seated is not None
+                   else f" to {commanded!r}, and preflight returned no seated position, so "
+                        "whether this rotates at all is unknown")
+                + ". The stand runs no escape on a Micro-Manager write, so the incoming "
+                  "objective arrives at the outgoing one's height. "
+                + " ALSO: ".join(missing)
+            )
+
     def check_acquisition_allowed(self, command: Command) -> None:
         """Nothing acquires while the optical path is being switched (4.6.8-4)."""
         if not command.acquires:
@@ -437,6 +538,7 @@ class Orchestrator:
             module = self.module_for(cid)
             state = module.preflight(channel.raw)
             verified = channel.verifiable and state.get("read_back") is not False
+            self._preflight_state[cid] = state
             results.append({"channel": cid, "named_as": named_as, "state": state,
                             "verified": verified})
             self.record(event="preflight", channel=cid, named_as=named_as,
@@ -544,12 +646,15 @@ class Orchestrator:
                             continue
                         try:
                             self.check_manual_lockout(command)
+                            self.check_turret_rotation_allowed(command)
                             self.check_acquisition_allowed(command)
                             module = self.module_for(cid)
                             value = module.apply(command.params)
                             verification, why = self.verification_of(cid, value)
                             out.append({"command": command.action, "ok": True, "returned": value,
                                         "verification": verification})
+                            if verification == "readback":
+                                self._completed.add(command.element or cid)
                             detail = {}
                             if isinstance(value, dict) and value.get("disagreed"):
                                 # On the apply event and not on one of its own:
@@ -562,7 +667,23 @@ class Orchestrator:
                                         action=command.action, params=command.params,
                                         verification=verification, verification_note=why,
                                         **detail, **{"from": command.from_field})
-                        except Exception as exc:                # noqa: BLE001 - recorded, then re-raised by the caller
+                        except Exception as exc:                # noqa: BLE001 - recorded, and it stops the run
+                            # A FAILED COMMAND STOPS EVERYTHING AFTER IT. This
+                            # said "re-raised by the caller" and the caller did
+                            # not: `run()` discards dispatch's return value, so
+                            # a refused interlock was written to the log and
+                            # stepped over. The first run with a turret check
+                            # in it refused the nosepiece and then set the
+                            # magnification and acquired -- a P0 guard that
+                            # fired and changed nothing.
+                            #
+                            # The flag is set here rather than calling abort()
+                            # here: this runs inside the channel lock, and
+                            # abort() reaches every channel. The remaining
+                            # commands in this queue and every later rank see
+                            # the flag at the top of the loop and skip; run()
+                            # performs the actual abort once, outside.
+                            self._aborted.set()
                             out.append({"command": command.action, "ok": False,
                                         "error": f"{type(exc).__name__}: {exc}",
                                         "verification": "none"})
