@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "envelope_safety.schema.json",
-  "title": "envelope/safety.json — the ceilings, written by a person (2.1 rule 7, 10.3 rule 4)",
+  "title": "envelope/safety.json \u2014 the ceilings, written by a person (2.1 rule 7, 10.3 rule 4)",
   "description": "Not a card and not knowledge: policy. A person writes it after confirming the limits outside the system, no agent may edit it (Tier 3), and nothing in it is transferred from anywhere else -- a safety limit written for another setup is reference material, not grounds. This schema exists because the file would otherwise be invisible: a JSON object with neither `card` nor `artifact` is skipped by the collector, so a mistyped key would leave check_budget returning `unavailable`, every run falling to Tier 2, and nothing reporting an error. The same silence held run logs until run_log.schema.json. The shape here is not invented: it is what simulation_agent/src/operator.py and axis_a5_budget.py already read.",
   "type": "object",
   "properties": {
@@ -164,6 +164,13 @@
               "note"
             ]
           }
+        },
+        "bounds": {
+          "enum": [
+            "min",
+            "max"
+          ],
+          "description": "WHICH DIRECTION THIS LIMIT BINDS, as a field the code can read. `min` means falling below refuses; `max` means exceeding refuses.\n\nIt is here because the direction was knowable only three ways and none of them was readable at run time: the `$ref` to `$defs/floor` or `$defs/ceiling`, which lives in the schema and not in the instance; the `_min`/`_max` suffix, which is a convention a name can lie about; and a `$comment` saying BOTH ARE MINIMA ON CLEARANCE, which no parser reads. So `operator.py` carried a hand-written map from name to direction, and `objective_clearance_absolute_min` reads as a floor on a quantity called `objective_clearance_absolute` rather than as the second floor on clearance that it is. `microscope-1` asked for this after writing that map.\n\nOPTIONAL TODAY AND IT SHOULD NOT STAY THAT WAY. Making it required would refuse the person's existing file, which is the deadlock that makes a gate something to go around. A consumer that falls back to the suffix should say in its own code that it is falling back, so the fallback is visible rather than assumed.\n\nGetting it wrong is not symmetric, which is why it is worth a field at all: **zero in a ceiling permits nothing and fails safe; zero in a floor permits everything.** A limit read in the wrong direction does not merely mis-bind, it inverts."
         }
       },
       "required": [
