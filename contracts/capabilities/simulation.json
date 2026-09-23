@@ -26,6 +26,131 @@
         "kind": "constitutive",
         "why": "Temperature enters as a parameter of the noise amplitude and there is no mechanism that could fail to realise it: no velocity is represented, so there is no kinetic energy and nothing to thermostat. Same reason mass-based time units do not enter the overdamped limit (5.7), which this configuration's label already says.\n\nTRUE OF BOTH BACKENDS, and each for its own code rather than by assumption. mock_backend integrates a position-only Wiener increment, positions + normal(0, sqrt(2*D*dt)) with D = k_B*T/(3*pi*eta*d). hoomd_backend uses hoomd.md.methods.Brownian, whose own comment at src/hoomd_backend.py:373 says 'Brownian and not Langevin: the overdamped limit is the model' -- Brownian dynamics integrates positions and does not carry velocities. Verified against the installed HOOMD 7.2.0.\n\nWHAT WOULD CHANGE IT: hoomd.md.methods.Langevin carries velocities and a thermostat that can lose its setpoint at large dt or to a flying ice cube, and `kind` would become `thermostat` -- a claim that is empirical and falsifiable where this one is not. So a configuration switching method switches which confirmation it owes, which is why this is a declared field and not prose. Measured from the code by simulation-2 for the mock and by manager-simulation for the engine; architecture asked for the second half on 2026-09-22 after noting the justification named one implementation."
       }
+    },
+    {
+      "config": "bd_pairwise",
+      "label": "overdamped Brownian dynamics in two dimensions, periodic, with a purely repulsive Yukawa pair potential (screened Coulomb, no attractive well), undriven. A7 abstains: this configuration drives nothing.",
+      "optical_path": null,
+      "devices": [
+        "hoomd_backend"
+      ],
+      "produces": [
+        "structural_relaxation_time"
+      ],
+      "output_independent_of_input": {
+        "independent": true,
+        "why": "Unlike bd_overdamped, the output is NOT fixed analytically by the inputs. How long a Yukawa suspension takes to order from a random start is not a closed form in the prefactor and screening length, so a run is evidence about the model and not a check of the integrator."
+      },
+      "executed_by": {
+        "module": "hoomd_backend",
+        "why": "Declared 2026-09-23 on the engine that is installed and verified: pixi install -e sim stands and hoomd 7.2.0 matches its pin by version and build string. No mock arm."
+      },
+      "temperature_realisation": {
+        "kind": "constitutive",
+        "why": "Temperature enters as a parameter of the noise amplitude and no velocity is represented, so there is no kinetic energy and nothing to thermostat. Same ground as bd_overdamped."
+      }
+    },
+    {
+      "config": "bd_pairwise_driven_tracer",
+      "label": "bd_pairwise plus one particle whose POSITION IS IMPOSED, moving at a set velocity along a set direction. A kinematic constraint and not a force. A7 owns the velocity and the direction.",
+      "optical_path": null,
+      "devices": [
+        "hoomd_backend"
+      ],
+      "produces": [
+        "structural_relaxation_time"
+      ],
+      "output_independent_of_input": {
+        "independent": true,
+        "why": "Same ground as bd_pairwise, and the drive adds to it: how the surrounding order recovers around an imposed trajectory has no closed form."
+      },
+      "executed_by": {
+        "module": "hoomd_backend",
+        "why": "Declared 2026-09-23 on the engine that is installed and verified: pixi install -e sim stands and hoomd 7.2.0 matches its pin by version and build string. No mock arm."
+      },
+      "temperature_realisation": {
+        "kind": "constitutive",
+        "why": "Temperature enters as a parameter of the noise amplitude and no velocity is represented, so there is no kinetic energy and nothing to thermostat. Same ground as bd_overdamped."
+      }
+    },
+    {
+      "config": "abp_free",
+      "label": "a single active Brownian particle in two dimensions with no pair interaction, no wall and no obstacle: one orientation diffusing at D_R, self-propulsion v0 along it, translational noise D_T, unwrapped coordinates. A7 abstains.",
+      "optical_path": null,
+      "devices": [
+        "hoomd_backend"
+      ],
+      "produces": [
+        "mean_squared_displacement",
+        "effective_translational_diffusivity",
+        "msd_loglog_slope",
+        "persistence_time",
+        "persistence_length",
+        "dynamical_crossover_time"
+      ],
+      "output_independent_of_input": {
+        "independent": false,
+        "why": "FALSE, and this is the field a reader is most likely to get wrong here. The mean squared displacement of a NON-INTERACTING active Brownian particle is a closed form in v0, D_R and D_T, so a sweep of this configuration confirms the integrator, the estimators and the crossover machinery and measures no dependence. It is worth running for exactly that and a card must not cite it as evidence about the dependence itself. Interaction or confinement flips this to true -- abp_wca_2d declares true for that reason."
+      },
+      "executed_by": {
+        "module": "hoomd_backend",
+        "why": "Declared 2026-09-23 on the engine that is installed and verified: pixi install -e sim stands and hoomd 7.2.0 matches its pin by version and build string. No mock arm."
+      },
+      "temperature_realisation": {
+        "kind": "constitutive",
+        "why": "Temperature enters as a parameter of the noise amplitude and no velocity is represented, so there is no kinetic energy and nothing to thermostat. Same ground as bd_overdamped."
+      }
+    },
+    {
+      "config": "abp_wca_2d",
+      "label": "interacting active Brownian dynamics in two dimensions: orientation diffusing at D_R, self-propulsion v0, translational noise D_T, WCA pair repulsion, periodic box, undriven. A7 abstains.",
+      "optical_path": null,
+      "devices": [
+        "hoomd_backend"
+      ],
+      "produces": [
+        "mean_squared_displacement",
+        "effective_translational_diffusivity",
+        "msd_loglog_slope",
+        "persistence_time",
+        "persistence_length",
+        "dynamical_crossover_time"
+      ],
+      "output_independent_of_input": {
+        "independent": true,
+        "why": "The interaction is what makes this true where abp_free is false: with WCA repulsion the collective behaviour at a given Peclet number and packing fraction is not a closed form in the inputs."
+      },
+      "executed_by": {
+        "module": "hoomd_backend",
+        "why": "Declared 2026-09-23 on the engine that is installed and verified: pixi install -e sim stands and hoomd 7.2.0 matches its pin by version and build string. No mock arm."
+      },
+      "temperature_realisation": {
+        "kind": "constitutive",
+        "why": "Temperature enters as a parameter of the noise amplitude and no velocity is represented, so there is no kinetic energy and nothing to thermostat. Same ground as bd_overdamped."
+      }
+    },
+    {
+      "config": "bd_overdamped_trapped_uniform_flow",
+      "label": "one overdamped particle, no pair interaction, in an external harmonic potential of stiffness k_t, with the background fluid moving at constant velocity relative to the trap. DRIVEN: A7 stops abstaining and owns the flow speed and direction.",
+      "optical_path": null,
+      "devices": [
+        "hoomd_backend"
+      ],
+      "produces": [
+        "trapped_particle_drag_offset"
+      ],
+      "output_independent_of_input": {
+        "independent": false,
+        "why": "FALSE for the same reason as bd_overdamped: the steady-state offset is gamma*v/k_t and the estimator inverts the very balance the integrator solved, so k_t comes out because it went in. What a run of this configuration CAN establish is the precision of the recovery, and the stiffness cancels there -- signal gamma*v/k_t and standard error sigma*sqrt(2*tau/T) both go as 1/k_t, so SE/signal = sqrt(2*D/T)/v is independent of stiffness. That is falsifiable and is why the sweep exists."
+      },
+      "executed_by": {
+        "module": "hoomd_backend",
+        "why": "Declared 2026-09-23 on the engine that is installed and verified: pixi install -e sim stands and hoomd 7.2.0 matches its pin by version and build string. No mock arm."
+      },
+      "temperature_realisation": {
+        "kind": "constitutive",
+        "why": "Temperature enters as a parameter of the noise amplitude and no velocity is represented, so there is no kinetic energy and nothing to thermostat. Same ground as bd_overdamped."
+      }
     }
   ]
 }

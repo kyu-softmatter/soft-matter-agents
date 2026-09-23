@@ -175,6 +175,90 @@
       "unit": "1",
       "kind": "physical",
       "note": "Registered 2026-09-20 for 029. The vendor peak is what the store carries for now, by the person's ruling that the vendor value is the basis until a measurement is taken here. THE CURVE IS NOT AN ENTRY AND THERE IS NO FIELD FOR ONE: 5.3 makes a model's digitisation of a rendered curve an E6 inference that may enter neither a card nor the KB, and the legal shapes are already carried -- a scalar here, points a PERSON read as one entry each with the wavelength pinned, or a vendor numeric table beside the other tables. See the $comment on common.schema.json's `number`."
+    },
+    {
+      "id": "structural_relaxation_time",
+      "definition": "The time a two-dimensional repulsive suspension takes to reach its ordered steady state from a random start, read off the bond-orientational order parameter. A property of the relaxation, not of the state it reaches.",
+      "unit": "s",
+      "kind": "physical",
+      "note": "Registered as an observable the same day; the estimator lives there and this entry exists because section 7 requires both (check 60)."
+    },
+    {
+      "id": "mean_squared_displacement",
+      "definition": "The ensemble- and time-origin-averaged squared displacement of a particle centre as a function of lag. A curve on a declared lag grid, never a single number.",
+      "unit": "um^2",
+      "kind": "physical",
+      "note": "The grid and the averaging are the identity, and no adjective in the name warns a reader of that -- see the observable entry."
+    },
+    {
+      "id": "effective_translational_diffusivity",
+      "definition": "The long-time translational diffusivity of a persistently self-propelled particle: the plateau of MSD/(2*d*t) once orientation memory is lost. NOT the bare D_T, which is the same curve read at short lag.",
+      "unit": "um^2/s",
+      "kind": "physical",
+      "note": "Its fit window is a LOWER bound, the opposite direction from `tracer_diffusivity`'s upper bound. Two entries in this family whose windows point opposite ways must not share a window name."
+    },
+    {
+      "id": "msd_loglog_slope",
+      "definition": "The local slope of log(MSD) against log(lag). Two for ballistic, one for diffusive, and the value between is what a crossover looks like.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Short-time and long-time slopes are this one quantity at two windows."
+    },
+    {
+      "id": "persistence_time",
+      "definition": "The decay time of a self-propelled particle's orientational autocorrelation, MEASURED from the trajectory.",
+      "unit": "s",
+      "kind": "physical",
+      "note": "Deliberately the fitted one. 1/((d-1)*D_R) is a formula on inputs, measures nothing and cannot disagree with the model."
+    },
+    {
+      "id": "persistence_length",
+      "definition": "The distance over which a self-propelled particle keeps its direction, MEASURED from the crossover in its mean squared displacement.",
+      "unit": "um",
+      "kind": "physical",
+      "note": "Same choice and reason as `persistence_time`: v0*tau is a formula on inputs."
+    },
+    {
+      "id": "dynamical_crossover_time",
+      "definition": "The lag at which a mean squared displacement stops being ballistic and starts being diffusive, by its log-log slope passing a stated value.",
+      "unit": "s",
+      "kind": "physical",
+      "note": "The threshold is the window: 1.5 and 1.1 give different numbers from one run."
+    },
+    {
+      "id": "trapped_particle_drag_offset",
+      "definition": "The steady-state mean displacement of a trapped particle from its trap centre along the flow axis under constant relative fluid motion.",
+      "unit": "um",
+      "kind": "physical",
+      "note": "The complement of `trapped_position_distribution`, which subtracts exactly this mean before reporting a width."
+    },
+    {
+      "id": "self_propulsion_speed",
+      "definition": "The speed at which an active particle is displaced along its own orientation. An input to the model, not a measured output.",
+      "unit": "um/s",
+      "kind": "physical",
+      "note": "Under a PRESCRIBED-VELOCITY drive this is imposed. For a FREE overdamped particle prescribed velocity and prescribed force give the same trajectory; they diverge only when there is something to push against (2026-09-23)."
+    },
+    {
+      "id": "rotational_diffusivity",
+      "definition": "The diffusion coefficient of an active particle's orientation. An input to the model.",
+      "unit": "rad^2/s",
+      "kind": "physical",
+      "note": "`rad^2/s` was registered in units.json on 2026-09-23 for this entry. It is {A:2, T:-1} and so does not compare with a frequency."
+    },
+    {
+      "id": "trap_stiffness",
+      "definition": "The curvature of a harmonic optical trap about its centre: the proportionality between restoring force and displacement.",
+      "unit": "pN/um",
+      "kind": "physical",
+      "note": "States the quantity only. WHICH trap is the subject and belongs in `subject`/`at`, never in the name -- rule 1, the same fault as `na_mrd70040`. A two-well question needs one id and two conditions, not two ids."
+    },
+    {
+      "id": "flow_speed",
+      "definition": "The speed of the surrounding fluid relative to the trap.",
+      "unit": "um/s",
+      "kind": "physical",
+      "note": "An imposed condition of a drag-calibration configuration."
     }
   ],
   "not_yet_registered": {

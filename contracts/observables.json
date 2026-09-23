@@ -43,7 +43,7 @@
         "simulation"
       ],
       "comparable": false,
-      "note": "Deliberately the width and not the stiffness. sigma^2 = k_BT/k assumes a harmonic trap, and that assumption is not confirmed here -- sigma is measured without it, and a stiffness can be derived later with the assumption written down (P15). Whether the particle is trapped at all is not a separate observable but this distribution's success criterion: bounded or not. window_required is true because sigma converges from below: a short record undersamples the tails and understates it, and exposure-time averaging shaves it again, so a sigma written without its window is not one number."
+      "note": "Deliberately the width and not the stiffness. sigma^2 = k_BT/k assumes a harmonic trap, and that assumption is not confirmed here -- sigma is measured without it, and a stiffness can be derived later with the assumption written down (P15). Whether the particle is trapped at all is not a separate observable but this distribution's success criterion: bounded or not. window_required is true because sigma converges from below: a short record undersamples the tails and understates it, and exposure-time averaging shaves it again, so a sigma written without its window is not one number.\n\nCOMPLEMENT: `trapped_particle_drag_offset` is the mean this estimator subtracts. Under a steady relative flow that mean is the whole signal, so a question about drag calibration needs that id and not this one (2026-09-23)."
     },
     {
       "id": "tracer_brightness",
@@ -74,6 +74,131 @@
       ],
       "comparable": false,
       "note": "The illumination setting is part of the value and not context: the same particles bleach faster under more light. A rate reported without it cannot be carried to another plan."
+    },
+    {
+      "id": "structural_relaxation_time",
+      "definition": "The time a two-dimensional suspension of repulsive particles takes to reach its ordered steady state from a random initial configuration, read off the bond-orientational order parameter psi6. It is a property of the relaxation from a stated initial condition and not of the steady state it reaches.",
+      "units": [
+        "s"
+      ],
+      "estimator": "Compute psi6 per particle from its neighbours by Voronoi or a stated cutoff, average over particles to a single psi6(t), and report the time at which psi6(t) first reaches a DECLARED FRACTION of its plateau value, fitted over a declared lag window. The plateau fraction and the fit window are both conditions the plan must carry.",
+      "window_required": true,
+      "window_parameter": "relaxation_fit_window",
+      "producible_by": [
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "ONE id and not two, decided 2026-09-23. A driven question (a particle dragged through the same suspension) measures the same psi6 plateau by the same estimator, so it is this quantity at the conditions `driving_velocity` and `driving_direction`, with the undriven case as the v=0 row -- rule 2, the estimator is the identity. A proposed second id `driven_tracer_relaxation_time` was withdrawn on that ground. A second id becomes owed only if a driven question measures something psi6 does not define, such as a wake recovery time.\n\nLIMITATION, recorded rather than hidden: TWO knobs move this number -- the plateau fraction and the fit window -- and `window_parameter` in observable.schema.json is a single string. The field names the fit window and the estimator above carries the plateau fraction as a declared condition. Nothing checks the second one the way check 40 checks the first."
+    },
+    {
+      "id": "mean_squared_displacement",
+      "definition": "The ensemble- and time-origin-averaged squared displacement of a particle centre as a function of lag time. The reported object is the curve on a declared lag grid; a single number is never this quantity.",
+      "units": [
+        "um^2",
+        "m^2"
+      ],
+      "estimator": "Unwrapped coordinates, so periodic images do not truncate the displacement. Average over particles and over time origins on a DECLARED lag grid. Overlapping time origins are NOT independent samples and an uncertainty that treats them as such is wrong; the count of independent origins is a declared condition. Report the curve, not a fitted scalar -- quantities derived from it are separate ids.",
+      "window_required": true,
+      "window_parameter": "max_lag_time",
+      "producible_by": [
+        "experiment",
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "The most dangerous name in this file, which is why it is registered before the questions that need it rather than after. Two questions can use this word for different lag grids and different averaging and never notice, because unlike `effective_translational_diffusivity` there is no adjective to warn a reader. `tracer_diffusivity` already paid this tuition once: uniform weighting across its whole range biased it 7 per cent while the reported error was 0.16 per cent."
+    },
+    {
+      "id": "effective_translational_diffusivity",
+      "definition": "The long-time translational diffusivity of a persistently self-propelled particle: the plateau of MSD/(2*d*t) once the motion has lost memory of its orientation. NOT the bare translational diffusivity D_T, which is the same curve read at short lag.",
+      "units": [
+        "um^2/s",
+        "m^2/s"
+      ],
+      "estimator": "Fit the slope of the mean squared displacement against lag time over a range whose LOWER bound lies well above the persistence time, and divide by 2*d. The lower bound is the condition that matters and it is the opposite direction from `tracer_diffusivity`, whose window is an UPPER bound protecting the free regime. A value read too early is D_T under this name.",
+      "window_required": true,
+      "window_parameter": "fit_lag_range_lower_bound",
+      "producible_by": [
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "ONE id across two seats, decided 2026-09-23. Window 4 proposed `effective_diffusivity` and window 3 proposed this string for the same estimator -- same estimator, one id (rule 2), and the longer string wins because an active-matter question carries a rotational diffusivity in the same card and `effective_diffusivity` does not say which. `open_collisions` in quantities.json already records that this family's danger is a name that looks like its neighbours while being a different claim."
+    },
+    {
+      "id": "msd_loglog_slope",
+      "definition": "The local slope of log(MSD) against log(lag) over a declared lag range. Two for ballistic motion, one for diffusive, and the value between them is what a crossover looks like.",
+      "units": [
+        "1"
+      ],
+      "estimator": "Least-squares slope of log(MSD) on log(lag) over a DECLARED lag range. Short-time and long-time slopes are this one quantity at two windows, not two quantities. Distinguish in the plan whether MSD/(2*d*t) or the local derivative d(MSD)/dt/(2*d) underlies the curve being differentiated: the two differ by exactly the amount this slope is measuring.",
+      "window_required": true,
+      "window_parameter": "slope_fit_lag_range",
+      "producible_by": [
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "Stands in place of a proposed `time_resolved_effective_diffusivity`. D_eff(t) is a curve, and this file's convention is that an entry names the SCALAR reported while the full object stays with the raw data -- `trapped_position_distribution` reports a standard deviation and keeps its histogram. Registering the curve as an observable would have had to collapse it to a scalar somewhere, and collapsing it is what deletes the question."
+    },
+    {
+      "id": "persistence_time",
+      "definition": "The decay time of a self-propelled particle's orientational autocorrelation, MEASURED from the trajectory. Not 1/((d-1)*D_R), which is the same number only when the model holds exactly.",
+      "units": [
+        "s"
+      ],
+      "estimator": "Fit an exponential to the autocorrelation of the orientation unit vector over a declared lag window and report its decay time.",
+      "window_required": true,
+      "window_parameter": "autocorrelation_fit_window",
+      "producible_by": [
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "Deliberately the fitted one. Both seats offered the analytic alternative and both noted it restates the input: a formula on declared inputs measures nothing and cannot disagree with the model, so it is not an observable at all. If the derived number is needed it belongs in quantities.json as a derived quantity with the formula's own grade."
+    },
+    {
+      "id": "persistence_length",
+      "definition": "The distance over which a self-propelled particle keeps its direction, MEASURED from the crossover in its mean squared displacement.",
+      "units": [
+        "um"
+      ],
+      "estimator": "Fit the ballistic-to-diffusive crossover of the mean squared displacement over a declared lag window and report the length scale at which it occurs.",
+      "window_required": true,
+      "window_parameter": "crossover_fit_window",
+      "producible_by": [
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "Same choice and same reason as `persistence_time`: v0 * persistence_time is a formula on inputs and measures nothing. Keeping the fitted one is what lets the two disagree, and a disagreement is the only thing either could have told us."
+    },
+    {
+      "id": "dynamical_crossover_time",
+      "definition": "The lag at which a mean squared displacement stops being ballistic and starts being diffusive, defined by its log-log slope passing a stated value between 2 and 1.",
+      "units": [
+        "s"
+      ],
+      "estimator": "Take `msd_loglog_slope` on a rolling lag window and report the lag at which it first crosses a DECLARED threshold between 2 and 1. The threshold is the window: 1.5 and 1.1 give different numbers from one run.",
+      "window_required": true,
+      "window_parameter": "crossover_slope_threshold",
+      "producible_by": [
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "Reads off the same curve as `msd_loglog_slope` and is a separate id because the reported scalar is a time, not a slope."
+    },
+    {
+      "id": "trapped_particle_drag_offset",
+      "definition": "The steady-state MEAN displacement of a trapped particle from its trap centre along the flow axis, while the surrounding fluid moves at constant velocity relative to the trap. The trap centre here is the geometric centre of the confining potential and not the time-averaged particle position.",
+      "units": [
+        "um",
+        "nm"
+      ],
+      "estimator": "Track the particle centre over a declared record length under steady flow and report the mean displacement from the DECLARED trap centre, resolved along the flow direction. The record length is the window: the standard error of a mean falls as sqrt(1/T), so a displacement quoted without it is not one number.",
+      "window_required": true,
+      "window_parameter": "record_length",
+      "producible_by": [
+        "experiment",
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "THE COMPLEMENT OF `trapped_position_distribution`, READ FROM THE SAME TRACE, and the two must be read together. That entry takes the MEAN POSITION AS THE TRAP CENTRE AND SUBTRACTS IT before reporting a standard deviation -- the quantity it discards is this one, exactly and not approximately. A reader who reaches for the registered name to answer a drag-calibration question computes the one number that cannot answer it. Raised by the execution seat that hit it, 2026-09-23."
     }
   ]
 }
