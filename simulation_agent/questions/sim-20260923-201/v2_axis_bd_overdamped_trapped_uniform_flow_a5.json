@@ -1,0 +1,115 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-201-bd_overdamped_trapped_uniform_flow-a5-r2",
+  "qid": "sim-20260923-201",
+  "thread": "solo-sim-20260923-201",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T20:10:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-201:v2:bd_overdamped_trapped_uniform_flow:a5",
+  "config": "bd_overdamped_trapped_uniform_flow",
+  "axis": "a5",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "abstain_reason": "This axis constrains the settable parameters against the envelope and does not yet turn them into an interval. An allowance exists: target 'local', wall clock None None, storage None None. What stops it being computable is not the ceiling: it is that the record length A2 needs is a function of a target relative error the person has not set, so the step count has a free parameter in it. The cost is therefore stated as a relation for S4 and not as a number. THE RELATION THAT MATTERS IS NOT THE ONE THIS CARD FIRST STATED. It said the timestep is fixed by the stiff corner and the record by the soft one, so the cost goes as the RATIO of the stiffness range -- three decades of stiffness, three decades of steps. That is true of a plan carrying ONE timestep and ONE record length, and it is not a property of the sweep. Both bounds scale with the same local gamma/k_t, so at parameters chosen PER CORNER the step count is the same at every corner and the sweep is flat in cost. The blow-up is what intersecting one interval per parameter does to a swept question, and the factor it costs is exactly the stiffness range. Raised to manager-simulation rather than worked around here: an axis returning one interval is 4.5.3's contract and a sweep is not one operating point. A5 does not take A1's or A2's output as input (rule b) -- the scaling above is read off the SHAPE of the two bounds, both of which are proportional to the local relaxation time, and no number crosses.",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "predicted wall clock <= the local target's wall_clock_max",
+      "parameter": "wall_clock",
+      "state": "returned",
+      "precondition": {
+        "parameter": "wall_clock",
+        "requires": "the plan must carry a target relative error before a wall clock can be predicted: the record length is a function of it, so the step count has a free parameter. An allowance exists: target 'local', wall clock None None, storage None None.",
+        "basis": [
+          "stiffness_points",
+          "speed_points"
+        ]
+      }
+    },
+    {
+      "inequality": "predicted storage <= the local target's storage_max",
+      "parameter": "storage",
+      "state": "returned",
+      "precondition": {
+        "parameter": "storage",
+        "requires": "frames are record_length/save_interval and the record length is unset for the same reason. The trajectory is written to disk now (013), so this is a real ceiling rather than a notional one",
+        "basis": [
+          "stiffness_points",
+          "speed_points"
+        ]
+      }
+    }
+  ],
+  "note": "The abstention is THIS AGENT'S UNFINISHED WORK and not a missing ceiling -- the distinction bd_overdamped's a5 card had to make once the envelope existed. The blocking input is the person's target accuracy, which is also what A2 is waiting on, so one answer releases both.",
+  "numbers": [
+    {
+      "name": "stiffness_points",
+      "value": 4,
+      "unit": "1",
+      "source": "assumed:a_sweep_grid",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "one point per decade across the three-decade stiffness sweep, plus its end"
+    },
+    {
+      "name": "speed_points",
+      "value": 3,
+      "unit": "1",
+      "source": "assumed:a_sweep_grid",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "one per decade of the dimensionless offset, plus its end. A drag calibration needs at least three speeds for the slope to have a residual"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_sweep_grid",
+      "statement": "A point per decade is the coarsest grid on which a slope has a residual and a trend is visible. The grid is a decision and not a measurement, and it is here rather than in the goal because it is what turns two ranges into a run count.",
+      "numbers": [
+        "stiffness_points",
+        "speed_points"
+      ],
+      "falsifier": "a first sweep in which the recovered error is flat across stiffness, which is the prediction, allows the stiffness axis to be thinned to its two ends; a curved slope residual demands more speeds",
+      "gap_ref": "flow_speed_absent"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "cost_per_particle_step_overdamped_absent",
+      "observable": "cost_per_particle_step_overdamped",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='cost_per_particle_step_overdamped', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v2:bd_overdamped_trapped_uniform_flow:a5",
+      "asked_at": "2026-09-23T20:05:00Z"
+    },
+    {
+      "gap_id": "flow_speed_absent",
+      "observable": "flow_speed",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='flow_speed', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v2:bd_overdamped_trapped_uniform_flow:a5",
+      "asked_at": "2026-09-23T20:05:00Z"
+    }
+  ],
+  "degraded": []
+}
