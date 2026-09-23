@@ -1,0 +1,766 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "id": "plan-sim-20260923-042-r2",
+  "qid": "sim-20260923-042",
+  "thread": "solo-sim-20260923-042",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T20:50:00Z",
+  "status": "VALIDATED",
+  "goal_id": "goal-sim-20260923-042-r2",
+  "synthesis_id": "synthesis-sim-20260923-042-r2",
+  "purpose": "compare",
+  "intent": "explore",
+  "observable": {
+    "name": "mean_squared_displacement"
+  },
+  "system_configuration": {
+    "config": "abp_wca_2d",
+    "optical_path": null,
+    "devices": [
+      "hoomd_backend"
+    ],
+    "model": "interacting active Brownian dynamics in two dimensions: one orientation per particle diffusing at D_R, self-propulsion v0 along it, translational noise D_T, WCA pair repulsion, periodic box, undriven"
+  },
+  "targets": [
+    {
+      "metric": "effective_translational_diffusivity",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "one decade, and the P15 tension of revision 1 stands: at this resolution a box passes as size-independent unless interactions change the regime. The person has not asked for confirm and this card does not assume it"
+    }
+  ],
+  "compare_variable": "box_length",
+  "compare_arms": [
+    {
+      "arm": "small",
+      "conditions": [
+        {
+          "parameter": "box_length",
+          "number": "box_length_smallest_arm"
+        }
+      ]
+    },
+    {
+      "arm": "mid",
+      "conditions": [
+        {
+          "parameter": "box_length",
+          "number": "box_length_arm_mid"
+        }
+      ]
+    }
+  ],
+  "conditions": [
+    {
+      "parameter": "temperature",
+      "number": "temperature"
+    },
+    {
+      "parameter": "viscosity",
+      "number": "viscosity"
+    },
+    {
+      "parameter": "bead_diameter",
+      "number": "bead_diameter"
+    },
+    {
+      "parameter": "translational_diffusivity",
+      "number": "translational_diffusivity"
+    },
+    {
+      "parameter": "rotational_diffusivity",
+      "number": "rotational_diffusivity"
+    },
+    {
+      "parameter": "wca_epsilon",
+      "number": "wca_epsilon"
+    },
+    {
+      "parameter": "peclet_number_steric",
+      "number": "peclet"
+    },
+    {
+      "parameter": "packing_fraction",
+      "number": "packing_fraction"
+    },
+    {
+      "parameter": "integration_timestep",
+      "number": "integration_timestep_point"
+    },
+    {
+      "parameter": "total_simulated_time",
+      "number": "total_simulated_time_point"
+    },
+    {
+      "parameter": "save_interval",
+      "number": "save_interval_point"
+    },
+    {
+      "parameter": "max_lag_time",
+      "number": "max_lag_time_point"
+    },
+    {
+      "parameter": "fit_lag_range_lower_bound",
+      "number": "fit_lag_range_lower_bound_point"
+    }
+  ],
+  "actions": [
+    {
+      "id": "integrate",
+      "device": "hoomd_backend",
+      "action": "integrate the declared configuration in each arm for the planned duration, saving unwrapped positions and orientations at the planned interval; the particle count of an arm is the held packing fraction times its box",
+      "reversible": true,
+      "parameters": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "translational_diffusivity",
+        "rotational_diffusivity",
+        "wca_epsilon",
+        "peclet_number_steric",
+        "packing_fraction",
+        "integration_timestep",
+        "total_simulated_time",
+        "save_interval",
+        "max_lag_time",
+        "fit_lag_range_lower_bound",
+        "box_length"
+      ],
+      "tier": 1
+    },
+    {
+      "id": "estimate",
+      "device": "hoomd_backend",
+      "action": "per arm: the mean squared displacement on the declared lag grid up to max_lag_time; the effective translational diffusivity from the slope above fit_lag_range_lower_bound divided by 2*d; the persistence time from the orientational autocorrelation; the persistence length from the crossover; the log-log slope on a rolling window. Uncertainties block-resampled over independent time origins, never from the fit",
+      "reversible": true,
+      "parameters": [
+        "max_lag_time",
+        "fit_lag_range_lower_bound",
+        "save_interval"
+      ],
+      "tier": 0
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [
+      "simulation_agent/envelope/budget.json"
+    ],
+    "status": "inside",
+    "note": "target local: every cost number of this plan that lines up with a ceiling is under it: wall_clock_estimate against wall_clock_max, storage_estimate against storage_max. Re-confirmed at run time (4.6 O1)."
+  },
+  "cost": {
+    "wall_clock": "minutes: the mid arm is six billion particle-steps and the small arm a hundredth of it",
+    "numbers": [
+      "wall_clock_estimate",
+      "storage_estimate"
+    ],
+    "note": "estimates of an unrun job at an assumed rate, from A5 through S4. The smoke run's own log replaces the rate with a measured one"
+  },
+  "stop_criteria": [
+    {
+      "id": "planned_duration_reached",
+      "metric": "simulated_time",
+      "comparator": ">=",
+      "number": "total_simulated_time_point",
+      "on_met": "complete",
+      "statement": "stop when the run reaches the planned duration; running longer would be a different plan"
+    },
+    {
+      "id": "step_displacement_diverged",
+      "metric": "max_single_step_displacement",
+      "comparator": ">",
+      "number": "bead_diameter",
+      "on_met": "fault",
+      "statement": "a particle moving more than its own diameter in one step has passed through a neighbour's core; the WCA force there is enormous and the integration has diverged. Stop and keep the run, because divergence is a result"
+    }
+  ],
+  "success_criteria": [
+    {
+      "id": "statistics_met",
+      "metric": "relative_block_error_of_effective_translational_diffusivity",
+      "comparator": "<=",
+      "number": "target_relative_error",
+      "window": "lags from fit_lag_range_lower_bound to max_lag_time",
+      "statement": "in each arm the block-resampled error on the long-time slope is small enough that the decade is decided by the physics and not by the sampling"
+    },
+    {
+      "id": "arms_agree_within_decade",
+      "metric": "log10_ratio_of_effective_translational_diffusivity_mid_to_small",
+      "comparator": "<=",
+      "target": "effective_translational_diffusivity",
+      "window": "lags from fit_lag_range_lower_bound to max_lag_time",
+      "statement": "the compare's question: the arm at ten persistence lengths and the arm at one agree within the goal's decade. Meeting it says the box does not matter at decade resolution between these two sizes; failing it says a persistence length of box is too small, and either is the result the question asked for"
+    },
+    {
+      "id": "window_insensitive",
+      "metric": "log10_ratio_of_first_half_to_second_half_effective_translational_diffusivity",
+      "comparator": "<=",
+      "target": "effective_translational_diffusivity",
+      "window": "lags from fit_lag_range_lower_bound to max_lag_time, split at the midpoint",
+      "statement": "the long-time slope agrees with itself across the fit range: if it does not, the lower bound sits inside the crossover and the number is not the plateau under this name"
+    }
+  ],
+  "alternatives_rejected": [
+    {
+      "what": "configuration abp_free",
+      "reason": "the person ruled on 2026-09-23 that the repulsion is WCA, so the system is interacting; the free configuration is the closed-form reference and belongs in the store, not in this run. Its intersection is not empty and its cards stand as the record of what a free arm would need",
+      "grounds": [
+        "wca_epsilon"
+      ]
+    },
+    {
+      "what": "box arm 'large' at box_length_largest_arm",
+      "reason": "exceeds A5's ceiling on particle_steps and coordinates_stored at the chosen point; dropped with a counterexample in the S4 refusal card, and the compare keeps the arms that fit",
+      "grounds": [
+        "particle_steps_arm_large",
+        "particle_steps_max",
+        "coordinates_stored_arm_large",
+        "coordinates_stored_max"
+      ]
+    }
+  ],
+  "open_risks": [
+    "The compare has two arms and not three: the arm at a hundred persistence lengths exceeds both A5 ceilings at the intersection's operating point and is refused in v2_refusal_s4 with the numbers. So this plan can say whether one persistence length of box already suffices against ten; it cannot say where independence sets in above ten.",
+    "The small arm holds of order ten particles. At that count the packing fraction is realised coarsely and the MSD's particle average is thin; A2's record floor carries its statistics, and the block error is what says whether that was enough.",
+    "At decade resolution a finite-size effect of a few tens of per cent is a tie (P15). The person has not asked for confirm, so a pass on arms_agree_within_decade means the box does not change the decade, not that it changes nothing.",
+    "dynamical_crossover_time is registered but not read by this plan: its window parameter is a slope threshold between 2 and 1 that no card carries, and S4 introduces no numbers. Declaring it is a revision.",
+    "In this system D_R is tied to D_T through the sphere's rotational drag as a stated assumption; the store holds no rotational diffusivity entry. If the person rules D_R an independent axis the persistence time, and with it every window here, moves.",
+    "The temperature is realised exactly by the noise amplitude and is not a measurement; kb:lab_ambient_temperature records why the value was chosen. The experiment's side of any later comparison carries the whole temperature uncertainty.",
+    "Nothing runs until a person writes a plan_approval for this revision, and no backend for the active configuration exists yet: hoomd_backend integrates bd_overdamped. The backend that realises this plan is the next thing this agent writes, and it has to convert nothing -- the plan is already in SI (D7)."
+  ],
+  "numbers": [
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v2_synthesis.json#temperature",
+      "precision": "significant_figures",
+      "note": "a parameter of the noise amplitude, realised exactly by the model; the room's reading is why this value was chosen"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v2_synthesis.json#viscosity",
+      "precision": "significant_figures",
+      "note": "pure water, validity 288 to 298 K, the temperature above is inside it"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "origin": "v2_synthesis.json#bead_diameter",
+      "precision": "significant_figures",
+      "note": "the SI anchor: the particle in the bottle. An active particle of this size is a model choice, not a claim that these beads self-propel; the anchor exists because cards are authoritative in physical units (D7) and the store holds this diameter at E2"
+    },
+    {
+      "name": "translational_diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "origin": "v2_synthesis.json#translational_diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "D_T, the thermal translational diffusivity of the anchor sphere. Same relation as sim-20260917-001 and kb:tracer_diffusivity_expected"
+    },
+    {
+      "name": "rotational_diffusivity",
+      "value": 0.01,
+      "unit": "1/s",
+      "source": "computed:stokes_einstein_debye",
+      "grade": "E4",
+      "origin": "v2_synthesis.json#rotational_diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "D_R, THERMALLY TIED to D_T through the sphere's rotational drag -- 3*D_T/bead_diameter**2. The person did not rule on the tie and this is the assumption a_thermal_rotation; the store holds nothing on rotational diffusivity (gap rotational_diffusivity_absent). In 2D the persistence time is 1/D_R, about a hundred seconds at this anchor"
+    },
+    {
+      "name": "wca_epsilon",
+      "value": 4e-21,
+      "unit": "J",
+      "source": "assumed:a_wca_stiffness",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#wca_epsilon",
+      "precision": "order_of_magnitude",
+      "note": "the WCA well depth, taken as one k_B*T at 293 K so the repulsion is hard-sphere-like at Pe of order one. At high Pe the active force can drive overlaps deep into the potential; A1 owns the contact stiffness and this is what it will move"
+    },
+    {
+      "name": "peclet",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_operating_point",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#peclet",
+      "precision": "order_of_magnitude",
+      "note": "held across arms; the centre of 041's Pe decades"
+    },
+    {
+      "name": "packing_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_operating_point",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#packing_fraction",
+      "precision": "order_of_magnitude",
+      "note": "held across arms; the centre of 041's density decades"
+    },
+    {
+      "name": "integration_timestep_point",
+      "value": 0.005,
+      "unit": "s",
+      "source": "computed:decade_under_a1_ceiling",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#integration_timestep_point",
+      "precision": "order_of_magnitude",
+      "note": "S4's choice inside A1's interval: a decade under the ceiling, because the ceiling rests on a contact time estimated at the potential minimum and activity drives overlaps deeper. target_accuracy outranks cost in the goal's priority, and this is where that order is spent"
+    },
+    {
+      "name": "total_simulated_time_point",
+      "value": 30000.0,
+      "unit": "s",
+      "source": "computed:window_over_record_ratio",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#total_simulated_time_point",
+      "precision": "order_of_magnitude",
+      "note": "the record A2's ratio requires for A4's window: three times A2's own floor, which A2 set from its reference lag and not from the window. Two axes constrain the record and this is their intersection"
+    },
+    {
+      "name": "save_interval_point",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:a4_ceiling",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#save_interval_point",
+      "precision": "order_of_magnitude",
+      "note": "at A4's ceiling: saving more often costs storage and buys nothing the windows need"
+    },
+    {
+      "name": "max_lag_time_point",
+      "value": 3000.0,
+      "unit": "s",
+      "source": "computed:a4_floor",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#max_lag_time_point",
+      "precision": "order_of_magnitude",
+      "note": "the window parameter of mean_squared_displacement, at A4's floor"
+    },
+    {
+      "name": "fit_lag_range_lower_bound_point",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "computed:a4_floor",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#fit_lag_range_lower_bound_point",
+      "precision": "order_of_magnitude",
+      "note": "the window parameter of effective_translational_diffusivity, at A4's floor"
+    },
+    {
+      "name": "box_length_smallest_arm",
+      "value": 50.0,
+      "unit": "um",
+      "source": "computed:arm_times_persistence_length",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#box_length_smallest_arm",
+      "precision": "order_of_magnitude",
+      "note": "the smallest arm: a particle meets its own image within one persistence length"
+    },
+    {
+      "name": "n_particles_arm_small",
+      "value": 10.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#n_particles_arm_small",
+      "precision": "order_of_magnitude",
+      "note": "particles in the small arm at the held packing fraction. Of order ten: the smallest arm is a handful of particles, which is what one persistence length of box at this density holds, and A2's record floor is what carries its statistics"
+    },
+    {
+      "name": "box_length_arm_mid",
+      "value": 500.0,
+      "unit": "um",
+      "source": "computed:arm_times_persistence_length",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#box_length_arm_mid",
+      "precision": "order_of_magnitude",
+      "note": "the middle arm's box"
+    },
+    {
+      "name": "n_particles_arm_mid",
+      "value": 1000.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#n_particles_arm_mid",
+      "precision": "order_of_magnitude",
+      "note": "particles in the mid arm at the held packing fraction"
+    },
+    {
+      "name": "persistence_time_expected",
+      "value": 100,
+      "unit": "s",
+      "source": "computed:persistence_time_2d",
+      "grade": "E4",
+      "origin": "v2_synthesis.json#persistence_time_expected",
+      "precision": "order_of_magnitude",
+      "note": "the 2D relation tau_p = 1/D_R, the person's dimension. It is the input-side expectation the registered persistence_time estimator is read against, and not a result"
+    },
+    {
+      "name": "persistence_length_expected",
+      "value": 50,
+      "unit": "um",
+      "source": "computed:persistence_length_2d",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#persistence_length_expected",
+      "precision": "order_of_magnitude",
+      "note": "v0/D_R in 2D with v0 = Pe*d*D_R; the length the box is compared against. An expectation from the inputs, not a result. E5 because peclet is an assumed input and the worst input decides (P15)"
+    },
+    {
+      "name": "target_relative_error",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_statistics",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#target_relative_error",
+      "precision": "order_of_magnitude",
+      "note": "ten per cent on the effective diffusivity, well inside the decade the goal asks for"
+    },
+    {
+      "name": "lag_to_record_ratio",
+      "value": 0.1,
+      "unit": "1",
+      "source": "computed:window_over_record",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#lag_to_record_ratio",
+      "precision": "order_of_magnitude",
+      "note": "the window as a share of the record, at A2's ceiling by construction"
+    },
+    {
+      "name": "particle_step_rate",
+      "value": 10000000.0,
+      "unit": "1/s",
+      "source": "assumed:a_cost_reference",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_step_rate",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps per second for a 2D WCA active system with a neighbour list on this workstation's CPU: of order ten million. A guess until the smoke run measures it"
+    },
+    {
+      "name": "particle_steps_max",
+      "value": 70000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_times_rate",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_max",
+      "precision": "order_of_magnitude",
+      "note": "the product n_particles*total_simulated_time/integration_timestep may not exceed this. A5 constrains the product and not any factor, and takes none of them from A1 or A2 (4.5.3 rule b)"
+    },
+    {
+      "name": "coordinates_stored_max",
+      "value": 1000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_over_bytes",
+      "grade": "E4",
+      "origin": "v2_synthesis.json#coordinates_stored_max",
+      "precision": "order_of_magnitude",
+      "note": "the product 2*n_particles*total_simulated_time/save_interval may not exceed this, two coordinates per particle per frame in two dimensions"
+    },
+    {
+      "name": "box_length_largest_arm",
+      "value": 5000.0,
+      "unit": "um",
+      "source": "computed:arm_times_persistence_length",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#box_length_largest_arm",
+      "precision": "order_of_magnitude",
+      "note": "the largest arm"
+    },
+    {
+      "name": "n_particles_largest_arm",
+      "value": 100000.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#n_particles_largest_arm",
+      "precision": "order_of_magnitude",
+      "note": "what the largest arm costs in particles at the held packing fraction; A5 says whether it is affordable"
+    },
+    {
+      "name": "particle_steps_arm_large",
+      "value": 600000000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_arm_large",
+      "precision": "order_of_magnitude",
+      "note": "the large arm's cost in particle-steps, against A5's ceiling particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_arm_large",
+      "value": 6000000000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#coordinates_stored_arm_large",
+      "precision": "order_of_magnitude",
+      "note": "the large arm's stored coordinates, against A5's ceiling coordinates_stored_max"
+    },
+    {
+      "name": "particle_steps_arm_small",
+      "value": 60000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_arm_small",
+      "precision": "order_of_magnitude",
+      "note": "the small arm's cost in particle-steps, against A5's ceiling particle_steps_max"
+    },
+    {
+      "name": "particle_steps_arm_mid",
+      "value": 6000000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_arm_mid",
+      "precision": "order_of_magnitude",
+      "note": "the mid arm's cost in particle-steps, against A5's ceiling particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_arm_small",
+      "value": 600000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#coordinates_stored_arm_small",
+      "precision": "order_of_magnitude",
+      "note": "the small arm's stored coordinates, against A5's ceiling coordinates_stored_max"
+    },
+    {
+      "name": "coordinates_stored_arm_mid",
+      "value": 60000000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#coordinates_stored_arm_mid",
+      "precision": "order_of_magnitude",
+      "note": "the mid arm's stored coordinates, against A5's ceiling coordinates_stored_max"
+    },
+    {
+      "name": "integration_timestep_max",
+      "value": 0.05,
+      "unit": "s",
+      "source": "computed:resolution_of_shortest_time",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#integration_timestep_max",
+      "precision": "order_of_magnitude",
+      "note": "upper bound only; nothing in A1 bounds the step from below"
+    },
+    {
+      "name": "wall_clock_max",
+      "value": 2,
+      "unit": "h",
+      "source": "spec:simulation_agent/envelope/budget.json:local",
+      "grade": "E3",
+      "origin": "v2_synthesis.json#wall_clock_max",
+      "precision": "significant_figures",
+      "note": "the ceiling a person chose (kyuhwan, 2026-09-19); carried so the interval below has a basis the card holds. A ceiling is a decision, and spec: is the nearest kind for a number read off a policy file"
+    },
+    {
+      "name": "storage_max",
+      "value": 10,
+      "unit": "GB",
+      "source": "spec:simulation_agent/envelope/budget.json:local",
+      "grade": "E3",
+      "origin": "v2_synthesis.json#storage_max",
+      "precision": "significant_figures",
+      "note": "the disk ceiling of the same target"
+    },
+    {
+      "name": "bytes_per_coordinate",
+      "value": 8e-09,
+      "unit": "GB",
+      "source": "spec:ieee754_double",
+      "grade": "E3",
+      "origin": "v2_axis_abp_wca_2d_a5.json#bytes_per_coordinate",
+      "precision": "significant_figures",
+      "note": "one double-precision coordinate, in the unit the ceiling is written in"
+    },
+    {
+      "name": "wall_clock_estimate",
+      "value": 10.0,
+      "unit": "min",
+      "source": "computed:particle_steps_over_rate",
+      "grade": "E5",
+      "formula": "(particle_steps_arm_small+particle_steps_arm_mid)/particle_step_rate",
+      "inputs": [
+        "particle_steps_arm_small",
+        "particle_steps_arm_mid",
+        "particle_step_rate"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "both kept arms, one seed each, at the assumed rate; the number the envelope check compares against wall_clock_max. A5's rate is a guess until the smoke run measures it"
+    },
+    {
+      "name": "storage_estimate",
+      "value": 0.5,
+      "unit": "GB",
+      "source": "computed:coordinates_times_bytes",
+      "grade": "E5",
+      "formula": "(coordinates_stored_arm_small+coordinates_stored_arm_mid)*bytes_per_coordinate",
+      "inputs": [
+        "coordinates_stored_arm_small",
+        "coordinates_stored_arm_mid",
+        "bytes_per_coordinate"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "both kept arms' trajectories in double precision; compared against storage_max"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_wca_stiffness",
+      "statement": "One k_B T of WCA well depth makes the repulsion hard-sphere-like at low Pe; whether it stays so at the top of the Pe range is A1's question.",
+      "numbers": [
+        "wca_epsilon"
+      ],
+      "falsifier": "an A1 interval that finds the contact overlap at peclet_max exceeding a stated fraction of the diameter replaces this value, and it is then a swept quantity again",
+      "gap_ref": "active_brownian_particle_absent"
+    },
+    {
+      "rationale_id": "a_operating_point",
+      "statement": "One point in the middle of 041's grid, so the two questions share a condition and 041 can cite this result as its finite-size premise.",
+      "numbers": [
+        "peclet",
+        "packing_fraction"
+      ],
+      "falsifier": "041's S4 chooses a different centre, or a store entry places this point inside the clustered regime, where the box question has a different answer",
+      "gap_ref": "packing_fraction_absent"
+    },
+    {
+      "rationale_id": "a_statistics",
+      "gap_ref": "independent_samples_prefactor_absent",
+      "statement": "A ten per cent statistical error needs of order one hundred independent displacements at the longest fit lag, from the square-root scaling of an ensemble mean; the prefactor for a weighted slope estimator on an active MSD has not been measured.",
+      "numbers": [
+        "target_relative_error"
+      ],
+      "falsifier": "a seed-to-seed spread wider than ten per cent at this sample count raises the floor"
+    },
+    {
+      "rationale_id": "a_cost_reference",
+      "gap_ref": "particle_step_rate_absent",
+      "statement": "The cost model is one pair-force evaluation per particle per step through a neighbour list, at a rate guessed from the engine's class of hardware. Nothing on this machine has run this configuration.",
+      "numbers": [
+        "particle_step_rate"
+      ],
+      "falsifier": "a run that WRITES THE TRAJECTORY THIS PLAN DECLARES on hoomd_backend replaces the rate with the value measured off that run's own log and the ceiling interval moves with it"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "effective_diffusivity_absent",
+      "observable": "effective_diffusivity",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='effective_diffusivity', purpose='compare') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-042:v1:s2",
+      "asked_at": "2026-09-23T16:28:28+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "finite_size_effect_absent",
+      "observable": "finite_size_effect",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='finite_size_effect', purpose='compare') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-042:v1:s2",
+      "asked_at": "2026-09-23T16:28:31+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "packing_fraction_absent",
+      "observable": "packing_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='packing_fraction', purpose='compare') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-042:v2:s2",
+      "asked_at": "2026-09-23T16:34:38+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "rotational_diffusivity_absent",
+      "observable": "rotational_diffusivity",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='rotational_diffusivity', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v2:s2",
+      "asked_at": "2026-09-23T16:34:32+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "active_brownian_particle_absent",
+      "observable": "active_brownian_particle",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='active_brownian_particle', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v1:s2",
+      "asked_at": "2026-09-23T16:28:21+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

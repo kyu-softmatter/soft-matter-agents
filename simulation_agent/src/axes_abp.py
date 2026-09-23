@@ -74,7 +74,7 @@ BUDGET = cards.AGENT / "envelope" / "budget.json"
 # validator holds the registry, and a card that used a unit not here would
 # fail there rather than silently pass here.
 _SI = {"1": 1.0, "count": 1.0, "s": 1.0, "1/s": 1.0, "um": 1e-6, "um/s": 1e-6,
-       "um^2/s": 1e-12, "J": 1.0, "K": 1.0, "h": 3600.0, "GB": 1e9}
+       "um^2/s": 1e-12, "J": 1.0, "K": 1.0, "h": 3600.0, "min": 60.0, "GB": 1e9}
 
 
 def oom(value_si: float, unit: str) -> float:
@@ -83,8 +83,9 @@ def oom(value_si: float, unit: str) -> float:
         return 0.0
     digits = -int(math.floor(math.log10(abs(value_si))))
     rounded = round(value_si, digits)
-    out = rounded / _SI[unit]
-    return float(f"{out:.1g}")
+    # Rounded ONCE, in SI, the way check 17 rounds before comparing. A second
+    # rounding in the card's unit moved 600 s to 0.2 h and failed the check.
+    return rounded / _SI[unit]
 
 
 def _val(numbers: list[dict], name: str) -> float:
