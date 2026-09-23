@@ -440,6 +440,25 @@ class Orchestrator:
     # filter_turret_2, light_path_port, intermediate_magnification, pfs,
     # dia_lamp, lapp_branch, motor_stage. The channel row names focus and the
     # element list has no such row, so a plan has nothing to name.
+    # THERE IS A SECOND COPY OF BOTH OF THESE, in plan_card.py: the same five
+    # hints written inline at its `retract = next(...)`, in a different order,
+    # and `"pfs" in elements` twice. Nothing compares the two, so the first
+    # edit to either is silent drift -- and the edit is coming. When the
+    # element row gains a `role` field, migrating only this file leaves the
+    # planner guessing, and the plan then names an element the interlock
+    # approves on different grounds.
+    #
+    # They are NOT unified by importing one from the other: that would make
+    # the wrong thing shared instead of removing it. Both die with `role`,
+    # and this comment dies with them. A comment is a poor guard; it is the
+    # honest one here, because nothing at commit time can compare two
+    # literals in two files.
+    #
+    # AND THE TWO DO NOT SELECT ALIKE. `retract_elements()` returns sorted()
+    # of EVERY match; the planner's `next(...)` returns the FIRST in its own
+    # order. With z_drive and focus both present the planner picks one and
+    # this sees two. One element matches today, so the difference is
+    # invisible rather than absent.
     RETRACT_HINTS = ("focus", "z_drive", "z_axis", "objective_z", "z")
     STABILISER = "pfs"
 

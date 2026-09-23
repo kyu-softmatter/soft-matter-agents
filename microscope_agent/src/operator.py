@@ -258,6 +258,14 @@ def _nosepiece(snap: dict) -> dict:
         raise Refusal("the snapshot carries no device table, so the turret cannot be read from it")
     for channel in json.loads(text).get("channels", []) or []:
         for element in channel.get("elements", []) or []:
+            # EQUALITY AGAINST A BARE LITERAL, which is the shape the probe
+            # that found card 030's other sites did not look for -- it
+            # searched substring, startswith, endswith and membership. This
+            # file was reported as one hit and not read. The turret is named
+            # here, in orchestrator's `!= "nosepiece"` and
+            # `state.get("nosepiece")`, and in plan_card's number-to-element
+            # map: four sites, one element, no declared field. The `role` row
+            # retires all four.
             if element.get("id") == "nosepiece":
                 return element
     raise Refusal("the snapshot's device table has no nosepiece element")

@@ -386,6 +386,12 @@ def assemble(qid: str, revision: int = 1,
             # device it belongs to instead, which is the part that was missing.
             present = {n["name"] for n in numbers}
             for n in selector_numbers(value):
+                # A THIRD SITE, mapping a number's name to the element that
+                # carries it. operator.py names the same element by equality
+                # at its `_nosepiece()` resolver, and the interlock names it
+                # twice more -- `!= "nosepiece"` and `state.get("nosepiece")`.
+                # Four sites, one element, no declared field; the `role` row
+                # retires all four.
                 device = ("nosepiece" if n["name"] == "nosepiece_position"
                           else "intermediate_magnification")
                 if n["name"] in present:
@@ -585,6 +591,25 @@ def assemble(qid: str, revision: int = 1,
         actions.append({"id": "act_release_pfs", "device": "pfs", "action": "disable",
                         "reversible": True, "parameters": [], "tier": 1})
     if rotates:
+        # THIS IS A SECOND COPY OF orchestrator.RETRACT_HINTS -- same five
+        # members, different order, and nothing compares the two files. The
+        # interlock holds the other one together with `STABILISER = "pfs"`,
+        # which is the two `"pfs" in elements` tests here. Not unified by
+        # importing one from the other: that shares the wrong thing instead
+        # of removing it, and the tuple's future is deletion.
+        #
+        # `next(...)` takes the FIRST match in this order; the interlock's
+        # `retract_elements()` returns sorted() of EVERY match. Same data,
+        # different semantics, invisible while one element matches.
+        #
+        # WHAT ENDS THIS is a `role` field on the element row, and the
+        # migration is not done when the interlock passes. Two tests:
+        #   grep -nE '"(pfs|nosepiece|z_drive|focus)"' src/plan_card.py
+        # returns nothing, AND the new field is compared by EQUALITY --
+        # 2.1 as architecture wrote it says an enumerated field is compared
+        # by equality and an identifier is never tested by substring, so a
+        # `role` reached with `in` would leave this defect standing under a
+        # better name.
         retract = next((e for e in ("z_drive", "focus", "z_axis", "objective_z", "z")
                         if e in elements), None)
         if retract is not None:
@@ -661,6 +686,11 @@ def assemble(qid: str, revision: int = 1,
     # when it is not, rather than guessing from the store: the chain to
     # camera_red ends at an E5 recall carrying the word `probably`, and the
     # store declines to promote it.
+    # ANOTHER ROLE DECIDED BY IDENTIFIER, and one no shape-probe found: it
+    # names the two selectors the path table states as a VALUE rather than as
+    # prose. That is a property of the table's rows and this is a second copy
+    # of it, so it goes when the table declares which form a selector is
+    # stated in.
     literal = {"csuw1_disk_position", "lapp_branch"}
     selectors = [{"element": e, "value": v, "selects": [],
                   "note": "stated as a value by the optical-path table and read across unchanged"}
