@@ -13,7 +13,7 @@
     },
     "caller_id": {
       "$ref": "common.schema.json#/$defs/caller_id",
-      "description": "<qid>:v<N>:<config>:<axis>, issued by the fan-out launcher, never chosen by the sub-agent (4.3.1). The revision is part of the id because the id is also the server's isolation unit: without it the same axis at two revisions shares one session context, and a re-run inherits the attempt it exists to replace. Revision 1 writes v1 rather than omitting it -- an implicit default is the shape that has already caught five rules here. The form without v<N> is accepted while the cards that predate a6dca6a migrate, and stops being accepted after."
+      "description": "<qid>:v<N>:<config>:<axis>, issued by the fan-out launcher, never chosen by the sub-agent (4.3.1). The revision is part of the id because the id is also the server's isolation unit: without it the same axis at two revisions shares one session context, and a re-run inherits the attempt it exists to replace. Revision 1 writes v1 rather than omitting it -- an implicit default is the shape that has already caught five rules here. The form without v<N> is accepted while the cards that predate a6dca6a migrate, and stops being accepted after.\n\nOptional since 2026-09-22 (3c4629f, §5). It does two jobs -- naming which caller asked the store, and pinning the session context an axis is isolated in -- and an axis that asks the store NOTHING has neither: no caller to name, no query to isolate. Requiring it there forced a card to name a caller that never called, and the three ways out were all closed by contract rather than by effort: emptying `degraded` makes check 45 demand a log line for a caller_id that never called; dropping `caller_id` was refused here; dropping `degraded` reads as empty through `or []`. So the falsehood grew three per revision and stood at twelve axis cards carrying a caller beside a non-empty `degraded`.\n\nCheck 45 was already written for this case -- `if not cid: continue` -- so the case was possible in the checker and impossible in the schema, and the schema is what was wrong. The precedent was already in the repository too: a `goal` card carries no caller_id, carries `degraded: []` and honest `kb_refs`, and check 45 skips it. Measured by `simulation-2`, ruled by architecture, and the reading that the fix belongs in the schema rather than the check is the librarian seat's."
     },
     "config": {
       "type": "string",
@@ -213,7 +213,6 @@
     }
   },
   "required": [
-    "caller_id",
     "config",
     "axis",
     "kb_version",

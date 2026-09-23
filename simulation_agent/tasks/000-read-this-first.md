@@ -100,15 +100,23 @@ was being told to start. Nothing was lost only because the second seat checked
 the tree before writing. `004` did not go that way, because it had a row here
 with a condition anyone could run. So every row carries one.
 
-| what | who | is it open? — run this, do not ask |
-|---|---|---|
-| **`004` — revision 2** | done, landed at `946831c` | `git log --oneline -1 -- simulation_agent/questions/sim-20260917-001/v2_goal.json` |
-| **`007` — the result-card writer** | taken | `ls simulation_agent/src/result_card.py 2>/dev/null && echo TAKEN \|\| echo OPEN` |
-| **`012` — round 2, and the id that refuses it** | open | `ls bridge/threads/thr-tracer-diffusivity-001/r2_ask_experiment.json 2>/dev/null && echo DONE \|\| echo BLOCKED` — blocked on 4.4/7.1, not on this tree |
-| **`011` — thirteen rows name no task** | open | `python3 -c "import json;print(sum(1 for l in open('simulation_agent/failures.jsonl') if l.strip() and json.loads(l).get('occasion')))"` — 0 means open |
-| **`010` — attach the engine** | open | `ls simulation_agent/src/hoomd_backend.py 2>/dev/null && echo TAKEN \|\| echo OPEN` |
-| **`009` — the operator resolves a revision** | open | `grep -q artifact_name simulation_agent/src/operator.py && echo TAKEN || echo OPEN` |
-| **`008` — measure what the writer writes** | done, `c4fd0f8` | `python3 -c "import json;print(any(str(json.loads(l).get('task','')).startswith('008') for l in open('simulation_agent/failures.jsonl') if l.strip()))"` |
+| what | is it open? — **run this; there is no status column, on purpose** |
+|---|---|
+| **`004` — revision 2** | `git log --oneline -1 -- simulation_agent/questions/sim-20260917-001/v2_goal.json` |
+| **`007` — the result-card writer** | `ls simulation_agent/src/result_card.py 2>/dev/null && echo TAKEN \|\| echo OPEN` |
+| **`012` — round 2, and the id that refuses it** | `ls bridge/threads/thr-tracer-diffusivity-001/r2_ask_experiment.json 2>/dev/null && echo DONE \|\| echo BLOCKED` — blocked on 4.4/7.1, not on this tree |
+| **`011` — thirteen rows name no task** | `python3 -c "import json;print(sum(1 for l in open('simulation_agent/failures.jsonl') if l.strip() and json.loads(l).get('occasion')))"` — 0 means open |
+| **`010` — attach the engine** | `ls simulation_agent/src/hoomd_backend.py 2>/dev/null && echo TAKEN \|\| echo OPEN` |
+| **`009` — the operator resolves a revision** | `grep -q artifact_name simulation_agent/src/operator.py && echo TAKEN || echo OPEN` |
+| **`008` — measure what the writer writes** | `python3 -c "import json;print(any(str(json.loads(l).get('task','')).startswith('008') for l in open('simulation_agent/failures.jsonl') if l.strip()))"` |
+
+**The status column is gone because it went stale while the conditions stayed
+true.** On 2026-09-22 all three of `010`, `011` and `012` returned done or
+taken and all three still read `open` beside them. A table that carries both a
+prose status and a runnable condition teaches a reader to glance at the prose,
+which is the habit the conditions were added to break — and the prose is the
+half that rots, because finishing a card updates the disk and not this file.
+So there is one column now and it is the one you run.
 
 **`008` leaves nothing in the tree on purpose**, so `ls` cannot count it and the
 row names where its report landed instead. The condition is not decoration: two
