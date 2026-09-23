@@ -213,6 +213,8 @@ def plan_queries(qid: str) -> list[dict]:
     _revision = cards.question_revision(qid)
     _own = []
     for _config in screen(goal["observable"]["name"]):
+        if not _configs.applicable(_config, goal)[0]:
+            continue
         _mod = _configs.module_for(_config)
         if _mod is not None:
             _own += _mod.plan_queries(qid, _revision, _config, issue)
@@ -281,6 +283,18 @@ def run(qid: str, created_at: str, kb_results: dict[str, dict] | None = None) ->
     """
     goal = cards.load_goal(qid)
     configs = screen(goal["observable"]["name"])
+    # A configuration that produces the observable may still not answer this
+    # goal (configs.applicable). Dropped here with its reason printed, and S4
+    # carries the reason into the synthesis card's rejected list (P1).
+    from . import configs as _configs
+    kept = []
+    for config in configs:
+        ok, why = _configs.applicable(config, goal)
+        if ok:
+            kept.append(config)
+        else:
+            print(f"{config}: not applicable to {qid} -- {why}", file=sys.stderr)
+    configs = kept
 
     planned = len(configs) * len(AXIS_MODULES)
     if planned > LIMITS["max_subagents_per_question"]:

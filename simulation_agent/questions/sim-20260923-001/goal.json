@@ -8,9 +8,71 @@
   "status": "DRAFT",
   "requested_by": "human",
   "intent": "explore",
-  "numbers": [],
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the lab's particles, measured by the operator on 2026-09-19 (CV at most 2 per cent). Taken from the store under the S2 id as the physical-units anchor; see the constraint note on anchoring"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the room's reading, not the sample's. In the model it is a parameter of the noise amplitude and exact; the reason to use the room's value is to match the lab"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "pure water near 293 K, textbook; the entry's own precision is of-order"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "the free diffusivity D0 of one particle in the bath; the Brownian time at the mean spacing, a^2/D0, is the natural time unit of the relaxation and every axis derives it from this"
+    }
+  ],
   "assumptions": [],
-  "kb_refs": [],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
   "degraded": [],
   "id": "goal-sim-20260923-001-r1",
   "qid": "sim-20260923-001",
@@ -36,7 +98,8 @@
     "the librarian was reached: four kb_query calls under the two S2 ids all returned absent, so branch two of S2 (already known, hand to the librarian and stop) does not close this question from the store's side. Whether the literature closes it is an external search the gap table points at, and is not this seat's to answer from memory",
     "the envelope snapshot in this tree pins kbv-30966d978fbe while the publisher's copy is kbv-4b981dc870d3; this card queried the published version. Re-copy before any fan-out, and not during one",
     "ANSWERED BY THE PERSON 2026-09-23: purpose `characterize` confirmed (it was proposed above); the system is TWO-DIMENSIONAL with PERIODIC boundaries; the interparticle potential is a PURELY REPULSIVE YUKAWA (screened Coulomb), u(r) proportional to exp(-kappa r)/r with no attractive well. The prefactor and the screening length kappa^-1 are the 'strength' and 'range' the question sweeps and are not numbers here: their decades are still the person's or S3's",
-    "ANSWERED BY THE PERSON 2026-09-23 (second reply): the estimator of 'relaxed' is the bond-orientational order parameter psi6 approaching its plateau; the swept ranges and the target accuracy are S3's to bound, not stated. The plateau criterion is a number and is S3's too (a threshold nobody has chosen is UNDECIDED, not satisfied)"
+    "ANSWERED BY THE PERSON 2026-09-23 (second reply): the estimator of 'relaxed' is the bond-orientational order parameter psi6 approaching its plateau; the swept ranges and the target accuracy are S3's to bound, not stated. The plateau criterion is a number and is S3's too (a threshold nobody has chosen is UNDECIDED, not satisfied)",
+    "PHYSICAL-UNITS ANCHOR, chosen by S2 and not by the person: the person named the model (2D, periodic, repulsive Yukawa) and not a physical system, and cards are authoritative in physical units (D7). The three numbers above are the lab's own system read from the store -- 5 um particles in water at the room's 293 K -- so that a result can one day be laid beside an experiment on this bench. They set D0 and hence the Brownian time; the Yukawa strength and range are swept in dimensionless groups (Gamma = U0/kT, kappa*a) and do not depend on this choice. The person may override the anchor; doing so changes the time unit and nothing in the sweep"
   ],
   "kb_gaps": [
     {

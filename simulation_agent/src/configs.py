@@ -41,3 +41,22 @@ def dispatch(axis: str, qid: str, config: str, created_at: str, caller_id: str,
     if mod is None:
         return None
     return mod.build(axis, qid, config, created_at, caller_id, kb_version, kb_result, revision)
+
+
+def applicable(config: str, goal: dict) -> tuple[bool, str]:
+    """Whether this configuration can answer THIS goal, and if not, why.
+
+    S3.0 keeps every configuration that produces the observable, and two can:
+    `bd_pairwise` and `bd_pairwise_driven_tracer` both produce
+    structural_relaxation_time, one at zero drive and one under it. Which
+    applies is decided by the goal -- whether it drives a particle -- and the
+    capability table cannot say that. A configuration module may define
+    `applicable(goal) -> (bool, reason)`; one without it applies to any goal.
+    A rejection is returned with its reason so S4 records it (P1): a
+    configuration that was never a candidate and one refused for this goal
+    are different facts.
+    """
+    mod = module_for(config)
+    if mod is None or not hasattr(mod, "applicable"):
+        return True, ""
+    return mod.applicable(goal)

@@ -62,6 +62,18 @@ QUERIES = {
 }
 
 
+def goal_drives(goal: dict) -> bool:
+    """Whether the goal imposes a drive: a selector named `drive` on the goal."""
+    return any(sel.get("parameter") == "drive" for sel in (goal.get("selectors") or []))
+
+
+def applicable(goal: dict) -> tuple[bool, str]:
+    if goal_drives(goal):
+        return False, ("bd_pairwise drives nothing, and this goal imposes a drive (selector `drive`); "
+                       "bd_pairwise_driven_tracer is the configuration that does")
+    return True, ""
+
+
 def plan_queries(qid: str, revision: int, config: str, issue) -> list[dict]:
     goal = cards.load_goal(qid, revision)
     kb_version = {r["kb_version"] for r in goal.get("kb_refs") or []}
@@ -100,7 +112,7 @@ def _spacing(goal: dict, numbers: list[dict], assumptions: list[dict]) -> dict[s
                              precision="order_of_magnitude",
                              note="a = rho**-1/2 at the reference density; the density sweep moves it by less than a decade"))
     tau_b = a * a / D0
-    numbers.append(cards.num("brownian_time", round(tau_b, -1), "s", "computed:brownian_time",
+    numbers.append(cards.num("brownian_time", _oom(tau_b), "s", "computed:brownian_time",
                              formula="mean_spacing**2/diffusivity",
                              inputs=[("mean_spacing", "E5"), ("diffusivity", g["diffusivity"])],
                              precision="order_of_magnitude",
@@ -113,6 +125,17 @@ def _spacing(goal: dict, numbers: list[dict], assumptions: list[dict]) -> dict[s
         "falsifier": "a person naming the area fraction of interest, or a first run showing the plateau unreachable at this density inside budget, moves the reference",
     })
     return {**g, "spacing_over_diameter": "E5", "mean_spacing": "E5", "brownian_time": "E5"}
+
+
+
+def _oom(x: float) -> float:
+    """One significant figure: explore mode answers in decades and a computed
+    value inherits the worst precision of its inputs (P15, check 28)."""
+    if x == 0:
+        return 0.0
+    from math import floor, log10
+    e = floor(log10(abs(x)))
+    return round(x / 10 ** e) * 10 ** e if e < 0 else float(round(x, -e))
 
 
 def _value(numbers: list[dict], name: str) -> float:
@@ -151,32 +174,38 @@ def a1(goal, numbers, assumptions):
                              note="the largest U0/kT in the sweep; the stiff corner A1 must survive"))
     numbers.append(cards.num("kappa_a_max", 10, "1", "assumed:a_sweep_corner", precision="order_of_magnitude",
                              note="the shortest range in the sweep, as kappa times the mean spacing"))
-    numbers.append(cards.num("curvature_factor", 1000 * (100 + 20 + 2), "1", "computed:yukawa_curvature_at_spacing",
+    numbers.append(cards.num("curvature_factor", _oom(1000 * (100 + 20 + 2)), "1", "computed:yukawa_curvature_at_spacing",
                              formula="gamma_max*(kappa_a_max**2 + 2*kappa_a_max + 2)",
                              inputs=[("gamma_max", "E5"), ("kappa_a_max", "E5")], precision="order_of_magnitude",
                              note="a**2 u''(a) / kT for u = U0 (a/r) exp(-kappa (r-a)); the ratio of the Brownian time to the curvature relaxation time"))
+    # Every derived value below is computed from the ROUNDED values already in
+    # numbers[], because that is what the validator recomputes from (check 17):
+    # a chain computed exactly and rounded at the end disagrees with a chain
+    # rounded at each step by up to a factor of two at one significant figure.
     tau_b = _value(numbers, "brownian_time")
-    numbers.append(cards.num("curvature_time", tau_b / 122000, "s", "computed:curvature_relaxation_time",
+    cf = _value(numbers, "curvature_factor")
+    numbers.append(cards.num("curvature_time", _oom(tau_b / cf), "s", "computed:curvature_relaxation_time",
                              formula="brownian_time/curvature_factor",
                              inputs=[("brownian_time", "E5"), ("curvature_factor", "E5")], precision="order_of_magnitude",
                              note="gamma / u''(a): the shortest characteristic time in the system at the stiff corner, five decades below tau_B"))
     numbers.append(cards.num("dt_resolution_factor", 0.01, "1", "assumed:a_dt_factor", precision="order_of_magnitude",
                              note="how far below the shortest resolved time the step sits"))
-    numbers.append(cards.num("dt_max_curvature", 0.01 * tau_b / 122000, "s", "computed:factor_times_curvature_time",
+    ct = _value(numbers, "curvature_time")
+    numbers.append(cards.num("dt_max_curvature", _oom(0.01 * ct), "s", "computed:factor_times_curvature_time",
                              formula="dt_resolution_factor*curvature_time",
                              inputs=[("dt_resolution_factor", "E5"), ("curvature_time", "E5")], precision="order_of_magnitude"))
-    numbers.append(cards.num("dt_max_brownian", 0.01 * tau_b, "s", "computed:factor_times_brownian_time",
+    numbers.append(cards.num("dt_max_brownian", _oom(0.01 * tau_b), "s", "computed:factor_times_brownian_time",
                              formula="dt_resolution_factor*brownian_time",
                              inputs=[("dt_resolution_factor", "E5"), ("brownian_time", "E5")], precision="order_of_magnitude",
                              note="the bound the free-tracer configuration would have stopped at; here it is the loosest of three"))
     numbers.append(cards.num("noise_step_fraction", 0.1, "1", "assumed:a_noise_step", precision="order_of_magnitude",
                              note="the rms noise displacement per step as a fraction of the screening length"))
     a = _value(numbers, "mean_spacing"); D0 = _value(numbers, "diffusivity")
-    numbers.append(cards.num("screening_length_min", a / 10, "um", "computed:spacing_over_kappa_a",
+    numbers.append(cards.num("screening_length_min", _oom(a / 10), "um", "computed:spacing_over_kappa_a",
                              formula="mean_spacing/kappa_a_max", inputs=[("mean_spacing", "E5"), ("kappa_a_max", "E5")],
                              precision="order_of_magnitude"))
-    dt_noise = (0.1 * a / 10) ** 2 / (2 * D0)
-    numbers.append(cards.num("dt_max_noise", dt_noise, "s", "computed:noise_step_inside_screening_length",
+    dt_noise = (0.1 * _value(numbers, "screening_length_min")) ** 2 / (2 * D0)
+    numbers.append(cards.num("dt_max_noise", _oom(dt_noise), "s", "computed:noise_step_inside_screening_length",
                              formula="(noise_step_fraction*screening_length_min)**2/(2*diffusivity)",
                              inputs=[("noise_step_fraction", "E5"), ("screening_length_min", "E5"), ("diffusivity", g["diffusivity"])],
                              precision="order_of_magnitude",
@@ -198,17 +227,17 @@ def a1(goal, numbers, assumptions):
     return dict(
         method="deterministic", verdict="feasible",
         constraints=[
-            _interval("integration_timestep", "s", "dt_max_curvature", max=round(0.01 * tau_b / 122000, 6)),
-            _interval("integration_timestep", "s", "dt_max_noise", max=round(dt_noise, 4)),
-            _interval("integration_timestep", "s", "dt_max_brownian", max=round(0.01 * tau_b, 1)),
+            _interval("integration_timestep", "s", "dt_max_curvature", max=_oom(0.01 * ct)),
+            _interval("integration_timestep", "s", "dt_max_noise", max=_oom(dt_noise)),
+            _interval("integration_timestep", "s", "dt_max_brownian", max=_oom(0.01 * tau_b)),
         ],
         inequalities=[
             _ineq("dt << gamma / u''(a) at the stiffest point of the sweep", "integration_timestep",
-                  interval=_interval("integration_timestep", "s", "dt_max_curvature", max=round(0.01 * tau_b / 122000, 6))),
+                  interval=_interval("integration_timestep", "s", "dt_max_curvature", max=_oom(0.01 * ct))),
             _ineq("sqrt(2 D0 dt) << 1/kappa", "integration_timestep",
-                  interval=_interval("integration_timestep", "s", "dt_max_noise", max=round(dt_noise, 4))),
+                  interval=_interval("integration_timestep", "s", "dt_max_noise", max=_oom(dt_noise))),
             _ineq("dt << a**2 / D0", "integration_timestep",
-                  interval=_interval("integration_timestep", "s", "dt_max_brownian", max=round(0.01 * tau_b, 1))),
+                  interval=_interval("integration_timestep", "s", "dt_max_brownian", max=_oom(0.01 * tau_b))),
         ],
         note="Three bounds on one parameter, and S4 takes the tightest; all three are recorded because which one binds moves across the sweep. At the stiff corner the curvature bound is five decades below the Brownian one -- the whole reason bd_overdamped's A1 could not be reused here.",
     )
@@ -252,7 +281,7 @@ def a3(goal, numbers, assumptions):
     a = _value(numbers, "mean_spacing")
     numbers.append(cards.num("finite_size_factor", 30, "1", "assumed:a_finite_size", precision="order_of_magnitude",
                              note="box edge in mean spacings"))
-    numbers.append(cards.num("box_length_min", 30 * a, "um", "computed:factor_times_spacing",
+    numbers.append(cards.num("box_length_min", _oom(30 * a), "um", "computed:factor_times_spacing",
                              formula="finite_size_factor*mean_spacing", inputs=[("finite_size_factor", "E5"), ("mean_spacing", "E5")],
                              precision="order_of_magnitude"))
     numbers.append(cards.num("n_particles_min", 900, "1", "computed:spacings_squared",
@@ -266,10 +295,10 @@ def a3(goal, numbers, assumptions):
     })
     return dict(
         method="deterministic", verdict="feasible",
-        constraints=[_interval("box_length", "um", "box_length_min", min=30 * a),
+        constraints=[_interval("box_length", "um", "box_length_min", min=_oom(30 * a)),
                      _interval("n_particles", "1", "n_particles_min", min=900)],
         inequalities=[
-            _ineq("L >> a", "box_length", interval=_interval("box_length", "um", "box_length_min", min=30 * a)),
+            _ineq("L >> a", "box_length", interval=_interval("box_length", "um", "box_length_min", min=_oom(30 * a))),
             _ineq("N = (L/a)**2 at the reference density", "n_particles", interval=_interval("n_particles", "1", "n_particles_min", min=900)),
             _ineq("the periodic box is commensurate with a triangular lattice", "box_aspect",
                   precondition={"parameter": "box_aspect",
@@ -289,7 +318,7 @@ def a4(goal, numbers, assumptions):
     tau_b = _value(numbers, "brownian_time")
     numbers.append(cards.num("sampling_factor", 0.1, "1", "assumed:a_sampling", precision="order_of_magnitude",
                              note="save interval as a fraction of the Brownian time"))
-    numbers.append(cards.num("save_interval_max", 0.1 * tau_b, "s", "computed:factor_times_brownian_time",
+    numbers.append(cards.num("save_interval_max", _oom(0.1 * tau_b), "s", "computed:factor_times_brownian_time",
                              formula="sampling_factor*brownian_time", inputs=[("sampling_factor", "E5"), ("brownian_time", "E5")],
                              precision="order_of_magnitude"))
     numbers.append(cards.num("plateau_fraction", 0.9, "1", "assumed:a_plateau", precision="order_of_magnitude",
@@ -312,9 +341,9 @@ def a4(goal, numbers, assumptions):
     ]
     return dict(
         method="deterministic", verdict="feasible",
-        constraints=[_interval("save_interval", "s", "save_interval_max", max=round(0.1 * tau_b, -1))],
+        constraints=[_interval("save_interval", "s", "save_interval_max", max=_oom(0.1 * tau_b))],
         inequalities=[
-            _ineq("save_interval << tau_B", "save_interval", interval=_interval("save_interval", "s", "save_interval_max", max=round(0.1 * tau_b, -1))),
+            _ineq("save_interval << tau_B", "save_interval", interval=_interval("save_interval", "s", "save_interval_max", max=_oom(0.1 * tau_b))),
             _ineq("the plan carries the plateau fraction as a condition", "plateau_fraction",
                   precondition={"parameter": "plateau_fraction",
                                 "requires": "Carry plateau_fraction as a condition of the observable beside relaxation_fit_window, with the value in this card's numbers[] until a person chooses one.",
@@ -337,13 +366,13 @@ def a5(goal, numbers, assumptions):
                              note="the local target's ceiling, same provenance"))
     numbers.append(cards.num("cost_per_particle_step", 1e-7, "s", "assumed:a_cost_reference", precision="order_of_magnitude",
                              note="wall seconds per particle per step for a 2D Yukawa neighbour-list integrator on this workstation's CPU"))
-    numbers.append(cards.num("particle_steps_max", 7.2e10, "1", "computed:wall_clock_over_cost",
+    numbers.append(cards.num("particle_steps_max", 7e10, "1", "computed:wall_clock_over_cost",
                              formula="wall_clock_max/cost_per_particle_step",
                              inputs=[("wall_clock_max", "E3"), ("cost_per_particle_step", "E5")], precision="order_of_magnitude",
                              note="the product n_particles * steps * n_seeds * sweep_points must sit under this"))
-    numbers.append(cards.num("storage_per_particle_frame", 1.6e-8, "GB", "assumed:a_frame_bytes", precision="order_of_magnitude",
+    numbers.append(cards.num("storage_per_particle_frame", 2e-8, "GB", "assumed:a_frame_bytes", precision="order_of_magnitude",
                              note="two double coordinates per particle per frame"))
-    numbers.append(cards.num("particle_frames_max", 6.25e8, "1", "computed:storage_over_frame_cost",
+    numbers.append(cards.num("particle_frames_max", 5e8, "1", "computed:storage_over_frame_cost",
                              formula="storage_max/storage_per_particle_frame",
                              inputs=[("storage_max", "E3"), ("storage_per_particle_frame", "E5")], precision="order_of_magnitude"))
     assumptions += [
@@ -357,13 +386,13 @@ def a5(goal, numbers, assumptions):
     ]
     return dict(
         method="deterministic", verdict="feasible",
-        constraints=[_interval("particle_steps_total", "1", "particle_steps_max", max=7.2e10),
-                     _interval("particle_frames_total", "1", "particle_frames_max", max=6.25e8)],
+        constraints=[_interval("particle_steps_total", "1", "particle_steps_max", max=7e10),
+                     _interval("particle_frames_total", "1", "particle_frames_max", max=5e8)],
         inequalities=[
             _ineq("n_particles * steps * seeds * sweep_points * cost <= wall_clock_max", "particle_steps_total",
-                  interval=_interval("particle_steps_total", "1", "particle_steps_max", max=7.2e10)),
+                  interval=_interval("particle_steps_total", "1", "particle_steps_max", max=7e10)),
             _ineq("n_particles * frames * seeds * sweep_points * bytes <= storage_max", "particle_frames_total",
-                  interval=_interval("particle_frames_total", "1", "particle_frames_max", max=6.25e8)),
+                  interval=_interval("particle_frames_total", "1", "particle_frames_max", max=5e8)),
         ],
         note="A5 constrains the product of the settable parameters and takes no sibling's output (4.5.3 rule b). At A1's stiff corner the product will not fit, and that conflict is S4's to surface with the counterexample, not this card's to hide.",
     )
