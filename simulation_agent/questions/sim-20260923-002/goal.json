@@ -1,0 +1,71 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T16:30:00Z",
+  "status": "DRAFT",
+  "requested_by": "human",
+  "intent": "explore",
+  "numbers": [],
+  "assumptions": [],
+  "kb_refs": [],
+  "degraded": [],
+  "id": "goal-sim-20260923-002-r1",
+  "qid": "sim-20260923-002",
+  "thread": "solo-sim-20260923-002",
+  "caller_id": "sim-20260923-002:v1:s2",
+  "purpose": "characterize",
+  "observable": {
+    "name": "driven_tracer_relaxation_time"
+  },
+  "targets": [],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "constraint_notes": [
+    "the person's question, verbatim in intent: the same interacting system as sim-20260923-001, with one particle driven continuously at a prescribed velocity through the structure, along a principal lattice direction, perpendicular to one, and along a diagonal; the quantity wanted is how the surroundings deform and relax, and how the relaxation or correlation time depends on driving velocity, interaction strength and driving direction",
+    "depends on sim-20260923-001 as a record and not as an input: the undriven relaxation time is the reference the driven one is read against, and the initial system is declared the same. A revision of 001 that changes the model changes this question too",
+    "purpose is PROPOSED by S2 and not confirmed: `characterize`, because three parameters are swept. If the person's interest is chiefly direction against direction, `compare` with compare_variable driving_direction is the alternative and it changes S4's behaviour -- arms fixed at one condition rather than optimised separately (4.5.1)",
+    "the observable name is UNREGISTERED and no configuration produces it; the same two requests up as in 001. In addition this configuration is DRIVEN, so A7 stops abstaining: quasi-staticity, the strain to reach steady state and the range where the overdamped model holds all become live inequalities, and the direction relative to the lattice is a settable parameter A7 owns",
+    "'lattice direction' presupposes that 001 relaxes to an ordered structure. If it does not at the chosen conditions, principal, perpendicular and diagonal have no referent; the driven question inherits that as a precondition, and it is a result of 001 and not an assumption to make here",
+    "the driving velocity, its range, and how a single particle is driven (prescribed displacement or constant force) are unspecified. The two are different models with different A7 conditions, and the person's word is 'prescribed velocity'; taken literally that is a kinematic constraint, and the configuration declaration has to say which",
+    "the librarian was reached: two kb_query calls under this id returned absent (see kb_gaps), and two under 001's id returned absent for the shared system"
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "driven_tracer_relaxation_time_absent",
+      "observable": "driven_tracer_relaxation_time",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='driven_tracer_relaxation_time', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-002:v1:s2",
+      "asked_at": "2026-09-23T16:25:55+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "bond_orientational_order_absent",
+      "observable": "bond_orientational_order",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='bond_orientational_order', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-002:v1:s2",
+      "asked_at": "2026-09-23T16:25:57+00:00",
+      "near_names": []
+    }
+  ]
+}

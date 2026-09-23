@@ -1,0 +1,116 @@
+{
+  "card": "refusal",
+  "schema_version": "0.1",
+  "id": "refusal-sim-20260923-001-s30-r1",
+  "qid": "sim-20260923-001",
+  "thread": "solo-sim-20260923-001",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T00:00:00Z",
+  "status": "REFUSED",
+  "stage": "S3.0",
+  "refused_what": "Simulate active Brownian particles and determine how the mean squared displacement, the persistence time, the persistence length and the effective translational diffusivity depend on the self-propulsion speed v0, the rotational diffusivity D_R and the translational diffusivity D_T, sweeping v0 and D_R, locating the ballistic-to-diffusive crossover from the log-log slope of the MSD and of D_eff(t), and collapsing the sweep on the Peclet number. Asked by the person on 2026-09-23.",
+  "reason_code": "no_capable_configuration",
+  "counterexample": [
+    {
+      "parameter": "capable_configurations",
+      "required_number": "configurations_required",
+      "limit_number": "configurations_producing_the_asked_observables",
+      "statement": "S3.0 keeps only the configurations in contracts/capabilities/simulation.json that produce the asked observable, and one candidate is the minimum a fan-out can be cut from. The file declares exactly one configuration, bd_overdamped, and its produces[] is the single entry tracer_diffusivity. Zero candidates survive the screen, so there is nothing for S3 to emit an interval about."
+    },
+    {
+      "parameter": "orientational_degrees_of_freedom_per_particle",
+      "required_number": "orientational_dof_per_particle_required",
+      "limit_number": "orientational_dof_per_particle_declared",
+      "statement": "An active Brownian particle carries an orientation that diffuses rotationally at D_R and is displaced along that orientation at v0, so the model needs one orientational degree of freedom per particle. bd_overdamped declares an undriven model of spherical tracers and integrates a position-only Wiener increment, positions + normal(0, sqrt(2*D*dt)); no orientation is represented and A7 abstains in it by declaration. Supplying v0 and D_R is not a parameter choice inside this configuration, it is a different physical model, and 4.2 puts that decision with a person and its record in contracts/."
+    },
+    {
+      "parameter": "registered_observables",
+      "required_number": "observables_asked",
+      "limit_number": "observables_registered_of_those_asked",
+      "statement": "The question names six quantities to be reported: the mean squared displacement as a curve, the persistence time, the persistence length, the effective translational diffusivity, the time-resolved effective diffusivity with its log-log slope, and the Peclet number the sweep collapses on. contracts/observables.json registers four ids and none of them is any of these. Check 40 states the ordering rather than a hold: a card naming something the vocabulary does not define is a reference to nothing, and a new observable is entered in the vocabulary first (11-1). This half is an ordering and not a refusal; the configuration above is the refusal."
+    }
+  ],
+  "alternatives": [
+    {
+      "what": "Register the six observables and declare an active-particle configuration, then re-ask. The estimator is part of an observable's identity, so each entry has to fix how the number is extracted before any card may carry it: the MSD's lag grid and its averaging over particles and over time origins, whether the persistence time is read as 1/((d-1)*D_R) in d dimensions or fitted from the orientational autocorrelation, whether the persistence length is v0 times that time or fitted from the MSD crossover, and over which window D_eff is taken. The configuration needs produces[], devices[], and an output_independent_of_input ruling.",
+      "requires": "a write to contracts/observables.json, contracts/quantities.json and contracts/capabilities/simulation.json, which is manager-simulation's and rests on the person's decision about the model (6.2, 4.2)"
+    },
+    {
+      "what": "Take the answer from the literature instead of computing it, which is S2's second branch. For non-interacting active Brownian particles the MSD is known in closed form, so the dependences the question asks for are already determined by v0, D_R and D_T rather than discovered by a run. A run of a free active model would confirm the integrator and the estimator, the way run-20260920-001 did for bd_overdamped, and output_independent_of_input would have to be declared false for the same reason. The sweep is still worth running as a validation of the crossover and the collapse; it is not worth running as a measurement of the dependence.",
+      "requires": "a librarian entry carrying the closed form and its grade, and the person's ruling on whether validation is the purpose"
+    },
+    {
+      "what": "Run the existing bd_overdamped configuration, which is the v0 = 0 corner of the asked sweep and already has three revisions and six runs behind it.",
+      "requires": "nothing new, and it answers none of the three dependences the question asks about, because the sweep variables do not exist in that model"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "configurations_required",
+      "value": 1,
+      "unit": "count",
+      "source": "spec:plan.md:4.5.3",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "configurations_producing_the_asked_observables",
+      "value": 0,
+      "unit": "count",
+      "source": "spec:contracts/capabilities/simulation.json",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "configurations_declared",
+      "value": 1,
+      "unit": "count",
+      "source": "spec:contracts/capabilities/simulation.json",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "orientational_dof_per_particle_required",
+      "value": 1,
+      "unit": "count",
+      "source": "literature:active_brownian_particle_model",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "orientational_dof_per_particle_declared",
+      "value": 0,
+      "unit": "count",
+      "source": "spec:contracts/capabilities/simulation.json",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "observables_asked",
+      "value": 6,
+      "unit": "count",
+      "source": "spec:simulation_agent/questions/sim-20260923-001:refused_what",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "observables_registered_of_those_asked",
+      "value": 0,
+      "unit": "count",
+      "source": "spec:contracts/observables.json",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "observables_registered_total",
+      "value": 4,
+      "unit": "count",
+      "source": "spec:contracts/observables.json",
+      "grade": "E3",
+      "precision": "significant_figures"
+    }
+  ],
+  "degraded": []
+}
