@@ -191,7 +191,23 @@ tree. Check 53 reads settings files by globbing `settings.json` exactly, so
 it walks past this one, and its own note about refusals it cannot see names
 user-level and harness ones — not a repository file sitting beside the one it
 read. Three seats recorded the symptom and none could state the cause from
-inside its own boundary. **When the tools are missing, read that file first,
+inside its own boundary. **A commit refused for no stated reason is the same shape, and the file is
+`.git/config.worktree` (2026-09-22).** It can hold `committer.name` and
+`committer.email`, **`committer.*` beats `user.*`**, and this working copy
+currently has it set to `bridge-4`. So a seat committing with
+`git -c user.email=...` is silently overridden and check 41 refuses its paths
+as another seat's -- which is what happened five times in a row to one seat
+before it found the cause. **`GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` as
+environment variables beat both**, which is why the seats using that form were
+unaffected; I confirmed the precedence with `git var` rather than assuming it.
+**Run `git var GIT_COMMITTER_IDENT` before trusting who you are** -- it costs
+nothing and answers exactly, the way calling one tool answers whether the
+tools are there. The file is in no tree, so the gate cannot see it, and the
+hook made it worse by exiting 1 after `pre-commit: contracts` with no FAIL
+line: the symptom did not name the cause and `sh -x` on the hook was what
+found it. That silence is `contracts/hooks/` and so a manager's.
+
+**When the tools are missing, read that file first,
 by hand** — and read it again, because it moves: on 2026-09-20 it went from
 that one key to `{}` to absent inside ten minutes while seats were quoting it
 to each other, and nothing anywhere records that it did. Settings are read at
