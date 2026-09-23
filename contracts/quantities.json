@@ -287,6 +287,20 @@
       "unit": "kT",
       "kind": "physical",
       "note": "Registered as an observable the same day; the estimator lives there and section 7 requires both (check 60)."
+    },
+    {
+      "id": "peclet_number_steric",
+      "definition": "The ratio of self-propulsion to rotational diffusion measured against a DECLARED interaction length: v0/(sigma*D_R). Defined only where an interaction length exists, so it is a quantity of an interacting active system and not of a free one.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "In two dimensions `peclet_number_steric * sigma` is the persistence length. Registered beside `peclet_number_thermal` rather than merged with it: they coincide, up to sqrt(3), only when a real diameter exists and Stokes-Einstein-Debye ties D_R to D_T, and a question that treats v0, D_R and D_T as independent breaks that tie."
+    },
+    {
+      "id": "peclet_number_thermal",
+      "definition": "The ratio of self-propulsion to thermal motion with no length in it: v0/sqrt((d-1)*D_R*D_T). Defined for a free active particle and for an interacting one alike.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "TWO IDS AND NOT ONE, and the reason was measured on 2026-09-23 rather than argued. Nondimensionalising the exact free-ABP mean squared displacement on s=(d-1)*D_R*t and sqrt(D_T/((d-1)*D_R)) leaves MSD* = 2d*s + 2L*(s - 1 + exp(-s)) with L = v0^2/((d-1)*D_R*D_T) = this number squared, and NO LENGTH ANYWHERE. Four combinations of D_R and D_T spread over four decades at fixed L collapsed to a relative deviation of 1e-14, and moving L to 5 and 500 spread them by 0.87 and 8.7. Measured independently by the execution seat and by this one, with the same figures.\n\nThe steric convention cannot stand in for it in a free question: with v0, D_R and D_T swept independently the diameter D_T implies and the diameter Stokes-Einstein-Debye implies disagree by up to 9129x. The two names are not rivals -- where a diameter is real they are the same number written twice -- and merging them would make two groups look comparable by sharing a string, which is what `comparable: false` exists to prevent."
     }
   ],
   "not_yet_registered": {
