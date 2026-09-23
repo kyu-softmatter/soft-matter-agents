@@ -10,8 +10,8 @@ table in `pyproject.toml` -- `[tool.pixi.feature.sim.dependencies]` -- with
 (`pixi install -e sim`) runs the validator, the mock and the engine. This
 module reads that pin -- spec from the table, build from the lock for this
 platform -- and compares it with what the interpreter running it can import.
-`src/environment.yml` was the bridge before pixi and is read only when the
-table is absent.
+`src/environment.yml` was the bridge before pixi (85acb62..af1276d) and was
+deleted when the pixi environment installed and ran the validator (019).
 
 The exit status is the answer, for scripts; the text is for people.
 
@@ -42,9 +42,6 @@ HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 PYPROJECT = REPO / "pyproject.toml"
 PIXI_LOCK = REPO / "pixi.lock"
-ENVIRONMENT = HERE / "environment.yml"
-ENVIRONMENT_REL = "simulation_agent/src/environment.yml"
-ENV_NAME = "soft-matter-agents"
 # conda-forge builds hoomd 7.2.0 for these and no others. win-64 was tried
 # and fails to solve (plan.md 7, 2026-09-22). Overridden by the pixi table's
 # `sim` feature platforms when that table exists -- read, not repeated.
@@ -53,27 +50,17 @@ PLATFORMS = ("linux-64", "osx-64", "osx-arm64")
 # THE DECLARATION OF RECORD IS pyproject.toml's [tool.pixi.*] (architecture,
 # 2026-09-23): the spec is `feature.sim.dependencies.hoomd`, and the exact
 # build per platform is the `hoomd-<version>-<build>.conda` line pixi.lock
-# holds for that platform. environment.yml was the bridge while pixi was
-# absent on this machine and is read only when the pixi table is not there.
+# holds for that platform. No fallback: a repository without the table has
+# no engine declaration, and saying so is the honest report.
 LOCKED = re.compile(r"conda-forge/(?P<subdir>[a-z0-9-]+)/hoomd-(?P<version>[0-9][^-]*)-(?P<build>[^\s/]+)\.conda")
 
-# `- hoomd=7.2.0=*cpu*`, with or without the build, with or without a
-# trailing comment. Parsed with a regex and not a YAML library on purpose:
-# the file is a flat conda spec, and pulling PyYAML into the pipeline's
-# dependencies to read one line would put a dependency in pyproject.toml for
-# the sake of the file that exists because pyproject.toml cannot hold the
-# engine.
-PIN = re.compile(r"^\s*-\s*hoomd\s*=\s*([0-9][^=\s#]*)\s*(?:=\s*([^\s#]+))?\s*(?:#.*)?$")
-
-
-def read_pin(path: pathlib.Path = ENVIRONMENT) -> dict:
+def read_pin() -> dict:
     """The pin of record: {version, build, line, file, spec, source}.
 
-    From the pixi table when it exists -- `spec` is what pyproject.toml asks
-    (e.g. `>=7.2`), and version/build are what pixi.lock resolved for THIS
-    platform, which is the number an installed engine is compared against.
-    A platform the `sim` feature excludes (win-64) gets the spec and no
-    locked build. Otherwise from environment.yml's hoomd line.
+    `spec` is what pyproject.toml's pixi table asks (e.g. `>=7.2`), and
+    version/build are what pixi.lock resolved for THIS platform, which is the
+    number an installed engine is compared against. A platform the `sim`
+    feature excludes (win-64) gets the spec and no locked build.
     """
     if PYPROJECT.exists():
         import tomllib                                 # noqa: PLC0415
@@ -100,12 +87,7 @@ def read_pin(path: pathlib.Path = ENVIRONMENT) -> dict:
                 "file": "pyproject.toml [tool.pixi.feature.sim] + pixi.lock",
                 "source": "pixi",
             }
-    for line in path.read_text().splitlines():
-        m = PIN.match(line)
-        if m:
-            return {"version": m.group(1), "build": m.group(2), "line": line.strip(),
-                    "file": ENVIRONMENT_REL, "spec": None, "source": "environment.yml"}
-    raise LookupError(f"no `- hoomd=<version>[=<build>]` line in {path}")
+    raise LookupError(f"{PYPROJECT} has no [tool.pixi.feature.sim.dependencies].hoomd; the engine is undeclared")
 
 
 def conda_subdir() -> str:
@@ -127,7 +109,7 @@ def instruction(pin: dict | None = None) -> str:
     operator runs the mock and says so, the way `degraded` carries the
     librarian's name. The text changes no verdict. win-64 has no HOOMD build
     at all, so Windows gets its own route -- the engine lives in WSL2, which
-    is linux-64 (plan.md 7) -- and the other platforms get the conda lines.
+    is linux-64 (plan.md 7) -- and the other platforms get the pixi lines.
     """
     pin = pin or read_pin()
     sub = conda_subdir()
@@ -144,18 +126,13 @@ def instruction(pin: dict | None = None) -> str:
 
 def install_lines(pin: dict) -> list[str]:
     """What to type, from the repository root. One place, quoted by the backend too."""
-    if pin.get("source") == "pixi":
-        return [
-            "pixi install -e sim                      # from the repository root; pixi.lock decides every build",
-            "pixi run -e sim python -m src.engine_check    # or: cd simulation_agent && ../.pixi/envs/sim/bin/python -m src.engine_check",
-        ]
-    spec = f"hoomd={pin['version']}" + (f"={pin['build']}" if pin["build"] else "")
+    # Both lines run from any directory inside the repository: pixi finds the
+    # manifest by walking up, and the `cd` names where `src` resolves. A
+    # command inside an error message that does not run where the error
+    # appeared is worth nothing (manager, 2026-09-23).
     return [
-        f"conda env create -f {ENVIRONMENT_REL}     # or: mamba env create -f ..., micromamba create -f ...",
-        f"conda activate {ENV_NAME}     # or, with no shell init: conda run -n {ENV_NAME} python3 -m src.engine_check",
-        "cd simulation_agent && python3 -m src.engine_check",
-        f'# the engine alone, into an environment you already have: micromamba install "{spec}"'
-        f'  (mamba install / pixi add "{spec}" likewise; official 7.2.0 forms)',
+        f"pixi install -e sim                                       # pixi.lock decides every build",
+        f"cd {REPO}/simulation_agent && pixi run -e sim python -m src.engine_check",
     ]
 
 
@@ -224,7 +201,7 @@ def render(report: dict) -> str:
         lines.append(f"hoomd         not importable ({report.get('import_error')})")
         lines.append(
             "verdict       MISSING. HOOMD-blue is not on PyPI; it ships through conda-forge for "
-            + ", ".join(PLATFORMS) + " and not win-64. From the repository root:"
+            + ", ".join(PLATFORMS) + " and not win-64. From anywhere inside the repository:"
         )
         lines += [f"    {l}" for l in install_lines(pin)]
         lines.append("The pipeline runs without it: hand the operator mock_backend explicitly (4.6.5).")

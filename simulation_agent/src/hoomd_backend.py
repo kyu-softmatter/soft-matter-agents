@@ -533,13 +533,13 @@ def _import_hoomd():
         try:
             lines = engine_check.install_lines(engine_check.read_pin())
         except (OSError, LookupError) as pin_exc:      # the spec is missing or unreadable
-            lines = [f"(src/environment.yml could not be read: {pin_exc})"]
+            lines = [f"(the pixi table could not be read: {pin_exc})"]
         raise EngineMissing(
             f"hoomd is not importable in this interpreter ({exc}). HOOMD-blue is not on PyPI, "
-            "so `uv sync` never installs it and pyproject.toml cannot name it; it ships through "
+            "so `uv sync` never installs it and no PyPI dependency list can name it; it ships through "
             f"conda-forge for {', '.join(engine_check.PLATFORMS)} and not win-64. The environment "
-            f"that holds it together with the pipeline's own dependencies is "
-            f"{engine_check.ENVIRONMENT_REL}. From the repository root:\n    "
+            "that holds it together with the pipeline's own dependencies is pyproject.toml's "
+            "[tool.pixi] `sim` environment, locked in pixi.lock:\n    "
             + "\n    ".join(lines)
             + "\n`python3 -m src.engine_check` says what this interpreter has. The pipeline runs "
             "without the engine by being handed mock_backend explicitly (4.6.5)."
