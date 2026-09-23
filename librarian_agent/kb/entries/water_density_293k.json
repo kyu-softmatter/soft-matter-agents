@@ -1,0 +1,39 @@
+{
+  "entry_id": "water_density_293k",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The density of air-saturated distilled water at 20.0 degC on ITS-90 is 0.998201 g/cm^3, read at a printed grid point of a NIST formulation table.",
+  "numbers": [
+    {
+      "name": "density",
+      "value": 0.998201,
+      "unit": "g/cm^3",
+      "source": "literature:jones_harris_1992",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "Table 1 of J. Res. NIST 97, 335 (1992), row 20, tenths column 0.0: air-saturated water from equation 6 using Kell's data. Six decimals as printed, not rounded. The air-free cell of Table 2 at the same temperature reads 0.998203, a difference of 2 ppm; which of the two applies is a statement about the sample and is left to the caller in validity_conditions."
+    }
+  ],
+  "validity_conditions": "AIR-SATURATED DISTILLED WATER AT EXACTLY THIS TEMPERATURE, AND THE TEMPERATURE IS PINNED ON PURPOSE. `validity` carries 293.15 K as both bound because 20.0 degC is a printed argument of the table and nothing here interpolates: a caller asking at 295 K will get condition_mismatch with this as `nearest`, which is the honest answer and is more useful than an interval this entry cannot support. That is a deliberate departure from water_viscosity_293k, whose 288-298 K interval carries one value across a span over which the quantity visibly moves. Density is the same shape: this table reads 0.998402 at 19 degC and 0.997989 at 21 degC, so a two-kelvin span already changes the fourth decimal, and an interval would be asserting a constancy the source denies. The rest of the 5 to 40 degC table is a printed grid at 0.1 degC steps and any cell can be filed on request -- ask for the temperature you need rather than stretching this one. AIR-SATURATED RATHER THAN AIR-FREE, AND THAT IS A CLAIM ABOUT THE BENCH. A sample sitting open in contact with the atmosphere is the air-saturated case, so that is the table entered; the two differ by 2 ppm, which is far below anything a question here can resolve, and a caller who knows the sample was degassed should ask for the Table 2 value instead. DISTILLED WATER AND NOT THE SUSPENSION. particle_suspension_a is not pure water. Using this density for it is a substitution the caller makes and records as an assumption -- see declared_versus_inferred_temperature for the same move on temperature. WHY THIS SOURCE AND NOT THE OLDER ONE: Tilton and Taylor's 1937 companion paper to the refractive-index work prints a density table whose unit is the 1901 millilitre, stated in the paper as 'the unit of density is 1 g per milliliter' and visible in its exact 1.0000000 at 4 degC. That unit differs from g/cm^3 by 2.8e-5 relative and units.json cannot express the distinction, so entering the 1937 number under the registered unit would have been silently wrong by twenty times the agreement between the two papers. The full reasoning and the cross-check that confirmed both readings are in the source record.",
+  "validity": {
+    "temperature": {
+      "min": 293.15,
+      "max": 293.15,
+      "unit": "K"
+    }
+  },
+  "source": "literature:jones_harris_1992",
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "density"
+    }
+  ],
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_jones_harris_1992_its90_water_density",
+  "date": "2026-09-23",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-2"
+}
