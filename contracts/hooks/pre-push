@@ -38,6 +38,20 @@
 #     a failure that is already in history and cannot be fixed by not pushing.
 #     They are reported below and do not refuse.
 #
+# WHAT "ALREADY IN HISTORY" DOES AND DOES NOT MEAN HERE. The range is
+# REMOTE_OID..LOCAL_OID, or everything not on the remote when the branch is
+# new, so every commit it judges is by construction UNPUSHED. This hook's
+# boundary refusal used to say "it is in history already, so fix it by adding
+# the commit that corrects the record" -- which is true of a commit the remote
+# already has and false of every commit this hook can see. A corrective commit
+# adds one more to the range and leaves the offending one inside it, so the
+# push stays refused for good. The advice named the one remedy that cannot
+# work here and ruled out the two that can, which is worse than saying
+# nothing: a seat following it is stuck and believes it is being careful.
+# Found by manager-microscope on 2026-09-23, from the range construction
+# rather than from the incident -- the incident only showed that the advice
+# did not help.
+#
 # Install: git config core.hooksPath contracts/hooks   (same setting as pre-commit)
 #
 # `git push --no-verify` bypasses this and leaves no trace that it did, exactly
@@ -110,9 +124,24 @@ while read -r LOCAL_REF LOCAL_OID REMOTE_REF REMOTE_OID; do
         echo "$BOUNDARY" >&2
         echo >&2
         echo "pre-push: refused. A commit in this range crosses a session boundary or" >&2
-        echo "          cannot be attributed (6.2). It is in history already, so fix it" >&2
-        echo "          by adding the commit that corrects the record -- not by" >&2
-        echo "          rewriting what other sessions have built on." >&2
+        echo "          cannot be attributed (6.2)." >&2
+        echo >&2
+        echo "          A CORRECTIVE COMMIT DOES NOT CLEAR THIS. Everything in this" >&2
+        echo "          range is by construction not yet on the remote, so adding a" >&2
+        echo "          commit adds one more to the range and the offending one stays" >&2
+        echo "          in it. That advice is for a commit already pushed, where the" >&2
+        echo "          next range begins after it. This is the other case." >&2
+        echo >&2
+        echo "          Two ways out, and both are the person's call:" >&2
+        echo "            - rewrite, which is safe only while nothing here is pushed" >&2
+        echo "              and no other session has built on it. Ask; do not assume." >&2
+        echo "            - push with --no-verify, which SEALS the commit into shared" >&2
+        echo "              history and corrects it by record instead. From then on a" >&2
+        echo "              corrective commit does work, because the next range starts" >&2
+        echo "              after it. Say in the message that the gate was bypassed" >&2
+        echo "              and why." >&2
+        echo >&2
+        echo "          On 2026-09-23 the person chose the second." >&2
         REFUSED=1
     fi
 
