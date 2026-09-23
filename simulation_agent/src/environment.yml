@@ -1,6 +1,17 @@
 # The one environment that runs everything on this side: the validator, the
 # mock backend and the HOOMD engine, in one interpreter.
 #
+# A BRIDGE, WITH AN EXPIRY (019, 2026-09-23). Architecture has settled on pixi:
+# the declaration of record is `[tool.pixi.*]` in pyproject.toml -- shared
+# dependencies in base, what differs in `sim` and `mic` features, `sim` with
+# win-64 excluded so a Windows solve yields no sim environment rather than a
+# failure. This file is the same machine's second manifest and exists only
+# while pixi is not on this machine. It ENDS when `pixi.lock` exists and
+# resolves on this platform; then this file is deleted in the commit that
+# says so, and engine_check reads the pin from the pixi table instead. A
+# second manifest with an expiry is a bridge; one without is a fork, and a
+# silent fork is the class this repository spent two days counting.
+#
 #     conda env create -f simulation_agent/src/environment.yml   # from the repository root
 #     conda activate soft-matter-agents                          # or, without shell init: conda run -n soft-matter-agents python3 ...
 #     cd simulation_agent && python3 -m src.engine_check        # says which build you got
