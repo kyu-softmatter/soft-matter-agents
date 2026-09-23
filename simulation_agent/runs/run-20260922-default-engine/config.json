@@ -1,5 +1,5 @@
 {
-  "run_id": "run-20260922-020",
+  "run_id": "run-20260922-default-engine",
   "qid": "sim-20260917-001",
   "plan_id": "plan-sim-20260917-001-r3",
   "plan_revision": 3,
@@ -28,8 +28,8 @@
     ],
     "exceeded": []
   },
-  "backend": "mock_backend",
-  "seed": 8,
+  "backend": "hoomd_backend",
+  "seed": 11,
   "parameters_si": {
     "integration_timestep": 0.3,
     "total_simulated_time": 3000.0,
