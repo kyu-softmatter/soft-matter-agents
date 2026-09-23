@@ -1,0 +1,109 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T16:50:00Z",
+  "status": "DRAFT",
+  "requested_by": "human",
+  "intent": "confirm",
+  "numbers": [],
+  "assumptions": [],
+  "kb_refs": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "id": "goal-sim-20260923-201-r1",
+  "qid": "sim-20260923-201",
+  "thread": "solo-sim-20260923-201",
+  "caller_id": "sim-20260923-201:v1:s2",
+  "purpose": "verify",
+  "observable": {
+    "name": "trapped_particle_drag_offset"
+  },
+  "targets": [],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "constraint_notes": [
+    "the person's question, verbatim in intent: a single Brownian particle confined by a harmonic optical trap U = (1/2)*k_t*dr^2, with the surrounding fluid moving at constant velocity relative to the trap; how the steady-state displacement from the trap centre depends on the imposed speed for different trap stiffnesses, what the relationship between speed, viscous drag and displacement is, how it changes over a range of stiffnesses, and whether the known trap stiffness can be recovered from the simulated drag-calibration measurement",
+    "purpose is PROPOSED by S2 and not confirmed: `verify`, with its default intent `confirm`. The payload sentence asks whether a KNOWN stiffness is recovered, which is a method checked against an input it already holds. The alternative is `characterize`, and the choice is not cosmetic: `characterize` defaults to `explore`, where differences under 10x are ties (P15), and a drag calibration that recovers k_t to within a factor of ten has answered nothing. Only a person settles a purpose (4.5.1)",
+    "the observable name is UNREGISTERED and no declared configuration produces it. Two requests up to manager-simulation, both writes to contracts/ which this session cannot make (6.2, 4.2). S3.0 screening therefore returns empty and this question stops at S2 -- 11-1's ordering, register then plan, and not a refusal",
+    "`trapped_position_distribution` is registered and is NOT this observable, and the mismatch is exact rather than approximate: its estimator takes the mean position AS the trap centre and subtracts it, then reports the per-axis standard deviation. The mean offset it subtracts is the entire signal this question is about. The two quantities are complements read off one trace, and a later reader reaching for the registered name would compute the one thing that cannot answer this",
+    "the configuration needed is DRIVEN and CONFINED, and `bd_overdamped` is neither. That file's own label says undriven, its A7 abstains because the configuration drives nothing, and its integrator is a position-only Wiener increment with no force term at all. Adding a trap and a flow is a change of physical model, which 4.2 puts with a person and contracts/capabilities/simulation.json, not with this agent",
+    "A7 becomes live on this side for the first time. Quasi-staticity, the time to reach steady state and the range where the overdamped model holds are all real inequalities here, and the a7 card stops being an abstention",
+    "the relationship is analytic and is a `computed:` relation carrying no grade: in the overdamped limit gamma*(rdot - v) = -k_t*r + noise, so the steady-state mean offset is gamma*v/k_t with gamma = 3*pi*eta*d. Linear in speed, slope gamma/k_t, and the calibration inverts that slope. This is scoping, not a result, and it is the prediction the run would test rather than a substitute for running it",
+    "the recovered stiffness is NOT independent of the inputs. The estimator inverts the equation the integrator solved, and k_t and gamma both go in, so k_t comes back out up to statistical error and integration bias. The configuration must declare output_independent_of_input false with that reason, as `bd_overdamped` does for the diffusivity: such a run confirms the integrator and the estimator and carries no independent information about any real trap's stiffness",
+    "what the run CAN establish is the method's error model, and that is an estimator property a non-independent configuration may legitimately produce. Treating the trapped coordinate as Ornstein-Uhlenbeck with relaxation time gamma/k_t and stationary variance k_B*T/k_t, the standard error of the mean offset over a record T much longer than that time is sigma*sqrt(2*tau/T), and dividing by the signal gamma*v/k_t the stiffness CANCELS: the fractional precision is sqrt(2*D/T)/v with D = k_B*T/gamma. So for recoverability the answer to `how does this change over a range of stiffnesses` is that it does not change, and the derivation is what the sweep should falsify",
+    "what does change with stiffness is every timescale. gamma/k_t becomes the shortest characteristic time, so the STIFFEST trap sets A1's dt and A4's save interval, while the SOFTEST sets the record length through both equilibration and T much greater than tau. Total steps therefore scale with the ratio of the stiffness range, and a decade of stiffness costs about a decade of steps -- the A1 against A2 collision S4 exists to surface, and the cost driver of this question",
+    "the simulation cannot see the two limits that end a real drag calibration. A declared harmonic trap has no escape and no anharmonicity, so the model reports the method working at speeds where a real trap would have lost the bead and where the potential had stopped being quadratic. Both are A7's, and whether a maximum trap force belongs in the declared model is a person's question -- if yes, the model is no longer purely harmonic and is a different configuration",
+    "viscosity enters the two sides differently and this is the sharpest asymmetry in the question. In the simulation the same gamma is used to impose the drag and to invert it, so the recovery is insensitive to how well eta is known. On the bench eta is an independent input and its error goes straight into k_t. kb:water_viscosity_293k is E3 and says `of order one millipascal second` with roughly two per cent per kelvin, and kb:sample_temperature_not_actuated with kb:no_thermometer_at_the_sample say the sample temperature is neither controlled nor read. So the experimental error budget is floored by eta(T) and the simulation is blind to that floor by construction",
+    "the librarian service did NOT answer: the call was refused by the session harness, not by the server and not by the repository. The reading below is the degraded path -- the envelope snapshot on disk at kbv-30966d978fbe -- and `degraded` carries the librarian accordingly (4.3.1 rule 2). The envelope is one publication behind kbv-4b981dc870d3 and the two entries that differ, objective_40x_collar_setting and mm_label_zdrive_is_the_focus_axis, are both microscope rows this question does not cite: counted against the published export, not assumed",
+    "the store makes this question worth asking on the bench rather than only on the engine. kb:trap_laser_power_has_no_software_path says the trapping power is neither readable nor settable, kb:tweez300_reports_nothing_back says a return code of 0 means the GUI accepted a command and nothing more, and kb:objective_change_invalidates_trap_calibration says changing the objective silently voids both calibrations. There is no instrumented route to k_t on this instrument, so a drag calibration is close to the only one, and its independent variable is the one quantity in the chain that is commanded. kb:trapped_bead_is_the_one_that_does_not_translate already identifies a trapped bead by exactly the relative stage motion this question imposes"
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "trapped_particle_drag_offset_absent",
+      "observable": "trapped_particle_drag_offset",
+      "kind": "absent",
+      "searched": [
+        "simulation_agent/envelope/snapshot.json at kbv-30966d978fbe, all 107 entries, by entry id and by full-text scan",
+        "contracts/observables.json, which registers four names and not this one",
+        "the service was NOT asked: kb_query under sim-20260923-201:v1:s2 was refused by the session harness before it reached the server, so no log line exists and none should be looked for"
+      ],
+      "nearest": [],
+      "near_names": [
+        "trapped_position_distribution"
+      ],
+      "kb_version": "kbv-30966d978fbe",
+      "asked_by": "sim-20260923-201:v1:s2",
+      "asked_at": "2026-09-23T16:50:00Z"
+    },
+    {
+      "gap_id": "trap_stiffness_absent",
+      "observable": "trap_stiffness",
+      "kind": "absent",
+      "searched": [
+        "simulation_agent/envelope/snapshot.json at kbv-30966d978fbe, by entry id and by full-text scan",
+        "the store holds the trap's identity and its unreadability -- trapping_laser_identity, trap_laser_power_has_no_software_path, objective_change_invalidates_trap_calibration -- and no stiffness value, which is consistent with those three rather than a surprise"
+      ],
+      "nearest": [
+        {
+          "entry_id": "trapping_laser_identity",
+          "overlap": "no_overlap"
+        },
+        {
+          "entry_id": "objective_change_invalidates_trap_calibration",
+          "overlap": "no_overlap"
+        }
+      ],
+      "near_names": [],
+      "kb_version": "kbv-30966d978fbe",
+      "asked_by": "sim-20260923-201:v1:s2",
+      "asked_at": "2026-09-23T16:50:00Z"
+    },
+    {
+      "gap_id": "imposed_flow_velocity_absent",
+      "observable": "flow_velocity",
+      "kind": "absent",
+      "searched": [
+        "simulation_agent/envelope/snapshot.json at kbv-30966d978fbe, for flow_velocity and stage_velocity, by entry id and by full-text scan",
+        "kb:stand_ti2e_lock_groups names a coarse motorised xy stage and a piezo riding on it, and states no velocity range or accuracy for either"
+      ],
+      "nearest": [
+        {
+          "entry_id": "stand_ti2e_lock_groups",
+          "overlap": "no_overlap"
+        }
+      ],
+      "near_names": [],
+      "kb_version": "kbv-30966d978fbe",
+      "asked_by": "sim-20260923-201:v1:s2",
+      "asked_at": "2026-09-23T16:50:00Z"
+    }
+  ]
+}

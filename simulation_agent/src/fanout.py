@@ -116,6 +116,30 @@ def issue(qid: str, revision: int, config: str, axis: str) -> str:
     return f"{qid}:v{revision}:{config}:{axis}"
 
 
+def issue_s2(qid: str, revision: int) -> str:
+    """The S2 form of an issued id, for the layer that has no axis yet.
+
+    The server names four forms it calls issued -- `<qid>:v<N>:<config>:<axis>`,
+    `<qid>:v<N>:s2`, `<qid>:v<N>:operator` and the bridge's -- and until now
+    this module composed only the first. That gap is the whole reason to add
+    this: S2 asks the store whether a name exists BEFORE screening can pick a
+    configuration, so the axis form cannot be built yet, and a seat needing an
+    id at that moment had nowhere to get one and composed the string by hand.
+    Hand-composing is exactly what rule 3 forbids, and the server cannot catch
+    it -- it says so itself, that an issued-looking id is enforced at the
+    launcher and not there. So the launcher has to be able to issue this one.
+
+    It carries the revision for the same reason `issue` does: the id is the
+    server's isolation unit, and S2 at revision 2 must not inherit the session
+    context of the S2 it exists to replace.
+
+    No `config` and no `axis`, because at S2 there is neither. A question whose
+    observable is unregistered never reaches screening at all, and that is the
+    case this form is most needed for.
+    """
+    return f"{qid}:v{revision}:s2"
+
+
 def current_kb_version(qid: str | None = None) -> str:
     """The store state this question cites -- pinned once, then kept.
 
