@@ -50,6 +50,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import cards
+from . import hoomd_backend
 from . import mock_backend
 
 APPROVALS = cards.AGENT / "approvals"
@@ -579,7 +580,26 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         cards.write(plan_path, plan)
     check_md_agrees(plan_path, plan)
 
-    backend = backend or mock_backend.MockBackend(seed=seed)
+    # THE ENGINE IS THE DEFAULT (018, the person's instruction 2026-09-22).
+    # A run that names no backend gets HOOMD; the mock is still a first-class
+    # backend and is still what runs when one is passed explicitly.
+    #
+    # What was dropped with it is 010's requirement to run the mock alongside
+    # and compare. The analytic half stands -- the engine is checked against
+    # D = k_B*T/(3*pi*eta*d) -- and the mock arm goes, because the sweep
+    # showed the comparison had stopped paying: at ten seeds each, mock sits
+    # at 0.99973 +- 0.241 % of the analytic and HOOMD at 0.99964 +- 0.210 %.
+    # They agree to 0.01 per cent and neither is distinguishable from the
+    # closed form. At three seeds the mock looked three times wider, and ten
+    # seeds showed that was sampling noise -- a comparison that cannot
+    # separate its arms is measuring how many seeds were run.
+    #
+    # `hoomd_backend` is imported at module scope and that is safe without
+    # HOOMD installed: it imports `hoomd` inside the function that needs it,
+    # so this module still loads on a machine that has no engine. 4.6.5 wants
+    # the whole pipeline to run with no HOOMD, and it still does -- by being
+    # handed a MockBackend, which is what the sweeps and the tests do.
+    backend = backend or hoomd_backend.HoomdBackend(seed=seed)
     params, provenance = derive_commands(plan)
     monitors = compile_monitors(plan)
 

@@ -28,8 +28,8 @@
     ],
     "exceeded": []
   },
-  "backend": "mock_backend",
-  "seed": 8,
+  "backend": "hoomd_backend",
+  "seed": 11,
   "parameters_si": {
     "integration_timestep": 0.3,
     "total_simulated_time": 3000.0,

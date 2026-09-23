@@ -3,7 +3,7 @@
   "frames_saved": 10001,
   "simulated_time": 3000.0,
   "steps_taken": 10000,
-  "max_single_step_displacement": 8.669418511727384e-07,
+  "max_single_step_displacement": 3.9302458819784247e-07,
   "stopped_by": "planned_duration_reached",
   "stop_outcome": "complete",
   "stopped_early": false,
