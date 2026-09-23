@@ -4704,6 +4704,103 @@ def check_53_deny_rules_do_not_block_reading(b: Bundle) -> list[Finding]:
         "(repository settings only; a user-level or harness refusal is invisible here)")]
 
 
+def check_76_the_settings_file_no_tree_contains(b: Bundle) -> list[Finding]:
+    """Report a `settings.local.json` sitting beside a tracked `settings.json`.
+
+    Existence and the NAMES of its MCP and permission keys. **Never their
+    values**, and **never a failure**: the file may legitimately be there, and
+    a gate that refuses over something it cannot see is one that gets worked
+    around.
+
+    **Advisory by construction, and this line is where it says so.** The file
+    is globally gitignored, so it is in no commit and in no tree. The
+    pre-commit hook unpacks the index into a scratch directory and runs this
+    file from there, so under the gate it is not merely absent -- it is
+    unseeable, and an absence there proves nothing. That is the relative of
+    `--commit-range` freezing the data and not the checker: the verdict
+    depends on the machine rather than on the tree, which is a property no
+    other check here has.
+
+    So the report distinguishes the two absences, on two signals. `GIT_REPO
+    != REPO` is the hook naming the real repository while this file runs out
+    of an export. A missing `.git` is the tree saying the same thing on its
+    own, which covers an export unpacked and run by hand with no variable
+    set. Either way "not found" becomes "could not have been found".
+
+    **And it is a reading at a moment, not a statement about the file.** On
+    2026-09-20 it went from `{"disabledMcpjsonServers": ["librarian"]}` to
+    `{}` to absent inside ten minutes, twice between one seat's two reads, and
+    nothing anywhere recorded that it moved. A line here is as perishable as
+    that, which is the objection this check was refused on as 11-18 candidate
+    (b) and which granting it did not answer -- what answered it was
+    `.claude/mcp-preflight.sh` taking the guard's job at SessionStart, leaving
+    this one the job of making the absence VISIBLE IN THE SHARED ARTIFACT.
+    Three seats quoted symptoms to each other for a day with none able to
+    state the cause; a run anyone reads now names the file.
+
+    A deny beats an allow, so one key here outranks a user-level approval of
+    the same server. That is why the key names are worth printing and the
+    values are not: the name says where to look, and looking is by hand.
+    """
+    # Two signals, because each catches a case the other does not. The hook
+    # naming a different repository is the hook saying "this is an export";
+    # a tree with no `.git` at all is the same fact stated by the tree, and it
+    # covers an export somebody unpacks and runs by hand without the variable.
+    exported = GIT_REPO.resolve() != REPO.resolve() or not (REPO / ".git").exists()
+    tracked = sorted(REPO.glob("*/.claude/settings.json")) + sorted(REPO.glob(".claude/settings.json"))
+    found = sorted(REPO.glob("*/.claude/settings.local.json")) + sorted(REPO.glob(".claude/settings.local.json"))
+
+    if exported:
+        return [Finding(76, NA,
+            "this run reads an export with no untracked files, so a local settings file "
+            "could not have been found here and its absence says nothing. The gate can "
+            "never see this file; only a working-copy run can")]
+    if not tracked:
+        return [Finding(76, NA, "no tracked settings.json for a local one to sit beside")]
+
+    out: list[Finding] = []
+    for p in found:
+        rel = str(p.relative_to(REPO))
+        try:
+            doc = json.loads(p.read_text())
+        except (json.JSONDecodeError, OSError) as exc:
+            out.append(Finding(76, PASS,
+                f"exists and did not parse ({exc}). ADVISORY: a settings file that does not "
+                f"parse is read as no settings at all by some readers and as an error by "
+                f"others, so what it grants or denies here is unknown from inside this "
+                f"repository. Read it by hand", rel))
+            continue
+        if not isinstance(doc, dict):
+            out.append(Finding(76, PASS, "exists and is not an object. Read it by hand", rel))
+            continue
+        mcp = sorted(k for k in doc if "mcp" in k.lower())
+        perm = sorted((doc.get("permissions") or {}) if isinstance(doc.get("permissions"), dict) else {})
+        bits = []
+        if mcp:
+            bits.append("MCP keys " + ", ".join(
+                f"{k} ({len(doc[k])} entries)" if isinstance(doc[k], list) else k for k in mcp))
+        if perm:
+            bits.append("permissions." + "/".join(perm))
+        if "permissions" in doc and not perm:
+            bits.append("a permissions key that is not an object")
+        what = "; ".join(bits) if bits else "no MCP or permission key in it as read"
+        out.append(Finding(76, PASS,
+            f"exists and this repository cannot see what it grants: {what}. ADVISORY, names "
+            f"only -- no value is printed and none is judged. A deny here beats a user-level "
+            f"allow of the same server, and the file is gitignored, so nothing in any tree "
+            f"records this. Read at the moment of the run: it has moved three times in ten "
+            f"minutes before", rel))
+
+    if not out:
+        out.append(Finding(76, PASS,
+            f"no settings.local.json beside any of the {len(tracked)} tracked settings files, "
+            f"read from the working copy at the moment of this run. That is an absence now and "
+            f"not a property of the repository -- the file is gitignored and untracked, so it "
+            f"can appear between this line and the next command"))
+    return out
+
+
+
 def check_54_kb_basis_resolves(b: Bundle) -> list[Finding]:
     """A `kb:` basis must name an entry the same card cites in `kb_refs`.
 
@@ -6169,6 +6266,7 @@ CHECKS = [
     check_59_the_hook_reports_an_unattributed_commit,
     check_63_a_tie_carries_the_worse_grade,
     check_74_a_card_standing_on_a_round, check_53_deny_rules_do_not_block_reading,
+    check_76_the_settings_file_no_tree_contains,
     check_54_kb_basis_resolves, check_58_one_fanout_reads_one_store,
     check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,

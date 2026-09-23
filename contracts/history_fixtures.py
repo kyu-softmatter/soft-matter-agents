@@ -220,27 +220,87 @@ def fixture_46_vocabulary_pin_that_never_stood(repo: Path) -> str:
 # them are the divergence 4.3.2 means; a fixture that fails on one of the
 # other seven passes this harness and tests nothing it claims to. Naming the
 # check was enough while each fixture had one way to fail. It is not any more.
+def fixture_76_a_local_settings_file_is_named(repo: Path) -> str:
+    """The untracked file that silenced three seats for a day.
+
+    On 2026-09-20 one key in `.claude/settings.local.json` --
+    `{"disabledMcpjsonServers": ["librarian"]}` -- turned the librarian's
+    tools off in three sessions, and a deny beats the user-level allow that
+    was already in force. Nothing in the repository could see it: the file is
+    globally gitignored, so no commit and no tree holds it, and check 53 globs
+    `settings.json` exactly and walks past it.
+
+    So this fixture writes it AND DOES NOT COMMIT IT, which is the whole
+    point -- a committed one would not reproduce the case. The tracked
+    `settings.json` beside it is what makes the local one worth reporting.
+    """
+    head = base(repo)
+    write(repo, ".claude/settings.json", {"permissions": {"deny": []}})
+    run(repo, "add", "--", ".claude/settings.json")
+    run(repo, "commit", "-q", "--no-verify", "-m", "settings", seat="architecture")
+    # untracked on purpose, and never added
+    write(repo, ".claude/settings.local.json",
+          {"disabledMcpjsonServers": ["librarian"], "permissions": {"deny": ["Bash(rm*)"]}})
+    return f"{head}..HEAD"
+
+
+def fixture_76_an_export_says_it_could_not_have_seen_it(repo: Path) -> str:
+    """Under the gate the absence has to read as unseeable, not as absent.
+
+    The hook unpacks the index into a scratch directory, so an untracked file
+    is not merely missing there -- it could not be there. A line saying "no
+    local settings file" would be true of the export and false of the machine,
+    and would be the most convincing wrong answer available: it looks like a
+    clean bill of health.
+
+    The file below IS written, so a check that ignored the export would find
+    it and say PASS. Only one that knows where it is running says N/A.
+    """
+    head = base(repo)
+    write(repo, ".claude/settings.json", {"permissions": {"deny": []}})
+    run(repo, "add", "--", ".claude/settings.json")
+    run(repo, "commit", "-q", "--no-verify", "-m", "settings", seat="architecture")
+    write(repo, ".claude/settings.local.json", {"disabledMcpjsonServers": ["librarian"]})
+    return f"{head}..HEAD"
+
+
+fixture_76_an_export_says_it_could_not_have_seen_it.env = {"SMA_GIT_REPO": "/nonexistent/real/repo"}
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
     (41, "PENDING", "not a seat in", fixture_41_unregistered_committer),
     (26, "FAIL", "does not match the committed bytes", fixture_26_snapshot_is_a_copy_of_another_commit),
     (46, "FAIL", "obs-000000000000", fixture_46_vocabulary_pin_that_never_stood),
+    (76, "PASS", "disabledMcpjsonServers", fixture_76_a_local_settings_file_is_named),
+    (76, "N/A", "could not have been found", fixture_76_an_export_says_it_could_not_have_seen_it),
 ]
 
 
 # --------------------------------------------------------------------------- #
 
-def findings_for(repo: Path, commit_range: str) -> list[tuple[int, str, str]]:
+def findings_for(repo: Path, commit_range: str,
+                 extra_env: dict[str, str] | None = None) -> list[tuple[int, str, str]]:
     """Run the fixture's own copy of the validator and parse its lines.
 
     The copy is what makes this honest: REPO and GIT_REPO both resolve inside
     the fixture, so a check cannot accidentally read the real tree and pass on
     evidence the fixture never provided.
+
+    `extra_env` exists for the one thing a built repository cannot express by
+    being built: the pre-commit hook sets `SMA_GIT_REPO`, and a check that
+    behaves differently under the gate can only be watched doing it if the
+    variable can be set. A builder asks by carrying an `env` attribute, so the
+    FIXTURES rows keep their four-element shape -- check 65 parses them with a
+    regex, and widening the tuple would make that regex see nothing and report
+    every history check as having no fixture at all.
     """
+    env = dict(os.environ)
+    env.update(extra_env or {})
     out = subprocess.run([sys.executable, str(repo / "contracts" / "validate.py"),
                           "--commit-range", commit_range],
-                         capture_output=True, text=True, cwd=repo)
+                         capture_output=True, text=True, cwd=repo, env=env)
     found = []
     for line in (out.stdout + out.stderr).splitlines():
         m = re.match(r"\s*check\s+(\d+)\s+(PASS|FAIL|UNDECIDED|PENDING|N/A)\s+(.*)", line)
@@ -256,7 +316,7 @@ def main() -> int:
             repo = Path(tmp) / "repo"
             repo.mkdir()
             commit_range = build(repo)
-            found = findings_for(repo, commit_range)
+            found = findings_for(repo, commit_range, getattr(build, "env", None))
             mine = [f for f in found if f[0] == want and f[1] == verdict and phrase in f[2]]
             if mine:
                 ok += 1
