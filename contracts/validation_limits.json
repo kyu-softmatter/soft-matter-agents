@@ -1,9 +1,8 @@
 {
   "schema_version": "0.1",
   "note": "Thresholds the validator needs. null means nobody has chosen it yet, and an unchosen threshold is not a satisfied threshold: the check reports UNDECIDED rather than passing. --strict turns UNDECIDED into failure.",
-  "max_rationales_per_plan": null,
-  "max_rationales_per_plan_open_question": "plan.md 11-2",
-  "max_rationales_per_plan_note": "Renamed from max_e5_per_plan on 2026-09-19 with the unit it counts (11-2). The old name outlived its meaning by minutes and only validate.py read it, so the rename is two files; a key that names the wrong unit teaches the wrong unit to whoever sets the threshold.",
+  "max_rationales_per_plan": 7,
+  "max_rationales_per_plan_note": "Renamed from max_e5_per_plan on 2026-09-19 with the unit it counts (11-2). The old name outlived its meaning by minutes and only validate.py read it, so the rename is two files; a key that names the wrong unit teaches the wrong unit to whoever sets the threshold. Settled at 7 on 2026-09-22 (11-2, 582ff62): the person chose the measure first -- distinct rationales, not chain length -- and the number after. 7 is the largest a real plan carries (plan_simulation_sim-20260917-001 and plan_microscope_mic-20260917-001 both sit exactly there), so nothing passing today breaks and the next plan cannot be worse than the worst already written; the check is `n > cap`, so 7 passes and 8 is refused. `max_rationales_per_plan_open_question` is gone with it. Its only reader was inside the UNDECIDED branch, which setting the value stops running forever, so the key would have sat there saying this was still open with nothing able to contradict it -- a field that stopped being true where no reader is left to notice. Architecture found it while handing the value down, and folding the sentence in here rather than renaming the key keeps one record instead of two.",
   "max_configs_after_screening": 3,
   "max_axes": 7,
   "max_subagents_per_question": 21,
