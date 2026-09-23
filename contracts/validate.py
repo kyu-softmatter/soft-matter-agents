@@ -1582,7 +1582,19 @@ def check_15_approval_precedes_run(b: Bundle) -> list[Finding]:
         rel = str(d.relative_to(REPO))
         log_path = d / "log.json"
         if not log_path.exists():
-            out.append(Finding(15, FAIL, "run directory with no log.json, so nothing records what it stood on (4.6)", rel))
+            # A run writes its directory and config first and its log last, so
+            # a bare run caught mid-flight sees this and it is not a defect.
+            # Distinguishing them matters: a gate that refuses correct work is
+            # one somebody reaches around, and this fired on an execution
+            # seat's live run on 2026-09-22. PENDING is not a pass, so an
+            # abandoned run that never writes one stays visible rather than
+            # being forgiven.
+            if (d / "config.json").exists():
+                out.append(Finding(15, PENDING, "config.json and no log.json yet: a run in flight, or one that "
+                                                "stopped before writing what it stood on", rel))
+            else:
+                out.append(Finding(15, FAIL, "run directory with neither config.json nor log.json, so nothing "
+                                             "records what it stood on or even that it was configured (4.6)", rel))
             continue
         try:
             log = json.loads(log_path.read_text())
@@ -6247,6 +6259,100 @@ def check_74_a_card_standing_on_a_round(b: Bundle) -> list[Finding]:
     return out + [Finding(74, PASS, f"{checked} cards stand on a round that exists and was delivered to them")]
 
 
+def check_77_a_deletion_names_a_declared_trigger(b: Bundle) -> list[Finding]:
+    """A deleted trajectory names a trigger that was declared, and that fired.
+
+    Deletion is the one operation that destroys the evidence for its own
+    justification: a wrong claim leaves something to read and a deleted
+    trajectory leaves nothing. run_log.schema.json already refuses a deletion
+    with no `triggered_by`, a `kind` outside the two allowed, a missing
+    `declared_in`, or a prose `reason` pushed in beside them. What a schema
+    cannot do is RESOLVE those names, which is the division check 15 draws on
+    `approval_id` and check 72 on a verdict.
+
+    Section 8's row for this check says the result card must record the
+    criterion `met: false`. That is right for a success criterion and backwards
+    for a stop one: a stop criterion fires by being MET, so reading `met:
+    false` as firing would call step_displacement_diverged=False a divergence,
+    which is the run behaving correctly. Implemented by kind and raised
+    separately.
+    """
+    plans = {str(p.data.get("id")): p for p in b.of_kind("plan")}
+    results = {str(r.data.get("run_id")): r for r in b.of_kind("result")}
+    out: list[Finding] = []
+    n = 0
+    for log in sorted(REPO.glob("*_agent/runs/*/log.json")):
+        rel = str(log.relative_to(REPO))
+        try:
+            doc = json.loads(log.read_text())
+        except Exception:
+            continue                      # check 1 owns an unreadable log
+        for ev in doc.get("events") or []:
+            dele = ev.get("deletion")
+            if not isinstance(dele, dict):
+                continue
+            n += 1
+            tb = dele.get("triggered_by") or {}
+            kind, cid, where = tb.get("kind"), str(tb.get("id")), str(tb.get("declared_in"))
+
+            plan = plans.get(where)
+            if plan is None:
+                out.append(Finding(77, FAIL, f"deletion cites {where!r}, which is no plan card in this run, so "
+                                             f"nothing says the trigger was ever declared", rel))
+                continue
+            crit = {c.get("id"): ("stop" if key == "stop_criteria" else "success")
+                    for key in ("stop_criteria", "success_criteria")
+                    for c in (plan.data.get(key) or [])}
+            rationales = {a.get("rationale_id") for a in (plan.data.get("assumptions") or [])}
+            if kind == "criterion" and cid not in crit:
+                out.append(Finding(77, FAIL, f"deletion names criterion {cid!r}, which {where} does not declare", rel))
+                continue
+            if kind == "falsifier" and cid not in rationales:
+                out.append(Finding(77, FAIL, f"deletion names falsifier {cid!r}, which {where} declares no "
+                                             f"assumption for", rel))
+                continue
+
+            for path in dele.get("what") or []:
+                if (REPO / path).exists():
+                    out.append(Finding(77, FAIL, f"deletion says it removed {path!r} and the file is still there. "
+                                                 f"The other direction cannot be checked -- a file absent with no "
+                                                 f"deletion event looks exactly like one never written", rel))
+
+            if kind == "falsifier":
+                # The sentence is not recomputable; the fact it rests on is in
+                # the tree, so the deletion names where and this resolves the
+                # pointer. Otherwise two paths to one irreversible act cost
+                # differently and the uncheckable one is the one that is used.
+                rec = str(tb.get("recorded_in") or "")
+                if not (REPO / rec).exists():
+                    out.append(Finding(77, FAIL, f"deletion on falsifier {cid!r} records its firing in {rec!r}, "
+                                                 f"which is not in the tree", rel))
+                continue
+
+            res = results.get(str(doc.get("run_id")))
+            if res is None:
+                out.append(Finding(77, PENDING, f"run {doc.get('run_id')!r} has no result card in this run, so the "
+                                                f"criterion's verdict cannot be read", rel))
+                continue
+            row = next((e for e in res.data.get("criteria_evaluation") or [] if str(e.get("id")) == cid), None)
+            if row is None:
+                out.append(Finding(77, FAIL, f"deletion rests on {cid!r} and the result card for "
+                                             f"{doc.get('run_id')} does not evaluate it", rel))
+                continue
+            if row.get("met") is None:
+                continue                  # not evaluated; the card says why
+            met = bool(row.get("met"))
+            fired = met if crit[cid] == "stop" else (not met)
+            if not fired:
+                out.append(Finding(77, FAIL,
+                    f"deletion rests on {crit[cid]} criterion {cid!r} and the result card for "
+                    f"{doc.get('run_id')} records met={met}, which is that criterion NOT firing. A "
+                    f"trajectory was destroyed on a trigger its own run says did not pull", rel))
+    if not n:
+        return [Finding(77, NA, "no trajectory deletions on disk")]
+    return out or [Finding(77, PASS, f"{n} deletions each name a declared trigger that fired")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -6266,7 +6372,7 @@ CHECKS = [
     check_59_the_hook_reports_an_unattributed_commit,
     check_63_a_tie_carries_the_worse_grade,
     check_74_a_card_standing_on_a_round, check_53_deny_rules_do_not_block_reading,
-    check_76_the_settings_file_no_tree_contains,
+    check_77_a_deletion_names_a_declared_trigger, check_76_the_settings_file_no_tree_contains,
     check_54_kb_basis_resolves, check_58_one_fanout_reads_one_store,
     check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,

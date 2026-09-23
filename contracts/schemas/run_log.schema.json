@@ -207,6 +207,10 @@
                 "observed_number": {
                   "type": "string",
                   "description": "name of the number that failed it, when the criterion compares one"
+                },
+                "recorded_in": {
+                  "type": "string",
+                  "description": "Repo-relative path of the artifact that records this falsifier firing. Required when `kind` is `falsifier` and refused otherwise.\n\nA falsifier's SENTENCE cannot be recomputed -- it says what would kill an assumption, and whether it happened is usually a fact outside the card, the way a_cost_reference was fired by a wall clock. But the fact is IN THE TREE, so the deletion names where and check 77 resolves the pointer. Without this the two paths to one irreversible act cost differently, and the uncheckable one is the one that gets used -- not from malice but from friction. Architecture ruled it on 2026-09-22, against this seat's own reading that a falsifier is simply not the recomputable kind."
                 }
               },
               "required": [
@@ -214,7 +218,33 @@
                 "id",
                 "declared_in"
               ],
-              "additionalProperties": false
+              "additionalProperties": false,
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "kind": {
+                        "const": "falsifier"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  },
+                  "then": {
+                    "required": [
+                      "recorded_in"
+                    ]
+                  },
+                  "else": {
+                    "not": {
+                      "required": [
+                        "recorded_in"
+                      ]
+                    }
+                  }
+                }
+              ]
             }
           },
           "required": [

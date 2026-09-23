@@ -1,0 +1,32 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260922-999",
+  "plan_id": "plan-sim-20260917-001-r3",
+  "revision": 3,
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "t0_wall": "2026-09-22T12:00:00Z",
+  "t0_mono": 0.0,
+  "backend": "hoomd_backend",
+  "finished_at": "2026-09-22T12:00:45Z",
+  "events": [
+    {
+      "t_mono": 1.0,
+      "time_base": "software",
+      "event": "trajectory_deleted",
+      "deletion": {
+        "what": [
+          "simulation_agent/runs/run-20260922-999/positions.gsd"
+        ],
+        "triggered_by": {
+          "kind": "judgement",
+          "id": "looked_noisy",
+          "declared_in": "plan-sim-20260917-001-r3"
+        }
+      }
+    }
+  ]
+}
