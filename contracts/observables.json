@@ -231,7 +231,7 @@
         "simulation"
       ],
       "comparable": false,
-      "note": "The choice of estimator is worth more than it looks. Measured on a symmetric two-trap landscape with a 4 kT barrier over a record of 600 relaxation-free time units, the mean of completed dwells read 5.7 per cent low against an exact quadrature while the renewal form read 1 per cent low, and the two differed by more than either error bar. Both converge as the record lengthens; only one is usable at a record length an experiment can afford."
+      "note": "The choice of estimator is worth more than it looks. Measured on a symmetric two-trap landscape with a 4 kT barrier over a record of 600 relaxation-free time units, the mean of completed dwells read 5.7 per cent low against an exact quadrature while the renewal form read 1 per cent low, and the two differed by more than either error bar. Both converge as the record lengthens; only one is usable at a record length an experiment can afford.\n\nWHAT THE RENEWAL FORM DOES NOT FIX, added 2026-09-23 after the sweep ran. It removes the censoring bias from the MEAN and does nothing for the SPREAD, and the spread shows the censoring plainly. Two-state kinetics give an exponential dwell whose coefficient of variation is 1; measured across a stiffness sweep, records with many dwells per walker sit near it and records with one or two do not -- 11.7, 8.6, 3.6, 1.7 and 1.6 dwells per walker gave CVs of 0.925, 0.970, 0.900, 0.797 and 0.765. A CV below 1 there is THE RECORD LENGTH SHOWING THROUGH, because the long dwells are exactly the ones the end of the run cuts off. Reporting it as a shape result would be the same error this estimator exists to prevent, one moment up."
     },
     {
       "id": "interwell_transition_rate",
