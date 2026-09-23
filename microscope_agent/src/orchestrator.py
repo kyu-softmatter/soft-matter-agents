@@ -493,12 +493,36 @@ class Orchestrator:
                 "re-acquired after. The element exists and reads back, so a plan can issue this")
         retracts = self.retract_elements()
         if not retracts:
+            # WHAT IT SEARCHED FOR, NOT ONLY THAT IT FOUND NOTHING. This used
+            # to assert "No element in the device registry drives focus ...
+            # the registry is the librarian's", and that sentence is a
+            # CONCLUSION drawn from an empty match. When a row exists under a
+            # spelling the predicate misses -- `ZDrive`, `z_stage`,
+            # `nosepiece_z` all miss, measured -- every clause of it is false
+            # and it reads as true, sending the reader to the seat that
+            # already did the work. The row for this instrument arrived as
+            # `z_drive` and matched; that was luck, not a property of the
+            # lookup.
+            #
+            # So the message states the predicate and the ids it walked past,
+            # and draws no conclusion about whose the problem is. A reader can
+            # then tell `the row is missing` from `the row is there under a
+            # name I do not recognise` from the refusal alone.
+            walked = sorted(e for channel in self.channels.values()
+                            for e in channel.element_ids())
             missing.append(
-                "the objective is not retracted, AND NO PLAN CAN RETRACT IT. No element in the "
-                "device registry drives focus: stand_ti2e's role names focus and its nine "
-                "elements do not include it, so there is nothing for an action to address and "
-                "check 38 would refuse a plan that invented a name. This is not a plan defect "
-                "and it is not fixable in this agent -- the registry is the librarian's")
+                "the objective is not retracted, and no element was recognised as the one that "
+                f"retracts it. SEARCHED FOR: an id in {list(self.RETRACT_HINTS)}, or one "
+                "starting `focus` or ending `_focus`. WALKED PAST these "
+                f"{len(walked)} element ids: {', '.join(walked)}. Two different situations end "
+                "here and this message cannot tell them apart for you: the registry may carry "
+                "no focus element at all, which is the librarian's and not fixable in this "
+                "agent -- or it may carry one under a spelling this predicate misses, which is "
+                "ours. Compare the list against the names above before deciding whose it is. "
+                "The predicate is a tuple in orchestrator.py, which is a rule about a device's "
+                "role stated where the registry cannot see it; the fix is a field on the "
+                "element row saying it drives objective Z, and then the tuple is deleted "
+                "rather than widened")
         elif not (set(retracts) & done):
             missing.append(
                 f"the objective is not retracted; {' or '.join(retracts)} must be commanded and "

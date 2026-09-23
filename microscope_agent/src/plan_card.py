@@ -544,6 +544,49 @@ def assemble(qid: str, revision: int = 1,
     # instruction to the estimator and no device does it at all.
     elements = axc_elements()
     unplaced: list[str] = []
+
+    # CLEARING A TURRET ROTATION IS THREE ACTIONS AND THEY BRACKET IT.
+    #
+    # 2.1 requires focus stabilisation off across a turret change and
+    # re-acquired after, and nosepiece_write_runs_no_escape (E3) says the
+    # stand runs NO objective escape on a Micro-Manager write -- Z does not
+    # move, so the incoming lens arrives at the height the outgoing one was
+    # left at, against 0.13 mm of working distance at 100x oil. The plan
+    # carried none of the three and the run's own interlock refused it,
+    # correctly and twice over.
+    #
+    # THE ORDER IS THE SAFETY, so it is written and not sorted: release the
+    # stabiliser, retract, rotate, re-acquire. All four elements sit on
+    # stand_ti2e, which dispatches one channel's commands in sequence in the
+    # order given, so the plan's order is the instrument's.
+    #
+    # `reversible: False` on the release and the re-acquire is deliberate:
+    # PFS holding a focus lock and PFS not holding one are different states
+    # of the sample, and re-acquiring does not restore the lock that was
+    # dropped -- it takes a new one, wherever focus is now.
+    rotates = any(c["parameter"] == "nosepiece_position" for c in conditions)
+    if rotates and "pfs" in elements:
+        actions.append({"id": "act_release_pfs", "device": "pfs", "action": "disable",
+                        "reversible": False, "parameters": [], "tier": 1})
+    if rotates:
+        retract = next((e for e in ("z_drive", "focus", "z_axis", "objective_z", "z")
+                        if e in elements), None)
+        if retract is not None:
+            # NO TARGET HEIGHT, AND THE PARAMETER LIST IS EMPTY BECAUSE OF IT.
+            # The store's claim about this axis is a DIRECTION at E3 -- smaller
+            # Z is retracted -- and a direction is not a distance. Nothing on
+            # any card says how far, and the one number that bears on it,
+            # the working height above the coverslip, is an open debt. So the
+            # verb goes out and the device's own escape position answers it;
+            # inventing a height here would be a model-made number in a
+            # safety path, which P2 lets into nothing. What makes this safe
+            # rather than hopeful is the read-back: stand_ti2e answers, so
+            # the interlock requires the retract to be VERIFIED and not
+            # merely issued.
+            actions.append({"id": "act_retract_objective", "device": retract,
+                            "action": "retract", "reversible": True,
+                            "parameters": [], "tier": 1})
+
     for condition in conditions:
         parameter = condition["parameter"]
         device = condition.get("device") or (
@@ -557,6 +600,20 @@ def assemble(qid: str, revision: int = 1,
         actions.append({"id": f"act_set_{parameter}", "device": device,
                         "action": f"set_{parameter}", "reversible": True,
                         "parameters": [parameter], "tier": 1})
+
+    # AND THE RE-ACQUIRE, AFTER THE ROTATION AND BEFORE THE ACQUISITION.
+    # Issued is not confirmed: it is commanded, read, and compared, and a
+    # read that says it did not take is a refusal rather than a retry.
+    #
+    # NO OFFSET IS COMMANDED. pfs_offset_sign_unmeasured is open and the
+    # store is blunt about what it is -- "a collision device alongside the Z
+    # drive and the nosepiece, and the one remaining direction on one that
+    # has never been measured. A direction written into a configuration
+    # without being measured reads as verified." Releasing and re-acquiring
+    # need no sign; moving by an offset does, and that waits for the bench.
+    if rotates and "pfs" in elements:
+        actions.append({"id": "act_reacquire_pfs", "device": "pfs", "action": "enable",
+                        "reversible": False, "parameters": [], "tier": 1})
 
     # AND ONE ACQUIRE, IF THE CONFIGURATION NAMES ONE DETECTOR.
     #
@@ -613,6 +670,28 @@ def assemble(qid: str, revision: int = 1,
     # pointed it at" has neither. A reader a month from now needs to know
     # WHY a run went ahead on a decision, and this is the field that says so.
     open_risks: list[str] = []
+    if any(a["id"] == "act_retract_objective" for a in actions):
+        open_risks.append(
+            "THE RETRACT CARRIES NO TARGET HEIGHT. act_retract_objective sends the verb and no "
+            "distance, because the store's claim about this axis is a DIRECTION at E3 -- smaller "
+            "Z is retracted -- and nothing says how far. The one number that would bear on it, "
+            "the working height above the coverslip, is an open debt on the person's list. So "
+            "the device's own escape position answers the question and this plan cannot state "
+            "what clearance that leaves: `objective_clearance` is not on this card, which is why "
+            "the operator's comparison against objective_clearance_min records `compared: null` "
+            "rather than a pass. What stands in for the number is the READ-BACK -- stand_ti2e "
+            "answers, so the interlock requires the retract verified and not merely issued, and "
+            "the rotation does not proceed on an assumption. Inventing a height instead would "
+            "put a model-made number in a safety path, which P2 admits nowhere.")
+    if any(a["id"] == "act_release_pfs" for a in actions):
+        open_risks.append(
+            "RE-ACQUIRING PFS IS NOT RESTORING THE LOCK IT DROPPED. act_reacquire_pfs takes a "
+            "new lock wherever focus is after the rotation and the retract, which is why both "
+            "PFS actions are `reversible: false`. No offset is commanded: "
+            "pfs_offset_sign_unmeasured is open and the store calls it the one remaining "
+            "direction on a collision device that has never been measured, adding that a "
+            "direction written into a configuration without being measured reads as verified. "
+            "Release and re-acquire need no sign; an offset does, and it waits for the bench.")
     if decided_by is not None:
         selector, detector = decided_by
         open_risks.append(
