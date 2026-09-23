@@ -713,12 +713,28 @@ def check_05_envelope(b: Bundle) -> list[Finding]:
         # where the schema expresses compute ceilings and nothing else, so no
         # person could. The keys are read off the schema rather than listed
         # here, so this stays true when the shape widens (11-11).
-        try:
-            sch = json.loads((CONTRACTS / "schemas" / "envelope_safety.schema.json").read_text())
-            shapes = {a.split("_")[0]: sorted(d.get("properties", {}))
-                      for a, d in sch["$defs"].items() if a.endswith("_limits")}
-        except (OSError, KeyError, json.JSONDecodeError):
-            shapes = {}
+        # Both envelope schemas, not just safety: the simulation half moved to
+        # envelope_budget on 2026-09-20 and this message kept offering only the
+        # microscope's shape, so the seat with no envelope was told nothing it
+        # could use. envelope_safety was narrowed to `microscope` on
+        # 2026-09-22 and this is the other half of that.
+        shapes: dict[str, list[str]] = {}
+        for name, agent in (("envelope_safety", "microscope"), ("envelope_budget", "simulation")):
+            try:
+                sch = json.loads((CONTRACTS / "schemas" / f"{name}.schema.json").read_text())
+            except (OSError, json.JSONDecodeError):
+                continue
+            keyed = {a.split("_")[0]: sorted(d.get("properties", {}))
+                     for a, d in (sch.get("$defs") or {}).items() if a.endswith("_limits")}
+            if keyed:
+                shapes.update(keyed)
+            else:
+                # envelope_budget names its ceilings inside a target's `limits`,
+                # so the shape is read from there rather than from a _limits def.
+                lim = (((sch.get("$defs") or {}).get("target") or {})
+                       .get("properties", {}).get("limits", {}).get("properties", {}))
+                if lim:
+                    shapes[agent] = sorted(lim)
         shape = ("; the shapes available are " + "; ".join(f"{a}: {k}" for a, k in sorted(shapes.items()))) if shapes else ""
         return [Finding(5, PENDING, f"no envelope/safety.json in any agent tree; a person writes it "
                                     f"(2.1 rule 7, 10.3 rule 4){shape}")]
