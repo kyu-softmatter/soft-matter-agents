@@ -1254,6 +1254,17 @@ as far as the model is valid, which is A7's question and not the estimator's. Re
 mean *the code ran and a number came out*, and the distinction the scale exists for is gone. The
 simulation manager ruled that half; this is the other half, which is the source kind.
 
+**A gap can be understood as the wrong measurement and still be fetched on the right visit (2026-09-23).**
+`manager-microscope` told the person that a 40x working distance at collar 0.17 would close the retraction
+card's `compared: null`. `microscope-1` checked and it does not: **the plan seats position 5, a 100x oil
+lens**, so that working distance is about a lens this plan never uses, and more basically **what is missing
+is not a distance but a Z coordinate.** Every clearance in the store is measured *from the sample*, and
+turning one into a Z command needs to know **where the coverslip sits in Z**. One number closes it -- the
+working height above the coverslip -- and it is not the one that was named. The schedule does not move,
+since the same person closes it on the same visit, **which is exactly what makes the error survivable and
+therefore easy to leave in place**: nothing goes red, and the person walks to the bench to read the wrong
+instrument. A gap's name is a claim about what would close it, and that claim is not checked by anything.
+
 **What ends a claim about this bench is an event, and it is named or its absence is (2026-09-21).** `valid_until` is mandatory for `calibration:` and optional for everything else, so **49 entries say nothing about when they stop being true** and all of them are legal. The source prefix already sorts the two kinds -- `operator_read:`, `operator_recall:`, `calibration:`, `measured:`, `prior_run:` claim something about **this bench**; `spec:`, `literature:`, `kb:`, `computed:`, `assumed:` claim something about a product or the world. Counted: 49 bench claims with no expiry against 42 product claims with none, and **the second number is correct** -- a model's specification does not age. That sorting is `librarian-3`'s, correcting its manager, which had worried about a `spec:` entry when what a camera swap falsifies is the `operator_read:` one beside it.
 
 **Three rulings.** *A bench claim carries `valid_until`; a product claim does not* -- the prefix decides and nothing new has to be judged. *It carries an `event`, not a `date`*: a bench claim does not decay on a schedule, it ends when something happens, and the twelve E2 pixel sizes proved which field bears load -- a fifteen-year date sat in them doing nothing while `event` was empty, so **the field looked filled and was not**, which is this repository's oldest failure wearing a new hat. A date belongs only where something really does expire on a clock, which is why `calibration:` has one. *And software behaviour gets no second field*: a claim that MMCore drops frames silently also ends on an event -- the version changes -- so what differs between the ~12 software claims and the ~37 wiring ones is **which event is named**, not which slot holds it. A second slot that does not earn itself is the inverse of the class above.
@@ -1605,6 +1616,18 @@ No new number is chosen — §5.8's existing rule simply had not been applied to
 | Situation | Result |
 |---|---|
 | A parameter of an irreversible action depends on E4/E5 | promoted to Tier 2, cannot be covered by a `scope_approval` (§2.1 rule 3) |
+
+**Overfilling a safety field weakens the guard, and that had not been written down (2026-09-23).**
+`microscope-1` marked two PFS actions `reversible: false`, reasoning that reacquiring focus does not restore
+the lock it dropped. True, and **not what the field asks** -- `reversible` asks whether the action undoes,
+and on that reasoning a turret rotation would be false too, which the same seat left true. It reverted
+itself after check 66 caught the inconsistency. The cost is the part worth keeping: by the row above, an
+irreversible action resting on E4/E5 is promoted to Tier 2 and cannot sit under a `scope_approval`, so
+marking PFS irreversible would have put **a separate human approval in front of every turret change** --
+the very step §2.1 requires before each one. That seat's sentence is the rule: **a guard that is harder to
+turn than to skip gets skipped.** So a safety field is not a place where more is safer. It is a claim, it is
+wrong when overstated the same as when understated, and **overstating it routes the person around the guard
+rather than through it**, which ends with the guard weaker than if the field had been honest.
 | A plan covered by a `scope_approval` | its evidence must be **E1–E3 only** |
 | An E2 source's expiry has passed | plans using that value cannot execute; calibration has to come first |
 | A plan's E5 count exceeds the ceiling | validator failure (§8 check 3) |
@@ -2292,6 +2315,30 @@ settles nothing about whether one of them should be deleted.
 
 ---
 ## 8. The validation layer
+
+**A sixth verdict, because none of the five means *gone* (2026-09-23).** `microscope_agent`'s plan revisions
+all wrote to one path, so three runs now name a plan revision that no longer exists -- the record P16 keeps,
+destroyed by overwriting. Check 66 reported them **PENDING**, whose line read *not in this tree*, and that
+is how a check stops checking: PENDING means **an artifact a later milestone produces**, so a reader waits
+for something that will never arrive. The design seat fixed the line to name the cause and left the verdict
+at PENDING, which is right about behaviour and wrong about the name -- and it contradicts the ruling I gave
+`manager-simulation` an hour earlier, that check 78's pre-enforcement span is *out of scope rather than
+PENDING* for exactly this reason. **The five verdicts have no name for an artifact that existed, is gone,
+and no work will bring back.** FAIL is wrong because a gate refusing history nobody can fix is a gate that
+gets bypassed; UNDECIDED is a threshold nobody chose; N/A is a check that does not apply, and this one
+applied and found something. So: **`LOST`, reported and never refused, and `--strict` does not promote it.**
+That last clause is what makes the verdict mean anything -- **the four non-PASS verdicts split by whether
+work can close them**: FAIL by fixing, UNDECIDED by choosing, PENDING by producing, and LOST by nothing at
+all. A `--strict` that can never go green because of 2026-09-21 teaches seats to stop running it.
+
+**Plan revisions take the axis cards' convention, and it costs no consumer anything (2026-09-23).** Axis
+cards already solved this: a displaced set is left on disk under a `v<N>_` prefix and **the live file keeps
+its plain name**, which is why seven `v2_axis_...` stand in `mic-20260920-001/` beside the current ones. The
+same shape applies to `plan_microscope_<qid>.json`: **the superseded copy moves aside and the live path is
+untouched**, so the bridge and `--plan` read exactly what they read today. The design seat was right that a
+filename here is a contract between two agents and not one agent's choice, and the reason it can be settled
+cheaply is that the convention **only adds a file**. It is urgent rather than tidy: that seat cut three
+revisions today, and the next one orphans `run-20260923-001` the same way.
 
 **"Can this be a check?" is two questions and the cheap one is second (2026-09-23).** *Does the mechanism stand*, and *does that mechanism touch only what the validator is allowed to touch*. `manager-simulation` asked the first, built a regeneration test -- rebuild each axis card from its current generator and compare -- ran it over six modules and got five exact matches and one real mismatch, and only then found it cannot be a check: §7.1 rule 1 says `contracts/` imports nothing, so the validator cannot import an agent's generator, and check 16 catches the import. **The second question would have ended it before the first began.** Two checks the same seat landed that morning, 78 and 79, read what the validator already reads -- git history and `.gitignore` -- and this one needed it to read what it may not. So reachability is a property of the *subject*, not of the effort, and it is knowable first. **The seat also declined the workaround that would have passed**: running the generator through `subprocess` evades check 16's grep and breaks the rule intact, which is the means-not-intent line §6.2's ruling drew that same day, met from the other side and refused. The test itself is not wasted -- it belongs in the agent, because knowing one's own generator is the agent's business and not the validator's -- and it carries one limit: `kb_refs`, `kb_gaps` and `degraded` are injected at fan-out and cannot be re-derived, so a card tampered with in exactly those fields is invisible to it.
 
