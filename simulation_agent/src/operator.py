@@ -50,6 +50,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import cards
+from . import abp_backend
 from . import hoomd_backend
 from . import mock_backend
 from . import trajectory
@@ -339,7 +340,10 @@ def check_md_agrees(plan_path: Path, plan: dict) -> None:
     md = plan_path.with_suffix(".md")
     if not md.exists():
         return
-    known = {(round(float(n["value"]), 12), n["unit"]) for n in plan["numbers"]}
+    # Not rounded. `round(x, 12)` turned a WCA well depth of 4e-21 J into 0.0
+    # and then refused the Markdown for stating the value the card holds; a
+    # relative comparison needs no rounding and check 9 passes the same pair.
+    known = {(float(n["value"]), n["unit"]) for n in plan["numbers"]}
     import re
 
     units = sorted((u for u in json.loads((cards.CONTRACTS / "units.json").read_text())["units"] if u != "1"), key=len, reverse=True)
@@ -350,7 +354,7 @@ def check_md_agrees(plan_path: Path, plan: dict) -> None:
     )
     for m in pattern.finditer(md.read_text()):
         value, unit = float(m.group(1)), m.group(2)
-        if not any(u == unit and abs(v - value) <= abs(v) * 1e-9 for v, u in known):
+        if not any(u == unit and abs(v - value) <= max(abs(v), abs(value)) * 1e-9 for v, u in known):
             raise Refused(
                 f"{md.name} states {m.group(0)!r}, which the plan's numbers do not hold. "
                 "The Markdown never wins over the JSON; a disagreement stops the run (4.6.2)."
@@ -503,9 +507,57 @@ def backend_seed(backend, requested: int) -> int:
     return used
 
 
+def arm_view(plan: dict, arm: str | None) -> tuple[dict, dict | None]:
+    """The plan as ONE ARM of a compare sees it, and the arm's own cost.
+
+    A compare plan holds the conditions every arm shares in `conditions` and
+    the one that differs in `compare_arms[].conditions` (check 34). The
+    operator runs one arm at a time, so the arm's condition is appended to
+    the shared list for `derive_commands` -- in a copy; the plan on disk and
+    its hash are untouched, and config.json records which arm ran.
+
+    The envelope is compared against the ARM's cost when the plan carries
+    it. The plan's wall_clock_estimate and storage_estimate are the sum over
+    kept arms (that is what the plan-time check compares), and a smoke run
+    of the smallest arm would otherwise be refused for the cost of the
+    largest. The arm's numbers are the plan's own -- particle_steps_arm_<arm>
+    and coordinates_stored_arm_<arm> against particle_step_rate and
+    bytes_per_coordinate -- so nothing is estimated here; when the plan does
+    not carry them the plan-level numbers stand and the record says so.
+    """
+    if arm is None:
+        return plan, None
+    arms = {a.get("arm"): a for a in plan.get("compare_arms") or []}
+    if arm not in arms:
+        raise Refused(f"the plan has no compare arm named {arm!r}; it has {sorted(arms)}")
+    view = dict(plan)
+    view["conditions"] = list(plan["conditions"]) + list(arms[arm]["conditions"])
+    nums = {n["name"]: n for n in plan["numbers"]}
+    steps, coords = nums.get(f"particle_steps_arm_{arm}"), nums.get(f"coordinates_stored_arm_{arm}")
+    rate, bytes_per = nums.get("particle_step_rate"), nums.get("bytes_per_coordinate")
+    cost = None
+    if steps and coords and rate and bytes_per:
+        wall_s = si(steps) / si(rate)
+        # GB is the registry's base for storage (si_factor 1), so si() of a
+        # bytes-per-coordinate written in GB is already gigabytes and the
+        # product needs no further division. The first smoke run recorded
+        # 4.8e-12 GB for a 4.8 MB record because this line divided by 1e9 twice.
+        store_gb = si(coords) * si(bytes_per)
+        replaced = [n for n in plan["numbers"] if n["name"] not in ("wall_clock_estimate", "storage_estimate")]
+        replaced += [
+            {"name": "wall_clock_estimate", "value": wall_s, "unit": "s", "source": "computed:arm_cost", "grade": steps["grade"]},
+            {"name": "storage_estimate", "value": store_gb, "unit": "GB", "source": "computed:arm_cost", "grade": coords["grade"]},
+        ]
+        view["numbers"] = replaced
+        cost = {"arm": arm, "wall_clock_s": wall_s, "storage_gb": store_gb,
+                "from": [steps["name"], rate["name"], coords["name"], bytes_per["name"]],
+                "note": "the arm's cost from the plan's own per-arm numbers; the plan-level estimates are the sum over kept arms"}
+    return view, cost
+
+
 def run(qid: str, run_id: str, backend=None, seed: int = 1,
         budget: str = SMOKE, target: str = "local",
-        revision: int | None = None) -> Path:
+        revision: int | None = None, arm: str | None = None) -> Path:
     """O1 preflight, O2 dispatch, O3 monitor, O4 record.
 
     Raises Refused before creating anything if the gate is shut.
@@ -576,7 +628,8 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             "free to all of them at once."
         )
 
-    approval, envelope = gate(plan, budget, target)
+    view, arm_cost = arm_view(plan, arm)
+    approval, envelope = gate(view, budget, target)
 
     # The status flip is bookkeeping and belongs to the agent; the decision it
     # records belongs to a person. APPROVED has exactly two routes in (6.1): a
@@ -629,15 +682,19 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     # shape as `degraded` carrying the librarian's name.
     engine_missing: str | None = None
     if backend is None:
+        # The configuration names the backend module (capabilities executed_by):
+        # an active configuration runs on abp_backend, the rest on hoomd_backend.
+        config_name = str((plan.get("system_configuration") or {}).get("config") or "")
+        engine_class = abp_backend.AbpBackend if config_name.startswith("abp") else hoomd_backend.HoomdBackend
         try:
-            backend = hoomd_backend.HoomdBackend(seed=seed)
+            backend = engine_class(seed=seed)
         except hoomd_backend.EngineMissing:
             from . import engine_check                 # noqa: PLC0415
             engine_missing = engine_check.instruction()
             backend = mock_backend.MockBackend(seed=seed)
             print(engine_missing, file=sys.stderr)
-    params, provenance = derive_commands(plan)
-    monitors = compile_monitors(plan)
+    params, provenance = derive_commands(view)
+    monitors = compile_monitors(view)
 
     # One origin for the whole run, and every event an offset against it
     # (4.6.9, check 37). t0_wall places the run in history; it does not order
@@ -657,7 +714,8 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         })
 
     # O1 -- preflight. Nothing has been commanded yet.
-    record("gate", tier=max_tier(plan), approval=approval, envelope=envelope)
+    record("gate", tier=max_tier(plan), approval=approval, envelope=envelope,
+           **({"compare_arm": arm, "arm_cost": arm_cost} if arm is not None else {}))
     if engine_missing is not None:
         record("engine_missing", fell_back_to=mock_backend.NAME, instruction=engine_missing)
     pre = backend.preflight(params)
@@ -763,6 +821,7 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         "seed": backend_seed(backend, seed),
         "parameters_si": params,
         "provenance": provenance,
+        **({"compare_arm": arm} if arm is not None else {}),
     })
     window = params["max_lag_time"]
     fit = backend.fit_diffusivity(window)
@@ -831,6 +890,7 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         "uncertainty": uncertainty,
         "window_sensitivity": halves,
         "msd_curve": backend.mean_squared_displacement(window),
+        **(backend.active_observables(window) if hasattr(backend, "active_observables") else {}),
     })
     cards.write(out / "log.json", {
         "artifact": "run_log",
@@ -883,8 +943,11 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
 if __name__ == "__main__":
     qid = sys.argv[1] if len(sys.argv) > 1 else "sim-20260917-001"
     run_id = sys.argv[2] if len(sys.argv) > 2 else "run-20260917-001"
+    arm = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] != "-" else None
+    budget = sys.argv[4] if len(sys.argv) > 4 else SMOKE
+    seed = int(sys.argv[5]) if len(sys.argv) > 5 else 1
     try:
-        print(run(qid, run_id).relative_to(cards.REPO))
+        print(run(qid, run_id, budget=budget, seed=seed, arm=arm).relative_to(cards.REPO))
     except Refused as exc:
         print(f"REFUSED: {exc}")
         raise SystemExit(3)

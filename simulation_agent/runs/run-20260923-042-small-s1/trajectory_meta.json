@@ -1,0 +1,15 @@
+{
+  "run_id": "run-20260923-042-small-s1",
+  "trajectory": {
+    "written": false,
+    "reason": "gsd is not importable in this interpreter (No module named 'gsd'); the positions were computed and consumed by the estimator and not kept. It is on conda-forge and PyPI as `gsd`."
+  },
+  "frames_saved": 30001,
+  "simulated_time": 30000.0,
+  "steps_taken": 6000000,
+  "max_single_step_displacement": 1.1658135807381727e-06,
+  "stopped_by": "planned_duration_reached",
+  "stop_outcome": "complete",
+  "stopped_early": false,
+  "completed_planned_duration": true
+}
