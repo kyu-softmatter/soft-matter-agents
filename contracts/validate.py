@@ -1471,7 +1471,16 @@ def check_12_synthesis_closure(b: Bundle) -> list[Finding]:
 
 
 ALLOWED_PATHS = [
-    r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock)$",
+    # pixi.lock sits beside the other two manifests: pyproject.toml carries the
+    # [tool.pixi.*] tables from 2a63acf and this is what they resolve to. Added
+    # 2026-09-23 on architecture's request, BEFORE the section 7 list item and
+    # before the file lands -- check 55 reads section 7's list and not its
+    # prose, so the order is the two lists here, then the item, then the file.
+    # Architecture hit that wall first and measured it twice rather than
+    # guessing. Kept as a separate commit from the section 7 half because one
+    # commit touching contracts/ and plan.md is refused by check 41 as one
+    # seat's or the other's.
+    r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock)$",
     r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|seats\.json|validate\.py|validation_limits\.json|history_fixtures\.py)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
@@ -2581,7 +2590,7 @@ AGENT_OF_PATH = [
 # verified by doing it, which produced `seat 'architecture' owns ['design'];
 # this path is unattributable's` on 952205c, 31f86c1 and 8d61a3a. A path
 # classifier for history must keep every name history ever had.
-SHARED_PATHS = re.compile(r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock|\.claude/|docs/)")
+SHARED_PATHS = re.compile(r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock|\.claude/|docs/)")
 # Both lists, because they answer different questions about the same file:
 # ALLOWED_PATHS says it may exist and SHARED_PATHS says whose boundary it is
 # in. A root file added to the first alone passes check 13 and classifies as
