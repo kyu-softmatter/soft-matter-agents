@@ -2124,6 +2124,54 @@ dry-run solve on 2026-09-22, not read off a channel listing. The other three
 dependencies are on conda-forge for both platforms, so on this machine conda-forge is
 a strict superset of what `pyproject.toml` names: four of four against PyPI's three.
 
+**The manifest gap is 3 of 6, and counting it produced two wrong counts first
+(2026-09-22).** `simulation_agent`'s design seat counted 7 external imports
+against 3 declared; I counted 5; the answer is **6** -- `hoomd`, `jsonschema`,
+`mcp`, `numpy`, `pymmcore_plus`, `referencing`, over 39 files with none
+unparsed. Their 7 included `gsd`, which is **installed and imported by no file
+in the tree**; my 5 dropped `jsonschema`, because I built the local-module set
+from `rglob('*.py')` **without** the `.venv` exclusion I had applied to the
+scan itself, and `.venv/.../referencing/jsonschema.py` shadowed the name. One
+exclusion written twice and applied once. So a dependency now has four states
+here and not two: declared, imported, installed, and `gsd` is the fourth --
+installed, undeclared, imported nowhere, put there for work item 013 that has
+not landed. A manifest that lists it would be declaring a reader that does not
+exist, which is the class this subsection is about, arriving from the other
+side.
+
+**`pymmcore_plus` is imported by `microscope_agent` and is not installed
+(2026-09-22).** The device layer imports a package absent from the run
+environment. That is `manager-microscope`'s to act on, and it is recorded here
+because an environment file is where it stops being invisible.
+
+**Measured for both platforms, because this decides the shape of any manifest
+(2026-09-22).** `pymmcore-plus` solves on conda-forge for **win-64**
+(`pymmcore-plus-0.12.0-pyhd8ed1ab_1` with the `pymmcore-12.5.0.75.0` win-64
+binary) and is on PyPI as well; `hoomd` is on neither for that platform. So
+the two dependency sets are not symmetric, and the asymmetry runs the useful
+way: **a conda manifest can fully serve the Windows microscope machine, and no
+manifest of any kind can put the simulation engine on it.**
+
+**Which is why the conda decision does not carry mock removal with it
+(2026-09-22).** Told that the person had settled on conda-installed HOOMD by
+default, the simulation design seat withdrew its own objection to deleting
+`mock_backend` -- its argument had been *a fresh clone could not run*, and a
+declared conda path answers that. It answers **one** of the mock's two roles.
+§4.6.5 gives it portability *and* an order: "the whole pipeline has to run
+with no hardware and no HOOMD", and §9's rule 4, "validation is done on the
+mock, and the real instrument and HOOMD are attached after the pipeline passes
+on the mock". The second is a **discipline, not a convenience** -- the same
+shape as declaring a stop criterion before the run, and for the same reason:
+it keeps the engine's behaviour out of the question of whether the pipeline is
+correct. A conda manifest does not touch it. And the first does not fully
+dissolve either, because the platform with no HOOMD build is not hypothetical;
+it is the other machine this project already plans to deploy to. **The
+portability role narrows rather than ends: it now covers exactly the platforms
+conda-forge does not build HOOMD for, a set that is currently non-empty and
+contains the microscope.** So the sweep agreeing to 0.01 % settles that the two
+backends compute the same thing, which was the comparison's question, and
+settles nothing about whether one of them should be deleted.
+
 **The machine on the other end is Windows, and it is the one the microscope is plugged into (2026-09-20).** Two consequences, and they are not the same question.
 
 *While the whole repository is cloned there*, the server runs and only the launch was wrong. `.mcp.json` named `python3`, which **a stock Windows install does not have** -- it provides `python` -- so the interpreter is now resolved rather than named. `sh` and `git` are not a risk: both arrive with Git for Windows, which cloning this repository already required. `.claude/mcp-preflight.sh` resolves the interpreter the same way, because the machine where that check matters most is the one where naming `python3` would make **the checker** the thing that goes silent. Four branches were run before this was written -- healthy, a planted deny, no interpreter, no git -- and the no-interpreter branch prints without needing one.
