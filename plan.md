@@ -2109,6 +2109,21 @@ src/devices/dev_*.py         imports neither a sibling nor anything above
 
 **The run environment is conda and no file in this repository says so (2026-09-22).** `pyproject.toml` declares `jsonschema`, `referencing` and `numpy`, `uv.lock` resolves them, and **nothing runs in that environment**: `sys.executable` is conda's base interpreter. HOOMD went in there from conda-forge, **the only channel that has it** -- `hoomd`, `hoomd-blue` and `hoomd_blue` are all absent from PyPI and a source build wants `cmake` and `ninja` that are not on this machine. So the simulation engine is now a load-bearing dependency that **no repository file names and a PyPI-shaped file structurally cannot name.** A fresh clone resolves a lockfile for an environment nobody uses and learns nothing about the one package the simulation side cannot run without. **This is the declared-with-no-reader class pointed at the environment itself**, and it bites hardest on the machine the separation path below sends `microscope_agent/` to, which would have no way to discover it either. Recorded and not fixed: a conda dependency is not expressible there, and picking a tool that expresses both is the person's.
 
+**And conda-forge does not build HOOMD for Windows at all (2026-09-22).** Solving
+`-c conda-forge hoomd` under `CONDA_SUBDIR=win-64` fails with `PackagesNotFoundError`,
+while the same solve for `osx-arm64` returns `hoomd-7.2.0-cpu_py312`. So the question
+above -- which tool expresses a conda dependency -- **has no bearing on whether the
+simulation agent can follow the microscope to that machine. It cannot, under any
+packaging tool**, because the package does not exist for that platform. Two things
+follow. The separation path's split stops being a convenience and becomes forced:
+`microscope_agent/` goes to the Windows machine and `simulation_agent/` structurally
+stays. And a single cross-platform lockfile -- the main thing a conda-aware tool would
+buy over two hand-kept files -- **would have to state two different dependency sets**,
+not one set resolved twice, so the tool choice is smaller than it looked. Measured by
+dry-run solve on 2026-09-22, not read off a channel listing. The other three
+dependencies are on conda-forge for both platforms, so on this machine conda-forge is
+a strict superset of what `pyproject.toml` names: four of four against PyPI's three.
+
 **The machine on the other end is Windows, and it is the one the microscope is plugged into (2026-09-20).** Two consequences, and they are not the same question.
 
 *While the whole repository is cloned there*, the server runs and only the launch was wrong. `.mcp.json` named `python3`, which **a stock Windows install does not have** -- it provides `python` -- so the interpreter is now resolved rather than named. `sh` and `git` are not a risk: both arrive with Git for Windows, which cloning this repository already required. `.claude/mcp-preflight.sh` resolves the interpreter the same way, because the machine where that check matters most is the one where naming `python3` would make **the checker** the thing that goes silent. Four branches were run before this was written -- healthy, a planted deny, no interpreter, no git -- and the no-interpreter branch prints without needing one.
