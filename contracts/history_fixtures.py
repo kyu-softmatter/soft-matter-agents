@@ -382,6 +382,45 @@ def decide(element_id, elements, element, path):
 """
 
 
+def fixture_81_an_agent_module_imports_what_is_in_no_commit(repo: Path) -> str:
+    """A commit that leaves an agent's source importing a file nobody committed.
+
+    Built rather than described, and it is the event of 2026-09-23: five axis
+    modules gained `from . import axes_abp` from another seat's worktree
+    while that module itself stayed untracked, so a clean export of the
+    commit raised ImportError and the whole fan-out was unrunnable. The
+    working copy kept running, which is why nobody saw it.
+
+    The fixture leaves the imported module out of the TREE and does not
+    write it to disk either, and the first version of this fixture got that
+    wrong. It wrote the file untracked, to reproduce the real asymmetry
+    exactly -- and then the check passed, correctly, because check 81
+    resolves against REPO and in a bare run REPO is the working copy, where
+    the file was sitting. A fixture that reproduces the whole situation can
+    test nothing; what it has to reproduce is the state the check judges.
+
+    So the split is worth stating. The check asks whether an import resolves
+    in THE TREE IT IS GIVEN. Under the gate that tree is the index export and
+    the untracked file is absent, which is where the real event is caught. In
+    a bare run the tree is the working copy and an untracked module passes --
+    correctly, because a bare run is judging no commit. This fixture gives it
+    a tree that genuinely lacks the module, which is the same state the gate
+    would have seen on 2026-09-23.
+
+    Not a history fixture, and it is here for the reason fixture 79 is: what
+    it needs is a whole repository whose tree is missing one file, which this
+    file builds and the rejected-cards folder cannot.
+    """
+    start = base(repo)
+    write(repo, "simulation_agent/src/__init__.py", "")
+    write(repo, "simulation_agent/src/axis_a1_stability.py",
+          "from . import axes_abp\n\n\ndef build(config):\n    return axes_abp.build(config)\n")
+    commit(repo, "an axis module that dispatches to a module nobody committed",
+           "simulation_agent/src/__init__.py", "simulation_agent/src/axis_a1_stability.py",
+           seat="simulation")
+    return f"{start}..HEAD"
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -392,6 +431,7 @@ FIXTURES = [
     (76, "N/A", "could not have been found", fixture_76_an_export_says_it_could_not_have_seen_it),
     (78, "FAIL", "classify into no boundary", fixture_78_a_classifier_edit_orphans_a_path_in_history),
     (79, "FAIL", "SKIP_DIRS does not", fixture_79_gitignore_excludes_a_directory_the_walker_enters),
+    (81, "FAIL", "is in no file of this tree", fixture_81_an_agent_module_imports_what_is_in_no_commit),
     (80, "PASS", "3 site(s) decide a device's role", fixture_80_three_forms_and_four_that_must_not_fire),
 ]
 

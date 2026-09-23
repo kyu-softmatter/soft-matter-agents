@@ -6721,6 +6721,80 @@ def check_79_gitignored_dirs_are_skipped(b: Bundle) -> list[Finding]:
                     f"{len(declared)} directories .gitignore excludes are all in SKIP_DIRS")]
 
 
+AGENT_SRC = re.compile(r"^((microscope|simulation|librarian)_agent|bridge)/(src|.*/src)/.*\.py$")
+RELATIVE_IMPORT = re.compile(r"^[ \t]*from[ \t]+(\.+)([A-Za-z_][A-Za-z0-9_.]*)?[ \t]+import[ \t]+(.+)$", re.M)
+
+
+def check_81_relative_imports_resolve(b: Bundle) -> list[Finding]:
+    """Every relative import in an agent's source resolves inside this tree.
+
+    On 2026-09-23 one commit made five axis modules import a module that was
+    in nobody's commit, and the gate passed it. A clean export of that commit
+    raises `ImportError: cannot import name 'axes_abp'` and the whole fan-out
+    is unrunnable, while the working copy kept running because the file was
+    on disk untracked.
+
+    The gate could not see it for a structural reason: it runs this validator,
+    and this validator MAY NOT IMPORT AGENT CODE (check 16, contracts imports
+    nothing). So nothing in the gate ever resolves an agent's imports. Read
+    STATICALLY here -- the import is parsed and never executed -- which is
+    what clears that same rule, using the extraction check 16 already does.
+
+    RESOLVED AGAINST REPO AND NOT AGAINST GIT. The hook unpacks the index
+    into a scratch directory and runs this file from there, so REPO is the
+    tree the commit would create and a file that is on disk untracked is
+    simply not in it. Asking git instead would be both wrong and unavailable:
+    an export has no .git. In a bare run an untracked module therefore passes,
+    correctly -- a bare run is judging no commit.
+
+    TWO LIMITS, declared in section 8 with the check. It catches the SYMPTOM
+    of a sweep-in and not the sweep-in: three sweep-ins happened that day and
+    only one broke an import. And the commit it would have refused is the
+    whole of the offending one, so a seat that named only its own paths is
+    blocked by another seat's hunk -- correct to block, and not what this
+    check claims to be about.
+    """
+    out: list[Finding] = []
+    tested = 0
+    for f in sorted(REPO.rglob("*.py")):
+        try:
+            rel = f.relative_to(REPO).as_posix()
+        except ValueError:
+            continue
+        if any(part in SKIP_DIRS for part in f.parts) or not AGENT_SRC.match(rel):
+            continue
+        pkg = f.parent
+        try:
+            text = f.read_text()
+        except OSError:
+            continue
+        for dots, module, names in RELATIVE_IMPORT.findall(text):
+            if len(dots) > 1:
+                out.append(Finding(81, FAIL,
+                                   f"{rel} imports from a parent package ({dots}{module or ''}), which is above "
+                                   f"the agent's own source and cannot resolve inside this tree", rel))
+                continue
+            # `from . import a, b` names the modules; `from .a import b` names one.
+            targets = ([module] if module else
+                       [n.strip().split(" as ")[0].strip() for n in names.split(",")])
+            for name in targets:
+                head = (name or "").split(".")[0]
+                if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", head):
+                    continue          # a star import or a parenthesised list; not a module name
+                tested += 1
+                sub = pkg.joinpath(*(name.split(".")))
+                if not (sub.with_suffix(".py").exists() or (sub / "__init__.py").exists()):
+                    out.append(Finding(81, FAIL,
+                                       f"{rel} imports `{name}`, which is in no file of this tree -- a clean "
+                                       f"checkout of it raises ImportError and the fan-out cannot run (the "
+                                       f"working copy may still have the file, untracked)", rel))
+    if out:
+        return out
+    if not tested:
+        return [Finding(81, NA, "no agent source in this tree uses a relative import")]
+    return [Finding(81, PASS, f"{tested} relative imports in agent source all resolve inside this tree")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -6734,6 +6808,7 @@ CHECKS = [
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
     check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood, check_62_computed_grade_derived, check_64_every_rejected_fixture_is_reached, check_55_section_7_names_are_allowed,
     check_78_history_paths_classify, check_79_gitignored_dirs_are_skipped,
+    check_81_relative_imports_resolve,
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision,
