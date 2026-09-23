@@ -1879,6 +1879,13 @@ rebuild/
                              pins an environment nobody uses. It stays until `pixi.lock` exists and has been run
                              against, because **deleting the only thing that currently holds the property, in advance
                              of the thing that will replace it, is how a requirement goes missing between two commits**
+  pixi.lock                the single lockfile over conda-forge and PyPI for `osx-arm64`, `linux-64` and `win-64`.
+                             **Declarable here only since `25542e1`** -- a root file needs `ALLOWED_PATHS` and
+                             `SHARED_PATHS` before §7 may name it, and both are the manager's, so the two halves of
+                             one declaration sit in two seats and cannot share a commit (check 41 would refuse it).
+                             The boundary needs no third edit: `seat_boundary_of` reads `SHARED_PATHS`, so `design`
+                             follows. **The file itself still does not exist** -- pixi is not installed here, so what
+                             is declared is the slot and not the artifact
   docs/                    **the public introduction page** (GitHub Pages, `/docs` on `main`). Its reader is one step
                              further out than README's -- **someone with no intention of opening the repository**,
                              someone who was sent a link. Written in English (the only exception to the language rule
