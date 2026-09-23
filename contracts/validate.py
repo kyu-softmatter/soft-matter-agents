@@ -4859,6 +4859,140 @@ def check_76_the_settings_file_no_tree_contains(b: Bundle) -> list[Finding]:
 
 
 
+
+def check_80_a_role_is_read_not_spelled(b: Bundle) -> list[Finding]:
+    """No code decides a device's role from how its identifier is written.
+
+    §2.1 rule 2, ruled in breach on 2026-09-23. A guard that pattern-matches
+    text is a guard whose scope a spelling decides, and under P0 nothing
+    decides where a safety guard applies except a declaration. The breach that
+    forced the rule was `shutters()`: three sibling sites REFUSE when the
+    spelling misses and that one closes what it recognised and carries on, so
+    an unrecognised shutter stays open while a lamp runs.
+
+    **THREE FORMS, and each of the two probes that found them missed a
+    different one.** A shape probe searching for substring tests found
+    `"shutter" in element_id` and scored 3 of 5; both false positives were
+    text QUOTING the test, one of them a refusal message another seat had
+    just written. A name probe -- every declared id, searched as a literal --
+    found the equality and membership forms the first had missed and **could
+    not see the substring form at all**, because a substring test names a
+    fragment and `shutter` is not a declared id.
+
+      substring   `"shutter" in element_id`  a literal that is a proper
+                                             substring of a declared id
+      membership  `"pfs" in elements`        a declared id tested with `in`,
+                                             which is an EQUALITY test and so
+                                             invisible to a substring probe
+      equality    `== "nosepiece"`           a declared id compared directly
+
+    Read with `ast`, not with a regex, and that is what excludes the quoting:
+    a literal inside a message is not an operand of a `Compare` and cannot
+    reach here. Both false positives disappear without a rule against them.
+
+    **THE DENOMINATOR IS DECLARED, because three counts went wrong in two days
+    for want of one.** The ids are the CHANNEL and ELEMENT ids of the device
+    table, not every `id` in it. Optical path ids are deliberately out:
+    `path == "confocal"` is equality against an enumerated value, which is
+    what this rule asks for rather than what it forbids, and folding them in
+    turns the rule against itself.
+
+    **WHAT IT DOES NOT REACH, stated rather than left to be discovered.**
+    Assignments are out of scope -- `RETRACT_HINTS = ("focus", "z_drive",
+    ...)` and `WRAPPED = ("widefield_source_a", ...)` have one shape and the
+    second is legitimate, a fact about which channels that module wraps, where
+    the module is the authority. Nothing here can separate them and a check
+    that guesses is the defect one layer up. Also outside: `startswith` and
+    `endswith` on an identifier, which are the rule's spirit and not among the
+    three declared forms, and `state.get("nosepiece")`, a dictionary access
+    with no `Compare` node at all -- `microscope-1` found that fourth shape
+    after the three were ruled.
+
+    **ADVISORY WHILE THE BACKLOG STANDS, a failure at zero**, which is check
+    29's and check 75's shape for their reason: the sites sit in two agents'
+    `src/`, which this seat may not write, and none can go until an element
+    row carries a `role` to read instead. Failing here would block every seat
+    on an artifact none of them owns.
+    """
+    table, rel = _device_table()
+    if not table:
+        return [Finding(80, NA, "no device table, so there is no declared id to compare against")]
+
+    ids: set[str] = set()
+
+    def collect(o: object) -> None:
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if k == "channels" and isinstance(v, list):
+                    for ch in v:
+                        if not isinstance(ch, dict):
+                            continue
+                        if isinstance(ch.get("id"), str):
+                            ids.add(ch["id"])
+                        for el in ch.get("elements") or []:
+                            eid = el.get("id") if isinstance(el, dict) else el
+                            if isinstance(eid, str):
+                                ids.add(eid)
+                else:
+                    collect(v)
+        elif isinstance(o, list):
+            for v in o:
+                collect(v)
+
+    collect(table)
+    if not ids:
+        return [Finding(80, NA, f"the device table declares no channel or element id [{rel}]")]
+
+    def form(s: str) -> str | None:
+        if s in ids:
+            return "membership"
+        # A fragment sits inside an id and is shorter than it. The floor of
+        # four keeps "z" and "in" out, which would match most of the table.
+        if len(s) >= 4 and any(s in i and s != i for i in ids):
+            return "substring"
+        return None
+
+    sites: list[str] = []
+    sources = sorted(REPO.glob("*_agent/src/**/*.py")) + sorted(REPO.glob("bridge/src/**/*.py"))
+    for src in sources:
+        try:
+            tree = ast.parse(src.read_text())
+        except (SyntaxError, OSError, ValueError):
+            continue
+        where = str(src.relative_to(REPO))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Compare):
+                continue
+            for op, comparator in zip(node.ops, node.comparators):
+                left = node.left
+                if isinstance(op, (ast.In, ast.NotIn)) and isinstance(left, ast.Constant) \
+                        and isinstance(left.value, str):
+                    kind = form(left.value)
+                    if kind:
+                        sites.append(f"{where}:{node.lineno} {kind} {left.value!r}")
+                if isinstance(op, (ast.Eq, ast.NotEq)):
+                    for side in (left, comparator):
+                        if isinstance(side, ast.Constant) and isinstance(side.value, str) \
+                                and side.value in ids:
+                            sites.append(f"{where}:{node.lineno} equality {side.value!r}")
+
+    sites = sorted(set(sites))
+    if not sites:
+        return [Finding(80, PASS,
+            f"no code decides a device's role from a declared id's spelling, over {len(sources)} "
+            f"source file(s) and the {len(ids)} channel and element ids the table declares. THE "
+            f"BACKLOG IS EMPTY, which is the condition this check was written to reach: from here a "
+            f"site appearing is a failure rather than a count [{rel}]")]
+    return [Finding(80, PASS,
+        f"{len(sites)} site(s) decide a device's role from how an identifier is written, over "
+        f"{len(sources)} source file(s) and the {len(ids)} channel and element ids declared: "
+        f"{'; '.join(sites)}. ADVISORY WHILE THE BACKLOG STANDS, a failure at zero -- these sit in "
+        f"agent trees this seat may not write and none can go until an element row carries a `role` "
+        f"to read instead, so failing here would block every seat on an artifact none of them owns. "
+        f"Assignments, startswith/endswith and dictionary access are outside the three declared "
+        f"forms and the docstring says why [{rel}]")]
+
+
 def check_54_kb_basis_resolves(b: Bundle) -> list[Finding]:
     """A `kb:` basis must name an entry the same card cites in `kb_refs`.
 
@@ -6608,6 +6742,7 @@ CHECKS = [
     check_63_a_tie_carries_the_worse_grade,
     check_74_a_card_standing_on_a_round, check_53_deny_rules_do_not_block_reading,
     check_77_a_deletion_names_a_declared_trigger, check_76_the_settings_file_no_tree_contains,
+    check_80_a_role_is_read_not_spelled,
     check_54_kb_basis_resolves, check_58_one_fanout_reads_one_store,
     check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,

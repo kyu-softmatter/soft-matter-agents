@@ -331,6 +331,57 @@ def fixture_79_gitignore_excludes_a_directory_the_walker_enters(repo: Path) -> s
     return f"{start}..HEAD"
 
 
+def fixture_80_three_forms_and_four_that_must_not_fire(repo: Path) -> str:
+    """All three declared forms in one file, beside four that must stay quiet.
+
+    The check exists because two probes each missed a different form, so a
+    fixture carrying only one of them would pass while the check saw two
+    thirds of the rule. All three are planted.
+
+    **The quiet four matter as much.** A refusal message that QUOTES the test
+    was a false positive of the first probe -- the message is real, another
+    seat wrote it because card 028 asked a record to say what it searched --
+    and reading with `ast` is what excludes it, so this carries one to prove
+    the exclusion rather than assert it. Beside it: an assignment of declared
+    ids, which can be a legitimate fact about a module; equality against a
+    path id, which is the rule being KEPT; and a fragment under the length
+    floor.
+    """
+    head = base(repo)
+    write(repo, "librarian_agent/kb/staging/devices.v0.json", {
+        "schema_version": "0.1-provisional",
+        "channels": [
+            {"id": "stand_ti2e", "elements": [{"id": "nosepiece"}, {"id": "pfs"},
+                                              {"id": "laser_shutter"}, {"id": "z_drive"}]},
+        ],
+        "optical_paths": [{"id": "confocal"}],
+    })
+    write(repo, "microscope_agent/src/probe_subject.py", SUBJECT_80)
+    sha = commit(repo, "plant", "librarian_agent", "microscope_agent", seat="microscope-1")
+    return f"{head}..{sha}"
+
+
+SUBJECT_80 = """\"\"\"A module carrying one of each form, and four that must not fire.\"\"\"
+
+RETRACT_HINTS = ("z_drive", "pfs")          # an assignment: out of scope on purpose
+
+
+def decide(element_id, elements, element, path):
+    if "shutter" in element_id:             # FORM 1 substring
+        return "shutter"
+    if "pfs" in elements:                   # FORM 2 membership
+        return "stabiliser"
+    if element == "nosepiece":              # FORM 3 equality
+        return "turret"
+    if path == "confocal":                  # a path id: the rule being KEPT
+        return "path"
+    if "z" in element_id:                   # under the length floor
+        return "short"
+    raise RuntimeError(
+        "refusing: the test `'shutter' in element_id` over the registry found nothing")
+"""
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -341,6 +392,7 @@ FIXTURES = [
     (76, "N/A", "could not have been found", fixture_76_an_export_says_it_could_not_have_seen_it),
     (78, "FAIL", "classify into no boundary", fixture_78_a_classifier_edit_orphans_a_path_in_history),
     (79, "FAIL", "SKIP_DIRS does not", fixture_79_gitignore_excludes_a_directory_the_walker_enters),
+    (80, "PASS", "3 site(s) decide a device's role", fixture_80_three_forms_and_four_that_must_not_fire),
 ]
 
 
