@@ -196,7 +196,7 @@ def solve_separation(make, target_barrier, lo=0.2, hi=14.0, key=0, iters=90):
 
 # ------------------------------------------------------------ dynamics ------
 
-def bd(dw, dt, n_steps, n_walkers, seed, x0=None):
+def bd(dw, dt, n_steps, n_walkers, seed, x0=None, burn_in=0):
     """Euler-Maruyama in reduced units, with milestoning states.
 
     dx = -U'(x) dt + sqrt(2 dt) * N(0,1)
@@ -222,6 +222,14 @@ def bd(dw, dt, n_steps, n_walkers, seed, x0=None):
     occ = np.zeros(2)
     n_exit = np.zeros(2)
     amp = np.sqrt(2.0*dt)
+    # Every walker starts at the same minimum, so the first dwell is a first
+    # passage from a prepared state and the occupancy of the other well is zero
+    # until one arrives. Burn-in runs the dynamics without accumulating, then
+    # the state and the clock are reset to whatever the walkers had reached.
+    for i in range(burn_in):
+        x += -dw.dU(x)*dt + amp*rng.standard_normal(n_walkers)
+        np.clip(x, -dw.L, dw.L, out=x)
+        state = np.where(x >= x2, 2, np.where(x <= x1, 1, state))
     for i in range(n_steps):
         x += -dw.dU(x)*dt + amp*rng.standard_normal(n_walkers)
         np.clip(x, -dw.L, dw.L, out=x)
@@ -283,6 +291,50 @@ def first_passage(dw, dt, n_walkers, seed, max_steps=40_000_000, chunk=20000):
     return dict(mean=float(t_hit[done].mean()) if done.any() else np.nan,
                 sem=float(t_hit[done].std()/np.sqrt(max(done.sum(), 1))),
                 n=int(done.sum()), n_censored=int(alive.sum()))
+
+
+def matched_depth_pair(eps1, ratio, target_barrier, w1=1.0, iters=45):
+    """Two wells of EQUAL DEPTH whose stiffnesses differ by `ratio`.
+
+    This is the only one of the three families in which the question "what does
+    stiffness asymmetry alone do" has an answer, because it is the only one that
+    holds everything else. Depth and stiffness are not independent in one trap:
+    k = eps/w^2, so a stiffness ratio has to be paid for in depth, in width, or
+    in both. Raising the power pays in depth and the shallower well stops
+    existing by a ratio near 1.6; narrowing the waist pays in width and the
+    overlap tilts the pair anyway. Here the second trap's depth AND width both
+    move, chosen so that the two TOTAL depths come out equal.
+
+    Returned wells have equal depth and, as a consequence rather than a
+    constraint, equal barriers. What is left over is the curvature, which is
+    what the question was about.
+
+    Solved as two nested bisections: the inner one puts the barrier at
+    `target_barrier`, the outer one drives the depth difference to zero. The
+    hand-rolled bisection in `solve_separation` was checked against
+    scipy.optimize.brentq on this landscape and the two agreed to every digit
+    printed, so neither is standing in for the other.
+    """
+    def build(w2):
+        return lambda d: DoubleWell(eps1, ratio*eps1*w2**2, d, w1, w2)
+
+    def tilt_of(w2):
+        make = build(w2)
+        d = solve_separation(make, target_barrier)
+        b = make(d).barriers()
+        return (None if b is None else b[3] - b[2]), d
+
+    lo, hi = 0.03*w1, 1.6*w1/np.sqrt(ratio)
+    for _ in range(iters):
+        m = 0.5*(lo + hi)
+        t, _ = tilt_of(m)
+        if t is None or t < 0:
+            lo = m
+        else:
+            hi = m
+    w2 = 0.5*(lo + hi)
+    _, d = tilt_of(w2)
+    return build(w2)(d)
 
 
 def suggest_dt(dw, per_relaxation=200):
