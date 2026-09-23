@@ -475,6 +475,32 @@ def backend_name(backend) -> str:
     return name
 
 
+def backend_seed(backend, requested: int) -> int:
+    """Which seed the backend actually used, refused rather than defaulted.
+
+    `014` removed two `getattr(..., default)` reads one line above this one and
+    did not see this third. Both backends carry `.seed` today so it reads
+    correctly -- which is the exact state `NAME` was in until 2026-09-22, when
+    the first HOOMD run recorded itself as a mock run.
+
+    **Wrong, this costs more than the label did.** `config.json` would record
+    the seed that was REQUESTED rather than the one that ran, and
+    `config.json` is the basis for reproducing a run. A false backend label
+    shows up the moment anyone compares two trajectories; a false seed
+    reproduces nothing and announces nothing, because the field you would
+    check it against is this field.
+    """
+    used = getattr(backend, "seed", None)
+    if not isinstance(used, int):
+        raise Refused(
+            f"the backend {type(backend).__name__} does not report which seed it used, so this "
+            f"run cannot be reproduced from its own config. The requested seed was {requested!r} "
+            "and there is deliberately no fallback to it: recording a requested seed as though "
+            "it were the one that ran is the one way this field can be worse than absent"
+        )
+    return used
+
+
 def run(qid: str, run_id: str, backend=None, seed: int = 1,
         budget: str = SMOKE, target: str = "local",
         revision: int | None = None) -> Path:
@@ -676,7 +702,7 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         "approval": approval,
         "envelope_check": envelope,
         "backend": backend_name(backend),
-        "seed": getattr(backend, "seed", seed),
+        "seed": backend_seed(backend, seed),
         "parameters_si": params,
         "provenance": provenance,
     })
@@ -737,6 +763,13 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         "schema_version": "0.1",
         "run_id": run_id,
         "plan_id": plan["id"],
+        # What was OPENED, beside what the card CLAIMS. 009 made the
+        # resolution correct and 4d01f29 added this field to record it; until
+        # now nothing wrote it, so 33 run logs said which revision the card
+        # believed itself to be and none said which file that came from. The
+        # two agree exactly while the resolution is right, which is why the
+        # day they stop agreeing is the day nobody would notice.
+        "plan_path": str(plan_path.relative_to(cards.REPO)),
         # Likewise, and here it is the point of the card: a later reader has to
         # be able to tell "ran revision 1 on purpose" from "ran revision 1
         # because the code could not see revision 2". Taken from the plan's own

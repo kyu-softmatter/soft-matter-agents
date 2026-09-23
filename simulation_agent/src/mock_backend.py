@@ -58,12 +58,22 @@ stokes_einstein = physics.stokes_einstein
 class MockBackend:
     """Free overdamped Brownian motion, integrated in SI units."""
 
-    # The operator records `getattr(backend, "NAME", mock_backend.NAME)`, and
-    # until 2026-09-22 no backend class carried NAME -- so that getattr never
-    # succeeded and the default was the only path. It read correctly only
-    # because mock was the only backend, and the first HOOMD run recorded
-    # itself as a mock run. The name belongs on the class, not only on the
-    # module, because the class is what the operator is handed.
+    # The operator USED TO read the backend's name with a getattr default
+    # falling back to this module's own, and until 2026-09-22 no backend class
+    # carried NAME -- so that read never once succeeded and the default was
+    # the only path it ever took. It looked correct only because mock was the
+    # only backend, and the first HOOMD run recorded itself as a mock run.
+    # `operator.backend_name()` now derives it and refuses a backend that
+    # cannot name itself (014), so there is no default left to be wrong.
+    #
+    # Kept in the past tense rather than deleted, because this is the record
+    # of the incident and deleting it loses the thing a later reader needs in
+    # order not to rebuild the shape. The tense is not cosmetic: a census of
+    # this tree read the present-tense version as a live description of the
+    # code and had to open operator.py to find it was not.
+    #
+    # The name belongs on the class, not only on the module, because the class
+    # is what the operator is handed.
     NAME = NAME
 
     def __init__(self, seed: int = 0) -> None:
