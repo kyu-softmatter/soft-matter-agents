@@ -1,8 +1,8 @@
-# plan plan-mic-20260920-001-r5
+# plan plan-mic-20260920-001-r4
 
-*Generated from plan-mic-20260920-001-r5.json. Editing this file changes nothing (P3, 5.6).*
+*Generated from plan-mic-20260920-001-r4.json. Editing this file changes nothing (P3, 5.6).*
 
-- question: `mic-20260920-001`  ·  thread `solo-mic-20260920-001`  ·  revision 5  ·  status **VALIDATED**
+- question: `mic-20260920-001`  ·  thread `solo-mic-20260920-001`  ·  revision 4  ·  status **VALIDATED**
 - observable: `tracer_brightness`  ·  intent: explore
 - configuration: `widefield_inline`
 

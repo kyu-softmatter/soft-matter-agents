@@ -871,6 +871,58 @@ def assemble(qid: str, revision: int = 1,
     return card, unfillable, preconditions
 
 
+def displace(live: Path) -> list[str]:
+    """Move the revision about to be overwritten aside, under a `v<N>_` prefix.
+
+    A plan card sat on ONE path, so every revision destroyed the one before
+    it -- and a run log names the plan it carried out, so three run logs now
+    name revisions that exist in no tree. Check 66 reads that as `LOST`: not
+    PENDING, because it existed and a run executed it and it was replaced.
+
+    THE PREFIX GOES ON THE DISPLACED COPY AND NOT ON THE LIVE ONE, which is
+    what makes this cost nothing: `plan_microscope_<qid>.json` keeps its
+    name, so the bridge and `--plan` read exactly what they read today and
+    the convention only ADDS files. Both this seat and manager-microscope
+    priced it as a contract change and sent it upward; architecture saw that
+    displacing rather than renaming makes it one-sided.
+
+    It is the axis cards' convention, which already keeps `v2_axis_*` beside
+    the live seven for the same reason (4.5.5, P9).
+
+    NOTHING IS OVERWRITTEN HERE EITHER. A displaced copy that already exists
+    is left alone and the write refuses rather than replacing it -- two
+    different bodies under one `v<N>_` name would recreate the defect one
+    directory along, and the second one would be the lie.
+    """
+    if not live.exists():
+        return []
+    previous = json.loads(live.read_text())
+    revision = previous.get("revision")
+    if not isinstance(revision, int):
+        raise PlanError(f"{live.name} carries revision {revision!r}, so the copy it would be "
+                        "displaced into cannot be named. A card with no revision is one no run "
+                        "log can name either")
+    said = []
+    for path, body in ((live, live.read_text()),
+                       (live.with_suffix(".md"),
+                        live.with_suffix(".md").read_text() if live.with_suffix(".md").exists()
+                        else None)):
+        if body is None:
+            continue
+        kept = path.with_name(f"v{revision}_{path.name}")
+        if kept.exists():
+            if kept.read_text() != body:
+                raise PlanError(
+                    f"{kept.name} already exists and differs from the revision {revision} about "
+                    "to be displaced. Overwriting it would put two bodies under one name, which "
+                    "is the defect this convention exists to remove, one directory along")
+            said.append(f"  {kept.name} already holds revision {revision}, unchanged")
+            continue
+        kept.write_text(body)
+        said.append(f"  displaced revision {revision} to {kept.name}")
+    return said
+
+
 def to_markdown(card: dict) -> str:
     """The human-readable face of the card, generated and never authored (P3).
 
@@ -961,6 +1013,8 @@ def main(argv: list[str] | None = None) -> int:
     if not unfillable:
         if args.write:
             out = QUESTIONS / args.qid / f"plan_microscope_{args.qid}.json"
+            for line in displace(out):
+                print(line)
             out.write_text(json.dumps(card, indent=2, ensure_ascii=False) + "\n")
             out.with_suffix(".md").write_text(to_markdown(card))
             print(f"  wrote {out.relative_to(REPO)} and its generated .md")
