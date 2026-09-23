@@ -1,0 +1,122 @@
+{
+  "card": "refusal",
+  "schema_version": "0.1",
+  "id": "refusal-sim-20260923-041-s30-r1",
+  "qid": "sim-20260923-041",
+  "thread": "solo-sim-20260923-041",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T16:40:00Z",
+  "status": "REFUSED",
+  "stage": "S3.0",
+  "refused_what": "Simulate interacting active Brownian particles (v0, D_R, D_T plus a hard-sphere-like repulsion), sweep density, v0, D_R, D_T and interaction strength, and determine how the MSD, effective diffusivity, persistence time, persistence length and short-to-long-time crossover change against the non-interacting case. The person's question 4-1, asked 2026-09-23.",
+  "reason_code": "no_capable_configuration",
+  "counterexample": [
+    {
+      "parameter": "capable_configurations",
+      "required_number": "configurations_required",
+      "limit_number": "configurations_producing_the_asked_observables",
+      "statement": "S3.0 keeps the configurations in contracts/capabilities/simulation.json whose produces[] holds the asked observable; one is the minimum a fan-out can be cut from. The file declares one configuration, bd_overdamped, producing tracer_diffusivity only. Zero survive."
+    },
+    {
+      "parameter": "orientational_degrees_of_freedom_per_particle",
+      "required_number": "orientational_dof_per_particle_required",
+      "limit_number": "orientational_dof_per_particle_declared",
+      "statement": "An active Brownian particle is displaced at v0 along an orientation that diffuses at D_R, so the model carries one orientational degree of freedom per particle. bd_overdamped integrates positions + normal(0, sqrt(2*D*dt)) and represents no orientation. Supplying v0 and D_R is a different physical model, which 4.2 puts with a person."
+    },
+    {
+      "parameter": "pair_potentials_declared",
+      "required_number": "pair_potentials_required",
+      "limit_number": "pair_potentials_declared",
+      "statement": "The question's interaction is a declared pair potential; bd_overdamped's label says undriven spherical tracers in an implicit solvent and the v3 goal of sim-20260917-001 records that the tracers do not interact. A configuration with interactions would also flip output_independent_of_input to true, because its output is no longer fixed by its inputs."
+    },
+    {
+      "parameter": "registered_observables",
+      "required_number": "observables_asked",
+      "limit_number": "observables_registered_of_those_asked",
+      "statement": "Five quantities are asked for: the MSD curve, the long-time effective diffusivity, the persistence time, the persistence length and the crossover time. contracts/observables.json registers four ids and none of them is any of these. This half is an ordering (register first, 11-1) and not a refusal; the configuration above is the refusal."
+    }
+  ],
+  "alternatives": [
+    {
+      "what": "Register the five observables with their estimators and declare an active interacting configuration (proposed id abp_pairwise: overdamped active Brownian dynamics with one orientation per particle, a declared repulsive pair potential, undriven so A7 abstains), then re-ask. A free active configuration (abp_free) is the reference arm and is the same request another seat's question already makes.",
+      "requires": "writes to contracts/observables.json, contracts/quantities.json and contracts/capabilities/simulation.json, which are manager-simulation's and rest on the person's decision about the model (6.2, 4.2)"
+    },
+    {
+      "what": "Take the non-interacting reference from the literature rather than computing it: the free active Brownian MSD is closed-form in v0, D_R and D_T, so the isolated-particle behaviour the question compares against is already determined. Entered as a graded literature: entry, it is what every interacting result is read against.",
+      "requires": "a librarian entry carrying the closed form, its dimensionality and its grade"
+    },
+    {
+      "what": "Run bd_overdamped, the v0 = 0 and no-interaction corner of the asked sweep.",
+      "requires": "nothing new, and it answers none of the dependences asked, because none of the sweep variables exists in that model"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "configurations_required",
+      "value": 1,
+      "unit": "count",
+      "source": "spec:plan.md:4.5.3",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "configurations_producing_the_asked_observables",
+      "value": 0,
+      "unit": "count",
+      "source": "spec:contracts/capabilities/simulation.json",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "orientational_dof_per_particle_required",
+      "value": 1,
+      "unit": "count",
+      "source": "literature:active_brownian_particle_model",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "orientational_dof_per_particle_declared",
+      "value": 0,
+      "unit": "count",
+      "source": "spec:contracts/capabilities/simulation.json",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "pair_potentials_required",
+      "value": 1,
+      "unit": "count",
+      "source": "spec:simulation_agent/questions/sim-20260923-041:refused_what",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "pair_potentials_declared",
+      "value": 0,
+      "unit": "count",
+      "source": "spec:contracts/capabilities/simulation.json",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "observables_asked",
+      "value": 5,
+      "unit": "count",
+      "source": "spec:simulation_agent/questions/sim-20260923-041:refused_what",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "observables_registered_of_those_asked",
+      "value": 0,
+      "unit": "count",
+      "source": "spec:contracts/observables.json",
+      "grade": "E3",
+      "precision": "significant_figures"
+    }
+  ],
+  "degraded": []
+}

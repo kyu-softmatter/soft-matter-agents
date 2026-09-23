@@ -1,0 +1,90 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-sim-20260923-041-r1",
+  "qid": "sim-20260923-041",
+  "thread": "solo-sim-20260923-041",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T16:40:00Z",
+  "status": "DRAFT",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "mean_squared_displacement"
+  },
+  "targets": [],
+  "constraint_notes": [
+    "the person's question 4-1, verbatim in intent: simulate active Brownian particles with self-propulsion speed v0, rotational diffusivity D_R and translational diffusivity D_T, add excluded-volume or hard-sphere-like repulsion, and determine how particle-particle interactions modify the dynamics against non-interacting active Brownian particles; sweep density, v0, D_R, D_T and interaction strength; report how the MSD, the effective diffusivity, the persistence time, the persistence length and the short-to-long-time crossover change; and examine whether density or interaction strength produces qualitatively different regimes",
+    "purpose is PROPOSED by S2 and not confirmed: `characterize`, because five parameters are swept and a property is quantified over the range. The alternative the wording also supports is `compare` with compare_variable interaction_strength (interacting against non-interacting at one otherwise fixed condition), which changes S4's behaviour -- arms fixed rather than optimised separately. Only a person settles it (4.5.1)",
+    "the primary observable is set to the MSD because every other quantity asked for is read off it or off the orientational autocorrelation; the goal schema carries one observable, and the others are registered alongside it and cited by the plan. This too is a proposal",
+    "a five-parameter sweep is not one question in this pipeline: one plan is one operating point. At decades, three values per axis is 243 operating points before seeds, which A5 will refuse against `local`. The person is asked which axes are primary and which are held at one value -- the natural reduction is the Peclet number v0/(sigma*D_R) and the packing fraction, with D_T either thermally tied to D_R or held",
+    "'hard-sphere-like' is a modelling decision and not a parameter: a true hard sphere has no force to integrate at fixed dt, so Brownian dynamics uses a steep soft stand-in (WCA is the standard one) or an event-driven scheme. Which one is the person's, and A1's timestep bound depends on it through the stiffness at contact",
+    "4-2 (sim-20260923-042) is this question's A3: the box against the persistence length is exactly what 042 measures, so 041's finite-size interval rests on an assumption until 042 lands. The order the two are run in is a decision for the person or the manager and is recorded here rather than assumed",
+    "qid carries the WINDOW NUMBER: sim-20260923-041 is window 4's first question. Five simulation seats opened the same morning with no qid allocator; -001 and -002 were taken by another seat in this shared tree while this card was being drafted, so a sequential number is a collision waiting to happen. 04N is the collision-free form this seat could choose alone; a better allocator is manager-simulation's to give",
+    "the observable names are UNREGISTERED: contracts/observables.json holds tracer_diffusivity, trapped_position_distribution, tracer_brightness and bleaching_rate, none of which is a mean squared displacement curve, a long-time effective diffusivity, a persistence time, a persistence length or a crossover time. The ordering is register-then-plan (11-1), a request up to manager-simulation and not a refusal. The estimator is part of each identity and the question .md lists the choice each one forces",
+    "NO CONFIGURATION CAN PRODUCE IT: capabilities/simulation.json declares bd_overdamped alone -- position-only Wiener increment, no orientation, no pair potential, A7 abstaining by declaration. An active particle needs one orientational degree of freedom per particle and an interacting one needs a declared pair potential; both are a change of physical model, a human decision (4.2) recorded in contracts/. S3.0 returns zero candidates and the refusal card beside this one says so in numbers",
+    "no number is filled here: S2 produces none. Dimensionality, the physical anchor in SI units (D7), the potential and its strength range, the density range, the sweep ranges of v0, D_R and D_T, the target accuracy and the execution target are all the person's or S3's",
+    "the librarian was reached at kbv-4b981dc870d3: every S2 query under this id returned absent with no near names, so branch two of S2 (already known, hand to the librarian and stop) does not close this from the store's side. The non-interacting active Brownian particle has a closed-form MSD in the literature and is the reference every result here is read against; that closed form belongs in the store as a graded literature: entry before any run is compared to it, and is not this seat's to write from memory (E6)",
+    "the envelope snapshot in this tree pins kbv-30966d978fbe while the publisher's copy is kbv-4b981dc870d3; this card queried the published version. Re-copy before any fan-out, and not during one"
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "requested_by": "human",
+  "numbers": [],
+  "assumptions": [],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "mean_squared_displacement_absent",
+      "observable": "mean_squared_displacement",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='mean_squared_displacement', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v1:s2",
+      "asked_at": "2026-09-23T16:28:18+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "active_brownian_particle_absent",
+      "observable": "active_brownian_particle",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='active_brownian_particle', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v1:s2",
+      "asked_at": "2026-09-23T16:28:21+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "persistence_length_absent",
+      "observable": "persistence_length",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='persistence_length', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v1:s2",
+      "asked_at": "2026-09-23T16:28:25+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": []
+}

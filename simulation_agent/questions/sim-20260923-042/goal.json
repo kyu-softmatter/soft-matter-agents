@@ -1,0 +1,76 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-sim-20260923-042-r1",
+  "qid": "sim-20260923-042",
+  "thread": "solo-sim-20260923-042",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T16:40:00Z",
+  "status": "DRAFT",
+  "purpose": "compare",
+  "intent": "explore",
+  "compare_variable": "box_size",
+  "observable": {
+    "name": "mean_squared_displacement"
+  },
+  "targets": [],
+  "constraint_notes": [
+    "the person's question 4-2, verbatim in intent: simulate active Brownian particles (v0, D_R, D_T) in periodic boxes, vary the box size with density and every other parameter fixed, determine how finite size affects the MSD, effective diffusivity, persistence time, persistence length and short- and long-time behaviour, compare the persistence length and other dynamical lengths with the box, and find the minimum size above which the dynamics are independent of it",
+    "purpose is PROPOSED by S2: `compare` with compare_variable box_size fits the wording exactly -- one parameter differs between arms and everything else is held (check 34). `characterize` over a box-size sweep is the alternative if more than a few arms are wanted. Only a person settles it (4.5.1)",
+    "P15 TENSION, stated rather than resolved: `explore` answers in decades and calls differences under 10x ties, and a finite-size effect on a diffusivity is typically a fraction of the value. Under explore every box passes as independent of size and the question answers itself trivially. If the person wants the minimum box, the intent is `confirm` with an intent_rationale and a stated target on the effective diffusivity (check 32), and confirm is not cheap",
+    "for NON-INTERACTING active particles with unwrapped coordinates the box size has strictly no effect on any of the asked quantities: nothing couples one particle to its image. A finite-size effect appears only through interactions, or through an estimator that reads wrapped positions, which is a defect in the estimator and not a property of the system. So this question presupposes either the interacting model of 041 or a check of the estimator, and the person is asked which -- the density being 'held fixed' suggests the former",
+    "the lengths the box is compared against are the persistence length (v0 over D_R up to a dimension-dependent factor), the particle diameter and, at high Peclet number and density, the size of motility-induced clusters, which can grow with the box. The last is why 'independent of size' may have no finite answer in part of the parameter space; A3 owns this and needs the ranges first",
+    "041 (sim-20260923-041) reads this question's result as its finite-size premise. Landing 042 first removes an assumption from 041's A3",
+    "qid carries the WINDOW NUMBER: sim-20260923-042 is window 4's second question. Five simulation seats opened the same morning with no qid allocator; -001 and -002 were taken by another seat in this shared tree while this card was being drafted, so a sequential number is a collision waiting to happen. 04N is the collision-free form this seat could choose alone; a better allocator is manager-simulation's to give",
+    "the observable names are UNREGISTERED: contracts/observables.json holds tracer_diffusivity, trapped_position_distribution, tracer_brightness and bleaching_rate, none of which is a mean squared displacement curve, a long-time effective diffusivity, a persistence time, a persistence length or a crossover time. The ordering is register-then-plan (11-1), a request up to manager-simulation and not a refusal. The estimator is part of each identity and the question .md lists the choice each one forces",
+    "NO CONFIGURATION CAN PRODUCE IT: capabilities/simulation.json declares bd_overdamped alone -- position-only Wiener increment, no orientation, no pair potential, A7 abstaining by declaration. An active particle needs one orientational degree of freedom per particle and an interacting one needs a declared pair potential; both are a change of physical model, a human decision (4.2) recorded in contracts/. S3.0 returns zero candidates and the refusal card beside this one says so in numbers",
+    "no number is filled here: S2 produces none. Dimensionality, the physical anchor in SI units (D7), the potential and its strength range, the density range, the sweep ranges of v0, D_R and D_T, the target accuracy and the execution target are all the person's or S3's",
+    "the librarian was reached at kbv-4b981dc870d3: every S2 query under this id returned absent with no near names, so branch two of S2 (already known, hand to the librarian and stop) does not close this from the store's side. The non-interacting active Brownian particle has a closed-form MSD in the literature and is the reference every result here is read against; that closed form belongs in the store as a graded literature: entry before any run is compared to it, and is not this seat's to write from memory (E6)",
+    "the envelope snapshot in this tree pins kbv-30966d978fbe while the publisher's copy is kbv-4b981dc870d3; this card queried the published version. Re-copy before any fan-out, and not during one"
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "requested_by": "human",
+  "numbers": [],
+  "assumptions": [],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "effective_diffusivity_absent",
+      "observable": "effective_diffusivity",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='effective_diffusivity', purpose='compare') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-042:v1:s2",
+      "asked_at": "2026-09-23T16:28:28+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "finite_size_effect_absent",
+      "observable": "finite_size_effect",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='finite_size_effect', purpose='compare') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-042:v1:s2",
+      "asked_at": "2026-09-23T16:28:31+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": []
+}
