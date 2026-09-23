@@ -142,8 +142,23 @@ is not naming a change**. That form builds its index from the *worktree*
 state of those paths, so another seat's in-progress edit to the same file
 rides in under your identity, and your own partial staging of it is
 discarded — **and a staged deletion is undone**, so that form cannot untrack
-a file that stays on disk. Run `git diff -- <paths>` first and check every
-hunk is yours. Checking does not close it either: the window is between the
+a file that stays on disk. Run **`git diff HEAD -- <paths>`** first and check
+every hunk is yours -- **not `git diff -- <paths>`, which this file
+prescribed until 2026-09-23 and which compares against the index.**
+`git commit -- <paths>` builds its temporary index from **HEAD** plus the
+worktree state of those paths, so HEAD is the base that matters. With a
+stale index the plain form **invents** hunks that will not land; with
+another seat's work staged it **hides** hunks that will -- and `git add -A`,
+which this same paragraph warns against, is exactly what stages another
+seat's work. **Two warnings sat in one paragraph and neither knew about the
+other**: the command prescribed here is disabled by the command forbidden
+two sentences earlier. `manager-microscope` proved it in a four-line scratch
+repository and I reproduced it -- with a colleague's line staged,
+`git diff --` shows only `+MINE` while the commit carries `+OTHER SEAT` too.
+**The two directions are not symmetric**: a false positive costs one round
+trip, and that seat spent one today stopping a colleague over 74 lines a
+stale index had invented, while a false negative commits another seat's work
+under your identity, which is what `28761d4` is. Checking does not close it either: the window is between the
 check and the commit, and it measured three minutes once. No check catches
 any of this. See §6.2.
 
