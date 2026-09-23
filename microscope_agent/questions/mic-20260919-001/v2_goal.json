@@ -1,0 +1,102 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-mic-20260919-001-r2",
+  "qid": "mic-20260919-001",
+  "thread": "thr-tracer-diffusivity-001",
+  "round": 2,
+  "revision": 2,
+  "author": "microscope_agent",
+  "created_at": "2026-09-23T01:37:33Z",
+  "status": "VALIDATED",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_diffusivity"
+  },
+  "from_round": "thr-tracer-diffusivity-001:r2",
+  "requested_by": "bridge",
+  "targets": [
+    {
+      "metric": "tracer_diffusivity",
+      "number": "target_decade_resolution",
+      "kind": "decade_resolution"
+    }
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "constraint_notes": [
+    "Revision 2, standing on round 2 of thr-tracer-diffusivity-001, which supersedes round 1. Revision 1 is not edited and not deleted: it stays at questions/mic-20260919-001/goal.json as the record of what this question looked like against round 1, whose payload carried a 2 s lag window, and this revision sits alongside it under the v2_ prefix (P9, 7.1 rule 3). Anything designed against that window was right arithmetic about a question that has since moved, and finding it deleted would send a reader looking for an error that was never there.",
+    "None of the payload's numbers are restated here, for the second time and for the reason revision 1 gave: a quantity in two places is two quantities by next week (P3, check 9). They are read by name in inbox/thr-tracer-diffusivity-001/r2_ask_experiment.json under payload_card.numbers. That discipline has now paid: revision 1 carried none of them, so when the bead diameter moved from 2 um to 5 um under the round, no card of ours had to be corrected -- nothing of ours had ever held the stale value.",
+    "THE ONE THE ROUND OWNS: max_lag_time, cited as the round's and not as ours, at plan-sim-20260917-001-r2, revision 2, read there. On this side it is the record length, which is what exposure count, photodamage budget and drift budget all hang off, so it does cross. It is also the kind of number that never self-corrects: a design choice of the sending side is not a fact about the world, so no entry will ever contradict it and no query will ever repair it. The two halves of a payload age differently and only one half repairs itself.",
+    "THE ROUND IS ONE REVISION BEHIND ITS SOURCE AND IT DOES NOT MATTER HERE, which was measured rather than assumed: check 74 reports that plan-sim-20260917-001 is now at revision 3 while this round carries revision 2. manager-microscope diffed the two. Sixteen of nineteen numbers are identical; the three that moved -- integration_timestep_point, lag_to_record_ratio and total_simulated_time_point -- are the simulation's own operating point, a timestep, a save ratio and a total run length, none of which crosses to an acquisition. max_lag_time, bead_diameter and tau_d are the same in both. So the rule sharpens by one step: check the design parameters that cross, and let the rest move.",
+    "CLOSED SINCE REVISION 1 -- the tracer size, and not by the person answering the question revision 1 asked. That note recorded the round's 2 um against this agent's 5 um at E5 from operator recall, and said the person had to settle it. The store settled it instead: tracer_diameter_measured is a calibration at E2 on the bottle in use, asked for under this card's own caller_id and cited in kb_refs. Both sides now stand on the same entry -- the round's payload cites it too -- so the disagreement that opened 11-13 is closed by a measurement outranking two weak claims rather than by one of them winning. The entry carries a second number, an upper bound on the coefficient of variation, which is the spread A2's statistics will want and which nothing on this side has had before.",
+    "STILL OPEN, AND STILL THE PERSON'S: sample_contrast. Revision 1 recorded it absent and predicted the consequence; this revision measured the store rather than repeating the prediction. kb_query(contrast) at this pin returns nothing, with no near names, and that gap is recorded in kb_gaps. So the contrast discriminator still cannot cut, four configurations will reach the cap of three, and S3.0 will stop for a human tie-break (4.5.1 branch c). Stating the set is still cheaper than resolving the stop, and the store is now on record as not holding it -- this is not a question the librarian can answer.",
+    "degraded is empty here and was ['librarian_agent'] in revision 1, and the difference is the service rather than the claim: on 2026-09-19 this session's server had failed every call and nothing was looked for, so an empty kb_gaps then meant no question was asked. This revision asked, at kbv-30966d978fbe, and both halves of the answer are recorded -- what came back in kb_refs and what did not in kb_gaps. WHERE THE LINK IS WEAK, said out loud: the goal schema's head declares no caller_id, so nothing in this card structurally names the calls that back it. They were made under mic-20260919-001:v2:s2, which is the s2 form the caller_id pattern declares, and that string appears in queries/log.jsonl and in this sentence and nowhere else. Check 45 skips a card with no caller_id, so it cannot corroborate this one. Raised with manager-microscope.",
+    "The envelope itself carries degraded ['librarian_agent'] -- the bridge wrapped round 2 while the store was unreachable from that seat. That does not transfer to this card: what this card takes from the store it asked for itself, at a pin it names, and what it takes from the round it cites as the round's. The envelope's degraded is a fact about how the envelope was built.",
+    "THE CONDITIONS THAT DECIDE COMPARABILITY, named rather than valued, unchanged from revision 1: temperature, viscosity and bead_diameter. A measurement taken at a different temperature, in a different medium or on a different tracer size is not the counterpart of that run, however good it is. One of the three has moved from named to cited since revision 1 -- the diameter -- and the other two are still the round's to state and A3's and A4's to say whether this instrument can hold.",
+    "requested_by stays bridge, and the reading is the same as revision 1: it records the delivery. The ask card's author is the bridge and 5.1 makes converting a delivered ask the receiving side's S2, which is what this card is. value_comparison in the round says no_counterpart, which is honest -- there is no measured diffusivity on this side to put beside theirs yet, and producing one is what this question exists for.",
+    "WHY THIS REVISION RECORDS A GAP REVISION 1 DID NOT, and it is check 39 rather than a new thought. An estimate made while the librarian was reachable has to name the gap it stands on; revision 1 carried degraded ['librarian_agent'] and the check does not apply to a card that never reached the service, so the same assumption passed there and fails here. Emptying degraded is what put the obligation on this card. That is the check working: looked-for-and-absent and nobody-checked are different claims, and only the first is available once the service answers."
+  ],
+  "numbers": [
+    {
+      "name": "target_decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "source": "assumed:a_target",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "One decade, which is what the round's own plan targets as well. It is re-declared here as this question's assumption rather than carried across as the simulation's: the same figure reached independently is two claims, and a copied one would wear a provenance this side never had."
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_target",
+      "statement": "Placing the diffusivity within one decade is enough for the comparison this round opens: what the pair tests is whether simulation and experiment land in the same regime, not whether they agree to a coefficient. Asked before assumed, which revision 1 could not do: kb_query(required_resolution) at kbv-30966d978fbe returns nothing, with no near names. The gap_ref records that the looking happened and not that the librarian will one day supply it -- a required resolution is a decision about how good an answer has to be, which is the person's and never the store's, so this absence is permanent in the way bottle_label_states_no_product is permanent.",
+      "numbers": [
+        "target_decade_resolution"
+      ],
+      "falsifier": "if the simulated and measured values fall inside one decade of each other, one decade no longer separates agreement from disagreement and the target must tighten",
+      "gap_ref": "required_resolution_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-30966d978fbe",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "sample_contrast_mechanism",
+      "observable": "contrast",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=contrast, caller_id=mic-20260919-001:v2:s2, kb_version=kbv-30966d978fbe) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-30966d978fbe",
+      "asked_by": "mic-20260919-001:v2:s2",
+      "asked_at": "2026-09-23T01:36:03+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "required_resolution_absent",
+      "observable": "required_resolution",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=required_resolution, caller_id=mic-20260919-001:v2:s2, kb_version=kbv-30966d978fbe) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-30966d978fbe",
+      "asked_by": "mic-20260919-001:v2:s2",
+      "asked_at": "2026-09-23T01:38:46+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": []
+}
