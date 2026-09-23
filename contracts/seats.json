@@ -114,6 +114,14 @@
       "note": "The sixth simulation execution seat, nine commits from cd05dd0 (2026-09-20 22:32) to 5f8d17c (2026-09-21 09:29), all inside simulation_agent, including 23c2838 -- **the first result card to reach an agent tree**. All nine predate this row and are permanently unattributed. **Its window is named 'simulation 5' and its seat is simulation-6**, which the next reader needs: two sessions were given the name simulation-5 by two people within minutes, one committed under it first, and **the one holding commits kept the name while the one holding none moved** -- moving the other way would have added a row to the record for nothing. one_identity_per_session is the hole that avoided, and check 41 cannot tell two sessions on one name apart. Minted on a relay: the occupying session reports the person chose this name for it, and the person has not said so in the architecture session. **The seat argued the clue is unnecessary here because it asked the person directly rather than being told by another seat, and the argument is a good one** -- and the clue stays anyway, because its worth is that it is automatic. A clue that a well-argued case removes is a clue only for seats that argue badly. One word from the person removes it."
     },
     {
+      "seat": "simulation-7",
+      "committer_email": "simulation-7@seat.invalid",
+      "owns": [
+        "simulation_agent"
+      ],
+      "note": "The seventh simulation execution seat, opened 2026-09-23. **Minted on the person's own words and on a narrower statement than the one that reached this registry.** `manager-simulation` relayed that the person had deleted ALL execution sessions and asked for four seats -- microscope-6, simulation-7, librarian-4, bridge-5. Asked directly, the person said **simulation only**. Three of those four would have been wrong, which is 2026-09-19's withdrawal repeated at larger scale, and a_seat_is_minted_only_on_a_statement is what stopped it: the relay is a report about the world and not the statement the rule names. The relaying seat said so itself and still widened the scope in transit, so **the failure is not carelessness but what relaying does** -- the same reason 6.2.2 says authority never travels sideways even when work does. No `paths`, same `owns`, per `growth`. The empty seats of the other three agents stay untouched and unopened."
+    },
+    {
       "seat": "librarian",
       "committer_email": "librarian@seat.invalid",
       "owns": [
