@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .venv/
 
+
+# pixi materialises environments here. The lockfile is tracked; this is not --
+# it is several hundred MB of solved packages, one copy per environment.
+.pixi/

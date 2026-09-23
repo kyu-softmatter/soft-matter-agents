@@ -1885,7 +1885,7 @@ rebuild/
                              one declaration sit in two seats and cannot share a commit (check 41 would refuse it).
                              The boundary needs no third edit: `seat_boundary_of` reads `SHARED_PATHS`, so `design`
                              follows. **The file itself still does not exist** -- pixi is not installed here, so what
-                             is declared is the slot and not the artifact
+                             is declared is the slot and not the artifact -- **which stopped being true on 2026-09-23**
   docs/                    **the public introduction page** (GitHub Pages, `/docs` on `main`). Its reader is one step
                              further out than README's -- **someone with no intention of opening the repository**,
                              someone who was sent a link. Written in English (the only exception to the language rule
@@ -2184,6 +2184,40 @@ weakened. **I measured two subdirs and wrote a claim about every machine** --
 the same error as reading a count off prose, committed in the act of
 correcting someone else's count, and caught because the other seat queried
 the channel's repodata instead of trusting my two solves.
+
+**The manifest was solved on 2026-09-23 and the first attempt failed, which
+is what the caution was for.** The pixi tables went into the tree marked
+*specification and not fact* because pixi was not installed. `pixi lock` then
+refused the `mic` environment: conda-forge **builds no `pymmcore` for
+osx-arm64**, so `pymmcore-plus` could not be installed on the machine that
+was declaring it. **That is HOOMD's mirror** -- one package missing a Windows
+build, the other missing a macOS one, in the same three-platform manifest --
+and it is the case that justifies the tool, because PyPI carries `pymmcore`
+and `pymmcore-plus` for all three and is four minor versions ahead (0.18.1
+against conda-forge's 0.12.0). Moved to `pypi-dependencies` under the same
+feature, it solves. **A specification labelled as one survived being wrong;
+the same tables unlabelled would have been read as measured.**
+
+`pixi.lock` is now 172 KB over three environments and three platforms,
+`pixi install -e sim` stands, and `contracts/validate.py` runs under
+`.pixi/envs/sim/bin/python` with `hoomd 7.2.0`, `numpy 2.5.3`, python 3.12.14.
+That is the end condition agreed with the simulation manager for
+`simulation_agent/src/environment.yml` -- not *the lockfile exists* but *one
+interpreter carries the validator and the engine* -- and it is met.
+
+**And materialising that environment broke the gate for every seat
+(2026-09-23).** `.pixi/` is 271 MB inside the working copy; the validator
+walks it and check 13 reported **10757 failures**, every one a path under
+`.pixi/`. `.gitignore` excludes it and **the validator does not read
+`.gitignore`** -- it has its own `SKIP_DIRS`, which lists `.venv` and not
+`.pixi`. So this is §11-11's two-gates shape in a place nobody had looked:
+**what git ignores and what the gate walks are two lists, they have to agree,
+and nothing compares them.** The one-word fix is the manager's. I removed the
+directory rather than leave a shared working copy failing while the fix
+landed -- the window was about two minutes -- and it goes back after
+`SKIP_DIRS` has it. **The failure was loud, which is the only reason this is a
+paragraph and not an incident**: a gate that walked 271 MB of solved packages
+and passed would have been the worse outcome.
 
 **`conda` as a bare command fails in every session here, and it is this
 tool's doing (2026-09-22).** `conda --version` returns

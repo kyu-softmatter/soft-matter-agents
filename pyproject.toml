@@ -25,13 +25,19 @@ dependencies = [
 # AND states a different dependency set per platform, which this repository
 # needs -- win-64 has no HOOMD build at all.
 #
-# NOTHING BELOW HAS BEEN SOLVED. pixi is not installed on this machine, so no
-# pixi.lock exists and no run has confirmed that these tables resolve. What IS
-# measured, by dry-run solve on 2026-09-22 against conda-forge:
+# SOLVED ON 2026-09-23, and the first attempt failed. These tables were written
+# as a specification while pixi was not installed; the comment here said so, and
+# saying so was worth it -- `pixi lock` refused the `mic` environment because
+# conda-forge builds no `pymmcore` for osx-arm64. The fix is the pypi-dependencies
+# table further down. pixi.lock is now in the tree, `pixi install -e sim` stands,
+# and contracts/validate.py runs under that interpreter.
+#
+# Measured by dry-run solve on 2026-09-22 against conda-forge, and confirmed by
+# the lock on 2026-09-23:
 #
 #   package         osx-arm64   linux-64   win-64
 #   hoomd 7.2.0     yes         yes        NO BUILD
-#   pymmcore-plus   yes         yes        yes (with the win-64 pymmcore binary)
+#   pymmcore        NO BUILD    yes        yes        <- so pymmcore-plus is PyPI
 #   mcp 2.2.0       noarch      noarch     noarch
 #   jsonschema / referencing / numpy       all three platforms
 #
@@ -62,8 +68,17 @@ hoomd = ">=7.2"
 
 # The microscope's device layer. Imported by microscope_agent today and
 # installed nowhere, which is the half of the manifest gap that bites first.
-[tool.pixi.feature.mic.dependencies]
-pymmcore-plus = ">=0.12"
+#
+# It comes from PyPI and not conda-forge, and that is measured rather than
+# preferred. conda-forge builds `pymmcore` -- the compiled MMCore binding that
+# pymmcore-plus needs -- for linux-64 and win-64 only, so the conda route
+# cannot be installed on this machine at all; the first `pixi lock` failed
+# exactly there. PyPI carries both for all three platforms and is four minor
+# versions ahead (0.18.1 against conda-forge's 0.12.0). This is the mirror of
+# HOOMD, which has no win-64 build, and it is the case that justifies pixi
+# over environment.yml: one lockfile, two channels, per platform.
+[tool.pixi.feature.mic.pypi-dependencies]
+pymmcore-plus = ">=0.18"
 
 # gsd is deliberately absent. simulation_agent work item 013 will write
 # trajectories with it and has not landed, so declaring it now would declare a
