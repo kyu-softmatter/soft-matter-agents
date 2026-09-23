@@ -1,9 +1,9 @@
 {
   "card": "refusal",
   "schema_version": "0.1",
-  "id": "refusal-sim-20260923-001-s30-r1",
-  "qid": "sim-20260923-001",
-  "thread": "solo-sim-20260923-001",
+  "id": "refusal-sim-20260923-003-s30-r1",
+  "qid": "sim-20260923-003",
+  "thread": "solo-sim-20260923-003",
   "round": 0,
   "revision": 1,
   "author": "simulation_agent",
@@ -91,7 +91,7 @@
       "name": "observables_asked",
       "value": 6,
       "unit": "count",
-      "source": "spec:simulation_agent/questions/sim-20260923-001:refused_what",
+      "source": "spec:simulation_agent/questions/sim-20260923-003:refused_what",
       "grade": "E3",
       "precision": "significant_figures"
     },
