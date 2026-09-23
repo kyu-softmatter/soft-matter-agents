@@ -65,6 +65,20 @@ platforms = ["osx-arm64", "linux-64"]
 
 [tool.pixi.feature.sim.dependencies]
 hoomd = ">=7.2"
+# Added 2026-09-23 on the person's instruction, for the simulation seats now
+# running. Nothing imports it yet, which is the state gsd is in and kept out
+# of the manifest for -- the difference is who asked and why: gsd was a seat
+# anticipating a work item that had not landed, this is the person
+# provisioning sessions that are running. Check 79's asymmetry covers the
+# residue: an import with no declaration fails, a declaration with no import
+# reports.
+#
+# The floor is what the work needs (root finding, quadrature, fitting --
+# simulation-7 named 1.11), not what the lock happens to pin today. A floor
+# of >=1.18 would assert that 1.11 through 1.17 do not work, which nobody
+# has tested. pixi.lock pins 1.18.1 either way; the constraint is a claim
+# and the lock is the fact.
+scipy = ">=1.11"
 
 # The microscope's device layer. Imported by microscope_agent today and
 # installed nowhere, which is the half of the manifest gap that bites first.
