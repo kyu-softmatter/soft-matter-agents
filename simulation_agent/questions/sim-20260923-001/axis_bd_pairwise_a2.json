@@ -1,0 +1,144 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-001-bd_pairwise-a2",
+  "qid": "sim-20260923-001",
+  "thread": "solo-sim-20260923-001",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T19:55:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-001:v1:bd_pairwise:a2",
+  "config": "bd_pairwise",
+  "axis": "a2",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "n_seeds",
+      "unit": "1",
+      "min": 9,
+      "basis": [
+        "n_seeds_min"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "n_seeds >= (cv / target)**2",
+      "parameter": "n_seeds",
+      "state": "returned",
+      "interval": {
+        "parameter": "n_seeds",
+        "unit": "1",
+        "min": 9,
+        "basis": [
+          "n_seeds_min"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    },
+    {
+      "inequality": "the run lasts until the plateau criterion fires, or reports not converged",
+      "parameter": "stop_criterion",
+      "state": "returned",
+      "precondition": {
+        "parameter": "stop_criterion",
+        "requires": "Carry a stop criterion on psi6(t) reaching the declared plateau fraction with on_met complete, and a run_time_max cap with on_met fault-free stop; a run ending on the cap is reported not converged and is not a relaxation time. The criterion is declared before the run and not chosen after seeing psi6(t).",
+        "basis": [
+          "n_seeds_min"
+        ]
+      }
+    }
+  ],
+  "note": "The trajectory length is not a free parameter here: it ends when the observable's own criterion fires. What A2 owns is how many times that has to happen.",
+  "numbers": [
+    {
+      "name": "seed_cv_assumed",
+      "value": 0.3,
+      "unit": "1",
+      "source": "assumed:a_seed_cv",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "run-to-run coefficient of variation of the relaxation time across random initial configurations"
+    },
+    {
+      "name": "target_rel_error",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_target",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "statistical error on the relaxation time at one sweep point; inside a decade with room to spare"
+    },
+    {
+      "name": "n_seeds_min",
+      "value": 9,
+      "unit": "1",
+      "source": "computed:seeds_for_target",
+      "grade": "E5",
+      "formula": "(seed_cv_assumed/target_rel_error)**2",
+      "inputs": [
+        "seed_cv_assumed",
+        "target_rel_error"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "independent samples are SEEDS: one run gives one relaxation time, because psi6(t) is already averaged over every particle"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_seed_cv",
+      "gap_ref": "relaxation_time_seed_variability_absent",
+      "statement": "Ordering from a random start is nucleation-like and its time varies from seed to seed by tens of per cent; a third is a guess at that spread until seeds have been run.",
+      "numbers": [
+        "seed_cv_assumed"
+      ],
+      "falsifier": "the measured spread across the first seeds replaces this, and the seed count follows"
+    },
+    {
+      "rationale_id": "a_target",
+      "gap_ref": "statistical_target_explore_absent",
+      "statement": "Ten per cent is a tenth of the decade explore mode answers in, so the statistical error never decides a comparison between sweep points.",
+      "numbers": [
+        "target_rel_error"
+      ],
+      "falsifier": "a person stating a target accuracy replaces it"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "relaxation_time_seed_variability_absent",
+      "observable": "relaxation_time_seed_variability",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a2",
+      "asked_at": "2026-09-23T19:53:10+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "statistical_target_explore_absent",
+      "observable": "statistical_target_explore",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a2",
+      "asked_at": "2026-09-23T19:53:14+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": []
+}

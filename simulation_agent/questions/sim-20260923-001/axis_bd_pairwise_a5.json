@@ -1,0 +1,184 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-001-bd_pairwise-a5",
+  "qid": "sim-20260923-001",
+  "thread": "solo-sim-20260923-001",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T19:55:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-001:v1:bd_pairwise:a5",
+  "config": "bd_pairwise",
+  "axis": "a5",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "particle_steps_total",
+      "unit": "1",
+      "max": 70000000000.0,
+      "basis": [
+        "particle_steps_max"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "parameter": "particle_frames_total",
+      "unit": "1",
+      "max": 500000000.0,
+      "basis": [
+        "particle_frames_max"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "n_particles * steps * seeds * sweep_points * cost <= wall_clock_max",
+      "parameter": "particle_steps_total",
+      "state": "returned",
+      "interval": {
+        "parameter": "particle_steps_total",
+        "unit": "1",
+        "max": 70000000000.0,
+        "basis": [
+          "particle_steps_max"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    },
+    {
+      "inequality": "n_particles * frames * seeds * sweep_points * bytes <= storage_max",
+      "parameter": "particle_frames_total",
+      "state": "returned",
+      "interval": {
+        "parameter": "particle_frames_total",
+        "unit": "1",
+        "max": 500000000.0,
+        "basis": [
+          "particle_frames_max"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    }
+  ],
+  "note": "A5 constrains the product of the settable parameters and takes no sibling's output (4.5.3 rule b). At A1's stiff corner the product will not fit, and that conflict is S4's to surface with the counterexample, not this card's to hide.",
+  "numbers": [
+    {
+      "name": "wall_clock_max",
+      "value": 2,
+      "unit": "h",
+      "source": "spec:simulation_agent/envelope/budget.json",
+      "grade": "E3",
+      "note": "the local target's ceiling, chosen by kyuhwan on 2026-09-19; a policy, not a measurement"
+    },
+    {
+      "name": "storage_max",
+      "value": 10,
+      "unit": "GB",
+      "source": "spec:simulation_agent/envelope/budget.json",
+      "grade": "E3",
+      "note": "the local target's ceiling, same provenance"
+    },
+    {
+      "name": "cost_per_particle_step",
+      "value": 1e-07,
+      "unit": "s",
+      "source": "assumed:a_cost_reference",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "wall seconds per particle per step for a 2D Yukawa neighbour-list integrator on this workstation's CPU"
+    },
+    {
+      "name": "particle_steps_max",
+      "value": 70000000000.0,
+      "unit": "1",
+      "source": "computed:wall_clock_over_cost",
+      "grade": "E5",
+      "formula": "wall_clock_max/cost_per_particle_step",
+      "inputs": [
+        "wall_clock_max",
+        "cost_per_particle_step"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the product n_particles * steps * n_seeds * sweep_points must sit under this"
+    },
+    {
+      "name": "storage_per_particle_frame",
+      "value": 2e-08,
+      "unit": "GB",
+      "source": "assumed:a_frame_bytes",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "two double coordinates per particle per frame"
+    },
+    {
+      "name": "particle_frames_max",
+      "value": 500000000.0,
+      "unit": "1",
+      "source": "computed:storage_over_frame_cost",
+      "grade": "E5",
+      "formula": "storage_max/storage_per_particle_frame",
+      "inputs": [
+        "storage_max",
+        "storage_per_particle_frame"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_cost_reference",
+      "gap_ref": "cost_per_particle_step_yukawa_2d_absent",
+      "statement": "Of order ten million particle-steps per second is what a CPU neighbour-list integrator with a short-ranged pair force manages; nothing on this machine has measured it for this potential.",
+      "numbers": [
+        "cost_per_particle_step"
+      ],
+      "falsifier": "a smoke run of this configuration that writes its trajectory replaces this with its own log's wall time per particle-step"
+    },
+    {
+      "rationale_id": "a_frame_bytes",
+      "statement": "Positions only, in double precision, two coordinates in 2D.",
+      "numbers": [
+        "storage_per_particle_frame"
+      ],
+      "gap_ref": "cost_per_particle_step_yukawa_2d_absent",
+      "falsifier": "the trajectory writer's declared frame format replaces the estimate"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "cost_per_particle_step_yukawa_2d_absent",
+      "observable": "cost_per_particle_step_yukawa_2d",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a5",
+      "asked_at": "2026-09-23T19:53:37+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "structural_relaxation_time_absent",
+      "observable": "structural_relaxation_time",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a5",
+      "asked_at": "2026-09-23T19:53:40+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": []
+}
