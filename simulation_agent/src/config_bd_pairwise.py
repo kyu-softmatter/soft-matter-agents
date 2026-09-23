@@ -428,3 +428,130 @@ def build(axis, qid, config, created_at, caller_id, kb_version, kb_result, revis
     if "note" in body:
         card["note"] = body["note"]
     return card
+
+
+# --------------------------------------------------------------------------- #
+# S4 -- where the conflict surfaces (4.2, 4.5.4)
+# --------------------------------------------------------------------------- #
+
+def s4_refusal(qid: str, revision: int, created_at: str) -> dict:
+    """The budget conflict A1 x A2 x A3 x A5 produce together, as a refusal.
+
+    No single axis sees it: A1 bounds the step, A2 the seeds, A3 the
+    particles, A5 the product, and the product needs a run length that no
+    axis owns -- the run ends when psi6 reaches its plateau, and how long that
+    takes is the observable itself. So S4 has to CHOOSE a cap on the run to
+    cost it at all, the way the free-tracer synthesis chose ten diffusive
+    times. Ten Brownian times is the lenient choice: if the stiff corner does
+    not fit under it, no honest cap makes it fit.
+
+    4.2 fixes the shape of the answer: compute the resources the question
+    needs, present them as a counterexample against the ceiling, attach one
+    relaxation option, refuse. No new lookups; every number here is carried
+    from an axis card or is arithmetic on carried numbers, computed from the
+    ROUNDED values the cards hold (check 17), plus the two decisions -- the
+    cap and the relaxed corner -- which are marked assumed: and say so.
+    """
+    from . import synthesis
+    a = lambda ax: cards.artifact_name(f"axis_bd_pairwise_{ax}.json", revision)
+    wanted = [(a("a1"), n) for n in ("brownian_time", "dt_max_curvature", "gamma_max", "kappa_a_max",
+                                    "dt_resolution_factor")]
+    wanted += [(a("a2"), "n_seeds_min"), (a("a3"), "n_particles_min"), (a("a5"), "particle_steps_max")]
+    numbers = synthesis.carry_from(qid, "bd_pairwise", wanted)
+    assumptions = synthesis.assumptions_for(qid, numbers)
+    g = {n["name"]: n["grade"] for n in numbers}
+    v = lambda name: _value(numbers, name)
+
+    def add(name, value, unit, source, formula=None, inputs=(), **kw):
+        n = cards.num(name, value, unit, source, precision="order_of_magnitude",
+                      **({"formula": formula, "inputs": [(i, g[i]) for i in inputs]} if formula else {}), **kw)
+        numbers.append(n); g[name] = n["grade"]
+
+    add("run_cap_factor", 10, "1", "assumed:a_run_cap",
+        note="the run is capped at this many Brownian times; a run ending on the cap is reported not converged")
+    add("run_time_cap", _oom(10 * v("brownian_time")), "s", "computed:cap_times_brownian_time",
+        "run_cap_factor*brownian_time", ("run_cap_factor", "brownian_time"))
+    add("steps_required_stiff", _oom(v("run_time_cap") / v("dt_max_curvature")), "1", "computed:cap_over_step",
+        "run_time_cap/dt_max_curvature", ("run_time_cap", "dt_max_curvature"),
+        note="steps for ONE run at the stiff corner of the sweep, Gamma 1000 at kappa a 10")
+    add("particle_steps_required_stiff", _oom(v("steps_required_stiff") * v("n_particles_min") * v("n_seeds_min")), "1",
+        "computed:steps_times_particles_times_seeds", "steps_required_stiff*n_particles_min*n_seeds_min",
+        ("steps_required_stiff", "n_particles_min", "n_seeds_min"),
+        note="one sweep point at the stiff corner, at A3's smallest box and A2's fewest seeds -- the cheapest honest version of that point")
+    add("gamma_relaxed", 100, "1", "assumed:a_relaxed_corner",
+        note="the largest coupling of the relaxation option; still above the 2D Yukawa ordering transition for kappa a of order one")
+    add("kappa_a_relaxed", 3, "1", "assumed:a_relaxed_corner",
+        note="the shortest range of the relaxation option")
+    add("curvature_factor_relaxed", _oom(100 * (9 + 6 + 2)), "1", "computed:yukawa_curvature_at_spacing",
+        "gamma_relaxed*(kappa_a_relaxed**2 + 2*kappa_a_relaxed + 2)", ("gamma_relaxed", "kappa_a_relaxed"))
+    add("dt_relaxed", _oom(v("dt_resolution_factor") * v("brownian_time") / v("curvature_factor_relaxed")), "s",
+        "computed:factor_times_curvature_time", "dt_resolution_factor*brownian_time/curvature_factor_relaxed",
+        ("dt_resolution_factor", "brownian_time", "curvature_factor_relaxed"))
+    add("particle_steps_required_relaxed", _oom(v("run_time_cap") / v("dt_relaxed") * v("n_particles_min") * v("n_seeds_min")), "1",
+        "computed:cap_over_step_times_particles_times_seeds", "run_time_cap/dt_relaxed*n_particles_min*n_seeds_min",
+        ("run_time_cap", "dt_relaxed", "n_particles_min", "n_seeds_min"),
+        note="one sweep point at the relaxed corner")
+    add("sweep_points_affordable", _oom(v("particle_steps_max") / v("particle_steps_required_relaxed")), "1",
+        "computed:budget_over_point_cost", "particle_steps_max/particle_steps_required_relaxed",
+        ("particle_steps_max", "particle_steps_required_relaxed"),
+        note="how many relaxed-corner points fit under the local wall clock; points away from the corner are cheaper, so this is the floor")
+    assumptions += [
+        {"rationale_id": "a_run_cap", "gap_ref": "structural_relaxation_time_absent",
+         "statement": "How long psi6 takes to reach its plateau is the observable, so no axis can bound the run length in advance; S4 caps it to cost the run at all. Ten Brownian times is lenient -- ordering from a random start in a stiff Yukawa system is more likely to take a hundred -- and is chosen so that a corner that fails under it fails under any honest cap.",
+         "numbers": ["run_cap_factor"],
+         "falsifier": "the first run's own psi6(t) replaces the cap with a measured relaxation time and its spread"},
+        {"rationale_id": "a_relaxed_corner", "gap_ref": "yukawa_coupling_sweep_range_absent",
+         "statement": "A proposal for revision 2 and not a decision: pulling the stiff corner in by a decade in coupling and a factor of three in kappa a loosens A1's step by a factor of about fifty, which is what brings one sweep point under the ceiling. The physics of interest -- ordering from a random start -- is still inside this range for kappa a of order one. S3 must re-run with these corners as its assumptions; S4 does not set them.",
+         "numbers": ["gamma_relaxed", "kappa_a_relaxed"],
+         "falsifier": "a person choosing different corners, or a first run showing psi6 already ordered at Gamma 100"},
+    ]
+    card = cards.head(
+        "refusal", f"refusal-{qid}-s4" + ("" if revision == 1 else f"-r{revision}"), qid, created_at,
+        revision=revision, status="REFUSED", stage="S4",
+        refused_what=("Run the sweep sim-20260923-001 asks for -- Gamma from 10 to 1000 and kappa a from 1 to 10 on "
+                      "bd_pairwise -- inside the local execution target's 2 h wall clock. The intersection of the six "
+                      "axis intervals is not empty; what does not fit is their PRODUCT at the stiff corner."),
+        reason_code="budget_exceeded",
+        counterexample=[{
+            "parameter": "particle_steps_total",
+            "required_number": "particle_steps_required_stiff",
+            "limit_number": "particle_steps_max",
+            "statement": ("One sweep point at Gamma 1000, kappa a 10, at A3's smallest box (900 particles) and A2's fewest "
+                          "seeds (9), capped at ten Brownian times, needs of order 1e12 particle-steps; the local wall clock "
+                          "at A5's assumed cost per particle-step allows 7e10. One point is a decade over, before the other "
+                          "points of the sweep are counted. The binding chain is A1's curvature bound: at that corner the "
+                          "step is 1e-4 s against a Brownian time of 1000 s, seven decades of steps per Brownian time."),
+        }],
+        alternatives=[{
+            "what": ("Narrow the sweep to Gamma <= 100 and kappa a <= 3. The step loosens to about 5e-3 s, one point costs "
+                     "of order 2e10 particle-steps, and about four points fit under the ceiling -- more if points away from "
+                     "the corner are cheaper, which they are. Ordering from a random start is still inside this range. "
+                     "This is a revision-2 goal for S3 to re-run with the new corners as its assumptions; S4 does not choose them."),
+            "requires": ("the person's ruling, because an over-budget job is Tier 2 (4.2): either accept the narrowed sweep, "
+                         "raise the local wall clock in envelope/budget.json, or name a second execution target"),
+        }, {
+            "what": ("Keep the full sweep and accept that the stiff corner is reported not converged at the cap -- which "
+                     "measures the cap, not the suspension. Recorded as the option it is; not recommended."),
+        }],
+    )
+    # The gaps the carried assumptions point at live on the AXIS cards, not on
+    # the goal (check 39 reads this card's own kb_gaps): union them by gap_id.
+    gaps = {gp["gap_id"]: gp for gp in synthesis.kb_gaps_for(qid)}
+    for ax in ("a1", "a2", "a3", "a4", "a5", "a7"):
+        for gp in json.loads((cards.question_dir(qid) / a(ax)).read_text()).get("kb_gaps") or []:
+            gaps.setdefault(gp["gap_id"], gp)
+    card.update(cards.tail(numbers, assumptions=assumptions, kb_refs=synthesis.kb_refs_for(qid, numbers),
+                           kb_gaps=[gaps[k] for k in sorted(gaps)], degraded=[]))
+    return card
+
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) < 4 or sys.argv[1] != "s4":
+        raise SystemExit("usage: python3 -m src.config_bd_pairwise s4 <qid> <created_at>")
+    qid, created_at = sys.argv[2], sys.argv[3]
+    revision = cards.question_revision(qid)
+    target = cards.question_dir(qid) / cards.artifact_name(f"refusal_s4_{qid}.json", revision)
+    card = s4_refusal(qid, revision, created_at)
+    cards.refuse_overwrite(target, revision, card)
+    print(cards.write(target, card).relative_to(cards.REPO))
