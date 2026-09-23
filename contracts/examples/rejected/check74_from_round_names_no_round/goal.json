@@ -1,0 +1,68 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-mic-99990101-102",
+  "qid": "mic-99990101-102",
+  "thread": "thr-tracer-diffusivity-001",
+  "round": 1,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-19T17:48:26Z",
+  "status": "VALIDATED",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_diffusivity"
+  },
+  "from_round": "thr-does-not-exist-001:r4",
+  "requested_by": "bridge",
+  "targets": [
+    {
+      "metric": "tracer_diffusivity",
+      "number": "target_decade_resolution",
+      "kind": "decade_resolution"
+    }
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "constraint_notes": [
+    "Written from round 1 of thr-tracer-diffusivity-001, delivered into microscope_agent/inbox/ under 7.1 rule 8. The round carries plan-sim-20260917-001, the simulation side's plan for this same observable, at revision 1 and status VALIDATED. What is asked of this side is the counterpart measurement, so that the pair can be compared later; the round itself asks for nothing to be run and needs no approval.",
+    "None of the payload's numbers are restated here, deliberately. The bridge made the same ruling for its own envelope and gave the reason: a quantity in two places is two quantities by next week (P3, check 9). The operating point the simulation chose -- its temperature, viscosity, bead diameter, particle count, box length and lag window -- lives in payload_card.numbers of r1_ask_experiment.json and is read there, by name, not copied. What this card carries is what this question wants, which is the decade target.",
+    "THE CONDITIONS THAT DECIDE COMPARABILITY, named rather than valued: temperature, viscosity and bead_diameter. A measurement taken at a different temperature, in a different medium or on a different tracer size is not the counterpart of that run, however good it is. Which of the three this instrument can hold is A3's and A4's to say, and nothing here presumes it.",
+    "OPEN, AND FOR THE PERSON: the tracer size does not agree across this agent's two questions. The round's plan uses a bead_diameter of 2 um; mic-20260918-001 carries tracer_diameter 5 um at E5 from operator recall. If one physical sample serves both questions then one of the two numbers is wrong, and if there are two samples then the comparison has to say which one it is about. This is not resolvable from here -- both values are the person's to confirm -- and it is the first thing a plan on this question will need.",
+    "OPEN, AND FOR THE PERSON: sample_contrast is deliberately absent from this card. S3.0 screens configurations by membership of requires_contrast in the sample's set, and nothing in the round says what this sample offers -- the simulation has no contrast mechanism to report. Without it the contrast screen cannot cut, and the cap of three configurations will be reached with four candidates and stop for a human tie-break (4.5.1 branch c). Stating the set is cheaper than resolving the stop.",
+    "degraded names librarian_agent and kb_gaps is empty, and the two together are the honest report: this session's librarian server has failed every call since 07:47:44Z and could not be reached while this card was written, so nothing was looked for. An empty kb_gaps here does not mean nothing is missing -- it means no question was asked, which is exactly what degraded says. Any gap this question has will be recorded when the service answers, by the fan-out that asks.",
+    "The payload's revision is not frozen. The simulation seat expects a smoke run to replace an assumed cost model and a librarian pass to empty its degraded, and either produces a new revision of plan-sim-20260917-001. This goal is written against revision 1 as delivered; if the plan is revised, this round stops being the comparable one and a later round carries the new card.",
+    "requested_by is bridge rather than human or simulation_agent, and it is the delivery that is being recorded: the ask card's author is the bridge, and 5.1 makes converting a delivered ask the receiving side's S2. The simulation side planned its own run and addressed nobody; the person has not yet said anything about this question beyond allocating the round to this seat."
+  ],
+  "numbers": [
+    {
+      "name": "target_decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "source": "assumed:a_target",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "One decade, which is what the round's own plan targets as well. It is re-declared here as this question's assumption rather than carried across as the simulation's: the same figure reached independently is two claims, and a copied one would wear a provenance this side never had."
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_target",
+      "statement": "Placing the diffusivity within one decade is enough for the comparison this round opens: what the pair tests is whether simulation and experiment land in the same regime, not whether they agree to a coefficient.",
+      "numbers": [
+        "target_decade_resolution"
+      ],
+      "falsifier": "if the simulated and measured values fall inside one decade of each other, one decade no longer separates agreement from disagreement and the target must tighten"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

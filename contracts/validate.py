@@ -6039,6 +6039,97 @@ def check_72_verdicts_follow_their_numbers(b: Bundle) -> list[Finding]:
     return out
 
 
+def check_74_a_card_standing_on_a_round(b: Bundle) -> list[Finding]:
+    """A card standing on a round is compared against it.
+
+    `from_round` is where the bridge's loop closes -- bridge/CLAUDE.md says
+    the seat learns a round was taken by reading it in the agents'
+    `questions/` -- and until this check **nothing read the field at all**,
+    while `payload_hash`, `canon_sha` and the ledger's own pin were each
+    checked twice.
+
+    Three things, and the third is the one the live thread needed. That a
+    round exists to stand on. That it was delivered to **this** agent, since
+    a card citing an envelope delivered to the other side is standing on
+    someone else's round. And that the source has not moved underneath it.
+
+    **The third reports rather than refuses.** A round going stale under a
+    goal is not the goal's fault: `mic-20260919-001` took r1 honestly and
+    then revision 2 changed `max_lag_time` from 2 s to 30 s. Failing the seat
+    that cannot act is what check 50 forbids -- the bridge writes the
+    superseding round, not the receiver.
+
+    Staleness is not a revision comparison on one path. 7.1 rule 3 gives each
+    revision its own filename and plan_card.py gives it its own id, so the
+    later revision is a different file with a different id; what makes them
+    one card is the pair with the revision marks stripped. That is why this
+    reads `without_revision_marks` rather than looking for a bumped field in
+    the file the ledger names -- that file still says revision 1, honestly,
+    forever.
+    """
+    standing = [c for c in b.cards if c.data.get("from_round")]
+    if not standing:
+        return [Finding(74, NA, "no card stands on a round yet")]
+
+    asks = {}
+    for c in b.of_kind("ask_simulation", "ask_experiment"):
+        if "/inbox/" not in c.rel:
+            asks[(str(c.data.get("thread")), c.data.get("round"))] = c
+    delivered = {}
+    for c in b.of_kind("ask_simulation", "ask_experiment"):
+        if "/inbox/" in c.rel:
+            delivered[(c.rel.split("/inbox/")[0], str(c.data.get("thread")), c.data.get("round"))] = c
+    pinned = {}
+    for h in b.of_artifact("round_hashes"):
+        src = h.data.get("source") or {}
+        pinned[(str(h.data.get("thread")), h.data.get("round"))] = src
+
+    # every revision of every card, keyed by identity with the marks stripped
+    revisions: dict[str, list] = {}
+    for c in b.cards:
+        cid = c.data.get("id")
+        if cid:
+            revisions.setdefault(without_revision_marks(cid), []).append(
+                (c.data.get("revision") or 1, cid, c.rel))
+
+    out: list[Finding] = []
+    checked = 0
+    for c in standing:
+        ref = str(c.data.get("from_round"))
+        m = re.fullmatch(r"(thr-[a-z0-9-]+):r([1-9][0-9]*)", ref)
+        if not m:
+            out.append(Finding(74, FAIL, f"stands on {ref!r}, which is not a round reference. The form is "
+                                         f"`thr-<thread>:r<N>` (4.4)", c.rel))
+            continue
+        thread, rnd = m.group(1), int(m.group(2))
+        if (thread, rnd) not in asks:
+            out.append(Finding(74, FAIL, f"stands on {ref}, and no such round exists in bridge/threads/. A "
+                                         f"card standing on nothing reads exactly like a card standing on "
+                                         f"something", c.rel))
+            continue
+        agent = c.rel.split("/", 1)[0]
+        if (agent, thread, rnd) not in delivered:
+            out.append(Finding(74, FAIL, f"stands on {ref}, which was never delivered to {agent}/inbox/. A "
+                                         f"card may take a round that was handed to it; taking one handed "
+                                         f"to the other side is standing on someone else's envelope "
+                                         f"(7.1 rule 8)", c.rel))
+            continue
+        checked += 1
+        src = pinned.get((thread, rnd)) or {}
+        stem = without_revision_marks(src.get("card_id"))
+        newer = sorted(r for r in revisions.get(stem, []) if r[0] > (src.get("revision") or 1))
+        if newer:
+            rev, cid, where = newer[-1]
+            out.append(Finding(74, PENDING, f"stands on {ref}, which carries {src.get('card_id')} revision "
+                                            f"{src.get('revision')}, and that card is now at revision {rev} "
+                                            f"as {cid} ({where}). The round is superseded, not wrong, and "
+                                            f"replacing it is the bridge's move rather than this seat's "
+                                            f"(4.4 rule 5)", c.rel))
+    if any(f.status == FAIL for f in out):
+        return out
+    return out + [Finding(74, PASS, f"{checked} cards stand on a round that exists and was delivered to them")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -6056,7 +6147,8 @@ CHECKS = [
     check_52_target_is_a_decision,
     check_65_history_checks_have_a_built_repository,
     check_59_the_hook_reports_an_unattributed_commit,
-    check_63_a_tie_carries_the_worse_grade, check_53_deny_rules_do_not_block_reading,
+    check_63_a_tie_carries_the_worse_grade,
+    check_74_a_card_standing_on_a_round, check_53_deny_rules_do_not_block_reading,
     check_54_kb_basis_resolves, check_58_one_fanout_reads_one_store,
     check_45_undegraded_is_backed_by_the_log,
     check_47_registry_prose_names_real_seats,
