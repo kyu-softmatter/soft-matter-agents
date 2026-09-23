@@ -1491,6 +1491,32 @@ and nothing is attributed to a single change. A comparison with one arm is meani
 point is simply a run. **A card carries one or the other and never both** -- a card doing both is two
 questions -- and check 34's rule stays confined to `compare_arms`.
 
+**And under it §4.5.3 assumes one operating point, which a sweep does not have (2026-09-23).** An axis
+card emits **one interval per parameter**, and that presupposes there is a single point the interval is
+about. `sim-20260923-201` measured what it costs when there is not: over three decades of stiffness the
+weak corner wants `dt = 2e-3 s` with a 200 s record and the stiff corner `dt = 2e-6 s` with 0.2 s, and
+**both corners cost 1e5 steps, because both bounds scale with the same local** `γ/k_t`. Intersect per
+parameter and you take `dt` from the stiff corner and the record length from the weak one: **1e8 steps
+against 1e5, and the factor is exactly the stiffness range.**
+
+**The rule underneath is that intersection is only valid between claims about the same point.** S4's job
+is to intersect intervals, and intersecting a stiff-corner `dt` with a weak-corner duration is not a
+narrow intersection but **two claims about different points combined as though they were one** -- a
+category error that returns a number, which is why nothing catches it. The multiplication by the sweep
+range is not a coincidence: **it is what treating co-varying bounds as independent produces.** So the
+contract has to let an interval say **what it is a function of**, which `manager-simulation` proposes as
+an optional `varies_with` naming a sweep axis, and S4 evaluates those per point rather than intersecting
+them. The part worth stating is the default: **an interval with no `varies_with` now claims to be
+constant over the sweep**, which was always implied and never said, and saying it makes the claim
+falsifiable.
+
+**It comes with a signature others can look for.** If the intersected answer exceeds the per-point answer
+by roughly the sweep's own range, that ratio **is** this error. `041` will meet it at S4 and the A1xA5
+collision at `c022160` may be the same thing already. And it was found the way this document keeps
+asking for: **not by re-reading §4.5.3 but by computing two corners** of a card that was already written
+and already passing -- *read it off the run, not off the prose*, applied to a scaling claim rather than
+to a count.
+
 **The shape follows this document's usual grain: declare the region, record the points, and let the gap
 show.** `sweep.axes` names each varying quantity with its levels, which states the intended region and
 makes *is this grid complete* a question with an answer; `sweep.points` is the array of condition sets
@@ -2311,6 +2337,18 @@ quiet one: the environment looks right. This is the `declared with no reader`
 class turned around once more -- here everything declared has a reader and
 the thing with no declaration is the one that touches hardware. It is named
 in §7 because a manifest is where someone will look for it and not find it.
+
+**One rounding rule, two implementations, and §7.2 already says which way the dependency goes
+(2026-09-23).** Python's `f"{x:.0e}"` rounds ties to even, so 25 becomes `2e+01`; the helper at
+`validate.py:311` rounds ties away from zero and gives `3e+01`. **So an agent that formats with an
+f-string is told by check 17 that a correct number is wrong.** This is the `RETRACT_HINTS` shape again --
+one rule, two implementations, compared by nothing -- and here it has a clean answer the other case did
+not: **§7.2 permits an agent to import `contracts`** (`src/axis_*.py, synthesis.py — imports contracts
+only`), while the reverse is forbidden. The direction is already decided, so **the rule lives in
+`contracts/` and both sides call it**, rather than the fallback of making check 17's message name which
+rounding it used. Naming it in the message is the right move only where sharing is impossible, and it is
+not impossible here. `manager-simulation` found this and is holding off on `validate.py` while
+`manager-microscope` has uncommitted work in it, which is the correct order in a shared copy.
 
 **A count of thirteen is not the reason; having no exception is (2026-09-23).** Of 14 `.py` files under
 `microscope_agent/src/`, 13 carry the scrubbing preamble and the one that does not is `orchestrator.py`,
