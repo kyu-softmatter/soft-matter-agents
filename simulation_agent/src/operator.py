@@ -438,6 +438,43 @@ def evaluate(monitors: list[dict], state: dict) -> list[dict]:
     return fired
 
 
+def backend_name(backend) -> str:
+    """What answered, refused rather than defaulted.
+
+    Both call sites used to read the backend's `NAME` with a getattr default
+    falling back to the mock module's own, and **a default that names a
+    specific backend is the one shape this field must not have.** The literal
+    is described rather than quoted here on purpose: card 014's open/closed
+    condition greps the source for it, and a comment reproducing the string
+    would report the line as still present. A backend without `NAME` produced
+    neither an error nor a blank but the string "mock_backend", so the run
+    record asserted that an engine answered which had not.
+
+    It happened. `run-20260922-hoomd-s1` carries `mock_backend` in its log and
+    its config while holding HOOMD's trajectory bit for bit -- same seed, same
+    `parameters_si`, same `plan_hash`, same budget as `run-20260922-mock-s1`,
+    and a different curve from it. That run executed at 01:31:54 and both
+    backend files have mtime 01:34:00, so it ran on code three minutes older
+    than the fix that gave `HoomdBackend` its name.
+
+    **A run is the evidence itself**, which is what makes this worse than the
+    same fault one turn back in `009`, where the log did not say which PLAN it
+    opened. 4.6.5 defines reproducibility as *the same plan.json running
+    unchanged on the mock and on the real instrument*, and a mock-against-
+    engine comparison means nothing unless which one ran is true. So there is
+    no default here: a backend that cannot say what it is stops the run.
+    """
+    name = getattr(backend, "NAME", None)
+    if not isinstance(name, str) or not name:
+        raise Refused(
+            f"the backend {type(backend).__name__} carries no NAME, so this run cannot record "
+            "which engine produced it. There is deliberately no default: the previous default "
+            "named mock_backend, and a run record that misattributes its engine makes every "
+            "mock-against-engine comparison resting on it unverifiable (4.6.5)"
+        )
+    return name
+
+
 def run(qid: str, run_id: str, backend=None, seed: int = 1,
         budget: str = SMOKE, target: str = "local",
         revision: int | None = None) -> Path:
@@ -638,7 +675,7 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         "plan_hash": plan_hash(plan),
         "approval": approval,
         "envelope_check": envelope,
-        "backend": getattr(backend, "NAME", mock_backend.NAME),
+        "backend": backend_name(backend),
         "seed": getattr(backend, "seed", seed),
         "parameters_si": params,
         "provenance": provenance,
@@ -729,7 +766,7 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             "Simulated time is a coordinate of the model, not a clock reading, so it is recorded "
             "in trajectory_meta.json rather than as this log's time base (4.6.9)."
         ),
-        "backend": getattr(backend, "NAME", mock_backend.NAME),
+        "backend": backend_name(backend),
         "events": events,
         "finished_at": datetime.now(timezone.utc).isoformat(),
     })
