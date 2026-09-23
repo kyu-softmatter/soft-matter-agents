@@ -1,0 +1,369 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-sim-20260923-003-r2",
+  "qid": "sim-20260923-003",
+  "thread": "solo-sim-20260923-003",
+  "caller_id": "sim-20260923-003:v2:s2",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T21:00:00Z",
+  "status": "DRAFT",
+  "requested_by": "human",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "mean_squared_displacement"
+  },
+  "targets": [
+    {
+      "metric": "msd_loglog_slope",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "one decade per swept axis. The question is whether the crossover appears and moves as v0 and D_R move, not what its coefficient is to two figures. explore's tie band applies: anything inside 10x is a tie"
+    }
+  ],
+  "constraint_notes": [
+    "the person's question of 2026-09-23, verbatim in intent: simulate active Brownian particles and investigate how translational dynamics depend on v0, D_R and D_T; vary v0 and D_R over appropriate ranges; determine how the MSD, persistence time, persistence length and effective translational diffusivity change; examine short- and long-time regimes and identify the crossover from persistent or ballistic motion to long-time diffusive motion; quantify the scaling from log-log MSD slopes; examine D_eff(t) and its log-log slope; determine how the crossover time and length depend on v0, D_R and D_T; collapse with dimensionless quantities such as the Peclet number",
+    "THE PROPULSION IS A FIXED SPEED, ruled by the person on 2026-09-23. For these free particles it changes the declaration and not the trajectory: a fixed force F along the orientation gives velocity F/gamma of fixed magnitude, so the two models coincide where there is nothing to push against. It will matter to the interacting questions",
+    "THE SWEEP VALUES ARE THIS SEAT'S, delegated by the person on 2026-09-23 with the words pick reasonable values and run. They are therefore `assumed:` at E5 with falsifiers, not E6: a delegated choice recorded with its reason and what would overturn it is what `assumed:` is for, and E6 is a value presented as evidence it is not. What is NOT this seat's is the physical anchor -- d, T and eta are the store's, at E2 and E3, so D_T is the actual laboratory system's and not an invention",
+    "the anchor is the laboratory's own tracer: 5 um in water at 293 K gives D_T = 0.09 um^2/s by Stokes-Einstein, and the sphere's Stokes-Einstein-Debye rotational diffusivity 3*D_T/d^2 = 0.01 rad^2/s is the CENTRE of the D_R sweep. The sweep then deliberately breaks that tie, because the person asked for D_R and D_T to be varied independently and a sphere in a bulk fluid cannot do that. Off-centre points are a model with no single particle diameter behind them, which is legitimate here -- abp_free declares no diameter -- and is exactly why peclet_number_steric is not this question's collapse variable",
+    "the grid is 3 x 3: D_R at 0.1, 1 and 10 times the Stokes-Einstein-Debye value, and v0 set at each so that peclet_number_thermal takes 1, 10 and 100. Nine operating points, and each Lambda = Pe_thermal^2 appears at three different (v0, D_R) pairs -- so the collapse claim is tested by the grid's own structure rather than by a separate run",
+    "bead_diameter is carried because the axis modules read it, and it is NOT a parameter of abp_free. The configuration declares no pair interaction, no wall, no obstacle and no diameter. It appears here only as the provenance of D_T and of the sweep's centre, and any axis bound that compares a length to it is bounding something this model does not have",
+    "peclet_max is carried in the STERIC convention, v0/(d*D_R), because that is the convention axes_abp's formulas assume. It is NOT this question's collapse variable and must not be read as one: peclet_thermal_max is. The two are not proportional across this grid -- that is the whole point of sweeping D_R away from Stokes-Einstein-Debye -- and peclet_number_steric's own registry entry says it is defined only where an interaction length exists",
+    "A3 abstains and the abstention is the physics: nothing couples a free particle to its periodic image, so with unwrapped coordinates the MSD is independent of the box. A7 abstains too -- self-propulsion is the model and not a driving protocol applied to it",
+    "the record length is 20 persistence times at the SLOWEST point, which is the longest run the grid asks for, and the save interval is a thousandth of the persistence time at each point. That resolves the thermal regime below tau_1 = D_T/v0^2 at Lambda of 1 and 100 and NOT at Lambda of 1e4, where the first lag already sits ten times above tau_1. Said in advance rather than discovered: at the top of the sweep the earliest of the three regimes is outside the window on purpose, because resolving it there would cost a factor of ten in storage to see a sliver",
+    "no experimental counterpart is measured and nothing here is fitted to data",
+    "the librarian was reached at kbv-4b981dc870d3 under the caller_id src/fanout.py issue_s2 composed. The anchors came back: tracer_diameter_measured at E2, lab_ambient_temperature and water_viscosity_293k at E3. Every active-particle name is absent and those are the gaps below"
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the laboratory's tracer, measured by the operator on 2026-09-19. Provenance of D_T and of the sweep's centre, NOT a parameter of abp_free"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the room's, read off a thermometer. In this configuration temperature is constitutive -- a parameter of the noise amplitude with no mechanism that could fail to realise it -- so citing it records why the value was chosen and is not evidence about the model"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "pure water; the entry's validity runs 288 to 298 K and the temperature above is inside it"
+    },
+    {
+      "name": "translational_diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "held fixed across the whole grid. One significant figure because the worst input carries one"
+    },
+    {
+      "name": "rotational_diffusivity",
+      "value": 0.1,
+      "unit": "1/s",
+      "source": "assumed:a_dr_sweep",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the TOP of the sweep, ten times the Stokes-Einstein-Debye value. Carried as the top because A1's timestep bound is tightest at the largest D_R Unit is 1/s and not rad^2/s: the registry gives `rad` the dimension A, so rad^2/s is {A:2,T:-1} and cannot be combined with lengths and times in any formula the validator can evaluate -- check 17 refuses every derivation through it. A radian is dimensionless, so 1/s is the honest dimension, and axes_abp's SI table knows 1/s and not rad^2/s. Reported to manager-simulation."
+    },
+    {
+      "name": "rotational_diffusivity_min",
+      "value": 0.001,
+      "unit": "1/s",
+      "source": "assumed:a_dr_sweep",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the BOTTOM of the sweep, a tenth of the Stokes-Einstein-Debye value. Sets the longest persistence time and so the longest record Unit is 1/s and not rad^2/s: the registry gives `rad` the dimension A, so rad^2/s is {A:2,T:-1} and cannot be combined with lengths and times in any formula the validator can evaluate -- check 17 refuses every derivation through it. A radian is dimensionless, so 1/s is the honest dimension, and axes_abp's SI table knows 1/s and not rad^2/s. Reported to manager-simulation."
+    },
+    {
+      "name": "rotational_diffusivity_sed",
+      "value": 0.01,
+      "unit": "1/s",
+      "source": "computed:stokes_einstein_debye",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "3*translational_diffusivity/bead_diameter**2",
+      "inputs": [
+        "translational_diffusivity",
+        "bead_diameter"
+      ],
+      "note": "the sphere's own rotational diffusivity, the centre the sweep is placed around. The sweep leaves it deliberately, which is what makes D_R and D_T independent as the question asks Unit is 1/s and not rad^2/s: the registry gives `rad` the dimension A, so rad^2/s is {A:2,T:-1} and cannot be combined with lengths and times in any formula the validator can evaluate -- check 17 refuses every derivation through it. A radian is dimensionless, so 1/s is the honest dimension, and axes_abp's SI table knows 1/s and not rad^2/s. Reported to manager-simulation."
+    },
+    {
+      "name": "persistence_time_expected",
+      "value": 1000,
+      "unit": "s",
+      "source": "computed:inverse_rotational_diffusivity",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "1/rotational_diffusivity_min",
+      "inputs": [
+        "rotational_diffusivity_min"
+      ],
+      "note": "1/((d-1)*D_R) in two dimensions is 1/D_R. Taken at the SLOWEST point, so it is the longest persistence time the grid contains and the one the record length must clear"
+    },
+    {
+      "name": "peclet_thermal_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_peclet_range",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the collapse variable, v0/sqrt((d-1)*D_R*D_T), at the top of the sweep. 100 is chosen because the maximum log-log slope is a function of Lambda = Pe_thermal^2 alone and reaches 1.98 at Lambda = 1e4; a top of 10 would have shown no ballistic regime at all"
+    },
+    {
+      "name": "peclet_thermal_min",
+      "value": 1,
+      "unit": "1",
+      "source": "assumed:a_peclet_range",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the bottom, where activity and thermal motion are comparable and the maximum slope is 1.12. Included so the sweep brackets the appearance of the ballistic regime rather than sitting inside it"
+    },
+    {
+      "name": "peclet_max",
+      "value": 200,
+      "unit": "1",
+      "source": "assumed:a_peclet_range",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "THE STERIC CONVENTION, v0/(d*D_R), carried only because axes_abp's formulas assume it. Its largest value on this grid is 183, one significant figure 200. Not the collapse variable and not comparable across the grid, because sweeping D_R away from Stokes-Einstein-Debye breaks the fixed ratio to peclet_thermal"
+    },
+    {
+      "name": "self_propulsion_speed_max",
+      "value": 9,
+      "unit": "um/s",
+      "source": "computed:peclet_thermal_times_thermal_speed",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "peclet_thermal_max*(rotational_diffusivity*translational_diffusivity)**0.5",
+      "inputs": [
+        "peclet_thermal_max",
+        "rotational_diffusivity",
+        "translational_diffusivity"
+      ],
+      "note": "the fastest particle on the grid, 9.4 um/s at one significant figure"
+    },
+    {
+      "name": "persistence_length_expected",
+      "value": 900,
+      "unit": "um",
+      "source": "computed:speed_times_persistence_time",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "peclet_thermal_max*(translational_diffusivity/rotational_diffusivity_min)**0.5",
+      "inputs": [
+        "peclet_thermal_max",
+        "translational_diffusivity",
+        "rotational_diffusivity_min"
+      ],
+      "note": "the longest persistence length on the grid, 913 um at the slowest and fastest corner. It bounds nothing here -- A3 abstains because a free particle is not coupled to its image -- and is recorded so that is visible rather than assumed"
+    },
+    {
+      "name": "n_particles",
+      "value": 1000,
+      "unit": "count",
+      "source": "assumed:a_ensemble",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "non-interacting, so this is a statistics knob and not a density. A thousand independent walkers per operating point"
+    },
+    {
+      "name": "record_length_persistence_times",
+      "value": 20,
+      "unit": "1",
+      "source": "assumed:a_record_length",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how many persistence times each run covers, so the long-time plateau is reached and D_eff can be read above the crossover rather than through it"
+    },
+    {
+      "name": "save_intervals_per_persistence_time",
+      "value": 1000,
+      "unit": "1",
+      "source": "assumed:a_save_grid",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the save interval is tau_R/1000 at each point, so 20000 frames per run. Resolves below tau_1 at Lambda of 1 and 100 and not at 1e4, which is stated in the constraints rather than discovered afterwards"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_dr_sweep",
+      "statement": "The rotational diffusivity is swept one decade either side of the sphere's Stokes-Einstein-Debye value. A decade each way is explore's unit of resolution, and centring on the real sphere keeps one point of the grid physically realisable while the others are deliberately not.",
+      "numbers": [
+        "rotational_diffusivity",
+        "rotational_diffusivity_min"
+      ],
+      "falsifier": "a measured rotational diffusivity for this tracer, or an A1 timestep interval the top of the sweep cannot satisfy inside budget",
+      "gap_ref": "rotational_diffusivity_absent"
+    },
+    {
+      "rationale_id": "a_peclet_range",
+      "statement": "The thermal Peclet number is swept over two decades, 1 to 100. The bottom is where activity and diffusion are comparable and the top is where the ballistic slope reaches 1.98; the pair brackets the appearance of the ballistic regime instead of sitting inside it. The steric value is carried alongside only because the axis modules read that name.",
+      "numbers": [
+        "peclet_thermal_max",
+        "peclet_thermal_min",
+        "peclet_max"
+      ],
+      "falsifier": "a run whose maximum log-log slope at the top of the sweep falls below 1.9, which would mean the range does not reach the regime it was chosen to reach",
+      "gap_ref": "self_propulsion_speed_absent"
+    },
+    {
+      "rationale_id": "a_ensemble",
+      "statement": "A thousand non-interacting walkers per point. Nothing physical picks this; it is the statistics knob, and the particles do not interact so it is not a density.",
+      "numbers": [
+        "n_particles"
+      ],
+      "falsifier": "a statistical error on D_eff that this ensemble cannot reach inside budget",
+      "gap_ref": "tracer_ensemble_size_absent"
+    },
+    {
+      "rationale_id": "a_record_length",
+      "statement": "Twenty persistence times per run, so the long-time plateau is entered rather than approached and D_eff is read above the crossover.",
+      "numbers": [
+        "record_length_persistence_times"
+      ],
+      "falsifier": "a D_eff still drifting at the end of the record",
+      "gap_ref": "msd_fit_window_absent"
+    },
+    {
+      "rationale_id": "a_save_grid",
+      "statement": "A thousand save intervals per persistence time. Chosen against storage rather than against physics: it keeps nine runs inside about three gigabytes, and it buys the thermal regime at the two lower Peclet decades while giving it up at the top.",
+      "numbers": [
+        "save_intervals_per_persistence_time"
+      ],
+      "falsifier": "a log-log slope at the shortest lags that has not flattened, meaning the grid starts inside a regime it cannot resolve",
+      "gap_ref": "msd_fit_window_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "active_brownian_particle_absent",
+      "observable": "active_brownian_particle",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='active_brownian_particle') against the service at kbv-4b981dc870d3",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "gap_id": "mean_squared_displacement_absent",
+      "observable": "mean_squared_displacement",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='mean_squared_displacement') against the service at kbv-4b981dc870d3",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "gap_id": "rotational_diffusivity_absent",
+      "observable": "rotational_diffusivity",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='rotational_diffusivity') against the service at kbv-4b981dc870d3",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "gap_id": "self_propulsion_speed_absent",
+      "observable": "self_propulsion_speed",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='self_propulsion_speed') against the service at kbv-4b981dc870d3",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "gap_id": "tracer_ensemble_size_absent",
+      "observable": "tracer_ensemble_size",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "gap_id": "msd_fit_window_absent",
+      "observable": "msd_fit_window",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    }
+  ],
+  "degraded": []
+}
