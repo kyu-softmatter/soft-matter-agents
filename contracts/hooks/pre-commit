@@ -44,6 +44,44 @@ if [ -z "$STAGED" ]; then
     exit 0
 fi
 
+# WHO this commit will be attributed to, which is not the same as who you are.
+# Check 41 reads the COMMITTER, and `.git/config.worktree` can pin `committer.*`
+# for every session sharing this working copy. `committer.*` beats `user.*`, so
+# it silently overrode one seat's `git -c user.email=...` five times in a row
+# before the cause was found (2026-09-22), and it took another seat's card
+# commit on 2026-09-23.
+#
+# The gate below cannot see it. The validator judges the tree the commit would
+# create and this file is never in that tree, which is why this is printed here
+# rather than checked there. The SessionStart hook says the same thing -- and
+# says it only to sessions that start after it, so every seat already running
+# hears it here or nowhere. That gap is the same one settings files and the
+# librarian's server have, and it is the reason this is worth saying twice.
+#
+# Reported rather than refused, and it does not cry wolf: the pin is only
+# called out when it is actually in force, because a seat that already passes
+# GIT_COMMITTER_NAME has handled it and a warning it has handled teaches it to
+# stop reading these lines.
+IDENT=$(git var GIT_COMMITTER_IDENT 2>/dev/null | sed 's/ [0-9][0-9]* [-+][0-9][0-9]*$//')
+echo "pre-commit: committing as ${IDENT:-an identity git would not name}"
+WT=$(git rev-parse --git-path config.worktree 2>/dev/null)
+if [ -n "$WT" ] && [ -f "$WT" ]; then
+    PINNED=$(git config --file "$WT" committer.name 2>/dev/null || true)
+    if [ -n "$PINNED" ]; then
+        case "$IDENT" in
+            "$PINNED "*)
+                echo "            pinned by .git/config.worktree, which is shared and in no tree."
+                echo "            If that is not your seat, pass GIT_COMMITTER_NAME and"
+                echo "            GIT_COMMITTER_EMAIL on this commit. Rewriting that file is"
+                echo "            the same race one turn later: the last seat to write it wins."
+                ;;
+            *)
+                echo "            (.git/config.worktree pins '$PINNED'; this commit overrides it)"
+                ;;
+        esac
+    fi
+fi
+
 # Show what is going in. The hook cannot tell whose work a staged file is --
 # `git add -A` in one session sweeps up another's uncommitted edits, and that is
 # how one commit came to carry three sessions' work under a message describing
