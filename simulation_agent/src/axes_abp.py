@@ -85,7 +85,12 @@ def oom(value_si: float, unit: str) -> float:
     rounded = round(value_si, digits)
     # Rounded ONCE, in SI, the way check 17 rounds before comparing. A second
     # rounding in the card's unit moved 600 s to 0.2 h and failed the check.
-    return rounded / _SI[unit]
+    # The division back into the card's unit then leaves binary residue --
+    # 0.001 / 1e-6 is 1000.0000000000001, which check 28 counts as seventeen
+    # significant figures. `.12g` strips that residue and rounds nothing a
+    # reader could see: 0.16666666666666666 stays 0.166666666667. Measured
+    # and reported by simulation-9, whose A3 card it was refusing.
+    return float(f"{rounded / _SI[unit]:.12g}")
 
 
 def _val(numbers: list[dict], name: str) -> float:
