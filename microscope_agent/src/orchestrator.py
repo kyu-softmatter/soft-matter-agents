@@ -304,6 +304,56 @@ class Orchestrator:
 
     # -- device modules ----------------------------------------------------- #
 
+    def driver_module(self, channel) -> str:
+        """Which module drives this channel, resolved from the registry's `driver`.
+
+        This was `dev_<channel_id>`, and devices/ holds manual.py,
+        micromanager.py and mock.py -- so every channel asked for a filename
+        that was never going to exist and card 012's work was complete and
+        unreachable. Six channels name a Micro-Manager driver and one module
+        wraps them.
+
+        THE REGISTRY IS THE RIGHT SIDE TO ASK, which is card 012's own split:
+        the backend knows how to address MMCore and the channel row knows
+        what to address. Naming modules per channel would put ten files where
+        one control path exists, and the duplication would be the thing that
+        drifts.
+
+        The driver column is prose in two rows -- "micromanager, device
+        adapter MightexPolygon1000 ..." and "split: blanking and line select
+        over DAQ, per-line power over SPI" -- so the head token is taken
+        before any comma or space, and then `_`-separated prefixes are tried
+        longest first: `micromanager_pvcam` finds micromanager.py that way.
+        That is a declared chain and not a guess, and every step of it is
+        recorded.
+
+        NOTHING FALLS BACK TO MOCK. A real run that quietly became a mock run
+        is the worst failure available here, and today's mock writes a log
+        that looks exactly like a real one.
+
+        Routing a channel to a module does not mean the module will drive it:
+        micromanager.py carries its own WRAPPED tuple and refuses a channel
+        it was never exercised on. That refusal is the module's to make.
+        """
+        driver = str(channel.raw.get("driver") or "")
+        head = driver.split(",")[0].split(" ")[0].strip()
+        tried = []
+        candidate = head
+        while candidate:
+            tried.append(candidate)
+            if (DEVICES / f"{candidate}.py").exists():
+                self.record(event="driver_resolved", channel=channel.raw.get("id"),
+                            driver=driver, module=candidate, tried=tried)
+                return candidate
+            if "_" not in candidate:
+                break
+            candidate = candidate.rsplit("_", 1)[0]
+        raise GapError(
+            f"channel {channel.raw.get('id')!r} declares driver {driver!r} and no module in "
+            f"devices/ answers to it; tried {tried}. A channel with no module is not driven by "
+            "guessing at one, and it is not quietly handed to the mock either"
+        )
+
     def module_for(self, channel_id: str):
         """Which file drives this channel.
 
@@ -316,7 +366,7 @@ class Orchestrator:
         elif channel.automatable == "none" or not channel.verifiable:
             name = "manual"
         else:
-            name = f"dev_{channel_id}"
+            name = self.driver_module(channel)
         if name not in self._modules:
             path = DEVICES / f"{name}.py"
             if not path.exists():
