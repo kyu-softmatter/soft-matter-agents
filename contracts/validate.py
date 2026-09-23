@@ -6878,6 +6878,101 @@ def check_81_relative_imports_resolve(b: Bundle) -> list[Finding]:
     return [Finding(81, PASS, f"{tested} relative imports in agent source all resolve inside this tree")]
 
 
+def check_82_imports_are_declared(b: Bundle) -> list[Finding]:
+    """Every third-party module an agent imports is declared in pyproject.toml.
+
+    ASYMMETRIC, AND THE ASYMMETRY IS THE DESIGN. An import with no
+    declaration FAILS: the code cannot run in that environment on another
+    machine, which is not a tidiness question. A declaration with no import
+    REPORTS: a person may provision a session ahead of the work, which is
+    what `scipy` was on 2026-09-23, and failing that would refuse the person
+    for planning.
+
+    `gsd` sat imported and undeclared for a day and nothing said so. Three
+    call sites had it -- trajectory.py and two in engine_check.py -- and
+    every run in the sim environment quietly wrote no trajectory, honestly
+    recording `written: false` with the reason, so no check went red and
+    nobody was blocked. The manifest itself carried a comment claiming
+    "check 79's asymmetry covers the residue", and check 79 compares
+    .gitignore against SKIP_DIRS and has nothing to do with a manifest. A
+    wrong citation is worse than none: without one a reader asks what covers
+    this, and with one they stop there.
+
+    AST AND NOT REGEX, and the list of phantoms is what says why. A regex
+    first pass returned `an`, `the`, `it`, `one` and `fields` -- it was
+    reading `from ...` in docstring PROSE as an import -- and counted
+    sibling modules as third-party. Names are normalised across `-` and `_`
+    so that `pymmcore-plus` declared and `pymmcore_plus` imported are one
+    thing.
+    """
+    manifest = REPO / "pyproject.toml"
+    if not manifest.exists():
+        return [Finding(82, PENDING, "pyproject.toml is not in this tree, so nothing declares dependencies")]
+    try:
+        import tomllib
+    except ImportError:                                   # noqa: PLC0415
+        return [Finding(82, PENDING, "this interpreter has no tomllib, so the manifest cannot be read")]
+    try:
+        doc = tomllib.loads(manifest.read_text())
+    except (OSError, ValueError) as exc:
+        return [Finding(82, FAIL, f"pyproject.toml cannot be parsed: {exc}", "pyproject.toml")]
+
+    def norm(name: str) -> str:
+        return re.split(r"[<>=!~\[ ]", name.strip(), 1)[0].replace("-", "_").lower()
+
+    declared = {norm(d) for d in (doc.get("project", {}).get("dependencies") or [])}
+    pixi = doc.get("tool", {}).get("pixi", {})
+    tables = [pixi] + list((pixi.get("feature") or {}).values())
+    for t in tables:
+        for key in ("dependencies", "pypi-dependencies"):
+            declared |= {norm(k) for k in (t.get(key) or {})}
+    declared -= {"python", "pip"}
+
+    files = [f for f in sorted(REPO.rglob("*.py"))
+             if AGENT_SRC.match(f.relative_to(REPO).as_posix())
+             and not any(part in SKIP_DIRS for part in f.parts)]
+    if not files:
+        return [Finding(82, PENDING, "no agent source in this tree, which M1 produces")]
+    # A sibling module is not a dependency. Absolute imports of one are how
+    # this package refers to itself from a directory on sys.path.
+    local = {f.stem for f in files} | {"src", "contracts", "devices"}
+    imported: dict[str, str] = {}
+    for f in files:
+        rel = f.relative_to(REPO).as_posix()
+        try:
+            tree = ast.parse(f.read_text())
+        except (OSError, SyntaxError):
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                names = [a.name for a in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                names = [node.module]
+            else:
+                continue
+            for name in names:
+                head = name.split(".")[0]
+                if head in sys.stdlib_module_names or head in local:
+                    continue
+                imported.setdefault(head, rel)
+
+    out = [Finding(82, FAIL,
+                   f"{mod!r} is imported by {rel} and declared nowhere in pyproject.toml, so this "
+                   f"code cannot run in that environment on another machine", rel)
+           for mod, rel in sorted(imported.items()) if norm(mod) not in declared]
+    unused = sorted(d for d in declared if d not in {norm(m) for m in imported})
+    if unused:
+        out.append(Finding(82, PASS,
+                           f"{', '.join(unused)} declared and imported by nothing -- reported and not failed, "
+                           f"because provisioning a session ahead of the work is the person's to do",
+                           "pyproject.toml"))
+    if any(f.status == FAIL for f in out):
+        return out
+    return out + [Finding(82, PASS,
+                          f"{len(imported)} third-party modules imported across {len(files)} agent source files "
+                          f"are all declared, of {len(declared)} declarations")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -6891,7 +6986,7 @@ CHECKS = [
     check_36_symbol_collision, check_37_time_base, check_38_one_table, check_39_estimate_justified,
     check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood, check_62_computed_grade_derived, check_64_every_rejected_fixture_is_reached, check_55_section_7_names_are_allowed,
     check_78_history_paths_classify, check_79_gitignored_dirs_are_skipped,
-    check_81_relative_imports_resolve,
+    check_81_relative_imports_resolve, check_82_imports_are_declared,
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision,

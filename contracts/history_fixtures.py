@@ -432,6 +432,36 @@ def fixture_81_an_agent_module_imports_what_is_in_no_commit(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def fixture_82_an_agent_imports_a_dependency_nobody_declared(repo: Path) -> str:
+    """An agent module importing a third-party package the manifest does not have.
+
+    The event of 2026-09-23: `gsd` was imported at three call sites and
+    declared nowhere, and every run in the sim environment quietly wrote no
+    trajectory. Nothing went red, because `trajectory.write` recorded
+    `written: false` with the reason and that is honest. An honest record of
+    a failure is not the same as a check.
+
+    The fixture writes BOTH halves of the asymmetry into one repository so
+    one run shows the two verdicts apart: a package imported and undeclared,
+    which must FAIL, and a package declared and imported by nothing, which
+    must only report. Splitting them across two fixtures would let the
+    second one pass by never being reached.
+    """
+    start = base(repo)
+    write(repo, "pyproject.toml",
+          "[project]\nname = \"fixture\"\nversion = \"0\"\ndependencies = [\"numpy>=1\"]\n\n"
+          "[tool.pixi.feature.sim.dependencies]\nscipy = \">=1.11\"\n")
+    write(repo, "simulation_agent/src/__init__.py", "")
+    write(repo, "simulation_agent/src/trajectory.py",
+          '"""A module whose docstring says from time to time, so a regex would see an import.\n\n'
+          'It also mentions the one thing it needs and the fields it writes.\n"""\n'
+          "import numpy\n\n\ndef write(frames):\n    import gsd.hoomd\n    return gsd.hoomd, numpy\n")
+    commit(repo, "a module importing a package the manifest never declared",
+           "pyproject.toml", "simulation_agent/src/__init__.py",
+           "simulation_agent/src/trajectory.py", seat="simulation")
+    return f"{start}..HEAD"
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -443,6 +473,7 @@ FIXTURES = [
     (78, "FAIL", "classify into no boundary", fixture_78_a_classifier_edit_orphans_a_path_in_history),
     (79, "FAIL", "SKIP_DIRS does not", fixture_79_gitignore_excludes_a_directory_the_walker_enters),
     (81, "FAIL", "is in no file of this tree", fixture_81_an_agent_module_imports_what_is_in_no_commit),
+    (82, "FAIL", "declared nowhere in pyproject.toml", fixture_82_an_agent_imports_a_dependency_nobody_declared),
     (80, "PASS", "5 site(s) decide a device's role", fixture_80_five_forms_and_five_that_must_not_fire),
 ]
 
