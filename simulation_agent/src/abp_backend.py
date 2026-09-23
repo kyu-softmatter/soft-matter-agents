@@ -72,6 +72,19 @@ NAME = "abp_backend"
 # The physics this backend builds is two-dimensional: the box it creates has
 # L_z = 0, which is how HOOMD declares a 2D system, and the estimator is told
 # so explicitly rather than reading a module constant of its own.
+#
+# TEMPORARY, AND HERE IS WHAT ENDS IT. contracts/capabilities/simulation.json
+# now declares `dimensions.n` for every active configuration, so this literal
+# is a second copy of a declaration -- the shape this repository counted three
+# times on 2026-09-23 (SOURCE_GRADE's second table, the rounding rule in two
+# places, DIMENSIONS in two estimators): one rule, two implementations,
+# nothing comparing them. It is a bridge and not a fork only while it carries
+# an expiry: it goes when the operator hands the declared value into
+# `AbpBackend(dimensions=...)` from the plan's configuration, which it can do
+# because the operator knows the configuration and this file does not -- a
+# backend looking the table up by guessing its own id would be reading a role
+# off a string, which check 80 refuses. Until then this must agree with the
+# table by hand, and nothing checks that it does.
 DIMENSIONS = 2
 
 SUBMITTED, RUNNING, COMPLETE, ABORTED, FAILED = hoomd_backend.SUBMITTED, hoomd_backend.RUNNING, hoomd_backend.COMPLETE, hoomd_backend.ABORTED, hoomd_backend.FAILED

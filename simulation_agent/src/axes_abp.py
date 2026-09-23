@@ -119,6 +119,40 @@ def _head(axis, qid, config, created_at, caller_id, kb_version, revision, **kw):
     )
 
 
+def _sweep_axes(goal: dict) -> list[str]:
+    """The sweep axes this goal names, as parameter names: a goal carrying
+    peclet_min/_max sweeps the Peclet number, packing_fraction_min/_max the
+    packing fraction. Empty for a single-point question."""
+    names = {n["name"] for n in goal.get("numbers", [])}
+    axes = []
+    if "peclet_min" in names and "peclet_max" in names:
+        axes.append("peclet_number_steric")
+    if "packing_fraction_min" in names and "packing_fraction_max" in names:
+        axes.append("packing_fraction")
+    return axes
+
+
+def _ineq(text: str, parameter: str, interval: dict | None = None, varies_with: list[str] | None = None,
+          precondition: dict | None = None, abstain: tuple[str, str] | None = None) -> dict:
+    """One entry of an axis card's `inequalities[]`. A returned interval says
+    what it is a function of: `varies_with` names the sweep axes it depends
+    on, and its ABSENCE claims the bound is constant over the sweep (schema,
+    7e5de1a) -- so every interval here says one or the other on purpose."""
+    out = {"inequality": text, "parameter": parameter}
+    if abstain is not None:
+        out["state"] = "abstained"; out["kind"], out["reason"] = abstain
+        return out
+    out["state"] = "returned"
+    if interval is not None:
+        iv = dict(interval)
+        if varies_with:
+            iv["varies_with"] = list(varies_with)
+        out["interval"] = iv
+    if precondition is not None:
+        out["precondition"] = precondition
+    return out
+
+
 TAU_D_REF = {
     "entry_id": "tau_d", "grade": "E4",
     "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read.",
@@ -209,14 +243,35 @@ def a1(qid, config, created_at, caller_id, kb_version, kb_result, revision):
         "numbers": ["dt_resolution_factor"],
         "falsifier": "a timestep scan on this configuration showing the effective diffusivity flat over a wider range of steps replaces this factor with a measured one",
     })
+    dt_iv = {"parameter": "integration_timestep", "unit": "s", "max": oom(dt_max, "s"),
+             "basis": ["integration_timestep_max"], "precision": "order_of_magnitude"}
+    sweep = _sweep_axes(goal)
+    pe_dependent = [a for a in sweep if a == "peclet_number_steric"]
     card = _head("a1", qid, config, created_at, caller_id, kb_version, revision,
         method="deterministic", verdict="feasible",
-        constraints=[{"parameter": "integration_timestep", "unit": "s", "max": oom(dt_max, "s"),
-                      "basis": ["integration_timestep_max"], "precision": "order_of_magnitude"}])
+        constraints=[dt_iv],
+        inequalities=[
+            _ineq("dt << bead_diameter / v0(Pe): the step must not carry a particle through a neighbour", "integration_timestep",
+                  interval=dt_iv if shortest_name == "active_step_time" else None,
+                  varies_with=pe_dependent or None) if shortest_name == "active_step_time" else
+            _ineq("dt << bead_diameter / v0(Pe): the step must not carry a particle through a neighbour", "integration_timestep",
+                  abstain=("not_constraining", f"at the top of the sweep this time is {oom(candidates['active_step_time'], 's'):g} s and {shortest_name} is shorter; the returned interval below is the binding one")),
+            _ineq("dt << gamma/k at WCA contact: an overlap must relax over many steps", "integration_timestep",
+                  interval=dt_iv if shortest_name == "contact_relaxation_time" else None) if shortest_name == "contact_relaxation_time" else
+            _ineq("dt << gamma/k at WCA contact: an overlap must relax over many steps", "integration_timestep",
+                  abstain=("not_constraining", f"the contact time is {oom(candidates['contact_relaxation_time'], 's'):g} s and {shortest_name} is shorter at the top of the sweep; it is constant over the sweep, and at low Pe it becomes the binding one -- S4 evaluates the pair per point")),
+            _ineq("dt << 1/D_R: the orientation must not turn appreciably in one step", "integration_timestep",
+                  abstain=("not_constraining", f"1/D_R is {oom(candidates['persistence_time_expected'], 's'):g} s, above the binding time; constant over the sweep")),
+            _ineq("dt << tau_d: the diffusive time", "integration_timestep",
+                  abstain=("not_constraining", f"tau_d is {oom(candidates['diffusive_time'], 's'):g} s, the longest of the four; constant over the sweep")),
+        ])
     card.update(cards.tail(numbers, assumptions=assumptions,
         **cards.evidence(kb_result, [dict(TAU_D_REF, kb_version=kb_version)] + cards.carried_kb_refs(goal, numbers))))
     card["note"] = (
         f"The binding time is {shortest_name}, not the diffusive time bd_overdamped uses. "
+        + ("The interval is stated at the top of the Peclet range and VARIES WITH the Peclet number: at lower Pe the self-propulsion "
+           "step lengthens as 1/Pe and the constant contact time takes over, so S4 must evaluate the pair per grid point rather than "
+           "intersect this corner's value across the sweep. " if sweep else "")
         + ("For the free active configuration there is no contact time, so activity alone binds. " if not _is_wca(config) else
            "The contact time is estimated at the potential minimum and is the weakest number here. ")
         + "S4 picks the step inside the interval (4.5.2)."
@@ -310,11 +365,14 @@ def a2(qid, config, created_at, caller_id, kb_version, kb_result, revision):
          "numbers": ["target_relative_error", "independent_samples_min"],
          "falsifier": "a seed-to-seed spread wider than ten per cent at this sample count raises the floor"},
     ]
+    t_iv = {"parameter": "total_simulated_time", "unit": "s", "min": oom(T_min, "s"), "basis": ["total_simulated_time_min"], "precision": "order_of_magnitude"}
+    r_iv = {"parameter": "lag_to_record_ratio", "unit": "1", "max": 0.1, "basis": ["lag_to_record_ratio_max"], "precision": "order_of_magnitude"}
     card = _head("a2", qid, config, created_at, caller_id, kb_version, revision,
         method="deterministic", verdict="feasible",
-        constraints=[
-            {"parameter": "total_simulated_time", "unit": "s", "min": oom(T_min, "s"), "basis": ["total_simulated_time_min"], "precision": "order_of_magnitude"},
-            {"parameter": "lag_to_record_ratio", "unit": "1", "max": 0.1, "basis": ["lag_to_record_ratio_max"], "precision": "order_of_magnitude"},
+        constraints=[t_iv, r_iv],
+        inequalities=[
+            _ineq("T >= plateau lag / lag_to_record_ratio_max: the record must hold many of the longest fitted displacements", "total_simulated_time", interval=t_iv),
+            _ineq("max lag / T <= lag_to_record_ratio_max", "lag_to_record_ratio", interval=r_iv),
         ])
     card.update(cards.tail(numbers, assumptions=assumptions, **cards.evidence(kb_result, cards.carried_kb_refs(goal, numbers))))
     card["note"] = (
@@ -410,9 +468,17 @@ def a3(qid, config, created_at, caller_id, kb_version, kb_result, revision):
         "numbers": ["box_margin_factor"],
         "falsifier": "sim-20260923-042's arms: a box at fewer persistence lengths that reproduces the same effective diffusivity retires the margin, and one at more that does not raises it",
     })
+    box_iv = {"parameter": "box_length", "unit": "um", "min": oom(L_min, "um"), "basis": ["box_length_min"], "precision": "order_of_magnitude"}
+    sweep = _sweep_axes(goal)
     card = _head("a3", qid, config, created_at, caller_id, kb_version, revision,
         method="deterministic", verdict="feasible",
-        constraints=[{"parameter": "box_length", "unit": "um", "min": oom(L_min, "um"), "basis": ["box_length_min"], "precision": "order_of_magnitude"}])
+        constraints=[box_iv],
+        inequalities=[
+            _ineq("L >> persistence length v0/D_R = Pe*d: a particle must not meet its own image while it remembers its direction",
+                  "box_length", interval=box_iv, varies_with=[a for a in sweep if a == "peclet_number_steric"] or None),
+            _ineq("L >> cluster correlation length in the motility-induced regime", "box_length",
+                  abstain=("no_input", "the correlation length of clusters at the dense, high-Peclet corner is an output of the run and the store holds nothing on it; the persistence-length bound is a precondition there, not a guarantee")) | {"missing": ["cluster_correlation_length"]},
+        ])
     card.update(cards.tail(numbers, assumptions=assumptions, **cards.evidence(kb_result, cards.carried_kb_refs(goal, numbers))))
     card["note"] = (
         "Periodic in both directions. The bound is set at the top of the Peclet range because one box per "
@@ -467,12 +533,16 @@ def a4(qid, config, created_at, caller_id, kb_version, kb_result, revision):
          "numbers": ["window_span_factor"],
          "falsifier": "a slope that changes with the upper end of the fit by more than the statistical error widens the span"},
     ]
+    s_iv = {"parameter": "save_interval", "unit": "s", "max": oom(save_max, "s"), "basis": ["save_interval_max"], "precision": "order_of_magnitude"}
+    l_iv = {"parameter": "fit_lag_range_lower_bound", "unit": "s", "min": oom(lower, "s"), "basis": ["fit_lag_range_lower_bound_min"], "precision": "order_of_magnitude"}
+    w_iv = {"parameter": "max_lag_time", "unit": "s", "min": oom(span, "s"), "basis": ["max_lag_time_min"], "precision": "order_of_magnitude"}
     card = _head("a4", qid, config, created_at, caller_id, kb_version, revision,
         method="deterministic", verdict="feasible",
-        constraints=[
-            {"parameter": "save_interval", "unit": "s", "max": oom(save_max, "s"), "basis": ["save_interval_max"], "precision": "order_of_magnitude"},
-            {"parameter": "fit_lag_range_lower_bound", "unit": "s", "min": oom(lower, "s"), "basis": ["fit_lag_range_lower_bound_min"], "precision": "order_of_magnitude"},
-            {"parameter": "max_lag_time", "unit": "s", "min": oom(span, "s"), "basis": ["max_lag_time_min"], "precision": "order_of_magnitude"},
+        constraints=[s_iv, l_iv, w_iv],
+        inequalities=[
+            _ineq("save_interval << persistence time: resolve the ballistic lags and the crossover", "save_interval", interval=s_iv),
+            _ineq("fit lower bound >> persistence time: read the plateau and not D_T", "fit_lag_range_lower_bound", interval=l_iv),
+            _ineq("max_lag_time >= a span above the lower bound: lags to fit", "max_lag_time", interval=w_iv),
         ])
     card.update(cards.tail(numbers, assumptions=assumptions, **cards.evidence(kb_result, cards.carried_kb_refs(goal, numbers))))
     card["note"] = (
@@ -521,11 +591,14 @@ def a5(qid, config, created_at, caller_id, kb_version, kb_result, revision):
         "numbers": ["particle_step_rate"],
         "falsifier": "a run that WRITES THE TRAJECTORY THIS PLAN DECLARES on hoomd_backend replaces the rate with the value measured off that run's own log and the ceiling interval moves with it",
     }]
+    p_iv = {"parameter": "particle_steps", "unit": "1", "max": oom(steps_max, "count"), "basis": ["particle_steps_max"], "precision": "order_of_magnitude"}
+    c_iv = {"parameter": "coordinates_stored", "unit": "1", "max": oom(coords_max, "count"), "basis": ["coordinates_stored_max"], "precision": "order_of_magnitude"}
     card = _head("a5", qid, config, created_at, caller_id, kb_version, revision,
         method="llm_estimate", verdict="feasible",
-        constraints=[
-            {"parameter": "particle_steps", "unit": "1", "max": oom(steps_max, "count"), "basis": ["particle_steps_max"], "precision": "order_of_magnitude"},
-            {"parameter": "coordinates_stored", "unit": "1", "max": oom(coords_max, "count"), "basis": ["coordinates_stored_max"], "precision": "order_of_magnitude"},
+        constraints=[p_iv, c_iv],
+        inequalities=[
+            _ineq("N * T / dt <= wall_clock_max * particle_step_rate", "particle_steps", interval=p_iv),
+            _ineq("2 * N * T / save_interval <= storage_max / bytes_per_coordinate", "coordinates_stored", interval=c_iv),
         ])
     card.update(cards.tail(numbers, assumptions=assumptions, **cards.evidence(kb_result, [])))
     card["note"] = (
