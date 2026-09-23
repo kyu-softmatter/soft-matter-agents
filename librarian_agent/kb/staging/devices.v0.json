@@ -671,12 +671,12 @@
       "what": "working distance of MRD77400 (40x-WI) at a coverslip thickness of exactly 170 um",
       "gap_id": "objective_40x_wd_at_170um",
       "why_it_matters": "axis A6 wants a working distance, and for this lens the catalog gives an interval where fixing the coverslip determines a single value",
-      "kind": "condition_mismatch",
+      "kind": "absent",
       "searched": ["Nikon catalog row for MRD77400 -- quotes 0.16 to 0.2 mm, correction-collar dependent, for coverglass 150 to 190 um"],
       "nearest": [
         { "entry_id": "objective_mrd77400", "overlap": "partial", "uncovered": "the collar setting that 170 um implies, and therefore which value inside 0.16 to 0.2 mm applies" }
       ],
-      "status": "open. The condition is known (coverslip_um = 170, entry coverslip_thickness_in_use) and the interval is known; the value inside it is not published, and the librarian does not interpolate inside a quotation (4.3). A caller that needs one number takes the interval and records its own choice as an assumption in its plan, naming this gap."
+      "status": "open, and the KIND changed on 2026-09-22 while the gap stayed open. The condition is now not merely known but MET AND PINNED: the person read the collar at 0.17 mm and will leave it there (objective_40x_collar_setting, operator_read, E3), which confirms the inference that 170 um glass determines the setting. What is still missing is the value itself -- the catalogue quotes 0.16 to 0.20 mm for the WHOLE collar range and publishes nothing at 0.17, and the librarian does not interpolate inside a quotation. So this stopped being a condition_mismatch, which says the conditions do not line up, and became `absent`, which says they do and the number is not there. The second is the better state and it is not an answer. A caller that needs one number still takes the interval and records its own choice as an assumption, naming this gap. TWO USES AND ONLY ONE IS UNBLOCKED: the safety floor does not need it, because the person ruled fallback [working_distance_min] and 0.16 is the near end at any collar setting, so that ruling is untouched; autofocus does need it, because choosing an end is wrong by up to 40 um either way and at 40x water that is fully out of focus. WHAT CLOSES IT: focus on the coverslip interface and read the encoder -- measured here, which also clears 10.3 rule 1 E3 cap. The 018 bench visit already carries interface offsets for all six lenses, so it adds no visit."
     },
     {
       "what": "the URL of the Nikon objective catalog",

@@ -1,0 +1,45 @@
+{
+  "entry_id": "objective_40x_collar_setting",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The correction collar on the 40x water-immersion objective MRD77400 is set to 0.17 mm and is held there. A collar scale is graduated in coverglass thickness, so the setting is a coverslip thickness of 170 micrometres, and it agrees with the 170 micrometre glass this laboratory uses.",
+  "numbers": [
+    {
+      "name": "coverslip_thickness",
+      "value": 170,
+      "unit": "um",
+      "source": "operator_read:kyuhwan_20260922",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "THE COLLAR'S SETTING, not the glass on the bench -- coverslip_thickness_in_use is that, and it is a separate reading. The two agree and that agreement is the content here. The scale is marked in millimetres and the person read 0.17; it is carried in micrometres because that is the unit its sibling uses and 0.17 mm is 170 um exactly. Named `coverslip_thickness` and not `collar_setting` because quantities.json rule 1 says a name states the quantity and never its subject: the quantity a collar scale carries IS a coverglass thickness, and the collar is the subject, which identifiers holds."
+    }
+  ],
+  "validity_conditions": "THIS CONFIRMS AN INFERENCE THE STORE HAD ALREADY MADE AND PINS IT. objective_mrd77400's own validity_conditions says the collar setting is determined once the coverglass thickness is fixed. That was a statement about what the collar OUGHT to be; this is a reading of what it IS, plus the person's statement that it will be left there. The two are different claims and they agree, which is worth more than either alone -- an inference that is checked is not the same object as an inference. It is not a new value and must not be written up as a discovery. IT DOES NOT CLOSE objective_40x_wd_at_170um. The catalogue's 0.16 to 0.20 mm spans the WHOLE collar range, not the value at 0.17, and the librarian does not interpolate inside a quotation -- the rule that refused 0.18 before refuses it now. What changes is the gap's kind: the condition is met and the value is still absent, which is a better state and an open one. THE COLLAR IS A MANUAL SELECTOR WITH NO READ-BACK, and that is the limit a consumer has to hang something on. 2.1 does not count it as a verified state, so `we do not change it often` is not a guarantee -- and a setting nobody changes often is one whose change date nobody records. This reading is true of 2026-09-22 and nothing in the instrument will contradict it if somebody turns the ring. A consumer that needs it true should schedule a visual check rather than assume, and that is why this entry exists as a dated reading rather than as a property of the lens. WHAT WOULD RAISE IT ABOVE E3, and it is not more reading: focus this lens on the coverslip interface and read the encoder. That is the working distance at collar 0.17 measured HERE, which clears 10.3's E3 cap on the catalogue figure and closes the gap as well. The 018 bench visit already carries interface offsets for all six lenses, so it adds no visit. HOW THE GRADE WAS SETTLED. The fact arrived as a relay through microscope-5, who flagged it as one. A relayed fact is a fact; a relayed grade is not, so the person was asked directly and answered that they read the scale just now rather than recalling when they set it -- operator_read at E3 rather than operator_recall at E5. AND IT IS NOT A NUMBER THE OPERATOR MERELY CHOSE. common.schema.json keeps targets, tolerances and budgets out of `source` entirely because SOURCE_GRADE is a function from source to grade. A collar position is arguably chosen, but every example in that rule is a POLICY number -- what we will not exceed -- while this is a state of the instrument that anyone can walk over and read, the same kind of thing as which objective is in the path. The store records those as operator_read. An `operator_set:` prefix was proposed for this and is not minted: it was added once and reverted for the reason that file gives.",
+  "validity": {
+    "coverslip_um": {
+      "min": 170,
+      "max": 170,
+      "unit": "um"
+    }
+  },
+  "subject": [
+    {
+      "kind": "device",
+      "id": "nosepiece"
+    }
+  ],
+  "source": "operator_read:kyuhwan_20260922",
+  "grade": "E3",
+  "grade_tag": "operator_read",
+  "source_ref": "src_operator_read_20260922",
+  "date": "2026-09-22",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-2",
+  "identifiers": {
+    "part_number": "MRD77400",
+    "product": "CFI Apo Lambda S 40XC WI",
+    "nominal_magnification": "40x",
+    "immersion": "water"
+  }
+}

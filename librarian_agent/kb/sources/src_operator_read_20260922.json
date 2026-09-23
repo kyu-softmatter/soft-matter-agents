@@ -1,0 +1,9 @@
+{
+  "source_id": "src_operator_read_20260922",
+  "kind": "operator_read",
+  "identifier": "Things the operator (kyuhwan) read at the instrument on 2026-09-22, as distinct from what was stated from memory the same day.",
+  "accessed": "2026-09-22",
+  "grade_rule": "E3. What was read and what was remembered do not take the same grade (5.3), and which of the two a statement is, is a question for the person rather than an inference from how confident it sounds.",
+  "license_note": "Identifier only.",
+  "note": "WHAT WAS ASKED, because the grade turned on it. The fact reached this seat as a RELAY through microscope-5, who flagged it as one. A relayed fact is a fact; a relayed grade is not -- so the person was asked directly, in this seat's own session, with two options: read off the collar just now, or recalled from when it was set. They answered that they looked at the scale. Had it been the second it would be `operator_recall:` at E5, and reading the collar later would raise it."
+}
