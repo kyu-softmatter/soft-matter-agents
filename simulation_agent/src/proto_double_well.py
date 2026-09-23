@@ -196,7 +196,8 @@ def solve_separation(make, target_barrier, lo=0.2, hi=14.0, key=0, iters=90):
 
 # ------------------------------------------------------------ dynamics ------
 
-def bd(dw, dt, n_steps, n_walkers, seed, x0=None, burn_in=0):
+def bd(dw, dt, n_steps, n_walkers, seed, x0=None, burn_in=0,
+       save_interval=0, n_recorded=0):
     """Euler-Maruyama in reduced units, with milestoning states.
 
     dx = -U'(x) dt + sqrt(2 dt) * N(0,1)
@@ -219,6 +220,14 @@ def bd(dw, dt, n_steps, n_walkers, seed, x0=None, burn_in=0):
     state = np.where(x >= x2, 2, 1)
     last_t = np.zeros(n_walkers)
     res1, res2 = [], []
+    # THE TRAJECTORY IS THE RECORD AND IT HAS TO BE SUBSAMPLED (A4). Storing
+    # every step is not an option here: the timestep is set by the stiffest
+    # curvature and the dwell by the barrier, so at a stiffness ratio of 100 a
+    # single dwell is ten million steps. The save interval is the caller's
+    # because it is an A4 decision -- resolve the SHORTEST dwell, which is the
+    # stiff well's, and nothing finer.
+    n_rec = n_recorded if n_recorded else n_walkers
+    traj = ([] if save_interval else None)
     occ = np.zeros(2)
     n_exit = np.zeros(2)
     amp = np.sqrt(2.0*dt)
@@ -248,6 +257,8 @@ def bd(dw, dt, n_steps, n_walkers, seed, x0=None, burn_in=0):
             last_t[hit1] = t
             state[hit1] = 1
             n_exit[1] += hit1.sum()
+        if save_interval and i % save_interval == 0:
+            traj.append(x[:n_rec].copy())
     # THE ESTIMATOR IS PART OF THE IDENTITY, and these two differ by more than
     # the error bar. The mean of completed dwells is biased LOW by roughly
     # mu/T_record, because the longest dwell in a record is the one most likely
@@ -257,7 +268,9 @@ def bd(dw, dt, n_steps, n_walkers, seed, x0=None, burn_in=0):
     tau = np.where(n_exit > 0, occ/np.maximum(n_exit, 1), np.nan)
     return dict(res1=np.array(res1), res2=np.array(res2),
                 occ=occ, n_exit=n_exit, tau=tau, p_occ=occ/occ.sum(),
-                t_total=n_steps*dt, x_end=x, state=state)
+                t_total=n_steps*dt, x_end=x, state=state,
+                traj=(np.array(traj) if traj else None),
+                traj_dt=(save_interval*dt if save_interval else None))
 
 
 def first_passage(dw, dt, n_walkers, seed, max_steps=40_000_000, chunk=20000):
