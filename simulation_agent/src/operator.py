@@ -52,6 +52,7 @@ from pathlib import Path
 from . import cards
 from . import hoomd_backend
 from . import mock_backend
+from . import trajectory
 
 APPROVALS = cards.AGENT / "approvals"
 RUNS = cards.AGENT / "runs"
@@ -786,8 +787,24 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     # at one window, and this one asks whether the window itself was right.
     halves = backend.window_halves(window)
     final = backend.read()
+    # The positions, written beside the summary (013). Steps per frame are
+    # derived from each frame's simulated time and the plan's dt -- an
+    # integer count read back from a product, not a running sum (see the
+    # completion-criterion incident in this agent's CLAUDE.md).
+    dt = float(params["integration_timestep"])
+    steps = [int(round(t / dt)) for t in getattr(backend, "frame_times", [])]
+    written = trajectory.write(out, list(getattr(backend, "frames", [])), steps, float(params["box_length"]))
     cards.write(out / "trajectory_meta.json", {
         "run_id": run_id,
+        # What is on disk beside this file and what a frame in it is, or why
+        # nothing is. This summary is the part that outlives the data: a
+        # deletion later (run_log `deletion` event, check 77) removes the
+        # file and leaves this block saying what it was.
+        "trajectory": written,
+        # Storing the trajectory moves the cost: 10001 frames x 1000 x 3 x 4
+        # bytes is ~0.12 GB per revision-3 run against a plan storage_estimate
+        # of 0.02 GB. Recorded here and not corrected here -- that estimate is
+        # a_cost_reference's, and replacing it is revision 4's work (013, 020).
         "frames_saved": final.get("frames_saved"),
         "simulated_time": final.get("simulated_time"),
         "steps_taken": final.get("steps_taken"),
