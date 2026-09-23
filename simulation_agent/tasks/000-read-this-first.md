@@ -104,13 +104,34 @@ with a condition anyone could run. So every row carries one.
 |---|---|
 | **`004` — revision 2** | `git log --oneline -1 -- simulation_agent/questions/sim-20260917-001/v2_goal.json` |
 | **`007` — the result-card writer** | `ls simulation_agent/src/result_card.py 2>/dev/null && echo TAKEN \|\| echo OPEN` |
-| **`014` — a default that names a backend** | `grep -q 'mock_backend.NAME)' simulation_agent/src/operator.py && echo OPEN \|\| echo TAKEN` |
+| **`014` — a default that names a backend** | `cd simulation_agent && python3 -c "from src.operator import backend_name; backend_name(type('N',(),{})())" 2>&1 | grep -q Refused && echo TAKEN \|\| echo OPEN` |
 | **`013` — write the trajectory** | `find simulation_agent/runs -type f ! -name '*.json' -print -quit | grep -q . && echo TAKEN \|\| echo OPEN` |
 | **`012` — round 2, and the id that refuses it** | `ls bridge/threads/thr-tracer-diffusivity-001/r2_ask_experiment.json 2>/dev/null && echo DONE \|\| echo BLOCKED` — blocked on 4.4/7.1, not on this tree |
 | **`011` — thirteen rows name no task** | `python3 -c "import json;print(sum(1 for l in open('simulation_agent/failures.jsonl') if l.strip() and json.loads(l).get('occasion')))"` — 0 means open |
 | **`010` — attach the engine** | `ls simulation_agent/src/hoomd_backend.py 2>/dev/null && echo TAKEN \|\| echo OPEN` |
 | **`009` — the operator resolves a revision** | `grep -q artifact_name simulation_agent/src/operator.py && echo TAKEN || echo OPEN` |
 | **`008` — measure what the writer writes** | `python3 -c "import json;print(any(str(json.loads(l).get('task','')).startswith('008') for l in open('simulation_agent/failures.jsonl') if l.strip()))"` |
+
+**A condition asks what the card PRODUCED, never whether the old text is still
+there.** `014`'s first condition grepped the source for the literal it was
+sent to remove, and `simulation-4` hit it immediately: its docstring quoted
+that literal in order to explain what had gone, so the code was fixed and the
+condition read `OPEN`. **A text match cannot tell code from a comment about
+code**, and it fails both ways — a comment can hold a card open, and renaming
+a live call can close one.
+
+So, in order of preference:
+
+1. **Does the artifact exist?** `ls simulation_agent/src/result_card.py`.
+   Cheapest and hardest to fool.
+2. **Does the behaviour happen?** Run it. `014`'s row now calls
+   `backend_name` with a nameless object and looks for `Refused` — that is
+   the thing the card asked for, and no comment can produce it.
+3. **Does the old text survive?** Last resort, and say so in the row.
+
+`simulation-4` raised this instead of rewording the docstring until the
+condition agreed, which is the only reason the mechanism got better rather
+than quieter.
 
 **The status column is gone because it went stale while the conditions stayed
 true.** On 2026-09-22 all three of `010`, `011` and `012` returned done or
