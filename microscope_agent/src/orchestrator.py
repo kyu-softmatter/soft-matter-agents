@@ -796,30 +796,96 @@ class Orchestrator:
         self.record(event="abort_begin", reason=reason)
         report: dict[str, object] = {"reason": reason, "shutters": [], "channels": []}
 
-        shutters = self.shutters()
-        if not shutters:
-            report["shutter_gap"] = (
-                "the registry lists no shutter element. plan.md 4.6.8 interlock 1 closes shutters "
-                "before ramping power down; with none declared there is no fast cut-off to use, so "
-                "the ramp is all that is left and that is slower. Confirm the shutters on the "
-                "instrument and record them before this path is trusted"
-            )
-            self.record(event="abort_shutter_gap", note=report["shutter_gap"])
-
-        for cid, element in shutters:
+        # ONE ROW PER CHANNEL, NOT ONE BOOLEAN FOR THE INSTRUMENT.
+        #
+        # The gap test was `if not self.shutters()`, which is global: the list
+        # is collected across every channel by `"shutter" in element_id`, so
+        # ONE channel with a recognised name suppressed the warning for every
+        # channel without one. Measured: two recognised -> 0 warnings; one
+        # recognised and one spelled `*_blanking` -> still 0 warnings and half
+        # the cut-offs left open; none recognised -> 1 warning. A total miss
+        # left a record and a partial miss left nothing.
+        #
+        # That is the one spelling dependence here that fails PERMISSIVE.
+        # A missed retract makes the turret interlock refuse -- wrong, loud,
+        # safe. A missed shutter makes 4.6.8 interlock 1 close what it
+        # recognised and carry on, so what it missed stays open while the
+        # power ramps, and the ramp is the slow path the shutter exists to
+        # beat. `blanking` is not a hypothetical spelling: the store's
+        # lunf_per_line_power_is_not_transmittable says the combiner's lines
+        # are reachable only as blanking.
+        #
+        # P0 says ambiguity stops rather than proceeds, and ON THE ABORT PATH
+        # "stops" cannot mean refusing to abort -- that is worse than the gap.
+        # So it means the record names what it could not do.
+        #
+        # AND IT INFERS NOTHING ABOUT WHICH CHANNELS EMIT LIGHT. Deciding
+        # "this one needed a cut-off" from a role string is the same spelling
+        # judgement one level up, and a model choosing where a P0 guard
+        # applies is what P0 forbids. The denominator is every channel; the
+        # reader draws the conclusion, and the reader is a person.
+        found = dict(self.shutters())            # channel -> element, at most one per channel
+        for cid in self.channels:
+            element = found.get(cid)
+            if element is None:
+                report["shutters"].append({
+                    "channel": cid, "element": None, "identified": False, "closed": None,
+                    "note": ("no element of this channel was recognised as a fast cut-off, by "
+                             f"the test `'shutter' in element_id` over {self.channels[cid].element_ids()}. "
+                             "Whether this channel needs one is NOT decided here: nothing in the "
+                             "registry says which channels emit, and inferring it from a role "
+                             "string would be the same guess this record exists to expose")})
+                continue
             try:
                 self.module_for(cid).apply({"element": element, "state": "closed"})
-                report["shutters"].append({"channel": cid, "element": element, "closed": True})
+                report["shutters"].append({"channel": cid, "element": element,
+                                           "identified": True, "closed": True})
             except Exception as exc:                            # noqa: BLE001 - keep going, record it
-                report["shutters"].append({"channel": cid, "element": element, "closed": False,
+                report["shutters"].append({"channel": cid, "element": element,
+                                           "identified": True, "closed": False,
                                            "error": str(exc)})
 
+        identified = [r for r in report["shutters"] if r["identified"]]
+        report["shutter_coverage"] = {
+            "channels": len(self.channels), "identified": len(identified),
+            "without": sorted(r["channel"] for r in report["shutters"] if not r["identified"]),
+            "note": ("the denominator, so a partial miss is as visible as a total one. This "
+                     "counts channels with a RECOGNISED cut-off and not channels that need "
+                     "one -- the second number is not knowable from the registry today")}
+        self.record(event="abort_shutter_coverage", **report["shutter_coverage"])
+
+        # `aborted` IS A THIRD BOOLEAN CARRYING MORE THAN IT KNOWS, and it is
+        # the answer to 028's last question. `module.abort()` returning means
+        # the command was ACCEPTED, and on optical_tweezers that is all it can
+        # ever mean -- tweez300_reports_nothing_back (E3): no read-back of any
+        # kind, and a return code of 0 on six distinct ways of being ignored.
+        # `aborted: true` there asserts the instrument stopped; what happened
+        # is that a GUI took the text. Same shape as `verification`, so it
+        # takes the same three-way answer rather than a wider boolean.
         for cid in self.channels:
+            channel = self.channels[cid]
+            confirmable = channel.read_back is True
             try:
                 self.module_for(cid).abort()
-                report["channels"].append({"channel": cid, "aborted": True})
+                report["channels"].append({
+                    "channel": cid, "accepted": True,
+                    # `accepted_only` and not a bare `accepted`: the shorter
+                    # word reads as the stronger claim and belongs to the
+                    # channel that can say least. I wrote it the other way
+                    # round first and the probe printed optical_tweezers --
+                    # which reports nothing at all -- with the confident
+                    # label. Neither state is verified; they differ in
+                    # whether anything MORE was ever available.
+                    "aborted": "accepted_only" if not confirmable else "accepted_unverified",
+                    "note": ("the channel reports nothing back, so acceptance is the whole of "
+                             "what is known (2.1: an unverified state does not proceed -- here "
+                             "it is recorded, because refusing to abort is worse than the gap)"
+                             if not confirmable else
+                             "the command was accepted; nothing queried the channel afterwards, "
+                             "so this is not a confirmation that it stopped")})
             except Exception as exc:                            # noqa: BLE001 - keep going, record it
-                report["channels"].append({"channel": cid, "aborted": False, "error": str(exc)})
+                report["channels"].append({"channel": cid, "accepted": False, "aborted": "refused",
+                                           "error": str(exc)})
 
         self.record(event="abort_end", report=report)
         return report

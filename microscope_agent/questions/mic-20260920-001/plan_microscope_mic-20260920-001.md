@@ -1,8 +1,8 @@
-# plan plan-mic-20260920-001-r2
+# plan plan-mic-20260920-001-r3
 
-*Generated from plan-mic-20260920-001-r2.json. Editing this file changes nothing (P3, 5.6).*
+*Generated from plan-mic-20260920-001-r3.json. Editing this file changes nothing (P3, 5.6).*
 
-- question: `mic-20260920-001`  ·  thread `solo-mic-20260920-001`  ·  revision 2  ·  status **VALIDATED**
+- question: `mic-20260920-001`  ·  thread `solo-mic-20260920-001`  ·  revision 3  ·  status **VALIDATED**
 - observable: `tracer_brightness`  ·  intent: explore
 - configuration: `widefield_inline`
 
@@ -35,11 +35,11 @@ characterize
 
 ## Actions
 
-- **act_release_pfs** `disable` on `pfs` (tier 1, **irreversible**)
+- **act_release_pfs** `disable` on `pfs` (tier 1, reversible)
 - **act_retract_objective** `retract` on `z_drive` (tier 1, reversible)
 - **act_set_nosepiece_position** `set_nosepiece_position` on `nosepiece` (tier 1, reversible)
 - **act_set_intermediate_magnification** `set_intermediate_magnification` on `intermediate_magnification` (tier 1, reversible)
-- **act_reacquire_pfs** `enable` on `pfs` (tier 1, **irreversible**)
+- **act_reacquire_pfs** `enable` on `pfs` (tier 1, reversible)
 - **act_acquire** `acquire_series` on `camera_red` (tier 1, reversible)
 
 ## Stop criteria
@@ -54,6 +54,6 @@ characterize
 ## Open risks
 
 - THE RETRACT CARRIES NO TARGET HEIGHT. act_retract_objective sends the verb and no distance, because the store's claim about this axis is a DIRECTION at E3 -- smaller Z is retracted -- and nothing says how far. The one number that would bear on it, the working height above the coverslip, is an open debt on the person's list. So the device's own escape position answers the question and this plan cannot state what clearance that leaves: `objective_clearance` is not on this card, which is why the operator's comparison against objective_clearance_min records `compared: null` rather than a pass. What stands in for the number is the READ-BACK -- stand_ti2e answers, so the interlock requires the retract verified and not merely issued, and the rotation does not proceed on an assumption. Inventing a height instead would put a model-made number in a safety path, which P2 admits nowhere.
-- RE-ACQUIRING PFS IS NOT RESTORING THE LOCK IT DROPPED. act_reacquire_pfs takes a new lock wherever focus is after the rotation and the retract, which is why both PFS actions are `reversible: false`. No offset is commanded: pfs_offset_sign_unmeasured is open and the store calls it the one remaining direction on a collision device that has never been measured, adding that a direction written into a configuration without being measured reads as verified. Release and re-acquire need no sign; an offset does, and it waits for the bench.
+- RE-ACQUIRING PFS IS NOT RESTORING THE LOCK IT DROPPED. act_reacquire_pfs takes a new lock wherever focus is after the rotation and the retract. Both PFS actions are nonetheless `reversible: true`: the ACTION undoes -- PFS off and on again leaves PFS on -- and it is the particular lock that does not come back, which is a fact about the result. Marking them irreversible would force an individual approval on the step 2.1 REQUIRES before every turret change. No offset is commanded: pfs_offset_sign_unmeasured is open and the store calls it the one remaining direction on a collision device that has never been measured, adding that a direction written into a configuration without being measured reads as verified. Release and re-acquire need no sign; an offset does, and it waits for the bench.
 - The detector is camera_red, selected by setting csuw1_port to 'empty'. That is the person's DECISION and not a bound any axis returned -- the store's chain to this arm ends at an E5 recall carrying the word `probably`, and the store declines to promote it. THIS RUN ADJUDICATES IT: if no particles appear on this arm, the recalled emission-wheel-to-camera mapping is inverted, and that is a RESULT rather than a failure -- the result card carries the correction to the librarian. It costs nothing to find out this way, because bare particles are not the mount and the one mount is not spent. The reading that would have settled it beforehand is one visit to the emission wheel, which also closes light_path_port and filter_turret_1; it is on card 018 and comes before the measurement this run unblocks, not before this run.
 

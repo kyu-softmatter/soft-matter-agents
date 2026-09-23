@@ -560,14 +560,30 @@ def assemble(qid: str, revision: int = 1,
     # stand_ti2e, which dispatches one channel's commands in sequence in the
     # order given, so the plan's order is the instrument's.
     #
-    # `reversible: False` on the release and the re-acquire is deliberate:
-    # PFS holding a focus lock and PFS not holding one are different states
-    # of the sample, and re-acquiring does not restore the lock that was
-    # dropped -- it takes a new one, wherever focus is now.
+    # BOTH PFS ACTIONS ARE `reversible: True`, AND I HAD THEM FALSE.
+    #
+    # The argument for false was that re-acquiring does not restore the lock
+    # it dropped -- it takes a new one wherever focus now is. That is true
+    # and it is not what the field asks. `reversible` asks whether the
+    # ACTION can be undone; PFS off and PFS on again returns the instrument
+    # to PFS on, the same way rotating the turret back returns the
+    # objective. By my own argument the rotation would have been
+    # irreversible too, and I marked that one true.
+    #
+    # What it cost: check 66 requires an irreversible action to be read
+    # back, and 2.1 rule 3 forces an INDIVIDUAL APPROVAL for one resting on
+    # E4/E5 -- so a mandatory safety step, the one 2.1 requires before every
+    # turret change, would have needed a human approval of its own each
+    # time. A guard that is harder to run than to skip is a guard people
+    # skip.
+    #
+    # The caveat survives where it belongs: the plan's open_risks says the
+    # re-acquire takes a new lock, which is a fact about the RESULT and not
+    # about whether the action can be undone.
     rotates = any(c["parameter"] == "nosepiece_position" for c in conditions)
     if rotates and "pfs" in elements:
         actions.append({"id": "act_release_pfs", "device": "pfs", "action": "disable",
-                        "reversible": False, "parameters": [], "tier": 1})
+                        "reversible": True, "parameters": [], "tier": 1})
     if rotates:
         retract = next((e for e in ("z_drive", "focus", "z_axis", "objective_z", "z")
                         if e in elements), None)
@@ -613,7 +629,7 @@ def assemble(qid: str, revision: int = 1,
     # need no sign; moving by an offset does, and that waits for the bench.
     if rotates and "pfs" in elements:
         actions.append({"id": "act_reacquire_pfs", "device": "pfs", "action": "enable",
-                        "reversible": False, "parameters": [], "tier": 1})
+                        "reversible": True, "parameters": [], "tier": 1})
 
     # AND ONE ACQUIRE, IF THE CONFIGURATION NAMES ONE DETECTOR.
     #
@@ -686,9 +702,12 @@ def assemble(qid: str, revision: int = 1,
     if any(a["id"] == "act_release_pfs" for a in actions):
         open_risks.append(
             "RE-ACQUIRING PFS IS NOT RESTORING THE LOCK IT DROPPED. act_reacquire_pfs takes a "
-            "new lock wherever focus is after the rotation and the retract, which is why both "
-            "PFS actions are `reversible: false`. No offset is commanded: "
-            "pfs_offset_sign_unmeasured is open and the store calls it the one remaining "
+            "new lock wherever focus is after the rotation and the retract. Both PFS actions "
+            "are nonetheless `reversible: true`: the ACTION undoes -- PFS off and on again "
+            "leaves PFS on -- and it is the particular lock that does not come back, which is a "
+            "fact about the result. Marking them irreversible would force an individual "
+            "approval on the step 2.1 REQUIRES before every turret change. No offset is "
+            "commanded: pfs_offset_sign_unmeasured is open and the store calls it the one remaining "
             "direction on a collision device that has never been measured, adding that a "
             "direction written into a configuration without being measured reads as verified. "
             "Release and re-acquire need no sign; an offset does, and it waits for the bench.")
