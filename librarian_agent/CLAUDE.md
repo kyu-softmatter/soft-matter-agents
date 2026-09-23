@@ -269,9 +269,31 @@ wrong session, and that was settled only when the other counted its eight
 commits and showed none of them touched the file.
 
 The identity is written in this file rather than remembered because a prefix
-that lives only in context disappears with a clear, and the next commit goes
-out under the person's name with check 41 reporting it unattributed (§6.2.3).
-That reasoning was right and only the flat string was wrong.
+that lives only in context disappears with a clear. That reasoning was right
+and only the flat string was wrong.
+
+**WHAT HAPPENS WHEN YOU FORGET IS NOT WHAT THIS FILE SAID.** It said the
+commit goes out under the person's name and check 41 reports it
+unattributed. **Neither half is true here.** This working copy pins a
+committer in `.git/config.worktree` — `seat:bridge-4` as of 2026-09-23 — and
+**`committer.*` beats `user.*`**, so a bare commit goes out as **another
+registered seat**, not as `kyuhwan`. `unknown_committer: report` never fires,
+because the committer is known.
+
+**The real failure is louder than the sentence promised, and that is the
+problem.** Check 41 FAILs with a boundary violation: *"seat 'bridge-4' owns
+['bridge']; this path is ..."*. A seat that believed this file goes looking
+for the word *unattributed* and finds a boundary error instead — which is
+exactly the hour another seat spent on 2026-09-23 working out why
+`git -c user.email=...` had been silently overridden five times in a row.
+Measured before rewriting this: `git config --get committer.name` returns
+`seat:bridge-4`, `user.name` returns `kyuhwan`, and check 41 line 93 is a
+FAIL and not a PENDING.
+
+**So: run `git var GIT_COMMITTER_IDENT` before trusting who you are.** The
+environment-variable form below beats the pin, which is why it has worked all
+along; the commit hook now prints the identity it is committing as, so you no
+longer have to remember to ask.
 
 **NAME FILES, NOT `librarian_agent/`.** A directory path is not safer than
 `-a`; it is the same hazard spelled differently. `git commit -- <path>` builds
