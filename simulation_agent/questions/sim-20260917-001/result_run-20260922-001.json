@@ -1,0 +1,429 @@
+{
+  "card": "result",
+  "schema_version": "0.1",
+  "id": "result-sim-20260917-001-run-20260922-001",
+  "qid": "sim-20260917-001",
+  "thread": "solo-sim-20260917-001",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T02:29:31.383784+00:00",
+  "status": "DONE",
+  "plan_id": "plan-sim-20260917-001-r3",
+  "plan_revision": 3,
+  "plan_hash": "sha256:69541b9115696d4875947b534959d61f47edf9410eae72f0f0fc86f40cc2a293",
+  "approval_id": null,
+  "run_id": "run-20260922-001",
+  "observable": {
+    "name": "tracer_diffusivity"
+  },
+  "outcome": "DONE",
+  "values": [
+    {
+      "metric": "tracer_diffusivity",
+      "number": "diffusivity_predicted",
+      "uncertainty": null
+    }
+  ],
+  "criteria_evaluation": [
+    {
+      "id": "planned_duration_reached",
+      "kind": "stop",
+      "met": true,
+      "observed_number": "total_simulated_time_actual"
+    },
+    {
+      "id": "step_displacement_diverged",
+      "kind": "stop",
+      "met": false,
+      "observed_number": "max_step_displacement"
+    },
+    {
+      "id": "within_target_decade",
+      "kind": "success",
+      "met": true,
+      "observed_number": "decades_from_prediction"
+    },
+    {
+      "id": "statistics_met",
+      "kind": "success",
+      "met": true,
+      "observed_number": "relative_standard_error"
+    },
+    {
+      "id": "free_regime_intercept",
+      "kind": "success",
+      "met": true,
+      "observed_number": "intercept_in_block_sigma"
+    },
+    {
+      "id": "window_insensitive",
+      "kind": "success",
+      "met": true,
+      "observed_number": "window_half_disagreement"
+    }
+  ],
+  "deviations": [
+    {
+      "parameter": "integration_timestep",
+      "planned_number": "integration_timestep_planned",
+      "actual_number": "integration_timestep_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "total_simulated_time",
+      "planned_number": "total_simulated_time_planned",
+      "actual_number": "total_simulated_time_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "save_interval",
+      "planned_number": "save_interval_planned",
+      "actual_number": "save_interval_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "max_lag_time",
+      "planned_number": "max_lag_time_planned",
+      "actual_number": "max_lag_time_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    }
+  ],
+  "time_base": {
+    "t0_wall": "2026-09-23T02:28:45.582565+00:00",
+    "t0_mono": 1372046.732290041,
+    "alignment": "model_step_index"
+  },
+  "targets": [
+    {
+      "metric": "tracer_diffusivity",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "one decade is enough: the question is whether the engine reproduces the free value at all. Confirmed by the person at ad38bb0, so the value does not move at this revision -- what moved is that it stopped being this agent's E5 assumption"
+    }
+  ],
+  "estimation": {
+    "vocabulary_version": "obs-7823c92a2018",
+    "followed": true,
+    "note": "the weighted least squares the vocabulary declares, run by the backend and citing the contract in its own output. What is compared here is the fit range, which is the part of the estimator a run can fail to honour by stopping early"
+  },
+  "numbers": [
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v3_plan_simulation_sim-20260917-001.json#temperature",
+      "precision": "significant_figures",
+      "note": "the operator's thermometer reading of the room. It is not established to be the sample's temperature -- see the gap"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v3_plan_simulation_sim-20260917-001.json#viscosity",
+      "precision": "significant_figures",
+      "note": "pure water. The entry's validity runs 288 to 298 K, and the temperature above is inside it"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "origin": "v3_plan_simulation_sim-20260917-001.json#bead_diameter",
+      "precision": "significant_figures",
+      "note": "the tracer the question is about, measured directly by the operator on 2026-09-19 with a coefficient of variation no greater than 2 per cent. Cited as kb: rather than calibration: -- the grade is E2 either way, but this agent holds no calibration and the citation is what puts the entry in kb_refs"
+    },
+    {
+      "name": "n_particles",
+      "value": 1000,
+      "unit": "count",
+      "source": "assumed:a_ensemble",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260917-001.json#n_particles",
+      "precision": "order_of_magnitude",
+      "note": "tracers per box. Non-interacting, so the ensemble is a statistics knob rather than a physical density -- but the box still has to hold them dilutely (A3)"
+    },
+    {
+      "name": "integration_timestep_planned",
+      "value": 0.3,
+      "unit": "s",
+      "source": "computed:thousandth_of_a_diffusive_time",
+      "grade": "E4",
+      "origin": "v3_plan_simulation_sim-20260917-001.json#integration_timestep_point",
+      "precision": "order_of_magnitude",
+      "note": "the person's standing default, a thousandth of the diffusive time. S4 no longer picks this inside A1's interval -- 0.3 s sits an order of magnitude under A1's 3 s ceiling, but the value comes from the default rather than from the choice. The thousandth is a decision and carries no grade; what it multiplies is kb:tau_d, so the seconds inherit E4"
+    },
+    {
+      "name": "total_simulated_time_planned",
+      "value": 3000,
+      "unit": "s",
+      "source": "computed:ten_diffusive_times",
+      "grade": "E4",
+      "origin": "v3_plan_simulation_sim-20260917-001.json#total_simulated_time_point",
+      "precision": "order_of_magnitude",
+      "note": "the person's standing default, ten diffusive times. It replaces two decades above A2's statistical floor, which was S4 choosing: the floor is 3 s and this is a thousand times it, so the statistical bound is satisfied by a wide margin rather than by construction. The ten is a decision and carries no grade; the seconds inherit E4 from kb:tau_d, which is the ceiling a wall-clock duration can never beat"
+    },
+    {
+      "name": "save_interval_planned",
+      "value": 0.3,
+      "unit": "s",
+      "source": "computed:two_decades_below_the_window",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260917-001.json#save_interval_max",
+      "precision": "order_of_magnitude",
+      "note": "upper bound. Saving more often costs storage, which is A5's, not A4's"
+    },
+    {
+      "name": "max_lag_time_planned",
+      "value": 30,
+      "unit": "s",
+      "source": "assumed:a_window",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260917-001.json#max_lag_time",
+      "precision": "order_of_magnitude",
+      "note": "the window the estimator is evaluated over, set below tau_d so the free regime is what is sampled. Held at the tenth of tau_d revision 1 used: at the new tau_d the old 2 s would have been under one per cent of it, which samples only the shortest lags. tracer_diffusivity is window_required, so this travels with the plan as a condition. A4 constrains it"
+    },
+    {
+      "name": "box_length",
+      "value": 300,
+      "unit": "um",
+      "source": "computed:spacing_times_particles_per_edge",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260917-001.json#box_length_min_dilution",
+      "precision": "order_of_magnitude",
+      "note": "the binding bound here: dilution costs a hundred microns, images only nine"
+    },
+    {
+      "name": "target_relative_error",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_statistics",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260917-001.json#target_relative_error",
+      "precision": "order_of_magnitude",
+      "note": "ten per cent, which is well inside the one decade the goal asks for"
+    },
+    {
+      "name": "intercept_sigma_max",
+      "value": 3,
+      "unit": "1",
+      "source": "assumed:a_intercept_guard",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260917-001.json#intercept_sigma_max",
+      "precision": "order_of_magnitude",
+      "note": "how far the MSD fit's intercept may sit from zero, in standard errors of the BLOCK-RESAMPLED uncertainty and not the fit's own. The fit treats correlated MSD points as independent and quotes an error about 36x too small (measured over 32 seeds), so the same criterion against the fit's error would refuse a sound run: run-20260920-002 reads 6.5 sigma there and 2.0 sigma here"
+    },
+    {
+      "name": "diffusivity_predicted",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "origin": "v3_plan_simulation_sim-20260917-001.json#diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "bulk Stokes-Einstein: sphere, bulk, no slip. Those assumptions stay in the value. The relation is the librarian's (kb:tracer_diffusivity_expected), not a second one -- recomputing a quantity the store holds is a detour, and citing it is what gets the one name. This is the expectation the run is checked against, and the engine derives its own from the same bath rather than being handed this number"
+    },
+    {
+      "name": "relative_standard_error",
+      "value": 0.002095347796067273,
+      "unit": "1",
+      "source": "simulated:run-20260922-001",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "n_particles",
+        "integration_timestep_planned",
+        "save_interval_planned",
+        "max_lag_time_planned"
+      ],
+      "note": "the block standard error over the estimate: 50 blocks of 20 tracers refitted with the same estimator. The tracers do not interact here, so the blocks are independent by construction. The fit's own relative error is in the run record and is about 36 times smaller than the spread this configuration actually shows"
+    },
+    {
+      "name": "decades_from_prediction",
+      "value": 0.020194140529132033,
+      "unit": "count",
+      "source": "simulated:run-20260922-001",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "n_particles",
+        "integration_timestep_planned",
+        "save_interval_planned",
+        "max_lag_time_planned",
+        "diffusivity_predicted"
+      ],
+      "note": "log10 of the fitted diffusivity over the plan's Stokes-Einstein expectation, in absolute value so that a factor low fails the same way as a factor high. Not a computed: number: check 17's formula language has + - * / ** and no logarithm, so a decade count cannot be written as an arithmetic the validator can redo"
+    },
+    {
+      "name": "intercept_in_block_sigma",
+      "value": -0.19010430767312342,
+      "unit": "1",
+      "source": "simulated:run-20260922-001",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "n_particles",
+        "integration_timestep_planned",
+        "save_interval_planned",
+        "max_lag_time_planned"
+      ],
+      "note": "the MSD fit's intercept over the block-resampled error on it. This backend has no localisation error for a free intercept to absorb, so a nonzero one is the window and not the physics"
+    },
+    {
+      "name": "window_half_disagreement",
+      "value": 0.00010825619255000056,
+      "unit": "count",
+      "source": "simulated:run-20260922-001",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "n_particles",
+        "integration_timestep_planned",
+        "save_interval_planned",
+        "max_lag_time_planned"
+      ],
+      "note": "log10 of the diffusivity fitted over the first half of the lag range against the second, in absolute value. It is what separates converged from precise: a fit reaching past the free regime disagrees with itself across the window while each half stays tight, and neither error bar can report that because every block spans the same lags"
+    },
+    {
+      "name": "total_simulated_time_actual",
+      "value": 3000.0,
+      "unit": "s",
+      "source": "simulated:run-20260922-001",
+      "grade": "E4",
+      "inputs": [
+        "integration_timestep_planned",
+        "total_simulated_time_planned"
+      ],
+      "note": "steps_taken * dt, read off an integer step count rather than accumulated. Summing dt ten thousand times gives 19.999999999999794 against a planned end of 20 s, and a comparison at a boundary is a decision rather than a measurement"
+    },
+    {
+      "name": "max_step_displacement",
+      "value": 0.3930034194657818,
+      "unit": "um",
+      "source": "simulated:run-20260922-001",
+      "grade": "E4",
+      "inputs": [
+        "integration_timestep_planned",
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "the largest single-step displacement any tracer took, which is what the divergence criterion watches"
+    },
+    {
+      "name": "integration_timestep_actual",
+      "value": 0.3,
+      "unit": "s",
+      "source": "simulated:run-20260922-001",
+      "grade": "E4",
+      "inputs": [
+        "integration_timestep_planned",
+        "total_simulated_time_planned"
+      ],
+      "note": "the timestep the run actually integrated at, as simulated time over steps taken"
+    },
+    {
+      "name": "save_interval_actual",
+      "value": 0.3,
+      "unit": "s",
+      "source": "simulated:run-20260922-001",
+      "grade": "E5",
+      "inputs": [
+        "save_interval_planned",
+        "total_simulated_time_planned"
+      ],
+      "note": "the interval frames actually landed at, as simulated time over saved intervals"
+    },
+    {
+      "name": "max_lag_time_actual",
+      "value": 30.0,
+      "unit": "s",
+      "source": "simulated:run-20260922-001",
+      "grade": "E5",
+      "inputs": [
+        "max_lag_time_planned",
+        "save_interval_planned"
+      ],
+      "note": "the longest lag the estimator actually fitted. It is shorter than the plan's window whenever the record ended early, which is the case the estimator's own window bound cannot see from inside"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_ensemble",
+      "statement": "One thousand tracers is a round ensemble that makes the statistics cheap and keeps the cube root exact at ten per edge. Nothing physical picks this number.",
+      "numbers": [
+        "n_particles"
+      ],
+      "falsifier": "a statistics interval this ensemble cannot satisfy inside budget replaces it",
+      "gap_ref": "tracer_ensemble_size_absent"
+    },
+    {
+      "rationale_id": "a_window",
+      "statement": "The fit window sits below the diffusive time so the free regime is what is sampled, at the same tenth of it revision 1 chose. The exact upper end is an estimate until A4 constrains it.",
+      "numbers": [
+        "max_lag_time_planned"
+      ],
+      "falsifier": "an A4 interval that excludes this value replaces it",
+      "gap_ref": "msd_fit_window_absent"
+    },
+    {
+      "rationale_id": "a_statistics",
+      "statement": "A ten per cent statistical error needs of order one hundred independent samples, from the square-root scaling of an ensemble mean. The target is set at ten per cent rather than at the goal's full decade so that the statistical error is not what decides the decade.",
+      "numbers": [
+        "target_relative_error"
+      ],
+      "falsifier": "a seed-to-seed spread wider than ten per cent at this sample count retires the prefactor and raises the floor"
+    },
+    {
+      "rationale_id": "a_intercept_guard",
+      "gap_ref": "msd_intercept_tolerance_absent",
+      "statement": "Three standard errors is a guard against a gross short-lag failure, not a test of bias, and it is set from the asymmetry rather than from any observation: a false refusal costs one re-run of a job sitting far under budget, while a false acceptance puts a biased number into a graded card. IT CANNOT DETECT AN ARTIFACT, and saying so is the point -- a systematic short-lag error shows in the MEAN over runs while a fluctuation shows in a single one, and no threshold on a single run's intercept separates them. Tight refuses good runs at the fluctuation rate; loose misses a small artifact. The test that catches an artifact is that the mean intercept over an ensemble of runs is consistent with zero, which needs a campaign and is not a criterion one plan can carry.",
+      "numbers": [
+        "intercept_sigma_max"
+      ],
+      "falsifier": "a campaign whose mean intercept is inconsistent with zero, which would show this guard passing runs it cannot judge"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-ac042a5c0814",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2."
+    },
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-ac042a5c0814",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-ac042a5c0814",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ]
+}
