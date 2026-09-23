@@ -65,6 +65,7 @@ platforms = ["osx-arm64", "linux-64"]
 
 [tool.pixi.feature.sim.dependencies]
 hoomd = ">=7.2"
+gsd = ">=3.2"
 # Added 2026-09-23 on the person's instruction, for the simulation seats now
 # running. Nothing imports it yet, which is the state gsd is in and kept out
 # of the manifest for -- the difference is who asked and why: gsd was a seat
@@ -94,10 +95,13 @@ scipy = ">=1.11"
 [tool.pixi.feature.mic.pypi-dependencies]
 pymmcore-plus = ">=0.18"
 
-# gsd is deliberately absent. simulation_agent work item 013 will write
-# trajectories with it and has not landed, so declaring it now would declare a
-# reader that does not exist -- the same defect as the three-of-six gap, from
-# the other side. It goes in the commit that first imports it.
+# gsd was deliberately absent until 2026-09-23, on the grounds that declaring
+# it before anything imported it would declare a reader that does not exist.
+# The condition that comment set has fired: trajectory.py:81 imports gsd.hoomd
+# and engine_check.py imports gsd.version twice. HOOMD does not pull it, so
+# every sim run was writing no trajectory at all -- honestly recorded as
+# written: false with a reason, which is why nothing went red and nobody
+# noticed for a day. conda-forge has 5.0.1 on both sim platforms.
 
 [tool.pixi.environments]
 sim = ["sim"]

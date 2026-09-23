@@ -581,6 +581,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/bzip2-1.0.8-hda65f42_10.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/cffi-2.1.1-py312h703531f_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/cryptography-50.0.1-py311hc91d8b8_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/gsd-5.0.1-h7c397b8_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/hoomd-7.2.0-cpu_py312_h3353ea4_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/icu-78.3-py310h44b86e0_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ld_impl_linux-64-2.46.1-default_hbd61a6d_102.conda
@@ -707,6 +708,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/bzip2-1.0.8-h4e30115_10.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/cffi-2.1.1-py312hc892d8b_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/cryptography-50.0.1-py311hc28ac56_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/gsd-5.0.1-hfb0bdc6_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/hoomd-7.2.0-cpu_py312_h203d2c3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/icu-78.3-py310h579977c_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libblas-3.11.0-11_h51639a9_openblas.conda
@@ -802,6 +804,24 @@ packages:
   run_exports: {}
   size: 1826946
   timestamp: 1789121519742
+- conda: https://conda.anaconda.org/conda-forge/linux-64/gsd-5.0.1-h7c397b8_1.conda
+  noarch: python
+  sha256: 63078a8995618b7ca26ebe5b9e23fdbc48568867177bb2e0e867a20077852325
+  md5: 6a8cb4467d0326083ed4d25f3dd42cad
+  depends:
+  - python
+  - libgcc >=14
+  - __glibc >=2.17,<3.0.a0
+  - _python_abi3_support 1.*
+  - cpython >=3.11
+  - numpy >=1.23,<3
+  license: BSD-2-Clause
+  license_family: BSD
+  purls:
+  - pkg:pypi/gsd?source=hash-mapping
+  run_exports: {}
+  size: 241386
+  timestamp: 1780578125136
 - conda: https://conda.anaconda.org/conda-forge/linux-64/hoomd-7.2.0-cpu_py312_h3353ea4_0.conda
   sha256: 367bfd99fb28733b525df490fbe8d5f4263195efd8d72fff9c4a8aa714b0a301
   md5: 53c6bc7dcfd7a12052f743b34d76fc97
@@ -2055,6 +2075,23 @@ packages:
   run_exports: {}
   size: 1766871
   timestamp: 1789121516762
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/gsd-5.0.1-hfb0bdc6_1.conda
+  noarch: python
+  sha256: 15be3f85bca6a6f480a6fd475e67dcdb915dca09ab154a3d1c7278aef40916ea
+  md5: 81f01ac41d6aa537163ac19088f6ae5e
+  depends:
+  - python
+  - __osx >=11.0
+  - numpy >=1.23,<3
+  - _python_abi3_support 1.*
+  - cpython >=3.11
+  license: BSD-2-Clause
+  license_family: BSD
+  purls:
+  - pkg:pypi/gsd?source=hash-mapping
+  run_exports: {}
+  size: 229128
+  timestamp: 1780578233749
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/hoomd-7.2.0-cpu_py312_h203d2c3_0.conda
   sha256: b0b961dd79e54df99048c70bcc20c5ca33b35447cf3489594b6a9739323260b9
   md5: ccc0d6f52ae05133926b03c2ffb9749d
