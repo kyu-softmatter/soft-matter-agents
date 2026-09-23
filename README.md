@@ -80,14 +80,60 @@ rather than passing.
 
 | | |
 |---|---|
-| `plan_ko.md` | the design, in Korean. **The record.** Start at §0.1 for the fixed decisions and §2 for the principles |
-| `plan.md` | the same document rendered in English. **Generated** — edit `plan_ko.md` and regenerate; where they disagree the Korean wins |
+| `plan.md` | the design. **The record**, and the only one — start at §0.1 for the fixed decisions and §2 for the principles. It was Korean until 2026-09-20 and briefly a generated rendering of `plan_ko.md`; that split is over and the Korean text stays in history |
 | `CLAUDE.md` | the rules binding every session here |
 | `ARCHITECT.md` | standing orders for the architecture seat only |
 | `contracts/` | the only shared code: card schemas, the unit registry, the observable vocabulary, and `validate.py` |
 | `<agent>/README.md` | what that agent is and what it does today |
 | `docs/` | a one-screen page for someone who will not open this repository. **Built, not published** — GitHub Pages is off, so this is source and not a site |
-| `pyproject.toml`, `uv.lock` | the dependencies and the exact versions they resolve to. `uv sync` gives the pipeline and not the engine: HOOMD is conda-forge only, which is deliberate — the validator and the mock backend are all a machine needs |
+| `pyproject.toml` | **two manifests in one file.** `[project]` is the PyPI side; `[tool.pixi.*]` is the conda side, which is where HOOMD, `mcp` and `pymmcore-plus` live. The pixi tables state a different dependency set per platform, because Windows has no HOOMD build |
+| `uv.lock` | the exact versions the PyPI side resolves to. Being handed over to `pixi.lock` and kept until that exists |
+
+## Installing
+
+**One command, on every platform.** `pixi` is itself on conda-forge, so there
+is no piped installer to trust:
+
+```
+conda install -c conda-forge pixi
+```
+
+Then, from the repository root, pick the environment for the seat you are:
+
+```
+pixi install -e sim     # the simulation agent: adds HOOMD
+pixi install -e mic     # the microscope agent: adds pymmcore-plus
+pixi install            # everything else: the validator, the contracts, the librarian
+```
+
+**If a run says it found no HOOMD, that is the message doing its job.** The
+simulation operator runs the mock backend when the engine is absent and says
+so out loud rather than falling back quietly — a mock run is a valid run, and
+an invisible one is not. What it asks for is one of:
+
+```
+conda install -c conda-forge hoomd      # macOS, Linux
+pixi install -e sim                     # or, inside this repository
+```
+
+**Windows is different and needs its own route.** There is no HOOMD build for
+Windows on any channel, so the engine cannot run on the Windows host at all.
+It runs in WSL2, which is Linux:
+
+```
+wsl --install -d Ubuntu                 # PowerShell as administrator, then reboot
+```
+
+and then, inside Ubuntu, the same two commands as above. This splits the
+machine rather than the project: **the microscope agent stays on the Windows
+host**, where `pymmcore-plus` has a native build and the instrument is
+attached, and **the simulation agent runs inside WSL2**. They are two
+environments on one computer, and `pyproject.toml` states both.
+
+`conda` itself has a quirk worth knowing here: inside a Claude Code session on
+this machine the bare command fails with `__conda_exe: permission denied`,
+which comes from the session's own shell snapshot and not from conda. Call it
+by absolute path, or from an ordinary terminal.
 
 ## Running the gate
 
