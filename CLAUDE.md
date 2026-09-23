@@ -78,6 +78,19 @@ it would be committed under `--staged`. Quoting a number without that line is
 how two seats quoted each other stale numbers on 2026-09-19, one of them from
 an honest `0 failed` that was true of HEAD and false of the working copy.
 
+**And that line is not yet an identifier, which this file did not say.** It
+names the commit and **counts** the uncommitted paths; it does not say which
+they are or what is in them. Two runs minutes apart can print the identical
+`plus N uncommitted paths` and have judged different trees -- measured on
+2026-09-23 by editing one file two ways and watching the line not move.
+`manager-simulation` nearly read a `73 pending / 6 N/A` against `70 / 7` as
+the interpreter changing the verdict, when what moved was another seat's
+edit between the runs. **So the line tells you a bare run is nobody's commit
+and does not tell you whether two runs are comparable.** Until it carries a
+digest of the dirty set, comparing two runs means comparing them check by
+check, not line by line -- which is what that seat did, and is why it caught
+its own error.
+
 UNDECIDED and PENDING are not passes. UNDECIDED means a threshold nobody has
 chosen (§11-2); PENDING means an artifact a later milestone produces.
 

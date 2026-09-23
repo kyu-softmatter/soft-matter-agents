@@ -2296,7 +2296,18 @@ the gate judges the tree a commit would create, that tree is built from a shared
 somebody else's half-finished edit is indistinguishable in the output from a red of your own. The
 validator's `tree:` line says *nobody's commit*, which is honest, and it cannot name the seat, because
 nothing on disk says which seat an uncommitted edit belongs to — the same reason a hunk cannot be
-attributed (§6.2.1). **The cost is not the red; it is that eight seats each have to work out that it is
+attributed (§6.2.1). **And the line is not an identifier, which was found on 2026-09-23 and
+is a defect rather than a limit.** It names the commit and **counts** the dirty paths; it does not say
+which they are or hash what is in them, so **two runs can print the same line and have judged different
+trees.** Measured by editing one file two ways and watching `plus 4 uncommitted paths` not move.
+`manager-simulation` hit it comparing a system-python run against a pixi-interpreter one, read
+`73 pending / 6 N/A` against `70 / 7`, and nearly concluded the interpreter changes the verdict -- what
+moved was architecture editing `plan.md` between the two. It caught itself by comparing check by check
+rather than line by line, which is the workaround and not the fix. **The fix is to put a digest of the
+dirty set in the line** -- a short hash over the sorted `path:blob-sha` pairs -- after which *same line*
+means *same tree* and two seats can compare runs by quoting one string. Until then the line answers
+"is this anybody's commit" and **not** "are these two runs comparable", and this document told every
+session to read it as if it answered both. **The cost is not the red; it is that eight seats each have to work out that it is
 not theirs.** With no worktrees this stays, and it is the third thing one shared working copy costs,
 beside carrying another seat's hunk in and having your own edit erased.
 
