@@ -6611,7 +6611,26 @@ def describe_tree(staged: bool = False) -> str:
     bump. The rule "read it off the run" is not enough on a shared copy -- the
     run has to say which tree it ran against, and saying it is cheaper to
     automate than to remember.
+
+    THE COUNT IS NOT AN IDENTITY, which this line implied for three days and
+    did not have. It answered "whose commit is this run" and was quoted, by
+    plan.md and CLAUDE.md both, as though it also answered "are two runs
+    comparable" -- and two different dirty sets of the same size print the
+    same line. Architecture demonstrated it by editing one file twice with
+    different content and getting a character-identical `plus 4 uncommitted
+    paths` from both. On 2026-09-23 that cost a wrong conclusion: two runs
+    that differed only because another seat was mid-edit in plan.md read as
+    an interpreter changing verdicts, and the seat reading them nearly
+    reported it that way.
+
+    So the dirty set carries a digest of its own contents. Two runs are
+    comparable when that string matches and are not when it does not, with no
+    check-by-check comparison needed -- which is what the seat had to do to
+    catch it, and a workaround is not a fix. Contents and not mtimes: a
+    touched file is the same tree, and a digest that moved when nothing did
+    would be quoted past and then ignored.
     """
+    import hashlib
     import subprocess
 
     def git(*args: str) -> str:
@@ -6620,15 +6639,62 @@ def describe_tree(staged: bool = False) -> str:
 
     try:
         head = git("rev-parse", "--short", "HEAD")
-        dirty = [x for x in git("status", "--porcelain").splitlines() if x.strip()]
+        # NOT through git() above, which strips the whole output. Porcelain
+        # puts the status in columns 1-2 and the path from column 4, so
+        # stripping eats the leading space of the FIRST line only and turns
+        # ` M README.md` into `M README.md` -- after which the path reads as
+        # `EADME.md`, resolves to nothing, and that file's contents silently
+        # leave the digest below while every other line stays correct. It was
+        # harmless while this only counted lines, and became a defect the
+        # moment anything parsed them. Found by running the fix against the
+        # two-edits demonstration it was written for and watching it not
+        # work, which no amount of reading it would have shown.
+        dirty = [x for x in subprocess.run(
+            ["git", "-C", str(GIT_REPO), "status", "--porcelain"],
+            capture_output=True, text=True, check=True).stdout.splitlines() if x.strip()]
     except (OSError, subprocess.CalledProcessError):
         return "tree: not a git checkout, so this verdict names no commit"
+    def content_id(rel: str) -> str:
+        """What this path holds, cheaply and by content alone."""
+        f = GIT_REPO / rel
+        try:
+            if f.is_file():
+                return hashlib.sha256(f.read_bytes()).hexdigest()
+            if f.is_dir():
+                # An untracked directory: its shape, not every byte under it.
+                # Enough to tell an added or resized file from the same tree,
+                # and it cannot be made expensive by something large landing
+                # inside one.
+                inner = sorted(
+                    f"{q.relative_to(GIT_REPO)}:{q.stat().st_size}"
+                    for q in f.rglob("*") if q.is_file())
+                return hashlib.sha256("\n".join(inner).encode()).hexdigest()
+        except OSError:
+            return "unreadable"
+        return "absent"           # staged deletion, or gone between the two calls
+
+    def digest_of(lines: list[str]) -> str:
+        parts = []
+        for line in lines:
+            code, _, rest = line[:2], line[2:3], line[3:]
+            rest = rest.split(" -> ")[-1]           # a rename is identified by where it landed
+            parts.append(f"{code} {rest} {content_id(rest)}")
+        return hashlib.sha256("\n".join(sorted(parts)).encode()).hexdigest()[:8]
+
     if staged:
-        return f"tree: the index as it would be committed, on top of {head}"
+        try:
+            raw = git("diff", "--cached", "--raw")
+        except (OSError, subprocess.CalledProcessError):
+            raw = ""
+        # The index already names a blob per path, so its identity is read
+        # rather than computed.
+        ident = hashlib.sha256(raw.encode()).hexdigest()[:8]
+        return f"tree: the index as it would be committed, on top of {head} [staged {ident}]"
     if not dirty:
         return f"tree: {head}, clean"
-    return (f"tree: {head} plus {len(dirty)} uncommitted paths, which is nobody's commit -- "
-            f"a failure here may belong to another session")
+    return (f"tree: {head} plus {len(dirty)} uncommitted paths [dirty {digest_of(dirty)}], which is "
+            f"nobody's commit -- a failure here may belong to another session, and two runs are "
+            f"comparable only when that digest matches")
 
 
 def main(argv: list[str] | None = None) -> int:
