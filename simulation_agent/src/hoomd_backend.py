@@ -217,6 +217,8 @@ class HoomdBackend:
     not one.
     """
 
+    NAME = NAME
+
     def __init__(self, seed: int = 0, engine=None, device=None) -> None:
         self.seed = int(seed)
         self.engine = engine if engine is not None else _import_hoomd()

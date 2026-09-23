@@ -58,6 +58,14 @@ stokes_einstein = physics.stokes_einstein
 class MockBackend:
     """Free overdamped Brownian motion, integrated in SI units."""
 
+    # The operator records `getattr(backend, "NAME", mock_backend.NAME)`, and
+    # until 2026-09-22 no backend class carried NAME -- so that getattr never
+    # succeeded and the default was the only path. It read correctly only
+    # because mock was the only backend, and the first HOOMD run recorded
+    # itself as a mock run. The name belongs on the class, not only on the
+    # module, because the class is what the operator is handed.
+    NAME = NAME
+
     def __init__(self, seed: int = 0) -> None:
         self.rng = np.random.default_rng(seed)
         self.seed = seed
