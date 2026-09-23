@@ -1,0 +1,98 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-sim-20260923-003-r1",
+  "qid": "sim-20260923-003",
+  "thread": "solo-sim-20260923-003",
+  "caller_id": "sim-20260923-003:v1:s2",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T16:37:00Z",
+  "status": "DRAFT",
+  "requested_by": "human",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "mean_squared_displacement"
+  },
+  "targets": [],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "constraint_notes": [
+    "the person's question, verbatim in intent: simulate active Brownian particles and investigate how their translational dynamics depend on the self-propulsion speed v0, the rotational diffusivity D_R and the translational diffusivity D_T; systematically vary v0 and D_R over appropriate ranges; determine how the mean squared displacement, the persistence time, the persistence length and the effective translational diffusivity D_eff change; examine the short- and long-time regimes and identify the crossover from persistent or ballistic motion to long-time diffusive motion; quantify the scaling from the slopes of log-log MSD against time; examine the time-dependent D_eff(t) and its log-log slope at short and long times; determine how the characteristic crossover time and length depend on v0, D_R and D_T; collapse the results with dimensionless quantities such as the Peclet number",
+    "THE PROPULSION IS A FIXED SPEED. Ruled by the person on 2026-09-23, answering the one question S2 could not decide: the particle is displaced at a prescribed speed v0 along its orientation, not driven by a prescribed force with the speed emerging. The capability declaration has to say which, because the two are different models with different A7 cards. This note is the record of that ruling; the declaration itself is a contracts/ write and is not this seat's",
+    "AND FOR THIS QUESTION AS ASKED THE RULING CHANGES NOTHING PHYSICAL, which is worth saying so nobody later reads more into it than it carries. These particles are free -- no pair potential, no wall, no obstacle is part of the question -- and for a free overdamped particle a fixed force F along the orientation gives a velocity F/gamma along the orientation, of fixed magnitude. Fixed speed and fixed force are the same trajectory. The distinction is operative only when there is something to push against, because then a fixed-speed particle holds its speed and a fixed-force one slows down. So the ruling pins the DECLARATION and it will matter to the interacting questions -001, -002, -041 and -042; it does not change what this run would compute",
+    "purpose is PROPOSED by S2 and not confirmed: `characterize`, because two parameters are swept and properties are quantified over the range. The wording also supports `compare` if the real interest is one regime against another; S4 holds conditions fixed across arms under `compare` and optimises each under `characterize`, which is the whole difference (4.5.1)",
+    "the primary observable is set to the MSD because every other quantity asked for is read off it or off the orientational autocorrelation, and the goal schema carries one observable. The others are registered alongside and cited by the plan. simulation-10 made the same choice for -041 independently",
+    "the six observable names are UNREGISTERED: contracts/observables.json holds tracer_diffusivity, trapped_position_distribution, tracer_brightness and bleaching_rate, and none of them is an MSD curve, a long-time effective diffusivity, a time-resolved D_eff(t), a persistence time, a persistence length or a Peclet number. 11-1 and check 40 make this an ORDERING and not a refusal: the entry comes first",
+    "D_eff IS NOT tracer_diffusivity, and the near-collision is the dangerous kind. tracer_diffusivity's registered estimator is the SHORT-TIME free-regime slope, fitted BELOW the diffusive time with max_lag_time as an upper bound. The active long-time D_eff is the opposite: it is the late plateau and is wrong if read early, so its window is a LOWER bound on the fit range. Two quantities whose windows point in opposite directions must not share a window_parameter name",
+    "NO CONFIGURATION CAN PRODUCE IT, and this is the refusal rather than an ordering: capabilities/simulation.json declares bd_overdamped alone -- undriven, position-only Wiener increment, no orientation, A7 abstaining by declaration. An active particle needs one orientational degree of freedom per particle, diffusing at D_R and carrying the v0 displacement. That is a change of physical model, which 4.2 puts with a person and 6.2 puts outside this seat. Recorded in refusal_s30_sim-20260923-003.json",
+    "no number is filled here and S2 produces none. The dimensionality, the physical anchor in SI units (D7), the sweep ranges of v0 and D_R, the value of D_T or the particle size it comes from, the target accuracy and the execution target are all the person's or a later layer's",
+    "a two-parameter sweep is still not one question in this pipeline: one plan is one operating point. At decades, three values each in v0 and D_R is nine operating points before seeds, which is affordable against `local` in a way -041's five-parameter sweep is not -- but the person is asked to confirm the ranges rather than have S4 invent them",
+    "the librarian was reached at kbv-4b981dc870d3 under the caller_id this card carries, which src/fanout.py issue_s2 composed rather than this session choosing it (4.3.1 rule 3). Four queries, four absent with no near names: active_brownian_particle, mean_squared_displacement, rotational_diffusivity, self_propulsion_speed. So S2's second branch -- already known, hand to the librarian and stop -- does not close this from the STORE's side. It is not thereby unknown: the non-interacting active Brownian MSD is closed-form in the literature, and the honest statement is that this repository's store does not hold it",
+    "the envelope snapshot in this tree pins kbv-30966d978fbe while the publisher's copy is kbv-4b981dc870d3; these queries used the published version. Re-copy before any fan-out, and not during one"
+  ],
+  "numbers": [],
+  "assumptions": [],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "active_brownian_particle_absent",
+      "observable": "active_brownian_particle",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='active_brownian_particle') against the service at kbv-4b981dc870d3",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "gap_id": "mean_squared_displacement_absent",
+      "observable": "mean_squared_displacement",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='mean_squared_displacement') against the service at kbv-4b981dc870d3",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "gap_id": "rotational_diffusivity_absent",
+      "observable": "rotational_diffusivity",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='rotational_diffusivity') against the service at kbv-4b981dc870d3",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "gap_id": "self_propulsion_speed_absent",
+      "observable": "self_propulsion_speed",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='self_propulsion_speed') against the service at kbv-4b981dc870d3",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    }
+  ],
+  "degraded": []
+}

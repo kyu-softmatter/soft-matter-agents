@@ -119,10 +119,26 @@ makes and this seat requests:
 
 Then re-ask, and S3.0 has something to keep.
 
-**One more decision is the person's and cannot be inferred:** whether the
-propulsion is a fixed speed along the orientation or a fixed force with the
-speed emerging. They are different models with different A7 cards, and the
-declaration has to say which.
+## The person ruled: fixed speed
+
+Asked on 2026-09-23 whether the propulsion is a prescribed speed along the
+orientation or a prescribed force with the speed emerging, the person answered
+**fixed speed**. That was the one thing S2 could not decide, and it is now
+decided. It is recorded in `goal.json` `constraint_notes[1]`, and the
+declaration that acts on it is still a `contracts/` write.
+
+**For this question as asked, the ruling changes nothing physical.** These
+particles are free: no pair potential, no wall and no obstacle is part of the
+question. For a free overdamped particle a fixed force `F` along the
+orientation produces a velocity `F/gamma` along the orientation, of fixed
+magnitude, so fixed speed and fixed force give the same trajectory. The two
+models separate only when there is something to push against, because then the
+fixed-speed particle holds its speed and the fixed-force one slows down.
+
+So the ruling **pins the declaration** and **will matter to the interacting
+questions** `-001`, `-002`, `-041` and `-042`. It does not change what this
+run would compute. That is said here so a later reader does not take the
+answer to have settled more than it did.
 
 ## Two notes on how this was recorded
 
