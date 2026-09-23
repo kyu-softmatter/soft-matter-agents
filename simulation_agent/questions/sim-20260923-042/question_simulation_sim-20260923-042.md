@@ -63,3 +63,17 @@ anchor); the largest is expected to exceed the `local` budget, and that
 refusal is a result about the reachable range. The P15 tension stands: at
 decade resolution a box passes as size-independent unless the regime
 changes. Same configuration request as 041.
+
+## Revisions 2 to run (2026-09-23)
+
+S4 kept two arms — one and ten persistence lengths of box, 13 and about a
+thousand particles — and refused the hundred-fold arm in numbers (6e11
+particle-steps against 7e10; 6e9 stored coordinates against 1e9). The plan
+is `v2_plan_simulation_sim-20260923-042.json`. The small arm ran as the
+Tier 1 smoke run on the new active backend (`run-20260923-042-small-s1`)
+and its result card is beside this file: effective translational
+diffusivity 9.9 ± 1.2 µm²/s, persistence time 93.5 s against 100 s
+expected, statistics_met false at 11.7 per cent against a 10 per cent
+target, and the compare's own criterion waiting on the mid arm. No
+trajectory was written because `gsd` is not in the sim environment; the
+run's meta says so.

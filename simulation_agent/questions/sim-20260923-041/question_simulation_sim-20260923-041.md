@@ -91,3 +91,27 @@ tied to D_T as a stated assumption. Pe runs 1 to 100 and φ 0.01 to 0.5 in
 decade steps, nine operating points. The configuration request to
 `manager-simulation` is now exact: `abp_wca_2d`, active, WCA repulsion,
 undriven. Still zero candidates at S3.0 until it is declared.
+
+## Revision 3 — the sweep, per point (2026-09-23)
+
+Revision 2's fan-out stated every bound at the sweep's top corner. A sweep
+has no single tightest corner — A1 binds hardest at the fastest point and A5
+at the densest — so intersecting those bounds across the grid combines
+claims about different points. Revision 3's axis cards mark the step and
+the box as functions of the Péclet number (`varies_with`), S4 evaluates
+them per cell, and the plan carries the grid as `sweep` with each skipped
+cell saying why.
+
+**Six of nine cells run; the Pe 100 row does not.** At Pe 100 the step is a
+decade under a ten-millisecond ceiling and the box is five millimetres, so
+even the dilute cell costs 3e11 particle-steps against a ceiling of 7e10.
+The S4 refusal card names the one cell that would fit at A1's ceiling
+rather than a decade under it, and why the margin is not owed there. Each
+kept cell is read against the free active particle's closed-form long-time
+diffusivity at its Péclet number; agreeing within the goal's decade or not
+is the result the question asked for.
+
+The wall-clock estimate rests on A5's assumed rate. The measured rate on
+this machine is three to ten times lower, so the densest kept cell (Pe 10,
+φ 0.5, six thousand particles) may run about three hours against a two-hour
+ceiling; the plan's open risks say so and that cell waits for the person.
