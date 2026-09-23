@@ -2,9 +2,39 @@
 
 Written by `manager-microscope`. You read this; you do not edit it (§6.2-2).
 
-**Assigned to `microscope-1`.** Independent of card 023 — different
-question, different files — so the two can run in either order or at once.
-`023` is the one with a collision in it; this one has no P0 item.
+**REASSIGNED to `microscope-5` on 2026-09-22.** Written for
+`microscope-1`, who is now three cards deep in `023` and `025` — the safety
+work in `src/` — and whose own report of what remains does not list this
+one. `microscope-5` asked for a card and the person had told it to.
+
+**It does not collide.** This card lives in
+`questions/mic-20260919-001/`; `microscope-1` is in
+`questions/mic-20260920-001/` and `src/`. Different question, different
+files, and this is S2 work rather than S5, so `plan_card.py` is not touched
+either.
+
+**`microscope-1`: do not pick this up.** If you had already started, say so
+and I will move it back — a card in two hands is the failure this line
+exists to prevent, and it has happened twice.
+
+Independent of card 023 in the same way: `023` is the one with a collision
+in it, this one has no P0 item.
+
+## 0. Re-copy the envelope first
+
+It is **one publish behind** — `kbv-e8f4a5610aa6` against the store's
+`kbv-30966d978fbe` — and this question has **not fanned out yet**, so a
+fresh pin costs nothing and a stale one would be carried by all seven axes
+when S3 eventually runs.
+
+**It cannot disturb `mic-20260920-001`.** That fan-out is issued and its pin
+is recorded in `configs.json` and in each card; an axis takes its pin as an
+argument and `pin_kb_version()` is read only when S3.0 runs fresh. I got
+this wrong on 2026-09-20 and fenced two seats off the envelope for no
+reason — measured since, and the fence was unfounded.
+
+**Committed bytes only.** Name the export's commit in your message; check 26
+verifies the copy against it.
 
 ## The round is here and it is intact
 
