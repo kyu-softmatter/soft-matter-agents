@@ -3,13 +3,15 @@
     python3 -m src.engine_check          # from simulation_agent/
     python3 -m src.engine_check --json
 
-HOOMD-blue is not on PyPI (plan.md 7, 2026-09-22), so `uv sync` cannot bring
-it and `pyproject.toml` structurally cannot name it. What names it is
-`src/environment.yml` beside this file: one conda-forge environment holding
-the engine, gsd and the three pipeline dependencies, so one interpreter runs
-the validator, the mock and the engine. This module reads the pin from that
-file -- the single place the pin lives -- and compares it with what the
-interpreter running it can import.
+HOOMD-blue is not on PyPI (plan.md 7, 2026-09-22), so a PyPI-shaped
+dependency list cannot name it. What names it, as of 2026-09-23, is the pixi
+table in `pyproject.toml` -- `[tool.pixi.feature.sim.dependencies]` -- with
+`pixi.lock` fixing the exact build per platform, so one interpreter
+(`pixi install -e sim`) runs the validator, the mock and the engine. This
+module reads that pin -- spec from the table, build from the lock for this
+platform -- and compares it with what the interpreter running it can import.
+`src/environment.yml` was the bridge before pixi and is read only when the
+table is absent.
 
 The exit status is the answer, for scripts; the text is for people.
 
@@ -37,12 +39,23 @@ import re
 import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
+REPO = HERE.parents[1]
+PYPROJECT = REPO / "pyproject.toml"
+PIXI_LOCK = REPO / "pixi.lock"
 ENVIRONMENT = HERE / "environment.yml"
 ENVIRONMENT_REL = "simulation_agent/src/environment.yml"
 ENV_NAME = "soft-matter-agents"
 # conda-forge builds hoomd 7.2.0 for these and no others. win-64 was tried
-# and fails to solve (plan.md 7, 2026-09-22).
+# and fails to solve (plan.md 7, 2026-09-22). Overridden by the pixi table's
+# `sim` feature platforms when that table exists -- read, not repeated.
 PLATFORMS = ("linux-64", "osx-64", "osx-arm64")
+
+# THE DECLARATION OF RECORD IS pyproject.toml's [tool.pixi.*] (architecture,
+# 2026-09-23): the spec is `feature.sim.dependencies.hoomd`, and the exact
+# build per platform is the `hoomd-<version>-<build>.conda` line pixi.lock
+# holds for that platform. environment.yml was the bridge while pixi was
+# absent on this machine and is read only when the pixi table is not there.
+LOCKED = re.compile(r"conda-forge/(?P<subdir>[a-z0-9-]+)/hoomd-(?P<version>[0-9][^-]*)-(?P<build>[^\s/]+)\.conda")
 
 # `- hoomd=7.2.0=*cpu*`, with or without the build, with or without a
 # trailing comment. Parsed with a regex and not a YAML library on purpose:
@@ -54,12 +67,44 @@ PIN = re.compile(r"^\s*-\s*hoomd\s*=\s*([0-9][^=\s#]*)\s*(?:=\s*([^\s#]+))?\s*(?
 
 
 def read_pin(path: pathlib.Path = ENVIRONMENT) -> dict:
-    """The hoomd line of environment.yml, as {version, build, line, file}."""
+    """The pin of record: {version, build, line, file, spec, source}.
+
+    From the pixi table when it exists -- `spec` is what pyproject.toml asks
+    (e.g. `>=7.2`), and version/build are what pixi.lock resolved for THIS
+    platform, which is the number an installed engine is compared against.
+    A platform the `sim` feature excludes (win-64) gets the spec and no
+    locked build. Otherwise from environment.yml's hoomd line.
+    """
+    if PYPROJECT.exists():
+        import tomllib                                 # noqa: PLC0415
+        with PYPROJECT.open("rb") as fh:
+            pixi = tomllib.load(fh).get("tool", {}).get("pixi")
+        if pixi and "hoomd" in pixi.get("feature", {}).get("sim", {}).get("dependencies", {}):
+            sim = pixi["feature"]["sim"]
+            spec = sim["dependencies"]["hoomd"]
+            global PLATFORMS
+            PLATFORMS = tuple(sim.get("platforms") or PLATFORMS)
+            locked = None
+            if PIXI_LOCK.exists():
+                sub = conda_subdir()
+                for m in LOCKED.finditer(PIXI_LOCK.read_text()):
+                    if m.group("subdir") == sub:
+                        locked = m.groupdict()
+                        break
+            return {
+                "version": locked["version"] if locked else None,
+                "build": locked["build"] if locked else None,
+                "spec": spec,
+                "line": f"hoomd{spec} (pixi.lock: {locked['version']}-{locked['build']})" if locked
+                        else f"hoomd{spec} (no locked build for {conda_subdir()})",
+                "file": "pyproject.toml [tool.pixi.feature.sim] + pixi.lock",
+                "source": "pixi",
+            }
     for line in path.read_text().splitlines():
         m = PIN.match(line)
         if m:
             return {"version": m.group(1), "build": m.group(2), "line": line.strip(),
-                    "file": ENVIRONMENT_REL}
+                    "file": ENVIRONMENT_REL, "spec": None, "source": "environment.yml"}
     raise LookupError(f"no `- hoomd=<version>[=<build>]` line in {path}")
 
 
@@ -99,6 +144,11 @@ def instruction(pin: dict | None = None) -> str:
 
 def install_lines(pin: dict) -> list[str]:
     """What to type, from the repository root. One place, quoted by the backend too."""
+    if pin.get("source") == "pixi":
+        return [
+            "pixi install -e sim                      # from the repository root; pixi.lock decides every build",
+            "pixi run -e sim python -m src.engine_check    # or: cd simulation_agent && ../.pixi/envs/sim/bin/python -m src.engine_check",
+        ]
     spec = f"hoomd={pin['version']}" + (f"={pin['build']}" if pin["build"] else "")
     return [
         f"conda env create -f {ENVIRONMENT_REL}     # or: mamba env create -f ..., micromamba create -f ...",
@@ -131,7 +181,17 @@ def check(pin: dict) -> dict:
     out["importable"] = True
     build = hoomd_backend.engine_build(hoomd)
     out["build"] = build
-    ok = build["version"] == pin["version"]
+    ok = build["version"] == pin["version"] if pin["version"] else False
+    if pin.get("source") == "pixi" and pin["build"] and build.get("conda_package"):
+        # pixi.lock names the exact artefact; the installed one either is it or is not.
+        out["variant_checked"] = True
+        out["matches_pin"] = ok and build["conda_package"].get("build") == pin["build"]
+        try:
+            import gsd.version                         # noqa: PLC0415
+            out["gsd"] = gsd.version.version
+        except ImportError:
+            out["gsd"] = None
+        return out
     # The variant (*cpu* / *gpu*) is a property of the conda build string,
     # which a source build has none of. Then the version is all that can be
     # compared, and the record says the variant went unchecked rather than
