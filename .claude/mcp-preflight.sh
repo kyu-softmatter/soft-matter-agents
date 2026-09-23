@@ -93,4 +93,27 @@ if problems:
     print("    the librarian answered. This is a schedule problem, not an evidence one.")
     print("")
 PY
+
+# --- committer identity ---------------------------------------------------
+# Not about MCP, and here because this is the only thing in the repository
+# that runs at session start and can see outside the tree. .git/config.worktree
+# can hold committer.name and committer.email; those beat user.* and lose only
+# to the GIT_COMMITTER_* environment variables. The file is shared by every
+# session and is in no tree, so the commit gate -- which judges the tree a
+# commit would create -- can never see it, and seats writing their own
+# identity into it are racing: last writer wins. A seat whose boundary happens
+# to match the winner commits silently under another seat's name; a seat whose
+# boundary does not is refused by check 41 naming a seat it has never heard
+# of. Reporting it is the whole of the remedy available. See plan.md 6.2.1.
+IDENT="$(git var GIT_COMMITTER_IDENT 2>/dev/null | sed 's/ [0-9][0-9]* [-+][0-9]*$//')"
+CFG="$(git rev-parse --git-dir 2>/dev/null)/config.worktree"
+if [ -n "$IDENT" ] && [ -f "$CFG" ] && grep -q '^\[committer\]' "$CFG" 2>/dev/null; then
+  printf '\n  git: this working copy pins a committer identity for every session\n'
+  printf '    - %s\n' "$IDENT"
+  printf '    - from %s, which is shared and in no tree\n' "$CFG"
+  printf '    - if that is not your seat, pass GIT_COMMITTER_NAME and\n'
+  printf '      GIT_COMMITTER_EMAIL on the commit rather than rewriting the file;\n'
+  printf '      rewriting it is the same race one lap further on\n\n'
+fi
+
 exit 0
