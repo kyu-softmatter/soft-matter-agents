@@ -199,6 +199,74 @@
       ],
       "comparable": false,
       "note": "THE COMPLEMENT OF `trapped_position_distribution`, READ FROM THE SAME TRACE, and the two must be read together. That entry takes the MEAN POSITION AS THE TRAP CENTRE AND SUBTRACTS IT before reporting a standard deviation -- the quantity it discards is this one, exactly and not approximately. A reader who reaches for the registered name to answer a drag-calibration question computes the one number that cannot answer it. Raised by the execution seat that hit it, 2026-09-23."
+    },
+    {
+      "id": "well_occupancy",
+      "definition": "The fraction of observation time a single particle held in a multi-well optical potential spends in one named well. Reported per well, so a two-well landscape yields two values that sum to one. A well here is a basin of the TOTAL potential and not a trap: two traps closer together than twice their width form one basin and the observable is then undefined rather than zero.",
+      "units": [
+        "1"
+      ],
+      "estimator": "Assign every frame to a well by the milestoning rule -- the particle belongs to the well whose minimum it most recently reached, and the barrier region belongs to neither side but to whichever was last touched. Occupancy is the assigned time divided by the record length. Stated as milestoning rather than nearest-minimum because a particle loitering on the barrier flickers between the two under nearest-minimum, and each flicker is counted as a visit.",
+      "window_required": true,
+      "window_parameter": "record_length",
+      "producible_by": [
+        "experiment",
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "This is NOT the Boltzmann basin weight, and the two differ whenever the wells have different curvature. The Boltzmann weight integrates exp(-U/kT) over a basin and is a property of the potential; this integrates observed time and is a property of the record. They agree at equilibrium in the long-record limit and disagree at any finite record, which is why window_required is true. A value with no record length beside it cannot be compared with anything."
+    },
+    {
+      "id": "well_residence_time",
+      "definition": "The mean time a single particle spends in one well of a multi-well optical potential between reaching that well and reaching another. Reported per ordered pair of wells, because the time spent in the shallower well before crossing is not the time spent in the deeper one.",
+      "units": [
+        "s",
+        "ms"
+      ],
+      "estimator": "Renewal form: the total time assigned to the well by the milestoning rule of well_occupancy, divided by the number of exits from it counted in the same record. Deliberately NOT the arithmetic mean of completed dwell intervals -- the longest dwell in a record is the one most likely to straddle the end of it and be discarded, which biases that mean low by roughly the residence time over the record length.",
+      "window_required": true,
+      "window_parameter": "record_length",
+      "producible_by": [
+        "experiment",
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "The choice of estimator is worth more than it looks. Measured on a symmetric two-trap landscape with a 4 kT barrier over a record of 600 relaxation-free time units, the mean of completed dwells read 5.7 per cent low against an exact quadrature while the renewal form read 1 per cent low, and the two differed by more than either error bar. Both converge as the record lengthens; only one is usable at a record length an experiment can afford."
+    },
+    {
+      "id": "interwell_transition_rate",
+      "definition": "The number of crossings from one named well of a multi-well optical potential to another, per unit time spent in the origin well. Reported per ordered pair. Where exactly two wells exist it is the reciprocal of well_residence_time for that pair.",
+      "units": [
+        "1/s",
+        "Hz"
+      ],
+      "estimator": "Count milestoning transitions out of the origin well over the record and divide by the total time assigned to the ORIGIN well, not by the record length. Dividing by the record length reports a rate diluted by however long the particle sat in the other well, which makes the number depend on the barrier it is not about.",
+      "window_required": true,
+      "window_parameter": "record_length",
+      "producible_by": [
+        "experiment",
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "A rate is reportable only when transitions were observed. A record containing none bounds the rate above by roughly one over the record length and is a bound, not a value -- which is the normal outcome once the wells are asymmetric, and is the reason this entry exists separately from well_residence_time rather than being derived from it at read time."
+    },
+    {
+      "id": "interwell_barrier_height",
+      "definition": "The potential energy difference between the saddle separating two wells of a static optical potential and the minimum of the origin well. Direction-dependent whenever the wells differ in depth, so it is reported per ordered pair and the two values differ by the tilt.",
+      "units": [
+        "kT",
+        "pJ",
+        "J"
+      ],
+      "estimator": "Invert the equilibrium position histogram: U(x) = -kT ln P(x) up to a constant, locate the two minima and the saddle between them, and take the difference from the origin minimum to the saddle. The histogram bin width and the record length both enter, so both travel with the number. In a simulation the potential is known in closed form and the same inversion is still the estimator, so that the two sides are measuring the same thing rather than one reading its own input.",
+      "window_required": true,
+      "window_parameter": "record_length",
+      "producible_by": [
+        "experiment",
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "The histogram inversion is what makes this comparable in principle, and it is also what bounds it: a barrier the particle never crosses leaves the saddle region unsampled and the inversion returns a lower bound set by the emptiest visited bin. Above roughly 10 kT no affordable record measures it and the number has to come from the declared potential instead, which is a different claim about a different thing. The unit kT requires a temperature in K on the same card."
     }
   ]
 }

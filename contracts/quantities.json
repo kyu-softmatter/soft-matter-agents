@@ -259,6 +259,34 @@
       "unit": "um/s",
       "kind": "physical",
       "note": "An imposed condition of a drag-calibration configuration."
+    },
+    {
+      "id": "well_occupancy",
+      "definition": "The fraction of observation time a single particle held in a multi-well optical potential spends in one named well.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Registered as an observable the same day; the estimator lives there and section 7 requires both (check 60)."
+    },
+    {
+      "id": "well_residence_time",
+      "definition": "The mean time a single particle spends in one well of a multi-well optical potential between reaching that well and reaching another.",
+      "unit": "s",
+      "kind": "physical",
+      "note": "Registered as an observable the same day; the estimator lives there and section 7 requires both (check 60)."
+    },
+    {
+      "id": "interwell_transition_rate",
+      "definition": "The number of crossings from one named well of a multi-well optical potential to another, per unit time spent in the origin well.",
+      "unit": "1/s",
+      "kind": "physical",
+      "note": "Registered as an observable the same day; the estimator lives there and section 7 requires both (check 60)."
+    },
+    {
+      "id": "interwell_barrier_height",
+      "definition": "The potential energy difference between the saddle separating two wells of a static optical potential and the minimum of the origin well.",
+      "unit": "kT",
+      "kind": "physical",
+      "note": "Registered as an observable the same day; the estimator lives there and section 7 requires both (check 60)."
     }
   ],
   "not_yet_registered": {
