@@ -136,35 +136,82 @@
           "type": "object",
           "description": "The module that actually runs this configuration, when that is not the one `devices` names. `devices` names the channel a plan may have to drive -- the declared model's engine -- and stays what the model says; this says what answered. They diverge whenever a backend is named before it is written, and a reader of `devices` alone then learns something false about every run on disk.",
           "properties": {
-            "module": {"type": "string"},
-            "why": {"type": "string", "minLength": 20}
+            "module": {
+              "type": "string"
+            },
+            "why": {
+              "type": "string",
+              "minLength": 20
+            }
           },
-          "required": ["module", "why"],
+          "required": [
+            "module",
+            "why"
+          ],
           "additionalProperties": false
         },
         "temperature_realisation": {
           "type": "object",
           "description": "How the declared temperature becomes the model's temperature. A fact about the declared model, the same kind as output_independent_of_input and here for the same reason (5.3): it decides WHICH CONFIRMATION the claim needs, and that is not something a card may choose per question.\n\n`constitutive` means temperature enters as a parameter -- of a noise amplitude, say -- so there is no mechanism that could fail to realise it and no empirical check to run. `thermostat` means a mechanism holds it, which is engine- and configuration-specific and CAN fail: a Langevin thermostat with inertia loses its setpoint at large dt or to a flying ice cube. Asking a constitutive configuration to confirm its thermostat is the wrong kind of question, and -- the reason this is a field -- a configuration with inertia added later would silently need the other kind with nothing marking the change.",
           "properties": {
-            "kind": {"enum": ["constitutive", "thermostat"]},
-            "why": {"type": "string", "minLength": 20}
+            "kind": {
+              "enum": [
+                "constitutive",
+                "thermostat"
+              ]
+            },
+            "why": {
+              "type": "string",
+              "minLength": 20
+            }
           },
-          "required": ["kind", "why"],
+          "required": [
+            "kind",
+            "why"
+          ],
           "additionalProperties": false
         },
         "output_independent_of_input": {
           "type": "object",
           "description": "5.3: a run is a source (`simulated:<run_id>`) only where the configuration produces a number its inputs do not determine. That is a fact about the declared model, so it is declared here and read from there rather than judged per card. Absent means undeclared, which is not a permission.",
           "properties": {
-            "independent": {"type": "boolean"},
-            "why": {"type": "string", "minLength": 20}
+            "independent": {
+              "type": "boolean"
+            },
+            "why": {
+              "type": "string",
+              "minLength": 20
+            }
           },
-          "required": ["independent", "why"],
+          "required": [
+            "independent",
+            "why"
+          ],
           "additionalProperties": false
         },
         "requires_contrast": {
           "$ref": "common.schema.json#/$defs/contrast",
           "description": "What the sample has to provide for this configuration to see anything. A configuration survives the screen when this value is in the goal's sample_contrast: membership, not equality. Comparing with == drops brightfield from a fluorescent question, which leaves exactly three candidates against a cap of three -- a resolved cap and a fan-out at the ceiling, both produced by the comparison rather than by the instrument. A cut that appears for the wrong reason is worse than no cut. The fact was prose in `label`, where deterministic code could not reach it; a perturbation configuration produces nothing and needs none."
+        },
+        "dimensions": {
+          "type": "object",
+          "description": "How many spatial dimensions this configuration is integrated in. REQUIRED, because on 2026-09-23 estimator.py carried `DIMENSIONS = 3` as a module constant while four of the six configurations declared beside it were two-dimensional, and D = slope/(2*d) with 3 where 2 belongs returns two thirds of the true diffusivity. That does not fail: it produces a plausible number, lands on a card and passes every check. Nothing had been bitten only because every run so far was bd_overdamped. A label saying `in two dimensions` is not this field -- no code can act on prose, and parsing the label would be reading a role out of how a string is written, which check 80 exists to refuse. It enters an active-matter estimator twice over: through D = slope/(2*d) and through the persistence time 1/((d-1)*D_R).",
+          "properties": {
+            "n": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3
+            },
+            "why": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "n",
+            "why"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -207,5 +254,31 @@
         }
       ]
     }
-  }
+  },
+  "allOf": [
+    {
+      "$comment": "Dimensionality is required of a SIMULATION configuration and meaningless for a microscope one: an optical path images a sample and integrates nothing, so there is no d for an estimator to divide by. Conditional rather than required outright, because making it required of both would have refused five microscope configurations to fix an estimator fault that is entirely on the simulation side.",
+      "if": {
+        "properties": {
+          "agent": {
+            "const": "simulation"
+          }
+        },
+        "required": [
+          "agent"
+        ]
+      },
+      "then": {
+        "properties": {
+          "configurations": {
+            "items": {
+              "required": [
+                "dimensions"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
 }

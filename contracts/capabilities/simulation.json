@@ -7,6 +7,10 @@
     {
       "config": "bd_overdamped",
       "label": "overdamped Brownian dynamics of spherical tracers in an implicit solvent, undriven. Mass-based time units do not enter: in the overdamped limit they are absent from the physics and have no experimental counterpart (5.7). A7 abstains here rather than being pruned -- this configuration drives nothing, and the a7 card says so (4.5.3)",
+      "dimensions": {
+        "n": 3,
+        "why": "Three, which every run under this configuration has assumed and which its tracer diffusivity was verified against. Stated now rather than left implicit: it was implicit and estimator.py hardcoded 3 to match, which was right here and wrong for four of the five configurations declared beside it."
+      },
       "optical_path": null,
       "devices": [
         "hoomd_backend"
@@ -30,6 +34,10 @@
     {
       "config": "bd_pairwise",
       "label": "overdamped Brownian dynamics in two dimensions, periodic, with a purely repulsive Yukawa pair potential (screened Coulomb, no attractive well), undriven. A7 abstains: this configuration drives nothing.",
+      "dimensions": {
+        "n": 2,
+        "why": "Two, as the label says and as the person fixed on 2026-09-23. The psi6 bond-orientational order parameter this configuration produces is a two-dimensional quantity."
+      },
       "optical_path": null,
       "devices": [
         "hoomd_backend"
@@ -53,6 +61,10 @@
     {
       "config": "bd_pairwise_driven_tracer",
       "label": "bd_pairwise plus one particle whose POSITION IS IMPOSED, moving at a set velocity along a set direction. A kinematic constraint and not a force. A7 owns the velocity and the direction.",
+      "dimensions": {
+        "n": 2,
+        "why": "Two, inherited: this is bd_pairwise plus one position-constrained particle and the drive does not change the dimensionality."
+      },
       "optical_path": null,
       "devices": [
         "hoomd_backend"
@@ -76,6 +88,10 @@
     {
       "config": "abp_free",
       "label": "a single active Brownian particle in two dimensions with no pair interaction, no wall and no obstacle: one orientation diffusing at D_R, self-propulsion v0 along it, translational noise D_T, unwrapped coordinates. A7 abstains.",
+      "dimensions": {
+        "n": 2,
+        "why": "Two, as the label says. It enters the estimator twice over -- through D = slope/(2*d) and through the persistence time 1/((d-1)*D_R), which is 1/D_R in two dimensions and 1/(2*D_R) in three."
+      },
       "optical_path": null,
       "devices": [
         "hoomd_backend"
@@ -104,6 +120,10 @@
     {
       "config": "abp_wca_2d",
       "label": "interacting active Brownian dynamics in two dimensions: orientation diffusing at D_R, self-propulsion v0, translational noise D_T, WCA pair repulsion, periodic box, undriven. A7 abstains.",
+      "dimensions": {
+        "n": 2,
+        "why": "Two, which the id already says. The id saying it is not enough: nothing machine-readable could act on a name, which is how estimator.py came to divide by three here."
+      },
       "optical_path": null,
       "devices": [
         "hoomd_backend"
@@ -132,6 +152,10 @@
     {
       "config": "bd_overdamped_trapped_uniform_flow",
       "label": "one overdamped particle, no pair interaction, in an external harmonic potential of stiffness k_t, with the background fluid moving at constant velocity relative to the trap. DRIVEN: A7 stops abstaining and owns the flow speed and direction.",
+      "dimensions": {
+        "n": 3,
+        "why": "Three, and DECLARED BY THIS SEAT RATHER THAN READ OFF A CARD -- the question's cards state no dimensionality anywhere. It follows bd_overdamped, which this configuration is one trap and one flow away from: a bead in water with three-dimensional thermal motion, whose drag offset is then resolved along the flow axis. The execution seat should say so if its plan assumes otherwise, because this field is now what the estimator divides by."
+      },
       "optical_path": null,
       "devices": [
         "hoomd_backend"
