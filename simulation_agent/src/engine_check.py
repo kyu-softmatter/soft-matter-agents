@@ -63,6 +63,40 @@ def read_pin(path: pathlib.Path = ENVIRONMENT) -> dict:
     raise LookupError(f"no `- hoomd=<version>[=<build>]` line in {path}")
 
 
+def conda_subdir() -> str:
+    """conda's name for this platform, derived from what Python reports."""
+    system, machine = platform.system(), platform.machine().lower()
+    if system == "Windows":
+        return "win-64"
+    if system == "Darwin":
+        return "osx-arm64" if machine in ("arm64", "aarch64") else "osx-64"
+    if system == "Linux":
+        return "linux-64" if machine in ("x86_64", "amd64") else f"linux-{machine}"
+    return f"{system.lower()}-{machine}"
+
+
+def instruction(pin: dict | None = None) -> str:
+    """The text a mock-only run emits, naming the platform it is on (4.6.5, amended 2026-09-22).
+
+    A reduced path is legitimate and never silent: finding no engine, the
+    operator runs the mock and says so, the way `degraded` carries the
+    librarian's name. The text changes no verdict. win-64 has no HOOMD build
+    at all, so Windows gets its own route -- the engine lives in WSL2, which
+    is linux-64 (plan.md 7) -- and the other platforms get the conda lines.
+    """
+    pin = pin or read_pin()
+    sub = conda_subdir()
+    head = f"mock_backend ran because hoomd is not importable in this interpreter on {sub}."
+    if sub == "win-64":
+        return (head + " conda-forge builds no HOOMD for win-64, under any packaging tool. The engine's "
+                "route on this machine is WSL2 (linux-64): inside it, from the repository root:\n    "
+                + "\n    ".join(install_lines(pin)))
+    if sub not in PLATFORMS:
+        return (head + f" conda-forge builds HOOMD 7.2.0 for {', '.join(PLATFORMS)} only; {sub} needs a "
+                "source build (cmake -B build -S . -GNinja; ninja; ninja install).")
+    return head + " From the repository root:\n    " + "\n    ".join(install_lines(pin))
+
+
 def install_lines(pin: dict) -> list[str]:
     """What to type, from the repository root. One place, quoted by the backend too."""
     spec = f"hoomd={pin['version']}" + (f"={pin['build']}" if pin["build"] else "")

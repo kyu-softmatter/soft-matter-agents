@@ -617,7 +617,24 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     # so this module still loads on a machine that has no engine. 4.6.5 wants
     # the whole pipeline to run with no HOOMD, and it still does -- by being
     # handed a MockBackend, which is what the sweeps and the tests do.
-    backend = backend or hoomd_backend.HoomdBackend(seed=seed)
+    # THE ENGINE'S PRESENCE DECIDES (4.6.5 as amended by the person, 2026-09-22;
+    # de438d0). 018 replaced one default with another, and on a machine without
+    # HOOMD that default died at the import. The amendment's third option is
+    # the one here: where the engine is present it runs; where it is not, the
+    # mock runs AND the run says so, with an instruction naming the platform it
+    # is on. The text changes no verdict -- a mock run is a valid run -- and it
+    # is recorded as an event, not only printed, so a session reset cannot
+    # lose the fact that the reduced path was taken (6.2 rule 2). The same
+    # shape as `degraded` carrying the librarian's name.
+    engine_missing: str | None = None
+    if backend is None:
+        try:
+            backend = hoomd_backend.HoomdBackend(seed=seed)
+        except hoomd_backend.EngineMissing:
+            from . import engine_check                 # noqa: PLC0415
+            engine_missing = engine_check.instruction()
+            backend = mock_backend.MockBackend(seed=seed)
+            print(engine_missing, file=sys.stderr)
     params, provenance = derive_commands(plan)
     monitors = compile_monitors(plan)
 
@@ -640,6 +657,8 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
 
     # O1 -- preflight. Nothing has been commanded yet.
     record("gate", tier=max_tier(plan), approval=approval, envelope=envelope)
+    if engine_missing is not None:
+        record("engine_missing", fell_back_to=mock_backend.NAME, instruction=engine_missing)
     pre = backend.preflight(params)
     record("preflight", report=pre)
     if pre.get("missing_parameters"):
