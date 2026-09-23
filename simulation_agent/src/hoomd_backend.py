@@ -6,13 +6,19 @@ seam is already there -- `operator.run()` takes `backend=` -- so **nothing in
 the operator changes** when a run comes here instead.
 
 **What is verified and what is not, said plainly.** Everything that does not
-touch the engine is exercised today: the parameter mapping, the unit system in
-both directions, the state machine, the frame record, and the estimator wiring.
-The ~20 lines that call HOOMD are **not executed anywhere yet** -- HOOMD is
-conda-forge only and this machine's conda does not run -- so they are written
-against HOOMD-blue v4's documented API and the first real run is where they get
-checked. That is `010`'s arrangement and not a shortcut: a machine with the
-validator and the mock does all of M2's verification (9.2 rule 4).
+touch the engine is exercised with no engine present: the parameter mapping,
+the unit system in both directions, the state machine, the frame record, and
+the estimator wiring. The ~20 lines that call HOOMD were **not executed
+anywhere until 2026-09-22** -- HOOMD is conda-forge only and, until that
+morning, no interpreter on this machine had it -- so they were written against
+HOOMD-blue's documented API and the first real run was where they got checked.
+That was `010`'s arrangement and not a shortcut: a machine with the validator
+and the mock does all of M2's verification (9.2 rule 4). They have run since:
+fourteen `log.json` files under `runs/` say `hoomd_backend` (counted on
+2026-09-23, plus `-hoomd-s1`, which ran the engine under a mock label), and
+the ten-seed sweep reproduces Stokes-Einstein to 0.04 per cent in the mean. How the engine gets onto another machine is `_import_hoomd()`'s
+business below, and **which build answered** is `engine_build()`'s, recorded
+in every run's preflight report.
 
 **Units are this file's first responsibility** (5.7 rule 4, D7). Cards are
 authoritative in physical units and the engine works in its own, so the
@@ -49,6 +55,11 @@ in the open.
 
 from __future__ import annotations
 
+import glob
+import json
+import os
+import platform
+import sys
 import threading
 
 import numpy as np
@@ -200,6 +211,60 @@ def preflight_report(params: dict, seed: int) -> dict:
     }
 
 
+def _plain(value):
+    """JSON-safe or None. A build field is a record, not an object graph."""
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    return str(value)
+
+
+def engine_build(engine) -> dict:
+    """Which build of the engine answered, for the run record.
+
+    Read off the module (`hoomd.version`) and off the environment that
+    installed it (`<sys.prefix>/conda-meta/hoomd-*.json`, which every
+    conda-family tool writes for each package it links: channel, build
+    string, platform and the archive's sha256). The two are different claims.
+    The first says what the code was compiled with -- CPU or GPU, MPI or not,
+    single or double precision -- and the second says where the bytes came
+    from. A run record that names neither can say `hoomd_backend` and no
+    more, and the librarian's log already holds one case of two current
+    builds answering the same question differently; "which build" is a field
+    here for the same reason it became one there.
+
+    Every field degrades to None rather than raising. A double injected as
+    `engine` has no `version`; an engine built from source has no conda-meta
+    entry. Absent is recorded as absent, not filled in (P1).
+    """
+    v = getattr(engine, "version", None)
+
+    def read(name):
+        return _plain(getattr(v, name, None)) if v is not None else None
+
+    flags = read("compile_flags")
+    conda = None
+    for path in sorted(glob.glob(f"{sys.prefix}/conda-meta/hoomd-*.json")):
+        try:
+            with open(path) as fh:
+                meta = json.load(fh)
+        except (OSError, ValueError):
+            continue
+        conda = {k: _plain(meta.get(k)) for k in ("fn", "version", "build", "channel", "subdir", "sha256")}
+    return {
+        "engine": "hoomd",
+        "version": read("version"),
+        "gpu_enabled": read("gpu_enabled"),
+        "mpi_enabled": read("mpi_enabled"),
+        "gpu_platform": read("gpu_platform") or None,
+        "compile_flags": flags.strip() if isinstance(flags, str) else flags,
+        "floating_point_precision": read("floating_point_precision"),
+        "conda_package": conda,
+        "python": sys.version.split()[0],
+        "interpreter": os.path.abspath(sys.executable),
+        "platform": f"{platform.system()}-{platform.machine()}",
+    }
+
+
 # --------------------------------------------------------------------------- #
 # the backend
 # --------------------------------------------------------------------------- #
@@ -211,7 +276,8 @@ class HoomdBackend:
     `engine` is the module this drives, defaulting to `hoomd`. It is injectable
     for one reason and it is not to fake a run: the state machine, the unit
     conversion, the frame record and the estimator wiring are this file's and
-    are checkable today, while the engine calls are not. A double exercises the
+    are checkable with no engine present, and were for four days before one
+    was; the engine calls have run since 2026-09-22. A double exercises the
     wiring and says nothing about the physics -- which is the distinction 4.6.5
     draws when it calls the mock a first-class backend and this kind of thing
     not one.
@@ -241,7 +307,13 @@ class HoomdBackend:
     # -- the fixed interface ------------------------------------------------
 
     def preflight(self, params: dict) -> dict:
-        return preflight_report(params, self.seed)
+        report = preflight_report(params, self.seed)
+        # Beside `engine_parameters`, so the record holds what the engine was
+        # handed and what the engine was, in one place. The preflight event
+        # is where the operator already puts this report, so log.json carries
+        # it with no change to run_log.schema.json.
+        report["engine_build"] = engine_build(self.engine)
+        return report
 
     def apply(self, params: dict) -> dict:
         """Submit and return a handle. **Does not block until it finishes.**
@@ -351,9 +423,11 @@ class HoomdBackend:
 
     # -- the engine, and the only part of this file HOOMD has ever seen ----- #
     #
-    # NOT YET EXECUTED. Written against HOOMD-blue v4's documented API; the
-    # first real run is where it is checked, and until then this comment is the
-    # honest label. Everything above and below is exercised today.
+    # Written against HOOMD-blue's documented API and NOT EXECUTED until
+    # 2026-09-22, when the first real runs checked it: `run-20260922-hoomd-s1`,
+    # which recorded itself as a mock run, and `-s1b`, which did not (014).
+    # The label "not yet executed" stood here for four days and was the honest
+    # one. Everything above and below was exercised from the start.
 
     def _start_engine(self, p: dict):
         """Build and start a Brownian-dynamics simulation in reduced units."""
@@ -437,22 +511,37 @@ class HoomdBackend:
 
 
 def _import_hoomd():
-    """Import the engine, or say why there is none, once and early.
+    """Import the engine, or say how to get one, once and early.
 
     HOOMD is not on PyPI -- it ships through conda-forge -- so `uv sync` gets
     the pipeline and not the engine, deliberately (9.2 rule 4: a machine with
     the validator and the mock does all of M2's verification). A missing engine
     is therefore an ordinary state of this repository and not a broken install,
     and it gets a sentence rather than a traceback.
+
+    Since 2026-09-22 the engine is also the DEFAULT backend (018), so on a
+    fresh machine this message is the first thing the operator says. It used
+    to end "install HOOMD outside this repository", which named no file, no
+    command and no version; the install lines now come from `engine_check`,
+    the one module that reads the pin, so this message and that report cannot
+    disagree about what to type.
     """
     try:
         import hoomd                                   # noqa: PLC0415
     except ImportError as exc:
+        from . import engine_check                     # noqa: PLC0415  (only on the failure path)
+        try:
+            lines = engine_check.install_lines(engine_check.read_pin())
+        except (OSError, LookupError) as pin_exc:      # the spec is missing or unreadable
+            lines = [f"(src/environment.yml could not be read: {pin_exc})"]
         raise EngineMissing(
-            "hoomd is not importable here. It is conda-forge only and is not in "
-            "pyproject.toml on purpose, so `uv sync` never installs it: 9.2 rule 4 puts all of "
-            "M2's verification on the validator and mock_backend, and this backend is the part "
-            "that waits for a machine with the engine. Run with mock_backend, or install HOOMD "
-            f"outside this repository. ({exc})"
+            f"hoomd is not importable in this interpreter ({exc}). HOOMD-blue is not on PyPI, "
+            "so `uv sync` never installs it and pyproject.toml cannot name it; it ships through "
+            f"conda-forge for {', '.join(engine_check.PLATFORMS)} and not win-64. The environment "
+            f"that holds it together with the pipeline's own dependencies is "
+            f"{engine_check.ENVIRONMENT_REL}. From the repository root:\n    "
+            + "\n    ".join(lines)
+            + "\n`python3 -m src.engine_check` says what this interpreter has. The pipeline runs "
+            "without the engine by being handed mock_backend explicitly (4.6.5)."
         ) from exc
     return hoomd

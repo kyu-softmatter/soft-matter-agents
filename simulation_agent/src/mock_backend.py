@@ -29,6 +29,9 @@ its own unit system starts (5.7 rule 4, D7).
 
 from __future__ import annotations
 
+import os
+import platform
+import sys
 import threading
 
 import numpy as np
@@ -53,6 +56,23 @@ TERMINAL = (COMPLETE, ABORTED, FAILED)
 # here so the reader of this file still meets them where they are used.
 K_B = physics.K_B
 stokes_einstein = physics.stokes_einstein
+
+
+def engine_build() -> dict:
+    """The mock's counterpart to `hoomd_backend.engine_build()`.
+
+    The integrator here is numpy's `normal()`, so numpy is the engine and its
+    version is the engine version. Same field names where the same thing is
+    meant, so a reader counting which build answered which run does not need
+    to know which backend it is reading.
+    """
+    return {
+        "engine": "numpy",
+        "version": np.__version__,
+        "python": sys.version.split()[0],
+        "interpreter": os.path.abspath(sys.executable),
+        "platform": f"{platform.system()}-{platform.machine()}",
+    }
 
 
 class MockBackend:
@@ -116,6 +136,7 @@ class MockBackend:
         )
         return {
             "backend": NAME,
+            "engine_build": engine_build(),
             "missing_parameters": missing,
             "steps_per_frame": steps_per_frame,
             "frames_expected": (

@@ -1,0 +1,49 @@
+# The one environment that runs everything on this side: the validator, the
+# mock backend and the HOOMD engine, in one interpreter.
+#
+#     conda env create -f simulation_agent/src/environment.yml   # from the repository root
+#     conda activate soft-matter-agents                          # or, without shell init: conda run -n soft-matter-agents python3 ...
+#     cd simulation_agent && python3 -m src.engine_check        # says which build you got
+#
+# mamba and micromamba read this file unchanged (`mamba env create -f`,
+# `micromamba create -f`); pixi can import it. Any of them is fine: the file
+# is the spec, the tool is a choice, and that choice is the person's
+# (plan.md 7).
+#
+# WHY THIS FILE EXISTS. HOOMD-blue is not on PyPI, so `pyproject.toml` and
+# `uv.lock` structurally cannot name the engine, and a fresh clone that runs
+# `uv sync` gets the pipeline and no engine (plan.md 7, 2026-09-22). This is
+# the repository file that names it. It carries the three pipeline
+# dependencies too, so an engine machine needs one interpreter -- not a uv
+# one for the validator beside a conda one for the engine, which is what
+# this machine had for four days.
+#
+# WHY UNDER src/. check 13 admits any filename under simulation_agent/src/
+# and nothing new at the agent's top level or at the repository root, so a
+# root environment.yml is the architecture seat's to place. src/engine_check.py
+# reads the hoomd line below: the pin lives here and nowhere else.
+#
+# PLATFORMS. conda-forge builds hoomd 7.2.0 for linux-64, osx-64 and
+# osx-arm64 and not for win-64 -- the solve fails with PackagesNotFoundError
+# -- so this agent does not run on Windows under any packaging tool (plan.md
+# 7). The CPU build on purpose: the GPU variant is `"hoomd=7.2.0=*gpu*"` with
+# `cuda-version` and CONDA_OVERRIDE_CUDA set, on a machine with the card, and
+# MPI needs a source build. Neither changes this file's shape, and whichever
+# build a run actually got is recorded per run by engine_build().
+#
+# PINS. hoomd exact, because engine_check compares against it and a run
+# record carries what it got. The rest sit at the floors pyproject.toml
+# states and the solver resolves them. python 3.12 is what every committed
+# run so far used and what the repository's .venv is; conda-forge has 7.2.0
+# builds for 3.11 through 3.15, so moving it is a one-line choice.
+name: soft-matter-agents
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.12
+  - hoomd=7.2.0=*cpu*
+  - gsd>=5,<6            # nothing under src/ imports it yet; card 013 puts both backends' trajectories in GSD, and the person asked for gsd output on 2026-09-22
+  - numpy>=1.26
+  - jsonschema>=4.0
+  - referencing>=0.30

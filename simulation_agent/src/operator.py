@@ -557,6 +557,24 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             "nothing to gate yet (5.5)."
         )
 
+    # A run id names one run and never two. On 2026-09-22 a second seat ran
+    # the engine under an id this tree already held: cards.write replaced the
+    # four files of the earlier run, and `git commit -- <paths>` carried the
+    # replacement into HEAD as an ordinary edit. The gate judged a valid tree
+    # and check 73 saw an id that existed, so nothing refused -- because
+    # nothing here asked. An existing directory is a record (P1), and the
+    # repair for wanting another run is another id, not a steadier hand. This
+    # is opt-in like every operator guard: a directory made by hand walks past
+    # it (2.1 rule 9), and the history-reading counterpart -- one id, one
+    # content, ever -- belongs in contracts/ and was raised there.
+    if (RUNS / run_id).exists():
+        raise Refused(
+            f"runs/{run_id} already exists and holds a run; a run id names one run and never "
+            "two (P1). Choose an id this tree does not hold -- `ls runs/` first, and remember "
+            "that four seats read the same listing, so a number that looks free to one looks "
+            "free to all of them at once."
+        )
+
     approval, envelope = gate(plan, budget, target)
 
     # The status flip is bookkeeping and belongs to the agent; the decision it
