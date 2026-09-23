@@ -256,6 +256,89 @@ plan naming the MM label is verified by `getLoadedDevices()` and asserts
 nothing about the branch, while naming the source asserts the disputed
 mapping. **Setting its power is exactly that assertion.**
 
+## 6. The autofocus visit — and it does not wait on the retract
+
+Written from `microscope-5`'s design review, which holds this surface. **The
+three items are theirs; the two notes under each are mine.**
+
+### It can go NOW, and this is the finding
+
+`nosepiece_write_runs_no_escape` is about **one path only**, and the entry
+says so in its own last clause:
+
+> Rotating at the stand or in NIS **does run the Ti2's own escape**; the
+> software path does not.
+
+So **a person turning the turret by hand gets the stand's escape.** The
+hand-rotated calibration visit below does **not** wait on card 023's
+retract; only the automated version does. **Write "turned by hand" into the
+procedure and this visit goes today.**
+
+### What to bring back
+
+**a. Pixel size at the sample plane**, per objective × intermediate
+magnification × binning. The gap `pixel_size_at_sample_plane` carries
+`must_not_derive`: dividing by a nominal magnification is how `20.078x`
+happened — a designation wearing a precision it never had. **Measure with a
+graticule.**
+
+> **Check what is already there before spending the visit.** Twelve entries
+> exist at **E2**, measured on this instrument: all six objectives × 1× and
+> 1.5×, and `100x@1x` is **0.065 µm**. Their `validity` names **1×1 binning**
+> as the condition and says the value doubles at 2×2, answering `partial`
+> rather than deriving. **So if the autofocus plans at 1×1, this item may
+> already be closed** and the visit is for the other two.
+
+**b. A through-focus curve per modality**, on a bare-particle slide.
+Brightfield is **symmetric about focus**, so the metric's polarity and peak
+count differ from fluorescence. Unmeasured, the metric is fluorescence-only
+and will not say so.
+
+**c. The glass-interface to target-plane offset**, and the parfocality
+offsets between ports and channels.
+
+### d. The PFS offset sign — the third collision direction
+
+Three devices can drive into the sample: the Z drive, the nosepiece, and
+PFS. **Two directions are measured and one is not.**
+
+- `z_retract_direction_is_measured` (**E3**): *smaller Z is retracted on
+  this stand — measured, not inferred*, and Micro-Manager now carries the
+  same convention
+- `pfs_offset_sign_unmeasured` (**gap, open**): *it is a collision device
+  alongside the Z drive and the nosepiece, and it is the one remaining
+  direction on one that has never been measured. **A direction written into
+  a configuration without being measured reads as verified.***
+
+The prior project's own safety memo says it was never measured and left the
+value at unknown rather than guessing. **So it is measured here or it stays
+unknown — there is nothing to transfer.**
+
+**It is independent of the filters and the port, so it fits this visit.**
+One condition: **a test slide must be mounted** — the focal plane has to be
+visible to read a sign.
+
+**Not the real sample.** That sample is consumed by its measurement and
+cannot be remounted. A sign reading does not need it and must not spend it.
+
+### Why this list is short on the thing it is for
+
+**An autofocus is a motion toward the coverslip**, so it is the same surface
+as card 023's items 1 and 2. Until `resolve_limits` reads both limits and
+something refuses below the floor, **an autofocus is a plan that cannot be
+issued** — and at `100x@1x` the lookup and the backstop coincide, so there
+is no margin to absorb a missing comparison. `microscope-5` reached that
+independently and does not contest the ordering.
+
+**And Jev does not change it.** It has no vision, so the FFT and the
+intensity extraction stay deterministic Python; P0 keeps a model out of the
+clearance comparison whatever its confidence; P2 makes a model-produced
+number E6, so the usable shape is **Jev selects a frame and the value comes
+from that frame's encoder reading** (§4.6.9) — a tie-break, the shape
+`configuration_preference` already has. **And a calibrated probability is a
+self-reported grade**, which §5.3 does not take: it would have to be
+measured here before it counted, exactly like the vendor readiness codes.
+
 ## What this list is not
 
 **It is not a transfer of their test suite.** Every item names an entry in
