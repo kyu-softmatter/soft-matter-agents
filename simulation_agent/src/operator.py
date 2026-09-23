@@ -764,7 +764,19 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     # returned is not a stop criterion.
     stopped_by, stopped_early = None, False
     polls, last_progress = 0, -1
-    deadline = time.monotonic() + POLL_BUDGET_S
+    # The polling guard is against a backend that never reaches a terminal
+    # state, not a limit on the run: the run's limit is the envelope's wall
+    # clock, re-read here. At 600 s flat it would have aborted a 40-minute arm
+    # the envelope allows two hours for, and reported the abort as the
+    # backend's -- the guard judging what the ceiling owns.
+    ceiling_s = POLL_BUDGET_S
+    try:
+        limits = next(t for t in (read_envelope() or {}).get("targets", []) if t["target"] == target)["limits"]
+        wall = (limits["smoke_budget"] if budget == SMOKE else limits)["wall_clock_max"]
+        ceiling_s = max(POLL_BUDGET_S, si({**wall, "name": "wall_clock_max"}))
+    except (StopIteration, KeyError, TypeError, Refused):
+        pass
+    deadline = time.monotonic() + ceiling_s
     while True:
         state = backend.read()
         fired = evaluate(monitors, state)
@@ -791,7 +803,7 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         if time.monotonic() > deadline:
             record("abort", monitor=None, state=state,
                    reason=backend.abort(
-                       f"no terminal state within {POLL_BUDGET_S} s of polling"
+                       f"no terminal state within {ceiling_s:g} s of polling, the envelope's wall clock for this budget"
                    )["reason"])
             stopped_early = True
             break
