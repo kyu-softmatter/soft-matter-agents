@@ -231,6 +231,19 @@ that one key to `{}` to absent inside ten minutes while seats were quoting it
 to each other, and nothing anywhere records that it did. Settings are read at
 session start, so fixing it leaves a running session unchanged.
 
+**That sentence is the third instance of one class and it took three to see
+it.** A fix that lands in configuration reaches **only what starts after
+it** -- a settings file reaches the next session, a `mcp_server.py` commit
+reaches the next server, and on 2026-09-23 a SessionStart hook reporting the
+pinned committer identity reached every seat except the ones already running,
+which were exactly the seats it was written for. Each was written down on its
+own and none as a kind, so the third arrived looking new. **The remedy that
+works is to put the notice where the thing is used rather than where a
+session starts**: `manager-simulation` moved the identity warning into the
+commit hook, which runs at the moment an identity is actually spent and so
+reaches a session that has been up since morning. Ask of any configuration
+fix **who is already running**, and if the answer matters, find the use site.
+
 **The librarian's server code has the same shape and it was not written
 down.** Each session starts its own `mcp_server.py --serve`, four or five at
 a time, so **a fix to the server reaches only sessions started after it**.

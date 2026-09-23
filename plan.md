@@ -2303,8 +2303,15 @@ trees.** Measured by editing one file two ways and watching `plus 4 uncommitted 
 `manager-simulation` hit it comparing a system-python run against a pixi-interpreter one, read
 `73 pending / 6 N/A` against `70 / 7`, and nearly concluded the interpreter changes the verdict -- what
 moved was architecture editing `plan.md` between the two. It caught itself by comparing check by check
-rather than line by line, which is the workaround and not the fix. **The fix is to put a digest of the
-dirty set in the line** -- a short hash over the sorted `path:blob-sha` pairs -- after which *same line*
+rather than line by line, which is the workaround and not the fix. **Landed at `7271eeb` the same day**, and the first version of it did not
+work for a reason worth more than the fix: the helper it used called `.strip()` on the whole of
+`git status --porcelain`, which ate **the leading space of the first line only**, so ` M README.md`
+became `M README.md`, `line[3:]` read `EADME.md`, and **that one file's content dropped silently out of
+the digest** while every other line parsed correctly. Harmless while nothing parsed columns; a defect the
+moment something did. It was found by running architecture's two-edit demonstration against the fix and
+watching the digest not move -- **a test asserting only that a digest exists would have passed**, and
+re-reading the code would not have shown it. The fix is to put a digest of the
+dirty set in the line -- a short hash over the sorted `path:blob-sha` pairs -- after which *same line*
 means *same tree* and two seats can compare runs by quoting one string. Until then the line answers
 "is this anybody's commit" and **not** "are these two runs comparable", and this document told every
 session to read it as if it answered both. **The cost is not the red; it is that eight seats each have to work out that it is
