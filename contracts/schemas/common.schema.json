@@ -87,7 +87,7 @@
         },
         "derived": {
           "type": "boolean",
-          "description": "This computed value is a NAMED quantity: it carries a `symbol`, and one symbol means one definition across every card and the store (check 36). **It does not mean dimensionless.** A census on 2026-09-18 found 6 uses, all six carrying a unit (five `s`, one `N*s/m`), against 20 numbers with the dimensionless unit `1`, none of them derived \u2014 zero overlap. The documented meaning had never once been used, and six authors had independently read it as written here. Uses a computed: source; not a separate source kind."
+          "description": "This computed value is a NAMED quantity: it carries a `symbol`, and one symbol means one definition across every card and the store (check 36). **It does not mean dimensionless.** A census on 2026-09-18 found 6 uses, all six carrying a unit (five `s`, one `N*s/m`), against 20 numbers with the dimensionless unit `1`, none of them derived — zero overlap. The documented meaning had never once been used, and six authors had independently read it as written here. Uses a computed: source; not a separate source kind."
         },
         "symbol": {
           "type": "string",
@@ -455,6 +455,14 @@
         },
         "precision": {
           "$ref": "#/$defs/precision"
+        },
+        "varies_with": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          },
+          "description": "Names the sweep axes this bound is a function of, so S4 evaluates it PER POINT instead of intersecting it across the whole sweep. ABSENCE IS A CLAIM, not a default: an interval without this field asserts that the bound is CONSTANT over the sweep. That was always implied and never said, and saying it makes it falsifiable. Intersection is only valid between claims about the SAME POINT (4.5.3). Intersecting the timestep from the stiff corner with the record length from the weak corner combines two claims about different points as though they were one -- a category error rather than a narrow answer, and it catches nothing because it still produces a number. THE SIGNATURE: when the intersected answer exceeds the per-point answer by about the sweep's own range, that ratio IS this error. Measured on sim-20260923-201, where both bounds go as the same local gamma/k_t so cost is FLAT across three decades of stiffness at 1e5 steps a point, while one interval per parameter gives 1e8 against 1e5 -- a factor equal to the stiffness range exactly."
         }
       },
       "required": [

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "plan.schema.json",
-  "title": "plan \u2014 the execution plan (5.4)",
+  "title": "plan — the execution plan (5.4)",
   "allOf": [
     {
       "$ref": "common.schema.json#/$defs/common_head"
@@ -338,6 +338,86 @@
       "items": {
         "$ref": "common.schema.json#/$defs/target"
       }
+    },
+    "sweep": {
+      "type": "object",
+      "description": "A characterize over a product space. A card carries `sweep` OR `compare_arms` and NEVER BOTH -- a card carrying both is asking two questions. The two are not separated by how many variables move but by what the card claims at the end: compare_arms claims something about THE DIFFERENCE BETWEEN TWO STATES, which is why check 34 requires one variable to move so the difference can be attributed; a sweep claims something about A FUNCTION OVER A DOMAIN, where no point is privileged and there is nothing to attribute to one change. A one-arm compare is meaningless and a one-point sweep is just a run.",
+      "properties": {
+        "axes": {
+          "type": "array",
+          "minItems": 1,
+          "description": "The quantities that move and the levels they take, so `is this grid complete` is an answerable question. Without it a deliberately empty cell -- a corner skipped because it diverges -- cannot be recorded at all.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "parameter": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "levels": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "string"
+                },
+                "description": "names in numbers[]; a level never restates a value (5.2)"
+              }
+            },
+            "required": [
+              "parameter",
+              "levels"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "points": {
+          "type": "array",
+          "minItems": 1,
+          "description": "The condition sets actually performed. INVARIANT: every point shares every condition except the ones the axes name. Both fields are required together because neither says it alone -- axes without points cannot record which cells were skipped, and points without axes cannot say whether a missing corner was dropped or never in the grid. Together a gap is VISIBLE rather than silent, the same reason a stop criterion is declared before a run rather than after.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "point": {
+                "type": "string"
+              },
+              "conditions": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "parameter": {
+                      "type": "string"
+                    },
+                    "number": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "parameter",
+                    "number"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "skipped": {
+                "type": "string",
+                "description": "present when this cell of the grid was deliberately not run; says why"
+              }
+            },
+            "required": [
+              "point",
+              "conditions"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "axes",
+        "points"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
