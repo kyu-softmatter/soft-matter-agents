@@ -2290,6 +2290,16 @@ class turned around once more -- here everything declared has a reader and
 the thing with no declaration is the one that touches hardware. It is named
 in §7 because a manifest is where someone will look for it and not find it.
 
+**A count of thirteen is not the reason; having no exception is (2026-09-23).** Of 14 `.py` files under
+`microscope_agent/src/`, 13 carry the scrubbing preamble and the one that does not is `orchestrator.py`,
+**which is not run as a script**. So the rule is not *thirteen files do this* but **every file that can be
+run from that directory does it, and the exception is exactly the file that cannot be**. Written as a
+count it goes stale the moment a file is added; written as a condition it does not, and it tells the next
+author what to do. **Two of the thirteen carry comments naming other modules, and one of those carried a
+wrong number** -- it said three where the answer was four, which is where yesterday's "four sites" came
+from. `microscope-1` fixed its own file **and the comment that had misled it**, which is the half that is
+usually skipped: correcting what you read leaves the next reader reading the same thing.
+
 **`pymmcore_plus` is imported by `microscope_agent` and is not installed
 (2026-09-22).** The device layer imports a package absent from the run
 environment. That is `manager-microscope`'s to act on, and it is recorded here
@@ -2428,8 +2438,16 @@ at the same path is `LOST`, never produced is `PENDING` -- and that split rests 
 machinery 66 already carries. Giving it a new number means **a second copy of stem-splitting**, which is
 the `RETRACT_HINTS` defect recorded above: two implementations, identical on the day they are written,
 compared by nothing. So 66's declaration is widened from run logs naming plans to **cards naming a
-revision of another card**, in the same commit as the implementation, because a declaration edited in
-silence is the same drift one layer up.
+revision of another card**. I added *in the same commit as the implementation*, **and that instruction
+could not be obeyed**: the declaration is in `plan.md`, which is architecture's, and the implementation
+is in `contracts/`, which is a manager's, so one commit carrying both is refused by check 41. The seat
+implemented at `73ed73f` and said so. **The rule I was copying works only because both halves have one
+owner** -- a check and its fixtures are both the manager's, so *land them together* is achievable there
+and is nonsense here. **A same-commit rule is a claim about ownership, not about discipline**, and
+before writing one the question is whether the two halves are in one boundary. Where they are not, the
+order is what can be required: declaration first when the declaration sets scope, implementation first
+when the declaration would otherwise describe something that does not exist -- and check 42 already
+reports the gap either way, which is why neither order is unsafe.
 
 **A boundary crossing is in shared history on purpose, and the hook's own advice could not have fixed it
 (2026-09-23).** Commit `28761d4` carries four `simulation_agent/` files under the `architecture`
@@ -2443,7 +2461,14 @@ That is right when the bad commit is **pushed**, because the next range starts a
 pushed, the range is `origin/main..HEAD`, and **a correcting commit leaves `28761d4` inside it forever**,
 so following the advice means never pushing again. The hook conflates *in history* with *in shared
 history*, and the conflation is the dangerous direction: it forbids the only fix while offering an
-alternative that does not work. `contracts/hooks/` is a manager's and the wording is being fixed there.
+alternative that does not work. **And it is worse than "wrong when unpushed", which is how I first put
+it**: `manager-microscope` read the range construction and **every commit a pre-push range contains is
+by definition not yet on the remote**, so *it is in history already* is not occasionally false there but
+**structurally never true**. My own summary -- that pushing made the advice true -- is right about what
+happened and hides that the advice can never be followed from inside the gate that gives it. The two
+harmless paths in an unpushed range are rewriting, which is the person's, and **sealing by pushing and
+correcting in the record**, which is what the person chose; a correcting commit only starts working
+after the seal. `contracts/hooks/` is a manager's and the wording is being fixed there.
 
 **So the person chose, and chose the other cost.** Rewriting would have moved two other seats' commits;
 I measured that as cheap -- zero files in the tree cite either SHA, both were under two minutes old --
@@ -2503,7 +2528,7 @@ is never touched. The revision comes later, with `013`, and then the corrected c
 
 | Number | What | Seat holding it |
 |---|---|---|
-| 80 | whether any code decides a device's role from how an identifier is **written** rather than from a declared field (§2.1 rule 2). **Three forms and the third is the one a first probe misses**: a substring test on an identifier (`"shutter" in element_id`), membership in a literal tuple or list of identifiers (`"pfs" in elements`, which is an *equality* test and invisible to a substring-only probe), and equality with a bare literal (`== "nosepiece"`, found by eye and not by `manager-microscope`'s probe). **String literals are excluded** -- that probe scored 3 of 5, and both false positives were text quoting the test, one of them a message another seat had just written. Both agent trees, not one: the count that started this was four and came from reading one file. **It lands with fixtures that have been watched failing**; the rule has none today, which is 2026-09-22's 31/31 exactly | manager-microscope |
+| _(empty)_ | 80 reached declaration on 2026-09-23 with two of its forms declared ahead of implementation; **an empty table is the normal state** |  |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
 
@@ -2683,11 +2708,15 @@ The check list:
 
     **An input resolves when the store carries that name and every carrier is unanimous on the grade.** Unanimity rather than uniqueness is arithmetic — six names ride on two or more entries and all six are unanimous, so demanding uniqueness would refuse without cause. And **unanimity cannot be quiet**: where they split, it names them rather than taking a side. **It asserts nothing about which value** — `pixel_size` is twelve different values under one grade. **It resolves a name's grade and not its value**, and that is the limit §8 records for this class.
     **Underivable is neither a failure nor PENDING.** It is not a failure because the entry is not wrong but because **there is nothing that can be said**, and not PENDING because that would mean *a later milestone produces it* and **no milestone resolves a symbol.** So it comes out as a number inside a passing message, split into three shapes — a symbol the store does not carry, **no `inputs` key at all**, and carrier disagreement. **The next action differs for all three.** The second is a different kind from the other two: the symbol is not failing to resolve, **what would resolve it is not written down.**
-66. **An irreversible action's run reads back whether the limit was kept** (§4.6.6.1, §2.1 rule 8).
+66. **An irreversible action's run reads back whether the limit was kept** (§4.6.6.1, §2.1 rule 8). **Widened 2026-09-23 from run logs naming plans to any card naming a revision of another card**, which brought `goal_id` inside it: two schemas required that field and no check resolved it, and it did not dangle only because both plans happened to pin the current goal revision while six earlier ones sat in no tree. It is one mechanism and not two -- the `-r<N>` stem split and the overwritten-versus-never-produced fork already lived here, so a separate number would have been **a second copy of that machinery**, which is the `RETRACT_HINTS` defect built on purpose. **The baseline is silence**: with the displaced copy present no goal line is emitted at all, and `manager-microscope` broke it three ways in a scratch tree -- copy present, copy removed (two plans `LOST`), all revisions removed (`PENDING`) -- with `microscope-1` breaking it independently.
 59. **The gate says out loud when a commit carries no attribution** (§6.2.1). `unknown_committer` is `report` and not `refuse`, so the warning is the whole of it -- it names the paths that will carry none, because a quiet pass is how 63 commits went out unattributed before anyone counted.
 63. **A tie verdict carries the worse grade of the two values it compared** (§5.8.1). A tie is a verdict about values and inherits their weakness; a verdict the writer may choose is not a gate, which is why it is recomputed rather than read. Fixtures carry both ways it fails -- a tie claiming E2 between an E1 and an E5, and a tie with no grade at all.
 72. **The remaining verdict fields follow from the numbers beside them** -- `deviations[].within_tolerance` and `estimation.followed`, recomputed and not read. It returns UNDECIDED where `contracts/` cannot express the tolerance being claimed, which is the honest verdict for a field that is three claims in one (§5.3).
 73. **A result's `approval_id` and `run_id` resolve** -- to an approval that exists and covers this plan revision, and to a run directory in this tree. `plan_hash` was checked and these two were not, so the approval chain was verified up to the plan and stopped before the result: nothing confirmed the run reported was the run that happened, which §2.1 rule 7 assumes on the way in.
+80. **No code decides a device's role from how an identifier is written** (§2.1 rule 2). Three forms: a substring test on an identifier, membership in a literal collection of identifiers, and equality with a bare literal. **String literals are excluded** and the exclusion is measured rather than asserted -- swapping the AST walk for the naive line search that first surveyed this raises the count from 3 to 7, so the four that stay quiet are quiet **because they are excluded and not because they are absent**: a refusal message quoting the test, an assignment of the declared ids, a path-id equality, and a fragment under the length floor. **The line carries its own denominator** -- *over N source files and the M declared ids* -- which is this check's answer to the thing that produced the wrong "four": a number beside the set it was taken from. Optical paths are outside the scope on purpose, because `path == "confocal"` is the rule **being kept** and including it would turn the check against itself. **Advisory while the backlog stands and a failure at zero**, the shape checks 29 and 75 take: all six sites are in trees `manager-microscope` may not write, and none can go before `role` lands.
+
+**Two further forms are named in the declaration and not yet implemented, which is the order that matters.** `state.get("nosepiece")` has no `Compare` node at all, so the AST walk cannot see it; `microscope-1` found it by reading, after the three forms were declared. `manager-microscope` **declined to add it on its own**, and was right: adding a form the declaration does not carry makes **the guard's scope set by something other than a declaration**, which is the defect §2.1 rule 2 exists to remove, committed by the seat removing it. So it is declared here first and implemented after -- together with `startswith` and `endswith`, which `retract_elements()` uses and which the original three do not reach.
+
 79. **What git ignores and what the gate walks are one question in two files, and they are compared.** Every directory `.gitignore` excludes wholesale is in the validator's `SKIP_DIRS`. **Only entries ending in `/`** -- the file also holds `*.pyc` and `.DS_Store`, which have no business in a directory-skip list, and a check that demanded they match would be wrong about its own subject. The two lists have two owners, architecture and a manager, which is why nothing had compared them: on 2026-09-23 `.pixi/` was in the first and not the second, one `pixi install` put 271 MB inside the shared working copy, and check 13 reported **10757 failures for every seat at once**. The fixture builds a repository with `build/` in `.gitignore` and not in `SKIP_DIRS`, deliberately not `.pixi/` -- that name is now in both lists, so a fixture using it would stop failing tomorrow and **a fixture that stops failing means a check stopped working**. It reads no history and lives in `history_fixtures.py` anyway, because what it needs is one repository with a root `.gitignore` and that file is the only thing that builds one; the rejected-card folders hold cards, and neither of these two lists is a card.
 
 78. **Every path the history has touched since the enforcement line classifies into a boundary some seat owns.** Check 55's reverse direction, and **not** a claim that `ALLOWED_PATHS` and `SHARED_PATHS` agree -- they must keep disagreeing, and only the permitted direction is fixed. A path the classifier knows and disk does not is normal; a path that may exist and classifies nowhere is **a file no seat can commit**, which `pyproject.toml` and `uv.lock` were on 2026-09-19. **History-wide and not live-tree**, and the difference is the whole check: architecture proposed deleting `plan_ko\.md` from `SHARED_PATHS` as a dead entry, the live-tree form passes that deletion because the file is not on disk to be counted, and the history form reports 1 -- so the obvious version does not catch the edit this exists for. **Scope starts at the enforcement line and what precedes it is out of scope rather than PENDING**: PENDING names an artifact a later milestone produces, and no milestone makes a pre-gate commit attributable, so PENDING would mean waiting for something that never comes. **It asserts its own premise** -- "a file nobody can commit" holds only while no seat owns `unattributable`, so if one comes to, the check says N/A and says why rather than staying red, because a check still failing after its premise changed is reporting the wrong state. The prohibition it enforces already existed as a comment immediately above the regex; architecture read that region and proposed the deletion anyway, which is a measurement of **how far prose reaches when it sits as close to its subject as prose can get**.
