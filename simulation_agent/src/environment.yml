@@ -6,9 +6,11 @@
 # dependencies in base, what differs in `sim` and `mic` features, `sim` with
 # win-64 excluded so a Windows solve yields no sim environment rather than a
 # failure. This file is the same machine's second manifest and exists only
-# while pixi is not on this machine. It ENDS when `pixi.lock` exists and
-# resolves on this platform; then this file is deleted in the commit that
-# says so, and engine_check reads the pin from the pixi table instead. A
+# while pixi is not on this machine. It ENDS when `pixi install -e sim`
+# succeeds and contracts/validate.py runs in that interpreter -- a lock
+# file existing is prose, the validator running is execution (architecture's
+# narrowing, 2026-09-23); then this file is deleted in the commit that says
+# so, and engine_check reads the pin from the pixi table instead. A
 # second manifest with an expiry is a bridge; one without is a fork, and a
 # silent fork is the class this repository spent two days counting.
 #
@@ -56,5 +58,5 @@ dependencies:
   - hoomd=7.2.0=*cpu*
   - gsd>=5,<6            # nothing under src/ imports it yet; card 013 puts both backends' trajectories in GSD, and the person asked for gsd output on 2026-09-22
   - numpy>=1.26
-  - jsonschema>=4.0     # contracts/validate.py's, not this agent's -- repeated here so this one interpreter can run the validator; whether conda deps of contracts/ are declared here or by architecture is asked, not settled (2026-09-23)
+  - jsonschema>=4.0     # contracts/validate.py's, not this agent's -- repeated here so this one interpreter can run the validator; declared of record in pyproject.toml's [tool.pixi.dependencies] base (architecture, 2026-09-23)
   - referencing>=0.30   # same
