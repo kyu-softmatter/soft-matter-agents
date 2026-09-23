@@ -6,10 +6,25 @@ verbatim in `goal.json` `constraint_notes[0]`.*
 
 ## Where this stops, and why
 
-**S3.0 screening returns empty, so this question stops at S2.** Not a refusal:
-§11-1's ordering. The observable is unregistered and no declared configuration
-produces it, and both files are `contracts/`, which this session reads and
-never writes (§6.2). Register, then plan.
+**Was: S3.0 screening returned empty and this question stopped at S2**, because
+the observable was unregistered and no declared configuration produced it. Not
+a refusal, §11-1's ordering: register, then plan.
+
+**Now: `manager-simulation` registered both at `8a0d036`, and S3.0 passes.**
+`screen('trapped_particle_drag_offset')` returns one configuration,
+`bd_overdamped_trapped_uniform_flow`. The ordering worked and the gate is no
+longer the vocabulary.
+
+**What blocks the fan-out instead is the person's five answers below**, and one
+defect found on the way. `fanout.plan_queries` is written for the diffusivity
+question: it hardcodes `tau_d` as A1's and A4's symbol and builds A3's
+condition range from temperature and bead diameter, while its docstring says
+the list is derived from the goal. Under a trap the shortest characteristic
+time is `gamma/k_t`, not `tau_d`, so this configuration would receive a query
+that is wrong and looks right. Only the crash was fixed -- a goal with no
+numbers raised `KeyError` and now stops with a sentence. The symbol set was
+left alone on purpose: four configurations other seats registered today share
+this file and would be refused by a narrowing. Recorded in `failures.jsonl`.
 
 ## The relationship, which is analytic and is not a result
 

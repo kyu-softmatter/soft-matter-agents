@@ -194,9 +194,31 @@ def plan_queries(qid: str) -> list[dict]:
     A1 and A4 want `kb_group`, while A3 wants `kb_query` -- whether a measured
     diffusivity exists for these conditions at all, which is the gap this
     question currently records by hand.
+
+    **THE SYMBOL SET IS `bd_overdamped`'S AND IS NOT DERIVED, WHICH THE
+    SENTENCE ABOVE ABOUT BEING DERIVED FROM THE GOAL DOES NOT SAY.** `tau_d`
+    is the shortest characteristic time for free diffusion; under a trap it is
+    `gamma/k_t`, and for an active particle it is neither. So a configuration
+    this function was not written for gets a query that is wrong and looks
+    right, which is worse than getting none. Left as it stands rather than
+    narrowed, because other questions are in flight against the same file and
+    breaking a peer's working path to fix a latent one trades a real failure
+    for a hypothetical -- the defect is recorded instead, in failures.jsonl
+    under sim-20260923-201. What is fixed here is only the crash below.
     """
     goal = cards.load_goal(qid)
     nums = {n["name"]: n for n in goal["numbers"]}
+    missing = [n for n in ("temperature", "bead_diameter") if n not in nums]
+    if missing:
+        raise SystemExit(
+            f"cannot plan queries for {qid}: its goal card carries no {', '.join(missing)} "
+            f"in numbers[], and A3's condition_range is built from them. Before this guard the "
+            f"line below raised KeyError, which names the dict key and not the decision -- 2.1's "
+            f"shape, ambiguity stops rather than proceeds, and it has to stop SAYING SOMETHING. "
+            f"A goal with no numbers is the normal state of a question whose ranges are still the "
+            f"person's to give (4.5.1); it is not a malformed card. Supply them, or plan this "
+            f"question's queries by hand and say so on the cards."
+        )
     observable = goal["observable"]["name"]
     kb_version = current_kb_version(qid)
     # The same revision `run` stamps the cards with, from the same accessor:
