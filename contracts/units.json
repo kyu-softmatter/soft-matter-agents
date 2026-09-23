@@ -338,6 +338,19 @@
         "N": 1
       },
       "$comment": "An electron, as a count of charge carriers. Same dimension as `count` and the conversion between them really is 1 -- what `e` carries that `count` does not is WHICH thing was counted, and a unit string is exactly where that belongs. Added 2026-09-20 for camera read noise, which the librarian seat parked in `count` rather than inventing a symbol; not inventing it was right and 025 is why.\n\nDO NOT GIVE ADU THIS DIMENSION IF IT EVER ARRIVES. Electrons and analogue-to-digital units are both counts and they differ by the camera's gain, which is not 1. Sharing `N` would let the registry convert one into the other silently, which is the failure `count` was given its own dimension to avoid one level up. ADU needs either its own dimension or an explicit gain on every crossing. The prior repository's ADU figures were dropped rather than carried, so the question is not live today and this note is here for the day it is.\n\nQuantum efficiency stays dimensionless under this: electrons per photon is N/N, which cancels to `1`, and that is the right answer."
+    },
+    "1/s": {
+      "si_factor": 1.0,
+      "dim": {
+        "T": -1
+      }
+    },
+    "rad^2/s": {
+      "si_factor": 1.0,
+      "dim": {
+        "A": 2,
+        "T": -1
+      }
     }
   },
   "quantities": {
