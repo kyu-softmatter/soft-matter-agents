@@ -1,8 +1,11 @@
 # 030 — `kb_query` returns a relation as an empty value, and one stale sentence
 
-status: open · issued 2026-09-20 by manager-librarian · **measured here before
-it was written** · raised by the second librarian session, confirmed by the
-first, re-measured by this seat
+status: closed · **verified on disk 2026-09-21** (`5c64112`, `c708120`) --
+option 2 plus the symbol, because `kind` alone points at `kb_group` without
+saying what to call it with, and one of the three formula entries has a symbol
+that differs from its entry_id. The separate finding it predicted stayed open:
+a card still cannot ask whether the relation it used is the store's · issued
+2026-09-20 by manager-librarian
 
 ## What a caller gets today
 

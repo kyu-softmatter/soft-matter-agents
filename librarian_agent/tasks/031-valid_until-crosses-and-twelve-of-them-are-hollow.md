@@ -1,7 +1,9 @@
 # 031 — carry `valid_until`, and twelve of the fifteen are a date with no event
 
-status: open · issued 2026-09-20 by manager-librarian · **ruling from the
-person** · found independently by both librarian execution seats
+status: closed · **verified on disk 2026-09-21** (`034281b`, and items 1-3 in
+the same pass) -- `valid_until` crosses, and the twelve carry the person's
+event. A self-test guard went in with it · issued 2026-09-20 by
+manager-librarian · **ruling from the person**
 
 ## THE RULING
 

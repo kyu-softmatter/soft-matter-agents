@@ -1,8 +1,12 @@
 # 033 — the two entries a camera swap falsifies, and the 49 behind them
 
-status: open · issued 2026-09-21 by manager-librarian · **narrow part is
-yours; the wide part is raised and not ordered** · the correction in it is
-`seat:librarian-3`'s
+status: closed · **verified on disk 2026-09-22** (`68bdd88`, published
+`cf773ba`) -- the answer is **26 and eight kinds**, not the 37 this file
+offered as scaffolding, and the classification is at
+`kb/distilled/what_falsifies_the_49_bench_claims.md`. Two of the eight cannot
+expire at all, one drifts and has no terminating event, and ten entries could
+not be classified because each does two things · issued 2026-09-21 by
+manager-librarian · the correction in it is `seat:librarian-3`'s
 
 ## The correction first, because it was mine to get wrong
 
