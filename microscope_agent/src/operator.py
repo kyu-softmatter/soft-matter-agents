@@ -35,9 +35,19 @@ import sys
 # needs the other half -- python3 src/operator.py puts src/ at the head of
 # sys.path, `enum` does `from operator import or_` during interpreter
 # start-up, and it lands here instead, mid-way through our own `import json`.
-# screening.py and synthesis.py carry the same four lines. Three modules
-# working around one filename is the argument for the rename, which is
-# plan.md 7's and the design seat's.
+# EVERY SCRIPT IN THIS DIRECTORY CARRIES THE SAME FOUR LINES, and this
+# comment used to name two of them and say "three modules", which is where a
+# later seat got a wrong count from -- it read this sentence and reported it.
+# A comment that counts goes stale silently and is quoted as evidence, so
+# count it instead:
+#
+#   grep -l 'sys\.path\[:\] = \[p for p in sys\.path' src/*.py
+#
+# The rule that run gives: every module here with a `__main__` carries it,
+# and orchestrator.py is the only one without, because it is never executed
+# as a script. The workaround is the condition of being runnable in this
+# directory, not a few special cases -- which is the argument for the rename,
+# and plan.md 7's filename is the design seat's.
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.curdir) != _HERE]
 
