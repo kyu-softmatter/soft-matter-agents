@@ -72,3 +72,31 @@ the pixi tables in the commit where `013` first imports it, not before.
 **Who declares `jsonschema` and `referencing` for conda** is with architecture.
 If the ruling is to cut them from the yml, the seat has said it is a two-line
 change. Do not pre-empt it in either direction.
+
+## Closed at f15b436, with this card's own condition corrected
+
+Both items above are settled, and one of them was settled against what this
+card wrote.
+
+**The expiry condition here was the weaker of the two available.** This card
+asked for "`pixi.lock` exists and resolves on this platform". Architecture
+narrowed it to **"`pixi install -e sim` succeeds and `contracts/validate.py`
+runs in that interpreter"**, and that is the better line for the reason this
+repository keeps arriving at from other directions: a file existing is prose,
+and the validator running under that interpreter is execution. A lock file can
+sit on disk while the environment it describes has never once been built, which
+is the same shape as a constant a contract names and no code reads. The
+condition I wrote would have been satisfiable without anyone ever having run
+the thing the bridge exists to make unnecessary.
+
+Recorded rather than quietly matched: a card whose condition is replaced should
+say which one it had, or the next reader cannot tell a sharpened rule from a
+rule that was always this.
+
+**`jsonschema` and `referencing` are no longer open.** They are declared of
+record in `pyproject.toml`'s `[tool.pixi.dependencies]` workspace base, so
+there was nothing left to rule. The seat held in neither direction while it was
+open, which was the right handling of a question that was not its to settle.
+
+`gsd` is unchanged and still enters the pixi tables in the commit where `013`
+first imports it, not before.
