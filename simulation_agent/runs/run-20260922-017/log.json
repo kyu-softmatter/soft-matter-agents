@@ -1,0 +1,313 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260922-017",
+  "plan_id": "plan-sim-20260917-001-r3",
+  "revision": 3,
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "1",
+  "stop_criteria": [
+    "planned_duration_reached",
+    "step_displacement_diverged"
+  ],
+  "t0_wall": "2026-09-23T03:33:41.569696+00:00",
+  "t0_mono": 1374022.610762375,
+  "time_base_note": "Every offset is software: this side has no trigger counter and no device clock. Simulated time is a coordinate of the model, not a clock reading, so it is recorded in trajectory_meta.json rather than as this log's time base (4.6.9).",
+  "backend": "mock_backend",
+  "events": [
+    {
+      "t_mono": 3e-06,
+      "time_base": "software",
+      "event": "gate",
+      "tier": 1,
+      "approval": {
+        "id": null,
+        "kind": null
+      },
+      "envelope": {
+        "status": "inside",
+        "target": "local",
+        "budget": "smoke",
+        "compared": [
+          {
+            "cost": "wall_clock_estimate",
+            "limit": "wall_clock_max",
+            "cost_si": 0.36000000000000004,
+            "limit_si": 300.0
+          },
+          {
+            "cost": "storage_estimate",
+            "limit": "storage_max",
+            "cost_si": 0.02,
+            "limit_si": 0.5
+          }
+        ],
+        "exceeded": []
+      }
+    },
+    {
+      "t_mono": 1.1e-05,
+      "time_base": "software",
+      "event": "preflight",
+      "report": {
+        "backend": "mock_backend",
+        "missing_parameters": [],
+        "steps_per_frame": 1,
+        "frames_expected": 10000,
+        "save_interval_divides_step": true,
+        "diffusivity_si": 8.584396548838734e-14,
+        "seed": 5
+      }
+    },
+    {
+      "t_mono": 0.000138,
+      "time_base": "software",
+      "event": "dispatch",
+      "action": "integrate",
+      "from": "actions[integrate]",
+      "handle": "mock_backend:5:10d38c7a0",
+      "state": "submitted",
+      "params": {
+        "integration_timestep": {
+          "value_si": 0.3,
+          "unit_in_plan": "s",
+          "grade": "E4",
+          "from": "conditions[0].number -> numbers[integration_timestep_point]"
+        },
+        "total_simulated_time": {
+          "value_si": 3000.0,
+          "unit_in_plan": "s",
+          "grade": "E4",
+          "from": "conditions[1].number -> numbers[total_simulated_time_point]"
+        },
+        "save_interval": {
+          "value_si": 0.3,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[2].number -> numbers[save_interval_max]"
+        },
+        "box_length": {
+          "value_si": 0.0003,
+          "unit_in_plan": "um",
+          "grade": "E5",
+          "from": "conditions[3].number -> numbers[box_length_min_dilution]"
+        },
+        "max_lag_time": {
+          "value_si": 30.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[4].number -> numbers[max_lag_time]"
+        },
+        "n_particles": {
+          "value_si": 1000.0,
+          "unit_in_plan": "count",
+          "grade": "E5",
+          "from": "conditions[5].number -> numbers[n_particles]"
+        },
+        "temperature": {
+          "value_si": 293.0,
+          "unit_in_plan": "K",
+          "grade": "E3",
+          "from": "conditions[6].number -> numbers[temperature]"
+        },
+        "viscosity": {
+          "value_si": 0.001,
+          "unit_in_plan": "Pa*s",
+          "grade": "E3",
+          "from": "conditions[7].number -> numbers[viscosity]"
+        },
+        "bead_diameter": {
+          "value_si": 4.9999999999999996e-06,
+          "unit_in_plan": "um",
+          "grade": "E2",
+          "from": "conditions[8].number -> numbers[bead_diameter]"
+        }
+      }
+    },
+    {
+      "t_mono": 0.00014,
+      "time_base": "software",
+      "event": "monitors_compiled",
+      "monitors": [
+        "planned_duration_reached",
+        "step_displacement_diverged"
+      ],
+      "from": "stop_criteria"
+    },
+    {
+      "t_mono": 0.023147,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "mock_backend:5:10d38c7a0",
+        "steps_taken": 1008,
+        "simulated_time": 302.4,
+        "frames_saved": 1009,
+        "max_single_step_displacement": 9.383146726920884e-07,
+        "max_absolute_coordinate": 0.00031697672703677704,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.048188,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "mock_backend:5:10d38c7a0",
+        "steps_taken": 2120,
+        "simulated_time": 636.0,
+        "frames_saved": 2121,
+        "max_single_step_displacement": 7.780365097403502e-07,
+        "max_absolute_coordinate": 0.0003149197314868774,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.07175,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "mock_backend:5:10d38c7a0",
+        "steps_taken": 3149,
+        "simulated_time": 944.6999999999999,
+        "frames_saved": 3150,
+        "max_single_step_displacement": 8.546338475522467e-07,
+        "max_absolute_coordinate": 0.00032505787948324346,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.096801,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "mock_backend:5:10d38c7a0",
+        "steps_taken": 4234,
+        "simulated_time": 1270.2,
+        "frames_saved": 4235,
+        "max_single_step_displacement": 8.569972743990919e-07,
+        "max_absolute_coordinate": 0.0003338967213481334,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.121862,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "mock_backend:5:10d38c7a0",
+        "steps_taken": 5318,
+        "simulated_time": 1595.3999999999999,
+        "frames_saved": 5319,
+        "max_single_step_displacement": 7.487494856025682e-07,
+        "max_absolute_coordinate": 0.0003372957194033015,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.146906,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "mock_backend:5:10d38c7a0",
+        "steps_taken": 6405,
+        "simulated_time": 1921.5,
+        "frames_saved": 6406,
+        "max_single_step_displacement": 8.18460035014346e-07,
+        "max_absolute_coordinate": 0.0003395361019571513,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.169658,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "mock_backend:5:10d38c7a0",
+        "steps_taken": 7380,
+        "simulated_time": 2214.0,
+        "frames_saved": 7381,
+        "max_single_step_displacement": 8.366753599181262e-07,
+        "max_absolute_coordinate": 0.00034719620668377597,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.19471,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "mock_backend:5:10d38c7a0",
+        "steps_taken": 8448,
+        "simulated_time": 2534.4,
+        "frames_saved": 8449,
+        "max_single_step_displacement": 7.94382145884035e-07,
+        "max_absolute_coordinate": 0.0003528211871786481,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.21977,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "mock_backend:5:10d38c7a0",
+        "steps_taken": 9516,
+        "simulated_time": 2854.7999999999997,
+        "frames_saved": 9517,
+        "max_single_step_displacement": 7.94773413104061e-07,
+        "max_absolute_coordinate": 0.00035612720515066336,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.244867,
+      "time_base": "software",
+      "event": "complete",
+      "monitor": {
+        "id": "planned_duration_reached",
+        "metric": "simulated_time",
+        "comparator": ">=",
+        "threshold_si": 3000.0,
+        "on_met": "complete",
+        "from": "stop_criteria[planned_duration_reached].number -> numbers[total_simulated_time_point]",
+        "met": true,
+        "outcome": "complete"
+      },
+      "state": {
+        "state": "complete",
+        "initialised": true,
+        "handle": "mock_backend:5:10d38c7a0",
+        "steps_taken": 10000,
+        "simulated_time": 3000.0,
+        "frames_saved": 10001,
+        "max_single_step_displacement": 8.848629719859856e-07,
+        "max_absolute_coordinate": 0.0003574067440754154,
+        "failure": null
+      },
+      "note": "the criterion that fired declares on_met complete"
+    }
+  ],
+  "finished_at": "2026-09-23T03:34:24.409734+00:00"
+}

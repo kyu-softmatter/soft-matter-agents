@@ -1,0 +1,109 @@
+{
+  "run_id": "run-20260922-017",
+  "qid": "sim-20260917-001",
+  "plan_id": "plan-sim-20260917-001-r3",
+  "plan_revision": 3,
+  "plan_hash": "sha256:69541b9115696d4875947b534959d61f47edf9410eae72f0f0fc86f40cc2a293",
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "envelope_check": {
+    "status": "inside",
+    "target": "local",
+    "budget": "smoke",
+    "compared": [
+      {
+        "cost": "wall_clock_estimate",
+        "limit": "wall_clock_max",
+        "cost_si": 0.36000000000000004,
+        "limit_si": 300.0
+      },
+      {
+        "cost": "storage_estimate",
+        "limit": "storage_max",
+        "cost_si": 0.02,
+        "limit_si": 0.5
+      }
+    ],
+    "exceeded": []
+  },
+  "backend": "mock_backend",
+  "seed": 5,
+  "parameters_si": {
+    "integration_timestep": 0.3,
+    "total_simulated_time": 3000.0,
+    "save_interval": 0.3,
+    "box_length": 0.0003,
+    "max_lag_time": 30.0,
+    "n_particles": 1000.0,
+    "temperature": 293.0,
+    "viscosity": 0.001,
+    "bead_diameter": 4.9999999999999996e-06
+  },
+  "provenance": [
+    {
+      "parameter": "integration_timestep",
+      "value_si": 0.3,
+      "unit_in_plan": "s",
+      "from": "conditions[0].number -> numbers[integration_timestep_point]",
+      "grade": "E4"
+    },
+    {
+      "parameter": "total_simulated_time",
+      "value_si": 3000.0,
+      "unit_in_plan": "s",
+      "from": "conditions[1].number -> numbers[total_simulated_time_point]",
+      "grade": "E4"
+    },
+    {
+      "parameter": "save_interval",
+      "value_si": 0.3,
+      "unit_in_plan": "s",
+      "from": "conditions[2].number -> numbers[save_interval_max]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "box_length",
+      "value_si": 0.0003,
+      "unit_in_plan": "um",
+      "from": "conditions[3].number -> numbers[box_length_min_dilution]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "max_lag_time",
+      "value_si": 30.0,
+      "unit_in_plan": "s",
+      "from": "conditions[4].number -> numbers[max_lag_time]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "n_particles",
+      "value_si": 1000.0,
+      "unit_in_plan": "count",
+      "from": "conditions[5].number -> numbers[n_particles]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "temperature",
+      "value_si": 293.0,
+      "unit_in_plan": "K",
+      "from": "conditions[6].number -> numbers[temperature]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "viscosity",
+      "value_si": 0.001,
+      "unit_in_plan": "Pa*s",
+      "from": "conditions[7].number -> numbers[viscosity]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "bead_diameter",
+      "value_si": 4.9999999999999996e-06,
+      "unit_in_plan": "um",
+      "from": "conditions[8].number -> numbers[bead_diameter]",
+      "grade": "E2"
+    }
+  ]
+}

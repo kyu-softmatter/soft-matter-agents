@@ -1,0 +1,11 @@
+{
+  "run_id": "run-20260922-015",
+  "frames_saved": 10001,
+  "simulated_time": 3000.0,
+  "steps_taken": 10000,
+  "max_single_step_displacement": 8.783466073636608e-07,
+  "stopped_by": "planned_duration_reached",
+  "stop_outcome": "complete",
+  "stopped_early": false,
+  "completed_planned_duration": true
+}

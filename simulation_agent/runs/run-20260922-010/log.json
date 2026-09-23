@@ -1,0 +1,828 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260922-010",
+  "plan_id": "plan-sim-20260917-001-r3",
+  "revision": 3,
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "1",
+  "stop_criteria": [
+    "planned_duration_reached",
+    "step_displacement_diverged"
+  ],
+  "t0_wall": "2026-09-23T03:28:29.341646+00:00",
+  "t0_mono": 1373710.379535916,
+  "time_base_note": "Every offset is software: this side has no trigger counter and no device clock. Simulated time is a coordinate of the model, not a clock reading, so it is recorded in trajectory_meta.json rather than as this log's time base (4.6.9).",
+  "backend": "hoomd_backend",
+  "events": [
+    {
+      "t_mono": 2e-06,
+      "time_base": "software",
+      "event": "gate",
+      "tier": 1,
+      "approval": {
+        "id": null,
+        "kind": null
+      },
+      "envelope": {
+        "status": "inside",
+        "target": "local",
+        "budget": "smoke",
+        "compared": [
+          {
+            "cost": "wall_clock_estimate",
+            "limit": "wall_clock_max",
+            "cost_si": 0.36000000000000004,
+            "limit_si": 300.0
+          },
+          {
+            "cost": "storage_estimate",
+            "limit": "storage_max",
+            "cost_si": 0.02,
+            "limit_si": 0.5
+          }
+        ],
+        "exceeded": []
+      }
+    },
+    {
+      "t_mono": 1.2e-05,
+      "time_base": "software",
+      "event": "preflight",
+      "report": {
+        "backend": "hoomd_backend",
+        "missing_parameters": [],
+        "steps_per_frame": 1,
+        "frames_expected": 10000,
+        "save_interval_divides_step": true,
+        "diffusivity_si": 8.584396548838734e-14,
+        "seed": 8,
+        "reduced_units": {
+          "length_si": 4.9999999999999996e-06,
+          "energy_si": 4.04530157e-21,
+          "time_si": 291.22606181772795,
+          "diffusivity_si": 8.584396548838734e-14,
+          "kT_reduced": 1.0,
+          "gamma_reduced": 1.0,
+          "note": "sigma = bead_diameter, epsilon = k_B*T, tau = sigma^2/D with D from Stokes-Einstein. kT and gamma are then both 1, which is the statement that the engine is given the bath and the particle rather than the diffusivity"
+        },
+        "engine_parameters": {
+          "n_particles": 1000,
+          "box_length": 60.0,
+          "integration_timestep": 0.0010301275858606482,
+          "save_interval": 0.0010301275858606482,
+          "total_simulated_time": 10.301275858606482,
+          "kT": 1.0,
+          "gamma": 1.0,
+          "diameter": 1.0
+        }
+      }
+    },
+    {
+      "t_mono": 0.000289,
+      "time_base": "software",
+      "event": "dispatch",
+      "action": "integrate",
+      "from": "actions[integrate]",
+      "handle": "hoomd_backend:8:10d38c7a0",
+      "state": "submitted",
+      "params": {
+        "integration_timestep": {
+          "value_si": 0.3,
+          "unit_in_plan": "s",
+          "grade": "E4",
+          "from": "conditions[0].number -> numbers[integration_timestep_point]"
+        },
+        "total_simulated_time": {
+          "value_si": 3000.0,
+          "unit_in_plan": "s",
+          "grade": "E4",
+          "from": "conditions[1].number -> numbers[total_simulated_time_point]"
+        },
+        "save_interval": {
+          "value_si": 0.3,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[2].number -> numbers[save_interval_max]"
+        },
+        "box_length": {
+          "value_si": 0.0003,
+          "unit_in_plan": "um",
+          "grade": "E5",
+          "from": "conditions[3].number -> numbers[box_length_min_dilution]"
+        },
+        "max_lag_time": {
+          "value_si": 30.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[4].number -> numbers[max_lag_time]"
+        },
+        "n_particles": {
+          "value_si": 1000.0,
+          "unit_in_plan": "count",
+          "grade": "E5",
+          "from": "conditions[5].number -> numbers[n_particles]"
+        },
+        "temperature": {
+          "value_si": 293.0,
+          "unit_in_plan": "K",
+          "grade": "E3",
+          "from": "conditions[6].number -> numbers[temperature]"
+        },
+        "viscosity": {
+          "value_si": 0.001,
+          "unit_in_plan": "Pa*s",
+          "grade": "E3",
+          "from": "conditions[7].number -> numbers[viscosity]"
+        },
+        "bead_diameter": {
+          "value_si": 4.9999999999999996e-06,
+          "unit_in_plan": "um",
+          "grade": "E2",
+          "from": "conditions[8].number -> numbers[bead_diameter]"
+        }
+      }
+    },
+    {
+      "t_mono": 0.000291,
+      "time_base": "software",
+      "event": "monitors_compiled",
+      "monitors": [
+        "planned_duration_reached",
+        "step_displacement_diverged"
+      ],
+      "from": "stop_criteria"
+    },
+    {
+      "t_mono": 0.121282,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 404,
+        "simulated_time": 121.19999999999999,
+        "frames_saved": 405,
+        "max_single_step_displacement": 3.9295257576850103e-07,
+        "max_absolute_coordinate": 0.00016034152306806118,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.148088,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 630,
+        "simulated_time": 189.0,
+        "frames_saved": 631,
+        "max_single_step_displacement": 3.93063147008721e-07,
+        "max_absolute_coordinate": 0.0001647144827635344,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.173112,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 841,
+        "simulated_time": 252.29999999999998,
+        "frames_saved": 842,
+        "max_single_step_displacement": 3.930026247292586e-07,
+        "max_absolute_coordinate": 0.00016588535015269875,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.19819,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 1051,
+        "simulated_time": 315.3,
+        "frames_saved": 1052,
+        "max_single_step_displacement": 3.927125066927712e-07,
+        "max_absolute_coordinate": 0.00016551059619296436,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.223357,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 1263,
+        "simulated_time": 378.9,
+        "frames_saved": 1264,
+        "max_single_step_displacement": 3.9305877344515726e-07,
+        "max_absolute_coordinate": 0.00016680525640591255,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.248423,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 1475,
+        "simulated_time": 442.5,
+        "frames_saved": 1476,
+        "max_single_step_displacement": 3.9308147831431067e-07,
+        "max_absolute_coordinate": 0.00017166059389028338,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.296146,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 1876,
+        "simulated_time": 562.8,
+        "frames_saved": 1877,
+        "max_single_step_displacement": 3.9294720304938573e-07,
+        "max_absolute_coordinate": 0.00017208091928333274,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.321263,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 2086,
+        "simulated_time": 625.8,
+        "frames_saved": 2087,
+        "max_single_step_displacement": 3.9302531737564527e-07,
+        "max_absolute_coordinate": 0.0001780287141081868,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.346724,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 2300,
+        "simulated_time": 690.0,
+        "frames_saved": 2301,
+        "max_single_step_displacement": 3.93052675414272e-07,
+        "max_absolute_coordinate": 0.00017185698347618,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.371011,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 2505,
+        "simulated_time": 751.5,
+        "frames_saved": 2506,
+        "max_single_step_displacement": 3.9273183027866126e-07,
+        "max_absolute_coordinate": 0.00017557322436177286,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.396051,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 2716,
+        "simulated_time": 814.8,
+        "frames_saved": 2717,
+        "max_single_step_displacement": 3.9301886932735963e-07,
+        "max_absolute_coordinate": 0.00017786028187831453,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.421453,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 2928,
+        "simulated_time": 878.4,
+        "frames_saved": 2929,
+        "max_single_step_displacement": 3.929952955803199e-07,
+        "max_absolute_coordinate": 0.0001763545768254402,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.446668,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 3140,
+        "simulated_time": 942.0,
+        "frames_saved": 3141,
+        "max_single_step_displacement": 3.930138305710551e-07,
+        "max_absolute_coordinate": 0.00017611259739919115,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.471879,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 3352,
+        "simulated_time": 1005.5999999999999,
+        "frames_saved": 3353,
+        "max_single_step_displacement": 3.9307635226910605e-07,
+        "max_absolute_coordinate": 0.00018133946151058139,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.49695,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 3566,
+        "simulated_time": 1069.8,
+        "frames_saved": 3567,
+        "max_single_step_displacement": 3.9291235606963247e-07,
+        "max_absolute_coordinate": 0.00018175289838453054,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.522535,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 3781,
+        "simulated_time": 1134.3,
+        "frames_saved": 3782,
+        "max_single_step_displacement": 3.930774767220199e-07,
+        "max_absolute_coordinate": 0.0001830545983839984,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.569246,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 4175,
+        "simulated_time": 1252.5,
+        "frames_saved": 4176,
+        "max_single_step_displacement": 3.9293857433283274e-07,
+        "max_absolute_coordinate": 0.00018455192432397527,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.594314,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 4385,
+        "simulated_time": 1315.5,
+        "frames_saved": 4386,
+        "max_single_step_displacement": 3.929581665527453e-07,
+        "max_absolute_coordinate": 0.00018172412752863427,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.619697,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 4598,
+        "simulated_time": 1379.3999999999999,
+        "frames_saved": 4599,
+        "max_single_step_displacement": 3.9300389160912947e-07,
+        "max_absolute_coordinate": 0.00018103631009707327,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.644833,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 4809,
+        "simulated_time": 1442.7,
+        "frames_saved": 4810,
+        "max_single_step_displacement": 3.9293026060091074e-07,
+        "max_absolute_coordinate": 0.0001855780422367683,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.670148,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 5021,
+        "simulated_time": 1506.3,
+        "frames_saved": 5022,
+        "max_single_step_displacement": 3.923164094735246e-07,
+        "max_absolute_coordinate": 0.00018929443961773214,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.718041,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 5421,
+        "simulated_time": 1626.3,
+        "frames_saved": 5422,
+        "max_single_step_displacement": 3.928986422159714e-07,
+        "max_absolute_coordinate": 0.0001874436412424451,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.743091,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 5631,
+        "simulated_time": 1689.3,
+        "frames_saved": 5632,
+        "max_single_step_displacement": 3.929995897740098e-07,
+        "max_absolute_coordinate": 0.00018864648999602433,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.791649,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 6039,
+        "simulated_time": 1811.7,
+        "frames_saved": 6040,
+        "max_single_step_displacement": 3.9285980064243886e-07,
+        "max_absolute_coordinate": 0.00019283580969427905,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.816713,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 6249,
+        "simulated_time": 1874.6999999999998,
+        "frames_saved": 6250,
+        "max_single_step_displacement": 3.930121505250737e-07,
+        "max_absolute_coordinate": 0.00019715302880977302,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.841843,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 6460,
+        "simulated_time": 1938.0,
+        "frames_saved": 6461,
+        "max_single_step_displacement": 3.9295212553286945e-07,
+        "max_absolute_coordinate": 0.00019461578490456203,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.886895,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 6836,
+        "simulated_time": 2050.7999999999997,
+        "frames_saved": 6837,
+        "max_single_step_displacement": 3.9294575223214296e-07,
+        "max_absolute_coordinate": 0.00019686118879714355,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.93249,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 7216,
+        "simulated_time": 2164.7999999999997,
+        "frames_saved": 7217,
+        "max_single_step_displacement": 3.9274204900217945e-07,
+        "max_absolute_coordinate": 0.00019720050742607582,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.957559,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 7426,
+        "simulated_time": 2227.7999999999997,
+        "frames_saved": 7427,
+        "max_single_step_displacement": 3.9296219642300737e-07,
+        "max_absolute_coordinate": 0.00019522601065564006,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.982743,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 7637,
+        "simulated_time": 2291.1,
+        "frames_saved": 7638,
+        "max_single_step_displacement": 3.9298685499322347e-07,
+        "max_absolute_coordinate": 0.00019597442968403783,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 1.028836,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 8024,
+        "simulated_time": 2407.2,
+        "frames_saved": 8025,
+        "max_single_step_displacement": 3.9300614237404883e-07,
+        "max_absolute_coordinate": 0.0001991064746204727,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 1.053958,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 8235,
+        "simulated_time": 2470.5,
+        "frames_saved": 8236,
+        "max_single_step_displacement": 3.923318226469071e-07,
+        "max_absolute_coordinate": 0.00020046036802324048,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 1.079166,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 8446,
+        "simulated_time": 2533.7999999999997,
+        "frames_saved": 8447,
+        "max_single_step_displacement": 3.929771927213728e-07,
+        "max_absolute_coordinate": 0.0002065151172274146,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 1.104411,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 8658,
+        "simulated_time": 2597.4,
+        "frames_saved": 8659,
+        "max_single_step_displacement": 3.929758870457497e-07,
+        "max_absolute_coordinate": 0.00020831220311408221,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 1.129622,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 8870,
+        "simulated_time": 2661.0,
+        "frames_saved": 8871,
+        "max_single_step_displacement": 3.930642445538037e-07,
+        "max_absolute_coordinate": 0.0002062222771618603,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 1.154744,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 9081,
+        "simulated_time": 2724.2999999999997,
+        "frames_saved": 9082,
+        "max_single_step_displacement": 3.9282233265434225e-07,
+        "max_absolute_coordinate": 0.0002026025431291822,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 1.179788,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 9292,
+        "simulated_time": 2787.6,
+        "frames_saved": 9293,
+        "max_single_step_displacement": 3.9289129385526584e-07,
+        "max_absolute_coordinate": 0.00020768359405509492,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 1.204349,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 9498,
+        "simulated_time": 2849.4,
+        "frames_saved": 9499,
+        "max_single_step_displacement": 3.9303627418484584e-07,
+        "max_absolute_coordinate": 0.00021232619767215315,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 1.229604,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 9708,
+        "simulated_time": 2912.4,
+        "frames_saved": 9709,
+        "max_single_step_displacement": 3.930664310820652e-07,
+        "max_absolute_coordinate": 0.00020825698128951441,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 1.254734,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 9915,
+        "simulated_time": 2974.5,
+        "frames_saved": 9916,
+        "max_single_step_displacement": 3.930074219376892e-07,
+        "max_absolute_coordinate": 0.00020445238737560294,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 1.279829,
+      "time_base": "software",
+      "event": "complete",
+      "monitor": {
+        "id": "planned_duration_reached",
+        "metric": "simulated_time",
+        "comparator": ">=",
+        "threshold_si": 3000.0,
+        "on_met": "complete",
+        "from": "stop_criteria[planned_duration_reached].number -> numbers[total_simulated_time_point]",
+        "met": true,
+        "outcome": "complete"
+      },
+      "state": {
+        "state": "complete",
+        "initialised": true,
+        "handle": "hoomd_backend:8:10d38c7a0",
+        "steps_taken": 10000,
+        "simulated_time": 3000.0,
+        "frames_saved": 10001,
+        "max_single_step_displacement": 3.93080841486833e-07,
+        "max_absolute_coordinate": 0.000209606347557593,
+        "failure": null
+      },
+      "note": "the criterion that fired declares on_met complete"
+    }
+  ],
+  "finished_at": "2026-09-23T03:29:14.315513+00:00"
+}
