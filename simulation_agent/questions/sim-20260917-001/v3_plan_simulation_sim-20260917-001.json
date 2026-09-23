@@ -1,0 +1,573 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "id": "plan-sim-20260917-001-r3",
+  "qid": "sim-20260917-001",
+  "thread": "solo-sim-20260917-001",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-22T02:00:00Z",
+  "status": "VALIDATED",
+  "goal_id": "goal-sim-20260917-001-r3",
+  "synthesis_id": "synthesis-sim-20260917-001-r3",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_diffusivity"
+  },
+  "system_configuration": {
+    "config": "bd_overdamped",
+    "optical_path": null,
+    "devices": [
+      "hoomd_backend"
+    ],
+    "model": "overdamped Brownian dynamics of spherical tracers in an implicit solvent, no pair interactions, periodic boundaries in all three directions"
+  },
+  "targets": [
+    {
+      "metric": "tracer_diffusivity",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "one decade is enough: the question is whether the engine reproduces the free value at all. Confirmed by the person at ad38bb0, so the value does not move at this revision -- what moved is that it stopped being this agent's E5 assumption"
+    }
+  ],
+  "conditions": [
+    {
+      "parameter": "integration_timestep",
+      "number": "integration_timestep_point"
+    },
+    {
+      "parameter": "total_simulated_time",
+      "number": "total_simulated_time_point"
+    },
+    {
+      "parameter": "save_interval",
+      "number": "save_interval_max"
+    },
+    {
+      "parameter": "box_length",
+      "number": "box_length_min_dilution"
+    },
+    {
+      "parameter": "max_lag_time",
+      "number": "max_lag_time"
+    },
+    {
+      "parameter": "n_particles",
+      "number": "n_particles"
+    },
+    {
+      "parameter": "temperature",
+      "number": "temperature"
+    },
+    {
+      "parameter": "viscosity",
+      "number": "viscosity"
+    },
+    {
+      "parameter": "bead_diameter",
+      "number": "bead_diameter"
+    }
+  ],
+  "actions": [
+    {
+      "id": "integrate",
+      "device": "hoomd_backend",
+      "action": "integrate the declared configuration for the planned duration, saving frames at the planned interval",
+      "reversible": true,
+      "parameters": [
+        "integration_timestep",
+        "total_simulated_time",
+        "save_interval",
+        "box_length",
+        "max_lag_time",
+        "n_particles",
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "tier": 1
+    },
+    {
+      "id": "estimate_diffusivity",
+      "device": "hoomd_backend",
+      "action": "fit the mean squared displacement against lag over lags below the window and report the slope with its spread",
+      "reversible": true,
+      "parameters": [
+        "max_lag_time",
+        "n_particles"
+      ],
+      "tier": 0
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [
+      "simulation_agent/envelope/budget.json"
+    ],
+    "status": "inside",
+    "note": "target local: every cost number of this plan that lines up with a ceiling is under it: wall_clock_estimate against wall_clock_max, storage_estimate against storage_max. Re-confirmed at run time (4.6 O1)."
+  },
+  "cost": {
+    "wall_clock": "under a second of compute; the job is a million particle-steps with no pair interactions",
+    "numbers": [
+      "wall_clock_estimate",
+      "storage_estimate"
+    ],
+    "note": "estimates of an unrun job, from A5. The smoke run's own log replaces them with measured values"
+  },
+  "stop_criteria": [
+    {
+      "id": "planned_duration_reached",
+      "metric": "simulated_time",
+      "comparator": ">=",
+      "number": "total_simulated_time_point",
+      "on_met": "complete",
+      "statement": "stop when the run reaches the planned duration; running longer would be a different plan"
+    },
+    {
+      "id": "step_displacement_diverged",
+      "metric": "max_single_step_displacement",
+      "comparator": ">",
+      "number": "box_length_min_dilution",
+      "on_met": "fault",
+      "statement": "a tracer moving more than the box in one step is a diverged integration; stop and keep the run, because divergence is a result"
+    }
+  ],
+  "success_criteria": [
+    {
+      "id": "within_target_decade",
+      "metric": "log10_ratio_of_measured_to_expected_diffusivity",
+      "comparator": "<=",
+      "target": "tracer_diffusivity",
+      "window": "lags below max_lag_time",
+      "statement": "the fitted diffusivity sits within the target decade of the free Stokes-Einstein expectation"
+    },
+    {
+      "id": "statistics_met",
+      "metric": "relative_standard_error_of_fitted_diffusivity",
+      "comparator": "<=",
+      "number": "target_relative_error",
+      "window": "lags below max_lag_time",
+      "statement": "the spread across tracers is small enough that the decade is decided by the physics and not by the sampling"
+    },
+    {
+      "id": "free_regime_intercept",
+      "metric": "msd_fit_intercept_in_block_sigma",
+      "comparator": "<=",
+      "number": "intercept_sigma_max",
+      "window": "lags below max_lag_time",
+      "statement": "the MSD fit's intercept is consistent with zero against the block-resampled error, so the lags that were fitted are in the free regime the estimator assumes. This backend has no localisation error for a free intercept to absorb, so a nonzero one means the window and not the physics"
+    },
+    {
+      "id": "window_insensitive",
+      "metric": "log10_ratio_of_first_half_to_second_half_diffusivity",
+      "comparator": "<=",
+      "target": "tracer_diffusivity",
+      "window": "lags below max_lag_time, split at the midpoint",
+      "statement": "the fit agrees with itself across the window: D over the first half of the lag range against D over the second. This is what separates converged from precise -- a fit reaching past the free regime disagrees with itself across the window while each half stays tight, and no error bar reports that"
+    }
+  ],
+  "alternatives_rejected": [
+    {
+      "what": "integration_timestep at A1's ceiling",
+      "reason": "A1 allows a far coarser step, set from the diffusive time, but a saved frame would then fall between steps; the step is set a decade below the save interval instead",
+      "grounds": [
+        "integration_timestep_max",
+        "save_interval_max"
+      ]
+    },
+    {
+      "what": "box_length at the periodic-image bound",
+      "reason": "the image bound is cleared by a much smaller box, but that box puts a thousand tracers about a diameter apart, which is not the dilute limit the observable is defined in; the dilution bound binds instead",
+      "grounds": [
+        "box_length_min_images",
+        "box_length_min_dilution"
+      ]
+    }
+  ],
+  "open_risks": [
+    "A5 abstains, so no interval in this plan is constrained by the budget. The ceilings exist in envelope/budget.json and the operator compares against them at run time, but at plan time the cost side stands alone -- a cheap run is not the same fact as a run inside a known allowance.",
+    "The intercept guard cannot detect a systematic short-lag artifact. A bias shows in the mean intercept over an ensemble and a fluctuation shows in a single run, and no threshold on one run's intercept separates them. What catches an artifact is a campaign whose mean intercept is consistent with zero, and that is not a criterion one plan can carry.",
+    "The fit's own standard errors understate the spread by roughly 36x for the diffusivity and 7x for the intercept, measured across 32 seeds: the weighted least squares treats correlated MSD points as independent. The criteria here read the block-resampled error instead, and any reader comparing against relative_standard_error is comparing against a number far too small.",
+    "The expected diffusivity is what the run is checked against, and it was derived from the same Stokes-Einstein relation the engine is expected to reproduce. Agreement therefore tests the integration and the sampling, not the physical model.",
+    "Nothing here is fitted to experimental data, and no experimental counterpart has been measured. A bridge round would be the first comparison, and comparable is still false for this observable. The store was asked at this revision and holds no measured tracer_diffusivity -- only the Stokes-Einstein prediction, which is the same relation this run is checked against.",
+    "The temperature is the same number on both sides and not the same kind of number. Here the thermostat realises it exactly: it is a coordinate of the model, carrying no uncertainty of its own. The entry it was chosen from is an operator reading whose validity leaves the thermometer's position open, and nothing on the instrument actuates the sample temperature. So in a comparison the whole temperature uncertainty sits on the experimental side, and treating the two as equally certain -- or equally uncertain -- would misplace it."
+  ],
+  "numbers": [
+    {
+      "name": "integration_timestep_point",
+      "value": 0.3,
+      "unit": "s",
+      "source": "computed:thousandth_of_a_diffusive_time",
+      "grade": "E4",
+      "origin": "v3_synthesis.json#integration_timestep_point",
+      "precision": "order_of_magnitude",
+      "note": "the person's standing default, a thousandth of the diffusive time. S4 no longer picks this inside A1's interval -- 0.3 s sits an order of magnitude under A1's 3 s ceiling, but the value comes from the default rather than from the choice. The thousandth is a decision and carries no grade; what it multiplies is kb:tau_d, so the seconds inherit E4"
+    },
+    {
+      "name": "total_simulated_time_point",
+      "value": 3000,
+      "unit": "s",
+      "source": "computed:ten_diffusive_times",
+      "grade": "E4",
+      "origin": "v3_synthesis.json#total_simulated_time_point",
+      "precision": "order_of_magnitude",
+      "note": "the person's standing default, ten diffusive times. It replaces two decades above A2's statistical floor, which was S4 choosing: the floor is 3 s and this is a thousand times it, so the statistical bound is satisfied by a wide margin rather than by construction. The ten is a decision and carries no grade; the seconds inherit E4 from kb:tau_d, which is the ceiling a wall-clock duration can never beat"
+    },
+    {
+      "name": "save_interval_max",
+      "value": 0.3,
+      "unit": "s",
+      "source": "computed:two_decades_below_the_window",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#save_interval_max",
+      "precision": "order_of_magnitude",
+      "note": "upper bound. Saving more often costs storage, which is A5's, not A4's"
+    },
+    {
+      "name": "box_length_min_dilution",
+      "value": 300,
+      "unit": "um",
+      "source": "computed:spacing_times_particles_per_edge",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#box_length_min_dilution",
+      "precision": "order_of_magnitude",
+      "note": "the binding bound here: dilution costs a hundred microns, images only nine"
+    },
+    {
+      "name": "max_lag_time",
+      "value": 30,
+      "unit": "s",
+      "source": "assumed:a_window",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#max_lag_time",
+      "precision": "order_of_magnitude",
+      "note": "the window the estimator is evaluated over, set below tau_d so the free regime is what is sampled. Held at the tenth of tau_d revision 1 used: at the new tau_d the old 2 s would have been under one per cent of it, which samples only the shortest lags. tracer_diffusivity is window_required, so this travels with the plan as a condition. A4 constrains it"
+    },
+    {
+      "name": "n_particles",
+      "value": 1000,
+      "unit": "count",
+      "source": "assumed:a_ensemble",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#n_particles",
+      "precision": "order_of_magnitude",
+      "note": "tracers per box. Non-interacting, so the ensemble is a statistics knob rather than a physical density -- but the box still has to hold them dilutely (A3)"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v3_synthesis.json#temperature",
+      "precision": "significant_figures",
+      "note": "the operator's thermometer reading of the room. It is not established to be the sample's temperature -- see the gap"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v3_synthesis.json#viscosity",
+      "precision": "significant_figures",
+      "note": "pure water. The entry's validity runs 288 to 298 K, and the temperature above is inside it"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "origin": "v3_synthesis.json#bead_diameter",
+      "precision": "significant_figures",
+      "note": "the tracer the question is about, measured directly by the operator on 2026-09-19 with a coefficient of variation no greater than 2 per cent. Cited as kb: rather than calibration: -- the grade is E2 either way, but this agent holds no calibration and the citation is what puts the entry in kb_refs"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "origin": "v3_synthesis.json#diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "bulk Stokes-Einstein: sphere, bulk, no slip. Those assumptions stay in the value. The relation is the librarian's (kb:tracer_diffusivity_expected), not a second one -- recomputing a quantity the store holds is a detour, and citing it is what gets the one name. This is the expectation the run is checked against, and the engine derives its own from the same bath rather than being handed this number"
+    },
+    {
+      "name": "tau_d",
+      "value": 300,
+      "unit": "s",
+      "source": "computed:diffusive_time",
+      "grade": "E4",
+      "origin": "v3_synthesis.json#tau_d",
+      "precision": "order_of_magnitude",
+      "note": "the librarian's definition (kb:tau_d), not a second one. Its validity -- spherical tracer, bulk fluid, no slip, overdamped -- is this configuration exactly"
+    },
+    {
+      "name": "lag_to_record_ratio",
+      "value": 0.01,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#lag_to_record_ratio",
+      "precision": "order_of_magnitude",
+      "note": "the window as a share of the record. The vocabulary requires the window to satisfy a statistical bound as well as the physical one, and this is the number that shows it"
+    },
+    {
+      "name": "lag_to_record_ratio_max",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_window_statistics",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#lag_to_record_ratio_max",
+      "precision": "order_of_magnitude",
+      "note": "the largest share of the record one lag may span. At a ratio of one the longest lag has a single displacement per tracer"
+    },
+    {
+      "name": "target_relative_error",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_statistics",
+      "grade": "E5",
+      "origin": "v3_axis_bd_overdamped_a2.json#target_relative_error",
+      "precision": "order_of_magnitude",
+      "note": "ten per cent, which is well inside the one decade the goal asks for"
+    },
+    {
+      "name": "intercept_sigma_max",
+      "value": 3,
+      "unit": "1",
+      "source": "assumed:a_intercept_guard",
+      "grade": "E5",
+      "origin": "v3_axis_bd_overdamped_a4.json#intercept_sigma_max",
+      "precision": "order_of_magnitude",
+      "note": "how far the MSD fit's intercept may sit from zero, in standard errors of the BLOCK-RESAMPLED uncertainty and not the fit's own. The fit treats correlated MSD points as independent and quotes an error about 36x too small (measured over 32 seeds), so the same criterion against the fit's error would refuse a sound run: run-20260920-002 reads 6.5 sigma there and 2.0 sigma here"
+    },
+    {
+      "name": "storage_estimate",
+      "value": 0.02,
+      "unit": "GB",
+      "source": "assumed:a_cost_reference",
+      "grade": "E5",
+      "origin": "v3_axis_bd_overdamped_a5.json#storage_estimate",
+      "precision": "order_of_magnitude",
+      "note": "of order a thousand frames of a thousand tracers at three double coordinates each, a few tens of megabytes"
+    },
+    {
+      "name": "wall_clock_estimate",
+      "value": 0.0001,
+      "unit": "core_h",
+      "source": "assumed:a_cost_reference",
+      "grade": "E5",
+      "origin": "v3_axis_bd_overdamped_a5.json#wall_clock_estimate",
+      "precision": "order_of_magnitude",
+      "note": "of order ten million particle-steps with no pair interactions; the run is still far too small for this axis to bind"
+    },
+    {
+      "name": "integration_timestep_max",
+      "value": 3,
+      "unit": "s",
+      "source": "computed:resolution_of_shortest_time",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#integration_timestep_max",
+      "precision": "order_of_magnitude",
+      "note": "upper bound only; nothing in A1 bounds the step from below"
+    },
+    {
+      "name": "box_length_min_images",
+      "value": 20,
+      "unit": "um",
+      "source": "computed:margin_over_rms_displacement",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#box_length_min_images",
+      "precision": "order_of_magnitude",
+      "note": "a tracer must not reach its own periodic image within the fit window"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_ensemble",
+      "statement": "One thousand tracers is a round ensemble that makes the statistics cheap and keeps the cube root exact at ten per edge. Nothing physical picks this number.",
+      "numbers": [
+        "n_particles"
+      ],
+      "falsifier": "a statistics interval this ensemble cannot satisfy inside budget replaces it",
+      "gap_ref": "tracer_ensemble_size_absent"
+    },
+    {
+      "rationale_id": "a_window",
+      "statement": "The fit window sits below the diffusive time so the free regime is what is sampled, at the same tenth of it revision 1 chose. The exact upper end is an estimate until A4 constrains it.",
+      "numbers": [
+        "max_lag_time"
+      ],
+      "falsifier": "an A4 interval that excludes this value replaces it",
+      "gap_ref": "msd_fit_window_absent"
+    },
+    {
+      "rationale_id": "a_window_statistics",
+      "statement": "A lag may span at most about a tenth of the record, so that every lag in the fit is determined by many displacements rather than by one. The vocabulary requires the window to satisfy this statistical bound as well as the physical one but deliberately fixes no fraction -- a number chosen in the contract would be a threshold nobody measured -- so the value is declared here and carried into the plan.",
+      "numbers": [
+        "lag_to_record_ratio_max"
+      ],
+      "falsifier": "a weighted fit whose slope is unchanged when the longest lag is shortened retires this fraction"
+    },
+    {
+      "rationale_id": "a_statistics",
+      "statement": "A ten per cent statistical error needs of order one hundred independent samples, from the square-root scaling of an ensemble mean. The target is set at ten per cent rather than at the goal's full decade so that the statistical error is not what decides the decade.",
+      "numbers": [
+        "target_relative_error"
+      ],
+      "falsifier": "a seed-to-seed spread wider than ten per cent at this sample count retires the prefactor and raises the floor"
+    },
+    {
+      "rationale_id": "a_intercept_guard",
+      "gap_ref": "msd_intercept_tolerance_absent",
+      "statement": "Three standard errors is a guard against a gross short-lag failure, not a test of bias, and it is set from the asymmetry rather than from any observation: a false refusal costs one re-run of a job sitting far under budget, while a false acceptance puts a biased number into a graded card. IT CANNOT DETECT AN ARTIFACT, and saying so is the point -- a systematic short-lag error shows in the MEAN over runs while a fluctuation shows in a single one, and no threshold on a single run's intercept separates them. Tight refuses good runs at the fluctuation rate; loose misses a small artifact. The test that catches an artifact is that the mean intercept over an ensemble of runs is consistent with zero, which needs a campaign and is not a criterion one plan can carry.",
+      "numbers": [
+        "intercept_sigma_max"
+      ],
+      "falsifier": "a campaign whose mean intercept is inconsistent with zero, which would show this guard passing runs it cannot judge"
+    },
+    {
+      "rationale_id": "a_cost_reference",
+      "statement": "Cost is estimated at a reference step of ten milliseconds over a window of a few seconds, with one interaction-free force evaluation per particle per step. Two mock runs have happened on this machine and neither benchmarks this job: 93 per cent of their wall clock fell outside the monitored window, in process start and a poll interval the mock outruns, and the mock writes no trajectory at all, so the size of its run directory measures four cards. Both figures stay order-of-magnitude estimates of an unrun job.",
+      "numbers": [
+        "storage_estimate",
+        "wall_clock_estimate"
+      ],
+      "falsifier": "a smoke run on the backend this configuration declares -- hoomd_backend, not mock_backend -- replaces both estimates with measured values. The earlier form said 'a smoke run's own log' and named an EVENT that would happen rather than a STATE that has to obtain, so two mock runs satisfied it in letter while measuring the harness; substituting their numbers would have produced figures that look measured and are about a different thing. It does not fire today: hoomd_backend.py is written and HOOMD is not installed."
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-ac042a5c0814",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2."
+    },
+    {
+      "entry_id": "no_thermometer_at_the_sample",
+      "grade": "E3",
+      "kb_version": "kbv-ac042a5c0814",
+      "claim": "There is no thermometer beside the sample. The only thermometer in the laboratory reads the room, so any temperature attributed to the sample is a room reading applied to it."
+    },
+    {
+      "entry_id": "sample_temperature_not_actuated",
+      "grade": "E3",
+      "kb_version": "kbv-ac042a5c0814",
+      "claim": "Sample temperature is not under control on this instrument. A temperature stage exists but has never been connected, so nothing actuates the sample temperature and there is no setpoint to appeal to: any temperature a plan uses is an ambient value of the room, not a commanded one."
+    },
+    {
+      "entry_id": "tau_d",
+      "grade": "E4",
+      "kb_version": "kbv-ac042a5c0814",
+      "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
+    },
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-ac042a5c0814",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "tracer_diffusivity_expected",
+      "grade": "E4",
+      "kb_version": "kbv-ac042a5c0814",
+      "claim": "The expected translational diffusivity of a tracer sphere in a bulk fluid is the Stokes-Einstein value, k_B T over 3 pi eta d. It is a prediction from the viscosity, the temperature and the diameter, not a measurement of how the particles actually move."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-ac042a5c0814",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "temperature_at_the_sample_absent",
+      "observable": "temperature",
+      "at": "sample",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='temperature') against the service at kbv-1dabfd5ad58d",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [
+        {
+          "entry_id": "no_thermometer_at_the_sample",
+          "overlap": "partial"
+        },
+        {
+          "entry_id": "lab_ambient_temperature",
+          "overlap": "partial"
+        },
+        {
+          "entry_id": "room_temperature_is_controlled",
+          "overlap": "partial"
+        },
+        {
+          "entry_id": "sample_temperature_not_actuated",
+          "overlap": "partial"
+        }
+      ],
+      "near_names": [
+        "abvigen_product_storage_temperature_max",
+        "abvigen_product_storage_temperature_min",
+        "sample_temperature_not_actuated",
+        "temperature_stage"
+      ],
+      "kb_version": "kbv-1dabfd5ad58d"
+    },
+    {
+      "gap_id": "tracer_diffusivity_measured",
+      "observable": "tracer_diffusivity",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='tracer_diffusivity', condition_range={temperature 293 K, bead_diameter 5 um}) against the service at kbv-1dabfd5ad58d",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [
+        {
+          "entry_id": "tracer_diffusivity_expected",
+          "overlap": "partial"
+        }
+      ],
+      "kb_version": "kbv-1dabfd5ad58d",
+      "near_names": [
+        "tracer_diffusivity_expected"
+      ]
+    },
+    {
+      "gap_id": "tracer_ensemble_size_absent",
+      "observable": "tracer_ensemble_size",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-1dabfd5ad58d"
+    },
+    {
+      "gap_id": "msd_fit_window_absent",
+      "observable": "msd_fit_window",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-1dabfd5ad58d"
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260917-001-bd_overdamped-a7-r3",
+  "qid": "sim-20260917-001",
+  "thread": "solo-sim-20260917-001",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-22T02:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260917-001:v3:bd_overdamped:a7",
+  "config": "bd_overdamped",
+  "axis": "a7",
+  "kb_version": "kbv-ac042a5c0814",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "abstain_reason": "No driving was requested. The goal names no driving parameter, and bd_overdamped is declared undriven, so there is no driving amount for this axis to bound. Abstaining is not the same as being absent: this card is the record that the axis was asked and had nothing to constrain (P1).",
+  "numbers": [],
+  "assumptions": [],
+  "kb_refs": [],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "note": "numbers[] is empty because an abstention on this axis has nothing to measure -- unlike A5, which abstains for want of a limit while still knowing the cost."
+}

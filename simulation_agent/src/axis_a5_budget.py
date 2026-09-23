@@ -119,9 +119,9 @@ def build(qid: str, config: str, created_at: str, caller_id: str, kb_version: st
     assumptions.append(
         {
             "rationale_id": "a_cost_reference",
-            "statement": "Cost is estimated at a reference step of ten milliseconds over a window of a few seconds, with one interaction-free force evaluation per particle per step. Nothing has been benchmarked on this machine, so both figures are order-of-magnitude estimates of an unrun job.",
+            "statement": "Cost is estimated at a reference step of ten milliseconds over a window of a few seconds, with one interaction-free force evaluation per particle per step. Two mock runs have happened on this machine and neither benchmarks this job: 93 per cent of their wall clock fell outside the monitored window, in process start and a poll interval the mock outruns, and the mock writes no trajectory at all, so the size of its run directory measures four cards. Both figures stay order-of-magnitude estimates of an unrun job.",
             "numbers": ["reference_timestep", "storage_estimate", "wall_clock_estimate"],
-            "falsifier": "a smoke run's own log replaces both estimates with measured values",
+            "falsifier": "a smoke run on the backend this configuration declares -- hoomd_backend, not mock_backend -- replaces both estimates with measured values. The earlier form said 'a smoke run's own log' and named an EVENT that would happen rather than a STATE that has to obtain, so two mock runs satisfied it in letter while measuring the harness; substituting their numbers would have produced figures that look measured and are about a different thing. It does not fire today: hoomd_backend.py is written and HOOMD is not installed.",
         }
     )
 

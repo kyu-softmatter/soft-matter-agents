@@ -211,24 +211,26 @@ OPERATING_POINT = {
         "computed": [
             {
                 "name": "integration_timestep_point",
-                "value": 0.03,
+                "value": 0.3,
                 "unit": "s",
-                "formula": "save_interval_max / 10",
-                "inputs": ["save_interval_max"],
-                "note": "ten steps per saved frame, so every frame lands on a step. Well inside A1's ceiling, which A1 set from the diffusive time rather than from the sampling",
+                "source": "computed:thousandth_of_a_diffusive_time",
+                "formula": "tau_d / 1000",
+                "inputs": ["tau_d"],
+                "note": "the person's standing default, a thousandth of the diffusive time. S4 no longer picks this inside A1's interval -- 0.3 s sits an order of magnitude under A1's 3 s ceiling, but the value comes from the default rather than from the choice. The thousandth is a decision and carries no grade; what it multiplies is kb:tau_d, so the seconds inherit E4",
             },
             {
                 "name": "total_simulated_time_point",
-                "value": 300,
+                "value": 3000,
                 "unit": "s",
-                "formula": "100 * total_simulated_time_min",
-                "inputs": ["total_simulated_time_min"],
-                "note": "two decades above the statistical floor. A decade was not enough: it made the record as long as the window, and then the longest lag carries one displacement per tracer",
+                "source": "computed:ten_diffusive_times",
+                "formula": "10 * tau_d",
+                "inputs": ["tau_d"],
+                "note": "the person's standing default, ten diffusive times. It replaces two decades above A2's statistical floor, which was S4 choosing: the floor is 3 s and this is a thousand times it, so the statistical bound is satisfied by a wide margin rather than by construction. The ten is a decision and carries no grade; the seconds inherit E4 from kb:tau_d, which is the ceiling a wall-clock duration can never beat",
             },
         ],
         "ratio": {
             "name": "lag_to_record_ratio",
-            "value": 0.1,
+            "value": 0.01,
             "unit": "1",
             "formula": "max_lag_time / total_simulated_time_point",
             "inputs": ["max_lag_time", "total_simulated_time_point"],
@@ -300,7 +302,12 @@ def build(qid: str, configs: list[str], created_at: str, revision: int = 1) -> d
             c["name"],
             c["value"],
             c["unit"],
-            f"computed:operating_point_of_{chosen}",
+            # Per entry, with the configuration's own prefix as the default.
+            # Two of these stopped being S4 choosing a point inside an interval
+            # and became the person's standing defaults applied to kb:tau_d, so
+            # a source claiming the choice would claim something that no longer
+            # happens (9 M2, 2026-09-22).
+            c.get("source") or f"computed:operating_point_of_{chosen}",
             formula=c["formula"],
             inputs=[(i, grades[i]) for i in c["inputs"]],
             precision="order_of_magnitude",
