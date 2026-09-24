@@ -5941,15 +5941,16 @@ def check_68_a_gap_names_a_quantity_not_a_subject(b: Bundle) -> list[Finding]:
                     f"a name states the quantity and never its subject or its locus, because a "
                     f"name that asserts its own subject is a subject nothing can refuse -- check "
                     f"44 refuses the `subject` field and cannot see into a string")
-            if DISPLACED_CARD.match(pathlib.Path(c.rel).name):
-                out.append(Finding(68, LOST, core + ". DISPLACED, so no work closes this. The "
-                    "`v<N>_` prefix means a later revision superseded this file, and the "
-                    "convention exists to keep it unchanged; the only edit that would clear the "
-                    "line is rewriting the record, which is what a gap's `searched` line -- a "
-                    "quotation of the call actually made -- forbids. Registering a quantity "
-                    "turns every earlier gap that glued a subject onto that name red, and those "
-                    "records were written when the name was merely unregistered, which 11-1 "
-                    "permits. The live set is where the fix goes", c.rel))
+            if _is_superseded(c.rel):
+                out.append(Finding(68, LOST, core + ". SUPERSEDED, so no work closes this. A "
+                    "later revision is what the next stage reads -- for an axis card, the "
+                    "highest prefix set in this folder; for a plan card, the unprefixed path -- "
+                    "and this file is kept unchanged on purpose. The only edit that would clear "
+                    "the line is rewriting the record, which a gap's `searched` line forbids: it "
+                    "quotes the call actually made. Registering a quantity turns every earlier "
+                    "gap that glued a subject onto that name red, and these were written when "
+                    "the name was merely unregistered, which 11-1 permits. The live set is where "
+                    "the fix goes", c.rel))
             else:
                 out.append(Finding(68, FAIL, core + f". Ask for {quantity!r} and carry {extra!r} "
                     f"where it can be refused", c.rel))
@@ -5961,10 +5962,46 @@ def check_68_a_gap_names_a_quantity_not_a_subject(b: Bundle) -> list[Finding]:
                               f"glued into the string")]
 
 
-# A displaced revision: the `v<N>_` prefix the axis and plan cards take when a
-# later revision supersedes them (4.6, 2026-09-23). Written once here because
-# two checks now need to tell a frozen record from a live one.
+# THE SAME PREFIX MEANS OPPOSITE THINGS ON THE TWO CARD KINDS, and reading it
+# one way cost a check and a task card (2026-09-23).
+#
+#   axis cards   `v<N>_` marks the NEWER set. A re-run writes `v2_axis_*`
+#                BESIDE `axis_*`, and `synthesis.py` takes the highest prefix
+#                present -- so unprefixed is live only while no prefix exists.
+#   plan cards   `v<N>_` marks the DISPLACED copy. `card_revision.displace()`
+#                moves the old bytes aside and the live path keeps its name,
+#                which is what leaves the bridge and `--plan` unchanged.
+#
+# `displace()`'s docstring calls its rule "the axis cards' convention" and it
+# is the inverse of it; that sentence came from card 029, written by this
+# seat, which asserted the same thing and was wrong. `microscope-20260923-6`
+# found it by reading synthesis.py and the pins rather than the prose.
+#
+# So a frozen record cannot be recognised from the filename alone. For an
+# axis card the question is whether it is in the highest prefix set OF ITS
+# OWN FOLDER, which is exactly what S4 reads; for anything else the prefix
+# means what it says.
+_AXIS_PREFIX = re.compile(r"^(v(\d+)_)?axis_")
 DISPLACED_CARD = re.compile(r"^v\d+_")
+
+
+def _is_superseded(rel: str) -> bool:
+    """Is this card one no later revision reads -- by each kind's own rule."""
+    path = pathlib.Path(rel)
+    m = _AXIS_PREFIX.match(path.name)
+    if not m:
+        return bool(DISPLACED_CARD.match(path.name))
+    mine = int(m.group(2)) if m.group(2) else 0
+    folder = REPO / path.parent
+    highest = mine
+    try:
+        for sibling in folder.glob("*axis_*.json"):
+            s = _AXIS_PREFIX.match(sibling.name)
+            if s:
+                highest = max(highest, int(s.group(2)) if s.group(2) else 0)
+    except OSError:
+        return False
+    return mine < highest
 
 
 def check_73_a_result_names_an_approval_and_a_run_that_exist(b: Bundle) -> list[Finding]:

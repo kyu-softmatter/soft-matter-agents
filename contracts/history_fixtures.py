@@ -704,17 +704,26 @@ def fixture_84_a_manager_that_can_write_the_registry(repo: Path) -> str:
                           "a manager entry with no exclusion of the registry")
 
 
-def fixture_68_a_displaced_record_cannot_be_rewritten(repo: Path) -> str:
-    """A glued gap name in a displaced revision, beside the same one live.
+def fixture_68_a_superseded_record_cannot_be_rewritten(repo: Path) -> str:
+    """A glued gap name in a superseded axis card, beside the same one live.
 
-    Registering a quantity turns every earlier gap that glued a subject onto
-    that name red, and a displaced revision is a record the `v<N>_`
-    convention exists to keep unchanged -- so there is nobody who can clear
-    the line. The live copy of the same gap CAN be fixed, by asking again
-    under the registered name, and must stay a failure.
+    **The prefix here means the opposite of what it means on a plan card, and
+    getting that backwards is what this fixture is really guarding.** For
+    axis cards a re-run writes `v2_axis_*` BESIDE `axis_*` and `synthesis.py`
+    reads the highest prefix present, so **`v2_` is the live set and the
+    unprefixed one is superseded.** `card_revision.displace()` is the other
+    way round and its docstring calls itself "the axis cards' convention",
+    which it is not.
 
-    Both are planted so the fixture tests the split rather than the finding.
-    The `searched` line is what makes the displaced one unrewritable: it
+    So this plants `axis_live_a2.json` as the superseded record and
+    `v2_axis_live_a2.json` as the live one, and asserts LOST for the first
+    and FAIL for the second **by path**. A check that read the prefix the
+    plan-card way reports them swapped, and matching on the branches' wording
+    did not catch that -- one LOST and one FAIL were still produced, just
+    from the wrong files. That version of this fixture was written, run
+    against the swap, and passed 25/25; the paths are here because of it.
+
+    The `searched` line is what makes the superseded one unrewritable: it
     quotes the call actually made, and editing `observable` over it would
     claim a quantity nobody asked for.
     """
@@ -727,8 +736,8 @@ def fixture_68_a_displaced_record_cannot_be_rewritten(repo: Path) -> str:
         "searched": ["kb_query(observable=tracer_number_density) -> absent"],
     }
     card = {"card": "axis", "schema_version": "0.1", "kb_gaps": [gap]}
-    write(repo, "microscope_agent/questions/q/axis_live_a2.json", card)
-    write(repo, "microscope_agent/questions/q/v2_axis_live_a2.json", card)
+    write(repo, "microscope_agent/questions/q/axis_live_a2.json", card)      # superseded
+    write(repo, "microscope_agent/questions/q/v2_axis_live_a2.json", card)   # live
     reg = json.loads((repo / "contracts" / "quantities.json").read_text())
     reg["quantities"].append({"id": "number_density", "definition": "count per volume",
                               "unit": "1/ml", "kind": "physical"})
@@ -761,12 +770,19 @@ FIXTURES = [
     (84, "FAIL", "is the committer email of 2 seats", fixture_84_two_seats_share_one_committer_email),
     (84, "FAIL", "can write the registry", fixture_84_a_manager_that_can_write_the_registry),
     (80, "PASS", "5 site(s) decide a device's role", fixture_80_five_forms_and_five_that_must_not_fire),
-    (68, "LOST", "DISPLACED, so no work closes this", fixture_68_a_displaced_record_cannot_be_rewritten),
-    # The same built repository, asserted from the other side. Without this row
-    # the split is half tested: making EVERY record LOST still satisfies the row
-    # above, and the live card -- the one somebody can actually fix -- would stop
-    # being a failure with nothing to notice.
-    (68, "FAIL", "where it can be refused", fixture_68_a_displaced_record_cannot_be_rewritten),
+    (68, "LOST", "/axis_live_a2.json]", fixture_68_a_superseded_record_cannot_be_rewritten),
+    # The same built repository, asserted from the other side. Two rows because
+    # one leaves the split half tested -- making EVERY record LOST satisfies a
+    # lone LOST row while the live card quietly stops being a failure.
+    #
+    # AND THEY MATCH ON THE PATH, not on the message. Phrases from the two
+    # branches' wording passed a mutation that read the axis prefix the
+    # plan-card way and swapped the verdicts: the rows ask only for one LOST
+    # and one FAIL from check 68, and a swap still supplies both. The leading
+    # slash is load-bearing -- `/axis_live_a2.json]` is not a substring of
+    # `/v2_axis_live_a2.json]`, so each row can only be satisfied by its own
+    # file. Watched: the swap now breaks both.
+    (68, "FAIL", "/v2_axis_live_a2.json]", fixture_68_a_superseded_record_cannot_be_rewritten),
 ]
 
 
