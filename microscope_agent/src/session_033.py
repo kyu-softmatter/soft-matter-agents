@@ -2,7 +2,7 @@
 
 NOT THE PLAN DISPATCHER, and the run log says so in words (card 033 3b). Two
 gaps make the dispatcher unable to carry this run honestly: the device
-registry has no Micro-Manager labels, so `LightEngine` and `Kinetix_red` raise
+registry has no Micro-Manager labels, so `Aura` and `Kinetix_red` raise
 GapError at preflight; and `derive_commands` never produces `params.settings`,
 so `micromanager.apply()` would verify nothing. Going through it would look
 like a checked run and not be one. This route is for card 033's run only.
@@ -26,7 +26,7 @@ with the person's own words in it. It never proceeds on a timer: a manual step
 closed by a timeout is a step nobody performed (2.1 rule 5). Any answer other
 than `yes` stops the run, on the safe side.
 
-SHUTDOWN, on finish and on any failure: LightEngine `State=0` first and read
+SHUTDOWN, on finish and on any failure: Aura `State=0` first and read
 back, then the line off. Shutters before power.
 """
 
@@ -66,7 +66,7 @@ CONFIG = Path(r"C:\agentic_microscope\config\micromanager\single_cam_red_noDMD_n
 CONFIG_SHA256 = "8184073e31e1a7a63731932a20a622131d4dba04cf839bc9e651bf9abcd53120"
 FRAMES_ROOT = Path(r"D:\soft-matter-agents-frames")
 
-LIGHT, CAMERA = "LightEngine", "Kinetix_red"
+LIGHT, CAMERA = "Aura", "Kinetix_red"   # the Aura III, by the person's word (033 at 18e5456)
 #: The prior project's reading of the line name, downgraded (033 rulings): it
 #: is confirmed off the device after the load and the run stops if the device
 #: does not report it. The list below has to be built before the load, so it
@@ -85,7 +85,7 @@ DARK_SEQUENCE_FRAMES = 20
 NOT_DISPATCHED = (
     "This run did NOT come through the plan dispatcher (operator.run). Card 033 section 3b "
     "OK'd a session script for this card's run only, because (1) the device registry "
-    "carries no Micro-Manager labels, so LightEngine and Kinetix_red raise GapError at "
+    "carries no Micro-Manager labels, so Aura and Kinetix_red raise GapError at "
     "preflight, and (2) derive_commands never produces params.settings, so "
     "micromanager.apply() would verify nothing. The script is "
     "microscope_agent/src/session_033.py, committed with this run.")
@@ -232,6 +232,12 @@ class Session:
         self.loaded = True
         self.rec(event="configuration_loaded", **info,
                  note="loadSystemConfiguration is the one unguarded call (033 3b condition 2)")
+        self.rec(event="note", topic="pixel_size_in_frame_metadata",
+                 pixel_size_um_reported=_safe(self.core().getPixelSizeUm),
+                 note=("frame metadata carries a pixel size stamped from the loaded "
+                       "configuration's PixelSize block. It is NOT a source: any pixel size "
+                       "comes from the store's pixel_size_20x_zoom_1x through the librarian "
+                       "(card 033 section 5, 3ef97a4)"))
         self.rec(event="apply", channel="LappMainBranch1", action="load_time_startup_preset",
                  params={"LappMainBranch1.State": {
                      "value": 1, "from": f"{CONFIG.name}:ConfigGroup,System,Startup"}},
@@ -367,10 +373,20 @@ class Session:
         self.set("s4.5-light-off", LIGHT, "State", 0)
         changed = lit["mean"] - dark["dark_mean_adu"]
         core = self.core()
+        image_changed = changed > 5 * dark["read_noise_adu"]
         self.rec(event="step", step="4.6", lit_mean_minus_dark_adu=changed,
-                 image_changed=changed > 5 * dark["read_noise_adu"],
+                 image_changed=image_changed,
                  serial=_serial(core), note=("which body: compare this serial with the store's "
                                              "camera_bodies_are_told_apart_by_serial"))
+        if not image_changed:
+            # 033 section 4 step 5: DO NOT TURN IT UP. Which branch the Aura
+            # comes in on is unknown and the Lapp mirror set at load decides
+            # which branch reaches the sample, so darkness here may be the
+            # path, not the light. Chasing a signal with intensity is how full
+            # power reaches a sample. A dark result is a finding; ask the person.
+            raise Stop("the frame stayed dark with the Aura on at low intensity. Not turned up: "
+                       "this may be the light path (Lapp branch), not the light. Recorded; "
+                       "the person decides")
 
     def saturation(self) -> None:
         answer = self.gate("saturate", (

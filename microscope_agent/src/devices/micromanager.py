@@ -98,7 +98,12 @@ _ABORTED = False
 # retract and clearance interlocks block the first software-driven motion,
 # and this list is what keeps today's session from being that motion.
 SOFTWARE_MAY_COMMAND: dict[str, frozenset[str] | None] = {
-    "LightEngine": None,
+    # The Aura III is today's excitation, by the person's word (card 033 at
+    # 18e5456). LightEngine, the Spectra III, is now the second engine and is
+    # refused by name below. The Core Shutter role stays pinned at its loaded
+    # value, LightEngine: with AutoShutter 0 nothing opens it, and repointing
+    # it at the Aura would be a write that buys nothing.
+    "Aura": None,
     "Kinetix_red": None,
     "Core": frozenset({"AutoShutter", "Camera", "Shutter"}),
 }
@@ -161,7 +166,7 @@ NAMED_REFUSALS = (
     "ZDrive", "Nosepiece", "XYStage", "PFS", "PFSOffset", "IntermediateMagnification",
     "FilterTurret1", "FilterTurret2", "LightPath", "CondenserTurret",
     "CSUW1-Filter_Red", "CSUW1-Filter_Blue", "CSUW1-Dichroic", "CSUW1-Port",
-    "CSUW1-Bright", "CSUW1-Shutter", "Aura", "MightexPolygon1000", "DiaLamp",
+    "CSUW1-Bright", "CSUW1-Shutter", "LightEngine", "MightexPolygon1000", "DiaLamp",
     "LappMainBranch1", "Turret1Shutter", "Turret2Shutter", "Ti2-E__0",
     "NIDAQHub", "LUNF-Blanking",
 )
