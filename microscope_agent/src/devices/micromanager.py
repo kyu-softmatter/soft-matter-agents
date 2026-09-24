@@ -152,6 +152,26 @@ _EXPOSES = frozenset({"snapImage", "startSequenceAcquisition",
 _READ_PREFIXES = ("get", "is", "has", "wait", "device", "supports", "pop")
 
 
+#: Devices card 033 names as refused. They are refused already, because they
+#: are not in SOFTWARE_MAY_COMMAND -- this tuple adds no permission and no
+#: refusal. It exists so the names a person was told about can be checked
+#: against the list mechanically (`named_refusals_hold()`), instead of trusting
+#: that an allow-list covers them.
+NAMED_REFUSALS = (
+    "ZDrive", "Nosepiece", "XYStage", "PFS", "PFSOffset", "IntermediateMagnification",
+    "FilterTurret1", "FilterTurret2", "LightPath", "CondenserTurret",
+    "CSUW1-Filter_Red", "CSUW1-Filter_Blue", "CSUW1-Dichroic", "CSUW1-Port",
+    "CSUW1-Bright", "CSUW1-Shutter", "Aura", "MightexPolygon1000", "DiaLamp",
+    "LappMainBranch1", "Turret1Shutter", "Turret2Shutter", "Ti2-E__0",
+    "NIDAQHub", "LUNF-Blanking",
+)
+
+
+def named_refusals_hold() -> list[str]:
+    """Every name in NAMED_REFUSALS that the allow-list would NOT refuse. Empty is correct."""
+    return [d for d in NAMED_REFUSALS if refusal(d, "State", "setProperty") is None]
+
+
 class SoftwareMotionRefused(RuntimeError):
     """A call outside what software may command today, refused before it is sent."""
 
@@ -437,6 +457,12 @@ def load_configuration(path: str, mm_dir: str | None = None) -> dict:
     Returns the sha256 of the bytes loaded, so the run log can name the exact
     file. A hash is taken before and after loading; a file that changed under
     the load is reported, not reconciled.
+
+    `loadSystemConfiguration` is the ONE call made on the unguarded handle --
+    the guard does not list it and is right to refuse it (card 033 3b
+    condition 2). Everything after it, AutoShutter first, goes through
+    GuardedCore. The load also applies the file's System/Startup preset, which
+    is a command the file issues and not this function; the caller logs it.
     """
     import hashlib
     from pathlib import Path as _Path
@@ -454,21 +480,22 @@ def load_configuration(path: str, mm_dir: str | None = None) -> dict:
     if not mm_dir:
         raise MicroManagerUnavailable("no Micro-Manager installation found for the adapters")
     core.setDeviceAdapterSearchPaths([str(mm_dir)])
-    core.loadSystemConfiguration(str(path))
-    core.setAutoShutter(False)                                  # first call after the load
-    core.waitForSystem()
-    auto_core = core.getAutoShutter()
-    auto_prop = core.getProperty("Core", "AutoShutter")
+    core.loadSystemConfiguration(str(path))                     # the one unguarded call
+    guarded = GuardedCore(core)
+    guarded.setAutoShutter(False)                               # first call after the load
+    guarded.waitForSystem()
+    auto_core = guarded.getAutoShutter()
+    auto_prop = guarded.getProperty("Core", "AutoShutter")
     after = digest()
     return {
         "path": str(path), "sha256": before, "sha256_after_load": after,
         "changed_during_load": before != after, "mm_dir": str(mm_dir),
-        "api": core.getAPIVersionInfo(), "mmcore": core.getVersionInfo(),
-        "loaded_devices": list(core.getLoadedDevices()),
+        "api": guarded.getAPIVersionInfo(), "mmcore": guarded.getVersionInfo(),
+        "loaded_devices": list(guarded.getLoadedDevices()),
         "autoshutter": {"wanted": "0", "read_getAutoShutter": bool(auto_core),
                         "read_property": auto_prop,
                         "verified": (not auto_core) and str(auto_prop) == "0"},
-        "core_shutter": core.getShutterDevice(), "core_camera": core.getCameraDevice(),
+        "core_shutter": guarded.getShutterDevice(), "core_camera": guarded.getCameraDevice(),
     }
 
 
