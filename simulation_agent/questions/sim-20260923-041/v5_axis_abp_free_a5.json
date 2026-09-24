@@ -1,0 +1,164 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-041-abp_free-a5-r5",
+  "qid": "sim-20260923-041",
+  "thread": "solo-sim-20260923-041",
+  "round": 0,
+  "revision": 5,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T01:20:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-041:v5:abp_free:a5",
+  "config": "abp_free",
+  "axis": "a5",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "llm_estimate",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "particle_steps",
+      "unit": "1",
+      "max": 70000000000.0,
+      "basis": [
+        "particle_steps_max"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "parameter": "coordinates_stored",
+      "unit": "1",
+      "max": 1000000000.0,
+      "basis": [
+        "coordinates_stored_max"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "N * T / dt <= wall_clock_max * particle_step_rate",
+      "parameter": "particle_steps",
+      "state": "returned",
+      "interval": {
+        "parameter": "particle_steps",
+        "unit": "1",
+        "max": 70000000000.0,
+        "basis": [
+          "particle_steps_max"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    },
+    {
+      "inequality": "2 * N * T / save_interval <= storage_max / bytes_per_coordinate",
+      "parameter": "coordinates_stored",
+      "state": "returned",
+      "interval": {
+        "parameter": "coordinates_stored",
+        "unit": "1",
+        "max": 1000000000.0,
+        "basis": [
+          "coordinates_stored_max"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "wall_clock_max",
+      "value": 2,
+      "unit": "h",
+      "source": "spec:simulation_agent/envelope/budget.json:local",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the ceiling a person chose (kyuhwan, 2026-09-19); carried so the interval below has a basis the card holds. A ceiling is a decision, and spec: is the nearest kind for a number read off a policy file"
+    },
+    {
+      "name": "storage_max",
+      "value": 10,
+      "unit": "GB",
+      "source": "spec:simulation_agent/envelope/budget.json:local",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the disk ceiling of the same target"
+    },
+    {
+      "name": "particle_step_rate",
+      "value": 10000000.0,
+      "unit": "1/s",
+      "source": "assumed:a_cost_reference",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps per second for a 2D WCA active system with a neighbour list on this workstation's CPU: of order ten million. A guess until the smoke run measures it"
+    },
+    {
+      "name": "particle_steps_max",
+      "value": 70000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_times_rate",
+      "grade": "E5",
+      "formula": "wall_clock_max*particle_step_rate",
+      "inputs": [
+        "wall_clock_max",
+        "particle_step_rate"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the product n_particles*total_simulated_time/integration_timestep may not exceed this. A5 constrains the product and not any factor, and takes none of them from A1 or A2 (4.5.3 rule b)"
+    },
+    {
+      "name": "bytes_per_coordinate",
+      "value": 8e-09,
+      "unit": "GB",
+      "source": "spec:ieee754_double",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "one double-precision coordinate, in the unit the ceiling is written in"
+    },
+    {
+      "name": "coordinates_stored_max",
+      "value": 1000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_over_bytes",
+      "grade": "E4",
+      "formula": "storage_max/bytes_per_coordinate",
+      "inputs": [
+        "storage_max",
+        "bytes_per_coordinate"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the product 2*n_particles*total_simulated_time/save_interval may not exceed this, two coordinates per particle per frame in two dimensions"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_cost_reference",
+      "gap_ref": "particle_step_rate_absent",
+      "statement": "The cost model is one pair-force evaluation per particle per step through a neighbour list, at a rate guessed from the engine's class of hardware. Nothing on this machine has run this configuration.",
+      "numbers": [
+        "particle_step_rate"
+      ],
+      "falsifier": "a run that WRITES THE TRAJECTORY THIS PLAN DECLARES on hoomd_backend replaces the rate with the value measured off that run's own log and the ceiling interval moves with it"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "particle_step_rate_absent",
+      "observable": "particle_step_rate",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v5:abp_free:a5",
+      "asked_at": "2026-09-24T01:17:48+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "This axis no longer abstains: the ceiling exists and is a person's, the cost model is this agent's, and the interval is over two products of settable parameters. The smoke budget (5 min, 500 MB) is the operator's gate at run time and not a plan-time interval."
+}

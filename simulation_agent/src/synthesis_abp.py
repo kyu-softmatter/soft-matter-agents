@@ -247,6 +247,10 @@ PHI_LEVELS = ("packing_fraction_min", "packing_fraction_mid", "packing_fraction_
 # measurement at Pe 10, applied at Pe 100 as an assumption the person chose.
 RULINGS = {
     ("sim-20260923-041", 4): {"max_min": {"step_at_ceiling": True, "box_over_persistence_length": 1}},
+    # 2026-09-24: the Pe 10, phi 0.5 cell takes one persistence length of box
+    # too; the step stays at the level default. Revision 4's ruling carries.
+    ("sim-20260923-041", 5): {"max_min": {"step_at_ceiling": True, "box_over_persistence_length": 1},
+                              "mid_max": {"box_over_persistence_length": 1}},
 }
 
 
