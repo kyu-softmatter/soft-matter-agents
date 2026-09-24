@@ -406,8 +406,48 @@ bench. **Until it is answered:**
 - **do not invent a `plan_id`** to make the schema pass. A made-up id is a
   record claiming a plan that did not exist
 
-This seat has raised the schema question to architecture. When it is
-answered, the log comes into `runs/` by whatever route that answer gives.
+This seat raised the schema question to architecture. **It is answered**
+(`plan.md` 11-21 at `32e2263`), and the schema and check 85 landed at
+`9609a57` and `b5aaac9`.
+
+### Bringing the two logs into `runs/`: the route
+
+**The originals stay exactly as they are, outside the tree**, with the
+hashes you reported: `run-20260924-001` at `e71329326f1b…`,
+`run-20260924-002` at `f3fde6979826…`. **Do not edit them.** They are the
+record as written at the bench. What enters the tree is a copy that adds one
+field and changes nothing else.
+
+For each run:
+
+1. **`runs/<run_id>/commands.json`**: the `commands` of the log's own
+   `command_list` event, **verbatim**, written as JSON with LF endings. That
+   is the list the person was shown. It is taken out of the log so that
+   condition 2 has a file to hash, not re-typed
+2. **`runs/<run_id>/log.json`**: the original, plus `approved_commands`
+   with that file's repo-relative path, its sha256, and `approved_by` in
+   words. **Nothing else changes.** `not_dispatched` stays at the top level,
+   where you wrote it, and the schema now has a field for it
+3. **`approved_by` says what actually happened, run by run:**
+   - `run-20260924-002`: the person approved the checked list at the
+     `approve_light` gate, before any light. Quote the gate
+   - **`run-20260924-001`: no approval of the list ever happened.** The run
+     failed at the load, before the `approve_light` gate was reached and
+     before any light. Say exactly that. The person answered the preload
+     gate only. **An `approved_by` claiming more is the invented `plan_id`
+     problem in another field**
+4. **The commit message gives both hashes for each run**: the original's,
+   and the in-tree copy's, and it says that the copy adds `approved_commands`
+   and nothing else. Frames stay outside the tree; the log's `run_end` lists
+   them with their hashes
+5. **Leave the wrong `bits: 10` in the log as written**, and say in the
+   commit message that it is a script flaw and not a bit depth. The record
+   shows what the script computed. It is not corrected by editing the record
+
+Run `PYTHONUTF8=1 python contracts/validate.py` before committing. Check 85
+should PASS for both runs, and for `-002` it should say the approved list
+matches its sha256. Check 15 reports PENDING on `plan None`, which is
+expected for a preparatory run.
 
 ## Done when
 
