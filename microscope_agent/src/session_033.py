@@ -244,6 +244,23 @@ class Session:
                  **{"from": f"{CONFIG.name}:ConfigGroup,System,Startup"},
                  verification="none", verification_note="read back in the next event")
         core = self.core()
+        # The piezo controller may follow Dev1/ao2 (an open question the prior
+        # project left). A moving sample during the series would read as drift,
+        # not announce itself. So: which NIDAQ devices loaded, and is any of
+        # them an analogue output? What the hub does at initialisation is not
+        # visible from here, and the log says so rather than claiming it.
+        nidaq = {d: _safe(core.getDeviceName, d) for d in core.getLoadedDevices()
+                 if _safe(core.getDeviceLibrary, d) == "NIDAQ"}
+        analogue = sorted(d for d, name in nidaq.items() if "AO" in str(name).upper())
+        self.rec(event="analogue_output_check", nidaq_devices=nidaq,
+                 analogue_output_devices=analogue,
+                 note=("no NIDAQ analogue-output device is loaded, so nothing in this "
+                       "configuration addresses Dev1/ao2. NOT confirmed: whether NIDAQHub's own "
+                       "initialisation writes any analogue line -- that is inside the adapter "
+                       "and not observable here" if not analogue else
+                       "an analogue-output device is loaded; the run stops"))
+        if analogue:
+            raise Stop(f"NIDAQ analogue-output device(s) loaded: {analogue}; the piezo may follow ao2")
         lapp = core.getProperty("LappMainBranch1", "State")
         self.rec(event="read", channel="LappMainBranch1", property="State", read=lapp,
                  matches_startup_preset=str(lapp) == "1")
