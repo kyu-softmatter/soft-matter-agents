@@ -98,10 +98,22 @@ def provenance(source: str) -> str:
     }.get(kind, "source not stated")
 
 
+UNWORDED: list[str] = []  # reasons that carried a code, sent to the footer verbatim
+
+
 def plain_skip(reason: str) -> str:
-    if "step budget" in reason:
-        return "not run: over the per-point step budget at the cautious cost estimate"
-    return "not run"
+    """A skip reason as written, if it is written for the person; otherwise a placeholder that says so.
+
+    The rule is the writer's: a reason meant for the person carries no code. The generator does not
+    paraphrase a reason it cannot read -- it says the reason is not worded yet and puts the original
+    in the footer, so the gap is visible rather than smoothed into "not run".
+    """
+    try:
+        refuse_codes(reason)
+        return "not run: " + reason
+    except Refused:
+        UNWORDED.append(reason)
+        return "not run — the reason is not worded for you yet"
 
 
 def fmt(x: float, sig: int = 3) -> str:
@@ -577,7 +589,8 @@ def footer(qid: str, R: dict) -> str:
             f"Question {qid}, revision {R['rev']}; plan <code>{R['plan_path'].relative_to(cards.REPO)}</code>; runs {runs}. "
             f"Repository at {rev}. Validator: {html.escape(verdict)} {html.escape(tree)}. "
             f"Notes: <code>{NOTES_DIR / (qid + '.md')}</code>.</p>"
-            f"<p>Regenerate: <code>cd simulation_agent &amp;&amp; ../.pixi/envs/sim/bin/python -m src.report {qid}</code></p></footer>")
+            + "".join(f"<p>Skip reason as recorded: {html.escape(r)}</p>" for r in dict.fromkeys(UNWORDED))
+            + f"<p>Regenerate: <code>cd simulation_agent &amp;&amp; ../.pixi/envs/sim/bin/python -m src.report {qid}</code></p></footer>")
 
 
 CSS = """

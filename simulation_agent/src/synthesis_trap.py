@@ -256,8 +256,9 @@ def build(qid: str, created_at: str, revision: int) -> tuple[dict, dict | None]:
         raise SystemExit("every cell exceeds A5's budget; the sweep cannot be run (P5)")
 
     rejected = [{"what": f"grid cell {c}", "kind": "operating_point",
-                 "reason": "exceeds A5's step budget per point at the CONSERVATIVE cost end; skipped, and the "
-                           "plan's sweep records the empty cell with this reason",
+                 # worded for the person: a report quotes this verbatim (task 022)
+                 "reason": "over the step budget for one condition at the cautious cost estimate; skipped, "
+                           "and the plan keeps the empty condition with this reason",
                  "grounds": [x for _, a, b in over for x in (a, b)]} for c, over in skipped.items()]
 
     card = cards.head(
