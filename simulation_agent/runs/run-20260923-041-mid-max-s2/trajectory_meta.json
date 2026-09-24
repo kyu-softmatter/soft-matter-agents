@@ -1,0 +1,25 @@
+{
+  "run_id": "run-20260923-041-mid-max-s2",
+  "trajectory": {
+    "format": "gsd",
+    "file": "trajectory.gsd",
+    "units": "metres (SI), unwrapped: a tracer that crossed the periodic boundary keeps going, so displacements are physical and no image flag is needed",
+    "ordering": "frame i is particles.position of GSD frame i, shape (1019, 3), row = tracer index, fixed across frames",
+    "index_0": "the initial configuration at simulated time 0, before any step",
+    "step_counter": "configuration.step is the integer step count at that frame; simulated time is step * integration_timestep (derived, never accumulated)",
+    "box": "configuration.box = [0.00019999999999999998]*3 + [0,0,0], in metres, the same unit as the positions",
+    "dtype": "float32",
+    "frames": 30001,
+    "written": true,
+    "bytes": 372011943,
+    "gsd_version": "5.0.1"
+  },
+  "frames_saved": 30001,
+  "simulated_time": 30000.0,
+  "steps_taken": 6000000,
+  "max_single_step_displacement": 5.7426302543751515e-08,
+  "stopped_by": "planned_duration_reached",
+  "stop_outcome": "complete",
+  "stopped_early": false,
+  "completed_planned_duration": true
+}

@@ -1,0 +1,150 @@
+{
+  "run_id": "run-20260923-041-mid-max-s2",
+  "qid": "sim-20260923-041",
+  "plan_id": "plan-sim-20260923-041-r6",
+  "plan_revision": 6,
+  "plan_hash": "sha256:c0de435f0c193a84564f4d7da91dd8259961de12a33481a8729fbf5b78431191",
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "envelope_check": {
+    "status": "inside",
+    "target": "local",
+    "budget": "full",
+    "compared": [
+      {
+        "cost": "wall_clock_estimate",
+        "limit": "wall_clock_max",
+        "cost_si": 600.0,
+        "limit_si": 7200.0
+      },
+      {
+        "cost": "storage_estimate",
+        "limit": "storage_max",
+        "cost_si": 0.48000000000000004,
+        "limit_si": 10.0
+      }
+    ],
+    "exceeded": []
+  },
+  "backend": "abp_backend",
+  "seed": 1,
+  "parameters_si": {
+    "temperature": 293.0,
+    "viscosity": 0.001,
+    "bead_diameter": 4.9999999999999996e-06,
+    "translational_diffusivity": 9e-14,
+    "rotational_diffusivity": 0.01,
+    "wca_epsilon": 4e-21,
+    "total_simulated_time": 30000.0,
+    "save_interval": 1.0,
+    "max_lag_time": 3000.0,
+    "fit_lag_range_lower_bound": 1000.0,
+    "peclet_number_steric": 10.0,
+    "packing_fraction": 0.5,
+    "integration_timestep": 0.005,
+    "box_length": 0.00019999999999999998
+  },
+  "provenance": [
+    {
+      "parameter": "temperature",
+      "value_si": 293.0,
+      "unit_in_plan": "K",
+      "from": "conditions[0].number -> numbers[temperature]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "viscosity",
+      "value_si": 0.001,
+      "unit_in_plan": "Pa*s",
+      "from": "conditions[1].number -> numbers[viscosity]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "bead_diameter",
+      "value_si": 4.9999999999999996e-06,
+      "unit_in_plan": "um",
+      "from": "conditions[2].number -> numbers[bead_diameter]",
+      "grade": "E2"
+    },
+    {
+      "parameter": "translational_diffusivity",
+      "value_si": 9e-14,
+      "unit_in_plan": "um^2/s",
+      "from": "conditions[3].number -> numbers[translational_diffusivity]",
+      "grade": "E4"
+    },
+    {
+      "parameter": "rotational_diffusivity",
+      "value_si": 0.01,
+      "unit_in_plan": "1/s",
+      "from": "conditions[4].number -> numbers[rotational_diffusivity]",
+      "grade": "E4"
+    },
+    {
+      "parameter": "wca_epsilon",
+      "value_si": 4e-21,
+      "unit_in_plan": "J",
+      "from": "conditions[5].number -> numbers[wca_epsilon]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "total_simulated_time",
+      "value_si": 30000.0,
+      "unit_in_plan": "s",
+      "from": "conditions[6].number -> numbers[total_simulated_time_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "save_interval",
+      "value_si": 1.0,
+      "unit_in_plan": "s",
+      "from": "conditions[7].number -> numbers[save_interval_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "max_lag_time",
+      "value_si": 3000.0,
+      "unit_in_plan": "s",
+      "from": "conditions[8].number -> numbers[max_lag_time_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "fit_lag_range_lower_bound",
+      "value_si": 1000.0,
+      "unit_in_plan": "s",
+      "from": "conditions[9].number -> numbers[fit_lag_range_lower_bound_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "peclet_number_steric",
+      "value_si": 10.0,
+      "unit_in_plan": "1",
+      "from": "conditions[10].number -> numbers[peclet_mid]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "packing_fraction",
+      "value_si": 0.5,
+      "unit_in_plan": "1",
+      "from": "conditions[11].number -> numbers[packing_fraction_max]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "integration_timestep",
+      "value_si": 0.005,
+      "unit_in_plan": "s",
+      "from": "conditions[12].number -> numbers[integration_timestep_point_pe_mid]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "box_length",
+      "value_si": 0.00019999999999999998,
+      "unit_in_plan": "um",
+      "from": "conditions[13].number -> numbers[box_length_mid_max]",
+      "grade": "E5"
+    }
+  ],
+  "compare_arm": "mid_max"
+}
