@@ -24,11 +24,29 @@ what value, is the person's to decide and to write. Nothing from the prior
 project or from a model enters that file.
 
 **And no laser line is enabled while the light path can reach the
-eyepieces.** No such rule exists in the safety rules yet. Architecture has
-been told, and writes it. **Hold to it from this card in the meantime.**
-Before any line is enabled, the light path's state is read back from the
-stand, and a path that reaches the eyepieces refuses. A path that cannot be
-read back refuses too. Ambiguity stops.
+eyepieces.** That is `plan.md` 2.1 rule 11, written on 2026-09-24 when this
+card found it missing, and **this card's wrapper is where it is first
+enforced.** Until your wrapper exists, no laser line is enabled from
+software at all. What the rule requires, each part of it a refusal:
+
+- **the light path is read back at the moment of enabling**, before any
+  command that enables a line or raises its output. Not taken from an
+  earlier read, because a person at the stand or another seat can change it
+  in between
+- **a read-back showing a route to the eyepieces refuses, and so does a path
+  that cannot be read**
+- **the read-back can refuse and cannot permit.** A path showing no route to
+  the eyepieces is not grounds to enable. Enabling still needs its plan or
+  person-approved command list, the person's limit for these lines, and the
+  bench. **Write the code so a clean read-back alone never reaches the
+  enable call**
+- **which path state reaches the eyepieces is established at the bench,
+  recorded, and pinned by the state's integer, never by its label.** Labels
+  in a loaded configuration are downgraded until confirmed, and the lab's
+  own labels have been swapped once. In phase A that mapping does not exist
+  yet, so **your wrapper treats every path state as reaching the eyepieces
+  until the recorded mapping says otherwise**. Establishing that mapping is
+  phase B's first job, with the person
 
 ## One holder of the bench
 
@@ -74,8 +92,12 @@ cannot be reached without editing the router, **stop and report up**.
    none`, always.** A return code is not a read-back. The refusals, each
    with a test watched failing:
    - **no line enabled** while the person's limit for these lines is absent
-   - **no line enabled** while the light path reads as reaching the
-     eyepieces, or cannot be read
+   - **no line enabled** while the light path, read back at that moment,
+     reaches the eyepieces or cannot be read
+   - **no line enabled on a clean read-back alone**: with the path clear
+     but the limit, the approved list or the bench missing, it still refuses
+   - **no line enabled on a path state the recorded mapping does not name**,
+     keyed by the state's integer and never its label
    - **abort blanks every line first**, and says it did, but records
      `none`, not `readback`, because nothing reads it back
 4. **Write the live checklist**, card 018's style. Each line names what is
@@ -92,10 +114,21 @@ cannot be reached without editing the router, **stop and report up**.
 ## Phase B — later, and not by your own decision
 
 **Only when the person has said, in your window, that the bench is yours,
-and only after the person's limit for these lines is written.** Read-only
-first. Then **one line, at the lowest setting**, with the person told before
-it goes on, the path read back as not reaching the eyepieces, and a frame to
-show it went where it was sent.
+and only after the person's limit for these lines is written.** In this
+order:
+
+1. **read-only first**
+2. **establish, with the person, which light-path states reach the
+   eyepieces**, by integer, and record it as a result for the librarian.
+   Nothing is enabled until it is recorded
+3. **then one line, at the lowest setting**, with the person told before it
+   goes on, the path read back at that moment, and a frame to show the light
+   went where it was sent
+
+**A check will follow your wrapper, not precede it**: one that reads run
+logs for a laser-enable not preceded by that read-back. Architecture asks
+for it to be proposed once the wrapper lands. So log the read-back as its
+own event, immediately before the enable.
 
 ## What to bring back
 

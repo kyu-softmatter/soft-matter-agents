@@ -74,12 +74,13 @@ and Z on controller channels 1, 2 and 3**. Each axis's device range is
 **−100 to 600 µm**, and the person prefers to operate in **0 to 600 µm**.
 **These are the person's statement, not a reading.** Record them as such.
 
-**The limit the person must write before any live command.**
-`envelope/safety.json` has no piezo limit today. The schema for one landed
-at `37c6d69`: `piezo_{x,y,z}_position_{min,max}`, in µm, each end requiring
-the other, each with `bounds`. **Only the person writes that file.**
-Architecture will hand the person a paste-ready block. Nothing from the
-prior project or from a model enters it.
+**The person's limit is written.** `envelope/safety.json` at `58d55cd`,
+policy version 5: X, Y and Z each **0 to 600 µm**, as
+`piezo_{x,y,z}_position_{min,max}`, confirmation `carried_over` from the
+person's own statement, **to be re-signed `physical` after the first live
+check.** Read it from the file, never from this card. That meets phase B's
+precondition on the limit. **It does not start phase B**: the bench rule
+still governs when that happens. Only the person writes that file.
 
 **The wrapper, in phase A, refuses in these cases, each with a test watched
 failing:**
