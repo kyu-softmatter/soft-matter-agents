@@ -63,9 +63,13 @@ open work to commit first. **The file is the delivery. The message only
 points at it.**
 
 **The librarian reads the committed file directly** (architecture, `plan.md`
-section 7 at `f391010`). It may read `microscope_agent/findings/` and
-nothing else of this tree, read-only, the same shape as the bridge's
-exception for `questions/`. A message leaves no trace, and **the committed
+section 7 at `f391010`, widened at `0e06fb2`). It may read
+`microscope_agent/findings/` **and exactly the paths a committed findings
+item cites, at the commit the item names** (`git show <commit>:<path>`),
+read-only, and nothing else. **So every source you cite must be committed,
+and each item should name the commit.** An uncommitted source cannot be
+checked and is not entered, and a verbatim copy in the findings file does
+not substitute. A message leaves no trace, and **the committed
 file is the trace the store entry cites.** So send the commit, never the
 contents. If the librarian cannot read it, the gap is in its settings,
 which are its manager's. Do not paste the contents to work around it.
