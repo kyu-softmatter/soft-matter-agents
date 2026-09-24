@@ -644,3 +644,151 @@ def operating_point() -> dict:
     ]
     return {"carry": carry, "computed": computed, "point": point, "rejected": rejected,
             "not_applicable_grounds": ["drive_selectors_on_goal"]}
+
+
+# --------------------------------------------------------------------------- #
+# S5 -- the plan (4.5.5)
+# --------------------------------------------------------------------------- #
+
+MODEL = ("overdamped Brownian dynamics of N identical particles in two dimensions in a periodic "
+         "box, purely repulsive Yukawa pair potential u(r) = U0 (a/r) exp(-kappa (r - a)) with U0 = "
+         "Gamma k_B T and kappa = kappa_a / a, no hydrodynamic interactions, no attraction, no wall, "
+         "no drive; positions start uniformly random; temperature enters as the noise amplitude only")
+
+
+def build_plan(qid: str, created_at: str, revision: int = 1) -> dict:
+    """The plan card for bd_pairwise: a four-cell sweep over Gamma and kappa a.
+
+    Every number is carried from the synthesis or an axis card with its origin,
+    except the two cost estimates, which are S5's arithmetic over the chosen
+    point (S4 may not introduce a number and A5 cannot see the point). Stop
+    and success criteria are declared here, before any run, and the run ends
+    on the observable's own criterion -- psi6 reaching the declared fraction
+    of its plateau -- or on the cap, in which case it is not a relaxation time.
+    """
+    from . import plan_card, synthesis
+    goal = cards.load_goal(qid, revision)
+    syn = json.loads((cards.question_dir(qid) / cards.artifact_name("synthesis.json", revision)).read_text())
+    config = syn["chosen_config"]
+    point = {p["parameter"]: p["number"] for p in syn["operating_point"]}
+    extra = ["temperature", "viscosity", "bead_diameter", "diffusivity", "mean_spacing", "brownian_time",
+             "dt_max_noise", "dt_max_brownian", "n_seeds_min", "n_particles_min", "box_length_min",
+             "particle_steps_total", "particle_steps_max", "particle_frames_total", "particle_frames_max",
+             "particle_step_rate", "drive_selectors_on_goal", "sweep_points", "steps_per_run", "frames_per_run",
+             "gamma_levels", "kappa_a_levels", "fit_window_frames_min"]
+    wanted = [("synthesis.json", n) for n in dict.fromkeys(list(point.values()) + extra)]
+    wanted += [("axis_bd_pairwise_a5.json", "storage_per_particle_frame"), ("axis_bd_pairwise_a2.json", "target_rel_error")]
+    wanted = [(cards.artifact_name(f, revision), n) for f, n in wanted]
+    numbers = synthesis.carry_from(qid, config, wanted)
+    assumptions = synthesis.assumptions_for(qid, numbers)
+    g = {n["name"]: n["grade"] for n in numbers}
+    v = lambda name: _value(numbers, name)
+    numbers.append(cards.num("wall_clock_estimate", _oom(v("particle_steps_total") / v("particle_step_rate")), "s",
+                             "computed:particle_steps_over_rate", formula="particle_steps_total/particle_step_rate",
+                             inputs=[(n, g[n]) for n in ("particle_steps_total", "particle_step_rate")], precision="order_of_magnitude",
+                             note="the whole sweep, four cells times nine seeds, at the assumed rate; the smoke run measures the rate"))
+    numbers.append(cards.num("storage_estimate", _oom(v("particle_frames_total") * v("storage_per_particle_frame")), "GB",
+                             "computed:frames_times_bytes", formula="particle_frames_total*storage_per_particle_frame",
+                             inputs=[(n, g[n]) for n in ("particle_frames_total", "storage_per_particle_frame")], precision="order_of_magnitude"))
+    shared = [p for p in point if p not in ("gamma_min", "gamma_max", "kappa_a_min", "kappa_a_max")]
+    conditions = [{"parameter": p, "number": point[p]} for p in shared]
+    conditions += [{"parameter": p, "number": p} for p in ("temperature", "viscosity", "bead_diameter")]
+    cells = []
+    for gi, gl in (("g1", "gamma_min"), ("g2", "gamma_max")):
+        for ki, kl in (("k1", "kappa_a_min"), ("k2", "kappa_a_max")):
+            cells.append({"point": f"{gi}_{ki}", "conditions": [{"parameter": "gamma", "number": gl}, {"parameter": "kappa_a", "number": kl}]})
+    card = cards.head(
+        "plan", f"plan-{qid}" + ("" if revision == 1 else f"-r{revision}"), qid, created_at, revision=revision,
+        goal_id=goal["id"], synthesis_id=syn["id"], purpose=goal["purpose"], intent=goal["intent"],
+        observable=cards.observable(goal["observable"]["name"]),
+        system_configuration={"config": config, "optical_path": None, "devices": ["hoomd_backend"], "model": MODEL},
+        targets=[dict(t) for t in goal.get("targets", [])],
+        sweep={"axes": [{"parameter": "gamma", "levels": ["gamma_min", "gamma_max"]},
+                        {"parameter": "kappa_a", "levels": ["kappa_a_min", "kappa_a_max"]}],
+               "points": cells},
+        conditions=conditions,
+        actions=[
+            {"id": "initialise", "device": "hoomd_backend",
+             "action": "per cell and seed: place n_particles uniformly at random in the periodic box Lx = rows_x * lattice_constant, Ly = rows_y * sqrt(3)/2 * lattice_constant, with U0 = gamma * k_B * temperature and kappa = kappa_a / mean_spacing, cutoff where u/kT falls below one thousandth",
+             "reversible": True, "parameters": ["n_particles", "rows_x", "rows_y", "lattice_constant", "gamma", "kappa_a", "temperature", "n_seeds"], "tier": 1},
+            {"id": "integrate", "device": "hoomd_backend",
+             "action": "integrate overdamped Brownian dynamics at integration_timestep, saving wrapped positions every save_interval, until the psi6 stop criterion fires or run_time_cap is reached",
+             "reversible": True, "parameters": ["integration_timestep", "save_interval", "run_time_cap", "temperature", "viscosity", "bead_diameter"], "tier": 1},
+            {"id": "estimate_relaxation_time", "device": "hoomd_backend",
+             "action": "per frame compute psi6 per particle from its Voronoi neighbours using wrapped positions under the minimum image, average over particles; fit the plateau over the last relaxation_fit_window of the record; report the first time psi6(t) reaches plateau_fraction of it, per seed, and the mean and block standard error over seeds per cell",
+             "reversible": True, "parameters": ["relaxation_fit_window", "plateau_fraction", "n_seeds"], "tier": 0},
+        ],
+        envelope_check=plan_card.envelope_check(numbers),
+        cost={"wall_clock": "of order two hours for the whole sweep at the assumed rate of ten million particle-steps a second; the rate has never been measured for this model and the smoke run does that first",
+              "numbers": ["wall_clock_estimate", "storage_estimate"],
+              "note": "the estimate is arithmetic over the chosen point; the rate under it is A5's assumption. The frame-writing cost is not in the model and at a hundred frames a run is small here"},
+        stop_criteria=[
+            {"id": "psi6_plateau_reached", "metric": "psi6_particle_average_over_its_plateau", "comparator": ">=", "number": "plateau_fraction",
+             "on_met": "complete", "window": "psi6(t) smoothed over relaxation_fit_window",
+             "statement": "the relaxation is complete when the particle-averaged psi6 first reaches the declared fraction of its plateau; the time at which it does is the observable"},
+            {"id": "run_cap_reached", "metric": "simulated_time", "comparator": ">=", "number": "run_time_cap", "on_met": "complete",
+             "statement": "the run ends at the cap without the plateau criterion having fired; it is kept and reported NOT CONVERGED, and its relaxation time is a lower bound, not a value"},
+            {"id": "step_displacement_diverged", "metric": "max_single_step_displacement", "comparator": ">", "number": "lattice_constant", "on_met": "fault",
+             "statement": "a particle moving more than a lattice constant in one step is a diverged integration; stop and keep the run, because divergence is a result"},
+        ],
+        success_criteria=[
+            {"id": "converged_before_cap", "metric": "time_of_plateau_crossing", "comparator": "<", "number": "run_time_cap",
+             "statement": "in every seed of a cell the plateau criterion fired before the cap; a cell where it did not is reported as not converged and enters no comparison as a value"},
+            {"id": "statistics_met", "metric": "relative_block_standard_error_of_relaxation_time", "comparator": "<=", "number": "target_rel_error",
+             "window": "over the seeds of one cell",
+             "statement": "the seed-to-seed spread of the relaxation time, as a standard error of the cell mean, is inside the ten per cent the design asked for"},
+        ],
+        alternatives_rejected=[{"what": r["what"], "reason": r["reason"], "grounds": r["grounds"]} for r in syn.get("rejected", [])],
+        open_risks=[
+            "The run cap is ten Brownian times and ordering from a random start in a stiff Yukawa system may take a hundred; a cell that ends on the cap is a lower bound and the first thing the result reports.",
+            "The particle-step rate under the cost estimate is a guess about this workstation; the smoke run measures it, and the full sweep is not submitted until that measurement is in a card.",
+            "Finite size is never absent here: the psi6 correlation length grows toward the box as the structure orders. The design margin is thirty spacings and its falsifier is a second box a factor of two larger giving the same time, which is a separate plan.",
+            "The plateau fraction 0.9 is the design stage's convention until a person chooses one; the vocabulary's window field holds only the fit window, so this card carries the fraction as a condition.",
+            "Nothing here is fitted to experimental data and no experimental counterpart exists for this observable; the anchor on the lab's particles is what would make one comparable.",
+            "Temperature is a coordinate of the model and not a measurement of it: the integrator represents no velocity, so the declared value enters as the noise amplitude and cannot fail to be realised.",
+        ],
+    )
+    card["status"] = "DRAFT"
+    card.update(cards.tail(numbers, assumptions=assumptions, kb_refs=synthesis.kb_refs_for(qid, numbers),
+                           kb_gaps=syn.get("kb_gaps") or [], degraded=list(syn.get("degraded") or [])))
+    return card
+
+
+def render_plan(card: dict) -> str:
+    """The plan's Markdown twin, generated from the card (P3): every figure is
+    read out of numbers[] and none is retyped."""
+    from . import plan_card
+    nums = {n["name"]: n for n in card["numbers"]}
+    def q(name):
+        # the shared formatter, so the prose prints exactly the figure the card
+        # holds and check 9 finds nothing it cannot back
+        n = nums[name]; u = "" if n["unit"] == "1" else f" {n['unit']}"
+        val = n["value"]
+        # plain digits, never exponent notation: the check that compares the
+        # prose against numbers[] reads '7e+10' as '7e' and finds no such number
+        text = str(int(val)) if float(val).is_integer() else f"{val:.10g}"
+        return f"{text}{u}"
+    L = [f"# Plan {card['id']} -- {card['observable']['name']} on {card['system_configuration']['config']}", "",
+         f"*Generated from `{card['id']}` (revision {card['revision']}); the JSON is authoritative. Status: {card['status']}.*", "",
+         "## Model", "", card["system_configuration"]["model"], "",
+         "## Sweep", ""]
+    for ax in card["sweep"]["axes"]:
+        L.append(f"- `{ax['parameter']}`: " + ", ".join(q(l) for l in ax["levels"]))
+    L += ["", f"{len(card['sweep']['points'])} cells, every cell at the same integrator settings.", "",
+          "## Conditions shared by every cell", "", "| parameter | value | provenance |", "|---|---|---|"]
+    for c in card["conditions"]:
+        n = nums[c["number"]]
+        L.append(f"| {c['parameter']} | {q(c['number'])} | {n['source']} ({n['grade']}) |")
+    L += ["", "## Stop criteria, declared before the run", ""]
+    for s in card["stop_criteria"]:
+        L.append(f"- **{s['id']}** ({s['on_met']}): `{s['metric']}` {s['comparator']} {q(s['number'])}. {s['statement']}")
+    L += ["", "## Success criteria", ""]
+    for s in card["success_criteria"]:
+        L.append(f"- **{s['id']}**: `{s['metric']}` {s['comparator']} {q(s['number'])}. {s['statement']}")
+    L += ["", "## Cost", "", f"Wall clock {q('wall_clock_estimate')} against {q('particle_steps_max')} particle-steps allowed; storage {q('storage_estimate')}. "
+          f"Envelope: {card['envelope_check']['status']} -- {card['envelope_check'].get('note','')}", "",
+          "## Rejected", ""]
+    for r in card["alternatives_rejected"]:
+        L.append(f"- {r['what']}: {r['reason']} (grounds: {', '.join(r['grounds'])})")
+    L += ["", "## Open risks", ""] + [f"- {r}" for r in card["open_risks"]] + [""]
+    return "\n".join(L)

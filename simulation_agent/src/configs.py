@@ -103,3 +103,17 @@ def plan_builder(config: str):
         return None
     return mod.build_plan
 
+
+
+def plan_renderer(config: str):
+    """The configuration's own Markdown twin for its plan, or None.
+
+    `plan_card.render` prints bd_overdamped's window against tau_d and raises
+    on a card without them, so a configuration that supplies `build_plan`
+    supplies `render_plan(card) -> str` beside it; `emit` writes whichever
+    applies. The Markdown is generated from the JSON either way (P3).
+    """
+    mod = module_for(config)
+    if mod is None or not hasattr(mod, "render_plan"):
+        return None
+    return mod.render_plan

@@ -334,7 +334,10 @@ def emit(qid: str, created_at: str) -> tuple[Path, str]:
     md_path = json_path.with_suffix(".md")
     cards.refuse_overwrite(json_path, revision, card)
     cards.write(json_path, card)
-    md_path.write_text(render(card))
+    # A configuration with its own plan renders its own twin (src/configs.py).
+    from . import configs as _configs
+    render_fn = _configs.plan_renderer(card["system_configuration"]["config"]) or render
+    md_path.write_text(render_fn(card))
 
     verdict = subprocess.run(
         [sys.executable, str(cards.CONTRACTS / "validate.py"), "--quiet"],
@@ -344,7 +347,7 @@ def emit(qid: str, created_at: str) -> tuple[Path, str]:
     if verdict.returncode == 0:
         card["status"] = "VALIDATED"
         cards.write(json_path, card)
-        md_path.write_text(render(card))
+        md_path.write_text(render_fn(card))
         return json_path, "VALIDATED"
     return json_path, f"DRAFT (validator exit {verdict.returncode}; {verdict.stdout.strip().splitlines()[-1] if verdict.stdout.strip() else 'see validate.py'})"
 
