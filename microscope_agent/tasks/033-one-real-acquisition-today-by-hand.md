@@ -22,6 +22,14 @@ the shortest path that is safe.
 Both are **declarations**, recorded as the person's, and neither is evidence
 of anything else (`preference_is_not_evidence`).
 
+- **The excitation is the Aura III, not the Spectra III** (MM labels `Aura`
+  and `LightEngine`). The person said this to `microscope-20260924-1`
+  directly on 2026-09-24: first *"those are connected but today you can use
+  Aura3"*, then, asked whether to switch the card, *"Yes, switch to the
+  Aura"*. **This card was written for `LightEngine` and has been amended
+  throughout.** Where an older line and this one disagree, this one wins.
+  Report any line still naming `LightEngine` as the light you drive
+
 ## Where things stand, so you do not redo them
 
 | | state |
@@ -40,7 +48,7 @@ two devices, plus the core settings that route them:
 
 | allowed | what for |
 |---|---|
-| `LightEngine` | the excitation, by line, intensity and `State` |
+| `Aura` | the excitation, by line, intensity and `State` (the Aura III; the person's choice, above) |
 | `Kinetix_red` | exposure, binning, acquisition |
 | `Core` | `AutoShutter` (to 0, §2), and `Camera` / `Shutter` roles only if you must name them |
 
@@ -53,8 +61,10 @@ written from the request would pass them:
 
 - the spinning-disk unit: `CSUW1-Filter_Red`, `CSUW1-Filter_Blue`,
   `CSUW1-Dichroic`, `CSUW1-Port`, `CSUW1-Bright`, `CSUW1-Shutter`
-- **`Aura`, a second light engine.** Commanding it puts light on the sample
-  that the person was not told about
+- **`LightEngine`, the Spectra III, which is now the second light engine.**
+  Commanding it puts light on the sample that the person was not told about.
+  It was the allowed one until the person switched to the Aura; **it moves to
+  the refused list, and nothing addresses it**
 - `MightexPolygon1000` (the DMD), `DiaLamp`, `LappMainBranch1`,
   `Turret1Shutter`, `Turret2Shutter`, `Ti2-E__0`
 - **`NIDAQHub` and `LUNF-Blanking`**, the laser combiner's blanking lines,
@@ -77,7 +87,7 @@ at the call, as the backstop for a path that does not go through the plan.
 person set (§5).
 
 **Watch it refuse before you trust it.** On mock: a plan with one `ZDrive`
-command must refuse whole, and one with an `Aura` command must refuse too.
+command must refuse whole, and one with a `LightEngine` command must refuse too. **Re-run both after the swap**: the refusals you reported were for the old list.
 Report both refusals, word for word.
 
 A person turning the turret at the stand gets the stand's own escape
@@ -86,7 +96,7 @@ today and software motion is not.
 
 ## 2. Software drives only the excitation and the camera
 
-**Name `LightEngine`, never `widefield_source_a`.** The Lapp branch is
+**Name `Aura`, never `widefield_source_a`.** The Lapp branch is
 unconfirmed (card 018 §5); the MM label is checked by `getLoadedDevices()`
 and asserts nothing about the branch.
 
@@ -100,7 +110,7 @@ very frame meant to prove `State=0` is dark. With `AutoShutter` at 0, light
 comes on only when a command sets `State=1`, which is a command you log.
 
 **Which line is green comes from the device, not from memory.** List
-`getDevicePropertyNames("LightEngine")`, pick the green line by the name the
+`getDevicePropertyNames("Aura")`, pick the green line by the name the
 device reports, and record the name you picked. Get the particles' excitation
 peak from the store (`tracer_excitation_peak`) through the librarian. If no
 line name says a wavelength, stop and ask the person. Do not choose by
@@ -116,7 +126,7 @@ at module top (the module docstring says why):
   because `ImageNumber` is the only evidence of a dropped frame (018 §4b)
 - the frame count derived from an integer, never accumulated (018 §4c)
 
-**Shutdown order**, on finish and on abort: `LightEngine` `State=0` first,
+**Shutdown order**, on finish and on abort: `Aura` `State=0` first,
 read back, then anything else. Shutters before power (§2.1).
 
 ## 3. The configuration — the person chose it, and loading it is not motion-free
@@ -160,17 +170,17 @@ The two routes, as they were put to the person:
 State 1 passes the Lapp-branch light and **State 0 blocks it as completely as
 a dark frame**. So step 3 of §4 must run **with the mirror in the state the
 run will use**. A dark frame with the mirror blocking proves nothing about
-`LightEngine` `State=0`.
+`Aura` `State=0`.
 
 ### What else the file does
 
 | | what it means for you |
 |---|---|
-| `Core` `Shutter=LightEngine`, `AutoShutter=1` | **the same hazard as before**: every snap would switch the light on. §2's first step, `AutoShutter` to 0 with read-back, stands |
+| `Core` `Shutter=LightEngine`, `AutoShutter=1` | **the same hazard as before**: every snap would switch the light on. **The Shutter role stays at `LightEngine`**, its loaded value, and is not repointed at the Aura: with `AutoShutter` at 0 nothing opens the shutter device, and repointing it would be a write that buys nothing. §2's first step, `AutoShutter` to 0 with read-back, stands |
 | `Kinetix_red` is PVCAM **`Camera-2`** | the header records `Camera-2 = serial A24M723015` as the red body, measured 2026-09-03. **That is the prior project's reading, not ours.** Read the serial here and compare it with that and with the store (step 6 of §4) |
 | `NIDAQHub`, `LUNF-Blanking`, and the `LaserLine` group | TTL blanking for the LUN-F laser combiner. Its power sits on a separate controller that is not in Micro-Manager. **Add both devices to the refused list in §1** (`setConfig` is already refused). **The combiner must be off at its own power**: a blanking line is not a safety control |
-| `Aura` is declared, and the header says it fails to initialise when its chassis is off | error 573 means "no reply". Leave it declared, and **never command it** (§1) |
-| the header says `LightEngine` lines are named, `GREEN` and `GREEN_Intensity` 0–1000 | the prior project's reading. §2 still says read the names off the device |
+| `Aura` is declared, and the header says it fails to initialise when its chassis is off | error 573 means "no reply", not "no port". **It is today's excitation, so its chassis must be powered on before the load**, or the whole load fails. `LightEngine` stays declared too, and is **never commanded** (§1) |
+| the header says the `Aura` lines are `UV CYAN GREEN RED NIR`, each `<NAME>` (0/1) plus `<NAME>_Intensity` 0–1000 per-mille | the prior project's reading. §2 still says read the names off the device. **If the Aura reports no green line, stop and ask the person** |
 | a `PixelSize` block, 20x at `0.32373` µm | **cite the store's `pixel_size_20x_zoom_1x`, not `getPixelSizeUm()`**. The number agrees, but the store is where knowledge lives. And the same block calls this "a real 20.078x", which is the over-precise magnification this project already downgraded. Do not carry that phrase anywhere |
 | `FocusDirection,ZDrive,1` and its long safety note | nothing today, since nothing moves under software. **Do not transfer it**: the retract direction is in the store already (`z_retract_direction_is_measured`, E3) |
 
@@ -226,7 +236,7 @@ spinning-disk unit. Keep it as the fallback only if the person says so.
 
 **OK'd for today by this seat**, at the request of `microscope-20260924-1`
 (report on §1 at `9db8abf`, item 4), with architecture raising no objection.
-**Why**: the device registry carries no Micro-Manager labels, so `LightEngine`
+**Why**: the device registry carries no Micro-Manager labels, so `Aura`
 and `Kinetix_red` raise `GapError` at preflight. And `derive_commands` never
 produces `params.settings`, so `apply()` would verify nothing. Going through
 the dispatcher today would look like a checked run and not be one.
@@ -284,7 +294,14 @@ Using it again needs another card.
    **Nothing in `envelope/safety.json` caps excitation intensity** (it limits
    only laser power at the sample and objective clearance), so the low start
    is this card's instruction and not an enforced limit. Say that in the
-   plan. Adding a limit is the person's decision
+   plan. Adding a limit is the person's decision.
+   **If the frame stays dark with the Aura on, stop. Do not turn it up.**
+   Nobody knows which branch the Aura's light comes in on, and the Lapp
+   mirror you set at load decides which branch reaches the sample. A dark
+   frame at low intensity may be the light path, not the light, and
+   raising intensity to chase a signal is how full power reaches a
+   sample. A dark result here is a finding about the branch (card 018
+   §5). Record it and ask the person
 6. **Which physical camera sees the red light, settled by a frame, not by
    the label.** Read the camera's serial number and compare it with the store
    (`camera_bodies_are_told_apart_by_serial`), then confirm with a frame: the
