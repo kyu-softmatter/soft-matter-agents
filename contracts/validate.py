@@ -7214,6 +7214,106 @@ def check_83_written_trajectories_are_present(b: Bundle) -> list[Finding]:
                           f"pipeline, {outside} deleted outside it")]
 
 
+# The registry as it stood just before the first dated seat name was added
+# (8faa473's parent): 34 entries, none dated. Entries present there keep their
+# old form; any entry added after must be dated. seats.json is where an epoch
+# belongs -- `enforced_from` lives there for check 78 -- so `dated_form_from`
+# is read from it first, and this constant is the fallback until the registry
+# carries the key. A built fixture repository sets the key in its own copy.
+DATED_FORM_EPOCH = "77710041a0b8d9a84e4a9188124e7ea4ff554e98"
+DATED_SEAT = re.compile(r"^(?P<role>.+)-(?P<date>[0-9]{8})-(?P<n>[1-9][0-9]*)$")
+
+
+def check_84_seat_registry_is_sound(b: Bundle) -> list[Finding]:
+    """The seat registry is internally sound, in three ways and one report.
+
+    Each was measured to matter before it was asked for, in a scratch copy on
+    2026-09-23, and none of them moved any verdict when broken:
+
+    - EVERY committer_email IS UNIQUE AND EQUALS `seat` + `@seat.invalid`. A
+      duplicated email passed the gate and silently re-routed another seat's
+      commits to it, because check 41 identifies a seat by its email.
+    - EVERY MANAGER-NAMED ENTRY CARRIES contracts/seats.json IN `excludes`.
+      A manager entry without it passed check 41 on both seats.json and
+      plan.md -- a design seat that can write anything, including the file
+      that says what it may write.
+    - EVERY ENTRY FIRST REGISTERED AFTER THE DATED FORM'S EPOCH IS DATED:
+      `<role>-<YYYYMMDD>-<n>`, parsed from the right so a role may itself
+      contain hyphens, with a date that exists on the calendar. Entries present
+      at the epoch are grandfathered by reading the registry THERE, the way
+      check 78 reads history rather than guessing from today's names.
+
+    And it REPORTS, without failing, a design-owning entry other than `human`
+    that has neither `paths` nor `excludes`: such an entry can write anything
+    in its boundary if anyone commits under it. Today that is `design`, the
+    identity from before the seats were divided, vacated since.
+    """
+    import datetime
+    import subprocess
+
+    seats_doc = load_seats() or {}
+    seats = seats_doc.get("seats") or []
+    if not seats:
+        return [Finding(84, PENDING, "contracts/seats.json holds no seats")]
+    out: list[Finding] = []
+
+    counts: dict[str, int] = {}
+    for st in seats:
+        counts[str(st.get("committer_email"))] = counts.get(str(st.get("committer_email")), 0) + 1
+    for st in seats:
+        name, email = st.get("seat"), st.get("committer_email")
+        if email != f"{name}@seat.invalid":
+            out.append(Finding(84, FAIL, f"seat {name!r} commits as {email!r}, which is not {name}@seat.invalid, "
+                                         "so check 41 would attribute its commits under a name that is not its own",
+                               "contracts/seats.json"))
+        elif counts.get(str(email), 0) > 1:
+            out.append(Finding(84, FAIL, f"{email!r} is the committer email of {counts[str(email)]} seats, so "
+                                         "check 41 cannot tell their commits apart and hands one seat's work to "
+                                         "another", "contracts/seats.json"))
+        if str(name).startswith("manager") and "contracts/seats.json" not in (st.get("excludes") or []):
+            out.append(Finding(84, FAIL, f"manager entry {name!r} does not exclude contracts/seats.json, so it can "
+                                         "write the registry that says what it may write", "contracts/seats.json"))
+
+    epoch = str(seats_doc.get("dated_form_from") or DATED_FORM_EPOCH)
+    try:
+        at = json.loads(subprocess.run(["git", "-C", str(GIT_REPO), "show", f"{epoch}:contracts/seats.json"],
+                                       capture_output=True, text=True, check=True).stdout)
+        grandfathered = {x.get("seat") for x in at.get("seats") or []}
+    except (OSError, subprocess.CalledProcessError, ValueError):
+        grandfathered = None
+    if grandfathered is None:
+        out.append(Finding(84, PENDING, f"the registry at the dated form's epoch {epoch[:7]} cannot be read, so "
+                                        "which entries keep their old form is unknown and the form is not judged"))
+    else:
+        for st in seats:
+            name = str(st.get("seat"))
+            if name in grandfathered:
+                continue
+            m = DATED_SEAT.match(name)
+            ok = False
+            if m:
+                try:
+                    datetime.date(int(m["date"][:4]), int(m["date"][4:6]), int(m["date"][6:]))
+                    ok = True
+                except ValueError:
+                    pass
+            if not ok:
+                out.append(Finding(84, FAIL, f"seat {name!r} was registered after the dated form's epoch and is not "
+                                             "<role>-<YYYYMMDD>-<n> with a real calendar date", "contracts/seats.json"))
+
+    open_design = [str(st.get("seat")) for st in seats if "design" in (st.get("owns") or [])
+                   and not st.get("paths") and not st.get("excludes") and st.get("seat") != "human"]
+    if open_design:
+        out.append(Finding(84, PASS, f"{', '.join(open_design)} own design with neither paths nor excludes, so each "
+                                     "could write anything in that boundary if anyone committed under it -- reported, "
+                                     "not failed", "contracts/seats.json"))
+    if any(f.status == FAIL for f in out):
+        return out
+    n_dated = sum(1 for st in seats if grandfathered is not None and st.get("seat") not in grandfathered)
+    return out + [Finding(84, PASS, f"{len(seats)} seats: emails unique and self-named, every manager entry "
+                                    f"excludes the registry, {n_dated} registered since the dated form all dated")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -7228,7 +7328,7 @@ CHECKS = [
     check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood, check_62_computed_grade_derived, check_64_every_rejected_fixture_is_reached, check_55_section_7_names_are_allowed,
     check_78_history_paths_classify, check_79_gitignored_dirs_are_skipped,
     check_81_relative_imports_resolve, check_82_imports_are_declared,
-    check_83_written_trajectories_are_present,
+    check_83_written_trajectories_are_present, check_84_seat_registry_is_sound,
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision,

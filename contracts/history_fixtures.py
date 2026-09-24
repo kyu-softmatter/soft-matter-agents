@@ -658,6 +658,52 @@ def fixture_83_a_written_trajectory_deleted_by_hand(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def _registry_with(repo: Path, extra: dict, message: str) -> str:
+    """The real registry, its dated-form epoch set to this repository's base,
+    and ONE entry appended. Only the epoch is rewritten -- it names a commit and
+    a SHA from the real repository does not exist here (fixture 78's reason) --
+    and existing entries are never edited, for the reason `base` gives."""
+    start = base(repo)
+    doc = json.loads((repo / "contracts" / "seats.json").read_text())
+    doc["dated_form_from"] = start
+    doc["seats"].append(extra)
+    write(repo, "contracts/seats.json", doc)
+    commit(repo, message, "contracts/seats.json", seat="architecture")
+    return f"{start}..HEAD"
+
+
+def fixture_84_a_seat_registered_after_the_epoch_with_an_undated_name(repo: Path) -> str:
+    """A seat added after the dated form took effect, named the old way.
+
+    The person asked on 2026-09-23 for <role>-<YYYYMMDD>-<n>. Entries that
+    existed then keep their names; a new one that does not follow the form is
+    refused. The name here also carries a date that is not on the calendar,
+    so the parse has to reject both the shape and the thirteenth month."""
+    return _registry_with(repo, {"seat": "simulation-20261345-1", "committer_email":
+                                 "simulation-20261345-1@seat.invalid", "owns": ["simulation_agent"]},
+                          "a seat whose date does not exist")
+
+
+def fixture_84_two_seats_share_one_committer_email(repo: Path) -> str:
+    """Two seats, one committer email. Measured in a scratch copy before this
+    check was asked for: the gate passed it and check 41 then handed one seat's
+    commits to the other, because a seat is identified by its email."""
+    return _registry_with(repo, {"seat": "manager-simulation", "committer_email":
+                                 "manager-simulation@seat.invalid", "owns": ["design"],
+                                 "excludes": ["contracts/seats.json"]},
+                          "a second entry reusing an email already registered")
+
+
+def fixture_84_a_manager_that_can_write_the_registry(repo: Path) -> str:
+    """A manager entry without contracts/seats.json in `excludes`. Measured
+    before it was asked for: such an entry passed check 41 on seats.json AND
+    plan.md -- a design seat able to rewrite the file that bounds it."""
+    return _registry_with(repo, {"seat": "manager-sweep-20260923-1", "committer_email":
+                                 "manager-sweep-20260923-1@seat.invalid", "owns": ["design"],
+                                 "paths": ["contracts/"]},
+                          "a manager entry with no exclusion of the registry")
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -678,6 +724,9 @@ FIXTURES = [
     (77, "FAIL", "did not evaluate it", fixture_77_a_deletion_on_a_criterion_nobody_evaluated),
     (77, "FAIL", "that criterion NOT firing", fixture_77_a_deletion_on_a_stop_criterion_that_did_not_fire),
     (83, "PASS", "deleted outside the pipeline", fixture_83_a_written_trajectory_deleted_by_hand),
+    (84, "FAIL", "with a real calendar date", fixture_84_a_seat_registered_after_the_epoch_with_an_undated_name),
+    (84, "FAIL", "is the committer email of 2 seats", fixture_84_two_seats_share_one_committer_email),
+    (84, "FAIL", "can write the registry", fixture_84_a_manager_that_can_write_the_registry),
     (80, "PASS", "5 site(s) decide a device's role", fixture_80_five_forms_and_five_that_must_not_fire),
 ]
 
