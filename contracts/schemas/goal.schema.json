@@ -116,6 +116,41 @@
       },
       "description": "An ordered tie-break from the person, read by S3.0 ONLY when the cap is unresolved (4.5.1 branch c). It settles which of several capable configurations to spend the fan-out on. It never overrides a capability refusal: a preference naming a configuration the screen rejected, or one absent from the table, is recorded and refused rather than honoured, and screening stops at that entry instead of sliding to the next -- a card asking for a configuration the instrument cannot use is a card to fix, and quietly granting its second choice hides that. It is not evidence: it raises no grade, supports no number, is not an assumption with a falsifier, and S4 may not cite it."
     },
+    "declared_exclusions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "configuration": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "by": {
+            "type": "string",
+            "minLength": 1,
+            "description": "who excluded it. The person, in words, as they said it"
+          },
+          "on": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          "why": {
+            "type": "string",
+            "minLength": 10,
+            "description": "the reason in words, e.g. the person moves the light path by hand and has set it widefield"
+          }
+        },
+        "required": [
+          "configuration",
+          "by",
+          "on",
+          "why"
+        ],
+        "additionalProperties": false
+      },
+      "description": "Configurations the person has taken out of scope for THIS goal (decided 2026-09-24, plan.md at cbfa1ae). Not a preference and not a finding. A preference ranks options already in scope and is read only as a tie-break; an exclusion removes an option from scope, and that is the person's to set, the way a target is. S3.0 records an excluded configuration as EXCLUDED BY THE PERSON, never as screened out on grounds, and issues no caller_id for it, so no axis is spent on a path that will not run. IT SAYS NOTHING ABOUT MERITS: an excluded configuration is not one the instrument cannot use, raises or lowers no grade, and S4 may not cite it. A later goal inherits none of it. The first case: mic-20260924-001, where the person declared the light path widefield by hand and the screen, reading capabilities only, kept confocal in and issued seven caller_ids for it."
+    },
     "sample_contrast_provenance": {
       "type": "object",
       "description": "Where sample_contrast came from. It is a claim about the world -- these beads carry a fluorophore -- so it is graded like any other claim (P2). An operator reading an instrument and an operator recalling a preparation are not the same source and do not get the same grade: a statement from memory is E5. Required in practice whenever sample_contrast is present; left optional for one step only, because making it required today would fail a goal card already committed in another seat's path. Tighten once that card carries it.",
