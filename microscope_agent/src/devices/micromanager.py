@@ -69,6 +69,15 @@ WRAPPED = ("widefield_source_a", "camera_red", "stand_ti2e")
 _LOCK = threading.Lock()
 _ABORTED = False
 
+#: A STRONG reference to the loaded core, held for the life of the process.
+#: pymmcore-plus's CMMCorePlus.instance() keeps its singleton only WEAKLY: the
+#: first real run (run-20260924-001) loaded all 20 devices inside
+#: load_configuration, the function returned, its local `core` was the last
+#: strong reference, and destroying a core unloads every device. Every later
+#: call got a fresh empty core -- "No device with label" -- before any light or
+#: frame. Nothing here may depend on someone else holding the core alive.
+_CORE = None
+
 # --------------------------------------------------------------------------- #
 # what software may command (card 033 section 1)
 # --------------------------------------------------------------------------- #
@@ -294,8 +303,11 @@ def _core():
             "pymmcore-plus is not installed, so this control path does not exist on "
             "this machine. mock.py is a first-class backend and is what runs here (4.6.5)"
         ) from exc
-    core = CMMCorePlus.instance()
-    if not core.getLoadedDevices():                             # pragma: no cover
+    core = _CORE if _CORE is not None else CMMCorePlus.instance()
+    # `Core` is always listed, so an empty core returns ('Core',) and passed a
+    # bare truth test -- which is how run-20260924-001's calls reached a fresh
+    # core and failed as missing devices instead of as no configuration.
+    if not [d for d in core.getLoadedDevices() if d != "Core"]:  # pragma: no cover
         raise MicroManagerUnavailable(
             "no Micro-Manager configuration is loaded; a person loads one, and until then "
             "there is nothing to preflight against"
@@ -479,8 +491,10 @@ def load_configuration(path: str, mm_dir: str | None = None) -> dict:
     def digest() -> str:
         return hashlib.sha256(_Path(path).read_bytes()).hexdigest()
 
+    global _CORE
     before = digest()
     core = CMMCorePlus.instance()
+    _CORE = core                                                # held; see _CORE
     mm_dir = mm_dir or find_micromanager()
     if not mm_dir:
         raise MicroManagerUnavailable("no Micro-Manager installation found for the adapters")
