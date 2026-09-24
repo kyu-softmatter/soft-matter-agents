@@ -1,0 +1,64 @@
+{
+  "artifact": "trajectory_meta",
+  "schema_version": 1,
+  "run_id": "run-20260923-201-v4-k2-o2",
+  "trajectory": {
+    "written": true,
+    "format": "txt",
+    "file": "trajectory.txt",
+    "sha256": "6fd2afc425eef037161923f3e737045bcb882c054badb6f4ab0678b3e4049695",
+    "coords_sha256": "f462742d2145c206b4649464e12a559dc3d603d169e2c9a4fed5ec5fe2d5e86a",
+    "dtype": "float64",
+    "sig_figs": 17,
+    "time_base": "step_index",
+    "save_interval_steps": 25,
+    "frames": 6101,
+    "particles": 1,
+    "engine": "hoomd",
+    "engine_version": "7.2.0",
+    "seed": 13,
+    "plan_hash": "sha256:34bceb66e00ef05c6ef5dc92d7846d88b6642f141a8445b8db9606cab5d4bf8e",
+    "box": {
+      "length_m": 0.00019999999999999998,
+      "dimensions": 3,
+      "periodic": true
+    },
+    "units": "SI: metres and radians, converted from the engine's reduced units at the backend boundary",
+    "columns": [
+      {
+        "name": "step",
+        "unit": "1",
+        "meaning": "integer integration-step index of the frame; time is step * integration_timestep, never an accumulated float"
+      },
+      {
+        "name": "particle",
+        "unit": "1",
+        "meaning": "particle index, fixed across frames"
+      },
+      {
+        "name": "x",
+        "unit": "m",
+        "meaning": "UNWRAPPED x position: a particle that crossed the periodic boundary keeps going"
+      },
+      {
+        "name": "y",
+        "unit": "m",
+        "meaning": "UNWRAPPED y position: a particle that crossed the periodic boundary keeps going"
+      },
+      {
+        "name": "z",
+        "unit": "m",
+        "meaning": "UNWRAPPED z position: a particle that crossed the periodic boundary keeps going"
+      }
+    ],
+    "bytes": 478245
+  },
+  "frames_saved": 6101,
+  "simulated_time": 30.5,
+  "steps_taken": 152500,
+  "max_single_step_displacement": 1.0912521237324202e-08,
+  "stopped_by": null,
+  "stop_outcome": "complete",
+  "stopped_early": false,
+  "completed_planned_duration": true
+}

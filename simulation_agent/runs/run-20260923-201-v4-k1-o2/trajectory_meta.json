@@ -1,0 +1,64 @@
+{
+  "artifact": "trajectory_meta",
+  "schema_version": 1,
+  "run_id": "run-20260923-201-v4-k1-o2",
+  "trajectory": {
+    "written": true,
+    "format": "txt",
+    "file": "trajectory.txt",
+    "sha256": "9e4b834ef7c75227ce33ca56969a68c830a7936241c72293b57a222324997590",
+    "coords_sha256": "96262e68001770e78adb279ad577c99320b0a19646c5f69e155731df74032bfb",
+    "dtype": "float64",
+    "sig_figs": 17,
+    "time_base": "step_index",
+    "save_interval_steps": 25,
+    "frames": 4101,
+    "particles": 1,
+    "engine": "hoomd",
+    "engine_version": "7.2.0",
+    "seed": 11,
+    "plan_hash": "sha256:34bceb66e00ef05c6ef5dc92d7846d88b6642f141a8445b8db9606cab5d4bf8e",
+    "box": {
+      "length_m": 0.00019999999999999998,
+      "dimensions": 3,
+      "periodic": true
+    },
+    "units": "SI: metres and radians, converted from the engine's reduced units at the backend boundary",
+    "columns": [
+      {
+        "name": "step",
+        "unit": "1",
+        "meaning": "integer integration-step index of the frame; time is step * integration_timestep, never an accumulated float"
+      },
+      {
+        "name": "particle",
+        "unit": "1",
+        "meaning": "particle index, fixed across frames"
+      },
+      {
+        "name": "x",
+        "unit": "m",
+        "meaning": "UNWRAPPED x position: a particle that crossed the periodic boundary keeps going"
+      },
+      {
+        "name": "y",
+        "unit": "m",
+        "meaning": "UNWRAPPED y position: a particle that crossed the periodic boundary keeps going"
+      },
+      {
+        "name": "z",
+        "unit": "m",
+        "meaning": "UNWRAPPED z position: a particle that crossed the periodic boundary keeps going"
+      }
+    ],
+    "bytes": 320275
+  },
+  "frames_saved": 4101,
+  "simulated_time": 205.0,
+  "steps_taken": 102500,
+  "max_single_step_displacement": 3.42657594836642e-08,
+  "stopped_by": null,
+  "stop_outcome": "complete",
+  "stopped_early": false,
+  "completed_planned_duration": true
+}

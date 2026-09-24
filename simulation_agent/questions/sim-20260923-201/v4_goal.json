@@ -1,0 +1,286 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "round": 0,
+  "revision": 4,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T01:00:00Z",
+  "status": "VALIDATED",
+  "requested_by": "human",
+  "intent": "confirm",
+  "id": "goal-sim-20260923-201-r4",
+  "qid": "sim-20260923-201",
+  "thread": "solo-sim-20260923-201",
+  "caller_id": "sim-20260923-201:v4:s2",
+  "purpose": "verify",
+  "observable": {
+    "name": "trapped_particle_drag_offset"
+  },
+  "targets": [
+    {
+      "metric": "trap_stiffness",
+      "kind": "uncertainty",
+      "value": 0.01,
+      "unit": "1",
+      "note": "the person's, 2026-09-23: recover the known stiffness to one per cent. RELATIVE, and on the RECOVERED-OVER-INPUT RATIO rather than on a stiffness in pN/um -- that is what makes the target well posed against an E3 viscosity, since the same drag coefficient imposes the offset and inverts it and eta cancels out of the ratio. A target is a decision and carries no grade (5.3.1)"
+    }
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "degraded": [],
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the SI anchor: the particle in the bottle, measured directly. Sets the drag through Stokes and the soft end of the stiffness sweep through the thermal width"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "a parameter of the noise amplitude and realised exactly by the model, not a thermostat setpoint. The room's reading; nothing actuates the sample (kb:sample_temperature_not_actuated)"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "pure water, validity 288 to 298 K and the temperature above is inside it. THE ENTRY SAYS `of order` one mPa s, so this is one significant figure and the precision below says so"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "the free diffusivity of the anchor sphere. Here it is not the observable but the noise scale: it sets how long the offset must be averaged"
+    },
+    {
+      "name": "diffusive_time",
+      "value": 300,
+      "unit": "s",
+      "source": "computed:tau_d",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "bead_diameter**2/diffusivity",
+      "inputs": [
+        "bead_diameter",
+        "diffusivity"
+      ],
+      "note": "kb:tau_d's relation, carried for CONTRAST and not as a bound. Under a trap it is no longer the shortest characteristic time, and the two relaxation times below are two to five decades under it -- which is exactly why bd_overdamped's A1 cannot be reused here"
+    },
+    {
+      "precision": "order_of_magnitude",
+      "name": "trap_stiffness_min",
+      "value": 0.1,
+      "unit": "pN/um",
+      "source": "assumed:a_stiffness_range_is_the_persons",
+      "grade": "E5",
+      "note": "the soft end of the range the person set on 2026-09-23. A decision, not an estimate; assumed: is the nearest source kind because a decision can be named by reference only when it is a target or an envelope limit"
+    },
+    {
+      "precision": "order_of_magnitude",
+      "name": "trap_stiffness_max",
+      "value": 10,
+      "unit": "pN/um",
+      "source": "assumed:a_stiffness_range_is_the_persons",
+      "grade": "E5",
+      "note": "the stiff end of the person's range: two decades, so three stiffness levels a decade apart"
+    },
+    {
+      "precision": "order_of_magnitude",
+      "name": "sigma_over_diameter_soft_corner",
+      "value": 0.04,
+      "unit": "1",
+      "source": "computed:thermal_width_over_diameter",
+      "grade": "E5",
+      "formula": "(k_B*temperature/trap_stiffness_min)**0.5/bead_diameter",
+      "inputs": [
+        "temperature",
+        "trap_stiffness_min",
+        "bead_diameter"
+      ],
+      "note": "the thermal width at the soft end as a fraction of the diameter. Revision 3 ASSUMED this and derived the soft stiffness from it; now the stiffness is the person's and this is derived from it"
+    },
+    {
+      "precision": "order_of_magnitude",
+      "name": "trap_relaxation_time_max",
+      "value": 0.5,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_min",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_min"
+      ],
+      "note": "gamma/k_t at the soft end: the longest relaxation time, which sets the record length"
+    },
+    {
+      "precision": "order_of_magnitude",
+      "name": "trap_relaxation_time_min",
+      "value": 0.005,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_max",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_max"
+      ],
+      "note": "gamma/k_t at the stiff end: the shortest characteristic time, which sets the timestep"
+    },
+    {
+      "name": "offset_over_sigma_min",
+      "value": 1,
+      "unit": "1",
+      "source": "assumed:a_speed_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the dimensionless sweep variable is the offset in thermal widths, gamma*v/sqrt(k_B*temperature*trap_stiffness), because that and not the speed is what sets the per-frame signal to noise. At 1 the offset is buried in the fluctuation and only averaging recovers it"
+    },
+    {
+      "name": "offset_over_sigma_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_speed_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "two decades up, where a single frame already shows the offset. The SPEED this becomes depends on the stiffness, so the speed is an A7 interval per corner and not one number here"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_stiffness_range_is_the_persons",
+      "statement": "The stiffness range, 0.1 to 10 pN/um, was set by the person on 2026-09-23 in answer to the question revision 3 left open. It replaces revision 3's derived corners (0.02 and 20 pN/um, from a thermal width of a tenth of a diameter). It is a decision and not an estimate.",
+      "numbers": [
+        "trap_stiffness_min",
+        "trap_stiffness_max"
+      ],
+      "falsifier": "the person changing the range, which is a revision and not a correction",
+      "gap_ref": "trap_stiffness_absent"
+    },
+    {
+      "rationale_id": "a_speed_decades",
+      "statement": "The person has not given a speed range. Sweeping the speed directly would confound two things, because the same speed is a large offset in a soft trap and an invisible one in a stiff one. The dimensionless offset in thermal widths is what the statistics depend on, so the sweep is stated in it and A7 turns it into a speed interval at each stiffness. One to a hundred spans buried-in-noise to visible-per-frame.",
+      "numbers": [
+        "offset_over_sigma_min",
+        "offset_over_sigma_max"
+      ],
+      "falsifier": "a person's speed range replaces both ends; and on the bench the upper end is cut by trap escape, which this purely harmonic model cannot see and A7 records as a limit of the model rather than of the protocol",
+      "gap_ref": "flow_speed_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "trap_stiffness_absent",
+      "observable": "trap_stiffness",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='trap_stiffness', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [
+        {
+          "entry_id": "trapping_laser_identity",
+          "overlap": "no_overlap"
+        },
+        {
+          "entry_id": "trap_laser_power_has_no_software_path",
+          "overlap": "no_overlap"
+        }
+      ],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v4:s2",
+      "asked_at": "2026-09-24T01:00:00Z"
+    },
+    {
+      "gap_id": "flow_speed_absent",
+      "observable": "flow_speed",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='flow_speed', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [
+        {
+          "entry_id": "stand_ti2e_lock_groups",
+          "overlap": "no_overlap"
+        }
+      ],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v4:s2",
+      "asked_at": "2026-09-24T01:00:00Z"
+    },
+    {
+      "gap_id": "trapped_particle_drag_offset_absent",
+      "observable": "trapped_particle_drag_offset",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='trapped_particle_drag_offset', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [
+        "trapped_position_distribution"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v4:s2",
+      "asked_at": "2026-09-24T01:00:00Z"
+    }
+  ],
+  "constraint_notes": [
+    "revision 4 cites revision 3 as a record and does not take it as input (4.5.5). WHAT MOVED: the person set the stiffness range to 0.1-10 pN/um, two decades, where revision 3 had assumed 0.02-20. Purpose verify, target one per cent relative uncertainty on the recovered stiffness, and the speed sweep as the offset in thermal widths from 1 to 100 are revision 3's, unchanged.",
+    "the person's question, verbatim in intent: a single Brownian particle confined by a harmonic optical trap U = (1/2)*k_t*dr^2, with the surrounding fluid moving at constant velocity relative to the trap; how the steady-state displacement depends on the imposed speed for different trap stiffnesses, the relationship between speed, viscous drag and displacement, how it changes over a range of stiffnesses, and whether the known stiffness can be recovered from the simulated drag-calibration measurement",
+    "revision 3 ran one smoke cell and not the grid, because the plan checker could not read a window that varies per sweep point and the per-step cost was a bracket three decades wide. The checker now reads sweep points, and the smoke runs measured about 2 us a step at one particle on both engines, so this revision plans the grid.",
+    "the recovered stiffness is NOT evidence about any trap: gamma and k_t both go in and the estimator inverts the equation the integrator solved. What the grid tests is the error model -- that the fractional error of the recovered stiffness is sqrt(2*tau/T)/(offset/sigma) with the stiffness cancelled -- across two decades of stiffness, which one cell could not.",
+    "still open for the person: the speed range the stage can command, and whether a maximum trap force belongs in the model (a different configuration, not a setting)"
+  ]
+}

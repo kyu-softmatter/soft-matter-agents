@@ -42,7 +42,7 @@ from . import cards, synthesis
 from .config_bd_overdamped_trapped_uniform_flow import _one
 
 CONFIG = "bd_overdamped_trapped_uniform_flow"
-K_LEVELS = ("k1", "k2", "k3", "k4")        # 0.02, 0.2, 2, 20 pN/um
+K_LEVELS = ("k1", "k2", "k3", "k4")        # revision 3's four levels, 0.02 to 20 pN/um; see stiffness_levels()
 O_LEVELS = ("o1", "o2", "o3")              # offset in thermal widths: 1, 10, 100
 SMOKE = ("k3", "o2")                       # 2 pN/um, ten thermal widths: interior on both axes
 
@@ -58,6 +58,23 @@ SMOKE = ("k3", "o2")                       # 2 pN/um, ten thermal widths: interi
 # synthesis_abp's "a decade under A1's ceiling" (/10); an assumed multiple was
 # tried first and check 12 refused it, correctly (4.5.4).
 MARGIN = 1.5
+
+# The timestep's margin under A1's binding bound. Revision 3 did not need one by
+# luck: its relaxation times rounded DOWN to one figure (2.356 -> 2), so a step
+# derived from the rounded value sat inside the bound at the true value. The
+# person's range makes them round UP (0.471 -> 0.5, +6 per cent), and a step
+# derived from the rounded tau would then exceed the bound at the true tau.
+# 0.8 covers a round-up of 25 per cent, and build() CHECKS the true bound for
+# every cell rather than trusting the factor.
+DT_MARGIN = 0.8
+
+
+def stiffness_levels(goal: dict) -> list[str]:
+    """One level per decade of the goal's stiffness range, plus its end."""
+    v = {n["name"]: float(n["value"]) for n in goal["numbers"]}
+    import math as _m
+    n = int(round(_m.log10(v["trap_stiffness_max"] / v["trap_stiffness_min"])))
+    return [f"k{i + 1}" for i in range(n + 1)]
 
 
 def _n(numbers, g, name, value, unit, source, formula, inputs, note, precision="order_of_magnitude"):
@@ -101,14 +118,18 @@ def build(qid: str, created_at: str, revision: int) -> tuple[dict, dict | None]:
     add = lambda *a, **k: _n(numbers, g, *a, **k)
 
     # -- the grid's levels, from the goal's corners ------------------------
-    add("trap_stiffness_k1", V("trap_stiffness_min"), "pN/um", "computed:goal_soft_corner",
-        "trap_stiffness_min", ["trap_stiffness_min"], "the soft corner")
-    add("trap_stiffness_k2", _one(V("trap_stiffness_min") * 10), "pN/um", "computed:decade_above",
-        "trap_stiffness_min*10", ["trap_stiffness_min"], "a decade up")
-    add("trap_stiffness_k3", _one(V("trap_stiffness_min") * 100), "pN/um", "computed:two_decades_above",
-        "trap_stiffness_min*100", ["trap_stiffness_min"], "two decades up; the smoke run's level")
-    add("trap_stiffness_k4", V("trap_stiffness_max"), "pN/um", "computed:goal_stiff_corner",
-        "trap_stiffness_max", ["trap_stiffness_max"], "the stiff corner")
+    levels = stiffness_levels(goal)
+    for idx, k in enumerate(levels):
+        if idx == 0:
+            add(f"trap_stiffness_{k}", V("trap_stiffness_min"), "pN/um", "computed:goal_soft_corner",
+                "trap_stiffness_min", ["trap_stiffness_min"], "the soft end of the range")
+        elif idx == len(levels) - 1:
+            add(f"trap_stiffness_{k}", V("trap_stiffness_max"), "pN/um", "computed:goal_stiff_corner",
+                "trap_stiffness_max", ["trap_stiffness_max"], "the stiff end of the range")
+        else:
+            add(f"trap_stiffness_{k}", _one(V("trap_stiffness_min") * 10 ** idx), "pN/um",
+                "computed:decades_above_soft_end", f"trap_stiffness_min*10**{idx}", ["trap_stiffness_min"],
+                f"{idx} decade(s) above the soft end")
     add("offset_over_sigma_o1", V("offset_over_sigma_min"), "1", "computed:goal_slow_corner",
         "offset_over_sigma_min", ["offset_over_sigma_min"], "offset one thermal width: buried in the fluctuation")
     add("offset_over_sigma_o2", _one((V("offset_over_sigma_min") * V("offset_over_sigma_max")) ** 0.5), "1",
@@ -118,17 +139,17 @@ def build(qid: str, created_at: str, revision: int) -> tuple[dict, dict | None]:
         "offset_over_sigma_max", ["offset_over_sigma_max"], "visible in a single frame")
 
     # -- per offset row: which A1 bound binds, and A2's record multiple ----
-    add("dt_fraction_o1", _one(0.5 * V("noise_step_fraction") ** 2), "1", "computed:a1_noise_bound",
-        "0.5*noise_step_fraction**2", ["noise_step_fraction"],
+    add("dt_fraction_o1", _one(DT_MARGIN * 0.5 * V("noise_step_fraction") ** 2), "1", "computed:a1_noise_bound",
+        f"{DT_MARGIN}*0.5*noise_step_fraction**2", ["noise_step_fraction"],
         "timestep over tau at the slow row. A1's NOISE bound binds here, not the drift bound: the "
         "drift bound is 0.1/(offset/sigma) = 0.1 at this row and the noise bound 0.005 is twenty "
         "times tighter. Revision 3's goal used the drift bound at this row and understated the "
         "row's cost by that factor")
-    add("dt_fraction_o2", _one(0.5 * V("noise_step_fraction") ** 2), "1", "computed:a1_noise_bound",
-        "0.5*noise_step_fraction**2", ["noise_step_fraction"],
+    add("dt_fraction_o2", _one(DT_MARGIN * 0.5 * V("noise_step_fraction") ** 2), "1", "computed:a1_noise_bound",
+        f"{DT_MARGIN}*0.5*noise_step_fraction**2", ["noise_step_fraction"],
         "the noise bound again: drift gives 0.01 at this row, twice the noise bound's 0.005")
-    add("dt_fraction_o3", _one(V("drift_step_fraction") / V("offset_over_sigma_o3")), "1",
-        "computed:a1_drift_bound", "drift_step_fraction/offset_over_sigma_o3",
+    add("dt_fraction_o3", _one(DT_MARGIN * V("drift_step_fraction") / V("offset_over_sigma_o3")), "1",
+        "computed:a1_drift_bound", f"{DT_MARGIN}*drift_step_fraction/offset_over_sigma_o3",
         ["drift_step_fraction", "offset_over_sigma_o3"],
         "the DRIFT bound binds at the fast row, 0.001 against the noise bound's 0.005")
     add("record_multiple_o1", _one(2.0 / (V("offset_over_sigma_o1") * V("target_relative_error")) ** 2), "1",
@@ -143,7 +164,7 @@ def build(qid: str, created_at: str, revision: int) -> tuple[dict, dict | None]:
         "A2's floor binds: at the fast row the statistics are met in two relaxation times")
 
     # -- per stiffness level -----------------------------------------------
-    for k in K_LEVELS:
+    for k in levels:
         add(f"relaxation_time_{k}", _one(3 * 3.141592653589793 * V("viscosity") * V("bead_diameter") * 1e-6
                                          / (V(f"trap_stiffness_{k}") * 1e-6)), "s",
             "computed:stokes_drag_over_stiffness", f"3*pi*viscosity*bead_diameter/trap_stiffness_{k}",
@@ -164,23 +185,46 @@ def build(qid: str, created_at: str, revision: int) -> tuple[dict, dict | None]:
         "one particle runs at. The smoke run measures the rate at N=1")
 
     cells, skipped = [], {}
-    for k in K_LEVELS:
+    for k in levels:
         for o in O_LEVELS:
             c = f"{k}_{o}"
             add(f"integration_timestep_{c}", _one(V(f"dt_fraction_{o}") * V(f"relaxation_time_{k}")), "s",
                 "computed:a1_bound_at_point", f"dt_fraction_{o}*relaxation_time_{k}",
                 [f"dt_fraction_{o}", f"relaxation_time_{k}"], "AT the binding A1 bound for this cell")
-            add(f"record_length_{c}", _one(MARGIN * V(f"record_multiple_{o}") * V(f"relaxation_time_{k}")), "s",
-                "computed:margin_times_record_multiple_times_tau", f"{MARGIN}*record_multiple_{o}*relaxation_time_{k}",
-                [f"record_multiple_{o}", f"relaxation_time_{k}"],
-                "the averaging window after the startup, which is the observable's registered window "
-                "parameter: A2's record multiple with S4's 1.5x margin. The backend adds the startup")
             v_si = (V(f"offset_over_sigma_{o}") * (1.380649e-23 * V("temperature") * V(f"trap_stiffness_{k}") * 1e-6) ** 0.5
                     / (3 * 3.141592653589793 * V("viscosity") * V("bead_diameter") * 1e-6))
             add(f"flow_speed_{c}", _one(v_si * 1e6), "um/s", "computed:offset_to_speed",
                 f"offset_over_sigma_{o}*(k_B*temperature*trap_stiffness_{k})**0.5/(3*pi*viscosity*bead_diameter)",
                 [f"offset_over_sigma_{o}", "temperature", f"trap_stiffness_{k}", "viscosity", "bead_diameter"],
                 "the speed that puts the steady offset at this row's number of thermal widths, at this stiffness")
+            # The offset the ROUNDED speed actually realises. One figure of speed
+            # moved it by as much as 26 per cent (1.35 um/s became 1), and a
+            # record sized for the label would then miss the target at that
+            # cell. So where the statistics bind, the record is sized for this.
+            add(f"offset_over_sigma_realised_{c}",
+                _one(V(f"flow_speed_{c}") * 1e-6 * 3 * 3.141592653589793 * V("viscosity") * V("bead_diameter") * 1e-6
+                     / (V(f"trap_stiffness_{k}") * 1e-6
+                        * (1.380649e-23 * V("temperature") / (V(f"trap_stiffness_{k}") * 1e-6)) ** 0.5)), "1",
+                "computed:speed_to_offset",
+                f"flow_speed_{c}*3*pi*viscosity*bead_diameter/(trap_stiffness_{k}*(k_B*temperature/trap_stiffness_{k})**0.5)",
+                [f"flow_speed_{c}", "viscosity", "bead_diameter", f"trap_stiffness_{k}", "temperature"],
+                "the steady offset in thermal widths that the dispatched speed produces")
+            statistics_bind = 2.0 / (V(f"offset_over_sigma_{o}") * V("target_relative_error")) ** 2 > V("relaxation_times_per_record")
+            if statistics_bind:
+                add(f"record_length_{c}",
+                    _one(MARGIN * 2 * V(f"relaxation_time_{k}")
+                         / (V(f"offset_over_sigma_realised_{c}") * V("target_relative_error")) ** 2), "s",
+                    "computed:record_for_target_at_realised_offset",
+                    f"{MARGIN}*2*relaxation_time_{k}/(offset_over_sigma_realised_{c}*target_relative_error)**2",
+                    [f"relaxation_time_{k}", f"offset_over_sigma_realised_{c}", "target_relative_error"],
+                    "the averaging window after the startup, sized for the target at the offset this cell REALLY "
+                    "has, with S4's 1.5x margin. The backend adds the startup")
+            else:
+                add(f"record_length_{c}", _one(MARGIN * V(f"record_multiple_{o}") * V(f"relaxation_time_{k}")), "s",
+                    "computed:margin_times_record_multiple_times_tau", f"{MARGIN}*record_multiple_{o}*relaxation_time_{k}",
+                    [f"record_multiple_{o}", f"relaxation_time_{k}"],
+                    "the averaging window after the startup: A2's floor of relaxation times binds at this row, with "
+                    "S4's 1.5x margin. The backend adds the startup")
             add(f"particle_steps_{c}", _one((V(f"startup_discard_{k}") + V(f"record_length_{c}"))
                                              / V(f"integration_timestep_{c}")), "1",
                 "computed:duration_over_step", f"(startup_discard_{k}+record_length_{c})/integration_timestep_{c}",
@@ -197,6 +241,16 @@ def build(qid: str, created_at: str, revision: int) -> tuple[dict, dict | None]:
             if over:
                 skipped[c] = [("particle_steps", f"particle_steps_{c}", "steps_max_per_point")]
 
+    # The true bound, per cell, with the UNROUNDED relaxation time.
+    import math as _m
+    gamma_si = 3 * _m.pi * V("viscosity") * V("bead_diameter") * 1e-6
+    for k in levels:
+        tau_true = gamma_si / (V(f"trap_stiffness_{k}") * 1e-6)
+        for o in O_LEVELS:
+            bound = min(0.5 * V("noise_step_fraction") ** 2, V("drift_step_fraction") / V(f"offset_over_sigma_{o}"))
+            if V(f"integration_timestep_{k}_{o}") > bound * tau_true * (1 + 1e-9):
+                raise SystemExit(f"cell {k}_{o}: step {V(f'integration_timestep_{k}_{o}')} s exceeds A1's bound "
+                                 f"{bound * tau_true:.3g} s at the true relaxation time; the margin is too thin")
     kept = [c for c in cells if c not in skipped]
     if not kept:
         raise SystemExit("every cell exceeds A5's budget; the sweep cannot be run (P5)")
@@ -209,27 +263,27 @@ def build(qid: str, created_at: str, revision: int) -> tuple[dict, dict | None]:
     card = cards.head(
         "synthesis", f"synthesis-{qid}" + ("" if revision == 1 else f"-r{revision}"), qid, created_at,
         revision=revision, configs_screened=[CONFIG], per_config=per_config, chosen_config=CONFIG,
-        operating_point=[{"parameter": p, "number": n} for p, n in (
+        operating_point=([{"parameter": p, "number": n} for p, n in (
             ("temperature", "temperature"), ("viscosity", "viscosity"), ("bead_diameter", "bead_diameter"),
             ("trap_stiffness", f"trap_stiffness_{SMOKE[0]}"), ("offset_over_sigma", f"offset_over_sigma_{SMOKE[1]}"),
             ("flow_speed", f"flow_speed_{SMOKE[0]}_{SMOKE[1]}"),
             ("integration_timestep", f"integration_timestep_{SMOKE[0]}_{SMOKE[1]}"),
             ("record_length", f"record_length_{SMOKE[0]}_{SMOKE[1]}"),
-            ("save_interval", f"save_interval_{SMOKE[0]}"), ("startup_discard", f"startup_discard_{SMOKE[0]}"))],
+            ("save_interval", f"save_interval_{SMOKE[0]}"), ("startup_discard", f"startup_discard_{SMOKE[0]}"))]
+            if revision == 3 else
+            [{"parameter": p, "number": p} for p in ("temperature", "viscosity", "bead_diameter")]),
         priority_used=goal["priority"], priority_source="goal_card", rejected=rejected,
         tie_break=(
-            f"one configuration survived S3.0, so there was nothing to break. The grid is {len(cells)} cells, "
-            f"{len(kept)} fit A5's step budget and {len(skipped)} do not ({', '.join(sorted(skipped))}). Every "
+            f"one configuration survived screening, so there was nothing to break. The grid is {len(cells)} cells, "
+            f"{len(kept)} fit the step budget and {len(skipped)} do not ({', '.join(sorted(skipped)) or 'none'}). Every "
             "cell's step, save interval, startup and record are multiples of that cell's tau because the axis "
-            "cards marked them varies_with trap_stiffness, and the step count is therefore THE SAME AT EVERY "
-            "STIFFNESS: 6e4 at the middle row, 2e5 at the fast row, 6e6 at the slow row. The sweep is flat in "
-            "stiffness and steep in offset, and the slow row is what the conservative cost refuses. THIS "
-            f"REVISION'S OPERATING POINT IS ONE KEPT CELL, {SMOKE[0]}_{SMOKE[1]}, and not the eight: the per-step "
-            "cost the budget rests on is a bracket three decades wide, measured at 1000 particles for a "
-            "configuration that runs one, and planning eight cells on it would plan most of them on a number "
-            "known to be off. The smoke cell measures it, and the sweep is the next revision's, against the "
-            "measured rate -- which is also what recovers the slow row. S4 made no lookup, so the librarian is "
-            "degraded here by construction and the gaps are the goal's"),
+            "cards marked them varies_with trap_stiffness, so the step count is the same at every stiffness: "
+            + ", ".join(f"{V(f'particle_steps_{levels[0]}_{o}'):g} steps at {o}" for o in O_LEVELS) + ". "
+            + ("THIS REVISION'S OPERATING POINT IS ONE KEPT CELL, the smoke cell, because the per-step cost was a "
+               "bracket three decades wide; the sweep is the next revision's." if revision == 3 else
+               "THIS REVISION'S OPERATING POINT IS THE SWEEP: every kept cell is run, and the conditions shared "
+               "by all of them are listed here. S4 made no lookup, so the librarian is degraded here by "
+               "construction and the gaps are the goal's")),
     )
     card.update(cards.tail(numbers, assumptions=assumptions, kb_refs=synthesis.kb_refs_for(qid, numbers),
                            kb_gaps=synthesis.kb_gaps_for(qid), degraded=["librarian_agent"]))

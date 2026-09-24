@@ -99,6 +99,14 @@ def build(run_id: str) -> dict:
                          "fall back to an error bar that was not read off the trace (result_card, task 006)")
 
     cond = {c["parameter"]: c["number"] for c in plan["conditions"]}
+    # A grid plan holds the conditions every cell shares at the top and the
+    # rest in the cell's own point; the run records which cell it was.
+    cell = run["config"].get("compare_arm")
+    if plan.get("sweep"):
+        if cell is None:
+            raise Unwritable(f"{run_id} ran a grid plan without naming its cell")
+        point = next(p for p in plan["sweep"]["points"] if p["point"] == cell)
+        cond.update({c["parameter"]: c["number"] for c in point["conditions"]})
     numbers: list[dict] = []
 
     def carry(src):

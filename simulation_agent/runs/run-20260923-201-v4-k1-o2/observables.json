@@ -1,0 +1,77 @@
+{
+  "run_id": "run-20260923-201-v4-k1-o2",
+  "observable": "trapped_particle_drag_offset",
+  "window_parameter": "record_length",
+  "window_si": 200.0,
+  "drag_offset": {
+    "value_si": 1.8649993265438202e-06,
+    "unit_si": "m",
+    "value_um": 1.86499932654382,
+    "standard_error_block_si": 1.1554333146854899e-08,
+    "standard_error_ou_predicted_si": 1.3806894850327818e-08,
+    "block_count": 42,
+    "block_length_s": 4.7,
+    "record_length_s": 200.0,
+    "frames_used": 4001,
+    "predicted_si": 1.8849555921538756e-06,
+    "relative_deviation_from_predicted": -0.010587127724983745,
+    "deviation_in_block_standard_errors": -1.7271672329690064,
+    "note": "the mean of x over the record after startup_discard, relative to the trap centre the backend placed at the origin. `predicted_si` is gamma*v/k_t from the declared inputs, and it is exact for the Euler-Maruyama update at any stable timestep -- so any deviation here is statistics, not integration error. Two error bars: the block estimate is read off this trace; the OU one is sigma*sqrt(2*tau/T) from the declared model, and the question's central claim is that they agree."
+  },
+  "recovered_stiffness": {
+    "declared_si": 1e-07,
+    "unit_si": "N/m",
+    "from_drag_si": 1.0107004143787215e-07,
+    "from_drag_ratio": 1.0107004143787215,
+    "from_drag_relative_standard_error": 0.006195355130914262,
+    "from_drag_relative_standard_error_ou_predicted": 0.007403163450956565,
+    "from_equipartition_si": 1.0242908622887271e-07,
+    "from_equipartition_ratio": 1.0242908622887272,
+    "from_equipartition_relative_standard_error_ou_predicted": 0.06864684246478267,
+    "euler_maruyama_predicted_equipartition_bias": -0.002122065907891938,
+    "offset_in_thermal_widths": 9.272636342496638,
+    "drag_route_advantage_predicted": 9.272636342496638,
+    "note": "the drag route is gamma*v/<x>; the equipartition route is k_B*T/var(x). BOTH CARRY THE SAME STATISTICAL FACTOR sqrt(2*tau/T), and the drag route alone divides it by the offset in thermal widths -- so at equal record length DRAG BEATS EQUIPARTITION BY EXACTLY THAT FACTOR, and driving harder improves only the drag route. That is the reason drag calibration exists as a method, measured here rather than asserted. The equipartition route also carries Euler-Maruyama's dt/(2*tau) bias, given beside it; at a smoke-run record the bias is far inside the statistical error, so a deviation of order ten per cent there is statistics and not the integrator. THE RECOVERED-OVER-DECLARED RATIO IS NOT EVIDENCE ABOUT ANY TRAP: gamma and k_t both went in and the estimator inverts the equation the integrator solved (output_independent_of_input false). What it tests is the integrator and this estimator, and the relative standard error is the number the question is about."
+  },
+  "relaxation_time": {
+    "declared_si": 0.47123889803846897,
+    "fitted_si": 0.40564630720023,
+    "ratio": 0.860808199171868,
+    "lags_used": 15,
+    "note": "log C(lag) fitted over lags where C > e^-2, up to two declared relaxation times. gamma/k_t is the timescale every axis card for this configuration is written in, so a mismatch here would unseat A1, A2, A4 and A7 at once."
+  },
+  "transverse": {
+    "y": {
+      "mean_si": 2.192778493339998e-08,
+      "mean_in_ou_standard_errors": 1.5881764271478716,
+      "variance_ratio_to_equipartition": 1.0719648386735339
+    },
+    "z": {
+      "mean_si": 4.324838872506488e-10,
+      "mean_in_ou_standard_errors": 0.03132376192756913,
+      "variance_ratio_to_equipartition": 1.0804191786836577
+    },
+    "note": "undriven axes: the mean must sit at the declared centre within its own error, and the variance at k_B*T/k_t up to the same Euler-Maruyama bias as x"
+  },
+  "cost": {
+    "integration_wall_s": 0.47248866711743176,
+    "steps": 102500,
+    "wall_s_per_step": 4.609645532852993e-06,
+    "n_particles": 1,
+    "backend": "trap_hoomd_backend",
+    "note": "measured on the integration loop alone, HOOMD on the CPU, one bead and one tether. It calibrates THIS backend at N=1 and replaces neither the NumPy mock's figure nor a many-particle HOOMD figure"
+  },
+  "engine": {
+    "tether_drift_reduced": 0.0,
+    "note": "the tether's largest coordinate at the end, in bead diameters; it is outside the integration filter and must read exactly zero",
+    "units": {
+      "length_si": 4.9999999999999996e-06,
+      "energy_si": 4.04530157e-21,
+      "time_si": 291.22606181772795,
+      "diffusivity_si": 8.584396548838734e-14,
+      "kT_reduced": 1.0,
+      "gamma_reduced": 1.0,
+      "note": "sigma = bead_diameter, epsilon = k_B*T, tau = sigma^2/D with D from Stokes-Einstein. kT and gamma are then both 1, which is the statement that the engine is given the bath and the particle rather than the diffusivity"
+    }
+  }
+}

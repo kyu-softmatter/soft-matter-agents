@@ -39,7 +39,7 @@ from pathlib import Path
 
 from . import cards, plan_card, synthesis
 from .config_bd_overdamped_trapped_uniform_flow import _one
-from .synthesis_trap import CONFIG, SMOKE
+from .synthesis_trap import CONFIG, O_LEVELS, SMOKE, stiffness_levels
 
 MODEL = ("one overdamped sphere, a harmonic external potential of stiffness k_t centred at the origin, "
          "and a uniform background fluid velocity along +x; Euler-Maruyama in SI, no pair interaction, "
@@ -182,6 +182,150 @@ def build(qid: str, created_at: str, revision: int) -> dict:
     return card
 
 
+def build_sweep(qid: str, created_at: str, revision: int) -> dict:
+    """The grid as one plan: shared conditions at the top, one point per cell (revision 4 on).
+
+    Each point carries every condition that differs between cells -- the two
+    axis levels and what they determine -- and the plan checker now reads the
+    window, record_length, at every kept point. A cell S4 skipped stays in the
+    list with the reason, so the empty row is visible and not silent.
+    """
+    goal = cards.load_goal(qid, revision)
+    S = cards.artifact_name("synthesis.json", revision)
+    syn = __import__("json").loads((cards.question_dir(qid) / S).read_text())
+    A3 = cards.artifact_name(f"axis_{CONFIG}_a3.json", revision)
+    levels = stiffness_levels(goal)
+    cells = [f"{k}_{o}" for k in levels for o in O_LEVELS]
+    skipped = {r["what"].split()[-1]: r for r in syn.get("rejected", []) if r.get("kind") == "operating_point"}
+    kept = [c for c in cells if c not in skipped]
+
+    names = ["temperature", "viscosity", "bead_diameter", "target_relative_error", "particle_step_rate",
+             "steps_max_per_point"]
+    names += [f"trap_stiffness_{k}" for k in levels] + [f"offset_over_sigma_{o}" for o in O_LEVELS]
+    names += [f"{p}_{k}" for k in levels for p in ("relaxation_time", "save_interval", "startup_discard")]
+    names += [f"{p}_{c}" for c in cells for p in ("flow_speed", "offset_over_sigma_realised", "integration_timestep",
+                                                  "record_length", "particle_steps", "coordinates_stored")]
+    numbers = synthesis.carry_from(qid, CONFIG, [(S, n) for n in names] + [(A3, "box_edge_min")])
+    assumptions = synthesis.assumptions_for(qid, numbers)
+    g = {n["name"]: n["grade"] for n in numbers}
+    V = lambda name: next(float(n["value"]) for n in numbers if n["name"] == name)
+    numbers.append(cards.num("bytes_per_coordinate", 4e-09, "GB", "spec:ieee754_single",
+                             precision="significant_figures", note="float32, the trajectory writer's dtype"))
+    g["bytes_per_coordinate"] = "E3"
+    numbers.append(cards.num(
+        "wall_clock_estimate", _one(sum(V(f"particle_steps_{c}") for c in kept) / V("particle_step_rate")), "s",
+        "computed:particle_steps_over_rate",
+        formula="(" + "+".join(f"particle_steps_{c}" for c in kept) + ")/particle_step_rate",
+        inputs=[(n, g[n]) for n in [f"particle_steps_{c}" for c in kept] + ["particle_step_rate"]],
+        precision="order_of_magnitude",
+        note="every kept cell, one seed each, at the CONSERVATIVE rate from a 1000-particle run; the smoke runs "
+             "measured about two microseconds a step at one particle, so the true figure is far lower"))
+    numbers.append(cards.num(
+        "storage_estimate", _one(sum(V(f"coordinates_stored_{c}") for c in kept) * V("bytes_per_coordinate")), "GB",
+        "computed:coordinates_times_bytes",
+        formula="(" + "+".join(f"coordinates_stored_{c}" for c in kept) + ")*bytes_per_coordinate",
+        inputs=[(n, g[n]) for n in [f"coordinates_stored_{c}" for c in kept] + ["bytes_per_coordinate"]],
+        precision="order_of_magnitude", note="every kept cell's trajectory in single precision"))
+
+    cond = lambda p, n: {"parameter": p, "number": n}
+    conditions = [cond("temperature", "temperature"), cond("viscosity", "viscosity"),
+                  cond("bead_diameter", "bead_diameter"), cond("box_length", "box_edge_min")]
+    points = []
+    for k in levels:
+        for o in O_LEVELS:
+            c = f"{k}_{o}"
+            pt = {"point": c, "conditions": [
+                cond("trap_stiffness", f"trap_stiffness_{k}"), cond("offset_over_sigma", f"offset_over_sigma_{o}"),
+                cond("flow_speed", f"flow_speed_{c}"), cond("integration_timestep", f"integration_timestep_{c}"),
+                cond("save_interval", f"save_interval_{k}"), cond("startup_discard", f"startup_discard_{k}"),
+                cond("record_length", f"record_length_{c}")]}
+            if c in skipped:
+                pt["skipped"] = skipped[c]["reason"] + " (grounds: " + ", ".join(skipped[c]["grounds"]) + ")"
+            points.append(pt)
+    sweep = {"axes": [{"parameter": "trap_stiffness", "levels": [f"trap_stiffness_{k}" for k in levels]},
+                      {"parameter": "offset_over_sigma", "levels": [f"offset_over_sigma_{o}" for o in O_LEVELS]}],
+             "points": points}
+    dispatched = [x["parameter"] for x in conditions] + [x["parameter"] for x in points[0]["conditions"]]
+
+    card = cards.head(
+        "plan", f"plan-{qid}-r{revision}", qid, created_at,
+        revision=revision, goal_id=goal["id"], synthesis_id=syn["id"],
+        purpose=goal["purpose"], intent=goal["intent"],
+        observable=cards.observable(goal["observable"]["name"]),
+        system_configuration={"config": CONFIG, "optical_path": None, "devices": ["trap_hoomd_backend"], "model": MODEL},
+        targets=[dict(t) for t in goal.get("targets", [])],
+        sweep=sweep, conditions=conditions,
+        actions=[
+            {"id": "integrate", "device": "trap_hoomd_backend",
+             "action": "per kept cell: integrate one sphere from the trap centre with the flow on, for startup_discard "
+                       "plus record_length, saving its unwrapped position at save_interval",
+             "reversible": True, "parameters": dispatched, "tier": 1},
+            {"id": "estimate", "device": "trap_hoomd_backend",
+             "action": "per kept cell, after startup_discard: the mean along-flow displacement from the DECLARED trap "
+                       "centre with a block standard error, and the stiffness recovered through the drag",
+             "reversible": True, "parameters": ["startup_discard", "record_length", "save_interval"], "tier": 0},
+        ],
+        envelope_check=plan_card.envelope_check(numbers),
+        cost={"wall_clock": "under an hour for every kept cell at the conservative rate, seconds at the measured one",
+              "numbers": ["wall_clock_estimate", "storage_estimate"],
+              "note": "the conservative rate is the one that skipped the slow row"},
+        stop_criteria=[
+            {"id": "step_displacement_diverged", "metric": "max_single_step_displacement", "comparator": ">",
+             "number": "bead_diameter", "on_met": "fault",
+             "statement": "a sphere moving more than its own diameter in one step means the integration has run "
+                          "away. Stop and keep the run: divergence is a result"},
+        ],
+        success_criteria=[
+            {"id": "statistics_met", "metric": "relative_block_standard_error_of_drag_offset", "comparator": "<=",
+             "target": "trap_stiffness", "window": "record_length, after startup_discard",
+             "statement": "in each cell, the block standard error of the mean offset, as a fraction of it, at or below "
+                          "the person's one per cent"},
+            {"id": "recovered_stiffness_within_target", "metric": "relative_deviation_of_stiffness_recovered_through_drag",
+             "comparator": "<=", "target": "trap_stiffness", "window": "record_length, after startup_discard",
+             "statement": "in each cell, the recovered stiffness within one per cent of the declared one. Stricter than "
+                          "the target: at the planned error it holds about three cells in four by chance alone"},
+        ],
+        alternatives_rejected=[{"what": r["what"], "reason": r["reason"], "grounds": r["grounds"]}
+                               for r in syn.get("rejected", [])],
+        open_risks=[
+            "THE RECOVERED STIFFNESS IS NOT EVIDENCE ABOUT ANY TRAP: gamma and k_t go in and the estimator inverts "
+            "the equation the integrator solved. The question the grid answers is whether the fractional error of "
+            "the recovered stiffness follows sqrt(2*tau/T)/(offset/sigma) with the stiffness cancelled, which is "
+            "read across the cells' result cards and not by any one of them.",
+            "The slow row, offset one thermal width, is skipped at the conservative per-step cost. At the measured "
+            "cost it is seconds a cell; it comes back when the measured cost is in the store.",
+            "Speeds are one significant figure, so the realised offset differs from the row's label by up to 30 "
+            "per cent. The record is sized for the realised offset, and each result reports it as a deviation.",
+            "The trap is harmonic by declaration: no escape and no anharmonicity. At the fast row the soft cell's "
+            "offset is about four micrometres, far outside a real trap's quadratic range.",
+            "The viscosity cancels out of recovered over declared here and does not on the bench, where the sample "
+            "temperature is neither actuated nor read.",
+        ],
+    )
+    card["status"] = "DRAFT"
+    card.update(cards.tail(numbers, assumptions=assumptions,
+                           kb_refs=synthesis.kb_refs_for(qid, numbers), kb_gaps=synthesis.kb_gaps_for(qid),
+                           degraded=["librarian_agent"]))
+    return card
+
+
+def render_sweep(card: dict) -> str:
+    """The grid plan's Markdown twin; counts as integers (check 9 reads 6e+04 as a charge)."""
+    N = {n["name"]: n for n in card["numbers"]}
+    q = lambda name: f"{N[name]['value']:g} {N[name]['unit']}"
+    L = [f"# {card['id']}: the drag-calibration grid", "",
+         f"*Generated from the JSON beside this file, which is authoritative (P3). Status: {card['status']}.*", "",
+         "| cell | stiffness | speed | step | record | steps | run |", "|---|---|---|---|---|---|---|"]
+    for p in card["sweep"]["points"]:
+        c = p["point"]; k = c.split("_")[0]
+        L.append(f"| {c} | {q(f'trap_stiffness_{k}')} | {q(f'flow_speed_{c}')} | {q(f'integration_timestep_{c}')} | "
+                 f"{q(f'record_length_{c}')} | {int(N[f'particle_steps_{c}']['value'])} | "
+                 f"{'skipped' if p.get('skipped') else 'yes'} |")
+    L += ["", f"Every kept cell at the conservative rate: {q('wall_clock_estimate')}.", "", "## Open risks", ""]
+    L += [f"- {r}" for r in card["open_risks"]] + [""]
+    return "\n".join(L)
+
+
 def render(card: dict) -> str:
     """The Markdown twin. Every number it states is one the card holds (P3, check 9).
 
@@ -214,18 +358,20 @@ def emit(qid: str, created_at: str) -> tuple[Path, str]:
     """Write the pair as a DRAFT and let the validator's exit code promote it (P4)."""
     directory = cards.question_dir(qid)
     revision = cards.question_revision(qid)
-    card = build(qid, created_at, revision)
+    grid = revision >= 4
+    card = (build_sweep if grid else build)(qid, created_at, revision)
+    draw = render_sweep if grid else render
     json_path = directory / cards.artifact_name(f"plan_simulation_{qid}.json", revision)
     md_path = json_path.with_suffix(".md")
     cards.refuse_overwrite(json_path, revision, card)
     cards.write(json_path, card)
-    md_path.write_text(render(card))
+    md_path.write_text(draw(card))
     verdict = subprocess.run([sys.executable, str(cards.CONTRACTS / "validate.py"), "--quiet"],
                              capture_output=True, text=True)
     if verdict.returncode == 0:
         card["status"] = "VALIDATED"
         cards.write(json_path, card)
-        md_path.write_text(render(card))
+        md_path.write_text(draw(card))
         return json_path, "VALIDATED"
     tail = verdict.stdout.strip().splitlines()[-1] if verdict.stdout.strip() else "see validate.py"
     return json_path, f"DRAFT (validator exit {verdict.returncode}; {tail})"

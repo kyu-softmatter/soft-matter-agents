@@ -1,0 +1,400 @@
+{
+  "card": "result",
+  "schema_version": "0.1",
+  "id": "result-sim-20260923-201-run-20260923-201-v4-k2-o2",
+  "qid": "sim-20260923-201",
+  "thread": "solo-sim-20260923-201",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T05:48:08.642016+00:00",
+  "status": "DONE",
+  "plan_id": "plan-sim-20260923-201-r4",
+  "plan_revision": 4,
+  "plan_hash": "sha256:34bceb66e00ef05c6ef5dc92d7846d88b6642f141a8445b8db9606cab5d4bf8e",
+  "approval_id": null,
+  "run_id": "run-20260923-201-v4-k2-o2",
+  "observable": {
+    "name": "trapped_particle_drag_offset"
+  },
+  "outcome": "DONE",
+  "values": [
+    {
+      "metric": "trapped_particle_drag_offset",
+      "number": "drag_offset_predicted",
+      "uncertainty": "drag_offset_standard_error_predicted"
+    }
+  ],
+  "criteria_evaluation": [
+    {
+      "id": "step_displacement_diverged",
+      "kind": "stop",
+      "met": false,
+      "observed_number": "max_step_displacement"
+    },
+    {
+      "id": "statistics_met",
+      "kind": "success",
+      "met": true,
+      "observed_number": "relative_block_standard_error_of_drag_offset"
+    },
+    {
+      "id": "recovered_stiffness_within_target",
+      "kind": "success",
+      "met": true,
+      "observed_number": "relative_deviation_of_stiffness_recovered_through_drag"
+    }
+  ],
+  "deviations": [
+    {
+      "parameter": "integration_timestep",
+      "planned_number": "integration_timestep_k2_o2",
+      "actual_number": "integration_timestep_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "save_interval",
+      "planned_number": "save_interval_k2",
+      "actual_number": "save_interval_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "record_length",
+      "planned_number": "record_length_k2_o2",
+      "actual_number": "record_length_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "offset_over_sigma",
+      "planned_number": "offset_over_sigma_o2",
+      "actual_number": "offset_over_sigma_realised",
+      "within_tolerance": false,
+      "note": "the one parameter the run did not reproduce exactly, and it is not an error: the offset level names the cell and the speed that realises it was rounded to one figure. Reported as a deviation because no tolerance is declared, so anything other than exact is a person's to read (result_card)"
+    }
+  ],
+  "time_base": {
+    "t0_wall": "2026-09-24T05:48:07.873149+00:00",
+    "t0_mono": 1447764.871631208,
+    "alignment": "model_step_index"
+  },
+  "targets": [
+    {
+      "metric": "trap_stiffness",
+      "kind": "uncertainty",
+      "value": 0.01,
+      "unit": "1",
+      "note": "the person's, 2026-09-23: recover the known stiffness to one per cent. RELATIVE, and on the RECOVERED-OVER-INPUT RATIO rather than on a stiffness in pN/um -- that is what makes the target well posed against an E3 viscosity, since the same drag coefficient imposes the offset and inverts it and eta cancels out of the ratio. A target is a decision and carries no grade (5.3.1)"
+    }
+  ],
+  "estimation": {
+    "vocabulary_version": "obs-78b69c58ccea",
+    "followed": true,
+    "note": "the registered estimator: the mean along-flow displacement from the DECLARED trap centre, over the declared record_length after startup_discard. The block standard error and the second route to the stiffness ride on the same trace and are not the estimator"
+  },
+  "new_facts": [
+    {
+      "claim": "On this workstation the trap_hoomd_backend integrator -- HOOMD-blue 7.2.0 on the CPU, its Brownian method, the trap as a harmonic bond to a tether outside the integration filter costs about 4 microseconds of wall clock per integration step, for one overdamped sphere in a harmonic trap under uniform flow.",
+      "numbers": [
+        "cost_per_step_measured"
+      ],
+      "validity_conditions": "trap_hoomd_backend as committed at the time of run-20260923-201-v4-k2-o2, one particle, three coordinates, a save every twenty steps, measured on 2026-09-23 over one run of 152500 steps while other sessions shared the machine. NOT the NumPy mock, whose figure is measured separately, and not a cost per particle-step for N above one: the 1000-particle hoomd_backend run run-20260922-hoomd-s3 cost 4 ms a step and 4 us a particle-step, and the figures do not interpolate. It answers the gap A5 found as cost_per_particle_step_overdamped_absent for this backend only.",
+      "proposed_grade": "E1"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v4_plan_simulation_sim-20260923-201.json#temperature",
+      "precision": "significant_figures",
+      "note": "a parameter of the noise amplitude and realised exactly by the model, not a thermostat setpoint. The room's reading; nothing actuates the sample (kb:sample_temperature_not_actuated)"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v4_plan_simulation_sim-20260923-201.json#viscosity",
+      "precision": "order_of_magnitude",
+      "note": "pure water, validity 288 to 298 K and the temperature above is inside it. THE ENTRY SAYS `of order` one mPa s, so this is one significant figure and the precision below says so"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "origin": "v4_plan_simulation_sim-20260923-201.json#bead_diameter",
+      "precision": "significant_figures",
+      "note": "the SI anchor: the particle in the bottle, measured directly. Sets the drag through Stokes and the soft end of the stiffness sweep through the thermal width"
+    },
+    {
+      "name": "trap_stiffness_k2",
+      "value": 1.0,
+      "unit": "pN/um",
+      "source": "computed:decades_above_soft_end",
+      "grade": "E5",
+      "origin": "v4_plan_simulation_sim-20260923-201.json#trap_stiffness_k2",
+      "precision": "order_of_magnitude",
+      "note": "1 decade(s) above the soft end"
+    },
+    {
+      "name": "flow_speed_k2_o2",
+      "value": 10.0,
+      "unit": "um/s",
+      "source": "computed:offset_to_speed",
+      "grade": "E5",
+      "origin": "v4_plan_simulation_sim-20260923-201.json#flow_speed_k2_o2",
+      "precision": "order_of_magnitude",
+      "note": "the speed that puts the steady offset at this row's number of thermal widths, at this stiffness"
+    },
+    {
+      "name": "integration_timestep_k2_o2",
+      "value": 0.0002,
+      "unit": "s",
+      "source": "computed:a1_bound_at_point",
+      "grade": "E5",
+      "origin": "v4_plan_simulation_sim-20260923-201.json#integration_timestep_k2_o2",
+      "precision": "order_of_magnitude",
+      "note": "AT the binding A1 bound for this cell"
+    },
+    {
+      "name": "save_interval_k2",
+      "value": 0.005,
+      "unit": "s",
+      "source": "computed:a4_fraction_of_tau",
+      "grade": "E5",
+      "origin": "v4_plan_simulation_sim-20260923-201.json#save_interval_k2",
+      "precision": "order_of_magnitude",
+      "note": "A4's ceiling at this level"
+    },
+    {
+      "name": "startup_discard_k2",
+      "value": 0.5,
+      "unit": "s",
+      "source": "computed:a7_startup",
+      "grade": "E5",
+      "origin": "v4_plan_simulation_sim-20260923-201.json#startup_discard_k2",
+      "precision": "order_of_magnitude",
+      "note": "A7's discard at this level, declared before the run and evaluated by the estimator on this number"
+    },
+    {
+      "name": "record_length_k2_o2",
+      "value": 30.0,
+      "unit": "s",
+      "source": "computed:record_for_target_at_realised_offset",
+      "grade": "E5",
+      "origin": "v4_plan_simulation_sim-20260923-201.json#record_length_k2_o2",
+      "precision": "order_of_magnitude",
+      "note": "the averaging window after the startup, sized for the target at the offset this cell REALLY has, with S4's 1.5x margin. The backend adds the startup"
+    },
+    {
+      "name": "offset_over_sigma_o2",
+      "value": 10.0,
+      "unit": "1",
+      "source": "computed:geometric_mean",
+      "grade": "E5",
+      "origin": "v4_plan_simulation_sim-20260923-201.json#offset_over_sigma_o2",
+      "precision": "order_of_magnitude",
+      "note": "the decade between"
+    },
+    {
+      "name": "target_relative_error",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_target_is_the_persons",
+      "grade": "E5",
+      "origin": "v4_plan_simulation_sim-20260923-201.json#target_relative_error",
+      "precision": "significant_figures",
+      "note": "the person's, settled 2026-09-23, and it is a DECISION carrying no grade of its own (5.3.1). It sits in numbers[] only so the record lengths below can name it as an input; the authority is the goal's targets[]"
+    },
+    {
+      "name": "drag_offset_predicted",
+      "value": 0.5,
+      "unit": "um",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "formula": "3*pi*viscosity*bead_diameter*flow_speed_k2_o2/trap_stiffness_k2",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "flow_speed_k2_o2",
+        "trap_stiffness_k2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "gamma*v/k_t from the plan's inputs: the steady offset the model predicts. ONE FIGURE because the sweep corners it stands on are declared order_of_magnitude, although the model realises them exactly. The comparison that carries precision is not this number but the recovered-over-declared ratio in criteria_evaluation, which is a ratio and so is set by the run"
+    },
+    {
+      "name": "drag_offset_standard_error_predicted",
+      "value": 0.004,
+      "unit": "um",
+      "source": "computed:ou_standard_error_of_the_mean",
+      "grade": "E5",
+      "formula": "(k_B*temperature/trap_stiffness_k2)**0.5*(2*3*pi*viscosity*bead_diameter/(trap_stiffness_k2*record_length_k2_o2))**0.5",
+      "inputs": [
+        "temperature",
+        "trap_stiffness_k2",
+        "viscosity",
+        "bead_diameter",
+        "record_length_k2_o2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "sigma*sqrt(2*tau/T) at the declared record: the sampling error the OU model predicts for the mean. This is the claim the question is about, because the stiffness cancels out of it"
+    },
+    {
+      "name": "max_step_displacement",
+      "value": 0.010912521237324202,
+      "unit": "um",
+      "source": "simulated:run-20260923-201-v4-k2-o2",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k2",
+        "flow_speed_k2_o2",
+        "integration_timestep_k2_o2",
+        "save_interval_k2",
+        "startup_discard_k2",
+        "record_length_k2_o2"
+      ],
+      "note": "the largest single-step displacement, which the divergence criterion watches against the bead diameter"
+    },
+    {
+      "name": "relative_block_standard_error_of_drag_offset",
+      "value": 0.006366975405954421,
+      "unit": "1",
+      "source": "simulated:run-20260923-201-v4-k2-o2",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k2",
+        "flow_speed_k2_o2",
+        "integration_timestep_k2_o2",
+        "save_interval_k2",
+        "startup_discard_k2",
+        "record_length_k2_o2"
+      ],
+      "note": "the block standard error of the mean offset over the offset, from 63 blocks of ten declared relaxation times. statistics_met compares it against the person's target"
+    },
+    {
+      "name": "relative_deviation_of_stiffness_recovered_through_drag",
+      "value": 0.0029209974256565463,
+      "unit": "1",
+      "source": "simulated:run-20260923-201-v4-k2-o2",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k2",
+        "flow_speed_k2_o2",
+        "integration_timestep_k2_o2",
+        "save_interval_k2",
+        "startup_discard_k2",
+        "record_length_k2_o2"
+      ],
+      "note": "|gamma*v/<x> over the declared stiffness, minus one|. NOT EVIDENCE ABOUT ANY TRAP: gamma and k_t both went in. It tests the integrator and the estimator, and the run read it at 0.9971 of the declared value"
+    },
+    {
+      "name": "integration_timestep_actual",
+      "value": 0.0002,
+      "unit": "s",
+      "source": "simulated:run-20260923-201-v4-k2-o2",
+      "grade": "E5",
+      "inputs": [
+        "integration_timestep_k2_o2"
+      ],
+      "note": "simulated time over the integer step count"
+    },
+    {
+      "name": "save_interval_actual",
+      "value": 0.005,
+      "unit": "s",
+      "source": "simulated:run-20260923-201-v4-k2-o2",
+      "grade": "E5",
+      "inputs": [
+        "save_interval_k2"
+      ],
+      "note": "simulated time over the number of intervals between saved frames"
+    },
+    {
+      "name": "record_length_actual",
+      "value": 30.0,
+      "unit": "s",
+      "source": "simulated:run-20260923-201-v4-k2-o2",
+      "grade": "E5",
+      "inputs": [
+        "record_length_k2_o2",
+        "startup_discard_k2"
+      ],
+      "note": "the span of frames the estimator averaged, after startup_discard"
+    },
+    {
+      "name": "offset_over_sigma_realised",
+      "value": 7.409103817630555,
+      "unit": "1",
+      "source": "simulated:run-20260923-201-v4-k2-o2",
+      "grade": "E5",
+      "inputs": [
+        "trap_stiffness_k2",
+        "flow_speed_k2_o2",
+        "temperature"
+      ],
+      "note": "the steady offset in thermal widths that the dispatched speed actually produces. The plan's axis LABELS the cell ten; the speed was derived from that label at one significant figure, and one figure of 19.09 um/s is 20"
+    },
+    {
+      "name": "cost_per_step_measured",
+      "value": 3.5e-06,
+      "unit": "s",
+      "source": "measured:run-20260923-201-v4-k2-o2",
+      "grade": "E1",
+      "precision": "significant_figures",
+      "note": "0.538 s over 152500 steps of the integration loop alone, on trap_hoomd_backend, excluding process start and polling. A measurement of this workstation running this code, which is why it is `measured:` while the offset is not"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_target_is_the_persons",
+      "statement": "The relative error target on the recovered stiffness is the person's and was given on 2026-09-23. It is not an estimate this axis made, and the `assumed:` prefix is the nearest source kind for a decision -- 5.3 has no kind for `a person chose this`, which is the same gap the run observable waits on from the other direction.",
+      "numbers": [
+        "target_relative_error"
+      ],
+      "falsifier": "the person changes the target, which is a revision and not a correction; and an A5 collision at this target is a reason to raise it rather than evidence that it was wrong",
+      "gap_ref": "statistical_target_confirm_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

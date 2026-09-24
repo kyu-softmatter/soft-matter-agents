@@ -1,0 +1,291 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260923-201-v4-k3-o3",
+  "plan_id": "plan-sim-20260923-201-r4",
+  "plan_path": "simulation_agent/questions/sim-20260923-201/v4_plan_simulation_sim-20260923-201.json",
+  "revision": 4,
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "1",
+  "stop_criteria": [
+    "step_displacement_diverged"
+  ],
+  "t0_wall": "2026-09-24T05:48:12.529190+00:00",
+  "t0_mono": 1447769.527780625,
+  "time_base_note": "Every offset is software: this side has no trigger counter and no device clock. Simulated time is a coordinate of the model, not a clock reading, so it is recorded in trajectory_meta.json rather than as this log's time base (4.6.9).",
+  "backend": "trap_hoomd_backend",
+  "events": [
+    {
+      "t_mono": 2.5e-05,
+      "time_base": "software",
+      "event": "gate",
+      "tier": 1,
+      "approval": {
+        "id": null,
+        "kind": null
+      },
+      "envelope": {
+        "status": "inside",
+        "target": "local",
+        "budget": "full",
+        "compared": [
+          {
+            "cost": "wall_clock_estimate",
+            "limit": "wall_clock_max",
+            "cost_si": 666.6666666666666,
+            "limit_si": 7200.0
+          },
+          {
+            "cost": "storage_estimate",
+            "limit": "storage_max",
+            "cost_si": 2e-05,
+            "limit_si": 10.0
+          }
+        ],
+        "exceeded": []
+      },
+      "compare_arm": "k3_o3",
+      "arm_cost": {
+        "arm": "k3_o3",
+        "wall_clock_s": 666.6666666666666,
+        "storage_gb": 2e-05,
+        "from": [
+          "particle_steps_k3_o3",
+          "particle_step_rate",
+          "coordinates_stored_k3_o3",
+          "bytes_per_coordinate"
+        ],
+        "note": "the arm's cost from the plan's own per-arm numbers; the plan-level estimates are the sum over kept arms"
+      }
+    },
+    {
+      "t_mono": 9.2e-05,
+      "time_base": "software",
+      "event": "preflight",
+      "report": {
+        "backend": "trap_hoomd_backend",
+        "engine_build": {
+          "engine": "hoomd",
+          "version": "7.2.0",
+          "gpu": false,
+          "precision": [
+            64,
+            32
+          ],
+          "scheme": "hoomd.md.methods.Brownian (Euler-Maruyama)",
+          "trap": "hoomd.md.bond.Harmonic to a tether left out of the integration filter",
+          "flow": "hoomd.md.force.Constant on the bead"
+        },
+        "missing_parameters": [],
+        "seed": 16,
+        "n_particles": 1,
+        "steps_per_frame": 125,
+        "frames_expected": 1700,
+        "total_simulated_time_si": 0.8500000000000001,
+        "save_interval_divides_step": true,
+        "relaxation_time_si": 0.00471238898038469,
+        "timestep_over_relaxation_time": 0.0008488263631567751,
+        "euler_maruyama_stable": true,
+        "predicted_offset_si": 1.8849555921538758e-06,
+        "realised_offset_over_sigma": 93.71857393744544,
+        "declared_offset_over_sigma": 100.0,
+        "engine_parameters": {
+          "box_length": 40.0,
+          "integration_timestep": 1.3735034478141975e-08,
+          "trap_stiffness": 61800.08972730305,
+          "flow_force": 23298.084945418235,
+          "kT": 1.0,
+          "gamma": 1.0,
+          "relaxation_time": 1.6181206280000005e-05,
+          "predicted_offset": 0.37699111843077515,
+          "units": {
+            "length_si": 4.9999999999999996e-06,
+            "energy_si": 4.04530157e-21,
+            "time_si": 291.22606181772795,
+            "diffusivity_si": 8.584396548838734e-14,
+            "kT_reduced": 1.0,
+            "gamma_reduced": 1.0,
+            "note": "sigma = bead_diameter, epsilon = k_B*T, tau = sigma^2/D with D from Stokes-Einstein. kT and gamma are then both 1, which is the statement that the engine is given the bath and the particle rather than the diffusivity"
+          }
+        }
+      }
+    },
+    {
+      "t_mono": 0.255323,
+      "time_base": "software",
+      "event": "dispatch",
+      "action": "integrate",
+      "from": "actions[integrate]",
+      "handle": "trap_backend:16:1071e4c50",
+      "state": "submitted",
+      "params": {
+        "temperature": {
+          "value_si": 293.0,
+          "unit_in_plan": "K",
+          "grade": "E3",
+          "from": "conditions[0].number -> numbers[temperature]"
+        },
+        "viscosity": {
+          "value_si": 0.001,
+          "unit_in_plan": "Pa*s",
+          "grade": "E3",
+          "from": "conditions[1].number -> numbers[viscosity]"
+        },
+        "bead_diameter": {
+          "value_si": 4.9999999999999996e-06,
+          "unit_in_plan": "um",
+          "grade": "E2",
+          "from": "conditions[2].number -> numbers[bead_diameter]"
+        },
+        "box_length": {
+          "value_si": 0.00019999999999999998,
+          "unit_in_plan": "um",
+          "grade": "E5",
+          "from": "conditions[3].number -> numbers[box_edge_min]"
+        },
+        "trap_stiffness": {
+          "value_si": 9.999999999999999e-06,
+          "unit_in_plan": "pN/um",
+          "grade": "E5",
+          "from": "conditions[4].number -> numbers[trap_stiffness_k3]"
+        },
+        "offset_over_sigma": {
+          "value_si": 100.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[5].number -> numbers[offset_over_sigma_o3]"
+        },
+        "flow_speed": {
+          "value_si": 0.00039999999999999996,
+          "unit_in_plan": "um/s",
+          "grade": "E5",
+          "from": "conditions[6].number -> numbers[flow_speed_k3_o3]"
+        },
+        "integration_timestep": {
+          "value_si": 4e-06,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[7].number -> numbers[integration_timestep_k3_o3]"
+        },
+        "save_interval": {
+          "value_si": 0.0005,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[8].number -> numbers[save_interval_k3]"
+        },
+        "startup_discard": {
+          "value_si": 0.05,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[9].number -> numbers[startup_discard_k3]"
+        },
+        "record_length": {
+          "value_si": 0.8,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[10].number -> numbers[record_length_k3_o3]"
+        }
+      }
+    },
+    {
+      "t_mono": 0.255331,
+      "time_base": "software",
+      "event": "monitors_compiled",
+      "monitors": [
+        "step_displacement_diverged"
+      ],
+      "from": "stop_criteria"
+    },
+    {
+      "t_mono": 0.302742,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "trap_backend:16:1071e4c50",
+        "steps_taken": 50500,
+        "simulated_time": 0.20199999999999999,
+        "frames_saved": 405,
+        "fraction_of_planned_steps": 0.2376470588235294,
+        "max_single_step_displacement": 2.375724928212372e-09,
+        "max_absolute_coordinate": 1.8620312306326279e-06,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.333904,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "trap_backend:16:1071e4c50",
+        "steps_taken": 84250,
+        "simulated_time": 0.33699999999999997,
+        "frames_saved": 675,
+        "fraction_of_planned_steps": 0.39647058823529413,
+        "max_single_step_displacement": 2.375724928212372e-09,
+        "max_absolute_coordinate": 1.8809983246149331e-06,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.389999,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "trap_backend:16:1071e4c50",
+        "steps_taken": 141000,
+        "simulated_time": 0.564,
+        "frames_saved": 1129,
+        "fraction_of_planned_steps": 0.6635294117647059,
+        "max_single_step_displacement": 2.375724928212372e-09,
+        "max_absolute_coordinate": 1.8688829634261274e-06,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.447776,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "trap_backend:16:1071e4c50",
+        "steps_taken": 197875,
+        "simulated_time": 0.7915,
+        "frames_saved": 1584,
+        "fraction_of_planned_steps": 0.9311764705882353,
+        "max_single_step_displacement": 2.375724928212372e-09,
+        "max_absolute_coordinate": 1.8694787224236217e-06,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 0.469049,
+      "time_base": "software",
+      "event": "complete",
+      "monitor": null,
+      "state": {
+        "state": "complete",
+        "initialised": true,
+        "handle": "trap_backend:16:1071e4c50",
+        "steps_taken": 212500,
+        "simulated_time": 0.85,
+        "frames_saved": 1701,
+        "fraction_of_planned_steps": 1.0,
+        "max_single_step_displacement": 2.375724928212372e-09,
+        "max_absolute_coordinate": 1.8887748867091116e-06,
+        "failure": null
+      },
+      "note": "the backend reports complete and no stop criterion fired"
+    }
+  ],
+  "finished_at": "2026-09-24T05:48:13.058616+00:00"
+}

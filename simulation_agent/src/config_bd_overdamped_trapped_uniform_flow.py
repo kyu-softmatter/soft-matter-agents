@@ -33,28 +33,12 @@ import sys
 from . import cards
 from .physics import K_B
 
-# 7.2's diagram says planning-stage code "imports contracts only", so the
-# rounding rule is CALLED rather than copied. It cannot be a bare import: the
-# agent runs as `python3 -m src.fanout` from simulation_agent/, where the
-# repository root is not on the path, so the root is put there the way
-# cards.py and physics.py already locate it.
-#
-# `cards.py`'s docstring says this module "reads contracts/ as data and
-# imports nothing from it (7.2 rule 2)". Rule 2 says planning code knows no
-# DEVICE; it says nothing about contracts, and the diagram above it permits
-# this import outright. That mis-citation is why SOURCE_GRADE is a second
-# copy, and cards.py records what the copy cost: two days where
-# grade_for("prior_run:...") raised against 26 store entries, found by
-# counting the two tables and not by a failure.
-#
-# The objection to importing it -- that the shared working copy's validator
-# moves under you -- is real and does not apply here. The cards are judged by
-# that same volatile file, so a shared rule keeps generation and judgement in
-# agreement while a copy drifts silently out of it.
-_ROOT = str(cards.REPO)
-if _ROOT not in sys.path:
-    sys.path.insert(0, _ROOT)
-from contracts.validate import round_to_sig  # noqa: E402
+# The rounding rule is the validator's, CALLED rather than copied. It imports
+# directly because the pixi `sim` environment installs the repository and
+# exposes `contracts` alone; under conda base it fails, on purpose. This used to
+# put the repository root on sys.path by hand, which made every agent's folder
+# importable and undid the boundary the package keeps.
+from contracts.validate import round_to_sig
 
 ENVELOPE = cards.AGENT / "envelope" / "budget.json"
 
@@ -93,7 +77,7 @@ QUERIES = {
     "a2": ["statistical_target_confirm", "flow_speed"],
     "a3": ["trapped_particle_drag_offset", "trap_stiffness", "flow_speed"],
     "a4": ["save_interval_fraction_of_relaxation_time"],
-    "a5": ["cost_per_particle_step_overdamped", "flow_speed"],
+    "a5": ["particle_step_rate", "flow_speed"],
     "a7": ["flow_speed", "trap_escape_force", "temperature", "trap_stiffness"],
 }
 
@@ -457,7 +441,11 @@ def a3(goal, numbers, assumptions):
     g = _anchors(goal, numbers, assumptions, "a3")
     d = _value(numbers, "bead_diameter")
     ratio_max = _value(numbers, "offset_over_sigma_max")
-    sigma_frac = 0.1   # the soft corner's thermal width, as a fraction of the diameter
+    # Read off the goal, never written in. This was a literal 0.1 and agreed with
+    # the goal by coincidence while revision 3 assumed exactly 0.1; the person's
+    # range made it 0.04 and the literal went on saying 0.1 until check 17
+    # recomputed the formula the number declares.
+    sigma_frac = _value(numbers, "sigma_over_diameter_soft_corner")
     excursion = _one(ratio_max * sigma_frac * d)
 
     numbers.append(cards.num(
@@ -575,10 +563,15 @@ def a5(goal, numbers, assumptions):
     """
     g = _anchors(goal, numbers, assumptions, "a5")
     allowance, allowance_note = _allowance()
+    corners = {x["name"]: float(x["value"]) for x in goal.get("numbers", [])}
+    n_stiff = int(round(math.log10(corners["trap_stiffness_max"] / corners["trap_stiffness_min"]))) + 1
+    n_points = n_stiff * 3
 
     numbers.append(cards.num(
-        "stiffness_points", 4, "1", "assumed:a_sweep_grid", precision="significant_figures",
-        note="one point per decade across the three-decade stiffness sweep, plus its end"))
+        "stiffness_points", n_stiff, "1", "assumed:a_sweep_grid", precision="significant_figures",
+        note=f"one point per decade of the goal's stiffness range, plus its end: {n_stiff}. Read off the "
+             "goal's corners rather than written in, because it was a literal 4 and went stale the moment "
+             "the person narrowed the range to two decades"))
     numbers.append(cards.num(
         "speed_points", 3, "1", "assumed:a_sweep_grid", precision="significant_figures",
         note="one per decade of the dimensionless offset, plus its end. A drag calibration "
@@ -613,7 +606,7 @@ def a5(goal, numbers, assumptions):
         wc = (allowance.get("wall_clock_max") or {})
         if wc.get("unit") == "h" and wc.get("value"):
             seconds = float(wc["value"]) * 3600.0
-            budget = _one(seconds / 0.004 / 12)
+            budget = _one(seconds / 0.004 / n_points)
             numbers.append(cards.num(
                 "steps_max_per_point", budget, "1", "assumed:a_step_budget",
                 precision="order_of_magnitude",
@@ -629,7 +622,7 @@ def a5(goal, numbers, assumptions):
         {"rationale_id": "a_step_budget",
          "statement": "Two hours from envelope/budget.json, chosen by the person on "
                       "2026-09-19, over the measured upper cost of 4 ms a step, over the "
-                      "twelve sweep points: 7200 / 0.004 / 12, about 150 thousand steps a "
+                      f"{n_points} sweep points: 7200 / 0.004 / {n_points}, about {7200/0.004/n_points:.0f} steps a "
                       "point, written to one significant figure. THE UPPER COST IS THE "
                       "CONSERVATIVE END OF A THREE-DECADE BRACKET -- measured at 1000 "
                       "particles while this configuration runs one -- so against the lower "
@@ -644,7 +637,7 @@ def a5(goal, numbers, assumptions):
                       "and this number moves by up to three decades; a store entry for the "
                       "per-step cost does the same with no run; and 5.3 gaining a source "
                       "kind for a decision retires the prefix complaint",
-         "gap_ref": "cost_per_particle_step_overdamped_absent"},
+         "gap_ref": "particle_step_rate_absent"},
         {"rationale_id": "a_sweep_grid",
          "statement": "A point per decade is the coarsest grid on which a slope has a "
                       "residual and a trend is visible. The grid is a decision and not a "
