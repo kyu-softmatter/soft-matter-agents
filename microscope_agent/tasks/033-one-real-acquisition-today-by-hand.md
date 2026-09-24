@@ -111,10 +111,18 @@ comes on only when a command sets `State=1`, which is a command you log.
 
 **Which line is green comes from the device, not from memory.** List
 `getDevicePropertyNames("Aura")`, pick the green line by the name the
-device reports, and record the name you picked. Get the particles' excitation
-peak from the store (`tracer_excitation_peak`) through the librarian. If no
-line name says a wavelength, stop and ask the person. Do not choose by
-position.
+device reports, and record the name you picked. If no line name says a
+colour or a wavelength, stop and ask the person. Do not choose by position.
+
+**Do not use `tracer_excitation_peak`. This card named it, and that was
+wrong.** It is the supplier's figure for the product family, 620 nm, which
+points at red, not green, and **the store marks it refuted** by
+`particles_show_on_the_green_605_path` (E2). That entry is a bench
+observation that the particles in the bottle in use fluoresce under the
+Aura's green line and show through the 605 band. **Cite that entry for
+choosing green.** It establishes band compatibility and not a spectral peak,
+so record it as that. Found by `microscope-20260924-2` doing card 034, on
+2026-09-24.
 
 **Write the acquisition code**, with the driver imported at the call and not
 at module top (the module docstring says why):
