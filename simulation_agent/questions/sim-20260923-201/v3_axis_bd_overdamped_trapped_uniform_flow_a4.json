@@ -1,0 +1,154 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-201-bd_overdamped_trapped_uniform_flow-a4-r3",
+  "qid": "sim-20260923-201",
+  "thread": "solo-sim-20260923-201",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T21:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a4",
+  "config": "bd_overdamped_trapped_uniform_flow",
+  "axis": "a4",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "save_interval",
+      "unit": "s",
+      "min": 2e-05,
+      "max": 0.0002,
+      "basis": [
+        "save_interval_max"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "save_interval << gamma/k_t, so the relaxation is resolved",
+      "parameter": "save_interval",
+      "state": "returned",
+      "interval": {
+        "parameter": "save_interval",
+        "unit": "s",
+        "max": 0.0002,
+        "basis": [
+          "save_interval_max"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    },
+    {
+      "inequality": "save_interval >= 0.01*gamma/k_t, because a mean gains nothing from correlated samples",
+      "parameter": "save_interval",
+      "state": "returned",
+      "interval": {
+        "parameter": "save_interval",
+        "unit": "s",
+        "min": 2e-05,
+        "basis": [
+          "save_interval_min"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    }
+  ],
+  "note": "A two-sided interval, and the lower half is the unusual one. The save interval should scale with the LOCAL relaxation time at each stiffness rather than being fixed at the stiff corner's value: three decades of stiffness is three decades of tau_t, and a single interval sized for the stiff corner would store a thousand times more frames than the soft corner can use.",
+  "numbers": [
+    {
+      "name": "trap_relaxation_time_min",
+      "value": 0.002,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_max",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_max"
+      ],
+      "note": "gamma/k_t at the STIFF corner: the shortest characteristic time in the problem, and what the timestep and the save interval are measured in. Three decades below the soft corner, which is the whole cost of the sweep",
+      "origin": "v3_goal.json#trap_relaxation_time_min"
+    },
+    {
+      "name": "save_interval_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_save_fraction",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the save interval as a fraction of gamma/k_t at the stiff corner"
+    },
+    {
+      "name": "save_interval_max",
+      "value": 0.0002,
+      "unit": "s",
+      "source": "computed:fraction_times_relaxation_time",
+      "grade": "E5",
+      "formula": "save_interval_fraction*trap_relaxation_time_min",
+      "inputs": [
+        "save_interval_fraction",
+        "trap_relaxation_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "fine enough to resolve the approach to steady state and to measure the autocorrelation the error model rests on"
+    },
+    {
+      "name": "save_interval_min",
+      "value": 2e-05,
+      "unit": "s",
+      "source": "computed:hundredth_of_relaxation_time",
+      "grade": "E5",
+      "formula": "0.01*trap_relaxation_time_min",
+      "inputs": [
+        "trap_relaxation_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A LOWER BOUND, WHICH THIS AXIS DOES NOT USUALLY CARRY. For a MEAN, samples closer together than the correlation time are not independent and add no information -- only storage. That is the reverse of the diffusivity case, where the MSD fit needs lags far below tau_d and oversampling is what buys the short-lag points. Saving faster than this is pure cost"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_save_fraction",
+      "statement": "A tenth of the relaxation time resolves the autocorrelation whose shape the A2 error model assumes, which is the one thing the run can genuinely check about its own statistics.",
+      "numbers": [
+        "save_interval_fraction"
+      ],
+      "falsifier": "a first run whose measured autocorrelation is flat between a tenth and a half of tau_t loosens it",
+      "gap_ref": "save_interval_fraction_of_relaxation_time_absent"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "save_interval_fraction_of_relaxation_time_absent",
+      "observable": "save_interval_fraction_of_relaxation_time",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='save_interval_fraction_of_relaxation_time', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a4",
+      "asked_at": "2026-09-23T20:38:00Z"
+    }
+  ],
+  "degraded": []
+}

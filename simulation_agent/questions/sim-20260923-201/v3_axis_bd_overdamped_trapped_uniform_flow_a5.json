@@ -1,0 +1,161 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-201-bd_overdamped_trapped_uniform_flow-a5-r3",
+  "qid": "sim-20260923-201",
+  "thread": "solo-sim-20260923-201",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T21:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a5",
+  "config": "bd_overdamped_trapped_uniform_flow",
+  "axis": "a5",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "integration_steps",
+      "unit": "1",
+      "max": 200000.0,
+      "basis": [
+        "steps_max_per_point"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "record_length/integration_timestep <= wall_clock_max/(cost_per_step*sweep_points), at every sweep point",
+      "parameter": "integration_steps",
+      "state": "returned",
+      "interval": {
+        "parameter": "integration_steps",
+        "unit": "1",
+        "max": 200000.0,
+        "basis": [
+          "steps_max_per_point"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    },
+    {
+      "inequality": "predicted storage <= the local target's storage_max",
+      "parameter": "storage",
+      "state": "returned",
+      "precondition": {
+        "parameter": "storage",
+        "requires": "the plan must state the frame count, which is record_length/save_interval and so A2's and A4's to fix. The trajectory is written to disk now (013), so this is a real ceiling rather than a notional one, and it is not computed here for the same rule-b reason the wall clock is not",
+        "basis": [
+          "stiffness_points",
+          "speed_points"
+        ]
+      }
+    }
+  ],
+  "note": "THE STEP BUDGET CARRIES NO `varies_with`, AND THAT IS DELIBERATE: a wall clock shared across the sweep is one pot, and the bound on each point's share really is the same number at every point. Every other interval in this question moves with the stiffness; this one does not, and the difference is that the others come from the physics at a point while this comes from a budget over all of them. THE COST MODEL IS BRACKETED AND THE BRACKET STRADDLES THE CEILING. The upper end is measured at 1000 particles and the lower divides it by 1000, and the true single-particle cost is between them -- three decades. A smoke run at N=1 collapses that to a number, and it cannot be run yet because this configuration has no backend: mock_backend and hoomd_backend both integrate free diffusion with no trap term and no flow term. Writing that integrator is what unblocks the measurement, and until then the budget above stands on the conservative end on purpose.",
+  "numbers": [
+    {
+      "name": "stiffness_points",
+      "value": 4,
+      "unit": "1",
+      "source": "assumed:a_sweep_grid",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "one point per decade across the three-decade stiffness sweep, plus its end"
+    },
+    {
+      "name": "speed_points",
+      "value": 3,
+      "unit": "1",
+      "source": "assumed:a_sweep_grid",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "one per decade of the dimensionless offset, plus its end. A drag calibration needs at least three speeds for the slope to have a residual"
+    },
+    {
+      "name": "cost_per_step_upper",
+      "value": 0.004,
+      "unit": "s",
+      "source": "prior_run:run-20260922-hoomd-s3",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "44.9 s of wall clock over 10000 steps on hoomd_backend, and mock_backend gave 43.1 s for the same run. AN UPPER BOUND FOR THIS QUESTION AND NOT THE VALUE: that run carried 1000 particles and this configuration carries ONE, so the real per-step cost is somewhere below it"
+    },
+    {
+      "name": "cost_per_particle_step_lower",
+      "value": 4e-06,
+      "unit": "s",
+      "source": "prior_run:run-20260922-hoomd-s3",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "the same 44.9 s divided by 10000 steps AND by 1000 particles. A LOWER BOUND, and it is the optimistic end because it assumes the per-step overhead vanishes at one particle, which it does not. The true single-particle cost lies between these two, three decades apart, and only a run at N=1 says where -- which is what the smoke run is for"
+    },
+    {
+      "name": "steps_max_per_point",
+      "value": 200000.0,
+      "unit": "1",
+      "source": "assumed:a_step_budget",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the share of the local wall clock one sweep point may spend, as a step count. NO `formula`, following axis_a5_budget: the ceiling is a decision the person owns and 5.3 has no source kind for one, so carrying it as a graded input would dress a decision as an estimate. The arithmetic is in the rationale, where a reader can check it and no check re-evaluates it. Against the LOWER cost bound this number is three decades larger, which is the whole uncertainty."
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_step_budget",
+      "statement": "Two hours from envelope/budget.json, chosen by the person on 2026-09-19, over the measured upper cost of 4 ms a step, over the twelve sweep points: 7200 / 0.004 / 12, about 150 thousand steps a point, written to one significant figure. THE UPPER COST IS THE CONSERVATIVE END OF A THREE-DECADE BRACKET -- measured at 1000 particles while this configuration runs one -- so against the lower end the budget is a thousand times larger and the sweep is free. The store holds no cost-per-step entry at all, which is the gap this stands on. AND 5.3 HAS NO SOURCE KIND FOR A DECISION, so the ceiling and the person's target both arrive wearing `assumed:`, which means an estimate; second instance in this one question, raised rather than worked around.",
+      "numbers": [
+        "steps_max_per_point"
+      ],
+      "falsifier": "a smoke run at N=1 replaces the cost bracket with a measured value and this number moves by up to three decades; a store entry for the per-step cost does the same with no run; and 5.3 gaining a source kind for a decision retires the prefix complaint",
+      "gap_ref": "cost_per_particle_step_overdamped_absent"
+    },
+    {
+      "rationale_id": "a_sweep_grid",
+      "statement": "A point per decade is the coarsest grid on which a slope has a residual and a trend is visible. The grid is a decision and not a measurement, and it is here rather than in the goal because it is what turns two ranges into a run count.",
+      "numbers": [
+        "stiffness_points",
+        "speed_points"
+      ],
+      "falsifier": "a first sweep in which the recovered error is flat across stiffness, which is the prediction, allows the stiffness axis to be thinned to its two ends; a curved slope residual demands more speeds",
+      "gap_ref": "flow_speed_absent"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "cost_per_particle_step_overdamped_absent",
+      "observable": "cost_per_particle_step_overdamped",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='cost_per_particle_step_overdamped', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a5",
+      "asked_at": "2026-09-23T20:38:00Z"
+    },
+    {
+      "gap_id": "flow_speed_absent",
+      "observable": "flow_speed",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='flow_speed', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a5",
+      "asked_at": "2026-09-23T20:38:00Z"
+    }
+  ],
+  "degraded": []
+}

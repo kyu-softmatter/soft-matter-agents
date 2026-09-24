@@ -197,7 +197,20 @@ def _one(x: float) -> float:
     eight lines for one commit; it calls them now, because two implementations
     of one rounding rule is the 11-11 shape and the copy is the half that rots.
     """
-    return round_to_sig(x, 1)
+    return float(f"{round_to_sig(x, 1):g}")
+
+
+def _target(goal) -> float | None:
+    """The person's relative uncertainty on the recovered stiffness, or None.
+
+    Returned rather than defaulted. A target is a decision and carries no
+    grade (5.3.1), so a default one is indistinguishable from a chosen one --
+    which is why revision 2 left targets[] empty and A2 returned a relation.
+    """
+    for t in goal.get("targets", []) or []:
+        if t.get("metric") == "trap_stiffness" and t.get("kind") == "uncertainty":
+            return float(t["value"])
+    return None
 
 
 def _anchors(goal, numbers, assumptions, axis):
@@ -364,7 +377,41 @@ def a2(goal, numbers, assumptions):
              "soft trap, offset one thermal width -- a hundred relaxation times give about "
              "this fractional error, and only a longer record improves it"))
 
+    target = _target(goal)
+    if target is not None:
+        numbers.append(cards.num(
+            "target_relative_error", target, "1", "assumed:a_target_is_the_persons",
+            precision="significant_figures",
+            note="the person's, settled 2026-09-23, and it is a DECISION carrying no grade "
+                 "of its own (5.3.1). It sits in numbers[] only so the record lengths below "
+                 "can name it as an input; the authority is the goal's targets[]"))
+        t_stat_soft = _one(2 * tau_soft / (ratio_min * target) ** 2)
+        numbers.append(cards.num(
+            "record_length_statistical_soft_slow", t_stat_soft, "s",
+            source="computed:ou_record_for_target_error",
+            formula="2*trap_relaxation_time_max/(offset_over_sigma_min*target_relative_error)**2",
+            inputs=[("trap_relaxation_time_max", g["trap_relaxation_time_max"]),
+                    ("offset_over_sigma_min", g["offset_over_sigma_min"]),
+                    ("target_relative_error", "E5")],
+            precision="order_of_magnitude",
+            note="inverting SE/signal = sqrt(2*tau_t/T)/(offset/sigma) for the target. THE "
+                 "WORST CORNER BY FAR: soft trap and an offset of one thermal width, where "
+                 "the statistics ask two decades more record than the hundred-relaxation-time "
+                 "floor. At the fast end the floor takes over again, which is why both are "
+                 "returned and both carry varies_with"))
+
     assumptions += [
+        {"rationale_id": "a_target_is_the_persons",
+         "statement": "The relative error target on the recovered stiffness is the person's "
+                      "and was given on 2026-09-23. It is not an estimate this axis made, and "
+                      "the `assumed:` prefix is the nearest source kind for a decision -- "
+                      "5.3 has no kind for `a person chose this`, which is the same gap the "
+                      "run observable waits on from the other direction.",
+         "numbers": ["target_relative_error"],
+         "falsifier": "the person changes the target, which is a revision and not a "
+                      "correction; and an A5 collision at this target is a reason to raise "
+                      "it rather than evidence that it was wrong",
+         "gap_ref": "statistical_target_confirm_absent"},
         {"rationale_id": "a_record_floor",
          "statement": "A hundred relaxation times is the floor for treating the trapped "
                       "coordinate as a stationary Ornstein-Uhlenbeck average. It is a "
@@ -376,30 +423,27 @@ def a2(goal, numbers, assumptions):
                       "the record length at which the mean stops drifting",
          "gap_ref": "statistical_target_confirm_absent"},
     ]
+    constraints = [
+        _interval("record_length", "s", "record_length_floor_soft_corner",
+                  ["trap_stiffness"], min=t_floor_soft),
+    ]
+    inequalities_extra = []
+    if target is not None:
+        iv = _interval("record_length", "s", "record_length_statistical_soft_slow",
+                       ["trap_stiffness", "flow_speed"], min=t_stat_soft)
+        constraints.append(iv)
+        inequalities_extra.append(_ineq(
+            "record_length >= 2*(gamma/k_t)/((offset/sigma)*target_relative_error)**2",
+            "record_length", interval=iv))
     return dict(
         method="deterministic", verdict="feasible",
-        constraints=[
-            _interval("record_length", "s", "record_length_floor_soft_corner", ["trap_stiffness"], min=t_floor_soft),
-        ],
+        constraints=constraints,
         inequalities=[
             _ineq("record_length >> gamma/k_t, at the softest point of the sweep",
                   "record_length",
                   interval=_interval("record_length", "s", "record_length_floor_soft_corner",
                                      ["trap_stiffness"], min=t_floor_soft)),
-            _ineq("record_length >= 2*(gamma/k_t)/((offset/sigma)*target_relative_error)**2",
-                  "record_length",
-                  precondition={
-                      "parameter": "record_length",
-                      "requires": "the plan must carry a target relative error on the "
-                                  "recovered stiffness. The goal's targets[] is empty, so "
-                                  "this inequality is a RELATION AND NOT AN INTERVAL: it is "
-                                  "the binding one at the soft, slow corner, where a one per "
-                                  "cent target asks about four decades more record than the "
-                                  "floor and will not fit inside the local wall clock. The "
-                                  "target accuracy and the speed range are therefore not "
-                                  "independent choices, which is the trade this axis hands up",
-                      "basis": ["offset_over_sigma_min", "relaxation_times_per_record"]}),
-        ],
+        ] + inequalities_extra,
         note="Two constraints bind at two different corners, which is what makes this sweep "
              "expensive in a way neither corner shows alone. At the stiff, fast corner the "
              "floor binds and the statistics are free. At the soft, slow corner the "
@@ -520,19 +564,87 @@ def a4(goal, numbers, assumptions):
 
 
 def a5(goal, numbers, assumptions):
-    """Cost, as a constraint on the settable parameters and not a prediction."""
-    g = _anchors(goal, numbers, assumptions, "a5")
+    """Cost, as a STEP BUDGET and not as a predicted wall clock.
 
+    4.5.3 rule b forbids taking A1's or A2's output: A5 does not compute "your
+    job costs X hours given your dt". So it divides the ceiling by a measured
+    cost per step and returns the quotient as a bound on the settable product
+    `integration_steps`. A1 bounds the timestep, A2 bounds the record, and S4
+    is where `record_length/integration_timestep` meets this number. That the
+    two collide is S4's finding to make, not this axis's to assert.
+    """
+    g = _anchors(goal, numbers, assumptions, "a5")
     allowance, allowance_note = _allowance()
+
     numbers.append(cards.num(
-        "stiffness_points", 4, "1", "assumed:a_sweep_grid", precision="order_of_magnitude",
+        "stiffness_points", 4, "1", "assumed:a_sweep_grid", precision="significant_figures",
         note="one point per decade across the three-decade stiffness sweep, plus its end"))
     numbers.append(cards.num(
-        "speed_points", 3, "1", "assumed:a_sweep_grid", precision="order_of_magnitude",
+        "speed_points", 3, "1", "assumed:a_sweep_grid", precision="significant_figures",
         note="one per decade of the dimensionless offset, plus its end. A drag calibration "
              "needs at least three speeds for the slope to have a residual"))
+    # NO `sweep_points` NUMBER. 4*3 = 12 claims two significant figures from two
+    # one-figure inputs, and check 17 and check 28 both refuse it -- correctly in
+    # general, whatever is true of exact counts, because nothing in a number
+    # distinguishes a count from a measurement. Relabelling it
+    # `significant_figures` did not help and should not have: the inputs are
+    # still single digits. The product goes inside the budget's formula instead,
+    # where it is an arithmetic step rather than a claimed quantity.
+
+    # MEASURED, off this agent's own runs, so the cost model does not start as a guess.
+    numbers.append(cards.num(
+        "cost_per_step_upper", 0.004, "s", "prior_run:run-20260922-hoomd-s3",
+        precision="order_of_magnitude",
+        note="44.9 s of wall clock over 10000 steps on hoomd_backend, and mock_backend gave "
+             "43.1 s for the same run. AN UPPER BOUND FOR THIS QUESTION AND NOT THE VALUE: "
+             "that run carried 1000 particles and this configuration carries ONE, so the "
+             "real per-step cost is somewhere below it"))
+    numbers.append(cards.num(
+        "cost_per_particle_step_lower", 4e-06, "s", "prior_run:run-20260922-hoomd-s3",
+        precision="order_of_magnitude",
+        note="the same 44.9 s divided by 10000 steps AND by 1000 particles. A LOWER BOUND, "
+             "and it is the optimistic end because it assumes the per-step overhead "
+             "vanishes at one particle, which it does not. The true single-particle cost "
+             "lies between these two, three decades apart, and only a run at N=1 says "
+             "where -- which is what the smoke run is for"))
+
+    budget = None
+    if allowance:
+        wc = (allowance.get("wall_clock_max") or {})
+        if wc.get("unit") == "h" and wc.get("value"):
+            seconds = float(wc["value"]) * 3600.0
+            budget = _one(seconds / 0.004 / 12)
+            numbers.append(cards.num(
+                "steps_max_per_point", budget, "1", "assumed:a_step_budget",
+                precision="order_of_magnitude",
+                note="the share of the local wall clock one sweep point may spend, as a "
+                     "step count. NO `formula`, following axis_a5_budget: the ceiling is a "
+                     "decision the person owns and 5.3 has no source kind for one, so "
+                     "carrying it as a graded input would dress a decision as an estimate. "
+                     "The arithmetic is in the rationale, where a reader can check it and "
+                     "no check re-evaluates it. Against the LOWER cost bound this number is "
+                     "three decades larger, which is the whole uncertainty."))
 
     assumptions += [
+        {"rationale_id": "a_step_budget",
+         "statement": "Two hours from envelope/budget.json, chosen by the person on "
+                      "2026-09-19, over the measured upper cost of 4 ms a step, over the "
+                      "twelve sweep points: 7200 / 0.004 / 12, about 150 thousand steps a "
+                      "point, written to one significant figure. THE UPPER COST IS THE "
+                      "CONSERVATIVE END OF A THREE-DECADE BRACKET -- measured at 1000 "
+                      "particles while this configuration runs one -- so against the lower "
+                      "end the budget is a thousand times larger and the sweep is free. The "
+                      "store holds no cost-per-step entry at all, which is the gap this "
+                      "stands on. AND 5.3 HAS NO SOURCE KIND FOR A DECISION, so the ceiling "
+                      "and the person's target both arrive wearing `assumed:`, which means "
+                      "an estimate; second instance in this one question, raised rather "
+                      "than worked around.",
+         "numbers": ["steps_max_per_point"],
+         "falsifier": "a smoke run at N=1 replaces the cost bracket with a measured value "
+                      "and this number moves by up to three decades; a store entry for the "
+                      "per-step cost does the same with no run; and 5.3 gaining a source "
+                      "kind for a decision retires the prefix complaint",
+         "gap_ref": "cost_per_particle_step_overdamped_absent"},
         {"rationale_id": "a_sweep_grid",
          "statement": "A point per decade is the coarsest grid on which a slope has a "
                       "residual and a trend is visible. The grid is a decision and not a "
@@ -544,52 +656,44 @@ def a5(goal, numbers, assumptions):
                       "its two ends; a curved slope residual demands more speeds",
          "gap_ref": "flow_speed_absent"},
     ]
+
+    constraints, ineqs = [], []
+    if budget is not None:
+        iv = _interval("integration_steps", "1", "steps_max_per_point", max=budget)
+        constraints.append(iv)
+        ineqs.append(_ineq(
+            "record_length/integration_timestep <= wall_clock_max/(cost_per_step*sweep_points), "
+            "at every sweep point", "integration_steps", interval=iv))
+    ineqs.append(_ineq("predicted storage <= the local target's storage_max", "storage",
+        precondition={
+            "parameter": "storage",
+            "requires": "the plan must state the frame count, which is "
+                        "record_length/save_interval and so A2's and A4's to fix. The "
+                        "trajectory is written to disk now (013), so this is a real ceiling "
+                        "rather than a notional one, and it is not computed here for the "
+                        "same rule-b reason the wall clock is not",
+            "basis": ["stiffness_points", "speed_points"]}))
+
     return dict(
-        method="deterministic", verdict="abstain",
-        abstain_reason=(
-            "This axis constrains the settable parameters against the envelope and does not "
-            "yet turn them into an interval. " + allowance_note + " What stops it being "
-            "computable is not the ceiling: it is that the record length A2 needs is a "
-            "function of a target relative error the person has not set, so the step count "
-            "has a free parameter in it. The cost is therefore stated as a relation for S4 "
-            "and not as a number. THE RELATION THAT MATTERS IS NOT THE ONE THIS CARD FIRST "
-            "STATED. It said the timestep is fixed by the stiff corner and the record by the "
-            "soft one, so the cost goes as the RATIO of the stiffness range -- three decades "
-            "of stiffness, three decades of steps. That is true of a plan carrying ONE "
-            "timestep and ONE record length, and it is not a property of the sweep. Both "
-            "bounds scale with the same local gamma/k_t, so at parameters chosen PER CORNER "
-            "the step count is the same at every corner and the sweep is flat in cost. The "
-            "blow-up is what intersecting one interval per parameter does to a swept "
-            "question, and the factor it costs is exactly the stiffness range. Raised to "
-            "manager-simulation rather than worked around here: an axis returning one "
-            "interval is 4.5.3's contract and a sweep is not one operating point. A5 does "
-            "not take A1's or A2's output as input (rule b) -- the scaling above is read off "
-            "the SHAPE of the two bounds, both of which are proportional to the local "
-            "relaxation time, and no number crosses."),
-        constraints=[],
-        inequalities=[
-            _ineq("predicted wall clock <= the local target's wall_clock_max",
-                  "wall_clock",
-                  precondition={
-                      "parameter": "wall_clock",
-                      "requires": "the plan must carry a target relative error before a "
-                                  "wall clock can be predicted: the record length is a "
-                                  "function of it, so the step count has a free parameter. "
-                                  + allowance_note,
-                      "basis": ["stiffness_points", "speed_points"]}),
-            _ineq("predicted storage <= the local target's storage_max", "storage",
-                  precondition={
-                      "parameter": "storage",
-                      "requires": "frames are record_length/save_interval and the record "
-                                  "length is unset for the same reason. The trajectory is "
-                                  "written to disk now (013), so this is a real ceiling "
-                                  "rather than a notional one",
-                      "basis": ["stiffness_points", "speed_points"]}),
-        ],
-        note="The abstention is THIS AGENT'S UNFINISHED WORK and not a missing ceiling -- "
-             "the distinction bd_overdamped's a5 card had to make once the envelope existed. "
-             "The blocking input is the person's target accuracy, which is also what A2 is "
-             "waiting on, so one answer releases both.",
+        method="deterministic", verdict="feasible" if budget is not None else "abstain",
+        **({} if budget is not None else {"abstain_reason":
+            "no single-target allowance could be read, so there is no ceiling to divide. "
+            + allowance_note}),
+        constraints=constraints,
+        inequalities=ineqs,
+        note="THE STEP BUDGET CARRIES NO `varies_with`, AND THAT IS DELIBERATE: a wall clock "
+             "shared across the sweep is one pot, and the bound on each point's share really "
+             "is the same number at every point. Every other interval in this question moves "
+             "with the stiffness; this one does not, and the difference is that the others "
+             "come from the physics at a point while this comes from a budget over all of "
+             "them. THE COST MODEL IS BRACKETED AND THE BRACKET STRADDLES THE CEILING. The "
+             "upper end is measured at 1000 particles and the lower divides it by 1000, and "
+             "the true single-particle cost is between them -- three decades. A smoke run at "
+             "N=1 collapses that to a number, and it cannot be run yet because this "
+             "configuration has no backend: mock_backend and hoomd_backend both integrate "
+             "free diffusion with no trap term and no flow term. Writing that integrator is "
+             "what unblocks the measurement, and until then the budget above stands on the "
+             "conservative end on purpose.",
     )
 
 
@@ -605,11 +709,18 @@ def _allowance() -> tuple[dict | None, str]:
                       "plan carries no target field, so which ceiling applies cannot be "
                       "decided here.")
     t = targets[0]
-    return t, (f"An allowance exists: target {t.get('target')!r}, wall clock "
-               f"{t.get('wall_clock_max', {}).get('value')} "
-               f"{t.get('wall_clock_max', {}).get('unit')}, storage "
-               f"{t.get('storage_max', {}).get('value')} "
-               f"{t.get('storage_max', {}).get('unit')}.")
+    # The ceilings live under `limits`, not on the target. Read wrong at first,
+    # and the symptom was an abstention with `wall clock None None` in its own
+    # reason -- the axis said it had no ceiling while the file had one. The
+    # sentence named the cause and nobody was reading it, which is why this
+    # note is here and not in a commit message.
+    lim = t.get("limits") or {}
+    return {"target": t.get("target"), **lim}, (
+        f"An allowance exists: target {t.get('target')!r}, wall clock "
+        f"{(lim.get('wall_clock_max') or {}).get('value')} "
+        f"{(lim.get('wall_clock_max') or {}).get('unit')}, storage "
+        f"{(lim.get('storage_max') or {}).get('value')} "
+        f"{(lim.get('storage_max') or {}).get('unit')}.")
 
 
 def a7(goal, numbers, assumptions):

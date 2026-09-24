@@ -1,0 +1,411 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-201-bd_overdamped_trapped_uniform_flow-a7-r3",
+  "qid": "sim-20260923-201",
+  "thread": "solo-sim-20260923-201",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T21:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a7",
+  "config": "bd_overdamped_trapped_uniform_flow",
+  "axis": "a7",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "flow_speed",
+      "unit": "um/s",
+      "max": 30.0,
+      "basis": [
+        "flow_speed_max_soft_corner"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
+    },
+    {
+      "parameter": "startup_discard",
+      "unit": "s",
+      "min": 20.0,
+      "basis": [
+        "startup_discard_soft_corner"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "the imposed speed realises the declared dimensionless offset at each stiffness",
+      "parameter": "flow_speed",
+      "state": "returned",
+      "interval": {
+        "parameter": "flow_speed",
+        "unit": "um/s",
+        "max": 30.0,
+        "basis": [
+          "flow_speed_max_soft_corner"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    },
+    {
+      "inequality": "startup_discard >> gamma/k_t, so the record begins at steady state",
+      "parameter": "startup_discard",
+      "state": "returned",
+      "interval": {
+        "parameter": "startup_discard",
+        "unit": "s",
+        "min": 20.0,
+        "basis": [
+          "startup_discard_soft_corner"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    },
+    {
+      "inequality": "Reynolds number << 1, so the overdamped model holds",
+      "parameter": "flow_speed",
+      "state": "returned",
+      "precondition": {
+        "parameter": "flow_speed",
+        "requires": "the plan must state the fluid density this premise rests on. THE NUMBER WAS WRITTEN HERE AND REMOVED: rho*v*d/eta needs a density, the store carries water's VISCOSITY and not its density, and a literal 1000 in the formula made check 17 report a dimension of L**3/M -- the check catching a constant smuggled in without its units, which is what P2 is for. The Peclet number beside it needs no density and is computed. By hand the Reynolds number is of order 1e-7 across the sweep, so the premise is not in doubt; what is missing is a graded number to stand it on",
+        "basis": [
+          "flow_speed_max_soft_corner"
+        ]
+      }
+    },
+    {
+      "inequality": "the steady-state offset stays inside the trap's quadratic range",
+      "parameter": "flow_speed",
+      "state": "returned",
+      "precondition": {
+        "parameter": "flow_speed",
+        "requires": "the plan must record that this is NOT CHECKABLE IN THIS MODEL, which is this axis's main finding. The potential is harmonic by declaration, so it has no linear range to leave and no maximum restoring force to exceed: the particle never escapes at any speed. On the bench both end a drag calibration, and the fast end of this sweep is where they would -- at the soft corner the largest offset is ten bead diameters, which no real optical trap survives. So the model reports the method working over a range the instrument does not have, and no run of it can detect that. kb:trap_escape_force is absent, so there is not even a number to compare against. Declaring a maximum trap force is the person's call and makes a different configuration rather than setting a parameter",
+        "basis": [
+          "flow_speed_max_soft_corner"
+        ]
+      }
+    }
+  ],
+  "note": "A7 STOPS ABSTAINING HERE, which is the structural difference from every other configuration this agent has run. It also owns the speed outright: because the statistics depend on the offset in thermal widths and not on the speed, the goal carries the dimensionless corners and this axis turns them into a speed at each stiffness. The one inequality it cannot close is the one that matters most for the bench, and it is a limit of the declared model rather than of the protocol.",
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the SI anchor: the particle in the bottle, measured directly. Sets the drag through Stokes and the soft end of the stiffness sweep through the thermal width",
+      "origin": "v3_goal.json#bead_diameter"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "a parameter of the noise amplitude and realised exactly by the model, not a thermostat setpoint. The room's reading; nothing actuates the sample (kb:sample_temperature_not_actuated)",
+      "origin": "v3_goal.json#temperature"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "pure water, validity 288 to 298 K and the temperature above is inside it. THE ENTRY SAYS `of order` one mPa s, so this is one significant figure and the precision below says so",
+      "origin": "v3_goal.json#viscosity"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "the free diffusivity of the anchor sphere. Here it is not the observable but the noise scale: it sets how long the offset must be averaged",
+      "origin": "v3_goal.json#diffusivity"
+    },
+    {
+      "name": "sigma_over_diameter_soft_corner",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_stiffness_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "at the soft end of the sweep the thermal width is a tenth of the bead diameter. Softer than that and the bead wanders far enough that a real trap would stop being quadratic, so this corner is where the declared harmonic model stops flattering itself",
+      "origin": "v3_goal.json#sigma_over_diameter_soft_corner"
+    },
+    {
+      "name": "trap_stiffness_max",
+      "value": 20,
+      "unit": "pN/um",
+      "source": "computed:stiffness_min_times_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "trap_stiffness_min*10**stiffness_decades",
+      "inputs": [
+        "trap_stiffness_min",
+        "stiffness_decades"
+      ],
+      "note": "the stiff corner. The thermal width here is about 20 nm",
+      "origin": "v3_goal.json#trap_stiffness_max"
+    },
+    {
+      "name": "trap_relaxation_time_min",
+      "value": 0.002,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_max",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_max"
+      ],
+      "note": "gamma/k_t at the STIFF corner: the shortest characteristic time in the problem, and what the timestep and the save interval are measured in. Three decades below the soft corner, which is the whole cost of the sweep",
+      "origin": "v3_goal.json#trap_relaxation_time_min"
+    },
+    {
+      "name": "trap_relaxation_time_max",
+      "value": 2,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_min",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_min"
+      ],
+      "note": "gamma/k_t at the SOFT corner: the longest relaxation time in the sweep, and what the record length and the steady-state wait are measured in",
+      "origin": "v3_goal.json#trap_relaxation_time_max"
+    },
+    {
+      "name": "offset_over_sigma_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_speed_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "two decades up, where a single frame already shows the offset. The SPEED this becomes depends on the stiffness, so the speed is an A7 interval per corner and not one number here",
+      "origin": "v3_goal.json#offset_over_sigma_max"
+    },
+    {
+      "name": "flow_speed_max_soft_corner",
+      "value": 30.0,
+      "unit": "um/s",
+      "source": "computed:offset_ratio_times_width_over_tau",
+      "grade": "E5",
+      "formula": "offset_over_sigma_max*sigma_over_diameter_soft_corner*bead_diameter/trap_relaxation_time_max",
+      "inputs": [
+        "offset_over_sigma_max",
+        "sigma_over_diameter_soft_corner",
+        "bead_diameter",
+        "trap_relaxation_time_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "v = (offset/sigma)*sigma/tau_t. THE SPEED IS NOT ONE NUMBER FOR THE SWEEP: the same speed is a large offset in a soft trap and invisible in a stiff one, so A7 returns a speed per stiffness and the goal carries the dimensionless corner instead"
+    },
+    {
+      "name": "flow_speed_max_stiff_corner",
+      "value": 700.0,
+      "unit": "um/s",
+      "source": "computed:offset_ratio_times_width_over_tau",
+      "grade": "E5",
+      "formula": "offset_over_sigma_max*(k_B*temperature/trap_stiffness_max)**0.5/trap_relaxation_time_min",
+      "inputs": [
+        "offset_over_sigma_max",
+        "temperature",
+        "trap_stiffness_max",
+        "trap_relaxation_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the same dimensionless offset at the stiff corner needs a speed larger by sqrt(1000), because sigma falls as 1/sqrt(k_t) while tau_t falls as 1/k_t"
+    },
+    {
+      "name": "peclet_number_max",
+      "value": 2000.0,
+      "unit": "1",
+      "source": "computed:v_d_over_diffusivity",
+      "grade": "E5",
+      "formula": "flow_speed_max_soft_corner*bead_diameter/diffusivity",
+      "inputs": [
+        "flow_speed_max_soft_corner",
+        "bead_diameter",
+        "diffusivity"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "advection against diffusion over a bead diameter. Large at the fast end, which is the point: that is where the offset is visible in a single frame"
+    },
+    {
+      "name": "startup_relaxation_times",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_startup",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how many gamma/k_t to discard after the flow is switched on, before the record begins"
+    },
+    {
+      "name": "startup_discard_soft_corner",
+      "value": 20.0,
+      "unit": "s",
+      "source": "computed:startup_times_tau",
+      "grade": "E5",
+      "formula": "startup_relaxation_times*trap_relaxation_time_max",
+      "inputs": [
+        "startup_relaxation_times",
+        "trap_relaxation_time_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the approach to the displaced steady state is exponential with time constant gamma/k_t, so ten of them leaves a residual offset error below a per-mille. DECLARED IN ADVANCE and evaluated by the operator, never chosen after seeing the data"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_stiffness_decades",
+      "statement": "The person has not given a stiffness range. The soft corner is derived rather than recalled: it is the stiffness at which the thermal width is a tenth of the bead diameter, which is where a real trap's quadratic approximation starts to fail, so it is the softest corner at which the declared harmonic model is not already flattering itself. Three decades upward covers the span an optical trap is usually operated over. Nothing here is a number taken from an instrument -- the store has no trap stiffness at all, which is the gap cited.",
+      "numbers": [
+        "sigma_over_diameter_soft_corner"
+      ],
+      "falsifier": "a person's stiffness range replaces both ends; an A5 cost over the local ceiling at the stiff corner drops that end and says so; and a first run in which the recovered stiffness drifts with the corner rather than staying flat falsifies the claim that the error is stiffness-independent, which is the result this sweep exists to test",
+      "gap_ref": "trap_stiffness_absent"
+    },
+    {
+      "rationale_id": "a_speed_decades",
+      "statement": "The person has not given a speed range. Sweeping the speed directly would confound two things, because the same speed is a large offset in a soft trap and an invisible one in a stiff one. The dimensionless offset in thermal widths is what the statistics depend on, so the sweep is stated in it and A7 turns it into a speed interval at each stiffness. One to a hundred spans buried-in-noise to visible-per-frame.",
+      "numbers": [
+        "offset_over_sigma_max"
+      ],
+      "falsifier": "a person's speed range replaces both ends; and on the bench the upper end is cut by trap escape, which this purely harmonic model cannot see and A7 records as a limit of the model rather than of the protocol",
+      "gap_ref": "flow_speed_absent"
+    },
+    {
+      "rationale_id": "a_startup",
+      "statement": "Ten relaxation times of discard. The displaced mean approaches its steady value as exp(-t*k_t/gamma) with no other slow mode in this model, so the residual is set purely by the multiple chosen.",
+      "numbers": [
+        "startup_relaxation_times"
+      ],
+      "falsifier": "a first run whose running mean is still drifting after ten relaxation times falsifies the single-exponential premise and therefore the model, not just the multiple",
+      "gap_ref": "flow_speed_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "declared_versus_inferred_temperature",
+      "grade": "E4",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Temperature enters the two sides differently, and the difference is not symmetric. In simulation the declared temperature is realised by construction; in the experiment nothing actuates the sample and the only thermometer reads the room, so a temperature used there is inferred. The uncertainty therefore sits entirely on the experiment side."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's."
+    },
+    {
+      "entry_id": "no_thermometer_at_the_sample",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "There is no thermometer beside the sample. The only thermometer in the laboratory reads the room, so any temperature attributed to the sample is a room reading applied to it."
+    },
+    {
+      "entry_id": "room_temperature_is_controlled",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The room is held continuously by air conditioning. There is a setpoint on this instrument's environment -- it is the room's, not the sample's."
+    },
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "trap_heating_detection_bound",
+      "grade": "E5",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The operator recalls not noticing a temperature change in the sample unless the infrared trapping laser was driven above roughly 20 percent on its dial. This records where noticing stopped, by means that were not recorded."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "flow_speed_absent",
+      "observable": "flow_speed",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='flow_speed', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a7",
+      "asked_at": "2026-09-23T20:38:00Z"
+    },
+    {
+      "gap_id": "trap_escape_force_absent",
+      "observable": "trap_escape_force",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='trap_escape_force', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a7",
+      "asked_at": "2026-09-23T20:38:00Z"
+    },
+    {
+      "gap_id": "trap_stiffness_absent",
+      "observable": "trap_stiffness",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='trap_stiffness', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a7",
+      "asked_at": "2026-09-23T20:38:00Z"
+    }
+  ],
+  "degraded": []
+}

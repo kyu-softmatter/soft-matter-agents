@@ -1,0 +1,182 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-201-bd_overdamped_trapped_uniform_flow-a3-r3",
+  "qid": "sim-20260923-201",
+  "thread": "solo-sim-20260923-201",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T21:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a3",
+  "config": "bd_overdamped_trapped_uniform_flow",
+  "axis": "a3",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "box_edge",
+      "unit": "um",
+      "min": 500.0,
+      "basis": [
+        "box_edge_min"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "box_edge >> the steady-state offset at the softest, fastest corner",
+      "parameter": "box_edge",
+      "state": "returned",
+      "interval": {
+        "parameter": "box_edge",
+        "unit": "um",
+        "min": 500.0,
+        "basis": [
+          "box_edge_min"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    }
+  ],
+  "note": "THE BOX BOUND CARRIES NO `varies_with`, AND THAT IS NOW AN ASSERTION. It is the one bound here that really is constant over the sweep: a box sized for the largest excursion anywhere fits every corner, and with no neighbour list it costs nothing to carry that size at the tight corners. Every other interval this configuration emits goes as the local gamma/k_t and says so. THIS AXIS IS NEARLY VACUOUS HERE AND SAYS SO RATHER THAN ABSTAINING. There is one particle, no pair potential and no wall, so there is no periodic image to meet and nothing in the physics depends on the box at all -- the bound above is a recording convention, not a physical constraint. It also costs nothing: with no interaction there is no neighbour list, so enlarging the box is free, which is the opposite of every other configuration where A3 and A5 trade against each other. The bound is still written down because the trajectory is stored in unwrapped coordinates (013) and a reader needs to know the offset never wrapped.",
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the SI anchor: the particle in the bottle, measured directly. Sets the drag through Stokes and the soft end of the stiffness sweep through the thermal width",
+      "origin": "v3_goal.json#bead_diameter"
+    },
+    {
+      "name": "sigma_over_diameter_soft_corner",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_stiffness_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "at the soft end of the sweep the thermal width is a tenth of the bead diameter. Softer than that and the bead wanders far enough that a real trap would stop being quadratic, so this corner is where the declared harmonic model stops flattering itself",
+      "origin": "v3_goal.json#sigma_over_diameter_soft_corner"
+    },
+    {
+      "name": "offset_over_sigma_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_speed_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "two decades up, where a single frame already shows the offset. The SPEED this becomes depends on the stiffness, so the speed is an A7 interval per corner and not one number here",
+      "origin": "v3_goal.json#offset_over_sigma_max"
+    },
+    {
+      "name": "max_offset_soft_corner",
+      "value": 50.0,
+      "unit": "um",
+      "source": "computed:offset_ratio_times_thermal_width",
+      "grade": "E5",
+      "formula": "offset_over_sigma_max*sigma_over_diameter_soft_corner*bead_diameter",
+      "inputs": [
+        "offset_over_sigma_max",
+        "sigma_over_diameter_soft_corner",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the largest steady-state displacement anywhere in the sweep, at the soft corner and the fast end. Ten bead diameters"
+    },
+    {
+      "name": "box_edge_min",
+      "value": 500.0,
+      "unit": "um",
+      "source": "computed:margin_times_max_offset",
+      "grade": "E5",
+      "formula": "10*max_offset_soft_corner",
+      "inputs": [
+        "max_offset_soft_corner"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a decade of margin on the excursion, so the recorded trajectory never approaches a boundary"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_stiffness_decades",
+      "statement": "The person has not given a stiffness range. The soft corner is derived rather than recalled: it is the stiffness at which the thermal width is a tenth of the bead diameter, which is where a real trap's quadratic approximation starts to fail, so it is the softest corner at which the declared harmonic model is not already flattering itself. Three decades upward covers the span an optical trap is usually operated over. Nothing here is a number taken from an instrument -- the store has no trap stiffness at all, which is the gap cited.",
+      "numbers": [
+        "sigma_over_diameter_soft_corner"
+      ],
+      "falsifier": "a person's stiffness range replaces both ends; an A5 cost over the local ceiling at the stiff corner drops that end and says so; and a first run in which the recovered stiffness drifts with the corner rather than staying flat falsifies the claim that the error is stiffness-independent, which is the result this sweep exists to test",
+      "gap_ref": "trap_stiffness_absent"
+    },
+    {
+      "rationale_id": "a_speed_decades",
+      "statement": "The person has not given a speed range. Sweeping the speed directly would confound two things, because the same speed is a large offset in a soft trap and an invisible one in a stiff one. The dimensionless offset in thermal widths is what the statistics depend on, so the sweep is stated in it and A7 turns it into a speed interval at each stiffness. One to a hundred spans buried-in-noise to visible-per-frame.",
+      "numbers": [
+        "offset_over_sigma_max"
+      ],
+      "falsifier": "a person's speed range replaces both ends; and on the bench the upper end is cut by trap escape, which this purely harmonic model cannot see and A7 records as a limit of the model rather than of the protocol",
+      "gap_ref": "flow_speed_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "trapped_particle_drag_offset_absent",
+      "observable": "trapped_particle_drag_offset",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='trapped_particle_drag_offset', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a3",
+      "asked_at": "2026-09-23T20:38:00Z"
+    },
+    {
+      "gap_id": "trap_stiffness_absent",
+      "observable": "trap_stiffness",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='trap_stiffness', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a3",
+      "asked_at": "2026-09-23T20:38:00Z"
+    },
+    {
+      "gap_id": "flow_speed_absent",
+      "observable": "flow_speed",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='flow_speed', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a3",
+      "asked_at": "2026-09-23T20:38:00Z"
+    }
+  ],
+  "degraded": []
+}

@@ -1,0 +1,282 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-201-bd_overdamped_trapped_uniform_flow-a1-r3",
+  "qid": "sim-20260923-201",
+  "thread": "solo-sim-20260923-201",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T21:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a1",
+  "config": "bd_overdamped_trapped_uniform_flow",
+  "axis": "a1",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "max": 2e-06,
+      "basis": [
+        "dt_max_drift"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness",
+        "flow_speed"
+      ]
+    },
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "max": 1e-05,
+      "basis": [
+        "dt_max_noise"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
+    },
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "max": 2e-05,
+      "basis": [
+        "dt_max_relaxation"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "v*dt << sigma at the fastest point of the sweep",
+      "parameter": "integration_timestep",
+      "state": "returned",
+      "interval": {
+        "parameter": "integration_timestep",
+        "unit": "s",
+        "max": 2e-06,
+        "basis": [
+          "dt_max_drift"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness",
+          "flow_speed"
+        ]
+      }
+    },
+    {
+      "inequality": "sqrt(2*D*dt) << sigma at the stiffest point",
+      "parameter": "integration_timestep",
+      "state": "returned",
+      "interval": {
+        "parameter": "integration_timestep",
+        "unit": "s",
+        "max": 1e-05,
+        "basis": [
+          "dt_max_noise"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    },
+    {
+      "inequality": "dt << gamma/k_t at the stiffest point",
+      "parameter": "integration_timestep",
+      "state": "returned",
+      "interval": {
+        "parameter": "integration_timestep",
+        "unit": "s",
+        "max": 2e-05,
+        "basis": [
+          "dt_max_relaxation"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    }
+  ],
+  "note": "S4 takes the tightest, which is the drift bound. All three are recorded because which one binds moves with the sweep: at the slow end the drift bound relaxes by two decades and the relaxation bound takes over. The middle one is kept knowing it is not independent -- sigma**2 = D*tau_t makes it the first one again -- because a reader who does not know that identity would otherwise add it back.",
+  "numbers": [
+    {
+      "name": "trap_relaxation_time_min",
+      "value": 0.002,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_max",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_max"
+      ],
+      "note": "gamma/k_t at the STIFF corner: the shortest characteristic time in the problem, and what the timestep and the save interval are measured in. Three decades below the soft corner, which is the whole cost of the sweep",
+      "origin": "v3_goal.json#trap_relaxation_time_min"
+    },
+    {
+      "name": "offset_over_sigma_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_speed_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "two decades up, where a single frame already shows the offset. The SPEED this becomes depends on the stiffness, so the speed is an A7 interval per corner and not one number here",
+      "origin": "v3_goal.json#offset_over_sigma_max"
+    },
+    {
+      "name": "dt_resolution_factor",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_dt_factor",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how far below the shortest resolved time the step sits. Two decades is the usual margin for an overdamped integrator, a convention and not a derivation"
+    },
+    {
+      "name": "dt_max_relaxation",
+      "value": 2e-05,
+      "unit": "s",
+      "source": "computed:factor_times_relaxation_time",
+      "grade": "E5",
+      "formula": "dt_resolution_factor*trap_relaxation_time_min",
+      "inputs": [
+        "dt_resolution_factor",
+        "trap_relaxation_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "dt << gamma/k_t at the STIFF corner, which is the shortest characteristic time in the problem. bd_overdamped's A1 would have bounded the step by the diffusive time instead, five decades looser"
+    },
+    {
+      "name": "noise_step_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_noise_step",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the rms noise displacement per step as a fraction of the thermal width"
+    },
+    {
+      "name": "dt_max_noise",
+      "value": 1e-05,
+      "unit": "s",
+      "source": "computed:noise_step_inside_thermal_width",
+      "grade": "E5",
+      "formula": "0.5*noise_step_fraction**2*trap_relaxation_time_min",
+      "inputs": [
+        "noise_step_fraction",
+        "trap_relaxation_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "sqrt(2*D*dt) << sigma. NOT AN INDEPENDENT BOUND: sigma**2 = D*tau_t exactly, so this reduces to dt << tau_t and differs from the line above only by the factor chosen. Recorded because it looks independent and is not -- under a trap the thermal width IS the diffusive displacement over one relaxation time, which is why a seat reading bd_pairwise's A1, where the screening length and the curvature time are genuinely different scales, would expect two bounds here and find one"
+    },
+    {
+      "name": "drift_step_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_drift_step",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the flow's deterministic displacement per step as a fraction of the thermal width"
+    },
+    {
+      "name": "dt_max_drift",
+      "value": 2e-06,
+      "unit": "s",
+      "source": "computed:drift_step_inside_thermal_width",
+      "grade": "E5",
+      "formula": "drift_step_fraction*trap_relaxation_time_min/offset_over_sigma_max",
+      "inputs": [
+        "drift_step_fraction",
+        "trap_relaxation_time_min",
+        "offset_over_sigma_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "v*dt << sigma. THE ONE THAT BINDS, and the one bd_overdamped has no term for at all, because it has no drift. Writing v as (offset/sigma)*sigma/tau_t makes it dt << tau_t/(offset/sigma), so it is tighter than the relaxation bound by the whole dimensionless offset -- two decades at the fast corner"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_speed_decades",
+      "statement": "The person has not given a speed range. Sweeping the speed directly would confound two things, because the same speed is a large offset in a soft trap and an invisible one in a stiff one. The dimensionless offset in thermal widths is what the statistics depend on, so the sweep is stated in it and A7 turns it into a speed interval at each stiffness. One to a hundred spans buried-in-noise to visible-per-frame.",
+      "numbers": [
+        "offset_over_sigma_max"
+      ],
+      "falsifier": "a person's speed range replaces both ends; and on the bench the upper end is cut by trap escape, which this purely harmonic model cannot see and A7 records as a limit of the model rather than of the protocol",
+      "gap_ref": "flow_speed_absent"
+    },
+    {
+      "rationale_id": "a_dt_factor",
+      "statement": "Two decades below the shortest resolved time is the usual margin for an overdamped integrator. A convention, not a derivation, and no timestep scan has been run on this configuration.",
+      "numbers": [
+        "dt_resolution_factor"
+      ],
+      "falsifier": "a timestep scan showing the recovered stiffness flat over a wider range of steps replaces the factor with a measured one",
+      "gap_ref": "integration_timestep_resolution_factor_absent"
+    },
+    {
+      "rationale_id": "a_noise_step",
+      "statement": "A tenth of the thermal width per step. Kept although it is not independent of the relaxation bound, because the identity that makes it dependent is exact only for the harmonic potential declared here: add anharmonicity and the two separate again.",
+      "numbers": [
+        "noise_step_fraction"
+      ],
+      "falsifier": "a configuration with a non-quadratic trap makes this a distinct bound and this note wrong",
+      "gap_ref": "integration_timestep_resolution_factor_absent"
+    },
+    {
+      "rationale_id": "a_drift_step",
+      "statement": "A tenth of the thermal width of deterministic travel per step keeps the restoring force felt during a step close to the force at its start. This is the bound that decides dt, and it is set by the fast end of the speed sweep rather than by the trap alone.",
+      "numbers": [
+        "drift_step_fraction"
+      ],
+      "falsifier": "a person's narrower speed range raises it in proportion; a scan showing the recovered offset flat at larger drift fractions retires it",
+      "gap_ref": "flow_speed_absent"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "integration_timestep_resolution_factor_absent",
+      "observable": "integration_timestep_resolution_factor",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='integration_timestep_resolution_factor', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a1",
+      "asked_at": "2026-09-23T20:38:00Z"
+    },
+    {
+      "gap_id": "flow_speed_absent",
+      "observable": "flow_speed",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='flow_speed', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a1",
+      "asked_at": "2026-09-23T20:38:00Z"
+    }
+  ],
+  "degraded": []
+}
