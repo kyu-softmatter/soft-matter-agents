@@ -12,8 +12,8 @@ says it is blocked. A zero from the GUI is not a blocked beam.
 
 **Trap motion is a planned operation.** A line below that moves a trap runs
 under a plan the person approved. On 2026-09-24 this seat moved traps without
-one, laser off, at the person's direction; that is in `failures.jsonl` and is
-not a pass of any line here.
+one, at the person's direction, **with a sample mounted and the laser's state
+unconfirmed**; that is in `failures.jsonl` and is not a pass of any line here.
 
 Each line says what is tested, why, and what it rests on. A line that rests on
 no store entry says so and names the gap.
@@ -22,9 +22,9 @@ no store entry says so and names the gap.
 
 | | test | why | rests on |
 |---|---|---|---|
-| 0a | **the person says whether the program restores its last project on start**, and if it might, that the saved project has every trap off | loading saved state is a command that turns output on with no output command. On 2026-09-24 the program was closed by the person with two traps active (strength 0.3 and 0.2) and a pattern loaded; if those return on start, output rises before this seat sends anything | **no entry** — gap `tweez300_restores_last_project`. The devices table does not yet say whether this channel's restore path can carry output |
+| 0a | **the person says whether the program restores its last project on start**, and if it might, that the saved project has every trap off | loading saved state is a command that turns output on with no output command. On 2026-09-24 the program was closed by the person with two traps active (strength 0.3 and 0.2) and a pattern loaded; if those return on start, output rises before this seat sends anything | **the person, in this seat's window, 2026-09-24: "it doesn't restore the last project"** — offered to the librarian; not yet an entry, so gap `tweez300_restores_last_project` stays open until it is. The devices table does not yet say whether this channel's restore path can carry output. Keep the line: a setting can change |
 | 0b | the person says which camera body the program opens, and no other seat is using it | the program takes a Kinetix and locks other processes out both ways | the devices table, `camera_red` `exclusive_with: optical_tweezers_gui`, E3; **which body** is a gap, `tweez300_camera_body` |
-| 0c | the person says which objective is in the path, and whether the program was calibrated on it | both calibrations (pixel-to-micrometre and the trapping field) are invalidated silently by an objective change and neither is readable over TCP; without them no position is a micrometre | `objective_change_invalidates_trap_calibration`, E3 |
+| 0c | the person says which objective is in the path, and whether the program was calibrated on it | both calibrations (pixel-to-micrometre and the trapping field) are invalidated silently by an objective change and neither is readable over TCP; without them no position is a micrometre | `objective_change_invalidates_trap_calibration`, E3. **On 2026-09-24 the objective in the path was the 100x**, by the person's statement in this seat's window after the commands; whether the program was calibrated on it was not said |
 | 0d | the person sets the trapping power on the hand dial, and says what they set | the power has no software path; the setting is recorded only if the person states it | `trap_laser_power_has_no_software_path`, E3; the limit is `optical_power_max` in `envelope/safety.json`, and **nothing here can check compliance with it** |
 | 0e | the person says whether emission is on or off at the start | software can switch emission (`LASER_ON` / `LASER_OFF` are in the command set), and this module refuses `LASER_ON` outright; who switched it last is not readable | vendor manual, to be entered by the librarian from the document — **no entry yet** |
 
@@ -47,8 +47,9 @@ log goes into `runs/`. A statement made after a move does not count, and a log
 is never rebuilt to add one. Without both, a trap command is motion and needs a
 plan.
 
-Each was **seen once on 2026-09-24**, laser off, with `no_sample_mounted` never
-asked before the first move — so that record is not a preparatory run and stays
+Each was **seen once on 2026-09-24**, with neither gate asked before the first
+move — and **a sample was mounted**, by the person's later statement, with the
+laser's state unconfirmed — so that record is not a preparatory run and stays
 outside `runs/`. Re-run with both gates before anything here is relied on.
 
 | | test | why | rests on |
