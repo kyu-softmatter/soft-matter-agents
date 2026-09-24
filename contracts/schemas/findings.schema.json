@@ -25,8 +25,8 @@
         "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
         "fact": { "type": "string", "minLength": 10, "description": "the fact, in words, as it would be entered" },
         "kind": {
-          "enum": ["self_report", "document_fact", "person_statement", "prior_project_ruling", "observable_value"],
-          "description": "self_report: what a device said about itself, read back in a run. document_fact: read from a named document. person_statement: said by the person, and recorded somewhere this names. prior_project_ruling: an item from the prior project, ruled under 10.2.1. observable_value: a value of an observable registered in contracts/observables.json, which a preparatory run may not carry into the store"
+          "enum": ["self_report", "document_fact", "person_statement", "prior_project_ruling", "observable_value", "unmeasured"],
+          "description": "self_report: what a device said about itself, read back in a run. document_fact: read from a named document. person_statement: said by the person, and recorded somewhere this names. prior_project_ruling: an item from the prior project, ruled under 10.2.1. observable_value: a value of an observable registered in contracts/observables.json, which a preparatory run may not carry into the store. unmeasured: something a session looked for and could not establish, or that was never seen -- bit depth when no frame saturated, a reply code that never came. It is a finding because it tells the next session not to look for it as though it were known, and the store may hold it as a named gap. Its source is where the absence was established: the run event, the document, or the record searched. Added 2026-09-24, after microscope-20260924-4 found the cards asked for unmeasured items and this shape gave them no kind"
         },
         "how": { "type": "string", "minLength": 10, "description": "how it was established, in words" },
         "source": { "$ref": "#/$defs/source" },
