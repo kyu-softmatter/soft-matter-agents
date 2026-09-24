@@ -494,6 +494,25 @@ carries no `sys.executable` and no package versions. Until it does, the record
 cannot distinguish an engine result from one produced somewhere the engine was
 never installed.
 
+## Reports to the person
+
+**A report is generated, not written.** The sections and figures are specified
+in `tasks/022-reports-to-the-person-are-generated-with-figures.md`; once
+`src/report.py` exists, its header is the authority and that card is its
+history. Numbers come from the cards and run files, figures from the files on
+disk and never from re-running. What a seat writes by hand is only what no card
+holds: the purpose in words, the interpretation, the limits, and the decisions
+put to the person.
+
+**Every report carries figures**, and pictures and video where the physics is
+visible in motion — the person asked for this on 2026-09-23. Until the
+generator lands, figures may be made outside the tree however is quickest, and
+a script that imports `matplotlib` is not committed: the `sim` environment does
+not declare it yet, and the gate refuses an undeclared import.
+
+The body follows "Talking to the person" in the root `CLAUDE.md`: provenance in
+words, references only in the footer.
+
 ## Before committing
 
 ```bash
