@@ -253,7 +253,9 @@ def build_041(qid: str, created_at: str, revision: int) -> dict:
     per_pe = [f"{k}_pe_{l.split('_')[-1]}" for l in PE_LEVELS for k in ("integration_timestep_point", "box_length", "integration_timestep_max")]
     cells = [f"{a.split('_')[-1]}_{b.split('_')[-1]}" for a in PE_LEVELS for b in PHI_LEVELS]
     per_cell = [f"{k}_{c}" for c in cells for k in ("n_particles", "particle_steps", "coordinates_stored")]
-    wanted = [(syn_name, n) for n in shared + levels + per_pe + per_cell] + [(A5, "bytes_per_coordinate")]
+    syn_names = {n["name"] for n in syn["numbers"]}
+    ruled = [n for c in cells for n in (f"integration_timestep_point_{c}", f"box_length_{c}") if n in syn_names]
+    wanted = [(syn_name, n) for n in shared + levels + per_pe + per_cell + ruled] + [(A5, "bytes_per_coordinate")]
     numbers = synthesis.carry_from(qid, WCA, wanted)
     assumptions = synthesis.assumptions_for(qid, numbers)
     g = {n["name"]: n["grade"] for n in numbers}
@@ -297,9 +299,10 @@ def build_041(qid: str, created_at: str, revision: int) -> dict:
     for a in PE_LEVELS:
         for b in PHI_LEVELS:
             tag = f"{a.split('_')[-1]}_{b.split('_')[-1]}"
+            dt_n = f"integration_timestep_point_{tag}" if f"integration_timestep_point_{tag}" in ruled else f"integration_timestep_point_pe_{a.split('_')[-1]}"
+            box_n = f"box_length_{tag}" if f"box_length_{tag}" in ruled else f"box_length_pe_{a.split('_')[-1]}"
             pt = {"point": tag, "conditions": [cond("peclet_number_steric", a), cond("packing_fraction", b),
-                                                cond("integration_timestep", f"integration_timestep_point_pe_{a.split('_')[-1]}"),
-                                                cond("box_length", f"box_length_pe_{a.split('_')[-1]}")]}
+                                                cond("integration_timestep", dt_n), cond("box_length", box_n)]}
             if tag in skipped:
                 pt["skipped"] = skipped[tag]["reason"] + " (grounds: " + ", ".join(skipped[tag]["grounds"]) + ")"
             points.append(pt)
@@ -344,7 +347,9 @@ def build_041(qid: str, created_at: str, revision: int) -> dict:
              "statement": "the long-time slope agrees with itself across the fit range; if not, the lower bound sits inside the crossover and the number is not the plateau"},
         ],
         alternatives_rejected=[{"what": r["what"], "reason": r["reason"], "grounds": r["grounds"]} for r in syn.get("rejected", [])],
-        open_risks=[
+        open_risks=([
+            "The Pe 100, phi 0.01 cell runs by the person's ruling of 2026-09-23 with the step at A1's ceiling and a box of ONE persistence length. The box rests on the box compare's measurement (question 042 of this seat) at Pe 10 and phi 0.1, where one and ten persistence lengths agreed to 3 per cent; at Pe 100 that is an assumption, and this cell is its first test. If its effective diffusivity departs from the free expectation by more than the Pe 10 cells did, the box and not the physics is the first suspect.",
+        ] if ruled else []) + [
             f"Three of the nine cells are skipped -- the whole Pe 100 row -- because at that level the step is a decade under a millisecond-scale ceiling and the box is five millimetres, so even the dilute cell costs 3e11 particle-steps against a ceiling of 7e10. The S4 refusal card says which single cell would fit at A1's ceiling rather than a decade under it, and why the margin is not owed where the self-propulsion step binds. So this plan characterises Pe 1 and 10 and says nothing about Pe 100 until the person raises a ceiling or accepts the ceiling step.",
             "The step and the box differ between points along the Peclet axis because A1 and A3 marked those bounds varies_with peclet_number_steric. They are not sweep axes; they are functions of one. The schema's invariant is read here as 'shared except the axes and what the axes determine', and if that reading is refused the plan is wrong and not the invariant.",
             "The wall-clock estimate rests on A5's assumed rate of ten million particle-steps per second. The small arm of the box compare (question 042 of this seat) measured 8e5 per second at 13 particles and a trial at a thousand particles measured 3.5e6, so the estimates here are three to ten times low and the densest kept cell (Pe 10, phi 0.5, 6000 particles, 4e10 particle-steps) may run three hours against a two-hour ceiling. The operator's gate reads the plan's rate and will not catch it; a_cost_reference's falsifier needs a trajectory-writing run, and gsd is not in the sim environment, so it has not fired. The person should know before the densest cell is started.",

@@ -174,6 +174,7 @@ class AbpBackend:
         self.frame_times: list[float] = []
         self.simulated_time = 0.0
         self.steps_taken = 0
+        self.last_step_displacement = 0.0
         self.aborted: str | None = None
         self.state = None
         self.failure: str | None = None
@@ -208,12 +209,19 @@ class AbpBackend:
         with self._lock:
             if self.state is None:
                 return {"state": None, "initialised": False}
-            last = self.frames[-1] - self.frames[-2] if len(self.frames) > 1 else np.zeros(1)
             return {
                 "state": self.state, "initialised": True, "handle": self.handle,
                 "steps_taken": self.steps_taken, "simulated_time": self.simulated_time,
                 "frames_saved": len(self.frames),
-                "max_single_step_displacement": float(np.abs(last).max()),
+                # ONE integration step, as the name says. This returned the
+                # difference between two SAVED FRAMES until 2026-09-23 -- a
+                # hundred steps at 041's save interval -- and at Pe 100 the
+                # ordinary self-propulsion of 5 um per frame met a threshold of
+                # one bead diameter meant for one step, and the divergence
+                # guard stopped run-20260923-041-max-min-s1 at frame 3 on a run
+                # that moved 0.05 um per step. See _integrate.
+                "max_single_step_displacement": float(self.last_step_displacement),
+                "max_frame_displacement": float(np.abs(self.frames[-1] - self.frames[-2]).max()) if len(self.frames) > 1 else 0.0,
                 "max_absolute_coordinate": float(np.abs(self.frames[-1]).max()) if self.frames else 0.0,
                 "failure": self.failure,
             }
@@ -245,9 +253,20 @@ class AbpBackend:
                     with self._lock:
                         self.state = ABORTED
                     return
-                sim.run(per_frame)
+                # The last step of each frame is taken alone, between two
+                # snapshots, so the largest displacement any particle made in
+                # ONE integration step is measured once per frame. It changes
+                # nothing about the dynamics -- the same steps, in the same
+                # order -- and costs one extra snapshot per frame.
+                if per_frame > 1:
+                    sim.run(per_frame - 1)
+                    before, _ = self._snapshot(sim, p["box_length"])
+                else:
+                    before = self.frames[-1]
+                sim.run(1)
                 pos, theta = self._snapshot(sim, p["box_length"])
                 with self._lock:
+                    self.last_step_displacement = float(np.abs(pos - before).max())
                     self.steps_taken += per_frame
                     self.simulated_time = self.steps_taken * dt_si       # derived, never accumulated
                     self.frames.append(pos); self.orientations.append(theta)

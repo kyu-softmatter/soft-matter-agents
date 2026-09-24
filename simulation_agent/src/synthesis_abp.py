@@ -238,6 +238,17 @@ def build_042(qid: str, configs: list[str], created_at: str, revision: int) -> t
 PE_LEVELS = ("peclet_min", "peclet_mid", "peclet_max")
 PHI_LEVELS = ("packing_fraction_min", "packing_fraction_mid", "packing_fraction_max")
 
+# The person's rulings on a revision's S4 refusal, keyed by (qid, revision).
+# A ruling is a decision and carries no grade; the goal of that revision
+# records who ruled, when and why in constraint_notes, and this table is the
+# one place the code reads it. 2026-09-23, on revision 3's refusal of the
+# Pe 100 row: the dilute cell runs with the step AT A1's ceiling and a box
+# of ONE persistence length -- the second resting on sim-20260923-042's
+# measurement at Pe 10, applied at Pe 100 as an assumption the person chose.
+RULINGS = {
+    ("sim-20260923-041", 4): {"max_min": {"step_at_ceiling": True, "box_over_persistence_length": 1}},
+}
+
 
 def build_041(qid: str, configs: list[str], created_at: str, revision: int) -> tuple[dict, dict | None]:
     """S4 for a characterize over the (Peclet, packing fraction) grid.
@@ -318,18 +329,35 @@ def build_041(qid: str, configs: list[str], created_at: str, revision: int) -> t
     # per cell: particles, then A5's two products
     d = V("bead_diameter"); skipped = {}
     cells = []
+    rulings = RULINGS.get((qid, revision), {})
+    cell_dt, cell_box = {}, {}
+    for tag, r in rulings.items():
+        lvl = next(l for l in PE_LEVELS if tag.startswith(l.split("_")[-1] + "_"))
+        lt = lvl.split("_")[-1]
+        if r.get("step_at_ceiling"):
+            cell_dt[tag] = f"integration_timestep_point_{tag}"
+            add(cell_dt[tag], oom(V(f"integration_timestep_max_pe_{lt}"), "s"), "s", "computed:a1_ceiling_by_ruling",
+                f"integration_timestep_max_pe_{lt}", [f"integration_timestep_max_pe_{lt}"],
+                "the step AT A1's ceiling for this level, by the person's ruling of 2026-09-23: where the self-propulsion step binds, the bound is kinematic and carries no estimate, so the decade of margin the other cells take is not owed. The divergence monitor carries the risk the margin carried")
+        if r.get("box_over_persistence_length"):
+            k = r["box_over_persistence_length"]
+            cell_box[tag] = f"box_length_{tag}"
+            add(cell_box[tag], oom(V("box_length_min") * V(lvl) / V("peclet_max") / 10 * k * 1e-6, "um"), "um", "computed:persistence_lengths_by_ruling",
+                f"box_length_min*{lvl}/peclet_max/10*{k}", ["box_length_min", lvl, "peclet_max"],
+                f"{k} persistence length(s) of box at this level rather than A3's ten, by the person's ruling of 2026-09-23. Grounded in sim-20260923-042, where one and ten persistence lengths agreed to 3 per cent at Pe 10 and phi 0.1; at this Pe that agreement is ASSUMED, not measured, and this cell's result is the first test of it")
     for lvl in PE_LEVELS:
         for plv in PHI_LEVELS:
             tag = f"{lvl.split('_')[-1]}_{plv.split('_')[-1]}"
-            L = V(box_name[lvl]); phi = V(plv)
+            L = V(cell_box.get(tag, box_name[lvl])); phi = V(plv)
             N = 4 * phi * L * L / (math.pi * d * d)
+            bx = cell_box.get(tag, box_name[lvl]); dtn = cell_dt.get(tag, dt_name[lvl])
             add(f"n_particles_{tag}", oom(N, "1"), "1", "computed:area_fraction_times_box",
-                f"4*{plv}*{box_name[lvl]}**2/(pi*bead_diameter**2)", [plv, box_name[lvl], "bead_diameter"],
+                f"4*{plv}*{bx}**2/(pi*bead_diameter**2)", [plv, bx, "bead_diameter"],
                 f"particles in the cell Pe {V(lvl):g}, phi {phi:g}")
-            steps = V(f"n_particles_{tag}") * V("total_simulated_time_point") / V(dt_name[lvl])
+            steps = V(f"n_particles_{tag}") * V("total_simulated_time_point") / V(dtn)
             coords = 2 * V(f"n_particles_{tag}") * V("total_simulated_time_point") / V("save_interval_point")
             add(f"particle_steps_{tag}", oom(steps, "1"), "1", "computed:particles_times_steps",
-                f"n_particles_{tag}*total_simulated_time_point/{dt_name[lvl]}", [f"n_particles_{tag}", "total_simulated_time_point", dt_name[lvl]],
+                f"n_particles_{tag}*total_simulated_time_point/{dtn}", [f"n_particles_{tag}", "total_simulated_time_point", dtn],
                 "the cell's cost in particle-steps against particle_steps_max")
             add(f"coordinates_stored_{tag}", oom(coords, "1"), "1", "computed:two_coordinates_per_frame",
                 f"2*n_particles_{tag}*total_simulated_time_point/save_interval_point", [f"n_particles_{tag}", "total_simulated_time_point", "save_interval_point"],
@@ -384,6 +412,9 @@ def build_041(qid: str, configs: list[str], created_at: str, revision: int) -> t
                                  "librarian is degraded here by construction and the gaps are the goal's"))
     card.update(cards.tail(numbers, assumptions=assumptions, kb_refs=synthesis.kb_refs_for(qid, numbers),
                            kb_gaps=synthesis.kb_gaps_for(qid), degraded=["librarian_agent"]))
+    if rulings:
+        card["tie_break"] += (". BY THE PERSON'S RULING (goal constraint_notes): " + "; ".join(
+            f"cell {t} takes step {cell_dt.get(t, '(level default)')} and box {cell_box.get(t, '(level default)')}" for t in sorted(rulings)))
 
     refusal = None
     if skipped:
