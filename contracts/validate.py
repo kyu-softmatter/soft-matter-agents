@@ -7512,16 +7512,30 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
         rid = c.data.get("run_id")
         if isinstance(rid, str):
             results_by_run.setdefault(rid, []).append(c.rel)
+    # Condition 4 bars MEASUREMENTS, not a device's report of itself (narrowed
+    # at 20a688b, the evening of the day it was written). The line is the
+    # vocabulary: a number named as a registered observable, citing a
+    # preparatory run, is a measurement entering without the plan that must
+    # declare its estimator, and it fails. Anything else citing the run is a
+    # self-report -- a serial, a rest position, a setting read back -- which
+    # the librarian may enter, and it is counted, not failed.
+    observable_ids = set(load_observables())
     kb_by_run: dict[str, list[str]] = {}
+    reports_by_run: dict[str, list[str]] = {}
     for p in sorted((KB_DIR / "entries").glob("*.json")):
         try:
             entry = json.loads(p.read_text())
         except (OSError, json.JSONDecodeError):
             continue
+        eid = entry.get("entry_id", p.stem)
+        cited = [entry.get("source")] + [n.get("source") for n in entry.get("numbers") or [] if isinstance(n, dict)]
         for n in entry.get("numbers") or []:
             src = n.get("source") if isinstance(n, dict) else None
+            if isinstance(src, str) and src.startswith("measured:") and n.get("name") in observable_ids:
+                kb_by_run.setdefault(src.split(":", 1)[1], []).append(f"{eid} ({n.get('name')})")
+        for src in cited:
             if isinstance(src, str) and src.startswith("measured:"):
-                kb_by_run.setdefault(src.split(":", 1)[1], []).append(entry.get("entry_id", p.stem))
+                reports_by_run.setdefault(src.split(":", 1)[1], []).append(eid)
 
     out: list[Finding] = []
     for log in logs:
@@ -7575,8 +7589,13 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
         if own:
             bad = True
             out.append(Finding(85, FAIL, f"{rid} is a preparatory run and has a result of its own: {own}. "
-                                         "Its numbers reach the record only when a later plan cites it as "
-                                         "an input (11-21 condition 4)", rel))
+                                         "A value of a registered observable reaches the record only when a "
+                                         "later plan cites the run as an input; a device's report of itself "
+                                         "may enter citing it (11-21 condition 4)", rel))
+        reports = sorted(set(reports_by_run.get(rid, [])) - {e.split(" (")[0] for e in kb_by_run.get(rid, [])})
+        report_note = ""
+        if reports:
+            report_note = f"; {len(reports)} store entr{'y' if len(reports) == 1 else 'ies'} cite it as a self-report ({', '.join(reports[:3])}{'...' if len(reports) > 3 else ''})"
 
         ac = d.get("approved_commands") or {}
         path, want = ac.get("path"), ac.get("sha256")
@@ -7608,7 +7627,7 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
                          f"{want[:12]} is recorded and not checked")
         if not bad:
             out.append(Finding(85, PASS, f"{rid} is a preparatory run: nothing dispatched to the motion set, "
-                                         f"no result of its own, and {where}"
+                                         f"no result of its own, and {where}{report_note}"
                                          + ("; its optical_tweezers commands follow the person's statements "
                                             "that the trapping laser is off and no sample is mounted, so they "
                                             "move nothing trappable" if untrappable else ""), rel))
