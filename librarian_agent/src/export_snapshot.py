@@ -192,7 +192,7 @@ INPUTS = ["librarian_agent/kb/index.json", "librarian_agent/kb/entries",
 
 def _git(*args: str) -> str:
     return subprocess.run(["git", "-C", str(REPO), *args],
-                          capture_output=True, text=True, check=True).stdout
+                          capture_output=True, text=True, encoding="utf-8", check=True).stdout
 
 
 def built_from_commit() -> str:
@@ -239,11 +239,11 @@ def build(agent: str) -> dict:
     """The snapshot for one agent. Deterministic: same store, same bytes."""
     if agent not in AGENTS:
         raise ValueError(f"{agent!r} is not an agent this store publishes to: {sorted(AGENTS)}")
-    index = json.loads((KB / "index.json").read_text())
+    index = json.loads((KB / "index.json").read_text(encoding="utf-8"))
 
     entries = {}
     for p in sorted((KB / "entries").glob("*.json")):
-        text = p.read_text()
+        text = p.read_text(encoding="utf-8")
         eid = json.loads(text)["entry_id"]
         entries[eid] = {"text": text, "sha256": _digest(text)}
 
@@ -266,7 +266,7 @@ def build(agent: str) -> dict:
     wanted = AGENTS[agent]
     for name in sorted(wanted):
         rel = TABLES[name]
-        text = (KB / rel).read_text()
+        text = (KB / rel).read_text(encoding="utf-8")
         body["tables"][name] = {
             "text": text,
             "sha256": _digest(text),
@@ -354,7 +354,8 @@ def publish() -> list[Path]:
     written = []
     for agent in sorted(AGENTS):
         target = EXPORTS / f"snapshot_{agent}.json"
-        target.write_text(json.dumps(build(agent), indent=2, ensure_ascii=False) + "\n")
+        target.write_text(json.dumps(build(agent), indent=2, ensure_ascii=False) + "\n",
+                          encoding="utf-8", newline="\n")
         written.append(target)
     return written
 
@@ -380,12 +381,12 @@ def check() -> list[str]:
         if not target.exists():
             problems.append(f"{target.name} has not been published")
             continue
-        published = json.loads(target.read_text())
+        published = json.loads(target.read_text(encoding="utf-8"))
         body = build(agent)
         body["built_from_commit"] = published.get("built_from_commit")
         body.pop("snapshot_hash")
         body["snapshot_hash"] = _digest(_canonical(body))
-        if json.dumps(body, indent=2, ensure_ascii=False) + "\n" != target.read_text():
+        if json.dumps(body, indent=2, ensure_ascii=False) + "\n" != target.read_text(encoding="utf-8"):
             differing = sorted(k for k in set(body) | set(published)
                                if body.get(k) != published.get(k))
             problems.append(f"{target.name} is stale: {differing} differ from the store "
@@ -452,7 +453,7 @@ def _self_test() -> int:
 
     # the embedded text must parse back to what the store holds
     loaded = load(mic)
-    live = {p.stem: json.loads(p.read_text()) for p in (KB / "entries").glob("*.json")}
+    live = {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in (KB / "entries").glob("*.json")}
     if {e["entry_id"] for e in loaded["entries"].values()} != set(live):
         bad("load() did not round-trip the store")
     if loaded["tables"]["devices"]["schema_version"] != "0.1-provisional":
@@ -490,11 +491,11 @@ def _self_test() -> int:
                 exp.mkdir(parents=True)
                 for a, (kv, n) in published.items():
                     (exp / f"snapshot_{a}.json").write_text(
-                        json.dumps({"kb_version": kv, "entry_count": n}))
+                        json.dumps({"kb_version": kv, "entry_count": n}), encoding="utf-8")
                 for a, body in envelope.items():
                     (root / a / "envelope").mkdir(parents=True, exist_ok=True)
                     (root / a / "envelope" / "snapshot.json").write_text(
-                        body if isinstance(body, str) else json.dumps(body))
+                        body if isinstance(body, str) else json.dumps(body), encoding="utf-8")
                 globals()["REPO"], globals()["EXPORTS"] = root, exp
                 globals()["AGENTS"] = {a: () for a in published}
                 return "\n".join(envelope_lag())
@@ -571,11 +572,11 @@ def envelope_lag() -> list[str]:
             absent.append(agent)
             continue
         try:
-            copy = json.loads(env.read_text())
+            copy = json.loads(env.read_text(encoding="utf-8"))
         except json.JSONDecodeError as exc:
             behind.append(("consumer", f"{agent}: envelope/snapshot.json does not parse ({exc})"))
             continue
-        published = json.loads(target.read_text())
+        published = json.loads(target.read_text(encoding="utf-8"))
         if copy.get("kb_version") == published.get("kb_version"):
             current.append(agent)
             continue
@@ -637,7 +638,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.self_test:
         return _self_test()
     if args.verify:
-        problems = verify(json.loads(args.verify.read_text()))
+        problems = verify(json.loads(args.verify.read_text(encoding="utf-8")))
         for p in problems:
             print(p)
         print(f"{args.verify}: {'intact' if not problems else str(len(problems)) + ' problems'}")
@@ -655,7 +656,7 @@ def main(argv: list[str] | None = None) -> int:
             print(line)
         return 1 if problems else 0
     for t in publish():
-        snap = json.loads(t.read_text())
+        snap = json.loads(t.read_text(encoding="utf-8"))
         print(f"wrote {t.name}: {snap['kb_version']}, {snap['entry_count']} entries, "
               f"{len(snap['tables'])} tables")
     return 0

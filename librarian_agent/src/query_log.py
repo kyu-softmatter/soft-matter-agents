@@ -125,7 +125,7 @@ def _contract(path: str, *keys):
     hit = _REGISTRY_CACHE.get(key)
     if hit is not None and hit[0] == stamp:
         return hit[1]
-    node = json.loads(full.read_text())
+    node = json.loads(full.read_text(encoding="utf-8"))
     for k in keys:
         node = node[k]
     _REGISTRY_CACHE[key] = (stamp, node)
