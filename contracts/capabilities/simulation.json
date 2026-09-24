@@ -51,7 +51,7 @@
       },
       "executed_by": {
         "module": "hoomd_backend",
-        "why": "Declared 2026-09-23 on the engine that is installed and verified: pixi install -e sim stands and hoomd 7.2.0 matches its pin by version and build string. No mock arm."
+        "why": "Declared 2026-09-23 on the engine that is installed and verified: pixi install -e sim stands and hoomd 7.2.0 matches its pin by version and build string. No mock arm. NOT YET CONFIRMED BY A RUN (2026-09-23): this configuration has no run record, so the module named here is still the morning's blanket declaration and not a reading. Two siblings declared the same way turned out to run on a different module; correct this from the first run's log."
       },
       "temperature_realisation": {
         "kind": "constitutive",
@@ -78,7 +78,7 @@
       },
       "executed_by": {
         "module": "hoomd_backend",
-        "why": "Declared 2026-09-23 on the engine that is installed and verified: pixi install -e sim stands and hoomd 7.2.0 matches its pin by version and build string. No mock arm."
+        "why": "Declared 2026-09-23 on the engine that is installed and verified: pixi install -e sim stands and hoomd 7.2.0 matches its pin by version and build string. No mock arm. NOT YET CONFIRMED BY A RUN (2026-09-23): this configuration has no run record, so the module named here is still the morning's blanket declaration and not a reading. Two siblings declared the same way turned out to run on a different module; correct this from the first run's log."
       },
       "temperature_realisation": {
         "kind": "constitutive",
@@ -110,7 +110,7 @@
       },
       "executed_by": {
         "module": "hoomd_backend",
-        "why": "Declared 2026-09-23 on the engine that is installed and verified: pixi install -e sim stands and hoomd 7.2.0 matches its pin by version and build string. No mock arm."
+        "why": "Declared 2026-09-23 on the engine that is installed and verified: pixi install -e sim stands and hoomd 7.2.0 matches its pin by version and build string. No mock arm. NOT YET CONFIRMED BY A RUN (2026-09-23): this configuration has no run record, so the module named here is still the morning's blanket declaration and not a reading. Two siblings declared the same way turned out to run on a different module; correct this from the first run's log."
       },
       "temperature_realisation": {
         "kind": "constitutive",
@@ -141,8 +141,8 @@
         "why": "The interaction is what makes this true where abp_free is false: with WCA repulsion the collective behaviour at a given Peclet number and packing fraction is not a closed form in the inputs."
       },
       "executed_by": {
-        "module": "hoomd_backend",
-        "why": "Declared 2026-09-23 on the engine that is installed and verified: pixi install -e sim stands and hoomd 7.2.0 matches its pin by version and build string. No mock arm."
+        "module": "abp_backend",
+        "why": "READ OFF THE RUN RECORDS, 2026-09-23, and correcting this seat. Every run of this configuration -- plans sim-20260923-041 r3, r4, r5 and sim-20260923-042 r2, ten runs -- recorded backend: abp_backend. This field said hoomd_backend because this seat declared all six configurations that morning with one blanket line naming the engine that was installed, before any of them had run and without knowing which module each would use. That was a PREDICTION written into a RECORD field, the same shape as an instruction-file paragraph describing code that had not arrived; simulation-8 found it. abp_backend runs on HOOMD, so the engine was right and the module was not."
       },
       "temperature_realisation": {
         "kind": "constitutive",
@@ -168,8 +168,8 @@
         "why": "FALSE for the same reason as bd_overdamped: the steady-state offset is gamma*v/k_t and the estimator inverts the very balance the integrator solved, so k_t comes out because it went in. What a run of this configuration CAN establish is the precision of the recovery, and the stiffness cancels there -- signal gamma*v/k_t and standard error sigma*sqrt(2*tau/T) both go as 1/k_t, so SE/signal = sqrt(2*D/T)/v is independent of stiffness. That is falsifiable and is why the sweep exists."
       },
       "executed_by": {
-        "module": "hoomd_backend",
-        "why": "Declared 2026-09-23 on the engine that is installed and verified: pixi install -e sim stands and hoomd 7.2.0 matches its pin by version and build string. No mock arm."
+        "module": "trap_hoomd_backend",
+        "why": "READ OFF THE RUN RECORDS, 2026-09-23, and correcting this seat. The engine run of plan sim-20260923-201 r3 recorded backend: trap_hoomd_backend, which builds the trap as a harmonic bond to a fixed tether because HOOMD has no harmonic external field; its NumPy counterpart trap_backend ran the same plan as the reference. This field said hoomd_backend from the same blanket declaration as abp_wca_2d's, and simulation-8, which wrote trap_hoomd_backend, reported it."
       },
       "temperature_realisation": {
         "kind": "constitutive",
