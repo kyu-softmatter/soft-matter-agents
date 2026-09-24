@@ -2,7 +2,16 @@
 
 Written by `manager-microscope`. You read this; you do not edit it (§6.2-2).
 
-**Assigned to `microscope-1`.** **Do this before `manager-simulation`
+**Assigned to `microscope-6`** — REASSIGNED from `microscope-1` on 2026-09-23,
+because the person seated a sixth microscope session and told it to do this
+card first. `microscope-1`'s window is closed and its last commit to the a2
+and a3 modules was 09-20, so the record shows nobody had started. **The
+reassignment is written here rather than relayed**: `microscope-6` declined
+to take a card naming another seat, which is right — two seats holding one
+card is how a goal card got overwritten on 2026-09-21, and that collision
+was visible in the dispatching message and went unseen.
+
+**Do this before `manager-simulation`
 registers `density`**, and the order is the whole point of the card — see §4.
 
 ## What is coming
