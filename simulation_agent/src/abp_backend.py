@@ -162,6 +162,7 @@ def preflight_report(params: dict, seed: int) -> dict:
 
 class AbpBackend:
     NAME = NAME
+    DIMENSIONS = DIMENSIONS          # read by the operator's trajectory writer
 
     def __init__(self, seed: int = 0, engine=None, device=None) -> None:
         self.seed = int(seed)

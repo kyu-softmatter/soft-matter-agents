@@ -122,3 +122,136 @@ def read_positions(path: Path) -> tuple[np.ndarray, np.ndarray]:
         pos = np.stack([f.particles.position for f in fh])
         steps = np.array([f.configuration.step for f in fh])
     return pos, steps
+
+
+
+# --------------------------------------------------------------------------- #
+# the text form (021): one file, read back instead of re-run
+# --------------------------------------------------------------------------- #
+#
+# The person asked on 2026-09-23 that a run keep its trajectory as ONE TEXT
+# FILE, so that analysis reads the file instead of running the simulation
+# again, and that they delete it by hand when they need the space. They chose
+# it knowing text is several times larger than GSD. So the text file replaces
+# the GSD rather than sitting beside it: two copies of one trajectory are one
+# fact in two places.
+
+TEXT_FILENAME = "trajectory.txt"
+SIG_FIGS = {"float32": 9, "float64": 17}      # each round-trips its dtype exactly
+
+
+class TrajectoryUnavailable(Exception):
+    """The file analysis needs is gone or no longer the file that was written.
+
+    Raised rather than recovered from: the reader does not re-run the
+    simulation and does not read another file in its place. Re-running is the
+    person's decision once they have been told the file is gone.
+    """
+
+
+def coords_sha256(coords: np.ndarray) -> str:
+    """SHA-256 over the coordinate array itself, C order, in its own dtype.
+
+    Not over the text: the text moves with digits, separators and line endings
+    and so cannot say whether two runs produced the same positions. The array
+    can, and that is what shows which engine ran.
+    """
+    import hashlib
+    return hashlib.sha256(np.ascontiguousarray(coords).tobytes()).hexdigest()
+
+
+def write_text(out_dir: Path, frames: list, steps: list[int], box_length_si: float, *,
+               dimensions: int, run_id: str, plan_hash: str, engine: str, engine_version: str,
+               seed: int, save_interval_steps: int, orientations: list | None = None,
+               reduced_units: dict | None = None) -> dict:
+    """Write the trajectory as text; return the meta's `trajectory` block.
+
+    Rows are one particle at one saved frame: the integer step, the particle
+    id, the UNWRAPPED position components in metres, and the in-plane
+    orientation in radians where the model has one. The values are written at
+    the digits their dtype carries and no more.
+    """
+    if not frames:
+        return {"written": False, "reason": "no frames were saved"}
+    coords = np.stack([np.asarray(f)[:, :dimensions] for f in frames])      # (frames, N, d)
+    dtype = str(coords.dtype)
+    if dtype not in SIG_FIGS:
+        return {"written": False, "reason": f"coordinates are {dtype}, which the text form does not declare a digit count for"}
+    digits = SIG_FIGS[dtype]
+    n_frames, n = coords.shape[0], coords.shape[1]
+    theta = np.stack([np.asarray(o, dtype=coords.dtype) for o in orientations]) if orientations else None
+    axes = "xyz"[:dimensions]
+    columns = [{"name": "step", "unit": "1", "meaning": "integer integration-step index of the frame; time is step * integration_timestep, never an accumulated float"},
+               {"name": "particle", "unit": "1", "meaning": "particle index, fixed across frames"}]
+    columns += [{"name": a, "unit": "m", "meaning": f"UNWRAPPED {a} position: a particle that crossed the periodic boundary keeps going"} for a in axes]
+    if theta is not None:
+        columns.append({"name": "theta", "unit": "rad", "meaning": "in-plane orientation angle of the self-propulsion direction"})
+    path = out_dir / TEXT_FILENAME
+    header = [
+        f"run_id {run_id}", f"plan_hash {plan_hash}", f"engine {engine} {engine_version}", f"seed {seed}",
+        f"box {box_length_si!r} m per side, periodic, {dimensions}D", f"save_interval_steps {save_interval_steps}",
+        f"particles {n}", f"frames {n_frames}", f"dtype {dtype}, written at {digits} significant figures",
+        "units SI: metres and radians; the engine ran in reduced units and converted on the way out"
+        + (f" (length scale {reduced_units['length_si']!r} m, time scale {reduced_units['time_si']!r} s)" if reduced_units else ""),
+        "columns " + " ".join(c["name"] for c in columns),
+    ] + [f"column {c['name']} [{c['unit']}]: {c['meaning']}" for c in columns]
+    fmt = " ".join(["%d", "%d"] + [f"%.{digits - 1}e"] * (dimensions + (1 if theta is not None else 0)))
+    with open(path, "w", newline="\n") as fh:
+        for line in header:
+            fh.write(f"# {line}\n")
+        pid = np.arange(n)
+        for i in range(n_frames):
+            cols = [np.full(n, int(steps[i])), pid] + [coords[i, :, k] for k in range(dimensions)]
+            if theta is not None:
+                cols.append(theta[i])
+            np.savetxt(fh, np.column_stack(cols), fmt=fmt)
+    import hashlib
+    file_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+    return {
+        "written": True, "format": "txt", "file": TEXT_FILENAME,
+        "sha256": file_hash, "coords_sha256": coords_sha256(coords),
+        "dtype": dtype, "sig_figs": digits, "time_base": "step_index",
+        "save_interval_steps": int(save_interval_steps), "frames": int(n_frames), "particles": int(n),
+        "engine": engine, "engine_version": engine_version, "seed": int(seed), "plan_hash": plan_hash,
+        "box": {"length_m": box_length_si, "dimensions": dimensions, "periodic": True},
+        "units": "SI: metres and radians, converted from the engine's reduced units at the backend boundary",
+        "columns": columns, "bytes": path.stat().st_size,
+    }
+
+
+def read_text(run_dir: Path) -> dict:
+    """The trajectory of a run, read back from its text file, or a refusal.
+
+    Refuses when the meta says nothing was written, when the file is gone, or
+    when its bytes or its coordinates no longer hash to what the meta
+    recorded. It never re-runs anything and never reads another file.
+    """
+    import hashlib, json
+    meta_path = run_dir / "trajectory_meta.json"
+    if not meta_path.exists():
+        raise TrajectoryUnavailable(f"{run_dir.name} has no trajectory_meta.json, so nothing says what its trajectory was")
+    t = (json.loads(meta_path.read_text()).get("trajectory") or {})
+    if not t.get("written"):
+        raise TrajectoryUnavailable(f"{run_dir.name} wrote no trajectory: {t.get('reason', 'no reason recorded')}")
+    if t.get("format") != "txt":
+        raise TrajectoryUnavailable(f"{run_dir.name} kept its trajectory as {t.get('format')!r}, not as the text file this reader reads")
+    path = run_dir / t["file"]
+    if not path.exists():
+        raise TrajectoryUnavailable(
+            f"{run_dir.name}/{t['file']} is gone. It was written and has since been removed, so the positions "
+            f"cannot be read. Regenerating them means running the simulation again -- engine {t.get('engine')} "
+            f"{t.get('engine_version')}, seed {t.get('seed')}, plan {t.get('plan_hash')} -- and the regenerated "
+            f"coordinates must hash to {t.get('coords_sha256')}. That is the person's decision; this reader does not rerun")
+    got = hashlib.sha256(path.read_bytes()).hexdigest()
+    if got != t["sha256"]:
+        raise TrajectoryUnavailable(f"{run_dir.name}/{t['file']} no longer matches what was written (file sha256 {got}, recorded {t['sha256']}); it is not read")
+    data = np.loadtxt(path, comments="#", dtype=np.float64)
+    n, f = t["particles"], t["frames"]
+    d = t["box"]["dimensions"]
+    coords = data[:, 2:2 + d].reshape(f, n, d).astype(t["dtype"])
+    if coords_sha256(coords) != t["coords_sha256"]:
+        raise TrajectoryUnavailable(f"{run_dir.name}/{t['file']}: the coordinates read back do not hash to the recorded array; the text does not reproduce the positions")
+    out = {"steps": data[::n, 0].astype(int), "coords": coords, "meta": t}
+    if len(t["columns"]) > 2 + d:
+        out["theta"] = data[:, 2 + d].reshape(f, n).astype(t["dtype"])
+    return out

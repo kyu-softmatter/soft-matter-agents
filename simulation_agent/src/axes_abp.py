@@ -73,9 +73,11 @@ from . import cards
 # check 17 recomputes it. Python's round() sends ties to even (25 -> 20) and
 # round_to_sig sends them away from zero (25 -> 30); two rules for one
 # comparison is the shape this repository counted three times on 2026-09-23.
-_ROOT = str(cards.REPO)
-if _ROOT not in sys.path:
-    sys.path.insert(0, _ROOT)
+# contracts is installed into the pixi `sim` environment (editable), so it
+# imports as a package from here. No sys.path insertion: that made every agent
+# folder importable, not only contracts, and dissolved the boundary the
+# package keeps. Run this module under `pixi run -e sim`; plain python3 fails
+# here on purpose (simulation_agent/CLAUDE.md).
 from contracts.validate import round_to_sig  # noqa: E402
 
 BUDGET = cards.AGENT / "envelope" / "budget.json"

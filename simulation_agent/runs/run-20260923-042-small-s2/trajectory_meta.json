@@ -1,0 +1,64 @@
+{
+  "artifact": "trajectory_meta",
+  "schema_version": 1,
+  "run_id": "run-20260923-042-small-s2",
+  "trajectory": {
+    "written": true,
+    "format": "txt",
+    "file": "trajectory.txt",
+    "sha256": "14bbedd53e06e3186340c577d9c1218e62430d352ea7f63e2cfc30e606df5b0d",
+    "coords_sha256": "58f74889511daef148718f0925c9aebb9d5dbc2fd3f54e4a31bd00886b4eefde",
+    "dtype": "float64",
+    "sig_figs": 17,
+    "time_base": "step_index",
+    "save_interval_steps": 200,
+    "frames": 30001,
+    "particles": 13,
+    "engine": "hoomd",
+    "engine_version": "7.2.0",
+    "seed": 2,
+    "plan_hash": "sha256:8049ebb224d2da16da4dd637f4ce6399cbc2a7a56a82ab627e6eabba2b4da33f",
+    "box": {
+      "length_m": 4.9999999999999996e-05,
+      "dimensions": 2,
+      "periodic": true
+    },
+    "units": "SI: metres and radians, converted from the engine's reduced units at the backend boundary",
+    "columns": [
+      {
+        "name": "step",
+        "unit": "1",
+        "meaning": "integer integration-step index of the frame; time is step * integration_timestep, never an accumulated float"
+      },
+      {
+        "name": "particle",
+        "unit": "1",
+        "meaning": "particle index, fixed across frames"
+      },
+      {
+        "name": "x",
+        "unit": "m",
+        "meaning": "UNWRAPPED x position: a particle that crossed the periodic boundary keeps going"
+      },
+      {
+        "name": "y",
+        "unit": "m",
+        "meaning": "UNWRAPPED y position: a particle that crossed the periodic boundary keeps going"
+      },
+      {
+        "name": "theta",
+        "unit": "rad",
+        "meaning": "in-plane orientation angle of the self-propulsion direction"
+      }
+    ],
+    "bytes": 31308405
+  },
+  "frames_saved": 30001,
+  "simulated_time": 30000.0,
+  "steps_taken": 6000000,
+  "max_single_step_displacement": 5.136861173623067e-08,
+  "stopped_by": "planned_duration_reached",
+  "stop_outcome": "complete",
+  "stopped_early": false,
+  "completed_planned_duration": true
+}

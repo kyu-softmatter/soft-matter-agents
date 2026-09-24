@@ -940,8 +940,26 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     # completion-criterion incident in this agent's CLAUDE.md).
     dt = float(params["integration_timestep"])
     steps = [int(round(t / dt)) for t in getattr(backend, "frame_times", [])]
-    written = trajectory.write(out, list(getattr(backend, "frames", [])), steps, float(params["box_length"]))
+    # ONE TEXT FILE (021, the person's request of 2026-09-23): analysis reads
+    # it instead of re-running, and the person deletes it by hand. It replaces
+    # the GSD rather than sitting beside it.
+    build = (pre.get("engine_build") or {})
+    # The backend's declared dimensionality where it has one; otherwise the
+    # width of the frames it actually holds -- what was simulated, not a
+    # default. A 2D backend that padded z would otherwise write a column of
+    # zeros as though it were a coordinate.
+    frames_held = list(getattr(backend, "frames", []))
+    dims = int(getattr(backend, "DIMENSIONS", None) or (frames_held[0].shape[1] if frames_held else 3))
+    written = trajectory.write_text(
+        out, list(getattr(backend, "frames", [])), steps, float(params["box_length"]),
+        dimensions=dims, run_id=run_id, plan_hash=plan_hash(plan),
+        engine=str(build.get("engine") or backend_name(backend)), engine_version=str(build.get("version") or "unrecorded"),
+        seed=backend_seed(backend, seed), save_interval_steps=int(pre.get("steps_per_frame") or 1),
+        orientations=list(getattr(backend, "orientations", []) or []) or None,
+        reduced_units=pre.get("reduced_units"))
     cards.write(out / "trajectory_meta.json", {
+        "artifact": "trajectory_meta",
+        "schema_version": 1,
         "run_id": run_id,
         # What is on disk beside this file and what a frame in it is, or why
         # nothing is. This summary is the part that outlives the data: a
