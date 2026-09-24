@@ -1,0 +1,63 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260924-933",
+  "plan_id": null,
+  "revision": null,
+  "no_plan_because": "REJECTED FIXTURE. Both statements are present, but they come after the first trap command. A statement made after the move does not make the move untrappable. Check 85 refuses it.",
+  "approved_commands": {
+    "path": "D:/soft-matter-agents-frames/run-20260924-901/commands.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "approved_by": "the person, in words, before any light"
+  },
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "4",
+  "stop_criteria": [],
+  "t0_wall": "2026-09-24T00:00:00+00:00",
+  "t0_mono": 100.0,
+  "backend": "micromanager",
+  "time_base_note": "software offsets order the log and nothing else (4.6.9)",
+  "events": [
+    {
+      "t_mono": 0.0,
+      "time_base": "software",
+      "event": "not_dispatched",
+      "note": "this run did not come through the plan dispatcher"
+    },
+    {
+      "t_mono": 0.5,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "optical_tweezers",
+      "action": "create_trap",
+      "params": {},
+      "verification": "none"
+    },
+    {
+      "t_mono": 0.6,
+      "time_base": "software",
+      "event": "gate_answered",
+      "gate": "trapping_laser_off",
+      "answer": "yes",
+      "by": "the person, in chat to microscope-20260924-4"
+    },
+    {
+      "t_mono": 0.7,
+      "time_base": "software",
+      "event": "gate_answered",
+      "gate": "no_sample_mounted",
+      "answer": "yes",
+      "by": "the person, in chat to microscope-20260924-4"
+    },
+    {
+      "t_mono": 0.9,
+      "time_base": "software",
+      "event": "shutdown",
+      "reason": "finished"
+    }
+  ],
+  "finished_at": "2026-09-24T00:00:01+00:00"
+}

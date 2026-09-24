@@ -7471,6 +7471,9 @@ PREPARATORY_MOTION_SET = frozenset({
 #: Events that send something to a device. `apply_failed` counts: a command
 #: that was sent and refused by the device was still sent.
 _DISPATCH_EVENTS = frozenset({"apply", "apply_failed", "dispatch"})
+#: The two answered gates that, together and before the first command, take
+#: optical_tweezers out of the motion set for one run (plan.md at 49a94cc).
+_TWEEZERS_UNTRAPPABLE_GATES = frozenset({"trapping_laser_off", "no_sample_mounted"})
 
 
 def check_85_preparatory_run(b: Bundle) -> list[Finding]:
@@ -7527,7 +7530,28 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
         bad = False
 
         moved = []
-        for i, ev in enumerate(d.get("events") or []):
+        events = d.get("events") or []
+        # The one case where optical_tweezers leaves the motion set (plan.md
+        # at 49a94cc): the person has said, BEFORE the first command to it,
+        # both that the trapping laser is off at its hand control and that no
+        # sample is mounted. Each alone leaves nothing trappable; both are
+        # asked because the laser is blind and assumed on. Read as answered
+        # gates, the way session scripts record the person's answers, by the
+        # person and not relayed -- a relayed statement is no statement.
+        said: dict[str, int] = {}
+        for i, ev in enumerate(events):
+            if (isinstance(ev, dict) and ev.get("event") == "gate_answered"
+                    and ev.get("gate") in _TWEEZERS_UNTRAPPABLE_GATES
+                    and str(ev.get("answer", "")).lower() == "yes"
+                    and ev.get("by") and not ev.get("relayed_by")):
+                said.setdefault(ev["gate"], i)
+        first_tweezers = next((i for i, ev in enumerate(events)
+                               if isinstance(ev, dict) and ev.get("event") in _DISPATCH_EVENTS
+                               and "optical_tweezers" in {ev.get("channel"), ev.get("element")}), None)
+        untrappable = (first_tweezers is not None
+                       and set(said) == _TWEEZERS_UNTRAPPABLE_GATES
+                       and max(said.values()) < first_tweezers)
+        for i, ev in enumerate(events):
             if not isinstance(ev, dict) or ev.get("event") not in _DISPATCH_EVENTS:
                 continue
             # A run log keys params by parameter name, and earlier logs key
@@ -7537,6 +7561,8 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
             names = [ev.get("channel"), ev.get("element")]
             names += list((ev.get("params") or {}).keys())
             hit = sorted({str(n) for n in names if n in PREPARATORY_MOTION_SET})
+            if untrappable:
+                hit = [h for h in hit if h != "optical_tweezers"]
             if hit:
                 moved.append(f"event {i} ({ev.get('event')} {ev.get('action') or ''}) reaches {hit}")
         if moved:
@@ -7582,7 +7608,10 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
                          f"{want[:12]} is recorded and not checked")
         if not bad:
             out.append(Finding(85, PASS, f"{rid} is a preparatory run: nothing dispatched to the motion set, "
-                                         f"no result of its own, and {where}", rel))
+                                         f"no result of its own, and {where}"
+                                         + ("; its optical_tweezers commands follow the person's statements "
+                                            "that the trapping laser is off and no sample is mounted, so they "
+                                            "move nothing trappable" if untrappable else ""), rel))
     return out
 
 
