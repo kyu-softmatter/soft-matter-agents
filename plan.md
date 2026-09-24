@@ -1464,7 +1464,8 @@ still be read out of history. So a committed trajectory can never be deleted to 
 thing the person asked to be able to do. `.gitignore` excludes `runs/*/trajectory*` and re-includes
 `trajectory_meta.json`; the 11 GSD trajectories already on disk, 1.07 GB, untracked and until that commit
 unignored, are covered by the same line and can no longer be swept into a commit by `git add -A`. They are
-not converted, since text is 2.8 to 5.8 times the size of GSD. **Another computer does not inherit the saved
+not converted, since text is 2.8 to 5.8 times the size of GSD. **The person confirmed text over GSD after
+being told that cost** (2026-09-23), so the size is a decision and not an oversight. **Another computer does not inherit the saved
 trajectories through a clone**: it re-runs, or the files are copied to it.
 
 **What the file holds is set by what reads it.** A header states the `run_id`, the plan's hash, the engine
@@ -2618,6 +2619,38 @@ landed -- the window was about two minutes -- and it goes back after
 `SKIP_DIRS` has it. **The failure was loud, which is the only reason this is a
 paragraph and not an incident**: a gate that walked 271 MB of solved packages
 and passed would have been the worse outcome.
+
+**`contracts` is an installable package from 2026-09-23, so agent code can import it from its own
+directory.** §7.2 declares that agent code imports `contracts` and nothing else, and from an agent
+directory that import failed with `ModuleNotFoundError` in both interpreters seats use -- measured. The
+declared dependency had no route, so seats worked around it: four agent sites rounded numbers their own
+way, which is why the validator's single rounding rule called correct numbers wrong, and one seat pushed
+the repository root onto `sys.path` in every file, **which also makes every other agent's directory
+importable**. `pyproject.toml` now builds the repository with setuptools, `contracts` its only package,
+and pixi installs it editable into every environment. **setuptools' editable finder maps exactly the
+listed package**: in a scratch copy and then in the real `sim` environment, `import contracts` works from
+an agent directory and `import microscope_agent`, `librarian_agent`, `bridge` and `simulation_agent` all
+fail. So the root-on-`sys.path` workaround should go; it defeats the boundary the package keeps.
+
+**The first real install broke every seat's gate, the way `.pixi/` had that morning.** setuptools writes
+`soft_matter_agents.egg-info/` into the project root during an editable build -- an undeclared path -- and
+check 13 failed on its five files in every bare run until the directory was removed, about two minutes.
+`egg_base = ".pixi"` puts it inside a directory that `.gitignore` and `SKIP_DIRS` already exclude, and a
+reinstall from nothing in a scratch copy left the root clean. hatchling was tried first, because it writes
+nothing into the tree, and its exact-mapping mode refuses a package with no `__init__.py`, which
+`contracts/` has none of and which would be a manager's file to add.
+
+**It covers pixi environments only, and that is a rule rather than a gap.** Seats have run agent code both
+in the pixi `sim` environment and under conda's base `python3`, and a run does not record which -- so
+nothing on disk can say which versions of the engine and of numpy produced a result. The package goes
+where the lockfile governs. Under base `python3`, `import contracts` still fails, **and fails loudly**,
+which is the right direction: **agent code that imports `contracts` runs in its agent's pixi
+environment.** Recording the interpreter and the key versions in the run log is agent code, and a check
+requiring it would be a manager's. `pixi.lock` gained 19 lines and lost none, all of them `./` -- relative,
+so no path of this machine is written into it -- and `uv.lock`'s project entry changed in one line, from
+`virtual` to `editable`. Importing `contracts.validate` for one helper loads a module of 7,487 lines; its
+`__main__` guard keeps the checks from running, so the cost is load time. Whether shared rules move into a
+small module of their own is the managers', since `contracts/` is theirs.
 
 **`conda` as a bare command fails in every session here, and it is this
 tool's doing (2026-09-22).** `conda --version` returns

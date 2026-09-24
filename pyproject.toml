@@ -1,3 +1,30 @@
+# contracts/ is installed into every pixi environment as an editable package,
+# so agent code can `import contracts` from its own directory. Before
+# 2026-09-23 that import failed with ModuleNotFoundError everywhere except the
+# repository root, and seats worked around it by rounding numbers their own way
+# or by pushing the repository root onto sys.path -- which also exposes every
+# other agent's directory to import. This build exposes contracts and nothing
+# else: setuptools' editable finder maps exactly the packages listed below,
+# measured in a scratch copy (import contracts works from an agent directory;
+# import simulation_agent, microscope_agent, librarian_agent and bridge all
+# fail). contracts has no __init__.py and is installed as a namespace package.
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["contracts"]
+
+# setuptools writes an .egg-info directory into the project root during an
+# editable build. At the root it is an undeclared path, and the first install
+# on 2026-09-23 made check 13 fail for every seat's bare run until it was
+# removed -- the shape .pixi/ had that morning. egg_base moves it into .pixi/,
+# which .gitignore and SKIP_DIRS already exclude. It assumes installs go
+# through pixi, which creates .pixi/ before building; a bare `pip install -e .`
+# without .pixi/ present is not a supported path.
+[tool.distutils.egg_info]
+egg_base = ".pixi"
+
 [project]
 name = "soft-matter-agents"
 version = "0.1.0"
@@ -50,6 +77,10 @@ channels = ["conda-forge"]
 # win-64 is here for the microscope on the Windows host. The simulation engine
 # does not exist for it; the engine lives in WSL2, which is linux-64.
 platforms = ["osx-arm64", "linux-64", "win-64"]
+
+# The repository itself, editable, into every environment -- see [build-system].
+[tool.pixi.pypi-dependencies]
+soft-matter-agents = { path = ".", editable = true }
 
 [tool.pixi.dependencies]
 python = "3.12.*"
