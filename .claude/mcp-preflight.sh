@@ -20,18 +20,67 @@ ROOT="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null)}"
 [ -n "$ROOT" ] || exit 0
 [ -f "$ROOT/.mcp.json" ] || exit 0
 
-# Resolve the interpreter rather than naming python3: a stock Windows install
-# provides `python` and no `python3`, and the machine where this check matters
-# most is the one where naming it would make the CHECKER the thing that goes
-# silent. If neither exists, say so without needing either.
-PYBIN="$(command -v python3 2>/dev/null || command -v python 2>/dev/null)"
+# Resolve the interpreter by RUNNING it, not by finding it.
+#
+# This block used `command -v python3 || command -v python` and said above it
+# that a stock Windows install provides `python` and no `python3`. On the
+# microscope computer that is false, and false in the way this script exists
+# to prevent: `python3` IS on PATH, as a Microsoft Store App Execution Alias --
+# a real file that is not Python. `command -v` finds it, so the fallback never
+# fires; it prints "Python was not found" and exits 49. On 2026-09-24 the
+# checker was the thing that went silent, on exactly the machine the old
+# comment named, by exactly the mechanism it claimed to guard against.
+# Existence is not runnability, so each candidate is probed (plan.md 11-22).
+PYBIN=""
+STUBS=""
+for c in python3 python py; do
+  cpath="$(command -v "$c" 2>/dev/null)"
+  [ -n "$cpath" ] || continue
+  if "$c" -c '' >/dev/null 2>&1; then
+    PYBIN="$c"
+    break
+  fi
+  STUBS="$STUBS      - $cpath is on PATH and is not a working interpreter
+"
+done
 if [ -z "$PYBIN" ]; then
-  printf '\n  librarian MCP: THIS SESSION MAY HAVE NO TOOLS\n'
-  printf '    - no python3 and no python on PATH, so the server cannot start\n\n'
+  printf '\n  librarian MCP: THIS SESSION WILL HAVE NO TOOLS\n'
+  printf '    - no runnable python on PATH, so the server cannot start\n'
+  [ -n "$STUBS" ] && printf '%s' "$STUBS"
+  printf '\n'
   exit 0
 fi
+# A name that exists and does not run is worth saying even when a later
+# candidate worked: it is what silences every OTHER caller that stops at the
+# first name, and those are what actually break.
+if [ -n "$STUBS" ]; then
+  printf '\n  python: a name on PATH is not an interpreter\n'
+  printf '%s' "$STUBS"
+  printf '      - resolved to %s instead\n' "$(command -v "$PYBIN")"
+  printf '      - anything still naming python3 directly is broken here (plan.md 11-22)\n\n'
+fi
 
-"$PYBIN" - "$ROOT" "$PWD" <<'PY' 2>/dev/null || exit 0
+# The server imports `mcp`. That is a third-party package and not agent
+# code, so reading for it stays on this side of 6.2 rule 3 -- and on the
+# microscope computer it is the cause that outlived the interpreter fix:
+# the launcher resolves, python runs, and the server still cannot serve.
+if ! "$PYBIN" -c 'import mcp' >/dev/null 2>&1; then
+  printf '
+  librarian MCP: THIS SESSION WILL HAVE NO TOOLS
+'
+  printf '    - %s cannot import mcp, so the server exits instead of serving
+' "$(command -v "$PYBIN")"
+  printf '    - the configuration below may be perfectly correct and it will not help
+
+'
+fi
+
+# Windows defaults to cp1252 and this tree reads text without naming an
+# encoding, so the check below dies on the first non-ASCII byte without this.
+PYTHONUTF8=1
+export PYTHONUTF8
+
+"$PYBIN" - "$ROOT" "$PWD" <<'PY' 2>/dev/null
 import json, os, sys
 
 root, cwd = sys.argv[1], sys.argv[2]
@@ -93,6 +142,22 @@ if problems:
     print("    the librarian answered. This is a schedule problem, not an evidence one.")
     print("")
 PY
+
+PREFLIGHT_STATUS=$?
+if [ "$PREFLIGHT_STATUS" -ne 0 ]; then
+  # Silence here used to be indistinguishable from a clean bill of health:
+  # the old form was `|| exit 0`, so an interpreter that could not run the
+  # check produced no output and exit 0 -- which is what a PASSING preflight
+  # also produces. That is how this reported nothing on 2026-09-24.
+  printf '
+  librarian MCP: PREFLIGHT DID NOT COMPLETE
+'
+  printf '    - %s failed to run this check, so nothing above was verified
+' "$PYBIN"
+  printf '    - call a librarian tool to find out; a refused probe costs nothing
+
+'
+fi
 
 # --- committer identity ---------------------------------------------------
 # Not about MCP, and here because this is the only thing in the repository

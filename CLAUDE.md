@@ -52,6 +52,25 @@ python3 librarian_agent/src/kb_index.py                          # after editing
 git config core.hooksPath contracts/hooks                        # once per working copy
 ```
 
+**On this machine those commands do not work as written, and the last one is
+a trap (2026-09-24).** `python3` here is a Microsoft Store App Execution
+Alias -- a real file `command -v` finds, which prints `Python was not found`
+and exits 49 -- so every `command -v python3 || command -v python` fallback
+in this repository picks the placeholder and the fallback never fires. **Run
+the validator as `PYTHONUTF8=1 python contracts/validate.py`**: the interpreter
+because of the alias, and the encoding because the validator reads text
+without naming one and dies on cp1252 before it checks anything. `.mcp.json`,
+`.claude/settings.json` and `.claude/mcp-preflight.sh` now probe with `-c ''`
+and take only a zero exit; **`contracts/hooks/pre-commit` and `pre-push` do
+not, so do not run the `core.hooksPath` line above in this working copy until
+they do** -- installed today the gate refuses every commit and prints an empty
+failure list, because it greps the alias's complaint for `FAIL`. And read the
+verdict knowing **964 of its failures are check 13 alone and all false**, from
+`str(p.relative_to(REPO))` yielding backslashes against patterns written with
+`/`; the same defect makes `--expect-fail` print one total where this file
+says two, with the 20 group fixtures never evaluated. See §11-22.
+
+
 The first must end `0 failed`. The last prints two totals, cards and groups,
 and every one of both must still be rejected — a fixture that stops failing
 means a check stopped working. **Read every count off the run, never off

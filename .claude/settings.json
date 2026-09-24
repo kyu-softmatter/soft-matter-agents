@@ -1,5 +1,9 @@
 {
   "$comment": "The design seat (plan.md 6.2, 7). The repository root is the design session's working directory: it owns plan.md, contracts/, and each agent's CLAUDE.md and .claude/, and it specifies rather than implements. Everything else inside an agent directory belongs to that agent's own session, whose cwd is that directory. Claude Code loads .claude/settings.json from the working directory only and never from a subdirectory, so an agent session launched at the root gets THIS file instead of its own and is refused here. That refusal is the point -- a misplaced seat should be loud rather than silent. Write and Edit are not the whole boundary: deny does not reach `sed -i` or a python heredoc, and both have been used here by every session. The gate that actually holds is contracts/hooks/pre-commit (check 35), installed with `git config core.hooksPath contracts/hooks`.",
+  "env": {
+    "PYTHONUTF8": "1",
+    "$comment": "Windows defaults to cp1252 and 204 read_text() calls across this tree name no encoding, so contracts/validate.py raises UnicodeDecodeError before it checks anything. This is a FLOOR, not the fix: it reaches only sessions started after it and does nothing for a clone that lacks it. The fix is an explicit encoding at each call site (plan.md 11-22)."
+  },
   "permissions": {
     "deny": [
       "Write(microscope_agent/envelope/**)",
@@ -37,8 +41,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/contracts/validate.py\" --quiet",
-            "$comment": "the validator's exit code is the only truth (plan.md 8)"
+            "command": "sh -c 'for c in python3 python py; do command -v \"$c\" >/dev/null 2>&1 || continue; \"$c\" -c \"\" >/dev/null 2>&1 || continue; exec \"$c\" \"$CLAUDE_PROJECT_DIR/contracts/validate.py\" --quiet; done; echo \"validate: no RUNNABLE python on PATH (python3, python, py all failed a -c probe)\" >&2; exit 1'",
+            "$comment": "the validator's exit code is the only truth (plan.md 8). The interpreter is resolved by RUNNING it: this named `python3` until 2026-09-24, and on the microscope computer `python3` is a Microsoft Store App Execution Alias that is not Python -- it exits 49 with 'Python was not found', so this hook reported a failure whose message named no cause. Existence is not runnability (plan.md 11-22)."
           }
         ]
       }

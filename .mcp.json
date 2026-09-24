@@ -4,10 +4,12 @@
       "command": "sh",
       "args": [
         "-c",
-        "exec \"$(command -v python3 || command -v python)\" \"$(git rev-parse --show-toplevel)/librarian_agent/src/mcp_server.py\" --serve"
+        "for c in python3 python py; do command -v \"$c\" >/dev/null 2>&1 || continue; \"$c\" -c '' >/dev/null 2>&1 || continue; exec \"$c\" \"$(git rev-parse --show-toplevel)/librarian_agent/src/mcp_server.py\" --serve; done; echo 'librarian: no RUNNABLE python on PATH (python3, python, py all failed a -c probe)' >&2; exit 1"
       ],
-      "env": {},
-      "$comment": "sh and git are both present wherever this repository was cloned, including Windows with Git for Windows. python3 is NOT: a stock Windows install provides `python` and no `python3`, so the interpreter is resolved rather than named (2026-09-20)."
+      "env": {
+        "PYTHONUTF8": "1"
+      },
+      "$comment": "sh and git are both present wherever this repository was cloned, including Windows with Git for Windows. The interpreter is resolved by RUNNING it, not by finding it. This said until 2026-09-24 that a stock Windows install provides `python` and no `python3`, and resolved with `command -v python3 || command -v python`. On the microscope computer that is false in the way that costs most: `python3` EXISTS as a Microsoft Store App Execution Alias -- a real file on PATH that is not Python. `command -v` finds it, so the fallback never fires; it prints 'Python was not found' and exits 49, and the server never starts. That is the CONNECTION_CLOSED this session opened with. A guard that tests existence cannot tell an interpreter from a placeholder named after one, so each candidate is probed with `-c ''` and only a zero exit is accepted. PYTHONUTF8 is set because the validator and the server read repository text with no explicit encoding and Windows defaults to cp1252, which raises UnicodeDecodeError on the first non-ASCII byte (plan.md 11-22)."
     }
   }
 }
