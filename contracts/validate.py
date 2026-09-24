@@ -4049,6 +4049,32 @@ def check_40_window_condition(b: Bundle) -> list[Finding]:
             out.append(Finding(40, FAIL, f"the vocabulary marks {obs!r} window_required but names no window_parameter", "contracts/observables.json"))
             continue
         conditions = {d.get("parameter"): d.get("number") for d in c.data.get("conditions", []) or []}
+        # A SWEEP carries its window either shared -- in the top-level
+        # conditions, constant over every point -- or per point, where it
+        # varies_with an axis (a window that is a multiple of each point's own
+        # relaxation time is the case that forced this). Until 2026-09-23 this
+        # check read the top level alone, so a correct sweep whose window moved
+        # with the axis could not pass at all. Every point that was actually
+        # RUN needs the window from one place or the other; a point marked
+        # `skipped` was never measured and has nothing to label.
+        points = [pt for pt in ((c.data.get("sweep") or {}).get("points") or []) if not pt.get("skipped")]
+        if points:
+            unlabelled, dangling = [], []
+            for pt in points:
+                own = {d.get("parameter"): d.get("number") for d in pt.get("conditions", []) or []}
+                num = own.get(want, conditions.get(want))
+                if num is None:
+                    unlabelled.append(str(pt.get("point", "?")))
+                elif num not in c.numbers():
+                    dangling.append(f"{pt.get('point', '?')} -> {num!r}")
+            if unlabelled:
+                out.append(Finding(40, FAIL, f"{obs!r} depends on a window, and sweep point(s) {', '.join(unlabelled)} "
+                                             f"were run without {want!r} in either the shared conditions or their own, "
+                                             f"so those results cannot say which window they measured (5.7)", c.rel))
+            if dangling:
+                out.append(Finding(40, FAIL, f"the window {want!r} points at names not in numbers[]: "
+                                             f"{'; '.join(dangling)}", c.rel))
+            continue
         if want not in conditions:
             out.append(Finding(40, FAIL, f"{obs!r} depends on a window, so the plan must carry {want!r} as a condition (5.7); it carries {sorted(conditions)}", c.rel))
             continue

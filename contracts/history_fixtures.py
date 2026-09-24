@@ -543,6 +543,43 @@ def fixture_21_a_formula_on_a_graded_store_entry(repo: Path) -> str:
     return _one_card(repo, _decision_card([n], [], refs), "a formula on an E5 entry claiming E4")
 
 
+def fixture_40_a_sweep_point_run_without_its_window(repo: Path) -> str:
+    """A sweep plan whose window moves with the axis, and one run point lacks it.
+
+    Before 2026-09-23 check 40 read the top-level conditions alone, so a
+    sweep carrying its window PER POINT -- a multiple of each point's own
+    relaxation time, the case simulation-8 hit -- could not pass however
+    correct it was. Reading the points fixed that and opened this failure:
+    a point that was actually run with no window in either place. The phrase
+    is the new one; the old code said "must carry ... as a condition", so a
+    fixture matching it would pass on either version and test nothing.
+
+    A third point is marked `skipped` and also lacks the window, and must NOT
+    be named: a cell that was never measured has nothing to label.
+    """
+    start = base(repo)
+    W = {"name": "win_a", "value": 1.0, "unit": "s", "source": "assumed:fixture", "grade": "E5"}
+    plan = {"card": "plan", "id": "plan-fixture", "schema_version": 1, "qid": "sim-20260923-902",
+            "thread": None, "round": 1, "revision": 1, "author": "simulation_agent",
+            "created_at": "2026-09-23T00:00:00Z", "status": "draft", "goal_id": "goal-fixture",
+            "purpose": "characterize", "intent": "explore",
+            "observable": {"name": "tracer_diffusivity", "unit": "um^2/s"},
+            "system_configuration": "bd_overdamped",
+            "numbers": [W], "conditions": [{"parameter": "temperature", "number": "win_a"}],
+            "sweep": {"axes": [{"parameter": "trap_stiffness", "levels": ["win_a", "win_a"]}],
+                      "points": [
+                          {"point": "soft", "conditions": [{"parameter": "max_lag_time", "number": "win_a"}]},
+                          {"point": "stiff", "conditions": [{"parameter": "trap_stiffness", "number": "win_a"}]},
+                          {"point": "corner", "skipped": "diverges",
+                           "conditions": [{"parameter": "trap_stiffness", "number": "win_a"}]}]},
+            "actions": [], "envelope_check": {}, "cost": {}, "stop_criteria": [],
+            "success_criteria": [], "open_risks": [], "kb_refs": [], "kb_gaps": [], "degraded": []}
+    rel = "simulation_agent/questions/sim-20260923-902/plan_simulation_sim-20260923-902.json"
+    write(repo, rel, plan)
+    commit(repo, "a sweep point run without its window", rel, seat="simulation")
+    return f"{start}..HEAD"
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -559,6 +596,7 @@ FIXTURES = [
     (17, "FAIL", "would mean two things", fixture_17_a_target_metric_that_shadows_a_number),
     (17, "FAIL", "so the reference is ambiguous", fixture_17_an_envelope_field_named_twice),
     (21, "FAIL", "max(E4, worst) = E5", fixture_21_a_formula_on_a_graded_store_entry),
+    (40, "FAIL", "were run without", fixture_40_a_sweep_point_run_without_its_window),
     (80, "PASS", "5 site(s) decide a device's role", fixture_80_five_forms_and_five_that_must_not_fire),
 ]
 
