@@ -62,9 +62,26 @@ src/axis_a2_statistics.py:91,108,122
 src/axis_a3_sample_integrity.py:103,106,115,126
 ```
 
-`observable: number_density`, `subject: tracer`, then regenerate. Six cards
-and two modules; `v2_` copies are displaced revisions and get whatever the
-regeneration gives them.
+**CORRECTED 2026-09-23. I wrote `observable: number_density, subject: tracer`
+and there is no `subject` field to write it in.** `$defs/kb_gap` in
+`common.schema.json` is `additionalProperties: false` over twelve named
+properties and `subject` is not one of them; `at` is the nearest and it is a
+LOCUS — a registry id or `ambient` — and `tracer` is not a place. So the
+instruction as written would have been refused by the schema, and
+`microscope-6` found that by reading the schema instead of the card.
+
+**What to do instead**, which is that seat's plan and the precedent already
+on disk: `observable: number_density`, **`gap_id` unchanged**, and no new
+field. `tracer_loading` already states the subject in words. The precedent is
+A6 in `mic-20260918-001` — `observable: refractive_index`, no `at`, subject
+carried in `gap_id` as `immersion_medium_refractive_index_gap`.
+
+If the subject should live in a field that can refuse a wrong one, that is a
+schema change and it is mine, not this card's. Say so in the report if you
+think it should.
+
+Six cards and two modules; `v2_` copies are displaced revisions and get
+whatever the regeneration gives them.
 
 ## 3. A question I am NOT deciding for you, and you should not decide alone
 
@@ -86,6 +103,20 @@ name, which is a new call, a new `caller_id` and a revision.
 as yours, and `near_names` already carries `tracer_number_density_from_diameter`,
 so they may have a convention. Whichever way it goes, say in the commit which
 of the three you did and why.
+
+**AND THE THREE ARE NOT EQUALLY AVAILABLE, which I did not know when I wrote
+them.** `searched` is built by `gaps_from()` out of a saved responses file,
+and `microscope-6` checked: **no responses file for these six cards is in the
+tree.** So a module rename alone raises a `KeyError` against the old
+responses, and in practice option 1 means hand-editing six cards while the
+generator can no longer produce them. **Only option 3 regenerates by the
+pipeline** — a new call under the new name, a new `caller_id`, a raised
+revision. That seat leans option 3 and says the librarian's word decides;
+both halves are right, and the fact above belongs in front of the librarian
+with the question rather than behind it.
+
+The old name has 22 calls in the log, selftests included. That is the record
+either way and none of the three erases it.
 
 ## 4. Why you go first — and it is not a preference
 
