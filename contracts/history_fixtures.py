@@ -631,6 +631,33 @@ def fixture_77_a_deletion_on_a_stop_criterion_that_did_not_fire(repo: Path) -> s
     return _deletion_repo(repo, False)
 
 
+def fixture_83_a_written_trajectory_deleted_by_hand(repo: Path) -> str:
+    """A run that recorded writing its trajectory, whose file is now gone, and
+    whose log holds no pipeline deletion -- the person deleted it by hand.
+
+    Intended, and not a failure: the person decides what to keep. The check
+    exists so the absence is SEEN, and a report is the verdict it must give --
+    naming the rerun that regenerates the file and the hash that verifies it.
+    Measured on 2026-09-23: a trajectory removed by hand moved no verdict in
+    either run, which is the silence this fixture now makes loud.
+    """
+    start = base(repo)
+    run = "simulation_agent/runs/run-20260923-904"
+    H = "c" * 64
+    meta = {"artifact": "trajectory_meta", "schema_version": 1, "run_id": "run-20260923-904",
+            "trajectory": {"written": True, "format": "txt", "file": "trajectory.txt", "sha256": H,
+                           "coords_sha256": H, "dtype": "float64", "sig_figs": 17, "time_base": "step_index",
+                           "save_interval_steps": 100, "frames": 10, "particles": 5, "engine": "hoomd",
+                           "engine_version": "7.2.0", "seed": 7, "plan_hash": "p", "box": [1, 1, 0],
+                           "units": "m", "columns": [{"name": "step", "unit": "1", "meaning": "step index"}]}}
+    log = {"run_id": "run-20260923-904", "plan_id": "plan-904", "backend": "hoomd_backend", "events": []}
+    for rel, doc in ((f"{run}/trajectory_meta.json", meta), (f"{run}/log.json", log)):
+        write(repo, rel, doc)
+    # trajectory.txt is deliberately never written: it is the file the person removed.
+    commit(repo, "a run that wrote a trajectory the person later deleted", run, seat="simulation")
+    return f"{start}..HEAD"
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -650,6 +677,7 @@ FIXTURES = [
     (40, "FAIL", "were run without", fixture_40_a_sweep_point_run_without_its_window),
     (77, "FAIL", "did not evaluate it", fixture_77_a_deletion_on_a_criterion_nobody_evaluated),
     (77, "FAIL", "that criterion NOT firing", fixture_77_a_deletion_on_a_stop_criterion_that_did_not_fire),
+    (83, "PASS", "deleted outside the pipeline", fixture_83_a_written_trajectory_deleted_by_hand),
     (80, "PASS", "5 site(s) decide a device's role", fixture_80_five_forms_and_five_that_must_not_fire),
 ]
 

@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "trajectory_meta.schema.json",
+  "title": "trajectory_meta",
+  "description": "The run's record of how it ended and whether it kept its trajectory. Until 2026-09-23 no schema existed, so nothing inside the forty-four files on disk could be checked -- and a check that reports a trajectory deleted outside the pipeline has to trust `written`, `file` and the hashes it reads. The discriminator `artifact` is what brings a file under this schema, so the forty-four written before it carry none and are not judged; a writer from this date stamps it.",
+  "type": "object",
+  "properties": {
+    "artifact": {
+      "const": "trajectory_meta"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "frames_saved": {
+      "type": "integer"
+    },
+    "simulated_time": {},
+    "steps_taken": {
+      "type": "integer"
+    },
+    "stopped_by": {},
+    "stop_outcome": {},
+    "stopped_early": {
+      "type": "boolean"
+    },
+    "completed_planned_duration": {
+      "type": "boolean"
+    },
+    "max_single_step_displacement": {},
+    "trajectory": {
+      "type": "object",
+      "description": "Whether a trajectory was written for this run and, if so, what lets it be REUSED instead of re-run. `written: false` must say why. A written trajectory is one file: `txt` is the format a writer produces from 2026-09-23 (plan.md 4.6, the person's request that analysis read the file rather than re-run); `gsd` is the legacy form eleven runs of that day left on disk before the rule, accepted so they validate if re-stamped, and not to be written next to a txt -- two copies of one trajectory are one fact in two places.",
+      "properties": {
+        "written": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string",
+          "description": "required when written is false: why no trajectory exists, so absence is a record and not a silence"
+        },
+        "format": {
+          "enum": [
+            "txt",
+            "gsd"
+          ]
+        },
+        "file": {
+          "type": "string",
+          "description": "the file's name inside this run's directory"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "SHA-256 of the FILE'S BYTES. Integrity for reuse: a reader recomputes it and refuses a file that no longer matches, rather than silently re-running or reading something else."
+        },
+        "coords_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "SHA-256 over the coordinate ARRAY in its source dtype, not over the text. The text hash moves with formatting -- digits, separators, line endings -- so it cannot say whether two runs produced the same positions; this one can, which is what shows which engine ran."
+        },
+        "dtype": {
+          "enum": [
+            "float32",
+            "float64"
+          ],
+          "description": "the source array's dtype, before it was written as text"
+        },
+        "sig_figs": {
+          "type": "integer",
+          "enum": [
+            9,
+            17
+          ],
+          "description": "digits written per value, following the source: 9 for float32 and 17 for float64 round-trip exactly. More than the source carries prints precision that does not exist."
+        },
+        "time_base": {
+          "const": "step_index",
+          "description": "the time column is the integer step index, never an accumulated float time"
+        },
+        "save_interval_steps": {
+          "type": "integer"
+        },
+        "frames": {
+          "type": "integer"
+        },
+        "particles": {
+          "type": "integer"
+        },
+        "engine": {
+          "type": "string"
+        },
+        "engine_version": {
+          "type": "string"
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "plan_hash": {
+          "type": "string",
+          "description": "the plan this run executed, so the file can be traced to the conditions that made it"
+        },
+        "box": {
+          "description": "the simulation box as the engine held it"
+        },
+        "units": {
+          "type": "string",
+          "description": "what the coordinates are measured in; reduced units name their length and time scales"
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "meaning": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "unit",
+              "meaning"
+            ],
+            "additionalProperties": false
+          },
+          "description": "one entry per text column: step, particle id, UNWRAPPED position components (the MSD estimator requires them), and orientation where the model has one"
+        },
+        "bytes": {
+          "type": "integer"
+        },
+        "gsd_version": {
+          "type": "string"
+        },
+        "index_0": {},
+        "ordering": {
+          "type": "string"
+        },
+        "step_counter": {}
+      },
+      "required": [
+        "written"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "written": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "reason"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "written": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "format",
+              "file"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "format": {
+                "const": "txt"
+              }
+            },
+            "required": [
+              "format"
+            ]
+          },
+          "then": {
+            "required": [
+              "sha256",
+              "coords_sha256",
+              "dtype",
+              "sig_figs",
+              "time_base",
+              "save_interval_steps",
+              "frames",
+              "particles",
+              "engine",
+              "engine_version",
+              "seed",
+              "plan_hash",
+              "box",
+              "units",
+              "columns"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "required": [
+    "artifact",
+    "schema_version",
+    "run_id",
+    "trajectory"
+  ],
+  "additionalProperties": false
+}

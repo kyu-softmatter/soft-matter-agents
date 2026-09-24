@@ -240,6 +240,12 @@ ARTIFACT_SCHEMA = {
     # through this dict alone, so until this line existed a budget.json would
     # have been refused as an unknown artifact the moment it appeared.
     "envelope_budget": "envelope_budget.schema.json",
+    # 2026-09-23, for the person's request that a run keep its trajectory as one
+    # text file and analysis read it instead of re-running. The forty-four metas
+    # written before this carry no `artifact` and so are not judged by it; a
+    # writer from this date stamps it, and check 83 reads the trajectory field
+    # of both, which is what it needs this schema to be able to trust.
+    "trajectory_meta": "trajectory_meta.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]
@@ -7139,6 +7145,75 @@ def check_82_imports_are_declared(b: Bundle) -> list[Finding]:
                           f"are all declared, of {len(declared)} declarations")]
 
 
+def check_83_written_trajectories_are_present(b: Bundle) -> list[Finding]:
+    """Every run that wrote a trajectory still has it, or the absence is seen.
+
+    The person asked on 2026-09-23 that a run keep its trajectory as one text
+    file so analysis reads it instead of re-running, and that they delete it by
+    hand when they need the space. Deleting by hand is intended and needs no
+    record -- the rule that deletion rest on a declared trigger exists so that a
+    SEAT cannot choose after the fact which evidence to destroy, and the person
+    deciding is outside it. What has to be prevented is only that the absence
+    goes UNSEEN: measured that day, a trajectory removed by hand moved no verdict
+    in either run.
+
+    So this REPORTS and does not fail. A run whose meta says it wrote a
+    trajectory, whose file is gone, and whose log holds no pipeline deletion,
+    is named as deleted outside the pipeline, with the rerun that regenerates it
+    -- engine, version, seed, configuration -- and the hash that verifies the
+    regenerated file. A trajectory written in the txt form carries those in its
+    own meta; one written before that form reads them from the run's config and
+    log and says plainly what was never recorded. It prints its denominator.
+    """
+    plans = {str(p.data.get("id")): p for p in b.of_kind("plan")}
+    metas = sorted(REPO.glob("*_agent/runs/*/trajectory_meta.json"))
+    if not metas:
+        return [Finding(83, PENDING, "no trajectory_meta.json on disk, which a run produces")]
+    wrote = present = by_pipeline = 0
+    out: list[Finding] = []
+    for meta in metas:
+        rel = str(meta.relative_to(REPO))
+        try:
+            doc = json.loads(meta.read_text())
+        except (OSError, ValueError):
+            continue                          # check 1 owns an unreadable file
+        t = doc.get("trajectory") or {}
+        if not isinstance(t, dict) or t.get("written") is not True:
+            continue
+        wrote += 1
+        run_dir = meta.parent
+        if t.get("file") and (run_dir / str(t["file"])).exists():
+            present += 1
+            continue
+        try:
+            log = json.loads((run_dir / "log.json").read_text())
+        except (OSError, ValueError):
+            log = {}
+        if any(isinstance(ev, dict) and ev.get("deletion") for ev in log.get("events") or []):
+            by_pipeline += 1
+            continue
+        try:
+            cfg = json.loads((run_dir / "config.json").read_text())
+        except (OSError, ValueError):
+            cfg = {}
+        plan = plans.get(str(cfg.get("plan_id") or log.get("plan_id") or ""))
+        config = (plan.data.get("system_configuration") if plan else None) or "configuration not found"
+        engine = t.get("engine") or log.get("backend") or cfg.get("backend") or "engine not recorded"
+        version = t.get("engine_version") or "version not recorded"
+        seed = t.get("seed", cfg.get("seed", "seed not recorded"))
+        digest = t.get("sha256") or "no hash recorded -- written before the text form required one"
+        out.append(Finding(83, PASS,
+                           f"{run_dir.name}: trajectory {t.get('file')!r} was written and is gone, with no "
+                           f"pipeline deletion -- deleted outside the pipeline. Rerun: {engine} {version}, "
+                           f"seed {seed}, {config}; verify against {digest}", rel))
+    outside = wrote - present - by_pipeline
+    if not wrote:
+        return [Finding(83, NA, f"{len(metas)} run metas and none records a written trajectory")]
+    return out + [Finding(83, PASS,
+                          f"{wrote} runs wrote a trajectory: {present} present, {by_pipeline} deleted by the "
+                          f"pipeline, {outside} deleted outside it")]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -7153,6 +7228,7 @@ CHECKS = [
     check_40_window_condition, check_43_entry_grade, check_46_vocabulary_pin, check_48_registry_grants, check_44_subject_resolves, check_49_absent_searched_the_neighbourhood, check_62_computed_grade_derived, check_64_every_rejected_fixture_is_reached, check_55_section_7_names_are_allowed,
     check_78_history_paths_classify, check_79_gitignored_dirs_are_skipped,
     check_81_relative_imports_resolve, check_82_imports_are_declared,
+    check_83_written_trajectories_are_present,
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision,
