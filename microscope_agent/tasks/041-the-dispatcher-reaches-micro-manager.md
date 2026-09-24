@@ -17,7 +17,7 @@ five-minute run cited as its inputs. That is a planned run, so the two gaps
 card 033 §3b worked around have to close first. **If they cannot close, the
 question goes back to architecture rather than being routed around again.**
 
-## The two gaps
+## The gaps
 
 1. **The registry carries no Micro-Manager labels**, so `Aura` and
    `Kinetix_red` raise `GapError` at preflight. The registry is the
@@ -31,6 +31,16 @@ question goes back to architecture rather than being routed around again.**
    `micromanager.apply()` would verify nothing. Derive the settings
    mechanically from the plan's fields, so that each property written is
    read back and compared
+
+3. **Approvals written from Windows PowerShell are refused as unreadable,
+   and should not be.** Found by `microscope-20260924-2` on run
+   `-005`: PowerShell 5.1's `Set-Content -Encoding utf8` writes a byte-order
+   mark, and `approvals_on_disk()` in `operator.py` then fails to parse the
+   file. **Refusing was fail-closed and correct.** The fix is to read
+   approvals as `utf-8-sig`, which accepts the mark and changes nothing
+   else. It will bite every approval the person writes from PowerShell. A
+   test: an approval file with a byte-order mark is read, and a genuinely
+   malformed one is still refused
 
 **Card 033's allow-list and `GuardedCore` stay exactly as they are.** A
 planned run is checked by them too; this card makes the dispatcher reach
