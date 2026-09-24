@@ -141,6 +141,9 @@ def fmt(x: float, sig: int = 3) -> str:
 COLORS = ["#2f5d9e", "#c0392b", "#1f7a4d", "#9a5b00", "#6c3483"]
 
 
+_CLIP_IDS = __import__("itertools").count(1)
+
+
 class Plot:
     """A minimal x-y panel: log or linear axes, points with error bars, lines, bands."""
 
@@ -210,8 +213,12 @@ class Plot:
             ax.append(f'<line x1="{l - 4}" x2="{l}" y1="{y:.1f}" y2="{y:.1f}" stroke="#999"/><text x="{l - 7}" y="{y + 4:.1f}" font-size="11" text-anchor="end">{lab}</text>')
         ax.append(f'<text x="{(l + r) / 2}" y="{self.h - 8}" font-size="12" text-anchor="middle">{self.xlabel}</text>')
         ax.append(f'<text x="14" y="{(t + b) / 2}" font-size="12" text-anchor="middle" transform="rotate(-90 14 {(t + b) / 2})">{self.ylabel}</text>')
-        clip = f'<clipPath id="c{id(self)}"><rect x="{l}" y="{t}" width="{r - l}" height="{b - t}"/></clipPath>'
-        body = f'<g clip-path="url(#c{id(self)})">' + "".join(self.parts) + "</g>"
+        # A counter, not id(self): CPython reuses a collected panel's address, so two
+        # figures on one page could share a clip id and a browser would clip the later
+        # one to the earlier one's rectangle (found by window 4, 2026-09-24).
+        cid = next(_CLIP_IDS)
+        clip = f'<clipPath id="clip{cid}"><rect x="{l}" y="{t}" width="{r - l}" height="{b - t}"/></clipPath>'
+        body = f'<g clip-path="url(#clip{cid})">' + "".join(self.parts) + "</g>"
         return (f'<svg viewBox="0 0 {self.w} {self.h}" width="{self.w}" height="{self.h}" xmlns="http://www.w3.org/2000/svg" '
                 f'font-family="Helvetica, Arial, sans-serif">{clip}' + body + "".join(ax) + "</svg>")
 
