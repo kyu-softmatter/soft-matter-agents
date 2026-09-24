@@ -2432,6 +2432,20 @@ wrong the way a citation can -- naming a cause the text never looked at -- so pl
 be vague. Records keep their references. Generated Markdown and the example envelope seats copy are
 written by code and by managers, so the rule reaches them only when those owners change them.
 
+**The first place that rule is enforced by code is the report generator (2026-09-23).** The person asked
+that reports carry graphs, and pictures and video where possible, produced from a template;
+`manager-simulation` carded it as task 022, a generator that draws figures from the trajectory files on
+disk, and the `sim` environment gained `matplotlib` and `ffmpeg` for it -- added with no version floor,
+since nothing in the work needs one, and **installed only after a package-by-package comparison of the
+lock showed no existing package changed**: 103 added on macOS and 171 on Linux, none removed or altered,
+the `default` and `mic` environments untouched. The raw diff had shown 1,003 lines removed, which was the
+lock's own reordering and not a version change; reading the line count alone would have said the running
+seats' environment was about to shift under them. The template adds nine sections to the person's five --
+among them the criteria set in advance, **placed before any result** the way a stop criterion is declared
+before a run, and a footer that is the only place a reference may appear -- and the generator refuses a
+body that carries internal codes. **That refusal is the plain-language rule turned from prose into a
+command**, which is the only form of a rule that held this week.
+
 **Numbers especially.** How many checks, how many cards, what percentage complete **go stale the moment they are written** — wrong three times in one day in `CLAUDE.md`. If the status has to be stated, write **what to run** instead.
 
 **`agentic-microscope`'s README is 2215 lines.** It is open, so the structure may be looked at (§10.2), but **the length is a warning rather than a model.** Looking at that repository for the sake of the README is not a transfer of a value or an expression, so it is not subject to a §10.2.1 ruling — but **carrying a sentence across is.**

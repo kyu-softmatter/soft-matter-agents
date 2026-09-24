@@ -127,7 +127,11 @@ because nobody had committed on top in the ninety seconds it existed.
 **A long commit message passed as `$(cat <<'EOF' ...)` has now failed
 silently twice**, leaving the commit unmade while the command reported
 nothing. Both times the recovery attempt was an amend, which is how one
-failure became two. **Write the message to a file and use `git commit -F`.** The gate
+failure became two. **Write the message to a file and use `git commit -F`.** **And do not filter
+a commit's output down to FAIL lines**: when another seat holds
+`.git/index.lock` the commit prints `fatal:` and is not made, and a filter for
+FAIL shows nothing at all -- which read as success on 2026-09-23, with the
+message already in a file. Read the last lines and confirm with `git log -1`. The gate
 lists separately whatever differs from what is going in, because nothing checks
 that. `--no-verify` bypasses it and leaves no trace, so say so in the
 message.
@@ -355,8 +359,14 @@ not here."* Nothing there can refuse it. §4.3.1 rule 3 is honour at exactly
 the point a seat is most tempted.
 
 **The cheapest test of whether the tools are there is to call one.** A probe
-costs nothing and dirties nothing: the server files a refusal with the
-arguments under `claimed` and `caller_id` null, and check 45 guards both
+costs nothing and dirties nothing: the server files a refusal with
+`caller_id` null and what was claimed -- the `caller_id` and `kb_version` --
+under `claimed`. **It does not record the other arguments**, which this file
+said it did until 2026-09-23: all 15 refusals in the log carry only those two
+keys, because the recorder keeps keyword arguments and the tools are called
+positionally, so a refusal says who claimed to ask and not what they asked
+(librarian-2 found it; the fix is the librarian's, and like any server fix it
+reaches only servers started after it). Check 45 guards both
 sides of that -- `if cid` before the log line is counted, `if not cid` before
 a card is -- so an invented id can neither enter the log as a caller nor back
 a card. simulation-3 put off a probe over that worry and then checked; this
