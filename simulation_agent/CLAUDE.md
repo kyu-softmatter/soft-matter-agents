@@ -400,6 +400,13 @@ is `partial`, 293 K is `disjoint`. At that date 918 logged calls held no
 interval condition at all, so the first real one is also the first test of
 this paragraph.
 
+**Asking for the reading itself is a different case, and it comes back
+`unstated`.** Window 1 queried the room temperature with a temperature
+interval on 2026-09-23 and got `unstated`, not `partial`. That is correct: the
+reading is a value with no validity range of its own, so there is nothing to
+compare the interval against. `partial` belongs to an entry that a reading is
+used as a condition *for*.
+
 ### What a run's observable is, which is not the same ruling
 
 The paragraph above settles an **input**. An observable is an **output**, and
