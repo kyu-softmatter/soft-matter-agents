@@ -3,39 +3,47 @@
 Written by `manager-microscope-20260924-1`. **The rulings are
 `microscope-20260924-1`'s**, reported up on 2026-09-24 and written here
 because that seat's deny list covers `tasks/**`. The hand is this seat's; the
-judgement is not. The first four lines are the ones card 033 §3 expected,
-which the seat confirmed; the rest are the seat's own.
+judgement is not.
+
+**Re-ruled after the run, in architecture's terms** (`plan.md` 10.2.1 at
+`32e2263`): **there is no fourth word.** An artifact loaded in place still
+crosses, so it is ruled piece by piece. The first version of this file
+recorded two items as `used`, and that word is withdrawn.
 
 ```
-downgrade | camera serial-to-index mapping (header, 2026-09-03)   | E3 at best; re-read here | 10.3 rule 1
-downgrade | LightEngine line names and 0-1000 scale (header)       | re-read off the device   | 10.3 rule 1
-drop      | PixelSize block                                         | the store holds it at E2; P14
-drop      | FocusDirection ZDrive note                              | safety content; 10.3 rule 4, and the store has it
-drop      | LaserLine config group                                  | setConfig is refused; inert today
-drop      | Core AutoShutter=1                                      | overridden to 0 as the first call after the load
-drop      | header's Aura error-573 diagnosis                       | not used; Aura is never commanded
-drop      | "Tweez GUI can hold Kinetix_blue" (header)              | untested there, not used
-used      | the configuration file as a load artifact               | loaded in place as the person's choice, not transplanted | 10.2.1, person's word
-used      | Startup preset LappMainBranch1 State=1                  | the person's decision "accept it"; logged as a load-time command, read back after
+transfer  | single_cam_red_noDMD_nocom10.cfg, as the run's loaded configuration | placed by path and sha256 8184073e31e1a7a6..., never copied into the tree | 10.2.1
+downgrade | its labels (device, state and preset names)                   | until a frame confirms what each opens | 10.3 rule 1
+discard   | its figures, as a source (the PixelSize block, 20x at 0.32373 um) | the store holds pixel size at E2; frame metadata carries the file's figure and is not a source | P14
+downgrade | camera serial-to-index mapping (header, 2026-09-03)             | E3 at best; re-read here | 10.3 rule 1
+downgrade | Aura line names and 0-1000 scale (header)                      | re-read off the device | 10.3 rule 1
+discard   | FocusDirection ZDrive note                                     | safety content; 10.3 rule 4, and the store has it
+discard   | LaserLine config group                                         | setConfig is refused; inert today
+discard   | Core AutoShutter=1                                             | overridden to 0 as the first call after the load
+discard   | header's Aura error-573 diagnosis                              | not used
+discard   | "Tweez GUI can hold Kinetix_blue" (header)                     | untested there, not used
 ```
 
-## Two lines are not in the three-way form, and that is noted, not changed
+**Not ruled, because it is not an item that crossed:** the Startup preset,
+`LappMainBranch1 State=1`. It is the person's decision (`02d269b`,
+*"accept it, load the file as chosen"*), recorded as one, and logged as a
+load-time command with its state read back. **Note that it asserts the
+unconfirmed Lapp-branch mapping on every load.**
 
-The seat reported the configuration file as **`transfer`** with **"no
-slot"**, and the Startup preset as **`accepted`**. The standing rule is that
-a transfer names the A1–A7 slot it lands in, and **an item that cannot name
-a slot is dropped**. Read literally, the first line rules itself a drop.
+## What the run confirmed, and what it did not
 
-**Neither item crosses into this project's design.** The file is loaded
-where it sits, as the person's choice for one run, and nothing from it is
-rearranged into an axis, a module or a constant. The three-way ruling is for
-what gets carried across, and this is used in place. So both are written
-above as **`used`**, a fourth word, with the seat's reasons kept word for
-word.
+- **Labels, partly confirmed by read-back.** `Nosepiece` read state 2,
+  `3-Plan Apo LmbdD0.8 20x`, matching the person's declaration.
+  `LappMainBranch1` read 1 (`mirror_in`), matching the preset. **They stay
+  downgraded:** a read-back shows the label and the state agree, not what
+  the state physically opens
+- **Camera serial read**: `Kinetix_red`, PVCAM `Camera-2`, reports
+  `A24M723015`, which the header calls red. **Not yet compared with the
+  store's `camera_bodies_are_told_apart_by_serial`.** That needs an issued
+  caller_id
+- **Aura line names read off the device**: `UV CYAN GREEN RED NIR`, with the
+  intensity upper limit at 1000 and `100` read back as `100`. That agrees
+  with the header, and the reading, not the header, is what the run used
+- **The pixel-size stamp read 0.0 at load**, and was not used either way
 
-**Whether `used` belongs in the vocabulary is the seat's call and then
-architecture's**, not this seat's. If the seat means `transfer`, it must name
-a slot. If it means something the three words do not cover, that is a gap in
-the form, and it should be raised rather than absorbed. Until then, **count
-these two as neither transfers nor drops.** The totals: 2 downgrades, 6
-drops, 2 used in place, 0 transfers.
+Totals: 1 transfer, 3 downgrades, 6 discards. The Startup preset is not
+counted.
