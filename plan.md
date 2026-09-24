@@ -357,7 +357,7 @@ Each agent has **what it does / what it does not do / inputs / outputs / permiss
 - It does not submit an over-budget job on its own.
 
 **Inputs**: a goal card or an ask_simulation card, `envelope/budget.json` (resource limits), librarian entries
-**Outputs**: `questions/<qid>/plan_simulation_<qid>.json` plus `.md`, `runs/<run_id>/{config, trajectory_meta, observables, log.json}`, a result or refusal card
+**Outputs**: `questions/<qid>/plan_simulation_<qid>.json` plus `.md`, `runs/<run_id>/{config, trajectory_meta, observables, log.json}` plus `trajectory.txt`, which is untracked data the run's record names (§4.6 trajectories, 2026-09-23), a result or refusal card
 
 **Permissions**: Tier 0 autonomous / Tier 1 smoke runs and small verification runs / Tier 2 over-budget jobs and model changes / Tier 3 forbidden
 
@@ -1447,6 +1447,60 @@ Why `computed` does not become E1 even from E1 inputs: **the expression itself i
 
  Whoever finds no positions reads why in the file that is still there -- that they were deleted, when, and **which declared criterion fired** -- rather than hunting a sibling. A record that cannot say what left it is not a record of the deletion.
 
+**A run's trajectory is saved as plain text, read back instead of re-run, and deleted by the person when
+space is needed (2026-09-23, at the person's request).** Every simulation run that produces a trajectory
+writes it as one text file, `runs/<run_id>/trajectory.txt`, and analysis reads that file rather than
+running the simulation again. **It is one file and not a companion to GSD**: two copies of one
+trajectory would be one fact in two places, so the text file is the trajectory the run keeps. It is **data
+that the run's record names, not a record** -- which is what the policy above already ruled, P9 governing
+the record and not the data a record names -- and the record that says what was written,
+`trajectory_meta.json`, is tracked while the trajectory itself is not.
+
+**Untracked is forced, and it means "no re-run" holds on the machine that ran it.** Measured the same day
+in a scratch repository: one 1000 particle by 1000 frame trajectory as text is 34 to 71 MB depending on the
+digits written, which git compresses to 17 to 34 MB -- **1.3 to 2.5 times this repository's entire object
+store** -- and after `git rm`, a commit and `git gc --prune=now` the pack did not shrink and the file could
+still be read out of history. So a committed trajectory can never be deleted to free space, which is the
+thing the person asked to be able to do. `.gitignore` excludes `runs/*/trajectory*` and re-includes
+`trajectory_meta.json`; the 11 GSD trajectories already on disk, 1.07 GB, untracked and until that commit
+unignored, are covered by the same line and can no longer be swept into a commit by `git add -A`. They are
+not converted, since text is 2.8 to 5.8 times the size of GSD. **Another computer does not inherit the saved
+trajectories through a clone**: it re-runs, or the files are copied to it.
+
+**What the file holds is set by what reads it.** A header states the `run_id`, the plan's hash, the engine
+and its version, the seed, the box, the save interval in steps, the numbers of particles and frames, what
+each column is and its unit -- with the length and time scales if a column is in reduced units -- and the
+dtype the values came from. The time base is the integer step index, the fourth time base of §4.6.9.
+Positions are **unwrapped**, because the mean-squared-displacement estimators require it, and orientation
+is written wherever the model has one, because persistence time needs it. **Digits follow the source**: 9
+significant digits round-trip a float32 value and 17 a float64 one, the header says which, and writing more
+digits than the source held prints precision that is not there.
+
+**Two hashes, for two jobs.** `trajectory_meta.json` records the SHA-256 of the file's bytes, so a reuse can
+tell the file is the one the run wrote. The hash used to show which engine ran is taken over the positions
+as an array, not over text, because a hash over text depends on formatting and would differ between two
+engines that computed the same thing.
+
+**The person may delete a trajectory at any time and needs to record nothing.** The rule above -- a
+deletion needs a trigger declared before the run -- exists so that *a seat* cannot decide after the fact
+which evidence to destroy: *what must not move is who decides*. The person deciding is who that rule wants
+deciding, so a deletion by hand is outside it. **What must not happen is the absence going unnoticed**, and
+today it would: measured, a trajectory removed by hand changes no verdict in either the committed-tree or
+the working-copy run. So the record keeps saying what was written, a reuse that finds the file missing or
+its hash different says so -- and does not quietly re-run or read something else -- and check 83 reports a
+run whose trajectory was written, is now absent, and has no pipeline deletion, as *deleted outside the
+pipeline*, with the rerun that would regenerate it: same engine, version, seed and configuration, verified
+against the recorded hash. It reports and does not fail, because the person deleting is intended. If the
+person wants a reason kept for one deletion, a seat records it; it is not required.
+
+Implementation is `manager-simulation`'s: the writer, a schema for `trajectory_meta.json` (it has none, so
+nothing in it can be checked), the reuse path, and check 83. **Two defects in check 77 surfaced on the way
+and go to the same seat**: it passes a deletion resting on a criterion the result card could not evaluate
+(`met: null`) and says the trigger *fired*, so a trajectory could be destroyed on a criterion nobody
+evaluated; and no rejected fixture exercises its resolution legs. And §4.2's *does not delete a failed or
+diverged run* is not contradicted by this: a run's **record** is never deleted; check 77 governs deleting
+its trajectory **data**, on a declared trigger.
+
 **Two records of one measurement are not two measurements (2026-09-22).** A KB entry at E3 agreed exactly with a constant in the prior repository -- same quantity, same sign, same operator, 2026-09-05 -- and `librarian-2` **did not raise the grade**, because agreement between two writings of one act corroborates nothing. **This is a live trap under §10.3**, which lets prior-repository material across capped at E3 precisely because a measurement taken elsewhere is not a measurement taken here: a reader meeting the same number on both sides will read independence into it unless the shared origin is written down. **What raises a grade is a second measurement, not a second file.** The seat also verified the device label where a machine reads it -- the constant, the collision list, four call sites, two tests -- rather than on the relay that happened to be right, and said plainly that the relay being right was not why it was adopted.
 
 **Choosing without justifying is one rule and it is written in three places (2026-09-22).** A person's tie-break in `goal.schema.json`, `preference_is_not_evidence` as a required field in `screening.schema.json`, and now a model picking a frame. All three obey the same four clauses: **it raises no grade, it supports no number, it has no falsifier, and S4 may not cite it.** Written once here so the schemas point rather than restate -- `manager-microscope`'s seat found the third arriving and asked for one home before it was written a third time, which is the opposite of how the other repetitions in this document got found.
@@ -2139,7 +2193,7 @@ rebuild/
                              The pixi tables state **a different dependency set per platform**, which is the whole
                              reason that tool was chosen: `win-64` has no HOOMD build, so `sim` is declared on
                              `osx-arm64` and `linux-64` only and solving for Windows does not fail, it simply has no
-                             simulation environment. `gsd` is deliberately absent until the commit that first imports it.
+                             simulation environment. `gsd` was deliberately absent until the commit that first imported it, and has been declared since 2026-09-23.
                              **Nothing in the pixi tables has been solved** -- pixi is not installed here, so they are
                              a specification and not yet a fact, and the file says so in its own comment
   uv.lock                  the exact versions the `[project]` manifest resolves to. **Without it another machine
@@ -2250,6 +2304,7 @@ rebuild/
     questions/<qid>/                question_…md, goal.json, axis_<config>_a1–a7.json,
                                     synthesis.json, plan_simulation_<qid>.{json,md}
     runs/<run_id>/                  config, trajectory_meta, observables, log.json
+                                    + trajectory.txt -- untracked and ignored; data, not a record
     src/                            axis_a1_stability.py … axis_a5_budget.py + axis_a7_driving.py
                                     (no A6, §4.5.3), synthesis.py, operator.py,
                                     hoomd_backend.py, mock_backend.py
@@ -2740,6 +2795,7 @@ is never touched. The revision comes later, with `013`, and then the corrected c
 
 | Number | What | Seat holding it |
 |---|---|---|
+| 83 | whether **every run that wrote a trajectory still has it, or says why not**: `trajectory_meta.json` records the file, its size and the SHA-256 of its bytes, and a run whose trajectory is absent with no pipeline deletion event is **reported** -- not failed -- as *deleted outside the pipeline*, naming the rerun that regenerates it (engine, version, seed, configuration) and the hash that verifies the result. **It prints its denominator**: runs that wrote a trajectory, how many are present, how many were deleted by the pipeline, how many outside it. It needs `trajectory_meta.json` to have a schema first, since nothing in an untyped file can be checked. Written because a trajectory deleted by hand changed no verdict in either run, measured on 2026-09-23 -- the person deleting is intended, and the absence going unseen is not | manager-simulation |
 | 84 | whether **the seat registry is internally sound**: every `committer_email` is unique and equals its `seat` plus `@seat.invalid`; every manager-named entry carries `contracts/seats.json` in `excludes`; and every entry first registered after the epoch of the dated form has the `<role>-<YYYYMMDD>-<n>` shape, parsed from the right, with a calendar-valid date -- entries present at the epoch are grandfathered by reading the registry there, as check 78 reads history. **Report, not fail, for a design-owning entry with neither `paths` nor `excludes` other than `human`**: today that is only `design`, the identity from before the seats were divided, vacated since, and still able to write anything in its boundary if anyone committed under it. Measured before it was asked for, in a scratch copy: a duplicated email passed the gate and re-routed another seat's commits; a manager entry without excludes passed check 41 on both `contracts/seats.json` and `plan.md`; seven malformed entries left the verdict unchanged | manager-simulation |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.

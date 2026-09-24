@@ -7,3 +7,12 @@ __pycache__/
 # pixi materialises environments here. The lockfile is tracked; this is not --
 # it is several hundred MB of solved packages, one copy per environment.
 .pixi/
+
+# Simulation trajectories are data a run's record names, not records, and they
+# are not tracked: text trajectories run to tens of MB each, a deleted file
+# frees nothing once it is in git history, and the person deletes them by hand
+# when space is needed. The record that says what was written --
+# trajectory_meta.json -- is tracked, hence the exception below. plan.md
+# section 4.6 on trajectories.
+simulation_agent/runs/*/trajectory*
+!simulation_agent/runs/*/trajectory_meta.json

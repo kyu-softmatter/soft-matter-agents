@@ -67,12 +67,12 @@ platforms = ["osx-arm64", "linux-64"]
 hoomd = ">=7.2"
 gsd = ">=3.2"
 # Added 2026-09-23 on the person's instruction, for the simulation seats now
-# running. Nothing imports it yet, which is the state gsd is in and kept out
-# of the manifest for -- the difference is who asked and why: gsd was a seat
-# anticipating a work item that had not landed, this is the person
-# provisioning sessions that are running. Check 79's asymmetry covers the
-# residue: an import with no declaration fails, a declaration with no import
-# reports.
+# running, before anything imported it -- the difference from how gsd was
+# once treated is who asked and why: the person provisioning sessions that are
+# running, not a seat anticipating work that had not landed. Check 82 carries
+# the asymmetry: an import with no declaration fails, a declaration with no
+# import reports. This comment said check 79 until 2026-09-23; 79 compares
+# .gitignore with SKIP_DIRS, and the wrong number is why nobody looked.
 #
 # The floor is what the work needs (root finding, quadrature, fitting --
 # simulation-7 named 1.11), not what the lock happens to pin today. A floor
