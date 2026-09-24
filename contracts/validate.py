@@ -7586,6 +7586,12 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
     return out
 
 
+#: The store entry whose presence lifts check 86's restriction on piezo Z. The
+#: name follows z_retract_direction_is_measured, the Z drive's twin. It is
+#: named here so the librarian can enter it under exactly this id: an entry
+#: under another name would leave Z restricted, which fails safe but silently.
+PIEZO_Z_DIRECTION_ENTRY = "piezo_z_direction_is_measured"
+
 #: Which envelope limit names bound which device's positions. A device absent
 #: here has no position limits at all, and an operation plan commanding it is
 #: refused rather than checked against nothing. Written as a table, not derived
@@ -7612,9 +7618,10 @@ def check_86_operation_plan(b: Bundle) -> list[Finding]:
         within that axis's `<device>_<axis>_position_min` / `_max` in the
         microscope's envelope. A missing limit REFUSES, and so does a floor
         above its ceiling: the schema cannot compare the pair
-      - Z IS A SINGLE DIRECTION-FINDING STEP: until the piezo-Z direction is
-        measured and recorded, a Z move is `direction_finding` or `return`,
-        and there is at most one `direction_finding`
+      - Z GETS ONLY THE DIRECTION-FINDING STEP UNTIL THAT DIRECTION IS
+        RECORDED: while the store lacks PIEZO_Z_DIRECTION_ENTRY, a Z move is
+        `direction_finding` or `return`, with at most one `direction_finding`.
+        Once the entry exists the restriction lifts and the limits still bind
       - A SINE HAS AN EXPLICIT APPROACH: the move before it on its axis is a
         step to its centre, because the controller rests at its floor
 
@@ -7703,12 +7710,20 @@ def check_86_operation_plan(b: Bundle) -> list[Finding]:
                     speeds.append(f"{m.get('id')} peaks at {2 * math.pi * a0 / m['period_s']:.0f} um/s")
             last_on_axis[m.get("axis")] = m
 
+        # UNTIL the direction is recorded, and not for ever: architecture
+        # corrected "a single direction-finding step" to this at 1b2d10e,
+        # because the first wording would have barred piezo Z permanently.
+        # The lift is the store holding the measured direction, by the entry
+        # id named below, the way z_retract_direction_is_measured holds the Z
+        # drive's. Until the librarian enters it, Z stays restricted.
         z = [m for m in moves if m.get("axis") == "z"]
-        if [m for m in z if m.get("role") not in ("direction_finding", "return")]:
-            bad.append("a Z move is neither direction_finding nor return: until the piezo-Z direction "
-                       "is recorded, Z gets only the direction-finding step")
-        if sum(1 for m in z if m.get("role") == "direction_finding") > 1:
-            bad.append("more than one Z direction-finding step: Z gets one")
+        if z and not (KB_DIR / "entries" / f"{PIEZO_Z_DIRECTION_ENTRY}.json").exists():
+            if [m for m in z if m.get("role") not in ("direction_finding", "return")]:
+                bad.append("a Z move is neither direction_finding nor return: until the piezo-Z direction "
+                           f"is recorded ({PIEZO_Z_DIRECTION_ENTRY} is not in the store), Z gets only the "
+                           "direction-finding step")
+            if sum(1 for m in z if m.get("role") == "direction_finding") > 1:
+                bad.append("more than one Z direction-finding step: until the direction is recorded, Z gets one")
 
         if bad:
             out.append(Finding(86, FAIL, f"{c.data.get('id')}: " + "; ".join(bad) + " (11-21)", c.rel))
