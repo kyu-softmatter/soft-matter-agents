@@ -120,12 +120,13 @@
       "for_store": true
     },
     {
-      "id": "pixel_size_um_reports_zero_at_load",
-      "fact": "Directly after loading single_cam_red_noDMD_nocom10.cfg with the 20x in place, getPixelSizeUm() returned 0.0 although the file carries a PixelSize block (20x at 0.32373). A pixel size in frame metadata from this configuration is not a source either way.",
+      "id": "pixel_size_um_reports_config_figure_at_load",
+      "fact": "Directly after loading single_cam_red_noDMD_nocom10.cfg with the 20x in place, getPixelSizeUm() returned 0.32373, which is the figure in the file's own PixelSize block, so frames carry it in their metadata. It is the configuration echoing itself, not a measurement, and is not a source for pixel size.",
       "kind": "self_report",
-      "how": "getPixelSizeUm read after the load in run-20260924-002.",
+      "how": "getPixelSizeUm read after the load in run-20260924-002, logged as pixel_size_um_reported in the note at this event.",
       "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 9},
-      "for_store": true
+      "for_store": false,
+      "note": "Corrected 2026-09-24 on librarian-20260924-2's reading. The first version of this item said getPixelSizeUm() returned 0.0 and cited run-20260924-002; the 0.0 is in run-20260924-001's event 9, read after that run's core had already been freed, so it came from an empty core and says nothing about the configuration."
     },
     {
       "id": "lit_frame_response_green_10pct",
