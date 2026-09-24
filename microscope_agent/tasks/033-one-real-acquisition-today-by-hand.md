@@ -169,11 +169,28 @@ run will use**. A dark frame with the mirror blocking proves nothing about
 | a `PixelSize` block, 20x at `0.32373` µm | **cite the store's `pixel_size_20x_zoom_1x`, not `getPixelSizeUm()`**. The number agrees, but the store is where knowledge lives. And the same block calls this "a real 20.078x", which is the over-precise magnification this project already downgraded. Do not carry that phrase anywhere |
 | `FocusDirection,ZDrive,1` and its long safety note | nothing today, since nothing moves under software. **Do not transfer it**: the retract direction is in the store already (`z_retract_direction_is_measured`, E3) |
 
-**The driver build matches.** `pymmcore-plus` finds its own Micro-Manager
-first, `2.0.3_20260806`, device interface 75, which is what this file's header
-says it needs. **The lab's `C:\Program Files\Micro-Manager-2.0` is second on
-the search path; do not point the core at it.** The header says every adapter
-there fails against interface 75.
+**Which Micro-Manager: pymmcore-plus's own copy, by the person's decision
+(2026-09-24).** Load against
+`C:\Users\Takatori lab\AppData\Local\pymmcore-plus\pymmcore-plus\mm\Micro-Manager_2.0.3_20260806`,
+which is what `find_micromanager()` returns first. **This reverses this
+morning's "Program Files is authoritative"**, which the person decided before
+anyone knew that install cannot load under this driver. The reason is
+measured, not preferred: `C:\Program Files\Micro-Manager-2.0` is MMCore
+11.1.1, device interface 71, and pymmcore 12.5.0.75 needs 75, so **every lab
+adapter fails to load from there**. `microscope-20260924-1` hit it today. The
+prior project hit the same wall on 2026-08-27, and the file the person chose
+was written for this copy, without the devices it cannot load. **Nothing is
+installed or downgraded.**
+
+**Two consequences:**
+
+- the run log records **which install was loaded**: path, and the device
+  interface version the core reports
+- **these adapters are newer than the ones the lab's own GUI uses**, so
+  nothing the lab has seen them do counts as evidence here. The before-light
+  checks in §4 are what establish that they behave: the dark frame, the
+  per-mille read-back, the serial, the saturated frame. That is one more
+  reason not to skip any of them
 
 **Before loading**: the Micro-Manager GUI closed (PVCAM gives a camera to one
 process), the tweezers GUI closed (`camera_red` `exclusive_with:
@@ -199,6 +216,48 @@ drop      | FocusDirection ZDrive note                             | safety cont
 `4120281c36abb65c`) is no longer the plan.** It maps the camera to
 `Camera-1`, has an empty Startup preset, and loads the DMD and the
 spinning-disk unit. Keep it as the fallback only if the person says so.
+
+## 3b. Today runs through a session script, not the plan dispatcher
+
+**OK'd for today by this seat**, at the request of `microscope-20260924-1`
+(report on §1 at `9db8abf`, item 4), with architecture raising no objection.
+**Why**: the device registry carries no Micro-Manager labels, so `LightEngine`
+and `Kinetix_red` raise `GapError` at preflight. And `derive_commands` never
+produces `params.settings`, so `apply()` would verify nothing. Going through
+the dispatcher today would look like a checked run and not be one.
+
+**Conditions, all of them, and the run log must show each:**
+
+1. **Every command the script will issue passes
+   `Orchestrator.check_software_motion` before the first one goes out.** That
+   means the whole list, built first and checked as a list, not command by
+   command as the script runs
+2. **Only `GuardedCore` touches the instrument.** No call on the unwrapped
+   core, with **one named exception**: `loadSystemConfiguration`, which the
+   guard does not list and is right to refuse. It runs **once**, only after
+   the person has answered the Lapp-mirror question above, and it is logged
+   as the load-time command it is
+3. **Everything goes to the run log as the orchestrator records it**: the
+   same `record()` and the same event shapes, so the log reads like any
+   other run's
+4. **The run log says in words that this run did not come through the plan
+   dispatcher, and why**: the two gaps above, named
+5. **Added by this seat: the person approves the command list before the
+   light goes on.** Skipping the dispatcher does not skip the approval. Show
+   the checked list and the first-frame intensity, and wait for the person's
+   answer. The approval is the person's to write, as always
+6. **Added by this seat: the script is committed in `microscope_agent/`
+   with the run**, so the record says exactly what ran. A script that exists
+   only in a terminal is a run nobody can re-read
+
+**Frames go outside the tree**: `D:\soft-matter-agents-frames\<run_id>\`,
+with each file's path and sha256 in the run log (architecture accepts, no
+`.gitignore` change). The run log itself stays in `runs/` in the tree.
+
+**After today, not today**: Micro-Manager labels in the registry, and
+`derive_commands` producing settings. Those two close the gap this section
+works around. Until they land, **this route is for this card's run only.**
+Using it again needs another card.
 
 ## 4. Before any light, in card 018's order
 
@@ -254,8 +313,9 @@ them, and does not spend the one sample mount.
 - **Bleaching spends a field.** Before each run the person moves to a fresh
   field by hand, and the run waits for the person to confirm it on the
   manual sheet (`manual.confirm`). Never on a timer
-- the approval route is unchanged: **the person approves the plan** before it
-  executes, as always. This card does not stand in for that
+- the approval route is unchanged: **the person approves** before it
+  executes, as always. Today that is the checked command list (§3b
+  condition 5). This card does not stand in for that approval
 
 **At no cost, while the person is at the filters**: reading the designation
 on the emission-wheel filter in the red position closes four open items at
@@ -277,7 +337,9 @@ once (card 018 §4f). Ask; it does not block.
 
 - both refusals from §1 reported word for word
 - every step of §4 logged with what was written and what was read back
-- one series on the particles, the configuration's path and hash in its log,
+- one series on the particles, the configuration's path and hash and the
+  Micro-Manager install in its log, the frames under
+  `D:\soft-matter-agents-frames\<run_id>\` with their hashes,
   a result card for the librarian, and `ImageNumber` contiguous
 - `PYTHONUTF8=1 python contracts/validate.py`, with the tree line read and
   quoted
