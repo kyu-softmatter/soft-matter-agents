@@ -197,6 +197,31 @@ reproduce can ask *was this run* and cannot ask *was this all*; the second has t
 words, and the answer believed. That is not a defect in §6.2 rule 3 -- it is the price of it, and it was
 unpriced until now.
 
+**Absence does not look like absence, and the remedy that landed five times today is a count that
+carries what it was taken over (2026-09-23).** `manager-microscope` counted five defects of one kind that
+day: a partial shutter omission hidden by a global boolean, `goal_id` read by no check, pre-push advice
+that could not be followed inside its own gate, `viscosity` registered while `density` was not, and `hoomd`
+declared while `gsd` was not. **Three were caught by someone reading and two by a consequence arriving --
+none by a check aimed at the absence.** The last two share a shape worth naming: **half of a pair**, two
+properties of one fluid, two parts of one engine, where the half that is present looks normal and the
+missing half occupies no place at all. The seat declined to propose a detector, and was right to: that
+`viscosity` and `density` belong together is fluid mechanics, not anything the registry holds, and a
+mechanism inventing the pairing would be the kind this document keeps refusing -- plausible, and gone
+when run.
+
+What it observed instead is that **the day's landings all made the same move without coordinating**:
+check 76 separating *absent* from *could not be looked for here*; check 66 separating `LOST` from
+`PENDING` by what could close each; check 80 printing its denominator on every run (`counted / 23`,
+*over 49 files / 30 ids*); card 028 writing the abort record as **one row per channel**, because a global
+boolean cannot report a partial failure; check 81 printing how many imports it read. **Five seats, five
+reasons, one move: make the shape of an absence visible in the artifact rather than prevent it.** So the
+usable rule is not *watch for absence*, which nobody can execute, but **a count carries the set it was
+taken over** -- because an absence is visible only against a denominator. **And this closes the gap the
+paragraph above priced.** A top-tier seat could ask *was this run* and not *was this all*; a count that
+prints its denominator turns the second into something read off the line, so the half that could only be
+asked in words and believed becomes the half that can be checked. Nothing new is enforced: this is how
+the next check reports, and how a seat reports a number to another seat.
+
 **The two clauses earned their split immediately.** `"pfs" in elements` is membership in a list of
 identifiers, which is an **equality** test -- the substring clause does not reach it, and the
 declared-field clause does. Written as one clause, two of the three real sites would have been missed.
