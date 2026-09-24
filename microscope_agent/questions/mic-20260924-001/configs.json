@@ -1,0 +1,198 @@
+{
+  "artifact": "screening",
+  "schema_version": "0.1",
+  "qid": "mic-20260924-001",
+  "goal_id": "goal-mic-20260924-001-r1",
+  "goal_revision": 1,
+  "stage": "S3.0",
+  "observable": "tracer_brightness",
+  "kb_version": "kbv-4b981dc870d3",
+  "cap": 3,
+  "candidates": [
+    {
+      "config": "confocal",
+      "optical_path": "confocal",
+      "devices": [
+        "stand_ti2e",
+        "confocal_csuw1",
+        "camera_red",
+        "camera_blue",
+        "laser_combiner"
+      ],
+      "composed_with": [],
+      "grounds": "declares 'tracer_brightness'"
+    },
+    {
+      "config": "widefield_inline",
+      "optical_path": "widefield_inline",
+      "devices": [
+        "stand_ti2e",
+        "confocal_csuw1",
+        "camera_red",
+        "camera_blue",
+        "widefield_source_a",
+        "dmd"
+      ],
+      "composed_with": [],
+      "grounds": "declares 'tracer_brightness'"
+    },
+    {
+      "config": "widefield_side",
+      "optical_path": "widefield_side",
+      "devices": [
+        "stand_ti2e",
+        "confocal_csuw1",
+        "camera_red",
+        "camera_blue",
+        "widefield_source_b"
+      ],
+      "composed_with": [],
+      "grounds": "declares 'tracer_brightness'"
+    }
+  ],
+  "rejected": [
+    {
+      "config": "transmitted",
+      "reason": "does not produce 'tracer_brightness'"
+    },
+    {
+      "config": "trapping",
+      "reason": "perturbation: it drives the sample and produces no observable of its own"
+    }
+  ],
+  "cap_unresolved": false,
+  "cap_resolved_by": null,
+  "preference_honoured": null,
+  "preference_refused": [],
+  "priority_terms_not_evaluable_here": [],
+  "fan_out": [
+    {
+      "caller_id": "mic-20260924-001:v1:confocal:a1",
+      "config": "confocal",
+      "axis": "a1",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:confocal:a2",
+      "config": "confocal",
+      "axis": "a2",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:confocal:a3",
+      "config": "confocal",
+      "axis": "a3",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:confocal:a4",
+      "config": "confocal",
+      "axis": "a4",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:confocal:a5",
+      "config": "confocal",
+      "axis": "a5",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:confocal:a6",
+      "config": "confocal",
+      "axis": "a6",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:confocal:a7",
+      "config": "confocal",
+      "axis": "a7",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_inline:a1",
+      "config": "widefield_inline",
+      "axis": "a1",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_inline:a2",
+      "config": "widefield_inline",
+      "axis": "a2",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_inline:a3",
+      "config": "widefield_inline",
+      "axis": "a3",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_inline:a4",
+      "config": "widefield_inline",
+      "axis": "a4",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_inline:a5",
+      "config": "widefield_inline",
+      "axis": "a5",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_inline:a6",
+      "config": "widefield_inline",
+      "axis": "a6",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_inline:a7",
+      "config": "widefield_inline",
+      "axis": "a7",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_side:a1",
+      "config": "widefield_side",
+      "axis": "a1",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_side:a2",
+      "config": "widefield_side",
+      "axis": "a2",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_side:a3",
+      "config": "widefield_side",
+      "axis": "a3",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_side:a4",
+      "config": "widefield_side",
+      "axis": "a4",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_side:a5",
+      "config": "widefield_side",
+      "axis": "a5",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_side:a6",
+      "config": "widefield_side",
+      "axis": "a6",
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "caller_id": "mic-20260924-001:v1:widefield_side:a7",
+      "config": "widefield_side",
+      "axis": "a7",
+      "kb_version": "kbv-4b981dc870d3"
+    }
+  ],
+  "degraded": [],
+  "screened_against": "contracts/capabilities/microscope.json and contracts/observables.json only; no lessons (P16). The kb_version above is a pin and not an input to the screen: it was read from microscope_agent/envelope/snapshot.json, which is a committed published export this agent copied"
+}

@@ -1,0 +1,245 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-mic-20260924-001-r1",
+  "qid": "mic-20260924-001",
+  "thread": "solo-mic-20260924-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-24T18:45:00Z",
+  "status": "VALIDATED",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_brightness"
+  },
+  "targets": [
+    {
+      "metric": "tracer_brightness",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "One decade, CARRIED from mic-20260920-001 and not re-asked. That question's target was set on the same reasoning this one needs: the number exists to unblock A1's SNR bound and exposure, and a decade of photon rate is a decade of SNR. A target is a decision, so it carries no grade; being carried is said here so a reader does not take it for a fresh decision about the 20x."
+    },
+    {
+      "metric": "bleaching_rate",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "The by-product's target, CARRIED from mic-20260920-001 and not re-asked. A decade separates 'bleaches inside the record' from 'does not', which is what A1's record_duration and A3's bleaching bound compare."
+    }
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "sample_contrast": [
+    "fluorescence"
+  ],
+  "sample_contrast_provenance": {
+    "source": "kb:particles_show_on_the_green_605_path",
+    "grade": "E2"
+  },
+  "configuration_preference": [
+    "widefield_inline"
+  ],
+  "configuration_preference_by": {
+    "who": "kyuhwan",
+    "at": "2026-09-17T21:07:15-07:00",
+    "reason": "Carried from the tie-break the person gave on mic-20260918-001, which mic-20260920-001 also carried; not re-asked for this question. Read only if S3.0's cap is unresolved (4.5.1 c). It picks a configuration LABEL and asserts nothing about which physical source that label is: widefield_inline names widefield_source_a, whose branch is unconfirmed (lapp_branch_assignment_absent), and the excitation this question runs on is declared by its MM label `Aura`, not by that channel id. See constraint_notes."
+  },
+  "requested_by": "human",
+  "numbers": [
+    {
+      "name": "nosepiece_position",
+      "value": 2,
+      "unit": "count",
+      "source": "assumed:a_declared_optics",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "at": "stand_ti2e",
+      "note": "The 20x dry objective, the person's declaration of 2026-09-24 relayed by card 034. Position 2 on a turret indexed from 0 holds MRD70270, CFI Plan Apo Lambda D 20X, dry, NA 0.80, working distance 0.8 mm (nosepiece_objective_assignment E3, objective_mrd70270 E3). SET BY THE PERSON'S HAND AND NEVER COMMANDED: this question's plan issues no software motion, so the number is what a preflight reads back from the stand, not a target a command drives to. Carried in numbers[] because objective clearance resolves from the objective in the path."
+    },
+    {
+      "name": "intermediate_magnification",
+      "value": 1,
+      "unit": "1",
+      "source": "assumed:a_declared_optics",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "at": "stand_ti2e",
+      "note": "1x, relayed as the person's declaration by card 034, which names pixel_size_20x_zoom_1x as this question's pixel size. A nominal designation written as a number and not a measured magnification. The measured quantity of this pair is pixel_size_20x_zoom_1x, 0.32373 um at E2 and 1x1 binning, and that is where any sampling calculation starts -- never the figure in a frame's metadata, which comes from whichever configuration file was loaded."
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_declared_optics",
+      "statement": "The optical chain is the person's declaration: the 20x dry objective at 1x, the Aura III's green line for excitation, the 605 path on the red camera, and a widefield light path, all set by the person's hand. None of it is derived by any axis. It is declared because the thing this question measures -- the photon rate per particle and its decay -- depends on the whole chain together, which is why tracer_brightness is absent from the store and cannot be asked for. A declaration is not evidence, whoever makes it, so it stays E5.",
+      "numbers": [
+        "nosepiece_position",
+        "intermediate_magnification"
+      ],
+      "falsifier": "the stand's own read-back at preflight: getStateLabel on the nosepiece and on the intermediate magnification. A nosepiece label that is not the 20x, or a zoom that is not 1x, retires the declaration and the plan refuses. Today's preparatory run records exactly that read-back, so it is also the first test of it.",
+      "gap_ref": "tracer_brightness_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "camera_red_mm_control_path",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "On the prior project's configuration the red Kinetix is the MMCore device label `Kinetix_red`, mapped to the PVCAM camera `Camera-2`. Binning is reached as a device property named `Binning`; exposure "
+    },
+    {
+      "entry_id": "emission_wheel_camera_mapping",
+      "grade": "E5",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The first emission filter wheel serves the red camera and the second serves the blue camera. The operator stated this from memory, with the word probably, and the blue half is the complementary half o"
+    },
+    {
+      "entry_id": "light_engine_line_intensity_is_per_mille",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "On both Lumencor engines each light line is exposed as two MMCore properties, `<NAME>` taking 0 or 1 and `<NAME>_Intensity` taking 0 to 1000. The intensity scale is per-mille, not per cent: an operato"
+    },
+    {
+      "entry_id": "light_engine_master_state_gates_every_line",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Both Lumencor engines carry a master property `State`, taking 0 or 1, which gates the whole device. With State at 0 no light leaves the engine however a line and its intensity are set, and nothing rep"
+    },
+    {
+      "entry_id": "mm_label_aura_is_the_aura_iii",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "On the prior project's configuration the MMCore device label `Aura` is the Lumencor Aura III 5-NII-WA on COM7, serial 30859, firmware 3.14.7. The label is not `AuraIII`; that is the product name."
+    },
+    {
+      "entry_id": "nosepiece_objective_assignment",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The six nosepiece positions hold, in order from 0 to 5: MRD70040 (CFI Plan Apo Lambda D 4X), MRD70170 (10X), MRD70270 (20X), MRD77400 (CFI Apo Lambda S 40XC WI), MRD71670 (60X Oil) and MRD71970 (100X"
+    },
+    {
+      "entry_id": "objective_mrd70270",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Nikon CFI Plan Apo Lambda D 20X, part number MRD70270: a dry 20x objective of numerical aperture 0.80 with a working distance of 0.8 mm, specified for 170 micrometre coverglass."
+    },
+    {
+      "entry_id": "particle_suspension_a_identity",
+      "grade": "E5",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particle suspension in use on this bench, instance particle_suspension_a, is the Abvigen product AFR-0500-COOH. This is the person's ruling of 2026-09-19 from evidence on record, not a reading of th"
+    },
+    {
+      "entry_id": "particles_show_on_the_green_605_path",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use fluoresce under Aura3 green excitation and are visible through the 605 band of the emission filter wheel. This establishes that their emission overlaps the bands thi"
+    },
+    {
+      "entry_id": "pixel_size_20x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 20x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.32373 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "tracer_brightness_absent",
+      "observable": "tracer_brightness",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_brightness, caller_id=mic-20260924-001:v1:s2, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:s2",
+      "asked_at": "2026-09-24T18:35:54+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "bleaching_rate_absent",
+      "observable": "bleaching_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=bleaching_rate, caller_id=mic-20260924-001:v1:s2, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:s2",
+      "asked_at": "2026-09-24T18:36:00+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "lapp_branch_assignment_absent",
+      "observable": "lapp_branch_assignment",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=lapp_branch_assignment, caller_id=mic-20260924-001:v1:s2, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:s2",
+      "asked_at": "2026-09-24T18:36:49+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "light_engine_output_power_absent",
+      "observable": "light_engine_output_power",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=light_engine_output_power, caller_id=mic-20260924-001:v1:s2, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:s2",
+      "asked_at": "2026-09-24T18:36:54+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "widefield_source_a_absent",
+      "observable": "widefield_source_a",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=widefield_source_a, caller_id=mic-20260924-001:v1:s2, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:s2",
+      "asked_at": "2026-09-24T18:37:06+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "light_engine_channel_sets_absent",
+      "observable": "light_engine_channel_sets",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=light_engine_channel_sets, caller_id=mic-20260924-001:v1:s2, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:s2",
+      "asked_at": "2026-09-24T18:37:12+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "constraint_notes": [
+    "WHAT THIS QUESTION IS. The formal measurement of tracer_brightness, with bleaching_rate beside it, for particle_suspension_a through the 20x dry objective. Its plan will stand on today's preparatory run (card 033) as the input that bounds exposure and intensity -- the run a plan may exist without, as settled in plan.md at 32e2263. It is NOT a way to file today's frames as a result: its plan governs a run that has not happened yet, and a plan whose run is today's run would say a plan preceded a run it did not.",
+    "WHY A NEW QUESTION AND NOT A REVISION OF mic-20260920-001. That question is the 100x oil objective with software motion, and its axis ranges were computed for that configuration. Citing them for the 20x would be carrying numbers across a configuration they were never computed for.",
+    "NO SOFTWARE MOTION IN THE PLAN. The objective turret, focus, stage, filters and light path are set by the person's hand. The retract-before-rotation and clearance interlocks still block the first software-driven motion (card 023), and nothing in this question lifts that. Software drives only the excitation and the camera, by their MM labels `Aura` and `Kinetix_red`.",
+    "THE SAMPLE. particle_suspension_a, the bottle in use, cited from the store: 5 um diameter with a CV no greater than 0.02, measured on the bottle (tracer_diameter_measured, E2). Its identification as Abvigen AFR-0500-COOH is E5 (particle_suspension_a_identity), so any type-level fact about that product reaching this bench is E5. Bare particles on a coverslip are not the mount mic-20260918-001 protects, so this measurement spends nothing that question needs.",
+    "WHICH LINE. The only excitation evidence about this bottle is particles_show_on_the_green_605_path (E2): they fluoresce under Aura green and show through the 605 band. That is BAND COMPATIBILITY and not a spectral peak, and its 555 and 605 are nominal band centres of the instrument, not properties of the particle. So the line is the Aura's GREEN, picked by the name the device reports, and the record is taken through the 605 path. The store's product-type excitation figure was fetched under this caller_id and is deliberately NOT carried: the same bench observation refutes it. If an axis needs an excitation wavelength as a number, that is a named gap, not that figure.",
+    "THE EXCITATION IS WHERE THE VOCABULARY RUNS OUT. The person declared the Aura III. The capability table names widefield_source_a and widefield_source_b, and which of them the Aura is -- the Lapp branch assignment -- is not established (lapp_branch_assignment_absent). The store answers to no name widefield_source_a at all (widefield_source_a_absent), and the device registry carries no Micro-Manager labels. So the Aura is carried here by its MM label, and this card does not map it to a channel id. That mapping is a card after today, and today's run may settle it. Until it lands, the configuration label S3.0 screens against is not confirmed to be the path that physically runs.",
+    "THE RED ARM, AND ONE LINK IN IT IS E5. The 605 path is taken on `Kinetix_red` (camera_red_mm_control_path, E3). The link from the emission wheel to the red camera is emission_wheel_camera_mapping, an operator recall at E5 carrying the word probably. mic-20260920-001 recorded the person confirming the red arm on 2026-09-21 as a decision; this card cites that decision and does not promote the entry.",
+    "THE MASTER STATE, AND THE PER-MILLE SCALE. With the Aura's master `State` at 0 no light leaves the engine however the line and its intensity are set, and both read back as written (light_engine_master_state_gates_every_line, E3). A brightness and a bleaching measurement are the two quantities that still return a number when the light is off, so the plan must carry `State` as a condition the operator verifies, not trusts. Line intensity is per mille, 0 to 1000 (light_engine_line_intensity_is_per_mille, E3): a person's 10 per cent is 100.",
+    "WHAT IS ASKED FOR AND IS NOT THERE. Six gaps, all service-answered at kbv-4b981dc870d3 with the librarian reachable. tracer_brightness and bleaching_rate are the point of the question and close by acquiring, first by today's preparatory run. light_engine_output_power is the missing dial-to-milliwatt calibration, so an intensity stays a commanded per-mille integer and not a power. light_engine_channel_sets and lapp_branch_assignment are which lines the Aura carries and which branch it is on. widefield_source_a is the channel id the capability table uses and the store does not know.",
+    "WHAT THIS CARD DOES NOT CARRY. No exposure, intensity or record length: those are what today's run bounds, and writing them now would be inventing the operating point the run exists to supply. No camera mode: the person named DynamicRange for the 100x question on 2026-09-20 and has not said so for this one, and A1's read noise stays four values until a mode is chosen. No turret, filter or light-path selector values beyond what the store holds.",
+    "THE PIN. Asked at kbv-4b981dc870d3, the version in this agent's envelope/snapshot.json and the librarian's last published and committed export (8155da9). The store's working index reads kbv-b92489b0ad3e, which is not a published version."
+  ]
+}

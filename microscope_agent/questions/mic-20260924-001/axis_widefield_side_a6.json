@@ -1,0 +1,421 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260924-001-widefield_side-a6",
+  "qid": "mic-20260924-001",
+  "thread": "solo-mic-20260924-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-24T19:01:53Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260924-001:v1:widefield_side:a6",
+  "config": "widefield_side",
+  "axis": "a6",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "lateral_resolution",
+      "parameter": "objective_na",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "NA is served for 6 objectives at E3, from 0.2 to 1.45. The wavelength side is the red arm's filter passband, served as a band (filter_ff01_595_31_32_passband, E3) rather than a peak, so a spot size is computable at each edge of it. What is missing is the other side of the inequality: a required lateral resolution, which is the question's to state and which this goal card does not. Its targets are decade_resolution on tracer_brightness, decade_resolution on bleaching_rate, and none of those is a length. Neither side is guessed (P5).",
+      "missing": [
+        "required_lateral_resolution"
+      ]
+    },
+    {
+      "inequality": "nyquist_sampling",
+      "parameter": "objective_zoom_pair",
+      "state": "returned",
+      "reason": "12 sample-plane pixel sizes at E2 measured on this instrument, 6 objective NAs at E3 and the red arm's passband at E3 are enough to compare a pixel against a diffraction-limited spot without back-deriving anything. 100x@1.5x pixel 0.04333 um against 0.0999-0.1053 um at NA 1.45; 100x@1x pixel 0.06500 um against 0.0999-0.1053 um at NA 1.45; 10x@1.5x pixel 0.43333 um against 0.3219-0.3392 um at NA 0.45; 10x@1x pixel 0.65000 um against 0.3219-0.3392 um at NA 0.45; 20x@1.5x pixel 0.21582 um against 0.1811-0.1908 um at NA 0.8; 20x@1x pixel 0.32373 um against 0.1811-0.1908 um at NA 0.8; 40x@1.5x pixel 0.10833 um against 0.1159-0.1221 um at NA 1.25; 40x@1x pixel 0.16250 um against 0.1159-0.1221 um at NA 1.25; 4x@1.5x pixel 1.08330 um against 0.7244-0.7631 um at NA 0.2; 4x@1x pixel 1.62500 um against 0.7244-0.7631 um at NA 0.2; 60x@1.5x pixel 0.07222 um against 0.1020-0.1075 um at NA 1.42; 60x@1x pixel 0.10833 um against 0.1020-0.1075 um at NA 1.42. 4 of 12 satisfy pixel <= lambda/(4*NA) at the band's short edge; 8 do not, and none is edge-dependent, so the band's width changes no verdict. **The permitted thing is the pair and not the pixel size**, which is why this is a set and not an interval: 0.10833 um appear with both verdicts, because the limit moves with NA. Magnification is not an input: these pixel sizes are measured at the sample plane, so nothing is divided by a magnification this instrument has never measured (5.3's 20.078x rule). Which pair the plan uses is S4's intersection with the pair the goal declares, not this axis's choice.",
+      "allowed_set": {
+        "parameter": "objective_zoom_pair",
+        "values": [
+          "100x@1.5x",
+          "100x@1x",
+          "40x@1.5x",
+          "60x@1.5x"
+        ],
+        "excluded": [
+          "10x@1.5x",
+          "10x@1x",
+          "20x@1.5x",
+          "20x@1x",
+          "40x@1x",
+          "4x@1.5x",
+          "4x@1x",
+          "60x@1x"
+        ],
+        "basis": [
+          "kb:filter_ff01_595_31_32_passband",
+          "kb:objective_mrd70040",
+          "kb:objective_mrd70170",
+          "kb:objective_mrd70270",
+          "kb:objective_mrd71670",
+          "kb:objective_mrd71970",
+          "kb:objective_mrd77400",
+          "kb:pixel_size_100x_zoom_1_5x",
+          "kb:pixel_size_100x_zoom_1x",
+          "kb:pixel_size_10x_zoom_1_5x",
+          "kb:pixel_size_10x_zoom_1x",
+          "kb:pixel_size_20x_zoom_1_5x",
+          "kb:pixel_size_20x_zoom_1x",
+          "kb:pixel_size_40x_zoom_1_5x",
+          "kb:pixel_size_40x_zoom_1x",
+          "kb:pixel_size_4x_zoom_1_5x",
+          "kb:pixel_size_4x_zoom_1x",
+          "kb:pixel_size_60x_zoom_1_5x",
+          "kb:pixel_size_60x_zoom_1x"
+        ]
+      }
+    },
+    {
+      "inequality": "field_of_view",
+      "parameter": "field_of_view",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "The instrument side is served: camera_sensor_geometry gives the sensor as 2400 by 2400 pixels, and the sample-plane pixel sizes are measured per objective-and-zoom pair, so the imaged field follows from those two without any magnification. `sensor_active_area` answers absent under that name and is not needed. What is missing is how much area has to be in frame at once, and that has to arrive on the goal card: how many tracers a measurement needs in view is A2's question, and 4.5.3 rule (b) forbids taking a sibling's output as input. It is not there.",
+      "missing": [
+        "required_field_of_view"
+      ]
+    },
+    {
+      "inequality": "optical_sectioning",
+      "parameter": "pinhole_diameter",
+      "state": "abstained",
+      "kind": "not_constraining",
+      "reason": "This configuration runs with the spinning disk out -- the served entry states that with the disk out the same hardware serves widefield fluorescence and brightfield, and that disk-out is a required selector value on configurations that already exist rather than a configuration of its own. With the disk out there is no pinhole in the path, so there is no sectioning parameter for this bound to constrain. Recorded as not_constraining and not as no_input, and the difference is the next action: nothing to measure here, because the parameter does not exist on this configuration. What does not vanish with the pinhole is the out-of-focus light it would have rejected; that lands on depth_of_field below, which is where this axis carries it rather than dropping it."
+    },
+    {
+      "inequality": "depth_of_field",
+      "parameter": "axial_range",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "The lenses on this turret sit in air, oil, water; an immersion index is served for air, water and not for oil. The 8 polystyrene indices that also came back are the tracer's material, not a medium a lens sits in, so they answer another question and are not a fallback at any grade. Even with every index and the band in hand this bound would not close here: its other side is how far a tracer wanders axially over the record, which depends on the record length, A2's parameter, and this axis does not take a sibling's output as input (4.5.3 rule b). So it states what is missing and leaves the intersection to S4.",
+      "missing": [
+        "refractive_index"
+      ]
+    }
+  ],
+  "numbers": [
+    {
+      "name": "na_mrd70040",
+      "value": 0.2,
+      "unit": "1",
+      "source": "kb:objective_mrd70040",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the 4x lens on this nosepiece, as the catalog designates it. The designation is a string identifier and is deliberately not a number here (5.3); what is a number is this NA."
+    },
+    {
+      "name": "na_mrd70170",
+      "value": 0.45,
+      "unit": "1",
+      "source": "kb:objective_mrd70170",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the 10x lens on this nosepiece, as the catalog designates it. The designation is a string identifier and is deliberately not a number here (5.3); what is a number is this NA."
+    },
+    {
+      "name": "na_mrd70270",
+      "value": 0.8,
+      "unit": "1",
+      "source": "kb:objective_mrd70270",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the 20x lens on this nosepiece, as the catalog designates it. The designation is a string identifier and is deliberately not a number here (5.3); what is a number is this NA."
+    },
+    {
+      "name": "na_mrd77400",
+      "value": 1.25,
+      "unit": "1",
+      "source": "kb:objective_mrd77400",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the 40x lens on this nosepiece, as the catalog designates it. The designation is a string identifier and is deliberately not a number here (5.3); what is a number is this NA."
+    },
+    {
+      "name": "na_mrd71670",
+      "value": 1.42,
+      "unit": "1",
+      "source": "kb:objective_mrd71670",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the 60x lens on this nosepiece, as the catalog designates it. The designation is a string identifier and is deliberately not a number here (5.3); what is a number is this NA."
+    },
+    {
+      "name": "na_mrd71970",
+      "value": 1.45,
+      "unit": "1",
+      "source": "kb:objective_mrd71970",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the 100x lens on this nosepiece, as the catalog designates it. The designation is a string identifier and is deliberately not a number here (5.3); what is a number is this NA."
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "air_refractive_index_590nm_288k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dry air at 15 degrees Celsius and 760 mm of mercury has a refractive index of 1.000276466 at a wavelength of 590.0 nm, from interferometric measurements whose probable error at this temperature is 3.1"
+    },
+    {
+      "entry_id": "air_refractive_index_595nm_288k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dry air at 15 degrees Celsius and 760 mm of mercury has a refractive index of 1.000276398 at a wavelength of 595.0 nm, from interferometric measurements whose probable error at this temperature is 3.1"
+    },
+    {
+      "entry_id": "air_refractive_index_605nm_288k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dry air at 15 degrees Celsius and 760 mm of mercury has a refractive index of 1.000276265 at a wavelength of 605.0 nm, from interferometric measurements whose probable error at this temperature is 3.1"
+    },
+    {
+      "entry_id": "camera_sensor_geometry",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The Photometrics Kinetix22 sensor is a 2400 by 2400 pixel back-illuminated sCMOS array on a 6.5 micrometre pitch, which is 15.6 by 15.6 mm and a 22 mm diagonal."
+    },
+    {
+      "entry_id": "csuw1_disk_position_states",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the spinning disk in, the path is confocal. With the disk out, the same hardware serves both widefield fluorescence and brightfield. Disk-out is therefore not a configuration of its own but a req"
+    },
+    {
+      "entry_id": "filter_ff01_595_31_32_passband",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The Semrock BrightLine FF01-595/31-32 bandpass filter is specified with a centre wavelength of 595 nm and a full width at half maximum of 31 nm, giving a nominal passband of 579.5 to 610.5 nm."
+    },
+    {
+      "entry_id": "objective_change_selects_a_pixel_size_row",
+      "grade": "E5",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Changing the objective does not end the twelve per-objective pixel-size calibration rows; it selects which of them applies. A caller that swaps to another objective reads the row naming that objective"
+    },
+    {
+      "entry_id": "objective_mrd70040",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Nikon CFI Plan Apo Lambda D 4X, part number MRD70040: a dry 4x objective of numerical aperture 0.20 with a working distance of 20 mm, specified for coverglass from 0 to 170 micrometres, which is to sa"
+    },
+    {
+      "entry_id": "objective_mrd70170",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Nikon CFI Plan Apo Lambda D 10X, part number MRD70170: a dry 10x objective of numerical aperture 0.45 with a working distance of 4 mm, specified for 170 micrometre coverglass."
+    },
+    {
+      "entry_id": "objective_mrd70270",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Nikon CFI Plan Apo Lambda D 20X, part number MRD70270: a dry 20x objective of numerical aperture 0.80 with a working distance of 0.8 mm, specified for 170 micrometre coverglass."
+    },
+    {
+      "entry_id": "objective_mrd71670",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Nikon CFI Plan Apo Lambda D 60X Oil, part number MRD71670: an oil-immersion 60x objective of numerical aperture 1.42 with a working distance of 0.15 mm, specified for 170 micrometre coverglass."
+    },
+    {
+      "entry_id": "objective_mrd71970",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Nikon CFI Plan Apo Lambda D 100X Oil, part number MRD71970: an oil-immersion 100x objective of numerical aperture 1.45 with a working distance of 0.13 mm, specified for 170 micrometre coverglass."
+    },
+    {
+      "entry_id": "objective_mrd77400",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Nikon CFI Apo Lambda S 40XC WI, part number MRD77400: a water-immersion 40x objective of numerical aperture 1.25 with a correction collar, specified for coverglass from 150 to 190 micrometres. Its wor"
+    },
+    {
+      "entry_id": "pixel_size_100x_zoom_1_5x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 100x objective at 1.5x intermediate magnification and 1x1 binning, one pixel spans 0.04333 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_100x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 100x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.065 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_10x_zoom_1_5x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 10x objective at 1.5x intermediate magnification and 1x1 binning, one pixel spans 0.43333 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_10x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 10x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.65 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_20x_zoom_1_5x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 20x objective at 1.5x intermediate magnification and 1x1 binning, one pixel spans 0.21582 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_20x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 20x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.32373 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_40x_zoom_1_5x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 40x objective at 1.5x intermediate magnification and 1x1 binning, one pixel spans 0.10833 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_40x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 40x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.1625 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_4x_zoom_1_5x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 4x objective at 1.5x intermediate magnification and 1x1 binning, one pixel spans 1.0833 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_4x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 4x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 1.625 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_60x_zoom_1_5x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 60x objective at 1.5x intermediate magnification and 1x1 binning, one pixel spans 0.07222 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_60x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 60x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.10833 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "polystyrene_refractive_index_1052nm",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Bulk polystyrene has a refractive index of 1.572 at a wavelength of 1052 nm, measured at 20 degrees Celsius, with a stated accuracy of plus or minus 0.001."
+    },
+    {
+      "entry_id": "polystyrene_refractive_index_436_8nm",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Bulk polystyrene has a refractive index of 1.617 at a wavelength of 436.8 nm, measured at 20 degrees Celsius, with a stated accuracy of plus or minus 0.001."
+    },
+    {
+      "entry_id": "polystyrene_refractive_index_486_1nm",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Bulk polystyrene has a refractive index of 1.606 at a wavelength of 486.1 nm, measured at 20 degrees Celsius, with a stated accuracy of plus or minus 0.001."
+    },
+    {
+      "entry_id": "polystyrene_refractive_index_587_6nm",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Bulk polystyrene has a refractive index of 1.592 at a wavelength of 587.6 nm, measured at 20 degrees Celsius, with a stated accuracy of plus or minus 0.001."
+    },
+    {
+      "entry_id": "polystyrene_refractive_index_632_8nm",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Bulk polystyrene has a refractive index of 1.587 at a wavelength of 632.8 nm, measured at 20 degrees Celsius, with a stated accuracy of plus or minus 0.001."
+    },
+    {
+      "entry_id": "polystyrene_refractive_index_703nm",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Bulk polystyrene has a refractive index of 1.582 at a wavelength of 703 nm, measured at 20 degrees Celsius, with a stated accuracy of plus or minus 0.001."
+    },
+    {
+      "entry_id": "polystyrene_refractive_index_833nm",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Bulk polystyrene has a refractive index of 1.577 at a wavelength of 833 nm, measured at 20 degrees Celsius, with a stated accuracy of plus or minus 0.001."
+    },
+    {
+      "entry_id": "polystyrene_refractive_index_879nm",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Bulk polystyrene has a refractive index of 1.576 at a wavelength of 879 nm, measured at 20 degrees Celsius, with a stated accuracy of plus or minus 0.001."
+    },
+    {
+      "entry_id": "water_refractive_index_589_26nm_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Distilled water at 20 degrees Celsius has a refractive index of 1.3329877 at the sodium D wavelength of 589.26 nm in air, at atmospheric pressure, from measurements whose stated accuracy is plus or mi"
+    },
+    {
+      "entry_id": "water_refractive_index_595nm_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Distilled water at 20 degrees Celsius has a refractive index of 1.3328114 at a wavelength of 595.0 nm, at atmospheric pressure, from measurements whose stated accuracy is plus or minus 1e-6."
+    },
+    {
+      "entry_id": "water_refractive_index_605nm_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Distilled water at 20 degrees Celsius has a refractive index of 1.3325138 at a wavelength of 605.0 nm, at atmospheric pressure, from measurements whose stated accuracy is plus or minus 1e-6."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "emission_wavelength_absent",
+      "observable": "emission_wavelength",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=emission_wavelength, caller_id=mic-20260924-001:v1:widefield_side:a6, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_side:a6",
+      "asked_at": "2026-09-24T18:59:54+00:00",
+      "near_names": [
+        "abvigen_product_emission_wavelength",
+        "wavelength"
+      ]
+    },
+    {
+      "gap_id": "magnification_is_not_a_number",
+      "observable": "magnification",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=magnification, caller_id=mic-20260924-001:v1:widefield_side:a6, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_side:a6",
+      "asked_at": "2026-09-24T19:00:00+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "sensor_active_area_absent",
+      "observable": "sensor_active_area",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=sensor_active_area, caller_id=mic-20260924-001:v1:widefield_side:a6, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_side:a6",
+      "asked_at": "2026-09-24T19:00:06+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "The immersion indices arrived per medium and this axis reports which. Media with an index served: ['air', 'water']. Media an objective on this turret uses and no index answers for: ['oil']. So depth_of_field has its index for a lens in ['air', 'water'] and lacks it for one in ['oil'] -- which is what task 024 said to expect, because an immersion oil is a specific product's specification rather than a universal constant, and the bottle on this bench is not identified. What is missing is a source, not a measurement -- the same shape as the bead lot number. Answered by the librarian service rather than by reading the store, which is what makes degraded empty here: 36 entries came back with their own grades and 3 questions came back without one, all at the pinned kbv-4b981dc870d3, and every call is in librarian_agent/queries/log.jsonl under this caller_id. constraints[] is empty and there is one candidate it could have held: the NA set. It is six discrete values and `interval` can only say a continuous range, so returning it would license S4 to choose an NA of 0.9 that this nosepiece does not have. Abstaining is the honest outcome, and the contract gap is the same one A4 raised from the other side -- a bound with grounds that constrains something other than a number. Two axes met it independently; it is raised with manager-microscope, not worked around."
+}

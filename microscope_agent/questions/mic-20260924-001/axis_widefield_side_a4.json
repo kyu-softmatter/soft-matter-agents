@@ -1,0 +1,199 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260924-001-widefield_side-a4",
+  "qid": "mic-20260924-001",
+  "thread": "solo-mic-20260924-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-24T19:01:53Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260924-001:v1:widefield_side:a4",
+  "config": "widefield_side",
+  "axis": "a4",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "devices_present",
+      "parameter": "device_set",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the service was asked for device_registry, control_channel at kbv-4b981dc870d3 and answered: device_registry, control_channel -> in_published_table, which names where it is rather than saying it is missing. THE AXIS READ IT, read from envelope/snapshot.json tables.devices at kbv-4b981dc870d3, sha256 0af274275c7b, and this is what it says for the 5 devices this configuration declares -- stand_ti2e: driver 'micromanager', automatable 'full', read_back True; confocal_csuw1: driver 'micromanager', automatable 'full', read_back True; camera_red: driver 'micromanager_pvcam', automatable 'full', read_back True; camera_blue: driver 'micromanager_pvcam', automatable 'full', read_back True; widefield_source_b: driver 'micromanager', automatable 'full', read_back True. THIS PARAGRAPH SAID `absent` UNTIL 2026-09-20 AND THE SERVICE HAD STOPPED SAYING IT. At kbv-49feb73662b7 the answer was `absent`; at this fan-out's own pin the service answers `in_published_table` to all five and names the snapshot, the table, the column and a sha256. The card carried both claims at once -- its kb_gaps said in_published_table while the reason beside them said the service answered absent -- because `evaluate` collected every gap into one dict called `absent` and never looked at the kind. One file, two contradictory statements about the same call, and nothing could catch it because each half was well formed. Where the answer is: this agent's own envelope/snapshot.json, under tables.devices and tables.optical_paths, published by the librarian and pinned by sha256. Read there, all six devices this configuration declares are channel rows with drivers, all six are `automatable: full`, all six carry `read_back: true`, and the DMD alone carries `automatable_condition: core_requirement` -- full only on a core pinned to device interface 71, which is the trap this bound was written to catch.\n\n**The gap says `absent` and not `in_published_table`, deliberately.** This axis wrote the second for a day and it was wrong twice: the service said `absent`, so the kind was the axis inventing a classification nobody made; and the sha256 it carried came from the current snapshot while this card is pinned older, so the card cited a table its own pin never saw. The other seat refused the identical move on its PFS gap and was right. When the pin reaches a version whose export answers to these names the service will return that kind itself, and then it belongs in the gap.\n\n**So why does the bound still abstain.** Because a bound has to say what it rests on, and `basis` takes a name in numbers[] or `kb:<entry_id>` and nothing else. A published table is neither. Citing the row's `entry_ref` instead would be false grounding -- check 54 exists because a bound resting on something the card never obtained is the defect an empty basis was going to be, and the values here (driver, automatable, read_back) are in the table and not in those entries. So the axis can read the answer and cannot ground a bound on it. The missing piece is a third basis form for a published table, and that is contracts/ and the manager's (6.2). This is the same shape as the discrete-constraint slot one step along: the answer existed, the card had no lawful way to say it.",
+      "missing": [
+        "device_registry",
+        "control_channel"
+      ]
+    },
+    {
+      "inequality": "path_tuple_valid",
+      "parameter": "selector_states",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the service was asked for optical_path_valid_tuples at kbv-4b981dc870d3 and answered: optical_path_valid_tuples -> in_published_table, which names where it is rather than saying it is missing. THE AXIS READ IT, read from envelope/snapshot.json tables.optical_paths at kbv-4b981dc870d3, sha256 020c5369ab06, and the table does list 'widefield_side', carrying ['automatable_gaps', 'confirmed_by', 'detectors', 'entry_ref', 'excludes', 'grade', 'label', 'note', 'required_selectors', 'sources', 'sources_gap_ref', 'sources_note', 'sources_unconfirmed']. What it does not carry is the thing this bound is about: a list of selector-state TUPLES that are known to pass light. A configuration being listed is not a validated combination. THIS PARAGRAPH SAID `absent` UNTIL 2026-09-20 AND THE SERVICE HAD STOPPED SAYING IT. At kbv-49feb73662b7 the answer was `absent`; at this fan-out's own pin the service answers `in_published_table` to all five and names the snapshot, the table, the column and a sha256. The card carried both claims at once -- its kb_gaps said in_published_table while the reason beside them said the service answered absent -- because `evaluate` collected every gap into one dict called `absent` and never looked at the kind. One file, two contradictory statements about the same call, and nothing could catch it because each half was well formed. Where the answer is: this agent's own envelope/snapshot.json, under tables.devices and tables.optical_paths, published by the librarian and pinned by sha256. Read there, all six devices this configuration declares are channel rows with drivers, all six are `automatable: full`, all six carry `read_back: true`, and the DMD alone carries `automatable_condition: core_requirement` -- full only on a core pinned to device interface 71, which is the trap this bound was written to catch.\n\n**The gap says `absent` and not `in_published_table`, deliberately.** This axis wrote the second for a day and it was wrong twice: the service said `absent`, so the kind was the axis inventing a classification nobody made; and the sha256 it carried came from the current snapshot while this card is pinned older, so the card cited a table its own pin never saw. The other seat refused the identical move on its PFS gap and was right. When the pin reaches a version whose export answers to these names the service will return that kind itself, and then it belongs in the gap.\n\n**So why does the bound still abstain.** Because a bound has to say what it rests on, and `basis` takes a name in numbers[] or `kb:<entry_id>` and nothing else. A published table is neither. Citing the row's `entry_ref` instead would be false grounding -- check 54 exists because a bound resting on something the card never obtained is the defect an empty basis was going to be, and the values here (driver, automatable, read_back) are in the table and not in those entries. So the axis can read the answer and cannot ground a bound on it. The missing piece is a third basis form for a published table, and that is contracts/ and the manager's (6.2). This is the same shape as the discrete-constraint slot one step along: the answer existed, the card had no lawful way to say it. What the entries do give is one required value rather than the tuple: disk-out is a required selector value on this configuration rather than a configuration of its own. A required value is not a validated combination, and the combination is what this bound is about.",
+      "missing": [
+        "optical_path_valid_tuples"
+      ]
+    },
+    {
+      "inequality": "selector_exclusivity",
+      "parameter": "lock_group",
+      "state": "returned",
+      "reason": "Exclusivity on this configuration has to be evaluated per element and cannot be evaluated per channel. stand_ti2e carries two lock groups at once -- its optical elements in optical_path, the motor stage in stage, because the piezo rides on the motor stage -- so a plan that names the channel has not said which lock its command takes. The constraint is therefore on the plan's form: a selector this configuration holds is named as an element. Both groups hold simultaneously and NEITHER is chosen, which is why this returns a precondition and not a set of two values; a set would say pick one, and there is nothing to pick. Note what is NOT claimed here: the entry's own validity_conditions mark the scheduling consequence -- that stage moves serialise with port and filter changes -- as a design consequence rather than a reading, and it is not stamped as one, so this axis does not return it as a bound.",
+      "precondition": {
+        "parameter": "lock_group",
+        "requires": "Name every selector this configuration holds as an ELEMENT and never as a channel: stand_ti2e carries optical_path and stage at the same time, so a command that names the channel has not said which lock it takes, and the scheduler cannot serialise what it cannot identify.",
+        "basis": [
+          "kb:stand_ti2e_lock_groups"
+        ]
+      }
+    },
+    {
+      "inequality": "selector_automatable",
+      "parameter": "commanded_selectors",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the service was asked for device_registry, automatable_condition at kbv-4b981dc870d3 and answered: device_registry, automatable_condition -> in_published_table, which names where it is rather than saying it is missing. THE AXIS READ IT, read from envelope/snapshot.json tables.devices at kbv-4b981dc870d3, sha256 0af274275c7b, and this is what it says for the 5 devices this configuration declares -- stand_ti2e: driver 'micromanager', automatable 'full', read_back True; confocal_csuw1: driver 'micromanager', automatable 'full', read_back True; camera_red: driver 'micromanager_pvcam', automatable 'full', read_back True; camera_blue: driver 'micromanager_pvcam', automatable 'full', read_back True; widefield_source_b: driver 'micromanager', automatable 'full', read_back True. THIS PARAGRAPH SAID `absent` UNTIL 2026-09-20 AND THE SERVICE HAD STOPPED SAYING IT. At kbv-49feb73662b7 the answer was `absent`; at this fan-out's own pin the service answers `in_published_table` to all five and names the snapshot, the table, the column and a sha256. The card carried both claims at once -- its kb_gaps said in_published_table while the reason beside them said the service answered absent -- because `evaluate` collected every gap into one dict called `absent` and never looked at the kind. One file, two contradictory statements about the same call, and nothing could catch it because each half was well formed. Where the answer is: this agent's own envelope/snapshot.json, under tables.devices and tables.optical_paths, published by the librarian and pinned by sha256. Read there, all six devices this configuration declares are channel rows with drivers, all six are `automatable: full`, all six carry `read_back: true`, and the DMD alone carries `automatable_condition: core_requirement` -- full only on a core pinned to device interface 71, which is the trap this bound was written to catch.\n\n**The gap says `absent` and not `in_published_table`, deliberately.** This axis wrote the second for a day and it was wrong twice: the service said `absent`, so the kind was the axis inventing a classification nobody made; and the sha256 it carried came from the current snapshot while this card is pinned older, so the card cited a table its own pin never saw. The other seat refused the identical move on its PFS gap and was right. When the pin reaches a version whose export answers to these names the service will return that kind itself, and then it belongs in the gap.\n\n**So why does the bound still abstain.** Because a bound has to say what it rests on, and `basis` takes a name in numbers[] or `kb:<entry_id>` and nothing else. A published table is neither. Citing the row's `entry_ref` instead would be false grounding -- check 54 exists because a bound resting on something the card never obtained is the defect an empty basis was going to be, and the values here (driver, automatable, read_back) are in the table and not in those entries. So the axis can read the answer and cannot ground a bound on it. The missing piece is a third basis form for a published table, and that is contracts/ and the manager's (6.2). This is the same shape as the discrete-constraint slot one step along: the answer existed, the card had no lawful way to say it. One selector is answered and it is not enough: the port is automatable in full with read-back at E3. The bound is over every selector the plan commands, and which selectors those are comes from the optical-path table, which is the same absent table. An automatable field also carries a condition in the registry -- the DMD's full automatability holds only on a core pinned to device interface 71 -- and screening on the bare field would pass a plan whose preflight then fails when it opens the device.",
+      "missing": [
+        "device_registry",
+        "automatable_condition"
+      ]
+    },
+    {
+      "inequality": "selector_verifiable",
+      "parameter": "verified_selectors",
+      "state": "returned",
+      "reason": "None of the three selectors that define this configuration is verifiable by read-back, and each fails differently. (1) The port is drivable and readable in full, and read-back returns a position number while which element that position holds is not known -- two of its three states send zero light to one camera, so the position does not say which. (2) csuw1_bright and csuw1_disk_position are one mechanism under two names, so setting one and reading the other shows an agreement that means nothing, and which name micromanager addresses is unsettled. (3) The disk-out position serves widefield fluorescence and brightfield alike, so a read-back confirming the label confirms nothing about which configuration is loaded. 2.1 makes an unverified state one that does not proceed, so the bound is: on this configuration the loaded state is established by acquiring, not by read-back, and a plan that treats a returned position as a verification is refused. Readable-but-not-verifiable is a sharper case than unreadable -- a reply exists and does not answer the question asked -- and it is the reason this returns instead of abstaining.",
+      "precondition": {
+        "parameter": "verified_selectors",
+        "requires": "establish the loaded state by acquiring an image, not by reading a selector back; a plan that treats a returned position as a verification is refused",
+        "basis": [
+          "kb:csuw1_port_slots",
+          "kb:csuw1_disk_position_is_the_bright_selector",
+          "kb:csuw1_disk_position_states"
+        ]
+      }
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [
+    {
+      "entry_id": "csuw1_disk_position_is_the_bright_selector",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The element the configuration calls csuw1_bright, offered as confocal or bright field, and the element it calls csuw1_disk_position, offered as in or out, are one mechanism recorded twice under two na"
+    },
+    {
+      "entry_id": "csuw1_disk_position_states",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the spinning disk in, the path is confocal. With the disk out, the same hardware serves both widefield fluorescence and brightfield. Disk-out is therefore not a configuration of its own but a req"
+    },
+    {
+      "entry_id": "csuw1_port_slots",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The port/splitter carries three slots, and the split is spectral rather than by intensity: one slot is empty and sends light to the red camera only, one holds a 561 nm dichroic and sends light to both"
+    },
+    {
+      "entry_id": "stand_ti2e_lock_groups",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The coarse motorised xy stage is an element of the microscope body channel, on the body hub. The body's optical elements belong to the optical_path lock group while the motor stage belongs to the stag"
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "automatable_condition_not_an_entry",
+      "observable": "automatable_condition",
+      "kind": "in_published_table",
+      "searched": [
+        "kb_query(observable=automatable_condition, caller_id=mic-20260924-001:v1:widefield_side:a4, kb_version=kbv-4b981dc870d3) -> in_published_table, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_side:a4",
+      "asked_at": "2026-09-24T18:57:44+00:00",
+      "near_names": [],
+      "published_in": {
+        "table": "devices",
+        "sha256": "0af274275c7b3009b141aa518b2b9948b5d33fe2f7d5166baa4a15cb85d31d28",
+        "column": "automatable_condition",
+        "snapshot": "kb/exports/snapshot_microscope_agent.json"
+      }
+    },
+    {
+      "gap_id": "control_channel_not_an_entry",
+      "observable": "control_channel",
+      "kind": "in_published_table",
+      "searched": [
+        "kb_query(observable=control_channel, caller_id=mic-20260924-001:v1:widefield_side:a4, kb_version=kbv-4b981dc870d3) -> in_published_table, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_side:a4",
+      "asked_at": "2026-09-24T18:57:25+00:00",
+      "near_names": [],
+      "published_in": {
+        "table": "devices",
+        "sha256": "0af274275c7b3009b141aa518b2b9948b5d33fe2f7d5166baa4a15cb85d31d28",
+        "snapshot": "kb/exports/snapshot_microscope_agent.json"
+      }
+    },
+    {
+      "gap_id": "device_registry_not_an_entry",
+      "observable": "device_registry",
+      "kind": "in_published_table",
+      "searched": [
+        "kb_query(observable=device_registry, caller_id=mic-20260924-001:v1:widefield_side:a4, kb_version=kbv-4b981dc870d3) -> in_published_table, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_side:a4",
+      "asked_at": "2026-09-24T18:57:19+00:00",
+      "near_names": [],
+      "published_in": {
+        "table": "devices",
+        "sha256": "0af274275c7b3009b141aa518b2b9948b5d33fe2f7d5166baa4a15cb85d31d28",
+        "snapshot": "kb/exports/snapshot_microscope_agent.json"
+      }
+    },
+    {
+      "gap_id": "optical_path_table_not_an_entry",
+      "observable": "optical_path_valid_tuples",
+      "kind": "in_published_table",
+      "searched": [
+        "kb_query(observable=optical_path_valid_tuples, caller_id=mic-20260924-001:v1:widefield_side:a4, kb_version=kbv-4b981dc870d3) -> in_published_table, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_side:a4",
+      "asked_at": "2026-09-24T18:57:37+00:00",
+      "near_names": [],
+      "published_in": {
+        "table": "optical_paths",
+        "sha256": "020c5369ab0645b06061c96e5af94df5f05761ec0b167e7c76f05dba0e69ec2c",
+        "snapshot": "kb/exports/snapshot_microscope_agent.json"
+      }
+    },
+    {
+      "gap_id": "read_back_not_an_entry",
+      "observable": "read_back",
+      "kind": "in_published_table",
+      "searched": [
+        "kb_query(observable=read_back, caller_id=mic-20260924-001:v1:widefield_side:a4, kb_version=kbv-4b981dc870d3) -> in_published_table, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_side:a4",
+      "asked_at": "2026-09-24T18:57:31+00:00",
+      "near_names": [],
+      "published_in": {
+        "table": "devices",
+        "sha256": "0af274275c7b3009b141aa518b2b9948b5d33fe2f7d5166baa4a15cb85d31d28",
+        "column": "read_back",
+        "snapshot": "kb/exports/snapshot_microscope_agent.json"
+      }
+    }
+  ],
+  "degraded": [],
+  "note": "Answered by the librarian service rather than by reading the store, which is what makes degraded empty here: 4 entries came back with their own grades and 5 came back in_published_table (automatable_condition, control_channel, device_registry, optical_path_valid_tuples, read_back), all at the pinned kbv-4b981dc870d3, and every call is in librarian_agent/queries/log.jsonl under this caller_id. 5 of the answers are `in_published_table` and not absences: the service named the snapshot, the table and the column, and the axis read there. An earlier note on this module said the server loads index.json and entries/ only so no version of it could serve these -- that stopped being true when the kind was added, and the answers above are the service doing exactly what it could not. What still stops the bounds is not the reading: `basis` takes a numbers[] name or `kb:<entry_id>` and a published table is neither, so the value is in hand and cannot be grounded. Raised with manager-microscope. constraints[] is empty while bounds returned, and that is the contract rather than the axis: interval requires {parameter, unit, basis} with numeric min/max, and A4's answers are discrete and per-selector. The ledger item forbids additional properties, so the constraint is carried in reason where S4 can read it and cannot intersect it. Raised with manager-microscope."
+}

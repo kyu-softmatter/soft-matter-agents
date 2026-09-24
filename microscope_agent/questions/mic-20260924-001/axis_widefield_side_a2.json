@@ -1,0 +1,101 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260924-001-widefield_side-a2",
+  "qid": "mic-20260924-001",
+  "thread": "solo-mic-20260924-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-24T19:01:53Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260924-001:v1:widefield_side:a2",
+  "config": "widefield_side",
+  "axis": "a2",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "record_length_vs_diffusive_time",
+      "parameter": "record_duration",
+      "state": "abstained",
+      "kind": "not_requested",
+      "reason": "this bound sizes a fit of a mean squared displacement, and this question's observable is 'tracer_brightness', which fits no displacement. So it was evaluated against the question and is not asked, which is not the same as an input missing: nothing here waits on a diffusive time or a localisation error for this bound's sake"
+    },
+    {
+      "inequality": "displacement_samples_per_lag",
+      "parameter": "frame_count",
+      "state": "abstained",
+      "kind": "not_requested",
+      "reason": "this bound sizes a fit of a mean squared displacement, and this question's observable is 'tracer_brightness', which fits no displacement. So it was evaluated against the question and is not asked, which is not the same as an input missing: nothing here waits on a diffusive time or a localisation error for this bound's sake"
+    },
+    {
+      "inequality": "ensemble_size",
+      "parameter": "tracer_count",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "nothing states how many tracers are in the sample or in a field: no concentration, no count, no dilution record",
+      "missing": [
+        "tracer_number_density"
+      ]
+    },
+    {
+      "inequality": "independent_repeats",
+      "parameter": "repeat_count",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no target relative error exists anywhere. It is not the goal's decade resolution and not its signal-to-noise target: a decade says how coarsely the answer may land, SNR says whether the tracer is detectable, and neither says how precisely the observable has to be resolved -- a displacement on a diffusion question, a photon rate on a brightness one. Only the operator can state it; no localisation error has been measured on this instrument, and it cannot be derived here either, since it needs the pixel size and the signal-to-noise actually achieved",
+      "missing": [
+        "target_relative_error",
+        "localisation_error"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "localisation_error",
+      "observable": "localisation_error",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=localisation_error, caller_id=mic-20260924-001:v1:widefield_side:a2, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_side:a2",
+      "asked_at": "2026-09-24T18:56:28+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "target_relative_error_never_stated",
+      "observable": "target_relative_error",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=target_relative_error, caller_id=mic-20260924-001:v1:widefield_side:a2, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_side:a2",
+      "asked_at": "2026-09-24T18:56:22+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "tracer_loading",
+      "observable": "tracer_number_density",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_number_density, caller_id=mic-20260924-001:v1:widefield_side:a2, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_side:a2",
+      "asked_at": "2026-09-24T18:56:34+00:00",
+      "near_names": [
+        "tracer_number_density_from_diameter"
+      ]
+    }
+  ],
+  "degraded": [],
+  "note": "Answered by the librarian service rather than by reading the store, which is what makes degraded empty: 0 entries came back with their own grades and 3 questions came back absent, all at the pinned kbv-4b981dc870d3, and every call is in librarian_agent/queries/log.jsonl under this caller_id. The counts and the version here are computed rather than typed -- cards carried a stale pin in this sentence after a re-pin because they were typed. 2 of the 4 bounds apply to this question and abstain for want of: localisation_error, target_relative_error, tracer_number_density. 2 are not asked, because they size an MSD fit and the observable here is 'tracer_brightness': record_length_vs_diffusive_time, displacement_samples_per_lag. The target relative error is a decision only the person can make; the others are measurements nobody has taken here.",
+  "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
+}
