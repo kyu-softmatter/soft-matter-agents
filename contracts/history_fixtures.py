@@ -704,6 +704,39 @@ def fixture_84_a_manager_that_can_write_the_registry(repo: Path) -> str:
                           "a manager entry with no exclusion of the registry")
 
 
+def fixture_68_a_displaced_record_cannot_be_rewritten(repo: Path) -> str:
+    """A glued gap name in a displaced revision, beside the same one live.
+
+    Registering a quantity turns every earlier gap that glued a subject onto
+    that name red, and a displaced revision is a record the `v<N>_`
+    convention exists to keep unchanged -- so there is nobody who can clear
+    the line. The live copy of the same gap CAN be fixed, by asking again
+    under the registered name, and must stay a failure.
+
+    Both are planted so the fixture tests the split rather than the finding.
+    The `searched` line is what makes the displaced one unrewritable: it
+    quotes the call actually made, and editing `observable` over it would
+    claim a quantity nobody asked for.
+    """
+    head = base(repo)
+    gap = {
+        "gap_id": "tracer_loading",
+        "observable": "tracer_number_density",
+        "kind": "absent",
+        "kb_version": "kbv-000000000000",
+        "searched": ["kb_query(observable=tracer_number_density) -> absent"],
+    }
+    card = {"card": "axis", "schema_version": "0.1", "kb_gaps": [gap]}
+    write(repo, "microscope_agent/questions/q/axis_live_a2.json", card)
+    write(repo, "microscope_agent/questions/q/v2_axis_live_a2.json", card)
+    reg = json.loads((repo / "contracts" / "quantities.json").read_text())
+    reg["quantities"].append({"id": "number_density", "definition": "count per volume",
+                              "unit": "1/ml", "kind": "physical"})
+    write(repo, "contracts/quantities.json", reg)
+    sha = commit(repo, "plant", "microscope_agent", "contracts", seat="microscope-1")
+    return f"{head}..{sha}"
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -728,6 +761,12 @@ FIXTURES = [
     (84, "FAIL", "is the committer email of 2 seats", fixture_84_two_seats_share_one_committer_email),
     (84, "FAIL", "can write the registry", fixture_84_a_manager_that_can_write_the_registry),
     (80, "PASS", "5 site(s) decide a device's role", fixture_80_five_forms_and_five_that_must_not_fire),
+    (68, "LOST", "DISPLACED, so no work closes this", fixture_68_a_displaced_record_cannot_be_rewritten),
+    # The same built repository, asserted from the other side. Without this row
+    # the split is half tested: making EVERY record LOST still satisfies the row
+    # above, and the live card -- the one somebody can actually fix -- would stop
+    # being a failure with nothing to notice.
+    (68, "FAIL", "where it can be refused", fixture_68_a_displaced_record_cannot_be_rewritten),
 ]
 
 

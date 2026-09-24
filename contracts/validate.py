@@ -5936,19 +5936,35 @@ def check_68_a_gap_names_a_quantity_not_a_subject(b: Bundle) -> list[Finding]:
             if not glued:
                 continue                  # unregistered, and that is a gap's prerogative
             quantity, kind, extra = max(glued, key=lambda t: len(t[0]))
-            out.append(Finding(68, FAIL,
-                f"gap {g.get('gap_id')!r} asks for {name!r}, which is the registered quantity "
-                f"{quantity!r} with the {kind} {extra!r} glued to it. quantities.json rule 1: a "
-                f"name states the quantity and never its subject or its locus, because a name "
-                f"that asserts its own subject is a subject nothing can refuse -- check 44 "
-                f"refuses the `subject` field and cannot see into a string. Ask for "
-                f"{quantity!r} and carry {extra!r} where it can be refused", c.rel))
+            core = (f"gap {g.get('gap_id')!r} asks for {name!r}, which is the registered quantity "
+                    f"{quantity!r} with the {kind} {extra!r} glued to it. quantities.json rule 1: "
+                    f"a name states the quantity and never its subject or its locus, because a "
+                    f"name that asserts its own subject is a subject nothing can refuse -- check "
+                    f"44 refuses the `subject` field and cannot see into a string")
+            if DISPLACED_CARD.match(pathlib.Path(c.rel).name):
+                out.append(Finding(68, LOST, core + ". DISPLACED, so no work closes this. The "
+                    "`v<N>_` prefix means a later revision superseded this file, and the "
+                    "convention exists to keep it unchanged; the only edit that would clear the "
+                    "line is rewriting the record, which is what a gap's `searched` line -- a "
+                    "quotation of the call actually made -- forbids. Registering a quantity "
+                    "turns every earlier gap that glued a subject onto that name red, and those "
+                    "records were written when the name was merely unregistered, which 11-1 "
+                    "permits. The live set is where the fix goes", c.rel))
+            else:
+                out.append(Finding(68, FAIL, core + f". Ask for {quantity!r} and carry {extra!r} "
+                    f"where it can be refused", c.rel))
     if out:
         return out
     if not seen:
         return [Finding(68, NA, "no cards record kb_gaps")]
     return [Finding(68, PASS, f"{seen} gap names state a quantity without a subject or a locus "
                               f"glued into the string")]
+
+
+# A displaced revision: the `v<N>_` prefix the axis and plan cards take when a
+# later revision supersedes them (4.6, 2026-09-23). Written once here because
+# two checks now need to tell a frozen record from a live one.
+DISPLACED_CARD = re.compile(r"^v\d+_")
 
 
 def check_73_a_result_names_an_approval_and_a_run_that_exist(b: Bundle) -> list[Finding]:
