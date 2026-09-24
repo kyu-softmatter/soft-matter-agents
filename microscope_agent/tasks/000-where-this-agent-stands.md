@@ -31,17 +31,20 @@ older.** Read it as history.
 
 | | where it waits |
 |---|---|
-| run `-005` is **uncommitted by the person's choice**: its approval's written time (21:00Z) follows the run (20:09:24Z), so check 15 fails it. **The record is `D:\soft-matter-agents-frames\run-20260924-005\`**, with hashes in `failures.jsonl` (`ee0e42c`). Its result card, the tracking error, waits on it | the person: a superseding approval with the true time, 20:08:08Z, if they want it in the store |
-| `microscope_agent/approvals/` is **untracked** | the person's to commit |
+| run `-005` is **uncommitted by the person's choice**: its approval's written time (21:00Z) follows the run (20:09:24Z), so check 15 fails it. The approval file was saved at 20:08:51Z, before the run. **The record is `D:\soft-matter-agents-frames\run-20260924-005\`**, with hashes in `failures.jsonl` (`ee0e42c`). Its result card, the tracking error, waits on it | the person: correct the time in `appr-mic-20260924-002-r1` and commit `microscope_agent/approvals/` as the person. Then a microscope seat commits `-005`, and check 15 clears |
 | card 041: the dispatcher reaching Micro-Manager, plus the byte-order-mark fix for approvals | `microscope-20260924-1`'s |
 | card 038's five-minute run | the person: the tweezers program closed, the piezo controller off, then the bench handed to `microscope-20260924-1` |
-| entering the four findings files (`-1` at `bf8f91f`, `-2` at `a0fda99`, `-3` at `a5e7647`, `-4` at `e4ebe78`; `-5` established nothing) | the librarians, reading each cited source at its commit (`0e06fb2`) |
+| **the day's findings are in the store**: 62 entries, 24 of them self-reports citing today's runs, `-4`'s twelve tweezers entries, and both piezo ranges (the controller's 0 to 600 µm and the person's −100 to 600 µm) naming each other. No observable value cites a preparatory run. Published at `kbv-a1bb4a5acf25`, pushed at `d2162d9` | done |
+| `librarian_agent/tasks/037` is untracked | `manager-librarian-20260924-1`'s to commit |
+| `manager-librarian-20260924-1` was opened in `librarian_agent/`, where it cannot write its own tasks or settings | the person: reopen it at the repository root under that name (its row is `ff8e673`) |
+| `microscope-20260924-5` has no work | the person may archive it |
+| everything not yet on the remote | push with `git -c credential.helper=manager push origin main` (CLAUDE.md), once the approval and `librarian_agent/tasks/037` are committed |
 | card 034's S4, S5 and v2 fan-out, re-copying the envelope snapshot then | a later seat, once 041 lets a planned 20x run through the dispatcher |
 | **piezo Z**: it rests 1.7 nm below the person's 0 µm floor. The person asked for a −0.01 µm floor, a change only the person can write. But **the controller reports its own calibrated range as 0 to 600 µm**, so a floor below 0 would allow commands below that range. The alternative put to the person: keep the floor at 0, and let the wrapper accept a *starting* position within a few nanometres below it. Its direction is unmeasured, and software refuses Z until a Z move is checked against objective clearance at the moment of the move | the person, then a card |
-| the confocal lines: the person's power calibration is found (a worksheet in Downloads, 2026-09-09) and is with the librarian; **no limit covers these lines yet** | the person |
+| the confocal lines: the person's power calibration is found (a worksheet in Downloads, 2026-09-09). `librarian-20260924-1` holds it pending the person's answers on its blank metadata. **No limit covers these lines yet**, and that limit comes after it | the person |
 | the tweezers: which camera body the program opens, and the trap power for a first lit check | the person |
 | whether the piezo's waveform generator may ever be used | the person |
-| the commit hooks are still not installed in this working copy | the person |
+| the commit hooks are fixed and still not installed in this working copy | the person: install them when someone can watch the first commits |
 
 **The bench rule governs everything live**: a seat opens a device only
 after the person says, in that seat's own window, that the bench is its
