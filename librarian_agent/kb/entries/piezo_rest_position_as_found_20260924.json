@@ -1,0 +1,50 @@
+{
+  "entry_id": "piezo_rest_position_as_found_20260924",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "At rest at 19:35 UTC on 2026-09-24, before anything had moved it that session, the piezo controller reported its measured positions as 0.02531508 um on channel 1, 0.00607026 um on channel 2 and -0.00172179 um on channel 3 -- channel 3 a little below the calibrated range's minimum of 0.",
+  "numbers": [
+    {
+      "name": "piezo_rest_position_ch1",
+      "value": 0.02531508,
+      "unit": "um",
+      "source": "measured:run-20260924-004",
+      "grade": "E1",
+      "note": "reported as 2.531508008e+004 pm",
+      "at": "piezo_stage"
+    },
+    {
+      "name": "piezo_rest_position_ch2",
+      "value": 0.00607026,
+      "unit": "um",
+      "source": "measured:run-20260924-004",
+      "grade": "E1",
+      "note": "reported as 6.070255371e+003 pm",
+      "at": "piezo_stage"
+    },
+    {
+      "name": "piezo_rest_position_ch3",
+      "value": -0.00172179,
+      "unit": "um",
+      "source": "measured:run-20260924-004",
+      "grade": "E1",
+      "note": "reported as -1.721787842e+003 pm",
+      "at": "piezo_stage"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "device",
+      "id": "piezo_stage"
+    }
+  ],
+  "source": "measured:run-20260924-004",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_004_piezo_readonly",
+  "validity_conditions": "A device's report of itself, read in a preparatory run -- a read-only first contact that sent only .get commands from a list the person approved by sha256, and moved nothing. 11-21 condition 4 as narrowed at 20a688b lets such a report enter citing the run, graded as an observation by this system; it is not a measurement of any registered observable, and check 85 counts it rather than failing it. E1 from `measured:`. A STATE, NOT A PROPERTY: true at that moment and falsified by any move, which the store does not record. Kept because where an axis rests when nobody has commanded it is the kind of report the narrowed condition names, and because channel 3 reads below 0: anything that treats a reading below the calibrated minimum as impossible is wrong about this stage. Values converted from picometres exactly. Slot: A5 and O1 preflight. Delivered as items piezo_rest_position_ch1..3 of microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043). Checked by this seat against microscope_agent/runs/run-20260924-004/log.json read at a0fda99 (committed at 03e0cd2, unchanged since): events 8-10, each the command named and the value stated.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

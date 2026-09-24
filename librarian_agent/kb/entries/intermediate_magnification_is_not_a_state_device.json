@@ -1,0 +1,25 @@
+{
+  "entry_id": "intermediate_magnification_is_not_a_state_device",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In the Micro-Manager NikonTi2 adapter, IntermediateMagnification is not a state device: asking it for a state raises 'is of the wrong type for the requested operation'. Its value has to be read as a property.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "intermediate_magnification"
+    },
+    {
+      "kind": "device",
+      "id": "stand_ti2e"
+    }
+  ],
+  "source": "measured:run-20260924-002",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_002_first_acquisition",
+  "validity_conditions": "Read back in a preparatory run -- the first real acquisition on this computer, with no plan, the person having placed the 20x and moved the microscope by hand, software moving nothing. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system: E1 from `measured:`. Not a value of any registered observable. A fact about the adapter in the Micro-Manager copy that loaded today (MMCore 12.5.0, device API 75). Slot: A6 -- a pixel size depends on the intermediate magnification, and code that reads it with a state call gets an error, not a value. Delivered as item intermediate_magnification_not_a_state_device of microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042). Checked by this seat against microscope_agent/runs/run-20260924-002/log.json read at bf8f91f (unchanged since): event 15.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

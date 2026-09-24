@@ -1,0 +1,25 @@
+{
+  "entry_id": "single_cam_red_config_startup_puts_the_lapp_mirror_in",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Loading single_cam_red_noDMD_nocom10.cfg moves the Lapp main-branch mirror: its System/Startup preset sets LappMainBranch1 State to 1, and after the load LappMainBranch1 reads State 1 (mirror_in).",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "lapp_branch"
+    },
+    {
+      "kind": "device",
+      "id": "stand_ti2e"
+    }
+  ],
+  "source": "measured:run-20260924-002",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_002_first_acquisition",
+  "validity_conditions": "Read back in a preparatory run -- the first real acquisition on this computer, with no plan, the person having placed the 20x and moved the microscope by hand, software moving nothing. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system: E1 from `measured:`. Not a value of any registered observable. The preset line is in the configuration file (line 261 at agentic-microscope fbedef0, sha256 8184073e..., which this seat read); the read-back is the run's. A LOAD IS NOT A READ: loading this configuration writes to a device. The person accepted that move for today's runs, which is a decision and is not in this entry. Slot: O1 preflight and A4. Delivered as item lapp_mirror_state_1_after_startup_preset of microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042). Checked by this seat against microscope_agent/runs/run-20260924-002/log.json read at bf8f91f (unchanged since): event 12.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

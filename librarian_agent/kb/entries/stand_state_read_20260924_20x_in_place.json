@@ -1,0 +1,41 @@
+{
+  "entry_id": "stand_state_read_20260924_20x_in_place",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "On 2026-09-24, with the 20x placed by hand, the stand read: Nosepiece state 2, label '3-Plan Apo LmbdD0.8 20x'; LightPath state 3, '4-L100'; FilterTurret1 state 0, '1-MXR00724 -Empty'; FilterTurret2 state 0, '1-Empty'; LappMainBranch1 state 1, 'mirror_in'; CondenserTurret state 0, '1-ND'.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "stand_ti2e"
+    },
+    {
+      "kind": "device",
+      "id": "nosepiece"
+    },
+    {
+      "kind": "device",
+      "id": "light_path_port"
+    },
+    {
+      "kind": "device",
+      "id": "filter_turret_1"
+    },
+    {
+      "kind": "device",
+      "id": "filter_turret_2"
+    },
+    {
+      "kind": "device",
+      "id": "lapp_branch"
+    }
+  ],
+  "source": "measured:run-20260924-002",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_002_first_acquisition",
+  "validity_conditions": "Read back in a preparatory run -- the first real acquisition on this computer, with no plan, the person having placed the 20x and moved the microscope by hand, software moving nothing. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system: E1 from `measured:`. Not a value of any registered observable. A STATE, NOT A PROPERTY: every value is falsified by moving that element. The labels are strings from the loaded configuration and are downgraded until a frame confirms each (plan.md 10.2.1); the state integers are what the stand reported. Nosepiece state 2 agrees with nosepiece_objective_assignment, which puts the 20x (MRD70270) at position 2. FilterTurret1's label names both the MXR00724 cube and 'Empty' at state 0, which is ambiguous; filter_turret_1_state_0_blocked_the_confocal_path records that cube at state 0 in the prior project on 2026-09-07. Slot: A4 and A6. Delivered as item stand_read_with_20x_in_place of microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042). Checked by this seat against microscope_agent/runs/run-20260924-002/log.json read at bf8f91f (unchanged since): event 15.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

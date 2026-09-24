@@ -1,0 +1,15 @@
+{
+  "entry_id": "single_cam_red_config_arms_autoshutter_on_the_lightengine",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The configuration single_cam_red_noDMD_nocom10.cfg sets the Micro-Manager core shutter to LightEngine and turns AutoShutter on. After the load, setting AutoShutter to 0 as the first call took effect: getAutoShutter returned False and the core AutoShutter property read 0.",
+  "source": "measured:run-20260924-002",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_002_first_acquisition",
+  "validity_conditions": "Read back in a preparatory run -- the first real acquisition on this computer, with no plan, the person having placed the 20x and moved the microscope by hand, software moving nothing. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system: E1 from `measured:`. Not a value of any registered observable. The two settings are lines 171-172 of the configuration at agentic-microscope fbedef0 (sha256 8184073e...), read by this seat; the read-back is the run's. What it means: with AutoShutter on, a snap opens the Spectra III light engine by itself, so anything that loads this configuration and takes a frame before turning AutoShutter off has turned a light on. Slot: O1 preflight and the orchestrator. Delivered as item autoshutter_zero_read_back_after_load of microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042). Checked by this seat against microscope_agent/runs/run-20260924-002/log.json read at bf8f91f (unchanged since): event 8.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

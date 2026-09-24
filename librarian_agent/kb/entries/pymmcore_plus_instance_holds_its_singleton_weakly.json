@@ -1,0 +1,15 @@
+{
+  "entry_id": "pymmcore_plus_instance_holds_its_singleton_weakly",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In pymmcore-plus 0.18.1, CMMCorePlus.instance() keeps its global singleton through a weak reference. When the last strong reference to a loaded core is dropped the core can be destroyed, which unloads its devices, and a later instance() call returns a new, empty core. Code that loads a configuration has to keep its own strong reference to the core.",
+  "source": "spec:pymmcore_plus_0_18_1_core_mmcore_plus_py",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_pymmcore_plus_0_18_1_source",
+  "validity_conditions": "The mechanism is read in the library's own source as installed on this computer (pymmcore_plus/core/_mmcore_plus.py, which imports weakref and stores the singleton as weakref.ref; sha256 12eef1d98aa1719f7536045cf24c91b876b9326f5f3998c4a5a6c04019b98f54), so this is E3, the library being the document (10.3 rule 2's spirit, though it is software rather than a device). Observed here as its consequence: run-20260924-001 loaded every device and failed moments later with 'No device with label \"LappMainBranch1\"' (event 12 of that run's log, read at bf8f91f). The microscope seat's account of the cause is in its code at microscope_agent/src/devices/micromanager.py, read at bf8f91f. Slot: the device wrapper. A later pymmcore-plus release may change it. Delivered as item pymmcore_plus_singleton_is_weak of microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042).",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

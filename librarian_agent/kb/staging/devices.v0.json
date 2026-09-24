@@ -595,7 +595,8 @@
       "searched": ["the prior project, where the number exists -- as the heading of section 3 of that project's SAFETY.md, and reading stopped at the heading", "the vendor designation we hold, which does not determine it: NPC-D is the CONTROLLER, and travel is a property of the stage"],
       "status": "DISCARDED as a transfer, and open as a question for a person. 10.3 rule 4 makes safety limits non-transferable and 10.2's device-spec row stays shut until a human writes envelope/safety.json. The reason is not procedural: the prior project put that number in its safety document BECAUSE it was using it as a limit, and a travel range read as a permission is the exact failure the rule names. kind is inaccessible because the next action is the right one -- ask a person -- even though the barrier is a rule of this project rather than a paywall.",
       "do_not": "do not fetch it from the prior project, and do not infer the stage model. Queensgate's series is offered at 200, 400, 600 and 800 um, and 600 appearing in both that series and that SAFETY.md heading is a consistency, not a source. Picking the 600 because the number matches is inference, which is E6 and enters nothing.",
-      "what_is_known": "NPC-D is the controller. The STAGE model is not recorded anywhere here, and it is what a vendor lookup would need."
+      "what_is_known": "NPC-D is the controller. The STAGE model is not recorded anywhere here, and it is what a vendor lookup would need.",
+      "update_20260924": "NARROWED, NOT CLOSED. The stage model is now recorded, from the controller itself and not by inference: piezo_stage_identity (E1, SP-XYZ-600, one stage on all three channels). Two range figures now exist and disagree, and both are kept: piezo_calibrated_range, the controller's own report of 0 to 600 um per channel (E1), and piezo_device_range_as_stated_by_the_person, -100 to 600 um (E5). Which of the two is the travel is open; a calibrated range and a mechanical one are not obviously the same quantity. What software may command is the person's, in envelope/safety.json, and is not knowledge. The do_not above still binds: the 600 in the model string is not a source for anything. Written by librarian-20260924-2 from microscope-20260924-2's findings (a0fda99)."
     },
     {
       "what": "the DMD's transmission, and whether it varies with wavelength",
@@ -744,6 +745,55 @@
       "kind": "absent",
       "searched": ["the light_path_port element of stand_ti2e in this table", "the contents of every file in librarian_agent/kb/staging and librarian_agent/kb/entries, for 'eyepiece' and 'ocular': no hits", "the prior-project records microscope-20260924-3 read on 2026-09-24, none of which gives it"],
       "status": "open. It closes at the bench with the person, by the state's integer and with the lamp only. Delivered by microscope-20260924-3 (findings a5e7647, item eyepiece_path_mapping_unmeasured)."
+    },
+    {
+      "what": "which piezo Z direction moves the sample toward the objective",
+      "gap_id": "piezo_z_direction",
+      "why_it_matters": "a Z move in the wrong direction drives the objective into the coverslip. A travel limit is not a clearance limit, so the calibrated range does not answer it",
+      "kind": "absent",
+      "searched": ["run-20260924-004, the read-only first contact: it reads positions and never moved Z", "microscope_agent/src/piezo_live_checklist.md step 3c at a0fda99, which lists it as unmeasured and plans a direction-finding step with the person watching the objective", "this store's entries: none"],
+      "do_not": "do NOT create an entry named piezo_z_direction_is_measured from anything but that bench measurement. Check 86 lifts its restriction on piezo Z moves the moment a file of that name exists in kb/entries, so the entry's existence is itself a safety switch. Not from the controller's axis label, not from the person's recollection, not from the prior project.",
+      "status": "open. It closes at the bench, by the direction-finding step. Delivered by microscope-20260924-2 (findings a0fda99, item unmeasured_piezo_z_direction); source read at that commit."
+    },
+    {
+      "what": "which way the image moves when each piezo channel is driven",
+      "gap_id": "piezo_channel_image_direction",
+      "why_it_matters": "the controller's axis labels (piezo_controller_axis_labels) are its own names; which way the sample moves in the image, and with which sign, is what a plan steering a particle needs",
+      "kind": "absent",
+      "searched": ["run-20260924-004, which read the labels and moved nothing", "microscope_agent/src/piezo_live_checklist.md step 3a at a0fda99", "the person's report of the 2026-09-24 1 Hz sine, which said it worked well and did not name the direction"],
+      "status": "open. It closes with one small step per channel, watching the image. Delivered by microscope-20260924-2 (findings a0fda99, item unmeasured_channel_image_mapping); source read at that commit."
+    },
+    {
+      "what": "what unit the piezo controller's hardware waveform generator reads its samples in",
+      "gap_id": "piezo_waveform_input_unit",
+      "why_it_matters": "the generator is refused outright until it is known: in the prior project a waveform written in the picometres the position command takes swung the axis far beyond what was asked (piezo_waveform_generator_does_not_read_picometres)",
+      "kind": "absent",
+      "searched": ["the prior project's 2026-08-27 piezo record, section 7b, which leaves it open and names the experiment that settles it", "microscope_agent/failures.jsonl at a0fda99, the refusal of 2026-09-24", "a text search of the NPC-D interface-library manual (rev 6.0) and the NanoBench 6000 user manual (v1.0.19) for 'waveform', which found section headings and a demo program; NOT read for the unit -- the NanoBench manual's Waveform Generator sections 10.2 and 10.3 are the next place to look"],
+      "status": "open. Delivered by microscope-20260924-2 (findings a0fda99, item unmeasured_waveform_unit); source read at that commit."
+    },
+    {
+      "what": "whether the piezo controller's emulator address (sim:/NPC...) opens a serial port",
+      "gap_id": "piezo_emulator_opens_a_port",
+      "why_it_matters": "a session that opens the emulator by mistake while the real controller is attached could hold the port or not; which is not known",
+      "kind": "absent",
+      "searched": ["run-20260924-004 event 3: no handle listing was taken, so it was not observed", "the NPC-D interface-library manual, section 4.3.7, which describes the emulator and does not say"],
+      "status": "open. Delivered by microscope-20260924-2 (findings a0fda99, item unmeasured_simulator_opens_no_port); source read at that commit."
+    },
+    {
+      "what": "whether NIDAQHub's own initialisation writes any DAQ analogue output line",
+      "gap_id": "nidaq_hub_init_analogue_write",
+      "why_it_matters": "the configuration loaded on 2026-09-24 loads no analogue-output device, but the hub initialises inside the adapter; an analogue line written there could reach a device that follows it, such as the piezo's analogue input, which was reported disabled that day",
+      "kind": "absent",
+      "searched": ["run-20260924-002 event 11, which checked the loaded devices and says this is not observable from Micro-Manager"],
+      "status": "open. Delivered by microscope-20260924-1 (findings bf8f91f, item nidaq_hub_init_analogue_write_unmeasured); source read at that commit."
+    },
+    {
+      "what": "the bit depth of the red Kinetix as it is read out here",
+      "gap_id": "kinetix_red_bit_depth",
+      "why_it_matters": "a saturation test and any count-to-photon conversion depend on it, and the adapter's BitDepth and PixelType properties are self-descriptions that the prior project found wrong once (pixeltype_misreports_bit_depth)",
+      "kind": "absent",
+      "searched": ["run-20260924-002 event 45: a 500 ms dia-lamp frame reached 861 ADU and did not saturate; the event's 'bits: 10' is a flaw in the script, not a measurement", "the same run's particle series, whose brightest pixel was about 14,000 ADU, so full scale is above that", "kinetix_red_adapter_properties_as_reported_20260924: BitDepth 16, PixelType 16bit, as reported"],
+      "status": "open. It closes with a frame that saturates. Delivered by microscope-20260924-1 (findings bf8f91f, item kinetix_red_bit_depth_unmeasured); source read at that commit."
     }
   ],
   "resolved_gaps": [

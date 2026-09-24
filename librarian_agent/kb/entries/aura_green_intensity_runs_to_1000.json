@@ -1,0 +1,15 @@
+{
+  "entry_id": "aura_green_intensity_runs_to_1000",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The Aura's GREEN_Intensity property has limits, with upper limit 1000, and the value 100 written to it read back as 100.",
+  "source": "measured:run-20260924-002",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_002_first_acquisition",
+  "validity_conditions": "Read back in a preparatory run -- the first real acquisition on this computer, with no plan, the person having placed the 20x and moved the microscope by hand, software moving nothing. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system: E1 from `measured:`. Not a value of any registered observable. Consistent with light_engine_line_intensity_is_per_mille (E3, the prior project, both engines): on a 0 to 1000 scale an operator's 10 per cent is 100. What is measured here is the limit and the read-back, on one line of one engine; that 1000 is full output is the per-mille reading, not something this run tested. Slot: A7 and the light-engine wrapper. Delivered as item aura_green_intensity_is_per_mille of microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042). Checked by this seat against microscope_agent/runs/run-20260924-002/log.json read at bf8f91f (unchanged since): event 17 (limit) and 29 (write and read-back).",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

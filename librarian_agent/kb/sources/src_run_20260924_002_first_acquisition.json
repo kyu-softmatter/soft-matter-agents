@@ -1,0 +1,9 @@
+{
+  "source_id": "src_run_20260924_002_first_acquisition",
+  "kind": "measured",
+  "identifier": "microscope_agent/runs/run-20260924-002/log.json, the first real acquisition on this computer, 2026-09-24, by microscope-20260924-1: a preparatory run (plan_id null), the person having placed the 20x by hand and software moving nothing, loading agentic-microscope's single_cam_red_noDMD_nocom10.cfg by path (sha256 8184073e...). Read by this seat at bf8f91f, unchanged since.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E1 for a device's report of itself or a control-path check: this system read it, in a run with a run_id. Not a value of a registered observable -- the lit-frame response and the photostability curve from this run are observables and wait for the plan that cites the run.",
+  "what_was_not": "items whose source is not committed: the frame-period figures (a metadata file under D:/soft-matter-agents-frames/) and the Micro-Manager install's API version (a CoreLog under C:/Program Files/). Not checkable here, so not entered, per plan.md 7 as widened at 0e06fb2. And pixel_size_um_reports_zero_at_load, whose fact (getPixelSizeUm returned 0.0) does not match the event it cites, which records 0.32373 as the pixel size stamped in frame metadata; held and asked.",
+  "delivered_by": "microscope-20260924-1, microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042)."
+}

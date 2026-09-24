@@ -1,0 +1,15 @@
+{
+  "entry_id": "single_cam_red_config_loads_no_nidaq_analogue_output",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The configuration single_cam_red_noDMD_nocom10.cfg loads no NIDAQ analogue-output device: its NIDAQ devices are NIDAQHub and the digital-output LUNF-Blanking only, so nothing in it addresses an analogue line such as Dev1/ao2.",
+  "source": "measured:run-20260924-002",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_002_first_acquisition",
+  "validity_conditions": "Read back in a preparatory run -- the first real acquisition on this computer, with no plan, the person having placed the 20x and moved the microscope by hand, software moving nothing. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system: E1 from `measured:`. Not a value of any registered observable. What it does NOT establish, and the run says so: whether NIDAQHub's own initialisation writes any analogue line, which happens inside the adapter and is not observable from Micro-Manager -- a gap in the device table. It matters because the piezo controller sums an analogue command with the digital one when its analogue input is enabled (npcd_analogue_and_digital_commands_are_summed); that input was reported disabled on 2026-09-24 (piezo_command_path_as_found_20260924). Slot: O1 preflight. Delivered as item no_nidaq_analogue_output_loaded of microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042). Checked by this seat against microscope_agent/runs/run-20260924-002/log.json read at bf8f91f (unchanged since): event 11.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

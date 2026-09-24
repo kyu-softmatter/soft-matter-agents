@@ -1,0 +1,41 @@
+{
+  "entry_id": "piezo_device_range_as_stated_by_the_person",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The person states that each piezo axis's device range is -100 to 600 um.",
+  "numbers": [
+    {
+      "name": "piezo_device_range_min",
+      "value": -100,
+      "unit": "um",
+      "source": "operator_recall:kyuhwan_20260924_piezo_range",
+      "grade": "E5",
+      "note": "per axis, as stated"
+    },
+    {
+      "name": "piezo_device_range_max",
+      "value": 600,
+      "unit": "um",
+      "source": "operator_recall:kyuhwan_20260924_piezo_range",
+      "grade": "E5",
+      "note": "per axis, as stated"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "device",
+      "id": "piezo_stage"
+    }
+  ],
+  "source": "operator_recall:kyuhwan_20260924_piezo_range",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_person_statement_piezo_range_20260924",
+  "validity_conditions": "The person's statement, 2026-09-24, to the architecture session, recorded in microscope_agent/tasks/035-piezo-then-confocal-laser-then-tweezers.md at be5a848 ('What the person stated'), which says in so many words that these are the person's statement and not a reading; the same statement stands as the confirmation note on each piezo limit in microscope_agent/envelope/safety.json at 58d55cd. E5 as a recollection: the record does not say it was read off the stage or its documentation at the time, and a reading or a vendor document would supersede it. The person's choice to keep software to 0 to 600 um is policy and is NOT in this entry. It DISAGREES with the controller's own report of a 0 to 600 um calibrated range (piezo_calibrated_range); both are kept and neither is reconciled. Slot: A7. Delivered as item person_piezo_device_range of microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043); this seat read the cited record at the commit named.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [
+    "piezo_calibrated_range"
+  ],
+  "curated_by": "seat:librarian-20260924-2"
+}

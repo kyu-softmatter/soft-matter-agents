@@ -1,0 +1,15 @@
+{
+  "entry_id": "aura_reports_five_named_lines",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The Aura III light engine, opened as Micro-Manager label Aura, exposes five lines named UV, CYAN, GREEN, RED and NIR, each as an on/off property NAME and an intensity property NAME_Intensity, plus a master State property and the descriptive properties Connection, Description, FirmwareVersion, LEModel, Model, Name and SerialNumber.",
+  "source": "measured:run-20260924-002",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_002_first_acquisition",
+  "validity_conditions": "Read back in a preparatory run -- the first real acquisition on this computer, with no plan, the person having placed the 20x and moved the microscope by hand, software moving nothing. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system: E1 from `measured:`. Not a value of any registered observable. Five names agree with the five channels of the vendor designation 5-NII-WA in the device table's light_engines. Names are not wavelengths: this narrows the light_engine_channel_sets gap to what each named line emits, and does not close it. Slot: A4. Delivered as item aura_line_names of microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042). Checked by this seat against microscope_agent/runs/run-20260924-002/log.json read at bf8f91f (unchanged since): event 16.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

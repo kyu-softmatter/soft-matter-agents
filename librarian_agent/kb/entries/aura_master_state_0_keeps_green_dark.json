@@ -1,0 +1,15 @@
+{
+  "entry_id": "aura_master_state_0_keeps_green_dark",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "With the Aura's master State at 0, turning GREEN on at intensity 1000 left the red camera's frame dark: it was indistinguishable from dark frames taken with the line off, within the frame-to-frame noise, at 100 ms exposure through the 20x with the Lapp mirror in.",
+  "source": "measured:run-20260924-002",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_002_first_acquisition",
+  "validity_conditions": "Read back in a preparatory run -- the first real acquisition on this computer, with no plan, the person having placed the 20x and moved the microscope by hand, software moving nothing. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system: E1 from `measured:`. Not a value of any registered observable. A gating check measured in the run rather than a device's statement, and the microscope seat says so itself; it is entered because what it establishes is control-path behaviour -- the master switch gates a line at full intensity -- and not a value of any observable. The frame statistics are the run's and are not carried as numbers. It confirms on this bench, for GREEN on the Aura, what light_engine_master_state_gates_every_line says at E3 for every line of both engines; the other lines and the Spectra III are not tested here. Slot: the orchestrator's abort path and O1 preflight. Falsified by light reaching a camera with State at 0. Delivered as item aura_master_off_keeps_green_dark of microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042). Checked by this seat against microscope_agent/runs/run-20260924-002/log.json read at bf8f91f (unchanged since): event 30.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

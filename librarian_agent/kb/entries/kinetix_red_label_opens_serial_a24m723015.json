@@ -1,0 +1,25 @@
+{
+  "entry_id": "kinetix_red_label_opens_serial_a24m723015",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "With the configuration single_cam_red_noDMD_nocom10.cfg loaded, the camera opened as Micro-Manager label Kinetix_red reports serial number A24M723015, chip TMP-Kinetix, firmware 30.48. That is the serial camera_bodies_are_told_apart_by_serial gives for the red arm, so in this configuration the label Kinetix_red opens the red-arm body.",
+  "identifiers": {
+    "serial": "A24M723015",
+    "model": "Kinetix 22"
+  },
+  "subject": [
+    {
+      "kind": "device",
+      "id": "camera_red"
+    }
+  ],
+  "source": "measured:run-20260924-002",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_002_first_acquisition",
+  "validity_conditions": "Read back in a preparatory run -- the first real acquisition on this computer, with no plan, the person having placed the 20x and moved the microscope by hand, software moving nothing. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system: E1 from `measured:`. Not a value of any registered observable. The comparison with the stored serial is this seat's, from two records: the serial here is E1, the red-arm assignment it is compared with is E3 from the prior project, so the conclusion 'this label opens the red-arm body' is only as good as the E3 half. A frame on each arm with the other dark would settle the assignment here. A different configuration may map labels to bodies differently. Delivered as item kinetix_red_serial_a24m723015 of microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042). Checked by this seat against microscope_agent/runs/run-20260924-002/log.json read at bf8f91f (unchanged since): event 40 (serial) and 18 (firmware).",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}
