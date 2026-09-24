@@ -1,0 +1,35 @@
+{
+  "entry_id": "room_thermometer_reads_in_one_kelvin_steps",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The thermometer that gives the room temperature on this bench reads in steps of one degree, so a reading from it resolves the room temperature to one kelvin and no finer.",
+  "numbers": [
+    {
+      "name": "temperature_resolution",
+      "value": 1,
+      "unit": "K",
+      "at": "ambient",
+      "source": "operator_recall:kyuhwan_20260923",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "One degree Celsius and one kelvin are the same step, so no offset enters -- the registry's inability to hold Celsius does not touch a difference."
+    }
+  ],
+  "validity_conditions": "THE ROOM THERMOMETER ON THIS BENCH, as the operator described it on 2026-09-23. This is what lab_ambient_temperature's 20 degC reading is resolved to, and until now the store carried that resolution only as an inference in prose -- the reading's own note said 'a reading given to the nearest degree' from how the number was spoken. Now the person has said so. WHAT IT IS FOR: a caller that takes the room reading as a query condition should ask over an interval at least one resolution step wide, not at the point. Measured before filing, with match() against water_density_293k: asked at exactly 293 K the density entry comes back disjoint, asked at 293.15 K it is full, and asked at 292 to 294 K it is partial with the uncovered part named. A point taken from a one-kelvin reading is not a point, and this entry is the graded fact a caller can cite for widening it -- rather than making up the precision itself. WHAT IT IS NOT: the room's stability. How tightly the air conditioning holds the room is a separate claim with a separate way of being wrong, room_temperature_hold_band. The resolution says how finely one reading can be taken; the hold band says how far the room moves between readings. It also says nothing about the sample, which no thermometer reads (no_thermometer_at_the_sample).",
+  "subject": [
+    { "kind": "quantity", "id": "temperature_resolution" },
+    { "kind": "quantity", "id": "ambient_temperature" },
+    { "kind": "quantity", "id": "temperature" }
+  ],
+  "source": "operator_recall:kyuhwan_20260923",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_operator_recall_20260923",
+  "valid_until": {
+    "event": "the room thermometer is replaced, or a different instrument becomes the one the room temperature is read from. A reading of the display taken at the thermometer would supersede this entry at E3 without ending the claim."
+  },
+  "date": "2026-09-23",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-2"
+}

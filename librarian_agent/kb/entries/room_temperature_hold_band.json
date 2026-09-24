@@ -1,0 +1,35 @@
+{
+  "entry_id": "room_temperature_hold_band",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The air conditioning holds this laboratory's room temperature to roughly plus or minus one degree.",
+  "numbers": [
+    {
+      "name": "temperature_stability",
+      "value": 1,
+      "unit": "K",
+      "at": "ambient",
+      "source": "operator_recall:kyuhwan_20260923",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "The half-width of the band, as the operator gave it: 'about plus or minus one degree'. Filed at order_of_magnitude because the answer carried its own hedge -- it says the band is of order one kelvin, not that it is one kelvin rather than a half or two."
+    }
+  ],
+  "validity_conditions": "THE ROOM, NOT THE SAMPLE, and as recalled rather than logged. room_temperature_is_controlled records that the room is held continuously and names three things it does not know: the setpoint, how tightly the room holds it, and how well the sample follows the room. This entry answers the second, at the recollection grade. The first -- the setpoint -- is not recorded here; the one reading the store has is lab_ambient_temperature's 20 degC, which is a reading and not the setpoint. The third is still open and is the one that matters for anything at the sample: illumination, a contacting objective, the stage and the trapping laser each move the sample independently of the room (no_thermometer_at_the_sample, trap_heating_detection_bound). SO A ROOM VALUE APPLIED TO THE SAMPLE STANDS ON THAT GAP, NOT ON THIS ENTRY. WHAT IT DOES FOR A CALLER: combined with room_thermometer_reads_in_one_kelvin_steps, a card taking the room reading as a condition has two graded reasons to ask over an interval of a kelvin or two rather than at a point. In explore mode that interval moves nothing that matters -- water's viscosity changes by about two percent per kelvin and its density by about two parts in ten thousand -- and in confirm mode it is exactly what has to be carried. ANSWERS A NAME ALREADY ASKED: temperature_stability was asked by the microscope question's a5 on 2026-09-19 and came back absent.",
+  "subject": [
+    { "kind": "quantity", "id": "temperature_stability" },
+    { "kind": "quantity", "id": "ambient_temperature" },
+    { "kind": "quantity", "id": "temperature" }
+  ],
+  "source": "operator_recall:kyuhwan_20260923",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_operator_recall_20260923",
+  "valid_until": {
+    "event": "the air conditioning or its control is changed, or a logged record of the room temperature over time is taken, which would supersede this with a measured band."
+  },
+  "date": "2026-09-23",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-2"
+}
