@@ -66,6 +66,14 @@ me. `librarian-20260924-2` is taking the lists; `librarian-20260924-1` has
 open work to commit first. **The file is the delivery. The message only
 points at it.**
 
+**The librarian reads the committed file directly** (architecture, `plan.md`
+section 7 at `f391010`). It may read `microscope_agent/findings/` and
+nothing else of this tree, read-only, the same shape as the bridge's
+exception for `questions/`. A message leaves no trace, and **the committed
+file is the trace the store entry cites.** So send the commit, never the
+contents. If the librarian cannot read it, the gap is in its settings,
+which are its manager's. Do not paste the contents to work around it.
+
 ## Constraints
 
 - no hardware; this card is records only
