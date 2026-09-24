@@ -580,6 +580,57 @@ def fixture_40_a_sweep_point_run_without_its_window(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def _deletion_repo(repo: Path, met, why=None) -> str:
+    """A plan declaring a STOP criterion, a result card evaluating it, and a run
+    log that deleted the trajectory citing that criterion. Only `met` varies."""
+    start = base(repo)
+    q = "simulation_agent/questions/sim-20260923-903"
+    plan = {"card": "plan", "id": "plan-sim-20260923-903-r1", "schema_version": 1,
+            "qid": "sim-20260923-903", "revision": 1, "author": "simulation_agent",
+            "observable": {"name": "tracer_diffusivity", "unit": "um^2/s"},
+            "system_configuration": "bd_overdamped", "numbers": [], "conditions": [],
+            "stop_criteria": [{"id": "step_displacement_diverged"}], "success_criteria": [],
+            "assumptions": [], "kb_refs": [], "kb_gaps": [], "degraded": []}
+    row = {"id": "step_displacement_diverged", "met": met}
+    if why is not None:
+        row["why_unevaluated"] = why
+    result = {"card": "result", "id": "result-903", "schema_version": 1, "qid": "sim-20260923-903",
+              "revision": 1, "author": "simulation_agent", "run_id": "run-20260923-903",
+              "plan_id": "plan-sim-20260923-903-r1", "criteria_evaluation": [row],
+              "numbers": [], "kb_refs": [], "kb_gaps": [], "degraded": []}
+    log = {"run_id": "run-20260923-903", "plan_path": f"{q}/plan.json", "events": [
+        {"event": "trajectory_deleted", "t": 1.0, "deletion": {
+            "what": ["simulation_agent/runs/run-20260923-903/trajectory.txt"], "bytes_freed": 1,
+            "triggered_by": {"kind": "criterion", "id": "step_displacement_diverged",
+                             "declared_in": "plan-sim-20260923-903-r1"}}}]}
+    for rel, doc in ((f"{q}/plan_simulation_sim-20260923-903.json", plan),
+                     (f"{q}/result_run-20260923-903.json", result),
+                     ("simulation_agent/runs/run-20260923-903/log.json", log)):
+        write(repo, rel, doc)
+    commit(repo, "a trajectory deleted on a criterion", q, "simulation_agent/runs", seat="simulation")
+    return f"{start}..HEAD"
+
+
+def fixture_77_a_deletion_on_a_criterion_nobody_evaluated(repo: Path) -> str:
+    """The defect architecture found on 2026-09-23: `met: null` was SKIPPED.
+
+    The result card says it could not evaluate the stop criterion, and the
+    trajectory was deleted citing that criterion anyway. The old check skipped
+    the row, added no failure, and its final line then counted this deletion
+    among those "that fired" -- an irreversible act passed on a condition
+    nobody checked. The phrase is the new one; the old code produced none.
+    """
+    return _deletion_repo(repo, None, "the run was aborted before the window closed")
+
+
+def fixture_77_a_deletion_on_a_stop_criterion_that_did_not_fire(repo: Path) -> str:
+    """A stop criterion fires by being MET. Here it is met: false -- the run
+    behaved -- and the trajectory was deleted on it anyway. This path existed
+    before and no fixture reached it, which is the second half of the report:
+    the resolution path had never been watched to fail."""
+    return _deletion_repo(repo, False)
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -597,6 +648,8 @@ FIXTURES = [
     (17, "FAIL", "so the reference is ambiguous", fixture_17_an_envelope_field_named_twice),
     (21, "FAIL", "max(E4, worst) = E5", fixture_21_a_formula_on_a_graded_store_entry),
     (40, "FAIL", "were run without", fixture_40_a_sweep_point_run_without_its_window),
+    (77, "FAIL", "did not evaluate it", fixture_77_a_deletion_on_a_criterion_nobody_evaluated),
+    (77, "FAIL", "that criterion NOT firing", fixture_77_a_deletion_on_a_stop_criterion_that_did_not_fire),
     (80, "PASS", "5 site(s) decide a device's role", fixture_80_five_forms_and_five_that_must_not_fire),
 ]
 

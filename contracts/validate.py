@@ -6819,7 +6819,21 @@ def check_77_a_deletion_names_a_declared_trigger(b: Bundle) -> list[Finding]:
                                              f"{doc.get('run_id')} does not evaluate it", rel))
                 continue
             if row.get("met") is None:
-                continue                  # not evaluated; the card says why
+                # NOT evaluated is NOT fired, and until 2026-09-23 this line
+                # skipped the deletion instead of refusing it -- so a trajectory
+                # destroyed on a condition nobody checked passed, and the final
+                # line then reported it among deletions "that fired". Deletion
+                # is the one act that destroys its own evidence, so an unknown
+                # trigger has to refuse: ambiguity stops rather than proceeds.
+                # This seat wrote both halves that disagreed -- it widened
+                # criteria_evaluation[].met to admit null, and then read null
+                # here as nothing to check.
+                why = str(row.get("why_unevaluated") or "the card gives no reason")
+                out.append(Finding(77, FAIL,
+                    f"deletion rests on {crit[cid]} criterion {cid!r} and the result card for "
+                    f"{doc.get('run_id')} did not evaluate it ({why}), so nothing shows the trigger "
+                    f"fired. A trajectory was destroyed on a condition nobody checked", rel))
+                continue
             met = bool(row.get("met"))
             fired = met if crit[cid] == "stop" else (not met)
             if not fired:
