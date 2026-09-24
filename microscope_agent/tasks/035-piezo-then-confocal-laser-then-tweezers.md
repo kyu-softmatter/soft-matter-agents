@@ -1,25 +1,37 @@
-# 035 — the piezo stage, then the confocal laser, then the optical tweezers
+# 035 — the piezo stage
 
 Written by `manager-microscope-20260924-1`. You read this; you do not edit it
 (§6.2-2).
 
-**Assigned to `microscope-20260924-2`.** The person asked for this work
-through architecture on 2026-09-24: *check the piezo stage, the optical
-tweezers and the confocal laser*. The person then said **piezo first**. So
-the order is **piezo, then confocal laser, then tweezers**, and within each,
-phase A before phase B.
+**Assigned to `microscope-20260924-2`.** The person asked for this through
+architecture on 2026-09-24. **Revised the same day: this card now covers the
+piezo stage only.** It first carried all three devices. When the person
+opened two more seats, the confocal laser went to `microscope-20260924-3`
+(card 036) and the optical tweezers to `microscope-20260924-4` (card 037).
+**If you had started on either, stop, and report what you have.** It moves
+with the device.
 
-**Card 034 is also yours.** Carry on with 034 until your current axis work
-is committed. Then take this card's phase A. Neither blocks the other.
+**Card 034 is also yours, and comes first.** Finish your current 034 axis
+work and commit it, then take this card's phase A.
 
-**Goal**: each of the three is wrapped, understood and ready to check live,
-and **checked live only after `microscope-20260924-1`'s run has released the
-hardware, with the person at the bench, one device at a time.**
+**Goal**: the piezo stage is wrapped, understood and ready to check live,
+and **checked live only with the bench handed to you by the person.**
+
+## One holder of the bench
+
+`plan.md` 6.2.1, decided 2026-09-24: **a seat opens a device only after the
+person has said, in that seat's own window, that the bench is its.** That
+means a Micro-Manager load, a vendor program, a serial port, a DAQ task.
+**A relayed hand-over is no hand-over**, from me or from any seat. When you
+release the bench, **say so, and leave every device you opened in a stated
+state.** Four microscope seats are running, and the hardware cannot be
+divided by card the way files can: a piezo move shifts a sample another seat
+is imaging.
 
 ## Phase A — now. Nothing touches the hardware
 
 **No device opened and no vendor process started.** No Micro-Manager load,
-no Tweez300 GUI or system manager, no NIDAQ task, no serial port. The piezo
+no vendor GUI, no NIDAQ task, no serial port. The piezo
 vendor DLL's **simulator link** (`sim:/NPC6330`) is allowed, because it
 opens no port. Confirm that it opens none before relying on it.
 
@@ -32,11 +44,10 @@ and would run on a half-edited allow-list. Your device modules go in
 way the router resolves them. If a module cannot be reached without editing
 the router, **stop and report up**. That edit is a card of its own.
 
-Per device:
-
 1. **Rule the prior project's material** under `plan.md` 10.2.1, which is
-   open for the upgrade since `f0a475a`: `C:\agentic_microscope\config\piezo`,
-   `config\lunf` and `config\tweezers`. Each item is **transfer**,
+   open for the upgrade since `f0a475a`: `C:\agentic_microscope\config\piezo`
+   (`dump_command_set.py`, `run_sine_hold.py`, `settle_waveform_units.py`,
+   `verify_piezo_commands.py`) and its record. Each item is **transfer**,
    **downgrade** or **discard**, with **no fourth word** (`32e2263`). A
    transfer names its A1–A7 slot and the 10.3 rule it passed. **No safety
    limit crosses, including one written as a comment.** Write each ruling as
@@ -44,20 +55,19 @@ Per device:
    and attributed to your seat. That file is yours to write, unlike
    `tasks/`
 2. **Write the device's four functions against mock** (preflight, apply,
-   read, abort), in the shape the other backends have. For the piezo,
-   against the DLL simulator too
+   read, abort), in the shape the other backends have, and against the DLL
+   simulator too
 3. **Write the live checklist**, card 018's style: each line names what is
    tested, why, and the store entry it rests on. A line with no entry says
    so, and names the gap
 
 ## Phase B — later, and not by your own decision
 
-**Only after `microscope-20260924-1` reports its run finished and the
-hardware released, with the person at the bench, one device at a time.**
-That seat reported run `-002` complete. Wait for the person to say the bench
-is yours. A report between sessions is not that.
+**Only when the person has said, in your window, that the bench is yours.**
+`microscope-20260924-1` reported its run finished, and that is not a
+hand-over. Nor is a message from me.
 
-## 1. The piezo stage — first
+## The piezo stage
 
 **What the person stated (2026-09-24, to architecture):** three axes, **X, Y
 and Z on controller channels 1, 2 and 3**. Each axis's device range is
@@ -117,49 +127,15 @@ analogue output (`dad0f5e`).
    was verified by a frame. Then the facts leave as a result card for the
    librarian, graded by how they were established
 
-## 2. The confocal laser — second
-
-`laser_combiner`: the registry says blanking and line select over the DAQ,
-per-line power over SPI, and **`read_back: false`**, so every dispatch
-records **`verification: none`**. A return code is not a read-back
-(`lunf_per_line_power_is_not_transmittable`, `laser_shutter_on_the_combiner`).
-
-**This is a hazard to people first.** `optical_power_max` in the safety file
-is the **trapping** laser's dial range, measured at the sample plane.
-**Whether any limit covers the confocal lines is the person's to say.
-Until the person has said it, no line is enabled from software**, in phase A
-or B.
-
-In phase A: rule `config\lunf`, wrap against mock, and write the checklist.
-**Every live line waits on the person's limit.**
-
-## 3. The optical tweezers — third
-
-- **The Tweez300 takes a Kinetix and locks others out both ways**
-  (`camera_red` `exclusive_with: optical_tweezers_gui`). So it cannot run
-  while anything else needs a camera, and phase B for it is a bench session
-  of its own
-- **Trap power is a hand control** (`trap_laser_power_has_no_software_path`):
-  nothing here verifies `optical_power_max`, and no test may imply otherwise
-- **It reports nothing back** (`tweez300_reports_nothing_back`). A return
-  code is not a verification. **A missing reply is never retried**, because
-  several commands are relative. **An explicit rejection may be.** Its
-  readiness codes are re-measured here, not taken from the prior project
-- **An objective change invalidates both trap calibrations**
-  (`objective_change_invalidates_trap_calibration`), and neither is readable
-- trap motion is motion: check 85 refuses a plan-less run that dispatches to
-  `optical_tweezers`
-
 ## What to bring back
 
 - the rulings, in `rulings.jsonl`, with a count per word
-- each module, and **each refusal test watched failing**: switch the refusal
+- the module, and **each refusal test watched failing**: switch the refusal
   off, see the test fail, switch it back
-- each device's checklist
+- the live checklist
 - **the questions only the person can answer**, in plain words: the piezo
-  limit and whether the waveform generator may ever be used; whether NIS
-  drives `Dev1/ao2`; whether a limit covers the confocal lines, and what it
-  is
+  limit, whether the waveform generator may ever be used, and whether NIS
+  drives `Dev1/ao2`
 
 ## Constraints
 
