@@ -7575,7 +7575,7 @@ def describe_tree(staged: bool = False) -> str:
                 # and it cannot be made expensive by something large landing
                 # inside one.
                 inner = sorted(
-                    f"{q.relative_to(GIT_REPO)}:{q.stat().st_size}"
+                    f"{q.relative_to(GIT_REPO).as_posix()}:{q.stat().st_size}"
                     for q in f.rglob("*") if q.is_file())
                 return hashlib.sha256("\n".join(inner).encode()).hexdigest()
         except OSError:
