@@ -1,0 +1,2780 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260923-041-mid-max-s1",
+  "plan_id": "plan-sim-20260923-041-r5",
+  "plan_path": "simulation_agent/questions/sim-20260923-041/v5_plan_simulation_sim-20260923-041.json",
+  "revision": 5,
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "1",
+  "stop_criteria": [
+    "planned_duration_reached",
+    "step_displacement_diverged"
+  ],
+  "t0_wall": "2026-09-24T01:18:31.771311+00:00",
+  "t0_mono": 1433699.678357166,
+  "time_base_note": "Every offset is software: this side has no trigger counter and no device clock. Simulated time is a coordinate of the model, not a clock reading, so it is recorded in trajectory_meta.json rather than as this log's time base (4.6.9).",
+  "backend": "abp_backend",
+  "events": [
+    {
+      "t_mono": 8e-06,
+      "time_base": "software",
+      "event": "gate",
+      "tier": 1,
+      "approval": {
+        "id": null,
+        "kind": null
+      },
+      "envelope": {
+        "status": "inside",
+        "target": "local",
+        "budget": "full",
+        "compared": [
+          {
+            "cost": "wall_clock_estimate",
+            "limit": "wall_clock_max",
+            "cost_si": 40.0,
+            "limit_si": 7200.0
+          },
+          {
+            "cost": "storage_estimate",
+            "limit": "storage_max",
+            "cost_si": 0.032,
+            "limit_si": 10.0
+          }
+        ],
+        "exceeded": []
+      },
+      "compare_arm": "mid_max",
+      "arm_cost": {
+        "arm": "mid_max",
+        "wall_clock_s": 40.0,
+        "storage_gb": 0.032,
+        "from": [
+          "particle_steps_mid_max",
+          "particle_step_rate",
+          "coordinates_stored_mid_max",
+          "bytes_per_coordinate"
+        ],
+        "note": "the arm's cost from the plan's own per-arm numbers; the plan-level estimates are the sum over kept arms"
+      }
+    },
+    {
+      "t_mono": 0.001946,
+      "time_base": "software",
+      "event": "preflight",
+      "report": {
+        "backend": "abp_backend",
+        "missing_parameters": [],
+        "steps_per_frame": 200,
+        "frames_expected": 30000,
+        "save_interval_divides_step": true,
+        "diffusivity_si": 8.584396548838734e-14,
+        "n_particles": 64,
+        "self_propulsion_speed_si": 5e-07,
+        "persistence_length_si": 4.9999999999999996e-05,
+        "seed": 1,
+        "reduced_units": {
+          "length_si": 4.9999999999999996e-06,
+          "energy_si": 4.04530157e-21,
+          "time_si": 291.22606181772795,
+          "diffusivity_si": 8.584396548838734e-14,
+          "kT_reduced": 1.0,
+          "gamma_reduced": 1.0,
+          "note": "sigma = bead_diameter, epsilon = k_B*T, tau = sigma^2/D with D from Stokes-Einstein. kT and gamma are then both 1, which is the statement that the engine is given the bath and the particle rather than the diffusivity"
+        },
+        "engine_parameters": {
+          "n_particles": 64,
+          "box_length": 10.0,
+          "integration_timestep": 1.716879309767747e-05,
+          "save_interval": 0.003433758619535494,
+          "total_simulated_time": 103.01275858606482,
+          "kT": 1.0,
+          "gamma": 1.0,
+          "gamma_r": 0.3433758619535494,
+          "rotational_diffusivity": 2.9122606181772794,
+          "self_propulsion_speed": 29.122606181772795,
+          "active_force": 29.122606181772795,
+          "wca_epsilon": 0.988801435636849,
+          "wca_sigma": 1.0,
+          "wca_r_cut": 1.122462048309373,
+          "dimensions": 2
+        },
+        "note": "N is derived from the packing fraction and the box, so the plan's compare arms differ in box_length alone. D_T is derived from the bath by Stokes-Einstein, as for bd_overdamped; the plan's translational_diffusivity condition is the same relation rounded and is not handed to the engine. D_R and v0 are the plan's, through the steric Peclet number.",
+        "engine_build": {
+          "engine": "hoomd",
+          "version": "7.2.0",
+          "gpu_enabled": false,
+          "mpi_enabled": false,
+          "gpu_platform": null,
+          "compile_flags": "DOUBLE[SINGLE]",
+          "floating_point_precision": "(64, 32)",
+          "conda_package": {
+            "fn": "hoomd-7.2.0-cpu_py312_h203d2c3_0.conda",
+            "version": "7.2.0",
+            "build": "cpu_py312_h203d2c3_0",
+            "channel": "https://conda.anaconda.org/conda-forge/",
+            "subdir": "osx-arm64",
+            "sha256": "b0b961dd79e54df99048c70bcc20c5ca33b35447cf3489594b6a9739323260b9"
+          },
+          "python": "3.12.14",
+          "interpreter": "/Users/kyuhwan/Desktop/rebuild/.pixi/envs/sim/bin/python",
+          "platform": "Darwin-arm64"
+        }
+      }
+    },
+    {
+      "t_mono": 0.003286,
+      "time_base": "software",
+      "event": "dispatch",
+      "action": "integrate",
+      "from": "actions[integrate]",
+      "handle": "abp_backend:1:104adfbf0",
+      "state": "submitted",
+      "params": {
+        "temperature": {
+          "value_si": 293.0,
+          "unit_in_plan": "K",
+          "grade": "E3",
+          "from": "conditions[0].number -> numbers[temperature]"
+        },
+        "viscosity": {
+          "value_si": 0.001,
+          "unit_in_plan": "Pa*s",
+          "grade": "E3",
+          "from": "conditions[1].number -> numbers[viscosity]"
+        },
+        "bead_diameter": {
+          "value_si": 4.9999999999999996e-06,
+          "unit_in_plan": "um",
+          "grade": "E2",
+          "from": "conditions[2].number -> numbers[bead_diameter]"
+        },
+        "translational_diffusivity": {
+          "value_si": 9e-14,
+          "unit_in_plan": "um^2/s",
+          "grade": "E4",
+          "from": "conditions[3].number -> numbers[translational_diffusivity]"
+        },
+        "rotational_diffusivity": {
+          "value_si": 0.01,
+          "unit_in_plan": "1/s",
+          "grade": "E4",
+          "from": "conditions[4].number -> numbers[rotational_diffusivity]"
+        },
+        "wca_epsilon": {
+          "value_si": 4e-21,
+          "unit_in_plan": "J",
+          "grade": "E5",
+          "from": "conditions[5].number -> numbers[wca_epsilon]"
+        },
+        "total_simulated_time": {
+          "value_si": 30000.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[6].number -> numbers[total_simulated_time_point]"
+        },
+        "save_interval": {
+          "value_si": 1.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[7].number -> numbers[save_interval_point]"
+        },
+        "max_lag_time": {
+          "value_si": 3000.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[8].number -> numbers[max_lag_time_point]"
+        },
+        "fit_lag_range_lower_bound": {
+          "value_si": 1000.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[9].number -> numbers[fit_lag_range_lower_bound_point]"
+        },
+        "peclet_number_steric": {
+          "value_si": 10.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[10].number -> numbers[peclet_mid]"
+        },
+        "packing_fraction": {
+          "value_si": 0.5,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[11].number -> numbers[packing_fraction_max]"
+        },
+        "integration_timestep": {
+          "value_si": 0.005,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[12].number -> numbers[integration_timestep_point_pe_mid]"
+        },
+        "box_length": {
+          "value_si": 4.9999999999999996e-05,
+          "unit_in_plan": "um",
+          "grade": "E5",
+          "from": "conditions[13].number -> numbers[box_length_mid_max]"
+        }
+      }
+    },
+    {
+      "t_mono": 0.003292,
+      "time_base": "software",
+      "event": "monitors_compiled",
+      "monitors": [
+        "planned_duration_reached",
+        "step_displacement_diverged"
+      ],
+      "from": "stop_criteria"
+    },
+    {
+      "t_mono": 1.33077,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 40200,
+        "simulated_time": 201.0,
+        "frames_saved": 202,
+        "max_single_step_displacement": 5.1404235422631596e-08,
+        "max_frame_displacement": 1.331537628204696e-06,
+        "max_absolute_coordinate": 7.642101547555e-05,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 2.593468,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 80400,
+        "simulated_time": 402.0,
+        "frames_saved": 403,
+        "max_single_step_displacement": 5.147830697137159e-08,
+        "max_frame_displacement": 1.1997677022530776e-06,
+        "max_absolute_coordinate": 0.0001462528941397073,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 3.865847,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 121000,
+        "simulated_time": 605.0,
+        "frames_saved": 606,
+        "max_single_step_displacement": 5.283984128418267e-08,
+        "max_frame_displacement": 1.1873233083838329e-06,
+        "max_absolute_coordinate": 0.00017592866607916153,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 5.273917,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 161000,
+        "simulated_time": 805.0,
+        "frames_saved": 806,
+        "max_single_step_displacement": 5.094376901747987e-08,
+        "max_frame_displacement": 1.363456479012351e-06,
+        "max_absolute_coordinate": 0.00020991812480127396,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 6.632649,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 201600,
+        "simulated_time": 1008.0,
+        "frames_saved": 1009,
+        "max_single_step_displacement": 5.1137101352111635e-08,
+        "max_frame_displacement": 1.0222201220370578e-06,
+        "max_absolute_coordinate": 0.00023014671436496782,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 8.013161,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 242200,
+        "simulated_time": 1211.0,
+        "frames_saved": 1212,
+        "max_single_step_displacement": 5.0093498692811624e-08,
+        "max_frame_displacement": 1.114076007006478e-06,
+        "max_absolute_coordinate": 0.0002649819817833972,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 9.387909,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 282400,
+        "simulated_time": 1412.0,
+        "frames_saved": 1413,
+        "max_single_step_displacement": 5.239041399898682e-08,
+        "max_frame_displacement": 1.2626971566007887e-06,
+        "max_absolute_coordinate": 0.0002468519846581669,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 10.900313,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 322800,
+        "simulated_time": 1614.0,
+        "frames_saved": 1615,
+        "max_single_step_displacement": 5.3312621149366555e-08,
+        "max_frame_displacement": 1.2648712770136036e-06,
+        "max_absolute_coordinate": 0.0002376808957446405,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 12.363352,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 363200,
+        "simulated_time": 1816.0,
+        "frames_saved": 1817,
+        "max_single_step_displacement": 5.270611078150804e-08,
+        "max_frame_displacement": 1.1979945410307547e-06,
+        "max_absolute_coordinate": 0.00028703063551070577,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 13.987966,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 403800,
+        "simulated_time": 2019.0,
+        "frames_saved": 2020,
+        "max_single_step_displacement": 5.569347983778918e-08,
+        "max_frame_displacement": 1.600939257795982e-06,
+        "max_absolute_coordinate": 0.0003317169837802578,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 15.401344,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 444200,
+        "simulated_time": 2221.0,
+        "frames_saved": 2222,
+        "max_single_step_displacement": 5.283301629375363e-08,
+        "max_frame_displacement": 1.269758489210097e-06,
+        "max_absolute_coordinate": 0.00038546627791548576,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 16.829104,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 484600,
+        "simulated_time": 2423.0,
+        "frames_saved": 2424,
+        "max_single_step_displacement": 5.1366086379977345e-08,
+        "max_frame_displacement": 1.6012170883485932e-06,
+        "max_absolute_coordinate": 0.0003820455459367555,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 18.123989,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 525000,
+        "simulated_time": 2625.0,
+        "frames_saved": 2626,
+        "max_single_step_displacement": 5.099848895715278e-08,
+        "max_frame_displacement": 1.25085102059742e-06,
+        "max_absolute_coordinate": 0.0003388150875797829,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 19.401727,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 565000,
+        "simulated_time": 2825.0,
+        "frames_saved": 2826,
+        "max_single_step_displacement": 5.071165201157271e-08,
+        "max_frame_displacement": 8.553045612052937e-07,
+        "max_absolute_coordinate": 0.000362242759753787,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 20.667167,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 605200,
+        "simulated_time": 3026.0,
+        "frames_saved": 3027,
+        "max_single_step_displacement": 5.168216876721065e-08,
+        "max_frame_displacement": 1.0610400081211468e-06,
+        "max_absolute_coordinate": 0.0003985368316168774,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 21.931838,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 645800,
+        "simulated_time": 3229.0,
+        "frames_saved": 3230,
+        "max_single_step_displacement": 5.427022500180878e-08,
+        "max_frame_displacement": 1.2707444401851078e-06,
+        "max_absolute_coordinate": 0.00042368366279733416,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 23.188204,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 686600,
+        "simulated_time": 3433.0,
+        "frames_saved": 3434,
+        "max_single_step_displacement": 5.565619443083936e-08,
+        "max_frame_displacement": 1.4300645181695797e-06,
+        "max_absolute_coordinate": 0.00044082808921573776,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 24.517975,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 726600,
+        "simulated_time": 3633.0,
+        "frames_saved": 3634,
+        "max_single_step_displacement": 5.409342665186863e-08,
+        "max_frame_displacement": 1.252000190326251e-06,
+        "max_absolute_coordinate": 0.0004263546996833209,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 25.829833,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 766600,
+        "simulated_time": 3833.0,
+        "frames_saved": 3834,
+        "max_single_step_displacement": 5.2090107725377525e-08,
+        "max_frame_displacement": 1.0306082555006633e-06,
+        "max_absolute_coordinate": 0.0004269717126131014,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 27.283019,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 806800,
+        "simulated_time": 4034.0,
+        "frames_saved": 4035,
+        "max_single_step_displacement": 5.089857970400026e-08,
+        "max_frame_displacement": 1.436937260007508e-06,
+        "max_absolute_coordinate": 0.00045330871790253465,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 28.781297,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 846800,
+        "simulated_time": 4234.0,
+        "frames_saved": 4235,
+        "max_single_step_displacement": 5.250967132919423e-08,
+        "max_frame_displacement": 1.199226994632929e-06,
+        "max_absolute_coordinate": 0.00047051921009345096,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 30.265072,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 887000,
+        "simulated_time": 4435.0,
+        "frames_saved": 4436,
+        "max_single_step_displacement": 5.0933654542826266e-08,
+        "max_frame_displacement": 1.2698802551305502e-06,
+        "max_absolute_coordinate": 0.0004548493628375763,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 31.742836,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 927000,
+        "simulated_time": 4635.0,
+        "frames_saved": 4636,
+        "max_single_step_displacement": 5.335998656565675e-08,
+        "max_frame_displacement": 1.3347571951094504e-06,
+        "max_absolute_coordinate": 0.0004965133836991832,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 33.268478,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 967200,
+        "simulated_time": 4836.0,
+        "frames_saved": 4837,
+        "max_single_step_displacement": 5.226660792961358e-08,
+        "max_frame_displacement": 1.201890308517994e-06,
+        "max_absolute_coordinate": 0.0005046555154554819,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 34.851517,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1007600,
+        "simulated_time": 5038.0,
+        "frames_saved": 5039,
+        "max_single_step_displacement": 5.1834270632005255e-08,
+        "max_frame_displacement": 1.3719364335351366e-06,
+        "max_absolute_coordinate": 0.0005284231699589035,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 36.572485,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1048000,
+        "simulated_time": 5240.0,
+        "frames_saved": 5241,
+        "max_single_step_displacement": 5.465384518663508e-08,
+        "max_frame_displacement": 9.2608035382533e-07,
+        "max_absolute_coordinate": 0.0005380083672542941,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 38.198688,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1088000,
+        "simulated_time": 5440.0,
+        "frames_saved": 5441,
+        "max_single_step_displacement": 5.200527211968761e-08,
+        "max_frame_displacement": 1.4945186625500115e-06,
+        "max_absolute_coordinate": 0.000540825113091259,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 39.888396,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1128400,
+        "simulated_time": 5642.0,
+        "frames_saved": 5643,
+        "max_single_step_displacement": 5.417204949301636e-08,
+        "max_frame_displacement": 1.1712801920160727e-06,
+        "max_absolute_coordinate": 0.0005159455332398224,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 41.531634,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1168800,
+        "simulated_time": 5844.0,
+        "frames_saved": 5845,
+        "max_single_step_displacement": 5.268331679795287e-08,
+        "max_frame_displacement": 8.883652575446916e-07,
+        "max_absolute_coordinate": 0.0005081943900480354,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 43.239296,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1209400,
+        "simulated_time": 6047.0,
+        "frames_saved": 6048,
+        "max_single_step_displacement": 5.3273470048866695e-08,
+        "max_frame_displacement": 1.869946997550844e-06,
+        "max_absolute_coordinate": 0.0005449296285052986,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 44.882616,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1249400,
+        "simulated_time": 6247.0,
+        "frames_saved": 6248,
+        "max_single_step_displacement": 5.31490992829902e-08,
+        "max_frame_displacement": 1.1984799468524408e-06,
+        "max_absolute_coordinate": 0.0005928018118093959,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 46.415397,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1289600,
+        "simulated_time": 6448.0,
+        "frames_saved": 6449,
+        "max_single_step_displacement": 5.1574263181810524e-08,
+        "max_frame_displacement": 1.4779351797085199e-06,
+        "max_absolute_coordinate": 0.0005807050203988975,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 47.948506,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1329600,
+        "simulated_time": 6648.0,
+        "frames_saved": 6649,
+        "max_single_step_displacement": 5.4573695081742334e-08,
+        "max_frame_displacement": 1.4720496715429497e-06,
+        "max_absolute_coordinate": 0.0005351939006227396,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 49.482471,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1370400,
+        "simulated_time": 6852.0,
+        "frames_saved": 6853,
+        "max_single_step_displacement": 5.3260564920084956e-08,
+        "max_frame_displacement": 1.8148894968706298e-06,
+        "max_absolute_coordinate": 0.0005320440613152628,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 50.892008,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1410800,
+        "simulated_time": 7054.0,
+        "frames_saved": 7055,
+        "max_single_step_displacement": 5.284877909128788e-08,
+        "max_frame_displacement": 1.1324693181327932e-06,
+        "max_absolute_coordinate": 0.0005519827496770464,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 52.224136,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1450800,
+        "simulated_time": 7254.0,
+        "frames_saved": 7255,
+        "max_single_step_displacement": 5.384259696798857e-08,
+        "max_frame_displacement": 1.1135893111203707e-06,
+        "max_absolute_coordinate": 0.0005936767714547371,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 53.593964,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1491200,
+        "simulated_time": 7456.0,
+        "frames_saved": 7457,
+        "max_single_step_displacement": 5.111063645251747e-08,
+        "max_frame_displacement": 1.0951784300436375e-06,
+        "max_absolute_coordinate": 0.0006445822723568683,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 54.968688,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1531800,
+        "simulated_time": 7659.0,
+        "frames_saved": 7660,
+        "max_single_step_displacement": 5.1509457717484504e-08,
+        "max_frame_displacement": 1.152113589689011e-06,
+        "max_absolute_coordinate": 0.0006799024993456893,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 56.31,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1571800,
+        "simulated_time": 7859.0,
+        "frames_saved": 7860,
+        "max_single_step_displacement": 5.518515417774145e-08,
+        "max_frame_displacement": 1.2329246996809124e-06,
+        "max_absolute_coordinate": 0.0006499264580176513,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 57.684065,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1612600,
+        "simulated_time": 8063.0,
+        "frames_saved": 8064,
+        "max_single_step_displacement": 4.8827088774337475e-08,
+        "max_frame_displacement": 1.1044281065451496e-06,
+        "max_absolute_coordinate": 0.0006465752894379203,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 59.109416,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1652800,
+        "simulated_time": 8264.0,
+        "frames_saved": 8265,
+        "max_single_step_displacement": 5.237534457703955e-08,
+        "max_frame_displacement": 1.3231142225910827e-06,
+        "max_absolute_coordinate": 0.0006483652511042219,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 60.596426,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1693200,
+        "simulated_time": 8466.0,
+        "frames_saved": 8467,
+        "max_single_step_displacement": 5.281981398901211e-08,
+        "max_frame_displacement": 1.5489509510649424e-06,
+        "max_absolute_coordinate": 0.0006635823494256922,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 61.977263,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1733400,
+        "simulated_time": 8667.0,
+        "frames_saved": 8668,
+        "max_single_step_displacement": 5.2025797637523553e-08,
+        "max_frame_displacement": 1.4344748859031436e-06,
+        "max_absolute_coordinate": 0.0006194009063017192,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 63.311263,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1774200,
+        "simulated_time": 8871.0,
+        "frames_saved": 8872,
+        "max_single_step_displacement": 5.154217881209004e-08,
+        "max_frame_displacement": 1.0112985064393554e-06,
+        "max_absolute_coordinate": 0.000583959306624115,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 64.695802,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1814600,
+        "simulated_time": 9073.0,
+        "frames_saved": 9074,
+        "max_single_step_displacement": 5.2684598321993403e-08,
+        "max_frame_displacement": 1.2636968247763114e-06,
+        "max_absolute_coordinate": 0.0005640797518908206,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 66.080802,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1854800,
+        "simulated_time": 9274.0,
+        "frames_saved": 9275,
+        "max_single_step_displacement": 4.9654806866836036e-08,
+        "max_frame_displacement": 1.3644902895554648e-06,
+        "max_absolute_coordinate": 0.0006163706173698526,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 67.428967,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1895200,
+        "simulated_time": 9476.0,
+        "frames_saved": 9477,
+        "max_single_step_displacement": 5.403515570938117e-08,
+        "max_frame_displacement": 1.4403778646362411e-06,
+        "max_absolute_coordinate": 0.0006807769606878265,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 68.785056,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1935800,
+        "simulated_time": 9679.0,
+        "frames_saved": 9680,
+        "max_single_step_displacement": 5.2021829776652956e-08,
+        "max_frame_displacement": 1.4214167704661054e-06,
+        "max_absolute_coordinate": 0.0006640541964464126,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 70.232425,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 1976200,
+        "simulated_time": 9881.0,
+        "frames_saved": 9882,
+        "max_single_step_displacement": 5.72126074339398e-08,
+        "max_frame_displacement": 1.2455326316501898e-06,
+        "max_absolute_coordinate": 0.0006058051792929387,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 71.71656,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2016200,
+        "simulated_time": 10081.0,
+        "frames_saved": 10082,
+        "max_single_step_displacement": 5.156683943521585e-08,
+        "max_frame_displacement": 1.0971135520091379e-06,
+        "max_absolute_coordinate": 0.0006415000610386698,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 73.192614,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2056800,
+        "simulated_time": 10284.0,
+        "frames_saved": 10285,
+        "max_single_step_displacement": 5.127413849173633e-08,
+        "max_frame_displacement": 1.1995639683823973e-06,
+        "max_absolute_coordinate": 0.0006741137125228135,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 74.707289,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2097200,
+        "simulated_time": 10486.0,
+        "frames_saved": 10487,
+        "max_single_step_displacement": 4.964137128655099e-08,
+        "max_frame_displacement": 1.4428878765742822e-06,
+        "max_absolute_coordinate": 0.0006938201607862744,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 76.199811,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2137400,
+        "simulated_time": 10687.0,
+        "frames_saved": 10688,
+        "max_single_step_displacement": 5.5342531440276226e-08,
+        "max_frame_displacement": 1.3727240440109716e-06,
+        "max_absolute_coordinate": 0.0007002196815595773,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 77.706464,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2177800,
+        "simulated_time": 10889.0,
+        "frames_saved": 10890,
+        "max_single_step_displacement": 5.149372127209392e-08,
+        "max_frame_displacement": 1.3555790822599302e-06,
+        "max_absolute_coordinate": 0.0007281346378249257,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 79.226857,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2217800,
+        "simulated_time": 11089.0,
+        "frames_saved": 11090,
+        "max_single_step_displacement": 4.992864665021138e-08,
+        "max_frame_displacement": 9.900442203271366e-07,
+        "max_absolute_coordinate": 0.0007647929792970125,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 80.776189,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2258200,
+        "simulated_time": 11291.0,
+        "frames_saved": 11292,
+        "max_single_step_displacement": 5.190207765187158e-08,
+        "max_frame_displacement": 1.1593335440026188e-06,
+        "max_absolute_coordinate": 0.0007940192272518174,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 82.378282,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2298800,
+        "simulated_time": 11494.0,
+        "frames_saved": 11495,
+        "max_single_step_displacement": 5.2199015544284345e-08,
+        "max_frame_displacement": 1.2872201060889978e-06,
+        "max_absolute_coordinate": 0.0007670908226321725,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 83.957235,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2339000,
+        "simulated_time": 11695.0,
+        "frames_saved": 11696,
+        "max_single_step_displacement": 5.12094246500562e-08,
+        "max_frame_displacement": 1.3036823909031402e-06,
+        "max_absolute_coordinate": 0.000726058239584514,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 85.495892,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2379000,
+        "simulated_time": 11895.0,
+        "frames_saved": 11896,
+        "max_single_step_displacement": 5.197364575581988e-08,
+        "max_frame_displacement": 1.1756760560080112e-06,
+        "max_absolute_coordinate": 0.0006914491606126709,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 86.913107,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2419200,
+        "simulated_time": 12096.0,
+        "frames_saved": 12097,
+        "max_single_step_displacement": 5.37979579126038e-08,
+        "max_frame_displacement": 1.3695775611834764e-06,
+        "max_absolute_coordinate": 0.0006930756786224934,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 88.307858,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2459600,
+        "simulated_time": 12298.0,
+        "frames_saved": 12299,
+        "max_single_step_displacement": 5.249370051516601e-08,
+        "max_frame_displacement": 1.2966897629462185e-06,
+        "max_absolute_coordinate": 0.0007116788002770318,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 89.708999,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2500400,
+        "simulated_time": 12502.0,
+        "frames_saved": 12503,
+        "max_single_step_displacement": 4.9817933909146375e-08,
+        "max_frame_displacement": 1.460554864427438e-06,
+        "max_absolute_coordinate": 0.0007444126621001212,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 90.986221,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2540800,
+        "simulated_time": 12704.0,
+        "frames_saved": 12705,
+        "max_single_step_displacement": 5.386707274560119e-08,
+        "max_frame_displacement": 1.9022530225467179e-06,
+        "max_absolute_coordinate": 0.0007521076635635897,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 92.263895,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2581200,
+        "simulated_time": 12906.0,
+        "frames_saved": 12907,
+        "max_single_step_displacement": 5.154463592039159e-08,
+        "max_frame_displacement": 1.1019530807859388e-06,
+        "max_absolute_coordinate": 0.0007315765665495986,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 93.495291,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2621600,
+        "simulated_time": 13108.0,
+        "frames_saved": 13109,
+        "max_single_step_displacement": 5.1530681063590225e-08,
+        "max_frame_displacement": 1.2020577690841124e-06,
+        "max_absolute_coordinate": 0.0007424531362538568,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 94.729207,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2661600,
+        "simulated_time": 13308.0,
+        "frames_saved": 13309,
+        "max_single_step_displacement": 5.211617457826379e-08,
+        "max_frame_displacement": 1.3626989245643607e-06,
+        "max_absolute_coordinate": 0.0007769474376044534,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 95.958278,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2702200,
+        "simulated_time": 13511.0,
+        "frames_saved": 13512,
+        "max_single_step_displacement": 5.5877598737779266e-08,
+        "max_frame_displacement": 1.2479167400784993e-06,
+        "max_absolute_coordinate": 0.0007776262478138225,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 97.160563,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2742800,
+        "simulated_time": 13714.0,
+        "frames_saved": 13715,
+        "max_single_step_displacement": 5.257386207142053e-08,
+        "max_frame_displacement": 1.3308770979798736e-06,
+        "max_absolute_coordinate": 0.0007931058023732964,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 98.429034,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2783600,
+        "simulated_time": 13918.0,
+        "frames_saved": 13919,
+        "max_single_step_displacement": 5.273493543640718e-08,
+        "max_frame_displacement": 1.1677327350817545e-06,
+        "max_absolute_coordinate": 0.0008202778707672931,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 99.690493,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2823800,
+        "simulated_time": 14119.0,
+        "frames_saved": 14120,
+        "max_single_step_displacement": 5.41644679028213e-08,
+        "max_frame_displacement": 1.4088582044534563e-06,
+        "max_absolute_coordinate": 0.0007844909994086397,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 101.024323,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2864200,
+        "simulated_time": 14321.0,
+        "frames_saved": 14322,
+        "max_single_step_displacement": 5.0989802817319116e-08,
+        "max_frame_displacement": 1.1928288911400363e-06,
+        "max_absolute_coordinate": 0.0007424515981425992,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 102.328399,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2905200,
+        "simulated_time": 14526.0,
+        "frames_saved": 14527,
+        "max_single_step_displacement": 5.132787162639085e-08,
+        "max_frame_displacement": 1.2705353316215404e-06,
+        "max_absolute_coordinate": 0.0007474271474247939,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 103.605127,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2945800,
+        "simulated_time": 14729.0,
+        "frames_saved": 14730,
+        "max_single_step_displacement": 5.705325071951074e-08,
+        "max_frame_displacement": 1.4681640528134483e-06,
+        "max_absolute_coordinate": 0.0007844480030017167,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 104.921003,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 2986000,
+        "simulated_time": 14930.0,
+        "frames_saved": 14931,
+        "max_single_step_displacement": 4.9877246860669314e-08,
+        "max_frame_displacement": 1.4640090622785408e-06,
+        "max_absolute_coordinate": 0.0007959219655640678,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 106.220436,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3026200,
+        "simulated_time": 15131.0,
+        "frames_saved": 15132,
+        "max_single_step_displacement": 5.281601514153149e-08,
+        "max_frame_displacement": 1.5799780754748233e-06,
+        "max_absolute_coordinate": 0.0007550413130384783,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 107.57734,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3066800,
+        "simulated_time": 15334.0,
+        "frames_saved": 15335,
+        "max_single_step_displacement": 5.6304781194735495e-08,
+        "max_frame_displacement": 9.022801476319458e-07,
+        "max_absolute_coordinate": 0.0007415273771623207,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 108.89611,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3106800,
+        "simulated_time": 15534.0,
+        "frames_saved": 15535,
+        "max_single_step_displacement": 5.2677826038738385e-08,
+        "max_frame_displacement": 1.0301693870779405e-06,
+        "max_absolute_coordinate": 0.0007717939370194646,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 110.213421,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3147200,
+        "simulated_time": 15736.0,
+        "frames_saved": 15737,
+        "max_single_step_displacement": 5.595617667530827e-08,
+        "max_frame_displacement": 1.1304786260976423e-06,
+        "max_absolute_coordinate": 0.0007862835106815051,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 111.547568,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3187800,
+        "simulated_time": 15939.0,
+        "frames_saved": 15940,
+        "max_single_step_displacement": 5.200820098975184e-08,
+        "max_frame_displacement": 1.4529018308510845e-06,
+        "max_absolute_coordinate": 0.000779333399501684,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 112.898425,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3228200,
+        "simulated_time": 16141.0,
+        "frames_saved": 16142,
+        "max_single_step_displacement": 5.2598027337671244e-08,
+        "max_frame_displacement": 1.1983507143418972e-06,
+        "max_absolute_coordinate": 0.0008034556002961582,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 114.211557,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3268800,
+        "simulated_time": 16344.0,
+        "frames_saved": 16345,
+        "max_single_step_displacement": 5.3500563582629945e-08,
+        "max_frame_displacement": 1.0726966444855532e-06,
+        "max_absolute_coordinate": 0.0008222209573264176,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 115.528163,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3309800,
+        "simulated_time": 16549.0,
+        "frames_saved": 16550,
+        "max_single_step_displacement": 5.625766644803401e-08,
+        "max_frame_displacement": 1.3413195295171841e-06,
+        "max_absolute_coordinate": 0.000820395732822254,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 116.830218,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3349800,
+        "simulated_time": 16749.0,
+        "frames_saved": 16750,
+        "max_single_step_displacement": 5.676680830387975e-08,
+        "max_frame_displacement": 1.2470057036357077e-06,
+        "max_absolute_coordinate": 0.0008681963680273702,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 118.136753,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3390000,
+        "simulated_time": 16950.0,
+        "frames_saved": 16951,
+        "max_single_step_displacement": 5.610417699603715e-08,
+        "max_frame_displacement": 9.72688539532888e-07,
+        "max_absolute_coordinate": 0.0008520797417445171,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 119.462037,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3430000,
+        "simulated_time": 17150.0,
+        "frames_saved": 17151,
+        "max_single_step_displacement": 5.296911035880753e-08,
+        "max_frame_displacement": 1.2110708688556641e-06,
+        "max_absolute_coordinate": 0.0008620216629637884,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 120.795442,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3470400,
+        "simulated_time": 17352.0,
+        "frames_saved": 17353,
+        "max_single_step_displacement": 5.0116334290306055e-08,
+        "max_frame_displacement": 1.010376400624069e-06,
+        "max_absolute_coordinate": 0.0008549274167679366,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 122.176919,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3510600,
+        "simulated_time": 17553.0,
+        "frames_saved": 17554,
+        "max_single_step_displacement": 5.1229250562045796e-08,
+        "max_frame_displacement": 1.395475043768573e-06,
+        "max_absolute_coordinate": 0.0008741651142722585,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 123.534246,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3551600,
+        "simulated_time": 17758.0,
+        "frames_saved": 17759,
+        "max_single_step_displacement": 5.5734533643841564e-08,
+        "max_frame_displacement": 1.2175680041390764e-06,
+        "max_absolute_coordinate": 0.0009217382415136659,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 124.874644,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3592200,
+        "simulated_time": 17961.0,
+        "frames_saved": 17962,
+        "max_single_step_displacement": 5.238425286014053e-08,
+        "max_frame_displacement": 1.1752830923321162e-06,
+        "max_absolute_coordinate": 0.0008839851291926832,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 126.14916,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3633000,
+        "simulated_time": 18165.0,
+        "frames_saved": 18166,
+        "max_single_step_displacement": 5.190230942681831e-08,
+        "max_frame_displacement": 1.323862393726039e-06,
+        "max_absolute_coordinate": 0.0008987884425936256,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 127.408509,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3673400,
+        "simulated_time": 18367.0,
+        "frames_saved": 18368,
+        "max_single_step_displacement": 5.3549450270052755e-08,
+        "max_frame_displacement": 1.226033460891872e-06,
+        "max_absolute_coordinate": 0.0009145223792000225,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 128.638141,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3713400,
+        "simulated_time": 18567.0,
+        "frames_saved": 18568,
+        "max_single_step_displacement": 5.2268116743059943e-08,
+        "max_frame_displacement": 1.1640122334667397e-06,
+        "max_absolute_coordinate": 0.0009651988348264042,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 129.82194,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3753800,
+        "simulated_time": 18769.0,
+        "frames_saved": 18770,
+        "max_single_step_displacement": 5.44508998586762e-08,
+        "max_frame_displacement": 1.5014325327371097e-06,
+        "max_absolute_coordinate": 0.0010115114043214555,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 131.014779,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3794200,
+        "simulated_time": 18971.0,
+        "frames_saved": 18972,
+        "max_single_step_displacement": 5.3435496899793995e-08,
+        "max_frame_displacement": 1.4142480319097187e-06,
+        "max_absolute_coordinate": 0.000997624335182085,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 132.230203,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3835000,
+        "simulated_time": 19175.0,
+        "frames_saved": 19176,
+        "max_single_step_displacement": 5.2637001954390986e-08,
+        "max_frame_displacement": 1.2963958319875174e-06,
+        "max_absolute_coordinate": 0.0010179675644887527,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 133.428124,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3875000,
+        "simulated_time": 19375.0,
+        "frames_saved": 19376,
+        "max_single_step_displacement": 5.228285464867156e-08,
+        "max_frame_displacement": 1.0054639271875137e-06,
+        "max_absolute_coordinate": 0.0010776770625728382,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 134.676682,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3915600,
+        "simulated_time": 19578.0,
+        "frames_saved": 19579,
+        "max_single_step_displacement": 5.1183441367385295e-08,
+        "max_frame_displacement": 1.2345897167633118e-06,
+        "max_absolute_coordinate": 0.001095702616435857,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 135.880909,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3956600,
+        "simulated_time": 19783.0,
+        "frames_saved": 19784,
+        "max_single_step_displacement": 5.390773230901807e-08,
+        "max_frame_displacement": 8.320558160629056e-07,
+        "max_absolute_coordinate": 0.0010991067021044823,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 137.053297,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 3997200,
+        "simulated_time": 19986.0,
+        "frames_saved": 19987,
+        "max_single_step_displacement": 5.604176313051164e-08,
+        "max_frame_displacement": 1.5913420460704551e-06,
+        "max_absolute_coordinate": 0.0011323664042837802,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 138.242953,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4037400,
+        "simulated_time": 20187.0,
+        "frames_saved": 20188,
+        "max_single_step_displacement": 5.195147971862567e-08,
+        "max_frame_displacement": 1.568658371832606e-06,
+        "max_absolute_coordinate": 0.0011043749456869456,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 139.452717,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4078000,
+        "simulated_time": 20390.0,
+        "frames_saved": 20391,
+        "max_single_step_displacement": 5.097260477777716e-08,
+        "max_frame_displacement": 1.142474297920624e-06,
+        "max_absolute_coordinate": 0.0010628597971292812,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 140.721299,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4119000,
+        "simulated_time": 20595.0,
+        "frames_saved": 20596,
+        "max_single_step_displacement": 5.3090381873325816e-08,
+        "max_frame_displacement": 1.5278278275589988e-06,
+        "max_absolute_coordinate": 0.0010788586992639831,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 141.942726,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4159200,
+        "simulated_time": 20796.0,
+        "frames_saved": 20797,
+        "max_single_step_displacement": 5.552403438061201e-08,
+        "max_frame_displacement": 1.7657641842652727e-06,
+        "max_absolute_coordinate": 0.0010329094497134286,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 143.185566,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4200000,
+        "simulated_time": 21000.0,
+        "frames_saved": 21001,
+        "max_single_step_displacement": 5.212164407410527e-08,
+        "max_frame_displacement": 1.0429461108023134e-06,
+        "max_absolute_coordinate": 0.0010427524871969938,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 144.399807,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4240400,
+        "simulated_time": 21202.0,
+        "frames_saved": 21203,
+        "max_single_step_displacement": 5.276569924346345e-08,
+        "max_frame_displacement": 1.1846530025033149e-06,
+        "max_absolute_coordinate": 0.0010995750372220028,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 145.665237,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4281400,
+        "simulated_time": 21407.0,
+        "frames_saved": 21408,
+        "max_single_step_displacement": 5.3291164782735215e-08,
+        "max_frame_displacement": 1.095527809844444e-06,
+        "max_absolute_coordinate": 0.0011397081219077915,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 146.88151,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4322000,
+        "simulated_time": 21610.0,
+        "frames_saved": 21611,
+        "max_single_step_displacement": 5.350334832875071e-08,
+        "max_frame_displacement": 1.2762801270543985e-06,
+        "max_absolute_coordinate": 0.001130920483806608,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 148.1108,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4362400,
+        "simulated_time": 21812.0,
+        "frames_saved": 21813,
+        "max_single_step_displacement": 5.142654453638932e-08,
+        "max_frame_displacement": 1.1372198356727906e-06,
+        "max_absolute_coordinate": 0.0011698347002612886,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 149.412528,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4403400,
+        "simulated_time": 22017.0,
+        "frames_saved": 22018,
+        "max_single_step_displacement": 5.428221041517585e-08,
+        "max_frame_displacement": 1.4296214612700888e-06,
+        "max_absolute_coordinate": 0.0011826677202710627,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 150.654475,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4443800,
+        "simulated_time": 22219.0,
+        "frames_saved": 22220,
+        "max_single_step_displacement": 5.22805664022834e-08,
+        "max_frame_displacement": 1.292615998147443e-06,
+        "max_absolute_coordinate": 0.0012147452113266842,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 151.868662,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4484800,
+        "simulated_time": 22424.0,
+        "frames_saved": 22425,
+        "max_single_step_displacement": 5.5269466232824065e-08,
+        "max_frame_displacement": 1.0829775647114314e-06,
+        "max_absolute_coordinate": 0.001244212555899627,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 153.232015,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4525800,
+        "simulated_time": 22629.0,
+        "frames_saved": 22630,
+        "max_single_step_displacement": 5.1414424106837817e-08,
+        "max_frame_displacement": 1.1172552871519285e-06,
+        "max_absolute_coordinate": 0.0012428443067172435,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 154.5211,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4566600,
+        "simulated_time": 22833.0,
+        "frames_saved": 22834,
+        "max_single_step_displacement": 5.08563212997591e-08,
+        "max_frame_displacement": 1.195873977296734e-06,
+        "max_absolute_coordinate": 0.0012443033990077329,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 155.894572,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4606800,
+        "simulated_time": 23034.0,
+        "frames_saved": 23035,
+        "max_single_step_displacement": 5.2113917492144224e-08,
+        "max_frame_displacement": 1.1884693395684603e-06,
+        "max_absolute_coordinate": 0.0012922659025050647,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 157.262083,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4647200,
+        "simulated_time": 23236.0,
+        "frames_saved": 23237,
+        "max_single_step_displacement": 5.2061942595210166e-08,
+        "max_frame_displacement": 1.4340528866292395e-06,
+        "max_absolute_coordinate": 0.0013037153044897908,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 158.598795,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4687400,
+        "simulated_time": 23437.0,
+        "frames_saved": 23438,
+        "max_single_step_displacement": 5.110472674088682e-08,
+        "max_frame_displacement": 1.4288632422572315e-06,
+        "max_absolute_coordinate": 0.0012747226940468016,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 160.046117,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4728000,
+        "simulated_time": 23640.0,
+        "frames_saved": 23641,
+        "max_single_step_displacement": 5.307558638343289e-08,
+        "max_frame_displacement": 1.1077447085881597e-06,
+        "max_absolute_coordinate": 0.001248123260259432,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 161.386773,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4768200,
+        "simulated_time": 23841.0,
+        "frames_saved": 23842,
+        "max_single_step_displacement": 5.146793207884393e-08,
+        "max_frame_displacement": 1.3163417898305e-06,
+        "max_absolute_coordinate": 0.001311081406177155,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 162.702589,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4808200,
+        "simulated_time": 24041.0,
+        "frames_saved": 24042,
+        "max_single_step_displacement": 5.142147302736712e-08,
+        "max_frame_displacement": 1.2927230350140634e-06,
+        "max_absolute_coordinate": 0.0012976410036072022,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 164.081911,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4849000,
+        "simulated_time": 24245.0,
+        "frames_saved": 24246,
+        "max_single_step_displacement": 5.269218730623044e-08,
+        "max_frame_displacement": 1.2698892697036686e-06,
+        "max_absolute_coordinate": 0.0012535652609633535,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 165.377272,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4889400,
+        "simulated_time": 24447.0,
+        "frames_saved": 24448,
+        "max_single_step_displacement": 5.319470825675479e-08,
+        "max_frame_displacement": 1.215696129523445e-06,
+        "max_absolute_coordinate": 0.0012532192793832922,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 166.667913,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4929400,
+        "simulated_time": 24647.0,
+        "frames_saved": 24648,
+        "max_single_step_displacement": 5.3493667167983996e-08,
+        "max_frame_displacement": 1.2938701794017367e-06,
+        "max_absolute_coordinate": 0.0012614155424600568,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 167.942553,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 4969800,
+        "simulated_time": 24849.0,
+        "frames_saved": 24850,
+        "max_single_step_displacement": 5.197456318473348e-08,
+        "max_frame_displacement": 1.223980812320967e-06,
+        "max_absolute_coordinate": 0.0012441656162634886,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 169.124179,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5010000,
+        "simulated_time": 25050.0,
+        "frames_saved": 25051,
+        "max_single_step_displacement": 5.422650314185467e-08,
+        "max_frame_displacement": 1.1615847137830455e-06,
+        "max_absolute_coordinate": 0.0012389372112064814,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 170.313627,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5051000,
+        "simulated_time": 25255.0,
+        "frames_saved": 25256,
+        "max_single_step_displacement": 5.139702000303136e-08,
+        "max_frame_displacement": 1.1903469162239451e-06,
+        "max_absolute_coordinate": 0.00129006436827736,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 171.506503,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5091800,
+        "simulated_time": 25459.0,
+        "frames_saved": 25460,
+        "max_single_step_displacement": 5.152822671425075e-08,
+        "max_frame_displacement": 1.46042977301479e-06,
+        "max_absolute_coordinate": 0.0013387009031962198,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 172.742361,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5131800,
+        "simulated_time": 25659.0,
+        "frames_saved": 25660,
+        "max_single_step_displacement": 5.586729519757236e-08,
+        "max_frame_displacement": 1.2812452019751557e-06,
+        "max_absolute_coordinate": 0.0013558478419998905,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 173.973343,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5172000,
+        "simulated_time": 25860.0,
+        "frames_saved": 25861,
+        "max_single_step_displacement": 5.0540986349821224e-08,
+        "max_frame_displacement": 1.2559296353371083e-06,
+        "max_absolute_coordinate": 0.0013834644603548081,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 175.24824,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5212200,
+        "simulated_time": 26061.0,
+        "frames_saved": 26062,
+        "max_single_step_displacement": 5.3161550311493235e-08,
+        "max_frame_displacement": 1.7413574447209396e-06,
+        "max_absolute_coordinate": 0.001356052144038022,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 176.46568,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5252400,
+        "simulated_time": 26262.0,
+        "frames_saved": 26263,
+        "max_single_step_displacement": 5.190019582656212e-08,
+        "max_frame_displacement": 1.2287154187615407e-06,
+        "max_absolute_coordinate": 0.0013584402663747066,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 177.777946,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5292800,
+        "simulated_time": 26464.0,
+        "frames_saved": 26465,
+        "max_single_step_displacement": 5.0502490827838455e-08,
+        "max_frame_displacement": 1.0221550703845843e-06,
+        "max_absolute_coordinate": 0.0013481524017645013,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 179.146415,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5332800,
+        "simulated_time": 26664.0,
+        "frames_saved": 26665,
+        "max_single_step_displacement": 5.4925684972884775e-08,
+        "max_frame_displacement": 1.4549264438355096e-06,
+        "max_absolute_coordinate": 0.0013639052522857983,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 180.419267,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5372800,
+        "simulated_time": 26864.0,
+        "frames_saved": 26865,
+        "max_single_step_displacement": 5.2924733481770096e-08,
+        "max_frame_displacement": 1.2421366433965075e-06,
+        "max_absolute_coordinate": 0.0014079568690282243,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 181.73176,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5413200,
+        "simulated_time": 27066.0,
+        "frames_saved": 27067,
+        "max_single_step_displacement": 5.0207145865782806e-08,
+        "max_frame_displacement": 9.542393525582046e-07,
+        "max_absolute_coordinate": 0.0013977055017863622,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 183.031354,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5453800,
+        "simulated_time": 27269.0,
+        "frames_saved": 27270,
+        "max_single_step_displacement": 5.265496700072522e-08,
+        "max_frame_displacement": 1.1549628868402476e-06,
+        "max_absolute_coordinate": 0.0013785679993258042,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 184.461737,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5493800,
+        "simulated_time": 27469.0,
+        "frames_saved": 27470,
+        "max_single_step_displacement": 5.206661756498561e-08,
+        "max_frame_displacement": 1.3206458551287851e-06,
+        "max_absolute_coordinate": 0.0013221347352958715,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 185.920617,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5534200,
+        "simulated_time": 27671.0,
+        "frames_saved": 27672,
+        "max_single_step_displacement": 5.1670704280244555e-08,
+        "max_frame_displacement": 1.402688347521328e-06,
+        "max_absolute_coordinate": 0.001321316150044698,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 187.412013,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5574600,
+        "simulated_time": 27873.0,
+        "frames_saved": 27874,
+        "max_single_step_displacement": 5.1825690276612046e-08,
+        "max_frame_displacement": 1.3976816344198474e-06,
+        "max_absolute_coordinate": 0.0012740557101071045,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 188.805992,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5615000,
+        "simulated_time": 28075.0,
+        "frames_saved": 28076,
+        "max_single_step_displacement": 5.164405495470311e-08,
+        "max_frame_displacement": 1.3905807454857029e-06,
+        "max_absolute_coordinate": 0.0012516657871805249,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 190.176683,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5655400,
+        "simulated_time": 28277.0,
+        "frames_saved": 28278,
+        "max_single_step_displacement": 4.979435554749827e-08,
+        "max_frame_displacement": 1.0582956820240743e-06,
+        "max_absolute_coordinate": 0.0012606623868608843,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 191.48438,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5695600,
+        "simulated_time": 28478.0,
+        "frames_saved": 28479,
+        "max_single_step_displacement": 5.101496777540847e-08,
+        "max_frame_displacement": 1.2043300810940603e-06,
+        "max_absolute_coordinate": 0.0012370997077286762,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 192.798034,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5735600,
+        "simulated_time": 28678.0,
+        "frames_saved": 28679,
+        "max_single_step_displacement": 5.6771204032635516e-08,
+        "max_frame_displacement": 1.2730880946078206e-06,
+        "max_absolute_coordinate": 0.0012314366500579483,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 194.015456,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5775600,
+        "simulated_time": 28878.0,
+        "frames_saved": 28879,
+        "max_single_step_displacement": 5.316093638849117e-08,
+        "max_frame_displacement": 1.145679463621194e-06,
+        "max_absolute_coordinate": 0.0012383941373760705,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 195.263442,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5816600,
+        "simulated_time": 29083.0,
+        "frames_saved": 29084,
+        "max_single_step_displacement": 5.295225016365562e-08,
+        "max_frame_displacement": 1.2224523917891191e-06,
+        "max_absolute_coordinate": 0.001236611852997998,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 196.47693,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5857600,
+        "simulated_time": 29288.0,
+        "frames_saved": 29289,
+        "max_single_step_displacement": 5.508443061451665e-08,
+        "max_frame_displacement": 1.2396873739412332e-06,
+        "max_absolute_coordinate": 0.001214715144144634,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 197.649119,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5897600,
+        "simulated_time": 29488.0,
+        "frames_saved": 29489,
+        "max_single_step_displacement": 5.017999670262974e-08,
+        "max_frame_displacement": 1.146972113457757e-06,
+        "max_absolute_coordinate": 0.0011904100615704762,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 198.845467,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5938000,
+        "simulated_time": 29690.0,
+        "frames_saved": 29691,
+        "max_single_step_displacement": 5.161202865208627e-08,
+        "max_frame_displacement": 1.3799296801932707e-06,
+        "max_absolute_coordinate": 0.0012250796873572963,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 200.061246,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 5978200,
+        "simulated_time": 29891.0,
+        "frames_saved": 29892,
+        "max_single_step_displacement": 5.1728520599671353e-08,
+        "max_frame_displacement": 1.3250865774780884e-06,
+        "max_absolute_coordinate": 0.0012461553455948304,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 200.768159,
+      "time_base": "software",
+      "event": "complete",
+      "monitor": {
+        "id": "planned_duration_reached",
+        "metric": "simulated_time",
+        "comparator": ">=",
+        "threshold_si": 30000.0,
+        "on_met": "complete",
+        "from": "stop_criteria[planned_duration_reached].number -> numbers[total_simulated_time_point]",
+        "met": true,
+        "outcome": "complete"
+      },
+      "state": {
+        "state": "complete",
+        "initialised": true,
+        "handle": "abp_backend:1:104adfbf0",
+        "steps_taken": 6000000,
+        "simulated_time": 30000.0,
+        "frames_saved": 30001,
+        "max_single_step_displacement": 5.250916625175548e-08,
+        "max_frame_displacement": 1.3585931013510988e-06,
+        "max_absolute_coordinate": 0.0012550494061201135,
+        "failure": null
+      },
+      "note": "the criterion that fired declares on_met complete"
+    }
+  ],
+  "finished_at": "2026-09-24T02:04:43.103084+00:00"
+}
