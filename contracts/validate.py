@@ -101,7 +101,7 @@ class Card:
     @property
     def rel(self) -> str:
         try:
-            return str(self.path.relative_to(REPO))
+            return self.path.relative_to(REPO).as_posix()
         except ValueError:
             return str(self.path)
 
@@ -557,11 +557,11 @@ def check_01_schema(b: Bundle) -> list[Finding]:
             try:
                 cap = json.loads(f.read_text())
             except json.JSONDecodeError as exc:
-                out.append(Finding(1, FAIL, f"unreadable capability table: {exc}", str(f.relative_to(REPO))))
+                out.append(Finding(1, FAIL, f"unreadable capability table: {exc}", f.relative_to(REPO).as_posix()))
                 continue
             for err in sorted(cv.iter_errors(cap), key=lambda e: list(e.path)):
                 loc = "/".join(str(x) for x in err.path) or "(root)"
-                out.append(Finding(1, FAIL, f"{loc}: {err.message}", str(f.relative_to(REPO))))
+                out.append(Finding(1, FAIL, f"{loc}: {err.message}", f.relative_to(REPO).as_posix()))
 
     obs_path = CONTRACTS / "observables.json"
     if obs_path.exists():
@@ -579,11 +579,11 @@ def check_01_schema(b: Bundle) -> list[Finding]:
             try:
                 entry = json.loads(p.read_text())
             except json.JSONDecodeError as exc:
-                out.append(Finding(1, FAIL, f"unreadable kb entry: {exc}", str(p.relative_to(REPO))))
+                out.append(Finding(1, FAIL, f"unreadable kb entry: {exc}", p.relative_to(REPO).as_posix()))
                 continue
             for err in sorted(ev.iter_errors(entry), key=lambda e: list(e.path)):
                 loc = "/".join(str(x) for x in err.path) or "(root)"
-                out.append(Finding(1, FAIL, f"{loc}: {err.message}", str(p.relative_to(REPO))))
+                out.append(Finding(1, FAIL, f"{loc}: {err.message}", p.relative_to(REPO).as_posix()))
 
     for a in b.artifacts:
         name = ARTIFACT_SCHEMA.get(a.data.get("artifact"))
@@ -768,7 +768,7 @@ def check_05_envelope(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     n = 0
     for env in envs:
-        rel = str(env.relative_to(REPO))
+        rel = env.relative_to(REPO).as_posix()
         try:
             doc = json.loads(env.read_text())
         except (OSError, json.JSONDecodeError) as exc:
@@ -1566,7 +1566,7 @@ def check_13_paths(b: Bundle) -> list[Finding]:
     n = 0
     for p in b.all_files:
         try:
-            rel = str(p.relative_to(REPO))
+            rel = p.relative_to(REPO).as_posix()
         except ValueError:
             continue
         if p.name == ".DS_Store":
@@ -1631,7 +1631,7 @@ def check_15_approval_precedes_run(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     checked = 0
     for d in sorted(runs):
-        rel = str(d.relative_to(REPO))
+        rel = d.relative_to(REPO).as_posix()
         log_path = d / "log.json"
         if not log_path.exists():
             # A run writes its directory and config first and its log last, so
@@ -1706,14 +1706,14 @@ def check_16_dependency_direction(b: Bundle) -> list[Finding]:
         bad = [m for m in re.findall(r"^\s*(?:from|import)\s+([A-Za-z0-9_.]+)", f.read_text(), re.M)
                if m.split(".")[0] in {"microscope_agent", "simulation_agent", "librarian_agent", "bridge"}]
         if bad:
-            out.append(Finding(16, FAIL, f"contracts imports {bad}; contracts must import nothing (7.2 rule 1)", str(f.relative_to(REPO))))
+            out.append(Finding(16, FAIL, f"contracts imports {bad}; contracts must import nothing (7.2 rule 1)", f.relative_to(REPO).as_posix()))
     src = list(REPO.glob("*_agent/src/*.py")) + list(REPO.glob("*_agent/src/devices/*.py"))
     if not src:
         out.append(Finding(16, PASS, "contracts imports no agent (7.2 rule 1)"))
         out.append(Finding(16, PENDING, "the other four rules need agent code under src/, which M1 produces"))
         return out
     for f in src:
-        rel = str(f.relative_to(REPO))
+        rel = f.relative_to(REPO).as_posix()
         text = f.read_text()
         imports = re.findall(r"^\s*(?:from|import)\s+([A-Za-z0-9_.]+)", text, re.M)
         is_device = "/devices/" in rel
@@ -2443,7 +2443,7 @@ def check_26_snapshot(b: Bundle) -> list[Finding]:
             return None
 
     for p in snaps:
-        rel = str(p.relative_to(REPO))
+        rel = p.relative_to(REPO).as_posix()
         try:
             doc = json.loads(p.read_text())
         except json.JSONDecodeError as exc:
@@ -2503,8 +2503,8 @@ def check_27_knowledge_ownership(b: Bundle) -> list[Finding]:
         if not root.exists():
             continue
         for p in root.rglob("*"):
-            if p.is_file() and KB_LIKE.search(str(p.relative_to(root))):
-                out.append(Finding(27, FAIL, "looks like a knowledge store inside an execution agent (P14)", str(p.relative_to(REPO))))
+            if p.is_file() and KB_LIKE.search(p.relative_to(root).as_posix()):
+                out.append(Finding(27, FAIL, "looks like a knowledge store inside an execution agent (P14)", p.relative_to(REPO).as_posix()))
     return out or [Finding(27, PASS, "no execution agent keeps its own knowledge store")]
 
 
@@ -2581,16 +2581,16 @@ def check_29_failure_record(b: Bundle) -> list[Finding]:
             try:
                 rec = json.loads(line)
             except json.JSONDecodeError as exc:
-                out.append(Finding(29, FAIL, f"line {i}: {exc}", str(p.relative_to(REPO))))
+                out.append(Finding(29, FAIL, f"line {i}: {exc}", p.relative_to(REPO).as_posix()))
                 continue
             missing = required - set(rec)
             if missing:
-                out.append(Finding(29, FAIL, f"line {i}: missing {sorted(missing)}", str(p.relative_to(REPO))))
+                out.append(Finding(29, FAIL, f"line {i}: missing {sorted(missing)}", p.relative_to(REPO).as_posix()))
             owners = {k for k in ("qid", "task", "occasion") if rec.get(k)}
             if not owners:
-                out.append(Finding(29, FAIL, f"line {i}: names no qid, task or occasion, so nothing says what this attempt belonged to", str(p.relative_to(REPO))))
+                out.append(Finding(29, FAIL, f"line {i}: names no qid, task or occasion, so nothing says what this attempt belonged to", p.relative_to(REPO).as_posix()))
             elif len(owners) > 1:
-                out.append(Finding(29, FAIL, f"line {i}: names {sorted(owners)}; one record belongs to one of them", str(p.relative_to(REPO))))
+                out.append(Finding(29, FAIL, f"line {i}: names {sorted(owners)}; one record belongs to one of them", p.relative_to(REPO).as_posix()))
             t = rec.get("task")
             if t:
                 stem = str(t).split()[0].split("--")[0].strip()
@@ -2598,7 +2598,7 @@ def check_29_failure_record(b: Bundle) -> list[Finding]:
                            for q in task_files):
                     invented.append(f"{p.parent.name}:{str(t)[:40]}")
             if rec.get("kind") not in kinds:
-                out.append(Finding(29, FAIL, f"line {i}: unknown kind {rec.get('kind')!r}", str(p.relative_to(REPO))))
+                out.append(Finding(29, FAIL, f"line {i}: unknown kind {rec.get('kind')!r}", p.relative_to(REPO).as_posix()))
     if out:
         return out
     tail = ""
@@ -2622,9 +2622,9 @@ def check_30_lessons(b: Bundle) -> list[Finding]:
         rec = json.loads(p.read_text())
         missing = need - set(rec)
         if missing:
-            out.append(Finding(30, FAIL, f"missing {sorted(missing)} (8.2)", str(p.relative_to(REPO))))
+            out.append(Finding(30, FAIL, f"missing {sorted(missing)} (8.2)", p.relative_to(REPO).as_posix()))
         if not rec.get("evidence"):
-            out.append(Finding(30, FAIL, "no evidence id: a lesson must cite a real record, not an interpretation", str(p.relative_to(REPO))))
+            out.append(Finding(30, FAIL, "no evidence id: a lesson must cite a real record, not an interpretation", p.relative_to(REPO).as_posix()))
     return out or [Finding(30, PASS, f"{len(lessons)} lessons carry evidence, n and a falsifier")]
 
 
@@ -3055,7 +3055,7 @@ def _rel(p) -> str:
     table helpers, which is the same miss twice.
     """
     try:
-        return str(pathlib.Path(p).relative_to(REPO))
+        return pathlib.Path(p).relative_to(REPO).as_posix()
     except ValueError:
         return str(p)
 
@@ -3114,7 +3114,7 @@ def check_38_one_table(b: Bundle) -> list[Finding]:
 
     for f in caps:
         cap = json.loads(f.read_text())
-        rel = str(f.relative_to(REPO))
+        rel = f.relative_to(REPO).as_posix()
         configs = cap.get("configurations", []) or []
 
         by_config = {c.get("config"): c for c in configs}
@@ -3752,7 +3752,7 @@ def check_43_entry_grade(b: Bundle) -> list[Finding]:
     numbers_derived = 0
     for p in files:
         try:
-            rel = str(p.relative_to(REPO))
+            rel = p.relative_to(REPO).as_posix()
         except ValueError:
             rel = str(p)                    # a store outside the repo: a self-test
         try:
@@ -3932,7 +3932,7 @@ def check_44_subject_resolves(b: Bundle) -> list[Finding]:
         except json.JSONDecodeError:
             continue
         try:
-            rel = str(p.relative_to(REPO))
+            rel = p.relative_to(REPO).as_posix()
         except ValueError:
             rel = str(p)
         subjects = e.get("subject") or []
@@ -4889,7 +4889,7 @@ def check_53_deny_rules_do_not_block_reading(b: Bundle) -> list[Finding]:
         return [Finding(53, NA, "no settings files in this repository")]
     n = 0
     for p in files:
-        rel = str(p.relative_to(REPO))
+        rel = p.relative_to(REPO).as_posix()
         try:
             doc = json.loads(p.read_text())
         except json.JSONDecodeError as exc:
@@ -4976,7 +4976,7 @@ def check_76_the_settings_file_no_tree_contains(b: Bundle) -> list[Finding]:
 
     out: list[Finding] = []
     for p in found:
-        rel = str(p.relative_to(REPO))
+        rel = p.relative_to(REPO).as_posix()
         try:
             doc = json.loads(p.read_text())
         except (json.JSONDecodeError, OSError) as exc:
@@ -5152,7 +5152,7 @@ def check_80_a_role_is_read_not_spelled(b: Bundle) -> list[Finding]:
             tree = ast.parse(src.read_text())
         except (SyntaxError, OSError, ValueError):
             continue
-        where = str(src.relative_to(REPO))
+        where = src.relative_to(REPO).as_posix()
 
         # FORM 5. Which names in this file are bound by iterating a registry
         # accessor -- `for e in channel.element_ids()`. A `.startswith` on one
@@ -6820,7 +6820,7 @@ def check_77_a_deletion_names_a_declared_trigger(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     n = 0
     for log in sorted(REPO.glob("*_agent/runs/*/log.json")):
-        rel = str(log.relative_to(REPO))
+        rel = log.relative_to(REPO).as_posix()
         try:
             doc = json.loads(log.read_text())
         except Exception:
@@ -7274,7 +7274,7 @@ def check_83_written_trajectories_are_present(b: Bundle) -> list[Finding]:
     wrote = present = by_pipeline = 0
     out: list[Finding] = []
     for meta in metas:
-        rel = str(meta.relative_to(REPO))
+        rel = meta.relative_to(REPO).as_posix()
         try:
             doc = json.loads(meta.read_text())
         except (OSError, ValueError):
