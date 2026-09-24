@@ -729,7 +729,23 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             engine_class = trap_hoomd_backend.TrapHoomdBackend
             fallback_class = trap_backend.TrapBackend
         else:
-            engine_class = abp_backend.AbpBackend if config_name.startswith("abp") else hoomd_backend.HoomdBackend
+            # THE PREFIX IS NOT THE DECLARATION, and for one configuration
+            # the two disagree. The comment above says the configuration names
+            # its backend through `executed_by`, and the table does: BOTH
+            # active configurations declare `hoomd_backend`. The prefix rule
+            # sends both to `abp_backend` instead, which is right for
+            # `abp_wca_2d` -- that is where its interacting integrator is --
+            # and wrong for `abp_free`, whose integrator was written into
+            # `hoomd_backend` on 2026-09-23 because that is what its
+            # declaration says. Reading `executed_by` wholesale would route
+            # `abp_wca_2d` to a module with no pair potential and run the
+            # wrong physics green, so the table is corrected first and this
+            # stays a named exception until then. Reported to the seat that
+            # owns the interacting configuration.
+            if config_name == "abp_free":
+                engine_class = hoomd_backend.HoomdBackend
+            else:
+                engine_class = abp_backend.AbpBackend if config_name.startswith("abp") else hoomd_backend.HoomdBackend
         try:
             backend = engine_class(seed=seed)
         except hoomd_backend.EngineMissing:

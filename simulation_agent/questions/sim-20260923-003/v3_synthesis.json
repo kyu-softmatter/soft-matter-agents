@@ -150,7 +150,7 @@
       "grounds": [
         "thermal_crossover_time",
         "save_interval_point",
-        "coordinates_stored_max"
+        "storage_estimate"
       ]
     },
     {
@@ -345,6 +345,46 @@
       "note": "the window parameter of mean_squared_displacement, bounded from BELOW here: opposite to tracer_diffusivity, whose window is bounded from above to stay free"
     },
     {
+      "name": "particle_step_rate",
+      "value": 10000000.0,
+      "unit": "1/s",
+      "source": "assumed:a_cost_reference",
+      "grade": "E5",
+      "origin": "v3_axis_abp_free_a5.json#particle_step_rate",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps per second for a 2D WCA active system with a neighbour list on this workstation's CPU: of order ten million. A guess until the smoke run measures it"
+    },
+    {
+      "name": "bytes_per_coordinate",
+      "value": 8e-09,
+      "unit": "GB",
+      "source": "spec:ieee754_double",
+      "grade": "E3",
+      "origin": "v3_axis_abp_free_a5.json#bytes_per_coordinate",
+      "precision": "significant_figures",
+      "note": "one double-precision coordinate, in the unit the ceiling is written in"
+    },
+    {
+      "name": "particle_steps_max",
+      "value": 70000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_times_rate",
+      "grade": "E5",
+      "origin": "v3_axis_abp_free_a5.json#particle_steps_max",
+      "precision": "order_of_magnitude",
+      "note": "the product n_particles*total_simulated_time/integration_timestep may not exceed this. A5 constrains the product and not any factor, and takes none of them from A1 or A2 (4.5.3 rule b)"
+    },
+    {
+      "name": "coordinates_stored_max",
+      "value": 1000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_over_bytes",
+      "grade": "E4",
+      "origin": "v3_axis_abp_free_a5.json#coordinates_stored_max",
+      "precision": "order_of_magnitude",
+      "note": "the product 2*n_particles*total_simulated_time/save_interval may not exceed this, two coordinates per particle per frame in two dimensions"
+    },
+    {
       "name": "total_simulated_time_point",
       "value": 40000,
       "unit": "s",
@@ -359,20 +399,20 @@
     },
     {
       "name": "save_interval_point",
-      "value": 0.01,
+      "value": 0.1,
       "unit": "s",
-      "source": "computed:one_thermal_crossover_time",
+      "source": "computed:tenth_of_the_a4_ceiling",
       "grade": "E5",
-      "formula": "1 * thermal_crossover_time",
+      "formula": "save_interval_max / 10",
       "inputs": [
-        "thermal_crossover_time"
+        "save_interval_max"
       ],
       "precision": "order_of_magnitude",
-      "note": "the save interval is set AT the early crossover tau_1 = D_T/v0^2, four decades below A4's 1 s ceiling. That resolves the whole ballistic window and puts the shortest lag at the thermal boundary rather than inside it: the regime below tau_1 is bounded by this plan and not resolved by it, which is recorded as a rejection rather than left to be discovered"
+      "note": "a decade under A4's ceiling. STORAGE IS WHAT SETS IT, not the physics: at the early crossover tau_1 = D_T/v0^2 it would resolve all three regimes and cost 6.4 GB against a 10 GB ceiling for one run, and this buys the ballistic peak and the whole crossover to diffusion for 0.6 GB. The shortest lag is then ten times tau_1, so the run enters the ballistic regime already risen and does not show it rise -- recorded as a rejection rather than left to be discovered in the output"
     },
     {
       "name": "integration_timestep_point",
-      "value": 0.001,
+      "value": 0.01,
       "unit": "s",
       "source": "computed:tenth_of_the_save_interval",
       "grade": "E5",
@@ -451,6 +491,15 @@
         "lag_to_record_ratio_max"
       ],
       "falsifier": "a weighted fit whose slope is unchanged when the longest lag is shortened retires this fraction"
+    },
+    {
+      "rationale_id": "a_cost_reference",
+      "gap_ref": "particle_step_rate_absent",
+      "statement": "The cost model is one pair-force evaluation per particle per step through a neighbour list, at a rate guessed from the engine's class of hardware. Nothing on this machine has run this configuration.",
+      "numbers": [
+        "particle_step_rate"
+      ],
+      "falsifier": "a run that WRITES THE TRAJECTORY THIS PLAN DECLARES on hoomd_backend replaces the rate with the value measured off that run's own log and the ceiling interval moves with it"
     }
   ],
   "kb_refs": [

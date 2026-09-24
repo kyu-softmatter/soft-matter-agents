@@ -7,7 +7,7 @@
   "round": 0,
   "revision": 3,
   "author": "simulation_agent",
-  "created_at": "2026-09-24T00:20:00Z",
+  "created_at": "2026-09-24T00:40:00Z",
   "status": "DRAFT",
   "goal_id": "goal-sim-20260923-003-r3",
   "synthesis_id": "synthesis-sim-20260923-003-r3",
@@ -184,7 +184,7 @@
       "grounds": [
         "thermal_crossover_time",
         "save_interval_point",
-        "coordinates_stored_max"
+        "storage_estimate"
       ]
     },
     {
@@ -215,7 +215,7 @@
   "numbers": [
     {
       "name": "integration_timestep_point",
-      "value": 0.001,
+      "value": 0.01,
       "unit": "s",
       "source": "computed:tenth_of_the_save_interval",
       "grade": "E5",
@@ -235,13 +235,13 @@
     },
     {
       "name": "save_interval_point",
-      "value": 0.01,
+      "value": 0.1,
       "unit": "s",
-      "source": "computed:one_thermal_crossover_time",
+      "source": "computed:tenth_of_the_a4_ceiling",
       "grade": "E5",
       "origin": "v3_synthesis.json#save_interval_point",
       "precision": "order_of_magnitude",
-      "note": "the save interval is set AT the early crossover tau_1 = D_T/v0^2, four decades below A4's 1 s ceiling. That resolves the whole ballistic window and puts the shortest lag at the thermal boundary rather than inside it: the regime below tau_1 is bounded by this plan and not resolved by it, which is recorded as a rejection rather than left to be discovered"
+      "note": "a decade under A4's ceiling. STORAGE IS WHAT SETS IT, not the physics: at the early crossover tau_1 = D_T/v0^2 it would resolve all three regimes and cost 6.4 GB against a 10 GB ceiling for one run, and this buys the ballistic peak and the whole crossover to diffusion for 0.6 GB. The shortest lag is then ten times tau_1, so the run enters the ballistic regime already risen and does not show it rise -- recorded as a rejection rather than left to be discovered in the output"
     },
     {
       "name": "box_length_point",
@@ -432,16 +432,6 @@
       "origin": "v3_axis_abp_free_a2.json#target_relative_error",
       "precision": "order_of_magnitude",
       "note": "ten per cent on the effective diffusivity, well inside the decade the goal asks for"
-    },
-    {
-      "name": "coordinates_stored_max",
-      "value": 1000000000.0,
-      "unit": "1",
-      "source": "computed:ceiling_over_bytes",
-      "grade": "E4",
-      "origin": "v3_axis_abp_free_a5.json#coordinates_stored_max",
-      "precision": "order_of_magnitude",
-      "note": "the product 2*n_particles*total_simulated_time/save_interval may not exceed this, two coordinates per particle per frame in two dimensions"
     }
   ],
   "assumptions": [

@@ -65,6 +65,18 @@ def operating_point() -> dict:
             ("axis_abp_free_a4.json", "save_interval_max"),
             ("axis_abp_free_a4.json", "fit_lag_range_lower_bound_min"),
             ("axis_abp_free_a4.json", "max_lag_time_min"),
+            # A5 owns cost. `wall_clock_estimate` and `storage_estimate` are
+            # what envelope_check compares against ceilings, and the active
+            # budget axis does not emit them yet -- the passive one does. S4
+            # MAY NOT SUPPLY THEM: 4.5.4 forbids introducing a number here and
+            # check 12 enforces it, correctly. Requested from the seat that
+            # owns axes_abp; until they arrive the envelope check reads
+            # `unavailable` and the operator refuses a Tier 1 run, which is
+            # the gate working rather than failing.
+            ("axis_abp_free_a5.json", "particle_step_rate"),
+            ("axis_abp_free_a5.json", "bytes_per_coordinate"),
+            ("axis_abp_free_a5.json", "particle_steps_max"),
+            ("axis_abp_free_a5.json", "coordinates_stored_max"),
         ],
         "computed": [
             {
@@ -84,22 +96,24 @@ def operating_point() -> dict:
             },
             {
                 "name": "save_interval_point",
-                "value": 0.01,
+                "value": 0.1,
                 "unit": "s",
-                "source": "computed:one_thermal_crossover_time",
-                "formula": "1 * thermal_crossover_time",
-                "inputs": ["thermal_crossover_time"],
+                "source": "computed:tenth_of_the_a4_ceiling",
+                "formula": "save_interval_max / 10",
+                "inputs": ["save_interval_max"],
                 "note": (
-                    "the save interval is set AT the early crossover tau_1 = D_T/v0^2, four "
-                    "decades below A4's 1 s ceiling. That resolves the whole ballistic window "
-                    "and puts the shortest lag at the thermal boundary rather than inside it: "
-                    "the regime below tau_1 is bounded by this plan and not resolved by it, "
-                    "which is recorded as a rejection rather than left to be discovered"
+                    "a decade under A4's ceiling. STORAGE IS WHAT SETS IT, not the physics: at "
+                    "the early crossover tau_1 = D_T/v0^2 it would resolve all three regimes "
+                    "and cost 6.4 GB against a 10 GB ceiling for one run, and this buys the "
+                    "ballistic peak and the whole crossover to diffusion for 0.6 GB. The "
+                    "shortest lag is then ten times tau_1, so the run enters the ballistic "
+                    "regime already risen and does not show it rise -- recorded as a rejection "
+                    "rather than left to be discovered in the output"
                 ),
             },
             {
                 "name": "integration_timestep_point",
-                "value": 0.001,
+                "value": 0.01,
                 "unit": "s",
                 "source": "computed:tenth_of_the_save_interval",
                 "formula": "save_interval_point / 10",
@@ -124,6 +138,33 @@ def operating_point() -> dict:
                     "engine needs one and this is it. Ten persistence lengths keeps the "
                     "wrapping sparse for a reader looking at raw coordinates, and the "
                     "estimator reads unwrapped positions regardless"
+                ),
+            },
+            {
+                "name": "particle_steps_point",
+                "value": 400000000,
+                "unit": "1",
+                "source": "computed:particles_times_steps",
+                "formula": "n_particles * total_simulated_time_point / integration_timestep_point",
+                "inputs": ["n_particles", "total_simulated_time_point", "integration_timestep_point"],
+                "note": (
+                    "a hundred particles over four million steps. Declared dimensionless "
+                    "because it is what the budget divides by a rate, and an amount divided "
+                    "by a rate is not a time -- the same convention the interacting active "
+                    "question uses for its per-arm counts"
+                ),
+            },
+            {
+                "name": "coordinates_stored_point",
+                "value": 80000000,
+                "unit": "1",
+                "source": "computed:particles_times_frames_times_dimensions",
+                "formula": "n_particles * total_simulated_time_point / save_interval_point * 2",
+                "inputs": ["n_particles", "total_simulated_time_point", "save_interval_point"],
+                "note": (
+                    "four hundred thousand frames of a hundred particles at TWO coordinates "
+                    "each, because this configuration is two-dimensional; the same run in "
+                    "three would be half as much again. An order under A5's own ceiling"
                 ),
             },
             {
@@ -176,7 +217,7 @@ def operating_point() -> dict:
                     "A5's ceiling of 1e9. The window is bounded here and not resolved, and "
                     "the short-lag end is a second plan rather than a finer version of this one"
                 ),
-                "grounds": ["thermal_crossover_time", "save_interval_point", "coordinates_stored_max"],
+                "grounds": ["thermal_crossover_time", "save_interval_point", "storage_estimate"],
             },
             {
                 "what": "the integration timestep at A1's ceiling",
@@ -243,14 +284,58 @@ def build_plan(qid: str, created_at: str, revision: int = 1) -> dict:
         # synthesis remembers.
         "integration_timestep_max", "total_simulated_time_min",
         "max_lag_time_min", "fit_lag_range_lower_bound_min",
+        # The two dimensionless counts S4 computed, and the rate the wall
+        # clock divides by: the estimates below are arithmetic over these and
+        # a formula whose inputs the card does not hold resolves to nothing.
+        "particle_steps_point", "coordinates_stored_point", "particle_step_rate",
+        "particle_steps_max", "coordinates_stored_max",
     ]
     wanted = [("synthesis.json", n) for n in dict.fromkeys(point.values())]
     wanted += [("synthesis.json", n) for n in extra]
     wanted += [("axis_abp_free_a2.json", "target_relative_error")]
-    wanted += [("axis_abp_free_a5.json", "coordinates_stored_max")]
+    wanted += [("axis_abp_free_a5.json", "bytes_per_coordinate")]
+
     wanted = [(cards.artifact_name(f, revision), n) for f, n in wanted]
     numbers = synthesis.carry_from(qid, config, wanted)
     assumptions = synthesis.assumptions_for(qid, numbers)
+
+    # THE COST ESTIMATES ARE S5's AND NOT S4's OR A5's, and which stage owns
+    # them is not a filing question. S4 may not introduce a number (4.5.4),
+    # and A5 cannot see the operating point (4.5.3 rule b) -- an estimate
+    # written there would be a guess about a point that axis does not know,
+    # and the gate would then read it as inside on a number that was never
+    # about this run. The seat holding the interacting active question
+    # measured that exact failure today: an assumed rate said inside and the
+    # measured rate said 2.6 h. Here the estimate is arithmetic over the
+    # chosen point, and the rate underneath it is still A5's guess.
+    grades = {n["name"]: n["grade"] for n in numbers}
+    value = lambda name: next(float(n["value"]) for n in numbers if n["name"] == name)
+
+    wall_s = value("particle_steps_point") / value("particle_step_rate")
+    numbers.append(cards.num(
+        # IN SECONDS, and the unit is forced by the two checks together:
+        # one rounds in SI to a single figure and the other wants a single
+        # figure in the card's own unit. 40 s satisfies both; the same value
+        # is 0.667 min and 0.0111 h, and neither is one figure. The envelope
+        # check converts to SI before comparing, so the unit costs nothing.
+        "wall_clock_estimate", float(f"{wall_s:.1g}"), "s", "computed:particle_steps_over_rate",
+        formula="particle_steps_point / particle_step_rate",
+        inputs=[(n, grades[n]) for n in ("particle_steps_point", "particle_step_rate")],
+        precision="order_of_magnitude",
+        note=(
+            "the rate underneath is A5's "
+            "assumption and this configuration has never been timed, so the run's own log is "
+            "what replaces it"
+        ),
+    ))
+    store = value("coordinates_stored_point") * value("bytes_per_coordinate")
+    numbers.append(cards.num(
+        "storage_estimate", float(f"{store:.1g}"), "GB", "computed:coordinates_times_bytes",
+        formula="coordinates_stored_point * bytes_per_coordinate",
+        inputs=[(n, grades[n]) for n in ("coordinates_stored_point", "bytes_per_coordinate")],
+        precision="order_of_magnitude",
+        note="eighty million coordinates in double precision, compared against the storage ceiling",
+    ))
 
     conditions = [{"parameter": p, "number": n} for p, n in point.items()]
     conditions += [
@@ -315,7 +400,7 @@ def build_plan(qid: str, created_at: str, revision: int = 1) -> dict:
                 "list; measured at about twenty thousand steps a second on this machine, so "
                 "roughly half an hour"
             ),
-            "numbers": ["total_simulated_time_point", "integration_timestep_point"],
+            "numbers": ["wall_clock_estimate", "storage_estimate"],
             "note": (
                 "A5's own estimate rests on a particle-step rate that has never been measured "
                 "for this configuration. The rate quoted here was measured on an earlier "

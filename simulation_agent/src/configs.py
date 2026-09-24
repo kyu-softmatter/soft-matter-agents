@@ -38,7 +38,13 @@ def dispatch(axis: str, qid: str, config: str, created_at: str, caller_id: str,
              kb_version: str, kb_result, revision: int):
     """The card from the configuration's module, or None to fall through."""
     mod = module_for(config)
-    if mod is None:
+    # A module without `build` falls through too. `abp_free` has one of these:
+    # the axis modules hand the active configurations to `axes_abp` before
+    # they reach here, so its configuration module carries only the S4 and S5
+    # parts and defines no axis builder. Before this guard, A7 -- the one axis
+    # that reaches the dispatch for an active configuration -- died on
+    # AttributeError instead of falling through.
+    if mod is None or not hasattr(mod, "build"):
         return None
     return mod.build(axis, qid, config, created_at, caller_id, kb_version, kb_result, revision)
 

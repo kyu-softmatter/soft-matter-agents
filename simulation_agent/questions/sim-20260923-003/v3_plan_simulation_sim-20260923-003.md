@@ -12,9 +12,9 @@ a free active Brownian particle in two dimensions: one orientation diffusing at 
 
 | parameter | value |
 |---|---|
-| `integration_timestep` | 0.001 s |
+| `integration_timestep` | 0.01 s |
 | `total_simulated_time` | 40000 s |
-| `save_interval` | 0.01 s |
+| `save_interval` | 0.1 s |
 | `box_length` | 3000 um |
 | `max_lag_time` | 3000 s |
 | `n_particles` | 100 count |
