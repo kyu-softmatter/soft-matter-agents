@@ -363,6 +363,28 @@ temperature uncertainty lives entirely on the experiment side.** Treating both
 as equally certain, or both as equally uncertain, puts it in the wrong place —
 and the gap is already named: `sample_adjacent_temperature` in `kb_gaps`.
 
+**A reading used as a query condition is asked as an interval, and the answer
+to expect is `partial`.** The room is 293 K as the person read it off a
+thermometer; printed-table entries sit at grid points, water density at
+293.15 K. A point asked against a point matches only when the two printed
+values coincide, so 293 K comes back `disjoint` from an entry 0.15 K away. Ask
+the interval the reading supports, and **cite the entry that gives the width
+rather than choosing one**: `room_thermometer_reads_in_one_kelvin_steps` for
+what a single reading can say, `room_temperature_hold_band` for what the room
+did over a run — both E5 from `kbv-b92489b0ad3e` on.
+
+It will not come back `full`. A point entry covers one point of the asked
+range, and the store will not say its value holds over the rest — that is the
+caller's judgment. What the interval buys is the difference between `partial`,
+the value lies inside the range and is usable under one assumption, and
+`disjoint`, it lies outside and using it is extrapolation. So using the point
+value across the interval goes on the card as an assumption, naming the
+`condition_mismatch` gap it stands on (check 39). Measured by the librarian on
+2026-09-23 with `match()` directly: 292–294 K against the 293.15 K density entry
+is `partial`, 293 K is `disjoint`. At that date 918 logged calls held no
+interval condition at all, so the first real one is also the first test of
+this paragraph.
+
 ### What a run's observable is, which is not the same ruling
 
 The paragraph above settles an **input**. An observable is an **output**, and
