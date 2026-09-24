@@ -1,0 +1,144 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-041-abp_free-a1-r4",
+  "qid": "sim-20260923-041",
+  "thread": "solo-sim-20260923-041",
+  "round": 0,
+  "revision": 4,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T22:35:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-041:v4:abp_free:a1",
+  "config": "abp_free",
+  "axis": "a1",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "max": 1.0,
+      "basis": [
+        "integration_timestep_max"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "rotational_diffusivity",
+      "value": 0.01,
+      "unit": "1/s",
+      "source": "computed:stokes_einstein_debye",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(pi*viscosity*bead_diameter**3)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "D_R, THERMALLY TIED to D_T through the sphere's rotational drag -- 3*D_T/bead_diameter**2. The person did not rule on the tie and this is the assumption a_thermal_rotation; the store holds nothing on rotational diffusivity (gap rotational_diffusivity_absent). In 2D the persistence time is 1/D_R, about a hundred seconds at this anchor",
+      "origin": "v4_goal.json#rotational_diffusivity"
+    },
+    {
+      "name": "persistence_time_expected",
+      "value": 100,
+      "unit": "s",
+      "source": "computed:persistence_time_2d",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "1/rotational_diffusivity",
+      "inputs": [
+        "rotational_diffusivity"
+      ],
+      "note": "the 2D relation tau_p = 1/D_R, the person's dimension. It is the input-side expectation the registered persistence_time estimator is read against, and not a result",
+      "origin": "v4_goal.json#persistence_time_expected"
+    },
+    {
+      "name": "dt_resolution_factor",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_dt_factor",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how far below the persistence time the step must sit: two decades. Measured on a reference Euler-Maruyama integrator by simulation-9: the bias in the effective diffusivity is +0.6 per cent at D_R*dt = 0.2 and +0.02 per cent at 0.02, so two decades holds it under the statistical error; the declared engine's scheme may carry a different coefficient and the same group"
+    },
+    {
+      "name": "integration_timestep_max",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:resolution_of_persistence_time",
+      "grade": "E5",
+      "formula": "dt_resolution_factor*persistence_time_expected",
+      "inputs": [
+        "dt_resolution_factor",
+        "persistence_time_expected"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "upper bound only. The free model has no length scale, so no displacement per step is constrained; the orientation held fixed over one step is the only error the integrator makes, and D_R*dt is the only group it can depend on"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_thermal_rotation",
+      "statement": "D_R is tied to D_T by the sphere's rotational drag, D_R = 3 D_T / d^2, because the person fixed the anchor and not D_R separately, and a thermal sphere is the one relation that introduces no free number.",
+      "numbers": [
+        "rotational_diffusivity"
+      ],
+      "falsifier": "the person rules D_R an independent axis, or the store gains an entry for the anchor's rotational diffusivity that disagrees by more than a decade",
+      "gap_ref": "rotational_diffusivity_absent"
+    },
+    {
+      "rationale_id": "a_dt_factor",
+      "gap_ref": "integration_timestep_resolution_factor_absent",
+      "statement": "Two decades below the persistence time is a convention; a reference integrator measured the bias at that factor as two hundredths of a per cent, which is far inside the target error, but the declared engine has not been scanned.",
+      "numbers": [
+        "dt_resolution_factor"
+      ],
+      "falsifier": "a timestep scan on hoomd_backend showing the effective diffusivity flat over a wider range of D_R*dt replaces this factor with a measured one"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tau_d",
+      "grade": "E4",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "integration_timestep_resolution_factor_absent",
+      "observable": "integration_timestep_resolution_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v4:abp_free:a1",
+      "asked_at": "2026-09-24T00:45:39+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "packing_fraction_absent",
+      "observable": "packing_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v4:abp_free:a1",
+      "asked_at": "2026-09-24T00:45:41+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "One inequality, D_R*dt << 1. The diffusive time and the self-propulsion step of the interacting branch are not computed here because the free model has no diameter for them to stand on; a bound resting on an absent quantity is not a safe bound but an expensive one. Revision 2's cards carried that bound and are left as written (4.5.5)."
+}

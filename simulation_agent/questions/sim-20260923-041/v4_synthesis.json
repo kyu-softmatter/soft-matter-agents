@@ -1,0 +1,1423 @@
+{
+  "card": "synthesis",
+  "schema_version": "0.1",
+  "id": "synthesis-sim-20260923-041-r4",
+  "qid": "sim-20260923-041",
+  "thread": "solo-sim-20260923-041",
+  "round": 0,
+  "revision": 4,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T22:40:00Z",
+  "status": "VALIDATED",
+  "configs_screened": [
+    "abp_free",
+    "abp_wca_2d"
+  ],
+  "per_config": [
+    {
+      "config": "abp_free",
+      "empty": false,
+      "axis_files": [
+        "v4_axis_abp_free_a1.json",
+        "v4_axis_abp_free_a2.json",
+        "v4_axis_abp_free_a3.json",
+        "v4_axis_abp_free_a4.json",
+        "v4_axis_abp_free_a5.json",
+        "v4_axis_abp_free_a7.json"
+      ],
+      "intersection": [
+        {
+          "parameter": "coordinates_stored",
+          "unit": "1",
+          "basis": [
+            "coordinates_stored_max"
+          ],
+          "max": 1000000000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "fit_lag_range_lower_bound",
+          "unit": "s",
+          "basis": [
+            "fit_lag_range_lower_bound_min"
+          ],
+          "min": 1000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "integration_timestep",
+          "unit": "s",
+          "basis": [
+            "integration_timestep_max"
+          ],
+          "max": 1.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "lag_to_record_ratio",
+          "unit": "1",
+          "basis": [
+            "lag_to_record_ratio_max"
+          ],
+          "max": 0.1,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "max_lag_time",
+          "unit": "s",
+          "basis": [
+            "max_lag_time_min"
+          ],
+          "min": 3000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "particle_steps",
+          "unit": "1",
+          "basis": [
+            "particle_steps_max"
+          ],
+          "max": 70000000000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "save_interval",
+          "unit": "s",
+          "basis": [
+            "save_interval_max"
+          ],
+          "max": 1.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "total_simulated_time",
+          "unit": "s",
+          "basis": [
+            "total_simulated_time_min"
+          ],
+          "min": 10000.0,
+          "precision": "order_of_magnitude"
+        }
+      ]
+    },
+    {
+      "config": "abp_wca_2d",
+      "empty": false,
+      "axis_files": [
+        "v4_axis_abp_wca_2d_a1.json",
+        "v4_axis_abp_wca_2d_a2.json",
+        "v4_axis_abp_wca_2d_a3.json",
+        "v4_axis_abp_wca_2d_a4.json",
+        "v4_axis_abp_wca_2d_a5.json",
+        "v4_axis_abp_wca_2d_a7.json"
+      ],
+      "intersection": [
+        {
+          "parameter": "box_length",
+          "unit": "um",
+          "basis": [
+            "box_length_min"
+          ],
+          "min": 5000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "coordinates_stored",
+          "unit": "1",
+          "basis": [
+            "coordinates_stored_max"
+          ],
+          "max": 1000000000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "fit_lag_range_lower_bound",
+          "unit": "s",
+          "basis": [
+            "fit_lag_range_lower_bound_min"
+          ],
+          "min": 1000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "integration_timestep",
+          "unit": "s",
+          "basis": [
+            "integration_timestep_max"
+          ],
+          "max": 0.01,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "lag_to_record_ratio",
+          "unit": "1",
+          "basis": [
+            "lag_to_record_ratio_max"
+          ],
+          "max": 0.1,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "max_lag_time",
+          "unit": "s",
+          "basis": [
+            "max_lag_time_min"
+          ],
+          "min": 3000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "particle_steps",
+          "unit": "1",
+          "basis": [
+            "particle_steps_max"
+          ],
+          "max": 70000000000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "save_interval",
+          "unit": "s",
+          "basis": [
+            "save_interval_max"
+          ],
+          "max": 1.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "total_simulated_time",
+          "unit": "s",
+          "basis": [
+            "total_simulated_time_min"
+          ],
+          "min": 10000.0,
+          "precision": "order_of_magnitude"
+        }
+      ]
+    }
+  ],
+  "chosen_config": "abp_wca_2d",
+  "operating_point": [
+    {
+      "parameter": "total_simulated_time",
+      "number": "total_simulated_time_point"
+    },
+    {
+      "parameter": "save_interval",
+      "number": "save_interval_point"
+    },
+    {
+      "parameter": "max_lag_time",
+      "number": "max_lag_time_point"
+    },
+    {
+      "parameter": "fit_lag_range_lower_bound",
+      "number": "fit_lag_range_lower_bound_point"
+    }
+  ],
+  "priority_used": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "priority_source": "goal_card",
+  "rejected": [
+    {
+      "what": "configuration abp_free",
+      "kind": "configuration",
+      "reason": "the person ruled on 2026-09-23 that the repulsion is WCA; the free configuration is the closed-form reference the interacting results are read against and belongs in the store, not in this run. Its cards stand as the record of what a free arm would need",
+      "grounds": [
+        "wca_epsilon"
+      ]
+    },
+    {
+      "what": "grid cell max_mid",
+      "kind": "operating_point",
+      "reason": "exceeds A5's ceiling on particle_steps and coordinates_stored at the cell's own step and box; skipped, and the plan's sweep records the empty cell with this reason",
+      "grounds": [
+        "particle_steps_max_mid",
+        "particle_steps_max",
+        "coordinates_stored_max_mid",
+        "coordinates_stored_max"
+      ]
+    },
+    {
+      "what": "grid cell max_max",
+      "kind": "operating_point",
+      "reason": "exceeds A5's ceiling on particle_steps and coordinates_stored at the cell's own step and box; skipped, and the plan's sweep records the empty cell with this reason",
+      "grounds": [
+        "particle_steps_max_max",
+        "particle_steps_max",
+        "coordinates_stored_max_max",
+        "coordinates_stored_max"
+      ]
+    }
+  ],
+  "tie_break": "no same-decade tie. The grid is 9 cells; 7 fit A5's ceilings at their own step and box and 2 do not (max_max, max_mid). The step and the box are evaluated per Peclet level because A1 and A3 marked them varies_with peclet_number_steric; the record, the windows and the save interval are constant because A2 and A4 did not. S4 made no lookup, so the librarian is degraded here by construction and the gaps are the goal's. BY THE PERSON'S RULING (goal constraint_notes): cell max_min takes step integration_timestep_point_max_min and box box_length_max_min",
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "origin": "v4_goal.json#bead_diameter",
+      "precision": "significant_figures",
+      "note": "the SI anchor: the particle in the bottle. An active particle of this size is a model choice, not a claim that these beads self-propel; the anchor exists because cards are authoritative in physical units (D7) and the store holds this diameter at E2"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v4_goal.json#temperature",
+      "precision": "significant_figures",
+      "note": "a parameter of the noise amplitude, realised exactly by the model; the room's reading is why this value was chosen"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v4_goal.json#viscosity",
+      "precision": "significant_figures",
+      "note": "pure water, validity 288 to 298 K, the temperature above is inside it"
+    },
+    {
+      "name": "translational_diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "origin": "v4_goal.json#translational_diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "D_T, the thermal translational diffusivity of the anchor sphere. Same relation as sim-20260917-001 and kb:tracer_diffusivity_expected"
+    },
+    {
+      "name": "rotational_diffusivity",
+      "value": 0.01,
+      "unit": "1/s",
+      "source": "computed:stokes_einstein_debye",
+      "grade": "E4",
+      "origin": "v4_goal.json#rotational_diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "D_R, THERMALLY TIED to D_T through the sphere's rotational drag -- 3*D_T/bead_diameter**2. The person did not rule on the tie and this is the assumption a_thermal_rotation; the store holds nothing on rotational diffusivity (gap rotational_diffusivity_absent). In 2D the persistence time is 1/D_R, about a hundred seconds at this anchor"
+    },
+    {
+      "name": "persistence_time_expected",
+      "value": 100,
+      "unit": "s",
+      "source": "computed:persistence_time_2d",
+      "grade": "E4",
+      "origin": "v4_goal.json#persistence_time_expected",
+      "precision": "order_of_magnitude",
+      "note": "the 2D relation tau_p = 1/D_R, the person's dimension. It is the input-side expectation the registered persistence_time estimator is read against, and not a result"
+    },
+    {
+      "name": "wca_epsilon",
+      "value": 4e-21,
+      "unit": "J",
+      "source": "assumed:a_wca_stiffness",
+      "grade": "E5",
+      "origin": "v4_goal.json#wca_epsilon",
+      "precision": "order_of_magnitude",
+      "note": "the WCA well depth, taken as one k_B*T at 293 K so the repulsion is hard-sphere-like at Pe of order one. At high Pe the active force can drive overlaps deep into the potential; A1 owns the contact stiffness and this is what it will move"
+    },
+    {
+      "name": "peclet_min",
+      "value": 1,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "origin": "v4_goal.json#peclet_min",
+      "precision": "order_of_magnitude",
+      "note": "Pe = v0/(bead_diameter*rotational_diffusivity); the lower decade, where activity barely beats thermal motion"
+    },
+    {
+      "name": "peclet_mid",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "origin": "v4_goal.json#peclet_mid",
+      "precision": "order_of_magnitude",
+      "note": "the middle decade of the Peclet axis; v0 = Pe*bead_diameter*rotational_diffusivity, of order 0.5 um/s at this anchor"
+    },
+    {
+      "name": "peclet_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "origin": "v4_goal.json#peclet_max",
+      "precision": "order_of_magnitude",
+      "note": "two decades up; v0 = Pe*bead_diameter*rotational_diffusivity, so of order 5 um/s at this anchor"
+    },
+    {
+      "name": "packing_fraction_min",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "origin": "v4_goal.json#packing_fraction_min",
+      "precision": "order_of_magnitude",
+      "note": "area fraction phi = N*pi*bead_diameter**2/(4*L**2); the dilute decade, where the free result should be recovered"
+    },
+    {
+      "name": "packing_fraction_mid",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "origin": "v4_goal.json#packing_fraction_mid",
+      "precision": "order_of_magnitude",
+      "note": "the middle decade of the packing-fraction axis; the point 042 holds fixed"
+    },
+    {
+      "name": "packing_fraction_max",
+      "value": 0.5,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "origin": "v4_goal.json#packing_fraction_max",
+      "precision": "order_of_magnitude",
+      "note": "the dense end, where the question's qualitatively different regime (motility-induced clustering) is expected from the literature; the threshold itself is a literature fact for the store and not stated here"
+    },
+    {
+      "name": "integration_timestep_max",
+      "value": 0.01,
+      "unit": "s",
+      "source": "computed:resolution_of_shortest_time",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a1.json#integration_timestep_max",
+      "precision": "order_of_magnitude",
+      "note": "upper bound only; nothing in A1 bounds the step from below"
+    },
+    {
+      "name": "shortest_resolved_time",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:smallest_candidate_time",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a1.json#shortest_resolved_time",
+      "precision": "order_of_magnitude",
+      "note": "the smallest of active_step_time (1 s), contact_relaxation_time (5 s), persistence_time_expected (100 s), diffusive_time (300 s). The formula grammar has no min(), so the comparison is made here and the formula names the winner"
+    },
+    {
+      "name": "contact_relaxation_time",
+      "value": 5.0,
+      "unit": "s",
+      "source": "computed:drag_over_stiffness",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a1.json#contact_relaxation_time",
+      "precision": "order_of_magnitude",
+      "note": "gamma/k with gamma = k_B*T/D_T and k = 57*epsilon/d**2: the time an overlap relaxes at the potential minimum. Under strong activity particles sit deeper in the wall where the curvature is larger, so this is a LOWER estimate of the stiffness and an UPPER one of the time; the falsifier on a_wca_stiffness is what catches that"
+    },
+    {
+      "name": "active_step_time",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:diameter_over_speed",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a1.json#active_step_time",
+      "precision": "order_of_magnitude",
+      "note": "the time to self-propel one diameter; a step longer than a fraction of it moves a particle through a neighbour"
+    },
+    {
+      "name": "total_simulated_time_min",
+      "value": 10000.0,
+      "unit": "s",
+      "source": "computed:record_over_ratio",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a2.json#total_simulated_time_min",
+      "precision": "order_of_magnitude",
+      "note": "floor only; A5 bounds the run from above"
+    },
+    {
+      "name": "lag_to_record_ratio_max",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_window_statistics",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a2.json#lag_to_record_ratio_max",
+      "precision": "order_of_magnitude",
+      "note": "the largest share of the record one lag may span"
+    },
+    {
+      "name": "target_relative_error",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_statistics",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a2.json#target_relative_error",
+      "precision": "order_of_magnitude",
+      "note": "ten per cent on the effective diffusivity, well inside the decade the goal asks for"
+    },
+    {
+      "name": "box_length_min",
+      "value": 5000.0,
+      "unit": "um",
+      "source": "computed:margin_over_persistence_length",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a3.json#box_length_min",
+      "precision": "order_of_magnitude",
+      "note": "a particle must not run into its own image while it still remembers its direction"
+    },
+    {
+      "name": "persistence_length_max",
+      "value": 500.0,
+      "unit": "um",
+      "source": "computed:steric_peclet_number",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a3.json#persistence_length_max",
+      "precision": "order_of_magnitude",
+      "note": "v0/D_R in 2D with v0 = Pe*d*D_R, at the top of the sweep: the longest persistence length any operating point has"
+    },
+    {
+      "name": "save_interval_max",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:two_decades_below_persistence",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a4.json#save_interval_max",
+      "precision": "order_of_magnitude",
+      "note": "upper bound. The crossover and the short-time slope live below tau_p, and a save interval near tau_p would record only the diffusive tail"
+    },
+    {
+      "name": "fit_lag_range_lower_bound_min",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "computed:plateau_lag",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a4.json#fit_lag_range_lower_bound_min",
+      "precision": "order_of_magnitude",
+      "note": "the window parameter of effective_translational_diffusivity; a value read earlier is D_T under that name (contracts/observables.json)"
+    },
+    {
+      "name": "max_lag_time_min",
+      "value": 3000.0,
+      "unit": "s",
+      "source": "computed:span_over_lower_bound",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a4.json#max_lag_time_min",
+      "precision": "order_of_magnitude",
+      "note": "the window parameter of mean_squared_displacement, bounded from BELOW here: opposite to tracer_diffusivity, whose window is bounded from above to stay free"
+    },
+    {
+      "name": "particle_steps_max",
+      "value": 70000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_times_rate",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a5.json#particle_steps_max",
+      "precision": "order_of_magnitude",
+      "note": "the product n_particles*total_simulated_time/integration_timestep may not exceed this. A5 constrains the product and not any factor, and takes none of them from A1 or A2 (4.5.3 rule b)"
+    },
+    {
+      "name": "coordinates_stored_max",
+      "value": 1000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_over_bytes",
+      "grade": "E4",
+      "origin": "v4_axis_abp_wca_2d_a5.json#coordinates_stored_max",
+      "precision": "order_of_magnitude",
+      "note": "the product 2*n_particles*total_simulated_time/save_interval may not exceed this, two coordinates per particle per frame in two dimensions"
+    },
+    {
+      "name": "particle_step_rate",
+      "value": 10000000.0,
+      "unit": "1/s",
+      "source": "assumed:a_cost_reference",
+      "grade": "E5",
+      "origin": "v4_axis_abp_wca_2d_a5.json#particle_step_rate",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps per second for a 2D WCA active system with a neighbour list on this workstation's CPU: of order ten million. A guess until the smoke run measures it"
+    },
+    {
+      "name": "wall_clock_max",
+      "value": 2,
+      "unit": "h",
+      "source": "spec:simulation_agent/envelope/budget.json:local",
+      "grade": "E3",
+      "origin": "v4_axis_abp_wca_2d_a5.json#wall_clock_max",
+      "precision": "significant_figures",
+      "note": "the ceiling a person chose (kyuhwan, 2026-09-19); carried so the interval below has a basis the card holds. A ceiling is a decision, and spec: is the nearest kind for a number read off a policy file"
+    },
+    {
+      "name": "storage_max",
+      "value": 10,
+      "unit": "GB",
+      "source": "spec:simulation_agent/envelope/budget.json:local",
+      "grade": "E3",
+      "origin": "v4_axis_abp_wca_2d_a5.json#storage_max",
+      "precision": "significant_figures",
+      "note": "the disk ceiling of the same target"
+    },
+    {
+      "name": "bytes_per_coordinate",
+      "value": 8e-09,
+      "unit": "GB",
+      "source": "spec:ieee754_double",
+      "grade": "E3",
+      "origin": "v4_axis_abp_wca_2d_a5.json#bytes_per_coordinate",
+      "precision": "significant_figures",
+      "note": "one double-precision coordinate, in the unit the ceiling is written in"
+    },
+    {
+      "name": "fit_lag_range_lower_bound_point",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "computed:a4_floor",
+      "grade": "E5",
+      "formula": "fit_lag_range_lower_bound_min",
+      "inputs": [
+        "fit_lag_range_lower_bound_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "constant over the grid: the persistence time does not move with Pe or phi"
+    },
+    {
+      "name": "max_lag_time_point",
+      "value": 3000.0,
+      "unit": "s",
+      "source": "computed:a4_floor",
+      "grade": "E5",
+      "formula": "max_lag_time_min",
+      "inputs": [
+        "max_lag_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "constant over the grid"
+    },
+    {
+      "name": "total_simulated_time_point",
+      "value": 30000.0,
+      "unit": "s",
+      "source": "computed:window_over_record_ratio",
+      "grade": "E5",
+      "formula": "max_lag_time_point/lag_to_record_ratio_max",
+      "inputs": [
+        "max_lag_time_point",
+        "lag_to_record_ratio_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the record A2's ratio requires for A4's window; constant over the grid"
+    },
+    {
+      "name": "lag_to_record_ratio",
+      "value": 0.1,
+      "unit": "1",
+      "source": "computed:window_over_record",
+      "grade": "E5",
+      "formula": "max_lag_time_point/total_simulated_time_point",
+      "inputs": [
+        "max_lag_time_point",
+        "total_simulated_time_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "at A2's ceiling by construction"
+    },
+    {
+      "name": "save_interval_point",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:a4_ceiling",
+      "grade": "E5",
+      "formula": "save_interval_max",
+      "inputs": [
+        "save_interval_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "constant over the grid"
+    },
+    {
+      "name": "active_step_time_pe_min",
+      "value": 100.0,
+      "unit": "s",
+      "source": "computed:diameter_over_speed",
+      "grade": "E5",
+      "formula": "1/(peclet_min*rotational_diffusivity)",
+      "inputs": [
+        "peclet_min",
+        "rotational_diffusivity"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the time to self-propel one diameter at Pe = 1: d/(Pe*d*D_R)"
+    },
+    {
+      "name": "integration_timestep_max_pe_min",
+      "value": 0.05,
+      "unit": "s",
+      "source": "computed:a1_bound_rescaled_to_level",
+      "grade": "E5",
+      "formula": "integration_timestep_max*contact_relaxation_time/shortest_resolved_time",
+      "inputs": [
+        "integration_timestep_max",
+        "contact_relaxation_time",
+        "shortest_resolved_time"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A1's ceiling evaluated at this Peclet level: the same resolution factor applied to the shortest time HERE (contact_relaxation_time), not to the top corner's. This is what varies_with buys"
+    },
+    {
+      "name": "integration_timestep_point_pe_min",
+      "value": 0.005,
+      "unit": "s",
+      "source": "computed:decade_under_a1_ceiling",
+      "grade": "E5",
+      "formula": "integration_timestep_max_pe_min/10",
+      "inputs": [
+        "integration_timestep_max_pe_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a decade under the level's ceiling, as for 042"
+    },
+    {
+      "name": "box_length_pe_min",
+      "value": 50.0,
+      "unit": "um",
+      "source": "computed:a3_bound_rescaled_to_level",
+      "grade": "E5",
+      "formula": "box_length_min*peclet_min/peclet_max",
+      "inputs": [
+        "box_length_min",
+        "peclet_min",
+        "peclet_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A3's minimum box at this level: ten persistence lengths, and the persistence length is Pe*d"
+    },
+    {
+      "name": "active_step_time_pe_mid",
+      "value": 10.0,
+      "unit": "s",
+      "source": "computed:diameter_over_speed",
+      "grade": "E5",
+      "formula": "1/(peclet_mid*rotational_diffusivity)",
+      "inputs": [
+        "peclet_mid",
+        "rotational_diffusivity"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the time to self-propel one diameter at Pe = 10: d/(Pe*d*D_R)"
+    },
+    {
+      "name": "integration_timestep_max_pe_mid",
+      "value": 0.05,
+      "unit": "s",
+      "source": "computed:a1_bound_rescaled_to_level",
+      "grade": "E5",
+      "formula": "integration_timestep_max*contact_relaxation_time/shortest_resolved_time",
+      "inputs": [
+        "integration_timestep_max",
+        "contact_relaxation_time",
+        "shortest_resolved_time"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A1's ceiling evaluated at this Peclet level: the same resolution factor applied to the shortest time HERE (contact_relaxation_time), not to the top corner's. This is what varies_with buys"
+    },
+    {
+      "name": "integration_timestep_point_pe_mid",
+      "value": 0.005,
+      "unit": "s",
+      "source": "computed:decade_under_a1_ceiling",
+      "grade": "E5",
+      "formula": "integration_timestep_max_pe_mid/10",
+      "inputs": [
+        "integration_timestep_max_pe_mid"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a decade under the level's ceiling, as for 042"
+    },
+    {
+      "name": "box_length_pe_mid",
+      "value": 500.0,
+      "unit": "um",
+      "source": "computed:a3_bound_rescaled_to_level",
+      "grade": "E5",
+      "formula": "box_length_min*peclet_mid/peclet_max",
+      "inputs": [
+        "box_length_min",
+        "peclet_mid",
+        "peclet_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A3's minimum box at this level: ten persistence lengths, and the persistence length is Pe*d"
+    },
+    {
+      "name": "active_step_time_pe_max",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:diameter_over_speed",
+      "grade": "E5",
+      "formula": "1/(peclet_max*rotational_diffusivity)",
+      "inputs": [
+        "peclet_max",
+        "rotational_diffusivity"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the time to self-propel one diameter at Pe = 100: d/(Pe*d*D_R)"
+    },
+    {
+      "name": "integration_timestep_max_pe_max",
+      "value": 0.01,
+      "unit": "s",
+      "source": "computed:a1_bound_rescaled_to_level",
+      "grade": "E5",
+      "formula": "integration_timestep_max*active_step_time_pe_max/shortest_resolved_time",
+      "inputs": [
+        "integration_timestep_max",
+        "active_step_time_pe_max",
+        "shortest_resolved_time"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A1's ceiling evaluated at this Peclet level: the same resolution factor applied to the shortest time HERE (active_step_time_pe_max), not to the top corner's. This is what varies_with buys"
+    },
+    {
+      "name": "integration_timestep_point_pe_max",
+      "value": 0.001,
+      "unit": "s",
+      "source": "computed:decade_under_a1_ceiling",
+      "grade": "E5",
+      "formula": "integration_timestep_max_pe_max/10",
+      "inputs": [
+        "integration_timestep_max_pe_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a decade under the level's ceiling, as for 042"
+    },
+    {
+      "name": "box_length_pe_max",
+      "value": 5000.0,
+      "unit": "um",
+      "source": "computed:a3_bound_rescaled_to_level",
+      "grade": "E5",
+      "formula": "box_length_min*peclet_max/peclet_max",
+      "inputs": [
+        "box_length_min",
+        "peclet_max",
+        "peclet_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A3's minimum box at this level: ten persistence lengths, and the persistence length is Pe*d"
+    },
+    {
+      "name": "integration_timestep_point_max_min",
+      "value": 0.01,
+      "unit": "s",
+      "source": "computed:a1_ceiling_by_ruling",
+      "grade": "E5",
+      "formula": "integration_timestep_max_pe_max",
+      "inputs": [
+        "integration_timestep_max_pe_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the step AT A1's ceiling for this level, by the person's ruling of 2026-09-23: where the self-propulsion step binds, the bound is kinematic and carries no estimate, so the decade of margin the other cells take is not owed. The divergence monitor carries the risk the margin carried"
+    },
+    {
+      "name": "box_length_max_min",
+      "value": 500.0,
+      "unit": "um",
+      "source": "computed:persistence_lengths_by_ruling",
+      "grade": "E5",
+      "formula": "box_length_min*peclet_max/peclet_max/10*1",
+      "inputs": [
+        "box_length_min",
+        "peclet_max",
+        "peclet_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "1 persistence length(s) of box at this level rather than A3's ten, by the person's ruling of 2026-09-23. Grounded in sim-20260923-042, where one and ten persistence lengths agreed to 3 per cent at Pe 10 and phi 0.1; at this Pe that agreement is ASSUMED, not measured, and this cell's result is the first test of it"
+    },
+    {
+      "name": "n_particles_min_min",
+      "value": 1.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "formula": "4*packing_fraction_min*box_length_pe_min**2/(pi*bead_diameter**2)",
+      "inputs": [
+        "packing_fraction_min",
+        "box_length_pe_min",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "particles in the cell Pe 1, phi 0.01"
+    },
+    {
+      "name": "particle_steps_min_min",
+      "value": 6000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "formula": "n_particles_min_min*total_simulated_time_point/integration_timestep_point_pe_min",
+      "inputs": [
+        "n_particles_min_min",
+        "total_simulated_time_point",
+        "integration_timestep_point_pe_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's cost in particle-steps against particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_min_min",
+      "value": 60000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "2*n_particles_min_min*total_simulated_time_point/save_interval_point",
+      "inputs": [
+        "n_particles_min_min",
+        "total_simulated_time_point",
+        "save_interval_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's stored coordinates against coordinates_stored_max"
+    },
+    {
+      "name": "n_particles_min_mid",
+      "value": 10.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "formula": "4*packing_fraction_mid*box_length_pe_min**2/(pi*bead_diameter**2)",
+      "inputs": [
+        "packing_fraction_mid",
+        "box_length_pe_min",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "particles in the cell Pe 1, phi 0.1"
+    },
+    {
+      "name": "particle_steps_min_mid",
+      "value": 60000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "formula": "n_particles_min_mid*total_simulated_time_point/integration_timestep_point_pe_min",
+      "inputs": [
+        "n_particles_min_mid",
+        "total_simulated_time_point",
+        "integration_timestep_point_pe_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's cost in particle-steps against particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_min_mid",
+      "value": 600000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "2*n_particles_min_mid*total_simulated_time_point/save_interval_point",
+      "inputs": [
+        "n_particles_min_mid",
+        "total_simulated_time_point",
+        "save_interval_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's stored coordinates against coordinates_stored_max"
+    },
+    {
+      "name": "n_particles_min_max",
+      "value": 60.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "formula": "4*packing_fraction_max*box_length_pe_min**2/(pi*bead_diameter**2)",
+      "inputs": [
+        "packing_fraction_max",
+        "box_length_pe_min",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "particles in the cell Pe 1, phi 0.5"
+    },
+    {
+      "name": "particle_steps_min_max",
+      "value": 400000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "formula": "n_particles_min_max*total_simulated_time_point/integration_timestep_point_pe_min",
+      "inputs": [
+        "n_particles_min_max",
+        "total_simulated_time_point",
+        "integration_timestep_point_pe_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's cost in particle-steps against particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_min_max",
+      "value": 4000000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "2*n_particles_min_max*total_simulated_time_point/save_interval_point",
+      "inputs": [
+        "n_particles_min_max",
+        "total_simulated_time_point",
+        "save_interval_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's stored coordinates against coordinates_stored_max"
+    },
+    {
+      "name": "n_particles_mid_min",
+      "value": 100.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "formula": "4*packing_fraction_min*box_length_pe_mid**2/(pi*bead_diameter**2)",
+      "inputs": [
+        "packing_fraction_min",
+        "box_length_pe_mid",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "particles in the cell Pe 10, phi 0.01"
+    },
+    {
+      "name": "particle_steps_mid_min",
+      "value": 600000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "formula": "n_particles_mid_min*total_simulated_time_point/integration_timestep_point_pe_mid",
+      "inputs": [
+        "n_particles_mid_min",
+        "total_simulated_time_point",
+        "integration_timestep_point_pe_mid"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's cost in particle-steps against particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_mid_min",
+      "value": 6000000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "2*n_particles_mid_min*total_simulated_time_point/save_interval_point",
+      "inputs": [
+        "n_particles_mid_min",
+        "total_simulated_time_point",
+        "save_interval_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's stored coordinates against coordinates_stored_max"
+    },
+    {
+      "name": "n_particles_mid_mid",
+      "value": 1000.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "formula": "4*packing_fraction_mid*box_length_pe_mid**2/(pi*bead_diameter**2)",
+      "inputs": [
+        "packing_fraction_mid",
+        "box_length_pe_mid",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "particles in the cell Pe 10, phi 0.1"
+    },
+    {
+      "name": "particle_steps_mid_mid",
+      "value": 6000000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "formula": "n_particles_mid_mid*total_simulated_time_point/integration_timestep_point_pe_mid",
+      "inputs": [
+        "n_particles_mid_mid",
+        "total_simulated_time_point",
+        "integration_timestep_point_pe_mid"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's cost in particle-steps against particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_mid_mid",
+      "value": 60000000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "2*n_particles_mid_mid*total_simulated_time_point/save_interval_point",
+      "inputs": [
+        "n_particles_mid_mid",
+        "total_simulated_time_point",
+        "save_interval_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's stored coordinates against coordinates_stored_max"
+    },
+    {
+      "name": "n_particles_mid_max",
+      "value": 6000.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "formula": "4*packing_fraction_max*box_length_pe_mid**2/(pi*bead_diameter**2)",
+      "inputs": [
+        "packing_fraction_max",
+        "box_length_pe_mid",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "particles in the cell Pe 10, phi 0.5"
+    },
+    {
+      "name": "particle_steps_mid_max",
+      "value": 40000000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "formula": "n_particles_mid_max*total_simulated_time_point/integration_timestep_point_pe_mid",
+      "inputs": [
+        "n_particles_mid_max",
+        "total_simulated_time_point",
+        "integration_timestep_point_pe_mid"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's cost in particle-steps against particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_mid_max",
+      "value": 400000000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "2*n_particles_mid_max*total_simulated_time_point/save_interval_point",
+      "inputs": [
+        "n_particles_mid_max",
+        "total_simulated_time_point",
+        "save_interval_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's stored coordinates against coordinates_stored_max"
+    },
+    {
+      "name": "n_particles_max_min",
+      "value": 100.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "formula": "4*packing_fraction_min*box_length_max_min**2/(pi*bead_diameter**2)",
+      "inputs": [
+        "packing_fraction_min",
+        "box_length_max_min",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "particles in the cell Pe 100, phi 0.01"
+    },
+    {
+      "name": "particle_steps_max_min",
+      "value": 300000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "formula": "n_particles_max_min*total_simulated_time_point/integration_timestep_point_max_min",
+      "inputs": [
+        "n_particles_max_min",
+        "total_simulated_time_point",
+        "integration_timestep_point_max_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's cost in particle-steps against particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_max_min",
+      "value": 6000000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "2*n_particles_max_min*total_simulated_time_point/save_interval_point",
+      "inputs": [
+        "n_particles_max_min",
+        "total_simulated_time_point",
+        "save_interval_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's stored coordinates against coordinates_stored_max"
+    },
+    {
+      "name": "n_particles_max_mid",
+      "value": 100000.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "formula": "4*packing_fraction_mid*box_length_pe_max**2/(pi*bead_diameter**2)",
+      "inputs": [
+        "packing_fraction_mid",
+        "box_length_pe_max",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "particles in the cell Pe 100, phi 0.1"
+    },
+    {
+      "name": "particle_steps_max_mid",
+      "value": 3000000000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "formula": "n_particles_max_mid*total_simulated_time_point/integration_timestep_point_pe_max",
+      "inputs": [
+        "n_particles_max_mid",
+        "total_simulated_time_point",
+        "integration_timestep_point_pe_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's cost in particle-steps against particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_max_mid",
+      "value": 6000000000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "2*n_particles_max_mid*total_simulated_time_point/save_interval_point",
+      "inputs": [
+        "n_particles_max_mid",
+        "total_simulated_time_point",
+        "save_interval_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's stored coordinates against coordinates_stored_max"
+    },
+    {
+      "name": "n_particles_max_max",
+      "value": 600000.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "formula": "4*packing_fraction_max*box_length_pe_max**2/(pi*bead_diameter**2)",
+      "inputs": [
+        "packing_fraction_max",
+        "box_length_pe_max",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "particles in the cell Pe 100, phi 0.5"
+    },
+    {
+      "name": "particle_steps_max_max",
+      "value": 20000000000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "formula": "n_particles_max_max*total_simulated_time_point/integration_timestep_point_pe_max",
+      "inputs": [
+        "n_particles_max_max",
+        "total_simulated_time_point",
+        "integration_timestep_point_pe_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's cost in particle-steps against particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_max_max",
+      "value": 40000000000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "2*n_particles_max_max*total_simulated_time_point/save_interval_point",
+      "inputs": [
+        "n_particles_max_max",
+        "total_simulated_time_point",
+        "save_interval_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the cell's stored coordinates against coordinates_stored_max"
+    },
+    {
+      "name": "particle_steps_max_mid_at_a1_ceiling",
+      "value": 300000000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "formula": "n_particles_max_mid*total_simulated_time_point/integration_timestep_max_pe_max",
+      "inputs": [
+        "n_particles_max_mid",
+        "total_simulated_time_point",
+        "integration_timestep_max_pe_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the same cell with the step at A1's ceiling instead of a decade under it"
+    },
+    {
+      "name": "particle_steps_max_max_at_a1_ceiling",
+      "value": 2000000000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "formula": "n_particles_max_max*total_simulated_time_point/integration_timestep_max_pe_max",
+      "inputs": [
+        "n_particles_max_max",
+        "total_simulated_time_point",
+        "integration_timestep_max_pe_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the same cell with the step at A1's ceiling instead of a decade under it"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_wca_stiffness",
+      "statement": "One k_B T of WCA well depth makes the repulsion hard-sphere-like at low Pe; whether it stays so at the top of the Pe range is A1's question.",
+      "numbers": [
+        "wca_epsilon"
+      ],
+      "falsifier": "an A1 interval that finds the contact overlap at peclet_max exceeding a stated fraction of the diameter replaces this value, and it is then a swept quantity again",
+      "gap_ref": "active_brownian_particle_absent"
+    },
+    {
+      "rationale_id": "a_sweep_decades",
+      "statement": "Two decades of Pe (1, 10, 100) and packing fractions 0.01, 0.1, 0.5 in decade steps, because the person reduced the sweep to these two axes and explore answers in decades. The ends are guesses at where the free and the clustered regimes sit; the middle levels are the decade between.",
+      "numbers": [
+        "peclet_min",
+        "peclet_mid",
+        "peclet_max",
+        "packing_fraction_min",
+        "packing_fraction_mid",
+        "packing_fraction_max"
+      ],
+      "falsifier": "an A5 cost above the local ceiling at the dense, high-Pe corner drops that corner and says so; a store entry placing the clustering threshold outside this range moves the ends",
+      "gap_ref": "packing_fraction_absent"
+    },
+    {
+      "rationale_id": "a_window_statistics",
+      "gap_ref": "lag_to_record_ratio_absent",
+      "statement": "A lag may span at most a tenth of the record so that every lag in the fit is determined by many displacements rather than by one.",
+      "numbers": [
+        "lag_to_record_ratio_max"
+      ],
+      "falsifier": "a weighted fit whose slope is unchanged when the longest lag is shortened retires this fraction"
+    },
+    {
+      "rationale_id": "a_statistics",
+      "gap_ref": "independent_samples_prefactor_absent",
+      "statement": "A ten per cent statistical error needs of order one hundred independent displacements at the longest fit lag, from the square-root scaling of an ensemble mean; the prefactor for a weighted slope estimator on an active MSD has not been measured.",
+      "numbers": [
+        "target_relative_error"
+      ],
+      "falsifier": "a seed-to-seed spread wider than ten per cent at this sample count raises the floor"
+    },
+    {
+      "rationale_id": "a_cost_reference",
+      "gap_ref": "particle_step_rate_absent",
+      "statement": "The cost model is one pair-force evaluation per particle per step through a neighbour list, at a rate guessed from the engine's class of hardware. Nothing on this machine has run this configuration.",
+      "numbers": [
+        "particle_step_rate"
+      ],
+      "falsifier": "a run that WRITES THE TRAJECTORY THIS PLAN DECLARES on hoomd_backend replaces the rate with the value measured off that run's own log and the ceiling interval moves with it"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "mean_squared_displacement_absent",
+      "observable": "mean_squared_displacement",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='mean_squared_displacement', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v1:s2",
+      "asked_at": "2026-09-23T16:28:18+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "active_brownian_particle_absent",
+      "observable": "active_brownian_particle",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='active_brownian_particle', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v1:s2",
+      "asked_at": "2026-09-23T16:28:21+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "persistence_length_absent",
+      "observable": "persistence_length",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='persistence_length', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v1:s2",
+      "asked_at": "2026-09-23T16:28:25+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "rotational_diffusivity_absent",
+      "observable": "rotational_diffusivity",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='rotational_diffusivity', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v2:s2",
+      "asked_at": "2026-09-23T16:34:32+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "packing_fraction_absent",
+      "observable": "packing_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='packing_fraction', purpose='compare') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-042:v2:s2",
+      "asked_at": "2026-09-23T16:34:38+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

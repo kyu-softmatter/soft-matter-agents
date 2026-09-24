@@ -1,0 +1,263 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260923-041-max-min-s1",
+  "plan_id": "plan-sim-20260923-041-r4",
+  "plan_path": "simulation_agent/questions/sim-20260923-041/v4_plan_simulation_sim-20260923-041.json",
+  "revision": 4,
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "1",
+  "stop_criteria": [
+    "planned_duration_reached",
+    "step_displacement_diverged"
+  ],
+  "t0_wall": "2026-09-24T00:47:20.638450+00:00",
+  "t0_mono": 1431828.536257291,
+  "time_base_note": "Every offset is software: this side has no trigger counter and no device clock. Simulated time is a coordinate of the model, not a clock reading, so it is recorded in trajectory_meta.json rather than as this log's time base (4.6.9).",
+  "backend": "abp_backend",
+  "events": [
+    {
+      "t_mono": 4e-06,
+      "time_base": "software",
+      "event": "gate",
+      "tier": 1,
+      "approval": {
+        "id": null,
+        "kind": null
+      },
+      "envelope": {
+        "status": "inside",
+        "target": "local",
+        "budget": "smoke",
+        "compared": [
+          {
+            "cost": "wall_clock_estimate",
+            "limit": "wall_clock_max",
+            "cost_si": 30.0,
+            "limit_si": 300.0
+          },
+          {
+            "cost": "storage_estimate",
+            "limit": "storage_max",
+            "cost_si": 0.048,
+            "limit_si": 0.5
+          }
+        ],
+        "exceeded": []
+      },
+      "compare_arm": "max_min",
+      "arm_cost": {
+        "arm": "max_min",
+        "wall_clock_s": 30.0,
+        "storage_gb": 0.048,
+        "from": [
+          "particle_steps_max_min",
+          "particle_step_rate",
+          "coordinates_stored_max_min",
+          "bytes_per_coordinate"
+        ],
+        "note": "the arm's cost from the plan's own per-arm numbers; the plan-level estimates are the sum over kept arms"
+      }
+    },
+    {
+      "t_mono": 0.001293,
+      "time_base": "software",
+      "event": "preflight",
+      "report": {
+        "backend": "abp_backend",
+        "missing_parameters": [],
+        "steps_per_frame": 100,
+        "frames_expected": 30000,
+        "save_interval_divides_step": true,
+        "diffusivity_si": 8.584396548838734e-14,
+        "n_particles": 127,
+        "self_propulsion_speed_si": 4.9999999999999996e-06,
+        "persistence_length_si": 0.0005,
+        "seed": 1,
+        "reduced_units": {
+          "length_si": 4.9999999999999996e-06,
+          "energy_si": 4.04530157e-21,
+          "time_si": 291.22606181772795,
+          "diffusivity_si": 8.584396548838734e-14,
+          "kT_reduced": 1.0,
+          "gamma_reduced": 1.0,
+          "note": "sigma = bead_diameter, epsilon = k_B*T, tau = sigma^2/D with D from Stokes-Einstein. kT and gamma are then both 1, which is the statement that the engine is given the bath and the particle rather than the diffusivity"
+        },
+        "engine_parameters": {
+          "n_particles": 127,
+          "box_length": 100.00000000000001,
+          "integration_timestep": 3.433758619535494e-05,
+          "save_interval": 0.003433758619535494,
+          "total_simulated_time": 103.01275858606482,
+          "kT": 1.0,
+          "gamma": 1.0,
+          "gamma_r": 0.3433758619535494,
+          "rotational_diffusivity": 2.9122606181772794,
+          "self_propulsion_speed": 291.22606181772795,
+          "active_force": 291.22606181772795,
+          "wca_epsilon": 0.988801435636849,
+          "wca_sigma": 1.0,
+          "wca_r_cut": 1.122462048309373,
+          "dimensions": 2
+        },
+        "note": "N is derived from the packing fraction and the box, so the plan's compare arms differ in box_length alone. D_T is derived from the bath by Stokes-Einstein, as for bd_overdamped; the plan's translational_diffusivity condition is the same relation rounded and is not handed to the engine. D_R and v0 are the plan's, through the steric Peclet number.",
+        "engine_build": {
+          "engine": "hoomd",
+          "version": "7.2.0",
+          "gpu_enabled": false,
+          "mpi_enabled": false,
+          "gpu_platform": null,
+          "compile_flags": "DOUBLE[SINGLE]",
+          "floating_point_precision": "(64, 32)",
+          "conda_package": {
+            "fn": "hoomd-7.2.0-cpu_py312_h203d2c3_0.conda",
+            "version": "7.2.0",
+            "build": "cpu_py312_h203d2c3_0",
+            "channel": "https://conda.anaconda.org/conda-forge/",
+            "subdir": "osx-arm64",
+            "sha256": "b0b961dd79e54df99048c70bcc20c5ca33b35447cf3489594b6a9739323260b9"
+          },
+          "python": "3.12.14",
+          "interpreter": "/Users/kyuhwan/Desktop/rebuild/.pixi/envs/sim/bin/python",
+          "platform": "Darwin-arm64"
+        }
+      }
+    },
+    {
+      "t_mono": 0.002016,
+      "time_base": "software",
+      "event": "dispatch",
+      "action": "integrate",
+      "from": "actions[integrate]",
+      "handle": "abp_backend:1:104a53ce0",
+      "state": "submitted",
+      "params": {
+        "temperature": {
+          "value_si": 293.0,
+          "unit_in_plan": "K",
+          "grade": "E3",
+          "from": "conditions[0].number -> numbers[temperature]"
+        },
+        "viscosity": {
+          "value_si": 0.001,
+          "unit_in_plan": "Pa*s",
+          "grade": "E3",
+          "from": "conditions[1].number -> numbers[viscosity]"
+        },
+        "bead_diameter": {
+          "value_si": 4.9999999999999996e-06,
+          "unit_in_plan": "um",
+          "grade": "E2",
+          "from": "conditions[2].number -> numbers[bead_diameter]"
+        },
+        "translational_diffusivity": {
+          "value_si": 9e-14,
+          "unit_in_plan": "um^2/s",
+          "grade": "E4",
+          "from": "conditions[3].number -> numbers[translational_diffusivity]"
+        },
+        "rotational_diffusivity": {
+          "value_si": 0.01,
+          "unit_in_plan": "1/s",
+          "grade": "E4",
+          "from": "conditions[4].number -> numbers[rotational_diffusivity]"
+        },
+        "wca_epsilon": {
+          "value_si": 4e-21,
+          "unit_in_plan": "J",
+          "grade": "E5",
+          "from": "conditions[5].number -> numbers[wca_epsilon]"
+        },
+        "total_simulated_time": {
+          "value_si": 30000.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[6].number -> numbers[total_simulated_time_point]"
+        },
+        "save_interval": {
+          "value_si": 1.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[7].number -> numbers[save_interval_point]"
+        },
+        "max_lag_time": {
+          "value_si": 3000.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[8].number -> numbers[max_lag_time_point]"
+        },
+        "fit_lag_range_lower_bound": {
+          "value_si": 1000.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[9].number -> numbers[fit_lag_range_lower_bound_point]"
+        },
+        "peclet_number_steric": {
+          "value_si": 100.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[10].number -> numbers[peclet_max]"
+        },
+        "packing_fraction": {
+          "value_si": 0.01,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[11].number -> numbers[packing_fraction_min]"
+        },
+        "integration_timestep": {
+          "value_si": 0.01,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[12].number -> numbers[integration_timestep_point_max_min]"
+        },
+        "box_length": {
+          "value_si": 0.0005,
+          "unit_in_plan": "um",
+          "grade": "E5",
+          "from": "conditions[13].number -> numbers[box_length_max_min]"
+        }
+      }
+    },
+    {
+      "t_mono": 0.002018,
+      "time_base": "software",
+      "event": "monitors_compiled",
+      "monitors": [
+        "planned_duration_reached",
+        "step_displacement_diverged"
+      ],
+      "from": "stop_criteria"
+    },
+    {
+      "t_mono": 0.032169,
+      "time_base": "software",
+      "event": "abort",
+      "monitor": {
+        "id": "step_displacement_diverged",
+        "metric": "max_single_step_displacement",
+        "comparator": ">",
+        "threshold_si": 4.9999999999999996e-06,
+        "on_met": "fault",
+        "from": "stop_criteria[step_displacement_diverged].number -> numbers[bead_diameter]",
+        "met": true,
+        "outcome": "fault"
+      },
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "abp_backend:1:104a53ce0",
+        "steps_taken": 200,
+        "simulated_time": 2.0,
+        "frames_saved": 3,
+        "max_single_step_displacement": 5.609248189847451e-06,
+        "max_absolute_coordinate": 0.00023963872524556426,
+        "failure": null
+      },
+      "reason": "stop criterion step_displacement_diverged fired"
+    }
+  ],
+  "finished_at": "2026-09-24T00:47:20.711174+00:00"
+}

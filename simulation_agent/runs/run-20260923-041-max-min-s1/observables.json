@@ -1,0 +1,57 @@
+{
+  "run_id": "run-20260923-041-max-min-s1",
+  "observable": "mean_squared_displacement",
+  "window_parameter": "max_lag_time",
+  "window_si": 3000.0,
+  "fit": {
+    "quantity": "effective_translational_diffusivity",
+    "diffusivity": null,
+    "reason": "the record holds 4 frames and fewer than two lags fall between 1000.0 s and 3000.0 s; the run stopped before the fit range was filled",
+    "frames_saved": 4,
+    "lags_used": 0
+  },
+  "uncertainty": {
+    "standard_error": null,
+    "reason": "fewer than two blocks produced a fit"
+  },
+  "window_sensitivity": {
+    "log10_ratio": null,
+    "reason": "one half of the fit range has fewer than two lags or a non-positive slope"
+  },
+  "msd_curve": [
+    [
+      1.0,
+      2.509114906734071e-11
+    ],
+    [
+      2.0,
+      9.92853572400439e-11
+    ],
+    [
+      3.0,
+      2.2249197498927902e-10
+    ]
+  ],
+  "msd_loglog_slope": [],
+  "orientation_autocorrelation": [
+    [
+      1.0,
+      0.989470689387454
+    ],
+    [
+      2.0,
+      0.9785454803764453
+    ],
+    [
+      3.0,
+      0.9706184979515058
+    ]
+  ],
+  "persistence_time": {
+    "persistence_time": 103.96821781751939,
+    "lags_used": 3,
+    "longest_lag": 3.0,
+    "floor": 0.05,
+    "estimator": "contracts/observables.json: persistence_time -- exponential fit to the orientational autocorrelation over the declared lag window"
+  }
+}

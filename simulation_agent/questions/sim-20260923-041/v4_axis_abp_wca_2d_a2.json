@@ -1,0 +1,225 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-041-abp_wca_2d-a2-r4",
+  "qid": "sim-20260923-041",
+  "thread": "solo-sim-20260923-041",
+  "round": 0,
+  "revision": 4,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T22:35:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-041:v4:abp_wca_2d:a2",
+  "config": "abp_wca_2d",
+  "axis": "a2",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "total_simulated_time",
+      "unit": "s",
+      "min": 10000.0,
+      "basis": [
+        "total_simulated_time_min"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "parameter": "lag_to_record_ratio",
+      "unit": "1",
+      "max": 0.1,
+      "basis": [
+        "lag_to_record_ratio_max"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "T >= plateau lag / lag_to_record_ratio_max: the record must hold many of the longest fitted displacements",
+      "parameter": "total_simulated_time",
+      "state": "returned",
+      "interval": {
+        "parameter": "total_simulated_time",
+        "unit": "s",
+        "min": 10000.0,
+        "basis": [
+          "total_simulated_time_min"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    },
+    {
+      "inequality": "max lag / T <= lag_to_record_ratio_max",
+      "parameter": "lag_to_record_ratio",
+      "state": "returned",
+      "interval": {
+        "parameter": "lag_to_record_ratio",
+        "unit": "1",
+        "max": 0.1,
+        "basis": [
+          "lag_to_record_ratio_max"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "persistence_time_expected",
+      "value": 100,
+      "unit": "s",
+      "source": "computed:persistence_time_2d",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "1/rotational_diffusivity",
+      "inputs": [
+        "rotational_diffusivity"
+      ],
+      "note": "the 2D relation tau_p = 1/D_R, the person's dimension. It is the input-side expectation the registered persistence_time estimator is read against, and not a result",
+      "origin": "v4_goal.json#persistence_time_expected"
+    },
+    {
+      "name": "plateau_factor",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_plateau",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how many persistence times into the lag the MSD slope is read as the long-time value"
+    },
+    {
+      "name": "fit_lag_reference",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "computed:plateau_lag",
+      "grade": "E5",
+      "formula": "plateau_factor*persistence_time_expected",
+      "inputs": [
+        "plateau_factor",
+        "persistence_time_expected"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the longest lag whose displacements the fit needs many of; A2's reference, not A4's window -- the two axes derive it from the same goal input (4.5.3 rule b)"
+    },
+    {
+      "name": "lag_to_record_ratio_max",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_window_statistics",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the largest share of the record one lag may span"
+    },
+    {
+      "name": "total_simulated_time_min",
+      "value": 10000.0,
+      "unit": "s",
+      "source": "computed:record_over_ratio",
+      "grade": "E5",
+      "formula": "fit_lag_reference/lag_to_record_ratio_max",
+      "inputs": [
+        "fit_lag_reference",
+        "lag_to_record_ratio_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "floor only; A5 bounds the run from above"
+    },
+    {
+      "name": "target_relative_error",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_statistics",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "ten per cent on the effective diffusivity, well inside the decade the goal asks for"
+    },
+    {
+      "name": "independent_samples_min",
+      "value": 100,
+      "unit": "count",
+      "source": "assumed:a_statistics",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "one over the square of the target error. The product n_particles*total_simulated_time/fit_lag_reference must exceed it; at the record floor above that holds for any ensemble of ten or more particles, so the record length and not the sample count is what binds here"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_plateau",
+      "gap_ref": "plateau_factor_absent",
+      "statement": "Ten persistence times is where the free active MSD is within a few per cent of its asymptotic slope, since the memory term decays as exp(-t/tau_p). Interactions can lengthen the approach, which is a result and not something to assume away.",
+      "numbers": [
+        "plateau_factor"
+      ],
+      "falsifier": "a fitted slope that still drifts between ten and thirty persistence times raises this factor"
+    },
+    {
+      "rationale_id": "a_window_statistics",
+      "gap_ref": "lag_to_record_ratio_absent",
+      "statement": "A lag may span at most a tenth of the record so that every lag in the fit is determined by many displacements rather than by one.",
+      "numbers": [
+        "lag_to_record_ratio_max"
+      ],
+      "falsifier": "a weighted fit whose slope is unchanged when the longest lag is shortened retires this fraction"
+    },
+    {
+      "rationale_id": "a_statistics",
+      "gap_ref": "independent_samples_prefactor_absent",
+      "statement": "A ten per cent statistical error needs of order one hundred independent displacements at the longest fit lag, from the square-root scaling of an ensemble mean; the prefactor for a weighted slope estimator on an active MSD has not been measured.",
+      "numbers": [
+        "target_relative_error",
+        "independent_samples_min"
+      ],
+      "falsifier": "a seed-to-seed spread wider than ten per cent at this sample count raises the floor"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "plateau_factor_absent",
+      "observable": "plateau_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v4:abp_wca_2d:a2",
+      "asked_at": "2026-09-24T00:45:12+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "lag_to_record_ratio_absent",
+      "observable": "lag_to_record_ratio",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v4:abp_wca_2d:a2",
+      "asked_at": "2026-09-24T00:45:15+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "independent_samples_prefactor_absent",
+      "observable": "independent_samples_prefactor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v4:abp_wca_2d:a2",
+      "asked_at": "2026-09-24T00:45:17+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "The record must be a hundred persistence times long before the long-time slope can be read with ten per cent error, whatever the ensemble. The ensemble is not free here as it was for bd_overdamped: with interactions it is a density, and A3 and A5 own what that costs."
+}

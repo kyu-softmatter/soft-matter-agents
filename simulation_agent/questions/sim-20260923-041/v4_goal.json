@@ -1,0 +1,317 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-sim-20260923-041-r4",
+  "qid": "sim-20260923-041",
+  "thread": "solo-sim-20260923-041",
+  "round": 0,
+  "revision": 4,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T22:30:00Z",
+  "status": "DRAFT",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "mean_squared_displacement"
+  },
+  "targets": [
+    {
+      "metric": "effective_translational_diffusivity",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "one decade on the long-time effective diffusivity across the two-axis sweep: the question is where the interacting value leaves the free one and where the regime changes, not the coefficient"
+    }
+  ],
+  "constraint_notes": [
+    "the person's question 4-1, verbatim in intent: simulate active Brownian particles with self-propulsion speed v0, rotational diffusivity D_R and translational diffusivity D_T, add excluded-volume or hard-sphere-like repulsion, and determine how particle-particle interactions modify the dynamics against non-interacting active Brownian particles; sweep density, v0, D_R, D_T and interaction strength; report how the MSD, the effective diffusivity, the persistence time, the persistence length and the short-to-long-time crossover change; and examine whether density or interaction strength produces qualitatively different regimes",
+    "REVISION 4 records the person's ruling of 2026-09-23 on revision 3's S4 refusal: the Pe 100, phi 0.01 cell runs with the integration step AT A1's CEILING for that level rather than a decade under it, and with a box of ONE persistence length rather than ten. The first because the self-propulsion step that binds at Pe 100 is kinematic and carries no estimate. The second because sim-20260923-042 measured one and ten persistence lengths of box agreeing to 3 per cent at Pe 10, phi 0.1 (result_run-20260923-042-mid-s1); applying that at Pe 100 is an ASSUMPTION the person chose to make, not a measurement at that Pe. The person was told first that the cell as revision 3 sized it would take about 2.6 h at the measured rate against a 2 h ceiling. The other two Pe 100 cells stay refused. Decisions carry no grade",
+    "REVISION 3 exists for one reason: revision 2's fan-out stated every bound at the sweep's top corner (Pe 100, phi 0.5) as one interval per parameter, and a sweep has no single tightest corner -- A1 binds hardest at the fastest point and A5 at the densest, and intersecting claims about different points is a category error (contracts/schemas/common.schema.json `varies_with`, 7e5de1a, measured first by window 2 on sim-20260923-201). Revision 3's axis cards mark which bounds are functions of the sweep axes, S4 evaluates them per grid point, and the plan carries the grid as `sweep` with any skipped cell saying why. simulation-9 (window 3) named the same defect from the free arm's side",
+    "the grid levels are now numbers: peclet_min, peclet_mid, peclet_max and packing_fraction_min, packing_fraction_mid, packing_fraction_max, decade steps as the person's ruling on two axes was read at revision 2. The middle levels are assumed under a_sweep_decades like the ends",
+    "REVISION 2 records the person's ruling of 2026-09-23 on the S2 questions of revision 1: TWO DIMENSIONS; the repulsion is WCA; the sweep is reduced to TWO AXES, the Peclet number and the packing fraction, everything else held. The person said 'proceed' to the proposed purposes without objection and that is taken as confirmation. Decisions carry no source and no grade",
+    "still not a candidate for S3: the observables are unregistered and no configuration carries an orientation or a pair potential (see the S3.0 refusal beside revision 1). Revision 2 exists so the configuration request to manager-simulation is exact -- 2D, WCA, active, undriven -- and so the anchor and the sweep are on a card and not in a chat",
+    "the SI anchor is the bottle's 5 um sphere in water at the room's temperature, all from the store; D_T and D_R are computed from it and inherit E4. This chooses a physical scale for a model system and claims nothing about those beads being active",
+    "no result of this question can be measured: E1 belongs to the world and a simulated observable is about the model. Whatever the grade of a run's output, it enters no card until 5.3 has a source kind for it (simulation_agent/CLAUDE.md)",
+    "the grid is decade steps on both axes, so nine operating points; A5 costs each and the dense high-Pe corner is the one expected to pinch. The free reference arm is not run here: it is closed-form and belongs in the store",
+    "4-2 (sim-20260923-042) is this question's A3 premise; until it lands the box is an assumption in every 041 axis card",
+    "the observable names are UNREGISTERED: contracts/observables.json holds tracer_diffusivity, trapped_position_distribution, tracer_brightness and bleaching_rate, none of which is a mean squared displacement curve, a long-time effective diffusivity, a persistence time, a persistence length or a crossover time. The ordering is register-then-plan (11-1), a request up to manager-simulation and not a refusal. The estimator is part of each identity and the question .md lists the choice each one forces",
+    "NO CONFIGURATION CAN PRODUCE IT: capabilities/simulation.json declares bd_overdamped alone -- position-only Wiener increment, no orientation, no pair potential, A7 abstaining by declaration. An active particle needs one orientational degree of freedom per particle and an interacting one needs a declared pair potential; both are a change of physical model, a human decision (4.2) recorded in contracts/. S3.0 returns zero candidates and the refusal card beside this one says so in numbers",
+    "no number is filled here: S2 produces none. Dimensionality, the physical anchor in SI units (D7), the potential and its strength range, the density range, the sweep ranges of v0, D_R and D_T, the target accuracy and the execution target are all the person's or S3's",
+    "the librarian was reached at kbv-4b981dc870d3: every S2 query under this id returned absent with no near names, so branch two of S2 (already known, hand to the librarian and stop) does not close this from the store's side. The non-interacting active Brownian particle has a closed-form MSD in the literature and is the reference every result here is read against; that closed form belongs in the store as a graded literature: entry before any run is compared to it, and is not this seat's to write from memory (E6)",
+    "the envelope snapshot in this tree pins kbv-30966d978fbe while the publisher's copy is kbv-4b981dc870d3; this card queried the published version. Re-copy before any fan-out, and not during one"
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "requested_by": "human",
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the SI anchor: the particle in the bottle. An active particle of this size is a model choice, not a claim that these beads self-propel; the anchor exists because cards are authoritative in physical units (D7) and the store holds this diameter at E2"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "a parameter of the noise amplitude, realised exactly by the model; the room's reading is why this value was chosen"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "pure water, validity 288 to 298 K, the temperature above is inside it"
+    },
+    {
+      "name": "translational_diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "D_T, the thermal translational diffusivity of the anchor sphere. Same relation as sim-20260917-001 and kb:tracer_diffusivity_expected"
+    },
+    {
+      "name": "rotational_diffusivity",
+      "value": 0.01,
+      "unit": "1/s",
+      "source": "computed:stokes_einstein_debye",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(pi*viscosity*bead_diameter**3)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "D_R, THERMALLY TIED to D_T through the sphere's rotational drag -- 3*D_T/bead_diameter**2. The person did not rule on the tie and this is the assumption a_thermal_rotation; the store holds nothing on rotational diffusivity (gap rotational_diffusivity_absent). In 2D the persistence time is 1/D_R, about a hundred seconds at this anchor"
+    },
+    {
+      "name": "persistence_time_expected",
+      "value": 100,
+      "unit": "s",
+      "source": "computed:persistence_time_2d",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "1/rotational_diffusivity",
+      "inputs": [
+        "rotational_diffusivity"
+      ],
+      "note": "the 2D relation tau_p = 1/D_R, the person's dimension. It is the input-side expectation the registered persistence_time estimator is read against, and not a result"
+    },
+    {
+      "name": "wca_epsilon",
+      "value": 4e-21,
+      "unit": "J",
+      "source": "assumed:a_wca_stiffness",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the WCA well depth, taken as one k_B*T at 293 K so the repulsion is hard-sphere-like at Pe of order one. At high Pe the active force can drive overlaps deep into the potential; A1 owns the contact stiffness and this is what it will move"
+    },
+    {
+      "name": "peclet_min",
+      "value": 1,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "Pe = v0/(bead_diameter*rotational_diffusivity); the lower decade, where activity barely beats thermal motion"
+    },
+    {
+      "name": "peclet_mid",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the middle decade of the Peclet axis; v0 = Pe*bead_diameter*rotational_diffusivity, of order 0.5 um/s at this anchor"
+    },
+    {
+      "name": "peclet_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "two decades up; v0 = Pe*bead_diameter*rotational_diffusivity, so of order 5 um/s at this anchor"
+    },
+    {
+      "name": "packing_fraction_min",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "area fraction phi = N*pi*bead_diameter**2/(4*L**2); the dilute decade, where the free result should be recovered"
+    },
+    {
+      "name": "packing_fraction_mid",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the middle decade of the packing-fraction axis; the point 042 holds fixed"
+    },
+    {
+      "name": "packing_fraction_max",
+      "value": 0.5,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the dense end, where the question's qualitatively different regime (motility-induced clustering) is expected from the literature; the threshold itself is a literature fact for the store and not stated here"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_thermal_rotation",
+      "statement": "D_R is tied to D_T by the sphere's rotational drag, D_R = 3 D_T / d^2, because the person fixed the anchor and not D_R separately, and a thermal sphere is the one relation that introduces no free number.",
+      "numbers": [
+        "rotational_diffusivity"
+      ],
+      "falsifier": "the person rules D_R an independent axis, or the store gains an entry for the anchor's rotational diffusivity that disagrees by more than a decade",
+      "gap_ref": "rotational_diffusivity_absent"
+    },
+    {
+      "rationale_id": "a_wca_stiffness",
+      "statement": "One k_B T of WCA well depth makes the repulsion hard-sphere-like at low Pe; whether it stays so at the top of the Pe range is A1's question.",
+      "numbers": [
+        "wca_epsilon"
+      ],
+      "falsifier": "an A1 interval that finds the contact overlap at peclet_max exceeding a stated fraction of the diameter replaces this value, and it is then a swept quantity again",
+      "gap_ref": "active_brownian_particle_absent"
+    },
+    {
+      "rationale_id": "a_sweep_decades",
+      "statement": "Two decades of Pe (1, 10, 100) and packing fractions 0.01, 0.1, 0.5 in decade steps, because the person reduced the sweep to these two axes and explore answers in decades. The ends are guesses at where the free and the clustered regimes sit; the middle levels are the decade between.",
+      "numbers": [
+        "peclet_min",
+        "peclet_mid",
+        "peclet_max",
+        "packing_fraction_min",
+        "packing_fraction_mid",
+        "packing_fraction_max"
+      ],
+      "falsifier": "an A5 cost above the local ceiling at the dense, high-Pe corner drops that corner and says so; a store entry placing the clustering threshold outside this range moves the ends",
+      "gap_ref": "packing_fraction_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "mean_squared_displacement_absent",
+      "observable": "mean_squared_displacement",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='mean_squared_displacement', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v1:s2",
+      "asked_at": "2026-09-23T16:28:18+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "active_brownian_particle_absent",
+      "observable": "active_brownian_particle",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='active_brownian_particle', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v1:s2",
+      "asked_at": "2026-09-23T16:28:21+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "persistence_length_absent",
+      "observable": "persistence_length",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='persistence_length', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v1:s2",
+      "asked_at": "2026-09-23T16:28:25+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "rotational_diffusivity_absent",
+      "observable": "rotational_diffusivity",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='rotational_diffusivity', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v2:s2",
+      "asked_at": "2026-09-23T16:34:32+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "packing_fraction_absent",
+      "observable": "packing_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='packing_fraction', purpose='compare') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-042:v2:s2",
+      "asked_at": "2026-09-23T16:34:38+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": []
+}
