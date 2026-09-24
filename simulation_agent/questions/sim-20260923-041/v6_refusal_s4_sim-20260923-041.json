@@ -1,0 +1,117 @@
+{
+  "card": "refusal",
+  "schema_version": "0.1",
+  "id": "refusal-sim-20260923-041-s4-r6",
+  "qid": "sim-20260923-041",
+  "thread": "solo-sim-20260923-041",
+  "round": 0,
+  "revision": 6,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T03:07:00Z",
+  "status": "REFUSED",
+  "stage": "S4",
+  "refused_what": "grid cells max_max, max_mid of the (Peclet, packing fraction) sweep: the dense, fast corner of the grid",
+  "reason_code": "budget_exceeded",
+  "counterexample": [
+    {
+      "parameter": "particle_steps",
+      "required_number": "particle_steps_max_mid",
+      "limit_number": "particle_steps_max",
+      "statement": "cell max_mid needs particle_steps_max_mid = 3e+12 against particle_steps_max = 7e+10 at its own step and box; the save interval is at A4's ceiling and the step a decade under A1's for that level, so no settable parameter inside the intervals brings the cell under the ceiling"
+    },
+    {
+      "parameter": "coordinates_stored",
+      "required_number": "coordinates_stored_max_mid",
+      "limit_number": "coordinates_stored_max",
+      "statement": "cell max_mid needs coordinates_stored_max_mid = 6e+09 against coordinates_stored_max = 1e+09 at its own step and box; the save interval is at A4's ceiling and the step a decade under A1's for that level, so no settable parameter inside the intervals brings the cell under the ceiling"
+    },
+    {
+      "parameter": "particle_steps",
+      "required_number": "particle_steps_max_max",
+      "limit_number": "particle_steps_max",
+      "statement": "cell max_max needs particle_steps_max_max = 2e+13 against particle_steps_max = 7e+10 at its own step and box; the save interval is at A4's ceiling and the step a decade under A1's for that level, so no settable parameter inside the intervals brings the cell under the ceiling"
+    },
+    {
+      "parameter": "coordinates_stored",
+      "required_number": "coordinates_stored_max_max",
+      "limit_number": "coordinates_stored_max",
+      "statement": "cell max_max needs coordinates_stored_max_max = 4e+10 against coordinates_stored_max = 1e+09 at its own step and box; the save interval is at A4's ceiling and the step a decade under A1's for that level, so no settable parameter inside the intervals brings the cell under the ceiling"
+    }
+  ],
+  "alternatives": [
+    {
+      "what": "raise the local ceilings, or add an execution target with more wall clock and disk, by the factors the counterexample states",
+      "requires": "a person's edit to simulation_agent/envelope/budget.json"
+    },
+    {
+      "what": "shrink the box at those cells below ten persistence lengths and accept that the image bound is then a measured question, which sim-20260923-042 is the instrument for",
+      "requires": "042's result: if one persistence length of box already reproduces ten, A3's margin drops and these cells come under the ceiling by a hundred"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "particle_steps_max",
+      "value": 70000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_times_rate",
+      "grade": "E5",
+      "origin": "v6_axis_abp_wca_2d_a5.json#particle_steps_max",
+      "precision": "order_of_magnitude",
+      "note": "the product n_particles*total_simulated_time/integration_timestep may not exceed this. A5 constrains the product and not any factor, and takes none of them from A1 or A2 (4.5.3 rule b)"
+    },
+    {
+      "name": "coordinates_stored_max",
+      "value": 1000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_over_bytes",
+      "grade": "E4",
+      "origin": "v6_axis_abp_wca_2d_a5.json#coordinates_stored_max",
+      "precision": "order_of_magnitude",
+      "note": "the product 2*n_particles*total_simulated_time/save_interval may not exceed this, two coordinates per particle per frame in two dimensions"
+    },
+    {
+      "name": "particle_steps_max_mid",
+      "value": 3000000000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "origin": "v6_synthesis.json#particle_steps_max_mid",
+      "precision": "order_of_magnitude",
+      "note": "the cell's cost in particle-steps against particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_max_mid",
+      "value": 6000000000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "origin": "v6_synthesis.json#coordinates_stored_max_mid",
+      "precision": "order_of_magnitude",
+      "note": "the cell's stored coordinates against coordinates_stored_max"
+    },
+    {
+      "name": "particle_steps_max_max",
+      "value": 20000000000000.0,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "origin": "v6_synthesis.json#particle_steps_max_max",
+      "precision": "order_of_magnitude",
+      "note": "the cell's cost in particle-steps against particle_steps_max"
+    },
+    {
+      "name": "coordinates_stored_max_max",
+      "value": 40000000000.0,
+      "unit": "1",
+      "source": "computed:two_coordinates_per_frame",
+      "grade": "E5",
+      "origin": "v6_synthesis.json#coordinates_stored_max_max",
+      "precision": "order_of_magnitude",
+      "note": "the cell's stored coordinates against coordinates_stored_max"
+    }
+  ],
+  "assumptions": [],
+  "kb_refs": [],
+  "kb_gaps": [],
+  "degraded": []
+}

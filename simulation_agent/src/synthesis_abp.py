@@ -251,6 +251,15 @@ RULINGS = {
     # too; the step stays at the level default. Revision 4's ruling carries.
     ("sim-20260923-041", 5): {"max_min": {"step_at_ceiling": True, "box_over_persistence_length": 1},
                               "mid_max": {"box_over_persistence_length": 1}},
+    # 2026-09-24: the same cell again in a larger box, to separate the slowdown
+    # revision 5 read from the size of its box. The person asked for THREE
+    # persistence lengths; 150 um cannot be written in explore mode, where a
+    # value inheriting an estimate is stated to one figure and 150 rounds to
+    # 200 in the validator and to 100 here (the float 1.4999e-4). FOUR is the
+    # nearest multiple that is itself one figure, serves the ruling's purpose
+    # equally, and fits the budget; the goal and the report to the person say so.
+    ("sim-20260923-041", 6): {"max_min": {"step_at_ceiling": True, "box_over_persistence_length": 1},
+                              "mid_max": {"box_over_persistence_length": 4}},
 }
 
 

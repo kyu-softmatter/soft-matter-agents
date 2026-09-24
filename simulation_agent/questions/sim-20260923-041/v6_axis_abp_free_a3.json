@@ -1,0 +1,118 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-041-abp_free-a3-r6",
+  "qid": "sim-20260923-041",
+  "thread": "solo-sim-20260923-041",
+  "round": 0,
+  "revision": 6,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T03:05:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-041:v6:abp_free:a3",
+  "config": "abp_free",
+  "axis": "a3",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "abstain_reason": "Nothing couples a free active particle to its periodic image: with no pair potential and unwrapped coordinates the MSD and every quantity read off it are independent of the box. There is no inequality to emit. The box has only to hold the ensemble, which is A5's cost and not A3's physics.",
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the SI anchor: the particle in the bottle. An active particle of this size is a model choice, not a claim that these beads self-propel; the anchor exists because cards are authoritative in physical units (D7) and the store holds this diameter at E2",
+      "origin": "v6_goal.json#bead_diameter"
+    },
+    {
+      "name": "peclet_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "two decades up; v0 = Pe*bead_diameter*rotational_diffusivity, so of order 5 um/s at this anchor",
+      "origin": "v6_goal.json#peclet_max"
+    },
+    {
+      "name": "persistence_length_max",
+      "value": 500.0,
+      "unit": "um",
+      "source": "computed:steric_peclet_number",
+      "grade": "E5",
+      "formula": "peclet_max*bead_diameter",
+      "inputs": [
+        "peclet_max",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "v0/D_R in 2D with v0 = Pe*d*D_R; recorded so the box can be compared to it even though nothing here bounds the box"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_sweep_decades",
+      "statement": "Two decades of Pe (1, 10, 100) and packing fractions 0.01, 0.1, 0.5 in decade steps, because the person reduced the sweep to these two axes and explore answers in decades. The ends are guesses at where the free and the clustered regimes sit; the middle levels are the decade between.",
+      "numbers": [
+        "peclet_max"
+      ],
+      "falsifier": "an A5 cost above the local ceiling at the dense, high-Pe corner drops that corner and says so; a store entry placing the clustering threshold outside this range moves the ends",
+      "gap_ref": "packing_fraction_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "mean_squared_displacement_absent",
+      "observable": "mean_squared_displacement",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v6:abp_free:a3",
+      "asked_at": "2026-09-24T02:28:34+00:00",
+      "condition_range": {
+        "bead_diameter": {
+          "max": 5,
+          "min": 5,
+          "unit": "um"
+        },
+        "temperature": {
+          "max": 293,
+          "min": 293,
+          "unit": "K"
+        }
+      },
+      "near_names": []
+    },
+    {
+      "gap_id": "packing_fraction_absent",
+      "observable": "packing_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-041:v6:abp_free:a3",
+      "asked_at": "2026-09-24T02:28:38+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "The abstention is the physics of the free model, not a missing input."
+}

@@ -1,0 +1,27 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-041-abp_wca_2d-a7-r6",
+  "qid": "sim-20260923-041",
+  "thread": "solo-sim-20260923-041",
+  "round": 0,
+  "revision": 6,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T03:05:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-041:v6:abp_wca_2d:a7",
+  "config": "abp_wca_2d",
+  "axis": "a7",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "abstain_reason": "No driving was requested. The goal names no driving parameter, and abp_wca_2d is declared undriven, so there is no driving amount for this axis to bound. Abstaining is not the same as being absent: this card is the record that the axis was asked and had nothing to constrain (P1).",
+  "numbers": [],
+  "assumptions": [],
+  "kb_refs": [],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "note": "numbers[] is empty because an abstention on this axis has nothing to measure -- unlike A5, which abstains for want of a limit while still knowing the cost."
+}
