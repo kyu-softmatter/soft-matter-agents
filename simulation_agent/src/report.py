@@ -379,6 +379,11 @@ def trap_setup_words(R, rows) -> str:
             "never lets go and never softens far from its centre; walls, other particles and heating by the laser are absent.</p>")
 
 
+# Configurations whose report body is written in their own module (task 022: each
+# window adds its own configuration's parts). The module exposes PARTS with a
+# `build(R, notes) -> (body, ctx)` and a `title`.
+EXTERNAL_PARTS = {"bd_overdamped_trapped": "report_trap_rest"}
+
 CONFIG_PARTS = {
     "bd_overdamped_trapped_uniform_flow": {
         "cells": trap_cells, "f3": trap_f3, "f5": trap_f5, "expected": trap_expected, "setup": trap_setup_words,
@@ -465,8 +470,15 @@ def build(qid: str) -> tuple[str, dict]:
     plan, goal = R["plan"], R["goal"]
     cfg = plan["system_configuration"]["config"]
     parts = CONFIG_PARTS.get(cfg)
+    if parts is None and cfg in EXTERNAL_PARTS:
+        # A configuration whose whole body differs lives in its own module, imported
+        # only when asked, so this file needs no knowledge of it beyond its name.
+        import importlib  # noqa: PLC0415
+        parts = importlib.import_module(f"{__package__}.{EXTERNAL_PARTS[cfg]}").PARTS
     if parts is None:
         raise Refused(f"no report parts are written for configuration {cfg!r}; its window adds them to CONFIG_PARTS")
+    if "build" in parts:
+        return parts["build"](R, notes(qid))
     rows = parts["cells"](R)
     N = notes(qid)
     c0 = rows[0]["r"]["card"]
@@ -613,7 +625,8 @@ def emit(qid: str) -> Path:
     _selftest()
     body, ctx = build(qid)
     refuse_codes(body)
-    title = "Drag calibration of a harmonic trap" if "trap" in ctx["R"]["plan"]["system_configuration"]["config"] else qid
+    title = ctx.get("title") or ("Drag calibration of a harmonic trap"
+                                 if "trap" in ctx["R"]["plan"]["system_configuration"]["config"] else qid)
     doc = (f"<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><title>{title}</title><style>{CSS}</style></head>"
            f"<body><main><h1>{title}</h1><p class='meta'>Simulation report, generated from the records. Numbers are read off the "
            f"cards and runs; the sections marked as notes are written by hand.</p>{body}{footer(qid, ctx['R'])}</main></body></html>")
