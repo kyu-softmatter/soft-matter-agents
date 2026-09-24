@@ -5,6 +5,94 @@
   "allOf": [
     {
       "$ref": "common.schema.json#/$defs/common_head"
+    },
+    {
+      "if": {
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "purpose": {
+            "const": "verify"
+          },
+          "actions": {
+            "items": {
+              "properties": {
+                "reversible": {
+                  "const": true
+                }
+              }
+            }
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "goal_id"
+              ]
+            },
+            {
+              "required": [
+                "synthesis_id"
+              ]
+            },
+            {
+              "required": [
+                "observable"
+              ]
+            },
+            {
+              "required": [
+                "conditions"
+              ]
+            },
+            {
+              "required": [
+                "compare_arms"
+              ]
+            },
+            {
+              "required": [
+                "compare_variable"
+              ]
+            },
+            {
+              "required": [
+                "sweep"
+              ]
+            },
+            {
+              "required": [
+                "preconditions"
+              ]
+            },
+            {
+              "required": [
+                "smoke"
+              ]
+            }
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "goal_id",
+          "purpose",
+          "intent",
+          "observable",
+          "system_configuration",
+          "conditions",
+          "actions",
+          "envelope_check",
+          "cost",
+          "stop_criteria",
+          "success_criteria",
+          "open_risks"
+        ]
+      }
     }
   ],
   "properties": {
@@ -432,21 +520,165 @@
           "minLength": 1
         }
       }
+    },
+    "operation": {
+      "type": "object",
+      "description": "An OPERATION PLAN: a move that verifies rather than measures (plan.md 11-21, settled 2026-09-24). No S3 to S5: a verification move measures nothing about the sample, so the seven axes have nothing to decide. Six conditions, of which the schema holds the shape and check 86 the rest: one device, and one axis per move; every commanded position inside the envelope's limits, checked by code before anything is sent, a missing limit refusing; each move's size and count written here and approved by the person through the ordinary plan_approval, with the bench; position read back before and after each move; what it verifies and what would falsify it, stated; reversible only. What it finds -- a channel mapping, a direction, a tracking error -- is a fact about the instrument and leaves as a result card naming the observation. It does not cover a measurement bound for the store, first focus-finding, or anything irreversible.",
+      "properties": {
+        "device": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "the one device every move commands"
+        },
+        "verifies": {
+          "type": "string",
+          "minLength": 20,
+          "description": "what the operation establishes, in words"
+        },
+        "falsified_by": {
+          "type": "string",
+          "minLength": 20,
+          "description": "the observation that would show the thing verified is not so"
+        },
+        "read_back": {
+          "const": "before_and_after_each_move"
+        },
+        "moves": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_-]+$"
+                  },
+                  "axis": {
+                    "enum": [
+                      "x",
+                      "y",
+                      "z"
+                    ]
+                  },
+                  "kind": {
+                    "const": "step"
+                  },
+                  "target_um": {
+                    "type": "number",
+                    "description": "the absolute position commanded, in um. Absolute, not relative: a relative step re-sent after a lost reply moves twice, and an absolute target can be checked against the envelope before anything is sent"
+                  },
+                  "role": {
+                    "enum": [
+                      "verify_mapping",
+                      "direction_finding",
+                      "approach",
+                      "return"
+                    ],
+                    "description": "what the step is for. `direction_finding` is the only role Z may have, besides `return`, until the piezo-Z direction is recorded. `approach` brings an axis to where a sine starts: the controller rests at its floor, so a sine centred mid-range begins with a long move, and the plan carries that move explicitly rather than letting the first sine point make it"
+                  },
+                  "ramp_um_per_s": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "optional: move at this rate rather than in one jump, written as position writes paced from the integer index. The prior project ramped its long moves; whether one is needed is the person's, approved with the plan"
+                  }
+                },
+                "required": [
+                  "id",
+                  "axis",
+                  "kind",
+                  "target_um",
+                  "role"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_-]+$"
+                  },
+                  "axis": {
+                    "enum": [
+                      "x",
+                      "y"
+                    ],
+                    "description": "X and Y only. Z never takes periodic motion under an operation plan"
+                  },
+                  "kind": {
+                    "const": "sine"
+                  },
+                  "centre_um": {
+                    "type": "number"
+                  },
+                  "amplitude_um": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "period_s": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "cycles": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "points_per_period": {
+                    "type": "integer",
+                    "minimum": 4,
+                    "description": "the sine is written as this many absolute position writes per period, from the integer index, never an accumulated phase"
+                  },
+                  "host_timed": {
+                    "const": true,
+                    "description": "always true: the controller's own waveform generator is refused while the unit it reads is unmeasured here (the 314 um incident)"
+                  },
+                  "start": {
+                    "enum": [
+                      "centre",
+                      "minimum",
+                      "maximum"
+                    ],
+                    "description": "where the sine's first point is. `minimum` is centre minus amplitude (a cosine phase), and so on. The approach step before it must land exactly there. microscope-20260924-2's first sine design started at its minimum, so that the approach from the controller's rest position was 10 um rather than 300"
+                  }
+                },
+                "required": [
+                  "id",
+                  "axis",
+                  "kind",
+                  "centre_um",
+                  "amplitude_um",
+                  "period_s",
+                  "cycles",
+                  "points_per_period",
+                  "host_timed",
+                  "start"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "device",
+        "verifies",
+        "falsified_by",
+        "read_back",
+        "moves"
+      ],
+      "additionalProperties": false
     }
   },
+  "unevaluatedProperties": false,
   "required": [
-    "goal_id",
     "purpose",
     "intent",
-    "observable",
-    "system_configuration",
-    "conditions",
     "actions",
     "envelope_check",
-    "cost",
     "stop_criteria",
     "success_criteria",
     "open_risks"
-  ],
-  "unevaluatedProperties": false
+  ]
 }

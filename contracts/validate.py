@@ -123,6 +123,16 @@ class Bundle:
         """Thread ledgers are not cards: they carry no numbers, so no grades."""
         return [a for a in self.artifacts if a.data.get("artifact") in kinds]
 
+    def plans_from_pipeline(self) -> list[Card]:
+        """Plan cards that came out of S3 to S5, leaving out operation plans.
+
+        An operation plan (11-21, 2026-09-24) is a move that verifies: no goal,
+        no synthesis, no observable, and its targets are its own decisions,
+        approved with it. A check that asks a plan for any of those asks it of
+        these only, and check 86 is what judges an operation plan instead.
+        """
+        return [c for c in self.of_kind("plan") if "operation" not in c.data]
+
     def by_qid(self) -> dict[str, list[Card]]:
         out: dict[str, list[Card]] = {}
         for c in self.cards:
@@ -1973,10 +1983,10 @@ def check_19_scope_validity(b: Bundle) -> list[Finding]:
 
 
 def check_20_alternatives(b: Bundle) -> list[Finding]:
-    plans = b.of_kind("plan")
+    plans = b.plans_from_pipeline()   # an operation plan has no synthesis to count against
     syn = {c.data.get("qid"): c for c in b.of_kind("synthesis")}
     if not plans:
-        return [Finding(20, NA, "no plan cards")]
+        return [Finding(20, NA, "no plan cards from S3 to S5")]
     out: list[Finding] = []
     for c in plans:
         s = syn.get(c.data.get("qid"))
@@ -4054,9 +4064,9 @@ def check_40_window_condition(b: Bundle) -> list[Finding]:
     result land in one column under one name, and nothing in the record says
     they were different measurements.
     """
-    plans = b.of_kind("plan")
+    plans = b.plans_from_pipeline()   # an operation plan measures no observable
     if not plans:
-        return [Finding(40, NA, "no plan cards")]
+        return [Finding(40, NA, "no plan cards from S3 to S5")]
     vocab = load_observables()
     out: list[Finding] = []
     checked = 0
@@ -4855,6 +4865,11 @@ def check_52_target_is_a_decision(b: Bundle) -> list[Finding]:
                                c.rel))
 
         if c.kind == "goal":
+            continue
+        if c.kind == "plan" and "operation" in c.data:
+            # An operation plan has no goal: its targets are its own decisions,
+            # approved with it through the ordinary plan_approval, so there is
+            # no copy to compare. Their shape was checked above all the same.
             continue
         goal = goals.get(c.data.get("qid"))
         if goal is None:
@@ -7571,6 +7586,144 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
     return out
 
 
+#: Which envelope limit names bound which device's positions. A device absent
+#: here has no position limits at all, and an operation plan commanding it is
+#: refused rather than checked against nothing. Written as a table, not derived
+#: from the device name, because the envelope's names are the person's
+#: (`piezo_x_position_min`, not `piezo_stage_x_...`) and a guessed mapping that
+#: matched nothing would read as "no limit" and refuse -- safe, but for the
+#: wrong reason.
+_OPERATION_LIMIT_PREFIX = {"piezo_stage": "piezo"}
+
+def check_86_operation_plan(b: Bundle) -> list[Finding]:
+    """An operation plan moves only inside the person's limits, one device and one axis at a time (11-21).
+
+    Settled 2026-09-24, when the person chose to check piezo X with one
+    watched step before driving it with a sine. A verification move measures
+    nothing about the sample, so it carries no S3 to S5; the schema holds its
+    shape -- `purpose: verify`, reversible actions only, a sine on X or Y only
+    and always host-timed, no goal, synthesis or observable. This holds what
+    the schema cannot see:
+
+      - ONE DEVICE: every action commands `operation.device`, and every move
+        is an action of that name
+      - INSIDE THE LIMITS: every position a move commands -- a step's
+        `target_um`, a sine's centre plus and minus its amplitude -- lies
+        within that axis's `<device>_<axis>_position_min` / `_max` in the
+        microscope's envelope. A missing limit REFUSES, and so does a floor
+        above its ceiling: the schema cannot compare the pair
+      - Z IS A SINGLE DIRECTION-FINDING STEP: until the piezo-Z direction is
+        measured and recorded, a Z move is `direction_finding` or `return`,
+        and there is at most one `direction_finding`
+      - A SINE HAS AN EXPLICIT APPROACH: the move before it on its axis is a
+        step to its centre, because the controller rests at its floor
+
+    WHAT IT CANNOT SEE. objective_clearance_min binds piezo Z as it binds the
+    Z drive, and whether a Z target is clear of the coverslip depends on where
+    focus sits at run time -- so that comparison is the wrapper's, at the
+    moment of the move, and not a static one here. Nor can it see the
+    approval: that is the ordinary plan_approval, checked where approvals are.
+    """
+    ops = [c for c in b.of_kind("plan") if "__unreadable__" not in c.data and "operation" in c.data]
+    if not ops:
+        return [Finding(86, NA, "no operation plans")]
+
+    limits: dict[str, dict] = {}
+    for env in envelope_files():
+        if env.name != "safety.json" or not env.parent.parent.name.startswith("microscope"):
+            continue
+        try:
+            doc = json.loads(env.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        for tgt in doc.get("targets", []) or []:
+            for name, lim in (tgt.get("limits") or {}).items():
+                if isinstance(lim, dict):
+                    limits[name] = lim
+
+    out: list[Finding] = []
+    for c in ops:
+        op = c.data.get("operation") or {}
+        dev = op.get("device")
+        moves = [m for m in op.get("moves") or [] if isinstance(m, dict)]
+        actions = [a for a in c.data.get("actions") or [] if isinstance(a, dict)]
+        bad: list[str] = []
+
+        other = sorted({a.get("device") for a in actions if a.get("device") != dev})
+        if other:
+            bad.append(f"actions command {other} besides {dev!r}: an operation plan commands one device")
+        unacted = sorted({m.get("id") for m in moves} - {a.get("id") for a in actions})
+        if unacted:
+            bad.append(f"moves {unacted} have no action of the same id, so nothing says how they are sent")
+
+        for m in moves:
+            ax = m.get("axis")
+            prefix = _OPERATION_LIMIT_PREFIX.get(dev)
+            if prefix is None:
+                bad.append(f"move {m.get('id')}: {dev!r} has no position limits the envelope can name, "
+                           f"so no operation plan may command it. A missing limit refuses")
+                continue
+            lo = limits.get(f"{prefix}_{ax}_position_min")
+            hi = limits.get(f"{prefix}_{ax}_position_max")
+            if m.get("kind") == "sine":
+                pts = [m.get("centre_um", 0) - m.get("amplitude_um", 0),
+                       m.get("centre_um", 0) + m.get("amplitude_um", 0)]
+            else:
+                pts = [m.get("target_um")]
+            if lo is None or hi is None:
+                bad.append(f"move {m.get('id')} on {dev} {ax}: the envelope has no "
+                           f"{prefix}_{ax}_position_min/_max, and a missing limit refuses")
+                continue
+            lv, hv = lo.get("value"), hi.get("value")
+            if not isinstance(lv, (int, float)) or not isinstance(hv, (int, float)) or lv > hv:
+                bad.append(f"move {m.get('id')} on {dev} {ax}: the limits {lv}..{hv} are not a range")
+                continue
+            outside = [x for x in pts if not isinstance(x, (int, float)) or x < lv or x > hv]
+            if outside:
+                bad.append(f"move {m.get('id')} on {dev} {ax} commands {outside} um, outside the "
+                           f"person's {lv}..{hv} um")
+
+        # A sine starts where the axis was left. The controller rests at its
+        # floor (microscope-20260924-2 read x 0.025 um, y 0.006 um on
+        # 2026-09-24), so a sine centred mid-range would otherwise make its
+        # first point a long move nobody approved as one. The move before it
+        # on the same axis must be a step to its centre.
+        last_on_axis: dict[str, dict] = {}
+        speeds: list[str] = []
+        for m in moves:
+            if m.get("kind") == "sine":
+                c0, a0 = m.get("centre_um", 0), m.get("amplitude_um", 0)
+                first = {"centre": c0, "minimum": c0 - a0, "maximum": c0 + a0}.get(m.get("start"))
+                prev = last_on_axis.get(m.get("axis"))
+                if not prev or prev.get("kind") != "step" or prev.get("target_um") != first:
+                    bad.append(f"sine {m.get('id')} on {m.get('axis')} is not preceded on that axis by a step "
+                               f"to its first point, {first} um ({m.get('start')}): the approach is a move of "
+                               "its own, written and approved, not the sine's first point")
+                if isinstance(a0, (int, float)) and isinstance(m.get("period_s"), (int, float)) and m["period_s"] > 0:
+                    speeds.append(f"{m.get('id')} peaks at {2 * math.pi * a0 / m['period_s']:.0f} um/s")
+            last_on_axis[m.get("axis")] = m
+
+        z = [m for m in moves if m.get("axis") == "z"]
+        if [m for m in z if m.get("role") not in ("direction_finding", "return")]:
+            bad.append("a Z move is neither direction_finding nor return: until the piezo-Z direction "
+                       "is recorded, Z gets only the direction-finding step")
+        if sum(1 for m in z if m.get("role") == "direction_finding") > 1:
+            bad.append("more than one Z direction-finding step: Z gets one")
+
+        if bad:
+            out.append(Finding(86, FAIL, f"{c.data.get('id')}: " + "; ".join(bad) + " (11-21)", c.rel))
+        else:
+            # The peak speed is REPORTED and not judged: no envelope limit
+            # bounds a piezo's speed, and whether one should is the person's
+            # (asked 2026-09-24, when the first sine designed peaked near 29x
+            # the fastest the prior project drove). Saying it keeps it visible.
+            out.append(Finding(86, PASS, f"{c.data.get('id')}: {len(moves)} move(s) on {dev}, every commanded "
+                                         f"position inside the person's limits"
+                                         + (f"; {'; '.join(speeds)}, and no envelope limit bounds a piezo's "
+                                            "speed" if speeds else ""), c.rel))
+    return out
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -7586,7 +7739,7 @@ CHECKS = [
     check_78_history_paths_classify, check_79_gitignored_dirs_are_skipped,
     check_81_relative_imports_resolve, check_82_imports_are_declared,
     check_83_written_trajectories_are_present, check_84_seat_registry_is_sound,
-    check_85_preparatory_run,
+    check_85_preparatory_run, check_86_operation_plan,
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision,
