@@ -397,12 +397,26 @@ is a property of **whether that configuration's output is independent of its
 inputs** — which is a fact about the declared model, and therefore belongs
 where models are declared, in `contracts/capabilities/simulation.json`.
 
-**Do not pick a source kind for it on the spot.** `SOURCE_GRADE` has no kind
-that fits: `measured:` claims the world, `computed:` says derive-me-from-inputs
-and takes no grade, `prior_run:` means a run that happened before this question.
-That gap is §5.3's and §5.3 is the architecture seat's. Until it is filled, a
-run's observable stays in the run's own `observables.json`, where it already
-is, and does not enter a card as a graded number.
+**The source kind is `simulated:<run_id>`, and it is not what decides the
+grade.** This paragraph said until 2026-09-23 that `SOURCE_GRADE` had no kind
+that fit a simulated output. It had one -- `simulated:` entered the table on
+2026-09-22 -- and a seat copied the old sentence into a goal card before
+finding it false. Cards are records and that one keeps it; the correction
+belongs here, at the source, or the next seat reads the same sentence and
+writes it again.
+
+What decides whether a run's number may stand as **a claim about the world**
+is the configuration's `output_independent_of_input` in
+`contracts/capabilities/simulation.json`, reached from the plan the result
+stands on, and the **field that names the number** carries the role. Under
+`values[]` the card asserts something about the system, so a configuration
+that declares `false` is refused there. Under `observed_number` or
+`actual_number` the card reports what the run read, which is allowed either
+way. So for `bd_overdamped` or `abp_free` -- whose outputs the inputs already
+fix -- `values[]` carries the model's prediction and the run's reading goes
+beside it as the comparison. Check 21 enforces this; watching it refuse a
+reading moved into `values[]` is how one seat confirmed its passing card was
+not passing by accident.
 
 ## Axes
 
@@ -421,14 +435,20 @@ Cards are authoritative in physical units (D7). Reduced units exist only inside
 the backend, which converts on the way in and on the way out, so a plan does
 not become invalid when the engine changes (§5.7 rule 4).
 
-**No backend converts anything today, because none needs to.**
-`src/hoomd_backend.py` is in §7's tree and is not written; the only backend
-here is `mock_backend.py`, and it integrates in SI throughout and says so in
-its own header. So the rule above is currently a boundary with nothing crossing
-it. This sentence used to name `hoomd_backend.py` in the present tense, which
-read as though the conversion existed and had been got right — the same shape
-as a ceiling written in an instruction file. When that backend is written, the
-conversion is its first responsibility and this paragraph is its specification.
+**Three backends convert and two do not, and each says which in its own
+header -- read the header, not this paragraph.** `hoomd_backend`, `abp_backend`
+and `trap_hoomd_backend` run the engine in reduced units and convert in both
+directions; `mock_backend` and `trap_backend` integrate in SI throughout. The
+header is authoritative because it sits beside the code it describes, and this
+file's record of the same fact went stale in exactly the way that makes that
+rule worth keeping: until 2026-09-23 this paragraph said `hoomd_backend.py` was
+"not written" and that mock was the only backend, while hoomd_backend had been
+running real results since 2026-09-22. It even named its own expiry -- "when
+that backend is written ... this paragraph is its specification" -- and nobody
+reread it when the condition came true. A sentence that says what the code
+will do goes stale the moment the code arrives, and nothing checks prose
+against code, so the durable thing to write here is the rule and where the
+authority lives.
 
 Mass-based time units are not used at all. In the overdamped limit they do not
 enter the physics and have no experimental counterpart, and a reference point
