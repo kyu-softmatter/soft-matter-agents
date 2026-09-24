@@ -1,0 +1,120 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-102-bd_overdamped_trapped-a3-r2",
+  "qid": "sim-20260923-102",
+  "thread": "solo-sim-20260923-102",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T17:05:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-102:v2:bd_overdamped_trapped:a3",
+  "config": "bd_overdamped_trapped",
+  "axis": "a3",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "box_edge",
+      "unit": "um",
+      "min": 20.0,
+      "basis": [
+        "box_edge_min"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "box_edge >> the largest excursion at the softest trap",
+      "parameter": "box_edge",
+      "state": "returned",
+      "interval": {
+        "parameter": "box_edge",
+        "unit": "um",
+        "min": 20.0,
+        "basis": [
+          "box_edge_min"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    },
+    {
+      "inequality": "the particle stays where the bench trap is still harmonic",
+      "parameter": "trap_stiffness",
+      "state": "returned",
+      "precondition": {
+        "parameter": "trap_stiffness",
+        "requires": "the plan must record that this is NOT CHECKABLE IN THIS MODEL. The declared potential is harmonic everywhere, while a real trap goes to zero far from its focus. The store holds no trap width, so where the bench trap stops being harmonic is unknown. What decides it is the measured histogram's tails against a Gaussian, which is a bench result and the second thing this comparison is for",
+        "basis": [
+          "max_excursion_soft_corner"
+        ]
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "thermal_width_max",
+      "value": 0.3,
+      "unit": "um",
+      "source": "computed:equipartition_width",
+      "grade": "E5",
+      "formula": "(k_B*temperature/trap_stiffness_min)**0.5",
+      "inputs": [
+        "temperature",
+        "trap_stiffness_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the per-axis width the soft trap should give; the prediction both the run and the bench are compared against",
+      "origin": "v2_goal.json#thermal_width_max"
+    },
+    {
+      "name": "max_excursion_soft_corner",
+      "value": 2.0,
+      "unit": "um",
+      "source": "computed:five_thermal_widths",
+      "grade": "E5",
+      "formula": "5*thermal_width_max",
+      "inputs": [
+        "thermal_width_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "five thermal widths at the softest trap: a Gaussian coordinate goes there about once in two million samples, so it bounds every frame of any record here"
+    },
+    {
+      "name": "box_edge_min",
+      "value": 20.0,
+      "unit": "um",
+      "source": "computed:margin_times_max_excursion",
+      "grade": "E5",
+      "formula": "10*max_excursion_soft_corner",
+      "inputs": [
+        "max_excursion_soft_corner"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a decade of margin, so the unwrapped trajectory never approaches a boundary"
+    }
+  ],
+  "assumptions": [],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "trap_potential_width_absent",
+      "observable": "trap_potential_width",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-102:v2:bd_overdamped_trapped:a3",
+      "asked_at": "2026-09-24T06:53:29+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "NO `varies_with` ON THE BOX, AND THAT IS AN ASSERTION: one box sized for the softest trap fits every stiffness, and with one particle and no interaction a larger box costs nothing. The axis is nearly vacuous and says so rather than abstaining, because the unwrapped trajectory needs the statement that it never wrapped."
+}

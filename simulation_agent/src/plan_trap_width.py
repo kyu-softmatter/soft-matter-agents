@@ -85,13 +85,28 @@ def synthesis_card(qid: str, created_at: str, revision: int) -> dict:
         "s", "computed:a1_noise_bound_with_margin",
         f"{DT_MARGIN}*0.5*noise_step_fraction**2*relaxation_time_op", ["noise_step_fraction", "relaxation_time_op"],
         "A1's noise bound binds, with S4's margin for the rounding of tau")
-    add("save_interval_op", _one(V("save_interval_fraction") * V("relaxation_time_op")), "s",
-        "computed:a4_fraction_of_tau", "save_interval_fraction*relaxation_time_op",
-        ["save_interval_fraction", "relaxation_time_op"], "A4's ceiling at this stiffness")
-    add("startup_discard_op", _one(STARTUP * V("relaxation_time_op")), "s", "computed:startup_multiple_of_tau",
-        f"{STARTUP}*relaxation_time_op", ["relaxation_time_op"],
-        "the particle starts at the trap centre and its distribution relaxes over gamma/k_t; ten of them "
-        "leave a residual far below a per mille. Declared in advance, never chosen after seeing the data")
+    # A FRAME MUST FALL ON A STEP. Revision 1 wrote the save interval as A4's
+    # ceiling, one figure of 0.1*tau = 0.009 s, and 0.009/0.0004 = 22.5 steps:
+    # the operator refused it before a step was taken, correctly. So the save
+    # interval is the LARGEST whole number of steps that is also a clean one-figure
+    # value (so check 17's rounding cannot move it off the grid) and stays
+    # under A4's ceiling; the start-up is the SMALLEST whole number of frames
+    # at or above STARTUP relaxation times that is clean in the same sense.
+    dt = V("integration_timestep_op")
+    ceiling = _one(V("save_interval_fraction") * V("relaxation_time_op"))
+    n_save = max(n for n in range(1, int(ceiling / dt) + 1) if abs(_one(n * dt) - n * dt) < 1e-12)
+    add("save_interval_op", _one(n_save * dt), "s", "computed:whole_steps_under_a4_ceiling",
+        f"{n_save}*integration_timestep_op", ["integration_timestep_op"],
+        f"{n_save} steps a frame: the largest whole number of steps under A4's ceiling of a tenth of "
+        "gamma/k_t that is a clean one-figure value, so every frame falls on a step")
+    save = V("save_interval_op")
+    n_start = next(n for n in range(int(STARTUP * V("relaxation_time_op") / save), 100000)
+                   if n * save >= STARTUP * V("relaxation_time_op") and abs(_one(n * save) - n * save) < 1e-12)
+    add("startup_discard_op", _one(n_start * save), "s", "computed:whole_frames_over_startup_floor",
+        f"{n_start}*save_interval_op", ["save_interval_op"],
+        f"{n_start} frames: the first whole number of frames at or above ten relaxation times. The particle "
+        "starts at the trap centre and its distribution relaxes over gamma/k_t, so ten of them leave a "
+        "residual far below a per mille. Declared in advance, never chosen after seeing the data")
     add("record_length_op", _one(RECORD * V("relaxation_times_per_record") * V("relaxation_time_op")), "s",
         "computed:margin_times_record_floor", f"{RECORD}*relaxation_times_per_record*relaxation_time_op",
         ["relaxation_times_per_record", "relaxation_time_op"],
@@ -123,6 +138,12 @@ def synthesis_card(qid: str, created_at: str, revision: int) -> dict:
         ["startup_discard_op", "record_length_op", "save_interval_op"], "one particle, three coordinates a frame")
 
     tau_true = gamma / k_si
+    for name in ("save_interval_op", "startup_discard_op", "record_length_op"):
+        steps = V(name) / V("integration_timestep_op")
+        if abs(steps - round(steps)) > 1e-9:
+            raise SystemExit(f"{name} is {steps} steps, not a whole number; a frame would land between steps")
+    if not (_one(0.01 * V("relaxation_time_op")) <= V("save_interval_op") <= ceiling):
+        raise SystemExit("the save interval left A4's interval")
     if V("integration_timestep_op") > 0.5 * V("noise_step_fraction") ** 2 * tau_true * (1 + 1e-9):
         raise SystemExit("the step exceeds A1's bound at the unrounded relaxation time; the margin is too thin")
     if V("particle_steps_op") > V("steps_max_per_point"):

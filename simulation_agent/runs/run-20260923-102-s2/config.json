@@ -1,0 +1,109 @@
+{
+  "run_id": "run-20260923-102-s2",
+  "qid": "sim-20260923-102",
+  "plan_id": "plan-sim-20260923-102-r2",
+  "plan_revision": 2,
+  "plan_hash": "sha256:fd2beace16078b6358f68a72f65bde28d1c30bd1c74438f5717fdecb979d782d",
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "envelope_check": {
+    "status": "inside",
+    "target": "local",
+    "budget": "full",
+    "compared": [
+      {
+        "cost": "wall_clock_estimate",
+        "limit": "wall_clock_max",
+        "cost_si": 0.3,
+        "limit_si": 7200.0
+      },
+      {
+        "cost": "storage_estimate",
+        "limit": "storage_max",
+        "cost_si": 3e-05,
+        "limit_si": 10.0
+      }
+    ],
+    "exceeded": []
+  },
+  "backend": "trap_hoomd_backend",
+  "seed": 1,
+  "parameters_si": {
+    "temperature": 293.0,
+    "viscosity": 0.001,
+    "bead_diameter": 4.9999999999999996e-06,
+    "box_length": 1.9999999999999998e-05,
+    "trap_stiffness": 5e-07,
+    "integration_timestep": 0.0004,
+    "save_interval": 0.008,
+    "startup_discard": 1.0,
+    "record_length": 20.0
+  },
+  "provenance": [
+    {
+      "parameter": "temperature",
+      "value_si": 293.0,
+      "unit_in_plan": "K",
+      "from": "conditions[0].number -> numbers[temperature]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "viscosity",
+      "value_si": 0.001,
+      "unit_in_plan": "Pa*s",
+      "from": "conditions[1].number -> numbers[viscosity]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "bead_diameter",
+      "value_si": 4.9999999999999996e-06,
+      "unit_in_plan": "um",
+      "from": "conditions[2].number -> numbers[bead_diameter]",
+      "grade": "E2"
+    },
+    {
+      "parameter": "box_length",
+      "value_si": 1.9999999999999998e-05,
+      "unit_in_plan": "um",
+      "from": "conditions[3].number -> numbers[box_edge_min]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "trap_stiffness",
+      "value_si": 5e-07,
+      "unit_in_plan": "pN/um",
+      "from": "conditions[4].number -> numbers[trap_stiffness_operating]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "integration_timestep",
+      "value_si": 0.0004,
+      "unit_in_plan": "s",
+      "from": "conditions[5].number -> numbers[integration_timestep_op]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "save_interval",
+      "value_si": 0.008,
+      "unit_in_plan": "s",
+      "from": "conditions[6].number -> numbers[save_interval_op]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "startup_discard",
+      "value_si": 1.0,
+      "unit_in_plan": "s",
+      "from": "conditions[7].number -> numbers[startup_discard_op]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "record_length",
+      "value_si": 20.0,
+      "unit_in_plan": "s",
+      "from": "conditions[8].number -> numbers[record_length_op]",
+      "grade": "E5"
+    }
+  ]
+}

@@ -1,0 +1,260 @@
+{
+ "card": "goal",
+ "schema_version": "0.1",
+ "id": "goal-sim-20260923-102-r2",
+ "qid": "sim-20260923-102",
+ "thread": "solo-sim-20260923-102",
+ "round": 0,
+ "revision": 2,
+ "author": "simulation_agent",
+ "created_at": "2026-09-23T17:00:00Z",
+ "status": "DRAFT",
+ "requested_by": "human",
+ "purpose": "characterize",
+ "intent": "explore",
+ "observable": {
+  "name": "trapped_position_distribution"
+ },
+ "targets": [
+  {
+   "metric": "trapped_position_distribution",
+   "kind": "decade_resolution",
+   "value": 1,
+   "unit": "count",
+   "note": "a first comparison with the bench asks whether both sides agree on the width within a decade. Extracting a stiffness to the per cent is a later, confirm revision, and the record length it needs is what this one's A2 returns as a relation"
+  }
+ ],
+ "constraint_notes": [
+  "the person decided on 2026-09-23 that the double-well question starts from one trap, and that this trap goes to the bridge first. The stiffness range is matched to the double well so the calibrated stiffnesses feed it as inputs",
+  "the declared model is harmonic. A real trap's potential goes to zero far from the focus, and whether the bench trap is still harmonic where the particle goes is a question only the measured histogram's tails can answer. At depths of tens of kT the particle stays within about a fifth of the trap width, where a Gaussian trap and a harmonic one differ by under a per cent",
+  "the width is set by the input, sqrt(k_B*T/k_t), so a run confirms the integrator and the estimator; what it establishes is how long a record must be before the width stops being understated, since frames are correlated over gamma/k_t",
+  "a camera frame averages the position over its exposure and narrows the measured width; the simulation's positions are instantaneous. The exposure time is therefore a condition of the comparison, not a detail of the bench",
+  "the model is three-dimensional and the estimator reads the two in-plane axes only",
+  "the room temperature was asked for as the interval 288 to 298 K and came back with three room-level entries and overlap 'unstated': the store holds a reading of the room and no statement of what range it covers. The viscosity entry is valid over 288 to 298 K, which contains the reading",
+  "REVISION 2, for one reason and no change to the question: revision 1's S4 wrote the save interval as A4's ceiling, 0.009 s, which is 22.5 integration steps, and the operator refused the plan before a step was taken. The goal's numbers are unchanged; S4 now derives the save interval as a whole number of steps and the start-up as a whole number of frames"
+ ],
+ "priority": [
+  "physical_feasibility",
+  "target_accuracy",
+  "evidence_grade",
+  "cost"
+ ],
+ "numbers": [
+  {
+   "name": "bead_diameter",
+   "value": 5,
+   "unit": "um",
+   "source": "kb:tracer_diameter_measured",
+   "grade": "E2",
+   "precision": "significant_figures",
+   "note": "the tracer in the bottle in use, measured by the operator"
+  },
+  {
+   "name": "temperature",
+   "value": 293,
+   "unit": "K",
+   "source": "kb:lab_ambient_temperature",
+   "grade": "E3",
+   "precision": "significant_figures",
+   "note": "the room's reading; not established to be the sample's"
+  },
+  {
+   "name": "viscosity",
+   "value": 0.001,
+   "unit": "Pa*s",
+   "source": "kb:water_viscosity_293k",
+   "grade": "E3",
+   "precision": "significant_figures",
+   "note": "pure water"
+  },
+  {
+   "name": "diffusivity",
+   "value": 0.09,
+   "unit": "um^2/s",
+   "source": "computed:stokes_einstein",
+   "grade": "E4",
+   "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+   "inputs": [
+    "temperature",
+    "viscosity",
+    "bead_diameter"
+   ],
+   "precision": "order_of_magnitude",
+   "note": "the store's relation"
+  },
+  {
+   "name": "trap_stiffness_min",
+   "value": 0.05,
+   "unit": "pN/um",
+   "source": "assumed:a_stiffness_range",
+   "grade": "E5",
+   "precision": "order_of_magnitude",
+   "note": "the soft end, matched to the double well's soft trap so this calibration feeds it directly"
+  },
+  {
+   "name": "trap_stiffness_max",
+   "value": 50,
+   "unit": "pN/um",
+   "source": "assumed:a_stiffness_range",
+   "grade": "E5",
+   "precision": "order_of_magnitude",
+   "note": "the stiff end, matched to the double well's stiff trap at a ratio of 100"
+  },
+  {
+   "name": "trap_stiffness_operating",
+   "value": 0.5,
+   "unit": "pN/um",
+   "source": "assumed:a_operating_point",
+   "grade": "E5",
+   "precision": "order_of_magnitude",
+   "note": "the one stiffness this revision runs, the double well's soft trap"
+  },
+  {
+   "name": "trap_relaxation_time_max",
+   "value": 0.9,
+   "unit": "s",
+   "source": "computed:stokes_drag_over_stiffness",
+   "grade": "E5",
+   "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_min",
+   "inputs": [
+    "viscosity",
+    "bead_diameter",
+    "trap_stiffness_min"
+   ],
+   "precision": "order_of_magnitude",
+   "note": "gamma/k_t at the soft end, the longest correlation time between frames"
+  },
+  {
+   "name": "trap_relaxation_time_min",
+   "value": 0.0009,
+   "unit": "s",
+   "source": "computed:stokes_drag_over_stiffness",
+   "grade": "E5",
+   "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_max",
+   "inputs": [
+    "viscosity",
+    "bead_diameter",
+    "trap_stiffness_max"
+   ],
+   "precision": "order_of_magnitude",
+   "note": "gamma/k_t at the stiff end, the shortest time the integrator must resolve"
+  },
+  {
+   "name": "thermal_width_max",
+   "value": 0.3,
+   "unit": "um",
+   "source": "computed:equipartition_width",
+   "grade": "E5",
+   "formula": "(k_B*temperature/trap_stiffness_min)**0.5",
+   "inputs": [
+    "temperature",
+    "trap_stiffness_min"
+   ],
+   "precision": "order_of_magnitude",
+   "note": "the per-axis width the soft trap should give; the prediction both the run and the bench are compared against"
+  },
+  {
+   "name": "thermal_width_min",
+   "value": 0.009,
+   "unit": "um",
+   "source": "computed:equipartition_width",
+   "grade": "E5",
+   "formula": "(k_B*temperature/trap_stiffness_max)**0.5",
+   "inputs": [
+    "temperature",
+    "trap_stiffness_max"
+   ],
+   "precision": "order_of_magnitude",
+   "note": "nine nanometres at the stiff end, below what a camera frame localises without care; the bench question at that end is localisation, not the trap"
+  }
+ ],
+ "assumptions": [
+  {
+   "rationale_id": "a_stiffness_range",
+   "statement": "Four decades, from the double well's soft trap to its stiff trap at a ratio of 100, so that every stiffness the double well will need has been calibrated on this configuration.",
+   "numbers": [
+    "trap_stiffness_min",
+    "trap_stiffness_max"
+   ],
+   "falsifier": "a measured stiffness from the bench outside this range at the dial settings used replaces it",
+   "gap_ref": "trap_stiffness_absent"
+  },
+  {
+   "rationale_id": "a_operating_point",
+   "statement": "The double well's soft trap, 0.5 pN/um, is the one stiffness this revision runs, because it is the first input the double well needs.",
+   "numbers": [
+    "trap_stiffness_operating"
+   ],
+   "falsifier": "the bench reporting that its lowest usable dial setting is far stiffer moves it",
+   "gap_ref": "trap_stiffness_absent"
+  }
+ ],
+ "kb_refs": [
+  {
+   "entry_id": "tracer_diameter_measured",
+   "grade": "E2",
+   "kb_version": "kbv-4b981dc870d3",
+   "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+  },
+  {
+   "entry_id": "water_viscosity_293k",
+   "grade": "E3",
+   "kb_version": "kbv-4b981dc870d3",
+   "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+  },
+  {
+   "entry_id": "tracer_diffusivity_expected",
+   "grade": "E4",
+   "kb_version": "kbv-4b981dc870d3",
+   "claim": "The expected translational diffusivity of a tracer sphere in a bulk fluid is the Stokes-Einstein value, k_B T over 3 pi eta d. It is a prediction from the viscosity, the temperature and the diameter, not a measurement of how the particles actually move."
+  },
+  {
+   "entry_id": "lab_ambient_temperature",
+   "grade": "E3",
+   "kb_version": "kbv-4b981dc870d3",
+   "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2."
+  },
+  {
+   "entry_id": "no_thermometer_at_the_sample",
+   "grade": "E3",
+   "kb_version": "kbv-4b981dc870d3",
+   "claim": "There is no thermometer beside the sample. The only thermometer in the laboratory reads the room, so any temperature attributed to the sample is a room reading applied to it."
+  },
+  {
+   "entry_id": "room_temperature_is_controlled",
+   "grade": "E3",
+   "kb_version": "kbv-4b981dc870d3",
+   "claim": "The room is held continuously by air conditioning. There is a setpoint on this instrument's environment -- it is the room's, not the sample's."
+  }
+ ],
+ "kb_gaps": [
+  {
+   "gap_id": "trap_stiffness_absent",
+   "observable": "trap_stiffness",
+   "kind": "absent",
+   "searched": [
+    "kb_query(observable='trap_stiffness') against the service at kbv-4b981dc870d3",
+    "kb/entries",
+    "kb/exports"
+   ],
+   "nearest": [],
+   "near_names": [],
+   "kb_version": "kbv-4b981dc870d3"
+  },
+  {
+   "gap_id": "trapped_position_distribution_absent",
+   "observable": "trapped_position_distribution",
+   "kind": "absent",
+   "searched": [
+    "kb_query(observable='trapped_position_distribution') against the service at kbv-4b981dc870d3",
+    "kb/entries",
+    "kb/exports"
+   ],
+   "nearest": [],
+   "near_names": [],
+   "kb_version": "kbv-4b981dc870d3"
+  }
+ ],
+ "degraded": [],
+ "caller_id": "sim-20260923-102:v2:s2"
+}

@@ -1,0 +1,125 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-102-bd_overdamped_trapped-a5-r2",
+  "qid": "sim-20260923-102",
+  "thread": "solo-sim-20260923-102",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T17:05:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-102:v2:bd_overdamped_trapped:a5",
+  "config": "bd_overdamped_trapped",
+  "axis": "a5",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "integration_steps",
+      "unit": "1",
+      "max": 400000000.0,
+      "basis": [
+        "steps_max_per_point"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "record_length/integration_timestep <= wall_clock_max/(cost_per_step*stiffness_points)",
+      "parameter": "integration_steps",
+      "state": "returned",
+      "interval": {
+        "parameter": "integration_steps",
+        "unit": "1",
+        "max": 400000000.0,
+        "basis": [
+          "steps_max_per_point"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    },
+    {
+      "inequality": "predicted storage <= the local target's storage_max",
+      "parameter": "storage",
+      "state": "returned",
+      "precondition": {
+        "parameter": "storage",
+        "requires": "the plan must state the frame count, record_length/save_interval, which is A2's and A4's to fix; a thousand frames of three coordinates is tens of kilobytes",
+        "basis": [
+          "stiffness_points"
+        ]
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "stiffness_points",
+      "value": 4,
+      "unit": "1",
+      "source": "assumed:a_sweep_grid",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "one point per decade of the goal's stiffness range, plus its end, read off the goal"
+    },
+    {
+      "name": "cost_per_step",
+      "value": 5e-06,
+      "unit": "s",
+      "source": "prior_run:run-20260923-201-smoke-hoomd-s1",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "62000 steps in 0.31 s of wall clock, one particle, on trap_hoomd_backend -- the same builder this configuration runs on with the flow removed. MEASURED at N=1, which the driven configuration's budget had to bracket across three decades before this run existed"
+    },
+    {
+      "name": "steps_max_per_point",
+      "value": 400000000.0,
+      "unit": "1",
+      "source": "assumed:a_step_budget",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the share of the local wall clock one sweep point may spend, as steps. No formula: the ceiling is the person's decision and 5.3 has no source kind for one; the arithmetic is in the rationale"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_step_budget",
+      "statement": "Two hours from envelope/budget.json over the measured 5 us a step over 4 stiffness points: 7200 / 5e-6 / 4, about 360000000 steps a point, to one figure. A point needs about 1e4 steps, so the budget is not the constraint anywhere here.",
+      "numbers": [
+        "steps_max_per_point"
+      ],
+      "falsifier": "this question's own first run replaces the prior run's cost",
+      "gap_ref": "particle_step_rate_absent"
+    },
+    {
+      "rationale_id": "a_sweep_grid",
+      "statement": "A point per decade is the coarsest grid on which a trend is visible.",
+      "numbers": [
+        "stiffness_points"
+      ],
+      "falsifier": "a first sweep with the width exactly on sqrt(kT/k) at every point, which is the prediction, lets the grid thin to its ends",
+      "gap_ref": "particle_step_rate_absent"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "particle_step_rate_absent",
+      "observable": "particle_step_rate",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-102:v2:bd_overdamped_trapped:a5",
+      "asked_at": "2026-09-24T06:53:44+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "THE COST IS MEASURED, NOT BRACKETED: one particle on the builder this configuration uses. The budget is five orders above what a point needs."
+}

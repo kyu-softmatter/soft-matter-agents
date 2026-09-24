@@ -1,0 +1,355 @@
+{
+  "card": "result",
+  "schema_version": "0.1",
+  "id": "result-sim-20260923-102-run-20260923-102-s2",
+  "qid": "sim-20260923-102",
+  "thread": "solo-sim-20260923-102",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T06:57:09.547087+00:00",
+  "status": "DONE",
+  "plan_id": "plan-sim-20260923-102-r2",
+  "plan_revision": 2,
+  "plan_hash": "sha256:fd2beace16078b6358f68a72f65bde28d1c30bd1c74438f5717fdecb979d782d",
+  "approval_id": null,
+  "run_id": "run-20260923-102-s2",
+  "observable": {
+    "name": "trapped_position_distribution"
+  },
+  "outcome": "DONE",
+  "values": [
+    {
+      "metric": "trapped_position_distribution",
+      "number": "thermal_width_predicted",
+      "uncertainty": "thermal_width_scatter_predicted"
+    }
+  ],
+  "criteria_evaluation": [
+    {
+      "id": "step_displacement_diverged",
+      "kind": "stop",
+      "met": false,
+      "observed_number": "max_step_displacement"
+    },
+    {
+      "id": "width_within_decade",
+      "kind": "success",
+      "met": true,
+      "observed_number": "width_deviation_in_decades"
+    },
+    {
+      "id": "width_within_three_scatters",
+      "kind": "success",
+      "met": true,
+      "observed_number": "relative_deviation_of_width_from_equipartition"
+    }
+  ],
+  "deviations": [
+    {
+      "parameter": "integration_timestep",
+      "planned_number": "integration_timestep_op",
+      "actual_number": "integration_timestep_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "save_interval",
+      "planned_number": "save_interval_op",
+      "actual_number": "save_interval_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "record_length",
+      "planned_number": "record_length_op",
+      "actual_number": "record_length_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    }
+  ],
+  "time_base": {
+    "t0_wall": "2026-09-24T06:57:09.019221+00:00",
+    "t0_mono": 1451906.007224583,
+    "alignment": "model_step_index"
+  },
+  "targets": [
+    {
+      "metric": "trapped_position_distribution",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "a first comparison with the bench asks whether both sides agree on the width within a decade. Extracting a stiffness to the per cent is a later, confirm revision, and the record length it needs is what this one's A2 returns as a relation"
+    }
+  ],
+  "estimation": {
+    "vocabulary_version": "obs-78b69c58ccea",
+    "followed": true,
+    "note": "the registered estimator: the per-axis standard deviation of x and y about the record's own mean over the declared record_length after startup_discard. The bias correction, the histogram and the kurtosis ride on the same trace and are not the estimator"
+  },
+  "new_facts": [
+    {
+      "claim": "On this workstation trap_hoomd_backend costs about 6 microseconds of wall clock per integration step for one overdamped sphere in a harmonic trap with the fluid at rest.",
+      "numbers": [
+        "cost_per_step_measured"
+      ],
+      "validity_conditions": "trap_hoomd_backend as committed at the time of run-20260923-102-s2, one particle, a save every twenty steps, one run of 52500 steps on 2026-09-24 while other sessions shared the machine. Not a per-particle cost for N above one.",
+      "proposed_grade": "E1"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v2_plan_simulation_sim-20260923-102.json#temperature",
+      "precision": "significant_figures",
+      "note": "the room's reading; not established to be the sample's"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v2_plan_simulation_sim-20260923-102.json#viscosity",
+      "precision": "significant_figures",
+      "note": "pure water"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "origin": "v2_plan_simulation_sim-20260923-102.json#bead_diameter",
+      "precision": "significant_figures",
+      "note": "the tracer in the bottle in use, measured by the operator"
+    },
+    {
+      "name": "trap_stiffness_operating",
+      "value": 0.5,
+      "unit": "pN/um",
+      "source": "assumed:a_operating_point",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-102.json#trap_stiffness_operating",
+      "precision": "order_of_magnitude",
+      "note": "the one stiffness this revision runs, the double well's soft trap"
+    },
+    {
+      "name": "integration_timestep_op",
+      "value": 0.0004,
+      "unit": "s",
+      "source": "computed:a1_noise_bound_with_margin",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-102.json#integration_timestep_op",
+      "precision": "order_of_magnitude",
+      "note": "A1's noise bound binds, with S4's margin for the rounding of tau"
+    },
+    {
+      "name": "save_interval_op",
+      "value": 0.008,
+      "unit": "s",
+      "source": "computed:whole_steps_under_a4_ceiling",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-102.json#save_interval_op",
+      "precision": "order_of_magnitude",
+      "note": "20 steps a frame: the largest whole number of steps under A4's ceiling of a tenth of gamma/k_t that is a clean one-figure value, so every frame falls on a step"
+    },
+    {
+      "name": "startup_discard_op",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:whole_frames_over_startup_floor",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-102.json#startup_discard_op",
+      "precision": "order_of_magnitude",
+      "note": "125 frames: the first whole number of frames at or above ten relaxation times. The particle starts at the trap centre and its distribution relaxes over gamma/k_t, so ten of them leave a residual far below a per mille. Declared in advance, never chosen after seeing the data"
+    },
+    {
+      "name": "record_length_op",
+      "value": 20.0,
+      "unit": "s",
+      "source": "computed:margin_times_record_floor",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-102.json#record_length_op",
+      "precision": "order_of_magnitude",
+      "note": "the averaging window after the start-up: twice A2's floor. The observable's registered window, and the bench's record length too"
+    },
+    {
+      "name": "width_acceptance_op",
+      "value": 0.2,
+      "unit": "1",
+      "source": "computed:three_scatters",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-102.json#width_acceptance_op",
+      "precision": "order_of_magnitude",
+      "note": "the success band, three of the record's own standard errors, fixed before the run"
+    },
+    {
+      "name": "thermal_width_predicted",
+      "value": 0.09,
+      "unit": "um",
+      "source": "computed:equipartition_width",
+      "grade": "E5",
+      "formula": "(k_B*temperature/trap_stiffness_operating)**0.5",
+      "inputs": [
+        "temperature",
+        "trap_stiffness_operating"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "sqrt(k_B*T/k_t) from the plan's inputs: the per-axis width the model predicts, and the number the bench width is compared against. One figure because the inputs are declared that way; the comparison that carries precision is the ratio in criteria_evaluation, set by the run"
+    },
+    {
+      "name": "thermal_width_scatter_predicted",
+      "value": 0.004,
+      "unit": "um",
+      "source": "computed:ou_variance_standard_error",
+      "grade": "E5",
+      "formula": "(k_B*temperature/trap_stiffness_operating)**0.5*(3*pi*viscosity*bead_diameter/(trap_stiffness_operating*2*record_length_op))**0.5",
+      "inputs": [
+        "temperature",
+        "trap_stiffness_operating",
+        "viscosity",
+        "bead_diameter",
+        "record_length_op"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the width's standard error from one record of the declared length, sigma*sqrt(tau/(2T))"
+    },
+    {
+      "name": "max_step_displacement",
+      "value": 0.015367338743352929,
+      "unit": "um",
+      "source": "simulated:run-20260923-102-s2",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_operating",
+        "integration_timestep_op",
+        "save_interval_op",
+        "startup_discard_op",
+        "record_length_op"
+      ],
+      "note": "the largest single-step displacement, which the divergence criterion watches against the bead diameter"
+    },
+    {
+      "name": "width_deviation_in_decades",
+      "value": 0.00865547279976445,
+      "unit": "count",
+      "source": "simulated:run-20260923-102-s2",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_operating",
+        "integration_timestep_op",
+        "save_interval_op",
+        "startup_discard_op",
+        "record_length_op"
+      ],
+      "note": "|log10(measured width / predicted width)|, the larger of x and y: how many decades apart"
+    },
+    {
+      "name": "relative_deviation_of_width_from_equipartition",
+      "value": 0.015091401336277177,
+      "unit": "1",
+      "source": "simulated:run-20260923-102-s2",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_operating",
+        "integration_timestep_op",
+        "save_interval_op",
+        "startup_discard_op",
+        "record_length_op"
+      ],
+      "note": "the larger of |x| and |y| width over sqrt(k_B*T/k_t), corrected for the record's expected low bias, minus one. x read 0.9849 and y 0.9980 of the prediction, -0.31 and -0.04 of the record's own scatter. NOT EVIDENCE ABOUT ANY TRAP: k_t went in"
+    },
+    {
+      "name": "integration_timestep_actual",
+      "value": 0.0004,
+      "unit": "s",
+      "source": "simulated:run-20260923-102-s2",
+      "grade": "E5",
+      "inputs": [
+        "integration_timestep_op"
+      ],
+      "note": "simulated time over the integer step count"
+    },
+    {
+      "name": "save_interval_actual",
+      "value": 0.008,
+      "unit": "s",
+      "source": "simulated:run-20260923-102-s2",
+      "grade": "E5",
+      "inputs": [
+        "save_interval_op"
+      ],
+      "note": "simulated time over the number of intervals between saved frames"
+    },
+    {
+      "name": "record_length_actual",
+      "value": 20.0,
+      "unit": "s",
+      "source": "simulated:run-20260923-102-s2",
+      "grade": "E5",
+      "inputs": [
+        "record_length_op",
+        "startup_discard_op"
+      ],
+      "note": "the span of frames the estimator read, after startup_discard"
+    },
+    {
+      "name": "cost_per_step_measured",
+      "value": 6.46e-06,
+      "unit": "s",
+      "source": "measured:run-20260923-102-s2",
+      "grade": "E1",
+      "precision": "significant_figures",
+      "note": "0.339 s over 52500 steps of the integration loop alone, on trap_hoomd_backend, one bead, fluid at rest"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_operating_point",
+      "statement": "The double well's soft trap, 0.5 pN/um, is the one stiffness this revision runs, because it is the first input the double well needs.",
+      "numbers": [
+        "trap_stiffness_operating"
+      ],
+      "falsifier": "the bench reporting that its lowest usable dial setting is far stiffer moves it",
+      "gap_ref": "trap_stiffness_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2."
+    }
+  ],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

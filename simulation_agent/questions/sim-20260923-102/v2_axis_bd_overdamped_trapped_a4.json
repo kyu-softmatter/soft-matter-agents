@@ -1,0 +1,163 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-102-bd_overdamped_trapped-a4-r2",
+  "qid": "sim-20260923-102",
+  "thread": "solo-sim-20260923-102",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T17:05:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-102:v2:bd_overdamped_trapped:a4",
+  "config": "bd_overdamped_trapped",
+  "axis": "a4",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "save_interval",
+      "unit": "s",
+      "min": 9e-06,
+      "max": 9e-05,
+      "basis": [
+        "save_interval_max"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "save_interval << gamma/k_t, and no finer than a hundredth of it",
+      "parameter": "save_interval",
+      "state": "returned",
+      "interval": {
+        "parameter": "save_interval",
+        "unit": "s",
+        "min": 9e-06,
+        "max": 9e-05,
+        "basis": [
+          "save_interval_max"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    },
+    {
+      "inequality": "the width a camera measures is the width the simulation reports",
+      "parameter": "camera_exposure_time",
+      "state": "returned",
+      "precondition": {
+        "parameter": "camera_exposure_time",
+        "requires": "the plan must state the exposure as a condition of the comparison. A frame averages the position over its exposure t_e and narrows the variance by S(a) = 2/a**2*(a - 1 + exp(-a)) with a = t_e/(gamma/k_t): 0.97 at a tenth of a relaxation time, 0.74 at one, 0.18 at ten. The simulation's positions are instantaneous. Either the bench exposure stays well below gamma/k_t -- under a tenth of it, 0.9 s at the soft trap and 0.09 ms at the stiff one -- or the comparison applies S to the simulated width. Never neither",
+        "basis": [
+          "save_interval_max"
+        ]
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "trap_relaxation_time_min",
+      "value": 0.0009,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_max",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "gamma/k_t at the stiff end, the shortest time the integrator must resolve",
+      "origin": "v2_goal.json#trap_relaxation_time_min"
+    },
+    {
+      "name": "save_interval_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_save_fraction",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the save interval as a fraction of the local gamma/k_t"
+    },
+    {
+      "name": "save_interval_max",
+      "value": 9e-05,
+      "unit": "s",
+      "source": "computed:fraction_times_relaxation_time",
+      "grade": "E5",
+      "formula": "save_interval_fraction*trap_relaxation_time_min",
+      "inputs": [
+        "save_interval_fraction",
+        "trap_relaxation_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "fine enough to resolve the autocorrelation the A2 scatter rests on, and to draw the histogram from frames that are a tenth of a relaxation time apart"
+    },
+    {
+      "name": "save_interval_min",
+      "value": 9e-06,
+      "unit": "s",
+      "source": "computed:hundredth_of_relaxation_time",
+      "grade": "E5",
+      "formula": "0.01*trap_relaxation_time_min",
+      "inputs": [
+        "trap_relaxation_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a floor: frames closer than this are correlated and add storage, not information"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_save_fraction",
+      "statement": "A tenth of the relaxation time resolves the autocorrelation whose shape the A2 scatter assumes, which is the one thing a run can check about its own statistics.",
+      "numbers": [
+        "save_interval_fraction"
+      ],
+      "falsifier": "a first run whose measured autocorrelation is flat between a tenth and a half of tau_t loosens it",
+      "gap_ref": "save_interval_fraction_of_relaxation_time_absent"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "save_interval_fraction_of_relaxation_time_absent",
+      "observable": "save_interval_fraction_of_relaxation_time",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-102:v2:bd_overdamped_trapped:a4",
+      "asked_at": "2026-09-24T06:53:34+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "camera_exposure_time_absent",
+      "observable": "camera_exposure_time",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-102:v2:bd_overdamped_trapped:a4",
+      "asked_at": "2026-09-24T06:53:39+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "Two-sided, and the lower half is the unusual one: for a width, as for a mean, samples closer than the correlation time add nothing. The exposure is the half that does not exist on this side at all and decides whether the two sides measure the same quantity."
+}
