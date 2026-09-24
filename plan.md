@@ -2316,6 +2316,7 @@ rebuild/
     runs/<run_id>/                  raw/, log.json, deviations.json
     src/                            deterministic code (§7.2)
     tests/                          the seats' own tests of their code, one file per module (`tests/<name>.py`). Added to ALLOWED_PATHS at `d9cf1c6` when microscope-20260924-4 started its wrapper's tests; recorded here after, because check 55 compares this list against ALLOWED_PATHS in one direction only and so passed without it
+    findings/<seat>-<YYYYMMDD>.json the day's findings a seat hands to the librarian, one file per seat per day (`contracts/schemas/findings.schema.json`, `9fc1645`): each item a fact, how it was established, its kind and a source the kind requires, an observable's value always `for_store: false` (§11-21 condition 4). The execution seat writes it. **The librarian may read this folder and nothing else of this tree** -- read only, the same shape as the bridge's exception to read `questions/` (§6.2 rule 3) -- because a message leaves no trace and the committed file is the trace. Added 2026-09-24 for the harvest the person asked for before the architecture session closed
                                       axis_a1_snr.py … axis_a7_driving.py    (S3, seven)
                                       synthesis.py                           (S4)
                                       operator.py                            (S6)
