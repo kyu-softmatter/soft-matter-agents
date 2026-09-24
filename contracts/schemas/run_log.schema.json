@@ -16,13 +16,19 @@
       "pattern": "^[a-z0-9-]+$"
     },
     "plan_id": {
-      "type": "string",
-      "description": "the plan this run carried out. A run exists because a plan did (4.6)"
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "the plan this run carried out. A run exists because a plan did (4.6) -- with one exception, settled 2026-09-24 (11-21): a PREPARATORY run carries null here, and then must carry `no_plan_because` and `approved_commands`, may dispatch nothing to the motion set, and produces no result card and no KB entry of its own. Its numbers reach the record only when a later plan cites its run_id as an input. Check 85 holds the parts a schema cannot: the motion set, and what cites the run. null is never a missing value: it is the statement that no plan governed this run, and the schema refuses it without the two fields that make that statement honest."
     },
     "revision": {
-      "type": "integer",
+      "type": [
+        "integer",
+        "null"
+      ],
       "minimum": 1,
-      "description": "the plan revision. An approval names (plan_id, revision), so a run that cannot say which revision it ran cannot be matched to one (6.1)"
+      "description": "the plan revision. An approval names (plan_id, revision), so a run that cannot say which revision it ran cannot be matched to one (6.1). null exactly when plan_id is null: a preparatory run has no plan and so no revision of one"
     },
     "approval": {
       "type": "object",
@@ -93,6 +99,34 @@
     "plan_path": {
       "type": "string",
       "description": "The plan file this run actually opened, repo-relative. `plan_id` and `revision` are copied from inside the card and agree with themselves whichever file was opened, so until 3eda760 nothing in a run record could distinguish 'ran revision 1 deliberately' from 'ran revision 1 because operator.py built the filename without a revision and could not see revision 2'. That second case ran the discarded experiment and finished green (tasks/009).\n\nOptional, because three runs predate the field and P1 does not rewrite them; absent means the record cannot make that distinction, which is a fact about the record and not a defect in it. The operator now refuses a mismatch between the filename and the card's own `revision` at the one point where both are in hand, so this field and that refusal are two halves: the refusal stops the pair from lying, this says which file the pair came from."
+    },
+    "no_plan_because": {
+      "type": "string",
+      "minLength": 20,
+      "description": "a preparatory run only: why no plan governed it, in words. Required with plan_id null and refused without it, so the field cannot be carried by a run that had a plan. The first one (2026-09-24) had none that fit: the only pre-measurement plan was 100x oil with software motion, and a 20x revision citing its axis ranges would have laundered them. A made-up plan_id to satisfy the old schema would have been a record claiming a plan that did not exist"
+    },
+    "approved_commands": {
+      "type": "object",
+      "description": "a preparatory run only: the command list the person approved before any light, by path and sha256. It stands where a plan's scope approval would (11-21 condition 2). The path may lie outside the repository -- the first one sat beside its frames -- so check 85 verifies the hash when the file is readable from where the check runs and says so when it is not",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "approved_by": {
+          "type": "string",
+          "description": "who approved, in words, as the approval was given"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
@@ -278,5 +312,51 @@
         }
       ]
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "plan_id": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "plan_id"
+        ]
+      },
+      "then": {
+        "required": [
+          "no_plan_because",
+          "approved_commands"
+        ],
+        "properties": {
+          "revision": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "revision": {
+            "type": "integer"
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "no_plan_because"
+              ]
+            },
+            {
+              "required": [
+                "approved_commands"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
 }

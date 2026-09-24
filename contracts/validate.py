@@ -7432,6 +7432,128 @@ def check_84_seat_registry_is_sound(b: Bundle) -> list[Finding]:
                                     f"excludes the registry, {n_dated} registered since the dated form all dated")]
 
 
+#: What a preparatory run may not dispatch to (11-21 condition 3). The devices
+#: that change WHERE the objective, the sample or a trapped object sits -- the
+#: things that can collide or displace -- named both ways a log may name them:
+#: the registry's element and channel ids, and the Micro-Manager labels a
+#: session script calls. Selectors are deliberately NOT here: a mirror, a filter,
+#: a port or a condenser position changes which light reaches the detector and
+#: cannot reach the sample. The first preparatory run's load moved the Lapp
+#: branch mirror by its Startup preset, as the person's recorded decision, and
+#: that is a selector. A written choice, reported to architecture on 2026-09-24
+#: with the check, for correction rather than as a ruling.
+PREPARATORY_MOTION_SET = frozenset({
+    "z_drive", "nosepiece", "motor_stage", "pfs", "piezo_stage", "optical_tweezers",
+    "ZDrive", "Nosepiece", "XYStage", "PFS", "PFSOffset",
+})
+#: Events that send something to a device. `apply_failed` counts: a command
+#: that was sent and refused by the device was still sent.
+_DISPATCH_EVENTS = frozenset({"apply", "apply_failed", "dispatch"})
+
+
+def check_85_preparatory_run(b: Bundle) -> list[Finding]:
+    """A run with no plan is a preparatory run, and holds to its four conditions (11-21).
+
+    Settled 2026-09-24, the day the first one happened: no plan fitted the
+    first real acquisition on the microscope computer, and a revision citing
+    another configuration's axis ranges would have laundered them. The schema
+    holds conditions 1 and 2 in shape -- `plan_id` null only with
+    `no_plan_because` and `approved_commands`, and neither field on a run
+    that had a plan. This holds what a schema cannot see:
+
+      - 2, the approved list is the file it names: its sha256 is checked
+        when the path is readable from here. It may sit outside the tree --
+        the first one sat beside its frames -- and then that is SAID, not
+        passed silently and not failed for being elsewhere
+      - 3, NOTHING MOVES: no dispatch event whose channel, element or
+        parameter name is in PREPARATORY_MOTION_SET. First focus-
+        finding moves Z, which is why it stays a planned operation
+      - 4, NO RESULT OF ITS OWN: no result card names this run_id, and no KB
+        entry carries a `measured:<run_id>` number. Its numbers reach the
+        record only when a later plan cites the run as an input, and that
+        later plan's own run is what produces the result
+
+    WHAT IT DOES NOT DO. It does not look for a later plan citing the run:
+    the plan schema has no inputs field yet, and a preparatory run nothing
+    cites is legal -- it is waiting, not wrong.
+    """
+    logs = [c for c in b.of_artifact("run_log")
+            if "__unreadable__" not in c.data and c.data.get("plan_id", "") is None]
+    if not logs:
+        return [Finding(85, NA, "no preparatory runs: every run log names the plan it carried out")]
+
+    results_by_run: dict[str, list[str]] = {}
+    for c in b.of_kind("result"):
+        rid = c.data.get("run_id")
+        if isinstance(rid, str):
+            results_by_run.setdefault(rid, []).append(c.rel)
+    kb_by_run: dict[str, list[str]] = {}
+    for p in sorted((KB_DIR / "entries").glob("*.json")):
+        try:
+            entry = json.loads(p.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        for n in entry.get("numbers") or []:
+            src = n.get("source") if isinstance(n, dict) else None
+            if isinstance(src, str) and src.startswith("measured:"):
+                kb_by_run.setdefault(src.split(":", 1)[1], []).append(entry.get("entry_id", p.stem))
+
+    out: list[Finding] = []
+    for log in logs:
+        d, rel = log.data, log.rel
+        rid = d.get("run_id", "?")
+        bad = False
+
+        moved = []
+        for i, ev in enumerate(d.get("events") or []):
+            if not isinstance(ev, dict) or ev.get("event") not in _DISPATCH_EVENTS:
+                continue
+            # A run log keys params by parameter name, and earlier logs key
+            # them by element (`lapp_branch`), so a motion device can sit
+            # there too. A plan's `params.settings` is flattened before a run
+            # log sees it, so it has no level of its own here.
+            names = [ev.get("channel"), ev.get("element")]
+            names += list((ev.get("params") or {}).keys())
+            hit = sorted({str(n) for n in names if n in PREPARATORY_MOTION_SET})
+            if hit:
+                moved.append(f"event {i} ({ev.get('event')} {ev.get('action') or ''}) reaches {hit}")
+        if moved:
+            bad = True
+            out.append(Finding(85, FAIL, f"{rid} is a preparatory run and dispatches to the motion set: "
+                                         f"{'; '.join(moved)}. A run with no plan moves nothing (11-21 "
+                                         "condition 3); a run that must move needs a plan", rel))
+
+        own = results_by_run.get(rid, []) + [f"kb:{e}" for e in kb_by_run.get(rid, [])]
+        if own:
+            bad = True
+            out.append(Finding(85, FAIL, f"{rid} is a preparatory run and has a result of its own: {own}. "
+                                         "Its numbers reach the record only when a later plan cites it as "
+                                         "an input (11-21 condition 4)", rel))
+
+        ac = d.get("approved_commands") or {}
+        path, want = ac.get("path"), ac.get("sha256")
+        where = "no approved command list is named"
+        if isinstance(path, str) and isinstance(want, str):
+            f = Path(path)
+            f = f if f.is_absolute() else REPO / f
+            if f.is_file():
+                got = hashlib.sha256(f.read_bytes()).hexdigest()
+                if got != want:
+                    bad = True
+                    out.append(Finding(85, FAIL, f"{rid}: the approved command list at {path} hashes to "
+                                                 f"{got[:12]}, not the {want[:12]} the log records. The list "
+                                                 "the person approved is not the list on disk (11-21 condition 2)",
+                                       rel))
+                where = f"its approved list {path} matches its sha256"
+            else:
+                where = (f"its approved list {path} is not readable from here, so its sha256 "
+                         f"{want[:12]} is recorded and not checked")
+        if not bad:
+            out.append(Finding(85, PASS, f"{rid} is a preparatory run: nothing dispatched to the motion set, "
+                                         f"no result of its own, and {where}", rel))
+    return out
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -7447,6 +7569,7 @@ CHECKS = [
     check_78_history_paths_classify, check_79_gitignored_dirs_are_skipped,
     check_81_relative_imports_resolve, check_82_imports_are_declared,
     check_83_written_trajectories_are_present, check_84_seat_registry_is_sound,
+    check_85_preparatory_run,
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision,
