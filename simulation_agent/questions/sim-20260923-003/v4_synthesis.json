@@ -1,0 +1,636 @@
+{
+  "card": "synthesis",
+  "schema_version": "0.1",
+  "id": "synthesis-sim-20260923-003-r4",
+  "qid": "sim-20260923-003",
+  "thread": "solo-sim-20260923-003",
+  "round": 0,
+  "revision": 4,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T01:10:00Z",
+  "status": "VALIDATED",
+  "configs_screened": [
+    "abp_free"
+  ],
+  "per_config": [
+    {
+      "config": "abp_free",
+      "empty": false,
+      "axis_files": [
+        "v4_axis_abp_free_a1.json",
+        "v4_axis_abp_free_a2.json",
+        "v4_axis_abp_free_a3.json",
+        "v4_axis_abp_free_a4.json",
+        "v4_axis_abp_free_a5.json",
+        "v4_axis_abp_free_a7.json"
+      ],
+      "intersection": [
+        {
+          "parameter": "coordinates_stored",
+          "unit": "1",
+          "basis": [
+            "coordinates_stored_max"
+          ],
+          "max": 1000000000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "fit_lag_range_lower_bound",
+          "unit": "s",
+          "basis": [
+            "fit_lag_range_lower_bound_min"
+          ],
+          "min": 1000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "integration_timestep",
+          "unit": "s",
+          "basis": [
+            "integration_timestep_max"
+          ],
+          "max": 1.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "lag_to_record_ratio",
+          "unit": "1",
+          "basis": [
+            "lag_to_record_ratio_max"
+          ],
+          "max": 0.1,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "max_lag_time",
+          "unit": "s",
+          "basis": [
+            "max_lag_time_min"
+          ],
+          "min": 3000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "particle_steps",
+          "unit": "1",
+          "basis": [
+            "particle_steps_max"
+          ],
+          "max": 70000000000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "save_interval",
+          "unit": "s",
+          "basis": [
+            "save_interval_max"
+          ],
+          "max": 1.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "total_simulated_time",
+          "unit": "s",
+          "basis": [
+            "total_simulated_time_min"
+          ],
+          "min": 10000.0,
+          "precision": "order_of_magnitude"
+        }
+      ]
+    }
+  ],
+  "chosen_config": "abp_free",
+  "operating_point": [
+    {
+      "parameter": "integration_timestep",
+      "number": "integration_timestep_point"
+    },
+    {
+      "parameter": "total_simulated_time",
+      "number": "total_simulated_time_point"
+    },
+    {
+      "parameter": "save_interval",
+      "number": "save_interval_point"
+    },
+    {
+      "parameter": "box_length",
+      "number": "box_length_point"
+    },
+    {
+      "parameter": "max_lag_time",
+      "number": "max_lag_time_point"
+    },
+    {
+      "parameter": "n_particles",
+      "number": "n_particles"
+    },
+    {
+      "parameter": "self_propulsion_speed",
+      "number": "self_propulsion_speed"
+    },
+    {
+      "parameter": "rotational_diffusivity",
+      "number": "rotational_diffusivity"
+    }
+  ],
+  "priority_used": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "priority_source": "goal_card",
+  "rejected": [
+    {
+      "what": "a save interval fine enough to resolve the thermal regime",
+      "kind": "operating_point",
+      "reason": "the MSD has THREE regimes and this plan resolves two of them. Below tau_1 = D_T/v0^2 the translational noise beats the propulsion and the slope returns to 1; seeing that needs a save interval a decade under tau_1, which at this record length is 4e9 stored coordinates against A5's ceiling of 1e9. The window is bounded here and not resolved, and the short-lag end is a second plan rather than a finer version of this one",
+      "grounds": [
+        "thermal_crossover_time",
+        "save_interval_point",
+        "storage_estimate"
+      ]
+    },
+    {
+      "what": "the integration timestep at A1's ceiling",
+      "kind": "operating_point",
+      "reason": "A1 allows a step three decades coarser, because for a free active particle the only discretisation error is holding the orientation fixed across a step. A saved frame would then fall between steps, so the step follows the save interval instead",
+      "grounds": [
+        "integration_timestep_max",
+        "save_interval_point"
+      ]
+    },
+    {
+      "what": "the record at A2's own floor of a hundred persistence times",
+      "kind": "operating_point",
+      "reason": "A2's floor and A4's window floor cannot both be met at that record: 3000 s of window in 10000 s of record is a ratio of 0.3 against A2's own ceiling of 0.1. Two axes that never see each other conflict, and S4 resolves it by lengthening the record rather than shortening the window",
+      "grounds": [
+        "total_simulated_time_min",
+        "max_lag_time_min",
+        "lag_to_record_ratio_max"
+      ]
+    }
+  ],
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "origin": "v4_goal.json#bead_diameter",
+      "precision": "significant_figures",
+      "note": "the laboratory's tracer, measured by the operator on 2026-09-19. Provenance of D_T and of the sweep's centre, NOT a parameter of abp_free"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v4_goal.json#temperature",
+      "precision": "significant_figures",
+      "note": "the room's, read off a thermometer. In this configuration temperature is constitutive -- a parameter of the noise amplitude with no mechanism that could fail to realise it -- so citing it records why the value was chosen and is not evidence about the model"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v4_goal.json#viscosity",
+      "precision": "significant_figures",
+      "note": "pure water; the entry's validity runs 288 to 298 K and the temperature above is inside it"
+    },
+    {
+      "name": "translational_diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "origin": "v4_goal.json#translational_diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "held fixed across the whole grid. One significant figure because the worst input carries one"
+    },
+    {
+      "name": "rotational_diffusivity",
+      "value": 0.01,
+      "unit": "1/s",
+      "source": "computed:stokes_einstein_debye",
+      "grade": "E4",
+      "origin": "v4_goal.json#rotational_diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "the sphere's own Stokes-Einstein-Debye value, 3*D_T/d^2. This revision sits ON the realisable centre rather than off it, so every number here describes one physical particle. Unit 1/s and not rad^2/s: the registry gives rad the dimension A, so rad^2/s cannot enter any formula check 17 can evaluate, and a radian is dimensionless"
+    },
+    {
+      "name": "self_propulsion_speed",
+      "value": 3,
+      "unit": "um/s",
+      "source": "computed:peclet_thermal_times_thermal_speed",
+      "grade": "E5",
+      "origin": "v4_goal.json#self_propulsion_speed",
+      "precision": "order_of_magnitude",
+      "note": "2.97 um/s at one significant figure"
+    },
+    {
+      "name": "persistence_time_expected",
+      "value": 100,
+      "unit": "s",
+      "source": "computed:inverse_rotational_diffusivity",
+      "grade": "E4",
+      "origin": "v4_goal.json#persistence_time_expected",
+      "precision": "order_of_magnitude",
+      "note": "1/((d-1)*D_R) is 1/D_R in two dimensions. Consistent with the rotational diffusivity above BY CONSTRUCTION, which revision 2 was not: it carried the sweep top for one and the sweep bottom for the other, and A1 failed check 17 on the mismatch"
+    },
+    {
+      "name": "thermal_crossover_time",
+      "value": 0.01,
+      "unit": "s",
+      "source": "computed:thermal_over_speed_squared",
+      "grade": "E5",
+      "origin": "v4_goal.json#thermal_crossover_time",
+      "precision": "order_of_magnitude",
+      "note": "tau_1 = D_T/v0^2, the EARLY crossover where the thermal regime gives way to the ballistic one. The three-regime structure is the reason this number exists: the MSD starts at slope 1, not 2"
+    },
+    {
+      "name": "persistence_length_expected",
+      "value": 300,
+      "unit": "um",
+      "source": "computed:speed_times_persistence_time",
+      "grade": "E5",
+      "origin": "v4_goal.json#persistence_length_expected",
+      "precision": "order_of_magnitude",
+      "note": "289 um at one figure. It bounds nothing -- A3 abstains because a free particle is not coupled to its image -- and is recorded so that is visible"
+    },
+    {
+      "name": "peclet_thermal",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_peclet_point",
+      "grade": "E5",
+      "origin": "v4_goal.json#peclet_thermal",
+      "precision": "order_of_magnitude",
+      "note": "the collapse variable v0/sqrt((d-1)*D_R*D_T) at this operating point. 100 gives Lambda = 1e4, where the maximum log-log slope is 1.98 -- the ballistic regime is present and clean. At Pe_thermal of 10 the maximum is 1.79 and at 1 it is 1.12"
+    },
+    {
+      "name": "n_particles",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_ensemble",
+      "grade": "E5",
+      "origin": "v4_goal.json#n_particles",
+      "precision": "order_of_magnitude",
+      "note": "non-interacting walkers, a statistics knob and not a density. A hundred keeps the trajectory inside two gigabytes at the save interval this point needs Unit 1 and not count, changed at revision 4. `count` carries an amount dimension in the registry and `1` does not, so a particle count declared as `count` cannot be multiplied into anything: particles times steps is an amount, and dividing that by a rate gives amount-seconds, which no unit spells. The cost estimates the envelope gate compares against ceilings are exactly that product, so they could not be written at all. This tree already follows the convention -- the interacting active question declares its per-arm particle counts dimensionless for the same reason, and an older goal carried a cube root of a count as `1` noting that the cube root of a count is not a count. Nothing physical changes; a hundred particles is a hundred particles."
+    },
+    {
+      "name": "integration_timestep_max",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:resolution_of_persistence_time",
+      "grade": "E5",
+      "origin": "v4_axis_abp_free_a1.json#integration_timestep_max",
+      "precision": "order_of_magnitude",
+      "note": "upper bound only. The free model has no length scale, so no displacement per step is constrained; the orientation held fixed over one step is the only error the integrator makes, and D_R*dt is the only group it can depend on"
+    },
+    {
+      "name": "total_simulated_time_min",
+      "value": 10000.0,
+      "unit": "s",
+      "source": "computed:record_over_ratio",
+      "grade": "E5",
+      "origin": "v4_axis_abp_free_a2.json#total_simulated_time_min",
+      "precision": "order_of_magnitude",
+      "note": "floor only; A5 bounds the run from above"
+    },
+    {
+      "name": "lag_to_record_ratio_max",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_window_statistics",
+      "grade": "E5",
+      "origin": "v4_axis_abp_free_a2.json#lag_to_record_ratio_max",
+      "precision": "order_of_magnitude",
+      "note": "the largest share of the record one lag may span"
+    },
+    {
+      "name": "save_interval_max",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:two_decades_below_persistence",
+      "grade": "E5",
+      "origin": "v4_axis_abp_free_a4.json#save_interval_max",
+      "precision": "order_of_magnitude",
+      "note": "upper bound. The crossover and the short-time slope live below tau_p, and a save interval near tau_p would record only the diffusive tail"
+    },
+    {
+      "name": "fit_lag_range_lower_bound_min",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "computed:plateau_lag",
+      "grade": "E5",
+      "origin": "v4_axis_abp_free_a4.json#fit_lag_range_lower_bound_min",
+      "precision": "order_of_magnitude",
+      "note": "the window parameter of effective_translational_diffusivity; a value read earlier is D_T under that name (contracts/observables.json)"
+    },
+    {
+      "name": "max_lag_time_min",
+      "value": 3000.0,
+      "unit": "s",
+      "source": "computed:span_over_lower_bound",
+      "grade": "E5",
+      "origin": "v4_axis_abp_free_a4.json#max_lag_time_min",
+      "precision": "order_of_magnitude",
+      "note": "the window parameter of mean_squared_displacement, bounded from BELOW here: opposite to tracer_diffusivity, whose window is bounded from above to stay free"
+    },
+    {
+      "name": "particle_step_rate",
+      "value": 10000000.0,
+      "unit": "1/s",
+      "source": "assumed:a_cost_reference",
+      "grade": "E5",
+      "origin": "v4_axis_abp_free_a5.json#particle_step_rate",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps per second for a 2D WCA active system with a neighbour list on this workstation's CPU: of order ten million. A guess until the smoke run measures it"
+    },
+    {
+      "name": "bytes_per_coordinate",
+      "value": 8e-09,
+      "unit": "GB",
+      "source": "spec:ieee754_double",
+      "grade": "E3",
+      "origin": "v4_axis_abp_free_a5.json#bytes_per_coordinate",
+      "precision": "significant_figures",
+      "note": "one double-precision coordinate, in the unit the ceiling is written in"
+    },
+    {
+      "name": "particle_steps_max",
+      "value": 70000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_times_rate",
+      "grade": "E5",
+      "origin": "v4_axis_abp_free_a5.json#particle_steps_max",
+      "precision": "order_of_magnitude",
+      "note": "the product n_particles*total_simulated_time/integration_timestep may not exceed this. A5 constrains the product and not any factor, and takes none of them from A1 or A2 (4.5.3 rule b)"
+    },
+    {
+      "name": "coordinates_stored_max",
+      "value": 1000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_over_bytes",
+      "grade": "E4",
+      "origin": "v4_axis_abp_free_a5.json#coordinates_stored_max",
+      "precision": "order_of_magnitude",
+      "note": "the product 2*n_particles*total_simulated_time/save_interval may not exceed this, two coordinates per particle per frame in two dimensions"
+    },
+    {
+      "name": "total_simulated_time_point",
+      "value": 40000,
+      "unit": "s",
+      "source": "computed:four_hundred_persistence_times",
+      "grade": "E4",
+      "formula": "400 * persistence_time_expected",
+      "inputs": [
+        "persistence_time_expected"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "four hundred persistence times. NOT A2's floor, which is a hundred: A4 requires a window of at least 3000 s and A2 requires the window to be at most a tenth of the record, so the pair forces at least 30000 s and 400 tau_R is the next round multiple above it. The 400 is a decision and carries no grade; the seconds inherit E4 from the persistence time"
+    },
+    {
+      "name": "save_interval_point",
+      "value": 0.1,
+      "unit": "s",
+      "source": "computed:tenth_of_the_a4_ceiling",
+      "grade": "E5",
+      "formula": "save_interval_max / 10",
+      "inputs": [
+        "save_interval_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a decade under A4's ceiling. STORAGE IS WHAT SETS IT, not the physics: at the early crossover tau_1 = D_T/v0^2 it would resolve all three regimes and cost 6.4 GB against a 10 GB ceiling for one run, and this buys the ballistic peak and the whole crossover to diffusion for 0.6 GB. The shortest lag is then ten times tau_1, so the run enters the ballistic regime already risen and does not show it rise -- recorded as a rejection rather than left to be discovered in the output"
+    },
+    {
+      "name": "integration_timestep_point",
+      "value": 0.01,
+      "unit": "s",
+      "source": "computed:tenth_of_the_save_interval",
+      "grade": "E5",
+      "formula": "save_interval_point / 10",
+      "inputs": [
+        "save_interval_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a decade below the save interval so a saved frame never falls between steps. Three decades under A1's ceiling, which for this configuration is D_R*dt <= 0.01 and nothing else -- there is no length in the free model for a displacement-per-step bound to compare against"
+    },
+    {
+      "name": "box_length_point",
+      "value": 3000,
+      "unit": "um",
+      "source": "computed:ten_persistence_lengths",
+      "grade": "E5",
+      "formula": "10 * persistence_length_expected",
+      "inputs": [
+        "persistence_length_expected"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "NOT A BOUND AND THE CARD SAYS SO. A3 abstains because nothing couples a free particle to its periodic image, so no axis constrains the box; the engine needs one and this is it. Ten persistence lengths keeps the wrapping sparse for a reader looking at raw coordinates, and the estimator reads unwrapped positions regardless"
+    },
+    {
+      "name": "particle_steps_point",
+      "value": 400000000,
+      "unit": "1",
+      "source": "computed:particles_times_steps",
+      "grade": "E5",
+      "formula": "n_particles * total_simulated_time_point / integration_timestep_point",
+      "inputs": [
+        "n_particles",
+        "total_simulated_time_point",
+        "integration_timestep_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a hundred particles over four million steps. Declared dimensionless because it is what the budget divides by a rate, and an amount divided by a rate is not a time -- the same convention the interacting active question uses for its per-arm counts"
+    },
+    {
+      "name": "coordinates_stored_point",
+      "value": 80000000,
+      "unit": "1",
+      "source": "computed:particles_times_frames_times_dimensions",
+      "grade": "E5",
+      "formula": "n_particles * total_simulated_time_point / save_interval_point * 2",
+      "inputs": [
+        "n_particles",
+        "total_simulated_time_point",
+        "save_interval_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "four hundred thousand frames of a hundred particles at TWO coordinates each, because this configuration is two-dimensional; the same run in three would be half as much again. An order under A5's own ceiling"
+    },
+    {
+      "name": "max_lag_time_point",
+      "value": 3000,
+      "unit": "s",
+      "source": "computed:a4_window_floor",
+      "grade": "E5",
+      "formula": "1 * max_lag_time_min",
+      "inputs": [
+        "max_lag_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "at A4's floor, thirty persistence times. Taking more window would push the record longer still through A2's ratio without buying a regime the run does not already cover"
+    },
+    {
+      "name": "lag_to_record_ratio",
+      "value": 0.08,
+      "unit": "1",
+      "source": "computed:operating_point_of_abp_free",
+      "grade": "E5",
+      "formula": "max_lag_time_point / total_simulated_time_point",
+      "inputs": [
+        "max_lag_time_point",
+        "total_simulated_time_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the window as a share of the record, under A2's 0.1. This is the number that made the record four times A2's floor rather than equal to it. 3000/40000 is 0.075 and one significant figure is 0.08, which is what explore mode allows a value whose inputs carry one figure each -- writing 0.075 claimed a precision neither input has"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_peclet_point",
+      "statement": "The thermal Peclet number is set to 100 at this single operating point, where Lambda = 1e4 and the maximum log-log slope is 1.98. Chosen so the ballistic regime is present rather than marginal: at Pe_thermal of 10 the maximum slope is 1.79 and at 1 it is 1.12.",
+      "numbers": [
+        "peclet_thermal"
+      ],
+      "falsifier": "a run whose maximum log-log slope falls below 1.9, which would mean this point does not reach the regime it was chosen to reach",
+      "gap_ref": "self_propulsion_speed_absent"
+    },
+    {
+      "rationale_id": "a_ensemble",
+      "statement": "A thousand non-interacting walkers per point. Nothing physical picks this; it is the statistics knob, and the particles do not interact so it is not a density.",
+      "numbers": [
+        "n_particles"
+      ],
+      "falsifier": "a statistical error on D_eff that this ensemble cannot reach inside budget",
+      "gap_ref": "tracer_ensemble_size_absent"
+    },
+    {
+      "rationale_id": "a_window_statistics",
+      "gap_ref": "lag_to_record_ratio_absent",
+      "statement": "A lag may span at most a tenth of the record so that every lag in the fit is determined by many displacements rather than by one.",
+      "numbers": [
+        "lag_to_record_ratio_max"
+      ],
+      "falsifier": "a weighted fit whose slope is unchanged when the longest lag is shortened retires this fraction"
+    },
+    {
+      "rationale_id": "a_cost_reference",
+      "gap_ref": "particle_step_rate_absent",
+      "statement": "The cost model is one pair-force evaluation per particle per step through a neighbour list, at a rate guessed from the engine's class of hardware. Nothing on this machine has run this configuration.",
+      "numbers": [
+        "particle_step_rate"
+      ],
+      "falsifier": "a run that WRITES THE TRAJECTORY THIS PLAN DECLARES on hoomd_backend replaces the rate with the value measured off that run's own log and the ceiling interval moves with it"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "active_brownian_particle_absent",
+      "observable": "active_brownian_particle",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='active_brownian_particle') against the service at kbv-4b981dc870d3",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "gap_id": "mean_squared_displacement_absent",
+      "observable": "mean_squared_displacement",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='mean_squared_displacement') against the service at kbv-4b981dc870d3",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "gap_id": "rotational_diffusivity_absent",
+      "observable": "rotational_diffusivity",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='rotational_diffusivity') against the service at kbv-4b981dc870d3",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "gap_id": "self_propulsion_speed_absent",
+      "observable": "self_propulsion_speed",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='self_propulsion_speed') against the service at kbv-4b981dc870d3",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "gap_id": "tracer_ensemble_size_absent",
+      "observable": "tracer_ensemble_size",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    },
+    {
+      "gap_id": "msd_fit_window_absent",
+      "observable": "msd_fit_window",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3"
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ]
+}
