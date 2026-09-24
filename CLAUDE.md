@@ -265,7 +265,12 @@ of reason** -- `__conda_exe:6: permission denied`, from a shell function in
 `~/.claude/shell-snapshots/`, which this harness writes per session. The
 absolute binary and `condabin/conda` both work. **Call conda by absolute
 path**; one seat read the failure as a broken machine and lost half a day,
-and its retraction is in §7. **Run `git var GIT_COMMITTER_IDENT` before trusting who you are** -- it costs
+and its retraction is in §7. **And take a seat's email from `contracts/seats.json`, never from a
+message**: a message delivered by session id -- the desktop's session-messaging
+route -- arrives with `@` turned into a fullwidth `＠` (U+FF20), so an email
+copied out of it matches no registry entry and check 41 refuses the commit.
+microscope-20260923-6 caught it in its seat notice on 2026-09-23, and its reply
+arrived with the same substitution. **Run `git var GIT_COMMITTER_IDENT` before trusting who you are** -- it costs
 nothing and answers exactly, the way calling one tool answers whether the
 tools are there. The file is in no tree, so the gate cannot see it, and the
 hook made it worse by exiting 1 after `pre-commit: contracts` with no FAIL
@@ -361,12 +366,15 @@ the point a seat is most tempted.
 **The cheapest test of whether the tools are there is to call one.** A probe
 costs nothing and dirties nothing: the server files a refusal with
 `caller_id` null and what was claimed -- the `caller_id` and `kb_version` --
-under `claimed`. **It does not record the other arguments**, which this file
-said it did until 2026-09-23: all 15 refusals in the log carry only those two
-keys, because the recorder keeps keyword arguments and the tools are called
-positionally, so a refusal says who claimed to ask and not what they asked
-(librarian-2 found it; the fix is the librarian's, and like any server fix it
-reaches only servers started after it). Check 45 guards both
+under `claimed`. **What else it records depends on which build answered**: a
+server started before `9cf04d8` (2026-09-23 23:46) records only who claimed to
+ask -- the recorder kept keyword arguments and the tools are called
+positionally, so all 15 refusals before it carry just those two keys -- and a
+server started after it also records what was asked, under
+`claimed.arguments`. librarian-2 found and fixed it, and watched its new
+self-test assertion fail on the old code first. Which build answered a given
+line is countable, by comparing its `server_session` epoch with that commit's
+time. Check 45 guards both
 sides of that -- `if cid` before the log line is counted, `if not cid` before
 a card is -- so an invented id can neither enter the log as a caller nor back
 a card. simulation-3 put off a probe over that worry and then checked; this
