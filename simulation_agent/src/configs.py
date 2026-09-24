@@ -60,3 +60,40 @@ def applicable(config: str, goal: dict) -> tuple[bool, str]:
     if mod is None or not hasattr(mod, "applicable"):
         return True, ""
     return mod.applicable(goal)
+
+
+def operating_point(config: str):
+    """The configuration's S4 operating-point spec, or None to fall through.
+
+    `synthesis.OPERATING_POINT` is a table keyed by configuration and held
+    only `bd_overdamped`, so S4 raised `KeyError` for every configuration
+    declared on 2026-09-23. The spec is per-configuration data of exactly the
+    kind this module already keeps out of the shared files: the axis
+    filenames a plan carries from, which numbers S4 computes, and what it
+    rejected. Same shape as the table entry -- `carry`, `computed`, `ratio`,
+    `point`, `rejected` -- so `synthesis.build` reads one or the other and
+    nothing else changes.
+    """
+    mod = module_for(config)
+    if mod is None or not hasattr(mod, "operating_point"):
+        return None
+    return mod.operating_point()
+
+
+def plan_builder(config: str):
+    """The configuration's own S5, or None to fall through.
+
+    `plan_card.build` is `bd_overdamped`'s end to end -- it names that
+    configuration's axis files, carries `tau_d` and `diffusivity`, and writes
+    stop criteria against `box_length_min_dilution`. None of those exist for
+    an active configuration, and parameterising the whole body in place would
+    put five configurations' prose in one function. A configuration that
+    needs a different plan supplies `build_plan(qid, created_at, revision)`
+    and returns a whole card; `bd_overdamped` supplies nothing and the
+    existing body runs unchanged.
+    """
+    mod = module_for(config)
+    if mod is None or not hasattr(mod, "build_plan"):
+        return None
+    return mod.build_plan
+

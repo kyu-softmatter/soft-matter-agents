@@ -53,6 +53,13 @@ def build(qid: str, created_at: str, revision: int = 1) -> dict:
     syn = json.loads((cards.question_dir(qid) / cards.artifact_name(
         "synthesis.json", revision)).read_text())
     config = syn["chosen_config"]
+    # A configuration with its own S5 answers for itself (src/configs.py).
+    # Everything below this line is bd_overdamped's: its axis filenames, its
+    # tau_d and diffusivity, its stop criterion against box_length_min_dilution.
+    from . import configs as _configs
+    _own = _configs.plan_builder(config)
+    if _own is not None:
+        return _own(qid, created_at, revision)
 
     point = {p["parameter"]: p["number"] for p in syn["operating_point"]}
     # tracer_diffusivity_expected is carried because a success criterion

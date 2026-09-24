@@ -285,7 +285,10 @@ def build(qid: str, configs: list[str], created_at: str, revision: int = 1) -> d
         )
 
     goal = cards.load_goal(qid, revision)
-    spec = OPERATING_POINT[chosen]
+    # A configuration may bring its own spec (src/configs.py); the table is
+    # the fallback and still holds bd_overdamped's.
+    from . import configs as _configs
+    spec = _configs.operating_point(chosen) or OPERATING_POINT[chosen]
     # The table names revision-1 files. Resolve each to this revision's name,
     # so `origin` points at the card that actually produced the number rather
     # than at whatever a previous revision left on disk.
