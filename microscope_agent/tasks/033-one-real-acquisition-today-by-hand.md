@@ -9,7 +9,7 @@ for you. Work sent down from the architecture seat at the person's request,
 the card is what makes them an assignment.
 
 **The goal is one real frame series on the particles today**, taken on this
-computer, with the result card for the librarian. Not a finished pipeline:
+computer, with its run log. The result card waits (§6). Not a finished pipeline:
 the shortest path that is safe.
 
 ## What the person decided today
@@ -338,14 +338,48 @@ once (card 018 §4f). Ask; it does not block.
 - Commits: hooks are not installed in this working copy, so no gate runs.
   Say so in the message. Take your email from `contracts/seats.json`
 
+## 6. The record today: a run log, no result card, and not yet in the tree
+
+**Ruled 2026-09-24 on `microscope-20260924-1`'s question.** A result card
+needs `plan_id`, `plan_revision` and `plan_hash`, and no plan fits this run.
+`plan-mic-20260920-001` is written for the 100x oil lens with software
+motion, and its axis ranges were computed for that configuration. **A new
+revision citing 100x ranges for a 20x run would be laundering.** So:
+
+- **today: the run, with a run log and no result card.** Nothing that
+  matters is lost: the frames, their hashes and the log are the record
+- **after today: a new question for the 20x bare-particle
+  pre-measurement**, with its own goal, axes and plan. Its result card cites
+  today's run as the acquisition. **That needs a card, and this is not it.**
+  Write no goal or plan card on the strength of this paragraph
+
+**But `run_log.schema.json` requires `plan_id` as a string** and says *"a run
+exists because a plan did"* (§4.6). So a log with `plan_id: null` fails its
+own contract, and that is a design question, not something to fix at the
+bench. **Until it is answered:**
+
+- write the log **in the run-log shape**, `plan_id: null`, with a
+  `no_plan_because` field saying the above in words, and the §3b line that
+  this run did not come through the dispatcher
+- **put it beside the frames, `D:\soft-matter-agents-frames\<run_id>\log.json`**,
+  with its sha256 in your report. **Not in `runs/`, and not left uncommitted
+  in the tree**: the working copy is shared, and an uncommitted file there
+  can be reverted by anyone. Outside the tree, git touches nothing
+- **do not invent a `plan_id`** to make the schema pass. A made-up id is a
+  record claiming a plan that did not exist
+
+This seat has raised the schema question to architecture. When it is
+answered, the log comes into `runs/` by whatever route that answer gives.
+
 ## Done when
 
 - both refusals from §1 reported word for word
 - every step of §4 logged with what was written and what was read back
 - one series on the particles, the configuration's path and hash and the
-  Micro-Manager install in its log, the frames under
-  `D:\soft-matter-agents-frames\<run_id>\` with their hashes,
-  a result card for the librarian, and `ImageNumber` contiguous
+  Micro-Manager install in its log, the frames and the log under
+  `D:\soft-matter-agents-frames\<run_id>\` with their hashes, and
+  `ImageNumber` contiguous (§6: no result card today)
+- the script committed in `microscope_agent/` (§3b condition 6)
 - `PYTHONUTF8=1 python contracts/validate.py`, with the tree line read and
   quoted
 
