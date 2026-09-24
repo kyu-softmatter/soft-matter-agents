@@ -1,0 +1,20 @@
+{
+  "entry_id": "piezo_waveform_generator_does_not_read_picometres",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The piezo controller's hardware waveform generator does not read its samples in the picometres that the ordinary position command takes. In the prior project a small sine written in picometres and played back swung the axis over a large part of its travel, many times the amplitude asked for, and oscillated far faster than its programmed period; every sample had read back identical to what was written, so the samples were stored correctly and their unit was wrong. What unit the generator does read is not settled.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "piezo_stage"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-08-27-piezo-first-light",
+  "grade": "E3",
+  "source_ref": "src_prior_piezo_first_light_20260827",
+  "validity_conditions": "Ruled DOWNGRADE by the microscope seat and entered at E3, the cap for a measurement taken in another project (10.3 rule 1). The finding crosses; the swing, amplitude and timing figures do not, because they sit in prose (10.3 rule 3). Slot: A7 (driving and motion) and the device wrapper -- it is why the microscope refuses the waveform generator, and the refusal is recorded in that agent's failure record. Measured there on one lateral axis, on that project's controller. The prior record names the experiment that settles the unit: a constant waveform, which cannot oscillate whatever the unit, played on a lateral axis, so wherever the stage parks is the answer. Falsified by a picometre-coded waveform that plays back at the amplitude written. Delivered as item `prior_waveform_313um_swing` of microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043); the source was opened and its sha256 recorded before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

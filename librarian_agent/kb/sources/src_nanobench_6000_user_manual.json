@@ -1,0 +1,9 @@
+{
+  "source_id": "src_nanobench_6000_user_manual",
+  "kind": "vendor_spec",
+  "identifier": "Nanobench 6000 Customer Interface Software User Manual, version 1.0.19, section 1.2 'Control system overview'. Read by this seat from the copy in C:\\agentic_microscope\\manual\\Piezo Stage\\, sha256 2acb47b5add32f4e84903dff8bf068b4085a9ced4a433239b9fd9de24e57be96. The prior repository is where the document was found, not the source (10.3 rule 2).",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, grade_tag vendor_spec. A published specification is not a measurement taken here.",
+  "delivered_by": "microscope-20260924-2, microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043).",
+  "license_note": "No text reproduced; facts restated."
+}

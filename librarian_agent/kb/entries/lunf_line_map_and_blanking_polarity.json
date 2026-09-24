@@ -1,0 +1,24 @@
+{
+  "entry_id": "lunf_line_map_and_blanking_polarity",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The combiner's four lines are blanked on DAQ Dev1 port 0 as 405 nm on line2, 488 on line4, 561 on line6 and 640 on line8, with DAC indices 0 to 3 in the same order. Blanking is active-high: writing 1 opens a line and 0 closes it.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "line_select"
+    },
+    {
+      "kind": "device",
+      "id": "laser_combiner"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0/config/lunf",
+  "grade": "E3",
+  "source_ref": "src_prior_lunf_scripts_20260907",
+  "validity_conditions": "Ruled TRANSFER, passed 10.3 rules 1 and 3: the map and polarity are machine-readable constants in the prior project's probe script, and that project's record says the map was read off the vendor program's live configuration dialog on 2026-09-02, which outranked three device-database copies of which two put 405 on line1. Polarity was measured by eye that day, on 561 and 640. Slot: a contract field -- the device table's line_select element (lines, open_level, closed_level), which the confocal wrapper reads and refuses without; filling that element is a table edit and goes with the seat that publishes. THIS DECIDES WHICH LASER A COMMAND OPENS, so it is E3 about wiring nothing here has confirmed: confirm each line at the bench, by eye, before a plan relies on it, and that confirmation supersedes this entry. Falsified by any line emitting a different wavelength than mapped, or a line opening on 0. Rewiring the DAQ falsifies it silently. Delivered as item `combiner_line_map_and_polarity` of microscope_agent/findings/microscope-20260924-3-20260924.json at a5e7647 (card 044); the source was opened at fbedef0 and its sha256 matched before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

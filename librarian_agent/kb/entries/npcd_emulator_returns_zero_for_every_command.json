@@ -1,0 +1,21 @@
+{
+  "entry_id": "npcd_emulator_returns_zero_for_every_command",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The piezo controller's interface library can emulate a controller when none is fitted, addressed as sim:/NPC followed by the controller part number (optionally with a firmware version), and every command sent to the emulator returns zero. It is for testing that an application runs, not for testing what a controller would answer.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "piezo_stage"
+    }
+  ],
+  "source": "spec:npcd_interface_library_rev6_dll_2_7_9_s4_3_7",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_npcd_interface_library_manual",
+  "validity_conditions": "Vendor specification, read from the manual itself (10.3 rule 2); E3 vendor_spec. Slot: O1 preflight and the device wrapper -- a session that finds every read returning zero may be talking to the emulator and not a controller, so a zero read-back is not evidence that a stage is at zero. For the library release the manual documents, 2.7.9; a later release may differ. Whether the emulator opens a serial port is not in the manual and is listed as unmeasured by the microscope seat. Falsified by an emulator command returning non-zero. Delivered as item `prior_simulator_no_controller` of microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043); the source was opened and its sha256 recorded before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

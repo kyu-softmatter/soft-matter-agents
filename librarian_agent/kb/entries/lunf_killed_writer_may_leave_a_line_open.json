@@ -1,0 +1,29 @@
+{
+  "entry_id": "lunf_killed_writer_may_leave_a_line_open",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "If a program that opened a combiner blanking line is killed rather than closed, that line may stay open, with the fiber shutter also open. Unmeasured: this is an inference from two prior observations -- a blanking line kept its level after the task that wrote it was cleared (a blink that created and cleared a task per write still blinked), and the fiber shutter survives a kill -- and whether a line's level survives the writing process dying has not been tested.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "line_select"
+    },
+    {
+      "kind": "device",
+      "id": "laser_shutter"
+    },
+    {
+      "kind": "device",
+      "id": "laser_combiner"
+    }
+  ],
+  "source": "assumed:inference_from_prior_lunf_blink_and_shutter_kill",
+  "grade": "E5",
+  "grade_tag": "assumed",
+  "source_ref": "src_prior_lunf_scripts_20260907",
+  "validity_conditions": "Ruled DOWNGRADE under 10.2.1: an assertion with no measurement of its own enters at E5 with a falsifier. FALSIFIER: kill the driving process with one line open, and see that line go dark by itself. Slot: O1 preflight and the orchestrator's abort path -- until falsified, a crashed controller is treated as possibly leaving a beam on. The microscope seat's version also said which barriers this repository's code can and cannot reach; that is code state and stays in the microscope's live checklist, not here. Rests on lunf_fiber_shutter_survives_a_controller_kill. Delivered as item `killed_process_can_leave_a_line_unblanked` of microscope_agent/findings/microscope-20260924-3-20260924.json at a5e7647 (card 044); the source was opened at fbedef0 and its sha256 matched before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

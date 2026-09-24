@@ -1,0 +1,24 @@
+{
+  "entry_id": "filter_turret_1_state_0_blocked_the_confocal_path",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "On 2026-09-07 in the prior project, filter turret 1 at state 0 held the multiband cube MXR00724 and blocked the confocal path, while states 1, 2 and 3 were empty and passed it.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "filter_turret_1"
+    },
+    {
+      "kind": "device",
+      "id": "stand_ti2e"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0/config/lunf",
+  "grade": "E3",
+  "source_ref": "src_prior_lunf_scripts_20260907",
+  "validity_conditions": "Ruled TRANSFER, passed 10.3 rules 1 and 3: the placement crosses, the contrast figures in the script's help text do not. A PLACEMENT, NOT A PROPERTY: moving a cube falsifies it and nothing in the store records that somebody did, which is why slot numbers are not addressable handles here. Pin a turret by its state integer, never by its label. Slot: A4 (optical-path validity) -- a confocal configuration must not select this state while that cube sits in it. Falsified by any cube change in turret 1, or a confocal frame with signal at state 0. Delivered as item `turret1_state0_blocks_confocal` of microscope_agent/findings/microscope-20260924-3-20260924.json at a5e7647 (card 044); the source was opened at fbedef0 and its sha256 matched before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

@@ -1,0 +1,24 @@
+{
+  "entry_id": "lunf_blanking_port_is_held_by_one_program",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "While the vendor acquisition program runs, it holds exclusively the DAQ port that carries the combiner's blanking lines, and the combiner's SPI interfaces. Another program asking for a blanking line is refused by the DAQ driver with error -200587 (lines reserved by another task). So the blanking lines and the per-line levels, which only the vendor program reaches, cannot be held by two programs at once.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "laser_combiner"
+    },
+    {
+      "kind": "device",
+      "id": "line_select"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+  "grade": "E3",
+  "source_ref": "src_prior_lunf_first_light_20260902",
+  "validity_conditions": "Ruled TRANSFER, passed 10.3 rule 1 (E3, observed in another project on 2026-09-02). The error code is a driver identifier, not a measured figure. Slot: A4 (device exclusivity) and O1 preflight -- a session that finds the port reserved knows which program holds it. Falsified by a blanking line taken while the vendor program is running. Delivered as item `nis_holds_blanking_lines_exclusively` of microscope_agent/findings/microscope-20260924-3-20260924.json at a5e7647 (card 044); the source was opened at fbedef0 and its sha256 matched before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

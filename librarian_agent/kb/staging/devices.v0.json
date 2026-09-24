@@ -385,7 +385,9 @@
           "note": "a shutter at the source, distinct from csuw1_shutter at the unit's entrance. This row records where it sits and what it gates. Which shutter an abort closes (2.1 interlock 1) is policy and is written by a person in envelope/safety.json -- the store cannot answer it and should not appear to."
         },
         {
-          "id": "line_select"
+          "id": "line_select",
+          "entry_ref": "lunf_line_map_and_blanking_polarity",
+          "unfilled_on_purpose": "lines, open_level and closed_level are LEFT ABSENT, and that is a guard, not a gap in the extraction. The confocal wrapper refuses without them, and filling them is what would let it open a laser line. The only map this store holds is the entry named here -- E3, the prior project's probe-script constants, corroborated by its live-dialog readout of 2026-09-02, with two of three device-database copies disagreeing about 405 -- and nothing on this bench has confirmed it. Fill these fields from a bench confirmation of each line, by eye, which supersedes the entry; not from the entry. Written 2026-09-24 by librarian-20260924-2 from microscope-20260924-3's findings (a5e7647)."
         },
         {
           "id": "line_power",
@@ -725,6 +727,23 @@
       "kind": "absent",
       "searched": ["plan.md 12 records 20 C with setpoint-or-measurement left undecided", "operator pass of 2026-09-17, which settled that nothing actuates it"],
       "status": "open, and narrowed three times. With nothing controlling the sample temperature the 20 C in plan.md 12 CANNOT be a setpoint, so it is an ambient value of the room. The operator stated on 2026-09-17 that he read it off a thermometer rather than recalling it, which settles the grade at E3 and puts the value in the store as entry lab_ambient_temperature. And on 2026-09-19 he answered WHERE: there is no thermometer beside the sample, and the one that exists reads the room. That was previously inferred from the absence of an actuator; it is now stated, which is a different and stronger claim. What is left is NOT the position but the two questions behind it -- how far the room thermometer sits from the sample, and how well the two track -- and neither is answered. Do not infer either: an unknown distance is not a small distance."
+    },
+    {
+      "what": "whether the spinning disk keeps spinning when the vendor acquisition program is force-killed",
+      "gap_id": "csuw1_disk_survives_controller_kill",
+      "why_it_matters": "the vendor program is the only software holding the disk unit's controller, and the prior project's force-kill handoff was followed by frames from a stopped disk -- full brightness and a pinhole grid where the sample should be (entry stopped_disk_frame_looks_bright). If the kill stops the disk, any workflow that takes the laser lines by killing that program cannot produce a confocal image at all",
+      "kind": "absent",
+      "searched": ["agentic-microscope at fbedef0: config/lunf/disk_survives_kill.py, the test written for exactly this, added at a7b880b on 2026-09-07 and touched by no later commit on any branch -- written and never run, so there is no result", "that project's 2026-09-02 first-light record and its 2026-09-07 amendment, which call 'the kill stopped the disk' the most likely reading and leave 'it was never started that session' not excluded", "this store's entries and staging tables"],
+      "nearest": "csuw1_disk_speed_is_not_exposed_in_micromanager: nothing in Micro-Manager reports the disk's rotation, so this cannot be answered by reading a device",
+      "status": "open. It closes at the bench: confirm the disk spinning in the vendor program, force-kill it, and watch the texture of frames taken at intervals afterwards. Delivered by microscope-20260924-3 (findings a5e7647, item disk_kill_test_never_run)."
+    },
+    {
+      "what": "which states of the stand's light_path_port send the image to the eyepieces",
+      "gap_id": "light_path_port_eyepiece_states",
+      "why_it_matters": "whether light can reach a person's eye through the eyepieces depends on it; until it is known, the microscope's confocal wrapper counts every state as reaching the eyepieces",
+      "kind": "absent",
+      "searched": ["the light_path_port element of stand_ti2e in this table", "the contents of every file in librarian_agent/kb/staging and librarian_agent/kb/entries, for 'eyepiece' and 'ocular': no hits", "the prior-project records microscope-20260924-3 read on 2026-09-24, none of which gives it"],
+      "status": "open. It closes at the bench with the person, by the state's integer and with the lamp only. Delivered by microscope-20260924-3 (findings a5e7647, item eyepiece_path_mapping_unmeasured)."
     }
   ],
   "resolved_gaps": [

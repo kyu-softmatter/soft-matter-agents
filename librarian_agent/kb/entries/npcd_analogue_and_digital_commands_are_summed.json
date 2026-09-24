@@ -1,0 +1,21 @@
+{
+  "entry_id": "npcd_analogue_and_digital_commands_are_summed",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The piezo controller takes its commanded position from the analogue input, from digital commands from the host, or from both at once, and when both are enabled the two commands are summed.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "piezo_stage"
+    }
+  ],
+  "source": "spec:nanobench_6000_user_manual_v1_0_19_s1_2",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_nanobench_6000_user_manual",
+  "validity_conditions": "Vendor specification, read from the manual itself (10.3 rule 2); E3 vendor_spec. Slot: the device wrapper and O1 preflight -- with the analogue input enabled, a digital position command is not the position the stage goes to, so the analogue-command setting has to be known before a digital command means what it says. The microscope seat reports that input as disabled on all three channels today; that report is a separate item this seat has not yet been able to check. The same manual section warns that the controller gives only limited protection against configurations that would damage a connected stage. Falsified by a stage that, with both inputs enabled, follows the digital command alone. Delivered as item `prior_analogue_digital_sum` of microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043); the source was opened and its sha256 recorded before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}
