@@ -2865,7 +2865,7 @@ is never touched. The revision comes later, with `013`, and then the corrected c
 
 | Number | What | Seat holding it |
 |---|---|---|
-| _(empty)_ | 83 and 84 reached declaration on 2026-09-23; **an empty table is the normal state** |  |
+| 85 | a preparatory run (§11-21, settled 2026-09-24): `plan_id` null only with `no_plan_because`, the person-approved command list by path and sha256, nothing dispatched to the motion set, and no result card or KB entry citing it as its own | manager-microscope-20260924-1 |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
 
