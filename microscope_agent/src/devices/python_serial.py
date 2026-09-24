@@ -73,7 +73,15 @@ COLLISION_AXIS = "z"
 _ENVELOPE = Path(__file__).resolve().parents[2] / "envelope" / "safety.json"
 _LOCK = threading.Lock()
 _ABORTED = False
-_LINK = None            # the open link, if any; the instrument keeps the state
+# THE OPEN LINK IS PROCESS-WIDE, NOT MODULE-WIDE. The orchestrator loads each
+# device module by path into its own module object, so a module-level global
+# set by the session that opened the port would be invisible to the copy the
+# dispatcher runs -- the same trap micromanager.py met with its core. One
+# holder in sys.modules is shared by every copy. The instrument keeps the state;
+# this only keeps the handle.
+import sys as _sys
+import types as _types
+_HOLDER = _sys.modules.setdefault("_python_serial_link_holder", _types.SimpleNamespace(link=None))
 _FOUND_LEVEL = None     # the security level an unlock found, while one is in force
 
 
@@ -222,7 +230,6 @@ class MockLink:
 
 def open_link(kind: str = "mock", address: str | None = None, **kw):
     """Open a link and hold it for this process. Phase A: mock or simulator only."""
-    global _LINK
     if kind == "mock":
         link = MockLink(**kw)
     elif kind == "dll":
@@ -230,23 +237,22 @@ def open_link(kind: str = "mock", address: str | None = None, **kw):
     else:
         raise PiezoRefused(f"no link kind {kind!r}; phase A has 'mock' and 'dll' (simulator only)")
     with _LOCK:
-        _LINK = link
+        _HOLDER.link = link
     return link
 
 
 def close_link() -> None:
-    global _LINK
     with _LOCK:
-        link, _LINK = _LINK, None
+        link, _HOLDER.link = _HOLDER.link, None
     if link is not None:
         link.close()
 
 
 def _link():
-    if _LINK is None:
+    if _HOLDER.link is None:
         raise PiezoRefused("no link is open; open_link() first. Nothing opens one implicitly, "
                            "because an implicit open is how a port gets opened by accident")
-    return _LINK
+    return _HOLDER.link
 
 
 @contextmanager
@@ -300,7 +306,7 @@ def preflight(channel: dict | None = None) -> dict:
     refused = {a: r for a in AXIS_CHANNEL if (r := axis_refusal(a, limits))}
     report["axes_refused"] = refused
     report["waveform_generator"] = "refused until its input unit is measured on this controller"
-    if _LINK is None:
+    if _HOLDER.link is None:
         report.update(ready=False, reason="no link open")
         return report
     link = _link()
@@ -330,6 +336,8 @@ def apply(params: dict) -> dict:
     refusal = waveform_refusal(params)
     if refusal:
         raise PiezoRefused(refusal)
+    if "trajectory" in params:
+        return _run_trajectory(params)
     targets = {str(a).lower(): float(v) for a, v in (params.get("targets_um") or {}).items()}
     if not targets:
         return {"applied": [], "read": {}, "verified": [], "backend": BACKEND}
@@ -358,6 +366,90 @@ def apply(params: dict) -> dict:
             "backend": BACKEND}
 
 
+def _run_trajectory(params: dict) -> dict:
+    """One move of an operation plan: a list of points on one axis, sent on a clock.
+
+    The points were derived by the dispatcher from the plan (card 040); this
+    function computes none of them. What it owns is the timing and the
+    refusals at the call:
+
+    - every point is checked against envelope/safety.json BEFORE the first is
+      sent, and the start is read and checked; one bad point refuses the move
+    - point i is sent at t0 + i * dt, the deadline from the integer index and
+      never from an accumulated sleep. A point sent after its deadline plus one
+      interval is recorded as late; it is never re-timed, and nothing catches
+      up by skipping
+    - after each write the measured position is read, so the record is where
+      the stage WAS, beside where it was told to go
+    - read back before the first point and after the last. The after-reading
+      is `verified` only if it is within the plan's own tolerance of the last
+      target, and `disagreed` otherwise, which the dispatcher stops on
+    - the security level goes back to where it was found on every exit
+    """
+    import time
+    traj = params["trajectory"]
+    axis = str(traj.get("axis", "")).lower()
+    dt = float(traj["dt_s"])
+    points = [(int(i), float(x)) for i, x in traj["points"]]
+    tolerance = (params.get("tolerance_um") or {}).get("value")
+    if dt <= 0 or not points:
+        raise PiezoRefused("a trajectory needs a positive dt and at least one point")
+    if [i for i, _ in points] != list(range(points[0][0], points[0][0] + len(points))):
+        raise PiezoRefused("trajectory indices are not consecutive integers; timing is from the index")
+    if axis == COLLISION_AXIS:
+        raise PiezoRefused("piezo Z does not take a trajectory: it moves only as the person's "
+                           "direction-finding step, and objective_clearance_min is not yet "
+                           "compared at the moment of the move")
+    if tolerance is None:
+        raise PiezoRefused("a trajectory carries no tolerance, so its read-back could never be "
+                           "judged; the plan's position_readback_error target is required")
+    limits = _limits()
+    link = _link()
+    why = axis_refusal(axis, limits)
+    if why:
+        raise PiezoRefused(why)
+    bad = [f"point {i} at {x} um" for i, x in points if position_refusal(axis, "target", x, limits)]
+    if bad:
+        raise PiezoRefused(f"{len(bad)} point(s) outside the envelope, refused before the first is "
+                           f"sent: {', '.join(bad[:5])}")
+    channel = AXIS_CHANNEL[axis]
+    before = link.read_position(channel)
+    why = position_refusal(axis, "start", before, limits)
+    if why:
+        raise PiezoRefused(why)
+    samples, late = [], 0
+    with _LOCK, unlocked(link):
+        t0 = time.perf_counter()
+        first = points[0][0]
+        for i, target in points:
+            if _ABORTED:
+                break
+            deadline = t0 + (i - first) * dt
+            while True:
+                left = deadline - time.perf_counter()
+                if left <= 0:
+                    break
+                time.sleep(left if left > 0.002 else 0)
+            sent = time.perf_counter() - t0
+            link.move_absolute(channel, target)
+            measured = link.read_position(channel)
+            is_late = sent > (i - first) * dt + dt
+            late += is_late
+            samples.append({"i": i, "t_planned_s": round((i - first) * dt, 6),
+                            "t_sent_s": round(sent, 6), "target_um": target,
+                            "measured_um": measured, **({"late": True} if is_late else {})})
+    after = link.read_position(channel)
+    last = points[-1][1]
+    record = {"axis": axis, "target_um": last, "read_um": after, "tolerance_um": tolerance}
+    ok = (not _ABORTED) and len(samples) == len(points) and abs(after - last) <= tolerance
+    return {"move": traj.get("move_id"), "axis": axis, "channel": channel,
+            "before_um": before, "after_um": after, "points_sent": len(samples),
+            "points_planned": len(points), "late_points": late, "dt_s": dt,
+            "samples": samples,
+            "verified": [record] if ok else [], "disagreed": [] if ok else [record],
+            "security_level_after": link.security_level(), "backend": BACKEND}
+
+
 def read() -> dict:
     """Position per axis and the security level, read from the controller each time."""
     link = _link()
@@ -376,8 +468,8 @@ def abort() -> dict:
     global _ABORTED
     _ABORTED = True
     out = {"aborted": True, "backend": BACKEND}
-    if _LINK is not None:
-        link = _LINK
+    if _HOLDER.link is not None:
+        link = _HOLDER.link
         if _FOUND_LEVEL is not None and link.security_level() != _FOUND_LEVEL:
             link.set_security_level(_FOUND_LEVEL)
         out["security_level"] = link.security_level()
@@ -548,6 +640,17 @@ class DllLink:
         # Picometres on this controller family by the prior project's reading,
         # which the live checklist re-reads before any real move.
         return float(value) * 1e-6
+
+    #: The calibrated range maximum run-20260924-004 read on all three channels:
+    #: 6.0e8, a 600 um axis in picometres. A reading to confirm against, not a limit.
+    CALIBRATED_MAX_READ = 6.0e8
+
+    def confirm_position_unit(self) -> dict:
+        """Read each channel's calibrated range again; writes need it to say picometres."""
+        got = {c: float(self.do(f"stage.position.calibrated-range.maximum.get {c}").get("value"))
+               for c in AXIS_CHANNEL.values()}
+        self.position_unit_confirmed = all(v == self.CALIBRATED_MAX_READ for v in got.values())
+        return {"calibrated_max": got, "picometres": self.position_unit_confirmed}
 
     def move_absolute(self, channel: int, target_um: float) -> None:
         if self.read_only:

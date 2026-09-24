@@ -58,9 +58,9 @@ FULL = {"x": (0.0, 600.0), "y": (0.0, 600.0), "z": (0.0, 600.0)}
 def setup(mod, tmp, limits=FULL, start=None, link=None):
     mod.reset()
     mod._ENVELOPE = envelope(tmp, limits)
-    mod._LINK = link or mod.MockLink(start_um=start)
+    mod._HOLDER.link = link or mod.MockLink(start_um=start)
     mod._FOUND_LEVEL = None
-    return mod._LINK
+    return mod._HOLDER.link
 
 
 def refused(mod, params) -> str | None:
