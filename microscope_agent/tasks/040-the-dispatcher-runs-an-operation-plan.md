@@ -54,8 +54,37 @@ goal card got overwritten on 2026-09-21.
    `lunf.py`'s module name waits on the librarian fixing the registry's
    `driver` head, so the laser may stay unreachable after this card, which
    is correct
-4. **Nothing else changes.** `check_software_motion` and `GuardedCore` are
-   not touched; they are card 033's and still bind Micro-Manager work
+4. **`check_software_motion`, `SOFTWARE_MAY_COMMAND` and `GuardedCore` stay
+   byte-identical.** What changes is what the check is applied to, and
+   **this card is the decision to change it.** The allow-list's own comment
+   says lifting it is a card's decision, not an edit made in passing, and
+   this is that card. Ruled 2026-09-24 on `microscope-20260924-2`'s
+   question, option (a), narrowed:
+   - **exempt only commands derived from `operation.moves` of a plan with
+     `operation` present, `operation.device == "piezo_stage"`, and a move
+     axis of `x` or `y`.** Everything else goes through the allow-list
+     exactly as today, **including piezo Z**. That covers a Micro-Manager
+     command inside an operation plan, and any plan without `operation`
+   - **piezo Z stays refused by the allow-list** until the wrapper compares a
+     Z target against `objective_clearance_min` at the moment of the move.
+     `plan.md` makes that binding and nothing enforces it yet. Lifting Z is
+     a later card
+   - **the exemption is decided from the plan's structure, never from a
+     flag**, and the derived-point envelope check of item 1 replaces the
+     allow-list for exactly those commands. If the derived points and the
+     plan disagree, it refuses
+   - **every exemption is logged as its own event**, naming the plan field
+     it came from (`operation.moves[i]`), so the log shows where the
+     allow-list did not bind and why
+   - a test watched failing for each: a piezo Z move from an operation plan
+     is refused; a piezo X move from a plan without `operation` is refused;
+     a Micro-Manager command inside an operation plan still meets the
+     allow-list
+
+   Card 033's "software moves nothing" still binds everything this does not
+   name. It was the rule for a day with no designed motion. This card
+   designs one motion, bounded four ways: the envelope, check 86, the
+   person's approval, and the bench
 
 Each of 1 to 3 gets a test in `microscope_agent/tests/`, watched failing
 with the behaviour switched off.
