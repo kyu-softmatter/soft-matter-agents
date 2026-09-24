@@ -250,6 +250,10 @@ ARTIFACT_SCHEMA = {
     # through this dict alone, so until this line existed a budget.json would
     # have been refused as an unknown artifact the moment it appeared.
     "envelope_budget": "envelope_budget.schema.json",
+    # 2026-09-24: what an execution seat established, handed to the librarian.
+    # A preparatory run produces no result card, so without this the day's
+    # self-reports had no card to travel in.
+    "findings": "findings.schema.json",
     # 2026-09-23, for the person's request that a run keep its trajectory as one
     # text file and analysis read it instead of re-running. The forty-four metas
     # written before this carry no `artifact` and so are not judged by it; a
@@ -1555,6 +1559,9 @@ ALLOWED_PATHS = [
     # until the simulation asks. This list first, then section 7's item,
     # which is architecture's, then check 13 goes green.
     r"^microscope_agent/tests/[A-Za-z0-9_.-]+\.py$",
+    # An execution seat's findings for the librarian, one file per seat and
+    # day (findings.schema.json). This list first, then section 7's item.
+    r"^microscope_agent/findings/[a-z0-9-]+\.json$",
     r"^librarian_agent/CLAUDE\.md$",
     r"^((microscope|simulation|librarian)_agent|bridge)/failures\.jsonl$",
     # 7.1 rule 9. Beside failures.jsonl and deliberately the same idiom -- a
