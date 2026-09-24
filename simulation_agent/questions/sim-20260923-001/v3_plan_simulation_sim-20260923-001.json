@@ -1,0 +1,1028 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "id": "plan-sim-20260923-001-r3",
+  "qid": "sim-20260923-001",
+  "thread": "solo-sim-20260923-001",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T14:55:00Z",
+  "status": "VALIDATED",
+  "goal_id": "goal-sim-20260923-001-r3",
+  "synthesis_id": "synthesis-sim-20260923-001-r3",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "structural_relaxation_time"
+  },
+  "system_configuration": {
+    "config": "bd_pairwise",
+    "optical_path": null,
+    "devices": [
+      "hoomd_backend"
+    ],
+    "model": "overdamped Brownian dynamics of N identical particles in two dimensions in a periodic box, purely repulsive Yukawa pair potential u(r) = U0 (a/r) exp(-kappa (r - a)) with U0 = Gamma k_B T and kappa = kappa_a / a, no hydrodynamic interactions, no attraction, no wall, no drive; positions start uniformly random; temperature enters as the noise amplitude only"
+  },
+  "targets": [],
+  "sweep": {
+    "axes": [
+      {
+        "parameter": "gamma",
+        "levels": [
+          "gamma_min",
+          "gamma_max"
+        ]
+      },
+      {
+        "parameter": "kappa_a",
+        "levels": [
+          "kappa_a_min",
+          "kappa_a_max"
+        ]
+      }
+    ],
+    "points": [
+      {
+        "point": "g1_k1",
+        "conditions": [
+          {
+            "parameter": "gamma",
+            "number": "gamma_min"
+          },
+          {
+            "parameter": "kappa_a",
+            "number": "kappa_a_min"
+          }
+        ]
+      },
+      {
+        "point": "g1_k2",
+        "conditions": [
+          {
+            "parameter": "gamma",
+            "number": "gamma_min"
+          },
+          {
+            "parameter": "kappa_a",
+            "number": "kappa_a_max"
+          }
+        ]
+      },
+      {
+        "point": "g2_k1",
+        "conditions": [
+          {
+            "parameter": "gamma",
+            "number": "gamma_max"
+          },
+          {
+            "parameter": "kappa_a",
+            "number": "kappa_a_min"
+          }
+        ]
+      },
+      {
+        "point": "g2_k2",
+        "conditions": [
+          {
+            "parameter": "gamma",
+            "number": "gamma_max"
+          },
+          {
+            "parameter": "kappa_a",
+            "number": "kappa_a_max"
+          }
+        ]
+      }
+    ]
+  },
+  "conditions": [
+    {
+      "parameter": "integration_timestep",
+      "number": "dt_max_curvature"
+    },
+    {
+      "parameter": "total_simulated_time",
+      "number": "total_simulated_time_point"
+    },
+    {
+      "parameter": "save_interval",
+      "number": "save_interval_max"
+    },
+    {
+      "parameter": "box_length",
+      "number": "box_length_point"
+    },
+    {
+      "parameter": "mean_spacing",
+      "number": "mean_spacing"
+    },
+    {
+      "parameter": "plateau_window_start",
+      "number": "plateau_window_start"
+    },
+    {
+      "parameter": "relaxation_fit_window",
+      "number": "relaxation_fit_window"
+    },
+    {
+      "parameter": "plateau_fraction",
+      "number": "plateau_fraction"
+    },
+    {
+      "parameter": "lattice_constant",
+      "number": "lattice_constant"
+    },
+    {
+      "parameter": "rows_x",
+      "number": "rows_x"
+    },
+    {
+      "parameter": "rows_y",
+      "number": "rows_y"
+    },
+    {
+      "parameter": "n_particles",
+      "number": "n_particles_point"
+    },
+    {
+      "parameter": "n_seeds",
+      "number": "n_seeds_point"
+    },
+    {
+      "parameter": "temperature",
+      "number": "temperature"
+    },
+    {
+      "parameter": "viscosity",
+      "number": "viscosity"
+    },
+    {
+      "parameter": "bead_diameter",
+      "number": "bead_diameter"
+    }
+  ],
+  "actions": [
+    {
+      "id": "initialise",
+      "device": "hoomd_backend",
+      "action": "per cell and seed: place n_particles uniformly at random in the periodic box Lx = rows_x * lattice_constant, Ly = rows_y * sqrt(3)/2 * lattice_constant, with U0 = gamma * k_B * temperature and kappa = kappa_a / mean_spacing, cutoff where u/kT falls below one thousandth",
+      "reversible": true,
+      "parameters": [
+        "n_particles",
+        "rows_x",
+        "rows_y",
+        "lattice_constant",
+        "gamma",
+        "kappa_a",
+        "temperature",
+        "n_seeds"
+      ],
+      "tier": 1
+    },
+    {
+      "id": "integrate",
+      "device": "hoomd_backend",
+      "action": "integrate overdamped Brownian dynamics at integration_timestep for total_simulated_time, saving UNWRAPPED positions every save_interval (the trajectory convention; psi6 folds them into the box at read time)",
+      "reversible": true,
+      "parameters": [
+        "integration_timestep",
+        "save_interval",
+        "total_simulated_time",
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "tier": 1
+    },
+    {
+      "id": "estimate_relaxation_time",
+      "device": "hoomd_backend",
+      "action": "per frame fold positions into the box and compute psi6 per particle from its Voronoi neighbours with periodic images, average |psi6_j| over particles; take the plateau as the mean over the last relaxation_fit_window of the record; report the first time psi6(t) reaches plateau_fraction of it, per seed, and the mean and standard error over seeds per cell",
+      "reversible": true,
+      "parameters": [
+        "relaxation_fit_window",
+        "plateau_fraction",
+        "n_seeds"
+      ],
+      "tier": 0
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [
+      "simulation_agent/envelope/budget.json"
+    ],
+    "status": "inside",
+    "note": "target local: every cost number of this plan that lines up with a ceiling is under it: wall_clock_estimate against wall_clock_max, storage_estimate against storage_max. Re-confirmed at run time (4.6 O1)."
+  },
+  "cost": {
+    "wall_clock": "of order two hours for the whole sweep at the assumed rate of ten million particle-steps a second; the rate has never been measured for this model and the smoke run does that first",
+    "numbers": [
+      "wall_clock_estimate",
+      "storage_estimate"
+    ],
+    "note": "the estimate is arithmetic over the chosen point; the rate under it is A5's assumption. The frame-writing cost is not in the model and at a hundred frames a run is small here"
+  },
+  "stop_criteria": [
+    {
+      "id": "planned_duration_reached",
+      "metric": "simulated_time",
+      "comparator": ">=",
+      "number": "total_simulated_time_point",
+      "on_met": "complete",
+      "statement": "the run ends at the planned record length, ten Brownian times; the relaxation time is read from the saved psi6 curve afterwards, because the plateau it is read against is not knowable during the run"
+    },
+    {
+      "id": "step_displacement_diverged",
+      "metric": "max_single_step_displacement",
+      "comparator": ">",
+      "number": "lattice_constant",
+      "on_met": "fault",
+      "statement": "a particle moving more than a lattice constant in one step is a diverged integration; stop and keep the run, because divergence is a result"
+    }
+  ],
+  "smoke": {
+    "record_fraction": "smoke_record_fraction"
+  },
+  "success_criteria": [
+    {
+      "id": "converged_before_window",
+      "metric": "time_of_plateau_crossing",
+      "comparator": "<",
+      "number": "plateau_window_start",
+      "statement": "in every seed of a cell psi6 reached the declared fraction of its plateau before the plateau window began, so the plateau was a plateau; a cell where it did not is reported not converged and its time is a lower bound, not a value"
+    },
+    {
+      "id": "statistics_met",
+      "metric": "relative_standard_error_of_relaxation_time",
+      "comparator": "<=",
+      "number": "target_rel_error",
+      "window": "over the seeds of one cell",
+      "statement": "the seed-to-seed spread of the relaxation time, as a standard error of the cell mean, is inside the ten per cent the design asked for"
+    }
+  ],
+  "alternatives_rejected": [
+    {
+      "what": "a timestep per sweep cell (the bounds carry varies_with)",
+      "reason": "one step at the stiffest cell's bound keeps every cell under the same integrator settings, so a difference between cells cannot be an integrator difference; the cost of that choice is a factor of a few at the weak cells and the total still sits under the ceiling",
+      "grounds": [
+        "particle_steps_total",
+        "particle_steps_max"
+      ]
+    },
+    {
+      "what": "the noise-step and Brownian-time bounds on the timestep",
+      "reason": "both are looser than the curvature bound at every cell of this sweep, so the curvature bound is the one that binds",
+      "grounds": [
+        "dt_max_curvature",
+        "dt_max_noise",
+        "dt_max_brownian"
+      ]
+    },
+    {
+      "what": "more seeds than the statistics floor",
+      "reason": "ten per cent statistical error is met at nine seeds and the budget margin does not allow a decade more",
+      "grounds": [
+        "n_seeds_min",
+        "particle_steps_total",
+        "particle_steps_max"
+      ]
+    },
+    {
+      "what": "bd_pairwise_driven_tracer",
+      "reason": "bd_pairwise_driven_tracer imposes a drive and this goal carries no `drive` selector; bd_pairwise is the configuration for an undriven question",
+      "grounds": [
+        "drive_selectors_on_goal"
+      ]
+    }
+  ],
+  "open_risks": [
+    "The record is ten Brownian times. A 100-particle trial of the NumPy backend at the stiff corner ordered in three hundredths of a Brownian time, so the record is likely long rather than short; a cell whose crossing falls inside the plateau window is a lower bound and the first thing the result reports.",
+    "The particle-step rate under the cost estimate is a guess about this workstation; the smoke run measures it, and the full sweep is not submitted until that measurement is in a card.",
+    "Finite size is never absent here: the psi6 correlation length grows toward the box as the structure orders. The design margin is thirty spacings and its falsifier is a second box a factor of two larger giving the same time, which is a separate plan.",
+    "The plateau fraction 0.9 is the design stage's convention until a person chooses one; the vocabulary's window field holds only the fit window, so this card carries the fraction as a condition.",
+    "Nothing here is fitted to experimental data and no experimental counterpart exists for this observable; the anchor on the lab's particles is what would make one comparable.",
+    "Temperature is a coordinate of the model and not a measurement of it: the integrator represents no velocity, so the declared value enters as the noise amplitude and cannot fail to be realised."
+  ],
+  "numbers": [
+    {
+      "name": "dt_max_curvature",
+      "value": 0.005,
+      "unit": "s",
+      "source": "computed:factor_times_curvature_time",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#dt_max_curvature",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "total_simulated_time_point",
+      "value": 10000,
+      "unit": "s",
+      "source": "computed:cap_times_brownian_time",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#total_simulated_time_point",
+      "precision": "order_of_magnitude",
+      "note": "ten Brownian times: the planned record length, and the cap. The run goes to it; the relaxation time is read from the saved curve afterwards, and a crossing that does not happen before the plateau window is reported not converged"
+    },
+    {
+      "name": "save_interval_max",
+      "value": 100.0,
+      "unit": "s",
+      "source": "computed:factor_times_brownian_time",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#save_interval_max",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "box_length_point",
+      "value": 300,
+      "unit": "um",
+      "source": "computed:rows_times_lattice_constant",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#box_length_point",
+      "precision": "order_of_magnitude",
+      "note": "the box's x edge, which the trajectory writer records; the y edge is rows_y * sqrt(3)/2 * lattice_constant and is derived by the backend, irrational and unwritable at one figure"
+    },
+    {
+      "name": "mean_spacing",
+      "value": 10,
+      "unit": "um",
+      "source": "computed:spacing_times_diameter",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#mean_spacing",
+      "precision": "order_of_magnitude",
+      "note": "a = rho**-1/2 at the reference density; the density sweep moves it by less than a decade"
+    },
+    {
+      "name": "plateau_window_start",
+      "value": 9000,
+      "unit": "s",
+      "source": "computed:record_minus_window",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#plateau_window_start",
+      "precision": "order_of_magnitude",
+      "note": "the psi6 crossing must fall before this time for the plateau to be a plateau; the success criterion compares against it"
+    },
+    {
+      "name": "relaxation_fit_window",
+      "value": 1000,
+      "unit": "s",
+      "source": "computed:frames_times_save_interval",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#relaxation_fit_window",
+      "precision": "order_of_magnitude",
+      "note": "the observable's declared window: the plateau is read over this many seconds of frames"
+    },
+    {
+      "name": "plateau_fraction",
+      "value": 0.9,
+      "unit": "1",
+      "source": "assumed:a_plateau",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#plateau_fraction",
+      "precision": "order_of_magnitude",
+      "note": "the fraction of the psi6 plateau at which the relaxation time is read; a condition the plan carries, because the vocabulary's window_parameter holds only the fit window"
+    },
+    {
+      "name": "lattice_constant",
+      "value": 10,
+      "unit": "um",
+      "source": "computed:triangular_lattice_constant_at_density",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#lattice_constant",
+      "precision": "order_of_magnitude",
+      "note": "the triangular lattice constant at the reference density, a_lat**2 * sqrt(3)/2 = a**2"
+    },
+    {
+      "name": "rows_x",
+      "value": 30,
+      "unit": "1",
+      "source": "computed:rows_from_finite_size_factor",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#rows_x",
+      "precision": "order_of_magnitude",
+      "note": "lattice columns along x; the box is rows_x * lattice_constant wide, derived by the backend"
+    },
+    {
+      "name": "rows_y",
+      "value": 30,
+      "unit": "1",
+      "source": "computed:rows_from_finite_size_factor",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#rows_y",
+      "precision": "order_of_magnitude",
+      "note": "lattice rows along y, even, so the triangular lattice closes periodically; the box is rows_y * sqrt(3)/2 * lattice_constant tall"
+    },
+    {
+      "name": "n_particles_point",
+      "value": 900,
+      "unit": "1",
+      "source": "computed:rows_product",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#n_particles_point",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "n_seeds_point",
+      "value": 9,
+      "unit": "1",
+      "source": "computed:seeds_at_the_floor",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#n_seeds_point",
+      "precision": "order_of_magnitude",
+      "note": "at the statistics floor, because the budget below is tight"
+    },
+    {
+      "name": "gamma_min",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_sweep_corner",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#gamma_min",
+      "precision": "order_of_magnitude",
+      "note": "the weakest coupling of the sweep"
+    },
+    {
+      "name": "gamma_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_sweep_corner",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#gamma_max",
+      "precision": "order_of_magnitude",
+      "note": "the largest coupling U0/kT of the sweep; the stiff corner the timestep must survive"
+    },
+    {
+      "name": "kappa_a_min",
+      "value": 1,
+      "unit": "1",
+      "source": "assumed:a_sweep_corner",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#kappa_a_min",
+      "precision": "order_of_magnitude",
+      "note": "the longest range of the sweep"
+    },
+    {
+      "name": "kappa_a_max",
+      "value": 3,
+      "unit": "1",
+      "source": "assumed:a_sweep_corner",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#kappa_a_max",
+      "precision": "order_of_magnitude",
+      "note": "the shortest range of the sweep, as kappa times the mean spacing"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v3_synthesis.json#temperature",
+      "precision": "significant_figures",
+      "note": "the room's reading, not the sample's. In the model it is a parameter of the noise amplitude and exact; the reason to use the room's value is to match the lab"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v3_synthesis.json#viscosity",
+      "precision": "order_of_magnitude",
+      "note": "pure water near 293 K, textbook; the entry's own precision is of-order"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "origin": "v3_synthesis.json#bead_diameter",
+      "precision": "significant_figures",
+      "note": "the lab's particles, measured by the operator on 2026-09-19 (CV at most 2 per cent). Taken from the store under the S2 id as the physical-units anchor; see the constraint note on anchoring"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "origin": "v3_synthesis.json#diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "the free diffusivity D0 of one particle in the bath; the Brownian time at the mean spacing, a^2/D0, is the natural time unit of the relaxation and every axis derives it from this"
+    },
+    {
+      "name": "brownian_time",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "computed:brownian_time",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#brownian_time",
+      "precision": "order_of_magnitude",
+      "note": "the time to diffuse one spacing: the natural unit of structural relaxation here, and NOT tau_d, which is the time to diffuse one diameter and belongs to the free-tracer question"
+    },
+    {
+      "name": "levels_per_decade",
+      "value": 1,
+      "unit": "1",
+      "source": "computed:decision_levels_per_decade",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#levels_per_decade",
+      "precision": "order_of_magnitude",
+      "note": "one sweep level per decade: explore answers in decades and differences under 10x are ties. The one is the decision"
+    },
+    {
+      "name": "dt_max_noise",
+      "value": 0.5,
+      "unit": "s",
+      "source": "computed:noise_step_inside_screening_length",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#dt_max_noise",
+      "precision": "order_of_magnitude",
+      "note": "sqrt(2 D0 dt) must stay inside the potential's range or a step carries a particle across it in one move"
+    },
+    {
+      "name": "dt_max_brownian",
+      "value": 10.0,
+      "unit": "s",
+      "source": "computed:factor_times_brownian_time",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#dt_max_brownian",
+      "precision": "order_of_magnitude",
+      "note": "the bound the free-tracer configuration would have stopped at; here it is the loosest of three"
+    },
+    {
+      "name": "n_seeds_min",
+      "value": 9,
+      "unit": "1",
+      "source": "computed:seeds_for_target",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#n_seeds_min",
+      "precision": "order_of_magnitude",
+      "note": "independent samples are SEEDS: one run gives one relaxation time, because psi6(t) is already averaged over every particle"
+    },
+    {
+      "name": "n_particles_min",
+      "value": 900,
+      "unit": "1",
+      "source": "computed:spacings_squared",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#n_particles_min",
+      "precision": "order_of_magnitude",
+      "note": "(L/a)**2 at the reference density"
+    },
+    {
+      "name": "box_length_min",
+      "value": 300.0,
+      "unit": "um",
+      "source": "computed:factor_times_spacing",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#box_length_min",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "particle_steps_total",
+      "value": 60000000000.0,
+      "unit": "1",
+      "source": "computed:steps_times_particles_times_seeds_times_points",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#particle_steps_total",
+      "precision": "order_of_magnitude",
+      "note": "against particle_steps_max 7e10: inside, by a margin that is not a decade. The cost per particle-step behind the ceiling is a guess; the smoke run measures it"
+    },
+    {
+      "name": "particle_steps_max",
+      "value": 70000000000.0,
+      "unit": "1",
+      "source": "computed:wall_clock_times_rate",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#particle_steps_max",
+      "precision": "order_of_magnitude",
+      "note": "the product n_particles * steps * n_seeds * sweep_points must sit under this"
+    },
+    {
+      "name": "particle_frames_total",
+      "value": 3000000.0,
+      "unit": "1",
+      "source": "computed:frames_times_particles_times_seeds_times_points",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#particle_frames_total",
+      "precision": "order_of_magnitude",
+      "note": "against particle_frames_max 5e8: two decades inside"
+    },
+    {
+      "name": "particle_frames_max",
+      "value": 500000000.0,
+      "unit": "1",
+      "source": "computed:storage_over_frame_cost",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#particle_frames_max",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "particle_step_rate",
+      "value": 10000000.0,
+      "unit": "1/s",
+      "source": "assumed:a_cost_reference",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#particle_step_rate",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps per wall second for a 2D neighbour-list Brownian integrator on this workstation's CPU. The store's agreed name and unit (a rate, not a time per step), so a measured timing entry lands here when one exists"
+    },
+    {
+      "name": "drive_selectors_on_goal",
+      "value": 0,
+      "unit": "1",
+      "source": "computed:count_of_drive_selectors",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#drive_selectors_on_goal",
+      "precision": "order_of_magnitude",
+      "note": "the goal carries no `drive` selector; the count is zero and is written as arithmetic on a carried number so the validator can recompute it. It is the ground on which the driven configuration is rejected for this question"
+    },
+    {
+      "name": "sweep_points",
+      "value": 4,
+      "unit": "1",
+      "source": "computed:grid_size",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#sweep_points",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "steps_per_run",
+      "value": 2000000.0,
+      "unit": "1",
+      "source": "computed:cap_over_step",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#steps_per_run",
+      "precision": "order_of_magnitude",
+      "note": "one timestep for every cell, set at the stiffest cell's bound; a per-cell step would be cheaper and is recorded as rejected below"
+    },
+    {
+      "name": "frames_per_run",
+      "value": 100,
+      "unit": "1",
+      "source": "computed:cap_over_save_interval",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#frames_per_run",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "gamma_levels",
+      "value": 2,
+      "unit": "1",
+      "source": "computed:decades_plus_one",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#gamma_levels",
+      "precision": "order_of_magnitude",
+      "note": "two levels: the sweep's two corners, 10 and 100"
+    },
+    {
+      "name": "kappa_a_levels",
+      "value": 2,
+      "unit": "1",
+      "source": "computed:endpoints",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#kappa_a_levels",
+      "precision": "order_of_magnitude",
+      "note": "two levels: 1 and 3, the range's two ends; the range spans half a decade so one level per decade gives its endpoints"
+    },
+    {
+      "name": "fit_window_frames_min",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_fit_frames",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#fit_window_frames_min",
+      "precision": "order_of_magnitude",
+      "note": "saved frames the relaxation_fit_window must span"
+    },
+    {
+      "name": "storage_per_particle_frame",
+      "value": 2e-08,
+      "unit": "GB",
+      "source": "assumed:a_frame_bytes",
+      "grade": "E5",
+      "origin": "v3_axis_bd_pairwise_a5.json#storage_per_particle_frame",
+      "precision": "order_of_magnitude",
+      "note": "two double coordinates per particle per frame"
+    },
+    {
+      "name": "target_rel_error",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_target",
+      "grade": "E5",
+      "origin": "v3_axis_bd_pairwise_a2.json#target_rel_error",
+      "precision": "order_of_magnitude",
+      "note": "statistical error on the relaxation time at one sweep point; inside a decade with room to spare"
+    },
+    {
+      "name": "wall_clock_estimate",
+      "value": 6000.0,
+      "unit": "s",
+      "source": "computed:particle_steps_over_rate",
+      "grade": "E5",
+      "formula": "particle_steps_total/particle_step_rate",
+      "inputs": [
+        "particle_steps_total",
+        "particle_step_rate"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the whole sweep, four cells times nine seeds, at the assumed rate; the smoke run measures the rate"
+    },
+    {
+      "name": "storage_estimate",
+      "value": 0.06,
+      "unit": "GB",
+      "source": "computed:frames_times_bytes",
+      "grade": "E5",
+      "formula": "particle_frames_total*storage_per_particle_frame",
+      "inputs": [
+        "particle_frames_total",
+        "storage_per_particle_frame"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "smoke_record_fraction",
+      "value": 0.01,
+      "unit": "1",
+      "source": "computed:decision_smoke_fraction",
+      "grade": "E5",
+      "formula": "0.01*levels_per_decade",
+      "inputs": [
+        "levels_per_decade"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the smoke run is one hundredth of the record at the same save interval: 100 s, 2e4 steps, one saved frame. S5's decision, written as arithmetic on a carried number so the validator can recompute it; it exists to time the integrator and to walk the pipeline, and its output never becomes a result card"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_sweep_corner",
+      "gap_ref": "yukawa_coupling_sweep_range_absent",
+      "authorised_by": "kyuhwan_20260923",
+      "statement": "The sweep corners. Revision 1 left them to the design stage, which took Gamma up to 1000 and kappa a up to 10 and refused on budget: one sweep point at that corner needed of order 8e11 particle-steps against 7e10. The relaxation option it attached -- Gamma 10 to 100, kappa a 1 to 3 -- was put to the person, who ruled for it on 2026-09-23. So these four numbers are the person's decision carried as an assumption, not the design stage's own; the store still holds nothing about a 2D Yukawa sweep range, which is the gap named here.",
+      "numbers": [
+        "gamma_max",
+        "kappa_a_max",
+        "gamma_min",
+        "kappa_a_min"
+      ],
+      "falsifier": "a first run showing psi6 already at its plateau at the lowest coupling, or unreachable inside the cap at the highest, moves the corresponding end by a decade -- with the person's word, since the corners are now theirs"
+    },
+    {
+      "rationale_id": "a_plateau",
+      "gap_ref": "psi6_plateau_fraction_absent",
+      "statement": "Nine tenths of the plateau is high enough that the structure is recognisably ordered and low enough that the approach is not dominated by the last defects annealing, whose time is a different quantity. A threshold nobody has chosen is UNDECIDED and not satisfied; this is S3's choice, written down so S4 and the plan carry it as a condition.",
+      "numbers": [
+        "plateau_fraction"
+      ],
+      "falsifier": "a person choosing the fraction, or the vocabulary gaining a second window parameter for it"
+    },
+    {
+      "rationale_id": "a_fit_frames",
+      "gap_ref": "relaxation_fit_window_frames_absent",
+      "statement": "A window of fewer than ten frames fits a plateau through noise.",
+      "numbers": [
+        "fit_window_frames_min"
+      ],
+      "falsifier": "a fit over a shorter window giving the same time within error"
+    },
+    {
+      "rationale_id": "a_cost_reference",
+      "gap_ref": "particle_step_rate_absent",
+      "statement": "Of order ten million particle-steps per second is what a CPU neighbour-list integrator with a short-ranged pair force manages; nothing on this machine has measured it for this potential. The frame-writing cost is not in this model yet (task 023 is adding a per-particle-frame term); at a hundred frames a run it is small here, and the smoke run measures both.",
+      "numbers": [
+        "particle_step_rate"
+      ],
+      "falsifier": "a smoke run of this configuration that writes its trajectory replaces this with its own log's wall time per particle-step"
+    },
+    {
+      "rationale_id": "a_frame_bytes",
+      "statement": "Positions only, in double precision, two coordinates in 2D.",
+      "numbers": [
+        "storage_per_particle_frame"
+      ],
+      "gap_ref": "particle_step_rate_absent",
+      "falsifier": "the trajectory writer's declared frame format replaces the estimate"
+    },
+    {
+      "rationale_id": "a_target",
+      "gap_ref": "statistical_target_explore_absent",
+      "statement": "Ten per cent is a tenth of the decade explore mode answers in, so the statistical error never decides a comparison between sweep points.",
+      "numbers": [
+        "target_rel_error"
+      ],
+      "falsifier": "a person stating a target accuracy replaces it"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "driving_velocity_absent",
+      "observable": "driving_velocity",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a7",
+      "asked_at": "2026-09-24T14:41:29+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "integration_timestep_resolution_factor_absent",
+      "observable": "integration_timestep_resolution_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a1",
+      "asked_at": "2026-09-24T14:40:36+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "mean_spacing_over_diameter_absent",
+      "observable": "mean_spacing_over_diameter",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a1",
+      "asked_at": "2026-09-24T14:40:26+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "noise_step_fraction_of_screening_length_absent",
+      "observable": "noise_step_fraction_of_screening_length",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a1",
+      "asked_at": "2026-09-24T14:40:41+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "particle_step_rate_absent",
+      "observable": "particle_step_rate",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a5",
+      "asked_at": "2026-09-24T14:41:20+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "psi6_finite_size_margin_absent",
+      "observable": "psi6_finite_size_margin",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a3",
+      "asked_at": "2026-09-24T14:40:58+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "psi6_plateau_fraction_absent",
+      "observable": "psi6_plateau_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a4",
+      "asked_at": "2026-09-24T14:41:12+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "relaxation_fit_window_frames_absent",
+      "observable": "relaxation_fit_window_frames",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a4",
+      "asked_at": "2026-09-24T14:41:16+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "relaxation_time_seed_variability_absent",
+      "observable": "relaxation_time_seed_variability",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a2",
+      "asked_at": "2026-09-24T14:40:46+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "save_interval_fraction_of_brownian_time_absent",
+      "observable": "save_interval_fraction_of_brownian_time",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a4",
+      "asked_at": "2026-09-24T14:41:07+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "statistical_target_explore_absent",
+      "observable": "statistical_target_explore",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a2",
+      "asked_at": "2026-09-24T14:40:50+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "structural_relaxation_time_absent",
+      "observable": "structural_relaxation_time",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a5",
+      "asked_at": "2026-09-24T14:41:24+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "yukawa_coupling_sweep_range_absent",
+      "observable": "yukawa_coupling_sweep_range",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:s2",
+      "asked_at": "2026-09-24T14:38:38+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": []
+}
