@@ -57,7 +57,7 @@ of restating it.
 
 A manager judges its own, asks you, then clears. Its developers do the same
 toward it. You confirm or refuse — you do not initiate. Nobody decides yours but the person, and on 2026-09-18 the
-person's answer was **do not clear this seat** (§6.2.3).
+person's answer was **do not clear this seat** (§6.2.3). **On 2026-09-24 the person closed it** -- at the end of the first day on the microscope computer, once the day's findings were saved to the store. The next architecture session starts from the files; that is what the rule below is for, and the test of whether it was kept.
 
 So this context outlives every other one here, and the check that catches a
 context carrying what the files should is the one check nobody runs on you.
