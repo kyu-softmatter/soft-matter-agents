@@ -1,0 +1,183 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-102-bd_overdamped_trapped-a1",
+  "qid": "sim-20260923-102",
+  "thread": "solo-sim-20260923-102",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T16:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-102:v1:bd_overdamped_trapped:a1",
+  "config": "bd_overdamped_trapped",
+  "axis": "a1",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "max": 5e-06,
+      "basis": [
+        "dt_max_noise"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
+    },
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "max": 9e-06,
+      "basis": [
+        "dt_max_relaxation"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "sqrt(2*D*dt) << sigma at the stiffest point",
+      "parameter": "integration_timestep",
+      "state": "returned",
+      "interval": {
+        "parameter": "integration_timestep",
+        "unit": "s",
+        "max": 5e-06,
+        "basis": [
+          "dt_max_noise"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    },
+    {
+      "inequality": "dt << gamma/k_t at the stiffest point",
+      "parameter": "integration_timestep",
+      "state": "returned",
+      "interval": {
+        "parameter": "integration_timestep",
+        "unit": "s",
+        "max": 9e-06,
+        "basis": [
+          "dt_max_relaxation"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "trap_relaxation_time_min",
+      "value": 0.0009,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_max",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "gamma/k_t at the stiff end, the shortest time the integrator must resolve",
+      "origin": "goal.json#trap_relaxation_time_min"
+    },
+    {
+      "name": "dt_resolution_factor",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_dt_factor",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how far below the shortest resolved time the step sits: two decades, the usual margin for an overdamped integrator, a convention and not a derivation"
+    },
+    {
+      "name": "dt_max_relaxation",
+      "value": 9e-06,
+      "unit": "s",
+      "source": "computed:factor_times_relaxation_time",
+      "grade": "E5",
+      "formula": "dt_resolution_factor*trap_relaxation_time_min",
+      "inputs": [
+        "dt_resolution_factor",
+        "trap_relaxation_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "dt << gamma/k_t at the stiff end, the shortest time in the problem. Per point it is a hundredth of the LOCAL relaxation time, which is why it varies with the stiffness"
+    },
+    {
+      "name": "noise_step_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_noise_step",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the rms noise displacement per step as a fraction of the thermal width"
+    },
+    {
+      "name": "dt_max_noise",
+      "value": 5e-06,
+      "unit": "s",
+      "source": "computed:noise_step_inside_thermal_width",
+      "grade": "E5",
+      "formula": "0.5*noise_step_fraction**2*trap_relaxation_time_min",
+      "inputs": [
+        "noise_step_fraction",
+        "trap_relaxation_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "sqrt(2*D*dt) << sigma. NOT AN INDEPENDENT BOUND: sigma**2 = D*tau_t exactly, so this is dt << tau_t again with a different factor. Kept so a reader who expects two bounds finds why there is one"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_dt_factor",
+      "statement": "Two decades below the shortest resolved time is the usual margin for an overdamped integrator. A convention; no timestep scan has been run on this configuration.",
+      "numbers": [
+        "dt_resolution_factor"
+      ],
+      "falsifier": "a timestep scan showing the width flat over a wider range of steps replaces the factor with a measured one",
+      "gap_ref": "integration_timestep_resolution_factor_absent"
+    },
+    {
+      "rationale_id": "a_noise_step",
+      "statement": "A tenth of the thermal width per step. Dependent on the relaxation bound only because the declared potential is exactly harmonic; a trap that flattens away from its centre would separate them again.",
+      "numbers": [
+        "noise_step_fraction"
+      ],
+      "falsifier": "a non-quadratic trap makes this a distinct bound",
+      "gap_ref": "integration_timestep_resolution_factor_absent"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "integration_timestep_resolution_factor_absent",
+      "observable": "integration_timestep_resolution_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-102:v1:bd_overdamped_trapped:a1",
+      "asked_at": "2026-09-24T06:42:14+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "S4 takes the tighter, which is the noise bound by its factor. With no flow the drift bound that decided the driven configuration is absent, so the step here is a decade looser than there at the same stiffness."
+}

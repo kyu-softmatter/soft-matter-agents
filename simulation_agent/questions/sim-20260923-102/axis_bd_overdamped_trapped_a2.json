@@ -1,0 +1,178 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-102-bd_overdamped_trapped-a2",
+  "qid": "sim-20260923-102",
+  "thread": "solo-sim-20260923-102",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T16:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-102:v1:bd_overdamped_trapped:a2",
+  "config": "bd_overdamped_trapped",
+  "axis": "a2",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "record_length",
+      "unit": "s",
+      "min": 90.0,
+      "basis": [
+        "record_length_floor_soft_corner"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "record_length >= 100*gamma/k_t at each stiffness",
+      "parameter": "record_length",
+      "state": "returned",
+      "interval": {
+        "parameter": "record_length",
+        "unit": "s",
+        "min": 90.0,
+        "basis": [
+          "record_length_floor_soft_corner"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "trap_relaxation_time_max",
+      "value": 0.9,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_min",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "gamma/k_t at the soft end, the longest correlation time between frames",
+      "origin": "goal.json#trap_relaxation_time_max"
+    },
+    {
+      "name": "trap_relaxation_time_min",
+      "value": 0.0009,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_max",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "gamma/k_t at the stiff end, the shortest time the integrator must resolve",
+      "origin": "goal.json#trap_relaxation_time_min"
+    },
+    {
+      "name": "relaxation_times_per_record",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_record_floor",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the record in units of gamma/k_t. It fixes both the bias and the scatter below"
+    },
+    {
+      "name": "width_bias_at_floor",
+      "value": 0.01,
+      "unit": "1",
+      "source": "computed:record_mean_subtraction_bias",
+      "grade": "E5",
+      "formula": "1/relaxation_times_per_record",
+      "inputs": [
+        "relaxation_times_per_record"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "THE WIDTH IS UNDERSTATED BY A SHORT RECORD, and this is how much. Subtracting the record's own mean removes the slow part of the fluctuation: E[s**2] = sigma**2*(1 - 2*tau_t/T), so sigma comes out low by about tau_t/T. One per cent at a hundred relaxation times, and it has a sign, which scatter does not"
+    },
+    {
+      "name": "width_scatter_at_floor",
+      "value": 0.07,
+      "unit": "1",
+      "source": "computed:ou_variance_standard_error",
+      "grade": "E5",
+      "formula": "(1/(2*relaxation_times_per_record))**0.5",
+      "inputs": [
+        "relaxation_times_per_record"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the relative standard error of the width from one record. The variance of an Ornstein-Uhlenbeck coordinate's squares decorrelates over tau_t/2, so the sample variance has relative error sqrt(2*tau_t/T) and the width half that. Seven per cent at the floor: inside one decade by far, and the reason a per-cent stiffness needs a longer record, not a longer list of runs"
+    },
+    {
+      "name": "record_length_floor_soft_corner",
+      "value": 90.0,
+      "unit": "s",
+      "source": "computed:relaxation_times_times_tau",
+      "grade": "E5",
+      "formula": "relaxation_times_per_record*trap_relaxation_time_max",
+      "inputs": [
+        "relaxation_times_per_record",
+        "trap_relaxation_time_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a minute and a half at the soft end. THIS IS ALSO THE BENCH'S RECORD LENGTH: a camera recording of the same trap needs the same hundred relaxation times, and that is the number the bridge carries to the microscope"
+    },
+    {
+      "name": "record_length_floor_stiff_corner",
+      "value": 0.09,
+      "unit": "s",
+      "source": "computed:relaxation_times_times_tau",
+      "grade": "E5",
+      "formula": "relaxation_times_per_record*trap_relaxation_time_min",
+      "inputs": [
+        "relaxation_times_per_record",
+        "trap_relaxation_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a tenth of a second at the stiff end"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_record_floor",
+      "statement": "A hundred relaxation times: long enough that the width's bias is a per cent and its scatter under a tenth, both far inside the one decade the goal asks for. A convention, and the record a per-cent stiffness would need is the relation in the note, not this number.",
+      "numbers": [
+        "relaxation_times_per_record"
+      ],
+      "falsifier": "a first run whose measured width is still rising between half the record and the whole of it falsifies the bias estimate and lengthens the record",
+      "gap_ref": "width_record_length_factor_absent"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "width_record_length_factor_absent",
+      "observable": "width_record_length_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-102:v1:bd_overdamped_trapped:a2",
+      "asked_at": "2026-09-24T06:42:19+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "Two numbers where a mean has one. The relative bias is -tau_t/T and has a sign; the relative scatter is sqrt(tau_t/(2T)) and does not. At the floor they are one and seven per cent. For a stiffness to a per cent the scatter must reach half a per cent, which is T = 2e4*tau_t, and that is the next revision's record, not this one's."
+}

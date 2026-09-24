@@ -1,0 +1,40 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-102-bd_overdamped_trapped-a7",
+  "qid": "sim-20260923-102",
+  "thread": "solo-sim-20260923-102",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T16:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-102:v1:bd_overdamped_trapped:a7",
+  "config": "bd_overdamped_trapped",
+  "axis": "a7",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "abstain_reason": "No driving. bd_overdamped_trapped is declared undriven: the fluid is at rest and nothing moves the trap, so there is no driving amount for this axis to bound. Abstaining is not being absent: this card is the record that the axis was asked and had nothing to constrain (P1).",
+  "numbers": [],
+  "assumptions": [],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "flow_speed_absent",
+      "observable": "flow_speed",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-102:v1:bd_overdamped_trapped:a7",
+      "asked_at": "2026-09-24T06:42:46+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "numbers[] is empty because an abstention has nothing to measure. The driven sibling, bd_overdamped_trapped_uniform_flow, is where this axis owns the speed."
+}
