@@ -56,6 +56,7 @@ OBSERVED = {
     "step_displacement_diverged": "max_step_displacement",
     "statistics_met": "relative_block_standard_error_of_drag_offset",
     "recovered_stiffness_within_target": "relative_deviation_of_stiffness_recovered_through_drag",
+    "recovered_stiffness_within_standard_errors": "deviation_of_stiffness_recovered_through_drag_in_standard_errors",
 }
 
 
@@ -120,6 +121,10 @@ def build(run_id: str) -> dict:
     save_p = carry(cond["save_interval"]); startup_p = carry(cond["startup_discard"])
     record_p = carry(cond["record_length"]); offset_p = carry(cond["offset_over_sigma"])
     carry("target_relative_error")
+    # every threshold a criterion names by `number` travels with the card that evaluates it
+    for cr in plan.get("success_criteria") or []:
+        if cr.get("number") and all(n["name"] != cr["number"] for n in numbers):
+            carry(cr["number"])
     model_inputs = [temperature, viscosity, bead, k_t, v, dt_p, save_p, startup_p, record_p]
     g = {n["name"]: n["grade"] for n in numbers}
 
@@ -159,11 +164,20 @@ def build(run_id: str) -> dict:
          drag["standard_error_block_si"] / drag["value_si"], "1", model_inputs,
          f"the block standard error of the mean offset over the offset, from {drag['block_count']} blocks of "
          "ten declared relaxation times. statistics_met compares it against the person's target")
-    read("relative_deviation_of_stiffness_recovered_through_drag", abs(stiff["from_drag_ratio"] - 1.0), "1",
+    # a reading no criterion compares has no field naming it, so it is read only where one does
+    declared = {cr["id"] for cr in plan.get("success_criteria") or []}
+    if "recovered_stiffness_within_target" in declared:
+      read("relative_deviation_of_stiffness_recovered_through_drag", abs(stiff["from_drag_ratio"] - 1.0), "1",
          model_inputs,
          "|gamma*v/<x> over the declared stiffness, minus one|. NOT EVIDENCE ABOUT ANY TRAP: gamma and k_t "
          "both went in. It tests the integrator and the estimator, and the run read it at "
          f"{stiff['from_drag_ratio']:.4f} of the declared value")
+    if "recovered_stiffness_within_standard_errors" in declared:
+      read("deviation_of_stiffness_recovered_through_drag_in_standard_errors",
+         abs(stiff["from_drag_ratio"] - 1.0) / (drag["standard_error_block_si"] / drag["value_si"]), "1",
+         model_inputs,
+         "|recovered over declared stiffness minus one| over the cell's own relative block standard error: the "
+         "deviation counted in the run's own error bars, which the person's accuracy criterion compares")
     steps, sim_time, frames = meta.get("steps_taken"), meta.get("simulated_time"), meta.get("frames_saved")
     dt_a = read("integration_timestep_actual", sim_time / steps, dt_p["unit"], [dt_p],
                 "simulated time over the integer step count")

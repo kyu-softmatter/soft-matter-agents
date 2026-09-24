@@ -1,0 +1,1606 @@
+{
+  "card": "synthesis",
+  "schema_version": "0.1",
+  "id": "synthesis-sim-20260923-201-r5",
+  "qid": "sim-20260923-201",
+  "thread": "solo-sim-20260923-201",
+  "round": 0,
+  "revision": 5,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T06:05:00Z",
+  "status": "VALIDATED",
+  "configs_screened": [
+    "bd_overdamped_trapped_uniform_flow"
+  ],
+  "per_config": [
+    {
+      "config": "bd_overdamped_trapped_uniform_flow",
+      "empty": false,
+      "axis_files": [
+        "v5_axis_bd_overdamped_trapped_uniform_flow_a1.json",
+        "v5_axis_bd_overdamped_trapped_uniform_flow_a2.json",
+        "v5_axis_bd_overdamped_trapped_uniform_flow_a3.json",
+        "v5_axis_bd_overdamped_trapped_uniform_flow_a4.json",
+        "v5_axis_bd_overdamped_trapped_uniform_flow_a5.json",
+        "v5_axis_bd_overdamped_trapped_uniform_flow_a7.json"
+      ],
+      "intersection": [
+        {
+          "parameter": "box_edge",
+          "unit": "um",
+          "basis": [
+            "box_edge_min"
+          ],
+          "min": 200.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "flow_speed",
+          "unit": "um/s",
+          "basis": [
+            "flow_speed_max_soft_corner"
+          ],
+          "max": 40.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "integration_steps",
+          "unit": "1",
+          "basis": [
+            "steps_max_per_point"
+          ],
+          "max": 200000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "integration_timestep",
+          "unit": "s",
+          "basis": [
+            "dt_max_drift"
+          ],
+          "max": 5e-06,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "record_length",
+          "unit": "s",
+          "basis": [
+            "record_length_statistical_soft_slow"
+          ],
+          "min": 10000.0,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "save_interval",
+          "unit": "s",
+          "basis": [
+            "save_interval_max"
+          ],
+          "min": 5e-05,
+          "max": 0.0005,
+          "precision": "order_of_magnitude"
+        },
+        {
+          "parameter": "startup_discard",
+          "unit": "s",
+          "basis": [
+            "startup_discard_soft_corner"
+          ],
+          "min": 5.0,
+          "precision": "order_of_magnitude"
+        }
+      ]
+    }
+  ],
+  "chosen_config": "bd_overdamped_trapped_uniform_flow",
+  "operating_point": [
+    {
+      "parameter": "temperature",
+      "number": "temperature"
+    },
+    {
+      "parameter": "viscosity",
+      "number": "viscosity"
+    },
+    {
+      "parameter": "bead_diameter",
+      "number": "bead_diameter"
+    }
+  ],
+  "priority_used": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "priority_source": "goal_card",
+  "rejected": [
+    {
+      "what": "grid cell k1_o1",
+      "kind": "operating_point",
+      "reason": "exceeds A5's step budget per point at the CONSERVATIVE cost end; skipped, and the plan's sweep records the empty cell with this reason",
+      "grounds": [
+        "particle_steps_k1_o1",
+        "steps_max_per_point"
+      ]
+    },
+    {
+      "what": "grid cell k2_o1",
+      "kind": "operating_point",
+      "reason": "exceeds A5's step budget per point at the CONSERVATIVE cost end; skipped, and the plan's sweep records the empty cell with this reason",
+      "grounds": [
+        "particle_steps_k2_o1",
+        "steps_max_per_point"
+      ]
+    },
+    {
+      "what": "grid cell k3_o1",
+      "kind": "operating_point",
+      "reason": "exceeds A5's step budget per point at the CONSERVATIVE cost end; skipped, and the plan's sweep records the empty cell with this reason",
+      "grounds": [
+        "particle_steps_k3_o1",
+        "steps_max_per_point"
+      ]
+    }
+  ],
+  "tie_break": "one configuration survived screening, so there was nothing to break. The grid is 9 cells, 6 fit the step budget and 3 do not (k1_o1, k2_o1, k3_o1). Every cell's step, save interval, startup and record are multiples of that cell's tau because the axis cards marked them varies_with trap_stiffness, so the step count is the same at every stiffness: 1e+07 steps at o1, 100000 steps at o2, 200000 steps at o3. THIS REVISION'S OPERATING POINT IS THE SWEEP: every kept cell is run, and the conditions shared by all of them are listed here. S4 made no lookup, so the librarian is degraded here by construction and the gaps are the goal's",
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "origin": "v5_goal.json#bead_diameter",
+      "precision": "significant_figures",
+      "note": "the SI anchor: the particle in the bottle, measured directly. Sets the drag through Stokes and the soft end of the stiffness sweep through the thermal width"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v5_goal.json#temperature",
+      "precision": "significant_figures",
+      "note": "a parameter of the noise amplitude and realised exactly by the model, not a thermostat setpoint. The room's reading; nothing actuates the sample (kb:sample_temperature_not_actuated)"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v5_goal.json#viscosity",
+      "precision": "order_of_magnitude",
+      "note": "pure water, validity 288 to 298 K and the temperature above is inside it. THE ENTRY SAYS `of order` one mPa s, so this is one significant figure and the precision below says so"
+    },
+    {
+      "name": "trap_stiffness_min",
+      "value": 0.1,
+      "unit": "pN/um",
+      "source": "assumed:a_stiffness_range_is_the_persons",
+      "grade": "E5",
+      "origin": "v5_goal.json#trap_stiffness_min",
+      "precision": "order_of_magnitude",
+      "note": "the soft end of the range the person set on 2026-09-23. A decision, not an estimate; assumed: is the nearest source kind because a decision can be named by reference only when it is a target or an envelope limit"
+    },
+    {
+      "name": "trap_stiffness_max",
+      "value": 10,
+      "unit": "pN/um",
+      "source": "assumed:a_stiffness_range_is_the_persons",
+      "grade": "E5",
+      "origin": "v5_goal.json#trap_stiffness_max",
+      "precision": "order_of_magnitude",
+      "note": "the stiff end of the person's range: two decades, so three stiffness levels a decade apart"
+    },
+    {
+      "name": "offset_over_sigma_min",
+      "value": 1,
+      "unit": "1",
+      "source": "assumed:a_speed_decades",
+      "grade": "E5",
+      "origin": "v5_goal.json#offset_over_sigma_min",
+      "precision": "order_of_magnitude",
+      "note": "the dimensionless sweep variable is the offset in thermal widths, gamma*v/sqrt(k_B*temperature*trap_stiffness), because that and not the speed is what sets the per-frame signal to noise. At 1 the offset is buried in the fluctuation and only averaging recovers it"
+    },
+    {
+      "name": "offset_over_sigma_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_speed_decades",
+      "grade": "E5",
+      "origin": "v5_goal.json#offset_over_sigma_max",
+      "precision": "order_of_magnitude",
+      "note": "two decades up, where a single frame already shows the offset. The SPEED this becomes depends on the stiffness, so the speed is an A7 interval per corner and not one number here"
+    },
+    {
+      "name": "noise_step_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_noise_step",
+      "grade": "E5",
+      "origin": "v5_axis_bd_overdamped_trapped_uniform_flow_a1.json#noise_step_fraction",
+      "precision": "order_of_magnitude",
+      "note": "the rms noise displacement per step as a fraction of the thermal width"
+    },
+    {
+      "name": "drift_step_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_drift_step",
+      "grade": "E5",
+      "origin": "v5_axis_bd_overdamped_trapped_uniform_flow_a1.json#drift_step_fraction",
+      "precision": "order_of_magnitude",
+      "note": "the flow's deterministic displacement per step as a fraction of the thermal width"
+    },
+    {
+      "name": "relaxation_times_per_record",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_record_floor",
+      "grade": "E5",
+      "origin": "v5_axis_bd_overdamped_trapped_uniform_flow_a2.json#relaxation_times_per_record",
+      "precision": "order_of_magnitude",
+      "note": "the FLOOR on a record in units of gamma/k_t. Below this the mean is not a stationary average and the standard error expression does not apply, whatever the target accuracy is"
+    },
+    {
+      "name": "target_relative_error",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_target_is_the_persons",
+      "grade": "E5",
+      "origin": "v5_axis_bd_overdamped_trapped_uniform_flow_a2.json#target_relative_error",
+      "precision": "significant_figures",
+      "note": "the person's, settled 2026-09-23, and it is a DECISION carrying no grade of its own (5.3.1). It sits in numbers[] only so the record lengths below can name it as an input; the authority is the goal's targets[]"
+    },
+    {
+      "name": "save_interval_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_save_fraction",
+      "grade": "E5",
+      "origin": "v5_axis_bd_overdamped_trapped_uniform_flow_a4.json#save_interval_fraction",
+      "precision": "order_of_magnitude",
+      "note": "the save interval as a fraction of gamma/k_t at the stiff corner"
+    },
+    {
+      "name": "cost_per_step_upper",
+      "value": 0.004,
+      "unit": "s",
+      "source": "prior_run:run-20260922-hoomd-s3",
+      "grade": "E3",
+      "origin": "v5_axis_bd_overdamped_trapped_uniform_flow_a5.json#cost_per_step_upper",
+      "precision": "order_of_magnitude",
+      "note": "44.9 s of wall clock over 10000 steps on hoomd_backend, and mock_backend gave 43.1 s for the same run. AN UPPER BOUND FOR THIS QUESTION AND NOT THE VALUE: that run carried 1000 particles and this configuration carries ONE, so the real per-step cost is somewhere below it"
+    },
+    {
+      "name": "steps_max_per_point",
+      "value": 200000.0,
+      "unit": "1",
+      "source": "assumed:a_step_budget",
+      "grade": "E5",
+      "origin": "v5_axis_bd_overdamped_trapped_uniform_flow_a5.json#steps_max_per_point",
+      "precision": "order_of_magnitude",
+      "note": "the share of the local wall clock one sweep point may spend, as a step count. NO `formula`, following axis_a5_budget: the ceiling is a decision the person owns and 5.3 has no source kind for one, so carrying it as a graded input would dress a decision as an estimate. The arithmetic is in the rationale, where a reader can check it and no check re-evaluates it. Against the LOWER cost bound this number is three decades larger, which is the whole uncertainty."
+    },
+    {
+      "name": "startup_relaxation_times",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_startup",
+      "grade": "E5",
+      "origin": "v5_axis_bd_overdamped_trapped_uniform_flow_a7.json#startup_relaxation_times",
+      "precision": "order_of_magnitude",
+      "note": "how many gamma/k_t to discard after the flow is switched on, before the record begins"
+    },
+    {
+      "name": "trap_stiffness_k1",
+      "value": 0.1,
+      "unit": "pN/um",
+      "source": "computed:goal_soft_corner",
+      "grade": "E5",
+      "formula": "trap_stiffness_min",
+      "inputs": [
+        "trap_stiffness_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the soft end of the range"
+    },
+    {
+      "name": "trap_stiffness_k2",
+      "value": 1.0,
+      "unit": "pN/um",
+      "source": "computed:decades_above_soft_end",
+      "grade": "E5",
+      "formula": "trap_stiffness_min*10**1",
+      "inputs": [
+        "trap_stiffness_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "1 decade(s) above the soft end"
+    },
+    {
+      "name": "trap_stiffness_k3",
+      "value": 10.0,
+      "unit": "pN/um",
+      "source": "computed:goal_stiff_corner",
+      "grade": "E5",
+      "formula": "trap_stiffness_max",
+      "inputs": [
+        "trap_stiffness_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the stiff end of the range"
+    },
+    {
+      "name": "offset_over_sigma_o1",
+      "value": 1.0,
+      "unit": "1",
+      "source": "computed:goal_slow_corner",
+      "grade": "E5",
+      "formula": "offset_over_sigma_min",
+      "inputs": [
+        "offset_over_sigma_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "offset one thermal width: buried in the fluctuation"
+    },
+    {
+      "name": "offset_over_sigma_o2",
+      "value": 10.0,
+      "unit": "1",
+      "source": "computed:geometric_mean",
+      "grade": "E5",
+      "formula": "(offset_over_sigma_min*offset_over_sigma_max)**0.5",
+      "inputs": [
+        "offset_over_sigma_min",
+        "offset_over_sigma_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the decade between"
+    },
+    {
+      "name": "offset_over_sigma_o3",
+      "value": 100.0,
+      "unit": "1",
+      "source": "computed:goal_fast_corner",
+      "grade": "E5",
+      "formula": "offset_over_sigma_max",
+      "inputs": [
+        "offset_over_sigma_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "visible in a single frame"
+    },
+    {
+      "name": "dt_fraction_o1",
+      "value": 0.004,
+      "unit": "1",
+      "source": "computed:a1_noise_bound",
+      "grade": "E5",
+      "formula": "0.8*0.5*noise_step_fraction**2",
+      "inputs": [
+        "noise_step_fraction"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "timestep over tau at the slow row. A1's NOISE bound binds here, not the drift bound: the drift bound is 0.1/(offset/sigma) = 0.1 at this row and the noise bound 0.005 is twenty times tighter. Revision 3's goal used the drift bound at this row and understated the row's cost by that factor"
+    },
+    {
+      "name": "dt_fraction_o2",
+      "value": 0.004,
+      "unit": "1",
+      "source": "computed:a1_noise_bound",
+      "grade": "E5",
+      "formula": "0.8*0.5*noise_step_fraction**2",
+      "inputs": [
+        "noise_step_fraction"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the noise bound again: drift gives 0.01 at this row, twice the noise bound's 0.005"
+    },
+    {
+      "name": "dt_fraction_o3",
+      "value": 0.0008,
+      "unit": "1",
+      "source": "computed:a1_drift_bound",
+      "grade": "E5",
+      "formula": "0.8*drift_step_fraction/offset_over_sigma_o3",
+      "inputs": [
+        "drift_step_fraction",
+        "offset_over_sigma_o3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the DRIFT bound binds at the fast row, 0.001 against the noise bound's 0.005"
+    },
+    {
+      "name": "record_multiple_o1",
+      "value": 20000.0,
+      "unit": "1",
+      "source": "computed:a2_statistics",
+      "grade": "E5",
+      "formula": "2/(offset_over_sigma_o1*target_relative_error)**2",
+      "inputs": [
+        "offset_over_sigma_o1",
+        "target_relative_error"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A2's statistical branch binds: twenty thousand relaxation times for one per cent at one sigma"
+    },
+    {
+      "name": "record_multiple_o2",
+      "value": 200.0,
+      "unit": "1",
+      "source": "computed:a2_statistics",
+      "grade": "E5",
+      "formula": "2/(offset_over_sigma_o2*target_relative_error)**2",
+      "inputs": [
+        "offset_over_sigma_o2",
+        "target_relative_error"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the statistics bind, above A2's floor of a hundred"
+    },
+    {
+      "name": "record_multiple_o3",
+      "value": 100.0,
+      "unit": "1",
+      "source": "computed:a2_floor",
+      "grade": "E5",
+      "formula": "relaxation_times_per_record",
+      "inputs": [
+        "relaxation_times_per_record"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A2's floor binds: at the fast row the statistics are met in two relaxation times"
+    },
+    {
+      "name": "relaxation_time_k1",
+      "value": 0.5,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_k1",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "gamma/k_t at this level: every bound below is a multiple of it, which is what varies_with said"
+    },
+    {
+      "name": "save_interval_k1",
+      "value": 0.05,
+      "unit": "s",
+      "source": "computed:a4_fraction_of_tau",
+      "grade": "E5",
+      "formula": "save_interval_fraction*relaxation_time_k1",
+      "inputs": [
+        "save_interval_fraction",
+        "relaxation_time_k1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A4's ceiling at this level"
+    },
+    {
+      "name": "startup_discard_k1",
+      "value": 5.0,
+      "unit": "s",
+      "source": "computed:a7_startup",
+      "grade": "E5",
+      "formula": "startup_relaxation_times*relaxation_time_k1",
+      "inputs": [
+        "startup_relaxation_times",
+        "relaxation_time_k1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A7's discard at this level, declared before the run and evaluated by the estimator on this number"
+    },
+    {
+      "name": "relaxation_time_k2",
+      "value": 0.05,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_k2",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "gamma/k_t at this level: every bound below is a multiple of it, which is what varies_with said"
+    },
+    {
+      "name": "save_interval_k2",
+      "value": 0.005,
+      "unit": "s",
+      "source": "computed:a4_fraction_of_tau",
+      "grade": "E5",
+      "formula": "save_interval_fraction*relaxation_time_k2",
+      "inputs": [
+        "save_interval_fraction",
+        "relaxation_time_k2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A4's ceiling at this level"
+    },
+    {
+      "name": "startup_discard_k2",
+      "value": 0.5,
+      "unit": "s",
+      "source": "computed:a7_startup",
+      "grade": "E5",
+      "formula": "startup_relaxation_times*relaxation_time_k2",
+      "inputs": [
+        "startup_relaxation_times",
+        "relaxation_time_k2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A7's discard at this level, declared before the run and evaluated by the estimator on this number"
+    },
+    {
+      "name": "relaxation_time_k3",
+      "value": 0.005,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_k3",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "gamma/k_t at this level: every bound below is a multiple of it, which is what varies_with said"
+    },
+    {
+      "name": "save_interval_k3",
+      "value": 0.0005,
+      "unit": "s",
+      "source": "computed:a4_fraction_of_tau",
+      "grade": "E5",
+      "formula": "save_interval_fraction*relaxation_time_k3",
+      "inputs": [
+        "save_interval_fraction",
+        "relaxation_time_k3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A4's ceiling at this level"
+    },
+    {
+      "name": "startup_discard_k3",
+      "value": 0.05,
+      "unit": "s",
+      "source": "computed:a7_startup",
+      "grade": "E5",
+      "formula": "startup_relaxation_times*relaxation_time_k3",
+      "inputs": [
+        "startup_relaxation_times",
+        "relaxation_time_k3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "A7's discard at this level, declared before the run and evaluated by the estimator on this number"
+    },
+    {
+      "name": "particle_step_rate",
+      "value": 300.0,
+      "unit": "1/s",
+      "source": "computed:inverse_cost",
+      "grade": "E4",
+      "formula": "1/cost_per_step_upper",
+      "inputs": [
+        "cost_per_step_upper"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the CONSERVATIVE end of A5's bracket: measured at 1000 particles, so this is a floor on the rate one particle runs at. The smoke run measures the rate at N=1"
+    },
+    {
+      "name": "integration_timestep_k1_o1",
+      "value": 0.002,
+      "unit": "s",
+      "source": "computed:a1_bound_at_point",
+      "grade": "E5",
+      "formula": "dt_fraction_o1*relaxation_time_k1",
+      "inputs": [
+        "dt_fraction_o1",
+        "relaxation_time_k1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "AT the binding A1 bound for this cell"
+    },
+    {
+      "name": "flow_speed_k1_o1",
+      "value": 0.4,
+      "unit": "um/s",
+      "source": "computed:offset_to_speed",
+      "grade": "E5",
+      "formula": "offset_over_sigma_o1*(k_B*temperature*trap_stiffness_k1)**0.5/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "offset_over_sigma_o1",
+        "temperature",
+        "trap_stiffness_k1",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the speed that puts the steady offset at this row's number of thermal widths, at this stiffness"
+    },
+    {
+      "name": "offset_over_sigma_realised_k1_o1",
+      "value": 0.9,
+      "unit": "1",
+      "source": "computed:speed_to_offset",
+      "grade": "E5",
+      "formula": "flow_speed_k1_o1*3*pi*viscosity*bead_diameter/(trap_stiffness_k1*(k_B*temperature/trap_stiffness_k1)**0.5)",
+      "inputs": [
+        "flow_speed_k1_o1",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k1",
+        "temperature"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the steady offset in thermal widths that the dispatched speed produces"
+    },
+    {
+      "name": "record_length_k1_o1",
+      "value": 20000.0,
+      "unit": "s",
+      "source": "computed:record_for_target_at_realised_offset",
+      "grade": "E5",
+      "formula": "1.5*2*relaxation_time_k1/(offset_over_sigma_realised_k1_o1*target_relative_error)**2",
+      "inputs": [
+        "relaxation_time_k1",
+        "offset_over_sigma_realised_k1_o1",
+        "target_relative_error"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the averaging window after the startup, sized for the target at the offset this cell REALLY has, with S4's 1.5x margin. The backend adds the startup"
+    },
+    {
+      "name": "particle_steps_k1_o1",
+      "value": 10000000.0,
+      "unit": "1",
+      "source": "computed:duration_over_step",
+      "grade": "E5",
+      "formula": "(startup_discard_k1+record_length_k1_o1)/integration_timestep_k1_o1",
+      "inputs": [
+        "startup_discard_k1",
+        "record_length_k1_o1",
+        "integration_timestep_k1_o1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, so particle-steps are steps; against steps_max_per_point. An ESTIMATE, so one figure is right here where it would be wrong for the window itself"
+    },
+    {
+      "name": "coordinates_stored_k1_o1",
+      "value": 1000000.0,
+      "unit": "1",
+      "source": "computed:three_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "3*(startup_discard_k1+record_length_k1_o1)/save_interval_k1",
+      "inputs": [
+        "startup_discard_k1",
+        "record_length_k1_o1",
+        "save_interval_k1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, three coordinates a frame"
+    },
+    {
+      "name": "integration_timestep_k1_o2",
+      "value": 0.002,
+      "unit": "s",
+      "source": "computed:a1_bound_at_point",
+      "grade": "E5",
+      "formula": "dt_fraction_o2*relaxation_time_k1",
+      "inputs": [
+        "dt_fraction_o2",
+        "relaxation_time_k1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "AT the binding A1 bound for this cell"
+    },
+    {
+      "name": "flow_speed_k1_o2",
+      "value": 4.0,
+      "unit": "um/s",
+      "source": "computed:offset_to_speed",
+      "grade": "E5",
+      "formula": "offset_over_sigma_o2*(k_B*temperature*trap_stiffness_k1)**0.5/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "offset_over_sigma_o2",
+        "temperature",
+        "trap_stiffness_k1",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the speed that puts the steady offset at this row's number of thermal widths, at this stiffness"
+    },
+    {
+      "name": "offset_over_sigma_realised_k1_o2",
+      "value": 9.0,
+      "unit": "1",
+      "source": "computed:speed_to_offset",
+      "grade": "E5",
+      "formula": "flow_speed_k1_o2*3*pi*viscosity*bead_diameter/(trap_stiffness_k1*(k_B*temperature/trap_stiffness_k1)**0.5)",
+      "inputs": [
+        "flow_speed_k1_o2",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k1",
+        "temperature"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the steady offset in thermal widths that the dispatched speed produces"
+    },
+    {
+      "name": "record_length_k1_o2",
+      "value": 200.0,
+      "unit": "s",
+      "source": "computed:record_for_target_at_realised_offset",
+      "grade": "E5",
+      "formula": "1.5*2*relaxation_time_k1/(offset_over_sigma_realised_k1_o2*target_relative_error)**2",
+      "inputs": [
+        "relaxation_time_k1",
+        "offset_over_sigma_realised_k1_o2",
+        "target_relative_error"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the averaging window after the startup, sized for the target at the offset this cell REALLY has, with S4's 1.5x margin. The backend adds the startup"
+    },
+    {
+      "name": "particle_steps_k1_o2",
+      "value": 100000.0,
+      "unit": "1",
+      "source": "computed:duration_over_step",
+      "grade": "E5",
+      "formula": "(startup_discard_k1+record_length_k1_o2)/integration_timestep_k1_o2",
+      "inputs": [
+        "startup_discard_k1",
+        "record_length_k1_o2",
+        "integration_timestep_k1_o2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, so particle-steps are steps; against steps_max_per_point. An ESTIMATE, so one figure is right here where it would be wrong for the window itself"
+    },
+    {
+      "name": "coordinates_stored_k1_o2",
+      "value": 10000.0,
+      "unit": "1",
+      "source": "computed:three_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "3*(startup_discard_k1+record_length_k1_o2)/save_interval_k1",
+      "inputs": [
+        "startup_discard_k1",
+        "record_length_k1_o2",
+        "save_interval_k1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, three coordinates a frame"
+    },
+    {
+      "name": "integration_timestep_k1_o3",
+      "value": 0.0004,
+      "unit": "s",
+      "source": "computed:a1_bound_at_point",
+      "grade": "E5",
+      "formula": "dt_fraction_o3*relaxation_time_k1",
+      "inputs": [
+        "dt_fraction_o3",
+        "relaxation_time_k1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "AT the binding A1 bound for this cell"
+    },
+    {
+      "name": "flow_speed_k1_o3",
+      "value": 40.0,
+      "unit": "um/s",
+      "source": "computed:offset_to_speed",
+      "grade": "E5",
+      "formula": "offset_over_sigma_o3*(k_B*temperature*trap_stiffness_k1)**0.5/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "offset_over_sigma_o3",
+        "temperature",
+        "trap_stiffness_k1",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the speed that puts the steady offset at this row's number of thermal widths, at this stiffness"
+    },
+    {
+      "name": "offset_over_sigma_realised_k1_o3",
+      "value": 90.0,
+      "unit": "1",
+      "source": "computed:speed_to_offset",
+      "grade": "E5",
+      "formula": "flow_speed_k1_o3*3*pi*viscosity*bead_diameter/(trap_stiffness_k1*(k_B*temperature/trap_stiffness_k1)**0.5)",
+      "inputs": [
+        "flow_speed_k1_o3",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k1",
+        "temperature"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the steady offset in thermal widths that the dispatched speed produces"
+    },
+    {
+      "name": "record_length_k1_o3",
+      "value": 80.0,
+      "unit": "s",
+      "source": "computed:margin_times_record_multiple_times_tau",
+      "grade": "E5",
+      "formula": "1.5*record_multiple_o3*relaxation_time_k1",
+      "inputs": [
+        "record_multiple_o3",
+        "relaxation_time_k1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the averaging window after the startup: A2's floor of relaxation times binds at this row, with S4's 1.5x margin. The backend adds the startup"
+    },
+    {
+      "name": "particle_steps_k1_o3",
+      "value": 200000.0,
+      "unit": "1",
+      "source": "computed:duration_over_step",
+      "grade": "E5",
+      "formula": "(startup_discard_k1+record_length_k1_o3)/integration_timestep_k1_o3",
+      "inputs": [
+        "startup_discard_k1",
+        "record_length_k1_o3",
+        "integration_timestep_k1_o3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, so particle-steps are steps; against steps_max_per_point. An ESTIMATE, so one figure is right here where it would be wrong for the window itself"
+    },
+    {
+      "name": "coordinates_stored_k1_o3",
+      "value": 5000.0,
+      "unit": "1",
+      "source": "computed:three_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "3*(startup_discard_k1+record_length_k1_o3)/save_interval_k1",
+      "inputs": [
+        "startup_discard_k1",
+        "record_length_k1_o3",
+        "save_interval_k1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, three coordinates a frame"
+    },
+    {
+      "name": "integration_timestep_k2_o1",
+      "value": 0.0002,
+      "unit": "s",
+      "source": "computed:a1_bound_at_point",
+      "grade": "E5",
+      "formula": "dt_fraction_o1*relaxation_time_k2",
+      "inputs": [
+        "dt_fraction_o1",
+        "relaxation_time_k2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "AT the binding A1 bound for this cell"
+    },
+    {
+      "name": "flow_speed_k2_o1",
+      "value": 1.0,
+      "unit": "um/s",
+      "source": "computed:offset_to_speed",
+      "grade": "E5",
+      "formula": "offset_over_sigma_o1*(k_B*temperature*trap_stiffness_k2)**0.5/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "offset_over_sigma_o1",
+        "temperature",
+        "trap_stiffness_k2",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the speed that puts the steady offset at this row's number of thermal widths, at this stiffness"
+    },
+    {
+      "name": "offset_over_sigma_realised_k2_o1",
+      "value": 0.7,
+      "unit": "1",
+      "source": "computed:speed_to_offset",
+      "grade": "E5",
+      "formula": "flow_speed_k2_o1*3*pi*viscosity*bead_diameter/(trap_stiffness_k2*(k_B*temperature/trap_stiffness_k2)**0.5)",
+      "inputs": [
+        "flow_speed_k2_o1",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k2",
+        "temperature"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the steady offset in thermal widths that the dispatched speed produces"
+    },
+    {
+      "name": "record_length_k2_o1",
+      "value": 3000.0,
+      "unit": "s",
+      "source": "computed:record_for_target_at_realised_offset",
+      "grade": "E5",
+      "formula": "1.5*2*relaxation_time_k2/(offset_over_sigma_realised_k2_o1*target_relative_error)**2",
+      "inputs": [
+        "relaxation_time_k2",
+        "offset_over_sigma_realised_k2_o1",
+        "target_relative_error"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the averaging window after the startup, sized for the target at the offset this cell REALLY has, with S4's 1.5x margin. The backend adds the startup"
+    },
+    {
+      "name": "particle_steps_k2_o1",
+      "value": 20000000.0,
+      "unit": "1",
+      "source": "computed:duration_over_step",
+      "grade": "E5",
+      "formula": "(startup_discard_k2+record_length_k2_o1)/integration_timestep_k2_o1",
+      "inputs": [
+        "startup_discard_k2",
+        "record_length_k2_o1",
+        "integration_timestep_k2_o1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, so particle-steps are steps; against steps_max_per_point. An ESTIMATE, so one figure is right here where it would be wrong for the window itself"
+    },
+    {
+      "name": "coordinates_stored_k2_o1",
+      "value": 2000000.0,
+      "unit": "1",
+      "source": "computed:three_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "3*(startup_discard_k2+record_length_k2_o1)/save_interval_k2",
+      "inputs": [
+        "startup_discard_k2",
+        "record_length_k2_o1",
+        "save_interval_k2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, three coordinates a frame"
+    },
+    {
+      "name": "integration_timestep_k2_o2",
+      "value": 0.0002,
+      "unit": "s",
+      "source": "computed:a1_bound_at_point",
+      "grade": "E5",
+      "formula": "dt_fraction_o2*relaxation_time_k2",
+      "inputs": [
+        "dt_fraction_o2",
+        "relaxation_time_k2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "AT the binding A1 bound for this cell"
+    },
+    {
+      "name": "flow_speed_k2_o2",
+      "value": 10.0,
+      "unit": "um/s",
+      "source": "computed:offset_to_speed",
+      "grade": "E5",
+      "formula": "offset_over_sigma_o2*(k_B*temperature*trap_stiffness_k2)**0.5/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "offset_over_sigma_o2",
+        "temperature",
+        "trap_stiffness_k2",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the speed that puts the steady offset at this row's number of thermal widths, at this stiffness"
+    },
+    {
+      "name": "offset_over_sigma_realised_k2_o2",
+      "value": 7.0,
+      "unit": "1",
+      "source": "computed:speed_to_offset",
+      "grade": "E5",
+      "formula": "flow_speed_k2_o2*3*pi*viscosity*bead_diameter/(trap_stiffness_k2*(k_B*temperature/trap_stiffness_k2)**0.5)",
+      "inputs": [
+        "flow_speed_k2_o2",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k2",
+        "temperature"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the steady offset in thermal widths that the dispatched speed produces"
+    },
+    {
+      "name": "record_length_k2_o2",
+      "value": 30.0,
+      "unit": "s",
+      "source": "computed:record_for_target_at_realised_offset",
+      "grade": "E5",
+      "formula": "1.5*2*relaxation_time_k2/(offset_over_sigma_realised_k2_o2*target_relative_error)**2",
+      "inputs": [
+        "relaxation_time_k2",
+        "offset_over_sigma_realised_k2_o2",
+        "target_relative_error"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the averaging window after the startup, sized for the target at the offset this cell REALLY has, with S4's 1.5x margin. The backend adds the startup"
+    },
+    {
+      "name": "particle_steps_k2_o2",
+      "value": 200000.0,
+      "unit": "1",
+      "source": "computed:duration_over_step",
+      "grade": "E5",
+      "formula": "(startup_discard_k2+record_length_k2_o2)/integration_timestep_k2_o2",
+      "inputs": [
+        "startup_discard_k2",
+        "record_length_k2_o2",
+        "integration_timestep_k2_o2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, so particle-steps are steps; against steps_max_per_point. An ESTIMATE, so one figure is right here where it would be wrong for the window itself"
+    },
+    {
+      "name": "coordinates_stored_k2_o2",
+      "value": 20000.0,
+      "unit": "1",
+      "source": "computed:three_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "3*(startup_discard_k2+record_length_k2_o2)/save_interval_k2",
+      "inputs": [
+        "startup_discard_k2",
+        "record_length_k2_o2",
+        "save_interval_k2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, three coordinates a frame"
+    },
+    {
+      "name": "integration_timestep_k2_o3",
+      "value": 4e-05,
+      "unit": "s",
+      "source": "computed:a1_bound_at_point",
+      "grade": "E5",
+      "formula": "dt_fraction_o3*relaxation_time_k2",
+      "inputs": [
+        "dt_fraction_o3",
+        "relaxation_time_k2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "AT the binding A1 bound for this cell"
+    },
+    {
+      "name": "flow_speed_k2_o3",
+      "value": 100.0,
+      "unit": "um/s",
+      "source": "computed:offset_to_speed",
+      "grade": "E5",
+      "formula": "offset_over_sigma_o3*(k_B*temperature*trap_stiffness_k2)**0.5/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "offset_over_sigma_o3",
+        "temperature",
+        "trap_stiffness_k2",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the speed that puts the steady offset at this row's number of thermal widths, at this stiffness"
+    },
+    {
+      "name": "offset_over_sigma_realised_k2_o3",
+      "value": 70.0,
+      "unit": "1",
+      "source": "computed:speed_to_offset",
+      "grade": "E5",
+      "formula": "flow_speed_k2_o3*3*pi*viscosity*bead_diameter/(trap_stiffness_k2*(k_B*temperature/trap_stiffness_k2)**0.5)",
+      "inputs": [
+        "flow_speed_k2_o3",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k2",
+        "temperature"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the steady offset in thermal widths that the dispatched speed produces"
+    },
+    {
+      "name": "record_length_k2_o3",
+      "value": 8.0,
+      "unit": "s",
+      "source": "computed:margin_times_record_multiple_times_tau",
+      "grade": "E5",
+      "formula": "1.5*record_multiple_o3*relaxation_time_k2",
+      "inputs": [
+        "record_multiple_o3",
+        "relaxation_time_k2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the averaging window after the startup: A2's floor of relaxation times binds at this row, with S4's 1.5x margin. The backend adds the startup"
+    },
+    {
+      "name": "particle_steps_k2_o3",
+      "value": 200000.0,
+      "unit": "1",
+      "source": "computed:duration_over_step",
+      "grade": "E5",
+      "formula": "(startup_discard_k2+record_length_k2_o3)/integration_timestep_k2_o3",
+      "inputs": [
+        "startup_discard_k2",
+        "record_length_k2_o3",
+        "integration_timestep_k2_o3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, so particle-steps are steps; against steps_max_per_point. An ESTIMATE, so one figure is right here where it would be wrong for the window itself"
+    },
+    {
+      "name": "coordinates_stored_k2_o3",
+      "value": 5000.0,
+      "unit": "1",
+      "source": "computed:three_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "3*(startup_discard_k2+record_length_k2_o3)/save_interval_k2",
+      "inputs": [
+        "startup_discard_k2",
+        "record_length_k2_o3",
+        "save_interval_k2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, three coordinates a frame"
+    },
+    {
+      "name": "integration_timestep_k3_o1",
+      "value": 2e-05,
+      "unit": "s",
+      "source": "computed:a1_bound_at_point",
+      "grade": "E5",
+      "formula": "dt_fraction_o1*relaxation_time_k3",
+      "inputs": [
+        "dt_fraction_o1",
+        "relaxation_time_k3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "AT the binding A1 bound for this cell"
+    },
+    {
+      "name": "flow_speed_k3_o1",
+      "value": 4.0,
+      "unit": "um/s",
+      "source": "computed:offset_to_speed",
+      "grade": "E5",
+      "formula": "offset_over_sigma_o1*(k_B*temperature*trap_stiffness_k3)**0.5/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "offset_over_sigma_o1",
+        "temperature",
+        "trap_stiffness_k3",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the speed that puts the steady offset at this row's number of thermal widths, at this stiffness"
+    },
+    {
+      "name": "offset_over_sigma_realised_k3_o1",
+      "value": 0.9,
+      "unit": "1",
+      "source": "computed:speed_to_offset",
+      "grade": "E5",
+      "formula": "flow_speed_k3_o1*3*pi*viscosity*bead_diameter/(trap_stiffness_k3*(k_B*temperature/trap_stiffness_k3)**0.5)",
+      "inputs": [
+        "flow_speed_k3_o1",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k3",
+        "temperature"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the steady offset in thermal widths that the dispatched speed produces"
+    },
+    {
+      "name": "record_length_k3_o1",
+      "value": 200.0,
+      "unit": "s",
+      "source": "computed:record_for_target_at_realised_offset",
+      "grade": "E5",
+      "formula": "1.5*2*relaxation_time_k3/(offset_over_sigma_realised_k3_o1*target_relative_error)**2",
+      "inputs": [
+        "relaxation_time_k3",
+        "offset_over_sigma_realised_k3_o1",
+        "target_relative_error"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the averaging window after the startup, sized for the target at the offset this cell REALLY has, with S4's 1.5x margin. The backend adds the startup"
+    },
+    {
+      "name": "particle_steps_k3_o1",
+      "value": 10000000.0,
+      "unit": "1",
+      "source": "computed:duration_over_step",
+      "grade": "E5",
+      "formula": "(startup_discard_k3+record_length_k3_o1)/integration_timestep_k3_o1",
+      "inputs": [
+        "startup_discard_k3",
+        "record_length_k3_o1",
+        "integration_timestep_k3_o1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, so particle-steps are steps; against steps_max_per_point. An ESTIMATE, so one figure is right here where it would be wrong for the window itself"
+    },
+    {
+      "name": "coordinates_stored_k3_o1",
+      "value": 1000000.0,
+      "unit": "1",
+      "source": "computed:three_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "3*(startup_discard_k3+record_length_k3_o1)/save_interval_k3",
+      "inputs": [
+        "startup_discard_k3",
+        "record_length_k3_o1",
+        "save_interval_k3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, three coordinates a frame"
+    },
+    {
+      "name": "integration_timestep_k3_o2",
+      "value": 2e-05,
+      "unit": "s",
+      "source": "computed:a1_bound_at_point",
+      "grade": "E5",
+      "formula": "dt_fraction_o2*relaxation_time_k3",
+      "inputs": [
+        "dt_fraction_o2",
+        "relaxation_time_k3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "AT the binding A1 bound for this cell"
+    },
+    {
+      "name": "flow_speed_k3_o2",
+      "value": 40.0,
+      "unit": "um/s",
+      "source": "computed:offset_to_speed",
+      "grade": "E5",
+      "formula": "offset_over_sigma_o2*(k_B*temperature*trap_stiffness_k3)**0.5/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "offset_over_sigma_o2",
+        "temperature",
+        "trap_stiffness_k3",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the speed that puts the steady offset at this row's number of thermal widths, at this stiffness"
+    },
+    {
+      "name": "offset_over_sigma_realised_k3_o2",
+      "value": 9.0,
+      "unit": "1",
+      "source": "computed:speed_to_offset",
+      "grade": "E5",
+      "formula": "flow_speed_k3_o2*3*pi*viscosity*bead_diameter/(trap_stiffness_k3*(k_B*temperature/trap_stiffness_k3)**0.5)",
+      "inputs": [
+        "flow_speed_k3_o2",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k3",
+        "temperature"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the steady offset in thermal widths that the dispatched speed produces"
+    },
+    {
+      "name": "record_length_k3_o2",
+      "value": 2.0,
+      "unit": "s",
+      "source": "computed:record_for_target_at_realised_offset",
+      "grade": "E5",
+      "formula": "1.5*2*relaxation_time_k3/(offset_over_sigma_realised_k3_o2*target_relative_error)**2",
+      "inputs": [
+        "relaxation_time_k3",
+        "offset_over_sigma_realised_k3_o2",
+        "target_relative_error"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the averaging window after the startup, sized for the target at the offset this cell REALLY has, with S4's 1.5x margin. The backend adds the startup"
+    },
+    {
+      "name": "particle_steps_k3_o2",
+      "value": 100000.0,
+      "unit": "1",
+      "source": "computed:duration_over_step",
+      "grade": "E5",
+      "formula": "(startup_discard_k3+record_length_k3_o2)/integration_timestep_k3_o2",
+      "inputs": [
+        "startup_discard_k3",
+        "record_length_k3_o2",
+        "integration_timestep_k3_o2"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, so particle-steps are steps; against steps_max_per_point. An ESTIMATE, so one figure is right here where it would be wrong for the window itself"
+    },
+    {
+      "name": "coordinates_stored_k3_o2",
+      "value": 10000.0,
+      "unit": "1",
+      "source": "computed:three_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "3*(startup_discard_k3+record_length_k3_o2)/save_interval_k3",
+      "inputs": [
+        "startup_discard_k3",
+        "record_length_k3_o2",
+        "save_interval_k3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, three coordinates a frame"
+    },
+    {
+      "name": "integration_timestep_k3_o3",
+      "value": 4e-06,
+      "unit": "s",
+      "source": "computed:a1_bound_at_point",
+      "grade": "E5",
+      "formula": "dt_fraction_o3*relaxation_time_k3",
+      "inputs": [
+        "dt_fraction_o3",
+        "relaxation_time_k3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "AT the binding A1 bound for this cell"
+    },
+    {
+      "name": "flow_speed_k3_o3",
+      "value": 400.0,
+      "unit": "um/s",
+      "source": "computed:offset_to_speed",
+      "grade": "E5",
+      "formula": "offset_over_sigma_o3*(k_B*temperature*trap_stiffness_k3)**0.5/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "offset_over_sigma_o3",
+        "temperature",
+        "trap_stiffness_k3",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the speed that puts the steady offset at this row's number of thermal widths, at this stiffness"
+    },
+    {
+      "name": "offset_over_sigma_realised_k3_o3",
+      "value": 90.0,
+      "unit": "1",
+      "source": "computed:speed_to_offset",
+      "grade": "E5",
+      "formula": "flow_speed_k3_o3*3*pi*viscosity*bead_diameter/(trap_stiffness_k3*(k_B*temperature/trap_stiffness_k3)**0.5)",
+      "inputs": [
+        "flow_speed_k3_o3",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_k3",
+        "temperature"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the steady offset in thermal widths that the dispatched speed produces"
+    },
+    {
+      "name": "record_length_k3_o3",
+      "value": 0.8,
+      "unit": "s",
+      "source": "computed:margin_times_record_multiple_times_tau",
+      "grade": "E5",
+      "formula": "1.5*record_multiple_o3*relaxation_time_k3",
+      "inputs": [
+        "record_multiple_o3",
+        "relaxation_time_k3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the averaging window after the startup: A2's floor of relaxation times binds at this row, with S4's 1.5x margin. The backend adds the startup"
+    },
+    {
+      "name": "particle_steps_k3_o3",
+      "value": 200000.0,
+      "unit": "1",
+      "source": "computed:duration_over_step",
+      "grade": "E5",
+      "formula": "(startup_discard_k3+record_length_k3_o3)/integration_timestep_k3_o3",
+      "inputs": [
+        "startup_discard_k3",
+        "record_length_k3_o3",
+        "integration_timestep_k3_o3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, so particle-steps are steps; against steps_max_per_point. An ESTIMATE, so one figure is right here where it would be wrong for the window itself"
+    },
+    {
+      "name": "coordinates_stored_k3_o3",
+      "value": 5000.0,
+      "unit": "1",
+      "source": "computed:three_coordinates_per_frame",
+      "grade": "E5",
+      "formula": "3*(startup_discard_k3+record_length_k3_o3)/save_interval_k3",
+      "inputs": [
+        "startup_discard_k3",
+        "record_length_k3_o3",
+        "save_interval_k3"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one particle, three coordinates a frame"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_stiffness_range_is_the_persons",
+      "statement": "The stiffness range, 0.1 to 10 pN/um, was set by the person on 2026-09-23 in answer to the question revision 3 left open. It replaces revision 3's derived corners (0.02 and 20 pN/um, from a thermal width of a tenth of a diameter). It is a decision and not an estimate.",
+      "numbers": [
+        "trap_stiffness_min",
+        "trap_stiffness_max"
+      ],
+      "falsifier": "the person changing the range, which is a revision and not a correction",
+      "gap_ref": "trap_stiffness_absent"
+    },
+    {
+      "rationale_id": "a_speed_decades",
+      "statement": "The person has not given a speed range. Sweeping the speed directly would confound two things, because the same speed is a large offset in a soft trap and an invisible one in a stiff one. The dimensionless offset in thermal widths is what the statistics depend on, so the sweep is stated in it and A7 turns it into a speed interval at each stiffness. One to a hundred spans buried-in-noise to visible-per-frame.",
+      "numbers": [
+        "offset_over_sigma_min",
+        "offset_over_sigma_max"
+      ],
+      "falsifier": "a person's speed range replaces both ends; and on the bench the upper end is cut by trap escape, which this purely harmonic model cannot see and A7 records as a limit of the model rather than of the protocol",
+      "gap_ref": "flow_speed_absent"
+    },
+    {
+      "rationale_id": "a_noise_step",
+      "statement": "A tenth of the thermal width per step. Kept although it is not independent of the relaxation bound, because the identity that makes it dependent is exact only for the harmonic potential declared here: add anharmonicity and the two separate again.",
+      "numbers": [
+        "noise_step_fraction"
+      ],
+      "falsifier": "a configuration with a non-quadratic trap makes this a distinct bound and this note wrong",
+      "gap_ref": "integration_timestep_resolution_factor_absent"
+    },
+    {
+      "rationale_id": "a_drift_step",
+      "statement": "A tenth of the thermal width of deterministic travel per step keeps the restoring force felt during a step close to the force at its start. This is the bound that decides dt, and it is set by the fast end of the speed sweep rather than by the trap alone.",
+      "numbers": [
+        "drift_step_fraction"
+      ],
+      "falsifier": "a person's narrower speed range raises it in proportion; a scan showing the recovered offset flat at larger drift fractions retires it",
+      "gap_ref": "flow_speed_absent"
+    },
+    {
+      "rationale_id": "a_target_is_the_persons",
+      "statement": "The relative error target on the recovered stiffness is the person's and was given on 2026-09-23. It is not an estimate this axis made, and the `assumed:` prefix is the nearest source kind for a decision -- 5.3 has no kind for `a person chose this`, which is the same gap the run observable waits on from the other direction.",
+      "numbers": [
+        "target_relative_error"
+      ],
+      "falsifier": "the person changes the target, which is a revision and not a correction; and an A5 collision at this target is a reason to raise it rather than evidence that it was wrong",
+      "gap_ref": "statistical_target_confirm_absent"
+    },
+    {
+      "rationale_id": "a_record_floor",
+      "statement": "A hundred relaxation times is the floor for treating the trapped coordinate as a stationary Ornstein-Uhlenbeck average. It is a convention and it is not the accuracy requirement -- the accuracy requirement is a target the person has not given, which is why this axis returns a floor and a relation rather than a record length.",
+      "numbers": [
+        "relaxation_times_per_record"
+      ],
+      "falsifier": "a measured autocorrelation on a first run replaces the factor with the record length at which the mean stops drifting",
+      "gap_ref": "statistical_target_confirm_absent"
+    },
+    {
+      "rationale_id": "a_save_fraction",
+      "statement": "A tenth of the relaxation time resolves the autocorrelation whose shape the A2 error model assumes, which is the one thing the run can genuinely check about its own statistics.",
+      "numbers": [
+        "save_interval_fraction"
+      ],
+      "falsifier": "a first run whose measured autocorrelation is flat between a tenth and a half of tau_t loosens it",
+      "gap_ref": "save_interval_fraction_of_relaxation_time_absent"
+    },
+    {
+      "rationale_id": "a_step_budget",
+      "statement": "Two hours from envelope/budget.json, chosen by the person on 2026-09-19, over the measured upper cost of 4 ms a step, over the 9 sweep points: 7200 / 0.004 / 9, about 200000 steps a point, written to one significant figure. THE UPPER COST IS THE CONSERVATIVE END OF A THREE-DECADE BRACKET -- measured at 1000 particles while this configuration runs one -- so against the lower end the budget is a thousand times larger and the sweep is free. The store holds no cost-per-step entry at all, which is the gap this stands on. AND 5.3 HAS NO SOURCE KIND FOR A DECISION, so the ceiling and the person's target both arrive wearing `assumed:`, which means an estimate; second instance in this one question, raised rather than worked around.",
+      "numbers": [
+        "steps_max_per_point"
+      ],
+      "falsifier": "a smoke run at N=1 replaces the cost bracket with a measured value and this number moves by up to three decades; a store entry for the per-step cost does the same with no run; and 5.3 gaining a source kind for a decision retires the prefix complaint",
+      "gap_ref": "particle_step_rate_absent"
+    },
+    {
+      "rationale_id": "a_startup",
+      "statement": "Ten relaxation times of discard. The displaced mean approaches its steady value as exp(-t*k_t/gamma) with no other slow mode in this model, so the residual is set purely by the multiple chosen.",
+      "numbers": [
+        "startup_relaxation_times"
+      ],
+      "falsifier": "a first run whose running mean is still drifting after ten relaxation times falsifies the single-exponential premise and therefore the model, not just the multiple",
+      "gap_ref": "flow_speed_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "trap_stiffness_absent",
+      "observable": "trap_stiffness",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='trap_stiffness', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [
+        {
+          "entry_id": "trapping_laser_identity",
+          "overlap": "no_overlap"
+        },
+        {
+          "entry_id": "trap_laser_power_has_no_software_path",
+          "overlap": "no_overlap"
+        }
+      ],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v5:s2",
+      "asked_at": "2026-09-24T07:00:00Z"
+    },
+    {
+      "gap_id": "flow_speed_absent",
+      "observable": "flow_speed",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='flow_speed', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [
+        {
+          "entry_id": "stand_ti2e_lock_groups",
+          "overlap": "no_overlap"
+        }
+      ],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v5:s2",
+      "asked_at": "2026-09-24T07:00:00Z"
+    },
+    {
+      "gap_id": "trapped_particle_drag_offset_absent",
+      "observable": "trapped_particle_drag_offset",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='trapped_particle_drag_offset', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [
+        "trapped_position_distribution"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v5:s2",
+      "asked_at": "2026-09-24T07:00:00Z"
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

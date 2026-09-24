@@ -1,0 +1,265 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-201-bd_overdamped_trapped_uniform_flow-a2-r5",
+  "qid": "sim-20260923-201",
+  "thread": "solo-sim-20260923-201",
+  "round": 0,
+  "revision": 5,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T05:58:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-201:v5:bd_overdamped_trapped_uniform_flow:a2",
+  "config": "bd_overdamped_trapped_uniform_flow",
+  "axis": "a2",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "record_length",
+      "unit": "s",
+      "min": 50.0,
+      "basis": [
+        "record_length_floor_soft_corner"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
+    },
+    {
+      "parameter": "record_length",
+      "unit": "s",
+      "min": 10000.0,
+      "basis": [
+        "record_length_statistical_soft_slow"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness",
+        "flow_speed"
+      ]
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "record_length >> gamma/k_t, at the softest point of the sweep",
+      "parameter": "record_length",
+      "state": "returned",
+      "interval": {
+        "parameter": "record_length",
+        "unit": "s",
+        "min": 50.0,
+        "basis": [
+          "record_length_floor_soft_corner"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    },
+    {
+      "inequality": "record_length >= 2*(gamma/k_t)/((offset/sigma)*target_relative_error)**2",
+      "parameter": "record_length",
+      "state": "returned",
+      "interval": {
+        "parameter": "record_length",
+        "unit": "s",
+        "min": 10000.0,
+        "basis": [
+          "record_length_statistical_soft_slow"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness",
+          "flow_speed"
+        ]
+      }
+    }
+  ],
+  "note": "Two constraints bind at two different corners, which is what makes this sweep expensive in a way neither corner shows alone. At the stiff, fast corner the floor binds and the statistics are free. At the soft, slow corner the statistics bind and the floor is free. A plan that sizes the record at one corner and reuses it at the other is wrong in one direction or the other.",
+  "numbers": [
+    {
+      "precision": "order_of_magnitude",
+      "name": "trap_relaxation_time_min",
+      "value": 0.005,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_max",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_max"
+      ],
+      "note": "gamma/k_t at the stiff end: the shortest characteristic time, which sets the timestep",
+      "origin": "v5_goal.json#trap_relaxation_time_min"
+    },
+    {
+      "precision": "order_of_magnitude",
+      "name": "trap_relaxation_time_max",
+      "value": 0.5,
+      "unit": "s",
+      "source": "computed:stokes_drag_over_stiffness",
+      "grade": "E5",
+      "formula": "3*pi*viscosity*bead_diameter/trap_stiffness_min",
+      "inputs": [
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_min"
+      ],
+      "note": "gamma/k_t at the soft end: the longest relaxation time, which sets the record length",
+      "origin": "v5_goal.json#trap_relaxation_time_max"
+    },
+    {
+      "name": "offset_over_sigma_min",
+      "value": 1,
+      "unit": "1",
+      "source": "assumed:a_speed_decades",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the dimensionless sweep variable is the offset in thermal widths, gamma*v/sqrt(k_B*temperature*trap_stiffness), because that and not the speed is what sets the per-frame signal to noise. At 1 the offset is buried in the fluctuation and only averaging recovers it",
+      "origin": "v5_goal.json#offset_over_sigma_min"
+    },
+    {
+      "name": "relaxation_times_per_record",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_record_floor",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the FLOOR on a record in units of gamma/k_t. Below this the mean is not a stationary average and the standard error expression does not apply, whatever the target accuracy is"
+    },
+    {
+      "name": "record_length_floor_soft_corner",
+      "value": 50.0,
+      "unit": "s",
+      "source": "computed:relaxation_times_times_tau",
+      "grade": "E5",
+      "formula": "relaxation_times_per_record*trap_relaxation_time_max",
+      "inputs": [
+        "relaxation_times_per_record",
+        "trap_relaxation_time_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the soft corner's floor, which is where the floor is worst"
+    },
+    {
+      "name": "record_length_floor_stiff_corner",
+      "value": 0.5,
+      "unit": "s",
+      "source": "computed:relaxation_times_times_tau",
+      "grade": "E5",
+      "formula": "relaxation_times_per_record*trap_relaxation_time_min",
+      "inputs": [
+        "relaxation_times_per_record",
+        "trap_relaxation_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the stiff corner's floor. AT THIS CORNER THE FLOOR IS WHAT BINDS, not the statistics: the offset is already many thermal widths, so the error target is met long before a hundred relaxation times have passed"
+    },
+    {
+      "name": "relative_error_at_floor_soft_slow",
+      "value": 0.1,
+      "unit": "1",
+      "source": "computed:ou_standard_error_of_the_mean",
+      "grade": "E5",
+      "formula": "(2/relaxation_times_per_record)**0.5/offset_over_sigma_min",
+      "inputs": [
+        "relaxation_times_per_record",
+        "offset_over_sigma_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "SE/signal = sqrt(2*tau_t/T)/(offset/sigma). THE STIFFNESS IS ABSENT FROM THIS EXPRESSION AND THAT IS THE RESULT THE QUESTION EXISTS TO TEST: signal and noise-on-the-mean both scale as 1/k_t and cancel. At the worst corner -- soft trap, offset one thermal width -- a hundred relaxation times give about this fractional error, and only a longer record improves it"
+    },
+    {
+      "name": "target_relative_error",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_target_is_the_persons",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "the person's, settled 2026-09-23, and it is a DECISION carrying no grade of its own (5.3.1). It sits in numbers[] only so the record lengths below can name it as an input; the authority is the goal's targets[]"
+    },
+    {
+      "name": "record_length_statistical_soft_slow",
+      "value": 10000.0,
+      "unit": "s",
+      "source": "computed:ou_record_for_target_error",
+      "grade": "E5",
+      "formula": "2*trap_relaxation_time_max/(offset_over_sigma_min*target_relative_error)**2",
+      "inputs": [
+        "trap_relaxation_time_max",
+        "offset_over_sigma_min",
+        "target_relative_error"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "inverting SE/signal = sqrt(2*tau_t/T)/(offset/sigma) for the target. THE WORST CORNER BY FAR: soft trap and an offset of one thermal width, where the statistics ask two decades more record than the hundred-relaxation-time floor. At the fast end the floor takes over again, which is why both are returned and both carry varies_with"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_speed_decades",
+      "statement": "The person has not given a speed range. Sweeping the speed directly would confound two things, because the same speed is a large offset in a soft trap and an invisible one in a stiff one. The dimensionless offset in thermal widths is what the statistics depend on, so the sweep is stated in it and A7 turns it into a speed interval at each stiffness. One to a hundred spans buried-in-noise to visible-per-frame.",
+      "numbers": [
+        "offset_over_sigma_min"
+      ],
+      "falsifier": "a person's speed range replaces both ends; and on the bench the upper end is cut by trap escape, which this purely harmonic model cannot see and A7 records as a limit of the model rather than of the protocol",
+      "gap_ref": "flow_speed_absent"
+    },
+    {
+      "rationale_id": "a_target_is_the_persons",
+      "statement": "The relative error target on the recovered stiffness is the person's and was given on 2026-09-23. It is not an estimate this axis made, and the `assumed:` prefix is the nearest source kind for a decision -- 5.3 has no kind for `a person chose this`, which is the same gap the run observable waits on from the other direction.",
+      "numbers": [
+        "target_relative_error"
+      ],
+      "falsifier": "the person changes the target, which is a revision and not a correction; and an A5 collision at this target is a reason to raise it rather than evidence that it was wrong",
+      "gap_ref": "statistical_target_confirm_absent"
+    },
+    {
+      "rationale_id": "a_record_floor",
+      "statement": "A hundred relaxation times is the floor for treating the trapped coordinate as a stationary Ornstein-Uhlenbeck average. It is a convention and it is not the accuracy requirement -- the accuracy requirement is a target the person has not given, which is why this axis returns a floor and a relation rather than a record length.",
+      "numbers": [
+        "relaxation_times_per_record"
+      ],
+      "falsifier": "a measured autocorrelation on a first run replaces the factor with the record length at which the mean stops drifting",
+      "gap_ref": "statistical_target_confirm_absent"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "statistical_target_confirm_absent",
+      "observable": "statistical_target_confirm",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='statistical_target_confirm', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v5:bd_overdamped_trapped_uniform_flow:a2",
+      "asked_at": "2026-09-24T05:50:00Z"
+    },
+    {
+      "gap_id": "flow_speed_absent",
+      "observable": "flow_speed",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='flow_speed', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v5:bd_overdamped_trapped_uniform_flow:a2",
+      "asked_at": "2026-09-24T05:50:00Z"
+    }
+  ],
+  "degraded": []
+}

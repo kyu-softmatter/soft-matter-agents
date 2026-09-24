@@ -1,0 +1,126 @@
+{
+  "run_id": "run-20260923-201-v5-k2-o2",
+  "qid": "sim-20260923-201",
+  "plan_id": "plan-sim-20260923-201-r5",
+  "plan_revision": 5,
+  "plan_hash": "sha256:94e696fc4c13f1713aa45068f8c7496d096481d4768581731b11657e13530a75",
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "envelope_check": {
+    "status": "inside",
+    "target": "local",
+    "budget": "full",
+    "compared": [
+      {
+        "cost": "wall_clock_estimate",
+        "limit": "wall_clock_max",
+        "cost_si": 666.6666666666666,
+        "limit_si": 7200.0
+      },
+      {
+        "cost": "storage_estimate",
+        "limit": "storage_max",
+        "cost_si": 8e-05,
+        "limit_si": 10.0
+      }
+    ],
+    "exceeded": []
+  },
+  "backend": "trap_hoomd_backend",
+  "seed": 23,
+  "parameters_si": {
+    "temperature": 293.0,
+    "viscosity": 0.001,
+    "bead_diameter": 4.9999999999999996e-06,
+    "box_length": 0.00019999999999999998,
+    "trap_stiffness": 1e-06,
+    "offset_over_sigma": 10.0,
+    "flow_speed": 9.999999999999999e-06,
+    "integration_timestep": 0.0002,
+    "save_interval": 0.005,
+    "startup_discard": 0.5,
+    "record_length": 30.0
+  },
+  "provenance": [
+    {
+      "parameter": "temperature",
+      "value_si": 293.0,
+      "unit_in_plan": "K",
+      "from": "conditions[0].number -> numbers[temperature]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "viscosity",
+      "value_si": 0.001,
+      "unit_in_plan": "Pa*s",
+      "from": "conditions[1].number -> numbers[viscosity]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "bead_diameter",
+      "value_si": 4.9999999999999996e-06,
+      "unit_in_plan": "um",
+      "from": "conditions[2].number -> numbers[bead_diameter]",
+      "grade": "E2"
+    },
+    {
+      "parameter": "box_length",
+      "value_si": 0.00019999999999999998,
+      "unit_in_plan": "um",
+      "from": "conditions[3].number -> numbers[box_edge_min]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "trap_stiffness",
+      "value_si": 1e-06,
+      "unit_in_plan": "pN/um",
+      "from": "conditions[4].number -> numbers[trap_stiffness_k2]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "offset_over_sigma",
+      "value_si": 10.0,
+      "unit_in_plan": "1",
+      "from": "conditions[5].number -> numbers[offset_over_sigma_o2]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "flow_speed",
+      "value_si": 9.999999999999999e-06,
+      "unit_in_plan": "um/s",
+      "from": "conditions[6].number -> numbers[flow_speed_k2_o2]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "integration_timestep",
+      "value_si": 0.0002,
+      "unit_in_plan": "s",
+      "from": "conditions[7].number -> numbers[integration_timestep_k2_o2]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "save_interval",
+      "value_si": 0.005,
+      "unit_in_plan": "s",
+      "from": "conditions[8].number -> numbers[save_interval_k2]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "startup_discard",
+      "value_si": 0.5,
+      "unit_in_plan": "s",
+      "from": "conditions[9].number -> numbers[startup_discard_k2]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "record_length",
+      "value_si": 30.0,
+      "unit_in_plan": "s",
+      "from": "conditions[10].number -> numbers[record_length_k2_o2]",
+      "grade": "E5"
+    }
+  ],
+  "compare_arm": "k2_o2"
+}

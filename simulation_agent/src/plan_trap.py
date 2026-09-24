@@ -205,7 +205,13 @@ def build_sweep(qid: str, created_at: str, revision: int) -> dict:
     names += [f"{p}_{k}" for k in levels for p in ("relaxation_time", "save_interval", "startup_discard")]
     names += [f"{p}_{c}" for c in cells for p in ("flow_speed", "offset_over_sigma_realised", "integration_timestep",
                                                   "record_length", "particle_steps", "coordinates_stored")]
-    numbers = synthesis.carry_from(qid, CONFIG, [(S, n) for n in names] + [(A3, "box_edge_min")])
+    wanted = [(S, n) for n in names] + [(A3, "box_edge_min")]
+    # Revision 5 on: the person's accuracy criterion is a count of the cell's own
+    # standard errors, carried from the goal rather than written here.
+    in_se = any(n["name"] == "deviation_limit_in_standard_errors" for n in goal.get("numbers", []))
+    if in_se:
+        wanted.append((cards.artifact_name("goal.json", revision), "deviation_limit_in_standard_errors"))
+    numbers = synthesis.carry_from(qid, CONFIG, wanted)
     assumptions = synthesis.assumptions_for(qid, numbers)
     g = {n["name"]: n["grade"] for n in numbers}
     V = lambda name: next(float(n["value"]) for n in numbers if n["name"] == name)
@@ -280,6 +286,14 @@ def build_sweep(qid: str, created_at: str, revision: int) -> dict:
              "target": "trap_stiffness", "window": "record_length, after startup_discard",
              "statement": "in each cell, the block standard error of the mean offset, as a fraction of it, at or below "
                           "the person's one per cent"},
+            {"id": "recovered_stiffness_within_standard_errors",
+             "metric": "deviation_of_stiffness_recovered_through_drag_in_standard_errors",
+             "comparator": "<=", "number": "deviation_limit_in_standard_errors",
+             "window": "record_length, after startup_discard",
+             "statement": "in each cell, |recovered over declared stiffness minus one| divided by that cell's own "
+                          "relative block standard error, at or below the person's limit. At three standard errors "
+                          "a correct estimator misses it about one cell in four hundred by chance"}
+            if in_se else
             {"id": "recovered_stiffness_within_target", "metric": "relative_deviation_of_stiffness_recovered_through_drag",
              "comparator": "<=", "target": "trap_stiffness", "window": "record_length, after startup_discard",
              "statement": "in each cell, the recovered stiffness within one per cent of the declared one. Stricter than "
