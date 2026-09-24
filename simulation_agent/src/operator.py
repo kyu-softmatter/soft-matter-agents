@@ -444,6 +444,26 @@ def evaluate(monitors: list[dict], state: dict) -> list[dict]:
     return fired
 
 
+def _capability_row(config: str) -> dict | None:
+    """The configuration's row in the capability table, or None.
+
+    Read rather than cached: the table is `contracts/` and four seats change
+    it, so a copy taken at import would be a copy of whatever the tree held
+    when this session started.
+    """
+    import json as _json                              # noqa: PLC0415
+
+    path = cards.CONTRACTS / "capabilities" / "simulation.json"
+    try:
+        table = _json.loads(path.read_text())
+    except (OSError, ValueError):
+        return None
+    for row in table.get("configurations", []):
+        if row.get("config") == config:
+            return row
+    return None
+
+
 def backend_name(backend) -> str:
     """What answered, refused rather than defaulted.
 
@@ -729,23 +749,31 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             engine_class = trap_hoomd_backend.TrapHoomdBackend
             fallback_class = trap_backend.TrapBackend
         else:
-            # THE PREFIX IS NOT THE DECLARATION, and for one configuration
-            # the two disagree. The comment above says the configuration names
-            # its backend through `executed_by`, and the table does: BOTH
-            # active configurations declare `hoomd_backend`. The prefix rule
-            # sends both to `abp_backend` instead, which is right for
-            # `abp_wca_2d` -- that is where its interacting integrator is --
+            # READ THE DECLARATION, which is what the comment above always
+            # claimed and the code did not do. It dispatched on the name
+            # starting with `abp`, and that is a proxy for `executed_by` which
+            # was wrong for one configuration: both active ones declared
+            # `hoomd_backend` while the prefix sent both to `abp_backend`.
+            # Right for `abp_wca_2d`, whose interacting integrator is there,
             # and wrong for `abp_free`, whose integrator was written into
-            # `hoomd_backend` on 2026-09-23 because that is what its
-            # declaration says. Reading `executed_by` wholesale would route
-            # `abp_wca_2d` to a module with no pair potential and run the
-            # wrong physics green, so the table is corrected first and this
-            # stays a named exception until then. Reported to the seat that
-            # owns the interacting configuration.
-            if config_name == "abp_free":
-                engine_class = hoomd_backend.HoomdBackend
-            else:
-                engine_class = abp_backend.AbpBackend if config_name.startswith("abp") else hoomd_backend.HoomdBackend
+            # `hoomd_backend` because its declaration says so -- the run
+            # refused for want of `wca_epsilon`, which its model has no term
+            # for. The table was corrected the same day and now names
+            # `abp_backend` for the interacting configuration and
+            # `hoomd_backend` for the free one, so the declaration can be read
+            # directly and the proxy retired.
+            #
+            # A module the table names and this file has no class for falls
+            # through to the old rule rather than refusing: a configuration
+            # declared by another seat must not be stopped by a table this
+            # dispatch has not caught up with.
+            declared = str(((_capability_row(config_name) or {}).get("executed_by") or {}).get("module") or "")
+            engine_class = {
+                "hoomd_backend": hoomd_backend.HoomdBackend,
+                "abp_backend": abp_backend.AbpBackend,
+            }.get(declared) or (
+                abp_backend.AbpBackend if config_name.startswith("abp") else hoomd_backend.HoomdBackend
+            )
         try:
             backend = engine_class(seed=seed)
         except hoomd_backend.EngineMissing:
