@@ -833,6 +833,9 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None) -> di
     for comparison in check_envelope(plan, resolutions):
         o.record(event="limit_compared", **comparison)
 
+    # Card 033: the whole plan is refused here if any command reaches outside
+    # what software may command, before preflight touches anything.
+    o.check_software_motion(commands)
     o.preflight(sorted({c.channel for c in commands}))
     o.snapshot("before")
     dispatched = o.dispatch(commands)

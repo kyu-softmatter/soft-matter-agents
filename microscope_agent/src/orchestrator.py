@@ -367,11 +367,15 @@ class Orchestrator:
             name = "manual"
         else:
             name = self.driver_module(channel)
+        return self._device_module(name, needed_by=f"channel {channel_id!r}")
+
+    def _device_module(self, name: str, needed_by: str):
+        """Load devices/<name>.py once, by path, and check it has the interface."""
         if name not in self._modules:
             path = DEVICES / f"{name}.py"
             if not path.exists():
                 raise GapError(
-                    f"channel {channel_id!r} needs devices/{name}.py, which does not exist. "
+                    f"{needed_by} needs devices/{name}.py, which does not exist. "
                     "A channel with no module is not driven by guessing at one"
                 )
             spec = importlib.util.spec_from_file_location(f"_dev_{name}", path)
@@ -389,6 +393,55 @@ class Orchestrator:
         return self._modules[name]
 
     # -- interlocks (2.1, 4.6.8) -------------------------------------------- #
+
+    def check_software_motion(self, commands: list[Command]) -> None:
+        """Refuse the WHOLE plan if any command reaches outside what software may command.
+
+        Card 033: today the person moves the microscope by hand and software
+        commands the excitation and the camera and nothing else. The list is
+        micromanager.py's `SOFTWARE_MAY_COMMAND`, loaded here by path on every
+        backend -- the one copy, so a plan refuses on mock exactly as it
+        would on the instrument, and a plan refused here never reaches the
+        call-level guard at all.
+
+        It runs over every command BEFORE the first goes out, and before names
+        are resolved against the registry: a plan that names `ZDrive` must fail
+        as a plan that commands the focus drive, not as a name the registry
+        does not know. Every refusal in the plan is collected, so a person
+        reading it sees all of what is wrong at once rather than the first.
+
+        What a command reaches is the name the plan wrote, the element if one
+        was named, and every device under `params.settings`; the verb is also
+        asked, because `setConfig` or `setPosition` moves things whatever the
+        device.
+        """
+        mm = self._device_module("micromanager", needed_by="the software-motion check")
+        refused = []
+        for command in commands:
+            reached = [command.channel]
+            if command.element and command.element != command.channel:
+                reached.append(command.element)
+            settings = (command.params or {}).get("settings") or {}
+            why = mm.refusal(None, None, command.action)
+            if why:
+                refused.append(f"{command.from_field}: {why}")
+            for name in reached:
+                why = mm.refusal(name, None, "setProperty")
+                if why:
+                    refused.append(f"{command.from_field}: {why}")
+            for device, props in settings.items():
+                for prop, value in (props or {}).items():
+                    why = mm.refusal(str(device), str(prop), "setProperty", value)
+                    if why:
+                        refused.append(f"{command.from_field}: settings {device}.{prop}: {why}")
+        if refused:
+            self.record(event="software_motion_refused", commands=len(commands),
+                        refusals=refused)
+            raise InterlockError(
+                f"refusing the whole plan before any command goes out: {len(refused)} "
+                "refusal(s). " + " | ".join(refused))
+        self.record(event="software_motion_checked", commands=len(commands),
+                    allowed=sorted(mm.SOFTWARE_MAY_COMMAND))
 
     def shutters(self) -> list[tuple[str, str]]:
         """Every shutter the registry knows, as (channel, element).
@@ -715,6 +768,10 @@ class Orchestrator:
         It ranks after `raises_power` too, and that is the point rather than
         an accident: illumination has to be up before the light is collected.
         """
+        # Before resolution and before any worker starts, so a refused plan
+        # leaves the instrument untouched. run() asks it earlier still, ahead
+        # of preflight; asking again here covers a caller that skips run().
+        self.check_software_motion(commands)
         ordered = self.order([self._resolved(c) for c in commands])
         by_rank: dict[int, list[Command]] = defaultdict(list)
         for c in ordered:
