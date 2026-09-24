@@ -73,6 +73,16 @@ goal card got overwritten on 2026-09-21.
      flag**, and the derived-point envelope check of item 1 replaces the
      allow-list for exactly those commands. If the derived points and the
      plan disagree, it refuses
+   - **the plan's approval is checked in the same call that grants the
+     exemption** (architecture, 49a94cc). The exemption applies only to a
+     plan whose revision carries the person's approval, not to any plan with
+     `operation` in it, which anyone could write. A guard the caller can opt
+     out of is the one `plan.md` 2.1 rule 9 forbids
+   - **the derived-point envelope check sits on that one path and cannot be
+     skipped by the caller.** No route may reach `piezo_stage` with the
+     allow-list lifted and the envelope check not run. Test it: **a
+     hand-built command with `operation.device` `piezo_stage` and no approved
+     plan is refused**
    - **every exemption is logged as its own event**, naming the plan field
      it came from (`operation.moves[i]`), so the log shows where the
      allow-list did not bind and why
