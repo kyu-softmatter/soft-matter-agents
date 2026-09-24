@@ -163,7 +163,19 @@
         "recorded_at": "microscope_agent/failures.jsonl, the line at 2026-09-24T19:55:08Z, detail.what item (1), at 666278e"
       },
       "for_store": false,
-      "note": "Not resolved here, by instruction. With a sample mounted and two traps left active at strength 0.3 and 0.2, nothing here says that nothing was trapped or illuminated."
+      "note": "Superseded by laser_emission_off_during_tweezers_commands: the person answered afterwards that emission was off (failures.jsonl line at 2026-09-24T20:07:41Z). Kept so the list shows the state was open when first written."
+    },
+    {
+      "id": "laser_emission_off_during_tweezers_commands",
+      "fact": "During the tweezers commands of 2026-09-24, 12:05-12:33 local, the trapping laser's emission was off.",
+      "kind": "person_statement",
+      "how": "the person's answer in this seat's window, 2026-09-24, after the commands: \"emission was off\"",
+      "source": {
+        "type": "person",
+        "recorded_at": "microscope_agent/failures.jsonl, the line at 2026-09-24T20:07:41Z, detail.what"
+      },
+      "for_store": false,
+      "note": "A fact about one session, for the record. Made after the commands, so it is not the trapping_laser_off gate. It is what lets the GUI observations above be read as made with no light at the sample, though a sample was mounted."
     },
     {
       "id": "trap_laser_emission_switchable_over_tcp_pointer",

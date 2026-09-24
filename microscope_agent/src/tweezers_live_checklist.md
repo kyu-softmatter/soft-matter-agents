@@ -12,8 +12,8 @@ says it is blocked. A zero from the GUI is not a blocked beam.
 
 **Trap motion is a planned operation.** A line below that moves a trap runs
 under a plan the person approved. On 2026-09-24 this seat moved traps without
-one, at the person's direction, **with a sample mounted and the laser's state
-unconfirmed**; that is in `failures.jsonl` and is not a pass of any line here.
+one, at the person's direction, **with a sample mounted and emission off, by the
+person's statement after the commands**; that is in `failures.jsonl` and is not a pass of any line here.
 
 Each line says what is tested, why, and what it rests on. A line that rests on
 no store entry says so and names the gap.
@@ -48,8 +48,8 @@ is never rebuilt to add one. Without both, a trap command is motion and needs a
 plan.
 
 Each was **seen once on 2026-09-24**, with neither gate asked before the first
-move — and **a sample was mounted**, by the person's later statement, with the
-laser's state unconfirmed — so that record is not a preparatory run and stays
+move — and **a sample was mounted**, by the person's later statement, with emission
+off by the person's statement after the commands — so that record is not a preparatory run and stays
 outside `runs/`. Re-run with both gates before anything here is relied on.
 
 | | test | why | rests on |
