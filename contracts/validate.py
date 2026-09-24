@@ -7537,8 +7537,18 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
             f = Path(path)
             f = f if f.is_absolute() else REPO / f
             if f.is_file():
-                got = hashlib.sha256(f.read_bytes()).hexdigest()
-                if got != want:
+                # Either the bytes as they sit or with CRLF folded to LF, as
+                # check 25 does. A list inside the tree is LF in git and CRLF
+                # on a core.autocrlf=true checkout, so a raw-only hash fails
+                # untouched bytes after any checkout there -- microscope-
+                # 20260924-1 caught it on the first two runs, 2026-09-24. A
+                # list outside the tree may have been WRITTEN with CRLF, and
+                # its recorded hash is then of those bytes, so the raw form
+                # must still count. Only line endings are forgiven.
+                raw = f.read_bytes()
+                got = hashlib.sha256(raw).hexdigest()
+                folded = hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest()
+                if want not in (got, folded):
                     bad = True
                     out.append(Finding(85, FAIL, f"{rid}: the approved command list at {path} hashes to "
                                                  f"{got[:12]}, not the {want[:12]} the log records. The list "
