@@ -1,0 +1,25 @@
+{
+  "entry_id": "trap_laser_emission_is_switchable_over_tcp",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The optical tweezers' trapping laser can be switched on and off from software: the Tweez 300 TCP/IP command set includes LASER_ON (activates the laser) and LASER_OFF (deactivates it). The command set holds no command that sets or reads the laser's power.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    },
+    {
+      "kind": "quantity",
+      "id": "illumination_power"
+    }
+  ],
+  "source": "spec:Tweez300UserManual",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_aresis_tweez300_manuals",
+  "validity_conditions": "The Tweez 300 as installed on this bench, driven through its TCP/IP external control. Read from the User Manual's Command Reference, printed page 66 (PDF page 72); the whole command list was searched for a power, intensity or laser command and only these two exist. The manual's Laser Control section (printed page 23) adds that the laser activates only if every laser safety component is connected and every interlock is enabled -- stated for the GUI button, and the Command Reference says each command is an exact counterpart of the GUI procedure.\n\nWHY THIS IS HERE. trap_laser_power_has_no_software_path is right about POWER and says nothing about EMISSION, and its name reads as if software has no way to reach the laser at all. It does: software cannot set the level, and it can turn emission on. That is the more dangerous half to leave out, and microscope-20260924-4 reported it on 2026-09-24. Neither command has been sent on this bench; this is the vendor's documentation, not an observation.\n\nNOT A POLICY. Whether any session may send LASER_ON is a person's decision and lives in the envelope, not here.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-1"
+}

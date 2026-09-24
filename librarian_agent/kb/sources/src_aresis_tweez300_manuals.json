@@ -1,0 +1,97 @@
+{
+  "source_id": "src_aresis_tweez300_manuals",
+  "kind": "vendor_spec",
+  "identifier": "Aresis, Tweez 300 vendor documentation as installed on the microscope computer, in C:/Program Files/Aresis/Tweez300/Manuals/. Tweez300UserManual.pdf (107 PDF pages, printed pages offset by 6: printed page 66 is PDF page 72), file date 2022-01-06.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, grade_tag vendor_spec. The vendor's own documentation, not a measurement taken here.",
+  "url": null,
+  "url_note": "Referenced in place, not held: four PDFs, 5.6 MB, the vendor's copyright. The sha256 of each pins exactly which bytes were read, so a citation still resolves if the installation is replaced -- it will simply fail to match.",
+  "documents": {
+    "Tweez300UserManual.pdf": "c37027cb62c1d23058018ec6e99c9d6f88f1fedb80d4b873e0b9f3d4fe4d1b0b",
+    "Tweez300LaserSafetyManual.pdf": "264ab54bed4c38619a9436d3370418c14ea6ec55d66d364708832dcf82480cae",
+    "Tweez300GeneralHardwareAndSafetyManual.pdf": "1c112ed1f40f64d1944a16c187df7e9b13051a3cf682a6f05d366fc561306d8c",
+    "Tweez300SystemInstallationGuide.pdf": "1f664a7231b84eb3abe8beea6fbb5a383d901a7c983eb1657be5f5af0486e086"
+  },
+  "license_note": "Command names and one-line functions only. No manual prose is reproduced in any entry.",
+  "provenance": "Pointed to by the person through microscope-20260924-4 on 2026-09-24, as the vendor's installed documents. Not from any prior repository, so no transfer ruling is required. Read with pypdf, installed on the person's instruction the same day; the text extracts cleanly.",
+  "read_so_far": "User Manual only: the TCP/IP Command Reference (printed 66, PDF 72) and Laser Control (printed 23, PDF 29). THE TWO SAFETY MANUALS HAVE NOT BEEN READ. Whatever limits they print are knowledge here and never a limit anyone acts on -- a person writes those into the envelope after confirming them physically.",
+  "second_copies_in_the_lab_archive": {
+    "Tweez300GeneralHardwareAndSafetyManual.pdf": {
+      "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Optical Tweezers/Tweez300GeneralHardwareAndSafetyManual.pdf",
+      "file_date": "2021-11-29",
+      "sha256": "3e430cda0cbabfc4bfac08a2b3fefc5368e0a66f789efb852fc1269354cb16ff"
+    },
+    "Tweez300LaserSafetyManual.pdf": {
+      "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Optical Tweezers/Tweez300LaserSafetyManual.pdf",
+      "file_date": "2021-11-26",
+      "sha256": "adbdb1076d31115b0937a0ddd9e704bc1c8b358054e1dfa4429643e9b0d947d1"
+    },
+    "Tweez300SystemInstallationGuide.pdf": {
+      "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Optical Tweezers/Tweez300SystemInstallationGuide.pdf",
+      "file_date": "2021-11-26",
+      "sha256": "1f664a7231b84eb3abe8beea6fbb5a383d901a7c983eb1657be5f5af0486e086"
+    },
+    "Tweez300UserManual.pdf": {
+      "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Optical Tweezers/Tweez300UserManual.pdf",
+      "file_date": "2022-01-06",
+      "sha256": "c37027cb62c1d23058018ec6e99c9d6f88f1fedb80d4b873e0b9f3d4fe4d1b0b"
+    }
+  },
+  "safety_manual_versions_differ": "TWO VERSIONS OF EACH SAFETY MANUAL ARE ON THIS COMPUTER, AND WHICH IS CURRENT IS THE PERSON'S TO SAY. The User Manual and the Installation Guide are byte-identical in both places. The two safety manuals are not: Tweez300LaserSafetyManual.pdf is 264ab54b... (2022-11-02) as installed with the software, and adbdb107... (2021-11-26) in the lab's Setup archive; Tweez300GeneralHardwareAndSafetyManual.pdf is 1c112ed1... (2022-11-02) installed and 3e430cda... (2021-11-29) in the archive. The installed copies are the later by file date, which suggests and does not establish that they are the edition in force. The person ruled on 2026-09-24: record both and decide later. So nothing may be entered from either safety manual until the person says which is current -- and anything entered from one is knowledge, never a limit.",
+  "not_yet_catalogued": {
+    "what": "The rest of the lab's vendor-document archive, found 2026-09-24 and handed to another librarian session at the person's instruction. Each needs its own source record (one per device's document set), referenced in place by sha256 like this one. Software licence PDFs (Nanobench license/ folders) are not knowledge and are skipped.",
+    "archive": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/",
+    "documents": [
+      {
+        "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/User Manuals/NPC-D-6xx0 NanoMechanism Controller Firmware Platform External Release Note.pdf",
+        "file_date": "2024-03-21",
+        "sha256": "79877e66e487c2d2a27d16389a55c2809529af6e58d1480d0c857b1a577df9e4"
+      },
+      {
+        "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/User Manuals/NanoFlash Reflash Application - User Manual.pdf",
+        "file_date": "2024-03-21",
+        "sha256": "98fbdbf682d916a3254320a2b8e6a654e7500f25880fea485128338df48cc1b2"
+      },
+      {
+        "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/User Manuals/Nanobench 6000 Customer Interface Software User Manual.pdf",
+        "file_date": "2024-03-21",
+        "sha256": "2acb47b5add32f4e84903dff8bf068b4085a9ced4a433239b9fd9de24e57be96"
+      },
+      {
+        "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/Controller Interface DLL & Drivers/NPC-D Digital Controller Interface DLL Production Release/NPC-D_Digital_Controller_Interface_DLL_Release_Note_2.7.9.pdf",
+        "file_date": "2024-03-21",
+        "sha256": "24e62f1079f3b4873672d55e31f7ef733e0f181c88e1bfbf33e1e94d43adb0ca"
+      },
+      {
+        "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/Controller Interface DLL & Drivers/NPC-D Digital Controller Interface DLL Production Release/NPC-D_Series_Digital_Controller_Interface_Library_2.7.9.pdf",
+        "file_date": "2024-03-21",
+        "sha256": "88da6849c45ae1349582eccb8c4cddffef8330b7e2189088559c99178f137ccb"
+      },
+      {
+        "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/Nanobench/Nanobench 6000 Customer Interface Software External Release Note.pdf",
+        "file_date": "2024-03-21",
+        "sha256": "744ea0cc69b26900402579b24a28c642ff0be90b9cae8916838b60f04ae8ded7"
+      },
+      {
+        "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/Nanoflash/NanoFlash Reflash Application - External Release Note.pdf",
+        "file_date": "2024-03-21",
+        "sha256": "10b40545979feb7525f39c2dce96a71eb3257e8a696db00a8d61a4d34bb42a4b"
+      },
+      {
+        "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Ti2 Ver2.90/MEA54000_Ti2 Control Ver2.90_Windows/Docs/M706_E15_Ti2Control_Windows.pdf",
+        "file_date": "2023-02-21",
+        "sha256": "5e43517c32b36e30b16d780b9ff348c63ae16b5aba7c4b3b5cdb64759e362e16"
+      },
+      {
+        "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Ti2 Ver2.90/MEA54000_Ti2 Control Ver2.90_Windows/Docs/M706_J15_Ti2Control_Windows.pdf",
+        "file_date": "2023-02-21",
+        "sha256": "5a5ee2ce9b578f6a77cdc5768985772e9f8b6659f5d4557fce3add7900c6e489"
+      },
+      {
+        "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/DMD/Mightex Polygon1000 uManager v2.0 Support Package V1.0-202103/Mightex Polygon1000 uManager v2.0 Support Package V1.0-202103/Mightex/Polygon1000/Documentation/Using Polygon1000 with Micro-Manager.pdf",
+        "file_date": "2023-11-28",
+        "sha256": "703bf1d7a957378f78e84f72140c5f45d41b58c888b606e8599f31e816dc49bd"
+      }
+    ]
+  }
+}

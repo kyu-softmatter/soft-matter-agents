@@ -1,0 +1,11 @@
+{
+  "source_id": "src_person_ruling_20260924",
+  "kind": "person_ruling",
+  "identifier": "The person's (kyuhwan) answer on 2026-09-24 to whether the twelve pixel-size rows of cal-pixel-size-20260919 were all measured: only 20x at 1x was measured.",
+  "accessed": "2026-09-24",
+  "grade_rule": "The ruling is about provenance, not a value, so it grades nothing itself. The eleven rows it regrades take `computed:` and E4, max(E4, worst input), because the ruling makes them arithmetic on the sensor pitch (E3) or on the one measured row (E2). The measured row keeps E2.",
+  "what_was_asked_and_what_came_back": "Asked, after a prior-project configuration comment contradicted the operator's confirmation of 2026-09-19 that all twelve were direct measurements: which is right? Answer: only 20x at 1x was measured.",
+  "what_it_changed": "Eleven new entries `pixel_size_<objective>_zoom_<zoom>_computed` at E4, each superseding and refuting its E2 row; the E2 rows stay, grade unmoved, marked refuted_by. pixel_size_20x_zoom_1x is untouched and remains the only measurement. Values unchanged to every digit.",
+  "why_refuted_and_not_only_superseded": "`supersedes` is written on the new entry only, and kb_query's sort puts E2 ahead of E4, so a plain supersede would have served the false E2 row first with nothing on it to say so. `refuted_by` is carried in the projection a caller reads. It is not a perfect fit -- the schema's text says refuted means nothing replaced it -- but the value here is right and the claim `measured by the operator` is what is false, and the mark that reaches the caller is the one that matters. Raised to manager-librarian: the schema has no backward mark for a supersede.",
+  "license_note": "Identifier only."
+}
