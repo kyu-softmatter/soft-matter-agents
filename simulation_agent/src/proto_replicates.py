@@ -24,7 +24,8 @@ twice the sampling it preceded. Five relaxation times leaves e^-5 = 0.7 per
 cent of the initial condition, which is inside every error bar below, and it
 is a change of protocol that is recorded here and not hidden.
 
-    python -m simulation_agent.src.proto_replicates /path/to/outdir [--smoke]
+    python -m simulation_agent.src.proto_replicates /path/to/outdir [--smoke | --stage2] [--workers=N]
+    python -m simulation_agent.src.proto_replicates /path/to/outdir --aggregate
 """
 
 from __future__ import annotations
@@ -56,6 +57,30 @@ CAMPAIGN = [
     (100, 8, 1500),
 ]
 SMOKE = [(1, 2, 600), (3, 2, 600), (100, 1, 60)]
+
+# STAGE 2, AND WHY THERE IS ONE. The campaign above was sized from a smoke
+# run's own timing at 25 to 40 minutes. It ran four times slower than that:
+# 40 minutes in, another seat started an operator run on the declared engine
+# (sim-20260923-041, multithreaded HOOMD), the machine went to a load of 11 on
+# four performance cores, and the second batch of a=100 replicates took 2870 s
+# each against 690 s for the first. At that rate the campaign would have passed
+# the 2 h ceiling in envelope/budget.json, and it was slowing an approved run of
+# this agent's real pipeline for the sake of a prototype with no card.
+#
+# So it was stopped once the eight a=100 replicates had landed, and the rest
+# is run here on two workers. The occupancy window a=2..5 keeps all 32
+# replicates, because that is where the verdict is; the ratios with nothing to
+# decide give up replicates instead. Seeds cannot collide with stage 1: stage 1
+# completed only ratio 100, and the seed carries the ratio.
+STAGE2 = [
+    (1, 16, 6000),
+    (2, 32, 6000),
+    (3, 32, 6000),
+    (5, 32, 6000),
+    (10, 8, 6000),
+    (20, 6, 3000),
+    (50, 4, 1500),
+]
 
 
 def exact(ratio):
@@ -130,8 +155,27 @@ def main():
         print("refusing: runs/ is for operator runs standing on a plan")
         return 2
     out_dir.mkdir(parents=True, exist_ok=True)
-    campaign = SMOKE if "--smoke" in sys.argv else CAMPAIGN
-    tag = "smoke" if "--smoke" in sys.argv else "campaign"
+    if "--aggregate" in sys.argv:
+        rows = [json.loads(line) for f in sorted(out_dir.glob("replicates_campaign*.jsonl"))
+                for line in f.read_text().splitlines() if line.strip()]
+        agg = aggregate(rows)
+        (out_dir / "replicates_summary.json").write_text(
+            json.dumps(dict(generated="2026-09-23", seat="simulation-7",
+                            separation=FIXED_SEPARATION, kt1=KT, walkers=WALKERS,
+                            sources=[f.name for f in sorted(out_dir.glob("replicates_campaign*.jsonl"))],
+                            rows=agg), indent=1))
+        print(f"aggregated {len(rows)} replicates")
+        return 0
+    workers = WORKERS
+    for a in sys.argv:
+        if a.startswith("--workers="):
+            workers = int(a.split("=", 1)[1])
+    if "--smoke" in sys.argv:
+        campaign, tag = SMOKE, "smoke"
+    elif "--stage2" in sys.argv:
+        campaign, tag = STAGE2, "campaign_stage2"
+    else:
+        campaign, tag = CAMPAIGN, "campaign"
 
     # Longest jobs first, so the stiff-end replicates do not end up alone at
     # the tail of the queue with three idle workers beside them.
@@ -141,7 +185,7 @@ def main():
     log = out_dir / f"replicates_{tag}.jsonl"
     rows = []
     t0 = time.time()
-    with mp.get_context("spawn").Pool(WORKERS) as pool, open(log, "w") as f:
+    with mp.get_context("spawn").Pool(workers) as pool, open(log, "w") as f:
         for i, row in enumerate(pool.imap_unordered(one, jobs), 1):
             rows.append(row)
             f.write(json.dumps(row) + "\n")
@@ -154,7 +198,7 @@ def main():
     (out_dir / f"replicates_{tag}_summary.json").write_text(
         json.dumps(dict(generated="2026-09-23", seat="simulation-7",
                         separation=FIXED_SEPARATION, kt1=KT, walkers=WALKERS,
-                        workers=WORKERS, wall_seconds=time.time() - t0,
+                        workers=workers, wall_seconds=time.time() - t0,
                         campaign=campaign, rows=agg), indent=1))
     print(f"done in {time.time()-t0:.0f}s wall")
     return 0
