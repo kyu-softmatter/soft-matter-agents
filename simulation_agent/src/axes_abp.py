@@ -65,8 +65,18 @@ from __future__ import annotations
 
 import json
 import math
+import sys
 
 from . import cards
+
+# The validator's own rounding, so a value written here rounds exactly as
+# check 17 recomputes it. Python's round() sends ties to even (25 -> 20) and
+# round_to_sig sends them away from zero (25 -> 30); two rules for one
+# comparison is the shape this repository counted three times on 2026-09-23.
+_ROOT = str(cards.REPO)
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+from contracts.validate import round_to_sig  # noqa: E402
 
 BUDGET = cards.AGENT / "envelope" / "budget.json"
 
@@ -81,8 +91,7 @@ def oom(value_si: float, unit: str) -> float:
     """One significant figure, rounded in SI and expressed in `unit`."""
     if value_si == 0:
         return 0.0
-    digits = -int(math.floor(math.log10(abs(value_si))))
-    rounded = round(value_si, digits)
+    rounded = round_to_sig(value_si, 1)
     # Rounded ONCE, in SI, the way check 17 rounds before comparing. A second
     # rounding in the card's unit moved 600 s to 0.2 h and failed the check.
     # The division back into the card's unit then leaves binary residue --

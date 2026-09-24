@@ -715,7 +715,15 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         # arriving by the other door. The active configuration still falls
         # back to MockBackend here: abp_backend has no mock of its own, and
         # choosing one for it is simulation-10's.
-        fallback_class = mock_backend.MockBackend
+        #
+        # simulation-10's choice: an ACTIVE configuration has NO fallback and
+        # refuses. The free-diffusion mock would integrate a self-propelled,
+        # repelling system as passive tracers and finish green under the
+        # active plan's id. A mock for the free active particle could be
+        # written (its answer is closed-form), but none can be written for the
+        # interacting one, and a fallback that exists for one of two active
+        # configurations invites the other to take it.
+        fallback_class = None if config_name.startswith("abp") else mock_backend.MockBackend
         if config_name == "bd_overdamped_trapped_uniform_flow":
             from . import trap_backend, trap_hoomd_backend  # noqa: PLC0415
             engine_class = trap_hoomd_backend.TrapHoomdBackend
@@ -726,6 +734,12 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             backend = engine_class(seed=seed)
         except hoomd_backend.EngineMissing:
             from . import engine_check                 # noqa: PLC0415
+            if fallback_class is None:
+                raise Refused(
+                    f"{config_name} needs the engine and HOOMD is not importable here. There is no "
+                    "substitute: the free-diffusion mock would run a different physical model and "
+                    "record it as this plan's run. " + engine_check.instruction(ran="nothing")
+                )
             backend = fallback_class(seed=seed)
             engine_missing = engine_check.instruction(ran=backend_name(backend))
             print(engine_missing, file=sys.stderr)
