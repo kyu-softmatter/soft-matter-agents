@@ -93,6 +93,17 @@ class TrapBackend:
         self.handle: str | None = None
         self.integration_wall_s: float | None = None
         self.steps_planned: int | None = None
+        # The largest displacement in ONE integration step over the run so far.
+        # This backend reported the frame-to-frame displacement under the name
+        # max_single_step_displacement until the HOOMD build measured a true
+        # single step beside it: 0.0185 um here against 0.0078 um there, at the
+        # same cell, because a frame is twenty steps. It was the pattern
+        # mock_backend uses, and it was safe -- the divergence criterion saw a
+        # LARGER number than the step -- but the name was false, and two
+        # backends reporting different quantities under one name is exactly
+        # what makes a mock-against-engine comparison unreadable.
+        # run-20260923-201-smoke-s1 carries the frame-level figure and stays so.
+        self.largest_single_step: float | None = None
         self._worker: threading.Thread | None = None
         self._stop = threading.Event()
         self._lock = threading.Lock()
@@ -173,6 +184,7 @@ class TrapBackend:
                 self.steps_planned = per_frame * frames
                 self.state = RUNNING
             x = self.position.copy()
+            largest = 0.0
             started = time.perf_counter()
             for _ in range(frames):
                 if self._stop.is_set():
@@ -181,8 +193,11 @@ class TrapBackend:
                     return
                 xi = self.rng.normal(0.0, 1.0, size=(per_frame, N_PARTICLES, DIMENSIONS))
                 for j in range(per_frame):
-                    x = x + (drift - relax * x) * dt + noise * xi[j]
+                    step = (drift - relax * x) * dt + noise * xi[j]
+                    largest = max(largest, float(np.abs(step).max()))
+                    x = x + step
                 with self._lock:
+                    self.largest_single_step = largest
                     self.position = x
                     self.steps_taken += per_frame
                     # Derived from an integer step count, never accumulated
@@ -203,7 +218,6 @@ class TrapBackend:
         with self._lock:
             if self.state is None:
                 return {"state": None, "initialised": False}
-            last = self.frames[-1] - self.frames[-2] if len(self.frames) > 1 else np.zeros(1)
             return {
                 "state": self.state,
                 "initialised": True,
@@ -217,7 +231,7 @@ class TrapBackend:
                 # 19.999999999999794 incident this agent's CLAUDE.md records.
                 "fraction_of_planned_steps": (self.steps_taken / self.steps_planned
                                               if self.steps_planned else 0.0),
-                "max_single_step_displacement": float(np.abs(last).max()),
+                "max_single_step_displacement": float(self.largest_single_step or 0.0),
                 "max_absolute_coordinate": float(np.abs(self.position).max()),
                 "failure": self.failure,
             }

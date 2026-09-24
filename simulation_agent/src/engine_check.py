@@ -102,7 +102,7 @@ def conda_subdir() -> str:
     return f"{system.lower()}-{machine}"
 
 
-def instruction(pin: dict | None = None) -> str:
+def instruction(pin: dict | None = None, ran: str = "mock_backend") -> str:
     """The text a mock-only run emits, naming the platform it is on (4.6.5, amended 2026-09-22).
 
     A reduced path is legitimate and never silent: finding no engine, the
@@ -113,7 +113,12 @@ def instruction(pin: dict | None = None) -> str:
     """
     pin = pin or read_pin()
     sub = conda_subdir()
-    head = f"mock_backend ran because hoomd is not importable in this interpreter on {sub}."
+    # `ran` names the backend that actually took over. It was always the
+    # free-diffusion mock until the fallback became per configuration; a trap
+    # plan now falls back to trap_backend, and this line put "mock_backend ran"
+    # into that run's log -- a false sentence in a run record, which is the
+    # one artifact that must stay true about a moment that has passed (P1).
+    head = f"{ran} ran because hoomd is not importable in this interpreter on {sub}."
     if sub == "win-64":
         return (head + " conda-forge builds no HOOMD for win-64, under any packaging tool. The engine's "
                 "route on this machine is WSL2 (linux-64): inside it, from the repository root:\n    "

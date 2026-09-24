@@ -185,6 +185,21 @@ def build(run_id: str) -> dict:
     })
 
     # -- the fact this run returns: its own cost ------------------------------
+    # Phrased from the backend the RUN recorded, not from the one the plan
+    # names. The plan was written against trap_backend and runs unchanged on
+    # trap_hoomd_backend (4.6.5's definition of reproducibility), so the plan
+    # cannot say which engine a given run's cost belongs to and the run can.
+    backend = run["config"].get("backend")
+    ENGINES = {
+        "trap_backend": ("the trap_backend integrator -- NumPy, Euler-Maruyama, a Python loop over steps",
+                         "NOT HOOMD"),
+        "trap_hoomd_backend": ("the trap_hoomd_backend integrator -- HOOMD-blue 7.2.0 on the CPU, its Brownian "
+                               "method, the trap as a harmonic bond to a tether outside the integration filter",
+                               "NOT the NumPy mock, whose figure is measured separately"),
+    }
+    if backend not in ENGINES:
+        raise Unwritable(f"{run_id} ran on {backend!r}, which this module cannot describe a cost for")
+    engine_text, not_text = ENGINES[backend]
     cost = obs.get("cost") or {}
     new_facts, cost_n = [], None
     if cost.get("wall_s_per_step"):
@@ -192,20 +207,20 @@ def build(run_id: str) -> dict:
             "cost_per_step_measured", float(f"{cost['wall_s_per_step']:.2g}"), "s", f"measured:{run_id}",
             precision="significant_figures",
             note=f"{cost['integration_wall_s']:.3f} s over {cost['steps']} steps of the integration loop alone, "
-                 "excluding process start and polling. A measurement of this workstation running this code, "
-                 "which is why it is `measured:` while the offset is not")
+                 f"on {backend}, excluding process start and polling. A measurement of this workstation running "
+                 "this code, which is why it is `measured:` while the offset is not")
         numbers.append(cost_n)
+        per_step_us = cost["wall_s_per_step"] * 1e6
         new_facts.append({
-            "claim": "On this workstation the trap_backend integrator -- NumPy, Euler-Maruyama, one overdamped "
-                     "sphere in a harmonic trap under uniform flow -- costs about two microseconds of wall clock "
-                     "per integration step.",
+            "claim": f"On this workstation {engine_text} costs about {per_step_us:.1g} microseconds of wall clock "
+                     "per integration step, for one overdamped sphere in a harmonic trap under uniform flow.",
             "numbers": ["cost_per_step_measured"],
             "validity_conditions": (
-                f"trap_backend as committed at the time of {run_id}, one particle, three coordinates, a save "
-                "every twenty steps, measured on 2026-09-23 over one run of 62000 steps while other sessions "
-                "shared the machine. NOT HOOMD, and not a cost per particle-step for N above one: the "
-                "1000-particle HOOMD run of run-20260922-hoomd-s3 cost 4 ms a step and 4 us a particle-step, "
-                "and the two do not interpolate. It answers the gap A5 found as "
+                f"{backend} as committed at the time of {run_id}, one particle, three coordinates, a save every "
+                f"twenty steps, measured on 2026-09-23 over one run of {cost['steps']} steps while other sessions "
+                f"shared the machine. {not_text}, and not a cost per particle-step for N above one: the "
+                "1000-particle hoomd_backend run run-20260922-hoomd-s3 cost 4 ms a step and 4 us a particle-step, "
+                "and the figures do not interpolate. It answers the gap A5 found as "
                 "cost_per_particle_step_overdamped_absent for this backend only."),
             "proposed_grade": "E1",
         })

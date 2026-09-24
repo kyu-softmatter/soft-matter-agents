@@ -704,19 +704,30 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         # through to it would not fail: it would run the wrong physics under
         # this plan's id and finish green, because nothing in a free run
         # contradicts a trap plan's monitors. So the trap configuration is
-        # dispatched by name like the active one, and it is the mock-class
-        # trap_backend until a HOOMD implementation exists (4.6.5).
+        # dispatched by name like the active one: HOOMD where it is present,
+        # its own NumPy mock where it is not.
+        #
+        # THE FALLBACK IS PER CONFIGURATION, and until now it was not. Every
+        # EngineMissing fell back to mock_backend.MockBackend, which is free
+        # diffusion -- so on a machine without HOOMD a trap plan would have
+        # been integrated as free diffusion under the trap plan's id, the same
+        # wrong-physics-finishing-green the dispatch above exists to prevent,
+        # arriving by the other door. The active configuration still falls
+        # back to MockBackend here: abp_backend has no mock of its own, and
+        # choosing one for it is simulation-10's.
+        fallback_class = mock_backend.MockBackend
         if config_name == "bd_overdamped_trapped_uniform_flow":
-            from . import trap_backend                  # noqa: PLC0415
-            engine_class = trap_backend.TrapBackend
+            from . import trap_backend, trap_hoomd_backend  # noqa: PLC0415
+            engine_class = trap_hoomd_backend.TrapHoomdBackend
+            fallback_class = trap_backend.TrapBackend
         else:
             engine_class = abp_backend.AbpBackend if config_name.startswith("abp") else hoomd_backend.HoomdBackend
         try:
             backend = engine_class(seed=seed)
         except hoomd_backend.EngineMissing:
             from . import engine_check                 # noqa: PLC0415
-            engine_missing = engine_check.instruction()
-            backend = mock_backend.MockBackend(seed=seed)
+            backend = fallback_class(seed=seed)
+            engine_missing = engine_check.instruction(ran=backend_name(backend))
             print(engine_missing, file=sys.stderr)
     params, provenance = derive_commands(view)
     monitors = compile_monitors(view)
@@ -742,7 +753,10 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     record("gate", tier=max_tier(plan), approval=approval, envelope=envelope,
            **({"compare_arm": arm, "arm_cost": arm_cost} if arm is not None else {}))
     if engine_missing is not None:
-        record("engine_missing", fell_back_to=mock_backend.NAME, instruction=engine_missing)
+        # The name of the backend that actually took over, not a constant:
+        # with the fallback per configuration, `mock_backend.NAME` would record
+        # the free-diffusion mock for a run the trap mock made.
+        record("engine_missing", fell_back_to=backend_name(backend), instruction=engine_missing)
     pre = backend.preflight(params)
     record("preflight", report=pre)
     if pre.get("missing_parameters"):
