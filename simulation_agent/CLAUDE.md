@@ -465,6 +465,35 @@ with no counterpart produces comparisons that are quietly wrong.
 - It does not submit an over-budget job on its own.
 - It does not choose a convergence criterion after seeing the data.
 
+## Which Python runs this agent's code
+
+**Code that imports `contracts` runs in this agent's pixi environment** — the
+`sim` environment, reached as `.pixi/envs/sim/bin/python` or `pixi run -e sim`.
+There, from this directory, `from contracts.validate import round_to_sig` works.
+Under conda base `python3` it raises `ModuleNotFoundError`, **and that is
+intended**: a result produced in an environment the lock file does not manage
+cannot say which versions produced it.
+
+This is new as of 2026-09-23, and it replaces a workaround. Until then no
+interpreter here could import `contracts` from inside the agent's folder, so
+seats that wanted the shared rounding rule inserted the repository root into
+`sys.path` by hand, file by file — and the ones that did not reach for it fell
+back to Python's own `f"{x:.0e}"` and `round()`, which break ties differently
+from the validator and made a correct number fail a check. The pixi environment
+now installs the repository in editable mode and exposes **`contracts` alone**:
+`import simulation_agent`, `microscope_agent`, `librarian_agent` and `bridge`
+all still fail, which is the boundary the package is there to keep.
+
+**So remove any `sys.path` insertion of the repository root.** It made every
+agent's folder importable, not just `contracts`, and undid that boundary from
+inside the code. Call the shared rule instead of writing a local one — one rule,
+one implementation, both sides calling it.
+
+A run does not yet record which interpreter produced it: `runs/*/log.json`
+carries no `sys.executable` and no package versions. Until it does, the record
+cannot distinguish an engine result from one produced somewhere the engine was
+never installed.
+
 ## Before committing
 
 ```bash
