@@ -44,7 +44,7 @@ import math
 import sys
 
 from . import cards, operator, result_card
-from .config_bd_overdamped_trapped_uniform_flow import _one
+from .config_bd_overdamped_trapped_uniform_flow import _one, round_to_sig
 from .result_card import (RUNS, Unwritable, assumptions_for, carried, deviation, kb_refs_for,
                           outcome_of, plan_of, read_run, reading, targets_from, threshold_si,
                           time_base, unevaluated)
@@ -204,7 +204,7 @@ def build(run_id: str) -> dict:
     new_facts, cost_n = [], None
     if cost.get("wall_s_per_step"):
         cost_n = cards.num(
-            "cost_per_step_measured", float(f"{cost['wall_s_per_step']:.2g}"), "s", f"measured:{run_id}",
+            "cost_per_step_measured", float(f"{round_to_sig(cost['wall_s_per_step'], 2):g}"), "s", f"measured:{run_id}",
             precision="significant_figures",
             note=f"{cost['integration_wall_s']:.3f} s over {cost['steps']} steps of the integration loop alone, "
                  f"on {backend}, excluding process start and polling. A measurement of this workstation running "

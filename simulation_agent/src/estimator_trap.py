@@ -49,10 +49,6 @@ def _stokes_drag(viscosity: float, bead_diameter: float) -> float:
     return 3.0 * math.pi * viscosity * bead_diameter
 
 
-def _one_sigfig_ok(x: float) -> float:
-    return float(f"{x:.3g}")
-
-
 class TrapEstimator:
     """Readings off the post-startup record of one trapped particle."""
 
