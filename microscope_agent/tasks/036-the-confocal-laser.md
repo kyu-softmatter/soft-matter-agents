@@ -48,6 +48,23 @@ software at all. What the rule requires, each part of it a refusal:
   until the recorded mapping says otherwise**. Establishing that mapping is
   phase B's first job, with the person
 
+## A blind laser is assumed on
+
+Added 2026-09-24 (`plan.md` at `66e3d83`). `laser_combiner` is one of the
+**two channels the person named** to be driven by their own wrapper with
+`verification: none`: the other is the tweezers, and no third qualifies.
+**After any command to it, the laser is assumed ON**, whatever the command
+was, a blanking command included. It stays assumed on **until something
+readable shows the beam blocked**: a shutter that reads back, the light path
+read back, or the person. So your wrapper's state after an abort is "assumed
+on, barrier: <what reads blocked>", never "off". A blanking command that
+returned is not a closed beam.
+
+**The router does not reach your wrapper yet, and that is correct.** It
+will route a blind channel to its wrapper only by the person's named
+exception, never by a registry value alone. That change is a separate card,
+and until it lands, `lunf.py` stays unreachable.
+
 ## One holder of the bench
 
 `plan.md` 6.2.1, decided 2026-09-24: **a seat opens a device only after the

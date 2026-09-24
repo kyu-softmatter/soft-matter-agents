@@ -89,6 +89,17 @@ with it. Do not write a test that implies otherwise.** A checklist line on
 trap power says the person sets it by hand and says what they set it to.
 Nothing is measured by this code.
 
+**The trapping beam is assumed on** (`plan.md` at `66e3d83`, added
+2026-09-24). `optical_tweezers` is one of the **two channels the person
+named** to be driven by their own wrapper with `verification: none`: the
+other is the laser combiner, and no third qualifies. **After any command to
+it, the beam is assumed ON**, until something readable, or the person, shows
+it blocked. A zero from the GUI is not a blocked beam. Your wrapper's state
+after an abort says "assumed on", and names what, if anything, reads
+blocked. **The router does not reach your wrapper yet**, and that is
+correct: it will route a blind channel only by the person's named
+exception, never by a registry value. That change is a separate card.
+
 **Trap motion is motion.** Check 85 refuses a run without a plan that
 dispatches to `optical_tweezers`, so anything that moves a trap is a planned
 operation.
