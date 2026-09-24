@@ -1,0 +1,573 @@
+{
+  "card": "result",
+  "schema_version": "0.1",
+  "id": "result-sim-20260923-041-run-20260923-041-mid-mid-s1",
+  "qid": "sim-20260923-041",
+  "thread": "solo-sim-20260923-041",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T23:37:20.386097+00:00",
+  "status": "DONE",
+  "plan_id": "plan-sim-20260923-041-r3",
+  "plan_revision": 3,
+  "plan_hash": "sha256:562f41858a18e6dbc5378461c55dba254f636a1aa2cab3766bf601af5b373c16",
+  "approval_id": null,
+  "run_id": "run-20260923-041-mid-mid-s1",
+  "observable": {
+    "name": "mean_squared_displacement"
+  },
+  "outcome": "DONE",
+  "values": [
+    {
+      "metric": "effective_translational_diffusivity",
+      "number": "effective_translational_diffusivity",
+      "uncertainty": "effective_translational_diffusivity_standard_error"
+    },
+    {
+      "metric": "persistence_time",
+      "number": "persistence_time",
+      "uncertainty": null
+    }
+  ],
+  "criteria_evaluation": [
+    {
+      "id": "planned_duration_reached",
+      "kind": "stop",
+      "met": true,
+      "observed_number": "total_simulated_time_actual"
+    },
+    {
+      "id": "step_displacement_diverged",
+      "kind": "stop",
+      "met": false,
+      "observed_number": "max_step_displacement"
+    },
+    {
+      "id": "statistics_met",
+      "kind": "success",
+      "met": true,
+      "observed_number": "relative_standard_error"
+    },
+    {
+      "id": "within_decade_of_free_expectation",
+      "kind": "success",
+      "met": true,
+      "observed_number": "decades_from_free_expectation"
+    },
+    {
+      "id": "window_insensitive",
+      "kind": "success",
+      "met": true,
+      "observed_number": "window_half_disagreement"
+    }
+  ],
+  "deviations": [
+    {
+      "parameter": "integration_timestep",
+      "planned_number": "integration_timestep_planned",
+      "actual_number": "integration_timestep_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "total_simulated_time",
+      "planned_number": "total_simulated_time_planned",
+      "actual_number": "total_simulated_time_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "save_interval",
+      "planned_number": "save_interval_planned",
+      "actual_number": "save_interval_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "max_lag_time",
+      "planned_number": "max_lag_time_planned",
+      "actual_number": "max_lag_time_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "fit_lag_range_lower_bound",
+      "planned_number": "fit_lag_range_lower_bound_planned",
+      "actual_number": "fit_lag_range_lower_bound_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    }
+  ],
+  "time_base": {
+    "t0_wall": "2026-09-23T21:06:44.380601+00:00",
+    "t0_mono": 1420912.300219958,
+    "alignment": "model_step_index"
+  },
+  "targets": [
+    {
+      "metric": "effective_translational_diffusivity",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "one decade on the long-time effective diffusivity across the two-axis sweep: the question is where the interacting value leaves the free one and where the regime changes, not the coefficient"
+    }
+  ],
+  "estimation": {
+    "vocabulary_version": "obs-78b69c58ccea",
+    "followed": true,
+    "note": "effective_translational_diffusivity as contracts/observables.json declares it: weighted least squares of the MSD on lag over lags at or above the declared lower bound, slope over 2*d with d = 2, run by abp_backend through estimator_abp. What is compared here is the fit range at both ends"
+  },
+  "numbers": [
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#temperature",
+      "precision": "significant_figures",
+      "note": "a parameter of the noise amplitude, realised exactly by the model; the room's reading is why this value was chosen"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#viscosity",
+      "precision": "significant_figures",
+      "note": "pure water, validity 288 to 298 K, the temperature above is inside it"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#bead_diameter",
+      "precision": "significant_figures",
+      "note": "the SI anchor: the particle in the bottle. An active particle of this size is a model choice, not a claim that these beads self-propel; the anchor exists because cards are authoritative in physical units (D7) and the store holds this diameter at E2"
+    },
+    {
+      "name": "rotational_diffusivity",
+      "value": 0.01,
+      "unit": "1/s",
+      "source": "computed:stokes_einstein_debye",
+      "grade": "E4",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#rotational_diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "D_R, THERMALLY TIED to D_T through the sphere's rotational drag -- 3*D_T/bead_diameter**2. The person did not rule on the tie and this is the assumption a_thermal_rotation; the store holds nothing on rotational diffusivity (gap rotational_diffusivity_absent). In 2D the persistence time is 1/D_R, about a hundred seconds at this anchor"
+    },
+    {
+      "name": "translational_diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#translational_diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "D_T, the thermal translational diffusivity of the anchor sphere. Same relation as sim-20260917-001 and kb:tracer_diffusivity_expected"
+    },
+    {
+      "name": "wca_epsilon",
+      "value": 4e-21,
+      "unit": "J",
+      "source": "assumed:a_wca_stiffness",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#wca_epsilon",
+      "precision": "order_of_magnitude",
+      "note": "the WCA well depth, taken as one k_B*T at 293 K so the repulsion is hard-sphere-like at Pe of order one. At high Pe the active force can drive overlaps deep into the potential; A1 owns the contact stiffness and this is what it will move"
+    },
+    {
+      "name": "peclet",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#peclet_mid",
+      "precision": "order_of_magnitude",
+      "note": "the middle decade of the Peclet axis; v0 = Pe*bead_diameter*rotational_diffusivity, of order 0.5 um/s at this anchor"
+    },
+    {
+      "name": "packing_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_sweep_decades",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#packing_fraction_mid",
+      "precision": "order_of_magnitude",
+      "note": "the middle decade of the packing-fraction axis; the point 042 holds fixed"
+    },
+    {
+      "name": "persistence_time_expected",
+      "value": 100,
+      "unit": "s",
+      "source": "computed:persistence_time_2d",
+      "grade": "E4",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#persistence_time_expected",
+      "precision": "order_of_magnitude",
+      "note": "the 2D relation tau_p = 1/D_R, the person's dimension. It is the input-side expectation the registered persistence_time estimator is read against, and not a result"
+    },
+    {
+      "name": "target_relative_error",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_statistics",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#target_relative_error",
+      "precision": "order_of_magnitude",
+      "note": "ten per cent on the effective diffusivity, well inside the decade the goal asks for"
+    },
+    {
+      "name": "integration_timestep_planned",
+      "value": 0.005,
+      "unit": "s",
+      "source": "computed:decade_under_a1_ceiling",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#integration_timestep_point_pe_mid",
+      "precision": "order_of_magnitude",
+      "note": "a decade under the level's ceiling, as for 042"
+    },
+    {
+      "name": "total_simulated_time_planned",
+      "value": 30000.0,
+      "unit": "s",
+      "source": "computed:window_over_record_ratio",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#total_simulated_time_point",
+      "precision": "order_of_magnitude",
+      "note": "the record A2's ratio requires for A4's window; constant over the grid"
+    },
+    {
+      "name": "save_interval_planned",
+      "value": 1.0,
+      "unit": "s",
+      "source": "computed:a4_ceiling",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#save_interval_point",
+      "precision": "order_of_magnitude",
+      "note": "constant over the grid"
+    },
+    {
+      "name": "max_lag_time_planned",
+      "value": 3000.0,
+      "unit": "s",
+      "source": "computed:a4_floor",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#max_lag_time_point",
+      "precision": "order_of_magnitude",
+      "note": "constant over the grid"
+    },
+    {
+      "name": "fit_lag_range_lower_bound_planned",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "computed:a4_floor",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#fit_lag_range_lower_bound_point",
+      "precision": "order_of_magnitude",
+      "note": "constant over the grid: the persistence time does not move with Pe or phi"
+    },
+    {
+      "name": "box_length",
+      "value": 500.0,
+      "unit": "um",
+      "source": "computed:a3_bound_rescaled_to_level",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#box_length_pe_mid",
+      "precision": "order_of_magnitude",
+      "note": "A3's minimum box at this level: ten persistence lengths, and the persistence length is Pe*d"
+    },
+    {
+      "name": "n_particles",
+      "value": 1000.0,
+      "unit": "1",
+      "source": "computed:area_fraction_times_box",
+      "grade": "E5",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#n_particles_mid_mid",
+      "precision": "order_of_magnitude",
+      "note": "particles in the cell Pe 10, phi 0.1"
+    },
+    {
+      "name": "effective_translational_diffusivity",
+      "value": 10.155015024551647,
+      "unit": "um^2/s",
+      "source": "simulated:run-20260923-041-mid-mid-s1",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "rotational_diffusivity",
+        "wca_epsilon",
+        "peclet",
+        "packing_fraction",
+        "box_length",
+        "n_particles",
+        "integration_timestep_planned",
+        "save_interval_planned",
+        "max_lag_time_planned",
+        "fit_lag_range_lower_bound_planned"
+      ],
+      "note": "the long-time slope of the MSD over 2*d for lags at or above the declared lower bound, read off this run. For abp_wca_2d the output is not fixed by the inputs (capabilities: independent true), so this is the card's claim about the model and not a comparison term; its grade is the worst of what went in"
+    },
+    {
+      "name": "effective_translational_diffusivity_standard_error",
+      "value": 0.09340812426235508,
+      "unit": "um^2/s",
+      "source": "simulated:run-20260923-041-mid-mid-s1",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "rotational_diffusivity",
+        "wca_epsilon",
+        "peclet",
+        "packing_fraction",
+        "box_length",
+        "n_particles",
+        "integration_timestep_planned",
+        "save_interval_planned",
+        "max_lag_time_planned",
+        "fit_lag_range_lower_bound_planned"
+      ],
+      "note": "block-resampled over 50 particle blocks; the fit's own error is not used (task 006)"
+    },
+    {
+      "name": "relative_standard_error",
+      "value": 0.009198226101736283,
+      "unit": "1",
+      "source": "simulated:run-20260923-041-mid-mid-s1",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "rotational_diffusivity",
+        "wca_epsilon",
+        "peclet",
+        "packing_fraction",
+        "box_length",
+        "n_particles",
+        "integration_timestep_planned",
+        "save_interval_planned",
+        "max_lag_time_planned",
+        "fit_lag_range_lower_bound_planned"
+      ],
+      "note": "the block standard error over the estimate, compared by statistics_met"
+    },
+    {
+      "name": "window_half_disagreement",
+      "value": 0.0046901422415213615,
+      "unit": "count",
+      "source": "simulated:run-20260923-041-mid-mid-s1",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "rotational_diffusivity",
+        "wca_epsilon",
+        "peclet",
+        "packing_fraction",
+        "box_length",
+        "n_particles",
+        "integration_timestep_planned",
+        "save_interval_planned",
+        "max_lag_time_planned",
+        "fit_lag_range_lower_bound_planned"
+      ],
+      "note": "log10 of the slope over the first half of the fit range against the second, in absolute value; zero when the plateau is reached"
+    },
+    {
+      "name": "persistence_time",
+      "value": 98.97838396479588,
+      "unit": "s",
+      "source": "simulated:run-20260923-041-mid-mid-s1",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "rotational_diffusivity",
+        "wca_epsilon",
+        "peclet",
+        "packing_fraction",
+        "box_length",
+        "n_particles",
+        "integration_timestep_planned",
+        "save_interval_planned",
+        "max_lag_time_planned",
+        "fit_lag_range_lower_bound_planned"
+      ],
+      "note": "decay time of the orientational autocorrelation fitted on a log scale over lags where it stays above 0.05; the input-side expectation is persistence_time_expected"
+    },
+    {
+      "name": "effective_diffusivity_free_expectation",
+      "value": 10.0,
+      "unit": "um^2/s",
+      "source": "computed:free_active_brownian_long_time",
+      "grade": "E5",
+      "formula": "translational_diffusivity+(peclet_mid*bead_diameter*rotational_diffusivity)**2/(2*rotational_diffusivity)",
+      "inputs": [
+        "translational_diffusivity",
+        "peclet_mid",
+        "bead_diameter",
+        "rotational_diffusivity"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the closed-form long-time diffusivity of a FREE active Brownian particle in 2D at Pe = 10, D_T + v0^2/(2 D_R): what an interacting cell's value is read against. A literature relation applied to this plan's inputs, not a store entry -- the store holds none (kb_gaps), and entering it is the librarian's",
+      "origin": "v3_plan_simulation_sim-20260923-041.json#effective_diffusivity_free_pe_mid"
+    },
+    {
+      "name": "decades_from_free_expectation",
+      "value": 0.006680570288836073,
+      "unit": "count",
+      "source": "simulated:run-20260923-041-mid-mid-s1",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "rotational_diffusivity",
+        "wca_epsilon",
+        "peclet",
+        "packing_fraction",
+        "box_length",
+        "n_particles",
+        "integration_timestep_planned",
+        "save_interval_planned",
+        "max_lag_time_planned",
+        "fit_lag_range_lower_bound_planned",
+        "effective_diffusivity_free_expectation"
+      ],
+      "note": "log10 of this cell's effective diffusivity over the free active particle's closed-form value at the same Peclet number, in absolute value: the question's own criterion. Not computed: -- the formula grammar has no logarithm"
+    },
+    {
+      "name": "total_simulated_time_actual",
+      "value": 30000.0,
+      "unit": "s",
+      "source": "simulated:run-20260923-041-mid-mid-s1",
+      "grade": "E5",
+      "inputs": [
+        "integration_timestep_planned",
+        "total_simulated_time_planned"
+      ],
+      "note": "steps_taken * dt, read off the integer step count"
+    },
+    {
+      "name": "max_step_displacement",
+      "value": 1.6484406209902847,
+      "unit": "um",
+      "source": "simulated:run-20260923-041-mid-mid-s1",
+      "grade": "E5",
+      "inputs": [
+        "integration_timestep_planned",
+        "peclet",
+        "rotational_diffusivity",
+        "bead_diameter"
+      ],
+      "note": "the largest single-step displacement any particle took, which the divergence criterion watches against the bead diameter"
+    },
+    {
+      "name": "integration_timestep_actual",
+      "value": 0.005,
+      "unit": "s",
+      "source": "simulated:run-20260923-041-mid-mid-s1",
+      "grade": "E5",
+      "inputs": [
+        "integration_timestep_planned",
+        "total_simulated_time_planned"
+      ]
+    },
+    {
+      "name": "save_interval_actual",
+      "value": 1.0,
+      "unit": "s",
+      "source": "simulated:run-20260923-041-mid-mid-s1",
+      "grade": "E5",
+      "inputs": [
+        "save_interval_planned",
+        "total_simulated_time_planned"
+      ]
+    },
+    {
+      "name": "max_lag_time_actual",
+      "value": 3000.0,
+      "unit": "s",
+      "source": "simulated:run-20260923-041-mid-mid-s1",
+      "grade": "E5",
+      "inputs": [
+        "max_lag_time_planned",
+        "save_interval_planned"
+      ]
+    },
+    {
+      "name": "fit_lag_range_lower_bound_actual",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "simulated:run-20260923-041-mid-mid-s1",
+      "grade": "E5",
+      "inputs": [
+        "fit_lag_range_lower_bound_planned",
+        "save_interval_planned"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_wca_stiffness",
+      "statement": "One k_B T of WCA well depth makes the repulsion hard-sphere-like at low Pe; whether it stays so at the top of the Pe range is A1's question.",
+      "numbers": [
+        "wca_epsilon"
+      ],
+      "falsifier": "an A1 interval that finds the contact overlap at peclet_max exceeding a stated fraction of the diameter replaces this value, and it is then a swept quantity again",
+      "gap_ref": "active_brownian_particle_absent"
+    },
+    {
+      "rationale_id": "a_sweep_decades",
+      "statement": "Two decades of Pe (1, 10, 100) and packing fractions 0.01, 0.1, 0.5 in decade steps, because the person reduced the sweep to these two axes and explore answers in decades. The ends are guesses at where the free and the clustered regimes sit; the middle levels are the decade between.",
+      "numbers": [
+        "peclet",
+        "packing_fraction"
+      ],
+      "falsifier": "an A5 cost above the local ceiling at the dense, high-Pe corner drops that corner and says so; a store entry placing the clustering threshold outside this range moves the ends",
+      "gap_ref": "packing_fraction_absent"
+    },
+    {
+      "rationale_id": "a_statistics",
+      "gap_ref": "independent_samples_prefactor_absent",
+      "statement": "A ten per cent statistical error needs of order one hundred independent displacements at the longest fit lag, from the square-root scaling of an ensemble mean; the prefactor for a weighted slope estimator on an active MSD has not been measured.",
+      "numbers": [
+        "target_relative_error"
+      ],
+      "falsifier": "a seed-to-seed spread wider than ten per cent at this sample count raises the floor"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ]
+}
