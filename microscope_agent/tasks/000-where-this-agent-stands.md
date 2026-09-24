@@ -10,9 +10,13 @@ older.** Read it as history.
 
 **What the day produced:**
 
-- **The first real acquisitions**, both preparatory runs: `-002`, 600 frames
-  on the Abvigen particles through the 20x, and `-001`, which failed at load
-  and harmed nothing (cards 033, 038)
+- **The first real acquisition**, a preparatory run: `-002`, 600 frames on
+  the Abvigen particles through the 20x (card 033). Before it, `-001` failed
+  at load and harmed nothing
+- **Card 038's five-minute run has NOT happened.** Its attempt, `-003`,
+  stopped at the preload gate because the tweezers program was running
+  again. Nothing was loaded or opened, and there was no light. Its record is
+  committed at `8ee6158`
 - **A read-only piezo run** (`-004`) and **the first planned motion**: the
   person's approved sine on piezo X (`-005`, cards 035 and 040), through the
   dispatcher
@@ -29,9 +33,9 @@ older.** Read it as history.
 |---|---|
 | run `-005` is **uncommitted by the person's choice**: its approval's written time (21:00Z) follows the run (20:09:24Z), so check 15 fails it. **The record is `D:\soft-matter-agents-frames\run-20260924-005\`**, with hashes in `failures.jsonl` (`ee0e42c`). Its result card, the tracking error, waits on it | the person: a superseding approval with the true time, 20:08:08Z, if they want it in the store |
 | `microscope_agent/approvals/` is **untracked** | the person's to commit |
-| the librarian cannot yet check findings items that cite run logs: its read covers `findings/` only | architecture, recommended to widen the read to exactly the cited paths |
 | card 041: the dispatcher reaching Micro-Manager, plus the byte-order-mark fix for approvals | `microscope-20260924-1`'s |
-| card 042: `-1`'s findings file | `microscope-20260924-1`'s, not yet delivered |
+| card 038's five-minute run | the person: the tweezers program closed, the piezo controller off, then the bench handed to `microscope-20260924-1` |
+| entering the four findings files (`-1` at `bf8f91f`, `-2` at `a0fda99`, `-3` at `a5e7647`, `-4` at `e4ebe78`; `-5` established nothing) | the librarians, reading each cited source at its commit (`0e06fb2`) |
 | card 034's S4, S5 and v2 fan-out, re-copying the envelope snapshot then | a later seat, once 041 lets a planned 20x run through the dispatcher |
 | **piezo Z**: it rests 1.7 nm below the person's 0 µm floor (the person asked for −0.01 µm, a change only the person can write), its direction is unmeasured, and software refuses it until a Z move is checked against objective clearance at the moment of the move | the person, then a card |
 | the confocal lines: the person's power calibration is found (a worksheet in Downloads, 2026-09-09) and is with the librarian; **no limit covers these lines yet** | the person |
