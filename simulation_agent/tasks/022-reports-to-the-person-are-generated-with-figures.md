@@ -223,3 +223,16 @@ rather than silent.
 **8. The file name carries the person's local date, and the header says so.**
 Card timestamps are UTC, and on the evening of 09-23 local they already read
 09-24. The person reads by their own day.
+
+## A refusal is a result, and gets a report (2026-09-24)
+
+`report.py` refused `sim-20260923-001`: *"revision 2 has a plan and no result
+cards; nothing ran to report on"*. But revision 1 ended in an S4 refusal,
+which this agent's instructions call **the common result here**: the target
+cannot be reached inside the budget, with the resources it would need and one
+relaxation offered. The person needs that as much as a number. So a revision
+whose last card is a refusal gets a report: Results holds what collided, in
+numbers; Checks holds how the needed resources were computed; Decisions holds
+the relaxation. Window 5 hand-made that report meanwhile. The phrases it
+missed were HTML-escaped (`A3&#x27;s`), which is one more reason the code scan
+runs on unescaped text.
