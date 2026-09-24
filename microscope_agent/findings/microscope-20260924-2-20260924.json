@@ -1,0 +1,675 @@
+{
+  "artifact": "findings",
+  "schema_version": "0.1",
+  "seat": "microscope-20260924-2",
+  "on": "2026-09-24",
+  "delivered_to": "librarian_agent",
+  "items": [
+    {
+      "id": "piezo_library_version",
+      "fact": "The piezo controller's vendor library on this computer reports version 2.8.1.",
+      "kind": "self_report",
+      "how": "GetDllVersion on the library loaded from the NanoBench 6000 install, in run-20260924-004",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 4
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_controller_part",
+      "fact": "The piezo controller reports its hardware part as NPC-6330.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (identity.hardware.part.get)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 21
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_controller_serial",
+      "fact": "The piezo controller reports hardware serial 108564.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (identity.hardware.serial.get)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 23
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_controller_software_version",
+      "fact": "The piezo controller reports software version code 101122056.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (identity.software.version.get)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 26
+      },
+      "for_store": true,
+      "note": "the raw code as reported; not decoded into major.minor.build here"
+    },
+    {
+      "id": "piezo_stage_part_ch1",
+      "fact": "The piezo controller reports the stage on channel 1 as part SP-XYZ-600.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (identity.stage.part.get 1)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 36
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_stage_part_ch2",
+      "fact": "The piezo controller reports the stage on channel 2 as part SP-XYZ-600.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (identity.stage.part.get 2)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 37
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_stage_part_ch3",
+      "fact": "The piezo controller reports the stage on channel 3 as part SP-XYZ-600.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (identity.stage.part.get 3)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 38
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_stage_serial_ch1",
+      "fact": "The piezo controller reports the stage on channel 1 as serial 107866.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (identity.stage.serial.get 1)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 39
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_stage_serial_ch2",
+      "fact": "The piezo controller reports the stage on channel 2 as serial 107866.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (identity.stage.serial.get 2)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 40
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_stage_serial_ch3",
+      "fact": "The piezo controller reports the stage on channel 3 as serial 107866.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (identity.stage.serial.get 3)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 41
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_axis_label_ch1",
+      "fact": "The piezo controller labels channel 1 as axis x.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (identity.stage.axisid.get 1)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 27
+      },
+      "for_store": true,
+      "note": "the controller's own label, not an observation of which way the image moves; that is listed as unmeasured below"
+    },
+    {
+      "id": "piezo_axis_label_ch2",
+      "fact": "The piezo controller labels channel 2 as axis y.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (identity.stage.axisid.get 2)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 28
+      },
+      "for_store": true,
+      "note": "the controller's own label, not an observation of which way the image moves; that is listed as unmeasured below"
+    },
+    {
+      "id": "piezo_axis_label_ch3",
+      "fact": "The piezo controller labels channel 3 as axis z.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (identity.stage.axisid.get 3)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 29
+      },
+      "for_store": true,
+      "note": "the controller's own label, not an observation of which way the image moves; that is listed as unmeasured below"
+    },
+    {
+      "id": "piezo_calibrated_min_ch1",
+      "fact": "The piezo controller reports channel 1's calibrated range minimum as 0 (picometres).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.position.calibrated-range.minimum.get 1)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 11
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_calibrated_max_ch1",
+      "fact": "The piezo controller reports channel 1's calibrated range maximum as 6.0e8, which is 600 um in picometres.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.position.calibrated-range.maximum.get 1)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 14
+      },
+      "for_store": true,
+      "note": "this self-report of 0 to 600 um CONTRADICTS the person's statement of a -100 to 600 um device range (item person_piezo_device_range). Both are listed and neither is reconciled here"
+    },
+    {
+      "id": "piezo_calibrated_min_ch2",
+      "fact": "The piezo controller reports channel 2's calibrated range minimum as 0 (picometres).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.position.calibrated-range.minimum.get 2)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 12
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_calibrated_max_ch2",
+      "fact": "The piezo controller reports channel 2's calibrated range maximum as 6.0e8, which is 600 um in picometres.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.position.calibrated-range.maximum.get 2)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 15
+      },
+      "for_store": true,
+      "note": "this self-report of 0 to 600 um CONTRADICTS the person's statement of a -100 to 600 um device range (item person_piezo_device_range). Both are listed and neither is reconciled here"
+    },
+    {
+      "id": "piezo_calibrated_min_ch3",
+      "fact": "The piezo controller reports channel 3's calibrated range minimum as 0 (picometres).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.position.calibrated-range.minimum.get 3)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 13
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_calibrated_max_ch3",
+      "fact": "The piezo controller reports channel 3's calibrated range maximum as 6.0e8, which is 600 um in picometres.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.position.calibrated-range.maximum.get 3)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 16
+      },
+      "for_store": true,
+      "note": "this self-report of 0 to 600 um CONTRADICTS the person's statement of a -100 to 600 um device range (item person_piezo_device_range). Both are listed and neither is reconciled here"
+    },
+    {
+      "id": "piezo_rest_position_ch1",
+      "fact": "At rest on 2026-09-24 the piezo controller reported channel 1's measured position as 25315.08 pm (0.0253 um).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.position.measured.get 1)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 8
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_rest_position_ch2",
+      "fact": "At rest on 2026-09-24 the piezo controller reported channel 2's measured position as 6070.26 pm (0.0061 um).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.position.measured.get 2)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 9
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_rest_position_ch3",
+      "fact": "At rest on 2026-09-24 the piezo controller reported channel 3's measured position as -1721.79 pm (-0.0017 um).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.position.measured.get 3)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 10
+      },
+      "for_store": true,
+      "note": "1.7 nm below the person's 0 um floor, so the wrapper refuses every Z command until the floor or the position changes"
+    },
+    {
+      "id": "piezo_analogue_command_off_ch1",
+      "fact": "The piezo controller reports channel 1's analogue command input as disabled (0).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.mode.analogue-command.get 1)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 49
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_digital_command_on_ch1",
+      "fact": "The piezo controller reports channel 1's digital command input as enabled (1).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.mode.digital-command.get 1)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 55
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_closed_loop_ch1",
+      "fact": "The piezo controller reports channel 1 as running closed loop (1).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.mode.closed-loop.get 1)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 52
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_mode_word_ch1",
+      "fact": "The piezo controller reports channel 1's mode word 0x0327 and status word 0x0B17.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.mode.get 1)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 61
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_analogue_command_off_ch2",
+      "fact": "The piezo controller reports channel 2's analogue command input as disabled (0).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.mode.analogue-command.get 2)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 50
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_digital_command_on_ch2",
+      "fact": "The piezo controller reports channel 2's digital command input as enabled (1).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.mode.digital-command.get 2)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 56
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_closed_loop_ch2",
+      "fact": "The piezo controller reports channel 2 as running closed loop (1).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.mode.closed-loop.get 2)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 53
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_mode_word_ch2",
+      "fact": "The piezo controller reports channel 2's mode word 0x0323 and status word 0x0B17.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.mode.get 2)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 62
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_analogue_command_off_ch3",
+      "fact": "The piezo controller reports channel 3's analogue command input as disabled (0).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.mode.analogue-command.get 3)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 51
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_digital_command_on_ch3",
+      "fact": "The piezo controller reports channel 3's digital command input as enabled (1).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.mode.digital-command.get 3)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 57
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_closed_loop_ch3",
+      "fact": "The piezo controller reports channel 3 as running closed loop (1).",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.mode.closed-loop.get 3)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 54
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_mode_word_ch3",
+      "fact": "The piezo controller reports channel 3's mode word 0x0323 and status word 0x0B17.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.mode.get 3)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 63
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_analogue_scaling_ch1",
+      "fact": "The piezo controller reports channel 1's analogue command scaling as 60.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.command.analogue.scaling.get 1)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 43
+      },
+      "for_store": true,
+      "note": "the number as reported; its unit is not given by the controller"
+    },
+    {
+      "id": "piezo_analogue_scaling_ch2",
+      "fact": "The piezo controller reports channel 2's analogue command scaling as 60.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.command.analogue.scaling.get 2)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 44
+      },
+      "for_store": true,
+      "note": "the number as reported; its unit is not given by the controller"
+    },
+    {
+      "id": "piezo_analogue_scaling_ch3",
+      "fact": "The piezo controller reports channel 3's analogue command scaling as 60.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (stage.command.analogue.scaling.get 3)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 45
+      },
+      "for_store": true,
+      "note": "the number as reported; its unit is not given by the controller"
+    },
+    {
+      "id": "piezo_security_level_found",
+      "fact": "The piezo controller was found at security level 'None' (locked) and left there.",
+      "kind": "self_report",
+      "how": "read back from the piezo controller over COM4 by the vendor library, read-only, in the preparatory run run-20260924-004; the command and its answer are that log event (controller.security.user.get, read before and after)",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 7
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_command_count_locked",
+      "fact": "At security level 'None' the piezo controller lists 184 commands.",
+      "kind": "self_report",
+      "how": "FindCommands and GetCommand through the vendor library, in run-20260924-004",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 6
+      },
+      "for_store": true
+    },
+    {
+      "id": "person_piezo_device_range",
+      "fact": "The person states each piezo axis's device range is -100 to 600 um.",
+      "kind": "person_statement",
+      "how": "the person's statement to the architecture session on 2026-09-24",
+      "source": {
+        "type": "person",
+        "recorded_at": "microscope_agent/tasks/035-piezo-then-confocal-laser-then-tweezers.md, 'What the person stated', at be5a848"
+      },
+      "for_store": true,
+      "note": "contradicted by the controller's calibrated range of 0 to 600 um (piezo_calibrated_max_ch1..3); not reconciled"
+    },
+    {
+      "id": "person_piezo_axis_channels",
+      "fact": "The person states the piezo axes X, Y and Z are on controller channels 1, 2 and 3.",
+      "kind": "person_statement",
+      "how": "the person's statement to the architecture session on 2026-09-24",
+      "source": {
+        "type": "person",
+        "recorded_at": "microscope_agent/tasks/035-piezo-then-confocal-laser-then-tweezers.md, 'What the person stated', at be5a848"
+      },
+      "for_store": true
+    },
+    {
+      "id": "person_piezo_limits",
+      "fact": "The person keeps software to 0 to 600 um on each piezo axis.",
+      "kind": "person_statement",
+      "how": "the person wrote the limits into the safety file",
+      "source": {
+        "type": "person",
+        "recorded_at": "microscope_agent/envelope/safety.json, piezo_{x,y,z}_position_{min,max}, at 58d55cd"
+      },
+      "for_store": true
+    },
+    {
+      "id": "person_nanobench_closed_nis_off",
+      "fact": "On 2026-09-24, before the read-only run, the person said the NanoBench program was closed and NIS-Elements was off.",
+      "kind": "person_statement",
+      "how": "the person's words in microscope-20260924-2's window, recorded in the run log",
+      "source": {
+        "type": "person",
+        "recorded_at": "microscope_agent/runs/run-20260924-004/log.json, events[2] (bench)"
+      },
+      "for_store": true
+    },
+    {
+      "id": "person_objective_20x_position_2",
+      "fact": "On 2026-09-24 the person read the objective in the light path as the 20x dry at nosepiece position 2.",
+      "kind": "person_statement",
+      "how": "read by the person at the stand and written into the operation plan",
+      "source": {
+        "type": "person",
+        "recorded_at": "microscope_agent/questions/mic-20260924-002/plan_microscope_mic-20260924-002.json, numbers[nosepiece_position], at 6b71dd4"
+      },
+      "for_store": true
+    },
+    {
+      "id": "person_chose_1hz",
+      "fact": "The person chose a 1 Hz piezo X sine of 290 um about 300 um, told in words that it peaks at about 1.8 mm/s and that nothing caps a piezo's speed.",
+      "kind": "person_statement",
+      "how": "the person's decision in microscope-20260924-2's window, written into the plan",
+      "source": {
+        "type": "person",
+        "recorded_at": "microscope_agent/questions/mic-20260924-002/plan_microscope_mic-20260924-002.json, open_risks[0], at 6b71dd4"
+      },
+      "for_store": true
+    },
+    {
+      "id": "prior_waveform_313um_swing",
+      "fact": "In the prior project a +/-5 um sine uploaded to the piezo controller's waveform generator in picometres swung the axis 313.9 um, and the generator's input unit was never settled.",
+      "kind": "prior_project_ruling",
+      "how": "read in the prior project's record; ruled downgrade (E3, their bench) in microscope_agent/rulings.jsonl",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\kb\\decisions\\2026-08-27-piezo-first-light-measured-limits.md",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "the reason this agent refuses the waveform generator; failures.jsonl carries the refusal"
+    },
+    {
+      "id": "prior_piezo_timing",
+      "fact": "In the prior project the piezo position read and write round trips were about 0.42 and 0.69 ms, a step settled within 100 nm in about 20 ms, and a stepped 10 um sine lagged about 600 nm while moving.",
+      "kind": "prior_project_ruling",
+      "how": "read in the prior project's record; ruled downgrade (E3 each) in microscope_agent/rulings.jsonl",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\kb\\decisions\\2026-08-27-piezo-first-light-measured-limits.md",
+        "ruling": "downgrade"
+      },
+      "for_store": true
+    },
+    {
+      "id": "prior_simulator_no_controller",
+      "fact": "The vendor library's simulator address sim:/NPC... emulates a controller when none is fitted, and every command returns zero.",
+      "kind": "prior_project_ruling",
+      "how": "read in the vendor library manual kept by the prior project; ruled transfer (a structural fact, the vendor's) in microscope_agent/rulings.jsonl",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\manual\\Piezo Stage",
+        "ruling": "transfer"
+      },
+      "for_store": true,
+      "note": "the manual's statement, not an observation here; that it opens no port is listed as unmeasured"
+    },
+    {
+      "id": "prior_analogue_digital_sum",
+      "fact": "The vendor manual says the piezo controller's analogue and digital position commands are summed when both are enabled.",
+      "kind": "prior_project_ruling",
+      "how": "read in the NanoBench manual kept by the prior project",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\manual\\Piezo Stage",
+        "ruling": "transfer"
+      },
+      "for_store": true,
+      "note": "why the analogue-command-off self-reports above matter"
+    },
+    {
+      "id": "unmeasured_simulator_opens_no_port",
+      "fact": "Whether the vendor library's simulator address opens a serial port was not observed: no handle listing was taken.",
+      "kind": "unmeasured",
+      "how": "stated in the read-only run's log as not observed",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-004",
+        "event_index": 3
+      },
+      "for_store": true
+    },
+    {
+      "id": "unmeasured_waveform_unit",
+      "fact": "The unit the piezo controller's waveform generator reads its samples in is not measured on this controller.",
+      "kind": "unmeasured",
+      "how": "the refusal and what closes it are recorded in the failure record",
+      "source": {
+        "type": "document",
+        "path": "microscope_agent/failures.jsonl (refusal, task 035)"
+      },
+      "for_store": true
+    },
+    {
+      "id": "unmeasured_piezo_z_direction",
+      "fact": "Which piezo Z direction approaches the objective is not measured.",
+      "kind": "unmeasured",
+      "how": "listed as a gap on the live checklist; no Z motion has been made",
+      "source": {
+        "type": "document",
+        "path": "microscope_agent/src/piezo_live_checklist.md, step 3c"
+      },
+      "for_store": true
+    },
+    {
+      "id": "unmeasured_piezo_position_tolerance",
+      "fact": "No piezo position tolerance exists in the safety file; the read-back tolerance used on 2026-09-24 was the operation plan's own 1 um target, a decision and not a measurement.",
+      "kind": "unmeasured",
+      "how": "listed as a gap on the live checklist",
+      "source": {
+        "type": "document",
+        "path": "microscope_agent/src/piezo_live_checklist.md, step 3b"
+      },
+      "for_store": true
+    },
+    {
+      "id": "unmeasured_channel_image_mapping",
+      "fact": "Which way the image moves when controller channel 1 is driven was not recorded: the person watched the 2026-09-24 sine and said it worked well, without naming the direction.",
+      "kind": "unmeasured",
+      "how": "the controller's own axis labels are listed above as self-reports; the image direction is not",
+      "source": {
+        "type": "document",
+        "path": "microscope_agent/src/piezo_live_checklist.md, step 3a"
+      },
+      "for_store": true
+    },
+    {
+      "id": "piezo_x_sine_tracking_1hz",
+      "kind": "self_report",
+      "fact": "On a host-timed piezo X sine of 290 um about 300 um at 1 Hz (5 cycles, 200 points per cycle), the measured position trailed the commanded one by at most 20.2 um (RMS 13.3 um); all 1000 points were sent with none late, and the approach and return each settled within 1 um of target in about 35 ms.",
+      "how": "position read back after every write by the vendor library during run-20260924-005, an operation plan's run through the dispatcher",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-005",
+        "event_index": 0
+      },
+      "for_store": false,
+      "note": "NOT FOR THE STORE YET. run-20260924-005 is not committed: its approval file carries a written time after the run (this seat's error, failures.jsonl), check 15 refuses it, and the person has chosen not to correct the file. The record is at D:/soft-matter-agents-frames/run-20260924-005/ (log.json sha256 715b4f9c...). These are an operation plan's findings and would leave as that plan's result card once the run is committed. event_index 0 points at the run's opening; the per-move apply events carry the samples"
+    }
+  ]
+}
