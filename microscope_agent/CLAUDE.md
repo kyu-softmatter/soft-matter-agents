@@ -149,6 +149,18 @@ asked for both, and attached the condition that makes it safe: **nothing is
 transplanted as it stands.** Anything that claimed more than it knew is
 trusted less here, and anything that does not help is dropped.
 
+**On 2026-09-24 the person opened it for the upgrade**, at
+`C:\agentic_microscope` on the microscope computer: every `plan.md` §10.2 row
+that applies to it is open from that day, including the two that were
+waiting on a condition. **Looking is not taking.** The ruling below still
+applies to every item that crosses, the condition above was not lifted,
+§10.3 stands whole, and **no safety limit crosses**, however well measured
+it looks over there. That repository writes its safety content into comments
+beside the settings it governs: `FocusDirection` in its configuration files
+carries a retract-direction account, for one. Such a comment is still a
+safety limit and still stays behind. The other three prior repositories stay
+closed.
+
 **Read the difference between the branches before reading either branch.**
 What changed from `main` to `version2` is a record of what did not work the
 first time, and it is the one reading that gives the most while inheriting the

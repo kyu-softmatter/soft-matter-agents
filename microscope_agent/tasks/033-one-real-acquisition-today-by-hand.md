@@ -30,7 +30,7 @@ of anything else (`preference_is_not_evidence`).
 | 023 item 3 (router reaches `micromanager.py`) | landed, `48e40f5`. Needed today |
 | 023 item 4 (honest verification) | `micromanager.apply()` already sets, waits, reads back and splits `verified` from `disagreed`. **Confirm the run log writes `readback` only for the `verified` half** and `none` for nothing on this path, because every device you command today reads back |
 | acquisition | **does not exist in any backend.** No `snapImage`, no sequence, no `setExposure` anywhere in `src/`. You write it (§2) |
-| driver | `pymmcore-plus` 0.18.1 imports; Micro-Manager 2.0 is at `C:\Program Files\Micro-Manager-2.0` |
+| driver | `pymmcore-plus` 0.18.1 imports, and finds its own Micro-Manager `2.0.3_20260806` (device interface 75) ahead of the lab's `C:\Program Files\Micro-Manager-2.0`. See §3 |
 | the validator | not a blocker. It judges records afterwards; run-time safety is `operator.py` and the orchestrator. Run it as `PYTHONUTF8=1 python contracts/validate.py` on this machine, since `python3` here is the Store placeholder |
 
 ## 1. No software motion, and code refuses it rather than a plan omitting it
@@ -57,6 +57,8 @@ written from the request would pass them:
   that the person was not told about
 - `MightexPolygon1000` (the DMD), `DiaLamp`, `LappMainBranch1`,
   `Turret1Shutter`, `Turret2Shutter`, `Ti2-E__0`
+- **`NIDAQHub` and `LUNF-Blanking`**, the laser combiner's blanking lines,
+  which the file the person chose declares (§3)
 
 That is P0's rule that ambiguity stops: a device nobody thought about is
 refused, not permitted.
@@ -117,41 +119,86 @@ at module top (the module docstring says why):
 **Shutdown order**, on finish and on abort: `LightEngine` `State=0` first,
 read back, then anything else. Shutters before power (§2.1).
 
-## 3. The configuration
+## 3. The configuration — the person chose it, and loading it is not motion-free
 
-**Load `C:\Users\Takatori lab\Desktop\bacteria4\Kyu_test\auto_chamber_setup\camera_red_only.cfg`
-in place.** Do not copy it into the tree. Record the path and the file's
-sha256 in the run log. When I read it, it began `4120281c36abb65c`. **If the
-hash differs when you load, re-read the file before loading**, because
-everything below describes that version.
+**Revised the same day.** This section first sent you to a file on the
+Desktop. **The person has since chosen the prior project's
+`C:\agentic_microscope\config\micromanager\single_cam_red_noDMD_nocom10.cfg`**
+for today, and opened that repository for this work. Use that file, **loaded
+in place**, never copied into the tree. Record its path and sha256 in the run
+log. When I read it, the hash began `8184073e31e1a7a6`. **If it differs when
+you load, re-read the file before loading**, because everything below
+describes that version.
 
-What I read in that version, for you to confirm:
+### Stop before loading: the startup preset moves a mirror
 
-- **the `System` / `Startup` preset is empty**, so loading sets no positions
-  by preset. Loading still initialises every declared device, including the
-  Ti2 hub
-- it declares `LightEngine` (Lumencor, COM3) and `Kinetix_red` as PVCAM
-  `Camera-1`, and also `Aura`, the DMD and the spinning-disk unit (§1)
-- **its own header explains the disagreement with the other file.** PVCAM
-  `Camera-N` is an enumeration index, not an identity, so the one powered
-  camera is always `Camera-1` and gets labelled `Kinetix_red` whichever body
-  it is. `bacteria-dmd-main\micromanager\camera_red_only.cfg` (hash
-  `963f44f6691fb36f`) maps it to `Camera-2` and loads no `LightEngine`; do not
-  use that one. **Neither label settles which body is red.** Step 6 of §4 does
+```
+ConfigGroup,System,Startup,LappMainBranch1,State,1
+```
+
+`loadSystemConfiguration` applies the `System` / `Startup` preset, so
+**loading this file commands the Lapp-branch mirror**. That is software
+motion, and §1 says there is none today. It is not a collision device, but it
+decides whether light from the side branch reaches the sample, and the
+branch is the unconfirmed one (card 018 §5).
+
+**Ask the person, and record the answer before loading.** There are two
+honest routes, and choosing between them is the person's call, not yours:
+
+- **accept it**: log it as a load-time command with `from` naming the
+  file's Startup line, and read the state back after the load
+- **or load a copy with that line removed**, kept outside the tree. It is
+  then no longer the file the person chose, so the log must say so and give
+  both hashes
+
+**It also changes what the dark frame proves.** The file's own comment says
+State 1 passes the Lapp-branch light and **State 0 blocks it as completely as
+a dark frame**. So step 3 of §4 must run **with the mirror in the state the
+run will use**. A dark frame with the mirror blocking proves nothing about
+`LightEngine` `State=0`.
+
+### What else the file does
+
+| | what it means for you |
+|---|---|
+| `Core` `Shutter=LightEngine`, `AutoShutter=1` | **the same hazard as before**: every snap would switch the light on. §2's first step, `AutoShutter` to 0 with read-back, stands |
+| `Kinetix_red` is PVCAM **`Camera-2`** | the header records `Camera-2 = serial A24M723015` as the red body, measured 2026-09-03. **That is the prior project's reading, not ours.** Read the serial here and compare it with that and with the store (step 6 of §4) |
+| `NIDAQHub`, `LUNF-Blanking`, and the `LaserLine` group | TTL blanking for the LUN-F laser combiner. Its power sits on a separate controller that is not in Micro-Manager. **Add both devices to the refused list in §1** (`setConfig` is already refused). **The combiner must be off at its own power**: a blanking line is not a safety control |
+| `Aura` is declared, and the header says it fails to initialise when its chassis is off | error 573 means "no reply". Leave it declared, and **never command it** (§1) |
+| the header says `LightEngine` lines are named, `GREEN` and `GREEN_Intensity` 0–1000 | the prior project's reading. §2 still says read the names off the device |
+| a `PixelSize` block, 20x at `0.32373` µm | **cite the store's `pixel_size_20x_zoom_1x`, not `getPixelSizeUm()`**. The number agrees, but the store is where knowledge lives. And the same block calls this "a real 20.078x", which is the over-precise magnification this project already downgraded. Do not carry that phrase anywhere |
+| `FocusDirection,ZDrive,1` and its long safety note | nothing today, since nothing moves under software. **Do not transfer it**: the retract direction is in the store already (`z_retract_direction_is_measured`, E3) |
+
+**The driver build matches.** `pymmcore-plus` finds its own Micro-Manager
+first, `2.0.3_20260806`, device interface 75, which is what this file's header
+says it needs. **The lab's `C:\Program Files\Micro-Manager-2.0` is second on
+the search path; do not point the core at it.** The header says every adapter
+there fails against interface 75.
 
 **Before loading**: the Micro-Manager GUI closed (PVCAM gives a camera to one
 process), the tweezers GUI closed (`camera_red` `exclusive_with:
-optical_tweezers_gui`), and the trapping laser off at its hand control.
+optical_tweezers_gui`), the trapping laser off at its hand control, the LUN-F
+off at its power.
 
-**If the driver and the install disagree on device-interface version, stop
-and report.** Do not work around it with another adapter directory.
+### Rulings, and who writes them
 
-**Fallback, on the person's word only: `C:\agentic_microscope`.** That is the
-prior project, open under the ruling rule. Every item you take from it is
-ruled **transfer, downgrade or drop** before use, never used for a safety
-limit, and never loaded blind. **You cannot write `tasks/033-rulings.md`**
-(your deny list covers `tasks/**`), so report each ruling up with the task
-and I write the file.
+Every item above that you **use** is ruled transfer, downgrade or drop,
+naming its A1–A7 slot and the §10.3 rule. No safety limit crosses. **Report
+the rulings up with the task and I write `tasks/033-rulings.md`**, because
+your deny list covers `tasks/**`. What I expect you will find, for you to
+confirm or overturn:
+
+```
+downgrade | camera serial-to-index mapping (header, 2026-09-03) | E3 at best; re-read here | 10.3 rule 1
+downgrade | LightEngine line names and 0-1000 scale (header)      | re-read off the device   | 10.3 rule 1
+drop      | PixelSize block                                        | the store holds it at E2; P14
+drop      | FocusDirection ZDrive note                             | safety content; 10.3 rule 4, and the store has it
+```
+
+**The Desktop file (`bacteria4\...\camera_red_only.cfg`, hash
+`4120281c36abb65c`) is no longer the plan.** It maps the camera to
+`Camera-1`, has an empty Startup preset, and loads the DMD and the
+spinning-disk unit. Keep it as the fallback only if the person says so.
 
 ## 4. Before any light, in card 018's order
 
@@ -218,6 +265,10 @@ once (card 018 §4f). Ask; it does not block.
 
 - The trapping laser stays off; it has no software path. The tweezers GUI
   stays closed
+- The LUN-F laser combiner stays off at its own power. Its blanking lines
+  load with the configuration and are refused (§1, §3)
+- **Nothing is loaded until the person has answered the Lapp-mirror question
+  in §3**, and the answer is in the run log
 - `envelope/safety.json` is the person's and is not edited
 - Commits: hooks are not installed in this working copy, so no gate runs.
   Say so in the message. Take your email from `contracts/seats.json`
