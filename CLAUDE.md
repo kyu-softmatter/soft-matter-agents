@@ -78,18 +78,14 @@ it would be committed under `--staged`. Quoting a number without that line is
 how two seats quoted each other stale numbers on 2026-09-19, one of them from
 an honest `0 failed` that was true of HEAD and false of the working copy.
 
-**And that line is not yet an identifier, which this file did not say.** It
-names the commit and **counts** the uncommitted paths; it does not say which
-they are or what is in them. Two runs minutes apart can print the identical
-`plus N uncommitted paths` and have judged different trees -- measured on
-2026-09-23 by editing one file two ways and watching the line not move.
-`manager-simulation` nearly read a `73 pending / 6 N/A` against `70 / 7` as
-the interpreter changing the verdict, when what moved was another seat's
-edit between the runs. **So the line tells you a bare run is nobody's commit
-and does not tell you whether two runs are comparable.** Until it carries a
-digest of the dirty set, comparing two runs means comparing them check by
-check, not line by line -- which is what that seat did, and is why it caught
-its own error.
+**And the line carries a digest of the dirty set, `[dirty XXXXXXXX]`, since
+2026-09-23 -- before that it only counted.** It named the commit and the
+number of uncommitted paths, so two runs minutes apart could print the same
+`plus N uncommitted paths` and have judged different trees; `manager-simulation`
+nearly read a `73 pending / 6 N/A` against `70 / 7` as the interpreter
+changing the verdict when another seat's edit had moved between the runs.
+**Two runs are comparable only when the digest matches** -- and the digest
+reads file contents, so it also moves when only data on disk moved.
 
 UNDECIDED and PENDING are not passes. UNDECIDED means a threshold nobody has
 chosen (§11-2); PENDING means an artifact a later milestone produces.
@@ -460,6 +456,26 @@ measurement taken here, and never for safety limits.
 When a design question seems to need them before their milestone: answer from
 `plan.md` principles, or record it in §11 as an open question. Do not fill the
 gap early.
+
+## Talking to the person
+
+**When the reader is the person, say what was found and what to do about
+it -- not where the rule is written** (the person's instruction, 2026-09-23).
+Chat replies, the daily report, a question put back to the person, and any
+card or operator text written for a person carry **no internal codes**: no
+section, principle, rule, decision or check numbers, no axis, stage, grade or
+tier codes, and no seat names or commit hashes unless the person asked about
+that seat or commit. The person is not reading `plan.md` beside the reply. Not
+*"rule 2 says ambiguity stops and one of four places proceeds"* but *"a channel
+named `*_blanking` is not recognised as a shutter, so it stays open while the
+lamp runs -- declare each shutter's role explicitly."* Keep what the person
+acts with -- a file to open, a command to run, a value with its unit -- and keep
+**provenance in words**: whether a number was measured, computed or guessed,
+because a guess shown to the person is still labelled as one. **Records keep
+their references**: `plan.md`, this file, commit messages, fields code reads,
+and messages between sessions. Where a field meant for the person must also
+point at the record -- a held thread's `open_question` has to name
+`plan.md 11-<n>` -- the plain question comes first and the pointer after it.
 
 ## Language
 

@@ -2294,7 +2294,29 @@ rebuild/
 
 **And now that there is a fourth, the risk is not README but `docs/`.** The sentence guarding against a third copy repeats verbatim at the fourth position — `docs/` does not re-enumerate the principles, does not carry over the check list, and does not write a progress percentage. **There is exactly one thing that page can do and the other three cannot: pictures and film.** Everything sayable in sentences is already somewhere else, so it points there. That is precisely what the person asked for on 2026-09-20 — that a faculty member opening the link sees within 30 seconds that the loop is closed.
 
-**README does not restate. It points.** Rewrite the principles, the decisions, the check list or the procedures and the failure seen four times today repeats at a third position — it is **the same rule applied at the document layer** as the envelope not echoing numbers (§4.4-5), a card not echoing a definition (§5.1), and Markdown not echoing JSON (check 9). Name the section number and stop.
+**README does not restate. It points.** Rewrite the principles, the decisions, the check list or the procedures and the failure seen four times today repeats at a third position — it is **the same rule applied at the document layer** as the envelope not echoing numbers (§4.4-5), a card not echoing a definition (§5.1), and Markdown not echoing JSON (check 9). **Name the file and the section, say in a plain phrase what is
+there, and stop** -- amended 2026-09-23 from *name the section number and stop*, because a bare number
+points only for a reader who already has the document open, and README's reader is exactly the one who
+does not.
+
+**Text for the person names findings and next steps, not the rules they come from (2026-09-23).** The
+person asked for it directly, quoting a sentence this seat had written -- *rule 2 says ambiguity stops,
+and one of four places proceeds when ambiguous* -- as the thing not to say, and giving the shape to use
+instead: *this item is ambiguous; please write this more clearly*. The rule lives in root `CLAUDE.md`
+because every session addresses the person and that file reaches every session at its next start; a
+memory entry alone would sit outside version control and would not travel with a clone. A read-only
+survey the same day found **no rule anywhere in this repository on how a session words things to the
+person**, and four existing rules that a blanket ban would have contradicted, each reconciled rather
+than overridden: README's rule above now names a place *and says what is at it*; a held thread's
+`open_question`, which check 51 requires to cite `plan.md 11-<n>`, puts the plain question first and the
+pointer after it, a form check 51 already passes; the architecture seat's standing order to *answer with
+the path the second time* now excepts the person; and the daily report keeps its provenance -- seat,
+commit, the validator's tree line -- in one footer instead of through the body. **What must survive the
+rewording is provenance**: a number shown to the person still says whether it was measured, computed or
+guessed, since a guess used in conversation has to be labelled as one. And a plain paraphrase can be
+wrong the way a citation can -- naming a cause the text never looked at -- so plain is not a licence to
+be vague. Records keep their references. Generated Markdown and the example envelope seats copy are
+written by code and by managers, so the rule reaches them only when those owners change them.
 
 **Numbers especially.** How many checks, how many cards, what percentage complete **go stale the moment they are written** — wrong three times in one day in `CLAUDE.md`. If the status has to be stated, write **what to run** instead.
 

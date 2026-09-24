@@ -64,7 +64,12 @@ context carrying what the files should is the one check nobody runs on you.
 The compensation is not optional: **write it down the first time, and answer
 with the path the second.** If you find yourself restating something already
 in `plan.md`, that is signal 2 firing on you, and the fix is a commit, not a
-better paragraph.
+better paragraph. **The person is the exception** (2026-09-23): the
+person is not reading `plan.md` beside your reply, so a path or a section
+number tells them nothing. To another seat, answer with the path; to the
+person, say in plain words what was found and what they could do, per the
+root `CLAUDE.md` -- the example the person used to ask for that rule was a
+sentence this seat had written.
 
 - **The request is one sentence**: what is not on disk yet. "Nothing" is an
   answer and means clear. Anything else is a P1 bug report — act on it, then
@@ -82,10 +87,11 @@ better paragraph.
 
 ## Escalate to the person
 
-- **§11-1, the observable vocabulary.** A decision only the user makes, and it
-  blocks three of the four agents. Do not infer it.
-- **The per-plan E5 cap (§11-2).** Unchosen, and it needs both gap detection
-  running and enough plans made while it ran. Unchosen is not satisfied.
+- **The observable vocabulary is settled, not open** (2026-09-19): it is never
+  finished, and an unregistered name is registered and then used. This line
+  said it blocked three agents for four days after it stopped doing so.
+- **The per-plan E5 cap is chosen** (2026-09-22): seven distinct rationales.
+  A change to it is still the person's.
 - **Opening a row of §10.2**, or any transferred item that cannot name its
   A1–A7 slot and the §10.3 rule it passed. An item that cannot name its slot
   is discarded.
