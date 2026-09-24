@@ -1865,6 +1865,41 @@ Every address is `…@seat.invalid`. `.invalid` is reserved by RFC 2606 and can 
 
 **Execution seats may grow (decided 2026-09-17), and when they do the same trap waits.** With two microscope execution sessions, two sessions share one `microscope_agent/` — the same shape as four managers sharing `contracts/`. The rules are the same:
 
+**Seat names take the form `<role>-<YYYYMMDD>-<n>` from 2026-09-23, at the person's request.** Committer
+name `seat:<role>-<YYYYMMDD>-<n>`, email `<role>-<YYYYMMDD>-<n>@seat.invalid`. The date is this machine's
+local date on the day the person seats the session -- the same clock that stamps commits here, `-0700`. `n`
+counts within one role on one date and is **the number the person gives when seating**, so a seat number
+can finally be the window label: that morning the person's *simulation-1-5* meant five windows and was read
+first as one seat name, because window 3 had been `simulation-9` and window numbers had never matched seat
+numbers. With no number given, `n` is the next unused one; a name once held is never reissued, even the same
+day. **Parse from the right** -- the last field is `n`, the one before it the date, the rest the role --
+because roles contain hyphens, and a naive split turns `manager-simulation-20260923-1` into `manager`.
+
+**It applies to seats minted from that day, and the 34 older names stay.** Their commits are attributed to
+them, registration is not retroactive, and renaming would strand those commits. A vacated role-named entry
+such as `manager-simulation` stays registered and doubles as **the role name this document's check table
+assigns work to**, so an assignment survives the seat's session turning over -- check 71 resolves exact
+registered names, and those entries are exactly that. *Window N takes simulation-(6+N)*, written that same
+morning, is superseded; it survives only in the five rows it was written for. The first two seats of the
+form were minted that evening: `manager-simulation-20260923-1` and `simulation-20260923-3`.
+
+**Measured before the first mint, against the real validator and hooks in a scratch copy: nothing had to
+change for the form to work.** Check 41 looks a committer up by exact email and accepts it, and a new-form
+seat crossing a boundary is still refused; check 47 reads the whole name instead of truncating it; checks
+48, 59 and 78, the pre-commit identity warning, the pre-push gate and the session-start report are
+shape-agnostic. **What the measurement found instead is that the form is accepted and not enforced, and
+that three hazards exist under either form.** Nothing checks a seat name's shape, so an old-form name
+minted after the change passes too. A `committer_email` duplicated by copy-paste silently re-routes the
+original seat's commits -- the registration commit passes the gate, and the original seat is then refused
+in its own tree. And a manager-named entry minted without its `excludes` is an unnarrowed design seat that
+can commit `contracts/seats.json` and this file: **the role in a name grants nothing and restricts
+nothing**. The first two mints avoided all three by copying `owns`, `paths` and `excludes` by code from the
+entry each one replaces and checking the email unique; check 84 is what makes that a gate instead of a
+habit. **The committer name is not read at all** -- check 41 uses only the email -- so the `seat:` prefix
+is a convention, and enforcing it would need an epoch: 176 commits since enforcement carry a seat email
+without the prefix. And **a template in the registry's prose goes inside angle brackets**, because check 47
+reads a bare one as a seat name and refuses the commit writing it.
+
 1. **Mint a new identity per session** (`microscope-2@seat.invalid` and so on). Paths may be indivisible while identities are divisible, and a divided identity **gives attribution even where it cannot refuse** — which session made a commit still has an answer. That is different from having no attribution at all.
 2. **Divide paths when they actually divide.** Do not pretend to divide — a `paths` narrowed by guesswork refuses correct work, and a refused seat uses `--no-verify`.
 3. **What guards a shared surface is not a check but the worktree merge** (§6.2.1). Two people editing the same file surface as a conflict at merge. So the merge-awareness in checks 35 and 41 is not a convenience but **the only defence of the shared surface.**
@@ -2705,7 +2740,7 @@ is never touched. The revision comes later, with `013`, and then the corrected c
 
 | Number | What | Seat holding it |
 |---|---|---|
-| _(empty)_ | 82 reached declaration on 2026-09-23; **an empty table is the normal state** |  |
+| 84 | whether **the seat registry is internally sound**: every `committer_email` is unique and equals its `seat` plus `@seat.invalid`; every manager-named entry carries `contracts/seats.json` in `excludes`; and every entry first registered after the epoch of the dated form has the `<role>-<YYYYMMDD>-<n>` shape, parsed from the right, with a calendar-valid date -- entries present at the epoch are grandfathered by reading the registry there, as check 78 reads history. **Report, not fail, for a design-owning entry with neither `paths` nor `excludes` other than `human`**: today that is only `design`, the identity from before the seats were divided, vacated since, and still able to write anything in its boundary if anyone committed under it. Measured before it was asked for, in a scratch copy: a duplicated email passed the gate and re-routed another seat's commits; a manager entry without excludes passed check 41 on both `contracts/seats.json` and `plan.md`; seven malformed entries left the verdict unchanged | manager-simulation |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
 
