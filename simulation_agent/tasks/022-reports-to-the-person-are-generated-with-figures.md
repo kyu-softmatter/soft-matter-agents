@@ -236,3 +236,10 @@ numbers; Checks holds how the needed resources were computed; Decisions holds
 the relaxation. Window 5 hand-made that report meanwhile. The phrases it
 missed were HTML-escaped (`A3&#x27;s`), which is one more reason the code scan
 runs on unescaped text.
+
+**A configuration may supply the whole body, not only its figures.** Window 1's
+single-trap report needed a body the driven trap's does not have, and it added
+a lazy per-configuration import and a whole-body hook to `report.py`
+(`2992549`) rather than forcing its sections through the driven layout. That
+is allowed. The sections, the footer and the code scan stay the generator's,
+so a body supplied by a configuration is still refused if it carries a code.
