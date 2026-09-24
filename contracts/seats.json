@@ -498,6 +498,50 @@
         "bridge"
       ],
       "note": "The person writes approvals/ and envelope/safety.json, which no seat may (2.1 rule 7, 6.1), so this seat owns every boundary. It is deliberately an opt-in identity rather than the git default: if the default were listed here, every session would pass check 41 by inheriting it and the check would mean nothing."
+    },
+    {
+      "seat": "manager-microscope-20260924-1",
+      "committer_email": "manager-microscope-20260924-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "microscope_agent/CLAUDE.md",
+        "microscope_agent/.claude/",
+        "microscope_agent/tasks/",
+        "microscope_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/capabilities/microscope.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "Registered by the architecture seat on 2026-09-24 BEFORE the session existed, on the person's instruction in the architecture session to open new sessions for the manager seat and the agent seats -- the first day this working copy runs on the microscope computer. Registered ahead because the registry is read at a commit's parent, so a row added after a seat's first commit leaves that commit unattributed for good. No other session was running when this was written, so this opens a seat rather than splitting a live one. The person seats the session directly in that session; this row is a name, not a seating. If no session ever takes it, it carries no commits and can be withdrawn. n is 1: first of this role on this machine's local date. Its first work is making contracts/ run on Windows -- the path separators, the fixture groups and the commit hooks -- which is shared manager ground; it takes the microscope manager's narrowing because the day's integration is the microscope computer's. Everything but the name and this note copied by code from `manager-microscope`."
+    },
+    {
+      "seat": "microscope-20260924-1",
+      "committer_email": "microscope-20260924-1@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "note": "Registered by the architecture seat on 2026-09-24 BEFORE the session existed, on the person's instruction in the architecture session to open new sessions for the manager seat and the agent seats -- the first day this working copy runs on the microscope computer. Registered ahead because the registry is read at a commit's parent, so a row added after a seat's first commit leaves that commit unattributed for good. No other session was running when this was written, so this opens a seat rather than splitting a live one. The person seats the session directly in that session; this row is a name, not a seating. If no session ever takes it, it carries no commits and can be withdrawn. n is 1: first of this role on this machine's local date. Its first work is the list of mock-versus-real differences that must close before any real light, in the order that list gives. Everything but the name and this note copied by code from `microscope-20260923-6`."
+    },
+    {
+      "seat": "librarian-20260924-1",
+      "committer_email": "librarian-20260924-1@seat.invalid",
+      "owns": [
+        "librarian_agent"
+      ],
+      "note": "Registered by the architecture seat on 2026-09-24 BEFORE the session existed, on the person's instruction in the architecture session to open new sessions for the manager seat and the agent seats -- the first day this working copy runs on the microscope computer. Registered ahead because the registry is read at a commit's parent, so a row added after a seat's first commit leaves that commit unattributed for good. No other session was running when this was written, so this opens a seat rather than splitting a live one. The person seats the session directly in that session; this row is a name, not a seating. If no session ever takes it, it carries no commits and can be withdrawn. n is 1: first of this role on this machine's local date. Its first work is the librarian's own encoding fixes and the stale index. Everything but the name and this note copied by code from `librarian-3`."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
