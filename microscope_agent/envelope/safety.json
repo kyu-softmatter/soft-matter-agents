@@ -1,10 +1,10 @@
 {
   "artifact": "envelope_safety",
   "schema_version": "0.1",
-  "policy_version": "4",
+  "policy_version": "5",
   "agent": "microscope",
   "written_by": "kyuhwan",
-  "written_at": "2026-09-20",
+  "written_at": "2026-09-24",
   "targets": [
     {
       "target": "bench",
@@ -46,6 +46,78 @@
             "by": "kyuhwan",
             "on": "2026-09-20",
             "how": "Approach test on the stage."
+          }
+        },
+        "piezo_x_position_min": {
+          "value": 0,
+          "unit": "um",
+          "bounds": "min",
+          "note": "Piezo stage axis X, controller channel 1: lowest position software may command. The device itself reaches -100 to 600 um; the person keeps software to 0 to 600 um.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "the person's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and the person chose 0 to 600 um as the range software may use",
+            "on": "2026-09-24",
+            "note": "Not yet exercised on the stage. Change to kind 'physical', with how it was checked, once the first live check has moved each axis inside this range."
+          }
+        },
+        "piezo_x_position_max": {
+          "value": 600,
+          "unit": "um",
+          "bounds": "max",
+          "note": "Piezo stage axis X, controller channel 1: highest position software may command. The device itself reaches -100 to 600 um; the person keeps software to 0 to 600 um.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "the person's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and the person chose 0 to 600 um as the range software may use",
+            "on": "2026-09-24",
+            "note": "Not yet exercised on the stage. Change to kind 'physical', with how it was checked, once the first live check has moved each axis inside this range."
+          }
+        },
+        "piezo_y_position_min": {
+          "value": 0,
+          "unit": "um",
+          "bounds": "min",
+          "note": "Piezo stage axis Y, controller channel 2: lowest position software may command. The device itself reaches -100 to 600 um; the person keeps software to 0 to 600 um.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "the person's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and the person chose 0 to 600 um as the range software may use",
+            "on": "2026-09-24",
+            "note": "Not yet exercised on the stage. Change to kind 'physical', with how it was checked, once the first live check has moved each axis inside this range."
+          }
+        },
+        "piezo_y_position_max": {
+          "value": 600,
+          "unit": "um",
+          "bounds": "max",
+          "note": "Piezo stage axis Y, controller channel 2: highest position software may command. The device itself reaches -100 to 600 um; the person keeps software to 0 to 600 um.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "the person's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and the person chose 0 to 600 um as the range software may use",
+            "on": "2026-09-24",
+            "note": "Not yet exercised on the stage. Change to kind 'physical', with how it was checked, once the first live check has moved each axis inside this range."
+          }
+        },
+        "piezo_z_position_min": {
+          "value": 0,
+          "unit": "um",
+          "bounds": "min",
+          "note": "Piezo stage axis Z, controller channel 3: lowest position software may command. The device itself reaches -100 to 600 um; the person keeps software to 0 to 600 um. A travel limit is NOT a clearance limit: which Z direction approaches the objective is unmeasured, and objective_clearance_min binds piezo Z as it binds the Z drive.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "the person's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and the person chose 0 to 600 um as the range software may use",
+            "on": "2026-09-24",
+            "note": "Not yet exercised on the stage. Change to kind 'physical', with how it was checked, once the first live check has moved each axis inside this range."
+          }
+        },
+        "piezo_z_position_max": {
+          "value": 600,
+          "unit": "um",
+          "bounds": "max",
+          "note": "Piezo stage axis Z, controller channel 3: highest position software may command. The device itself reaches -100 to 600 um; the person keeps software to 0 to 600 um. A travel limit is NOT a clearance limit: which Z direction approaches the objective is unmeasured, and objective_clearance_min binds piezo Z as it binds the Z drive.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "the person's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and the person chose 0 to 600 um as the range software may use",
+            "on": "2026-09-24",
+            "note": "Not yet exercised on the stage. Change to kind 'physical', with how it was checked, once the first live check has moved each axis inside this range."
           }
         }
       }
