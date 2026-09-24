@@ -1,0 +1,243 @@
+{
+ "card": "goal",
+ "schema_version": "0.1",
+ "id": "goal-sim-20260923-101-r1",
+ "qid": "sim-20260923-101",
+ "thread": "solo-sim-20260923-101",
+ "round": 0,
+ "revision": 1,
+ "author": "simulation_agent",
+ "created_at": "2026-09-23T14:00:00Z",
+ "status": "DRAFT",
+ "requested_by": "human",
+ "purpose": "characterize",
+ "intent": "explore",
+ "observable": {
+  "name": "well_occupancy"
+ },
+ "targets": [
+  {
+   "metric": "well_occupancy",
+   "kind": "decade_resolution",
+   "value": 1,
+   "unit": "count",
+   "note": "the person's question is how occupancy, residence times and transition rates change as the stiffness ratio goes from 1 to 100, which is a question about trends over two decades. One decade of resolution on each is enough to answer it, and the prototype already shows the occupancy law is sharper than that. well_occupancy is named as the observable because the goal card carries one; well_residence_time, interwell_transition_rate and interwell_barrier_height are measured from the same trajectory and belong to the same question"
+  }
+ ],
+ "constraint_notes": [
+  "THE MODEL IS THE PERSON'S, 2026-09-23: U1 = 1/2 kt (x-a1)^2 and U2 = 1/2 a kt (x-a2)^2, with the separation a2-a1 held FIXED and only the stiffness ratio a varied from 1 to 100. The person withdrew an earlier proposal to set the separation to a/2",
+  "the two wells are combined as the LOWER of the two, U = min(U1, U2). Their SUM has no barrier at any separation or ratio -- the curvature is kt(1+a) everywhere and the separation cancels -- so the sum cannot answer the question. min is a modelling convention and not optics, and that is stated rather than assumed silently",
+  "no configuration in contracts/capabilities/simulation.json declares this model, so S3.0 screening refuses all four observables today and this card stays DRAFT: it cannot proceed to S3 until the configuration is declared, which is a write to contracts/ and not this agent's",
+  "one dimension, along the axis joining the traps. The transverse directions are not integrated",
+  "the prototype in simulation_agent/src/proto_harmonic_pair.py has already run this question on its own integrator, with 138 independent-seed replicates. Those numbers are not on this card and may not be: no declared configuration produced them"
+ ],
+ "priority": [
+  "physical_feasibility",
+  "target_accuracy",
+  "evidence_grade",
+  "cost"
+ ],
+ "numbers": [
+  {
+   "name": "bead_diameter",
+   "value": 5,
+   "unit": "um",
+   "source": "kb:tracer_diameter_measured",
+   "grade": "E2",
+   "precision": "significant_figures",
+   "note": "the tracer in the bottle in use"
+  },
+  {
+   "name": "temperature",
+   "value": 293,
+   "unit": "K",
+   "source": "kb:lab_ambient_temperature",
+   "grade": "E3",
+   "precision": "significant_figures",
+   "note": "the room's, not established to be the sample's"
+  },
+  {
+   "name": "viscosity",
+   "value": 0.001,
+   "unit": "Pa*s",
+   "source": "kb:water_viscosity_293k",
+   "grade": "E3",
+   "precision": "significant_figures",
+   "note": "pure water"
+  },
+  {
+   "name": "diffusivity",
+   "value": 0.09,
+   "unit": "um^2/s",
+   "source": "computed:stokes_einstein",
+   "grade": "E4",
+   "precision": "order_of_magnitude",
+   "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+   "inputs": [
+    "temperature",
+    "viscosity",
+    "bead_diameter"
+   ],
+   "note": "the store's relation (kb:tracer_diffusivity_expected), not a second copy"
+  },
+  {
+   "name": "trap_separation",
+   "value": 1,
+   "unit": "um",
+   "source": "assumed:a_separation",
+   "grade": "E5",
+   "precision": "order_of_magnitude",
+   "note": "held fixed across the whole sweep, as the person specified. The separation sets the timescale of the answer and not the answer: the occupancy ratio comes out the same at every separation tried"
+  },
+  {
+   "name": "stiffness_ratio_min",
+   "value": 1,
+   "unit": "1",
+   "source": "assumed:a_ratio_range_is_the_persons",
+   "grade": "E5",
+   "precision": "order_of_magnitude",
+   "note": "the person's range"
+  },
+  {
+   "name": "stiffness_ratio_max",
+   "value": 100,
+   "unit": "1",
+   "source": "assumed:a_ratio_range_is_the_persons",
+   "grade": "E5",
+   "precision": "order_of_magnitude",
+   "note": "the person's range"
+  },
+  {
+   "name": "barrier_at_ratio_one",
+   "value": 2,
+   "unit": "kT",
+   "source": "assumed:a_barrier_window",
+   "grade": "E5",
+   "precision": "order_of_magnitude",
+   "note": "low enough that hopping is fast at ratio 1, and because the barrier's whole stiffness dependence is a/(1+sqrt(a))^2, which saturates at four times its ratio-1 value, it can rise only to 6.6 kT at ratio 100, where both directions still hop inside a run"
+  },
+  {
+   "name": "trap_stiffness_soft",
+   "value": 0.06,
+   "unit": "pN/um",
+   "source": "computed:barrier_inversion",
+   "grade": "E5",
+   "precision": "order_of_magnitude",
+   "formula": "8*barrier_at_ratio_one/trap_separation**2",
+   "inputs": [
+    "barrier_at_ratio_one",
+    "trap_separation"
+   ],
+   "note": "the soft trap's stiffness that puts the ratio-1 barrier where the window says. Inherits the assumed separation's grade. Well below a normal trapping stiffness, which is what thermal hopping requires"
+  }
+ ],
+ "assumptions": [
+  {
+   "rationale_id": "a_separation",
+   "statement": "One micrometre is a separation two traps steered by the instrument's deflector can be set to, and it is comparable to the particle size in a way that keeps the picture of one particle between two foci meaningful. Nothing measured picks it.",
+   "numbers": [
+    "trap_separation"
+   ],
+   "falsifier": "a separation read back from the particle's own position histogram replaces it; a commanded value does not, because the instrument has no readback",
+   "gap_ref": "trap_separation_readback_absent"
+  },
+  {
+   "rationale_id": "a_ratio_range_is_the_persons",
+   "statement": "The range 1 to 100 is the person's, given in the question.",
+   "numbers": [
+    "stiffness_ratio_min",
+    "stiffness_ratio_max"
+   ],
+   "falsifier": "the person changing the range",
+   "gap_ref": "trap_stiffness_absent"
+  },
+  {
+   "rationale_id": "a_barrier_window",
+   "statement": "A 2 kT barrier at ratio 1 keeps every ratio up to 100 inside a barrier window where both wells are visited within one run.",
+   "numbers": [
+    "barrier_at_ratio_one"
+   ],
+   "falsifier": "an A2 interval showing the ratio-100 dwell cannot be sampled inside budget at this barrier replaces it",
+   "gap_ref": "trap_stiffness_absent"
+  }
+ ],
+ "kb_refs": [
+  {
+   "entry_id": "tracer_diameter_measured",
+   "grade": "E2",
+   "kb_version": "kbv-4b981dc870d3",
+   "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+  },
+  {
+   "entry_id": "lab_ambient_temperature",
+   "grade": "E3",
+   "kb_version": "kbv-4b981dc870d3",
+   "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2."
+  },
+  {
+   "entry_id": "water_viscosity_293k",
+   "grade": "E3",
+   "kb_version": "kbv-4b981dc870d3",
+   "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+  },
+  {
+   "entry_id": "tracer_diffusivity_expected",
+   "grade": "E4",
+   "kb_version": "kbv-4b981dc870d3",
+   "claim": "The expected translational diffusivity of a tracer sphere in a bulk fluid is the Stokes-Einstein value, k_B T over 3 pi eta d. It is a prediction from the viscosity, the temperature and the diameter, not a measurement of how the particles actually move."
+  }
+ ],
+ "kb_gaps": [
+  {
+   "gap_id": "trap_stiffness_absent",
+   "observable": "trap_stiffness",
+   "kind": "absent",
+   "searched": [
+    "kb/entries",
+    "kb/exports"
+   ],
+   "nearest": [
+    {
+     "entry_id": "trapping_laser_identity",
+     "overlap": "partial"
+    },
+    {
+     "entry_id": "trap_laser_power_has_no_software_path",
+     "overlap": "partial"
+    }
+   ],
+   "near_names": [
+    "trapping_laser_identity",
+    "trap_laser_power_has_no_software_path"
+   ],
+   "kb_version": "kbv-4b981dc870d3"
+  },
+  {
+   "gap_id": "trap_separation_readback_absent",
+   "observable": "trap_separation",
+   "kind": "absent",
+   "searched": [
+    "kb/entries",
+    "kb/exports"
+   ],
+   "nearest": [
+    {
+     "entry_id": "tweez300_reports_nothing_back",
+     "overlap": "partial"
+    },
+    {
+     "entry_id": "objective_change_invalidates_trap_calibration",
+     "overlap": "partial"
+    }
+   ],
+   "near_names": [
+    "tweez300_reports_nothing_back",
+    "objective_change_invalidates_trap_calibration"
+   ],
+   "kb_version": "kbv-4b981dc870d3"
+  }
+ ],
+ "degraded": [
+  "librarian_agent"
+ ]
+}
