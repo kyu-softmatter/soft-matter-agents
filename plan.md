@@ -1930,6 +1930,29 @@ numbers. With no number given, `n` is the next unused one; a name once held is n
 day. **Parse from the right** -- the last field is `n`, the one before it the date, the rest the role --
 because roles contain hyphens, and a naive split turns `manager-simulation-20260923-1` into `manager`.
 
+**Reopening a session is not opening one, and two of that evening's mints were for reopened sessions
+(2026-09-23).** The app keeps a session's identity -- its `local_...` id and its creation time -- across a
+restart; what changes is the process, and the session list's *started N minutes ago* is the process start.
+Read against the creation times the app reports, all five simulation windows running that night were
+created within 47 seconds at 09:09 that morning, and the simulation design session had been one session
+since 2026-09-17. So when the person said window 3 and the design session had been *opened*, they had been
+reopened, and `simulation-20260923-3` and `manager-simulation-20260923-1` were minted for sessions that
+already held `simulation-9` and `manager-simulation`. **Nothing broke** -- each commit still maps to one
+session, so attribution holds with one session carrying two names at two times -- but both registry notes
+said *new session* and are corrected. The person's word was right about what they did and silent about
+what kind of session resulted, which is not something a person can see; **the session's creation time
+can, and it is the evidence of newness from then on.** A window reappearing in the running list, a new
+socket, and a process that started minutes ago are all consistent with a reopened session.
+
+**New sessions are now noticed and proposed, and still decided by the person (2026-09-23).** At the
+person's request the architecture seat checks the session list on a schedule, compares session ids and
+creation times against the sessions already known, and for a genuinely new one asks in a line -- *window
+5 is new; register it as the dated name?* -- and on a yes registers the seat, sets the window title to
+carry the seat name, and files it under the person's existing group for that agent, all at once so the
+title and the registry cannot disagree. A session opened at the repository root still needs the person to
+say which seat it is, since the directory cannot tell architecture from a manager. The minting rule is
+unchanged: the person's yes is the statement it asks for, and the seat supplies only the noticing.
+
 **It applies to seats minted from that day, and the 34 older names stay.** Their commits are attributed to
 them, registration is not retroactive, and renaming would strand those commits. A vacated role-named entry
 such as `manager-simulation` stays registered and doubles as **the role name this document's check table
