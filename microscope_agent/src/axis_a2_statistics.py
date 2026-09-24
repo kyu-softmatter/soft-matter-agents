@@ -88,7 +88,7 @@ OWNED = (
         parameter="tracer_count",
         statement="enough tracers are in the field at once to supply those displacements without "
                   "extending the record",
-        needs=("tracer_number_density",),
+        needs=("number_density",),
         derived_from="4.5.3 A2 'sample count', the ensemble rather than the time average",
     ),
     axc.Inequality(
@@ -101,11 +101,16 @@ OWNED = (
     ),
 )
 
+# `number_density` and not `tracer_number_density` (task 032): a gap names the
+# QUANTITY, and the subject is the gap id's -- `tracer_loading` -- because the
+# gap schema has no subject field and a subject glued into the name is one
+# nothing can refuse (quantities.json rule 1). Cards asked before 2026-09-24
+# quote the old name in `searched`, and stay that way: it is the call made.
 GAP_IDS = {
     "tracer_diffusivity_expected": "expected_diffusivity",
     "target_relative_error": "target_relative_error_never_stated",
     "localisation_error": "localisation_error",
-    "tracer_number_density": "tracer_loading",
+    "number_density": "tracer_loading",
 }
 
 ABSENT = {
@@ -119,7 +124,7 @@ ABSENT = {
     "localisation_error":
         "no localisation error has been measured on this instrument, and it cannot be derived "
         "here either, since it needs the pixel size and the signal-to-noise actually achieved",
-    "tracer_number_density":
+    "number_density":
         "nothing states how many tracers are in the sample or in a field: no concentration, no "
         "count, no dilution record",
 }

@@ -176,6 +176,28 @@ def _one_value(responses: dict, name: str) -> bool:
     return len({v for _, v in _values_for(responses, name)}) == 1
 
 
+def _why_missing(responses: dict, absent: set[str], name: str) -> str:
+    """The reason for one missing input, and ABSENT only when the service said absent.
+
+    ABSENT's sentences say the store HOLDS NOTHING, and until 2026-09-24 they
+    were used for every missing input -- so a card whose own kb_refs carried
+    four read noises said `the camera entry enters no sensor number`, and one
+    carrying the Stokes-Einstein entry said no expected diffusivity is served.
+    Both were true of an earlier pin and false of the card. The other two
+    shapes _one_value refuses get their own words, from the served answer.
+    """
+    if name in absent:
+        return ABSENT.get(name, f"{name} came back absent")
+    values = _values_for(responses, name)
+    if not values:
+        return (f"{name} answered as a relation rather than a value: the store holds the entry "
+                f"and no number for it, so this bound has nothing to evaluate")
+    distinct = sorted({v for _, v in values})
+    return (f"{name} is answered by {len(values)} served values, {len(distinct)} distinct "
+            f"({', '.join(map(str, distinct))}), and not by one, so which applies is a condition "
+            f"the plan has to carry; this axis does not pick among them")
+
+
 def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str) -> axc.AxisRun:
     """Every inequality A1 owns, each with a range or a reason it has none."""
     run = axc.AxisRun(axis=AXIS, caller_id=caller_id, config=config,
@@ -236,7 +258,7 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         # the axis has no code when what it has is no value.
         missing = [n for n in ineq.needs if n in absent or not _one_value(responses, n)]
         if missing:
-            reason = "; ".join(ABSENT[m] for m in missing if m in ABSENT)
+            reason = "; ".join(_why_missing(responses, absent, m) for m in missing)
             if ineq.id == "motion_blur" and "pixel_size" not in missing:
                 reason += (
                     ". The other side of this bound is served, and saying so is the point of this "
@@ -279,12 +301,15 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
     # thing it counted, which is the failure this repository keeps naming.
     no_input = sum(1 for o in run.outcomes if o.kind == "no_input")
     measurements = sorted(absent - {"tracer_diffusivity_expected"})
+    expected_where = ("the store holds at a later version than this card's pin"
+                      if "tracer_diffusivity_expected" in absent else
+                      "the store serves at this pin as a relation with no number in it")
     run.notes.append(
         f"Every bound here abstains, and {no_input} of the {len(OWNED)} abstain for want of an "
         f"input rather than because they do not apply. Read as a list, the inputs are: "
         f"{', '.join(measurements)} -- none of them exotic and none guessable (P2) -- and, "
-        "separately, tracer_diffusivity_expected, which no one measures: it is a derived entry the "
-        "store holds at a later version than this card's pin."
+        f"separately, tracer_diffusivity_expected, which no one measures: it is a derived entry "
+        f"{expected_where}."
     )
     run.notes.append(
         "Revisions 1 and 2 of this card read the store's files and carried "

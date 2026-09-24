@@ -1,0 +1,156 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260918-001-widefield_inline-a3",
+  "qid": "mic-20260918-001",
+  "thread": "solo-mic-20260918-001",
+  "round": 0,
+  "revision": 6,
+  "author": "microscope_agent",
+  "created_at": "2026-09-24T14:59:33Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260918-001:v6:widefield_inline:a3",
+  "config": "widefield_inline",
+  "axis": "a3",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "photodamage_dose",
+      "parameter": "illumination_dose",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no damage threshold exists for this sample. The service was asked and answered absent. And the number that is missing is not the one that binds first: total illumination meets P0's safety limit before it meets the sample's tolerance (4.5.3 A7), and those limits are policy in envelope/safety.json, written by a person who confirmed them physically and deliberately not extracted from the prior project (10.3 rule 4). That file does not exist. This axis bounds what the sample can take and not what the instrument may emit, and it may not supply the second from the first",
+      "missing": [
+        "photodamage_threshold"
+      ]
+    },
+    {
+      "inequality": "bleaching_over_record",
+      "parameter": "record_duration",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no bleaching rate exists for this fluorophore -- not a rate, not a dye, not a photon budget. What makes this A3's bound and not A1's is that the loss is irreversible and the sample is not replaceable: 'sample is consumed by the measurement and cannot be remounted'. So every photon spent before the record -- finding focus, centring the field, checking alignment -- is subtracted from the measurement's budget permanently, on the only mount there will be, and a plan that budgets only the record has already spent part of it. A1 owns the other side of the same mechanism, whether signal-to-noise survives the window; its floor comes from detectability and this one's from the sample being consumed. 4.5.3 lets several axes bound one parameter and forbids one inequality living in two axes, and these are two",
+      "missing": [
+        "bleaching_rate"
+      ]
+    },
+    {
+      "inequality": "heating_budget",
+      "parameter": "illumination_power",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "nothing relates illumination power to a temperature rise in this sample. The rate is the smaller half of it: even with a rate, this instrument could not confirm the sample stayed inside the bound. Nothing actuates the sample temperature -- a stage exists and has never been connected, so there is no setpoint to appeal to -- and the ambient reading is not established to be the sample's, because where the thermometer sits was never recorded. So the bound would be unverifiable rather than merely uncomputed. One conflation to refuse while these entries are in hand: they say that in explore mode a drift of about a kelvin does not move a decade and can be ignored, and that is the ROOM's drift feeding the viscosity. Illumination heating of the sample is a different quantity that nothing here bounds, and borrowing the room's tolerance for it would be reading a permission out of an unrelated measurement",
+      "missing": [
+        "sample_heating_rate"
+      ]
+    },
+    {
+      "inequality": "concentration_window",
+      "parameter": "number_density",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "nothing states how many tracers are in the sample or in a field: no concentration, no count, no dilution record. The same number is what A2's ensemble size wants, and the two bounds are not the same: A2 asks how many tracers the statistics need, this one asks what loading the sample tolerates before tracers interact or their images overlap. One measurement closes both",
+      "missing": [
+        "number_density"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what m"
+    },
+    {
+      "entry_id": "sample_temperature_not_actuated",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Sample temperature is not under control on this instrument. A temperature stage exists but has never been connected, so nothing actuates the sample temperature and there is no setpoint to appeal to: a"
+    },
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "tracer_number_density_from_diameter",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The number of Abvigen AFR-0500-COOH particles per millilitre of the as-supplied 10 mg/ml suspension is 6*C/(pi*rho*d**3), where C is the mass concentration, rho the particle density 1.03 g/cm3 and d t"
+    },
+    {
+      "entry_id": "tracer_particle_density",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The Abvigen AFR-0500-COOH particle material has a density of 1.03 g/cm3, which is independent of the diameter supplied."
+    },
+    {
+      "entry_id": "tracer_stock_concentration",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The Abvigen AFR-0500-COOH product is supplied as a suspension at a mass concentration of 10 mg/ml, in volumes of 10 ml or 20 ml."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "tracer_photophysics",
+      "observable": "bleaching_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=bleaching_rate, caller_id=mic-20260918-001:v6:widefield_inline:a3, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260918-001:v6:widefield_inline:a3",
+      "asked_at": "2026-09-24T14:58:47+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "tracer_loading",
+      "observable": "number_density",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=number_density, caller_id=mic-20260918-001:v6:widefield_inline:a3, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260918-001:v6:widefield_inline:a3",
+      "asked_at": "2026-09-24T14:58:58+00:00",
+      "near_names": [
+        "abvigen_product_number_density",
+        "tracer_number_density_from_diameter"
+      ]
+    },
+    {
+      "gap_id": "photodamage_threshold",
+      "observable": "photodamage_threshold",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=photodamage_threshold, caller_id=mic-20260918-001:v6:widefield_inline:a3, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260918-001:v6:widefield_inline:a3",
+      "asked_at": "2026-09-24T14:58:51+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "optical_heating",
+      "observable": "sample_heating_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=sample_heating_rate, caller_id=mic-20260918-001:v6:widefield_inline:a3, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260918-001:v6:widefield_inline:a3",
+      "asked_at": "2026-09-24T14:58:55+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "Answered by the librarian service rather than by reading the store, which is what makes degraded empty: 6 entries came back with their own grades and 4 questions came back absent, all at the pinned kbv-4b981dc870d3, and every call is in librarian_agent/queries/log.jsonl under this caller_id. The counts and the version in this sentence are computed rather than typed -- three cards carried a stale pin here after a re-pin because they were typed. Four bounds, four missing numbers, and three of the four are one experiment: point this illumination at these tracers and watch them bleach. That run yields the bleaching rate, a damage threshold and -- with a thermometer at the sample -- a heating rate, and it is the single cheapest thing anyone could do for this fan-out. The fourth, the tracer loading, is not an experiment but a record nobody kept. The sharpest thing in this card is not a number and not this axis's alone: the sample is spent by the measurement. A2 reads that as one mount, so no repeat can average anything away. A3 reads it as an illumination budget that setup draws down before the record begins. Both follow from one sentence on the goal card, and it is worth S4 seeing that the two axes are not making the same point twice.",
+  "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
+}
