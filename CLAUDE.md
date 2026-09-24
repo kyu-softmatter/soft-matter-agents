@@ -445,6 +445,8 @@ magnitude. See §5.8.
 filenames, not just contents: a filename carries vocabulary, and vocabulary
 carries design.
 
+**One narrow exception, 2026-09-24, the person's own and confirmed directly:** `librarian-agent` (at `C:\librarian-agent` on the microscope computer) was opened for **one search only** -- the confocal/illumination power calibration -- with every item found ruled under §10.2.1, nothing copied as-is, and no safety limit crossing. Nothing else in it may be consulted, and the other two stay closed. See §10.2.
+
 **`agentic-microscope` was opened on 2026-09-17**, by the person, with the
 condition that nothing is transplanted as-is and that anything over-claimed is
 downgraded or dropped. That condition is §10.2.1: every item coming across is
