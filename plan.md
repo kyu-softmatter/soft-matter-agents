@@ -2871,7 +2871,7 @@ is never touched. The revision comes later, with `013`, and then the corrected c
 
 | Number | What | Seat holding it |
 |---|---|---|
-| _(empty)_ | 85 reached declaration on 2026-09-24; **an empty table is the normal state** |  |
+| 86 | an operation plan (§11-21, settled 2026-09-24): no S3 to S5; one device, one axis per action; every commanded position inside the envelope's limits, with a missing limit refusing; reversible only; a sine host-timed, on X or Y only, with every point inside the limits; on Z only the direction-finding step until that direction is recorded; states what it verifies and what would falsify it | manager-microscope-20260924-1 |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
 
