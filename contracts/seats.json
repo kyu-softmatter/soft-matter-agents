@@ -550,6 +550,14 @@
         "microscope_agent"
       ],
       "note": "The second microscope execution session of 2026-09-24, running CONCURRENTLY beside microscope-20260924-1, which is live and preparing the first real acquisition on the microscope computer. The person said so directly in the architecture session -- they opened 'Microscope session 2' to build a proper setup for the other devices (the piezo stage, the optical tweezers and the confocal laser) while the first session checks the microscope -- so this is the statement a_seat_is_minted_only_on_a_statement asks for, not a relay. Registered before its first commit, since the registry is read at a commit's parent. The person seats the session in that session; this row is a name, not a seating. Two sessions doing one agent's work in one working copy is the shape 6.2.1 warns about, and microscope_agent/ is not divided by `paths` between them, so the division is by card: that session's card keeps it off the files the first session's run imports and off every device while that run holds the hardware. `owns` copied by code from microscope-20260924-1; n is 2, second of this role today."
+    },
+    {
+      "seat": "microscope-20260924-3",
+      "committer_email": "microscope-20260924-3@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "note": "The third microscope execution session of 2026-09-24, created 18:41 local, running CONCURRENTLY beside microscope-20260924-1 (on the hardware, taking the first real acquisition) and microscope-20260924-2 (planning the 20x question and preparing the piezo, tweezers and confocal laser). The person told the architecture session directly that it exists, and the session reports the person gave it this name in its own window -- the statement a_seat_is_minted_only_on_a_statement asks for, concurrent rather than replacing. Registered before its first commit. Three sessions on one agent in one working copy with no `paths` between them: the division is by card alone, and one microscope means at most one of the three holds the hardware at a time. `owns` copied by code from microscope-20260924-2; n is 3."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
