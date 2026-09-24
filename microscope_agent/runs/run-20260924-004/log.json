@@ -1,0 +1,849 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260924-004",
+  "plan_id": null,
+  "revision": null,
+  "no_plan_because": "A read-only first contact with the piezo controller: it opens the port, reads the command set, positions, calibrated range, security level and the analogue/digital path setting, and closes. It moves nothing, so no plan governs a motion, and card 035 phase B step 1 orders exactly this before any planned operation. The manager relayed the person's choice of check-first on 2026-09-24.",
+  "not_dispatched": "This run did NOT come through the plan dispatcher and dispatches nothing to piezo_stage: it is src/session_035_readonly.py, committed before the run, sending only .get commands from the approved list through a read-only link that refuses position writes and security changes.",
+  "approved_commands": {
+    "path": "microscope_agent/runs/run-20260924-004/commands.json",
+    "sha256": "f508160e164020a35363eedd22872a7d3259686cb638ef99422abc8de36a2343",
+    "approved_by": "the person, in microscope-20260924-2's window on 2026-09-24: 'Yes, run it' to the read-only list pinned by sha256 f508160e, and 'Read-only check first' before card 038's run"
+  },
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "stop_criteria": [],
+  "t0_wall": "2026-09-24T19:35:17.388+00:00",
+  "t0_mono": 827898.156,
+  "backend": "python_serial",
+  "time_base_note": "software offsets order the log and nothing else. A value physics depends on comes from a trigger counter or a device timestamp (4.6.9)",
+  "events": [
+    {
+      "t_mono": 0.0,
+      "time_base": "software",
+      "event": "not_dispatched",
+      "note": "This run did NOT come through the plan dispatcher and dispatches nothing to piezo_stage: it is src/session_035_readonly.py, committed before the run, sending only .get commands from the approved list through a read-only link that refuses position writes and security changes."
+    },
+    {
+      "t_mono": 0.015,
+      "time_base": "software",
+      "event": "approved_commands",
+      "path": "microscope_agent/runs/run-20260924-004/commands.json",
+      "sha256": "f508160e164020a35363eedd22872a7d3259686cb638ef99422abc8de36a2343",
+      "approved_by": "the person, in microscope-20260924-2's window on 2026-09-24: 'Yes, run it' to the read-only list pinned by sha256 f508160e, and 'Read-only check first' before card 038's run"
+    },
+    {
+      "t_mono": 0.015,
+      "time_base": "software",
+      "event": "bench",
+      "note": "the person handed the bench to microscope-20260924-2 in that seat's own window on 2026-09-24, and said NanoBench is closed and NIS is off"
+    },
+    {
+      "t_mono": 0.015,
+      "time_base": "software",
+      "event": "port_observation",
+      "note": "no handle listing was taken, so whether the vendor simulator opens a port remains unobserved; this run opens COM4 deliberately"
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "library_version",
+      "version": "2.8.1",
+      "path": "C:\\Program Files (x86)\\NanoBench 6000\\data\\controller_interface64.dll"
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "opened",
+      "address": "COM4",
+      "read_only": true
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "command_list",
+      "count": 184,
+      "commands": [
+        "controller.analogue-inputs.get",
+        "controller.channels.get",
+        "controller.sampling-time.get",
+        "controller.security.lock",
+        "controller.security.user.get",
+        "controller.security.user.set",
+        "controller.sensor-only.get",
+        "controller.status.get",
+        "controller.synchronisation.master.get",
+        "controller.synchronisation.slave.get",
+        "controller.tcpip-comms.ip-address.get",
+        "controller.tcpip-comms.tcp-port.get",
+        "function.state.get",
+        "function.trigger-inputs.enabled.get",
+        "function.trigger-inputs.pause.get",
+        "function.trigger-inputs.soft-stop.get",
+        "function.trigger-inputs.start.get",
+        "function.trigger-inputs.stop.get",
+        "function.trigger-inputs.unpause.get",
+        "function.trigger-output.fire",
+        "function.trigger-output.pulse-time.get",
+        "function.waveform-builder.staircase.hold-duration.get",
+        "function.waveform-builder.staircase.is-bidirectional.get",
+        "function.waveform-builder.staircase.repeat-count.get",
+        "function.waveform-builder.staircase.return-hold-duration.get",
+        "function.waveform-builder.staircase.return-step-duration.get",
+        "function.waveform-builder.staircase.start-hold-duration.get",
+        "function.waveform-builder.staircase.start-position.get",
+        "function.waveform-builder.staircase.start-step-duration.get",
+        "function.waveform-builder.staircase.step-distance.get",
+        "function.waveform-builder.staircase.step-duration.get",
+        "function.waveform-builder.staircase.steps.get",
+        "function.waveform-builder.staircase.trigger-output.delay.get",
+        "function.waveform-builder.staircase.trigger-output.trigger.get",
+        "function.waveform-generator.count.get",
+        "function.waveform-generator.failed-at-segment-index.get",
+        "function.waveform-generator.failure-cause.get",
+        "function.waveform-generator.prepare-waveform-status.get",
+        "function.waveform-generator.repeat-count.get",
+        "function.waveform-generator.repeat-end.get",
+        "function.waveform-generator.repeat-start.get",
+        "function.waveform-generator.sample-period.get",
+        "function.waveform-generator.segment.continue-position-velocity.get",
+        "function.waveform-generator.segment.duration.get",
+        "function.waveform-generator.segment.end-position.get",
+        "function.waveform-generator.segment.end-velocity.get",
+        "function.waveform-generator.segment.parameter.get",
+        "function.waveform-generator.segment.start-position.get",
+        "function.waveform-generator.segment.start-velocity.get",
+        "function.waveform-generator.segment.trigger-output.during-trigger-count.get",
+        "function.waveform-generator.segment.trigger-output.during-trigger-offset.get",
+        "function.waveform-generator.segment.trigger-output.during-trigger.get",
+        "function.waveform-generator.segment.trigger-output.end-trigger-offset.get",
+        "function.waveform-generator.segment.trigger-output.end-trigger.get",
+        "function.waveform-generator.segment.trigger-output.start-trigger-offset.get",
+        "function.waveform-generator.segment.trigger-output.start-trigger.get",
+        "function.waveform-generator.segment.type.get",
+        "function.waveform-generator.soft-stop-at-end.get",
+        "function.waveform-generator.trigger-output.end-trigger.get",
+        "function.waveform-generator.trigger-output.start-trigger.get",
+        "function.waveform-generator.waveform-duration.get",
+        "function.waveform.command-transition.get",
+        "function.waveform.count.get",
+        "function.waveform.data.get",
+        "function.waveform.iterations.get",
+        "function.waveform.repeat-count.get",
+        "function.waveform.repeat-end.get",
+        "function.waveform.repeat-start.get",
+        "function.waveform.sample-period.get",
+        "function.waveform.soft-stop-at-end.get",
+        "function.waveform.steps-per-sample.get",
+        "function.waveform.steps-per-trigger-out-pulse.get",
+        "function.waveform.trigger-at-sample-end.get",
+        "function.waveform.trigger-out-event.get",
+        "function.waveform.waveform-end.get",
+        "function.waveform.waveform-start.get",
+        "identity.hardware.bootloader-version.get",
+        "identity.hardware.caldate.get",
+        "identity.hardware.mandate.get",
+        "identity.hardware.part.get",
+        "identity.hardware.platform-version.get",
+        "identity.hardware.serial.get",
+        "identity.software.part.get",
+        "identity.software.reldate.get",
+        "identity.software.version.get",
+        "identity.stage.axisid.get",
+        "identity.stage.caldate.get",
+        "identity.stage.mandate.get",
+        "identity.stage.part.get",
+        "identity.stage.serial.get",
+        "protection.fan.heatsink.off-temperature.get",
+        "protection.fan.heatsink.on-temperature.get",
+        "protection.fan.mode.get",
+        "protection.fan.psu.off-temperature.get",
+        "protection.fan.psu.on-temperature.get",
+        "protection.fan.state.get",
+        "protection.overcurrent.current.get",
+        "protection.overcurrent.detect-threshold.get",
+        "protection.overcurrent.detect-time.get",
+        "protection.overcurrent.status.get",
+        "protection.thermal.heatsink.overtemperature-clear-threshold.get",
+        "protection.thermal.heatsink.overtemperature-clear-time.get",
+        "protection.thermal.heatsink.overtemperature-detect-threshold.get",
+        "protection.thermal.heatsink.overtemperature-detect-time.get",
+        "protection.thermal.heatsink.temperature.get",
+        "protection.thermal.psu.overtemperature-clear-threshold.get",
+        "protection.thermal.psu.overtemperature-clear-time.get",
+        "protection.thermal.psu.overtemperature-detect-threshold.get",
+        "protection.thermal.psu.overtemperature-detect-time.get",
+        "protection.thermal.psu.temperature.get",
+        "protection.thermal.status.get",
+        "resonance-detect.protective-shutdown.enable.get",
+        "resonance-detect.protective-shutdown.state.get",
+        "scope.data-select.get",
+        "scope.measurement.get",
+        "scope.routing.output-scaling.gain.get",
+        "scope.routing.output-scaling.offset-voltage.get",
+        "scope.routing.output-scaling.offset.get",
+        "scope.routing.to-output.get",
+        "scope.routing.to-snapshot.get",
+        "snapshot.capture.count.get",
+        "snapshot.response.count.get",
+        "snapshot.response.data-select.get",
+        "snapshot.response.data.get",
+        "snapshot.trigger-inputs.start-delay.get",
+        "snapshot.trigger-inputs.start.get",
+        "snapshot.trigger-inputs.stop.get",
+        "snapshot.trigger.from-target.get",
+        "snapshot.trigger.step.get",
+        "snapshot.trigger.to-target.get",
+        "stage.active-damping.enable.get",
+        "stage.calibration.preset.configuration-id.get",
+        "stage.calibration.preset.current.get",
+        "stage.calibration.preset.default.get",
+        "stage.calibration.preset.exists",
+        "stage.calibration.preset.is-factory.get",
+        "stage.calibration.preset.name.get",
+        "stage.calibration.status.get",
+        "stage.closed-loop.pid.control.get",
+        "stage.command.analogue.scaling.get",
+        "stage.mode-only.get",
+        "stage.mode.analogue-command.get",
+        "stage.mode.closed-loop.get",
+        "stage.mode.digital-command.get",
+        "stage.mode.freeze-servo-output.get",
+        "stage.mode.get",
+        "stage.mode.in-position-output-select.get",
+        "stage.mode.is-sensor-only.get",
+        "stage.position.absolute-command.get",
+        "stage.position.calibrated-range.maximum.get",
+        "stage.position.calibrated-range.minimum.get",
+        "stage.position.calibrated-range.range.get",
+        "stage.position.command.get",
+        "stage.position.measured.get",
+        "stage.position.measured.is-in-calibrated-range.get",
+        "stage.position.measured.is-readable.get",
+        "stage.position.stepped-command.get",
+        "stage.position.stepped-command.step-size.get",
+        "stage.position.stepped-command.steps.get",
+        "stage.range.closed-loop-command.maximum.get",
+        "stage.range.closed-loop-command.minimum.get",
+        "stage.range.closed-loop.maximum.get",
+        "stage.range.closed-loop.minimum.get",
+        "stage.range.closed-loop.range.get",
+        "stage.status.in-position.lpf-confirmed.get",
+        "stage.status.in-position.unconfirmed.get",
+        "stage.status.in-position.window-filter-confirmed.get",
+        "stage.status.servo-output-at-limits.get",
+        "stage.status.stage-connected.get",
+        "stage.status.stage-moving.get",
+        "stage.stepped.input.debounce-time.get",
+        "stage.stepped.input.enable.get",
+        "stage.stepped.input.is-quadrature.get",
+        "stage.stepped.input.reverse-direction.get",
+        "stage.stepped.input.step-direction.is-rising-edge.get",
+        "stage.stepped.output.is-quadrature.get",
+        "stage.stepped.output.quadrature.hold-time.get",
+        "stage.stepped.output.reverse-direction.get",
+        "stage.stepped.output.select.get",
+        "stage.stepped.output.send-full-value.get",
+        "stage.stepped.output.step-direction.hold-time.get",
+        "stage.stepped.output.step-direction.is-rising-edge.get",
+        "stage.stepped.output.step-direction.settle-time.get",
+        "stage.stepped.output.step-size.get"
+      ]
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "read",
+      "command": "controller.security.user.get",
+      "result": {
+        "security": "None"
+      }
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.position.measured.get 1",
+      "result": {
+        "value": "2.531508008e+004"
+      }
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.position.measured.get 2",
+      "result": {
+        "value": "6.070255371e+003"
+      }
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.position.measured.get 3",
+      "result": {
+        "value": "-1.721787842e+003"
+      }
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.position.calibrated-range.minimum.get 1",
+      "result": {
+        "value": "-0.000000000e+000"
+      }
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.position.calibrated-range.minimum.get 2",
+      "result": {
+        "value": "-0.000000000e+000"
+      }
+    },
+    {
+      "t_mono": 0.078,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.position.calibrated-range.minimum.get 3",
+      "result": {
+        "value": "-0.000000000e+000"
+      }
+    },
+    {
+      "t_mono": 0.078,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.position.calibrated-range.maximum.get 1",
+      "result": {
+        "value": "6.000000000e+008"
+      }
+    },
+    {
+      "t_mono": 0.078,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.position.calibrated-range.maximum.get 2",
+      "result": {
+        "value": "6.000000000e+008"
+      }
+    },
+    {
+      "t_mono": 0.078,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.position.calibrated-range.maximum.get 3",
+      "result": {
+        "value": "6.000000000e+008"
+      }
+    },
+    {
+      "t_mono": 0.094,
+      "time_base": "software",
+      "event": "read",
+      "command": "controller.analogue-inputs.get",
+      "result": {
+        "value": "3"
+      }
+    },
+    {
+      "t_mono": 0.094,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.hardware.bootloader-version.get",
+      "result": {
+        "version": "100794370"
+      }
+    },
+    {
+      "t_mono": 0.109,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.hardware.caldate.get",
+      "result": {
+        "caldate": "45371"
+      }
+    },
+    {
+      "t_mono": 0.109,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.hardware.mandate.get",
+      "result": {
+        "mandate": "45358"
+      }
+    },
+    {
+      "t_mono": 0.109,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.hardware.part.get",
+      "result": {
+        "part": "NPC-6330"
+      }
+    },
+    {
+      "t_mono": 0.109,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.hardware.platform-version.get",
+      "result": {
+        "version": "100794370"
+      }
+    },
+    {
+      "t_mono": 0.109,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.hardware.serial.get",
+      "result": {
+        "serial": "108564"
+      }
+    },
+    {
+      "t_mono": 0.125,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.software.part.get",
+      "result": {
+        "part": "0"
+      }
+    },
+    {
+      "t_mono": 0.125,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.software.reldate.get",
+      "result": {
+        "reldate": "45303"
+      }
+    },
+    {
+      "t_mono": 0.125,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.software.version.get",
+      "result": {
+        "version": "101122056"
+      }
+    },
+    {
+      "t_mono": 0.14,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.axisid.get 1",
+      "result": {
+        "axisid": "x"
+      }
+    },
+    {
+      "t_mono": 0.14,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.axisid.get 2",
+      "result": {
+        "axisid": "y"
+      }
+    },
+    {
+      "t_mono": 0.14,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.axisid.get 3",
+      "result": {
+        "axisid": "z"
+      }
+    },
+    {
+      "t_mono": 0.14,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.caldate.get 1",
+      "result": {
+        "caldate": "45370"
+      }
+    },
+    {
+      "t_mono": 0.156,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.caldate.get 2",
+      "result": {
+        "caldate": "45370"
+      }
+    },
+    {
+      "t_mono": 0.156,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.caldate.get 3",
+      "result": {
+        "caldate": "45370"
+      }
+    },
+    {
+      "t_mono": 0.156,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.mandate.get 1",
+      "result": {
+        "mandate": "45365"
+      }
+    },
+    {
+      "t_mono": 0.172,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.mandate.get 2",
+      "result": {
+        "mandate": "45365"
+      }
+    },
+    {
+      "t_mono": 0.172,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.mandate.get 3",
+      "result": {
+        "mandate": "45365"
+      }
+    },
+    {
+      "t_mono": 0.172,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.part.get 1",
+      "result": {
+        "part": "SP-XYZ-600"
+      }
+    },
+    {
+      "t_mono": 0.172,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.part.get 2",
+      "result": {
+        "part": "SP-XYZ-600"
+      }
+    },
+    {
+      "t_mono": 0.187,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.part.get 3",
+      "result": {
+        "part": "SP-XYZ-600"
+      }
+    },
+    {
+      "t_mono": 0.187,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.serial.get 1",
+      "result": {
+        "serial": "107866"
+      }
+    },
+    {
+      "t_mono": 0.187,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.serial.get 2",
+      "result": {
+        "serial": "107866"
+      }
+    },
+    {
+      "t_mono": 0.187,
+      "time_base": "software",
+      "event": "read",
+      "command": "identity.stage.serial.get 3",
+      "result": {
+        "serial": "107866"
+      }
+    },
+    {
+      "t_mono": 0.203,
+      "time_base": "software",
+      "event": "read",
+      "command": "protection.fan.mode.get",
+      "result": {
+        "value": "auto"
+      }
+    },
+    {
+      "t_mono": 0.203,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.command.analogue.scaling.get 1",
+      "result": {
+        "value": "6.000000000e+001"
+      }
+    },
+    {
+      "t_mono": 0.203,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.command.analogue.scaling.get 2",
+      "result": {
+        "value": "6.000000000e+001"
+      }
+    },
+    {
+      "t_mono": 0.219,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.command.analogue.scaling.get 3",
+      "result": {
+        "value": "6.000000000e+001"
+      }
+    },
+    {
+      "t_mono": 0.219,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode-only.get 1",
+      "result": {
+        "mode": "0x0327"
+      }
+    },
+    {
+      "t_mono": 0.219,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode-only.get 2",
+      "result": {
+        "mode": "0x0323"
+      }
+    },
+    {
+      "t_mono": 0.219,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode-only.get 3",
+      "result": {
+        "mode": "0x0323"
+      }
+    },
+    {
+      "t_mono": 0.234,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.analogue-command.get 1",
+      "result": {
+        "value": "0"
+      }
+    },
+    {
+      "t_mono": 0.234,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.analogue-command.get 2",
+      "result": {
+        "value": "0"
+      }
+    },
+    {
+      "t_mono": 0.234,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.analogue-command.get 3",
+      "result": {
+        "value": "0"
+      }
+    },
+    {
+      "t_mono": 0.25,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.closed-loop.get 1",
+      "result": {
+        "value": "1"
+      }
+    },
+    {
+      "t_mono": 0.25,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.closed-loop.get 2",
+      "result": {
+        "value": "1"
+      }
+    },
+    {
+      "t_mono": 0.25,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.closed-loop.get 3",
+      "result": {
+        "value": "1"
+      }
+    },
+    {
+      "t_mono": 0.25,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.digital-command.get 1",
+      "result": {
+        "value": "1"
+      }
+    },
+    {
+      "t_mono": 0.25,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.digital-command.get 2",
+      "result": {
+        "value": "1"
+      }
+    },
+    {
+      "t_mono": 0.265,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.digital-command.get 3",
+      "result": {
+        "value": "1"
+      }
+    },
+    {
+      "t_mono": 0.265,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.freeze-servo-output.get 1",
+      "result": {
+        "value": "0"
+      }
+    },
+    {
+      "t_mono": 0.265,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.freeze-servo-output.get 2",
+      "result": {
+        "value": "0"
+      }
+    },
+    {
+      "t_mono": 0.281,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.freeze-servo-output.get 3",
+      "result": {
+        "value": "0"
+      }
+    },
+    {
+      "t_mono": 0.281,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.get 1",
+      "result": {
+        "status": "0x0B17",
+        "mode": "0x0327"
+      }
+    },
+    {
+      "t_mono": 0.281,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.get 2",
+      "result": {
+        "status": "0x0B17",
+        "mode": "0x0323"
+      }
+    },
+    {
+      "t_mono": 0.281,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.get 3",
+      "result": {
+        "status": "0x0B17",
+        "mode": "0x0323"
+      }
+    },
+    {
+      "t_mono": 0.297,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.in-position-output-select.get 1",
+      "result": {
+        "value": "0"
+      }
+    },
+    {
+      "t_mono": 0.297,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.in-position-output-select.get 2",
+      "result": {
+        "value": "0"
+      }
+    },
+    {
+      "t_mono": 0.312,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.in-position-output-select.get 3",
+      "result": {
+        "value": "0"
+      }
+    },
+    {
+      "t_mono": 0.312,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.is-sensor-only.get 1",
+      "result": {
+        "value": "0"
+      }
+    },
+    {
+      "t_mono": 0.312,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.is-sensor-only.get 2",
+      "result": {
+        "value": "0"
+      }
+    },
+    {
+      "t_mono": 0.328,
+      "time_base": "software",
+      "event": "read",
+      "command": "stage.mode.is-sensor-only.get 3",
+      "result": {
+        "value": "0"
+      }
+    },
+    {
+      "t_mono": 0.328,
+      "time_base": "software",
+      "event": "read",
+      "command": "controller.security.user.get",
+      "result": {
+        "security": "None"
+      }
+    },
+    {
+      "t_mono": 0.344,
+      "time_base": "software",
+      "event": "closed",
+      "address": "COM4"
+    },
+    {
+      "t_mono": 0.359,
+      "time_base": "software",
+      "event": "run_end",
+      "outcome": "completed"
+    }
+  ],
+  "finished_at": "2026-09-24T19:35:17+00:00"
+}
