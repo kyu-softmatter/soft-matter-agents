@@ -170,11 +170,22 @@ def _ineq(text, parameter, interval=None, precondition=None):
 
 def a1(goal, numbers, assumptions):
     g = _spacing(goal, numbers, assumptions)
-    numbers.append(cards.num("gamma_max", 1000, "1", "assumed:a_sweep_corner", precision="order_of_magnitude",
-                             note="the largest U0/kT in the sweep; the stiff corner A1 must survive"))
-    numbers.append(cards.num("kappa_a_max", 10, "1", "assumed:a_sweep_corner", precision="order_of_magnitude",
-                             note="the shortest range in the sweep, as kappa times the mean spacing"))
-    numbers.append(cards.num("curvature_factor", _oom(1000 * (100 + 20 + 2)), "1", "computed:yukawa_curvature_at_spacing",
+    # The sweep corners: the goal's when it carries them (revision 2 onward,
+    # the person's ruling carried as an authorised assumption), else this
+    # axis's own convention (revision 1).
+    goal_names = {n["name"] for n in goal.get("numbers") or []}
+    corners_from_goal = {"gamma_max", "kappa_a_max"} <= goal_names
+    if corners_from_goal:
+        carried, carried_assumptions = cards.carry(goal, ["gamma_max", "kappa_a_max"])
+        numbers += carried
+        assumptions += carried_assumptions
+    else:
+        numbers.append(cards.num("gamma_max", 1000, "1", "assumed:a_sweep_corner", precision="order_of_magnitude",
+                                 note="the largest U0/kT in the sweep; the stiff corner A1 must survive"))
+        numbers.append(cards.num("kappa_a_max", 10, "1", "assumed:a_sweep_corner", precision="order_of_magnitude",
+                                 note="the shortest range in the sweep, as kappa times the mean spacing"))
+    G, K = _value(numbers, "gamma_max"), _value(numbers, "kappa_a_max")
+    numbers.append(cards.num("curvature_factor", _oom(G * (K * K + 2 * K + 2)), "1", "computed:yukawa_curvature_at_spacing",
                              formula="gamma_max*(kappa_a_max**2 + 2*kappa_a_max + 2)",
                              inputs=[("gamma_max", "E5"), ("kappa_a_max", "E5")], precision="order_of_magnitude",
                              note="a**2 u''(a) / kT for u = U0 (a/r) exp(-kappa (r-a)); the ratio of the Brownian time to the curvature relaxation time"))
@@ -201,7 +212,7 @@ def a1(goal, numbers, assumptions):
     numbers.append(cards.num("noise_step_fraction", 0.1, "1", "assumed:a_noise_step", precision="order_of_magnitude",
                              note="the rms noise displacement per step as a fraction of the screening length"))
     a = _value(numbers, "mean_spacing"); D0 = _value(numbers, "diffusivity")
-    numbers.append(cards.num("screening_length_min", _oom(a / 10), "um", "computed:spacing_over_kappa_a",
+    numbers.append(cards.num("screening_length_min", _oom(a / K), "um", "computed:spacing_over_kappa_a",
                              formula="mean_spacing/kappa_a_max", inputs=[("mean_spacing", "E5"), ("kappa_a_max", "E5")],
                              precision="order_of_magnitude"))
     dt_noise = (0.1 * _value(numbers, "screening_length_min")) ** 2 / (2 * D0)
@@ -210,11 +221,13 @@ def a1(goal, numbers, assumptions):
                              inputs=[("noise_step_fraction", "E5"), ("screening_length_min", "E5"), ("diffusivity", g["diffusivity"])],
                              precision="order_of_magnitude",
                              note="sqrt(2 D0 dt) must stay inside the potential's range or a step carries a particle across it in one move"))
+    if not corners_from_goal:
+        assumptions.append(
+            {"rationale_id": "a_sweep_corner", "gap_ref": "yukawa_coupling_sweep_range_absent",
+             "statement": "The person left the ranges to S3. Gamma from 10 to 1000 spans the 2D Yukawa fluid, its ordering, and a stiff crystal; kappa a from 1 to 10 spans long-ranged to nearly hard. The stiff corner, Gamma 1000 at kappa a 10, is what the timestep has to survive, and the bound scales as 1/(Gamma (kappa a)**2) away from it.",
+             "numbers": ["gamma_max", "kappa_a_max"],
+             "falsifier": "a first run showing psi6 already at its plateau at the lowest Gamma, or unreachable inside budget at the highest, moves the corresponding end by a decade"})
     assumptions += [
-        {"rationale_id": "a_sweep_corner", "gap_ref": "yukawa_coupling_sweep_range_absent",
-         "statement": "The person left the ranges to S3. Gamma from 10 to 1000 spans the 2D Yukawa fluid, its ordering, and a stiff crystal; kappa a from 1 to 10 spans long-ranged to nearly hard. The stiff corner, Gamma 1000 at kappa a 10, is what the timestep has to survive, and the bound scales as 1/(Gamma (kappa a)**2) away from it.",
-         "numbers": ["gamma_max", "kappa_a_max"],
-         "falsifier": "a first run showing psi6 already at its plateau at the lowest Gamma, or unreachable inside budget at the highest, moves the corresponding end by a decade"},
         {"rationale_id": "a_dt_factor", "gap_ref": "integration_timestep_resolution_factor_absent",
          "statement": "Two decades below the shortest resolved time is the usual margin for an overdamped integrator with a stiff repulsion; a convention, not a derivation, and no timestep scan on this model has been run.",
          "numbers": ["dt_resolution_factor"],
@@ -227,15 +240,15 @@ def a1(goal, numbers, assumptions):
     return dict(
         method="deterministic", verdict="feasible",
         constraints=[
-            _interval("integration_timestep", "s", "dt_max_curvature", max=_oom(0.01 * ct)),
-            _interval("integration_timestep", "s", "dt_max_noise", max=_oom(dt_noise)),
+            {**_interval("integration_timestep", "s", "dt_max_curvature", max=_oom(0.01 * ct)), "varies_with": ["gamma", "kappa_a"]},
+            {**_interval("integration_timestep", "s", "dt_max_noise", max=_oom(dt_noise)), "varies_with": ["kappa_a"]},
             _interval("integration_timestep", "s", "dt_max_brownian", max=_oom(0.01 * tau_b)),
         ],
         inequalities=[
             _ineq("dt << gamma / u''(a) at the stiffest point of the sweep", "integration_timestep",
-                  interval=_interval("integration_timestep", "s", "dt_max_curvature", max=_oom(0.01 * ct))),
+                  interval={**_interval("integration_timestep", "s", "dt_max_curvature", max=_oom(0.01 * ct)), "varies_with": ["gamma", "kappa_a"]}),
             _ineq("sqrt(2 D0 dt) << 1/kappa", "integration_timestep",
-                  interval=_interval("integration_timestep", "s", "dt_max_noise", max=_oom(dt_noise))),
+                  interval={**_interval("integration_timestep", "s", "dt_max_noise", max=_oom(dt_noise)), "varies_with": ["kappa_a"]}),
             _ineq("dt << a**2 / D0", "integration_timestep",
                   interval=_interval("integration_timestep", "s", "dt_max_brownian", max=_oom(0.01 * tau_b))),
         ],
@@ -302,7 +315,7 @@ def a3(goal, numbers, assumptions):
             _ineq("N = (L/a)**2 at the reference density", "n_particles", interval=_interval("n_particles", "1", "n_particles_min", min=900)),
             _ineq("the periodic box is commensurate with a triangular lattice", "box_aspect",
                   precondition={"parameter": "box_aspect",
-                                "requires": "Choose n_particles = 2*m*n and a box with Ly/Lx = n*sqrt(3)/(2*m) at the target density, so that a defect-free triangular lattice fits the periodic cell. Otherwise the psi6 plateau is capped by frustration and the relaxation time measures the box, not the suspension.",
+                                "requires": "Choose n_particles = rows_x * rows_y with rows_y even, and a box Lx = rows_x * a_lat, Ly = rows_y * (sqrt(3)/2) * a_lat with a_lat the lattice constant at the target density, so that a defect-free triangular lattice fits the periodic cell; the backend derives Lx and Ly from the three plan integers rather than the plan carrying an irrational edge. Otherwise the psi6 plateau is capped by frustration and the relaxation time measures the box, not the suspension.",
                                 "basis": ["n_particles_min"]}),
             _ineq("the potential cutoff is inside half the box and outside the potential's reach", "potential_cutoff",
                   precondition={"parameter": "potential_cutoff",
