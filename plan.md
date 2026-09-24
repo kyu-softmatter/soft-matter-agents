@@ -1584,6 +1584,22 @@ a corner skipped because it diverges -- and points alone cannot say a corner is 
 intended. **Together the omission is visible instead of silent**, which is the same reason a plan
 declares its stop criterion before the run. Schemas are `manager-simulation`'s; this fixes what the
 contract must mean, not how the JSON spells it. `041` waiting rather than inventing a field was right.
+
+**And the ruling produced a form the validator refuses, which is the ordering this document keeps
+relearning (2026-09-23).** Check 40 requires a window-dependent observable's window to appear among a
+plan's conditions, and it reads **only the top-level `conditions`**. `simulation-8`'s drag-offset
+observable takes its window as a multiple of the local relaxation time, so over a stiffness sweep the
+window differs at every point -- exactly the case `varies_with` exists for and the sweep invariant permits
+-- and a per-point window cannot stand where check 40 looks. **So a correct sweep plan cannot pass.** The
+seat found it by trying, and cut revision 3 to a single smoke cell, which was right on its own terms: the
+cost bracket spanned three decades, and the measured cost, 1.9 us per step at N = 1, came in three decades
+under its conservative end, so planning eight cells first would have put most of them on a wrong number.
+**Check 40 must read `sweep.points[].conditions` as well and require the window at every kept point**;
+until it does, a sweep with a per-point window is unwritable. That is `manager-simulation`'s to land, and
+it lands before the first full sweep -- the same order as a path entering `ALLOWED_PATHS` before §7 names
+it, and as the validator accepting a seat-name form before a seat of that form is minted. **A contract
+ruling is not finished when it is written; it is finished when the checks that read the old form have
+been told about the new one.**
 - `intent` — `explore` | `confirm`. How the target is expressed and how comparison works divide here (§5.8)
 - `observable` — what is being measured or computed. **One id from `contracts/observables.json`**, with the definition, `estimator` and window requirement read from that entry. It is not that the name suffices but that **the name is the reference to that entry**, and a card restating the definition splits the copy (§5.1). Until 2026-09-18 this line read "the definition too; the name alone is insufficient" — **it was never wrong.** It was written when there was no vocabulary to point at, and then there was no way other than writing the definition into the card. It survived after the vocabulary existed and became **the grounds forcing a second copy**
 - `system_configuration` — **by which configuration it is obtained**: device set, optical path and modality (microscope), or model and engine (simulation)
