@@ -315,6 +315,19 @@ them, and does not spend the one sample mount.
 - **Pixel size**: `pixel_size_20x_zoom_1x`, E2, through the librarian with an
   issued caller_id, at **1×1 binning** (its validity condition). Set binning
   and read it back
+- **Every frame's metadata will carry a pixel size of 0.32373 µm, and that
+  figure is not a source.** The file's `PixelSize` block puts it there:
+  Micro-Manager stamps `getPixelSizeUm()` into each frame. **Nothing
+  downstream may take a pixel size from frame metadata.** Any pixel size used
+  comes from the store entry above. **The run log says so in words**: that
+  frame metadata carries a figure from the loaded configuration, and that it
+  is not a source. Added 2026-09-24 on architecture's ruling (`32e2263`):
+  the file is ruled a transfer, and its figures are discarded as a source.
+  **The two numbers are identical, and that is not corroboration.** The file
+  says its table came from an April 2025 spreadsheet. The store's source
+  says the day of measurement was never recorded, only the day it was
+  reported. They are very likely one measurement, not two. So the E2 is the
+  store's grade for that measurement, and the file adds nothing to it
 - **Bleaching spends a field.** Before each run the person moves to a fresh
   field by hand, and the run waits for the person to confirm it on the
   manual sheet (`manual.confirm`). Never on a timer
