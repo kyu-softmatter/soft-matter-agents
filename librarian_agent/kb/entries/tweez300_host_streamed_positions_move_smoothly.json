@@ -1,0 +1,21 @@
+{
+  "entry_id": "tweez300_host_streamed_positions_move_smoothly",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Absolute TRAP_POSITION commands streamed from the host at 10 Hz move a Tweez 300 trap smoothly by eye.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    }
+  ],
+  "source": "operator_read:kyuhwan_20260924_tweezers",
+  "grade": "E3",
+  "grade_tag": "operator_read",
+  "source_ref": "src_operator_read_20260924_tweezers",
+  "validity_conditions": "One run of 61 commands tracing a circle and returning to 0 0; the person saw it move smoothly and end at the centre. 'Smoothly' is by eye on the GUI, not a measurement of position or timing; wall time was 6.016 s against 6.0 s planned, on the host clock. Record: D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl line 116.\n\nCONDITIONS OF THE SESSION, AND WHAT THEY RULE OUT. 2026-09-24, 12:05-12:33 local, the Tweez 300 GUI driven over TCP by microscope-20260924-4 while the person watched the GUI and said what it showed. The 100x objective was in the path and a sample was mounted -- both stated by the person after the commands. The trapping laser's emission was off -- also stated after the fact, and not logged before the first command. The GUI's calibrations were not stated, so NOTHING HERE IS A MICROMETRE: positions are GUI coordinates and moves are directions on screen. What this is: the person reading the GUI display. What it is not: an observation of light, force or a particle.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-1"
+}

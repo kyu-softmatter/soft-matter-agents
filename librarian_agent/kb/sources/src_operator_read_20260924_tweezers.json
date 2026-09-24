@@ -1,0 +1,17 @@
+{
+  "not_seen_on_this_bench": "COUNTED HERE FROM THE RECORD: 75 dispatches, replies by status {-22: 1, 0: 74}. So on this bench, as of this session, NONE of these has been seen: a busy answer (-14); a command with no reply; the wait codes -16, -17, -19 or the fix-by-hand codes -15, -18. Whatever a driver does on them is untested here. Nor is it known whether the GUI's two calibrations (pixel to micrometre, and the trapping field) were made at the 100x -- the person was not asked. Delivered as `unmeasured` items at e4ebe78; carried here rather than as entries because a thing not yet seen is not a claim about the device.",
+  "source_id": "src_operator_read_20260924_tweezers",
+  "kind": "operator_read",
+  "identifier": "The person's readings of the Tweez 300 GUI during a software-only TCP session on 2026-09-24, as logged in D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl (sha256 e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736), the person_observed lines.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, operator_read: the person read the GUI display as each command landed. Not E1: this was not a run with a plan and has no run_id, and its record sits outside runs/ by architecture's ruling.",
+  "license_note": "Identifier only.",
+  "record": {
+    "path": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl",
+    "sha256": "e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736",
+    "delivered_by": "microscope-20260924-4, findings file microscope_agent/findings/microscope-20260924-4-20260924.json at e4ebe78 (superseding e6122e9)"
+  },
+  "conditions": "CONDITIONS OF THE SESSION, AND WHAT THEY RULE OUT. 2026-09-24, 12:05-12:33 local, the Tweez 300 GUI driven over TCP by microscope-20260924-4 while the person watched the GUI and said what it showed. The 100x objective was in the path and a sample was mounted -- both stated by the person after the commands. The trapping laser's emission was off -- also stated after the fact, and not logged before the first command. The GUI's calibrations were not stated, so NOTHING HERE IS A MICROMETRE: positions are GUI coordinates and moves are directions on screen. What this is: the person reading the GUI display. What it is not: an observation of light, force or a particle.",
+  "corrections_that_arrived_after": "The seat's first report said no sample and laser off. 'No sample' was its inference and was wrong -- a sample was mounted (microscope_agent/failures.jsonl at 666278e). 'Laser off' rested on the person choosing the seat's wording 'off or dial at zero'; the person then said 'emission was off' (failures.jsonl line at 2026-09-24T20:07:41Z, e6122e9). Both are the person's statements after the fact, and the entries were held until the second arrived.",
+  "not_entered": "The sample, the objective and the laser state are conditions of this session and are carried here rather than as entries, because none is a claim anyone would query for outside it."
+}

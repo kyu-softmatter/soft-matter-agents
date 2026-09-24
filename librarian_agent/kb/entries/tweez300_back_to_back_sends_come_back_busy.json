@@ -1,0 +1,40 @@
+{
+  "entry_id": "tweez300_back_to_back_sends_come_back_busy",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The Tweez 300 GUI answers -14 (busy) to commands sent back to back on one socket: with no gap 16 of 24 readiness probes came back busy, and 0 of 24 at every gap tried from 2 ms up -- but a trap-create command still came back busy at a 10 ms gap, so the settling time depends on the command.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "busy_fraction_at_zero_gap",
+      "value": 16,
+      "unit": "count",
+      "source": "prior_run:agentic-microscope@fbedef0",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "of 24 readiness probes"
+    },
+    {
+      "name": "smallest_gap_with_no_busy_probe",
+      "value": 2,
+      "unit": "ms",
+      "source": "prior_run:agentic-microscope@fbedef0",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "gaps tried: 2, 5, 10, 20, 50, 100 ms; 0 of 24 busy at each. A floor for the probe command only."
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0",
+  "grade": "E3",
+  "source_ref": "src_prior_tweezers_driver_20260827",
+  "validity_conditions": "Measured in the prior project on the microscope PC on 2026-08-27. -14 is an explicit rejection -- the GUI answered and did not run the command -- which is what makes re-sending on -14 safe, and a missing reply is the case that must never be re-sent, since relative commands would move a trap twice. Ruled TRANSFER for the measurement; the prior driver's chosen gap, retry count, backoff and timeout were not transferred (src_prior_tweezers_driver_20260827). The 2026-09-24 session used those choices and saw no busy answer in 75 commands, which neither confirms nor bounds anything here.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-1"
+}
