@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "agent": "microscope_agent",
   "status": "populated",
-  "pending": "Declared 2026-09-17 by the microscope session, on the operator's statement that single-particle tracking is possible in every configuration. Read as the four imaging configurations: trapping has no detector of its own in the optical path table, it composes with an imaging configuration rather than replacing one, and the schema forbids produces on a perturbation -- so reading the answer as five is not even expressible. A diffusivity measured while a trap is on was produced by the imaging configuration the trap rides on. What remains open is the rest of the vocabulary: more observables arrive one at a time as questions need them (11-1).",
+  "pending": "Declared 2026-09-17 by the microscope session, on the operator's statement that single-particle tracking is possible in every configuration. Read as the four imaging configurations: trapping has no detector of its own in the optical path table, it composes with an imaging configuration rather than replacing one, and the schema forbids produces on a perturbation -- so reading the answer as five is not even expressible. A diffusivity measured while a trap is on was produced by the imaging configuration the trap rides on. What remains open is the rest of the vocabulary: more observables arrive one at a time as questions need them (11-1). mean_squared_displacement was added on 2026-09-23 under that growth rule, on a request from the bridge: four VALIDATED simulation plans compute as not producible by experiment, and the only thing blocking them is this table. IT IS NOT A NEW CLAIM ABOUT THE INSTRUMENT. tracer_diffusivity is already declared on all four imaging configurations and observables.json defines it as the proportionality between mean squared displacement and lag time, so a configuration that produces the fit produces the curve the fit is taken from; declaring only the fit was an omission rather than a narrower capability. DECLARING IT ASSERTS NOTHING ABOUT ANY PARTICULAR OPERATING POINT. Capability is what the instrument can produce; whether a plan's numbers fit is the axes' question, and for the active-particle plans they very likely do not -- at the 30 um/s the person reported, a persistence length of roughly 3 mm sits far outside every field this instrument has (2400 px x 6.5 um / M: 156 um at 100x, 390 um at 40x, 3900 um at 4x, computed from the sensor spec at E3). An axis refusing that operating point is this table working, not failing. The five further observables the simulation's active-particle configurations emit -- effective_translational_diffusivity, msd_loglog_slope, persistence_time, persistence_length, dynamical_crossover_time -- are NOT declared here: they are analyses of the same curve, no question has asked for them yet, and the growth rule is one at a time. trapped_particle_drag_offset is also not declared, and that one is a real no: the usual method drives the sample past the trap at a controlled constant velocity, the piezo_stage channel carries ZERO elements so nothing can be commanded on it, and motor_stage is recorded as coarse xy. Nothing on disk says either moves at a controlled velocity, and declaring it would be inventing the capability rather than reading it.",
   "configurations": [
     {
       "config": "transmitted",
@@ -17,6 +17,7 @@
       ],
       "produces": [
         "tracer_diffusivity",
+        "mean_squared_displacement",
         {
           "id": "trapped_position_distribution",
           "requires_composition": [
@@ -41,6 +42,7 @@
       ],
       "produces": [
         "tracer_diffusivity",
+        "mean_squared_displacement",
         {
           "id": "trapped_position_distribution",
           "requires_composition": [
@@ -66,6 +68,7 @@
       ],
       "produces": [
         "tracer_diffusivity",
+        "mean_squared_displacement",
         {
           "id": "trapped_position_distribution",
           "requires_composition": [
@@ -91,6 +94,7 @@
       ],
       "produces": [
         "tracer_diffusivity",
+        "mean_squared_displacement",
         {
           "id": "trapped_position_distribution",
           "requires_composition": [
