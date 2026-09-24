@@ -1,0 +1,21 @@
+{
+  "entry_id": "tweez300_does_not_restore_last_project",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The Tweez 300 program does not reload its last project when it starts, so traps, strengths and patterns left active when it was closed do not come back on their own at the next start.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    }
+  ],
+  "source": "operator_recall:kyuhwan_20260924",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_operator_recall_20260924",
+  "validity_conditions": "The Tweez 300 software as installed on this bench on 2026-09-24, started normally. The person's words were \"it doesn't restore the last project\", relayed by microscope-20260924-4.\n\nWHY IT MATTERS. Loading saved state is a way for output to rise with no output command: on 2026-09-24 the program was closed with two traps active (strengths 0.3 and 0.2) and a pattern loaded. If they came back on start, a session would meet an active trap before sending anything.\n\nWHAT WOULD FALSIFY IT. A start that shows the previous session's traps or pattern. It is a statement of behaviour, not of a setting anyone has read, so a program option, an update, or a start that opens a project file (the TCP command set has LOAD_PROJECT) could change it. At E5 it is a reason to expect an empty project and never a reason to skip checking for one.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-1"
+}
