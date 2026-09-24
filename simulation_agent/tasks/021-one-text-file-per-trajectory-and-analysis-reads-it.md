@@ -86,3 +86,31 @@ seed, configuration) and the hash that will verify it.
   counts the new run as present.
 
 Report the check-83 line you get, with its denominator.
+
+## Closed at ab334c9, and what happens to the GSD files already on disk
+
+Done by window 4 and measured on `run-20260923-042-small-s2`: one
+`trajectory.txt` (31 MB, 17 digits because the frames are float64) and no GSD
+beside it; the meta validates; both hashes recompute and match after a re-read;
+the reuse path refused a deleted file with the rerun recipe. Check 83 counted
+19 runs with a trajectory, 19 present.
+
+**The person decided (2026-09-23): the twelve GSD trajectories already on disk
+stay as they are, and only new runs write text.** Converting them was weighed and
+declined. It adds no information -- the positions are already in those files --
+and it would either keep the same data twice or delete originals that cannot be
+recovered. The size cost is not uniform: measured on two of them, a one-particle
+run SHRINKS as text (GSD's per-frame header outweighs one particle's coordinates)
+while a thirteen-particle run grows 1.7x, and the two 1000-particle runs that hold
+most of the 1.4 GB would grow severalfold against a 10 GB storage ceiling.
+
+**So a GSD trajectory is not a defect to fix.** The schema accepts it as the legacy
+form and check 83 counts it. Convert one only when an analysis actually needs it,
+and then mark the result as converted from GSD, not written by the run.
+
+**Not adopted: having the operator re-read every file it writes.** Whether text
+round-trips is a property of the writer's format -- 9 digits for float32 and 17
+for float64 return the same array by construction -- proven once on the run above
+and unable to change between runs unless the writer does. Re-parsing 30 MB to 2 GB
+on every run would pay repeatedly for that. The guard belongs to a test that runs
+when `src/trajectory.py` changes.
