@@ -1538,6 +1538,13 @@ ALLOWED_PATHS = [
     r"^(microscope|simulation)_agent/questions/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
     r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
+    # The microscope's device wrappers carry refusal tests that are watched
+    # failing (cards 035-037, 2026-09-24): three seats writing three wrappers
+    # at once, and a test beside its module in src/ would read as code the
+    # router can load. A tests/ directory of flat .py files, microscope only
+    # until the simulation asks. This list first, then section 7's item,
+    # which is architecture's, then check 13 goes green.
+    r"^microscope_agent/tests/[A-Za-z0-9_.-]+\.py$",
     r"^librarian_agent/CLAUDE\.md$",
     r"^((microscope|simulation|librarian)_agent|bridge)/failures\.jsonl$",
     # 7.1 rule 9. Beside failures.jsonl and deliberately the same idiom -- a
