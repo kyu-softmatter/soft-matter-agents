@@ -418,6 +418,20 @@
         "points"
       ],
       "additionalProperties": false
+    },
+    "smoke": {
+      "type": "object",
+      "required": [
+        "record_fraction"
+      ],
+      "additionalProperties": false,
+      "description": "How much smaller the smoke run is, declared before anything runs so the operator never chooses it (task 023). `record_fraction` names a number in numbers[] (unit 1, 0 < value <= 1) that shortens the record at the same save interval, so particle steps and saved frames shrink together and the two cost terms keep their ratio. A smoke run is calibration; its output never becomes a result card for the question.",
+      "properties": {
+        "record_fraction": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   },
   "required": [
