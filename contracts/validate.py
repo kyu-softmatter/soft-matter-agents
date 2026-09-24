@@ -1720,6 +1720,86 @@ def check_16_dependency_direction(b: Bundle) -> list[Finding]:
     return out or [Finding(16, PASS, f"{len(src)} source files respect the dependency direction")]
 
 
+
+DECISION_INPUT = re.compile(r"^(target|envelope):(.+)$")
+
+
+def resolve_decision_input(card: Card, ref: str) -> tuple[str, str, object, object, str | None]:
+    """Resolve a computed number's input that names a PERSON'S DECISION (5.3).
+
+    Returns (kind, identifier, value, unit, why_unresolved). The third widening
+    of `inputs`, for the reason the second had: on 2026-09-20 it gained
+    `kb:<entry_id>` because the entry existed and the field could not name it,
+    and a decision is the same case. Before this, a record length computed
+    from the person's 1 % target, or a step budget from the 2 h ceiling they
+    chose, could only put the decision into numbers[] under `assumed:` -- E5
+    -- and every value derived from it fell to E5 with it.
+
+    NOT A NEW SOURCE KIND, and that is the whole point. `decision:` was refused
+    on 2026-09-19 because the source table is a function from source to grade
+    and a source yielding no grade is a hole in P2's invariant; a `chosen:`
+    kind was drafted on 2026-09-23 and caught for being the same thing under a
+    new name. A decision here is an INPUT, not a source: the number it feeds
+    keeps its `computed:` source, and the decision is simply skipped when the
+    grade composes, so the result stays max(E4, worst graded input).
+
+    `target:<metric>` resolves to the entry of this card's own targets[] with
+    that metric. `envelope:<file>#<field>` resolves to the UNIQUE node holding
+    a value and a unit, in this agent's own envelope/<file>, whose path ends in
+    <field> read as dot-separated segments. More than one match is ambiguous
+    and is refused rather than guessed at, with the matching paths named so
+    the reference can be qualified.
+    """
+    m = DECISION_INPUT.match(str(ref))
+    kind, body = m.groups()
+    if kind == "target":
+        for t in card.data.get("targets") or []:
+            if isinstance(t, dict) and t.get("metric") == body:
+                return kind, body, t.get("value"), t.get("unit"), None
+        return kind, body, None, None, f"this card's targets[] carries no metric {body!r}"
+    if "#" not in body:
+        return kind, body, None, None, "an envelope input is written envelope:<file>#<field>"
+    fname, field = body.split("#", 1)
+    agent = card.rel.split("/")[0]
+    f = REPO / agent / "envelope" / fname
+    if not f.exists():
+        return kind, field, None, None, f"{agent}/envelope/{fname} is not in this tree"
+    try:
+        doc = json.loads(f.read_text())
+    except (OSError, ValueError) as exc:
+        return kind, field, None, None, f"{agent}/envelope/{fname} cannot be read: {exc}"
+    # The field is matched as a DOTTED SUFFIX of the path to a node holding a
+    # value and a unit; list positions contribute no segment. So a bare name is
+    # just a one-segment suffix and still works where it is unique, and a
+    # qualified one disambiguates: simulation's budget.json holds
+    # `wall_clock_max` twice -- the 2 h ceiling at limits.wall_clock_max and the
+    # smoke-run ceiling at limits.smoke_budget.wall_clock_max -- and the first
+    # draft of this resolver, which matched the leaf name alone, refused both
+    # and left the person's ceiling impossible to cite at all.
+    want = field.split(".")
+    hits: list[tuple[str, dict]] = []
+
+    def walk(node: object, path: list[str]) -> None:
+        if isinstance(node, dict):
+            if "value" in node and "unit" in node and path[-len(want):] == want:
+                hits.append((".".join(path), node))
+            for k, v in node.items():
+                walk(v, path + [k])
+        elif isinstance(node, list):
+            for v in node:
+                walk(v, path)
+
+    walk(doc, [])
+    ident = want[-1]
+    if not hits:
+        return kind, ident, None, None, f"{agent}/envelope/{fname} has no field {field!r} carrying a value and a unit"
+    if len(hits) > 1:
+        return kind, ident, None, None, (f"{agent}/envelope/{fname} has {len(hits)} fields matching {field!r} "
+                                         f"({', '.join(h[0] for h in hits)}), so the reference is ambiguous; "
+                                         "qualify it with more of the path")
+    return kind, ident, hits[0][1].get("value"), hits[0][1].get("unit"), None
+
+
 def check_17_derived(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     n_computed = 0
@@ -1750,13 +1830,25 @@ def check_17_derived(b: Bundle) -> list[Finding]:
             # has to show its grounds to the gate, and it was the one that
             # could not name them. Resolution is check 54's, against kb_refs.
             from_store = [i for i in inputs if str(i).startswith("kb:")]
+            decisions = {i: resolve_decision_input(c, i) for i in inputs if DECISION_INPUT.match(str(i))}
+            unresolved = [f"{i} ({r[4]})" for i, r in decisions.items() if r[4]]
+            if unresolved:
+                out.append(Finding(17, FAIL, f"{name} reads a decision that does not resolve: "
+                                             f"{'; '.join(unresolved)}", c.rel))
+                continue
             missing = [i for i in inputs
-                       if i not in env and i not in CONSTANTS and not str(i).startswith("kb:")]
+                       if i not in env and i not in CONSTANTS and not str(i).startswith("kb:")
+                       and not DECISION_INPUT.match(str(i))]
             if missing:
                 out.append(Finding(17, FAIL, f"{name} reads {missing}, which are neither numbers of "
-                                             "this card nor kb: entries", c.rel))
+                                             "this card, kb: entries, nor target: or envelope: decisions", c.rel))
                 continue
-            if from_store:
+            # An envelope decision is resolved and NOT recomputed, for the reason
+            # a kb: input is not: the envelope is the person's, it can change
+            # after this card was written, and judging a historical card against
+            # today's ceiling would redden correct work for an unrelated edit.
+            from_envelope = [i for i in decisions if str(i).startswith("envelope:")]
+            if from_store or from_envelope:
                 # Resolved, not recomputed. The arithmetic needs each entry's
                 # value AT THIS CARD'S PIN, and the index holds the current
                 # store -- checking against today's value would be the error
@@ -1767,6 +1859,27 @@ def check_17_derived(b: Bundle) -> list[Finding]:
                 n_from_store += 1
                 continue
             sub = {k: v for k, v in env.items() if k in inputs}
+            # A target: decision sits ON this card, so it cannot move out from
+            # under it and the arithmetic CAN be checked. The formula names it by
+            # its metric. A metric that is also a name in numbers[] would mean
+            # two things in one formula, so that is refused rather than resolved.
+            clash = False
+            for ref, (kind, ident, value, unit, _) in decisions.items():
+                if ident in env:
+                    out.append(Finding(17, FAIL, f"{name}: {ref} is named {ident!r} in the formula, and "
+                                                 f"{ident!r} is also a number on this card, so the "
+                                                 "formula would mean two things", c.rel))
+                    clash = True
+                    break
+                fu, du = si_factor(str(unit or ""), temp), dim_of(str(unit or ""))
+                if fu is None or du is None or value is None:
+                    out.append(Finding(17, FAIL, f"{name}: {ref} resolves but its unit {unit!r} is not "
+                                                 "in units.json, so its value cannot enter the formula", c.rel))
+                    clash = True
+                    break
+                sub[ident] = (float(value) * fu, du)
+            if clash:
+                continue
             try:
                 value_si, dim = eval_formula(formula, sub)
             except FormulaError as exc:
@@ -1946,7 +2059,20 @@ def check_21_grade_derivation(b: Bundle) -> list[Finding]:
                         out.append(Finding(21, FAIL, f"{name}: the store grades {ref} as {stored.get('grade')}, card claims {declared}", c.rel))
             elif prefix in ("computed", "simulated"):
                 inputs = num.get("inputs") or []
-                grades = [nums[i]["grade"] for i in inputs if i in nums]
+                # GRADED inputs compose and nothing else does. A number of this
+                # card carries its own grade; a kb: input carries the grade the
+                # store served (kb_refs). A target: or envelope: input is a
+                # DECISION and is skipped (5.3, 2026-09-23), as is a constant.
+                # Until this was written out, the line read "every input that is
+                # in numbers[]", which skipped decisions correctly and skipped
+                # kb: inputs WRONGLY -- a formula on an E5 entry graded E4. No
+                # card carried a kb: input when it was found, so nothing moved.
+                grades = []
+                for i in inputs:
+                    if i in nums:
+                        grades.append(nums[i]["grade"])
+                    elif str(i).startswith("kb:") and kb_grades.get(str(i)[3:]):
+                        grades.append(kb_grades[str(i)[3:]])
                 expect = "E4"
                 for g in grades:
                     expect = worse(expect, g)

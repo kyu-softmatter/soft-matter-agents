@@ -462,6 +462,87 @@ def fixture_82_an_agent_imports_a_dependency_nobody_declared(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def _decision_card(numbers: list, targets: list, kb_refs: list | None = None) -> dict:
+    """A minimal axis card carrying the numbers under test. Unrelated findings
+    are tolerated by this harness; only the named check and phrase count."""
+    return {"card": "axis", "id": "axis-fixture", "schema_version": 1, "qid": "sim-20260923-901",
+            "thread": None, "round": 1, "revision": 1, "author": "simulation_agent",
+            "created_at": "2026-09-23T00:00:00Z", "status": "draft", "kb_version": "kbv-000000000000",
+            "method": "fixture", "verdict": "constrains", "caller_id": "sim-20260923-901:v1:bd_overdamped:a2",
+            "config": "bd_overdamped", "axis": "a2", "numbers": numbers, "targets": targets,
+            "kb_refs": kb_refs or [], "kb_gaps": [], "degraded": []}
+
+
+_KAPPA = {"name": "kappa", "value": 4.0, "unit": "1", "source": "assumed:fixture", "grade": "E5"}
+
+
+def _one_card(repo: Path, card: dict, message: str, extra: dict | None = None) -> str:
+    start = base(repo)
+    paths = []
+    for rel, body in (extra or {}).items():
+        write(repo, rel, body)
+        paths.append(rel)
+    rel = "simulation_agent/questions/sim-20260923-901/axis_bd_overdamped_a2.json"
+    write(repo, rel, card)
+    commit(repo, message, rel, *paths, seat="simulation")
+    return f"{start}..HEAD"
+
+
+def fixture_17_a_target_input_that_resolves_nowhere(repo: Path) -> str:
+    """A computed number citing the person's target where the card holds none.
+
+    Proves the NEW path fires and not the old one. Before decision inputs
+    existed a `target:` string was simply an unknown name and failed as
+    "neither numbers of this card nor kb: entries"; both versions refuse this
+    card, so a phrase-blind fixture could not tell them apart. This one names
+    the phrase only the resolver says.
+    """
+    n = {"name": "record_factor", "value": 400.0, "unit": "1", "source": "computed:fixture", "grade": "E5",
+         "formula": "kappa / drag_offset", "inputs": ["kappa", "target:drag_offset"]}
+    return _one_card(repo, _decision_card([_KAPPA, n], []), "a target input with no target behind it")
+
+
+def fixture_17_a_target_metric_that_shadows_a_number(repo: Path) -> str:
+    """The formula names a target by its metric, and that metric is also a
+    number on the card -- one name meaning two things in one formula."""
+    shadow = dict(_KAPPA, name="drag_offset")
+    n = {"name": "record_factor", "value": 400.0, "unit": "1", "source": "computed:fixture", "grade": "E5",
+         "formula": "kappa / drag_offset", "inputs": ["kappa", "target:drag_offset"]}
+    tg = [{"metric": "drag_offset", "kind": "uncertainty", "value": 0.01, "unit": "1"}]
+    return _one_card(repo, _decision_card([_KAPPA, shadow, n], tg), "a target metric that shadows a number")
+
+
+def fixture_17_an_envelope_field_named_twice(repo: Path) -> str:
+    """The real shape of simulation's budget.json: `wall_clock_max` is both the
+    person's 2 h ceiling and the smoke-run ceiling. The bare name is ambiguous
+    and must be refused with the matching paths named, not guessed at. The
+    first draft of the resolver matched the leaf name alone and would have
+    left the ceiling impossible to cite; the qualified form resolves it."""
+    budget = {"artifact": "budget", "targets": [{"target": "local", "limits": {
+        "wall_clock_max": {"value": 2, "unit": "h"},
+        "smoke_budget": {"wall_clock_max": {"value": 5, "unit": "min"}}}}]}
+    n = {"name": "steps", "value": 4.0, "unit": "1", "source": "computed:fixture", "grade": "E5",
+         "formula": "kappa", "inputs": ["kappa", "envelope:budget.json#wall_clock_max"]}
+    return _one_card(repo, _decision_card([_KAPPA, n], []), "an envelope field that is named twice",
+                     {"simulation_agent/envelope/budget.json": budget})
+
+
+def fixture_21_a_formula_on_a_graded_store_entry(repo: Path) -> str:
+    """A computed number on an E5 store entry, claiming E4.
+
+    Until 2026-09-23 the grade composed over "every input that is in
+    numbers[]", which skipped decisions correctly and skipped kb: inputs
+    wrongly -- so a formula on an E5 entry came out E4, better than its own
+    input. Written out as "graded inputs compose, decisions do not" it takes
+    the kb: grade from kb_refs, and this card is refused. No real card held a
+    kb: input when it was found, so nothing on disk moved.
+    """
+    n = {"name": "scaled", "value": 2.0, "unit": "1", "source": "computed:fixture", "grade": "E4",
+         "formula": "2", "inputs": ["kb:weak_entry"]}
+    refs = [{"entry_id": "weak_entry", "grade": "E5"}]
+    return _one_card(repo, _decision_card([n], [], refs), "a formula on an E5 entry claiming E4")
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -474,6 +555,10 @@ FIXTURES = [
     (79, "FAIL", "SKIP_DIRS does not", fixture_79_gitignore_excludes_a_directory_the_walker_enters),
     (81, "FAIL", "is in no file of this tree", fixture_81_an_agent_module_imports_what_is_in_no_commit),
     (82, "FAIL", "declared nowhere in pyproject.toml", fixture_82_an_agent_imports_a_dependency_nobody_declared),
+    (17, "FAIL", "reads a decision that does not resolve", fixture_17_a_target_input_that_resolves_nowhere),
+    (17, "FAIL", "would mean two things", fixture_17_a_target_metric_that_shadows_a_number),
+    (17, "FAIL", "so the reference is ambiguous", fixture_17_an_envelope_field_named_twice),
+    (21, "FAIL", "max(E4, worst) = E5", fixture_21_a_formula_on_a_graded_store_entry),
     (80, "PASS", "5 site(s) decide a device's role", fixture_80_five_forms_and_five_that_must_not_fire),
 ]
 
