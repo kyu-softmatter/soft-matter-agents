@@ -142,8 +142,13 @@ motion, and §1 says there is none today. It is not a collision device, but it
 decides whether light from the side branch reaches the sample, and the
 branch is the unconfirmed one (card 018 §5).
 
-**Ask the person, and record the answer before loading.** There are two
-honest routes, and choosing between them is the person's call, not yours:
+**ANSWERED by the person, 2026-09-24, in this seat's session: "accept it,
+load the file as chosen."** So take the first route below, and load the file
+unmodified. **Log the answer in the run log before the load**, as the
+person's decision, relayed through this card. The second route is kept below
+only as the record of what was offered.
+
+The two routes, as they were put to the person:
 
 - **accept it**: log it as a load-time command with `from` naming the
   file's Startup line, and read the state back after the load
@@ -327,8 +332,8 @@ once (card 018 §4f). Ask; it does not block.
   stays closed
 - The LUN-F laser combiner stays off at its own power. Its blanking lines
   load with the configuration and are refused (§1, §3)
-- **Nothing is loaded until the person has answered the Lapp-mirror question
-  in §3**, and the answer is in the run log
+- **The Lapp-mirror question in §3 is answered: accept it.** The answer
+  goes in the run log before the load
 - `envelope/safety.json` is the person's and is not edited
 - Commits: hooks are not installed in this working copy, so no gate runs.
   Say so in the message. Take your email from `contracts/seats.json`
