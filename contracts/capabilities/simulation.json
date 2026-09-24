@@ -175,6 +175,33 @@
         "kind": "constitutive",
         "why": "Temperature enters as a parameter of the noise amplitude and no velocity is represented, so there is no kinetic energy and nothing to thermostat. Same ground as bd_overdamped."
       }
+    },
+    {
+      "config": "bd_overdamped_trapped",
+      "label": "one overdamped particle, no pair interaction, in an external harmonic potential of stiffness k_t, in fluid at rest. UNDRIVEN: A7 abstains. Declared 2026-09-23 on the person's decision that the double well starts from one trap, because this is the one simulated observable the microscope's table also produces.",
+      "dimensions": {
+        "n": 3,
+        "why": "Three, the same ground as bd_overdamped_trapped_uniform_flow: a bead in water with three-dimensional thermal motion. The observable is IN-PLANE -- the per-axis standard deviation about the trap centre -- so an estimator reads x and y and never the third axis. The model's trap is isotropic; a real one is weaker along the beam, which leaves the in-plane comparison alone only as long as nothing reads the third axis."
+      },
+      "optical_path": null,
+      "devices": [
+        "hoomd_backend"
+      ],
+      "produces": [
+        "trapped_position_distribution"
+      ],
+      "output_independent_of_input": {
+        "independent": false,
+        "why": "FALSE: the per-axis width is sqrt(k_B*T/k_t) by equipartition, and a harmonic model returns the stiffness it was given. What a run CAN establish is how long a record must be before the width stops being understated -- successive frames are correlated over gamma/k_t, and the observable's own note says sigma converges from below -- and that is the number an experiment's record length is planned against. It also cannot say whether a real trap IS harmonic away from its centre, since it is harmonic by construction; the experiment's histogram tails can, and that question is why the double well starts here. Simulated positions are instantaneous while a camera frame averages over its exposure, which shaves the width: a plan compared against the microscope states the exposure or models the averaging."
+      },
+      "executed_by": {
+        "module": "trap_hoomd_backend",
+        "why": "NOT YET CONFIRMED BY A RUN. Declared from construction: trap_hoomd_backend already builds the trap as a harmonic bond to a fixed tether for the driven configuration, and this one is that model with the flow removed. The first run's record replaces this sentence, the way it did for the driven configuration's executor."
+      },
+      "temperature_realisation": {
+        "kind": "constitutive",
+        "why": "Temperature enters as a parameter of the noise amplitude and no velocity is represented, so there is no kinetic energy and nothing to thermostat. Same ground as bd_overdamped."
+      }
     }
   ]
 }
