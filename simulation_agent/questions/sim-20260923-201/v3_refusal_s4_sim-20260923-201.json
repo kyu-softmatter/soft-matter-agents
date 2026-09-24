@@ -1,0 +1,135 @@
+{
+  "card": "refusal",
+  "schema_version": "0.1",
+  "id": "refusal-sim-20260923-201-s4-r3",
+  "qid": "sim-20260923-201",
+  "thread": "solo-sim-20260923-201",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T22:00:00Z",
+  "status": "REFUSED",
+  "stage": "S4",
+  "refused_what": "grid cells k1_o1, k2_o1, k3_o1, k4_o1: the slow row, where the offset is one thermal width and the statistics need twenty thousand relaxation times",
+  "reason_code": "budget_exceeded",
+  "counterexample": [
+    {
+      "parameter": "particle_steps",
+      "required_number": "particle_steps_k1_o1",
+      "limit_number": "steps_max_per_point",
+      "statement": "cell k1_o1 needs particle_steps_k1_o1 = 6e+06 against steps_max_per_point = 200000. The step is already AT A1's binding bound and the record at S4's minimal margin, so no settable parameter inside the intervals brings the cell under the budget at this cost"
+    },
+    {
+      "parameter": "particle_steps",
+      "required_number": "particle_steps_k2_o1",
+      "limit_number": "steps_max_per_point",
+      "statement": "cell k2_o1 needs particle_steps_k2_o1 = 6e+06 against steps_max_per_point = 200000. The step is already AT A1's binding bound and the record at S4's minimal margin, so no settable parameter inside the intervals brings the cell under the budget at this cost"
+    },
+    {
+      "parameter": "particle_steps",
+      "required_number": "particle_steps_k3_o1",
+      "limit_number": "steps_max_per_point",
+      "statement": "cell k3_o1 needs particle_steps_k3_o1 = 6e+06 against steps_max_per_point = 200000. The step is already AT A1's binding bound and the record at S4's minimal margin, so no settable parameter inside the intervals brings the cell under the budget at this cost"
+    },
+    {
+      "parameter": "particle_steps",
+      "required_number": "particle_steps_k4_o1",
+      "limit_number": "steps_max_per_point",
+      "statement": "cell k4_o1 needs particle_steps_k4_o1 = 6e+06 against steps_max_per_point = 200000. The step is already AT A1's binding bound and the record at S4's minimal margin, so no settable parameter inside the intervals brings the cell under the budget at this cost"
+    }
+  ],
+  "alternatives": [
+    {
+      "what": "run the smoke point and replace the conservative per-step cost with the one measured at N=1. A5's budget is the ceiling over a cost measured at 1000 particles, and this configuration runs one; if the measured cost is a thousand times lower the slow row fits with room, and a revision recovers these cells unchanged",
+      "requires": "a smoke run of a kept cell, which this plan carries, and a revision that cites it"
+    },
+    {
+      "what": "raise the local wall clock ceiling by the factor the counterexample states",
+      "requires": "a person's edit to simulation_agent/envelope/budget.json"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "steps_max_per_point",
+      "value": 200000.0,
+      "unit": "1",
+      "source": "assumed:a_step_budget",
+      "grade": "E5",
+      "origin": "v3_axis_bd_overdamped_trapped_uniform_flow_a5.json#steps_max_per_point",
+      "precision": "order_of_magnitude",
+      "note": "the share of the local wall clock one sweep point may spend, as a step count. NO `formula`, following axis_a5_budget: the ceiling is a decision the person owns and 5.3 has no source kind for one, so carrying it as a graded input would dress a decision as an estimate. The arithmetic is in the rationale, where a reader can check it and no check re-evaluates it. Against the LOWER cost bound this number is three decades larger, which is the whole uncertainty."
+    },
+    {
+      "name": "particle_steps_k1_o1",
+      "value": 6000000.0,
+      "unit": "1",
+      "source": "computed:duration_over_step",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#particle_steps_k1_o1",
+      "precision": "order_of_magnitude",
+      "note": "one particle, so particle-steps are steps; against steps_max_per_point. An ESTIMATE, so one figure is right here where it would be wrong for the window itself"
+    },
+    {
+      "name": "particle_steps_k2_o1",
+      "value": 6000000.0,
+      "unit": "1",
+      "source": "computed:duration_over_step",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#particle_steps_k2_o1",
+      "precision": "order_of_magnitude",
+      "note": "one particle, so particle-steps are steps; against steps_max_per_point. An ESTIMATE, so one figure is right here where it would be wrong for the window itself"
+    },
+    {
+      "name": "particle_steps_k3_o1",
+      "value": 6000000.0,
+      "unit": "1",
+      "source": "computed:duration_over_step",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#particle_steps_k3_o1",
+      "precision": "order_of_magnitude",
+      "note": "one particle, so particle-steps are steps; against steps_max_per_point. An ESTIMATE, so one figure is right here where it would be wrong for the window itself"
+    },
+    {
+      "name": "particle_steps_k4_o1",
+      "value": 6000000.0,
+      "unit": "1",
+      "source": "computed:duration_over_step",
+      "grade": "E5",
+      "origin": "v3_synthesis.json#particle_steps_k4_o1",
+      "precision": "order_of_magnitude",
+      "note": "one particle, so particle-steps are steps; against steps_max_per_point. An ESTIMATE, so one figure is right here where it would be wrong for the window itself"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_step_budget",
+      "statement": "Two hours from envelope/budget.json, chosen by the person on 2026-09-19, over the measured upper cost of 4 ms a step, over the twelve sweep points: 7200 / 0.004 / 12, about 150 thousand steps a point, written to one significant figure. THE UPPER COST IS THE CONSERVATIVE END OF A THREE-DECADE BRACKET -- measured at 1000 particles while this configuration runs one -- so against the lower end the budget is a thousand times larger and the sweep is free. The store holds no cost-per-step entry at all, which is the gap this stands on. AND 5.3 HAS NO SOURCE KIND FOR A DECISION, so the ceiling and the person's target both arrive wearing `assumed:`, which means an estimate; second instance in this one question, raised rather than worked around.",
+      "numbers": [
+        "steps_max_per_point"
+      ],
+      "falsifier": "a smoke run at N=1 replaces the cost bracket with a measured value and this number moves by up to three decades; a store entry for the per-step cost does the same with no run; and 5.3 gaining a source kind for a decision retires the prefix complaint",
+      "gap_ref": "cost_per_particle_step_overdamped_absent"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "cost_per_particle_step_overdamped_absent",
+      "observable": "cost_per_particle_step_overdamped",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='cost_per_particle_step_overdamped', purpose='verify') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-201:v3:bd_overdamped_trapped_uniform_flow:a5",
+      "asked_at": "2026-09-23T20:38:00Z"
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

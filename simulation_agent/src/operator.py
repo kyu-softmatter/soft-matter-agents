@@ -699,7 +699,18 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         # The configuration names the backend module (capabilities executed_by):
         # an active configuration runs on abp_backend, the rest on hoomd_backend.
         config_name = str((plan.get("system_configuration") or {}).get("config") or "")
-        engine_class = abp_backend.AbpBackend if config_name.startswith("abp") else hoomd_backend.HoomdBackend
+        # A configuration with a harmonic trap and a flow has no term for
+        # either in HoomdBackend, which integrates FREE diffusion. Falling
+        # through to it would not fail: it would run the wrong physics under
+        # this plan's id and finish green, because nothing in a free run
+        # contradicts a trap plan's monitors. So the trap configuration is
+        # dispatched by name like the active one, and it is the mock-class
+        # trap_backend until a HOOMD implementation exists (4.6.5).
+        if config_name == "bd_overdamped_trapped_uniform_flow":
+            from . import trap_backend                  # noqa: PLC0415
+            engine_class = trap_backend.TrapBackend
+        else:
+            engine_class = abp_backend.AbpBackend if config_name.startswith("abp") else hoomd_backend.HoomdBackend
         try:
             backend = engine_class(seed=seed)
         except hoomd_backend.EngineMissing:
@@ -849,8 +860,15 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         "provenance": provenance,
         **({"compare_arm": arm} if arm is not None else {}),
     })
-    window = params["max_lag_time"]
-    fit = backend.fit_diffusivity(window)
+    # A backend whose observable is not a diffusivity says what it read
+    # through `observables(params)`, and the diffusivity block below is
+    # skipped rather than run against a window the plan does not carry. The
+    # other route was a backend growing `fit_diffusivity` for a quantity that
+    # is not one, which would put a false label on the run record. Absent,
+    # everything below is exactly what it was.
+    own_observables = getattr(backend, "observables", None)
+    window = None if own_observables else params["max_lag_time"]
+    fit = None if own_observables else backend.fit_diffusivity(window)
     # An honest error bar beside the fit's own, and not instead of it (006,
     # d7b47e3). The weighted fit treats a hundred MSD points as independent
     # observations when every lag comes from the same trajectories, and
@@ -864,13 +882,13 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     # number the card should use, or the card reaches for the only one on disk.
     # Both are kept: the fit's own stays inside `fit` with its own note, and
     # nothing is silently rescaled.
-    uncertainty = backend.block_uncertainty(window)
+    uncertainty = None if own_observables else backend.block_uncertainty(window)
     # Whether the fit agrees with itself across the window. Revision 2's
     # `window_insensitive` compares it against the decade target, and nothing
     # recorded it -- so the criterion was declared and unevaluable. It is
     # separate from the error bars on purpose: both of those describe scatter
     # at one window, and this one asks whether the window itself was right.
-    halves = backend.window_halves(window)
+    halves = None if own_observables else backend.window_halves(window)
     final = backend.read()
     # The positions, written beside the summary (013). Steps per frame are
     # derived from each frame's simulated time and the plan's dt -- an
@@ -907,17 +925,14 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         "stopped_early": stopped_early,
         "completed_planned_duration": not stopped_early,
     })
-    cards.write(out / "observables.json", {
-        "run_id": run_id,
-        "observable": plan["observable"]["name"],
-        "window_parameter": "max_lag_time",
-        "window_si": window,
-        "fit": fit,
-        "uncertainty": uncertainty,
-        "window_sensitivity": halves,
-        "msd_curve": backend.mean_squared_displacement(window),
-        **(backend.active_observables(window) if hasattr(backend, "active_observables") else {}),
-    })
+    if own_observables:
+        cards.write(out / "observables.json", {
+            "run_id": run_id,
+            "observable": plan["observable"]["name"],
+            **own_observables(params),
+        })
+    else:
+        _write_diffusivity_observables(out, run_id, plan, window, fit, uncertainty, halves, backend)
     cards.write(out / "log.json", {
         "artifact": "run_log",
         "schema_version": "0.1",
@@ -965,6 +980,21 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     })
     return out
 
+
+
+def _write_diffusivity_observables(out, run_id, plan, window, fit, uncertainty, halves, backend):
+    """The `tracer_diffusivity`-shaped record, moved out of run() unchanged."""
+    cards.write(out / "observables.json", {
+        "run_id": run_id,
+        "observable": plan["observable"]["name"],
+        "window_parameter": "max_lag_time",
+        "window_si": window,
+        "fit": fit,
+        "uncertainty": uncertainty,
+        "window_sensitivity": halves,
+        "msd_curve": backend.mean_squared_displacement(window),
+        **(backend.active_observables(window) if hasattr(backend, "active_observables") else {}),
+    })
 
 if __name__ == "__main__":
     qid = sys.argv[1] if len(sys.argv) > 1 else "sim-20260917-001"
