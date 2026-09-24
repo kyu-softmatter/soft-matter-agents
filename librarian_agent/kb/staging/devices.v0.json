@@ -368,11 +368,12 @@
     {
       "id": "laser_combiner",
       "role": "confocal excitation, four lines",
-      "driver": "split: blanking and line select over DAQ, per-line power over SPI",
+      "driver": "lunf, split: blanking and line select over DAQ, per-line power over SPI",
+      "driver_note": "The head token names the module and was `split:` until 2026-09-24, which named no file -- the router takes the text before the first comma or space. `lunf` because this store already calls the unit the LUN-F (serial_ports COM8, lunf_per_line_power_is_not_transmittable). The head is a name for the one wrapper over both halves; it says nothing about whether either half is driven -- the power half is deliberately not transmitted.",
       "automatable": "partial",
       "read_back": false,
       "lock_group": "illumination",
-      "note": "not one device in the acquisition software: blanking and line select over DAQ, per-line power over SPI. Power is open loop but calibrated.",
+      "note": "not one device in the acquisition software: blanking and line select over DAQ, per-line power over SPI. Power is open loop and not known to be calibrated (see line_power.calibrated_note).",
       "source": "traced in the prior project, driven partially + operator_read:kyuhwan_20260917",
       "grade": "E3",
       "elements": [
@@ -389,11 +390,12 @@
         {
           "id": "line_power",
           "read_back": false,
-          "note": "commanded power is calibrated against a power meter, so the command maps to a known output. It is still open loop: the device reports nothing back, so the calibration is the only link and it needs a validity window like any E2 value. Abort never relies on a commanded power -- it closes a shutter, and which one is policy.",
-          "calibrated": true,
+          "note": "open loop and NOT known to be calibrated: the device reports nothing back, and no calibration from command to output power is known to exist. A commanded power is therefore not a power figure, and nothing may present one as a milliwatt value. Abort never relies on a commanded power -- it closes a shutter, and which one is policy.",
+          "calibrated": false,
+          "calibrated_note": "WAS `true` UNTIL 2026-09-24, and changed to the conservative reading because two records contradict it and a `calibrated` that is not is a power figure someone may trust. (1) The prior project's own record, kb/decisions/2026-09-02-lunf-first-light-measured-limits.md at a7b880b, section 4: every calibration record in the device database is empty, the milliwatt figure the acquisition software can show is a user-entered interpolation table, and volts to milliwatts is listed as still unknown. (2) This store's own entry lunf_per_line_power_is_not_transmittable says the combiner's power was already recorded as write-only and uncalibrated. Against them stands the operator reading of 2026-09-17 that this row was built from. Not resolved by this change: the person has been asked whether a calibration against a power meter exists. If one does, it comes back as a calibration source with its date and validity period, and this returns to true. Reported by manager-microscope-20260924-1 from card 036.",
           "source": "operator_read:kyuhwan_20260917",
           "grade": "E3",
-          "grade_note": "the calibration was taken in the prior project, so it migrates capped at E3 (10.3 rule 1). Re-measuring it here makes it E2."
+          "grade_note": "the grade is of the row's other facts (open loop, no read-back). The calibration claim this row used to make is withdrawn, see calibrated_note."
         }
       ],
       "confirmed_by": null,
