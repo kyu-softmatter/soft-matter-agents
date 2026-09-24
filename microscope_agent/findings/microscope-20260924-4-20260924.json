@@ -1,0 +1,207 @@
+{
+  "artifact": "findings",
+  "schema_version": "0.1",
+  "seat": "microscope-20260924-4",
+  "on": "2026-09-24",
+  "delivered_to": "librarian_agent",
+  "items": [
+    {
+      "id": "tweez300_new_trap_starts_at_strength_zero",
+      "fact": "In the Tweez300 GUI a newly created trap starts at relative strength 0, so a new trap switched on delivers nothing until a strength is set.",
+      "kind": "person_statement",
+      "how": "the person looked at the Tweez300 GUI after the command and said so in this seat's window; this seat transcribed the words into the exchange record as a person_observed line, after t1 was created and switched on with no strength command sent to it",
+      "source": {
+        "type": "person",
+        "recorded_at": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl line 31 (person_observed)",
+        "path": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl",
+        "sha256": "e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736"
+      },
+      "for_store": true,
+      "note": "A GUI display observation, which the laser's state does not affect. Recorded in an exchange record outside git that is not a run log: the trap commands had no plan and neither gate was asked (failures.jsonl lines of 2026-09-24T19:42:04Z and 19:55:08Z). Positions are GUI units: the 100x was in the path and whether the GUI was calibrated on it was not said."
+    },
+    {
+      "id": "tweez300_position_origin_is_image_centre",
+      "fact": "TRAP_POSITION <trap> 0 0 places the trap at the centre of the image in the Tweez300 GUI.",
+      "kind": "person_statement",
+      "how": "the person looked at the Tweez300 GUI after the command and said so in this seat's window; this seat transcribed the words into the exchange record as a person_observed line",
+      "source": {
+        "type": "person",
+        "recorded_at": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl line 11 (person_observed)",
+        "path": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl",
+        "sha256": "e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736"
+      },
+      "for_store": true,
+      "note": "A GUI display observation, which the laser's state does not affect. Recorded in an exchange record outside git that is not a run log: the trap commands had no plan and neither gate was asked (failures.jsonl lines of 2026-09-24T19:42:04Z and 19:55:08Z). Positions are GUI units: the 100x was in the path and whether the GUI was calibrated on it was not said."
+    },
+    {
+      "id": "tweez300_positive_x_is_right_on_screen",
+      "fact": "In the Tweez300 GUI a positive x in TRAP_POSITION_REL moves the trap to the right on screen, and one relative command moved it once.",
+      "kind": "person_statement",
+      "how": "the person looked at the Tweez300 GUI after the command and said so in this seat's window; this seat transcribed the words into the exchange record as a person_observed line",
+      "source": {
+        "type": "person",
+        "recorded_at": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl line 15 (person_observed)",
+        "path": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl",
+        "sha256": "e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736"
+      },
+      "for_store": true,
+      "note": "A GUI display observation, which the laser's state does not affect. Recorded in an exchange record outside git that is not a run log: the trap commands had no plan and neither gate was asked (failures.jsonl lines of 2026-09-24T19:42:04Z and 19:55:08Z). Positions are GUI units: the 100x was in the path and whether the GUI was calibrated on it was not said."
+    },
+    {
+      "id": "tweez300_trap_on_shows_active",
+      "fact": "TRAP_ON <trap> answered 0 and the GUI showed the trap active.",
+      "kind": "person_statement",
+      "how": "the person looked at the Tweez300 GUI after the command and said so in this seat's window; this seat transcribed the words into the exchange record as a person_observed line",
+      "source": {
+        "type": "person",
+        "recorded_at": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl line 30 (person_observed)",
+        "path": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl",
+        "sha256": "e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736"
+      },
+      "for_store": true,
+      "note": "A GUI display observation, which the laser's state does not affect. Recorded in an exchange record outside git that is not a run log: the trap commands had no plan and neither gate was asked (failures.jsonl lines of 2026-09-24T19:42:04Z and 19:55:08Z). Positions are GUI units: the 100x was in the path and whether the GUI was calibrated on it was not said."
+    },
+    {
+      "id": "tweez300_trap_strength_takes_the_last_value",
+      "fact": "TRAP_STRENGTH takes effect in the Tweez300 GUI: after 0.5 then 0.2 on one trap the GUI showed 0.2, and 0.3 on another showed 0.3.",
+      "kind": "person_statement",
+      "how": "the person looked at the Tweez300 GUI after the command and said so in this seat's window; this seat transcribed the words into the exchange record as a person_observed line",
+      "source": {
+        "type": "person",
+        "recorded_at": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl line 31 and 35 (person_observed)",
+        "path": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl",
+        "sha256": "e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736"
+      },
+      "for_store": true,
+      "note": "A GUI display observation, which the laser's state does not affect. Recorded in an exchange record outside git that is not a run log: the trap commands had no plan and neither gate was asked (failures.jsonl lines of 2026-09-24T19:42:04Z and 19:55:08Z). Positions are GUI units: the 100x was in the path and whether the GUI was calibrated on it was not said."
+    },
+    {
+      "id": "tweez300_load_pattern_name_first",
+      "fact": "LOAD_PATTERN <name> \"<absolute path>\", name first and a quoted path containing a space, loads a .tpf pattern into the Tweez300 GUI's pattern list.",
+      "kind": "person_statement",
+      "how": "the person looked at the Tweez300 GUI after the command and said so in this seat's window; this seat transcribed the words into the exchange record as a person_observed line",
+      "source": {
+        "type": "person",
+        "recorded_at": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl line 43 (person_observed)",
+        "path": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl",
+        "sha256": "e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736"
+      },
+      "for_store": true,
+      "note": "A GUI display observation, which the laser's state does not affect. Recorded in an exchange record outside git that is not a run log: the trap commands had no plan and neither gate was asked (failures.jsonl lines of 2026-09-24T19:42:04Z and 19:55:08Z). Positions are GUI units: the 100x was in the path and whether the GUI was calibrated on it was not said."
+    },
+    {
+      "id": "tweez300_pattern_runs_on_assignment",
+      "fact": "TRAP_ASSIGN_PATTERN <trap> <pattern> starts the trap along the pattern at once; no separate start command was sent.",
+      "kind": "person_statement",
+      "how": "the person looked at the Tweez300 GUI after the command and said so in this seat's window; this seat transcribed the words into the exchange record as a person_observed line",
+      "source": {
+        "type": "person",
+        "recorded_at": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl line 47 (person_observed)",
+        "path": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl",
+        "sha256": "e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736"
+      },
+      "for_store": true,
+      "note": "A GUI display observation, which the laser's state does not affect. Recorded in an exchange record outside git that is not a run log: the trap commands had no plan and neither gate was asked (failures.jsonl lines of 2026-09-24T19:42:04Z and 19:55:08Z). Positions are GUI units: the 100x was in the path and whether the GUI was calibrated on it was not said."
+    },
+    {
+      "id": "tweez300_host_streamed_positions_move_smoothly",
+      "fact": "61 absolute TRAP_POSITION commands sent from the host at 10 per second (host clock: 6.016 s for 6.0 s planned) moved the trap smoothly by eye, and it ended where the last command put it.",
+      "kind": "person_statement",
+      "how": "the person looked at the Tweez300 GUI after the command and said so in this seat's window; this seat transcribed the words into the exchange record as a person_observed line",
+      "source": {
+        "type": "person",
+        "recorded_at": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl line 116 (person_observed)",
+        "path": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl",
+        "sha256": "e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736"
+      },
+      "for_store": true,
+      "note": "A GUI display observation, which the laser's state does not affect. Recorded in an exchange record outside git that is not a run log: the trap commands had no plan and neither gate was asked (failures.jsonl lines of 2026-09-24T19:42:04Z and 19:55:08Z). Positions are GUI units: the 100x was in the path and whether the GUI was calibrated on it was not said."
+    },
+    {
+      "id": "tweez300_does_not_restore_last_project",
+      "fact": "The Tweez300 program does not restore its last project when it starts.",
+      "kind": "person_statement",
+      "how": "the person's answer in this seat's window, 2026-09-24, to whether the program restores its last project: \"it doesn't restore the last project\"",
+      "source": {
+        "type": "person",
+        "recorded_at": "microscope_agent/src/tweezers_live_checklist.md line 0a, at e06512c"
+      },
+      "for_store": true,
+      "note": "The librarian has drafted it as tweez300_does_not_restore_last_project at E5 operator_recall, not committed when this file was written. Point at that entry rather than duplicating it."
+    },
+    {
+      "id": "objective_during_tweezers_commands_was_100x",
+      "fact": "During the tweezers commands of 2026-09-24, 12:05-12:33 local, the objective in the light path was the 100x.",
+      "kind": "person_statement",
+      "how": "the person's answer in this seat's window, 2026-09-24, given after the commands",
+      "source": {
+        "type": "person",
+        "recorded_at": "microscope_agent/src/tweezers_live_checklist.md line 0c, at e06512c"
+      },
+      "for_store": true,
+      "note": "Context for the GUI observations above: it says what their GUI units stood on. Whether the GUI's calibrations were made at the 100x was not said."
+    },
+    {
+      "id": "sample_mounted_during_tweezers_commands",
+      "fact": "A sample was mounted during the tweezers commands of 2026-09-24, 12:05-12:33 local.",
+      "kind": "person_statement",
+      "how": "the person said \"sample was mounted\" to manager-microscope-20260924-1 in its window, relayed to this seat; it replaced this seat's wrong inference of 'no sample'",
+      "source": {
+        "type": "person",
+        "recorded_at": "microscope_agent/failures.jsonl, the line at 2026-09-24T19:55:08Z, detail.what item (2), at 666278e"
+      },
+      "for_store": false,
+      "note": "A fact about one session, not about the world; it belongs to the record. Relayed, so it corrects the record and could not have served as a gate."
+    },
+    {
+      "id": "laser_state_during_tweezers_commands_unconfirmed",
+      "fact": "UNCONFIRMED: the trapping laser's state during the tweezers commands of 2026-09-24. Before the first command the person chose this seat's option 'Off', whose text read 'Emission off or dial at zero'. Those are two different states, and which one held has not been said.",
+      "kind": "person_statement",
+      "how": "the person's choice of a multiple-choice option written by this seat, in its window, before the first command; never logged in the exchange record",
+      "source": {
+        "type": "person",
+        "recorded_at": "microscope_agent/failures.jsonl, the line at 2026-09-24T19:55:08Z, detail.what item (1), at 666278e"
+      },
+      "for_store": false,
+      "note": "Not resolved here, by instruction. With a sample mounted and two traps left active at strength 0.3 and 0.2, nothing here says that nothing was trapped or illuminated."
+    },
+    {
+      "id": "trap_laser_emission_switchable_over_tcp_pointer",
+      "fact": "The Tweez 300 TCP command set includes LASER_ON and LASER_OFF, so emission is switchable from software while power is not.",
+      "kind": "document_fact",
+      "how": "read from the vendor User Manual's command list by the librarian, printed page 66; this seat first saw the commands in the prior project's wrapper",
+      "source": {
+        "type": "document",
+        "path": "C:/Program Files/Aresis/Tweez300/Manuals/Tweez300UserManual.pdf"
+      },
+      "for_store": false,
+      "note": "Already entered as trap_laser_emission_is_switchable_over_tcp at 19930b6. Listed only so the day's list is complete; do not enter it twice. src/devices/python_tcp.py refuses LASER_ON; neither command was sent today."
+    },
+    {
+      "id": "tweez300_timing_numbers_from_prior_bench",
+      "fact": "On the prior project's bench (2026-08-27): no busy answers at any command gap from 2 ms up (16 of 24 probes busy with no gap), a 10 ms gap used; busy re-sent up to 6 times with 50 ms backoff; a 2 s reply timeout.",
+      "kind": "prior_project_ruling",
+      "how": "read as constants and their comments in the prior project's TCP client, ruled downgrade: measured there, not here",
+      "source": {
+        "type": "prior_project",
+        "path": "C:/agentic_microscope/hardware/optical_tweezers.py at fbedef0 (MIN_COMMAND_GAP_S, BUSY_RETRIES, BUSY_BACKOFF_S, reply_timeout)",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "The librarian said it reads these from the source itself. Used unchanged today; 75 dispatches saw no busy answer and no silence, which neither confirms nor contradicts them."
+    },
+    {
+      "id": "tweez300_readiness_probe_answers_minus_22",
+      "fact": "TRAP_DELETE of a trap name that does not exist answers -22 'no resource selected' from a live Tweez300 GUI, not the -25 the vendor's command reference implies, so -22 counts as up.",
+      "kind": "prior_project_ruling",
+      "how": "measured on the prior project's bench 2026-08-27, ruled transfer into the readiness shape; this seat's first probe on this bench, 2026-09-24 12:05:48, also answered -22",
+      "source": {
+        "type": "prior_project",
+        "path": "C:/agentic_microscope/hardware/optical_tweezers.py at fbedef0 (READY_STATUSES comment)",
+        "ruling": "transfer"
+      },
+      "for_store": true,
+      "note": "The answer here is the GUI's reply in the exchange record (line 2), which is not a run log, so it cannot be a self_report; the prior measurement is what this item rests on. UNMEASURED here: the wait and fix-by-hand codes (-15, -16, -17, -18, -19), a busy answer, and a silence. None has been seen on this bench."
+    }
+  ]
+}
