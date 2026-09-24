@@ -8,7 +8,7 @@
     {
       "id": "confocal_lines_no_power_calibration_found",
       "fact": "No power calibration of the confocal laser combiner's four lines (405, 488, 561, 640 nm) was found in any place listed under how. The prior project's own record says none existed there: no stored mW calibration anywhere, NIS's mW display is a user-entered table that was empty (CALIBRATED0..3 = 0), and volts -> mW was listed under 'still unknown'. The power meter available from 2026-09-02 was a standalone display, and no measurement taken with it on these lines is recorded.",
-      "kind": "prior_project_ruling",
+      "kind": "unmeasured",
       "how": "Searched on 2026-09-24, read only. In C:\\agentic_microscope, at main fbedef0, with the working tree identical for these files: kb/decisions/2026-09-02-lunf-first-light-measured-limits.md, sections 4, 5, 9 and 'Still unknown'; hardware/lunf_power.py, header; data/light_sources.yaml, entry LUN-F-XL, where power_at_sample_mw is empty for all four lines; config/lunf/*.py (four files); and kb/systems/current.md. Also the 53 files, across main, particle-registry, restore-manuals-locally and origin/readme-safety-and-next-step, whose text names LUN-F. Their content was read at main, and every line matching 'calibrat' or 'power meter' was kept if it also named a laser, the confocal path, a line wavelength or mW. Only three places matched: the 2026-09-02 record's 'there is none'; docs/02-knowledge-base.md, a schema placeholder ('measured mW filled in after calibration', and LaserCalibration.points staying empty); and docs/mhs-integration.md ('power_at_sample_mw still needs a power meter'). The rest were about the trap, pixel size or other devices. Also every commit message on all branches for 'calibrat', 'power meter' and 'mW', with no hit on the confocal lines' power; and the working tree, by filename, for *calib* and *power*. Those hits were a trap calibration script, calibration tests, validity/power.py, which names no laser or confocal line, and a pixel-size table (next item). In this repository: librarian_agent/kb/entries (only lunf_per_line_power_is_not_transmittable mentions the combiner's power, and it holds no calibration), and librarian_agent/kb/staging/devices.v0.json. NOT SEARCHED by this seat: the NIS-Elements installation and its device database on this computer. The prior project reports searching them on 2026-09-02 and finding every calibration record empty and no calibration XML or CSV under any Laboratory Imaging path; that is its search, not this seat's. Also not searched: lab notebooks or spreadsheets outside that repository beyond the Desktop filename in the next item, the power meter's own memory, and any vendor service record.",
       "source": {
         "type": "prior_project",
@@ -48,7 +48,7 @@
     {
       "id": "disk_kill_test_never_run",
       "fact": "The prior project's test of whether force-killing the vendor acquisition software (NIS) stops the spinning disk was written and never run. No result, report or later commit exists. Its record calls 'the kill stopped the disk' the most likely reading and leaves 'the disk was never started' not excluded.",
-      "kind": "prior_project_ruling",
+      "kind": "unmeasured",
       "how": "Read config/lunf/disk_survives_kill.py; read commit a7b880b, which added it; checked that no later commit on any branch touches config/lunf or mentions its result; read the 2026-09-07 amendment in the 2026-09-02 LUN-F record.",
       "source": {
         "type": "prior_project",
@@ -216,14 +216,14 @@
     {
       "id": "eyepiece_path_mapping_unmeasured",
       "fact": "UNMEASURED: which states of the stand's light_path_port send the image to the eyepieces. No store entry, no device-table field and no prior-project record read today gives it. So the confocal wrapper counts every state as reaching the eyepieces.",
-      "kind": "document_fact",
+      "kind": "unmeasured",
       "how": "Read the light_path_port element of stand_ti2e in librarian_agent/kb/staging/devices.v0.json, and searched the contents of every file in librarian_agent/kb/staging and librarian_agent/kb/entries for 'eyepiece' and 'ocular': no hits.",
       "source": {
         "type": "document",
         "path": "librarian_agent/kb/staging/devices.v0.json"
       },
-      "for_store": false,
-      "note": "Not an entry, a gap: it closes at the bench with the person, by the state's integer and with the lamp only. Listed so the next session does not look for it."
+      "for_store": true,
+      "note": "A named gap, not a value: it closes at the bench with the person, by the state's integer and with the lamp only. Listed so the next session does not look for it as though it were known."
     },
     {
       "id": "confocal_wrapper_unreachable_by_router",
