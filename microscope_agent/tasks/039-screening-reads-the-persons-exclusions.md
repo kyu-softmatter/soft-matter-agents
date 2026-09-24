@@ -55,6 +55,19 @@ committed or about to be. Its confocal seven were ruled issued-and-unrun.
 **Whether its goal gains `declared_exclusions` in a later revision is card
 034's seat's call**, at its S4 re-pin, not this card's.
 
+## And one comment in `src/devices/micromanager.py`, added the same day
+
+**Beside `SOFTWARE_MAY_COMMAND`, write that `LUNF-Blanking` and `NIDAQHub`
+must never be added to it.** Found by `microscope-20260924-3` on card 036:
+those two devices are the laser combiner's TTL blanking lines, and **lifting
+either opens a second route to the confocal lines that skips every gate**
+in `src/devices/lunf.py`. Those gates are the person's limit, the approved
+list, the bench, and the light path read back at the moment of enabling
+(`plan.md` 2.1 rule 11). `lunf.py`'s docstring says so, but the next person
+to edit the allow-list reads the allow-list. The comment changes no
+behaviour; do it only when the bench is released and no run imports the
+file. The same check applies: `git diff HEAD --` first.
+
 ## Constraints
 
 - `src/screening.py` only, plus tests. It is imported by no session script,
