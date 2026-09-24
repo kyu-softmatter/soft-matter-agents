@@ -2,6 +2,48 @@
 
 Written by `manager-microscope`. You read this; you do not edit it (§6.2-2).
 
+## Where things stand, the evening of 2026-09-24 — read this first
+
+Added by `manager-microscope-20260924-1` at the end of the first day on the
+microscope computer. **Everything below this section is from 2026-09-19 and
+older.** Read it as history.
+
+**What the day produced:**
+
+- **The first real acquisitions**, both preparatory runs: `-002`, 600 frames
+  on the Abvigen particles through the 20x, and `-001`, which failed at load
+  and harmed nothing (cards 033, 038)
+- **A read-only piezo run** (`-004`) and **the first planned motion**: the
+  person's approved sine on piezo X (`-005`, cards 035 and 040), through the
+  dispatcher
+- **Wrappers, on paper and on mock**, for the confocal laser (036) and the
+  tweezers (037)
+- **The rules these runs needed**, in `contracts/`: preparatory runs (check
+  85), operation plans (check 86), the piezo limits in the envelope schema,
+  declared exclusions, and the findings file that carries a seat's findings
+  to the librarian
+
+**Open, for whoever comes next:**
+
+| | where it waits |
+|---|---|
+| run `-005` is **uncommitted by the person's choice**: its approval's written time (21:00Z) follows the run (20:09:24Z), so check 15 fails it. **The record is `D:\soft-matter-agents-frames\run-20260924-005\`**, with hashes in `failures.jsonl` (`ee0e42c`). Its result card, the tracking error, waits on it | the person: a superseding approval with the true time, 20:08:08Z, if they want it in the store |
+| `microscope_agent/approvals/` is **untracked** | the person's to commit |
+| the librarian cannot yet check findings items that cite run logs: its read covers `findings/` only | architecture, recommended to widen the read to exactly the cited paths |
+| card 041: the dispatcher reaching Micro-Manager, plus the byte-order-mark fix for approvals | `microscope-20260924-1`'s |
+| card 042: `-1`'s findings file | `microscope-20260924-1`'s, not yet delivered |
+| card 034's S4, S5 and v2 fan-out, re-copying the envelope snapshot then | a later seat, once 041 lets a planned 20x run through the dispatcher |
+| **piezo Z**: it rests 1.7 nm below the person's 0 µm floor (the person asked for −0.01 µm, a change only the person can write), its direction is unmeasured, and software refuses it until a Z move is checked against objective clearance at the moment of the move | the person, then a card |
+| the confocal lines: the person's power calibration is found (a worksheet in Downloads, 2026-09-09) and is with the librarian; **no limit covers these lines yet** | the person |
+| the tweezers: which camera body the program opens, and the trap power for a first lit check | the person |
+| whether the piezo's waveform generator may ever be used | the person |
+| the commit hooks are still not installed in this working copy | the person |
+
+**The bench rule governs everything live**: a seat opens a device only
+after the person says, in that seat's own window, that the bench is its
+(`plan.md` 6.2.1). **The piezo controller was left powered on.** Card 038's
+five-minute run needs it off.
+
 **The hold is lifted.** This file replaces `000-hold-until-the-librarian-
 serves.md`, which told you to start nothing. Its premise was the A/B, and
 `58064da` deferred the second variant: the person stopped `microscope-2` and
