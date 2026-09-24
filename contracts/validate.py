@@ -2350,9 +2350,19 @@ def check_25_kb_refs(b: Bundle) -> list[Finding]:
 
     if KB_INDEX is not None:
         entries = {}
+        # The digest of the entry as git stores it, not as this checkout shows
+        # it: CRLF folded to LF, exactly as librarian_agent/src/kb_index.py's
+        # entry_digest does since 39a1c75. On a core.autocrlf=true checkout
+        # (the microscope computer, 2026-09-24) the raw bytes are CRLF, and
+        # this check called all 112 entries changed and told the librarian to
+        # rebuild an index that was correct. The two must fold identically or
+        # they disagree again, and contracts may not import the agent's
+        # function (7.2 rule 1), so the rule is written twice and this names
+        # its twin.
         for p in sorted((KB_DIR / "entries").glob("*.json")):
             try:
-                entries[json.loads(p.read_text())["entry_id"]] = hashlib.sha256(p.read_bytes()).hexdigest()
+                entries[json.loads(p.read_text())["entry_id"]] = hashlib.sha256(
+                    p.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
             except (json.JSONDecodeError, KeyError):
                 continue
         stale = [eid for eid, digest in entries.items()
