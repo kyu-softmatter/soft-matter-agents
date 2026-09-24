@@ -947,6 +947,17 @@ class Orchestrator:
                                 # would be read as a second dispatch -- check 66
                                 # would report one command twice.
                                 detail["disagreed"] = value["disagreed"]
+                            if from_operation_move(command) and isinstance(value, dict):
+                                # Where the stage WAS, beside where it was told to go.
+                                # The params already carry the commanded points; the
+                                # measured ones exist only in what the device returned,
+                                # and the dispatch outcomes are read by nobody -- so
+                                # without this the run log could not show the one thing
+                                # an operation plan's result is made of.
+                                detail["measured"] = {k: value.get(k) for k in (
+                                    "before_um", "after_um", "points_planned", "points_sent",
+                                    "late_points", "dt_s", "samples", "settle",
+                                    "settle_wait_s")}
                             self.record(event="apply", channel=cid, element=command.element,
                                         action=command.action, params=command.params,
                                         verification=verification, verification_note=why,

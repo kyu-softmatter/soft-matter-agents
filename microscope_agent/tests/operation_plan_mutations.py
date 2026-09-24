@@ -43,6 +43,15 @@ def m_no_stop(t):
     t.orch.from_operation_move = lambda c: False
 
 
+def m_measured_not_logged(t):
+    real = t.orch.Orchestrator.record
+
+    def record(self, **fields):
+        fields.pop("measured", None)
+        return real(self, **fields)
+    t.orch.Orchestrator.record = record
+
+
 def m_no_blind_exception(t):
     t.orch.BLIND_BY_PERSONS_EXCEPTION = ()
 
@@ -84,6 +93,8 @@ MUTATIONS = [
      ["Derivation.test_sine_points_from_the_integer_index"]),
     ("no stop on a read-back outside tolerance", m_no_stop,
      ["ReadBack.test_outside_tolerance_stops_before_the_next_move"]),
+    ("measured samples left out of the log", m_measured_not_logged,
+     ["ReadBack.test_the_log_keeps_where_the_stage_was"]),
     ("the person's named exception removed", m_no_blind_exception,
      ["Router.test_tweezers_reach_their_wrapper_not_the_manual_sheet"]),
     ("the exception widened to another blind channel", m_blind_for_any,

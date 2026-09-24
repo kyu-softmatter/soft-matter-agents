@@ -146,6 +146,15 @@ class ReadBack(Base):
         self.assertEqual(sine["points_sent"], 8)
         self.assertIn("measured_um", sine["samples"][0])
 
+    def test_the_log_keeps_where_the_stage_was(self):
+        o, out = self.run_dispatch(plan())
+        applies = [e for e in o.log if e.get("event") == "apply"
+                   and e.get("from") == "operation.moves[sine_x]"]
+        self.assertEqual(len(applies), 1)
+        samples = (applies[0].get("measured") or {}).get("samples") or []
+        self.assertEqual(len(samples), 8)
+        self.assertIn("measured_um", samples[0])
+
     def test_outside_tolerance_stops_before_the_next_move(self):
         serial._HOLDER.link = Lagging()
         o, out = self.run_dispatch(plan())

@@ -85,6 +85,13 @@ _HOLDER = _sys.modules.setdefault("_python_serial_link_holder", _types.SimpleNam
 _FOUND_LEVEL = None     # the security level an unlock found, while one is in force
 
 
+#: How long the after-move reading may wait for the axis to settle. Chosen
+#: here, logged with every move, and not a limit: the prior project's record
+#: (settling within 100 nm in 20 ms, downgraded E3) is why a half second is
+#: generous rather than tight.
+SETTLE_WAIT_S = 0.5
+
+
 class PiezoRefused(RuntimeError):
     """A command this backend will not issue. Not a failure of the device."""
 
@@ -438,14 +445,31 @@ def _run_trajectory(params: dict) -> dict:
             samples.append({"i": i, "t_planned_s": round((i - first) * dt, 6),
                             "t_sent_s": round(sent, 6), "target_um": target,
                             "measured_um": measured, **({"late": True} if is_late else {})})
-    after = link.read_position(channel)
+    # THE AFTER-READING WAITS FOR THE STAGE TO SETTLE, and says how long it took.
+    # Read a millisecond after the last write, a closed-loop axis is still
+    # moving -- the prior project measured about 20 ms to settle within 100 nm
+    # -- and the move would be judged against where the stage was on its way,
+    # not where it arrived. So it is read every interval until it is within
+    # the plan's tolerance or SETTLE_WAIT_S has passed; the wait is a choice
+    # made here and logged, not a limit, and a stage that never arrives still
+    # disagrees.
     last = points[-1][1]
-    record = {"axis": axis, "target_um": last, "read_um": after, "tolerance_um": tolerance}
+    settle = []
+    t_settle = time.perf_counter()
+    while True:
+        after = link.read_position(channel)
+        waited = time.perf_counter() - t_settle
+        settle.append({"t_s": round(waited, 6), "measured_um": after})
+        if abs(after - last) <= tolerance or waited >= SETTLE_WAIT_S or _ABORTED:
+            break
+        time.sleep(max(dt, 0.001))
+    record = {"axis": axis, "target_um": last, "read_um": after, "tolerance_um": tolerance,
+              "settled_after_s": round(waited, 6)}
     ok = (not _ABORTED) and len(samples) == len(points) and abs(after - last) <= tolerance
     return {"move": traj.get("move_id"), "axis": axis, "channel": channel,
             "before_um": before, "after_um": after, "points_sent": len(samples),
             "points_planned": len(points), "late_points": late, "dt_s": dt,
-            "samples": samples,
+            "samples": samples, "settle": settle, "settle_wait_s": SETTLE_WAIT_S,
             "verified": [record] if ok else [], "disagreed": [] if ok else [record],
             "security_level_after": link.security_level(), "backend": BACKEND}
 
