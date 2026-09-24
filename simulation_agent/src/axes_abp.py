@@ -247,6 +247,13 @@ def a1(qid, config, created_at, caller_id, kb_version, kb_result, revision):
              "basis": ["integration_timestep_max"], "precision": "order_of_magnitude"}
     sweep = _sweep_axes(goal)
     pe_dependent = [a for a in sweep if a == "peclet_number_steric"]
+    # On constraints[] as well as on the inequality: the sweep invariant (plan
+    # schema, 92602c2) lets a point condition differ exactly when SOME axis
+    # card's constraint on that parameter carries varies_with, and a check
+    # reads constraints[]. Revision 3's cards carried it on inequalities[]
+    # alone; from the next revision it is on both.
+    if pe_dependent:
+        dt_iv["varies_with"] = list(pe_dependent)
     card = _head("a1", qid, config, created_at, caller_id, kb_version, revision,
         method="deterministic", verdict="feasible",
         constraints=[dt_iv],
@@ -470,6 +477,8 @@ def a3(qid, config, created_at, caller_id, kb_version, kb_result, revision):
     })
     box_iv = {"parameter": "box_length", "unit": "um", "min": oom(L_min, "um"), "basis": ["box_length_min"], "precision": "order_of_magnitude"}
     sweep = _sweep_axes(goal)
+    if any(a == "peclet_number_steric" for a in sweep):
+        box_iv["varies_with"] = ["peclet_number_steric"]      # see A1: on constraints[] too
     card = _head("a3", qid, config, created_at, caller_id, kb_version, revision,
         method="deterministic", verdict="feasible",
         constraints=[box_iv],
