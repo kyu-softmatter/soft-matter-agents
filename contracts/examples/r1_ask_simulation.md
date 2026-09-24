@@ -8,8 +8,8 @@ here unchanged.
 **Whose turn it is, and what state the round is in, are in `status.json`.** They
 are not repeated here, and neither are the gate verdicts, which are in
 `r1_ask_simulation.json`. The rule the envelope already follows for numbers —
-the bridge writes none of its own, so none of the payload's values appear here
-(P3, check 9) — applies to every other field the JSON holds. A courier that
+the bridge writes none of its own, so none of the payload's values appear here —
+applies to every other field the JSON holds. A courier that
 recites what it carries puts one fact in two places, and this file is what
 proved it: when the round stopped being held it went on saying *the human's
 turn* for a day, in the example a bridge seat copies when writing its first
@@ -33,5 +33,5 @@ there.
 
 `degraded: ["librarian_agent"]`. With the store reachable, a repeat of this
 observable under the same conditions would come back as a reference instead of
-a new round (plan.md 4.4 rule 5). With nothing to point at there is nothing to
+a new round. With nothing to point at there is nothing to
 substitute, so a repeat would reopen the round. That is what this line costs.
