@@ -264,6 +264,16 @@ OPERATING_POINT = {
 
 def build(qid: str, configs: list[str], created_at: str, revision: int = 1) -> dict:
     per_config, chosen = [], None
+    # A configuration the screen kept may still not answer this goal
+    # (configs.applicable); it is dropped here WITH its reason, into
+    # `rejected`, rather than silently (P1). Its axis cards were never made.
+    from . import configs as _configs
+    goal_now = cards.load_goal(qid, revision)
+    not_applicable, kept_configs = [], []
+    for config in configs:
+        ok, why = _configs.applicable(config, goal_now)
+        (kept_configs if ok else not_applicable).append((config, why))
+    configs = [c for c, _ in kept_configs]
     for config in configs:
         group = axis_cards(qid, config, revision)
         intersection, conflict = intersect(group)
@@ -300,7 +310,7 @@ def build(qid: str, configs: list[str], created_at: str, revision: int = 1) -> d
     # grows as the loop runs: a computed value takes the worst grade among its
     # inputs, and an input that is itself computed has to be in the table by
     # the time it is read.
-    for c in spec["computed"] + [spec["ratio"]]:
+    for c in spec["computed"] + ([spec["ratio"]] if spec.get("ratio") else []):
         number = cards.num(
             c["name"],
             c["value"],
@@ -314,7 +324,7 @@ def build(qid: str, configs: list[str], created_at: str, revision: int = 1) -> d
             formula=c["formula"],
             inputs=[(i, grades[i]) for i in c["inputs"]],
             precision="order_of_magnitude",
-            note=c["note"],
+            **({"note": c["note"]} if c.get("note") else {}),
         )
         numbers.append(number)
         grades[number["name"]] = number["grade"]
@@ -337,14 +347,29 @@ def build(qid: str, configs: list[str], created_at: str, revision: int = 1) -> d
         operating_point=[{"parameter": p, "number": n} for p, n in spec["point"]],
         priority_used=priority,
         priority_source="goal_card" if goal.get("priority") else "default_policy",
-        rejected=spec["rejected"],
+        rejected=spec["rejected"] + [
+            {"what": config, "kind": "configuration", "reason": why,
+             "grounds": spec.get("not_applicable_grounds") or ["drive_selectors_on_goal"]}
+            for config, why in not_applicable
+        ],
     )
+    # Gaps and degraded are inherited from the chosen configuration's axis
+    # cards, not decided here: synthesis does not query, so it cannot know on
+    # its own (4.3.1), and a carried assumption's gap_ref resolves against the
+    # axis card it came from (check 39). One degraded axis degrades the
+    # synthesis. bd_overdamped's table keeps the values it was written with.
+    own_table = chosen in OPERATING_POINT and _configs.operating_point(chosen) is None
+    gaps_seen = {g["gap_id"]: g for g in kb_gaps_for(qid)}
+    for _, c in axis_cards(qid, chosen, revision):
+        for g in c.get("kb_gaps") or []:
+            gaps_seen.setdefault(g["gap_id"], g)
+    inherited = sorted({d for _, c in axis_cards(qid, chosen, revision) for d in (c.get("degraded") or [])})
     card.update(cards.tail(
         numbers,
         assumptions=assumptions,
         kb_refs=kb_refs_for(qid, numbers),
-        kb_gaps=kb_gaps_for(qid),
-        degraded=["librarian_agent"],
+        kb_gaps=kb_gaps_for(qid) if own_table else [gaps_seen[g] for g in sorted(gaps_seen)],
+        degraded=["librarian_agent"] if own_table else inherited,
     ))
     # The synthesis schema carries no free note field, deliberately: an
     # observation about the result belongs to the plan's open_risks, where a

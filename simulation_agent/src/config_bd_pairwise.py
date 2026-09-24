@@ -57,8 +57,8 @@ QUERIES = {
     "a3": ["mean_spacing_over_diameter", "psi6_finite_size_margin"],
     "a4": ["mean_spacing_over_diameter", "save_interval_fraction_of_brownian_time",
            "psi6_plateau_fraction", "relaxation_fit_window_frames"],
-    "a5": ["cost_per_particle_step_yukawa_2d", "structural_relaxation_time"],
-    "a7": [],
+    "a5": ["particle_step_rate", "structural_relaxation_time"],
+    "a7": ["driving_velocity"],
 }
 
 
@@ -377,11 +377,11 @@ def a5(goal, numbers, assumptions):
                              note="the local target's ceiling, chosen by " + wall["chosen_by"]["by"] + " on " + wall["chosen_by"]["on"] + "; a policy, not a measurement"))
     numbers.append(cards.num("storage_max", store["value"], store["unit"], "spec:simulation_agent/envelope/budget.json",
                              note="the local target's ceiling, same provenance"))
-    numbers.append(cards.num("cost_per_particle_step", 1e-7, "s", "assumed:a_cost_reference", precision="order_of_magnitude",
-                             note="wall seconds per particle per step for a 2D Yukawa neighbour-list integrator on this workstation's CPU"))
-    numbers.append(cards.num("particle_steps_max", 7e10, "1", "computed:wall_clock_over_cost",
-                             formula="wall_clock_max/cost_per_particle_step",
-                             inputs=[("wall_clock_max", "E3"), ("cost_per_particle_step", "E5")], precision="order_of_magnitude",
+    numbers.append(cards.num("particle_step_rate", 1e7, "1/s", "assumed:a_cost_reference", precision="order_of_magnitude",
+                             note="particle-steps per wall second for a 2D neighbour-list Brownian integrator on this workstation's CPU. The store's agreed name and unit (a rate, not a time per step), so a measured timing entry lands here when one exists"))
+    numbers.append(cards.num("particle_steps_max", 7e10, "1", "computed:wall_clock_times_rate",
+                             formula="wall_clock_max*particle_step_rate",
+                             inputs=[("wall_clock_max", "E3"), ("particle_step_rate", "E5")], precision="order_of_magnitude",
                              note="the product n_particles * steps * n_seeds * sweep_points must sit under this"))
     numbers.append(cards.num("storage_per_particle_frame", 2e-8, "GB", "assumed:a_frame_bytes", precision="order_of_magnitude",
                              note="two double coordinates per particle per frame"))
@@ -389,12 +389,12 @@ def a5(goal, numbers, assumptions):
                              formula="storage_max/storage_per_particle_frame",
                              inputs=[("storage_max", "E3"), ("storage_per_particle_frame", "E5")], precision="order_of_magnitude"))
     assumptions += [
-        {"rationale_id": "a_cost_reference", "gap_ref": "cost_per_particle_step_yukawa_2d_absent",
-         "statement": "Of order ten million particle-steps per second is what a CPU neighbour-list integrator with a short-ranged pair force manages; nothing on this machine has measured it for this potential.",
-         "numbers": ["cost_per_particle_step"],
+        {"rationale_id": "a_cost_reference", "gap_ref": "particle_step_rate_absent",
+         "statement": "Of order ten million particle-steps per second is what a CPU neighbour-list integrator with a short-ranged pair force manages; nothing on this machine has measured it for this potential. The frame-writing cost is not in this model yet (task 023 is adding a per-particle-frame term); at a hundred frames a run it is small here, and the smoke run measures both.",
+         "numbers": ["particle_step_rate"],
          "falsifier": "a smoke run of this configuration that writes its trajectory replaces this with its own log's wall time per particle-step"},
         {"rationale_id": "a_frame_bytes", "statement": "Positions only, in double precision, two coordinates in 2D.",
-         "numbers": ["storage_per_particle_frame"], "gap_ref": "cost_per_particle_step_yukawa_2d_absent",
+         "numbers": ["storage_per_particle_frame"], "gap_ref": "particle_step_rate_absent",
          "falsifier": "the trajectory writer's declared frame format replaces the estimate"},
     ]
     return dict(
@@ -568,3 +568,79 @@ if __name__ == "__main__":
     card = s4_refusal(qid, revision, created_at)
     cards.refuse_overwrite(target, revision, card)
     print(cards.write(target, card).relative_to(cards.REPO))
+
+
+# --------------------------------------------------------------------------- #
+# S4 -- the operating point, when the intersection is not empty (4.5.4)
+# --------------------------------------------------------------------------- #
+
+def operating_point() -> dict:
+    """The judgement half of S4 for this configuration, as synthesis.build
+    consumes it: what to carry, what to compute from it, the point, and what
+    was rejected with numeric grounds. No new lookups; the two decisions --
+    the run cap and one sweep level per decade -- are the person's standing
+    shape for an exploratory sweep (explore answers in decades, 5.8) and are
+    marked as such.
+    """
+    # Revision-1 filenames: synthesis.build resolves them to the revision it
+    # is building (configs.operating_point's contract).
+    a = lambda ax: f"axis_bd_pairwise_{ax}.json"
+    g = "goal.json"
+    carry = [(g, n) for n in ("bead_diameter", "temperature", "viscosity", "diffusivity",
+                               "gamma_min", "gamma_max", "kappa_a_min", "kappa_a_max")]
+    carry += [(a("a1"), n) for n in ("mean_spacing", "brownian_time", "dt_max_curvature", "dt_max_noise", "dt_max_brownian")]
+    carry += [(a("a2"), "n_seeds_min"), (a("a3"), "finite_size_factor"), (a("a3"), "box_length_min"), (a("a3"), "n_particles_min")]
+    carry += [(a("a4"), n) for n in ("save_interval_max", "plateau_fraction", "fit_window_frames_min")]
+    carry += [(a("a5"), n) for n in ("particle_steps_max", "particle_frames_max", "particle_step_rate")]
+    computed = [
+        {"name": "drive_selectors_on_goal", "value": 0, "unit": "1", "source": "computed:count_of_drive_selectors",
+         "formula": "0*gamma_min", "inputs": ["gamma_min"],
+         "note": "the goal carries no `drive` selector; the count is zero and is written as arithmetic on a carried number so the validator can recompute it. It is the ground on which the driven configuration is rejected for this question"},
+        {"name": "run_cap_factor", "value": 10, "unit": "1", "source": "computed:decision_run_cap", "formula": "gamma_min/gamma_min*10", "inputs": ["gamma_min"],
+         "note": "the run is capped at this many Brownian times, S4's decision for costing; a run ending on the cap is reported not converged. Lenient on purpose. Written as arithmetic on a carried number so the validator can recompute it; the ten is the decision"},
+        {"name": "run_time_cap", "value": 10000, "unit": "s", "source": "computed:cap_times_brownian_time", "formula": "run_cap_factor*brownian_time", "inputs": ["run_cap_factor", "brownian_time"],
+         "note": "ten Brownian times"},
+        {"name": "relaxation_fit_window", "value": 1000, "unit": "s", "source": "computed:frames_times_save_interval", "formula": "fit_window_frames_min*save_interval_max", "inputs": ["fit_window_frames_min", "save_interval_max"],
+         "note": "the observable's declared window: the plateau is read over this many seconds of frames"},
+        {"name": "lattice_constant", "value": 10, "unit": "um", "source": "computed:triangular_lattice_constant_at_density", "formula": "mean_spacing*(2/3**0.5)**0.5", "inputs": ["mean_spacing"],
+         "note": "the triangular lattice constant at the reference density, a_lat**2 * sqrt(3)/2 = a**2"},
+        {"name": "rows_x", "value": 30, "unit": "1", "source": "computed:rows_from_finite_size_factor", "formula": "finite_size_factor", "inputs": ["finite_size_factor"],
+         "note": "lattice columns along x; the box is rows_x * lattice_constant wide, derived by the backend"},
+        {"name": "rows_y", "value": 30, "unit": "1", "source": "computed:rows_from_finite_size_factor", "formula": "finite_size_factor", "inputs": ["finite_size_factor"],
+         "note": "lattice rows along y, even, so the triangular lattice closes periodically; the box is rows_y * sqrt(3)/2 * lattice_constant tall"},
+        {"name": "n_particles_point", "value": 900, "unit": "1", "source": "computed:rows_product", "formula": "rows_x*rows_y", "inputs": ["rows_x", "rows_y"]},
+        {"name": "n_seeds_point", "value": 9, "unit": "1", "source": "computed:seeds_at_the_floor", "formula": "n_seeds_min", "inputs": ["n_seeds_min"],
+         "note": "at the statistics floor, because the budget below is tight"},
+        {"name": "levels_per_decade", "value": 1, "unit": "1", "source": "computed:decision_levels_per_decade", "formula": "gamma_min/gamma_min", "inputs": ["gamma_min"],
+         "note": "one sweep level per decade: explore answers in decades and differences under 10x are ties. The one is the decision"},
+        {"name": "gamma_levels", "value": 2, "unit": "1", "source": "computed:decades_plus_one", "formula": "1 + levels_per_decade*(gamma_max/gamma_min)**0.5/(gamma_max/gamma_min)**0.5", "inputs": ["levels_per_decade", "gamma_max", "gamma_min"],
+         "note": "two levels: the sweep's two corners, 10 and 100"},
+        {"name": "kappa_a_levels", "value": 2, "unit": "1", "source": "computed:endpoints", "formula": "1 + levels_per_decade*(kappa_a_max/kappa_a_min)/(kappa_a_max/kappa_a_min)", "inputs": ["levels_per_decade", "kappa_a_max", "kappa_a_min"],
+         "note": "two levels: 1 and 3, the range's two ends; the range spans half a decade so one level per decade gives its endpoints"},
+        {"name": "sweep_points", "value": 4, "unit": "1", "source": "computed:grid_size", "formula": "gamma_levels*kappa_a_levels", "inputs": ["gamma_levels", "kappa_a_levels"]},
+        {"name": "steps_per_run", "value": 2e6, "unit": "1", "source": "computed:cap_over_step", "formula": "run_time_cap/dt_max_curvature", "inputs": ["run_time_cap", "dt_max_curvature"],
+         "note": "one timestep for every cell, set at the stiffest cell's bound; a per-cell step would be cheaper and is recorded as rejected below"},
+        {"name": "particle_steps_total", "value": 6e10, "unit": "1", "source": "computed:steps_times_particles_times_seeds_times_points", "formula": "steps_per_run*n_particles_point*n_seeds_point*sweep_points", "inputs": ["steps_per_run", "n_particles_point", "n_seeds_point", "sweep_points"],
+         "note": "against particle_steps_max 7e10: inside, by a margin that is not a decade. The cost per particle-step behind the ceiling is a guess; the smoke run measures it"},
+        {"name": "frames_per_run", "value": 100, "unit": "1", "source": "computed:cap_over_save_interval", "formula": "run_time_cap/save_interval_max", "inputs": ["run_time_cap", "save_interval_max"]},
+        {"name": "particle_frames_total", "value": 3e6, "unit": "1", "source": "computed:frames_times_particles_times_seeds_times_points", "formula": "frames_per_run*n_particles_point*n_seeds_point*sweep_points", "inputs": ["frames_per_run", "n_particles_point", "n_seeds_point", "sweep_points"],
+         "note": "against particle_frames_max 5e8: two decades inside"},
+    ]
+    point = [("integration_timestep", "dt_max_curvature"), ("run_time_cap", "run_time_cap"), ("save_interval", "save_interval_max"),
+             ("relaxation_fit_window", "relaxation_fit_window"), ("plateau_fraction", "plateau_fraction"),
+             ("lattice_constant", "lattice_constant"), ("rows_x", "rows_x"), ("rows_y", "rows_y"),
+             ("n_particles", "n_particles_point"), ("n_seeds", "n_seeds_point"),
+             ("gamma_min", "gamma_min"), ("gamma_max", "gamma_max"), ("kappa_a_min", "kappa_a_min"), ("kappa_a_max", "kappa_a_max")]
+    rejected = [
+        {"what": "a timestep per sweep cell (the bounds carry varies_with)", "kind": "operating_point",
+         "reason": "one step at the stiffest cell's bound keeps every cell under the same integrator settings, so a difference between cells cannot be an integrator difference; the cost of that choice is a factor of a few at the weak cells and the total still sits under the ceiling",
+         "grounds": ["particle_steps_total", "particle_steps_max"]},
+        {"what": "the noise-step and Brownian-time bounds on the timestep", "kind": "operating_point",
+         "reason": "both are looser than the curvature bound at every cell of this sweep, so the curvature bound is the one that binds",
+         "grounds": ["dt_max_curvature", "dt_max_noise", "dt_max_brownian"]},
+        {"what": "more seeds than the statistics floor", "kind": "operating_point",
+         "reason": "ten per cent statistical error is met at nine seeds and the budget margin does not allow a decade more",
+         "grounds": ["n_seeds_min", "particle_steps_total", "particle_steps_max"]},
+    ]
+    return {"carry": carry, "computed": computed, "point": point, "rejected": rejected,
+            "not_applicable_grounds": ["drive_selectors_on_goal"]}
