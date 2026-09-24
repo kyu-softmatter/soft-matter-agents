@@ -285,10 +285,25 @@ the operating point S4 chooses, and the field that decides it already exists:
 `confirm` is not. Nothing new is needed for this, and **a second target is a
 data change to `envelope/`, not a code change.**
 
-**The smoke run also calibrates the cost model.** On a first run the
-cost-per-step is `assumed:` and E5, so the budget comparison for the full run
-would rest on a guess. The smoke run replaces it with a value measured on this
-machine. That is the second reason it is Tier 1 and cheap.
+**The smoke run does not calibrate the cost model, and this paragraph said
+until 2026-09-23 that it did.** A smoke run is the same plan — one arm or sweep
+point — measured against the smaller `smoke_budget` ceilings, and nothing in
+`operator.py` shortens it. So it cannot produce a small measurement to
+calibrate against: it passes or is refused exactly as the full run would,
+under a tighter limit. The rate the model uses, `particle_step_rate`, is
+whatever the plan carries, and it is measured only when a seat copies it from
+an earlier run's log. The paragraph described a mechanism the code never had,
+and `simulation-20260923-3` found that out by reading the code after its run
+overran (`398255c`).
+
+**And the model has no term for saved frames**: the arm's wall clock is
+`particle_steps / particle_step_rate` and nothing else. A plan estimated at
+40 s ran past an hour, holding 2.3 GB, because 400,000 frames were read out of
+the engine one at a time and kept in a list — the term that dominated was the
+one missing. `tasks/023` makes the smoke run small and the model two-termed.
+Until it lands, **a plan that saves many frames states its wall-clock estimate
+as a lower bound**, and the rate is read off the last comparable run's log
+rather than trusted.
 
 ## The backend boundary
 
