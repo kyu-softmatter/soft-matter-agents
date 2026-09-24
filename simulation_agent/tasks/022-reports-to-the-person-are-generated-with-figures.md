@@ -151,3 +151,37 @@ neither.
 
 Report the report's path, and what you would change in this card after
 building it.
+
+## Amended after the first report (window 1, 2026-09-23)
+
+Window 1 built the double-well report to this order by hand, before the
+generator existed — `~/Desktop/report/rebuild-report-0923-sim-20260923-101.html`,
+14 sections, F1–F5 and a 20 s V1. Scanned by the manager with embedded data
+removed: every seat name and hash sits in the footer, none in the body. Its
+two findings, and a third the scan turned up, change this card:
+
+**1. Section 6 has three states, and the generator renders each differently.**
+The section cannot always be filled truthfully, and rendering an empty one as
+"none" hides a difference that matters:
+
+- *set on a card* — quote it, with who chose it and when;
+- *stated before the data but only in prose* — a message, a notes line, a
+  goal's rationale: quote it with its source and its time, judge it
+  separately, and say it was not on a card;
+- *none* — say so. Any band then drawn on F2 is labelled **shown for reading,
+  not set in advance**, never shaded as if it were a criterion.
+
+Prose criteria are the case to design for, not the exception: window 1's
+occupancy-definition test was written before its replicates and lived nowhere
+a card could carry it.
+
+**2. The code scan skips embedded data.** Window 1's own grep hit `A5` and
+`E4` inside base64 PNG strings, so a generator that embeds figures and scans the
+rendered body refuses its own images. Scan the text after removing `data:`
+URIs, `<style>` and `<script>`, and add an embedded figure to the tests beside
+`2D`, `D_R` and `1E6`.
+
+**3. The footer is a `<footer>` element.** The manager's scan of window 1's
+report could find the footer only by its heading text. The one place references
+are allowed has to be found by structure, or a renamed heading silently widens
+it to the whole page.
