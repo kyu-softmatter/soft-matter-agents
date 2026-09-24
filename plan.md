@@ -1298,6 +1298,39 @@ premise underneath it is unverifiable here, with a name attached to who could ve
 
 **The line is drawn not at "numbers that look like targets" but between a person's target and everything computed from it.** The **statistics requirement** derived from a one-decade target is not a decision but **a claim about what statistics demand**, so it stays as a `numbers[]` item with a `computed:` source and a grade. The target losing its grade does not make the computations under it lose theirs — the opposite: when a decision steps outside the grade scale, **the grades of the claims flowing from it get sharper.** The microscope manager drew it.
 
+**What that line could not do was let a formula read the target, and the fix is the third widening of
+`inputs`, not a source kind (2026-09-23).** `simulation-8` met it twice in one question, `sim-20260923-201`
+revision 3: A2 needs the person's 1 % accuracy target to compute a record length, and A5 divides the
+wall-clock ceiling the person chose on 2026-09-19 in `envelope/budget.json` into a step budget. **Both are
+decisions and both must be read by a formula**, and a `computed:` number's `inputs` could name only a
+number in this card's `numbers[]`, a constant, or a `kb:` entry. So a decision reached a formula only by
+being entered in `numbers[]`, which demands a source, and the only prefix that fit was `assumed:` -- the
+reading this subsection already rejects as *recording a person's target as an assumption*, and worse in
+practice, because a computed value takes the worst of its inputs: **every number derived from a person's
+ceiling was dragged to E5 by a value that is not uncertain at all**, the exact opposite of the sentence
+above. The seat did not work around it. It kept `assumed:` with no formula and carried the arithmetic in
+the rationale, refusing to load a decision as a graded input, which was right.
+
+**I nearly re-created the refused thing.** My first draft of the fix was a `chosen:<record>#<field>` source
+kind -- `decision:` under another name, refused above for a reason that still holds: this table is a
+function from source to grade, and a source yielding no grade is a hole in P2's invariant. It surfaced only
+because I searched this file for *no grade* to cite the old ruling correctly, not because I went looking
+for a refusal. **A refusal recorded in prose does not stop a later seat from reinventing the refused
+mechanism under a new name** -- which is also the history of `operator_set:` -- and the defence available
+is to search the record for the mechanism's *purpose* before creating it, since its name will be new.
+
+**So `inputs` widens a third time, for the same reason as the second.** On 2026-09-20 it gained
+`kb:<entry_id>` because *the entry exists and the field could not name it*; a decision is the same case.
+A `computed:` number's `inputs` may now also name **a target**, as `target:<metric>` resolving to this
+card's `targets[]` (the travelled copy §5.3.1 already compares against the goal), and **a policy value**,
+as `envelope:<file>#<field>` resolving to the agent's own `envelope/`. **A decision input is skipped when
+the grade composes**: the result stays `max(E4, worst graded input)` and a decision is not a graded input.
+That is the mechanical form of the line drawn above -- nothing new is decided and the source table does not
+change. A reference that does not resolve fails, as an unresolvable `kb:` input does, and a decision copied
+into `numbers[]` under `assumed:` to reach a formula becomes the wrong route instead of the only one. This
+rule is architecture's; the `inputs` description in `common.schema.json` and the resolution and grade
+composition in the validator are a manager's, and they land before any card uses the form.
+
 **For the same reason the `operator_set:` source kind is withdrawn (2026-09-19).** It existed for a few hours that day because there was no prefix for recording a person stating a target, and once targets were settled as having no source, **not one number in this repository could be written with it.** Leaving it is dead vocabulary, and worse than dead — **the name `operator_set` reads as "put a person's decisions here" and inverts the judgement immediately above.** The argument that refused `decision:` (a source yielding no grade is a hole in P2's invariant) does not apply here. `operator_set:` yields E5, so the function is intact, and **what breaks is not the invariant but the meaning.** The seat that created it asked whether to withdraw it.
 
 **E5 holds two things in one cell, and when they conflict they are not the same thing (2026-09-19).** `operator_recall:` is **a claim about the world** — it may be wrong, but it is saying something. `assumed:<rationale_id>` is **a placeholder put down in order to proceed** and claims nothing about this setup. The reason they share a grade is that **the grounds for believing both are weak**, not that they are the same kind.
