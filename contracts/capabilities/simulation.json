@@ -196,7 +196,7 @@
       },
       "executed_by": {
         "module": "trap_hoomd_backend",
-        "why": "NOT YET CONFIRMED BY A RUN. Declared from construction: trap_hoomd_backend already builds the trap as a harmonic bond to a fixed tether for the driven configuration, and this one is that model with the flow removed. The first run's record replaces this sentence, the way it did for the driven configuration's executor."
+        "why": "READ OFF THE RUN RECORD, 2026-09-24: run-20260923-102-s2 (plan sim-20260923-102 revision 2) logged backend trap_hoomd_backend, engine hoomd 7.2.0 on the CPU, 52,500 steps. The trap is the harmonic bond to a fixed tether the driven configuration uses, and the flow is zero because trap_rest_backend wraps the builder and supplies it -- refusing any flow a plan carries rather than overwriting it, so the zero belongs to this configuration and not to the trap backends' defaults. Replaces 'not yet confirmed by a run', which this field said from declaration until that run."
       },
       "temperature_realisation": {
         "kind": "constitutive",
