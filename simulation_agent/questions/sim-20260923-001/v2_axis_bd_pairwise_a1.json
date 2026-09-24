@@ -1,0 +1,399 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-001-bd_pairwise-a1-r2",
+  "qid": "sim-20260923-001",
+  "thread": "solo-sim-20260923-001",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T07:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-001:v2:bd_pairwise:a1",
+  "config": "bd_pairwise",
+  "axis": "a1",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "max": 0.005,
+      "basis": [
+        "dt_max_curvature"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "gamma",
+        "kappa_a"
+      ]
+    },
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "max": 0.5,
+      "basis": [
+        "dt_max_noise"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "kappa_a"
+      ]
+    },
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "max": 10.0,
+      "basis": [
+        "dt_max_brownian"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "dt << gamma / u''(a) at the stiffest point of the sweep",
+      "parameter": "integration_timestep",
+      "state": "returned",
+      "interval": {
+        "parameter": "integration_timestep",
+        "unit": "s",
+        "max": 0.005,
+        "basis": [
+          "dt_max_curvature"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "gamma",
+          "kappa_a"
+        ]
+      }
+    },
+    {
+      "inequality": "sqrt(2 D0 dt) << 1/kappa",
+      "parameter": "integration_timestep",
+      "state": "returned",
+      "interval": {
+        "parameter": "integration_timestep",
+        "unit": "s",
+        "max": 0.5,
+        "basis": [
+          "dt_max_noise"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "kappa_a"
+        ]
+      }
+    },
+    {
+      "inequality": "dt << a**2 / D0",
+      "parameter": "integration_timestep",
+      "state": "returned",
+      "interval": {
+        "parameter": "integration_timestep",
+        "unit": "s",
+        "max": 10.0,
+        "basis": [
+          "dt_max_brownian"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    }
+  ],
+  "note": "Three bounds on one parameter, and S4 takes the tightest; all three are recorded because which one binds moves across the sweep. At the stiff corner the curvature bound is five decades below the Brownian one -- the whole reason bd_overdamped's A1 could not be reused here.",
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the lab's particles, measured by the operator on 2026-09-19 (CV at most 2 per cent). Taken from the store under the S2 id as the physical-units anchor; see the constraint note on anchoring",
+      "origin": "v2_goal.json#bead_diameter"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "the free diffusivity D0 of one particle in the bath; the Brownian time at the mean spacing, a^2/D0, is the natural time unit of the relaxation and every axis derives it from this",
+      "origin": "v2_goal.json#diffusivity"
+    },
+    {
+      "name": "spacing_over_diameter",
+      "value": 2,
+      "unit": "1",
+      "source": "assumed:a_spacing",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "mean centre-to-centre spacing in diameters; sets the area fraction, about 0.2 for a triangular arrangement at 2"
+    },
+    {
+      "name": "mean_spacing",
+      "value": 10,
+      "unit": "um",
+      "source": "computed:spacing_times_diameter",
+      "grade": "E5",
+      "formula": "spacing_over_diameter*bead_diameter",
+      "inputs": [
+        "spacing_over_diameter",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a = rho**-1/2 at the reference density; the density sweep moves it by less than a decade"
+    },
+    {
+      "name": "brownian_time",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "computed:brownian_time",
+      "grade": "E5",
+      "formula": "mean_spacing**2/diffusivity",
+      "inputs": [
+        "mean_spacing",
+        "diffusivity"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the time to diffuse one spacing: the natural unit of structural relaxation here, and NOT tau_d, which is the time to diffuse one diameter and belongs to the free-tracer question"
+    },
+    {
+      "name": "gamma_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_sweep_corner",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the largest coupling U0/kT of the sweep; the stiff corner the timestep must survive",
+      "origin": "v2_goal.json#gamma_max"
+    },
+    {
+      "name": "kappa_a_max",
+      "value": 3,
+      "unit": "1",
+      "source": "assumed:a_sweep_corner",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the shortest range of the sweep, as kappa times the mean spacing",
+      "origin": "v2_goal.json#kappa_a_max"
+    },
+    {
+      "name": "curvature_factor",
+      "value": 2000.0,
+      "unit": "1",
+      "source": "computed:yukawa_curvature_at_spacing",
+      "grade": "E5",
+      "formula": "gamma_max*(kappa_a_max**2 + 2*kappa_a_max + 2)",
+      "inputs": [
+        "gamma_max",
+        "kappa_a_max"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a**2 u''(a) / kT for u = U0 (a/r) exp(-kappa (r-a)); the ratio of the Brownian time to the curvature relaxation time"
+    },
+    {
+      "name": "curvature_time",
+      "value": 0.5,
+      "unit": "s",
+      "source": "computed:curvature_relaxation_time",
+      "grade": "E5",
+      "formula": "brownian_time/curvature_factor",
+      "inputs": [
+        "brownian_time",
+        "curvature_factor"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "gamma / u''(a): the shortest characteristic time in the system at the stiff corner, five decades below tau_B"
+    },
+    {
+      "name": "dt_resolution_factor",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_dt_factor",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how far below the shortest resolved time the step sits"
+    },
+    {
+      "name": "dt_max_curvature",
+      "value": 0.005,
+      "unit": "s",
+      "source": "computed:factor_times_curvature_time",
+      "grade": "E5",
+      "formula": "dt_resolution_factor*curvature_time",
+      "inputs": [
+        "dt_resolution_factor",
+        "curvature_time"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "dt_max_brownian",
+      "value": 10.0,
+      "unit": "s",
+      "source": "computed:factor_times_brownian_time",
+      "grade": "E5",
+      "formula": "dt_resolution_factor*brownian_time",
+      "inputs": [
+        "dt_resolution_factor",
+        "brownian_time"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the bound the free-tracer configuration would have stopped at; here it is the loosest of three"
+    },
+    {
+      "name": "noise_step_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_noise_step",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the rms noise displacement per step as a fraction of the screening length"
+    },
+    {
+      "name": "screening_length_min",
+      "value": 3.0,
+      "unit": "um",
+      "source": "computed:spacing_over_kappa_a",
+      "grade": "E5",
+      "formula": "mean_spacing/kappa_a_max",
+      "inputs": [
+        "mean_spacing",
+        "kappa_a_max"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "dt_max_noise",
+      "value": 0.5,
+      "unit": "s",
+      "source": "computed:noise_step_inside_screening_length",
+      "grade": "E5",
+      "formula": "(noise_step_fraction*screening_length_min)**2/(2*diffusivity)",
+      "inputs": [
+        "noise_step_fraction",
+        "screening_length_min",
+        "diffusivity"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "sqrt(2 D0 dt) must stay inside the potential's range or a step carries a particle across it in one move"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_spacing",
+      "gap_ref": "mean_spacing_over_diameter_absent",
+      "statement": "Two diameters of spacing is a reference density where a 2D Yukawa suspension is neither dilute nor jammed, so the sweep in strength and range has room on both sides. Nothing physical picks it; the density is one of the swept parameters and this is the point about which it is swept.",
+      "numbers": [
+        "spacing_over_diameter"
+      ],
+      "falsifier": "a person naming the area fraction of interest, or a first run showing the plateau unreachable at this density inside budget, moves the reference"
+    },
+    {
+      "rationale_id": "a_sweep_corner",
+      "gap_ref": "yukawa_coupling_sweep_range_absent",
+      "authorised_by": "kyuhwan_20260923",
+      "statement": "The sweep corners. Revision 1 left them to the design stage, which took Gamma up to 1000 and kappa a up to 10 and refused on budget: one sweep point at that corner needed of order 8e11 particle-steps against 7e10. The relaxation option it attached -- Gamma 10 to 100, kappa a 1 to 3 -- was put to the person, who ruled for it on 2026-09-23. So these four numbers are the person's decision carried as an assumption, not the design stage's own; the store still holds nothing about a 2D Yukawa sweep range, which is the gap named here.",
+      "numbers": [
+        "gamma_max",
+        "kappa_a_max"
+      ],
+      "falsifier": "a first run showing psi6 already at its plateau at the lowest coupling, or unreachable inside the cap at the highest, moves the corresponding end by a decade -- with the person's word, since the corners are now theirs"
+    },
+    {
+      "rationale_id": "a_dt_factor",
+      "gap_ref": "integration_timestep_resolution_factor_absent",
+      "statement": "Two decades below the shortest resolved time is the usual margin for an overdamped integrator with a stiff repulsion; a convention, not a derivation, and no timestep scan on this model has been run.",
+      "numbers": [
+        "dt_resolution_factor"
+      ],
+      "falsifier": "a timestep scan showing the relaxation time flat over a wider range of steps replaces the factor with a measured one"
+    },
+    {
+      "rationale_id": "a_noise_step",
+      "gap_ref": "noise_step_fraction_of_screening_length_absent",
+      "statement": "A tenth of a screening length per step keeps the force felt during a step close to the force at its start. Looser than the curvature bound at this corner, and recorded because at small Gamma it is the one that binds.",
+      "numbers": [
+        "noise_step_fraction"
+      ],
+      "falsifier": "energy drift or overlap counts flat against step size at larger fractions retires it"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "mean_spacing_over_diameter_absent",
+      "observable": "mean_spacing_over_diameter",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v2:bd_pairwise:a1",
+      "asked_at": "2026-09-24T06:53:50+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "yukawa_coupling_sweep_range_absent",
+      "observable": "yukawa_coupling_sweep_range",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v2:bd_pairwise:a1",
+      "asked_at": "2026-09-24T06:53:54+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "integration_timestep_resolution_factor_absent",
+      "observable": "integration_timestep_resolution_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v2:bd_pairwise:a1",
+      "asked_at": "2026-09-24T06:54:00+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "noise_step_fraction_of_screening_length_absent",
+      "observable": "noise_step_fraction_of_screening_length",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v2:bd_pairwise:a1",
+      "asked_at": "2026-09-24T06:54:05+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": []
+}

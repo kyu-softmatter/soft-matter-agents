@@ -1,0 +1,56 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-001-bd_pairwise-a7-r2",
+  "qid": "sim-20260923-001",
+  "thread": "solo-sim-20260923-001",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T07:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-001:v2:bd_pairwise:a7",
+  "config": "bd_pairwise",
+  "axis": "a7",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "abstain_reason": "bd_pairwise drives nothing: no particle has an imposed position or velocity and no field acts, so quasi-staticity, strain to steady state and the validity range of the overdamped model under drive are all empty inequalities here. bd_pairwise_driven_tracer is the configuration where A7 speaks.",
+  "inequalities": [
+    {
+      "inequality": "v a / D0 << 1 (quasi-static drive)",
+      "parameter": "driving_velocity",
+      "state": "abstained",
+      "kind": "not_constraining",
+      "reason": "undriven configuration: there is no driving velocity"
+    },
+    {
+      "inequality": "strain to steady state under drive",
+      "parameter": "driving_direction",
+      "state": "abstained",
+      "kind": "not_constraining",
+      "reason": "undriven configuration: there is no driving direction"
+    }
+  ],
+  "note": "Abstaining leaves a card (P1). A7 is numbered the same on both sides so the bridge can lay two a7 cards side by side; here the card says there is nothing to lay.",
+  "numbers": [],
+  "assumptions": [],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "driving_velocity_absent",
+      "observable": "driving_velocity",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v2:bd_pairwise:a7",
+      "asked_at": "2026-09-24T07:01:25+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": []
+}
