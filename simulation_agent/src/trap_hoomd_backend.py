@@ -110,6 +110,10 @@ class TrapHoomdBackend(TrapBackend):
                 self.state = RUNNING
             last_step = 0.0
             started = time.perf_counter()
+            # Two clocks for the two-term cost model (task 023): sim.run is stepping,
+            # every snapshot out of the engine is readout -- including the extra one
+            # per frame the divergence watch takes, because it too scales with frames.
+            stepping = readout = 0.0
             for _ in range(frames):
                 if self._stop.is_set():
                     with self._lock:
@@ -120,12 +124,14 @@ class TrapHoomdBackend(TrapBackend):
                 # criterion watches -- is measured once per frame. Same steps in
                 # the same order; one extra snapshot per frame.
                 if per_frame > 1:
-                    sim.run(per_frame - 1)
+                    t0 = time.perf_counter(); sim.run(per_frame - 1); t1 = time.perf_counter()
                     before = self._bead(sim, e["box_length"])
+                    stepping += t1 - t0; readout += time.perf_counter() - t1
                 else:
                     before = self.frames[-1]
-                sim.run(1)
+                t0 = time.perf_counter(); sim.run(1); t1 = time.perf_counter()
                 x = self._bead(sim, e["box_length"])
+                stepping += t1 - t0; readout += time.perf_counter() - t1
                 last_step = max(last_step, float(np.abs(x - before).max()))
                 with self._lock:
                     self.position = x
@@ -134,9 +140,13 @@ class TrapHoomdBackend(TrapBackend):
                     self.frames.append(x)
                     self.frame_times.append(self.simulated_time)
                     self.largest_single_step = last_step
+                    self.stepping_wall_s, self.frame_readout_wall_s = stepping, readout
             tether = np.asarray(sim.state.get_snapshot().particles.position[1], dtype=float)
             with self._lock:
-                self.integration_wall_s = time.perf_counter() - started
+                # integration_wall_s is stepping alone, the key window 3's backend uses too;
+                # loop_wall_s is the whole loop, so readout = loop - stepping is checkable
+                self.loop_wall_s = time.perf_counter() - started
+                self.integration_wall_s = self.stepping_wall_s
                 self.tether_drift_reduced = float(np.abs(tether).max())
                 self.state = COMPLETE
         except Exception as exc:                       # noqa: BLE001

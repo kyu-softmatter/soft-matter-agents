@@ -92,6 +92,12 @@ class TrapBackend:
         self.failure: str | None = None
         self.handle: str | None = None
         self.integration_wall_s: float | None = None
+        # task 023: None means NOT REPORTED, never zero. This backend writes no
+        # frame inside the loop -- the operator writes the trajectory afterwards
+        # and times that itself -- so frame_write_wall_s stays None here.
+        self.stepping_wall_s: float | None = None
+        self.frame_readout_wall_s: float | None = None
+        self.loop_wall_s: float | None = None
         self.steps_planned: int | None = None
         # The largest displacement in ONE integration step over the run so far.
         # This backend reported the frame-to-frame displacement under the name
@@ -186,16 +192,22 @@ class TrapBackend:
             x = self.position.copy()
             largest = 0.0
             started = time.perf_counter()
+            # Two clocks, because the cost model has two terms (task 023): stepping,
+            # and taking a frame out. Everything between the two reads is readout.
+            stepping = readout = 0.0
             for _ in range(frames):
                 if self._stop.is_set():
                     with self._lock:
                         self.state = ABORTED
                     return
+                t0 = time.perf_counter()
                 xi = self.rng.normal(0.0, 1.0, size=(per_frame, N_PARTICLES, DIMENSIONS))
                 for j in range(per_frame):
                     step = (drift - relax * x) * dt + noise * xi[j]
                     largest = max(largest, float(np.abs(step).max()))
                     x = x + step
+                t1 = time.perf_counter()
+                stepping += t1 - t0
                 with self._lock:
                     self.largest_single_step = largest
                     self.position = x
@@ -205,8 +217,14 @@ class TrapBackend:
                     self.simulated_time = self.steps_taken * dt
                     self.frames.append(x.copy())
                     self.frame_times.append(self.simulated_time)
+                readout += time.perf_counter() - t1
+                with self._lock:
+                    self.stepping_wall_s, self.frame_readout_wall_s = stepping, readout
             with self._lock:
-                self.integration_wall_s = time.perf_counter() - started
+                # integration_wall_s is stepping alone, the key window 3's backend uses too;
+                # loop_wall_s is the whole loop, so readout = loop - stepping is checkable
+                self.loop_wall_s = time.perf_counter() - started
+                self.integration_wall_s = self.stepping_wall_s
                 self.state = COMPLETE
         except Exception as exc:                       # noqa: BLE001
             with self._lock:
@@ -232,6 +250,9 @@ class TrapBackend:
                 "fraction_of_planned_steps": (self.steps_taken / self.steps_planned
                                               if self.steps_planned else 0.0),
                 "max_single_step_displacement": float(self.largest_single_step or 0.0),
+                "integration_wall_s": self.stepping_wall_s,
+                "frame_readout_wall_s": self.frame_readout_wall_s,
+                "frame_write_wall_s": None,
                 "max_absolute_coordinate": float(np.abs(self.position).max()),
                 "failure": self.failure,
             }
@@ -279,6 +300,13 @@ class TrapBackend:
                 "integration_wall_s": self.integration_wall_s,
                 "steps": self.steps_taken,
                 "wall_s_per_step": (self.integration_wall_s / steps) if self.integration_wall_s else None,
+                # the second term (task 023): wall clock per particle-frame taken out of
+                # the engine. Normalised per particle so it carries to larger N.
+                "frame_readout_wall_s": self.frame_readout_wall_s,
+                "frames_saved": len(self.frames),
+                "loop_wall_s": self.loop_wall_s,
+                "particle_frame_cost": (self.frame_readout_wall_s / (len(self.frames) * N_PARTICLES)
+                                        if self.frame_readout_wall_s and self.frames else None),
                 "n_particles": N_PARTICLES,
                 "backend": NAME,
                 "note": ("measured on the integration loop alone. It calibrates THIS backend; it "

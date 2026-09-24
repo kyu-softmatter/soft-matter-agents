@@ -570,8 +570,17 @@ def arm_view(plan: dict, arm: str | None) -> tuple[dict, dict | None]:
     coords = nums.get(f"coordinates_stored_arm_{arm}") or nums.get(f"coordinates_stored_{arm}")
     rate, bytes_per = nums.get("particle_step_rate"), nums.get("bytes_per_coordinate")
     cost = None
+    frames_n = nums.get(f"particle_frames_saved_arm_{arm}") or nums.get(f"particle_frames_saved_{arm}")
+    frame_cost = nums.get("particle_frame_cost")
     if steps and coords and rate and bytes_per:
         wall_s = si(steps) / si(rate)
+        # The second term (task 023): every saved frame is a round trip out of
+        # the engine, and that scales with frames, not steps. sim-20260923-003
+        # v4 was estimated at 40 s on the first term alone and ran over an
+        # hour. Absent either number the first term stands alone and `from`
+        # says so, rather than a zero standing in for a cost nobody measured.
+        if frames_n and frame_cost:
+            wall_s += si(frames_n) * si(frame_cost)
         # GB is the registry's base for storage (si_factor 1), so si() of a
         # bytes-per-coordinate written in GB is already gigabytes and the
         # product needs no further division. The first smoke run recorded
@@ -584,9 +593,56 @@ def arm_view(plan: dict, arm: str | None) -> tuple[dict, dict | None]:
         ]
         view["numbers"] = replaced
         cost = {"arm": arm, "wall_clock_s": wall_s, "storage_gb": store_gb,
-                "from": [steps["name"], rate["name"], coords["name"], bytes_per["name"]],
+                "from": [steps["name"], rate["name"], coords["name"], bytes_per["name"]]
+                        + ([frames_n["name"], frame_cost["name"]] if frames_n and frame_cost else []),
+                "frame_term": "included" if frames_n and frame_cost else "not in the plan: first term only",
                 "note": "the arm's cost from the plan's own per-arm numbers; the plan-level estimates are the sum over kept arms"}
     return view, cost
+
+
+# The parameters a smoke fraction may shorten: the record, under the two names
+# plans here give it. The save interval is never touched, so steps and saved
+# frames shrink together and the two cost terms keep their ratio (task 023).
+DURATION_PARAMS = ("record_length", "total_simulated_time")
+
+
+def smoke_view(plan: dict) -> tuple[dict, dict]:
+    """The plan as a smoke run sees it: the record shortened by the fraction the plan declared.
+
+    The operator never chooses the size -- that would be widening or narrowing
+    what the plan fixed -- so a plan without `smoke.record_fraction` is refused
+    here, naming the missing number. The plan on disk and its hash are
+    untouched; the shortened value goes to derive_commands in a copy and its
+    provenance names both numbers it came from.
+    """
+    ref = (plan.get("smoke") or {}).get("record_fraction")
+    nums = {n["name"]: n for n in plan["numbers"]}
+    if not ref:
+        raise Refused(
+            "a smoke run needs its size declared by the plan, and this plan declares none: add "
+            "`smoke: {\"record_fraction\": \"smoke_record_fraction\"}` and the number "
+            "`smoke_record_fraction` (unit 1, 0 < value <= 1). The operator does not choose it; a "
+            "smoke run at full size measures the same job against a tighter ceiling and calibrates nothing")
+    if ref not in nums:
+        raise Refused(f"smoke.record_fraction names {ref!r}, which is not in the plan's numbers[]")
+    frac = si(nums[ref])
+    if not 0 < frac <= 1:
+        raise Refused(f"{ref} is {frac}; a smoke fraction lies in (0, 1]")
+    conds = [c for c in plan["conditions"] if c["parameter"] in DURATION_PARAMS]
+    if len(conds) != 1:
+        raise Refused(f"a smoke fraction shortens exactly one record parameter, one of {DURATION_PARAMS}; "
+                      f"the plan's conditions carry {[c['parameter'] for c in conds]}")
+    target = conds[0]["number"]
+    view = dict(plan)
+    scaled = []
+    for n in plan["numbers"]:
+        if n["name"] == target or n["name"] in ("wall_clock_estimate", "storage_estimate"):
+            n = {**n, "value": n["value"] * frac,
+                 "smoke": f"{n['name']} x numbers[{ref}] = {n['value']} x {frac}"}
+        scaled.append(n)
+    view["numbers"] = scaled
+    return view, {"record_fraction": frac, "from": f"smoke.record_fraction -> numbers[{ref}]",
+                  "parameter": conds[0]["parameter"], "number": target}
 
 
 def run(qid: str, run_id: str, backend=None, seed: int = 1,
@@ -663,6 +719,10 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         )
 
     view, arm_cost = arm_view(plan, arm)
+    smoke = None
+    if budget == SMOKE:
+        # after arm_view, so the estimates it scales are the arm's own
+        view, smoke = smoke_view(view)
     approval, envelope = gate(view, budget, target)
 
     # The status flip is bookkeeping and belongs to the agent; the decision it
@@ -748,6 +808,14 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             from . import trap_backend, trap_hoomd_backend  # noqa: PLC0415
             engine_class = trap_hoomd_backend.TrapHoomdBackend
             fallback_class = trap_backend.TrapBackend
+        elif config_name == "bd_overdamped_trapped":
+            # The same trap builders with the fluid at rest. Without this branch
+            # the undriven trap fell through to the free-diffusion engine and
+            # would have run a trap plan with no trap under the plan's id --
+            # the wrong-physics-finishing-green this dispatch exists to stop.
+            from . import trap_rest_backend  # noqa: PLC0415
+            engine_class = trap_rest_backend.TrapRestHoomdBackend
+            fallback_class = trap_rest_backend.TrapRestBackend
         else:
             # READ THE DECLARATION, which is what the comment above always
             # claimed and the code did not do. It dispatched on the name
@@ -788,6 +856,10 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             engine_missing = engine_check.instruction(ran=backend_name(backend))
             print(engine_missing, file=sys.stderr)
     params, provenance = derive_commands(view)
+    if smoke:
+        for entry in provenance:
+            if entry["parameter"] == smoke["parameter"]:
+                entry["from"] += f" x {smoke['from']}"
     monitors = compile_monitors(view)
 
     # One origin for the whole run, and every event an offset against it
@@ -809,7 +881,8 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
 
     # O1 -- preflight. Nothing has been commanded yet.
     record("gate", tier=max_tier(plan), approval=approval, envelope=envelope,
-           **({"compare_arm": arm, "arm_cost": arm_cost} if arm is not None else {}))
+           **({"compare_arm": arm, "arm_cost": arm_cost} if arm is not None else {}),
+           **({"smoke": smoke} if smoke else {}))
     if engine_missing is not None:
         # The name of the backend that actually took over, not a constant:
         # with the fallback per configuration, `mock_backend.NAME` would record
@@ -978,6 +1051,7 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     # zeros as though it were a coordinate.
     frames_held = list(getattr(backend, "frames", []))
     dims = int(getattr(backend, "DIMENSIONS", None) or (frames_held[0].shape[1] if frames_held else 3))
+    write_started = time.perf_counter()
     written = trajectory.write_text(
         out, list(getattr(backend, "frames", [])), steps, float(params["box_length"]),
         dimensions=dims, run_id=run_id, plan_hash=plan_hash(plan),
@@ -985,6 +1059,30 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         seed=backend_seed(backend, seed), save_interval_steps=int(pre.get("steps_per_frame") or 1),
         orientations=list(getattr(backend, "orientations", []) or []) or None,
         reduced_units=pre.get("reduced_units"))
+    write_after_s = time.perf_counter() - write_started
+    # Timing that separates the two cost terms (task 023), read from the
+    # backend where it reports it and None where it does not -- None is "not
+    # reported", never zero. The trajectory write after the loop is timed
+    # here, since it happens here; a streaming backend reports its in-loop
+    # write itself. Peak resident memory is recorded and not limited: whether
+    # memory gets a ceiling is the person's decision, and this is what lets
+    # them make it.
+    import resource
+    rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    rss_bytes = rss if sys.platform == "darwin" else rss * 1024
+    n_part = int(params.get("n_particles") or getattr(backend, "N_PARTICLES", 0) or 1)
+    fs = final.get("frames_saved")
+    integ, readout = final.get("integration_wall_s"), final.get("frame_readout_wall_s")
+    record("cost_measured",
+           steps_taken=final.get("steps_taken"), frames_saved=fs, n_particles=n_part,
+           integration_wall_s=integ, frame_readout_wall_s=readout,
+           frame_write_wall_s=final.get("frame_write_wall_s"),
+           trajectory_write_after_run_s=write_after_s,
+           particle_step_rate=(final["steps_taken"] * n_part / integ) if integ and final.get("steps_taken") else None,
+           particle_frame_cost=(readout / (fs * n_part)) if readout and fs else None,
+           peak_rss_bytes=rss_bytes,
+           note="peak_rss is the operator process's high-water mark, which includes the backend running in it. "
+                "particle_frame_cost covers readout only; a streaming backend's in-loop write is frame_write_wall_s")
     cards.write(out / "trajectory_meta.json", {
         "artifact": "trajectory_meta",
         "schema_version": 1,
