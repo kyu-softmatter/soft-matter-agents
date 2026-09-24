@@ -38,8 +38,18 @@ no store entry says so and names the gap.
 
 ## 2. Commands, laser off, one at a time, the person watching the GUI
 
-Each was **seen once on 2026-09-24**, unplanned and laser off. Re-run under a
-plan before anything here is relied on.
+**Before the first command, two gates, asked of the person in the executing
+seat's window and logged as answered before anything is sent**
+(architecture's ruling at `49a94cc`, held by check 85 at `d284a04`):
+`trapping_laser_off` — the trapping laser is off at its hand control — and
+`no_sample_mounted`. Both answered yes make this a legal preparatory run whose
+log goes into `runs/`. A statement made after a move does not count, and a log
+is never rebuilt to add one. Without both, a trap command is motion and needs a
+plan.
+
+Each was **seen once on 2026-09-24**, laser off, with `no_sample_mounted` never
+asked before the first move — so that record is not a preparatory run and stays
+outside `runs/`. Re-run with both gates before anything here is relied on.
 
 | | test | why | rests on |
 |---|---|---|---|
