@@ -7050,6 +7050,11 @@ def check_81_relative_imports_resolve(b: Bundle) -> list[Finding]:
     return [Finding(81, PASS, f"{tested} relative imports in agent source all resolve inside this tree")]
 
 
+# Declared packages that ship a program and no Python module. Check 82
+# matches them against code that names the program, never against imports.
+PROGRAM_PACKAGES = frozenset({"ffmpeg"})
+
+
 def check_82_imports_are_declared(b: Bundle) -> list[Finding]:
     """Every third-party module an agent imports is declared in pyproject.toml.
 
@@ -7100,6 +7105,22 @@ def check_82_imports_are_declared(b: Bundle) -> list[Finding]:
             declared |= {norm(k) for k in (t.get(key) or {})}
     declared -= {"python", "pip"}
 
+    # Two kinds of declaration can never meet an import, and reporting them
+    # as "imported by nothing" put a line in every run that no work would
+    # ever clear -- the line a reader learns to skip, which architecture
+    # pointed out on 2026-09-23 when `ffmpeg` joined the manifest.
+    #
+    # The project's own distribution is declared by its distribution name
+    # and imported by its package names: `soft-matter-agents` provides
+    # `contracts`. It is used when one of its packages is imported.
+    own = norm(doc.get("project", {}).get("name") or "")
+    own_packages = {str(pkg).split(".")[0]
+                    for pkg in (doc.get("tool", {}).get("setuptools", {}).get("packages") or [])}
+    # A package that ships a program and no module is used when code names
+    # the program -- `writer="ffmpeg"`, `FFMpegWriter` -- and so it still
+    # reports until something does, which is true.
+    programs = PROGRAM_PACKAGES & declared
+
     files = [f for f in sorted(REPO.rglob("*.py"))
              if AGENT_SRC.match(f.relative_to(REPO).as_posix())
              and not any(part in SKIP_DIRS for part in f.parts)]
@@ -7109,13 +7130,28 @@ def check_82_imports_are_declared(b: Bundle) -> list[Finding]:
     # this package refers to itself from a directory on sys.path.
     local = {f.stem for f in files} | {"src", "contracts", "devices"}
     imported: dict[str, str] = {}
+    local_imported: set[str] = set()
+    named: set[str] = set()
     for f in files:
         rel = f.relative_to(REPO).as_posix()
         try:
             tree = ast.parse(f.read_text())
         except (OSError, SyntaxError):
             continue
+        # Docstrings are prose, and prose naming a program is not a use of it.
+        docstrings = {id(n.body[0].value) for n in ast.walk(tree)
+                      if isinstance(n, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+                      and n.body and isinstance(n.body[0], ast.Expr)
+                      and isinstance(n.body[0].value, ast.Constant) and isinstance(n.body[0].value.value, str)}
         for node in ast.walk(tree):
+            if programs:
+                if isinstance(node, ast.Name):
+                    named.add(node.id.lower())
+                elif isinstance(node, ast.Attribute):
+                    named.add(node.attr.lower())
+                elif (isinstance(node, ast.Constant) and isinstance(node.value, str)
+                      and id(node) not in docstrings):
+                    named.add(node.value.lower())
             if isinstance(node, ast.Import):
                 names = [a.name for a in node.names]
             elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
@@ -7124,7 +7160,10 @@ def check_82_imports_are_declared(b: Bundle) -> list[Finding]:
                 continue
             for name in names:
                 head = name.split(".")[0]
-                if head in sys.stdlib_module_names or head in local:
+                if head in local:
+                    local_imported.add(head)
+                    continue
+                if head in sys.stdlib_module_names:
                     continue
                 imported.setdefault(head, rel)
 
@@ -7132,10 +7171,20 @@ def check_82_imports_are_declared(b: Bundle) -> list[Finding]:
                    f"{mod!r} is imported by {rel} and declared nowhere in pyproject.toml, so this "
                    f"code cannot run in that environment on another machine", rel)
            for mod, rel in sorted(imported.items()) if norm(mod) not in declared]
-    unused = sorted(d for d in declared if d not in {norm(m) for m in imported})
-    if unused:
+    used = {norm(m) for m in imported}
+    if own and own_packages & local_imported:
+        used.add(own)
+    used |= {p for p in programs if any(p in token for token in named)}
+    unused = sorted(d for d in declared - programs if d not in used)
+    unnamed = sorted(p for p in programs if p not in used)
+    if unused or unnamed:
+        parts = []
+        if unused:
+            parts.append(f"{', '.join(unused)} declared and imported by nothing")
+        if unnamed:
+            parts.append(f"{', '.join(unnamed)} declared as a program and named by no code")
         out.append(Finding(82, PASS,
-                           f"{', '.join(unused)} declared and imported by nothing -- reported and not failed, "
+                           f"{'; '.join(parts)} -- reported and not failed, "
                            f"because provisioning a session ahead of the work is the person's to do",
                            "pyproject.toml"))
     if any(f.status == FAIL for f in out):
