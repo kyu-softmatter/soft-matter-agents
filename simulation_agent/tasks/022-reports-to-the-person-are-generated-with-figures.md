@@ -185,3 +185,41 @@ URIs, `<style>` and `<script>`, and add an embedded figure to the tests beside
 report could find the footer only by its heading text. The one place references
 are allowed has to be found by structure, or a renamed heading silently widens
 it to the whole page.
+
+## Closed at fbc5342, and amended again from building it (window 2)
+
+`src/report.py` exists and every done-condition was watched: three values
+spot-checked against their cards, four sections reading "Not written yet" with
+the notes removed, exit 2 on a planted `check 45`, and the rerun line in place
+of F3 for a deleted trajectory. The report is
+`~/Desktop/report/rebuild-report-0923-sim-20260923-201.html`. **From here the
+generator's header is the authority** and this card is its history. Window 2's
+five changes:
+
+**4. Static figures are SVG written directly, with no plotting library.** The
+report stays one self-contained file. `matplotlib` and `ffmpeg` stay declared
+anyway, **for V1**: a video is raster frames, and that is where they are used.
+Check 82 reports both until a V1 is written, which is true.
+
+**5. F4 plots the deviation in units of the standard error at that record
+length**, not a relative deviation. A ±1 % band drew a passing cell as
+failing: whether a running estimate has settled is only meaningful against
+its own uncertainty at that length.
+
+**6. Run files are a source, cited by run.** Some values a report needs are
+held only in `runs/*/observables.json` — the signed offset, the predicted
+standard error, the equipartition and relaxation-time ratios. "Numbers come
+from the records" includes those files; the caption or table says which run.
+What stays forbidden is retyping.
+
+**7. Text a card holds for the person is written without codes.** Plan skip
+reasons carried things like "exceeds A5's step budget", which the generator
+had to paraphrase, falling back to "not run" for a reason it did not know. The
+code there added nothing: write "exceeds the step budget". Where a reason
+still carries one, the generator shows **"not run — the reason is not worded
+for you yet"** and puts the raw reason in the footer, so the gap is visible
+rather than silent.
+
+**8. The file name carries the person's local date, and the header says so.**
+Card timestamps are UTC, and on the evening of 09-23 local they already read
+09-24. The person reads by their own day.
