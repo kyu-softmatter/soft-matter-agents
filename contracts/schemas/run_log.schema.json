@@ -127,6 +127,11 @@
         "sha256"
       ],
       "additionalProperties": false
+    },
+    "not_dispatched": {
+      "type": "string",
+      "minLength": 20,
+      "description": "a preparatory run only: that this run did not come through the plan dispatcher, and why, in words. Card 033 section 3b made this a condition of the first one, and that session wrote it here before this field existed; the field exists so the statement can stay where it was written rather than be moved to fit. Refused beside a plan_id, like the other two preparatory fields"
     }
   },
   "required": [
@@ -352,6 +357,11 @@
             {
               "required": [
                 "approved_commands"
+              ]
+            },
+            {
+              "required": [
+                "not_dispatched"
               ]
             }
           ]
