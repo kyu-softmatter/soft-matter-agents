@@ -149,6 +149,14 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                       owned=OWNED, degraded=[])
     run.kb_refs = axc.refs_from(responses, pin)
     run.kb_gaps = axc.gaps_from(responses, pin, caller_id, GAP_IDS)
+    # The second and third names a gap was asked under, which the notes below say
+    # were asked. Until 2026-09-24 they were said and not recorded: the card's
+    # searched[] held one call per gap while its prose claimed three. A1 carries
+    # the same mechanism; the lines come from the responses file, never from here.
+    for extra in responses.get("follow_ups") or []:
+        for gap in run.kb_gaps:
+            if gap["observable"] == extra["observable"]:
+                gap["searched"].append(extra["line"])
 
     def outcome(ineq, **kw):
         run.outcomes.append(axc.Outcome(inequality_id=ineq.id, parameter=ineq.parameter, **kw))
@@ -190,7 +198,7 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                     reason="Both halves of the disk constraint are served and neither bites "
                            "here. Nothing may be acquired while the disk is spinning up, and an "
                            "exposure taken through it must be an integer multiple of the disk "
-                           "period -- and on widefield_inline the disk is out, which the served "
+                           f"period -- and on {config} the disk is out, which the served "
                            "entry makes a required selector value on this configuration rather "
                            "than a configuration of its own. No disk in the path means no "
                            "spin-up to wait for. Recorded as not_constraining and not as "
@@ -245,8 +253,10 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         "Answered by the librarian service rather than by reading the store, which is what makes "
         f"degraded empty: {len(run.kb_refs)} entries came back with their own grades and "
         f"{len(run.kb_gaps)} questions came back absent, all at the pinned {pin}, and every call "
-        "is in librarian_agent/queries/log.jsonl under this caller_id. Transport was a stdio "
-        "client, this session's attached server having failed every call since 07:47:44Z."
+        "is in librarian_agent/queries/log.jsonl under this caller_id."
+        + (" Transport was a stdio client, this session's attached server having failed every "
+           "call since 07:47:44Z."
+           if goal.get("qid") in ("mic-20260918-001", "mic-20260920-001") else "")
     )
     run.notes.append(
         "Six bounds, no constraint, and the six do not fail the same way -- which is the point "
