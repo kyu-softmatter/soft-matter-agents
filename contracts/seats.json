@@ -154,6 +154,14 @@
       "note": "One of five simulation execution seats opened by the person on 2026-09-23 and seated in one instruction. **The instruction was \"simulation-1-5\" and those are the person's WINDOW numbers, not registry names** -- the windows are labelled '시뮬레이션 실행석 1' through '5'. I first read it as a single seat literally named `simulation-1-5` and wrote that entry; `manager-simulation` measured five live sessions and the reading collapsed. The divergence was already on the record: `simulation-6`'s note says its window is named 'simulation 5' and its seat is simulation-6. `simulation-1` is retired and `-2` through `-6` were held by real sessions, so none of 1-5 can be reused -- `a_vacated_identity_is_not_inherited`, and reuse would make check 41 unable to tell two sessions apart on one name. **The mapping is a rule and not an assignment**, so that no seat is told who it is by a peer (6.2.2): **window N takes simulation-(6+N)**. A session reads its own window number and this line and knows itself; the person can override any row by saying so. No `paths`, same `owns`, per `growth`. **This row is window 5.** Minted together with its four siblings, before any of them committed, because `growth` says registration is what lets a seat's FIRST commit meet the gate rather than bookkeeping done later."
     },
     {
+      "seat": "simulation-20260923-3",
+      "committer_email": "simulation-20260923-3@seat.invalid",
+      "owns": [
+        "simulation_agent"
+      ],
+      "note": "The simulation execution seat in the person's window 3, opened as a new session on 2026-09-23 and seated by the person directly, who gave the number: **3, matching the window label**, which is what the dated form was asked for -- under the earlier numbering window 3 had been simulation-9 and the window number never matched the seat number. The session that held simulation-9 is closed; that entry stays registered and vacated, because its commits are attributed to it and a vacated identity is not inherited. Numbers 1 and 2 are unused on this date for this role and that is not a gap to fill: n is the person's label, and only the triple of role, date and number has to be unique. Same `owns` as every simulation execution seat and no `paths`."
+    },
+    {
       "seat": "librarian",
       "committer_email": "librarian@seat.invalid",
       "owns": [
