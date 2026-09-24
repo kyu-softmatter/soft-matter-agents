@@ -72,6 +72,7 @@ from __future__ import annotations
 
 import argparse
 import functools
+import inspect
 import json
 import math
 import os
@@ -807,6 +808,8 @@ def _recording_refusals(fn):
     record an answer does, and the original refusal is chained so the caller
     still sees why it was turned away.
     """
+    signature = inspect.signature(fn)
+
     @functools.wraps(fn)
     def guard(store, caller_id=None, kb_version=None, *a, **kw):
         try:
@@ -816,10 +819,33 @@ def _recording_refusals(fn):
                 store.log, tool=fn.__name__, reason=str(exc),
                 server_session=SERVER_SESSION,
                 caller_id=caller_id, kb_version=kb_version,
-                arguments={k: v for k, v in kw.items()} or None,
+                arguments=_as_given(signature, store, caller_id, kb_version, a, kw) or None,
             )
             raise
     return guard
+
+
+def _as_given(signature, store, caller_id, kb_version, a, kw) -> dict:
+    """The refused call's own arguments, by name, as the caller gave them.
+
+    Positional and keyword alike. Until 2026-09-23 this kept `kw` only, and
+    _build_app calls every tool POSITIONALLY -- so every refusal in the real
+    log, fifteen of them, recorded who claimed to ask and never what was
+    asked. Window 2's malformed temperature bound was refused that night and
+    the log could not say what the bound was. `bind_partial` names what was
+    passed and nothing else, so an omitted default is not recorded as though
+    the caller had sent it. `store` is the server's own object and the two
+    identity arguments are recorded beside this, not in it.
+
+    If the arguments do not bind -- the call was wrong in shape, which is its
+    own kind of refusal -- they are kept by position rather than lost, because
+    losing them is the defect this replaces.
+    """
+    try:
+        given = signature.bind_partial(store, caller_id, kb_version, *a, **kw).arguments
+    except TypeError:
+        given = {**{f"positional_{i}": v for i, v in enumerate(a)}, **kw}
+    return {k: v for k, v in given.items() if k not in ("store", "caller_id", "kb_version")}
 
 
 @_recording_refusals
@@ -1866,6 +1892,15 @@ def _self_test() -> int:                                    # noqa: C901
             bad("the claimed id was not kept; a refusal nobody can attribute is still evidence")
         if any(r.get("claimed", {}).get("caller_id") == r.get("caller_id") for r in refusals):
             bad("a claimed id leaked into the validated field")
+        # The refused call's own arguments are kept, not just who claimed to
+        # ask. Both calls above are POSITIONAL, which is how _build_app calls
+        # every tool, and until 2026-09-23 the recorder kept only keyword
+        # arguments -- so all fifteen refusals in the real log said who asked
+        # and never what, and this case passed them because it never looked.
+        for r in refusals:
+            given = r["claimed"].get("arguments") or {}
+            if given.get("observable") != "viscosity" or "condition_range" not in given:
+                bad(f"a refusal kept who asked and not what was asked: {r['claimed']}")
         if query_log.verify(log):
             bad(f"refusal records do not audit clean: {query_log.verify(log)}")
 
