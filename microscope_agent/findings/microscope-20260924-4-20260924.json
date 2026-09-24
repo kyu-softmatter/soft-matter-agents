@@ -213,7 +213,59 @@
         "ruling": "transfer"
       },
       "for_store": true,
-      "note": "The answer here is the GUI's reply in the exchange record (line 2), which is not a run log, so it cannot be a self_report; the prior measurement is what this item rests on. UNMEASURED here: the wait and fix-by-hand codes (-15, -16, -17, -18, -19), a busy answer, and a silence. None has been seen on this bench."
+      "note": "The answer here is the GUI's reply in the exchange record (line 2), which is not a run log, so it cannot be a self_report; the prior measurement is what this item rests on. What is unmeasured here is listed as its own items: tweez300_not_ready_codes_not_seen_here, tweez300_busy_answer_not_seen_here, tweez300_silence_not_seen_here."
+    },
+    {
+      "id": "tweez300_busy_answer_not_seen_here",
+      "fact": "UNMEASURED on this bench: the Tweez300 GUI's busy answer (-14, 'another command active'). None came back, so neither the gap that avoids it nor the re-send that handles it has been exercised here.",
+      "kind": "unmeasured",
+      "how": "established by reading every dispatch in the exchange record of 2026-09-24, 12:05-12:33 local: 75 dispatches, 74 answered 0 and 1 answered -22; no attempt carried -14",
+      "source": {
+        "type": "document",
+        "path": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl",
+        "sha256": "e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736"
+      },
+      "for_store": true,
+      "note": "The wrapper's busy re-send is tested only against a fake GUI. The prior project's gap and retry numbers are listed above as a downgrade."
+    },
+    {
+      "id": "tweez300_silence_not_seen_here",
+      "fact": "UNMEASURED on this bench: a Tweez300 command that gets no reply. None occurred, so the rule that a silent command is never re-sent, and that only trap-off and laser-off go out until a person has looked, has not been exercised here.",
+      "kind": "unmeasured",
+      "how": "established by reading every dispatch in the exchange record of 2026-09-24, 12:05-12:33 local: 75 dispatches, 74 answered 0 and 1 answered -22; every attempt carried a reply",
+      "source": {
+        "type": "document",
+        "path": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl",
+        "sha256": "e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736"
+      },
+      "for_store": true,
+      "note": "Tested only against a fake GUI."
+    },
+    {
+      "id": "tweez300_not_ready_codes_not_seen_here",
+      "fact": "UNMEASURED on this bench: the readiness codes that mean up-but-wait (-16, -17, -19) and up-but-fix-by-hand (-15, -18). Only -22 has been seen, so which of these this GUI actually returns, and when, is not known here.",
+      "kind": "unmeasured",
+      "how": "established by reading every dispatch in the exchange record of 2026-09-24, 12:05-12:33 local: 75 dispatches, 74 answered 0 and 1 answered -22; the only non-zero answer was -22",
+      "source": {
+        "type": "document",
+        "path": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl",
+        "sha256": "e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736"
+      },
+      "for_store": true,
+      "note": "Their meanings are the vendor manual's, and their grouping is the prior project's."
+    },
+    {
+      "id": "tweez300_calibration_at_100x_not_known",
+      "fact": "UNMEASURED: whether the Tweez300 GUI's two calibrations (pixel to micrometre, and the trapping field) were made at the 100x objective that was in the path on 2026-09-24. So no position or pattern size from that session is a micrometre.",
+      "kind": "unmeasured",
+      "how": "the person named the objective in this seat's window and was not asked about calibration; the exchange record carries calibration 'unknown' on every dispatch, because nothing over TCP can read it",
+      "source": {
+        "type": "document",
+        "path": "D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl",
+        "sha256": "e11e92ef834b5e6e43bb10fa8f96fe8e0a053011c0f12200f2dc75af6d3a3736"
+      },
+      "for_store": true,
+      "note": "objective_change_invalidates_trap_calibration, E3, is why this matters."
     }
   ]
 }
