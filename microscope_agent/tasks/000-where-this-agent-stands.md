@@ -37,7 +37,7 @@ older.** Read it as history.
 | card 038's five-minute run | the person: the tweezers program closed, the piezo controller off, then the bench handed to `microscope-20260924-1` |
 | entering the four findings files (`-1` at `bf8f91f`, `-2` at `a0fda99`, `-3` at `a5e7647`, `-4` at `e4ebe78`; `-5` established nothing) | the librarians, reading each cited source at its commit (`0e06fb2`) |
 | card 034's S4, S5 and v2 fan-out, re-copying the envelope snapshot then | a later seat, once 041 lets a planned 20x run through the dispatcher |
-| **piezo Z**: it rests 1.7 nm below the person's 0 µm floor (the person asked for −0.01 µm, a change only the person can write), its direction is unmeasured, and software refuses it until a Z move is checked against objective clearance at the moment of the move | the person, then a card |
+| **piezo Z**: it rests 1.7 nm below the person's 0 µm floor. The person asked for a −0.01 µm floor, a change only the person can write. But **the controller reports its own calibrated range as 0 to 600 µm**, so a floor below 0 would allow commands below that range. The alternative put to the person: keep the floor at 0, and let the wrapper accept a *starting* position within a few nanometres below it. Its direction is unmeasured, and software refuses Z until a Z move is checked against objective clearance at the moment of the move | the person, then a card |
 | the confocal lines: the person's power calibration is found (a worksheet in Downloads, 2026-09-09) and is with the librarian; **no limit covers these lines yet** | the person |
 | the tweezers: which camera body the program opens, and the trap power for a first lit check | the person |
 | whether the piezo's waveform generator may ever be used | the person |
