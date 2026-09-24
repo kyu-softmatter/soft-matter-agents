@@ -426,12 +426,24 @@ class DllLink:
                -5: "comms link is broken", -11: "invalid command name"}
     _MAX_STRING = 1 << 16          # a bound on a buffer the library sizes for us
 
-    def __init__(self, address: str, library: Path | None = None):
-        if not str(address).startswith("sim:"):
+    def __init__(self, address: str, library: Path | None = None, bench: str | None = None,
+                 read_only: bool = True):
+        """`bench` records who handed the bench over, when and in which window.
+
+        It is a RECORD and not a verification: nothing here can see a person
+        say anything. A real address without it is refused before the library
+        loads. `read_only` is the default and it forbids every write -- a
+        position, a security level -- so the first contact with the real
+        controller can only look. Writing is a later, explicit False.
+        """
+        real = not str(address).startswith("sim:")
+        if real and not bench:
             raise PiezoRefused(
-                f"address {address!r} is not the vendor simulator. Phase A opens no port: a real "
-                "address is phase B, which waits for the person to hand over the bench in the "
+                f"address {address!r} is not the vendor simulator, and no bench hand-over is "
+                "recorded. A real address waits for the person to hand over the bench in the "
                 "executing seat's own window")
+        self.bench = bench
+        self.read_only = bool(read_only) if real else False
         import ctypes                                   # at the use site, like pymmcore-plus
         self._ct = ctypes
         lib = ctypes.cdll.LoadLibrary(str(library or self.LIBRARY))
@@ -491,6 +503,8 @@ class DllLink:
         return code if code.lower().startswith("0x") else "0x" + code
 
     def set_security_level(self, level: str) -> None:
+        if self.read_only:
+            raise PiezoRefused("this link is read-only; the security level is not changed")
         if str(level).lower().replace("-", "").replace("_", "") in ("superuser", "super"):
             raise PiezoRefused("super-user is never requested by this backend")
         if level == "user" or (self._user_raw is not None and level == self._user_raw):
@@ -536,8 +550,12 @@ class DllLink:
         return float(value) * 1e-6
 
     def move_absolute(self, channel: int, target_um: float) -> None:
-        if not self.address.startswith("sim:"):
-            raise PiezoRefused("position writes to a real controller are phase B")
+        if self.read_only:
+            raise PiezoRefused("this link is read-only; no position is written")
+        if not self.address.startswith("sim:") and not getattr(self, "position_unit_confirmed", False):
+            raise PiezoRefused(
+                "no position is written to a real controller until the position unit is "
+                "confirmed by reading the calibrated range (live checklist 1d)")
         self.do(f"stage.position.command.set {int(channel)} {target_um * 1e6:.0f}")
 
     def close(self) -> None:
