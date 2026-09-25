@@ -33,9 +33,30 @@ restored for you**, and the ~10:40 withdrawal is superseded. You send
 The analysis and record-committing work of the ~10:40 revision still
 stands. Architecture's stopped run's logs sit at
 `D:\soft-matter-agents-frames\run-20260925-001\`, for you to commit when
-there is a run worth the name. **Two separate particles**, which the person
-also asked for, is not the one-bead double well: whether it is a setup step
-or a new experiment is the person's to say, so ask before planning for it.
+there is a run worth the name. It is a stand read, eight snaps and a probe.
+**No two particles**: the person told architecture *"no two particles, it
+was my mistake"*. The experiment is the one-bead asymmetric double well,
+and your analysis declared at `5cd2b54` applies. The person also told
+architecture *"session 6 will do"*, and architecture has released the bench
+and holds no device. That is condition 1.
+
+**The dia lamp: added to what software may command, State and Intensity
+only** (a card decision, as the allow-list's own comment requires, made here
+2026-09-25). Architecture found that after the person's configuration
+loads, `DiaLamp` reads State 0, so **brightfield frames are dark**, and
+`DiaLamp` is refused by name. Transmitted light is also what hour-long
+records want, since the green line fades the bead a few per cent per 5
+minutes. The person told architecture *"you can turn the lamp on
+yourself"*. So:
+- add `DiaLamp` to `SOFTWARE_MAY_COMMAND` with **only `State` and
+  `Intensity`**, each read back after it is written, and nothing else on the
+  stand. A test watched failing: any other `DiaLamp` property, or any other
+  stand device, is still refused
+- **say the lamp's state at hand-over and at release**, like every device you
+  open. Architecture left it ON (State 1, Intensity 2100), so your first
+  read will show it on
+- the lamp is transmitted white light, not a laser. The eyepiece rule does
+  not bind it, and nothing here needs a power limit for it
 
 ## Superseded, ~10:40: you did NOT drive hardware then
 
