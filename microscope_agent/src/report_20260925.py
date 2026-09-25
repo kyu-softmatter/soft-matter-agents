@@ -226,7 +226,9 @@ the bead could sit in, so the barrier between them stayed far above a few k_BT.<
 <ul>
 <li><b>The separations are uncertain.</b> A trap commanded to +6 um pulled strongly and one commanded to +5 um did
 not pull at all, which is backwards. The first trap_2 was most likely much closer than +6 um. Nothing here can see the
-traps themselves; the tweezers report nothing back.</li>
+traps themselves; the tweezers report nothing back. <b>Until the tweezers software's micrometres are checked
+against the camera at this objective, no separation from today is a measured number, and "no hops" cannot be told
+apart from "the traps were not where they were told to be".</b></li>
 <li>Stiffness is at the frame rate's limit: the bead relaxes in about 30 ms, one frame. The two methods differ by up
 to {max(a['psd_x']['k_equipartition_pN_per_um']/a['psd_x']['k_psd_pN_per_um'] for a in first+five):.1f}x.
 Faster frames (a smaller crop, shorter exposure) would settle it.</li>
