@@ -3,8 +3,13 @@
 Written by `manager-microscope-20260924-1`. You read this; you do not edit it
 (§6.2-2).
 
-**Assigned to `microscope-20260924-1`, after cards 038 and 039, and after
-`microscope-20260924-2` has landed card 040.** That card edits the same two
+**REASSIGNED on 2026-09-25 to `microscope-20260924-6`, as phase 1 item 1 of
+card 049.** That seat needs it for the double-well measurement and will be
+the only seat in these files. `microscope-20260924-1` is not open, and had
+not started it. If you are `-1` and read this, **do not start 041.**
+
+Originally assigned to `microscope-20260924-1`, after cards 038 and 039,
+and after `microscope-20260924-2` had landed card 040. That card edits the same two
 files, `src/orchestrator.py` and `src/operator.py`. Start from its commit,
 not before it. Ask that seat when it is in, and check `git status`.
 
