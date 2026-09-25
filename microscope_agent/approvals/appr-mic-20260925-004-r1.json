@@ -1,0 +1,20 @@
+﻿{
+  "card": "plan_approval",
+  "schema_version": "0.1",
+  "id": "appr-mic-20260925-004-r1",
+  "qid": "mic-20260925-004",
+  "thread": "solo-mic-20260925-004",
+  "round": 0,
+  "revision": 1,
+  "author": "human",
+  "created_at": "PUT-THE-ACTUAL-UTC-TIME-HERE",
+  "status": "APPROVED",
+  "plan_id": "plan-mic-20260925-004-r1",
+  "plan_revision": 1,
+  "plan_hash": "sha256:1b2970bd98a2f3701331133ccc67996dd763c2bc2980c079e8350fa76016bf2f",
+  "approved_by": "kyuhwan",
+  "approved_at": "PUT-THE-ACTUAL-UTC-TIME-HERE",
+  "note": "Strength scan: trap_1 at 1, trap_2 from 0 to 1 in 0.1 steps; dial at 0.02 by my hand.",
+  "numbers": [],
+  "degraded": []
+}
