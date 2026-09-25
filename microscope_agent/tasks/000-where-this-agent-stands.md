@@ -45,6 +45,26 @@ here so the day's seats start from it.
 6. whether piezo Z resting a few nm below 0 counts as at 0, with commands
    never below 0
 
+**The confocal work is paused for about a month**, by the person on the
+evening of 2026-09-24: *"let's give up to connect confocal at this stage.
+we can do it later around a month later"*. Do not include the confocal
+lines in tomorrow's orchestration. What `microscope-20260924-3` left, from
+its release:
+
+- **the eyepiece mapping is recorded, by integer** (run `-008`, `9c9f598`):
+  `LightPath` states **0 and 2 reach the eyepieces; 1 and 3 do not**
+- **after NIS was force-killed, the fiber shutter was left open with nothing
+  owning it**, and the four blanking lines were written closed with no
+  read-back, so **the beam is assumed on**. The person was asked to restart
+  NIS and close the shutter normally. **Read its state at the bench before
+  anything else**
+- after that kill, **the stand stopped answering a Micro-Manager load**,
+  hanging 2 to 6 minutes (runs `-009` and `-010`). Nobody has tried
+  reconnecting or power-cycling its controller. **This may block tomorrow's
+  camera work**, so check it first
+- `lunf.py` (`3fcf1e0`) takes the person's voltage pair as its covering
+  limit, and the person's `safety.json` with it is still uncommitted
+
 **Worth doing first thing: install the hooks** (`git config core.hooksPath
 contracts/hooks`) while someone watches the first commits. A day of
 multi-device commits from several seats is when the gate earns its keep.
