@@ -686,6 +686,28 @@
         "microscope_agent"
       ],
       "note": "The sixth microscope execution session of 2026-09-24 (local), opened by the person that evening for the 'sim to real' work: the next day's asymmetric double well with one particle held by the optical tweezers, tested against the simulation (plan.md 11-23). The person told the architecture session directly. The first session opened for it ran in a Claude scratch workspace rather than microscope_agent/, so it loaded none of the agent's instructions, settings or boundary; the name belongs to whichever session the person seats in microscope_agent/. Registered before its first commit. `owns` copied by code from microscope-20260924-5; n is 6."
+    },
+    {
+      "seat": "architecture-20260925-1",
+      "committer_email": "architecture-20260925-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "plan.md",
+        "CLAUDE.md",
+        "ARCHITECT.md",
+        "README.md",
+        "docs/",
+        ".claude/",
+        ".mcp.json",
+        "contracts/seats.json",
+        "pyproject.toml",
+        "uv.lock",
+        "pixi.lock",
+        ".gitignore"
+      ],
+      "note": "The architecture session on the person's OTHER machine, which works on its own working copy and syncs with the microscope computer through GitHub. Until 2026-09-25 it committed as `architecture <architecture@seat.invalid>`, the same email as the microscope computer's architecture session (committer name `seat:architecture`), so two sessions shared one identity and check 41 could not tell them apart -- one_identity_per_session broken across machines. Found when a push from the microscope computer was refused and the fetched merges (6cad23e, e61d2c3, 4a7f861, committer name `architecture`) turned out to be the other machine's. The person decided that session takes this new name and the microscope computer's keeps `architecture`. Its commits before this row stay under `architecture` and are told apart only by the committer NAME, `architecture` there against `seat:architecture` here -- a convention, not a check. It must pull this row before its first commit under the new name, because the registry is read at a commit's parent. owns, paths and excludes copied by code from `architecture`; n is 1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
