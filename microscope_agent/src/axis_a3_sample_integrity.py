@@ -100,19 +100,21 @@ OWNED = (
     ),
     axc.Inequality(
         id="concentration_window",
-        parameter="tracer_number_density",
+        parameter="number_density",
         statement="dense enough that a field carries trackable tracers, dilute enough that they "
                   "neither interact nor overlap in the image",
-        needs=("tracer_number_density",),
+        needs=("number_density",),
         derived_from="4.5.3 A3 'concentration'",
     ),
 )
 
+# `number_density`, with the subject in the gap id `tracer_loading` -- the same
+# rename as A2's and for the same reason (task 032, quantities.json rule 1).
 GAP_IDS = {
     "photodamage_threshold": "photodamage_threshold",
     "bleaching_rate": "tracer_photophysics",
     "sample_heating_rate": "optical_heating",
-    "tracer_number_density": "tracer_loading",
+    "number_density": "tracer_loading",
 }
 
 ABSENT = {
@@ -123,7 +125,7 @@ ABSENT = {
         "budget",
     "sample_heating_rate":
         "nothing relates illumination power to a temperature rise in this sample",
-    "tracer_number_density":
+    "number_density":
         "nothing states how many tracers are in the sample or in a field: no concentration, no "
         "count, no dilution record",
 }

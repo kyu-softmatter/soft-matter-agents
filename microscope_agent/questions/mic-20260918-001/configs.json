@@ -2,11 +2,11 @@
   "artifact": "screening",
   "schema_version": "0.1",
   "qid": "mic-20260918-001",
-  "goal_id": "goal-mic-20260918-001-r6",
-  "goal_revision": 6,
+  "goal_id": "goal-mic-20260918-001-r7",
+  "goal_revision": 7,
   "stage": "S3.0",
   "observable": "tracer_diffusivity",
-  "kb_version": "kbv-7c77fa74ee5a",
+  "kb_version": "kbv-4b981dc870d3",
   "cap": 3,
   "candidates": [
     {
@@ -43,51 +43,49 @@
   ],
   "fan_out": [
     {
-      "caller_id": "mic-20260918-001:v4:widefield_inline:a1",
+      "caller_id": "mic-20260918-001:v6:widefield_inline:a1",
       "config": "widefield_inline",
       "axis": "a1",
-      "kb_version": "kbv-7c77fa74ee5a"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260918-001:v2:widefield_inline:a2",
+      "caller_id": "mic-20260918-001:v6:widefield_inline:a2",
       "config": "widefield_inline",
       "axis": "a2",
-      "kb_version": "kbv-7c77fa74ee5a"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260918-001:v2:widefield_inline:a3",
+      "caller_id": "mic-20260918-001:v6:widefield_inline:a3",
       "config": "widefield_inline",
       "axis": "a3",
-      "kb_version": "kbv-7c77fa74ee5a"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260918-001:v2:widefield_inline:a4",
+      "caller_id": "mic-20260918-001:v6:widefield_inline:a4",
       "config": "widefield_inline",
       "axis": "a4",
-      "kb_version": "kbv-7c77fa74ee5a"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260918-001:v2:widefield_inline:a5",
+      "caller_id": "mic-20260918-001:v6:widefield_inline:a5",
       "config": "widefield_inline",
       "axis": "a5",
-      "kb_version": "kbv-7c77fa74ee5a"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260918-001:v3:widefield_inline:a6",
+      "caller_id": "mic-20260918-001:v6:widefield_inline:a6",
       "config": "widefield_inline",
       "axis": "a6",
-      "kb_version": "kbv-7c77fa74ee5a"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260918-001:v4:widefield_inline:a7",
+      "caller_id": "mic-20260918-001:v6:widefield_inline:a7",
       "config": "widefield_inline",
       "axis": "a7",
-      "kb_version": "kbv-7c77fa74ee5a"
+      "kb_version": "kbv-4b981dc870d3"
     }
   ],
-  "degraded": [
-    "librarian_agent"
-  ],
-  "screened_against": "contracts/capabilities/microscope.json and contracts/observables.json only; no lessons (P16)",
+  "degraded": [],
+  "screened_against": "contracts/capabilities/microscope.json and contracts/observables.json only; no lessons (P16). The kb_version above is a pin and not an input to the screen: it was read from microscope_agent/envelope/snapshot.json, which is a committed published export this agent copied",
   "preference_is_not_evidence": "a human tie-break settles which capable configuration to spend the fan-out on and justifies nothing in the plan: no grade, no number, not an assumption, and S4 may not cite it. The reason for this pick was not given, and none was invented (4.5.1 c)."
 }

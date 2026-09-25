@@ -808,6 +808,14 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             from . import trap_backend, trap_hoomd_backend  # noqa: PLC0415
             engine_class = trap_hoomd_backend.TrapHoomdBackend
             fallback_class = trap_backend.TrapBackend
+        elif config_name == "bd_pairwise":
+            # The repulsive-Yukawa configuration has its own backend file rather
+            # than a branch in hoomd_backend.apply (three seats edit that file).
+            # The NumPy backend is the first-class mock and runs the smoke; the
+            # engine backend (pairwise_hoomd_backend) attaches after mock passes.
+            from . import pairwise_backend  # noqa: PLC0415
+            engine_class = pairwise_backend.PairwiseBackend
+            fallback_class = pairwise_backend.PairwiseBackend
         elif config_name == "bd_overdamped_trapped":
             # The same trap builders with the fluid at rest. Without this branch
             # the undriven trap fell through to the free-diffusion engine and

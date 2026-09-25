@@ -1,0 +1,182 @@
+{
+  "run_id": "run-20260924-001-smoke-g2k2",
+  "qid": "sim-20260923-001",
+  "plan_id": "plan-sim-20260923-001-r3",
+  "plan_revision": 3,
+  "plan_hash": "sha256:feb4c5867404148e330942a87989b7d8818e906d9285edccad0d3430b70e9331",
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "envelope_check": {
+    "status": "inside",
+    "target": "local",
+    "budget": "smoke",
+    "compared": [
+      {
+        "cost": "wall_clock_estimate",
+        "limit": "wall_clock_max",
+        "cost_si": 60.0,
+        "limit_si": 300.0
+      },
+      {
+        "cost": "storage_estimate",
+        "limit": "storage_max",
+        "cost_si": 0.0006,
+        "limit_si": 0.5
+      }
+    ],
+    "exceeded": []
+  },
+  "backend": "pairwise_backend",
+  "seed": 1,
+  "parameters_si": {
+    "integration_timestep": 0.005,
+    "total_simulated_time": 100.0,
+    "save_interval": 100.0,
+    "box_length": 0.0003,
+    "mean_spacing": 9.999999999999999e-06,
+    "plateau_window_start": 9000.0,
+    "relaxation_fit_window": 1000.0,
+    "plateau_fraction": 0.9,
+    "lattice_constant": 9.999999999999999e-06,
+    "rows_x": 30.0,
+    "rows_y": 30.0,
+    "n_particles": 900.0,
+    "n_seeds": 9.0,
+    "temperature": 293.0,
+    "viscosity": 0.001,
+    "bead_diameter": 4.9999999999999996e-06,
+    "gamma": 100.0,
+    "kappa_a": 3.0
+  },
+  "provenance": [
+    {
+      "parameter": "integration_timestep",
+      "value_si": 0.005,
+      "unit_in_plan": "s",
+      "from": "conditions[0].number -> numbers[dt_max_curvature]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "total_simulated_time",
+      "value_si": 100.0,
+      "unit_in_plan": "s",
+      "from": "conditions[1].number -> numbers[total_simulated_time_point] x smoke.record_fraction -> numbers[smoke_record_fraction]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "save_interval",
+      "value_si": 100.0,
+      "unit_in_plan": "s",
+      "from": "conditions[2].number -> numbers[save_interval_max]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "box_length",
+      "value_si": 0.0003,
+      "unit_in_plan": "um",
+      "from": "conditions[3].number -> numbers[box_length_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "mean_spacing",
+      "value_si": 9.999999999999999e-06,
+      "unit_in_plan": "um",
+      "from": "conditions[4].number -> numbers[mean_spacing]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "plateau_window_start",
+      "value_si": 9000.0,
+      "unit_in_plan": "s",
+      "from": "conditions[5].number -> numbers[plateau_window_start]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "relaxation_fit_window",
+      "value_si": 1000.0,
+      "unit_in_plan": "s",
+      "from": "conditions[6].number -> numbers[relaxation_fit_window]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "plateau_fraction",
+      "value_si": 0.9,
+      "unit_in_plan": "1",
+      "from": "conditions[7].number -> numbers[plateau_fraction]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "lattice_constant",
+      "value_si": 9.999999999999999e-06,
+      "unit_in_plan": "um",
+      "from": "conditions[8].number -> numbers[lattice_constant]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "rows_x",
+      "value_si": 30.0,
+      "unit_in_plan": "1",
+      "from": "conditions[9].number -> numbers[rows_x]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "rows_y",
+      "value_si": 30.0,
+      "unit_in_plan": "1",
+      "from": "conditions[10].number -> numbers[rows_y]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "n_particles",
+      "value_si": 900.0,
+      "unit_in_plan": "1",
+      "from": "conditions[11].number -> numbers[n_particles_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "n_seeds",
+      "value_si": 9.0,
+      "unit_in_plan": "1",
+      "from": "conditions[12].number -> numbers[n_seeds_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "temperature",
+      "value_si": 293.0,
+      "unit_in_plan": "K",
+      "from": "conditions[13].number -> numbers[temperature]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "viscosity",
+      "value_si": 0.001,
+      "unit_in_plan": "Pa*s",
+      "from": "conditions[14].number -> numbers[viscosity]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "bead_diameter",
+      "value_si": 4.9999999999999996e-06,
+      "unit_in_plan": "um",
+      "from": "conditions[15].number -> numbers[bead_diameter]",
+      "grade": "E2"
+    },
+    {
+      "parameter": "gamma",
+      "value_si": 100.0,
+      "unit_in_plan": "1",
+      "from": "conditions[16].number -> numbers[gamma_max]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "kappa_a",
+      "value_si": 3.0,
+      "unit_in_plan": "1",
+      "from": "conditions[17].number -> numbers[kappa_a_max]",
+      "grade": "E5"
+    }
+  ],
+  "compare_arm": "g2_k2"
+}

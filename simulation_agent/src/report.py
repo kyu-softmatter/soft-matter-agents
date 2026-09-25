@@ -101,6 +101,16 @@ def provenance(source: str) -> str:
 UNWORDED: list[str] = []  # reasons that carried a code, sent to the footer verbatim
 
 
+def worded(text: str, what: str = "This text") -> str:
+    """Card prose shown verbatim when it is written for the person, else a placeholder; the original goes to the footer."""
+    try:
+        refuse_codes(text)
+        return html.escape(text)
+    except Refused:
+        UNWORDED.append(text)
+        return f"<i>{what} is not worded for you yet; the original is in the footer.</i>"
+
+
 def plain_skip(reason: str) -> str:
     """A skip reason as written, if it is written for the person; otherwise a placeholder that says so.
 
@@ -129,6 +139,9 @@ def fmt(x: float, sig: int = 3) -> str:
 # -- figures (SVG) -------------------------------------------------------------
 
 COLORS = ["#2f5d9e", "#c0392b", "#1f7a4d", "#9a5b00", "#6c3483"]
+
+
+_CLIP_IDS = __import__("itertools").count(1)
 
 
 class Plot:
@@ -200,8 +213,12 @@ class Plot:
             ax.append(f'<line x1="{l - 4}" x2="{l}" y1="{y:.1f}" y2="{y:.1f}" stroke="#999"/><text x="{l - 7}" y="{y + 4:.1f}" font-size="11" text-anchor="end">{lab}</text>')
         ax.append(f'<text x="{(l + r) / 2}" y="{self.h - 8}" font-size="12" text-anchor="middle">{self.xlabel}</text>')
         ax.append(f'<text x="14" y="{(t + b) / 2}" font-size="12" text-anchor="middle" transform="rotate(-90 14 {(t + b) / 2})">{self.ylabel}</text>')
-        clip = f'<clipPath id="c{id(self)}"><rect x="{l}" y="{t}" width="{r - l}" height="{b - t}"/></clipPath>'
-        body = f'<g clip-path="url(#c{id(self)})">' + "".join(self.parts) + "</g>"
+        # A counter, not id(self): CPython reuses a collected panel's address, so two
+        # figures on one page could share a clip id and a browser would clip the later
+        # one to the earlier one's rectangle (found by window 4, 2026-09-24).
+        cid = next(_CLIP_IDS)
+        clip = f'<clipPath id="clip{cid}"><rect x="{l}" y="{t}" width="{r - l}" height="{b - t}"/></clipPath>'
+        body = f'<g clip-path="url(#clip{cid})">' + "".join(self.parts) + "</g>"
         return (f'<svg viewBox="0 0 {self.w} {self.h}" width="{self.w}" height="{self.h}" xmlns="http://www.w3.org/2000/svg" '
                 f'font-family="Helvetica, Arial, sans-serif">{clip}' + body + "".join(ax) + "</svg>")
 
@@ -591,6 +608,94 @@ def build(qid: str) -> tuple[str, dict]:
     return "".join(S), {"R": R, "rows": rows}
 
 
+# -- a revision that ended in a refusal (task 022, 2026-09-24) ----------------
+
+def load_refusal(qid: str) -> dict | None:
+    """The latest revision whose record ends in a refusal and that produced no results, or None.
+
+    A revision with results is reported the ordinary way even if it also holds a
+    refusal card (a sweep's skipped cells leave one). One without results but with
+    a refusal is reported as the refusal. A later revision that has a plan and has
+    not run yet is named in the summary, not reported on.
+    """
+    qdir = cards.question_dir(qid)
+    latest = cards.question_revision(qid)
+    results = [json.loads(p.read_text()) for p in qdir.glob("result_run-*.json")]
+    for rev in range(latest, 0, -1):
+        plan_path = qdir / cards.artifact_name(f"plan_simulation_{qid}.json", rev)
+        if plan_path.exists():
+            pid = json.loads(plan_path.read_text())["id"]
+            if any(r.get("plan_id") == pid for r in results):
+                return None
+        path = qdir / cards.artifact_name(f"refusal_s4_{qid}.json", rev)
+        if path.exists():
+            return {"qid": qid, "rev": rev, "latest": latest, "refusal": json.loads(path.read_text()),
+                    "plan_path": path, "goal": cards.load_goal(qid, rev), "results": []}
+    return None
+
+
+def _ratio(a: dict, b: dict) -> float:
+    return float(a["value"]) / float(b["value"]) if a["unit"] == b["unit"] else float("nan")
+
+
+def build_refusal(R: dict) -> str:
+    c, goal = R["refusal"], R["goal"]
+    nums = {n["name"]: n for n in c["numbers"]}
+    N = notes(R["qid"])
+
+    def show(n):
+        return fmt(float(n["value"])) + ("" if n["unit"] == "1" else f" {n['unit']}")
+
+    ce = [x for x in c.get("counterexample") or [] if x.get("required_number") in nums and x.get("limit_number") in nums]
+    later = (f" A later revision, {R['latest']}, has a plan that has not run yet; this report is on the revision that ended."
+             if R["latest"] > R["rev"] else "")
+    S = [section(1, "Summary",
+        "<div class='box'><p><b>Nothing was run. The plan was refused before any computing, because the question as "
+        "asked does not fit inside the budget.</b> "
+        + " ".join(f"It needs {show(nums[x['required_number']])} {x['parameter'].replace('_', ' ')} against "
+                   f"{show(nums[x['limit_number']])} allowed, about {fmt(_ratio(nums[x['required_number']], nums[x['limit_number']]), 2)} times over."
+                   for x in ce)
+        + later + "</p></div>")]
+    S.append(section(2, "Purpose", md(N["Purpose"])))
+    S.append(section(3, "What was expected", "<p class='empty'>No prediction to compare against: nothing ran.</p>"))
+    chosen = [n for n in c["numbers"] if n["source"].startswith("assumed:")]
+    S.append(section(4, "Variables",
+        f"<p>Quantity asked for: {html.escape(goal['observable']['name'].replace('_', ' '))}. Settings the refusal was computed at:</p>"
+        "<table><tr><th>Setting</th><th>Value</th><th>Where it came from</th></tr>"
+        + "".join(f"<tr><td>{html.escape(n['name'].replace('_', ' '))}</td><td class='n'>{show(n)}</td><td>{provenance(n['source'])}</td></tr>" for n in chosen)
+        + "</table>"))
+    S.append(section(5, "Setup", "<p>Not run, so no engine, time step or seed was used.</p>"))
+    tg = goal.get("targets") or []
+    S.append(section(6, "Criteria set in advance",
+        ("<p><b>Set on the goal before any planning:</b></p><ul>"
+         + "".join(f"<li>{html.escape(t['metric'].replace('_', ' '))}: {html.escape(t['kind'])} {fmt(float(t['value']))} {html.escape(t.get('unit', ''))}</li>" for t in tg)
+         + "</ul>") if tg else
+        "<p><b>No accuracy criterion was set in advance.</b> The only fixed limit was the computing budget.</p>"))
+    rows = "".join(
+        f"<tr><td>{html.escape(x['parameter'].replace('_', ' '))}</td><td class='n'>{show(nums[x['required_number']])}</td>"
+        f"<td class='n'>{show(nums[x['limit_number']])}</td><td>{worded(x.get('statement', ''), 'The explanation')}</td></tr>"
+        for x in ce)
+    S.append(section(7, "Results",
+        f"<p><b>Refused.</b> What was asked: {worded(c.get('refused_what', ''), 'The description')}</p>"
+        "<table><tr><th>What collided</th><th>Needed</th><th>Allowed</th><th>Why</th></tr>" + rows + "</table>"))
+    chain = [n for n in c["numbers"] if n.get("formula")]
+    S.append(section(8, "Checks",
+        "<p>How the needed resources were computed; each line uses the ones above it or the settings in the table before:</p>"
+        "<table><tr><th>Quantity</th><th>Value</th><th>Computed as</th></tr>"
+        + "".join(f"<tr><td>{html.escape(n['name'].replace('_', ' '))}</td><td class='n'>{show(n)}</td><td><code>{html.escape(n['formula'])}</code></td></tr>" for n in chain)
+        + "</table>"))
+    S.append(section(9, "Interpretation", "<p class='meta'>Judgement, kept apart from the numbers above.</p>" + md(N["Interpretation"])))
+    S.append(section(10, "Limits", md(N["Limits"])))
+    S.append(section(11, "Link to experiment", "<p>Nothing to send to the experiment side: no plan was accepted.</p>"))
+    alts = "".join(f"<li>{worded(a.get('what', ''), 'This option')}"
+                   + (f"<br><span class='meta'>Needs: {worded(a['requires'], 'What it needs')}</span>" if a.get("requires") else "")
+                   + "</li>" for a in c.get("alternatives") or [])
+    S.append(section(12, "Decisions for you",
+        ("<p>The options the refusal offers:</p><ul>" + alts + "</ul>" if alts else "") + md(N["Decisions"])))
+    S.append(section(13, "Cost", "<p>No computing was spent and no trajectory was kept.</p>"))
+    return "".join(S)
+
+
 def footer(qid: str, R: dict) -> str:
     rev = subprocess.run(["git", "-C", str(cards.REPO), "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
     v = subprocess.run([sys.executable, str(cards.CONTRACTS / "validate.py"), "--quiet"], capture_output=True, text=True, cwd=cards.REPO)
@@ -598,10 +703,10 @@ def footer(qid: str, R: dict) -> str:
     verdict = next((l for l in v.stdout.splitlines()[::-1] if l.startswith("verdict:")), "")
     runs = ", ".join(r["card"]["run_id"] for r in R["results"])
     return (f"<footer><p>Generated {_dt.datetime.now().astimezone().isoformat(timespec='minutes')} by <code>simulation_agent/src/report.py</code>. "
-            f"Question {qid}, revision {R['rev']}; plan <code>{R['plan_path'].relative_to(cards.REPO)}</code>; runs {runs}. "
+            f"Question {qid}, revision {R['rev']}; record <code>{R['plan_path'].relative_to(cards.REPO)}</code>; runs {runs}. "
             f"Repository at {rev}. Validator: {html.escape(verdict)} {html.escape(tree)}. "
             f"Notes: <code>{NOTES_DIR / (qid + '.md')}</code>.</p>"
-            + "".join(f"<p>Skip reason as recorded: {html.escape(r)}</p>" for r in dict.fromkeys(UNWORDED))
+            + "".join(f"<p>As recorded, not yet worded for you: {html.escape(r)}</p>" for r in dict.fromkeys(UNWORDED))
             + f"<p>Regenerate: <code>cd simulation_agent &amp;&amp; ../.pixi/envs/sim/bin/python -m src.report {qid}</code></p></footer>")
 
 
@@ -623,7 +728,11 @@ footer{margin-top:40px;padding-top:10px;border-top:1px solid var(--line);font-si
 
 def emit(qid: str) -> Path:
     _selftest()
-    body, ctx = build(qid)
+    refused = load_refusal(qid)
+    if refused:
+        body, ctx = build_refusal(refused), {"R": refused, "title": f"{qid}: refused before running"}
+    else:
+        body, ctx = build(qid)
     refuse_codes(body)
     title = ctx.get("title") or ("Drag calibration of a harmonic trap"
                                  if "trap" in ctx["R"]["plan"]["system_configuration"]["config"] else qid)

@@ -1,0 +1,133 @@
+{
+  "run_id": "run-20260924-abpfree-003",
+  "qid": "sim-20260923-003",
+  "plan_id": "plan-sim-20260923-003-r4",
+  "plan_revision": 4,
+  "plan_hash": "sha256:c4670c1a459c8ae98e5c361ac63759f26293fb33ce4fb257fdaf8c255f4b0d72",
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "envelope_check": {
+    "status": "inside",
+    "target": "local",
+    "budget": "full",
+    "compared": [
+      {
+        "cost": "wall_clock_estimate",
+        "limit": "wall_clock_max",
+        "cost_si": 40.0,
+        "limit_si": 7200.0
+      },
+      {
+        "cost": "storage_estimate",
+        "limit": "storage_max",
+        "cost_si": 0.6,
+        "limit_si": 10.0
+      }
+    ],
+    "exceeded": []
+  },
+  "backend": "hoomd_backend",
+  "seed": 11,
+  "parameters_si": {
+    "integration_timestep": 0.01,
+    "total_simulated_time": 40000.0,
+    "save_interval": 0.1,
+    "box_length": 0.003,
+    "max_lag_time": 3000.0,
+    "n_particles": 100.0,
+    "self_propulsion_speed": 3e-06,
+    "rotational_diffusivity": 0.01,
+    "temperature": 293.0,
+    "viscosity": 0.001,
+    "bead_diameter": 4.9999999999999996e-06,
+    "fit_lag_range_lower_bound": 1000.0
+  },
+  "provenance": [
+    {
+      "parameter": "integration_timestep",
+      "value_si": 0.01,
+      "unit_in_plan": "s",
+      "from": "conditions[0].number -> numbers[integration_timestep_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "total_simulated_time",
+      "value_si": 40000.0,
+      "unit_in_plan": "s",
+      "from": "conditions[1].number -> numbers[total_simulated_time_point]",
+      "grade": "E4"
+    },
+    {
+      "parameter": "save_interval",
+      "value_si": 0.1,
+      "unit_in_plan": "s",
+      "from": "conditions[2].number -> numbers[save_interval_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "box_length",
+      "value_si": 0.003,
+      "unit_in_plan": "um",
+      "from": "conditions[3].number -> numbers[box_length_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "max_lag_time",
+      "value_si": 3000.0,
+      "unit_in_plan": "s",
+      "from": "conditions[4].number -> numbers[max_lag_time_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "n_particles",
+      "value_si": 100.0,
+      "unit_in_plan": "1",
+      "from": "conditions[5].number -> numbers[n_particles]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "self_propulsion_speed",
+      "value_si": 3e-06,
+      "unit_in_plan": "um/s",
+      "from": "conditions[6].number -> numbers[self_propulsion_speed]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "rotational_diffusivity",
+      "value_si": 0.01,
+      "unit_in_plan": "1/s",
+      "from": "conditions[7].number -> numbers[rotational_diffusivity]",
+      "grade": "E4"
+    },
+    {
+      "parameter": "temperature",
+      "value_si": 293.0,
+      "unit_in_plan": "K",
+      "from": "conditions[8].number -> numbers[temperature]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "viscosity",
+      "value_si": 0.001,
+      "unit_in_plan": "Pa*s",
+      "from": "conditions[9].number -> numbers[viscosity]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "bead_diameter",
+      "value_si": 4.9999999999999996e-06,
+      "unit_in_plan": "um",
+      "from": "conditions[10].number -> numbers[bead_diameter]",
+      "grade": "E2"
+    },
+    {
+      "parameter": "fit_lag_range_lower_bound",
+      "value_si": 1000.0,
+      "unit_in_plan": "s",
+      "from": "conditions[11].number -> numbers[fit_lag_range_lower_bound_min]",
+      "grade": "E5"
+    }
+  ]
+}

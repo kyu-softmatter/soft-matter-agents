@@ -1,0 +1,119 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260920-001-widefield_inline-a3",
+  "qid": "mic-20260920-001",
+  "thread": "solo-mic-20260920-001",
+  "round": 0,
+  "revision": 3,
+  "author": "microscope_agent",
+  "created_at": "2026-09-24T14:46:38Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260920-001:v3:widefield_inline:a3",
+  "config": "widefield_inline",
+  "axis": "a3",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "photodamage_dose",
+      "parameter": "illumination_dose",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no damage threshold exists for this sample. The service was asked and answered absent. And the number that is missing is not the one that binds first: total illumination meets P0's safety limit before it meets the sample's tolerance (4.5.3 A7), and those limits are policy in envelope/safety.json, written by a person who confirmed them physically and deliberately not extracted from the prior project (10.3 rule 4). That file does not exist. This axis bounds what the sample can take and not what the instrument may emit, and it may not supply the second from the first",
+      "missing": [
+        "photodamage_threshold"
+      ]
+    },
+    {
+      "inequality": "bleaching_over_record",
+      "parameter": "record_duration",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no bleaching rate exists for this fluorophore -- not a rate, not a dye, not a photon budget. What makes this A3's bound and not A1's is that the loss is irreversible and the sample is not replaceable: \"THE SAMPLE IS NOT SPENT. mic-20260918-001's goal carries the constraint that the sample is consumed by the measurement and cannot be remounted. Bare particles on a coverslip are NOT that sample -- they are particles without it -- so this pre-measurement does not spend the one mount it exists to protect. Said explicitly because a run that costs the thing it protects would be the wrong trade and nothing else on the card says otherwise.\". So every photon spent before the record -- finding focus, centring the field, checking alignment -- is subtracted from the measurement's budget permanently, on the only mount there will be, and a plan that budgets only the record has already spent part of it. A1 owns the other side of the same mechanism, whether signal-to-noise survives the window; its floor comes from detectability and this one's from the sample being consumed. 4.5.3 lets several axes bound one parameter and forbids one inequality living in two axes, and these are two",
+      "missing": [
+        "bleaching_rate"
+      ]
+    },
+    {
+      "inequality": "heating_budget",
+      "parameter": "illumination_power",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "nothing relates illumination power to a temperature rise in this sample",
+      "missing": [
+        "sample_heating_rate"
+      ]
+    },
+    {
+      "inequality": "concentration_window",
+      "parameter": "number_density",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "nothing states how many tracers are in the sample or in a field: no concentration, no count, no dilution record. The same number is what A2's ensemble size wants, and the two bounds are not the same: A2 asks how many tracers the statistics need, this one asks what loading the sample tolerates before tracers interact or their images overlap. One measurement closes both",
+      "missing": [
+        "number_density"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "tracer_photophysics",
+      "observable": "bleaching_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=bleaching_rate, caller_id=mic-20260920-001:v3:widefield_inline:a3, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260920-001:v3:widefield_inline:a3",
+      "asked_at": "2026-09-24T14:46:12+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "tracer_loading",
+      "observable": "number_density",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=number_density, caller_id=mic-20260920-001:v3:widefield_inline:a3, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260920-001:v3:widefield_inline:a3",
+      "asked_at": "2026-09-24T14:46:16+00:00",
+      "near_names": [
+        "abvigen_product_number_density",
+        "tracer_number_density_from_diameter"
+      ]
+    },
+    {
+      "gap_id": "photodamage_threshold",
+      "observable": "photodamage_threshold",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=photodamage_threshold, caller_id=mic-20260920-001:v3:widefield_inline:a3, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260920-001:v3:widefield_inline:a3",
+      "asked_at": "2026-09-24T14:46:06+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "optical_heating",
+      "observable": "sample_heating_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=sample_heating_rate, caller_id=mic-20260920-001:v3:widefield_inline:a3, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260920-001:v3:widefield_inline:a3",
+      "asked_at": "2026-09-24T14:46:09+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "Answered by the librarian service rather than by reading the store, which is what makes degraded empty: 0 entries came back with their own grades and 4 questions came back absent, all at the pinned kbv-4b981dc870d3, and every call is in librarian_agent/queries/log.jsonl under this caller_id. The counts and the version in this sentence are computed rather than typed -- three cards carried a stale pin here after a re-pin because they were typed. Four bounds, four missing numbers, and three of the four are one experiment: point this illumination at these tracers and watch them bleach. That run yields the bleaching rate, a damage threshold and -- with a thermometer at the sample -- a heating rate, and it is the single cheapest thing anyone could do for this fan-out. The fourth, the tracer loading, is not an experiment but a record nobody kept. The sharpest thing in this card is not a number and not this axis's alone: the sample is spent by the measurement. A2 reads that as one mount, so no repeat can average anything away. A3 reads it as an illumination budget that setup draws down before the record begins. Both follow from one sentence on the goal card, and it is worth S4 seeing that the two axes are not making the same point twice.",
+  "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
+}

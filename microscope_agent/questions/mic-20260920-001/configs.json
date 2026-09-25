@@ -2,11 +2,11 @@
   "artifact": "screening",
   "schema_version": "0.1",
   "qid": "mic-20260920-001",
-  "goal_id": "goal-mic-20260920-001-r3",
-  "goal_revision": 3,
+  "goal_id": "goal-mic-20260920-001-r8",
+  "goal_revision": 8,
   "stage": "S3.0",
   "observable": "tracer_brightness",
-  "kb_version": "kbv-e8f4a5610aa6",
+  "kb_version": "kbv-4b981dc870d3",
   "cap": 3,
   "candidates": [
     {
@@ -67,130 +67,130 @@
   "priority_terms_not_evaluable_here": [],
   "fan_out": [
     {
-      "caller_id": "mic-20260920-001:v2:confocal:a1",
+      "caller_id": "mic-20260920-001:v3:confocal:a1",
       "config": "confocal",
       "axis": "a1",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:confocal:a2",
+      "caller_id": "mic-20260920-001:v3:confocal:a2",
       "config": "confocal",
       "axis": "a2",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:confocal:a3",
+      "caller_id": "mic-20260920-001:v3:confocal:a3",
       "config": "confocal",
       "axis": "a3",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:confocal:a4",
+      "caller_id": "mic-20260920-001:v3:confocal:a4",
       "config": "confocal",
       "axis": "a4",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:confocal:a5",
+      "caller_id": "mic-20260920-001:v3:confocal:a5",
       "config": "confocal",
       "axis": "a5",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:confocal:a6",
+      "caller_id": "mic-20260920-001:v3:confocal:a6",
       "config": "confocal",
       "axis": "a6",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:confocal:a7",
+      "caller_id": "mic-20260920-001:v3:confocal:a7",
       "config": "confocal",
       "axis": "a7",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_inline:a1",
+      "caller_id": "mic-20260920-001:v3:widefield_inline:a1",
       "config": "widefield_inline",
       "axis": "a1",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_inline:a2",
+      "caller_id": "mic-20260920-001:v3:widefield_inline:a2",
       "config": "widefield_inline",
       "axis": "a2",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_inline:a3",
+      "caller_id": "mic-20260920-001:v3:widefield_inline:a3",
       "config": "widefield_inline",
       "axis": "a3",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_inline:a4",
+      "caller_id": "mic-20260920-001:v3:widefield_inline:a4",
       "config": "widefield_inline",
       "axis": "a4",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_inline:a5",
+      "caller_id": "mic-20260920-001:v3:widefield_inline:a5",
       "config": "widefield_inline",
       "axis": "a5",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_inline:a6",
+      "caller_id": "mic-20260920-001:v3:widefield_inline:a6",
       "config": "widefield_inline",
       "axis": "a6",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_inline:a7",
+      "caller_id": "mic-20260920-001:v3:widefield_inline:a7",
       "config": "widefield_inline",
       "axis": "a7",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_side:a1",
+      "caller_id": "mic-20260920-001:v3:widefield_side:a1",
       "config": "widefield_side",
       "axis": "a1",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_side:a2",
+      "caller_id": "mic-20260920-001:v3:widefield_side:a2",
       "config": "widefield_side",
       "axis": "a2",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_side:a3",
+      "caller_id": "mic-20260920-001:v3:widefield_side:a3",
       "config": "widefield_side",
       "axis": "a3",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_side:a4",
+      "caller_id": "mic-20260920-001:v3:widefield_side:a4",
       "config": "widefield_side",
       "axis": "a4",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_side:a5",
+      "caller_id": "mic-20260920-001:v3:widefield_side:a5",
       "config": "widefield_side",
       "axis": "a5",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_side:a6",
+      "caller_id": "mic-20260920-001:v3:widefield_side:a6",
       "config": "widefield_side",
       "axis": "a6",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     },
     {
-      "caller_id": "mic-20260920-001:v2:widefield_side:a7",
+      "caller_id": "mic-20260920-001:v3:widefield_side:a7",
       "config": "widefield_side",
       "axis": "a7",
-      "kb_version": "kbv-e8f4a5610aa6"
+      "kb_version": "kbv-4b981dc870d3"
     }
   ],
   "degraded": [],

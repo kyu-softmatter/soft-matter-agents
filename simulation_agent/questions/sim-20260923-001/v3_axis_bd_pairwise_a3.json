@@ -1,0 +1,252 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-001-bd_pairwise-a3-r3",
+  "qid": "sim-20260923-001",
+  "thread": "solo-sim-20260923-001",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T14:45:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-001:v3:bd_pairwise:a3",
+  "config": "bd_pairwise",
+  "axis": "a3",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "box_length",
+      "unit": "um",
+      "min": 300.0,
+      "basis": [
+        "box_length_min"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "parameter": "n_particles",
+      "unit": "1",
+      "min": 900,
+      "basis": [
+        "n_particles_min"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "L >> a",
+      "parameter": "box_length",
+      "state": "returned",
+      "interval": {
+        "parameter": "box_length",
+        "unit": "um",
+        "min": 300.0,
+        "basis": [
+          "box_length_min"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    },
+    {
+      "inequality": "N = (L/a)**2 at the reference density",
+      "parameter": "n_particles",
+      "state": "returned",
+      "interval": {
+        "parameter": "n_particles",
+        "unit": "1",
+        "min": 900,
+        "basis": [
+          "n_particles_min"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    },
+    {
+      "inequality": "the periodic box is commensurate with a triangular lattice",
+      "parameter": "box_aspect",
+      "state": "returned",
+      "precondition": {
+        "parameter": "box_aspect",
+        "requires": "Choose n_particles = rows_x * rows_y with rows_y even, and a box Lx = rows_x * a_lat, Ly = rows_y * (sqrt(3)/2) * a_lat with a_lat the lattice constant at the target density, so that a defect-free triangular lattice fits the periodic cell; the backend derives Lx and Ly from the three plan integers rather than the plan carrying an irrational edge. Otherwise the psi6 plateau is capped by frustration and the relaxation time measures the box, not the suspension.",
+        "basis": [
+          "n_particles_min"
+        ]
+      }
+    },
+    {
+      "inequality": "the potential cutoff is inside half the box and outside the potential's reach",
+      "parameter": "potential_cutoff",
+      "state": "returned",
+      "precondition": {
+        "parameter": "potential_cutoff",
+        "requires": "Set the pair cutoff so that u(r_cut)/kT is below one thousandth at the largest Gamma and longest range of the sweep, and below half the box edge; declare it in the plan.",
+        "basis": [
+          "box_length_min"
+        ]
+      }
+    }
+  ],
+  "note": "Two of the four inequalities are preconditions rather than intervals because they restrict a shape and not a value; S4 must carry them, not intersect them.",
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the lab's particles, measured by the operator on 2026-09-19 (CV at most 2 per cent). Taken from the store under the S2 id as the physical-units anchor; see the constraint note on anchoring",
+      "origin": "v3_goal.json#bead_diameter"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "the free diffusivity D0 of one particle in the bath; the Brownian time at the mean spacing, a^2/D0, is the natural time unit of the relaxation and every axis derives it from this",
+      "origin": "v3_goal.json#diffusivity"
+    },
+    {
+      "name": "spacing_over_diameter",
+      "value": 2,
+      "unit": "1",
+      "source": "assumed:a_spacing",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "mean centre-to-centre spacing in diameters; sets the area fraction, about 0.2 for a triangular arrangement at 2"
+    },
+    {
+      "name": "mean_spacing",
+      "value": 10,
+      "unit": "um",
+      "source": "computed:spacing_times_diameter",
+      "grade": "E5",
+      "formula": "spacing_over_diameter*bead_diameter",
+      "inputs": [
+        "spacing_over_diameter",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "a = rho**-1/2 at the reference density; the density sweep moves it by less than a decade"
+    },
+    {
+      "name": "brownian_time",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "computed:brownian_time",
+      "grade": "E5",
+      "formula": "mean_spacing**2/diffusivity",
+      "inputs": [
+        "mean_spacing",
+        "diffusivity"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the time to diffuse one spacing: the natural unit of structural relaxation here, and NOT tau_d, which is the time to diffuse one diameter and belongs to the free-tracer question"
+    },
+    {
+      "name": "finite_size_factor",
+      "value": 30,
+      "unit": "1",
+      "source": "assumed:a_finite_size",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "box edge in mean spacings"
+    },
+    {
+      "name": "box_length_min",
+      "value": 300.0,
+      "unit": "um",
+      "source": "computed:factor_times_spacing",
+      "grade": "E5",
+      "formula": "finite_size_factor*mean_spacing",
+      "inputs": [
+        "finite_size_factor",
+        "mean_spacing"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "n_particles_min",
+      "value": 900,
+      "unit": "1",
+      "source": "computed:spacings_squared",
+      "grade": "E5",
+      "formula": "finite_size_factor**2",
+      "inputs": [
+        "finite_size_factor"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "(L/a)**2 at the reference density"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_spacing",
+      "gap_ref": "mean_spacing_over_diameter_absent",
+      "statement": "Two diameters of spacing is a reference density where a 2D Yukawa suspension is neither dilute nor jammed, so the sweep in strength and range has room on both sides. Nothing physical picks it; the density is one of the swept parameters and this is the point about which it is swept.",
+      "numbers": [
+        "spacing_over_diameter"
+      ],
+      "falsifier": "a person naming the area fraction of interest, or a first run showing the plateau unreachable at this density inside budget, moves the reference"
+    },
+    {
+      "rationale_id": "a_finite_size",
+      "gap_ref": "psi6_finite_size_margin_absent",
+      "statement": "The psi6 correlation length grows toward the box as the structure orders, so finite size is never absent here and the box can only be made large against the spacing. Thirty spacings keeps the ordering time from being set by the box for the part of the sweep that orders, and is a margin rather than a measured threshold.",
+      "numbers": [
+        "finite_size_factor"
+      ],
+      "falsifier": "two box sizes a factor of two apart giving the same relaxation time within its error retire the margin at that sweep point"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "mean_spacing_over_diameter_absent",
+      "observable": "mean_spacing_over_diameter",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a3",
+      "asked_at": "2026-09-24T14:40:54+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "psi6_finite_size_margin_absent",
+      "observable": "psi6_finite_size_margin",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:bd_pairwise:a3",
+      "asked_at": "2026-09-24T14:40:58+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": []
+}

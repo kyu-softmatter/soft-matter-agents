@@ -369,6 +369,22 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                     f"bead lot number."
                 )
 
+        if ineq.id == "lateral_resolution" and not missing:
+            # Every input present and no code to compare them. Reached for the first time on
+            # 2026-09-24, when mic-20260918-001's goal had gained the person's 100 nm target and
+            # the passband stood in for the wavelength: the branch below then wrote no_input
+            # with nothing missing, which the schema refuses. `failed` is the honest word, and
+            # it is the one that stops a plan (task 032).
+            run.outcomes.append(axc.Outcome(
+                inequality_id=ineq.id, parameter=ineq.parameter, state="failed",
+                reason="every input is present -- NA for all six objectives, the red path's "
+                       "passband, and the goal's required lateral resolution -- and this axis has "
+                       "no code to compare them: that is a gap in this file, not an abstention "
+                       "(4.5.2.1). The goal's own note on that target expects the comparison, "
+                       "once written, to refuse rather than bound.",
+            ))
+            continue
+
         if ineq.id == "lateral_resolution":
             run.outcomes.append(axc.Outcome(
                 inequality_id=ineq.id, parameter=ineq.parameter, state="abstained",
@@ -526,8 +542,12 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         f"degraded empty here: {len(run.kb_refs)} entries came back with their own grades and "
         f"{len(run.kb_gaps)} questions came back without one, all at the pinned {pin}, and every "
         "call is in librarian_agent/queries/log.jsonl under this caller_id."
-        + (" The transport was a stdio client rather than this session's attached server, which "
-           "had failed every call since 07:47:44Z." if goal.get("qid") in HISTORY_QIDS else "")
+        # A sentence here said the transport was a stdio client because the attached server
+        # had failed since 07:47:44Z. That was one session's circumstance on 2026-09-20, and
+        # keeping it for HISTORY_QIDS still prints it into every re-run of those questions,
+        # which reached the service however they did: the v3 and v6 fan-outs of 2026-09-24
+        # used the attached server. How a run reached the service is not a constant of this
+        # file (task 032).
     )
     if goal.get("qid") in HISTORY_QIDS:
         run.notes.append(
