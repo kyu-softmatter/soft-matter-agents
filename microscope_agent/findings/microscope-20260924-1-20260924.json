@@ -336,7 +336,7 @@
     {
       "id": "particles_move_during_series_run_006",
       "kind": "self_report",
-      "for_store": true,
+      "for_store": false,
       "fact": "In the fresh field of run-20260924-006 the roughly 30 particles moved during the five minutes: nearest-neighbour displacement from frame 0 was a median 7 px (max 29 px) after 60 s and a median 17 px (max 37 px) after 299 s, with 73% moving more than 10 px. At 20x that is several micrometres. Whether it is stage drift, sample flow or free particles was not separated. Any per-particle or fixed-mask brightness over time on this sample needs tracking.",
       "how": "Blob detection on frames 0, 60, 150 and 299 of the paced series and nearest-neighbour matching, computed after the run. Reproducible: microscope_agent/src/analyse_photostability.py recomputes it from the frames (each checked against the sha256 in its run log) and writes microscope_agent/runs/<run_id>/photostability_analysis.json beside the run log.",
       "source": {
@@ -344,7 +344,7 @@
         "run_id": "run-20260924-006",
         "event_index": 42
       },
-      "note": "This is what corrupted the first version of the run -002 curve."
+      "note": "This is what corrupted the first version of the run -002 curve. Set for_store false after librarian-20260924-2's ruling: a motion measurement from a preparatory run waits for 034's plan, which can use src/analyse_photostability.py as its method."
     },
     {
       "id": "paced_snaps_one_per_second_on_time",
