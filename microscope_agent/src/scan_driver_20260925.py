@@ -70,7 +70,8 @@ def wait_question(hold: Path, contains: str, timeout=60) -> bool:
 
 
 def main(hold_dir: str, rec_dir: str, first: float, last: float = 1.0, step: float = 0.1,
-         prefix: str = "strength_1_", ready_from: str | None = None) -> int:
+         prefix: str = "strength_1_", ready_from: str | None = None,
+         pre: float | None = None) -> int:
     """`last`: the strength after whose recording the hold is answered "no" -- a planned
     stop, both traps left as they are -- unless it is the plan's final hold. `ready_from`:
     a completed recording whose bead check answers the plan's opening readiness hold."""
@@ -83,6 +84,18 @@ def main(hold_dir: str, rec_dir: str, first: float, last: float = 1.0, step: flo
             return 5
         (hold / "answer.txt").write_text("yes", encoding="utf-8")
         log("answered yes at readiness (the person's standing instruction)")
+    if pre is not None:
+        # A hold the person asked to pass without a recording ("we can use our
+        # 1/0 data"): answer it once the plan reaches it, then wait for the
+        # first strength that is recorded.
+        if not wait_question(hold, f"trap_2 {pre}", timeout=120):
+            log("STOP: the pre-hold did not appear", strength=pre)
+            return 6
+        (hold / "answer.txt").write_text("yes", encoding="utf-8")
+        log("answered yes at a hold not recorded, by the person's instruction", strength=pre)
+        if not wait_question(hold, f"trap_2 {round(first, 1)}", timeout=120):
+            log("STOP: the first recorded strength's hold did not appear", strength=first)
+            return 7
     s = round(first, 1)
     while True:
         label = f"{prefix}{s:.1f}"
@@ -119,4 +132,5 @@ if __name__ == "__main__":
     kw = dict(a[2:].split("=", 1) for a in sys.argv[4:] if a.startswith("--"))
     sys.exit(main(sys.argv[1], sys.argv[2], float(sys.argv[3]),
                   last=float(kw.get("last", 1.0)), step=float(kw.get("step", 0.1)),
-                  prefix=kw.get("prefix", "strength_1_"), ready_from=kw.get("ready_from")))
+                  prefix=kw.get("prefix", "strength_1_"), ready_from=kw.get("ready_from"),
+                  pre=float(kw["pre"]) if "pre" in kw else None))

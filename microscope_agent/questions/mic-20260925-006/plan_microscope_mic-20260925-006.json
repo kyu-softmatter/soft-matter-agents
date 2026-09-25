@@ -1,0 +1,193 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "round": 0,
+  "author": "microscope_agent",
+  "degraded": [],
+  "purpose": "verify",
+  "intent": "confirm",
+  "numbers": [
+    {
+      "name": "nosepiece_position",
+      "value": 5,
+      "unit": "count",
+      "source": "operator_read:kyuhwan_20260925",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "at": "stand_ti2e",
+      "note": "The 100x oil objective, MRD71970, position 5 on a turret indexed from 0 (nosepiece_objective_assignment, E3). The person confirmed it at hand-over in this seat's window ('correct' to 'The objective: 100x oil'). SET BY THE PERSON'S HAND AND NEVER COMMANDED. Added in r2 because the clearance floor resolves from the objective in the path, and r1's run refused before its first command for want of it."
+    }
+  ],
+  "stop_criteria": [
+    {
+      "id": "sc_person_stops",
+      "metric": "final_setting_held",
+      "comparator": "<",
+      "target": "final_setting_held",
+      "on_met": "complete",
+      "statement": "a no at any hold ends the plan as a planned stop, both traps left as the last accepted step left them, no abort. An 'abort' answer, or any command not answered 0, aborts, and the abort sends LASER_OFF"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [],
+  "id": "plan-mic-20260925-006-r1",
+  "qid": "mic-20260925-006",
+  "thread": "solo-mic-20260925-006",
+  "revision": 1,
+  "created_at": "2026-09-25T21:40:04Z",
+  "status": "DRAFT",
+  "actions": [
+    {
+      "id": "ready",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "remove_trap_2",
+      "device": "optical_tweezers",
+      "action": "delete",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "make_trap_2_at_2p5",
+      "device": "optical_tweezers",
+      "action": "create",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_on",
+      "device": "optical_tweezers",
+      "action": "on",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_1_at_1",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_1_0p0",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_0p5",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_1_0p5",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [
+      "tweezers_trap_position_100x_min",
+      "tweezers_trap_position_100x_max",
+      "tweezers_trap_strength_min",
+      "tweezers_trap_strength_max"
+    ],
+    "status": "inside",
+    "note": "trap_2 created at (+2.5, 0) um, inside the person's -40 to +40 um at 100x, never moved after; strengths 0, 0.5 and 1.0, inside 0 to 1."
+  },
+  "targets": [
+    {
+      "metric": "final_setting_held",
+      "kind": "detection",
+      "value": 1,
+      "unit": "count",
+      "note": "the final hold reached: trap_1 1.0 / trap_2 0.5 at +2.5 um. A decision about what counts as done, so no grade"
+    }
+  ],
+  "success_criteria": [
+    {
+      "id": "ok_final",
+      "metric": "final_setting_held",
+      "comparator": ">=",
+      "target": "final_setting_held",
+      "statement": "the plan reaches trap_1 1.0 / trap_2 0.5 with trap_2 at +2.5 um, and 3 min are recorded there"
+    }
+  ],
+  "open_risks": [
+    "At +2.5 um trap_2 sits about one bead radius from trap_1, so it may pull the bead across or share it; that is what the run is for. It is switched on at strength 0 and raised in one step to 0.5.",
+    "The tweezers are blind; where the bead goes is read from the 3 min recording a separate recorder makes at the last hold.",
+    "At the earlier positions the pull did not track the commanded separation (strong at the commanded +6 um, none at +5 um), so where trap_2 really sits relative to trap_1 is uncertain.",
+    "An abort sends LASER_OFF, which only the person can reverse at the instrument."
+  ],
+  "trap_steps": {
+    "device": "optical_tweezers",
+    "objective": "100x",
+    "read_back": "none",
+    "verifies": "where the bead sits, and whether it hops, with trap_2 at +2.5 um from trap_1 and strengths 1 / 0.5, over a 3 min recording",
+    "falsified_by": "the bead leaves both traps, or a command is not accepted",
+    "steps": [
+      {
+        "id": "ready",
+        "kind": "hold_for_person",
+        "statement": "Before anything is sent: is the laser emitting and is one bead held in trap_1 at the centre? Answer yes to delete trap_2 and create it again at (+2.5, 0) um at strength 0; no to send nothing."
+      },
+      {
+        "id": "remove_trap_2",
+        "kind": "delete",
+        "trap": "trap_2"
+      },
+      {
+        "id": "make_trap_2_at_2p5",
+        "kind": "create",
+        "trap": "trap_2",
+        "x_um": 2.5,
+        "y_um": 0.0,
+        "strength": 0.0
+      },
+      {
+        "id": "trap_2_on",
+        "kind": "on",
+        "trap": "trap_2"
+      },
+      {
+        "id": "trap_1_at_1",
+        "kind": "strength",
+        "trap": "trap_1",
+        "strength": 1.0
+      },
+      {
+        "id": "check_1_0p0",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +2.5 um, on, strength 0; trap_1 1.0 at the centre. Strengths are now trap_1 1.0, trap_2 0.0. Answer yes to raise trap_2 to 0.5; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "trap_2_to_0p5",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.5
+      },
+      {
+        "id": "check_1_0p5",
+        "kind": "hold_for_person",
+        "statement": "Strengths are now trap_1 1.0, trap_2 0.5, trap_2 at +2.5 um. Answer yes to finish, leaving both traps as they are; no to stop here, which leaves them the same; abort to abort."
+      }
+    ]
+  }
+}
