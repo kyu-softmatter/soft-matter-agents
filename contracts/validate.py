@@ -7935,16 +7935,16 @@ def check_86_operation_plan(b: Bundle) -> list[Finding]:
         if not any(st.get("kind") == "hold_for_person" for st in steps):
             bad.append("no hold_for_person step: the tweezers are blind, so a step a later one relies on "
                        "needs the person's confirmation")
+        if missing:
+            # A missing limit FAILS, as in the piezo form (architecture at
+            # 131067c, reversing 261aa36's PENDING): the declaration says a
+            # missing limit refuses, a plan whose bound is absent from the
+            # tree cannot be checked, and approving it approves an unbounded
+            # move. The cost is an ordering: the person's limits land before
+            # any plan that cites them.
+            bad = [f"the envelope carries no {', '.join(sorted(set(missing)))}, and a missing limit refuses"] + bad
         if bad:
             out.append(Finding(86, FAIL, f"{c.data.get('id')}: " + "; ".join(bad) + " (11-21)", c.rel))
-        elif missing:
-            # Waiting, not wrong: the person's limits are not in this tree yet.
-            # The run-time gate refuses such a plan outright, so PENDING here
-            # hides nothing, and it keeps a committed tree from reading red
-            # merely because the person has not committed their envelope.
-            out.append(Finding(86, PENDING, f"{c.data.get('id')}: the envelope in this tree carries no "
-                                            f"{', '.join(sorted(set(missing)))}, so these trap steps cannot be "
-                                            f"checked yet, and the run-time gate refuses them until it does", c.rel))
         else:
             out.append(Finding(86, PASS, f"{c.data.get('id')}: {len(steps)} trap step(s) at {obj}, every position, "
                                          f"strength and step inside the person's tweezers limits", c.rel))
