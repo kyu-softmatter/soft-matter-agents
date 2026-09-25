@@ -25,6 +25,20 @@ predictions. Card 047 holds the context: the person's protocol, the
 hand-over statements, how the protocol meets the ask, and the physical
 points.
 
+**From the ask's payload, via the bridge manager** (r1 is carded to
+`bridge-20260924-1` at `39dea86`, and lands at
+`microscope_agent/inbox/thr-double-well-001/` when filed, marked delivered
+after the run started, on the person's decision; link `from_round:
+thr-double-well-001:r1` onto the goal afterwards):
+- **the simulation's milestone rule**: a core around each of the two
+  histogram peaks, radius a fixed fraction of their spacing, sticky at the
+  frame interval. **Declare the same rule on the goal**, or the numbers will
+  not be comparable later. It is the working answer to the shared-tolerance
+  question until that lands in `observables.json`
+- **`trap_1` sits at negative x**, and +x points from `trap_1` to `trap_2`
+- **step down gently from equal traps; do not halve them.** At a ratio of
+  one half or below there are no hops at any separation
+
 ## Why it cannot run yet, checked in the code
 
 - **the allow-list refuses every tweezers command.** `optical_tweezers` is
