@@ -2,7 +2,54 @@
 
 Written by `manager-microscope`. You read this; you do not edit it (§6.2-2).
 
-## Where things stand, the evening of 2026-09-24 — read this first
+## Tomorrow, 2026-09-25: hardware orchestration — read this first
+
+The person says tomorrow is **one planned run driving several devices
+together through the dispatcher.** Readiness list from architecture, carried
+here so the day's seats start from it.
+
+**Blocking, in this order:**
+
+1. **Card 041's substance**: the Micro-Manager labels in the registry, and
+   `derive_commands` producing settings. **This is the one that gates
+   orchestration.** Until it lands, no planned run can command the camera
+   or a light source, and a session script is for a preparatory run only.
+   040's piezo half has landed (`fc851c1`)
+2. **Synchronisation, written before the first multi-device plan** (`plan.md`
+   4.6.6 rule 4). For the intended combination (the camera with the piezo
+   sine is the obvious first), say **which pairs are bound by a hardware
+   trigger and which by software ordering, and how frame times and stage
+   positions come onto one time base.** The camera's frame timestamps and a
+   host-timed trajectory are different clocks
+   (`host_clock_is_not_the_experiment_clock`). **A plan that pairs frames
+   with positions without saying how is the silent kind of wrong**
+3. **Cross-device interlocks, each held by code on the dispatch path, not
+   by a card**:
+   - the tweezers' exclusive camera
+   - `plan.md` 2.1 rule 11's eyepiece read-back before any laser line
+   - blind lasers assumed on
+   - power up last and down first, across the whole parallel set (rule 4)
+   - a configuration load counts as turning output on (rule 10)
+   - PFS off during any Z motion
+   - piezo Z still refused until clearance is compared at the moment of the
+     move
+
+**The person's, before the first orchestrated run:**
+
+4. commit `envelope/safety.json` with the confocal command-voltage limit,
+   0 to 5 V (schema `79f44bc`, card 036 `b285223`), replacing the per-line
+   mW limits. Then a manager removes the three `illumination_power_max_<nm>`
+   names from the schema
+5. correct the approval `appr-mic-20260924-002-r1` (21:00Z) and commit it;
+   then run `-005` can be committed
+6. whether piezo Z resting a few nm below 0 counts as at 0, with commands
+   never below 0
+
+**Worth doing first thing: install the hooks** (`git config core.hooksPath
+contracts/hooks`) while someone watches the first commits. A day of
+multi-device commits from several seats is when the gate earns its keep.
+
+## Where things stand, the evening of 2026-09-24
 
 Added by `manager-microscope-20260924-1` at the end of the first day on the
 microscope computer. **Everything below this section is from 2026-09-19 and
