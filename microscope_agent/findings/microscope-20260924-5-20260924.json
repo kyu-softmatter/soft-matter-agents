@@ -1,0 +1,33 @@
+{
+  "artifact": "findings",
+  "schema_version": "0.1",
+  "seat": "microscope-20260924-5",
+  "on": "2026-09-24",
+  "delivered_to": "librarian_agent",
+  "items": [
+    {
+      "id": "lapp_main_branch_state_1_is_the_aura_iii_position",
+      "fact": "On this stand, LappMainBranch1 State 1 is the Lapp main-branch position that puts the Aura III light engine (Micro-Manager label Aura) into the light path. In that position the device reports the label 'mirror_in'.",
+      "kind": "person_statement",
+      "how": "The person showed this seat, in its window on the evening of 2026-09-24, a screenshot of Micro-Manager's device property browser reading LappMainBranch1-Label 'mirror_in' and LappMainBranch1-State 1, and said 'this is for the Aura3 light source'. The person had just said particles were visible with the Aura III on a newly loaded sample. This seat read no device; the screenshot is not committed, and its content is transcribed here and in the commit message.",
+      "source": {
+        "type": "person",
+        "recorded_at": "the message of the commit that adds microscope_agent/findings/microscope-20260924-5-20260924.json (git log --diff-filter=A -- that path), which quotes the person's words and transcribes the screenshot"
+      },
+      "for_store": true,
+      "note": "The claim is about the integer 1, and the label is given only as what the device reports there. The store's branch_selector_is_pinned_by_integer_not_label holds that on the prior project's bench this selector's labels were inverted relative to its positions, so the label is not the carrier. Here the two agree, which is consistent with that entry and does not test it. Already in the store and not repeated here: that the stand read LappMainBranch1 State 1 'mirror_in' on 2026-09-24 (stand_state_read_20260924_20x_in_place), and that loading single_cam_red_noDMD_nocom10.cfg sets it to 1 (single_cam_red_config_startup_puts_the_lapp_mirror_in). Not established by this statement: what the other positions of LappMainBranch1 route, and whether the Spectra III (label LightEngine) reaches the sample in State 1 as well."
+    },
+    {
+      "id": "sample_reloaded_particles_seen_with_aura_iii",
+      "fact": "On the evening of 2026-09-24 the person loaded a sample again and could see particles with the Aura III as the illumination.",
+      "kind": "person_statement",
+      "how": "Said to this seat in its window: 'i loaded a sample again', then 'i can see particles now with Aura3'.",
+      "source": {
+        "type": "person",
+        "recorded_at": "the message of the commit that adds microscope_agent/findings/microscope-20260924-5-20260924.json (git log --diff-filter=A -- that path), which quotes the person's words"
+      },
+      "for_store": false,
+      "note": "A session event, not knowledge about the instrument; listed so that a later run on this mount can be read against it. Not stated: what the sample is, whether it is particles alone on the coverslip, the Aura line and intensity, the objective, the exposure, or whether the particles were seen at the eyepiece or on a camera. No software drove anything for it from this seat."
+    }
+  ]
+}
