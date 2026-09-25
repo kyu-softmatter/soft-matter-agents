@@ -451,6 +451,47 @@ def card_env(card: Card) -> tuple[dict[str, tuple[float, dict]], list[str]]:
 # never in .gitignore at all.
 SKIP_DIRS = {".git", "__pycache__", ".venv", ".pixi", "node_modules"}
 
+#: Entries outside SKIP_DIRS that could not even be stat'ed. Check 79 reports
+#: them. A set, because collect() runs twice in an --expect-fail run.
+UNSTATABLE: set[str] = set()
+
+
+def _note_unstatable(path) -> None:
+    rel = str(path)
+    try:
+        rel = Path(path).relative_to(REPO).as_posix()
+    except (ValueError, TypeError):
+        pass
+    if not any(part in SKIP_DIRS for part in Path(rel).parts):
+        UNSTATABLE.add(rel)
+
+
+def walk_files(root: Path, suffix: str | None = None) -> list[Path]:
+    """Every file under `root`, with SKIP_DIRS pruned BEFORE anything inside them is touched.
+
+    `root.rglob("*")` followed by a SKIP_DIRS filter stats every entry first,
+    and on 2026-09-24 that crashed the validator for every seat: pixi, run
+    from WSL2, makes `.pixi/envs` a Linux symlink that Windows cannot stat
+    (WinError 1920), and recreates it on every `pixi run`. `.pixi` was in
+    SKIP_DIRS and was stat'ed anyway, because the filter ran after the walk.
+    os.walk lets the names be dropped from `dirnames` in place, so a skipped
+    directory is never listed at all. An entry elsewhere that cannot be
+    stat'ed is not a crash: it is noted for check 79 and passed over.
+    """
+    out: list[Path] = []
+    for dirpath, dirnames, filenames in os.walk(root, onerror=lambda e: _note_unstatable(e.filename)):
+        dirnames[:] = sorted(d for d in dirnames if d not in SKIP_DIRS)
+        for name in filenames:
+            f = Path(dirpath) / name
+            if suffix is not None and f.suffix != suffix:
+                continue
+            try:
+                if f.is_file():
+                    out.append(f)
+            except OSError:
+                _note_unstatable(f)
+    return sorted(out)
+
 
 REJECTED = "rejected"
 GROUP_DIR = re.compile(r"^check([0-9]{2})_[a-z0-9_]+$")
@@ -487,7 +528,7 @@ def collect(roots: Iterable[Path], include_rejected: bool = False) -> Bundle:
     normal sweep steps over them; --expect-fail is the run that opens them."""
     b = Bundle()
     for root in roots:
-        paths = [root] if root.is_file() else sorted(p for p in root.rglob("*") if p.is_file())
+        paths = [root] if root.is_file() else walk_files(root)
         for p in paths:
             if any(part in SKIP_DIRS for part in p.parts):
                 continue
@@ -2546,7 +2587,7 @@ def check_27_knowledge_ownership(b: Bundle) -> list[Finding]:
         root = REPO / agent
         if not root.exists():
             continue
-        for p in root.rglob("*"):
+        for p in walk_files(root):
             if p.is_file() and KB_LIKE.search(p.relative_to(root).as_posix()):
                 out.append(Finding(27, FAIL, "looks like a knowledge store inside an execution agent (P14)", p.relative_to(REPO).as_posix()))
     return out or [Finding(27, PASS, "no execution agent keeps its own knowledge store")]
@@ -3700,7 +3741,7 @@ def check_64_every_rejected_fixture_is_reached(b: Bundle) -> list[Finding]:
     root = CONTRACTS / "examples" / "rejected"
     if not root.exists():
         return [Finding(64, NA, "no rejected fixtures on disk")]
-    files = sorted(p for p in root.rglob("*") if p.is_file())
+    files = walk_files(root)
     if not files:
         return [Finding(64, NA, "no rejected fixtures on disk")]
 
@@ -3718,7 +3759,7 @@ def check_64_every_rejected_fixture_is_reached(b: Bundle) -> list[Finding]:
             continue
         by_stem = any(_rel(s) in subjects for s in f.parent.glob(f.stem + ".*") if s != f)
         group = next((q for q in f.parents if q.name.startswith("check") and q.parent == root), None)
-        by_group = bool(group) and any(_rel(m) in subjects for m in group.rglob("*") if m.is_file())
+        by_group = bool(group) and any(_rel(m) in subjects for m in walk_files(group))
         (inputs if (by_stem or by_group) else orphans).append(rel)
 
     if orphans:
@@ -7048,9 +7089,16 @@ def check_79_gitignored_dirs_are_skipped(b: Bundle) -> list[Finding]:
     for the same reason: SKIP_DIRS legitimately holds `.git`, which is never
     in .gitignore, and `node_modules` defensively.
     """
+    # Entries the walk could not stat, outside SKIP_DIRS (walk_files). Inside
+    # a skipped directory nothing is stat'ed at all, which is the point; out
+    # here an unstatable entry is a file nobody can check, so it is said.
+    unstatable = [Finding(79, FAIL, f"{u} could not be stat'ed, so no check could read it. On this "
+                                    "machine that is typically a Linux symlink WSL left in the working "
+                                    "copy; outside SKIP_DIRS it is reported rather than walked past", u)
+                  for u in sorted(UNSTATABLE)]
     gi = REPO / ".gitignore"
     if not gi.exists():
-        return [Finding(79, PENDING, ".gitignore is not in this tree, so there is nothing to compare SKIP_DIRS against")]
+        return unstatable + [Finding(79, PENDING, ".gitignore is not in this tree, so there is nothing to compare SKIP_DIRS against")]
 
     declared: list[str] = []
     for raw in gi.read_text().splitlines():
@@ -7065,16 +7113,16 @@ def check_79_gitignored_dirs_are_skipped(b: Bundle) -> list[Finding]:
         declared.append(entry.strip("/").lstrip("/"))
 
     if not declared:
-        return [Finding(79, NA, ".gitignore excludes no directory wholesale, so SKIP_DIRS has nothing to cover")]
+        return unstatable + [Finding(79, NA, ".gitignore excludes no directory wholesale, so SKIP_DIRS has nothing to cover")]
 
     missing = sorted(d for d in declared if d not in SKIP_DIRS)
     if missing:
-        return [Finding(79, FAIL,
+        return unstatable + [Finding(79, FAIL,
                         f".gitignore excludes {', '.join(missing)} and SKIP_DIRS does not, so the validator "
                         f"walks {'them' if len(missing) > 1 else 'it'} -- content that is not this "
                         f"repository's, reported as this repository's failures",
                         ".gitignore")]
-    return [Finding(79, PASS,
+    return unstatable + [Finding(79, PASS,
                     f"{len(declared)} directories .gitignore excludes are all in SKIP_DIRS")]
 
 
@@ -7113,7 +7161,7 @@ def check_81_relative_imports_resolve(b: Bundle) -> list[Finding]:
     """
     out: list[Finding] = []
     tested = 0
-    for f in sorted(REPO.rglob("*.py")):
+    for f in walk_files(REPO, ".py"):
         try:
             rel = f.relative_to(REPO).as_posix()
         except ValueError:
@@ -7223,7 +7271,7 @@ def check_82_imports_are_declared(b: Bundle) -> list[Finding]:
     # reports until something does, which is true.
     programs = PROGRAM_PACKAGES & declared
 
-    files = [f for f in sorted(REPO.rglob("*.py"))
+    files = [f for f in walk_files(REPO, ".py")
              if AGENT_SRC.match(f.relative_to(REPO).as_posix())
              and not any(part in SKIP_DIRS for part in f.parts)]
     if not files:
@@ -7959,7 +8007,7 @@ def describe_tree(staged: bool = False) -> str:
                 # inside one.
                 inner = sorted(
                     f"{q.relative_to(GIT_REPO).as_posix()}:{q.stat().st_size}"
-                    for q in f.rglob("*") if q.is_file())
+                    for q in walk_files(f))
                 return hashlib.sha256("\n".join(inner).encode()).hexdigest()
         except OSError:
             return "unreadable"
