@@ -71,13 +71,13 @@ def _read_point(run_id: str, tag: str, numbers: list, inputs: list, values: list
                       "all transitions, both directions, over the record, per hour: for planning a record, not the "
                       "registered observable")
     got["res1"] = rd("residence_time_well_1_mean", res["well_1"]["mean"], "s",
-                     "the mean completed dwell in well 1 per record, averaged over records; the first and last dwell "
-                     "of each record are cut and not counted, so a short record understates long dwells. One "
+                     "the registered residence in well 1: time assigned to well 1 over the exits from it (the renewal "
+                     "form), per record and averaged over records. One "
                      f"record's 5th-95th percentile {res['well_1']['p05']:.3g}-{res['well_1']['p95']:.3g} s")
     got["res1_sd"] = rd("residence_time_well_1_one_record_spread", res["well_1"]["sd_over_records"], "s",
                         "the standard deviation of that per-record mean over records")
-    got["bar"] = rd("barrier_projected_pooled", bar["projected_free_energy_kT"], "1",
-                    "in units of k_B*T: -ln of the projected histogram pooled over all records, saddle minus the "
+    got["bar"] = rd("barrier_projected_pooled", bar["projected_free_energy_kT"], "kT",
+                    "k_B*T at the card's temperature: -ln of the projected histogram pooled over all records, saddle minus the "
                     f"deeper peak. The potential's own barrier, computed, is {bar['potential_computed_kT']:.2f}")
     for metric, n, u in (("well_occupancy", got["occ"], got["occ_sd"]),
                          ("interwell_transition_rate", got["r12"], got["r12_sd"]),
@@ -169,7 +169,10 @@ def build(run_id: str, ask: list[str] | None = None) -> dict:
     note = ("the registered estimators, applied to each record's trajectory projected on the line joining the traps: "
             "cores around the two histogram peaks of the pooled record, radius the plan's fraction of their spacing, "
             "sticky milestoning at the frame interval; occupancy as time assigned to well 1; each ordered rate as "
-            "transitions out of a well over the time assigned to it; residence as the mean completed dwell. "
+            "transitions out of a well over the time assigned to it; residence as time assigned to a well over the "
+            "exits from it. The barrier is in kT at the temperature on this card; the plan's barrier_target stays a "
+            "plain number in units of k_B*T because the operator converts every plan value to SI and kT has no "
+            "fixed SI factor without a temperature. "
             f"Trap 1 is at negative x and +x points from trap 1 to trap 2; the separation the engine solved from the "
             f"barrier is {sep_m * 1e6:.3f} um.")
     assumptions = assumptions_for(plan, numbers)

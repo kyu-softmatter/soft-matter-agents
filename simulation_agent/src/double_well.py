@@ -268,8 +268,13 @@ def estimate(x: np.ndarray, frame_interval: float, c1: float, c2: float, radius:
             "rate_12": n12 / t1 if t1 > 0 else float("nan"),
             "rate_21": n21 / t2 if t2 > 0 else float("nan"),
             "transitions_12": n12, "transitions_21": n21,
-            "residence_1": float(np.mean(r1)) if r1 else float("nan"),
-            "residence_2": float(np.mean(r2)) if r2 else float("nan"),
+            # the REGISTERED residence: time assigned to the well over the exits from it (the
+            # renewal form). Not the mean of completed dwells, which drops the dwells a record
+            # cuts at its ends and so reads low -- what this reported until 2026-09-25.
+            "residence_1": t1 / n12 if n12 else float("nan"),
+            "residence_2": t2 / n21 if n21 else float("nan"),
+            "residence_1_completed_mean": float(np.mean(r1)) if r1 else float("nan"),
+            "residence_2_completed_mean": float(np.mean(r2)) if r2 else float("nan"),
             "barrier_from_deeper": _hist_barrier(x[:, r], c1, c2, bins),
         })
     return res[0] if single else res
