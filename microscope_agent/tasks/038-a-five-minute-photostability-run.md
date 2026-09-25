@@ -36,6 +36,22 @@ from other location"*. **This card covers such repeats**, on these terms:
 - still a preparatory run, so its brightness is an `observable_value` and is
   not for the store. It waits for card 034's plan, which cites the runs
 
+## The analysis, saved (recorded after the fact, 2026-09-24 evening)
+
+The person asked `microscope-20260924-1` to *"save that properly"*, and it
+was done at `3fc720f` before this line existed. **The line records it and
+covers it.** `src/analyse_photostability.py` follows the `CLAUDE.md` method,
+and **checks each frame file's sha256 against its run log before reading
+it**. Its output is `runs/<run_id>/photostability_analysis.json` for `-002`,
+`-006` and `-007`, **beside the logs, which stay untouched**, so a closed
+run folder gains a derived file and loses nothing. The findings items cite
+it. Results, relative to the settled level: `-002` 99.3% after 60 s;
+`-006` 97.4% and `-007` 96.4% after 299 s.
+
+**For later repeats**: the same script, its output beside the log, and the
+log never edited. A changed analysis is a changed script, and needs a line
+here.
+
 ## One holder of the bench
 
 `plan.md` 6.2.1, decided 2026-09-24: **you open a device only after the
