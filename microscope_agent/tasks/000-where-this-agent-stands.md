@@ -107,6 +107,21 @@ current text, is the wrong moment:
   delivered round (the bridge review's G9). A microscope manager takes it.
   Tomorrow uses the interim convention: order-of-magnitude scalars read as
   targets, with prose
+- **no envelope slot holds tweezers limits** (trap position, strength,
+  step). So card 049's exemption refuses every tweezers command, which is
+  correct until the person writes limits into a slot a manager adds. On
+  2026-09-25 the person delegated today's bounds to architecture, recorded as
+  architecture's and not as envelope limits
+- **no artifact shape for an analysis declaration.** `microscope-20260924-6`
+  declared its double-well method before any data, at
+  `questions/mic-20260925-001/analysis_method_declared.json` (`5cd2b54`),
+  with no artifact key. It stays there, since it must not move after the
+  data is opened
+- **the residence estimator differs between the sides**: the simulation's
+  ask computes `well_residence_time` as the mean completed dwell, while
+  `observables.json` registers the renewal form. **The registered form
+  binds.** The microscope reports it as the observable, and the other only
+  as a secondary figure. The simulation and bridge managers are told
 
 **Worth doing first thing: install the hooks** (`git config core.hooksPath
 contracts/hooks`) while someone watches the first commits. A day of
