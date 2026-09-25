@@ -8134,4 +8134,19 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    # UTF-8 mode, or run again in it. Every file here is UTF-8, and this
+    # module reads text without naming an encoding in dozens of places, and
+    # decodes `git show` output the same way. On Windows the default is the
+    # ANSI code page, so the first curly quote in a file those reads reach
+    # crashed nine checks with UnicodeDecodeError. manager-simulation-
+    # 20260924-1 reproduced it on 2026-09-24 from PowerShell, which does not
+    # set PYTHONUTF8 where Git Bash does. One place closes the whole class,
+    # the subprocess decoding included, where naming encoding="utf-8" at
+    # each call would close it only as far as the last call remembered.
+    # A child process, not os.execv: on Windows execv does not keep the exit
+    # code or the order of output reliably. Importing this module is
+    # unaffected.
+    if not sys.flags.utf8_mode:
+        import subprocess
+        sys.exit(subprocess.run([sys.executable, "-X", "utf8", *sys.argv]).returncode)
     sys.exit(main())
