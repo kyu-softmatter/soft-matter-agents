@@ -64,6 +64,13 @@ person's word, not yet read off the GUI by serial:
   the tweezers keep trapping. **One camera, owned in turn**, and the first
   run may need no second camera. Card 037's line 0b is answered by this
 
+**The one piece of work this card does assign**, records only:
+`microscope-20260924-6` writes those two answers as `person_statement`
+items in `microscope_agent/findings/microscope-20260924-6-20260924.json`,
+with `recorded_at` naming the commit that adds it and a commit message
+quoting the person. It then points the librarian at it. The estimate below
+does **not** go there: a model's number is E6 and enters nothing.
+
 **An estimate for the plan, NOT measured**, from the same seat: for a 5 µm
 bead, `eps ~ k w^2` with `w` near the bead radius gives wells **hundreds of
 kT deep at any holding stiffness**. If so, **hops need the barrier to be set
