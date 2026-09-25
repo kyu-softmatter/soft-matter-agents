@@ -69,6 +69,27 @@ yourself"*. So:
 - the lamp is transmitted white light, not a laser. The eyepiece rule does
   not bind it, and nothing here needs a power limit for it
 
+## Added 2026-09-25, after run `-008`: a declined hold, and the trap scale
+
+**A hold answered with anything but yes is a planned stop, not a failure.**
+Log it as `hold_declined` with the person's words, leave the traps as they
+are, and send no abort and no `LASER_OFF`. **An explicit "abort" or "stop"
+from the person at a hold does abort**, logged as the person's call. Abort
+otherwise stays for failures: a rejected command, or a missing reply. Run
+`-008` aborted on a "no", and the abort's fan-out switched the tweezers'
+emission off. Switching it back on is the person's hand; the wrapper refuses
+`LASER_ON`.
+
+**No position command until the tweezers GUI's µm scale is confirmed for the
+objective in place.** At `-008`, `trap_2` was commanded to +6 and the person
+reported it at x = 2 µm. If the GUI's pixel-to-µm calibration is off, or
+stale from another objective, every commanded µm is a GUI unit, and so are
+the person's position limits. Make the person's confirmation, recorded
+through `python_tcp`'s `confirm_calibration` (who, objective, pixel_to_um),
+**a precondition the exemption checks**, with a test watched failing. If the
+calibration is off, the person re-calibrates in the GUI. **Never scale
+commands in code to compensate**: a silent factor is a limit nobody wrote.
+
 ## Superseded, ~10:40: you did NOT drive hardware then
 
 After this card was written, the person told architecture in its window:
