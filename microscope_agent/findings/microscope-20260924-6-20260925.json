@@ -1,0 +1,21 @@
+{
+  "artifact": "findings",
+  "schema_version": "0.1",
+  "seat": "microscope-20260924-6",
+  "on": "2026-09-25",
+  "delivered_to": "librarian_agent",
+  "items": [
+    {
+      "id": "double_well_mount_bottom_substrate_z_20260925",
+      "fact": "On 2026-09-25, for the double-well run's sample, the person gave the focus position of the bottom substrate as z = 2971.04 um.",
+      "kind": "person_statement",
+      "how": "Said to this seat in its window, in two messages: 'here is the bottom substrate', then 'z:2971.04um'. This seat opened no device and read no position.",
+      "source": {
+        "type": "person",
+        "recorded_at": "the message of the commit that adds microscope_agent/findings/microscope-20260924-6-20260925.json (git log --diff-filter=A -- that path), which quotes the person's words"
+      },
+      "for_store": false,
+      "note": "A session event for this mount, listed so the bead's height above the substrate can be computed against it: the reference for the bead-height hand-over statement. Not stated: which drive reported it (the stand's focus drive, presumably, as read in NIS or Micro-Manager), which objective was in place, how the surface was judged in focus, or whether PFS was engaged. A focus-drive difference is not a height in the sample: through oil into water the axial scale differs, and that correction is not applied here."
+    }
+  ]
+}
