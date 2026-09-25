@@ -571,3 +571,280 @@ def render_plan(card: dict) -> str:
         lines.append(f"- {r}")
     return "\n".join(lines) + "\n"
 
+
+
+# --- O4: the result ------------------------------------------------------ #
+
+def build_result(run_id: str) -> dict:
+    """The result card for one `abp_free` run.
+
+    `result_card.build` is bd_overdamped's and its central ruling carries over
+    here while the one in `result_abp` does not. `abp_free` declares
+    `output_independent_of_input: false`: the mean squared displacement of a
+    non-interacting active particle is a closed form in v0, D_R and D_T, so a
+    run of it confirms the integrator, the estimator and the crossover
+    machinery and is **not** evidence about the dependence. The fitted
+    diffusivity therefore appears as a COMPARISON against the closed form and
+    never as a measurement of anything about the world.
+
+    What differs from bd_overdamped is the comparison term. There the run is
+    checked against Stokes-Einstein; here it is checked against
+    `D_T + v0^2/(2(d-1)D_R)`, the long-time limit of the same closed form the
+    plan's criteria were written from.
+    """
+    import json
+    import math
+
+    from . import result_card
+
+    run = result_card.read_run(run_id)
+    plan, plan_path = result_card.plan_of(run)
+    qid = run["config"]["qid"]
+    fit = run["observables"]["fit"]
+    unc = run["observables"].get("uncertainty") or {}
+    meta = run["meta"]
+
+    numbers: list[dict] = []
+
+    def carry(source: str, as_name: str | None = None) -> dict:
+        n = result_card.carried(plan, plan_path, source, as_name)
+        numbers.append(n)
+        return n
+
+    for name in ("temperature", "viscosity", "bead_diameter", "n_particles",
+                 "translational_diffusivity", "rotational_diffusivity",
+                 "self_propulsion_speed", "persistence_time_expected",
+                 "thermal_crossover_time", "peclet_thermal"):
+        carry(name)
+    dt_planned = carry("integration_timestep_point", "integration_timestep_planned")
+    duration_planned = carry("total_simulated_time_point", "total_simulated_time_planned")
+    save_planned = carry("save_interval_point", "save_interval_planned")
+    window_planned = carry("max_lag_time_point", "max_lag_time_planned")
+    carry("fit_lag_range_lower_bound_min", "fit_lag_range_lower_bound_planned")
+    target_error = carry("target_relative_error")
+
+    grades = {n["name"]: n["grade"] for n in numbers}
+    value = lambda name: float(next(n["value"] for n in numbers if n["name"] == name))
+
+    # The comparison term, from the same closed form the criteria came from.
+    DT = value("translational_diffusivity") * 1e-12          # um^2/s -> m^2/s
+    DR = value("rotational_diffusivity")
+    v0 = value("self_propulsion_speed") * 1e-6               # um/s -> m/s
+    predicted = DT + v0 * v0 / (2.0 * DR)
+    numbers.append(cards.num(
+        "effective_diffusivity_expected", float(f"{predicted * 1e12:.1g}"), "um^2/s",
+        "computed:long_time_limit_of_the_free_active_msd",
+        formula="translational_diffusivity + self_propulsion_speed**2/(2*rotational_diffusivity)",
+        inputs=[(n, grades[n]) for n in
+                ("translational_diffusivity", "self_propulsion_speed", "rotational_diffusivity")],
+        precision="order_of_magnitude",
+        note=(
+            "the long-time limit of the closed form, which is what this run is checked "
+            "AGAINST rather than what it measures. In two dimensions (d-1) is 1"
+        ),
+    ))
+
+    # What the run read. `simulated:` and not `measured:`: this is the model's
+    # behaviour, and E1 would make the grade mean "we ran code that produced a
+    # number" (5.3).
+    measured = float(fit["diffusivity"])
+    numbers.append(cards.num(
+        "effective_diffusivity_read", float(f"{measured * 1e12:.1g}"), "um^2/s",
+        f"simulated:{run_id}",
+        inputs=[(n, grades[n]) for n in ("translational_diffusivity", "rotational_diffusivity",
+                                         "self_propulsion_speed", "n_particles")],
+        precision="order_of_magnitude",
+        note=(
+            f"read off the run: {measured:.5e} m^2/s from the weighted slope of the mean "
+            f"squared displacement over {fit['lags_used']} lags. Carried at one figure because "
+            "the inputs carry one; the full value is in the run's own observables. A "
+            "comparison term and not a measurement of the world -- this configuration's "
+            "output is fixed by its inputs"
+        ),
+    ))
+    numbers.append(cards.num(
+        "effective_diffusivity_relative_error", float(f"{float(unc['relative_standard_error']):.1g}"), "1",
+        f"simulated:{run_id}",
+        precision="order_of_magnitude",
+        note=(
+            f"{float(unc['relative_standard_error'])*100:.2f} per cent, from {unc['blocks']} "
+            f"independent blocks of {unc['tracers_per_block']} tracers. THE HONEST ONE: the "
+            f"fit's own relative error is {float(fit['relative_standard_error'])*100:.4f} per "
+            "cent, forty-seven times smaller, because a weighted least squares treats "
+            "correlated lag points as independent observations"
+        ),
+    ))
+    ratio = measured / predicted
+    numbers.append(cards.num(
+        "effective_diffusivity_ratio_to_expected", float(f"{ratio:.3g}"), "1",
+        f"simulated:{run_id}",
+        precision="significant_figures",
+        note=(
+            f"{ratio:.5f} from the FULL values -- {measured:.5e} read against {predicted:.5e} "
+            "expected. NO FORMULA, deliberately: the two numbers as this card carries them are "
+            "rounded to one significant figure, so dividing those gives 0.8 and the dimension "
+            "check would hold the card to that. A ratio of two one-figure numbers still says "
+            "whether they agree, and it can only say it at the precision the ratio was taken"
+        ),
+    ))
+
+    # Deviations: exact reproduction or nothing.
+    actual_dt = float(run["config"]["parameters_si"]["integration_timestep"])
+    actual_T = float(meta["simulated_time"])
+    actual_save = float(run["config"]["parameters_si"]["save_interval"])
+    numbers.append(cards.num("integration_timestep_actual", actual_dt, "s",
+                             f"simulated:{run_id}", precision="significant_figures",
+                             note="what the engine was handed"))
+    numbers.append(cards.num("total_simulated_time_actual", actual_T, "s",
+                             f"simulated:{run_id}", precision="significant_figures",
+                             note="derived from the integer step count, never accumulated"))
+    numbers.append(cards.num("save_interval_actual", actual_save, "s",
+                             f"simulated:{run_id}", precision="significant_figures",
+                             note="what the engine was handed"))
+    deviations = [
+        {"parameter": "integration_timestep", "planned_number": dt_planned["name"],
+         "actual_number": "integration_timestep_actual",
+         "within_tolerance": actual_dt == float(dt_planned["value"]),
+         "note": "exact reproduction; the plan's value went to the engine unchanged"},
+        {"parameter": "total_simulated_time", "planned_number": duration_planned["name"],
+         "actual_number": "total_simulated_time_actual",
+         "within_tolerance": actual_T == float(duration_planned["value"]),
+         "note": "exact: four million steps of a hundredth of a second is forty thousand seconds"},
+        {"parameter": "save_interval", "planned_number": save_planned["name"],
+         "actual_number": "save_interval_actual",
+         "within_tolerance": actual_save == float(save_planned["value"]),
+         "note": "exact reproduction"},
+        # THE OBSERVABLE ITSELF IS A DEVIATION HERE, and that is the honest
+        # shape rather than a trick to satisfy a check. This configuration's
+        # output is fixed by its inputs, so the planned value IS the closed
+        # form and what the run read can only be reported against it --
+        # `actual_number` is the field that says a number is a reading. Under
+        # values[] the same number would be an assertion about the system,
+        # which it is not entitled to be.
+        {"parameter": "effective_translational_diffusivity",
+         "planned_number": "effective_diffusivity_expected",
+         "actual_number": "effective_diffusivity_read",
+         "within_tolerance": bool(abs(math.log10(ratio)) <= 1.0),
+         "note": (f"read {measured:.5e} against an expected {predicted:.5e}, a ratio of "
+                  f"{ratio:.5f} -- inside the one decade the goal set as its target. The "
+                  "agreement confirms the integrator and the estimator and is not evidence "
+                  "about the diffusivity of anything")},
+        {"parameter": "effective_translational_diffusivity_ratio",
+         "planned_number": "effective_diffusivity_expected",
+         "actual_number": "effective_diffusivity_ratio_to_expected",
+         "within_tolerance": bool(abs(math.log10(ratio)) <= 1.0),
+         "note": "the same comparison as a bare ratio, so a reader does not have to divide"},
+    ]
+
+    # EVALUATED HERE AND NOT BY THE SHARED EVALUATOR, which knows
+    # bd_overdamped's metrics and would stop the card on three of these rather
+    # than drop them -- which is the right behaviour and the wrong module. The
+    # slopes come from the run's own saved curve, so nothing is recomputed
+    # from the trajectory.
+    import numpy as _np                                # noqa: PLC0415
+
+    curve = _np.asarray(run["observables"]["msd_curve"], dtype=float)
+    lag, msd = curve[:, 0], curve[:, 1]
+    keep = lag > 0
+    slope = _np.gradient(_np.log(msd[keep]), _np.log(lag[keep]))
+    slope_max = float(slope.max())
+    slope_last = float(slope[-1])
+    numbers.append(cards.num(
+        "msd_loglog_slope_max", float(f"{slope_max:.3g}"), "1",
+        f"simulated:{run_id}", precision="significant_figures",
+        note=(
+            f"the largest local slope of log mean squared displacement against log lag, at "
+            f"{float(lag[keep][slope.argmax()]):.3g} s. Three figures because the criterion is "
+            "a comparison at the third digit and one figure could not express it"
+        ),
+    ))
+    numbers.append(cards.num(
+        "msd_loglog_slope_longest_lag", float(f"{slope_last:.3g}"), "1",
+        f"simulated:{run_id}", precision="significant_figures",
+        note="the same slope at the longest lag in the window, where the plan expects it back at 1",
+    ))
+    rel_error = float(unc["relative_standard_error"])
+    max_step = float(meta["max_single_step_displacement"])
+    box = float(next(n["value"] for n in plan["numbers"] if n["name"] == "box_length_point")) * 1e-6
+
+    criteria = [
+        {"id": "planned_duration_reached", "kind": "stop",
+         "met": bool(meta.get("completed_planned_duration")),
+         "observed_number": "total_simulated_time_actual"},
+        {"id": "step_displacement_diverged", "kind": "stop",
+         "met": bool(max_step > box),
+         "observed_number": "max_single_step_displacement"},
+        {"id": "ballistic_regime_present", "kind": "success",
+         "met": bool(slope_max >= 1.9),
+         "observed_number": "msd_loglog_slope_max"},
+        # NOT MET AS DECLARED, and the card does not get to prefer the prose.
+        # The plan's machine-readable form is `<=` against a target of 1, so
+        # 1.022 fails it. The statement beside it says "within a tenth", which
+        # 1.022 passes. Those are two different criteria and the one the
+        # comparator carries is the one that binds. The criterion is
+        # malformed rather than the run being bad, and correcting it takes a
+        # plan revision -- which is why this reads false here instead of
+        # being quietly reinterpreted.
+        {"id": "long_time_diffusive", "kind": "success",
+         "met": bool(slope_last <= 1.0),
+         "observed_number": "msd_loglog_slope_longest_lag"},
+        {"id": "statistics_met", "kind": "success",
+         "met": bool(rel_error <= float(target_error["value"])),
+         "observed_number": "effective_diffusivity_relative_error"},
+
+    ]
+    # The criterion entries carry only what the schema admits, so the reason a
+    # criterion reads as it does lives on the number it points at. A divergence
+    # guard needs a number to point at like any other.
+    numbers.append(cards.num(
+        "max_single_step_displacement", float(f"{max_step * 1e6:.1g}"), "um",
+        f"simulated:{run_id}", precision="order_of_magnitude",
+        note=(
+            f"{max_step:.3g} m, against a box of {box:.3g} m -- a factor of {box / max_step:.0f} "
+            "under. The guard is not met and for this one not met is the good outcome: met "
+            "would mean the integration broke. The box bounds nothing physical here, so this "
+            "is a divergence guard and not an image bound"
+        ),
+    ))
+
+    card = cards.head(
+        "result",
+        f"result-{qid}-{run_id}",
+        qid,
+        run["log"]["finished_at"],
+        revision=int(run["config"]["plan_revision"]),
+        plan_id=plan["id"],
+        plan_revision=int(run["config"]["plan_revision"]),
+        plan_hash=run["config"]["plan_hash"],
+        approval_id=None,
+        run_id=run_id,
+        observable=cards.observable(plan["observable"]["name"]),
+        outcome=result_card.outcome_of(meta),
+        # THE VALUE IS THE EXPECTED ONE AND NOT THE ONE THE RUN READ, and
+        # that is this configuration's declaration rather than a preference.
+        # `abp_free` says `output_independent_of_input: false`: the mean
+        # squared displacement of a non-interacting active particle is a
+        # closed form in v0, D_R and D_T, so a card asserting something about
+        # the system cites the input. What the run read is on this card as a
+        # comparison term, outside values[], which is where it can be checked
+        # against the prediction without claiming to be evidence for it. The
+        # same ruling the bd_overdamped card follows, and check 21 enforces
+        # it from the capability table rather than from either card's prose.
+        values=[
+            {"metric": "effective_translational_diffusivity",
+             "number": "effective_diffusivity_expected",
+             "uncertainty": None},
+        ],
+        criteria_evaluation=criteria,
+        deviations=deviations,
+        time_base=result_card.time_base(run["log"]),
+        estimation=result_card.estimation_of(run, save_planned, window_planned),
+    )
+    card["status"] = "DONE" if card["outcome"] == "DONE" else "FAILED"
+    # An assumed number has to be explained in the card that holds it, and
+    # three of the carried ones are assumptions of the plan.
+    card.update(cards.tail(numbers,
+                           assumptions=result_card.assumptions_for(plan, numbers),
+                           kb_refs=result_card.kb_refs_for(plan, numbers),
+                           kb_gaps=[], degraded=["librarian_agent"]))
+    return card
