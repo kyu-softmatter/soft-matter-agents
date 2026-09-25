@@ -30,8 +30,12 @@ from pathlib import Path                                         # noqa: E402
 
 CONFIG = Path(r"C:\agentic_microscope\config\micromanager\single_cam_red_noDMD_nocom10.cfg")
 CROP = 600          # pixels on a side at the sensor centre: 39 um at 100x, 1x (0.065 um/px, E2)
-EXPOSURE_MS = 30.0  # the person's 30 ms of this morning
+EXPOSURE_MS = 30.0  # the person's 30 ms, this morning and again for the Aura view
 LAMP = {"State": 1, "Intensity": 2100}
+#: `--aura`: the person's choice of 2026-09-25 ~13:00, "Green, 5%, 30 ms". The
+#: transmitted lamp goes off first, then the Aura line and intensity are set
+#: with the master State last. Per-mille, so 5% is 50 (light_engine_line_intensity_is_per_mille).
+AURA = [("GREEN_Intensity", 50), ("GREEN", 1), ("State", 1)]
 
 
 def _load(name, path):
@@ -58,8 +62,13 @@ def main(out_dir: str) -> int:
         note="preparatory live view for the person; not a planned measurement")
     rec(event="load", **mm.load_configuration(str(CONFIG)))
     core = mm._core()
-    for prop, value in LAMP.items():
-        rec(event="lamp", **mm.set_and_read("DiaLamp", prop, value))
+    if "--aura" in sys.argv:
+        rec(event="lamp", **mm.set_and_read("DiaLamp", "State", 0))
+        for prop, value in AURA:
+            rec(event="aura", **mm.set_and_read("Aura", prop, value))
+    else:
+        for prop, value in LAMP.items():
+            rec(event="lamp", **mm.set_and_read("DiaLamp", prop, value))
     rec(event="exposure", **mm.set_exposure(EXPOSURE_MS))
     w, h = core.getImageWidth(), core.getImageHeight()
     x0, y0 = (w - CROP) // 2, (h - CROP) // 2
@@ -111,10 +120,12 @@ def main(out_dir: str) -> int:
         if core.isSequenceRunning():
             core.stopSequenceAcquisition()
         rec(event="stop", frames_displayed=state["frames"],
-            left_as="lamp ON (State 1, Intensity 2100); acquisition stopped; the core "
-                    "unloads when this process exits")
+            left_as=("Aura GREEN ON at 50 per-mille, State 1; DiaLamp State 0"
+                     if "--aura" in sys.argv else "lamp ON (State 1, Intensity 2100)")
+            + "; acquisition stopped; the core unloads when this process exits")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else r"D:\soft-matter-agents-frames\run-20260925-002"))
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    sys.exit(main(args[0] if args else r"D:\soft-matter-agents-frames\run-20260925-002"))
