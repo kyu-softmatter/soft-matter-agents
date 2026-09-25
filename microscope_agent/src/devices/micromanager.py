@@ -114,6 +114,12 @@ SOFTWARE_MAY_COMMAND: dict[str, frozenset[str] | None] = {
     # it at the Aura would be a write that buys nothing.
     "Aura": None,
     "Kinetix_red": None,
+    # The transmitted lamp, by card decision (card 049 at c544e1f): brightfield
+    # frames are dark without it, because the configuration loads DiaLamp at
+    # State 0, and transmitted light suits hour-long records. State and
+    # Intensity ONLY, each written with setProperty and read back; every other
+    # DiaLamp property, and every other stand device, stays refused.
+    "DiaLamp": frozenset({"State", "Intensity"}),
     "Core": frozenset({"AutoShutter", "Camera", "Shutter"}),
 }
 
@@ -175,7 +181,7 @@ NAMED_REFUSALS = (
     "ZDrive", "Nosepiece", "XYStage", "PFS", "PFSOffset", "IntermediateMagnification",
     "FilterTurret1", "FilterTurret2", "LightPath", "CondenserTurret",
     "CSUW1-Filter_Red", "CSUW1-Filter_Blue", "CSUW1-Dichroic", "CSUW1-Port",
-    "CSUW1-Bright", "CSUW1-Shutter", "LightEngine", "MightexPolygon1000", "DiaLamp",
+    "CSUW1-Bright", "CSUW1-Shutter", "LightEngine", "MightexPolygon1000",
     "LappMainBranch1", "Turret1Shutter", "Turret2Shutter", "Ti2-E__0",
     "NIDAQHub", "LUNF-Blanking",
 )
