@@ -226,7 +226,7 @@
       },
       "executed_by": {
         "module": "double_well_hoomd_backend",
-        "why": "NOT YET WRITTEN, declared ahead of its module so the plan can select this configuration; the operator refuses a configuration whose module it cannot import rather than falling back. The engine form is established: HOOMD 7.2 CPU in two dimensions with the wells as an md.force.Custom, many walkers packed in widely spaced cells so one run is an ensemble of independent single-particle records, positions read back SORTED BY TAG (the CPU snapshot is not in tag order, which on 2026-09-24 made a 1000-bead run read widths 200 times too large). Replace this sentence with the run record that confirms it, as bd_overdamped_trapped did."
+        "why": "READ OFF THE RUN RECORD, 2026-09-25: run-20260924-101-v2-smoke2 (plan sim-20260923-101 revision 2, seed 1, committed at 735a1a0) logged backend double_well_hoomd_backend, engine hoomd 7.2.0 on the CPU, Brownian (Euler-Maruyama) in two dimensions, the wells as an md.force.Custom of two additive Gaussians, positions read from the local snapshot sorted by tag. Many walkers sit in widely spaced cells, so one run is an ensemble of independent single-particle records; the tag sort matters because the CPU snapshot is not in tag order, which on 2026-09-24 made a 1000-bead scratch run read widths 200 times too large. Measured by that run: a projected barrier of 4.01 kT against 4.00 computed. The module was written by simulation-20260924-1 under task 024 and landed at fb672a4. Replaces 'not yet written', which this field said from declaration at 4ab86d9 until that run."
       },
       "temperature_realisation": {
         "kind": "constitutive",
