@@ -1,0 +1,21 @@
+{
+  "entry_id": "kinetix_red_paced_snaps_kept_one_per_second_20260924",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "On 2026-09-24, single snaps on Kinetix_red scheduled at one per second from an integer frame index -- 100 ms exposure, the full 2400 by 2400 frame saved to disk each time, the Aura on throughout -- all ran: 300 of 300 frames, none starting more than 50 ms late, the latest 16 ms late.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "camera_red"
+    }
+  ],
+  "source": "measured:run-20260924-006",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_006_paced_series",
+  "validity_conditions": "Read back in a preparatory run, a device-and-host report of its own timing rather than a value of any registered observable, so it may enter citing the run (11-21 condition 4 as narrowed at 20a688b); E1 from `measured:`. Checked against microscope_agent/runs/run-20260924-006/log.json read at ac20ee4, event 42: wanted 300, received 300, frames_late_over_50ms 0, worst_late_s 0.016. The findings item also gives the period's median and range; those come from a timing file outside the repository (D:/soft-matter-agents-frames/run-20260924-006/particles_paced_timing.json), which is not committed and so not checkable here, and are not entered. Snaps carry no ImageNumber, so the frame count is the loop's integer index, as the log says. One series, one exposure, one frame size, host-timed: evidence that this rate is kept at this size, not a timing guarantee. Delivered as item paced_snaps_one_per_second_on_time of microscope_agent/findings/microscope-20260924-1-20260924.json at ac20ee4 (card 042).",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

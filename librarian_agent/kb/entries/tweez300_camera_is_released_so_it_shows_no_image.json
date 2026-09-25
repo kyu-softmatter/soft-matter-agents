@@ -1,0 +1,25 @@
+{
+  "entry_id": "tweez300_camera_is_released_so_it_shows_no_image",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The person states that in this lab's use the camera is always released from the Tweez 300 software, so nothing can be seen in the tweezers software; frames of a trapped bead come from Micro-Manager after the tweezers software has let the camera go.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    },
+    {
+      "kind": "device",
+      "id": "camera_red"
+    }
+  ],
+  "source": "operator_recall:kyuhwan_20260924_tweezers_camera",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_person_statement_tweezers_camera_20260924",
+  "validity_conditions": "The person's answer in microscope-20260924-6's window on the evening of 2026-09-24, quoted verbatim in the message of commit 20387f0, which adds microscope_agent/findings/microscope-20260924-6-20260924.json; read by this seat from that message, as the findings item cites. E5, operator_recall: stated from the person's knowledge of the bench, not read off an instrument at the time. The person's words: 'we always release the camera, and you cannot see anything on the tweezer software.' A STATEMENT OF PRACTICE, NOT OF CAPABILITY: the Tweez 300 User Manual describes a live image in the software's master view and video tracking and recording (its calibration chapter, printed pages 36 and 38, refers to 'GUI live image navigation'), so the software can show and record frames when it holds the camera; this lab releases it. Not stated: how the camera is released, whether trap commands over TCP keep working with it released, and whether the software needs the camera at start before releasing it -- the last bears on whether the red body is locked while the tweezers software starts. Delivered as item tweez300_software_records_no_frames.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

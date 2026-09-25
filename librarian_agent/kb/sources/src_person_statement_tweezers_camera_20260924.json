@@ -1,0 +1,9 @@
+{
+  "source_id": "src_person_statement_tweezers_camera_20260924",
+  "kind": "operator_recall",
+  "identifier": "Two answers the person gave microscope-20260924-6 on the evening of 2026-09-24: which Kinetix body the Tweez 300 software opens ('The red-arm body'), and whether it can save frames ('we always release the camera, and you cannot see anything on the tweezer software'). Quoted verbatim in the message of commit 20387f0.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E5: stated from knowledge, not read off an instrument when asked. A serial read from the tweezers software would supersede the first at a higher grade.",
+  "what_was_not": "a model's estimate of trap-well depth made in the same exchange, which the microscope seat kept out as a model's number.",
+  "delivered_by": "microscope-20260924-6, microscope_agent/findings/microscope-20260924-6-20260924.json at 20387f0."
+}

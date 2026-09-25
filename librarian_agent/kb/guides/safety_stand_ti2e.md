@@ -32,4 +32,4 @@ None.
 
 **This page is not the lab's safety limits.** It says what the manufacturer warns about. What may be done on this bench, and every limit anyone acts on, is written by the person into the instrument's safety file after confirming it on the instrument.
 
-<sub>Generated from the knowledge store at kbv-0b89056cf256. Do not edit by hand: correct the store and regenerate.</sub>
+<sub>Generated from the knowledge store at kbv-d2db58512e78. Do not edit by hand: correct the store and regenerate.</sub>

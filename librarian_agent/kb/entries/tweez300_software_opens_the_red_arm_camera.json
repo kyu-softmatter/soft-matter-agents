@@ -1,0 +1,25 @@
+{
+  "entry_id": "tweez300_software_opens_the_red_arm_camera",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The person states that the Tweez 300 software, when it starts, opens the red-arm Kinetix camera -- the body Micro-Manager reads as serial A24M723015 under the label Kinetix_red.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    },
+    {
+      "kind": "device",
+      "id": "camera_red"
+    }
+  ],
+  "source": "operator_recall:kyuhwan_20260924_tweezers_camera",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_person_statement_tweezers_camera_20260924",
+  "validity_conditions": "The person's answer in microscope-20260924-6's window on the evening of 2026-09-24, quoted verbatim in the message of commit 20387f0, which adds microscope_agent/findings/microscope-20260924-6-20260924.json; read by this seat from that message, as the findings item cites. E5, operator_recall: stated from the person's knowledge of the bench, not read off an instrument at the time. Asked which of the two bodies the tweezers software opens, with the red arm's serial given in the question, the person chose 'The red-arm body': the arm, not a serial read from the tweezers software. camera_bodies_are_told_apart_by_serial holds that the bodies are told apart by serial, so READING THE SERIAL THE TWEEZERS SOFTWARE OPENS settles this and would supersede it at a higher grade. kinetix_red_label_opens_serial_a24m723015 ties the red arm to that serial in Micro-Manager only. Consistent with the device table making camera_red exclusive with the tweezers software, and not a test of it. Delivered as item tweez300_opens_the_red_arm_kinetix (card from manager-microscope-20260924-1's instruction).",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

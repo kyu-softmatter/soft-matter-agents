@@ -1,0 +1,9 @@
+{
+  "source_id": "src_run_20260924_006_paced_series",
+  "kind": "measured",
+  "identifier": "microscope_agent/runs/run-20260924-006/log.json, a preparatory run by microscope-20260924-1 on 2026-09-24: a second load and a five-minute paced series under the Aura on a fresh field. Committed at adb57f4; read by this seat at ac20ee4.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E1 for a report of the system's own behaviour read in a run with a run_id. Not a value of a registered observable -- the run's fluorescence decline is an observable (bleaching_rate) and waits for the plan that cites the run.",
+  "what_was_not": "the particle-motion item: displacements computed after the run from frames outside the repository, not checkable here, and a measurement of motion rather than a device's report of itself; and the paced series' timing median and range, from an uncommitted timing file.",
+  "delivered_by": "microscope-20260924-1, microscope_agent/findings/microscope-20260924-1-20260924.json at ac20ee4 (card 042)."
+}
