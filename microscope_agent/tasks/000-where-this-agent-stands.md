@@ -13,10 +13,19 @@ older.** Read it as history.
 - **The first real acquisition**, a preparatory run: `-002`, 600 frames on
   the Abvigen particles through the 20x (card 033). Before it, `-001` failed
   at load and harmed nothing
-- **Card 038's five-minute run has NOT happened.** Its attempt, `-003`,
-  stopped at the preload gate because the tweezers program was running
-  again. Nothing was loaded or opened, and there was no light. Its record is
-  committed at `8ee6158`
+- **Card 038's five-minute run is `-006`** (`adb57f4`): 300 paced snaps,
+  the dark test passed again, and the bench was released with the Aura read
+  back off. Its first attempt, `-003`, stopped at preload because the
+  tweezers program was running, with nothing loaded and no light (`8ee6158`)
+- **The photostability numbers first reported for `-002` were wrong.** "80.7%
+  after 60 s" was particles drifting off a mask fixed at frame 0, not
+  bleaching. Over the whole frame, `-002` stays within 99.2 to 101.0%. `-006`
+  rises 3.5% in 5 s, probably the Aura settling, then falls 2.6% over 295 s.
+  **That is an upper bound on bleaching, not a rate**: particles drifted a
+  median of 17 px (about 5.5 µm at 20x, some leaving the field), and focus
+  was not controlled. No decay model can be preferred on 2.6%. **For card
+  034's design, drift, not bleaching, is the effect to bound.** Findings
+  corrected at `ac20ee4`
 - **A read-only piezo run** (`-004`) and **the first planned motion**: the
   person's approved sine on piezo X (`-005`, cards 035 and 040), through the
   dispatcher
@@ -33,7 +42,6 @@ older.** Read it as history.
 |---|---|
 | run `-005` is **uncommitted by the person's choice**: its approval's written time (21:00Z) follows the run (20:09:24Z), so check 15 fails it. The approval file was saved at 20:08:51Z, before the run. **The record is `D:\soft-matter-agents-frames\run-20260924-005\`**, with hashes in `failures.jsonl` (`ee0e42c`). Its result card, the tracking error, waits on it | the person: correct the time in `appr-mic-20260924-002-r1` and commit `microscope_agent/approvals/` as the person. Then a microscope seat commits `-005`, and check 15 clears |
 | card 041: the dispatcher reaching Micro-Manager, plus the byte-order-mark fix for approvals | `microscope-20260924-1`'s |
-| card 038's five-minute run | the person: the tweezers program closed, the piezo controller off, then the bench handed to `microscope-20260924-1` |
 | **the day's findings are in the store**: 62 entries, 24 of them self-reports citing today's runs, `-4`'s twelve tweezers entries, and both piezo ranges (the controller's 0 to 600 µm and the person's −100 to 600 µm) naming each other. No observable value cites a preparatory run. Published at `kbv-a1bb4a5acf25`, pushed at `d2162d9` | done |
 | `librarian_agent/tasks/037` is untracked | `manager-librarian-20260924-1`'s to commit |
 | `manager-librarian-20260924-1` was opened in `librarian_agent/`, where it cannot write its own tasks or settings | the person: reopen it at the repository root under that name (its row is `ff8e673`) |
@@ -49,8 +57,8 @@ older.** Read it as history.
 
 **The bench rule governs everything live**: a seat opens a device only
 after the person says, in that seat's own window, that the bench is its
-(`plan.md` 6.2.1). **The piezo controller was left powered on.** Card 038's
-five-minute run needs it off.
+(`plan.md` 6.2.1). **Read every device's state at the bench before
+trusting a note about it**, this one included.
 
 **The hold is lifted.** This file replaces `000-hold-until-the-librarian-
 serves.md`, which told you to start nothing. Its premise was the A/B, and
