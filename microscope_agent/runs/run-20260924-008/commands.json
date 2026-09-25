@@ -1,0 +1,194 @@
+[
+  {
+    "from": "card-036:b1-process-check",
+    "device": null,
+    "action": "process_check",
+    "settings": null,
+    "note": "nis_ar.exe must not be running"
+  },
+  {
+    "from": "card-036:b1-load",
+    "device": "Core",
+    "action": "load_configuration",
+    "settings": {
+      "path": "D:\\soft-matter-agents\\microscope_agent\\runs\\run-20260924-008\\dualcam_noDMD_nolaser_nostartup.cfg",
+      "sha256": "fad5873de9f994c123090ee56feecb1a33c5bb77f31f3afed1eec7522d1c4f89"
+    },
+    "note": "then AutoShutter 0 and read back, as load_configuration always does"
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "LightPath",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "CSUW1-Hub",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "CSUW1-Shutter",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "CSUW1-Bright",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "CSUW1-Port",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "CSUW1-Dichroic",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "CSUW1-Filter_Red",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "CSUW1-Filter_Blue",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "FilterTurret1",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "Turret1Shutter",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "FilterTurret2",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "Turret2Shutter",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "Nosepiece",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "IntermediateMagnification",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "DiaLamp",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "Aura",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-read",
+    "device": "LightEngine",
+    "action": "get_all_properties",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-state",
+    "device": "LightPath",
+    "action": "get_state_and_labels",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-state",
+    "device": "CSUW1-Shutter",
+    "action": "get_state_and_labels",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-state",
+    "device": "CSUW1-Bright",
+    "action": "get_state_and_labels",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-state",
+    "device": "CSUW1-Port",
+    "action": "get_state_and_labels",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-state",
+    "device": "CSUW1-Dichroic",
+    "action": "get_state_and_labels",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-state",
+    "device": "CSUW1-Filter_Red",
+    "action": "get_state_and_labels",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-state",
+    "device": "CSUW1-Filter_Blue",
+    "action": "get_state_and_labels",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-state",
+    "device": "FilterTurret1",
+    "action": "get_state_and_labels",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-state",
+    "device": "FilterTurret2",
+    "action": "get_state_and_labels",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-state",
+    "device": "Nosepiece",
+    "action": "get_state_and_labels",
+    "settings": null
+  },
+  {
+    "from": "card-036:b1-state",
+    "device": "IntermediateMagnification",
+    "action": "get_state_and_labels",
+    "settings": null
+  },
+  {
+    "from": "card-036:b2-eyepiece-map",
+    "device": "LightPath",
+    "action": "get_state_per_answer",
+    "settings": null,
+    "note": "the person moves the light path by hand; this only reads it"
+  }
+]
