@@ -121,7 +121,12 @@ current text, is the wrong moment:
   ask computes `well_residence_time` as the mean completed dwell, while
   `observables.json` registers the renewal form. **The registered form
   binds.** The microscope reports it as the observable, and the other only
-  as a secondary figure. The simulation and bridge managers are told
+  as a secondary figure. **Fixed on the simulation side at `d42315d`**:
+  `double_well.estimate` now uses the renewal form, keeping the dwell mean as
+  `residence_*_completed_mean`. **But the delivered r1 card is pinned and
+  unchanged, so its residence figures are the dwell mean and are NOT the
+  comparison value.** The re-prediction at the microscope's calibrated values
+  is
 
 **Worth doing first thing: install the hooks** (`git config core.hooksPath
 contracts/hooks`) while someone watches the first commits. A day of
