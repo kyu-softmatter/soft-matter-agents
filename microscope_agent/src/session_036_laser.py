@@ -205,6 +205,10 @@ def pinhole_ratio(diff, crop: int = 400) -> tuple[float, float]:
 
 
 class Run:
+    NO_PLAN = NO_PLAN_BECAUSE
+    NOT_DISPATCHED_NOTE = NOT_DISPATCHED
+    BACKEND_NAME = "micromanager+lunf"
+
     def __init__(self, run_id: str, approved_by: str, sha: str):
         self.run_id, self.approved_by, self.sha = run_id, approved_by, sha
         self.dir = AGENT / "runs" / run_id
@@ -277,9 +281,12 @@ class Run:
         if self.mm is not None:
             try:
                 core = self.mm._core()
-                readings = {"CSUW1-Shutter": core.getProperty("CSUW1-Shutter", "State"),
-                            "LightPath": int(core.getState("LightPath"))}
-                if str(readings["CSUW1-Shutter"]).lower() == "closed":
+                loaded = set(core.getLoadedDevices())
+                if "CSUW1-Shutter" in loaded:
+                    readings["CSUW1-Shutter"] = core.getProperty("CSUW1-Shutter", "State")
+                if "LightPath" in loaded:
+                    readings["LightPath"] = int(core.getState("LightPath"))
+                if str(readings.get("CSUW1-Shutter", "")).lower() == "closed":
                     barrier = "the confocal unit's shutter reads Closed"
             except Exception as exc:                            # noqa: BLE001
                 readings = {"error": repr(exc)}
@@ -420,13 +427,13 @@ class Run:
         policy = json.loads((AGENT / "envelope" / "safety.json").read_text(
             encoding="utf-8")).get("policy_version")
         log = {"artifact": "run_log", "schema_version": "0.1", "run_id": self.run_id,
-               "plan_id": None, "revision": None, "no_plan_because": NO_PLAN_BECAUSE,
-               "not_dispatched": NOT_DISPATCHED,
+               "plan_id": None, "revision": None, "no_plan_because": self.NO_PLAN,
+               "not_dispatched": self.NOT_DISPATCHED_NOTE,
                "approved_commands": {"path": f"microscope_agent/runs/{self.run_id}/commands.json",
                                      "sha256": self.sha, "approved_by": self.approved_by},
                "approval": {"id": None, "kind": None}, "safety_policy_version": policy,
                "stop_criteria": [], "t0_wall": self.t0_wall, "t0_mono": self.t0,
-               "backend": "micromanager+lunf",
+               "backend": self.BACKEND_NAME,
                "time_base_note": ("software offsets order the log and nothing else. A value "
                                   "physics depends on comes from a trigger counter or a device "
                                   "timestamp (4.6.9)"),

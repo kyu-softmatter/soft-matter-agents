@@ -1,0 +1,107 @@
+[
+  {
+    "from": "card-036:b4-nis-present",
+    "device": null,
+    "action": "process_check",
+    "settings": null,
+    "note": "NIS must be running before the handoff"
+  },
+  {
+    "from": "card-036:b4-gate-preload",
+    "device": null,
+    "action": "gate",
+    "settings": null
+  },
+  {
+    "from": "card-036:b4-gate-kill",
+    "device": null,
+    "action": "gate",
+    "settings": null
+  },
+  {
+    "from": "card-036:b4-kill",
+    "device": "nis_ar.exe",
+    "action": "taskkill_force",
+    "settings": null,
+    "note": "then confirm no nis_ar.exe remains"
+  },
+  {
+    "from": "card-036:b4-lines-free",
+    "device": "laser_combiner",
+    "action": "lines_free_probe",
+    "settings": null,
+    "note": "reserve and release; no level"
+  },
+  {
+    "from": "card-036:b4-close-all",
+    "device": "laser_combiner",
+    "action": "enable",
+    "settings": {
+      "laser_combiner": {
+        "enable": []
+      }
+    },
+    "note": "the first write after the kill"
+  },
+  {
+    "from": "card-036:b4-load",
+    "device": "Core",
+    "action": "load_configuration",
+    "settings": {
+      "path": "D:\\soft-matter-agents\\microscope_agent\\runs\\run-20260924-010\\ti2_only.cfg",
+      "sha256": "58bb3e24356129b40e3cb208d21d2e559b6f3851d68805387a907d832b7d0b42"
+    },
+    "note": "the stand alone; no camera, confocal unit, light engine or DAQ device"
+  },
+  {
+    "from": "card-036:b4-read",
+    "device": null,
+    "action": "get_state",
+    "settings": null,
+    "note": "LightPath and DiaLamp"
+  },
+  {
+    "from": "card-036:b4-gate-light",
+    "device": null,
+    "action": "gate",
+    "settings": null
+  },
+  {
+    "from": "card-036:b4-blink-on",
+    "device": "laser_combiner",
+    "action": "enable",
+    "settings": {
+      "laser_combiner": {
+        "enable": [
+          "561"
+        ]
+      }
+    },
+    "note": "5 times, each through lunf.apply with every gate and a light-path read"
+  },
+  {
+    "from": "card-036:b4-blink-off",
+    "device": "laser_combiner",
+    "action": "enable",
+    "settings": {
+      "laser_combiner": {
+        "enable": []
+      }
+    },
+    "note": "after each on, 1 s later"
+  },
+  {
+    "from": "card-036:b4-gate-seen",
+    "device": null,
+    "action": "gate",
+    "settings": null,
+    "note": "the person says what the card showed"
+  },
+  {
+    "from": "card-036:b4-abort",
+    "device": "laser_combiner",
+    "action": "abort",
+    "settings": null,
+    "note": "on finish and on any failure"
+  }
+]
