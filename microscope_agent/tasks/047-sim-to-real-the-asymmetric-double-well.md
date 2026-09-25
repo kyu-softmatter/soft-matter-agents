@@ -101,6 +101,53 @@ For the microscope side, as context:
   order-of-magnitude scalars plus prose, because no schema slot holds a
   requested range yet
 
+## Today's protocol, 2026-09-25 (the person's words, relayed by architecture)
+
+*"today we are going to trap one particle and make two trap to observe the
+particle position data in time depending on the potential well depth. we can
+start with same trap strengths in Tweeze300 software for both traps. then
+decrease one trap's strength sequentially."* The particle is the Abvigen
+5 µm bead, excited green, emitting red. **Relayed, so the seat that takes
+the round logs the person's own words at hand-over.**
+
+**Where the round stands** (~10:20 PDT): the simulation's ask is committed
+(`sim-20260923-101`, `735a1a0`) and **not yet delivered**. There is no thread
+in `bridge/threads/` and nothing in `inbox/`. The taking card waits on the
+delivery.
+
+**How the protocol meets the ask.** From the ask's own notes, every number
+**simulated or assumed (E5), targets and not predictions**:
+
+1. **equal traps first**, at 0.1 to 1 pN/µm. **Before any trap is weakened,
+   tune the separation** from the projected position histogram until there
+   are two peaks with a 1 to 4 kT barrier. Start near 2.1 trap widths
+   (assumed `w` = 1 µm, so about 2.1 µm); about 0.5 kT per 10 nm at 1 pN/µm.
+   So the run starts with a loop: a short record, its histogram, and the
+   person nudging the separation
+2. **the weakened trap is `trap_2`**, by the shared naming. The steps must be
+   small: the tolerance is a few per cent at 1 pN/µm and about 40% at
+   0.1 pN/µm, and **a strength ratio of 0.5 or less gives no hops at any
+   separation**. The soft end is what makes a sequential decrease workable.
+   The asymmetric target is `trap_2`'s well holding about 1/3 of the time
+   (1 kT)
+3. **at least 10 minutes per setting**, at 10 to 50 ms frames, with the
+   exposure stated. About an hour at the asymmetric point to tell 1 kT from
+   equal
+4. **returned per trap**: calibrated stiffness and width, the separation as
+   set, the in-situ diffusivity from the same record, and the temperature if
+   read
+
+**Two options architecture is putting to the person, not decided here:**
+- **strengths changed by the person's hand** in the Tweez300 GUI and stated
+  at each step is the cleanest record, since the tweezers report nothing
+  back. **Strengths sent over TCP are motion**, and must sit inside the
+  approved plan
+- yesterday's runs bound dimming at a few per cent per 5 minutes at the low
+  lamp setting, so **for hour-long records, transmitted light may track the
+  bead better than fluorescence**
+
+Disk: 1.6 TB free on D:.
+
 ## The person's bench procedure for 2026-09-25
 
 Relayed from architecture, the person's own description. The task still
