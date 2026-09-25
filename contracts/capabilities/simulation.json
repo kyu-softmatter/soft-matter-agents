@@ -202,6 +202,36 @@
         "kind": "constitutive",
         "why": "Temperature enters as a parameter of the noise amplitude and no velocity is represented, so there is no kinetic energy and nothing to thermostat. Same ground as bd_overdamped."
       }
+    },
+    {
+      "config": "bd_overdamped_gaussian_double_well_2d",
+      "label": "one overdamped particle, no pair interaction, in fluid at rest, in two optical traps modelled as two Gaussian wells that ADD: U(r) = -eps_1 exp(-|r-r_1|^2 / 2 w_1^2) - eps_2 exp(-|r-r_2|^2 / 2 w_2^2). Each trap is exactly the person's 0.5*k_i*dr^2 at its centre, with k_i = eps_i / w_i^2, and fades smoothly to zero in the far field, which is where the barrier between the traps comes from. The model is the person's decision (plan.md 11-23, 2026-09-24), confirmed to this seat in its own window the same evening against the alternative of a parabola cut off sharply at zero; it replaces sim-20260923-101's draft min(U1, U2). Each trap takes TWO numbers: its stiffness, which the experiment calibrates trap by trap after the traps are set, and its width or depth, which sets the barrier and with it the transition rate -- a plan states both in SI, and never the reduced units an engine runs in. UNDRIVEN: A7 abstains.",
+      "dimensions": {
+        "n": 2,
+        "why": "Two, in the focal plane: the line joining the traps and the direction across it. NOT ONE, because the transverse direction does not separate from the joining line for a sum of Gaussians, and dropping it was measured, not supposed: on 2026-09-24 this seat integrated the same potential (eps 6 and 5 kT, equal widths, separation 3 widths, 4000 walkers) in one and two dimensions, and the one-dimensional model overstated the transition rate by about 40 per cent (0.074 against 0.045 per w^2/D) and the deeper well's occupancy by 13 per cent (0.69 against 0.60) -- above what one experimental record resolves. The deeper well confines the particle across the joining line more tightly than the saddle does, which a line cannot count. A HOOMD 7.2 CPU run of the same point in two dimensions returned 0.599 occupancy and 0.042 per w^2/D; the 7 per cent gap in the rate against the numpy reference is not yet explained. The axis along the beam is not modelled: a real trap is weaker there, and the in-plane observables are unaffected only as long as nothing reads that axis. All four observables are read from the trajectory projected onto the joining line, the same projection the experiment applies."
+      },
+      "optical_path": null,
+      "devices": [
+        "hoomd_backend"
+      ],
+      "produces": [
+        "well_occupancy",
+        "well_residence_time",
+        "interwell_transition_rate",
+        "interwell_barrier_height"
+      ],
+      "output_independent_of_input": {
+        "independent": true,
+        "why": "TRUE for the transition rate and the residence times: the escape rate over a saddle of a few kT in a two-dimensional sum of Gaussians has no closed form, and the asymptotic approximations are not safe there -- the 40 per cent one- against two-dimensional gap above is of the size they miss. The occupancy and the barrier height ARE fixed by the inputs in the long-record limit (Boltzmann weights and the declared saddle), so for those two a run establishes only what a finite record returns -- the scatter one record of the experiment's length and sampling interval shows, and the bias milestoning and histogram inversion carry -- and a card must not present either as something the run discovered about the potential. Simulated positions are instantaneous while a camera frame averages over its exposure: a plan compared against the microscope states the exposure or models the averaging."
+      },
+      "executed_by": {
+        "module": "double_well_hoomd_backend",
+        "why": "NOT YET WRITTEN, declared ahead of its module so the plan can select this configuration; the operator refuses a configuration whose module it cannot import rather than falling back. The engine form is established: HOOMD 7.2 CPU in two dimensions with the wells as an md.force.Custom, many walkers packed in widely spaced cells so one run is an ensemble of independent single-particle records, positions read back SORTED BY TAG (the CPU snapshot is not in tag order, which on 2026-09-24 made a 1000-bead run read widths 200 times too large). Replace this sentence with the run record that confirms it, as bd_overdamped_trapped did."
+      },
+      "temperature_realisation": {
+        "kind": "constitutive",
+        "why": "Temperature enters as a parameter of the noise amplitude and no velocity is represented, so there is no kinetic energy and nothing to thermostat. Same ground as bd_overdamped."
+      }
     }
   ]
 }
