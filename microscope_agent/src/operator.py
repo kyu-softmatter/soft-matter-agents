@@ -765,6 +765,142 @@ def check_operation_points(plan: dict, commands: list[orch.Command], safety: dic
     return out
 
 
+# --------------------------------------------------------------------------- #
+# trap steps (card 049 item 3): the tweezers, blind, from a plan's own fields
+# --------------------------------------------------------------------------- #
+
+#: One Tweez300 text command per step kind. Positions are ABSOLUTE only --
+#: TRAP_POSITION, never TRAP_POSITION_REL -- because a relative command re-sent
+#: after a lost reply moves the trap twice, and an absolute target can be
+#: checked against the envelope before anything is sent.
+TRAP_STEP_VERBS = {"create": "SIMPLE_TRAP_CREATE", "position": "TRAP_POSITION",
+                   "strength": "TRAP_STRENGTH", "on": "TRAP_ON", "off": "TRAP_OFF",
+                   "delete": "TRAP_DELETE"}
+
+
+def derive_trap_steps(plan: dict) -> list[orch.Command]:
+    """trap_steps.steps -> one command per step, each carrying the text lines it sends.
+
+    `create` is three lines: create, position, strength -- a new trap starts at
+    strength 0 (tweez300_new_trap_starts_at_strength_zero), so its position and
+    strength are set before anything turns it on. `hold_for_person` derives no
+    command: the tweezers are blind, so what the hold waits for can only be the
+    person's statement, and the operator stops there rather than sending on.
+    """
+    ts = plan["trap_steps"]
+    device = ts.get("device", "")
+    actions = {a.get("id"): a for a in plan.get("actions", []) or []}
+    commands: list[orch.Command] = []
+    for step in ts.get("steps", []) or []:
+        sid, kind = step.get("id"), step.get("kind")
+        if kind == "hold_for_person":
+            continue
+        action = actions.get(sid)
+        if action is None or action.get("device") != device:
+            raise Refusal(f"trap_steps.steps[{sid}] has no action of the same id on {device!r}; "
+                          "the step and the action that approves it must name each other")
+        if action.get("reversible") is not True:
+            raise Refusal(f"trap_steps.steps[{sid}] is not marked reversible")
+        trap = step.get("trap")
+        if not trap:
+            raise Refusal(f"trap_steps.steps[{sid}] names no trap")
+        if kind == "create":
+            lines = [["SIMPLE_TRAP_CREATE", trap],
+                     ["TRAP_POSITION", trap, float(step["x_um"]), float(step["y_um"])],
+                     ["TRAP_STRENGTH", trap, float(step["strength"])]]
+        elif kind == "position":
+            lines = [["TRAP_POSITION", trap, float(step["x_um"]), float(step["y_um"])]]
+        elif kind == "strength":
+            lines = [["TRAP_STRENGTH", trap, float(step["strength"])]]
+        elif kind in ("on", "off", "delete"):
+            lines = [[TRAP_STEP_VERBS[kind], trap]]
+        else:
+            raise Refusal(f"trap_steps.steps[{sid}] has kind {kind!r}, which is not a trap step")
+        commands.append(orch.Command(
+            channel=device, action=f"trap_{kind}",
+            params={"commands": lines, "step": {"id": sid, "kind": kind, "trap": trap,
+                                                "from": f"trap_steps.steps[{sid}]"}},
+            from_field=f"trap_steps.steps[{sid}]",
+            # A trap switched on puts light on the sample, and one switched off
+            # takes it away: the power rule orders them.
+            raises_power=kind == "on", lowers_power=kind in ("off", "delete"),
+            tier=int(action.get("tier", 1)),
+        ))
+    return commands
+
+
+def check_trap_steps(plan: dict, commands: list[orch.Command], safety: dict,
+                     objective_in_place: str | None) -> list[dict]:
+    """Every derived position, strength and step against the envelope, before the first is sent.
+
+    The person's names (envelope policy 8): `tweezers_trap_position_<objective>_{min,max}`,
+    one range for x and y alike and for every trap, with the objective in the
+    NAME -- the GUI's pixel-to-um calibration belongs to one objective and
+    nothing reads it (objective_change_invalidates_trap_calibration), so a
+    range is looked up only for the objective in place and a missing one
+    refuses; `tweezers_trap_strength_{min,max}`; `tweezers_trap_step_max`.
+    The objective in place is the person's hand-over statement. A position
+    step is measured from the same trap's previous ABSOLUTE position in the
+    plan; a trap whose first position has no known start is refused, never
+    assumed to start at the centre.
+    """
+    limits: dict[str, dict] = {}
+    for target in safety.get("targets") or []:
+        limits.update({k: v for k, v in (target.get("limits") or {}).items()
+                       if k.startswith("tweezers_trap_")})
+    planned = (plan.get("trap_steps") or {}).get("objective")
+    if not objective_in_place:
+        raise Refusal("no objective stated at hand-over; a trap position means nothing in um "
+                      "until the person has said which objective is in place")
+    if planned != objective_in_place:
+        raise Refusal(f"the plan is written for {planned!r} and the person states "
+                      f"{objective_in_place!r} is in place")
+
+    def need(name: str, unit: str) -> float:
+        lim = limits.get(name)
+        if not lim or lim.get("value") is None or lim.get("unit") != unit:
+            raise Refusal(f"envelope/safety.json has no {name} in {unit}; a missing limit refuses")
+        return float(lim["value"])
+
+    out, bad = [], []
+    last: dict[str, tuple[float, float]] = {}
+    for command in commands:
+        step = command.params["step"]
+        for line in command.params["commands"]:
+            verb = line[0]
+            if verb == "TRAP_POSITION":
+                trap, x, y = line[1], float(line[2]), float(line[3])
+                lo = need(f"tweezers_trap_position_{objective_in_place}_min", "um")
+                hi = need(f"tweezers_trap_position_{objective_in_place}_max", "um")
+                for axis, v in (("x", x), ("y", y)):
+                    if not lo <= v <= hi:
+                        bad.append(f"{command.from_field}: {trap} {axis} = {v} um outside "
+                                   f"{lo} to {hi} um at {objective_in_place}")
+                if step["kind"] == "position":
+                    if trap not in last:
+                        raise Refusal(f"{command.from_field}: {trap} is moved before the plan "
+                                      "has placed it, so the step's size is unknown")
+                    step_max = need("tweezers_trap_step_max", "um")
+                    px, py = last[trap]
+                    d = math.hypot(x - px, y - py)
+                    if d > step_max:
+                        bad.append(f"{command.from_field}: {trap} moves {d:.3f} um in one step, "
+                                   f"more than {step_max} um")
+                last[trap] = (x, y)
+                out.append({"plan_field": command.from_field, "trap": trap, "x_um": x, "y_um": y,
+                            "objective": objective_in_place, "range_um": [lo, hi]})
+            elif verb == "TRAP_STRENGTH":
+                s = float(line[2])
+                lo = need("tweezers_trap_strength_min", "1")
+                hi = need("tweezers_trap_strength_max", "1")
+                if not lo <= s <= hi:
+                    bad.append(f"{command.from_field}: {line[1]} strength {s} outside {lo} to {hi}")
+                out.append({"plan_field": command.from_field, "trap": line[1], "strength": s})
+    if bad:
+        raise Refusal("trap steps outside the envelope: " + "; ".join(bad))
+    return out
+
+
 def derive_commands(plan: dict) -> list[orch.Command]:
     """plan.json -> commands, mechanically.
 
@@ -774,6 +910,8 @@ def derive_commands(plan: dict) -> list[orch.Command]:
     """
     if "operation" in plan:
         return derive_operation(plan)
+    if "trap_steps" in plan:
+        return derive_trap_steps(plan)
     numbers = {n["name"]: n for n in plan.get("numbers", [])}
     commands: list[orch.Command] = []
 
@@ -930,7 +1068,9 @@ def compile_monitors(plan: dict) -> list[Monitor]:
 # --------------------------------------------------------------------------- #
 
 
-def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None) -> dict:
+def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
+        handover: dict | None = None, ask_person=None,
+        tweezers_link: dict | None = None) -> dict:
     """O1 preflight -> O2 dispatch -> O3 watch -> O4 record.
 
     Returns the run record. Writes nothing until the gate has been passed,
@@ -944,6 +1084,10 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None) -> di
     safety = load_safety()                       # refuses when absent
     decision = authorise(plan)
     tier = highest_tier(plan)
+    if "trap_steps" in plan and not decision.permitted:
+        # Trap motion is motion, whatever tier its actions carry (check 85).
+        raise Refusal(f"trap-step plan {plan.get('id')} is not approved: "
+                      + "; ".join(decision.reasons))
     if "operation" in plan and not decision.permitted:
         # Condition 3 of an operation plan: each move approved by the person,
         # whatever tier its actions carry. A Tier 1 move of a stage is still a
@@ -960,6 +1104,16 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None) -> di
     commands = derive_commands(plan)
 
     o = orch.Orchestrator(backend=backend)
+    o.handover = dict(handover or {})
+    if o.handover:
+        o.record(event="handover", **o.handover)
+    if "trap_steps" in plan and backend != "mock":
+        # The link's timing numbers come from the caller, each with its source
+        # (python_tcp.Link has no defaults), so the run log says where they came from.
+        if not tweezers_link:
+            raise Refusal("a trap-step plan on the instrument needs tweezers_link: host, port and "
+                          "every timing number with numbers_from; python_tcp holds none of them")
+        o.module_for(orch.TRAP_EXEMPT_DEVICE).connect(**tweezers_link)
     record: dict = {
         # The collector picks up a json file only when it carries `card` or
         # `artifact`, so a run log without this pair is not rejected -- it is
@@ -1006,7 +1160,10 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None) -> di
     o.check_software_motion_for(plan, commands)
     o.preflight(sorted({c.channel for c in commands}))
     o.snapshot("before")
-    dispatched = o.dispatch(commands, plan=plan)
+    if "trap_steps" in plan:
+        dispatched = _run_trap_steps(o, plan, commands, ask_person)
+    else:
+        dispatched = o.dispatch(commands, plan=plan)
 
     # A COMMAND THAT DID NOT HAPPEN STOPS THE PLAN. dispatch's return value
     # was read by nobody, so a refusal inside it left no mark on the run's
@@ -1037,6 +1194,47 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None) -> di
     record["events"] = o.log
     record["finished_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     return record
+
+
+def _run_trap_steps(o, plan: dict, commands: list, ask_person) -> list[dict]:
+    """Trap steps one at a time, in the PLAN's order, stopping at every hold.
+
+    Not one dispatch of the whole list: dispatch orders a batch by the power
+    rule, which would move a trap's `off` ahead of the positions before it.
+    A plan's step order is the plan's. Each step is its own dispatch, so the
+    gate re-checks the approval and every derived value before each one.
+
+    A step the GUI did not accept -- a rejection, a silence, or any line of a
+    create that did not go -- stops the plan: the tweezers are blind, and what
+    happens after a step that did not happen is unknown. A hold waits for the
+    person's answer; no answer, or an answer that is not a plain yes, stops.
+    """
+    by_field = {c.from_field: c for c in commands}
+    outcomes: list[dict] = []
+    for step in plan["trap_steps"].get("steps", []) or []:
+        field_ = f"trap_steps.steps[{step.get('id')}]"
+        if step.get("kind") == "hold_for_person":
+            statement = step.get("statement", "")
+            answer = ask_person(statement) if ask_person else None
+            o.record(event="hold_for_person", plan_field=field_, statement=statement,
+                     answer=answer)
+            if not answer or str(answer).strip().lower() not in ("yes", "y"):
+                outcomes.append({"rank": None, "results": {"hold": [{
+                    "command": field_, "ok": False,
+                    "error": f"the person did not confirm: {statement!r} -> {answer!r}"}]}})
+                break
+            continue
+        batch = o.dispatch([by_field[field_]], plan=plan)
+        outcomes.extend(batch)
+        rows = [r for b in batch for rs in b["results"].values() for r in rs]
+        not_done = [r for r in rows if r.get("ok") is False or (
+            isinstance(r.get("returned"), dict) and r["returned"].get("complete") is False)]
+        if not_done:
+            for r in not_done:
+                r["ok"] = False
+                r.setdefault("error", f"{field_} was not accepted in full by the tweezers GUI")
+            break
+    return outcomes
 
 
 def write_run(record: dict, deviations: list[dict] | None = None) -> Path:

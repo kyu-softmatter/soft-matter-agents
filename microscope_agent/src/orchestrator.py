@@ -299,6 +299,33 @@ def operation_exemptions(plan: dict | None, commands: list["Command"]) -> dict[i
     return out
 
 
+#: Card 049 item 2: the second exemption, for an approved plan's trap steps.
+TRAP_EXEMPT_DEVICE = "optical_tweezers"
+
+
+def trap_step_exemptions(plan: dict | None, commands: list["Command"]) -> dict[int, str]:
+    """Which commands are an approved plan's trap steps, from the PLAN's structure.
+
+    The same shape as operation_exemptions: exempt means the plan has
+    `trap_steps` on optical_tweezers, the command's `from` is
+    `trap_steps.steps[<id>]` of a step in that plan, and the command is on that
+    device. Nothing the command says about itself enters it.
+    """
+    ts = (plan or {}).get("trap_steps")
+    if not isinstance(ts, dict) or ts.get("device") != TRAP_EXEMPT_DEVICE:
+        return {}
+    steps = {s.get("id"): i for i, s in enumerate(ts.get("steps") or []) if s.get("id")}
+    out = {}
+    for n, command in enumerate(commands):
+        field_ = command.from_field
+        if not (field_.startswith("trap_steps.steps[") and field_.endswith("]")):
+            continue
+        sid = field_[len("trap_steps.steps["):-1]
+        if sid in steps and command.channel == TRAP_EXEMPT_DEVICE:
+            out[n] = f"trap_steps.steps[{steps[sid]}]"
+    return out
+
+
 def from_operation_move(command: "Command") -> bool:
     return command.from_field.startswith("operation.moves[")
 
@@ -352,6 +379,10 @@ class Orchestrator:
         self._completed: set[str] = set()
         self._aborted = threading.Event()
         self._modules: dict[str, object] = {}
+        # The person's hand-over statements, as answered in the seat's window.
+        # The trap-step gate reads `objective` from here and nowhere else: the
+        # tweezers' calibration belongs to one objective and nothing reads it.
+        self.handover: dict = {}
 
     # -- logging ----------------------------------------------------------- #
 
@@ -843,7 +874,54 @@ class Orchestrator:
                         channel=commands[n].channel, action=commands[n].action,
                         reason=("card 040 item 4: an operation move of piezo_stage on x or y; the "
                                 "derived-point envelope check binds it instead of the allow-list"))
+        traps = trap_step_exemptions(plan, commands)
+        if traps:
+            traps = self._trap_gate(plan, commands, traps)
+        for n, plan_field in sorted(traps.items()):
+            self.record(event="software_motion_exempt", plan_field=plan_field,
+                        channel=commands[n].channel, action=commands[n].action,
+                        verification="none",
+                        reason=("card 049 item 2: a trap step of an approved plan on "
+                                "optical_tweezers; the derived position, strength and step checks "
+                                "against the envelope bind it instead of the allow-list. The "
+                                "channel is blind: nothing it returns is a verification"))
+        exempt = {**exempt, **traps}
         self.check_software_motion([c for n, c in enumerate(commands) if n not in exempt])
+
+    def _trap_gate(self, plan: dict, commands: list[Command],
+                   candidates: dict[int, str]) -> dict[int, str]:
+        """The trap-step exemption's conditions, checked in the call that grants it.
+
+        Built exactly like _operation_gate: (a) a plan_approval covers this
+        revision and hash, or nothing is exempt; (b) each candidate is exactly
+        what the approved plan derives for that step, so a hand-built command
+        cannot ride it; (c) every derived position, strength and step is
+        checked against the envelope, a missing limit or a limit for another
+        objective refusing the whole plan here.
+        """
+        op = _operator()
+        decision = op.authorise(plan)
+        if not decision.permitted:
+            self.record(event="software_motion_exemption_refused",
+                        reason="no approval covers this plan revision: " + "; ".join(decision.reasons))
+            return {}
+        derived = {c.from_field: c for c in op.derive_trap_steps(plan)}
+        kept = {}
+        for n, plan_field in candidates.items():
+            c = commands[n]
+            d = derived.get(c.from_field)
+            if d is None or d.params != c.params or d.channel != c.channel or d.action != c.action:
+                self.record(event="software_motion_exemption_refused", plan_field=plan_field,
+                            reason="the command is not what the approved plan derives for this step")
+                continue
+            kept[n] = plan_field
+        if kept:
+            # Every derived step, not only the kept ones: a step's size is
+            # measured from the same trap's previous position in the plan.
+            for comparison in op.check_trap_steps(plan, list(derived.values()), op.load_safety(),
+                                                  self.handover.get("objective")):
+                self.record(event="trap_step_checked", **comparison)
+        return kept
 
     def _operation_gate(self, plan: dict, commands: list[Command],
                         candidates: dict[int, str]) -> dict[int, str]:
