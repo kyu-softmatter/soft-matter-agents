@@ -202,8 +202,8 @@
       "note": "Bears on tracer_brightness (Hz), which needs a conversion to photons this seat did not make. Waits for the plan that cites this run."
     },
     {
-      "id": "photostability_run_002_no_measurable_fade",
-      "fact": "Under continuous Aura GREEN at 100 per-mille (20x, 100 ms frames) for 60 s, total particle fluorescence (sum over the whole frame of pixels more than 300 ADU above the frame median, dark subtracted) stayed within 0.5% of the first frame, ending at 99.6%. No bleaching was resolved over one minute at this setting. The particles moved: by the last frame only 64% of the first frame's bright pixels were still bright.",
+      "id": "photostability_run_002_within_noise",
+      "fact": "Under continuous Aura GREEN at 100 per-mille (20x, 100 ms frames) for 60 s, total particle fluorescence (sum over the whole frame of pixels more than 300 ADU above the frame median, dark subtracted) stayed between 99.2% and 101.0% of the first frame, ending at 99.2%. About 1% over the minute at most, at the edge of the frame-to-frame scatter. The particles moved: by the last frame only 64% of the first frame's bright pixels were still bright.",
       "kind": "observable_value",
       "how": "Computed by this seat after the run from the saved series frames; not in the run log. A whole-frame total is insensitive to where particles are.",
       "source": {
@@ -321,17 +321,17 @@
       "for_store": false
     },
     {
-      "id": "photostability_run_006_no_measurable_fade",
+      "id": "photostability_run_006_slow_decline",
       "kind": "observable_value",
       "for_store": false,
-      "fact": "Under continuous Aura GREEN at 100 per-mille for 300 s (20x, one 100 ms frame per second, 300 frames, fresh field), total particle fluorescence (sum over the whole frame of pixels more than 300 ADU above the frame median, dark subtracted) ended at 100.7% of the first frame and stayed between 100% and about 103.5% throughout. No bleaching was resolved over five minutes at this setting; a fade of more than about 1% would have shown. The median background moved from 81 to 82 ADU.",
-      "how": "Computed by this seat after the run from the saved frames; not in the run log. Fitting one exponential or two to a flat curve returns rates near zero and meaningless amplitudes, so no rate is given.",
+      "fact": "Under continuous Aura GREEN at 100 per-mille for 300 s (20x, one 100 ms frame per second, 300 frames, fresh field), total particle fluorescence (sum over the whole frame of pixels more than 300 ADU above the frame median, dark subtracted) rose 3.5% within the first 5 s, most likely the light engine's output settling after State=1, then declined slowly to 97.4% of that settled level by 299 s: about 2.6% in 295 s, roughly 9e-5 per second if linear. Particles also drifted a median 17 px and some crossed the frame edge, and focus was not controlled, so the decline is an upper bound on bleaching, not a bleaching rate. Median background 81 to 82 ADU.",
+      "how": "Computed by this seat after the run from the saved frames, sampled every 5 s; not in the run log. A whole-frame total is insensitive to where particles are within the field.",
       "source": {
         "type": "run_event",
         "run_id": "run-20260924-006",
         "event_index": 42
       },
-      "note": "bleaching_rate: an upper bound, not a value -- well under 1% per 300 s, i.e. below about 3e-5 per second, at this per-mille setting and not per dose. Waits for the plan that cites this run."
+      "note": "CORRECTED the same evening. A first version said the total stayed flat and gave an upper bound of well under 1% per 300 s; that compared the last frame with frame 0, which sits below the settled level. bleaching_rate, per second at this per-mille setting and not per dose. Waits for the plan that cites this run."
     },
     {
       "id": "particles_move_during_series_run_006",
