@@ -30,6 +30,9 @@ from pathlib import Path                                         # noqa: E402
 
 CONFIG = Path(r"C:\agentic_microscope\config\micromanager\single_cam_red_noDMD_nocom10.cfg")
 CROP = 600          # pixels on a side at the sensor centre: 39 um at 100x, 1x (0.065 um/px, E2)
+for _a in sys.argv:
+    if _a.startswith("--crop="):
+        CROP = int(_a.split("=", 1)[1])
 EXPOSURE_MS = 30.0  # the person's 30 ms, this morning and again for the Aura view
 LAMP = {"State": 1, "Intensity": 2100}
 #: `--aura`: the person's choice of 2026-09-25 ~13:00, "Green, 5%, 30 ms". The
@@ -111,6 +114,9 @@ def main(out_dir: str) -> int:
             photo["img"] = tk.PhotoImage(data=data, format="PPM")
             canvas.itemconfigure(item, image=photo["img"])
             state["frames"] += 1
+            if state["frames"] in (1, 30):
+                # Two raw frames kept, so the seat can look at what the person sees.
+                np.save(out / f"frame_{state['frames']:03d}.npy", img.astype(np.uint16))
         root.after(30, tick)
 
     try:
