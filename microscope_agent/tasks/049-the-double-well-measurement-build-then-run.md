@@ -3,9 +3,41 @@
 Written by `manager-microscope-20260924-1`. You read this; you do not edit it
 (§6.2-2).
 
-## REVISED, 2026-09-25 ~10:40: you do NOT drive hardware today
+## REVISED AGAIN, 2026-09-25 ~12:00: you DO drive the tweezers, once five conditions hold
 
-**Read this section first. It overrides everything below it.**
+**Read this section first. It overrides the ~10:40 revision below it.**
+
+In your window the person asked who should send the tweezers commands, and
+chose **"Switch to me"** over "Architecture does it". **So phase 2 is
+restored for you**, and the ~10:40 withdrawal is superseded. You send
+**nothing** until all five of these hold, as you listed them:
+
+1. **architecture confirms it has stopped** and holds no open TCP link to the
+   Tweez300. Its bench process was stopped by the person at about 11:40,
+   having sent only a readiness probe
+2. **the person has written tweezers limits into `envelope/safety.json`**.
+   The slots landed at `b64d967`: `optical_tweezers_{x,y}_position_{min,max}`
+   in µm, each with a **required `objective`**; `optical_tweezers_strength_max`
+   (unit `"1"`, at most 1); `optical_tweezers_position_step_max` (µm). The
+   person's values are ±40 µm at 100x, strength up to 1, and a 1 µm step.
+   **Only the person writes them.** Your scaled table for other objectives is
+   your calculation, not a limit. **The wrapper refuses while the objective
+   in place is not the limit's named one**
+3. **the plan-derived exemption for `optical_tweezers` is built, tested with
+   each safeguard watched failing, and taken by this seat to architecture**
+   before live use (phase 1 item 2 below)
+4. **a plan the person approves**, through the dispatcher
+5. **the bench handed to you in your own window**, with the four hand-over
+   statements from card 047 logged first
+
+The analysis and record-committing work of the ~10:40 revision still
+stands. Architecture's stopped run's logs sit at
+`D:\soft-matter-agents-frames\run-20260925-001\`, for you to commit when
+there is a run worth the name. **Two separate particles**, which the person
+also asked for, is not the one-bead double well: whether it is a setup step
+or a new experiment is the person's to say, so ask before planning for it.
+
+## Superseded, ~10:40: you did NOT drive hardware then
 
 After this card was written, the person told architecture in its window:
 *"or you can operate tweez300. I can run micro-manager myself."* and then
