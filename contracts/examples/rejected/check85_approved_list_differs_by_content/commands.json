@@ -1,0 +1,16 @@
+[
+  {
+    "channel": "Aura",
+    "action": "set_property",
+    "params": {
+      "GREEN_Intensity": "50"
+    }
+  },
+  {
+    "channel": "Aura",
+    "action": "set_property",
+    "params": {
+      "GREEN_Intensity": "1000"
+    }
+  }
+]
