@@ -122,7 +122,8 @@ def load_safety() -> dict:
             "satisfied limit (2.1 rule 2, rule 7). A person writes this file after confirming "
             "the values on the instrument (10.3 rule 4)"
         )
-    return json.loads(path.read_text())
+    # utf-8-sig for the same reason as approvals below: the person writes this file.
+    return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def approvals_on_disk() -> list[dict]:
@@ -133,8 +134,12 @@ def approvals_on_disk() -> list[dict]:
         return out
     for path in sorted(folder.glob("*.json")):
         try:
-            card = json.loads(path.read_text())
-        except json.JSONDecodeError as exc:
+            # utf-8-sig, card 041 item 3: PowerShell 5.1's `Set-Content -Encoding
+            # utf8` writes a byte-order mark, and the person writes approvals from
+            # there. The mark is accepted and nothing else changes; a file that is
+            # malformed for any other reason is still refused below.
+            card = json.loads(path.read_text(encoding="utf-8-sig"))
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             raise Refusal(f"{path.name} is not readable JSON: {exc}. An unreadable approval is not an approval")
         card["__path"] = str(path.relative_to(REPO))
         out.append(card)
