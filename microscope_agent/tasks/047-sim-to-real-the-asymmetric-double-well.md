@@ -51,6 +51,26 @@ wants, 1 to 100, is the weak well deeper than a few kT at achievable powers?
 **A weak trap that cannot hold the bead gives a record with no hops**, which
 bounds a rate and does not measure one.
 
+## What is already known about the camera, and one estimate
+
+**The person's answers to `microscope-20260924-6`, 2026-09-24**, the
+person's word, not yet read off the GUI by serial:
+
+- **the Tweez300 opens the red-arm body**, the one Micro-Manager reads as
+  serial `A24M723015`. Confirm it by serial at the bench before relying on it
+- *"we always release the camera, and you cannot see anything on the
+  tweezer software"*: **the tweezers GUI records nothing, and it releases
+  the camera.** So frames come from Micro-Manager after the release, while
+  the tweezers keep trapping. **One camera, owned in turn**, and the first
+  run may need no second camera. Card 037's line 0b is answered by this
+
+**An estimate for the plan, NOT measured**, from the same seat: for a 5 µm
+bead, `eps ~ k w^2` with `w` near the bead radius gives wells **hundreds of
+kT deep at any holding stiffness**. If so, **hops need the barrier to be set
+by the trap separation and overlap, not by a 1:100 power ratio.** The
+feasibility measurement is what tests this. **The store holds no trap
+stiffness at all**, and that gap is what the calibration fills.
+
 ## The person's bench procedure for 2026-09-25
 
 Relayed from architecture, the person's own description. The task still
