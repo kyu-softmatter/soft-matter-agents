@@ -286,6 +286,18 @@
         "piezo_z_position_max": {
           "$ref": "#/$defs/piezo_position_ceiling",
           "$comment": "The high end of the piezo Z axis. See piezo_z_position_min."
+        },
+        "illumination_power_max_488": {
+          "$ref": "#/$defs/ceiling",
+          "$comment": "PEOPLE. The confocal combiner's 488 nm line, power at the sample plane, one ceiling per line: the person's answer on 2026-09-24 to which limit covers the confocal lines. Optional, so the file stays valid without it, and required at use: the confocal wrapper (card 036) enables no line without its own ceiling, and a line with none -- 405 nm today -- is refused. The measured objectives are named in the limit's note, and any other objective is uncovered and refused. A per-line name rather than the single illumination_power_max, because one number cannot bound three lines that differ."
+        },
+        "illumination_power_max_561": {
+          "$ref": "#/$defs/ceiling",
+          "$comment": "PEOPLE. The confocal combiner's 561 nm line, power at the sample plane, one ceiling per line: the person's answer on 2026-09-24 to which limit covers the confocal lines. Optional, so the file stays valid without it, and required at use: the confocal wrapper (card 036) enables no line without its own ceiling, and a line with none -- 405 nm today -- is refused. The measured objectives are named in the limit's note, and any other objective is uncovered and refused. A per-line name rather than the single illumination_power_max, because one number cannot bound three lines that differ."
+        },
+        "illumination_power_max_640": {
+          "$ref": "#/$defs/ceiling",
+          "$comment": "PEOPLE. The confocal combiner's 640 nm line, power at the sample plane, one ceiling per line: the person's answer on 2026-09-24 to which limit covers the confocal lines. Optional, so the file stays valid without it, and required at use: the confocal wrapper (card 036) enables no line without its own ceiling, and a line with none -- 405 nm today -- is refused. The measured objectives are named in the limit's note, and any other objective is uncovered and refused. A per-line name rather than the single illumination_power_max, because one number cannot bound three lines that differ."
         }
       },
       "required": [
