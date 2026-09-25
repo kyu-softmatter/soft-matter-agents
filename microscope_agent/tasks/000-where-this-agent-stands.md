@@ -26,6 +26,12 @@ older.** Read it as history.
   was not controlled. No decay model can be preferred on 2.6%. **For card
   034's design, drift, not bleaching, is the effect to bound.** Findings
   corrected at `ac20ee4`
+- **The repeat at another location is `-007`** (`51cc2eb`), analysed by the
+  `CLAUDE.md` method: a 3.6% decline over 299 s from the settled level, with
+  a median drift of 9.9 px. **More decline with less drift than `-006` makes
+  drift a poor explanation**, so a slow real fade of a few percent per 5 min
+  at 10% Aura green is likely. It is still an upper bound, with focus
+  uncontrolled, and it waits for card 034's plan, like `-006`
 - **A read-only piezo run** (`-004`) and **the first planned motion**: the
   person's approved sine on piezo X (`-005`, cards 035 and 040), through the
   dispatcher
