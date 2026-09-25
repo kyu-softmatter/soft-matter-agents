@@ -399,7 +399,8 @@ def trap_setup_words(R, rows) -> str:
 # Configurations whose report body is written in their own module (task 022: each
 # window adds its own configuration's parts). The module exposes PARTS with a
 # `build(R, notes) -> (body, ctx)` and a `title`.
-EXTERNAL_PARTS = {"bd_overdamped_trapped": "report_trap_rest"}
+EXTERNAL_PARTS = {"bd_overdamped_trapped": "report_trap_rest",
+                  "abp_free": "report_abp_free"}
 
 CONFIG_PARTS = {
     "bd_overdamped_trapped_uniform_flow": {
