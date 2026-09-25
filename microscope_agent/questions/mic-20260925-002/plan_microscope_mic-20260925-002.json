@@ -1,15 +1,26 @@
 {
   "card": "plan",
   "schema_version": "0.1",
-  "id": "plan-mic-20260925-002-r1",
+  "id": "plan-mic-20260925-002-r2",
   "qid": "mic-20260925-002",
   "thread": "solo-mic-20260925-002",
   "round": 0,
-  "revision": 1,
+  "revision": 2,
   "author": "microscope_agent",
-  "created_at": "2026-09-25T21:30:00Z",
+  "created_at": "2026-09-25T19:55:00Z",
   "status": "VALIDATED",
-  "numbers": [],
+  "numbers": [
+    {
+      "name": "nosepiece_position",
+      "value": 5,
+      "unit": "count",
+      "source": "operator_read:kyuhwan_20260925",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "at": "stand_ti2e",
+      "note": "The 100x oil objective, MRD71970, position 5 on a turret indexed from 0 (nosepiece_objective_assignment, E3). The person confirmed it at hand-over in this seat's window ('correct' to 'The objective: 100x oil'). SET BY THE PERSON'S HAND AND NEVER COMMANDED. Added in r2 because the clearance floor resolves from the objective in the path, and r1's run refused before its first command for want of it."
+    }
+  ],
   "degraded": [],
   "purpose": "verify",
   "intent": "confirm",
@@ -82,7 +93,8 @@
     "Strength 1.0, the person's choice, puts all of the dial's delivered power into one trap. The dial is the person's and nothing reads it. The store's only figure at 100x is a rough computed 1 W at 80 per cent on the dial, probably high; the person recalls noticing sample heating only above roughly 20 per cent.",
     "The GUI's pixel-to-um calibration is unreadable over TCP. Only (0, 0) is used, which the store records as the image centre.",
     "The plan ends with trap_1 ON and a bead held, which is the state the double-well measurement starts from. The abort path sends TRAP_OFF then LASER_OFF, and the person can switch the trap off in the GUI.",
-    "The lamp stays as architecture left it, DiaLamp State 1 at Intensity 2100; this plan does not command it."
+    "The lamp stays as architecture left it, DiaLamp State 1 at Intensity 2100; this plan does not command it.",
+    "r1 was approved and refused at run time before any command: it stated no nosepiece_position, so the clearance floor could not resolve. r2 adds it and changes nothing else."
   ],
   "trap_steps": {
     "device": "optical_tweezers",
