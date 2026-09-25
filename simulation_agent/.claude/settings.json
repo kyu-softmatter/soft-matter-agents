@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c 'exec python3 \"$(git rev-parse --show-toplevel)/contracts/validate.py\" --quiet'",
+            "command": "sh -c 'for c in python3 python py; do command -v \"$c\" >/dev/null 2>&1 || continue; \"$c\" -c \"\" >/dev/null 2>&1 || continue; exec \"$c\" \"$(git rev-parse --show-toplevel)/contracts/validate.py\" --quiet; done; echo \"validate: no RUNNABLE python on PATH (python3, python, py all failed a -c probe)\" >&2; exit 1'",
             "$comment": "The validator's exit code is the only truth (plan.md 8). This read $CLAUDE_PROJECT_DIR until 2026-09-19, which is the session's own cwd -- so from simulation_agent/ it looked for simulation_agent/contracts/validate.py, did not find it, and failed. A PostToolUse failure does not stop the write, so there was no symptom: every write from this seat went unvalidated at write time and only the commit gate ever saw them. Same defect plan.md 7 records for .mcp.json, same fix: ask git where the root is instead of assuming the session is standing at it. Reproduced from simulation_agent/ before and after."
           }
         ]
