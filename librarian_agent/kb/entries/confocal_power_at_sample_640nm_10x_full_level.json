@@ -1,0 +1,52 @@
+{
+  "entry_id": "confocal_power_at_sample_640nm_10x_full_level",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "With the confocal laser's 640 nm line at 100% level through the 10x objective, 10.3 mW reached the sample plane, measured with a power meter on this instrument on 2026-09-09.",
+  "identifiers": {
+    "light_source": "confocal",
+    "laser_line": "640 nm",
+    "nominal_magnification": "10x",
+    "level_percent": "100"
+  },
+  "numbers": [
+    {
+      "name": "illumination_power",
+      "value": 10.3,
+      "unit": "mW",
+      "source": "calibration:cal-illumination-power-20260909",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "read at the sample plane with the head's wavelength set to this line"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "device",
+      "id": "laser_combiner"
+    },
+    {
+      "kind": "quantity",
+      "id": "illumination_power"
+    }
+  ],
+  "source": "calibration:cal-illumination-power-20260909",
+  "grade": "E2",
+  "grade_tag": "calibration",
+  "source_ref": "src_illumination_power_worksheet_20260909",
+  "valid_until": {
+    "date": "2036-09-24"
+  },
+  "validity_conditions": "This instrument, the confocal laser's 640 nm line, 10x objective, level 100%, with the worksheet's reference state: mirror in, multiband out, IR in. Worksheet Power row 126. Measured 2026-09-09 by Kyu Hwan Choi and Saksham Malik with a Thorlabs PM100A and an S120C or S121C photodiode head (which of the two is not known), the wavelength set to each line; the person confirmed on 2026-09-24 that every spot was inside the sensor, so this is the power at the sample and not a lower bound. Valid ten years from 2026-09-24 as the person stated.\n\nThe level is in `validity` as illumination_level 1 (100% written as a fraction), because it is the one condition of this measurement that is a quantity: a caller asking at another level gets a miss named, not this number. `illumination_level` is not yet a registered quantity.\n\nWHAT '100%' IS: the level setting in the acquisition software the measurement was taken with. This system cannot yet command a level -- the combiner's per-line power word is deliberately not transmitted (lunf_per_line_power_is_not_transmittable) -- so this is the output at full level, not a map from a command this system sends to an output.\n\nTHE LEVEL SWEEP, at 20x only, is partial and is not entered as linearity: rows 119-124: 0% 0, 5% '-', 10% '-', 30% '-', 50% 3, 100% 9.9 mW; the block carries the note 'apperture full, size is different'. Nothing here says the output scales with the level.\n\nNOT MEASURED: 405 nm, and 100x for any line. Nothing here extrapolates to either -- transmission does not carry across objectives, and an oil objective needs oil between lens and meter.\n\nWHAT WOULD FALSIFY IT: a change to the laser, its fibre or the light path between them and the sample; a re-measurement supersedes it.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-1",
+  "validity": {
+    "illumination_level": {
+      "min": 1,
+      "max": 1,
+      "unit": "1"
+    }
+  }
+}

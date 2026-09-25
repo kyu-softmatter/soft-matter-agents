@@ -1,0 +1,56 @@
+{
+  "source_id": "src_illumination_power_worksheet_20260909",
+  "kind": "calibration",
+  "identifier": "illumination-power-worksheet.xlsx, C:/Users/Takatori lab/Downloads/, 27675 bytes, sha256 1a2aa86faa1102852ab053579218c94515e3fec4a006ca4b5c53d22ba0897f38. A bench worksheet of power at the sample plane measured on this instrument on 2026-09-09 by Kyu Hwan Choi and Saksham Malik with a Thorlabs PM100A. Pointed to by the person on 2026-09-24 as where the confocal power calibration is.",
+  "accessed": "2026-09-24",
+  "status": "ANSWERS COMPLETE 2026-09-24. Entries follow when the store is free (librarian-20260924-2 holds kb/entries/ and kb/staging/ for task 036).",
+  "what_it_holds_for_the_confocal_laser": "Readings at 100% level with mirror in, multiband out, IR in: 488 nm 6.9 mW at 20x, 7.0 at 4x, 7.0 at 10x; a second block 6.5 / 6.9 / 6.7; a third 9.9 / 10.6 / 10.3 (20x / 4x / 10x). Level sweeps at 20x only, partly blank or '-'. Not measured: 405 nm, and 100x for any line. Read by this seat from the file; values not yet entered.",
+  "blank_in_the_worksheet": "head type, head wavelength setting, head aperture, head position, which Micro-Manager configuration was loaded, room light, the 100x decision; the Checks sheet's spot-fits-sensor column; the second and third confocal blocks' wavelengths.",
+  "person_answers": {
+    "spot_fits_sensor": {
+      "answer": "all the spots are inside the sensor",
+      "asked": "did the laser spot fit inside the power meter's sensor at 4x, 10x and 20x",
+      "on": "2026-09-24",
+      "to": "librarian-20260924-1, directly",
+      "consequence": "the readings are power at the sample, not lower bounds. Taken to cover the third confocal block too, despite its note 'apperture full, size is different', because the answer was 'all'."
+    },
+    "meter_head_and_wavelength_setting": {
+      "answer": "we changed the wavelength properly for each measurement",
+      "asked": "which meter head was used, and was its wavelength setting changed for each laser line",
+      "on": "2026-09-24",
+      "to": "librarian-20260924-1, directly",
+      "consequence": "each reading was taken with the head set to that line's wavelength, so no responsivity correction is owed. The head TYPE was not stated; a wavelength setting implies a photodiode head, which is an inference and is recorded as one."
+    },
+    "validity_period": {
+      "answer": "next 10 years from today",
+      "asked": "how long should these readings be trusted before re-measuring",
+      "on": "2026-09-24",
+      "to": "librarian-20260924-1, directly",
+      "valid_until": "2036-09-24",
+      "consequence": "anchored to 2026-09-24, the day the person said it, as the person worded it -- not to the 2026-09-09 measurement date. A change to the laser, fibre or light path is not named as an earlier end, and would still falsify the readings physically; that is for the entries' falsifier, not a second period."
+    },
+    "unlabelled_confocal_blocks_are_561_and_640": {
+      "answer": "right",
+      "asked": "are the two unlabelled confocal blocks the 561 nm and 640 nm lines",
+      "on": "2026-09-24",
+      "to": "librarian-20260924-1, directly",
+      "consequence": "Power sheet rows 83-90 are the 561 nm line and rows 119-126 the 640 nm line; rows 46-53 are 488 nm as labelled."
+    },
+    "meter_and_head": {
+      "answer": "we used thorlab MD100 with sensor head S120C or S121C",
+      "on": "2026-09-24",
+      "to": "librarian-20260924-1, directly, unasked",
+      "consequence": "a photodiode head, as inferred from the per-line wavelength setting -- now stated rather than inferred. WHICH of the two heads is not known; the person said 'or'.",
+      "discrepancy": "the worksheet's Meta sheet says 'PM100A, throlab' and the person said 'MD100'. Thorlabs sells PM100A and PM100D consoles; 'MD100' matches neither exactly. Put back to the person; both are recorded as said. The console does not change a reading taken with the right head and wavelength setting, so this does not hold the entries.",
+      "discrepancy_resolved": {
+        "answer": "PM100A",
+        "on": "2026-09-24",
+        "consequence": "the console was a Thorlabs PM100A, as the worksheet's Meta sheet says; 'MD100' was a slip."
+      }
+    }
+  },
+  "grade_rule": "E2 via calibration:, as rule 9 routes a calibration the operator performed on this instrument, with the validity period the person gave (ten years, to 2036-09-24). Same route as src_operator_calibration_20260919, whose values also sat in a worksheet before they reached this store. Not E1: no run_id from this system.",
+  "license_note": "The lab's own measurement.",
+  "validity_period": "ten years, stated by the person on 2026-09-24, until 2036-09-24",
+  "meter": "Thorlabs PM100A console with an S120C or S121C photodiode head (which of the two not known)"
+}
