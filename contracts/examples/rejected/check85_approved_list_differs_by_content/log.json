@@ -1,0 +1,59 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260924-907",
+  "plan_id": null,
+  "revision": null,
+  "no_plan_because": "EXAMPLE. A preparatory run: no plan fitted it, because the only plan for this measurement was written for another objective and its axis ranges were computed for that configuration, so citing them would launder them (11-21).",
+  "approved_commands": {
+    "path": "contracts/examples/rejected/check85_approved_list_differs_by_content/commands.json",
+    "sha256": "21768136471b62e89bd424b58b3736e0d81d056ac5de51c3bc2b581a9d0d3fec",
+    "approved_by": "the person, in words, before any light"
+  },
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "4",
+  "stop_criteria": [],
+  "t0_wall": "2026-09-24T00:00:00+00:00",
+  "t0_mono": 100.0,
+  "backend": "micromanager",
+  "time_base_note": "REJECTED. The recorded sha256 is of the list the person approved; the file beside it carries an extra command at full intensity. Line endings are identical on both, so this is the case the three-form comparison must still refuse -- a content change, not a checkout artefact.",
+  "events": [
+    {
+      "t_mono": 0.0,
+      "time_base": "software",
+      "event": "not_dispatched",
+      "note": "this run did not come through the plan dispatcher"
+    },
+    {
+      "t_mono": 0.1,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "GREEN_Intensity": {
+          "value": "50",
+          "from": "approved_commands[1]"
+        }
+      },
+      "verification": "readback"
+    },
+    {
+      "t_mono": 0.2,
+      "time_base": "software",
+      "event": "acquire",
+      "channel": "Kinetix_red",
+      "action": "snap"
+    },
+    {
+      "t_mono": 0.3,
+      "time_base": "software",
+      "event": "shutdown",
+      "reason": "finished"
+    }
+  ],
+  "finished_at": "2026-09-24T00:00:01+00:00"
+}

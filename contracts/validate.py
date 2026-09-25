@@ -7679,24 +7679,40 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
             f = Path(path)
             f = f if f.is_absolute() else REPO / f
             if f.is_file():
-                # Either the bytes as they sit or with CRLF folded to LF, as
-                # check 25 does. A list inside the tree is LF in git and CRLF
-                # on a core.autocrlf=true checkout, so a raw-only hash fails
-                # untouched bytes after any checkout there -- microscope-
-                # 20260924-1 caught it on the first two runs, 2026-09-24. A
-                # list outside the tree may have been WRITTEN with CRLF, and
-                # its recorded hash is then of those bytes, so the raw form
-                # must still count. Only line endings are forgiven.
+                # THREE FORMS, because the pair was not symmetric and the
+                # missing one blocked every commit on the Mac (2026-09-24).
+                # A list inside the tree is LF in git and CRLF on a
+                # core.autocrlf=true checkout, so a raw-only hash fails
+                # untouched bytes there -- microscope-20260924-1 caught that
+                # on the first two runs and the LF fold answered it. What it
+                # does not answer is the reverse: run -004 was hashed on
+                # Windows FROM CRLF bytes, git stored LF, and on a Mac the
+                # file is LF, so neither the raw form nor the LF fold reaches
+                # the recorded hash -- only folding the other way does.
+                # Measured: those bytes as CRLF are exactly f508160e1640.
+                # A list outside the tree may also have been WRITTEN with
+                # CRLF, which is why the raw form still counts.
+                #
+                # ONLY LINE ENDINGS ARE FORGIVEN, and the form that matched
+                # is named in the PASS line. A list that matched as CRLF is
+                # not the same fact as one that matched as it sits, and a
+                # check that reported both as "matches its sha256" would hide
+                # which machine hashed it.
                 raw = f.read_bytes()
-                got = hashlib.sha256(raw).hexdigest()
-                folded = hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest()
-                if want not in (got, folded):
+                as_lf = raw.replace(b"\r\n", b"\n")
+                forms = (("as the bytes sit", raw),
+                         ("with line endings read as LF", as_lf),
+                         ("with line endings read as CRLF", as_lf.replace(b"\n", b"\r\n")))
+                how = next((name for name, body in forms
+                            if hashlib.sha256(body).hexdigest() == want), None)
+                if how is None:
                     bad = True
                     out.append(Finding(85, FAIL, f"{rid}: the approved command list at {path} hashes to "
-                                                 f"{got[:12]}, not the {want[:12]} the log records. The list "
-                                                 "the person approved is not the list on disk (11-21 condition 2)",
-                                       rel))
-                where = f"its approved list {path} matches its sha256"
+                                                 f"{hashlib.sha256(raw).hexdigest()[:12]}, not the "
+                                                 f"{want[:12]} the log records, and folding its line endings "
+                                                 f"either way does not reach it. The list the person approved "
+                                                 "is not the list on disk (11-21 condition 2)", rel))
+                where = f"its approved list {path} matches its sha256 {how}"
             else:
                 where = (f"its approved list {path} is not readable from here, so its sha256 "
                          f"{want[:12]} is recorded and not checked")
