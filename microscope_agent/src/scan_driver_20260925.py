@@ -69,11 +69,23 @@ def wait_question(hold: Path, contains: str, timeout=60) -> bool:
     return False
 
 
-def main(hold_dir: str, rec_dir: str, first: float) -> int:
+def main(hold_dir: str, rec_dir: str, first: float, last: float = 1.0, step: float = 0.1,
+         prefix: str = "strength_1_", ready_from: str | None = None) -> int:
+    """`last`: the strength after whose recording the hold is answered "no" -- a planned
+    stop, both traps left as they are -- unless it is the plan's final hold. `ready_from`:
+    a completed recording whose bead check answers the plan's opening readiness hold."""
     hold, rec = Path(hold_dir), Path(rec_dir)
+    if ready_from:
+        check = bead_in_view(Path(ready_from))
+        log("readiness bead check", source=ready_from, **check)
+        if not check["ok"] or not wait_question(hold, "Before anything is sent"):
+            log("STOP: readiness not established; nothing answered")
+            return 5
+        (hold / "answer.txt").write_text("yes", encoding="utf-8")
+        log("answered yes at readiness (the person's standing instruction)")
     s = round(first, 1)
     while True:
-        label = f"strength_1_{s:.1f}"
+        label = f"{prefix}{s:.1f}"
         raw = rec / f"{label}.raw"
         if not raw.exists() or raw.stat().st_size < CROP * CROP * 2 * N:
             if not record(rec_dir, label):
@@ -87,12 +99,16 @@ def main(hold_dir: str, rec_dir: str, first: float) -> int:
         if not wait_question(hold, f"trap_2 {s}"):
             log("STOP: the hold for this strength is not the one waiting", strength=s)
             return 3
+        if s >= last - 1e-9 and s < 1.0 - 1e-9:
+            (hold / "answer.txt").write_text("no", encoding="utf-8")
+            log("answered no: a planned stop after the last strength asked for", strength=s)
+            return 0
         (hold / "answer.txt").write_text("yes", encoding="utf-8")
         log("answered yes (the person's standing instruction)", strength=s)
         if s >= 1.0:
             log("done: the last hold answered; the plan finishes with both traps at 1.0")
             return 0
-        s = round(s + 0.1, 1)
+        s = round(s + step, 1)
         if not wait_question(hold, f"trap_2 {s}"):
             log("STOP: the next strength's hold did not appear -- the command may have been "
                 "refused; see the run log", strength=s)
@@ -100,4 +116,7 @@ def main(hold_dir: str, rec_dir: str, first: float) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1], sys.argv[2], float(sys.argv[3])))
+    kw = dict(a[2:].split("=", 1) for a in sys.argv[4:] if a.startswith("--"))
+    sys.exit(main(sys.argv[1], sys.argv[2], float(sys.argv[3]),
+                  last=float(kw.get("last", 1.0)), step=float(kw.get("step", 0.1)),
+                  prefix=kw.get("prefix", "strength_1_"), ready_from=kw.get("ready_from")))
