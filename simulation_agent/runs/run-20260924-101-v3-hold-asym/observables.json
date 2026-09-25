@@ -1,0 +1,102 @@
+{
+  "run_id": "run-20260924-101-v3-hold-asym",
+  "observable": "well_occupancy",
+  "window_parameter": "record_length",
+  "window_si": 600.0,
+  "definition": {
+    "projection": "x, the coordinate along the line joining the traps",
+    "cores": "around the two histogram peaks of the pooled record, one each side of the midpoint between the traps",
+    "core_radius_fraction_of_peak_spacing": 0.2,
+    "frame_interval_s": 0.01,
+    "rate": "per ordered pair: transitions out of the origin well over the time assigned to the origin well (the registered estimator); the hop frequency is all transitions over the assigned record",
+    "residence": "mean completed dwell; the first and last dwell of a record are cut"
+  },
+  "peaks_si": [
+    -5.798960806217001e-07,
+    5.65184512778598e-07
+  ],
+  "core_radius_si": 2.2901611868005964e-07,
+  "well_occupancy": {
+    "mean": 0.6367663422621744,
+    "sd_over_records": 0.09777824167433168,
+    "se_of_mean": 0.003092019492972839,
+    "p05": 0.4723471108873262,
+    "p50": 0.6399226679555341,
+    "p95": 0.7938151030816153,
+    "n_records": 1000
+  },
+  "interwell_transition_rate": {
+    "well_1_to_2": {
+      "mean": 0.02939046029649584,
+      "sd_over_records": 0.00901212619814001,
+      "se_of_mean": 0.0002849884534699634,
+      "p05": 0.015902741437888678,
+      "p50": 0.028691317294205508,
+      "p95": 0.046071979841378646,
+      "n_records": 1000
+    },
+    "well_2_to_1": {
+      "mean": 0.0535425800745998,
+      "sd_over_records": 0.017684860107613436,
+      "se_of_mean": 0.0005592443804150893,
+      "p05": 0.030851820171401968,
+      "p50": 0.050769426307376825,
+      "p95": 0.08649459125287585,
+      "n_records": 1000
+    },
+    "hop_frequency_both_directions": {
+      "mean": 0.03634860826384254,
+      "sd_over_records": 0.008193418412203906,
+      "se_of_mean": 0.00025909864005324687,
+      "p05": 0.023333333333333334,
+      "p50": 0.03666666666666667,
+      "p95": 0.05,
+      "n_records": 1000
+    },
+    "transitions_per_record": {
+      "mean": 21.808,
+      "sd_over_records": 4.915617895982081,
+      "se_of_mean": 0.15544548658388027,
+      "p05": 14.0,
+      "p50": 22.0,
+      "p95": 30.0,
+      "n_records": 1000
+    }
+  },
+  "well_residence_time": {
+    "well_1": {
+      "mean": 35.179367756789176,
+      "sd_over_records": 12.354645498031811,
+      "se_of_mean": 0.3906881945772584,
+      "p05": 20.417194444444448,
+      "p50": 32.95318181818182,
+      "p95": 57.901062499999995,
+      "n_records": 1000
+    },
+    "well_2": {
+      "mean": 19.890935908001527,
+      "sd_over_records": 6.588643053312682,
+      "se_of_mean": 0.20835118738314273,
+      "p05": 10.991466666666666,
+      "p50": 18.797071428571428,
+      "p95": 31.816812499999997,
+      "n_records": 1000
+    }
+  },
+  "interwell_barrier_height": {
+    "projected_free_energy_kT": 2.9855438620351884,
+    "potential_computed_kT": 3.000000000000057,
+    "note": "the first is read off the pooled projected histogram and includes the transverse entropy; the second is the potential's saddle minus the deeper minimum, computed"
+  },
+  "fraction_below_saddle": 0.6380511158147364,
+  "cost": {
+    "integration_wall_s": 218.2722413460001,
+    "steps": 610000,
+    "wall_s_per_step": 0.00035782334646885264,
+    "frame_readout_wall_s": 19.26130096999077,
+    "frames_saved": 61001,
+    "loop_wall_s": 238.35941894899997,
+    "n_particles": 1000,
+    "backend": "double_well_hoomd_backend"
+  }
+}

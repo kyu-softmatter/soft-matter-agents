@@ -1,0 +1,157 @@
+{
+  "run_id": "run-20260924-101-v2-smoke",
+  "qid": "sim-20260923-101",
+  "plan_id": "plan-sim-20260923-101-r2",
+  "plan_revision": 2,
+  "plan_hash": "sha256:9579f1576db0b79142e7dd64002a0dd941cfb6daec10ba3c30273ab48eed88cf",
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "envelope_check": {
+    "status": "inside",
+    "target": "local",
+    "budget": "smoke",
+    "compared": [
+      {
+        "cost": "wall_clock_estimate",
+        "limit": "wall_clock_max",
+        "cost_si": 10.0,
+        "limit_si": 300.0
+      },
+      {
+        "cost": "storage_estimate",
+        "limit": "storage_max",
+        "cost_si": 0.020000000000000004,
+        "limit_si": 0.5
+      }
+    ],
+    "exceeded": []
+  },
+  "backend": "double_well_hoomd_backend",
+  "seed": 1,
+  "parameters_si": {
+    "integration_timestep": 0.001,
+    "save_interval": 0.01,
+    "record_length": 60.0,
+    "startup_discard": 10.0,
+    "box_length": 0.0001,
+    "walkers": 200.0,
+    "trap_stiffness_1": 1e-06,
+    "trap_stiffness_2": 1e-06,
+    "trap_width_1": 1e-06,
+    "trap_width_2": 1e-06,
+    "barrier_target": 4.0,
+    "milestone_core_fraction": 0.2,
+    "temperature": 293.0,
+    "viscosity": 0.001,
+    "bead_diameter": 4.9999999999999996e-06
+  },
+  "provenance": [
+    {
+      "parameter": "integration_timestep",
+      "value_si": 0.001,
+      "unit_in_plan": "s",
+      "from": "conditions[0].number -> numbers[integration_timestep_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "save_interval",
+      "value_si": 0.01,
+      "unit_in_plan": "s",
+      "from": "conditions[1].number -> numbers[save_interval]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "record_length",
+      "value_si": 60.0,
+      "unit_in_plan": "s",
+      "from": "conditions[2].number -> numbers[record_length] x smoke.record_fraction -> numbers[smoke_record_fraction]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "startup_discard",
+      "value_si": 10.0,
+      "unit_in_plan": "s",
+      "from": "conditions[3].number -> numbers[startup_discard_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "box_length",
+      "value_si": 0.0001,
+      "unit_in_plan": "m",
+      "from": "conditions[4].number -> numbers[box_length_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "walkers",
+      "value_si": 200.0,
+      "unit_in_plan": "1",
+      "from": "conditions[5].number -> numbers[walkers]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "trap_stiffness_1",
+      "value_si": 1e-06,
+      "unit_in_plan": "N/m",
+      "from": "conditions[6].number -> numbers[trap_stiffness_1]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "trap_stiffness_2",
+      "value_si": 1e-06,
+      "unit_in_plan": "N/m",
+      "from": "conditions[7].number -> numbers[trap_stiffness_2]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "trap_width_1",
+      "value_si": 1e-06,
+      "unit_in_plan": "m",
+      "from": "conditions[8].number -> numbers[trap_width_1]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "trap_width_2",
+      "value_si": 1e-06,
+      "unit_in_plan": "m",
+      "from": "conditions[9].number -> numbers[trap_width_2]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "barrier_target",
+      "value_si": 4.0,
+      "unit_in_plan": "1",
+      "from": "conditions[10].number -> numbers[barrier_target]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "milestone_core_fraction",
+      "value_si": 0.2,
+      "unit_in_plan": "1",
+      "from": "conditions[11].number -> numbers[milestone_core_fraction]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "temperature",
+      "value_si": 293.0,
+      "unit_in_plan": "K",
+      "from": "conditions[12].number -> numbers[temperature]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "viscosity",
+      "value_si": 0.001,
+      "unit_in_plan": "Pa*s",
+      "from": "conditions[13].number -> numbers[viscosity]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "bead_diameter",
+      "value_si": 4.9999999999999996e-06,
+      "unit_in_plan": "um",
+      "from": "conditions[14].number -> numbers[bead_diameter]",
+      "grade": "E2"
+    }
+  ]
+}

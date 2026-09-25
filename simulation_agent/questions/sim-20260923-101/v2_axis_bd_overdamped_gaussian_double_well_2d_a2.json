@@ -1,0 +1,309 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-101-bd_overdamped_gaussian_double_well_2d-a2-r2",
+  "qid": "sim-20260923-101",
+  "thread": "solo-sim-20260923-101",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-25T04:10:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-101:v2:bd_overdamped_gaussian_double_well_2d:a2",
+  "config": "bd_overdamped_gaussian_double_well_2d",
+  "axis": "a2",
+  "kb_version": "kbv-a1bb4a5acf25",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "startup_discard",
+      "unit": "s",
+      "min": 10.0,
+      "basis": [
+        "startup_discard_min"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
+    },
+    {
+      "parameter": "walkers",
+      "unit": "1",
+      "min": 100,
+      "basis": [
+        "records_min"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "startup_discard >= 200*gamma/k",
+      "parameter": "startup_discard",
+      "state": "returned",
+      "interval": {
+        "parameter": "startup_discard",
+        "unit": "s",
+        "min": 10.0,
+        "basis": [
+          "startup_discard_min"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    },
+    {
+      "inequality": "walkers >= 100 independent records",
+      "parameter": "walkers",
+      "state": "returned",
+      "interval": {
+        "parameter": "walkers",
+        "unit": "1",
+        "min": 100,
+        "basis": [
+          "records_min"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    },
+    {
+      "inequality": "each record holds at least ten hops",
+      "parameter": "record_length",
+      "state": "returned",
+      "precondition": {
+        "parameter": "record_length",
+        "requires": "the run must report the hops per record it measured. The rate over a few-kT saddle in this landscape has no safe closed form, so A2 does not predict it: the record length is the bench's, and whether it holds ten hops is the run's first result",
+        "basis": [
+          "hops_per_record_min"
+        ]
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the tracer in the bottle in use",
+      "origin": "v2_goal.json#bead_diameter"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "pure water; asked over 292-294 K and the entry's validity covers it. The bench's in-situ diffusivity, near the coverslip, replaces the Stokes drag in the re-prediction",
+      "origin": "v2_goal.json#viscosity"
+    },
+    {
+      "name": "trap_stiffness_1",
+      "value": 1e-06,
+      "unit": "N/m",
+      "source": "assumed:a_holding_stiffness",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "1 pN/um. Nothing in the store gives a trap stiffness; the experiment calibrates each trap after it is set. Chosen at the soft end, where the stiffness-matching tolerance is about five per cent at this width",
+      "origin": "v2_goal.json#trap_stiffness_1"
+    },
+    {
+      "name": "record_length",
+      "value": 600,
+      "unit": "s",
+      "source": "assumed:a_bench_record",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "ten minutes, the short end of the 10-60 min the experiment might record. Assumed; the spread over records at 10, 30 and 60 min is a separate study",
+      "origin": "v2_goal.json#record_length"
+    },
+    {
+      "name": "walkers",
+      "value": 200,
+      "unit": "1",
+      "source": "assumed:a_bench_record",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "independent single-bead records in one engine run, each as long as the bench record",
+      "origin": "v2_goal.json#walkers"
+    },
+    {
+      "name": "drag_coefficient",
+      "value": 5e-08,
+      "unit": "N*s/m",
+      "source": "computed:stokes_drag",
+      "grade": "E4",
+      "formula": "3*pi*viscosity*bead_diameter",
+      "inputs": [
+        "viscosity",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "bulk Stokes drag. Near the coverslip the drag is larger; the bench's in-situ diffusivity replaces this in the re-prediction"
+    },
+    {
+      "name": "trap_relaxation_time",
+      "value": 0.05,
+      "unit": "s",
+      "source": "computed:drag_over_stiffness",
+      "grade": "E5",
+      "formula": "drag_coefficient/trap_stiffness_1",
+      "inputs": [
+        "drag_coefficient",
+        "trap_stiffness_1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "gamma/k at the bottom of one well alone: the shortest time in the problem. Near merging the curvature at the minima is smaller, so the true in-well time is longer and this bound is safe"
+    },
+    {
+      "name": "startup_relaxation_times",
+      "value": 200,
+      "unit": "1",
+      "source": "assumed:a_startup",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the discard in units of gamma/k"
+    },
+    {
+      "name": "startup_discard_min",
+      "value": 10.0,
+      "unit": "s",
+      "source": "computed:relaxation_times_times_tau",
+      "grade": "E5",
+      "formula": "startup_relaxation_times*trap_relaxation_time",
+      "inputs": [
+        "startup_relaxation_times",
+        "trap_relaxation_time"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the walkers start at the trap centres, half in each; two hundred in-well times relaxes each into its well. It does not relax the occupancy between wells, and for equal wells it need not"
+    },
+    {
+      "name": "records_min",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_records",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "independent single-bead records, so the spread one record shows can be read, not guessed"
+    },
+    {
+      "name": "hops_per_record_min",
+      "value": 10,
+      "unit": "count",
+      "source": "assumed:a_hops",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "below this a record bounds the rate rather than measuring it (the observable's own note)"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_holding_stiffness",
+      "statement": "1 pN/um for both traps: the soft end of what the tweezers hold a 5 um bead at, where the matching tolerance is about five per cent. Nothing measured picks it.",
+      "numbers": [
+        "trap_stiffness_1"
+      ],
+      "falsifier": "the experiment's calibrated stiffness of each trap, returned after the traps are set, replaces both and the simulation re-predicts at them",
+      "gap_ref": "trap_stiffness_absent"
+    },
+    {
+      "rationale_id": "a_bench_record",
+      "statement": "The record as the bench might take it, and the ensemble that stands for it: ten minutes, the short end of what the bench may record; 10 ms between frames, the middle of the camera's likely range; two hundred independent records, enough to see the spread one record shows; and a smoke run of a tenth of the record, one minute, enough to time the engine.",
+      "numbers": [
+        "record_length",
+        "walkers"
+      ],
+      "falsifier": "the bench's actual record length and frame interval replace the first two, and the thousand-record spread study replaces the ensemble",
+      "gap_ref": "record_length_absent"
+    },
+    {
+      "rationale_id": "a_startup",
+      "statement": "Two hundred in-well relaxation times of discard.",
+      "numbers": [
+        "startup_relaxation_times"
+      ],
+      "falsifier": "an occupancy that still drifts between the first and second halves of the record",
+      "gap_ref": "interwell_transition_rate_absent"
+    },
+    {
+      "rationale_id": "a_records",
+      "statement": "A hundred records is the least that shows a spread.",
+      "numbers": [
+        "records_min"
+      ],
+      "falsifier": "the thousand-record spread study replaces it",
+      "gap_ref": "interwell_transition_rate_absent"
+    },
+    {
+      "rationale_id": "a_hops",
+      "statement": "Ten hops a record separates a measured rate from a bound.",
+      "numbers": [
+        "hops_per_record_min"
+      ],
+      "falsifier": "a record with fewer is reported as a bound and the plan's barrier is lowered",
+      "gap_ref": "interwell_transition_rate_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-a1bb4a5acf25",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-a1bb4a5acf25",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "interwell_transition_rate_absent",
+      "observable": "interwell_transition_rate",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "trap_stiffness_absent",
+      "observable": "trap_stiffness",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "record_length_absent",
+      "observable": "record_length",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    }
+  ],
+  "degraded": [],
+  "note": "The hop count is a precondition and not an interval, on purpose: an interval would need a predicted rate, and the configuration is declared because that rate is not predictable."
+}

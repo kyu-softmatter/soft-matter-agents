@@ -1,0 +1,98 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-101-bd_overdamped_gaussian_double_well_2d-a3-r2",
+  "qid": "sim-20260923-101",
+  "thread": "solo-sim-20260923-101",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-25T04:10:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-101:v2:bd_overdamped_gaussian_double_well_2d:a3",
+  "config": "bd_overdamped_gaussian_double_well_2d",
+  "axis": "a3",
+  "kb_version": "kbv-a1bb4a5acf25",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "box_length",
+      "unit": "m",
+      "min": 0.0001,
+      "basis": [
+        "box_edge_min"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "box_edge >> separation + a few widths",
+      "parameter": "box_length",
+      "state": "returned",
+      "interval": {
+        "parameter": "box_length",
+        "unit": "m",
+        "min": 0.0001,
+        "basis": [
+          "box_edge_min"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "trap_width_1",
+      "value": 1e-06,
+      "unit": "m",
+      "source": "assumed:a_trap_width",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the Gaussian width of each well. Unknown; the store holds none. Near the bead radius is the microscope side's estimate, and the lower end of the map's 1-2.5 um",
+      "origin": "v2_goal.json#trap_width_1"
+    },
+    {
+      "name": "box_edge_min",
+      "value": 0.0001,
+      "unit": "m",
+      "source": "computed:hundred_widths",
+      "grade": "E5",
+      "formula": "100*trap_width_1",
+      "inputs": [
+        "trap_width_1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the wells are zero beyond a few widths, so a box of a hundred keeps the far field flat and never wrapped. The walkers carry no pair force, so they need no spacing from each other"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_trap_width",
+      "statement": "A Gaussian width of 1 um, near the bead radius. Unknown, and the map spans 1-2.5 um to show how much the answer depends on it.",
+      "numbers": [
+        "trap_width_1"
+      ],
+      "falsifier": "the width read off the calibrated single-trap histogram's departure from a Gaussian, or off the separation at which the two wells merge",
+      "gap_ref": "trap_potential_width_absent"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "trap_potential_width_absent",
+      "observable": "trap_potential_width",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    }
+  ],
+  "degraded": [],
+  "note": "Nearly vacuous: one bead per record and no interaction. The axis says so rather than abstaining, because the unwrapped trajectory needs the statement that it never wrapped."
+}

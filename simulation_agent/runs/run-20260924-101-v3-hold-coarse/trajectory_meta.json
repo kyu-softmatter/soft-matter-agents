@@ -1,0 +1,59 @@
+{
+  "artifact": "trajectory_meta",
+  "schema_version": 1,
+  "run_id": "run-20260924-101-v3-hold-coarse",
+  "trajectory": {
+    "written": true,
+    "format": "txt",
+    "file": "trajectory.txt",
+    "sha256": "9b787cb705131babfa7e66707a3fca0a13ccf62850f435e43efa804a8fa72f9a",
+    "coords_sha256": "6fbd5c61179626a922c3764be745836a33f3ac7dc9d6add53f6b99f1bd5a2a9e",
+    "dtype": "float64",
+    "sig_figs": 17,
+    "time_base": "step_index",
+    "save_interval_steps": 50,
+    "frames": 12201,
+    "particles": 1000,
+    "engine": "hoomd",
+    "engine_version": "7.2.0",
+    "seed": 25,
+    "plan_hash": "sha256:5df144529b927478d8840d53ca3d31271baa4b640786a19ae0001f2b0eff3b8f",
+    "box": {
+      "length_m": 0.0001,
+      "dimensions": 2,
+      "periodic": true
+    },
+    "units": "SI: metres and radians, converted from the engine's reduced units at the backend boundary",
+    "columns": [
+      {
+        "name": "step",
+        "unit": "1",
+        "meaning": "integer integration-step index of the frame; time is step * integration_timestep, never an accumulated float"
+      },
+      {
+        "name": "particle",
+        "unit": "1",
+        "meaning": "particle index, fixed across frames"
+      },
+      {
+        "name": "x",
+        "unit": "m",
+        "meaning": "UNWRAPPED x position: a particle that crossed the periodic boundary keeps going"
+      },
+      {
+        "name": "y",
+        "unit": "m",
+        "meaning": "UNWRAPPED y position: a particle that crossed the periodic boundary keeps going"
+      }
+    ],
+    "bytes": 704124269
+  },
+  "frames_saved": 12201,
+  "simulated_time": 610.0,
+  "steps_taken": 610000,
+  "max_single_step_displacement": 2.8432912069741595e-08,
+  "stopped_by": null,
+  "stop_outcome": "complete",
+  "stopped_early": false,
+  "completed_planned_duration": true
+}

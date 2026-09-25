@@ -1,0 +1,207 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-101-bd_overdamped_gaussian_double_well_2d-a1-r3",
+  "qid": "sim-20260923-101",
+  "thread": "solo-sim-20260923-101",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-25T05:30:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-101:v3:bd_overdamped_gaussian_double_well_2d:a1",
+  "config": "bd_overdamped_gaussian_double_well_2d",
+  "axis": "a1",
+  "kb_version": "kbv-a1bb4a5acf25",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "max": 0.001,
+      "basis": [
+        "integration_timestep_max"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "dt <= 0.02*gamma/k at the stiffer trap",
+      "parameter": "integration_timestep",
+      "state": "returned",
+      "interval": {
+        "parameter": "integration_timestep",
+        "unit": "s",
+        "max": 0.001,
+        "basis": [
+          "integration_timestep_max"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the tracer in the bottle in use",
+      "origin": "v3_goal.json#bead_diameter"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "pure water; asked over 292-294 K and the entry's validity covers it. The bench's in-situ diffusivity, near the coverslip, replaces the Stokes drag in the re-prediction",
+      "origin": "v3_goal.json#viscosity"
+    },
+    {
+      "name": "trap_stiffness_1",
+      "value": 1e-06,
+      "unit": "N/m",
+      "source": "assumed:a_holding_stiffness",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "1 pN/um. Nothing in the store gives a trap stiffness; the experiment calibrates each trap after it is set. Chosen at the soft end, where the stiffness-matching tolerance is about five per cent at this width",
+      "origin": "v3_goal.json#trap_stiffness_1"
+    },
+    {
+      "name": "trap_stiffness_2",
+      "value": 1e-06,
+      "unit": "N/m",
+      "source": "assumed:a_holding_stiffness",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "EQUAL to trap 1, and that is the finding rather than a simplification: with wells hundreds of kT deep, any ratio of 0.5 or below leaves a barrier from the deeper well of tens to thousands of kT at every separation, so the person's 1-to-100 range holds no hops at all",
+      "origin": "v3_goal.json#trap_stiffness_2"
+    },
+    {
+      "name": "drag_coefficient",
+      "value": 5e-08,
+      "unit": "N*s/m",
+      "source": "computed:stokes_drag",
+      "grade": "E4",
+      "formula": "3*pi*viscosity*bead_diameter",
+      "inputs": [
+        "viscosity",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "bulk Stokes drag. Near the coverslip the drag is larger; the bench's in-situ diffusivity replaces this in the re-prediction"
+    },
+    {
+      "name": "trap_relaxation_time",
+      "value": 0.05,
+      "unit": "s",
+      "source": "computed:drag_over_stiffness",
+      "grade": "E5",
+      "formula": "drag_coefficient/trap_stiffness_1",
+      "inputs": [
+        "drag_coefficient",
+        "trap_stiffness_1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "gamma/k at the bottom of one well alone: the shortest time in the problem. Near merging the curvature at the minima is smaller, so the true in-well time is longer and this bound is safe"
+    },
+    {
+      "name": "dt_relaxation_factor",
+      "value": 0.02,
+      "unit": "1",
+      "source": "assumed:a_dt_factor",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "dt as a fraction of gamma/k; equivalently dt <= 0.02/eps in the engine's w^2/D"
+    },
+    {
+      "name": "integration_timestep_max",
+      "value": 0.001,
+      "unit": "s",
+      "source": "computed:factor_times_relaxation_time",
+      "grade": "E5",
+      "formula": "dt_relaxation_factor*trap_relaxation_time",
+      "inputs": [
+        "dt_relaxation_factor",
+        "trap_relaxation_time"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the stiff trap sets it; equal stiffnesses here, so either"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_holding_stiffness",
+      "statement": "1 pN/um for both traps: the soft end of what the tweezers hold a 5 um bead at, where the matching tolerance is about five per cent. Nothing measured picks it.",
+      "numbers": [
+        "trap_stiffness_1",
+        "trap_stiffness_2"
+      ],
+      "falsifier": "the experiment's calibrated stiffness of each trap, returned after the traps are set, replaces both and the simulation re-predicts at them",
+      "gap_ref": "trap_stiffness_absent"
+    },
+    {
+      "rationale_id": "a_dt_factor",
+      "statement": "A fiftieth of gamma/k, one figure on the safe side of the fortieth that was measured. Task 024 ran this configuration at eps 247 kT with the step at 0.05, 0.025 and 0.0125 of gamma/k, on the engine and on the NumPy reference, and the occupancy, the rate and the projected barrier did not move beyond their scatter across the three. That study is not a run record, so the factor stands here as a convention it supports rather than as a citation.",
+      "numbers": [
+        "dt_relaxation_factor"
+      ],
+      "falsifier": "this plan's own run at half the step returning a rate outside the first run's scatter",
+      "gap_ref": "integration_timestep_resolution_factor_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-a1bb4a5acf25",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-a1bb4a5acf25",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "integration_timestep_resolution_factor_absent",
+      "observable": "integration_timestep_resolution_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "trap_stiffness_absent",
+      "observable": "trap_stiffness",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    }
+  ],
+  "degraded": [],
+  "note": "The width drops out: w^2/(D*eps) = gamma/k. So one rule holds at every width of the map."
+}
