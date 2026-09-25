@@ -81,8 +81,14 @@ emission off. Switching it back on is the person's hand; the wrapper refuses
 `LASER_ON`.
 
 **No position command until the tweezers GUI's µm scale is confirmed for the
-objective in place.** At `-008`, `trap_2` was commanded to +6 and the person
-reported it at x = 2 µm. If the GUI's pixel-to-µm calibration is off, or
+objective in place.** **Corrected the same evening:** the person's "second
+trap is x = 2um" at `-008` meant *"I wanted it at 2 um"*, asked directly in
+`-6`'s window, and **not** that it appeared there. So the person's words do
+not show a scale error. The rule stands on different grounds: in the
+strength scans, `trap_2` pulled the bead about 1 µm at a commanded +6 and
+not at all at +5, which is backwards and unexplained. Until the GUI's µm are
+checked against the camera, no commanded separation is a number, and "no
+hops" cannot be told from "wrong separation". If the GUI's pixel-to-µm calibration is off, or
 stale from another objective, every commanded µm is a GUI unit, and so are
 the person's position limits. Make the person's confirmation, recorded
 through `python_tcp`'s `confirm_calibration` (who, objective, pixel_to_um),
