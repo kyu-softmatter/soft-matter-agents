@@ -16,6 +16,26 @@ chose loaded in place with its hash, the Lapp mirror moving at load as the
 person accepted, the gates, the shutdown order, pixel size never taken from
 frame metadata, the frames outside the tree.
 
+## Repeats at other locations (added 2026-09-24 evening)
+
+The person asked `microscope-20260924-1` after run `-006`: *"run it again
+from other location"*. **This card covers such repeats**, on these terms:
+
+- **`src/session_038.py` unchanged**, under a new run id, the first free
+  one. A changed script is a changed run, and needs its own line here
+- **every gate as in `-006`**: preload with the bench handed over in your
+  window, NIS closed, the piezo controller's state and the lasers asked
+  and logged; `approve_light` with the command list; `fresh_field`, asking
+  that the new location has not been lit in green
+- the log in the preparatory-run shape, in `runs/` and beside the frames,
+  as `-006` was
+- **analysis per the method in `microscope_agent/CLAUDE.md`** (`b48c9b3`):
+  whole-frame totals or per-particle tracking, never a frame-0 mask, and a
+  curve normalised to the settled level. **Report the drift beside the
+  brightness**, since drift is what bounds the measurement
+- still a preparatory run, so its brightness is an `observable_value` and is
+  not for the store. It waits for card 034's plan, which cites the runs
+
 ## One holder of the bench
 
 `plan.md` 6.2.1, decided 2026-09-24: **you open a device only after the
