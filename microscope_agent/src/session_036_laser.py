@@ -430,7 +430,7 @@ class Run:
                "time_base_note": ("software offsets order the log and nothing else. A value "
                                   "physics depends on comes from a trigger counter or a device "
                                   "timestamp (4.6.9)"),
-               "frames": self.frame_files, "events": self.events,
+               "events": self.events,
                "finished_at": datetime.now(timezone.utc).isoformat(timespec="milliseconds")}
         path = self.dir / "log.json"
         path.write_text(json.dumps(log, indent=2, default=str) + "\n", encoding="utf-8",

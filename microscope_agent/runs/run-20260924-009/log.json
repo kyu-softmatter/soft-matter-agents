@@ -17,11 +17,10 @@
   },
   "safety_policy_version": "7",
   "stop_criteria": [],
-  "t0_wall": null,
-  "t0_mono": null,
+  "t0_wall": "2026-09-25T01:51:55.600+00:00",
+  "t0_mono": 0.0,
   "backend": "micromanager+lunf",
-  "time_base_note": "software offsets order the log and nothing else. The run's process was stopped before it wrote its own log, so t0 was not recorded; the events up to the stop are its log.partial.jsonl as written live, and the recovery events after it carry t_mono null",
-  "frames": [],
+  "time_base_note": "software offsets order the log and nothing else. The run's process was stopped before it wrote its own log. t0_wall is log.partial.jsonl's creation time (01:51:55.600Z), which the run's first event was written at; it agrees with the gate files' creation times to within the 0.5 s gate poll. t0_mono is 0.0 because the process's monotonic origin was lost with it -- a placeholder, not a reading. The four recovery events carry an estimated offset and say so in t_mono_source",
   "events": [
     {
       "t_mono": 0.0,
@@ -179,15 +178,16 @@
       "from": "card-036:b3-close-all"
     },
     {
-      "t_mono": null,
+      "t_mono": 509.0,
       "time_base": "software",
       "event": "stopped_by_seat",
       "reason": "loadSystemConfiguration did not return for about six minutes after the close-all; the call is native and cannot be interrupted from the script, so this seat stopped the run's process. Nothing had been enabled: the last device write was the close-all.",
       "note": "t_mono is null from here: these events come from a recovery step in a new process, after the run's own clock ended",
-      "from": "card-036:b3-abort"
+      "from": "card-036:b3-abort",
+      "t_mono_source": "estimated: the recovery process did not keep the run's clock, so this is the log.partial.jsonl last-write time (02:00:24.602Z) minus t0_wall"
     },
     {
-      "t_mono": null,
+      "t_mono": 509.0,
       "time_base": "software",
       "event": "preflight",
       "channel": "laser_combiner",
@@ -205,10 +205,11 @@
         ],
         "ready": true
       },
-      "from": "card-036:b3-abort"
+      "from": "card-036:b3-abort",
+      "t_mono_source": "estimated: the recovery process did not keep the run's clock, so this is the log.partial.jsonl last-write time (02:00:24.602Z) minus t0_wall"
     },
     {
-      "t_mono": null,
+      "t_mono": 509.0,
       "time_base": "software",
       "event": "abort",
       "channel": "laser_combiner",
@@ -246,14 +247,16 @@
         "note": "Micro-Manager is not loaded in this process, so the confocal unit's shutter could not be read"
       },
       "verification": "none",
-      "from": "card-036:b3-abort"
+      "from": "card-036:b3-abort",
+      "t_mono_source": "estimated: the recovery process did not keep the run's clock, so this is the log.partial.jsonl last-write time (02:00:24.602Z) minus t0_wall"
     },
     {
-      "t_mono": null,
+      "t_mono": 509.0,
       "time_base": "software",
       "event": "shutdown",
       "reason": "stopped: the configuration load hung after the NIS force-kill",
-      "note": "the fiber shutter is open with nothing owning it: restart NIS and close it normally to shut it"
+      "note": "the fiber shutter is open with nothing owning it: restart NIS and close it normally to shut it",
+      "t_mono_source": "estimated: the recovery process did not keep the run's clock, so this is the log.partial.jsonl last-write time (02:00:24.602Z) minus t0_wall"
     }
   ],
   "finished_at": "2026-09-25T02:00:24.611+00:00"
