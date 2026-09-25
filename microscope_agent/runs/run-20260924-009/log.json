@@ -1,0 +1,260 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260924-009",
+  "plan_id": null,
+  "revision": null,
+  "no_plan_because": "The first software control of a confocal laser line on this instrument: one line, 561 nm, at a level the person set by hand, with a dark frame, a lit frame and a dark frame after, to show the line opens, closes and reaches the camera. No plan governs it; card 036 phase B step 3 orders exactly this, after the eyepiece mapping of run-20260924-008.",
+  "not_dispatched": "This run did NOT come through the plan dispatcher, which cannot reach laser_combiner: the registry's driver field names no module and read_back false channels route to manual.py, both raised and unanswered. It is src/session_036_laser.py, committed before the run. The laser is written only through devices/lunf.py's apply and abort, whose gates are the chokepoint; the camera and every read go through micromanager.py's GuardedCore.",
+  "approved_commands": {
+    "path": "microscope_agent/runs/run-20260924-009/commands.json",
+    "sha256": "d6276511f22713b5e9e5215624395bc4d1d79063c215f1579bdf57ab7a345e9f",
+    "approved_by": "the person, in microscope-20260924-3's window on 2026-09-24: 'I've completed the 1st stage', in reply to the stage list and the request to say run once it was done, with the list pinned by sha256 d6276511 shown; each of the three gates is answered separately"
+  },
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "7",
+  "stop_criteria": [],
+  "t0_wall": null,
+  "t0_mono": null,
+  "backend": "micromanager+lunf",
+  "time_base_note": "software offsets order the log and nothing else. The run's process was stopped before it wrote its own log, so t0 was not recorded; the events up to the stop are its log.partial.jsonl as written live, and the recovery events after it carry t_mono null",
+  "frames": [],
+  "events": [
+    {
+      "t_mono": 0.0,
+      "time_base": "software",
+      "event": "not_dispatched",
+      "note": "This run did NOT come through the plan dispatcher, which cannot reach laser_combiner: the registry's driver field names no module and read_back false channels route to manual.py, both raised and unanswered. It is src/session_036_laser.py, committed before the run. The laser is written only through devices/lunf.py's apply and abort, whose gates are the chokepoint; the camera and every read go through micromanager.py's GuardedCore."
+    },
+    {
+      "t_mono": 0.032,
+      "time_base": "software",
+      "event": "lunf_bound",
+      "row": {
+        "id": "laser_combiner",
+        "automatable": "partial",
+        "read_back": false,
+        "elements": [
+          {
+            "id": "line_select",
+            "lines": {
+              "405": "Dev1/port0/line2",
+              "488": "Dev1/port0/line4",
+              "561": "Dev1/port0/line6",
+              "640": "Dev1/port0/line8"
+            },
+            "open_level": 1,
+            "closed_level": 0,
+            "from": "kb:lunf_line_map_and_blanking_polarity (E3)"
+          }
+        ]
+      },
+      "eyepiece_free": {
+        "1": "run-20260924-008 events[36] (2-R100)",
+        "3": "run-20260924-008 events[42] (4-L100)"
+      },
+      "covering_limit": [
+        "laser_combiner_command_voltage_min",
+        "laser_combiner_command_voltage_max"
+      ]
+    },
+    {
+      "t_mono": 0.282,
+      "time_base": "software",
+      "event": "process_check",
+      "nis_pids": [
+        22436
+      ],
+      "from": "card-036:b3-nis-present"
+    },
+    {
+      "t_mono": 0.282,
+      "time_base": "software",
+      "event": "gate_open",
+      "gate": "preload",
+      "question": "In NIS now: the 561 nm level set LOW (within 0-5 V), the fiber shutter open, the red filter set to multi, the disk seen spinning, the light path at L100, and the lamp off. Nobody at the eyepieces. Proceed?"
+    },
+    {
+      "t_mono": 45.516,
+      "time_base": "software",
+      "event": "gate_answered",
+      "gate": "preload",
+      "answer": "yes",
+      "said": "I've completed the 1st stage (stage 1 as listed to the person: NIS on, 561 level low within 0-5 V, fiber shutter open, red filter multi, disk spinning, light path L100, lamp off, nobody at the eyepieces)",
+      "by": "the person",
+      "relayed_by": "seat:microscope-20260924-3, writing the person's chat words into the gate file"
+    },
+    {
+      "t_mono": 45.516,
+      "time_base": "software",
+      "event": "gate_open",
+      "gate": "kill",
+      "question": "NIS will be force-killed now. The fiber shutter then stays open with nothing owning it until NIS is restarted and closed normally, and the disk may stop. Kill NIS?"
+    },
+    {
+      "t_mono": 67.75,
+      "time_base": "software",
+      "event": "gate_answered",
+      "gate": "kill",
+      "answer": "yes",
+      "said": "yes",
+      "by": "the person",
+      "relayed_by": "seat:microscope-20260924-3, writing the person's chat words into the gate file"
+    },
+    {
+      "t_mono": 68.063,
+      "time_base": "software",
+      "event": "kill",
+      "pids": [
+        22436
+      ],
+      "returncode": 0,
+      "output": "SUCCESS: The process with PID 22436 has been terminated.",
+      "from": "card-036:b3-kill"
+    },
+    {
+      "t_mono": 69.688,
+      "time_base": "software",
+      "event": "preflight",
+      "channel": "laser_combiner",
+      "state": {
+        "channel": "laser_combiner",
+        "backend": "lunf",
+        "read_back": false,
+        "automatable": "partial",
+        "aborted": false,
+        "lines": [
+          "405",
+          "488",
+          "561",
+          "640"
+        ],
+        "ready": true
+      },
+      "from": "card-036:b3-lines-free"
+    },
+    {
+      "t_mono": 69.703,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "laser_combiner",
+      "action": "enable",
+      "params": {
+        "enable": {
+          "value": [],
+          "from": "card-036:b3-close-all"
+        }
+      },
+      "written": [
+        {
+          "line": "405",
+          "digital_line": "Dev1/port0/line2",
+          "level": 0,
+          "open": false
+        },
+        {
+          "line": "488",
+          "digital_line": "Dev1/port0/line4",
+          "level": 0,
+          "open": false
+        },
+        {
+          "line": "561",
+          "digital_line": "Dev1/port0/line6",
+          "level": 0,
+          "open": false
+        },
+        {
+          "line": "640",
+          "digital_line": "Dev1/port0/line8",
+          "level": 0,
+          "open": false
+        }
+      ],
+      "verification": "none",
+      "verification_note": "laser_combiner cannot be read back: these levels were written and nothing queried the lines after",
+      "from": "card-036:b3-close-all"
+    },
+    {
+      "t_mono": null,
+      "time_base": "software",
+      "event": "stopped_by_seat",
+      "reason": "loadSystemConfiguration did not return for about six minutes after the close-all; the call is native and cannot be interrupted from the script, so this seat stopped the run's process. Nothing had been enabled: the last device write was the close-all.",
+      "note": "t_mono is null from here: these events come from a recovery step in a new process, after the run's own clock ended",
+      "from": "card-036:b3-abort"
+    },
+    {
+      "t_mono": null,
+      "time_base": "software",
+      "event": "preflight",
+      "channel": "laser_combiner",
+      "state": {
+        "channel": "laser_combiner",
+        "backend": "lunf",
+        "read_back": false,
+        "automatable": "partial",
+        "aborted": false,
+        "lines": [
+          "405",
+          "488",
+          "561",
+          "640"
+        ],
+        "ready": true
+      },
+      "from": "card-036:b3-abort"
+    },
+    {
+      "t_mono": null,
+      "time_base": "software",
+      "event": "abort",
+      "channel": "laser_combiner",
+      "blanked": [
+        {
+          "line": "405",
+          "digital_line": "Dev1/port0/line2",
+          "level": 0,
+          "written": true
+        },
+        {
+          "line": "488",
+          "digital_line": "Dev1/port0/line4",
+          "level": 0,
+          "written": true
+        },
+        {
+          "line": "561",
+          "digital_line": "Dev1/port0/line6",
+          "level": 0,
+          "written": true
+        },
+        {
+          "line": "640",
+          "digital_line": "Dev1/port0/line8",
+          "level": 0,
+          "written": true
+        }
+      ],
+      "could_not_blank": null,
+      "not_reachable": "the fiber shutter at the source: nothing here reaches it, and it stays open when its controlling program dies",
+      "beam": "assumed_on",
+      "barrier": null,
+      "barrier_readings": {
+        "note": "Micro-Manager is not loaded in this process, so the confocal unit's shutter could not be read"
+      },
+      "verification": "none",
+      "from": "card-036:b3-abort"
+    },
+    {
+      "t_mono": null,
+      "time_base": "software",
+      "event": "shutdown",
+      "reason": "stopped: the configuration load hung after the NIS force-kill",
+      "note": "the fiber shutter is open with nothing owning it: restart NIS and close it normally to shut it"
+    }
+  ],
+  "finished_at": "2026-09-25T02:00:24.611+00:00"
+}
