@@ -51,6 +51,50 @@ wants, 1 to 100, is the weak well deeper than a few kT at achievable powers?
 **A weak trap that cannot hold the bead gives a record with no hops**, which
 bounds a rate and does not measure one.
 
+## The person's bench procedure for 2026-09-25
+
+Relayed from architecture, the person's own description. The task still
+arrives via the bridge. This is only how the bench will be handed over:
+
+1. **the person traps one bead by hand** in the tweezers GUI
+2. **the person brings it up into the solution by hand**
+3. **the person hands the bench to the seat, in that seat's own window**
+4. the seat runs the double-well experiment from there, **under the round's
+   approved plan**. It adds the second trap and sets strengths **only
+   inside that plan**
+
+**At hand-over, before the seat's first command, log four statements from
+the person** as answered gates, in the person's own words, not relayed. This
+is the laser-off case's shape, and the opposite state:
+
+1. **the bead is trapped, and the bench is the seat's**
+2. **the trapping laser's power setting at the hand control.** Software
+   cannot read it (`trap_laser_power_has_no_software_path`)
+3. **the bead's height above the coverslip, and how the person judged it**
+4. **the objective in place**, because the tweezers' GUI calibrations are
+   valid only for it
+
+**At hand-over the tweezers are ON and holding a bead**, blind and assumed
+on. So every trap command after it is motion. Check 85's laser-off
+exception does not apply, and the round's plan is what covers it.
+
+**Two physical points for the plan. They are general knowledge, NOT
+measured here, and are labelled so wherever they are used:**
+
+- **near the coverslip, the bead's drag rises**, while the simulation
+  assumes bulk drag. A height of a few tens of µm keeps that small, inside
+  what `P15` treats as a tie. **The cleanest fix is to measure the drag in
+  situ**: the power-spectrum corner frequency from the same position record
+  that calibrates stiffness. Then hand the simulation that measured
+  diffusivity, which `plan.md` 11-23 condition 2 allows ("viscosity or
+  diffusivity")
+- **trapping through an oil objective into water weakens the trap with
+  depth**, from spherical aberration, and it **hits the weak well hardest**,
+  which is exactly the feasibility question at a stiffness ratio of 100.
+  Calibrate at the depth used, and go no deeper than the wall effect needs.
+  **If the 40x water-immersion objective (collar 0.17) is an option, the
+  person may want to know.** Ask; do not decide
+
 ## The rules that will bind that work
 
 - **the trapping laser has no software path**: its power is the person's
