@@ -287,18 +287,6 @@
           "$ref": "#/$defs/piezo_position_ceiling",
           "$comment": "The high end of the piezo Z axis. See piezo_z_position_min."
         },
-        "illumination_power_max_488": {
-          "$ref": "#/$defs/ceiling",
-          "$comment": "PEOPLE. The confocal combiner's 488 nm line, power at the sample plane, one ceiling per line: the person's answer on 2026-09-24 to which limit covers the confocal lines. Optional, so the file stays valid without it, and required at use: the confocal wrapper (card 036) enables no line without its own ceiling, and a line with none -- 405 nm today -- is refused. The measured objectives are named in the limit's note, and any other objective is uncovered and refused. A per-line name rather than the single illumination_power_max, because one number cannot bound three lines that differ."
-        },
-        "illumination_power_max_561": {
-          "$ref": "#/$defs/ceiling",
-          "$comment": "PEOPLE. The confocal combiner's 561 nm line, power at the sample plane, one ceiling per line: the person's answer on 2026-09-24 to which limit covers the confocal lines. Optional, so the file stays valid without it, and required at use: the confocal wrapper (card 036) enables no line without its own ceiling, and a line with none -- 405 nm today -- is refused. The measured objectives are named in the limit's note, and any other objective is uncovered and refused. A per-line name rather than the single illumination_power_max, because one number cannot bound three lines that differ."
-        },
-        "illumination_power_max_640": {
-          "$ref": "#/$defs/ceiling",
-          "$comment": "PEOPLE. The confocal combiner's 640 nm line, power at the sample plane, one ceiling per line: the person's answer on 2026-09-24 to which limit covers the confocal lines. Optional, so the file stays valid without it, and required at use: the confocal wrapper (card 036) enables no line without its own ceiling, and a line with none -- 405 nm today -- is refused. The measured objectives are named in the limit's note, and any other objective is uncovered and refused. A per-line name rather than the single illumination_power_max, because one number cannot bound three lines that differ."
-        },
         "laser_combiner_command_voltage_min": {
           "$ref": "#/$defs/command_voltage_floor",
           "$comment": "PEOPLE. The lowest voltage software may command on the confocal unit's power input. Required together with its max; the confocal wrapper (card 036) sends no power command while either is absent."
@@ -306,6 +294,30 @@
         "laser_combiner_command_voltage_max": {
           "$ref": "#/$defs/command_voltage_ceiling",
           "$comment": "PEOPLE. The highest voltage software may command on the confocal unit's power input: 5 V by the person's decision of 2026-09-24. Required together with its min."
+        },
+        "piezo_position_readback_tolerance": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/limit"
+            },
+            {
+              "properties": {
+                "unit": {
+                  "const": "um"
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "not": {
+                "required": [
+                  "resolved_from"
+                ]
+              }
+            }
+          ],
+          "$comment": "INSTRUMENT. How far a RESTING read-back may fall short of a piezo floor and still count as at it, on every piezo axis. The person's decision of 2026-09-24: 10 nm, i.e. 0.01 um. It exists because the controller rests at its floor with a reading a hair below it (Z at -0.0017 um in run -004) and the wrapper refused every Z command as starting outside the limit. The wrapper uses it ONLY when judging whether a resting position is inside the range before a move. It NEVER widens a commanded position: every target stays inside piezo_<axis>_position_min/_max exactly, and check 86 checks targets against those, not against this. Optional; when absent the wrapper refuses a start below the floor, as before. A magnitude, so `limit`'s rule against zero applies: a tolerance of zero is the same as none, and is refused rather than written."
         }
       },
       "required": [
