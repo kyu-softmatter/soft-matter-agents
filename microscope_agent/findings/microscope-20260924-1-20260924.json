@@ -205,7 +205,7 @@
       "id": "photostability_run_002_within_noise",
       "fact": "Under continuous Aura GREEN at 100 per-mille (20x, 100 ms frames) for 60 s, total particle fluorescence (sum over the whole frame of pixels more than 300 ADU above the frame median, dark subtracted) stayed between 99.2% and 101.0% of the first frame, ending at 99.2%. About 1% over the minute at most, at the edge of the frame-to-frame scatter. The particles moved: by the last frame only 64% of the first frame's bright pixels were still bright.",
       "kind": "observable_value",
-      "how": "Computed by this seat after the run from the saved series frames; not in the run log. A whole-frame total is insensitive to where particles are.",
+      "how": "Computed by this seat after the run from the saved series frames; not in the run log. A whole-frame total is insensitive to where particles are. Reproducible: microscope_agent/src/analyse_photostability.py recomputes it from the frames (each checked against the sha256 in its run log) and writes microscope_agent/runs/<run_id>/photostability_analysis.json beside the run log.",
       "source": {
         "type": "run_event",
         "run_id": "run-20260924-002",
@@ -325,7 +325,7 @@
       "kind": "observable_value",
       "for_store": false,
       "fact": "Under continuous Aura GREEN at 100 per-mille for 300 s (20x, one 100 ms frame per second, 300 frames, fresh field), total particle fluorescence (sum over the whole frame of pixels more than 300 ADU above the frame median, dark subtracted) rose 3.5% within the first 5 s, most likely the light engine's output settling after State=1, then declined slowly to 97.4% of that settled level by 299 s: about 2.6% in 295 s, roughly 9e-5 per second if linear. Particles also drifted a median 17 px and some crossed the frame edge, and focus was not controlled, so the decline is an upper bound on bleaching, not a bleaching rate. Median background 81 to 82 ADU.",
-      "how": "Computed by this seat after the run from the saved frames, sampled every 5 s; not in the run log. A whole-frame total is insensitive to where particles are within the field.",
+      "how": "Computed by this seat after the run from the saved frames, sampled every 5 s; not in the run log. A whole-frame total is insensitive to where particles are within the field. Reproducible: microscope_agent/src/analyse_photostability.py recomputes it from the frames (each checked against the sha256 in its run log) and writes microscope_agent/runs/<run_id>/photostability_analysis.json beside the run log.",
       "source": {
         "type": "run_event",
         "run_id": "run-20260924-006",
@@ -338,7 +338,7 @@
       "kind": "self_report",
       "for_store": true,
       "fact": "In the fresh field of run-20260924-006 the roughly 30 particles moved during the five minutes: nearest-neighbour displacement from frame 0 was a median 7 px (max 29 px) after 60 s and a median 17 px (max 37 px) after 299 s, with 73% moving more than 10 px. At 20x that is several micrometres. Whether it is stage drift, sample flow or free particles was not separated. Any per-particle or fixed-mask brightness over time on this sample needs tracking.",
-      "how": "Blob detection on frames 0, 60, 150 and 299 of the paced series and nearest-neighbour matching, computed after the run.",
+      "how": "Blob detection on frames 0, 60, 150 and 299 of the paced series and nearest-neighbour matching, computed after the run. Reproducible: microscope_agent/src/analyse_photostability.py recomputes it from the frames (each checked against the sha256 in its run log) and writes microscope_agent/runs/<run_id>/photostability_analysis.json beside the run log.",
       "source": {
         "type": "run_event",
         "run_id": "run-20260924-006",
@@ -376,7 +376,7 @@
       "kind": "observable_value",
       "for_store": false,
       "fact": "Repeat of run-20260924-006 at another fresh location (card 038 repeats): continuous Aura GREEN at 100 per-mille for 300 s, 20x, one 100 ms frame per second. Total particle fluorescence (whole-frame sum of pixels more than 300 ADU above the frame median, dark subtracted), normalised to the settled level at 5-10 s: frame 0 at 96.6% (the light settling), then a steady decline to 96.4% by 299 s, about 3.6% in 295 s, roughly 1.2e-4 per second if linear. Drift beside it: nearest-neighbour displacement from frame 0, median 3.8 px after 60 s and 9.9 px after 299 s (48% more than 10 px, max 28 px), about 30 particles throughout. Median background 80 to 82 ADU. Together with run -006 (about 2.6% with drift of median 17 px), a slow decline of a few percent per five minutes at this setting; drift and focus were not controlled, so it is an upper bound on bleaching.",
-      "how": "Computed by this seat after the run from the saved frames by the method in microscope_agent/CLAUDE.md at b48c9b3: no frame-0 mask, normalised to the settled level, drift reported beside; not in the run log.",
+      "how": "Computed by this seat after the run from the saved frames by the method in microscope_agent/CLAUDE.md at b48c9b3: no frame-0 mask, normalised to the settled level, drift reported beside; not in the run log. Reproducible: microscope_agent/src/analyse_photostability.py recomputes it from the frames (each checked against the sha256 in its run log) and writes microscope_agent/runs/<run_id>/photostability_analysis.json beside the run log.",
       "source": {
         "type": "run_event",
         "run_id": "run-20260924-007",
