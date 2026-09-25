@@ -1,0 +1,13 @@
+{
+  "source_id": "src_operator_read_20260924_transmittance_graphs",
+  "kind": "operator_read",
+  "identifier": "The person's coarse reading of Nikon's six objective transmittance graphs (held as kb/sources/src_nikon_transmittance_<part>.png, see src_nikon_objective_selector_pages), 2026-09-24.",
+  "accessed": "2026-09-24",
+  "question": "Looking at these graphs, is every curve between 50% and 100% at 488, 561 and 640 nm, and at 1000 nm?",
+  "answer": "yes",
+  "how": "The six images were sent to the person, who looked at them and answered. The question was put as a band, not as values, so no number of this seat's reading was shown for the person to confirm.",
+  "what_it_supports": "Order of magnitude only: each objective passes between half and all of the light at those wavelengths, so the power it delivers is within a factor of 2 of what the glass would pass at 100 percent -- the same decade. That is the precision the graph supports as read by a person answering a band, and it is what the person asked for: 'a rough sense of the magnitude of the power, not an exact power'.",
+  "for_1064_nm": "The person ruled that the 1000 nm value stands in for the 1064 nm trapping laser, for this purpose. At band precision that holds even for the 40x, whose curve is still falling at 1000 nm, so long as it stays above 50 percent at 1064 -- which is assumed, not read.",
+  "grade_rule": "E3, operator_read, at order_of_magnitude precision.",
+  "license_note": "The person's reading; the images are Nikon's."
+}

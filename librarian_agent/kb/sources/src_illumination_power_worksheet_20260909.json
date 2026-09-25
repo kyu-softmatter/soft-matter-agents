@@ -52,5 +52,18 @@
   "grade_rule": "E2 via calibration:, as rule 9 routes a calibration the operator performed on this instrument, with the validity period the person gave (ten years, to 2036-09-24). Same route as src_operator_calibration_20260919, whose values also sat in a worksheet before they reached this store. Not E1: no run_id from this system.",
   "license_note": "The lab's own measurement.",
   "validity_period": "ten years, stated by the person on 2026-09-24, until 2036-09-24",
-  "meter": "Thorlabs PM100A console with an S120C or S121C photodiode head (which of the two not known)"
+  "meter": "Thorlabs PM100A console with an S120C or S121C photodiode head (which of the two not known)",
+  "trapping_laser_rows": {
+    "status": "NOT ENTERED. Held on two problems found 2026-09-24.",
+    "readings": "Power sheet rows 128-135, OT 1064 nm, mirror in, multiband in, IR in: at 20x 0 / 64 / 126 / 380 / 633 mW at 0 / 5 / 10 / 30 / 50 %, and 1020 mW at 80 %; at 4x 890 mW and at 10x 1050 mW, both at 20 %.",
+    "head": {
+      "answer": "S121C",
+      "asked": "which head measured the trapping laser",
+      "on": "2026-09-24",
+      "to": "librarian-20260924-1, directly"
+    },
+    "head_range": "Thorlabs' product page for the S121C, read 2026-09-24 in a browser: 'Standard Photodiode Power Sensor, Si, 400 - 1100 nm, 500 nW - 500 mW'. So 1064 nm is inside its wavelength range and 633, 1020, 890 and 1050 mW are ABOVE its power range. A photodiode above range typically reads low, not high, but out of range is out of its specification either way.",
+    "inconsistent_rows": "At 20x the output rises steadily with level (64, 126, 380 mW at 5, 10, 30 %), which puts 20 % near 250 mW; the 4x and 10x rows give 890 and 1050 mW at 20 %. Either their level column is wrong or they were taken in a different state. Put to the person.",
+    "within_range": "The 20x readings at 5, 10 and 30 % (64, 126, 380 mW) are inside the head's range."
+  }
 }

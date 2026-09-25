@@ -1,0 +1,201 @@
+{
+  "source_id": "src_nikon_objective_selector_pages",
+  "kind": "vendor_spec",
+  "identifier": "Nikon objective selector comparison pages for the six objectives on this nosepiece, given by the person on 2026-09-24.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, vendor_spec: the vendor's published specification for the model, not a measurement of the lenses here.",
+  "how_read": "Each page's HTML was fetched and its specification table parsed row by row (a label cell, a value cell). Not through a summarising model: one such summary, taken first, ran two rows together and invented a polarizer type for the 4x; the raw table has none. Empty cells are absent, not 'no' -- the page marks a property with a tick and leaves the rest blank.",
+  "pages": {
+    "MRD70040": {
+      "page": "https://www.microscope.healthcare.nikon.com/products/optics/selector/comparison/-179794",
+      "page_sha256_as_fetched": "4c05bec244303594f2ffa29e2c2d99120cd05db045f3793260e9c7e9ac6f4f9a",
+      "fields": {
+        "Material Number": "MRD70040",
+        "Type": "Plan Apochromat",
+        "Primary Technique": "Brightfield",
+        "Immersion": "Air",
+        "Magnification": "4X",
+        "Numerical Aperture": "0.2",
+        "Working Distance": "20",
+        "Cover Glass Thickness": "0–0.17",
+        "Brightfield": "recommended for best results",
+        "Fluorescence (visible)": "recommended for best results",
+        "Fluorescence (NIR)": "recommended for best results",
+        "Ti2-E PFS Compatible": "✓",
+        "Clinical / Laboratory": "✓",
+        "Confocal": "✓",
+        "Research": "✓"
+      },
+      "transmittance_graph": {
+        "url": "https://www.microscope.healthcare.nikon.com/images/graphs/CFI-Apochromat-Lambda-D-Series/MRD70040.png",
+        "held": "kb/sources/src_nikon_transmittance_MRD70040.png",
+        "sha256": "8f2306f62656bb6ba05759c9ec9d7f9fd443024199d94da67879103adc286b31"
+      },
+      "dimension_diagram": "on the page as an image only; not held and not read"
+    },
+    "MRD70170": {
+      "page": "https://www.microscope.healthcare.nikon.com/products/optics/selector/comparison/-179798",
+      "page_sha256_as_fetched": "1dc35c45abac17c7686111dbf4aae654954fdc7adbd80871015b7dc74c59fb7f",
+      "fields": {
+        "Material Number": "MRD70170",
+        "Type": "Plan Apochromat",
+        "Primary Technique": "Brightfield",
+        "Immersion": "Air",
+        "Magnification": "10X",
+        "Numerical Aperture": "0.45",
+        "Working Distance": "4",
+        "Cover Glass Thickness": "0.17",
+        "Brightfield": "recommended for best results",
+        "Darkfield": "universal condenser (dry) and darkfield ring",
+        "DIC": "recommended for best results",
+        "Fluorescence (visible)": "recommended for best results",
+        "Fluorescence (NIR)": "recommended for best results",
+        "Polarizing": "suitable",
+        "Polarizing Type": "Simple POL",
+        "Ti2-E PFS Compatible": "✓",
+        "Clinical / Laboratory": "✓",
+        "Confocal": "✓",
+        "Multiphoton": "✓",
+        "Research": "✓"
+      },
+      "transmittance_graph": {
+        "url": "https://www.microscope.healthcare.nikon.com/images/graphs/CFI-Apochromat-Lambda-D-Series/MRD70170.png",
+        "held": "kb/sources/src_nikon_transmittance_MRD70170.png",
+        "sha256": "e5e9c2966831b159465a97ffd04e108fc3794397bec9b1e8c419ad0ef5a631be"
+      },
+      "dimension_diagram": "on the page as an image only; not held and not read"
+    },
+    "MRD70270": {
+      "page": "https://www.microscope.healthcare.nikon.com/products/optics/selector/comparison/-179802",
+      "page_sha256_as_fetched": "f704889ce38362039c3e4919b8455709b3d5b0fc9109b318385e8e0c072a024e",
+      "fields": {
+        "Material Number": "MRD70270",
+        "Type": "Plan Apochromat",
+        "Primary Technique": "Brightfield",
+        "Immersion": "Air",
+        "Magnification": "20X",
+        "Numerical Aperture": "0.8",
+        "Working Distance": "0.8",
+        "Cover Glass Thickness": "0.17",
+        "Brightfield": "recommended for best results",
+        "Darkfield": "darkfield condenser (oil)",
+        "DIC": "recommended for best results",
+        "Fluorescence (visible)": "recommended for best results",
+        "Fluorescence (NIR)": "recommended for best results",
+        "Polarizing": "suitable",
+        "Polarizing Type": "Simple POL",
+        "Spring Loaded": "✓",
+        "Ti2-E PFS Compatible": "✓",
+        "Clinical / Laboratory": "✓",
+        "Confocal": "✓",
+        "Research": "✓"
+      },
+      "transmittance_graph": {
+        "url": "https://www.microscope.healthcare.nikon.com/images/graphs/CFI-Apochromat-Lambda-D-Series/MRD70270.png",
+        "held": "kb/sources/src_nikon_transmittance_MRD70270.png",
+        "sha256": "ad4e7cbc192704d9621adff48ee8e49eecada876222b336458abdc2f41e70f09"
+      },
+      "dimension_diagram": "on the page as an image only; not held and not read"
+    },
+    "MRD77400": {
+      "page": "https://www.microscope.healthcare.nikon.com/products/optics/selector/comparison/-1923",
+      "page_sha256_as_fetched": "3f7d936a44d5f2ce5e18e04dab7c143ae4ac5a48e75fa35c8242ea31aafd9fb5",
+      "fields": {
+        "Material Number": "MRD77400",
+        "Type": "Apochromat",
+        "Primary Technique": "Confocal",
+        "Immersion": "Water Immersion",
+        "Magnification": "40X",
+        "Numerical Aperture": "1.25",
+        "Working Distance": "0.2–0.16",
+        "Cover Glass Thickness": "0.15–0.19",
+        "Brightfield": "recommended for best results",
+        "DIC": "suitable",
+        "Fluorescence (visible)": "recommended for best results",
+        "Fluorescence (UV)": "recommended for best results",
+        "Polarizing": "suitable",
+        "Polarizing Type": "Simple POL",
+        "Phase Contrast Ring": "EXT PH3",
+        "Correction Collar": "✓",
+        "Spring Loaded": "✓",
+        "Ti2-E PFS Compatible": "✓",
+        "Confocal": "✓",
+        "Laser Trapping / Tweezing": "✓",
+        "Research": "✓"
+      },
+      "transmittance_graph": {
+        "url": "https://www.microscope.healthcare.nikon.com/images/graphs/CFI-Apochromat-Lambda-S-Objective-Series/pic_cfi_apochromat_lambda_s_40xc_wi.png",
+        "held": "kb/sources/src_nikon_transmittance_MRD77400.png",
+        "sha256": "80cbe55e6faba4dd2ea3c4d4a9ee7a5dc94474aec1e38dbe1461901c15a4714b"
+      },
+      "dimension_diagram": "on the page as an image only; not held and not read"
+    },
+    "MRD71670": {
+      "page": "https://www.microscope.healthcare.nikon.com/products/optics/selector/comparison/-179808",
+      "page_sha256_as_fetched": "676d5b918cfee88461a71814df5afcb16afd93ecd2adf4a2be587a5bc7eb5728",
+      "fields": {
+        "Material Number": "MRD71670",
+        "Type": "Plan Apochromat",
+        "Primary Technique": "Brightfield",
+        "Immersion": "Oil",
+        "Magnification": "60X",
+        "Numerical Aperture": "1.42",
+        "Working Distance": "0.15",
+        "Cover Glass Thickness": "0.17",
+        "Brightfield": "recommended for best results",
+        "DIC": "recommended for best results",
+        "Fluorescence (visible)": "recommended for best results",
+        "Fluorescence (NIR)": "recommended for best results",
+        "Polarizing": "suitable",
+        "Polarizing Type": "Simple POL",
+        "Phase Contrast Ring": "EXT PH3",
+        "Spring Loaded": "✓",
+        "Ti2-E PFS Compatible": "✓",
+        "Clinical / Laboratory": "✓",
+        "Confocal": "✓",
+        "Research": "✓"
+      },
+      "transmittance_graph": {
+        "url": "https://www.microscope.healthcare.nikon.com/images/graphs/CFI-Apochromat-Lambda-D-Series/MRD71670.png",
+        "held": "kb/sources/src_nikon_transmittance_MRD71670.png",
+        "sha256": "9e2c63669ba9b7c803768c9eedcd3cf85808f312f7321a7bcca14cefac59eeee"
+      },
+      "dimension_diagram": "on the page as an image only; not held and not read"
+    },
+    "MRD71970": {
+      "page": "https://www.microscope.healthcare.nikon.com/products/optics/selector/comparison/-179810",
+      "page_sha256_as_fetched": "7dca27308b6a1d731d55f571b12374b8323f0fa5df1a7a2be0b5ae2509cb37b4",
+      "fields": {
+        "Material Number": "MRD71970",
+        "Type": "Plan Apochromat",
+        "Primary Technique": "Brightfield",
+        "Immersion": "Oil",
+        "Magnification": "100X",
+        "Numerical Aperture": "1.45",
+        "Working Distance": "0.13",
+        "Cover Glass Thickness": "0.17",
+        "Brightfield": "recommended for best results",
+        "DIC": "recommended for best results",
+        "Fluorescence (visible)": "recommended for best results",
+        "Fluorescence (NIR)": "recommended for best results",
+        "Polarizing": "suitable",
+        "Polarizing Type": "Simple POL",
+        "Phase Contrast Ring": "EXT PH3",
+        "Spring Loaded": "✓",
+        "Ti2-E PFS Compatible": "✓",
+        "Clinical / Laboratory": "✓",
+        "Confocal": "✓",
+        "Research": "✓"
+      },
+      "transmittance_graph": {
+        "url": "https://www.microscope.healthcare.nikon.com/images/graphs/CFI-Apochromat-Lambda-D-Series/MRD71970.png",
+        "held": "kb/sources/src_nikon_transmittance_MRD71970.png",
+        "sha256": "fcee1f04a4b36c95bb385e3ff9d50258a427171496703d38740e17fd96d63134"
+      },
+      "dimension_diagram": "on the page as an image only; not held and not read"
+    }
+  },
+  "transmittance_not_entered": "The transmittance graphs are held so anyone can check a reading against the exact image, and NO value is entered from them. plan.md 5.3: a table a model builds by reading pixels off a rendered curve is an inference, E6, and may enter neither a card nor the store; a person reading the same graph is operator_read E3, to the precision the graph supports. This seat did read them by pixel on 2026-09-24, on the person's instruction to estimate the confocal power at other objectives, and entered nothing from it. The person was told and offered two routes: read the needed values themselves, or have architecture change the rule. Recorded for whoever takes it up: the pixel reading, scaled by the 20x transmittance, reproduced the measured 4x and 10x powers within 3 percent at all three lines.",
+  "for_1064_nm": "The graphs stop at 1000 nm. The person proposed using the 1000 nm value for the 1064 nm trapping laser. plan.md 5.3 allows an endpoint to stand in for values beyond it only where the curve is flat at that end. By eye, the Lambda D curves are close to flat near 1000 nm; the 40xC WI curve is still falling steeply there -- and it is the one objective Nikon marks for laser trapping. So for the 40x the 1000 nm value is neither a bound nor an approximation at 1064 nm. Not entered either way, for the reason above.",
+  "license_note": "Specification values and identifiers only; the graph images are Nikon's, held for verification."
+}

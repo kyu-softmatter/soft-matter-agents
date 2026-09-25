@@ -7,5 +7,16 @@
   "url": null,
   "url_note": "NOT RECORDED, and not invented here. The part numbers identify the document and the access date came with the table; the URL itself did not. Whoever holds it should add it -- see the catalog_url gap in kb/staging/devices.v0.json.",
   "license_note": "Identifiers and numeric specifications only; no catalog text or figure is reproduced (4.3).",
-  "note": "The catalog pages carry a transmittance graph and no numeric table. A number read off a rendered curve by a model is E6 and may enter nothing (5.3), which is why no transmission value is entered from this source."
+  "note": "The catalog pages carry a transmittance graph and no numeric table. A number read off a rendered curve by a model is E6 and may enter nothing (5.3), which is why no transmission value is entered from this source.",
+  "url_found_2026_09_24": {
+    "what": "The person gave the Nikon objective selector pages for all six part numbers on 2026-09-24; each page, its hash and its parsed table are in src_nikon_objective_selector_pages. The NA and working distance there match the values this source's entries carry.",
+    "pages": {
+      "MRD70040": "https://www.microscope.healthcare.nikon.com/products/optics/selector/comparison/-179794",
+      "MRD70170": "https://www.microscope.healthcare.nikon.com/products/optics/selector/comparison/-179798",
+      "MRD70270": "https://www.microscope.healthcare.nikon.com/products/optics/selector/comparison/-179802",
+      "MRD77400": "https://www.microscope.healthcare.nikon.com/products/optics/selector/comparison/-1923",
+      "MRD71670": "https://www.microscope.healthcare.nikon.com/products/optics/selector/comparison/-179808",
+      "MRD71970": "https://www.microscope.healthcare.nikon.com/products/optics/selector/comparison/-179810"
+    }
+  }
 }
