@@ -1,0 +1,966 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260924-101-v3-hold-smoke",
+  "plan_id": "plan-sim-20260923-101-r3",
+  "plan_path": "simulation_agent/questions/sim-20260923-101/v3_plan_simulation_sim-20260923-101.json",
+  "revision": 3,
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "1",
+  "stop_criteria": [
+    "step_displacement_diverged"
+  ],
+  "t0_wall": "2026-09-25T04:55:48.212146+00:00",
+  "t0_mono": 22.539684861,
+  "time_base_note": "Every offset is software: this side has no trigger counter and no device clock. Simulated time is a coordinate of the model, not a clock reading, so it is recorded in trajectory_meta.json rather than as this log's time base (4.6.9).",
+  "backend": "double_well_hoomd_backend",
+  "events": [
+    {
+      "t_mono": 1.2e-05,
+      "time_base": "software",
+      "event": "gate",
+      "tier": 1,
+      "approval": {
+        "id": null,
+        "kind": null
+      },
+      "envelope": {
+        "status": "inside",
+        "target": "local",
+        "budget": "smoke",
+        "compared": [
+          {
+            "cost": "wall_clock_estimate",
+            "limit": "wall_clock_max",
+            "cost_si": 96.0,
+            "limit_si": 300.0
+          },
+          {
+            "cost": "storage_estimate",
+            "limit": "storage_max",
+            "cost_si": 0.3,
+            "limit_si": 0.5
+          }
+        ],
+        "exceeded": []
+      },
+      "compare_arm": "hold",
+      "arm_cost": {
+        "arm": "hold",
+        "wall_clock_s": 960.0,
+        "storage_gb": 2.9999999999999996,
+        "from": [
+          "particle_steps_hold",
+          "particle_step_rate",
+          "coordinates_stored_hold",
+          "bytes_per_coordinate",
+          "particle_frames_saved_hold",
+          "particle_frame_cost"
+        ],
+        "frame_term": "included",
+        "note": "the arm's cost from the plan's own per-arm numbers; the plan-level estimates are the sum over kept arms"
+      },
+      "smoke": {
+        "record_fraction": 0.1,
+        "from": "smoke.record_fraction -> numbers[smoke_record_fraction]",
+        "parameter": "record_length",
+        "number": "record_length"
+      }
+    },
+    {
+      "t_mono": 0.648614,
+      "time_base": "software",
+      "event": "preflight",
+      "report": {
+        "backend": "double_well_hoomd_backend",
+        "engine_build": {
+          "engine": "hoomd",
+          "version": "7.2.0",
+          "gpu": false,
+          "precision": [
+            64,
+            32
+          ],
+          "scheme": "hoomd.md.methods.Brownian (Euler-Maruyama)",
+          "dimensions": 2,
+          "wells": "hoomd.md.force.Custom, two additive Gaussians",
+          "readout": "local snapshot sorted by tag"
+        },
+        "missing_parameters": [],
+        "seed": 11,
+        "steps_per_frame": 10,
+        "frames_expected": 7000,
+        "total_simulated_time_si": 70.0,
+        "save_interval_divides_step": true,
+        "n_particles": 1000,
+        "reduced_units": {
+          "length_si": 1e-06,
+          "energy_si": 4.04530157e-21,
+          "time_si": 11.64904247270912,
+          "note": "length trap_width_1, energy k_B*T, time trap_width_1^2/D"
+        },
+        "engine_parameters": {
+          "eps1_kT": 247.20035890921224,
+          "eps2_kT": 247.20035890921224,
+          "w2_over_w1": 1.0,
+          "trap_stiffness_2_effective_N_per_m": 1e-06,
+          "d_over_w1": 2.123994926073062,
+          "separation_m_solved_from_barrier": 2.123994926073062e-06,
+          "dt_reduced": 8.584396548838734e-05,
+          "dt_times_eps1": 0.02122065907891938
+        },
+        "landscape_computed": {
+          "merged": false,
+          "x1": -5.906488957512059e-07,
+          "x2": 5.906488957512059e-07,
+          "x_saddle": 1.1102230246238766e-22,
+          "u1": -284.30150124492036,
+          "u2": -284.30150124492036,
+          "u_saddle": -281.3015012449203,
+          "barrier_from_1": 3.000000000000057,
+          "barrier_from_2": 3.000000000000057,
+          "barrier_from_deeper": 3.000000000000057
+        },
+        "box_edge_reduced": 62.12399492607306
+      }
+    },
+    {
+      "t_mono": 1.263335,
+      "time_base": "software",
+      "event": "dispatch",
+      "action": "integrate",
+      "from": "actions[integrate]",
+      "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+      "state": "submitted",
+      "params": {
+        "integration_timestep": {
+          "value_si": 0.001,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[0].number -> numbers[integration_timestep_point]"
+        },
+        "startup_discard": {
+          "value_si": 10.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[1].number -> numbers[startup_discard_point]"
+        },
+        "box_length": {
+          "value_si": 0.0001,
+          "unit_in_plan": "m",
+          "grade": "E5",
+          "from": "conditions[2].number -> numbers[box_length_point]"
+        },
+        "trap_width_1": {
+          "value_si": 1e-06,
+          "unit_in_plan": "m",
+          "grade": "E5",
+          "from": "conditions[3].number -> numbers[trap_width_1]"
+        },
+        "trap_width_2": {
+          "value_si": 1e-06,
+          "unit_in_plan": "m",
+          "grade": "E5",
+          "from": "conditions[4].number -> numbers[trap_width_2]"
+        },
+        "milestone_core_fraction": {
+          "value_si": 0.2,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[5].number -> numbers[milestone_core_fraction]"
+        },
+        "temperature": {
+          "value_si": 293.0,
+          "unit_in_plan": "K",
+          "grade": "E3",
+          "from": "conditions[6].number -> numbers[temperature]"
+        },
+        "viscosity": {
+          "value_si": 0.001,
+          "unit_in_plan": "Pa*s",
+          "grade": "E3",
+          "from": "conditions[7].number -> numbers[viscosity]"
+        },
+        "bead_diameter": {
+          "value_si": 4.9999999999999996e-06,
+          "unit_in_plan": "um",
+          "grade": "E2",
+          "from": "conditions[8].number -> numbers[bead_diameter]"
+        },
+        "trap_stiffness_1": {
+          "value_si": 1e-06,
+          "unit_in_plan": "N/m",
+          "grade": "E5",
+          "from": "conditions[9].number -> numbers[trap_stiffness_1]"
+        },
+        "trap_stiffness_2": {
+          "value_si": 1e-06,
+          "unit_in_plan": "N/m",
+          "grade": "E5",
+          "from": "conditions[10].number -> numbers[trap_stiffness_2]"
+        },
+        "barrier_target": {
+          "value_si": 3.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[11].number -> numbers[barrier_target]"
+        },
+        "depth_difference": {
+          "value_si": 0.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[12].number -> numbers[depth_difference_none]"
+        },
+        "record_length": {
+          "value_si": 60.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[13].number -> numbers[record_length] x smoke.record_fraction -> numbers[smoke_record_fraction]"
+        },
+        "save_interval": {
+          "value_si": 0.01,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[14].number -> numbers[save_interval]"
+        },
+        "walkers": {
+          "value_si": 1000.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[15].number -> numbers[walkers]"
+        }
+      }
+    },
+    {
+      "t_mono": 1.263348,
+      "time_base": "software",
+      "event": "monitors_compiled",
+      "monitors": [
+        "step_displacement_diverged"
+      ],
+      "from": "stop_criteria"
+    },
+    {
+      "t_mono": 3.253662,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 1980,
+        "simulated_time": 1.98,
+        "frames_saved": 199,
+        "fraction_of_planned_steps": 0.028285714285714286,
+        "max_single_step_displacement": 2.7604542509565486e-08,
+        "integration_wall_s": 0.723197685000013,
+        "frame_readout_wall_s": 0.06545846399999178,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.09913202545488e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 4.04551,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 4010,
+        "simulated_time": 4.01,
+        "frames_saved": 402,
+        "fraction_of_planned_steps": 0.05728571428571429,
+        "max_single_step_displacement": 2.7616735051467965e-08,
+        "integration_wall_s": 1.4474172200000623,
+        "frame_readout_wall_s": 0.13012370499992443,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.306635467112054e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 4.836818,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 6050,
+        "simulated_time": 6.05,
+        "frames_saved": 606,
+        "fraction_of_planned_steps": 0.08642857142857142,
+        "max_single_step_displacement": 2.7804652998586052e-08,
+        "integration_wall_s": 2.1729741900000867,
+        "frame_readout_wall_s": 0.1947279939999227,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.327687001812745e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 5.628483,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 8080,
+        "simulated_time": 8.08,
+        "frames_saved": 809,
+        "fraction_of_planned_steps": 0.11542857142857142,
+        "max_single_step_displacement": 2.7804652998586052e-08,
+        "integration_wall_s": 2.896861397000084,
+        "frame_readout_wall_s": 0.25994894599989493,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.858136862896138e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 6.419695,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 10120,
+        "simulated_time": 10.120000000000001,
+        "frames_saved": 1013,
+        "fraction_of_planned_steps": 0.14457142857142857,
+        "max_single_step_displacement": 2.7804652998586052e-08,
+        "integration_wall_s": 3.6210921490001198,
+        "frame_readout_wall_s": 0.3244082689998713,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.350153440842875e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 7.210539,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 12140,
+        "simulated_time": 12.14,
+        "frames_saved": 1215,
+        "fraction_of_planned_steps": 0.17342857142857143,
+        "max_single_step_displacement": 2.8229849454722508e-08,
+        "integration_wall_s": 4.343825559000113,
+        "frame_readout_wall_s": 0.38923861699988294,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.606506919845122e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 8.001601,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 14170,
+        "simulated_time": 14.17,
+        "frames_saved": 1418,
+        "fraction_of_planned_steps": 0.20242857142857143,
+        "max_single_step_displacement": 2.8235447680487127e-08,
+        "integration_wall_s": 5.070073030000071,
+        "frame_readout_wall_s": 0.4513073099999474,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.787051852790782e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 8.79236,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 16200,
+        "simulated_time": 16.2,
+        "frames_saved": 1621,
+        "fraction_of_planned_steps": 0.23142857142857143,
+        "max_single_step_displacement": 2.8235447680487127e-08,
+        "integration_wall_s": 5.795531689000008,
+        "frame_readout_wall_s": 0.5149598429999784,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.116325152251474e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 9.582506,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 18230,
+        "simulated_time": 18.23,
+        "frames_saved": 1824,
+        "fraction_of_planned_steps": 0.26042857142857145,
+        "max_single_step_displacement": 2.8235447680487127e-08,
+        "integration_wall_s": 6.520819259000042,
+        "frame_readout_wall_s": 0.5773966079999582,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 1.0077820976622132e-06,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 10.372877,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 20270,
+        "simulated_time": 20.27,
+        "frames_saved": 2028,
+        "fraction_of_planned_steps": 0.2895714285714286,
+        "max_single_step_displacement": 2.8235447680487127e-08,
+        "integration_wall_s": 7.24162491400012,
+        "frame_readout_wall_s": 0.6421203919999101,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.62154802909438e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 11.103734,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 22300,
+        "simulated_time": 22.3,
+        "frames_saved": 2231,
+        "fraction_of_planned_steps": 0.31857142857142856,
+        "max_single_step_displacement": 2.8235447680487127e-08,
+        "integration_wall_s": 7.91112936800009,
+        "frame_readout_wall_s": 0.7021078560000049,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.29775480270579e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 11.85293,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 24320,
+        "simulated_time": 24.32,
+        "frames_saved": 2433,
+        "fraction_of_planned_steps": 0.3474285714285714,
+        "max_single_step_displacement": 2.8235447680487127e-08,
+        "integration_wall_s": 8.596232552000053,
+        "frame_readout_wall_s": 0.7635003380000427,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.673759199651246e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 12.643853,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 26330,
+        "simulated_time": 26.330000000000002,
+        "frames_saved": 2634,
+        "fraction_of_planned_steps": 0.37614285714285717,
+        "max_single_step_displacement": 2.8235447680487127e-08,
+        "integration_wall_s": 9.320756522000082,
+        "frame_readout_wall_s": 0.8289752100000314,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.891048421661112e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 13.435848,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 28340,
+        "simulated_time": 28.34,
+        "frames_saved": 2835,
+        "fraction_of_planned_steps": 0.40485714285714286,
+        "max_single_step_displacement": 2.8235447680487127e-08,
+        "integration_wall_s": 10.042210555000118,
+        "frame_readout_wall_s": 0.8942207459999807,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.356641764515286e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 14.233974,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 30350,
+        "simulated_time": 30.35,
+        "frames_saved": 3036,
+        "fraction_of_planned_steps": 0.43357142857142855,
+        "max_single_step_displacement": 2.8235447680487127e-08,
+        "integration_wall_s": 10.771288861000023,
+        "frame_readout_wall_s": 0.9602894880000363,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.80702527576233e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 15.035254,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 32370,
+        "simulated_time": 32.37,
+        "frames_saved": 3238,
+        "fraction_of_planned_steps": 0.4624285714285714,
+        "max_single_step_displacement": 2.8235447680487127e-08,
+        "integration_wall_s": 11.506989674999986,
+        "frame_readout_wall_s": 1.0264494310000103,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.543189137299614e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 15.837572,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 34370,
+        "simulated_time": 34.37,
+        "frames_saved": 3438,
+        "fraction_of_planned_steps": 0.491,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 12.241079512999974,
+        "frame_readout_wall_s": 1.0899451129999491,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.182161220333776e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 16.63635,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 36380,
+        "simulated_time": 36.38,
+        "frames_saved": 3639,
+        "fraction_of_planned_steps": 0.5197142857142857,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 12.970842139999974,
+        "frame_readout_wall_s": 1.1557031349999178,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.781670839062808e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 17.434615,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 38400,
+        "simulated_time": 38.4,
+        "frames_saved": 3841,
+        "fraction_of_planned_steps": 0.5485714285714286,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 13.703265384999995,
+        "frame_readout_wall_s": 1.2198709779998964,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.983650447939263e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 18.230859,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 40420,
+        "simulated_time": 40.42,
+        "frames_saved": 4043,
+        "fraction_of_planned_steps": 0.5774285714285714,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 14.43413073499989,
+        "frame_readout_wall_s": 1.2846082119999807,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.295166785083194e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 19.02518,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 42430,
+        "simulated_time": 42.43,
+        "frames_saved": 4244,
+        "fraction_of_planned_steps": 0.6061428571428571,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 15.15913484399998,
+        "frame_readout_wall_s": 1.3501266739999167,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.010881028840622e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 19.819154,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 44440,
+        "simulated_time": 44.44,
+        "frames_saved": 4445,
+        "fraction_of_planned_steps": 0.6348571428571429,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 15.883580027999997,
+        "frame_readout_wall_s": 1.4156936449999549,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.836210198812214e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 20.612453,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 46470,
+        "simulated_time": 46.47,
+        "frames_saved": 4648,
+        "fraction_of_planned_steps": 0.6638571428571428,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 16.609471207999974,
+        "frame_readout_wall_s": 1.4807511460000455,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.709494850059624e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 21.404044,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 48490,
+        "simulated_time": 48.49,
+        "frames_saved": 4850,
+        "fraction_of_planned_steps": 0.6927142857142857,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 17.335668671999983,
+        "frame_readout_wall_s": 1.5440332060000088,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.341032220992438e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 22.195178,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 50510,
+        "simulated_time": 50.51,
+        "frames_saved": 5052,
+        "fraction_of_planned_steps": 0.7215714285714285,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 18.058492442000052,
+        "frame_readout_wall_s": 1.6081361869999427,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.885285228665483e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 22.986528,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 52550,
+        "simulated_time": 52.550000000000004,
+        "frames_saved": 5256,
+        "fraction_of_planned_steps": 0.7507142857142857,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 18.785562967000025,
+        "frame_readout_wall_s": 1.6731739180000105,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.911827418594218e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 23.778424,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 54570,
+        "simulated_time": 54.57,
+        "frames_saved": 5458,
+        "fraction_of_planned_steps": 0.7795714285714286,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 19.50744730100005,
+        "frame_readout_wall_s": 1.7371752710000692,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.890382520436613e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 24.57069,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 56590,
+        "simulated_time": 56.59,
+        "frames_saved": 5660,
+        "fraction_of_planned_steps": 0.8084285714285714,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 20.232204191000044,
+        "frame_readout_wall_s": 1.8026795940001605,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.312909010793092e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 25.363388,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 58610,
+        "simulated_time": 58.61,
+        "frames_saved": 5862,
+        "fraction_of_planned_steps": 0.8372857142857143,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 20.95720386800008,
+        "frame_readout_wall_s": 1.8677587030001135,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.420685662464665e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 26.156001,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 60620,
+        "simulated_time": 60.620000000000005,
+        "frames_saved": 6063,
+        "fraction_of_planned_steps": 0.866,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 21.68208536500014,
+        "frame_readout_wall_s": 1.9326947180000715,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.246352077377341e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 26.924418,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 62620,
+        "simulated_time": 62.620000000000005,
+        "frames_saved": 6263,
+        "fraction_of_planned_steps": 0.8945714285714286,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 22.389418813000106,
+        "frame_readout_wall_s": 1.994231244000133,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.283291510955631e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 27.713362,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 64650,
+        "simulated_time": 64.65,
+        "frames_saved": 6466,
+        "fraction_of_planned_steps": 0.9235714285714286,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 23.112190017000124,
+        "frame_readout_wall_s": 2.0564358930001774,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.852225005574553e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 28.502655,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 66660,
+        "simulated_time": 66.66,
+        "frames_saved": 6667,
+        "fraction_of_planned_steps": 0.9522857142857143,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 23.83209996700011,
+        "frame_readout_wall_s": 2.121484303000166,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 9.094050980569515e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 29.292127,
+      "time_base": "software",
+      "event": "progress",
+      "state": {
+        "state": "running",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 68680,
+        "simulated_time": 68.68,
+        "frames_saved": 6869,
+        "fraction_of_planned_steps": 0.9811428571428571,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 24.55403569300009,
+        "frame_readout_wall_s": 2.1865719210001657,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.955224033024674e-07,
+        "failure": null
+      }
+    },
+    {
+      "t_mono": 29.818156,
+      "time_base": "software",
+      "event": "complete",
+      "monitor": null,
+      "state": {
+        "state": "complete",
+        "initialised": true,
+        "handle": "double_well_hoomd_backend:11:7efc13bd92e0",
+        "steps_taken": 70000,
+        "simulated_time": 70.0,
+        "frames_saved": 7001,
+        "fraction_of_planned_steps": 1.0,
+        "max_single_step_displacement": 2.8484487467951662e-08,
+        "integration_wall_s": 25.026566416999984,
+        "frame_readout_wall_s": 2.229254036000164,
+        "frame_write_wall_s": null,
+        "max_absolute_coordinate": 8.904526216882948e-07,
+        "failure": null
+      },
+      "note": "the backend reports complete and no stop criterion fired"
+    },
+    {
+      "t_mono": 60.389624,
+      "time_base": "software",
+      "event": "cost_measured",
+      "steps_taken": 70000,
+      "frames_saved": 7001,
+      "n_particles": 1000,
+      "integration_wall_s": 25.026566416999984,
+      "frame_readout_wall_s": 2.229254036000164,
+      "frame_write_wall_s": null,
+      "trajectory_write_after_run_s": 30.562692679,
+      "particle_step_rate": 2797027.7198094013,
+      "particle_frame_cost": 3.1841937380376573e-07,
+      "peak_rss_bytes": 689086464,
+      "note": "peak_rss is the operator process's high-water mark, which includes the backend running in it. particle_frame_cost covers readout only; a streaming backend's in-loop write is frame_write_wall_s"
+    }
+  ],
+  "finished_at": "2026-09-25T04:56:49.886735+00:00"
+}

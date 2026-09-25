@@ -1,0 +1,220 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-101-bd_overdamped_gaussian_double_well_2d-a4-r3",
+  "qid": "sim-20260923-101",
+  "thread": "solo-sim-20260923-101",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-25T05:30:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-101:v3:bd_overdamped_gaussian_double_well_2d:a4",
+  "config": "bd_overdamped_gaussian_double_well_2d",
+  "axis": "a4",
+  "kb_version": "kbv-a1bb4a5acf25",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "save_interval",
+      "unit": "s",
+      "max": 0.03,
+      "basis": [
+        "save_interval_max"
+      ],
+      "precision": "order_of_magnitude",
+      "varies_with": [
+        "trap_stiffness"
+      ]
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "save_interval <= gamma/(2k)",
+      "parameter": "save_interval",
+      "state": "returned",
+      "interval": {
+        "parameter": "save_interval",
+        "unit": "s",
+        "max": 0.03,
+        "basis": [
+          "save_interval_max"
+        ],
+        "precision": "order_of_magnitude",
+        "varies_with": [
+          "trap_stiffness"
+        ]
+      }
+    },
+    {
+      "inequality": "a camera frame is an instant",
+      "parameter": "camera_exposure_time",
+      "state": "returned",
+      "precondition": {
+        "parameter": "camera_exposure_time",
+        "requires": "the plan must state the exposure as a condition of the comparison: a frame averages the position over its exposure, which narrows each peak and can hide a short visit, while the simulation's positions are instantaneous",
+        "basis": [
+          "save_interval_max"
+        ]
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the tracer in the bottle in use",
+      "origin": "v3_goal.json#bead_diameter"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "pure water; asked over 292-294 K and the entry's validity covers it. The bench's in-situ diffusivity, near the coverslip, replaces the Stokes drag in the re-prediction",
+      "origin": "v3_goal.json#viscosity"
+    },
+    {
+      "name": "trap_stiffness_1",
+      "value": 1e-06,
+      "unit": "N/m",
+      "source": "assumed:a_holding_stiffness",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "1 pN/um. Nothing in the store gives a trap stiffness; the experiment calibrates each trap after it is set. Chosen at the soft end, where the stiffness-matching tolerance is about five per cent at this width",
+      "origin": "v3_goal.json#trap_stiffness_1"
+    },
+    {
+      "name": "save_interval",
+      "value": 0.01,
+      "unit": "s",
+      "source": "assumed:a_bench_record",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "10 ms, the middle of the 1-50 ms a camera might frame at. Assumed",
+      "origin": "v3_goal.json#save_interval"
+    },
+    {
+      "name": "drag_coefficient",
+      "value": 5e-08,
+      "unit": "N*s/m",
+      "source": "computed:stokes_drag",
+      "grade": "E4",
+      "formula": "3*pi*viscosity*bead_diameter",
+      "inputs": [
+        "viscosity",
+        "bead_diameter"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "bulk Stokes drag. Near the coverslip the drag is larger; the bench's in-situ diffusivity replaces this in the re-prediction"
+    },
+    {
+      "name": "trap_relaxation_time",
+      "value": 0.05,
+      "unit": "s",
+      "source": "computed:drag_over_stiffness",
+      "grade": "E5",
+      "formula": "drag_coefficient/trap_stiffness_1",
+      "inputs": [
+        "drag_coefficient",
+        "trap_stiffness_1"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "gamma/k at the bottom of one well alone: the shortest time in the problem. Near merging the curvature at the minima is smaller, so the true in-well time is longer and this bound is safe"
+    },
+    {
+      "name": "save_interval_max",
+      "value": 0.03,
+      "unit": "s",
+      "source": "computed:half_relaxation_time",
+      "grade": "E5",
+      "formula": "0.5*trap_relaxation_time",
+      "inputs": [
+        "trap_relaxation_time"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "frames closer than the in-well relaxation, so a short excursion into a core is not missed and milestoning does not undercount returns"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_holding_stiffness",
+      "statement": "1 pN/um for both traps: the soft end of what the tweezers hold a 5 um bead at, where the matching tolerance is about five per cent. Nothing measured picks it.",
+      "numbers": [
+        "trap_stiffness_1"
+      ],
+      "falsifier": "the experiment's calibrated stiffness of each trap, returned after the traps are set, replaces both and the simulation re-predicts at them",
+      "gap_ref": "trap_stiffness_absent"
+    },
+    {
+      "rationale_id": "a_bench_record",
+      "statement": "The records as the bench might take them, and the ensembles that stand for them: ten minutes at a 10 ms frame as the base, thirty minutes and a 50 ms frame at one point to show what the spread is sensitive to, a thousand independent records a point (five hundred for the long one, for storage), and a smoke run of a tenth.",
+      "numbers": [
+        "save_interval"
+      ],
+      "falsifier": "the bench's actual record length and frame interval replace the first two, and the thousand-record spread study replaces the ensemble",
+      "gap_ref": "record_length_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-a1bb4a5acf25",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-a1bb4a5acf25",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "camera_exposure_time_absent",
+      "observable": "camera_exposure_time",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "trap_stiffness_absent",
+      "observable": "trap_stiffness",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "record_length_absent",
+      "observable": "record_length",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    }
+  ],
+  "degraded": [],
+  "note": "The frame interval is the bench's, and the same estimator is applied to both records at it; this axis says how coarse it may be before milestoning misses returns."
+}

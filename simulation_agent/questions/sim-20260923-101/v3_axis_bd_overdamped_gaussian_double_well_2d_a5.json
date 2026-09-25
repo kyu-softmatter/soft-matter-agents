@@ -1,0 +1,153 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260923-101-bd_overdamped_gaussian_double_well_2d-a5-r3",
+  "qid": "sim-20260923-101",
+  "thread": "solo-sim-20260923-101",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-25T05:30:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260923-101:v3:bd_overdamped_gaussian_double_well_2d:a5",
+  "config": "bd_overdamped_gaussian_double_well_2d",
+  "axis": "a5",
+  "kb_version": "kbv-a1bb4a5acf25",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "particle_steps",
+      "unit": "1",
+      "max": 7000000000.0,
+      "basis": [
+        "particle_steps_max"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "walkers*(startup+record)/dt <= wall_clock_max*particle_step_rate",
+      "parameter": "particle_steps",
+      "state": "returned",
+      "interval": {
+        "parameter": "particle_steps",
+        "unit": "1",
+        "max": 7000000000.0,
+        "basis": [
+          "particle_steps_max"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "walkers",
+      "value": 1000,
+      "unit": "1",
+      "source": "assumed:a_bench_record",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "independent single-bead records in one engine run, each as long as the bench record",
+      "origin": "v3_goal.json#walkers"
+    },
+    {
+      "name": "particle_step_rate",
+      "value": 1000000.0,
+      "unit": "1/s",
+      "source": "assumed:a_step_rate",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "walker-steps a second on one core, HOOMD CPU with the wells as a Python force"
+    },
+    {
+      "name": "bytes_per_coordinate",
+      "value": 3e-08,
+      "unit": "GB",
+      "source": "assumed:a_step_rate",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "about 28 bytes a coordinate in the text trajectory, read off run-20260924-101-v2-smoke2"
+    },
+    {
+      "name": "particle_frame_cost",
+      "value": 6e-06,
+      "unit": "s",
+      "source": "assumed:a_step_rate",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "readout and text write per walker-frame, read off run-20260924-101-v2-full"
+    },
+    {
+      "name": "particle_steps_max",
+      "value": 7000000000.0,
+      "unit": "1",
+      "source": "assumed:a_step_budget",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the local wall clock at the assumed rate, as walker-steps"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_bench_record",
+      "statement": "The records as the bench might take them, and the ensembles that stand for them: ten minutes at a 10 ms frame as the base, thirty minutes and a 50 ms frame at one point to show what the spread is sensitive to, a thousand independent records a point (five hundred for the long one, for storage), and a smoke run of a tenth.",
+      "numbers": [
+        "walkers"
+      ],
+      "falsifier": "the bench's actual record length and frame interval replace the first two, and the thousand-record spread study replaces the ensemble",
+      "gap_ref": "record_length_absent"
+    },
+    {
+      "rationale_id": "a_step_rate",
+      "statement": "About a million walker-steps a second: task 024 timed 1.1e6 at 200 walkers and 3.6e6 at 2000 on this machine, in a study rather than a run, so it stands here as an assumption.",
+      "numbers": [
+        "particle_step_rate",
+        "bytes_per_coordinate",
+        "particle_frame_cost"
+      ],
+      "falsifier": "this plan's smoke run log replaces the rate, and its peak memory the bytes",
+      "gap_ref": "particle_step_rate_absent"
+    },
+    {
+      "rationale_id": "a_step_budget",
+      "statement": "2 h from envelope/budget.json at a million walker-steps a second.",
+      "numbers": [
+        "particle_steps_max"
+      ],
+      "falsifier": "the smoke run's measured rate",
+      "gap_ref": "particle_step_rate_absent"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "particle_step_rate_absent",
+      "observable": "particle_step_rate",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "record_length_absent",
+      "observable": "record_length",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    }
+  ],
+  "degraded": [],
+  "note": "A5 constrains the product of the settable parameters and does not see A1's step."
+}

@@ -1,0 +1,827 @@
+{
+  "card": "result",
+  "schema_version": "0.1",
+  "id": "result-sim-20260923-101-run-20260924-101-v2-full",
+  "qid": "sim-20260923-101",
+  "thread": "solo-sim-20260923-101",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-25T04:35:54.731084+00:00",
+  "status": "DONE",
+  "plan_id": "plan-sim-20260923-101-r2",
+  "plan_revision": 2,
+  "plan_hash": "sha256:9579f1576db0b79142e7dd64002a0dd941cfb6daec10ba3c30273ab48eed88cf",
+  "approval_id": null,
+  "run_id": "run-20260924-101-v2-full",
+  "observable": {
+    "name": "well_occupancy"
+  },
+  "outcome": "DONE",
+  "values": [
+    {
+      "metric": "well_occupancy",
+      "number": "well_occupancy_mean",
+      "uncertainty": "well_occupancy_one_record_spread"
+    },
+    {
+      "metric": "interwell_transition_rate",
+      "number": "transition_rate_1_to_2_mean",
+      "uncertainty": "transition_rate_1_to_2_one_record_spread"
+    },
+    {
+      "metric": "interwell_transition_rate",
+      "number": "transition_rate_2_to_1_mean",
+      "uncertainty": "transition_rate_2_to_1_one_record_spread"
+    },
+    {
+      "metric": "well_residence_time",
+      "number": "residence_time_well_1_mean",
+      "uncertainty": "residence_time_well_1_one_record_spread"
+    },
+    {
+      "metric": "interwell_barrier_height",
+      "number": "barrier_projected_pooled",
+      "uncertainty": null
+    },
+    {
+      "metric": "interwell_transition_rate",
+      "number": "hops_per_hour_mean",
+      "uncertainty": null
+    }
+  ],
+  "criteria_evaluation": [
+    {
+      "id": "step_displacement_diverged",
+      "kind": "stop",
+      "met": false,
+      "observed_number": "max_step_displacement"
+    },
+    {
+      "id": "hops_counted",
+      "kind": "success",
+      "met": false,
+      "observed_number": "hops_per_record_median"
+    },
+    {
+      "id": "occupancy_symmetric",
+      "kind": "success",
+      "met": null,
+      "observed_number": "well_occupancy_mean",
+      "why_unevaluated": "the criterion names a decade-resolution target as its threshold, which is not an occupancy; it was written ill-posed and is not evaluated after the run. The mean occupancy and its spread are the card's values"
+    }
+  ],
+  "deviations": [
+    {
+      "parameter": "integration_timestep",
+      "planned_number": "integration_timestep_point",
+      "actual_number": "integration_timestep_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "save_interval",
+      "planned_number": "save_interval",
+      "actual_number": "save_interval_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    },
+    {
+      "parameter": "record_length",
+      "planned_number": "record_length",
+      "actual_number": "record_length_actual",
+      "within_tolerance": true,
+      "note": "exact reproduction; neither the plan nor the envelope declares a tolerance for this parameter, so anything other than exact is reported as a deviation for a person to read rather than measured against a figure this card invented"
+    }
+  ],
+  "time_base": {
+    "t0_wall": "2026-09-25T04:32:33.060764+00:00",
+    "t0_mono": 3704.946022445,
+    "alignment": "model_step_index"
+  },
+  "targets": [
+    {
+      "metric": "well_occupancy",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "one decade on each of the four observables, measured from the same trajectory: well_residence_time, interwell_transition_rate and interwell_barrier_height belong to the same question"
+    }
+  ],
+  "estimation": {
+    "vocabulary_version": "obs-78b69c58ccea",
+    "followed": true,
+    "note": "the registered estimators, applied to each record's trajectory projected on the line joining the traps: cores around the two histogram peaks of the pooled record, radius the plan's fraction of their spacing, sticky milestoning at the frame interval; occupancy as time assigned to well 1; each ordered rate as transitions out of a well over the time assigned to it; residence as the mean completed dwell. Trap 1 is at negative x and +x points from trap 1 to trap 2; the separation the engine solved from the barrier is 2.145 um."
+  },
+  "numbers": [
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#temperature",
+      "precision": "significant_figures",
+      "note": "the room's reading, not established to be the sample's. In this model it is a coordinate -- the noise amplitude -- and citing the room records why this value was chosen"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#viscosity",
+      "precision": "significant_figures",
+      "note": "pure water; asked over 292-294 K and the entry's validity covers it. The bench's in-situ diffusivity, near the coverslip, replaces the Stokes drag in the re-prediction"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#bead_diameter",
+      "precision": "significant_figures",
+      "note": "the tracer in the bottle in use"
+    },
+    {
+      "name": "trap_stiffness_1",
+      "value": 1e-06,
+      "unit": "N/m",
+      "source": "assumed:a_holding_stiffness",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#trap_stiffness_1",
+      "precision": "order_of_magnitude",
+      "note": "1 pN/um. Nothing in the store gives a trap stiffness; the experiment calibrates each trap after it is set. Chosen at the soft end, where the stiffness-matching tolerance is about five per cent at this width"
+    },
+    {
+      "name": "trap_stiffness_2",
+      "value": 1e-06,
+      "unit": "N/m",
+      "source": "assumed:a_holding_stiffness",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#trap_stiffness_2",
+      "precision": "order_of_magnitude",
+      "note": "EQUAL to trap 1, and that is the finding rather than a simplification: with wells hundreds of kT deep, any ratio of 0.5 or below leaves a barrier from the deeper well of tens to thousands of kT at every separation, so the person's 1-to-100 range holds no hops at all"
+    },
+    {
+      "name": "trap_width_1",
+      "value": 1e-06,
+      "unit": "m",
+      "source": "assumed:a_trap_width",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#trap_width_1",
+      "precision": "order_of_magnitude",
+      "note": "the Gaussian width of each well. Unknown; the store holds none. Near the bead radius is the microscope side's estimate, and the lower end of the map's 1-2.5 um"
+    },
+    {
+      "name": "trap_width_2",
+      "value": 1e-06,
+      "unit": "m",
+      "source": "assumed:a_trap_width",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#trap_width_2",
+      "precision": "order_of_magnitude",
+      "note": "equal to trap 1's"
+    },
+    {
+      "name": "barrier_target",
+      "value": 4,
+      "unit": "1",
+      "source": "assumed:a_barrier_target",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#barrier_target",
+      "precision": "order_of_magnitude",
+      "note": "the barrier from the deeper well in units of k_B*T -- a ratio, so the operator can pass it through: kT has no fixed SI factor. Inside the 1-10 kT window. THE SEPARATION IS NOT ON THIS CARD, AND THAT IS DELIBERATE: the barrier moves by about 0.55 kT per 10 nm here, so the separation that gives 4 kT has to be known to about a per cent, which an explore-mode number cannot state and a bench cannot dial. The engine solves the separation from this barrier and reports it in the run record, and the bench tunes its separation the same way -- by the histogram, not by a number"
+    },
+    {
+      "name": "integration_timestep_point",
+      "value": 0.001,
+      "unit": "s",
+      "source": "computed:a1_ceiling",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#integration_timestep_point",
+      "precision": "order_of_magnitude",
+      "note": "at A1's ceiling, and a tenth of the frame so a frame never falls between steps"
+    },
+    {
+      "name": "save_interval",
+      "value": 0.01,
+      "unit": "s",
+      "source": "assumed:a_bench_record",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#save_interval",
+      "precision": "order_of_magnitude",
+      "note": "10 ms, the middle of the 1-50 ms a camera might frame at. Assumed"
+    },
+    {
+      "name": "startup_discard_point",
+      "value": 10,
+      "unit": "s",
+      "source": "computed:a2_floor",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#startup_discard_point",
+      "precision": "order_of_magnitude",
+      "note": "at A2's floor"
+    },
+    {
+      "name": "record_length",
+      "value": 600,
+      "unit": "s",
+      "source": "assumed:a_bench_record",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#record_length",
+      "precision": "order_of_magnitude",
+      "note": "ten minutes, the short end of the 10-60 min the experiment might record. Assumed; the spread over records at 10, 30 and 60 min is a separate study"
+    },
+    {
+      "name": "walkers",
+      "value": 200,
+      "unit": "1",
+      "source": "assumed:a_bench_record",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#walkers",
+      "precision": "significant_figures",
+      "note": "independent single-bead records in one engine run, each as long as the bench record"
+    },
+    {
+      "name": "milestone_core_fraction",
+      "value": 0.2,
+      "unit": "1",
+      "source": "assumed:a_core_fraction",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#milestone_core_fraction",
+      "precision": "order_of_magnitude",
+      "note": "the core radius around each histogram peak, as a fraction of the peak spacing. Near merging the minima sit far inside the trap centres (+-0.67 w against +-1.08 w at the stiff point), so cores on the trap centres would miss the wells; the experiment applies the same rule to its own histogram"
+    },
+    {
+      "name": "hops_per_record_min",
+      "value": 10,
+      "unit": "count",
+      "source": "assumed:a_hops",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#hops_per_record_min",
+      "precision": "significant_figures",
+      "note": "below this a record bounds the rate rather than measuring it (the observable's own note)"
+    },
+    {
+      "name": "box_length_point",
+      "value": 0.0001,
+      "unit": "m",
+      "source": "computed:a3_floor",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260923-101.json#box_length_point",
+      "precision": "order_of_magnitude",
+      "note": "at A3's floor: a hundred widths, the far field flat and never wrapped"
+    },
+    {
+      "name": "well_occupancy_mean",
+      "value": 0.511517841083754,
+      "unit": "1",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "trap_width_1",
+        "trap_width_2",
+        "barrier_target",
+        "integration_timestep_point",
+        "save_interval",
+        "startup_discard_point",
+        "record_length",
+        "walkers",
+        "milestone_core_fraction"
+      ],
+      "note": "well 1's occupancy, the mean over 200 independent records of run-20260924-101-v2-full"
+    },
+    {
+      "name": "well_occupancy_one_record_spread",
+      "value": 0.17645073511246523,
+      "unit": "1",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "trap_width_1",
+        "trap_width_2",
+        "barrier_target",
+        "integration_timestep_point",
+        "save_interval",
+        "startup_discard_point",
+        "record_length",
+        "walkers",
+        "milestone_core_fraction"
+      ],
+      "note": "the standard deviation over records: what ONE record's occupancy scatters by. 5th-95th percentile over records 0.23-0.81"
+    },
+    {
+      "name": "transition_rate_1_to_2_mean",
+      "value": 0.013776089587871528,
+      "unit": "1/s",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "trap_width_1",
+        "trap_width_2",
+        "barrier_target",
+        "integration_timestep_point",
+        "save_interval",
+        "startup_discard_point",
+        "record_length",
+        "walkers",
+        "milestone_core_fraction"
+      ],
+      "note": "the registered rate out of well 1: transitions out over the time assigned to well 1, mean over records; one record's 5th-95th percentile 0.00411-0.0269 /s"
+    },
+    {
+      "name": "transition_rate_1_to_2_one_record_spread",
+      "value": 0.008097246571182357,
+      "unit": "1/s",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "trap_width_1",
+        "trap_width_2",
+        "barrier_target",
+        "integration_timestep_point",
+        "save_interval",
+        "startup_discard_point",
+        "record_length",
+        "walkers",
+        "milestone_core_fraction"
+      ],
+      "note": "the standard deviation of that rate over records"
+    },
+    {
+      "name": "transition_rate_2_to_1_mean",
+      "value": 0.01532807088128371,
+      "unit": "1/s",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "trap_width_1",
+        "trap_width_2",
+        "barrier_target",
+        "integration_timestep_point",
+        "save_interval",
+        "startup_discard_point",
+        "record_length",
+        "walkers",
+        "milestone_core_fraction"
+      ],
+      "note": "the same out of well 2; one record's 5th-95th percentile 0.00491-0.0338 /s"
+    },
+    {
+      "name": "transition_rate_2_to_1_one_record_spread",
+      "value": 0.010526881383810728,
+      "unit": "1/s",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "trap_width_1",
+        "trap_width_2",
+        "barrier_target",
+        "integration_timestep_point",
+        "save_interval",
+        "startup_discard_point",
+        "record_length",
+        "walkers",
+        "milestone_core_fraction"
+      ],
+      "note": "the standard deviation of that rate over records"
+    },
+    {
+      "name": "hops_per_hour_mean",
+      "value": 44.25063569147727,
+      "unit": "1",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "trap_width_1",
+        "trap_width_2",
+        "barrier_target",
+        "integration_timestep_point",
+        "save_interval",
+        "startup_discard_point",
+        "record_length",
+        "walkers",
+        "milestone_core_fraction"
+      ],
+      "note": "all transitions, both directions, over the record, per hour: for planning a record, not the registered observable"
+    },
+    {
+      "name": "residence_time_well_1_mean",
+      "value": 82.45655916666666,
+      "unit": "s",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "trap_width_1",
+        "trap_width_2",
+        "barrier_target",
+        "integration_timestep_point",
+        "save_interval",
+        "startup_discard_point",
+        "record_length",
+        "walkers",
+        "milestone_core_fraction"
+      ],
+      "note": "the mean completed dwell in well 1 per record, averaged over records; the first and last dwell of each record are cut and not counted, so a short record understates long dwells. One record's 5th-95th percentile 25.3-192 s"
+    },
+    {
+      "name": "residence_time_well_1_one_record_spread",
+      "value": 56.899954905197966,
+      "unit": "s",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "trap_width_1",
+        "trap_width_2",
+        "barrier_target",
+        "integration_timestep_point",
+        "save_interval",
+        "startup_discard_point",
+        "record_length",
+        "walkers",
+        "milestone_core_fraction"
+      ],
+      "note": "the standard deviation of that per-record mean over records"
+    },
+    {
+      "name": "barrier_projected_pooled",
+      "value": 4.007990072898979,
+      "unit": "1",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "trap_width_1",
+        "trap_width_2",
+        "barrier_target",
+        "integration_timestep_point",
+        "save_interval",
+        "startup_discard_point",
+        "record_length",
+        "walkers",
+        "milestone_core_fraction"
+      ],
+      "note": "in units of k_B*T: -ln of the projected histogram pooled over all records, saddle minus the deeper peak. The potential's own barrier, computed, is 4.00"
+    },
+    {
+      "name": "max_step_displacement",
+      "value": 2.864397359428841e-08,
+      "unit": "m",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "trap_width_1",
+        "trap_width_2",
+        "barrier_target",
+        "integration_timestep_point",
+        "save_interval",
+        "startup_discard_point",
+        "record_length",
+        "walkers",
+        "milestone_core_fraction"
+      ],
+      "note": "the largest single-step displacement, which the divergence criterion watches against the box"
+    },
+    {
+      "name": "hops_per_record_median",
+      "value": 7.0,
+      "unit": "1",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "trap_width_1",
+        "trap_width_2",
+        "barrier_target",
+        "integration_timestep_point",
+        "save_interval",
+        "startup_discard_point",
+        "record_length",
+        "walkers",
+        "milestone_core_fraction"
+      ],
+      "note": "the median over records of the transitions in one record"
+    },
+    {
+      "name": "integration_timestep_actual",
+      "value": 0.001,
+      "unit": "s",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "integration_timestep_point"
+      ],
+      "note": "simulated time over the integer step count"
+    },
+    {
+      "name": "save_interval_actual",
+      "value": 0.01,
+      "unit": "s",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "save_interval"
+      ],
+      "note": "simulated time over the intervals between saved frames"
+    },
+    {
+      "name": "record_length_actual",
+      "value": 600.0,
+      "unit": "s",
+      "source": "simulated:run-20260924-101-v2-full",
+      "grade": "E5",
+      "inputs": [
+        "record_length",
+        "startup_discard_point"
+      ],
+      "note": "simulated time after the startup discard"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_holding_stiffness",
+      "statement": "1 pN/um for both traps: the soft end of what the tweezers hold a 5 um bead at, where the matching tolerance is about five per cent. Nothing measured picks it.",
+      "numbers": [
+        "trap_stiffness_1",
+        "trap_stiffness_2"
+      ],
+      "falsifier": "the experiment's calibrated stiffness of each trap, returned after the traps are set, replaces both and the simulation re-predicts at them",
+      "gap_ref": "trap_stiffness_absent"
+    },
+    {
+      "rationale_id": "a_trap_width",
+      "statement": "A Gaussian width of 1 um, near the bead radius. Unknown, and the map spans 1-2.5 um to show how much the answer depends on it.",
+      "numbers": [
+        "trap_width_1",
+        "trap_width_2"
+      ],
+      "falsifier": "the width read off the calibrated single-trap histogram's departure from a Gaussian, or off the separation at which the two wells merge",
+      "gap_ref": "trap_potential_width_absent"
+    },
+    {
+      "rationale_id": "a_barrier_target",
+      "statement": "4 kT, inside the 1-10 kT window where hops are frequent enough to count and rare enough to be hops.",
+      "numbers": [
+        "barrier_target"
+      ],
+      "falsifier": "a run returning under a handful of hops per record lowers it",
+      "gap_ref": "interwell_barrier_height_absent"
+    },
+    {
+      "rationale_id": "a_bench_record",
+      "statement": "The record as the bench might take it, and the ensemble that stands for it: ten minutes, the short end of what the bench may record; 10 ms between frames, the middle of the camera's likely range; two hundred independent records, enough to see the spread one record shows; and a smoke run of a tenth of the record, one minute, enough to time the engine.",
+      "numbers": [
+        "record_length",
+        "save_interval",
+        "walkers"
+      ],
+      "falsifier": "the bench's actual record length and frame interval replace the first two, and the thousand-record spread study replaces the ensemble",
+      "gap_ref": "record_length_absent"
+    },
+    {
+      "rationale_id": "a_core_fraction",
+      "statement": "Cores a fifth of the peak spacing around each histogram peak; the occupancy moved by under 0.001 between a tenth and three tenths in the engine validation.",
+      "numbers": [
+        "milestone_core_fraction"
+      ],
+      "falsifier": "a record whose rate moves by more than its scatter between 0.1 and 0.3 needs a stated choice rather than this default",
+      "gap_ref": "milestone_core_fraction_absent"
+    },
+    {
+      "rationale_id": "a_hops",
+      "statement": "Ten hops a record separates a measured rate from a bound.",
+      "numbers": [
+        "hops_per_record_min"
+      ],
+      "falsifier": "a record with fewer is reported as a bound and the plan's barrier is lowered",
+      "gap_ref": "interwell_transition_rate_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-a1bb4a5acf25",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's."
+    },
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-a1bb4a5acf25",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-a1bb4a5acf25",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "camera_exposure_time_absent",
+      "observable": "camera_exposure_time",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "camera_frame_interval_absent",
+      "observable": "camera_frame_interval",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "flow_speed_absent",
+      "observable": "flow_speed",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "integration_timestep_resolution_factor_absent",
+      "observable": "integration_timestep_resolution_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "interwell_barrier_height_absent",
+      "observable": "interwell_barrier_height",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "interwell_transition_rate_absent",
+      "observable": "interwell_transition_rate",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "milestone_core_fraction_absent",
+      "observable": "milestone_core_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "particle_step_rate_absent",
+      "observable": "particle_step_rate",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "record_length_absent",
+      "observable": "record_length",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "trap_potential_width_absent",
+      "observable": "trap_potential_width",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "trap_separation_absent",
+      "observable": "trap_separation",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "trap_stiffness_absent",
+      "observable": "trap_stiffness",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    }
+  ],
+  "degraded": []
+}

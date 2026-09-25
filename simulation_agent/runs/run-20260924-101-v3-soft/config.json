@@ -1,0 +1,166 @@
+{
+  "run_id": "run-20260924-101-v3-soft",
+  "qid": "sim-20260923-101",
+  "plan_id": "plan-sim-20260923-101-r3",
+  "plan_revision": 3,
+  "plan_hash": "sha256:5df144529b927478d8840d53ca3d31271baa4b640786a19ae0001f2b0eff3b8f",
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "envelope_check": {
+    "status": "inside",
+    "target": "local",
+    "budget": "full",
+    "compared": [
+      {
+        "cost": "wall_clock_estimate",
+        "limit": "wall_clock_max",
+        "cost_si": 960.0,
+        "limit_si": 7200.0
+      },
+      {
+        "cost": "storage_estimate",
+        "limit": "storage_max",
+        "cost_si": 2.9999999999999996,
+        "limit_si": 10.0
+      }
+    ],
+    "exceeded": []
+  },
+  "backend": "double_well_hoomd_backend",
+  "seed": 21,
+  "parameters_si": {
+    "integration_timestep": 0.001,
+    "startup_discard": 10.0,
+    "box_length": 0.0001,
+    "trap_width_1": 1e-06,
+    "trap_width_2": 1e-06,
+    "milestone_core_fraction": 0.2,
+    "temperature": 293.0,
+    "viscosity": 0.001,
+    "bead_diameter": 4.9999999999999996e-06,
+    "trap_stiffness_1": 1e-07,
+    "trap_stiffness_2": 1e-07,
+    "barrier_target": 2.0,
+    "depth_difference": 0.0,
+    "record_length": 600.0,
+    "save_interval": 0.01,
+    "walkers": 1000.0
+  },
+  "provenance": [
+    {
+      "parameter": "integration_timestep",
+      "value_si": 0.001,
+      "unit_in_plan": "s",
+      "from": "conditions[0].number -> numbers[integration_timestep_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "startup_discard",
+      "value_si": 10.0,
+      "unit_in_plan": "s",
+      "from": "conditions[1].number -> numbers[startup_discard_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "box_length",
+      "value_si": 0.0001,
+      "unit_in_plan": "m",
+      "from": "conditions[2].number -> numbers[box_length_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "trap_width_1",
+      "value_si": 1e-06,
+      "unit_in_plan": "m",
+      "from": "conditions[3].number -> numbers[trap_width_1]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "trap_width_2",
+      "value_si": 1e-06,
+      "unit_in_plan": "m",
+      "from": "conditions[4].number -> numbers[trap_width_2]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "milestone_core_fraction",
+      "value_si": 0.2,
+      "unit_in_plan": "1",
+      "from": "conditions[5].number -> numbers[milestone_core_fraction]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "temperature",
+      "value_si": 293.0,
+      "unit_in_plan": "K",
+      "from": "conditions[6].number -> numbers[temperature]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "viscosity",
+      "value_si": 0.001,
+      "unit_in_plan": "Pa*s",
+      "from": "conditions[7].number -> numbers[viscosity]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "bead_diameter",
+      "value_si": 4.9999999999999996e-06,
+      "unit_in_plan": "um",
+      "from": "conditions[8].number -> numbers[bead_diameter]",
+      "grade": "E2"
+    },
+    {
+      "parameter": "trap_stiffness_1",
+      "value_si": 1e-07,
+      "unit_in_plan": "N/m",
+      "from": "conditions[9].number -> numbers[trap_stiffness_soft]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "trap_stiffness_2",
+      "value_si": 1e-07,
+      "unit_in_plan": "N/m",
+      "from": "conditions[10].number -> numbers[trap_stiffness_soft]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "barrier_target",
+      "value_si": 2.0,
+      "unit_in_plan": "1",
+      "from": "conditions[11].number -> numbers[barrier_soft]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "depth_difference",
+      "value_si": 0.0,
+      "unit_in_plan": "1",
+      "from": "conditions[12].number -> numbers[depth_difference_none]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "record_length",
+      "value_si": 600.0,
+      "unit_in_plan": "s",
+      "from": "conditions[13].number -> numbers[record_length]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "save_interval",
+      "value_si": 0.01,
+      "unit_in_plan": "s",
+      "from": "conditions[14].number -> numbers[save_interval]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "walkers",
+      "value_si": 1000.0,
+      "unit_in_plan": "1",
+      "from": "conditions[15].number -> numbers[walkers]",
+      "grade": "E5"
+    }
+  ],
+  "compare_arm": "soft"
+}

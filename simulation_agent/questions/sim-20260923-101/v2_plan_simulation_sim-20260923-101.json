@@ -1,0 +1,746 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "id": "plan-sim-20260923-101-r2",
+  "qid": "sim-20260923-101",
+  "thread": "solo-sim-20260923-101",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-09-25T04:50:00Z",
+  "status": "VALIDATED",
+  "goal_id": "goal-sim-20260923-101-r2",
+  "synthesis_id": "synthesis-sim-20260923-101-r2",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "well_occupancy"
+  },
+  "system_configuration": {
+    "config": "bd_overdamped_gaussian_double_well_2d",
+    "optical_path": null,
+    "devices": [
+      "hoomd_backend"
+    ],
+    "model": "one overdamped bead in two dimensions, in fluid at rest, in two optical traps modelled as two Gaussian wells that add: U = -eps_1 exp(-|r-r_1|^2/2w_1^2) - eps_2 exp(-|r-r_2|^2/2w_2^2), each 0.5*k_i*dr^2 at its centre with k_i = eps_i/w_i^2. Many independent single-bead records in one engine run; no pair interaction"
+  },
+  "targets": [
+    {
+      "metric": "well_occupancy",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "one decade on each of the four observables, measured from the same trajectory: well_residence_time, interwell_transition_rate and interwell_barrier_height belong to the same question"
+    }
+  ],
+  "conditions": [
+    {
+      "parameter": "integration_timestep",
+      "number": "integration_timestep_point"
+    },
+    {
+      "parameter": "save_interval",
+      "number": "save_interval"
+    },
+    {
+      "parameter": "record_length",
+      "number": "record_length"
+    },
+    {
+      "parameter": "startup_discard",
+      "number": "startup_discard_point"
+    },
+    {
+      "parameter": "box_length",
+      "number": "box_length_point"
+    },
+    {
+      "parameter": "walkers",
+      "number": "walkers"
+    },
+    {
+      "parameter": "trap_stiffness_1",
+      "number": "trap_stiffness_1"
+    },
+    {
+      "parameter": "trap_stiffness_2",
+      "number": "trap_stiffness_2"
+    },
+    {
+      "parameter": "trap_width_1",
+      "number": "trap_width_1"
+    },
+    {
+      "parameter": "trap_width_2",
+      "number": "trap_width_2"
+    },
+    {
+      "parameter": "barrier_target",
+      "number": "barrier_target"
+    },
+    {
+      "parameter": "milestone_core_fraction",
+      "number": "milestone_core_fraction"
+    },
+    {
+      "parameter": "temperature",
+      "number": "temperature"
+    },
+    {
+      "parameter": "viscosity",
+      "number": "viscosity"
+    },
+    {
+      "parameter": "bead_diameter",
+      "number": "bead_diameter"
+    }
+  ],
+  "actions": [
+    {
+      "id": "integrate",
+      "device": "hoomd_backend",
+      "action": "integrate the declared configuration for the startup discard and the record, saving frames at the planned interval, with the separation solved from the barrier target",
+      "reversible": true,
+      "parameters": [
+        "integration_timestep",
+        "save_interval",
+        "record_length",
+        "startup_discard",
+        "box_length",
+        "walkers",
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "trap_width_1",
+        "trap_width_2",
+        "barrier_target",
+        "milestone_core_fraction",
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "tier": 1
+    },
+    {
+      "id": "estimate_wells",
+      "device": "hoomd_backend",
+      "action": "project each record on the line joining the traps, place cores around the two histogram peaks at the declared fraction of their spacing, and report per record and over records the occupancy, both residence times, both ordered transition rates and the projected barrier -- the estimator the experiment applies to its own record",
+      "reversible": true,
+      "parameters": [
+        "milestone_core_fraction",
+        "save_interval",
+        "record_length"
+      ],
+      "tier": 0
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [
+      "simulation_agent/envelope/budget.json"
+    ],
+    "status": "inside",
+    "note": "target local: every cost number of this plan that lines up with a ceiling is under it: wall_clock_estimate against wall_clock_max, storage_estimate against storage_max. Re-confirmed at run time (4.6 O1)."
+  },
+  "cost": {
+    "wall_clock": "about two minutes of stepping at the assumed rate, plus reading out and writing 61000 frames of 200 records, which the estimate does not carry",
+    "numbers": [
+      "wall_clock_estimate",
+      "storage_estimate"
+    ],
+    "note": "the rate is assumed; the smoke run's log replaces it"
+  },
+  "smoke": {
+    "record_fraction": "smoke_record_fraction"
+  },
+  "stop_criteria": [
+    {
+      "id": "step_displacement_diverged",
+      "metric": "max_single_step_displacement",
+      "comparator": ">",
+      "number": "box_length_point",
+      "on_met": "fault",
+      "statement": "a bead moving more than the box in one step is a diverged integration; stop and keep the run, because divergence is a result"
+    }
+  ],
+  "success_criteria": [
+    {
+      "id": "hops_counted",
+      "metric": "median_transitions_per_record",
+      "comparator": ">=",
+      "number": "hops_per_record_min",
+      "window": "the record after the startup discard",
+      "statement": "the median record holds at least ten hops; below that a record bounds the rate and the barrier target is lowered in the next revision"
+    },
+    {
+      "id": "occupancy_symmetric",
+      "metric": "well_occupancy",
+      "comparator": "==",
+      "target": "well_occupancy",
+      "window": "the record after the startup discard",
+      "statement": "for equal wells the mean occupancy over records is one half within its standard error; a departure is the estimator or the engine, since the potential fixes it"
+    }
+  ],
+  "alternatives_rejected": [
+    {
+      "what": "a stiffness ratio anywhere in the person's 1 to 100",
+      "reason": "computed from the potential: with wells hundreds of kT deep, any k2/k1 of 0.5 or below makes the shallow well vanish while the barrier from the deeper one is still tens to thousands of kT, so no separation gives a barrier in 1-10 kT. Equal stiffnesses are the operating point; asymmetry is a depth difference of a few kT, a trim of a few per cent",
+      "grounds": [
+        "trap_stiffness_1",
+        "trap_stiffness_2",
+        "barrier_target"
+      ]
+    },
+    {
+      "what": "the separation as a plan number",
+      "reason": "the barrier moves by about half a kT per ten nanometres at this stiffness, so a separation to one figure is a different experiment. The plan carries the barrier and the engine solves the separation from it",
+      "grounds": [
+        "barrier_target",
+        "trap_width_1"
+      ]
+    }
+  ],
+  "open_risks": [
+    "Only the rates and residence times are results about the model. The occupancy and the barrier are fixed by the potential in the long-record limit, so for those two this run establishes only what a finite record returns -- its spread and its bias -- and must not be read as discovering them.",
+    "The separation is solved from the barrier and is not a number the bench can set: near merging the barrier moves by about half a kT per ten nanometres, so the bench reaches this point by watching its histogram, and the comparison runs at the calibrated values it returns.",
+    "Bulk Stokes drag. Near the coverslip the bead's drag is larger and every time here stretches with it; the bench's in-situ diffusivity replaces the drag in the re-prediction.",
+    "Simulated positions are instantaneous and a camera frame averages over its exposure, which narrows each peak and can hide a short visit. The exposure is a condition of any comparison.",
+    "The axis along the beam is not modelled. A real trap is weaker there; the in-plane observables are unaffected only while nothing reads that axis."
+  ],
+  "numbers": [
+    {
+      "name": "integration_timestep_point",
+      "value": 0.001,
+      "unit": "s",
+      "source": "computed:a1_ceiling",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#integration_timestep_point",
+      "precision": "order_of_magnitude",
+      "note": "at A1's ceiling, and a tenth of the frame so a frame never falls between steps"
+    },
+    {
+      "name": "save_interval",
+      "value": 0.01,
+      "unit": "s",
+      "source": "assumed:a_bench_record",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#save_interval",
+      "precision": "order_of_magnitude",
+      "note": "10 ms, the middle of the 1-50 ms a camera might frame at. Assumed"
+    },
+    {
+      "name": "record_length",
+      "value": 600,
+      "unit": "s",
+      "source": "assumed:a_bench_record",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#record_length",
+      "precision": "order_of_magnitude",
+      "note": "ten minutes, the short end of the 10-60 min the experiment might record. Assumed; the spread over records at 10, 30 and 60 min is a separate study"
+    },
+    {
+      "name": "startup_discard_point",
+      "value": 10,
+      "unit": "s",
+      "source": "computed:a2_floor",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#startup_discard_point",
+      "precision": "order_of_magnitude",
+      "note": "at A2's floor"
+    },
+    {
+      "name": "box_length_point",
+      "value": 0.0001,
+      "unit": "m",
+      "source": "computed:a3_floor",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#box_length_point",
+      "precision": "order_of_magnitude",
+      "note": "at A3's floor: a hundred widths, the far field flat and never wrapped"
+    },
+    {
+      "name": "walkers",
+      "value": 200,
+      "unit": "1",
+      "source": "assumed:a_bench_record",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#walkers",
+      "precision": "significant_figures",
+      "note": "independent single-bead records in one engine run, each as long as the bench record"
+    },
+    {
+      "name": "trap_stiffness_1",
+      "value": 1e-06,
+      "unit": "N/m",
+      "source": "assumed:a_holding_stiffness",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#trap_stiffness_1",
+      "precision": "order_of_magnitude",
+      "note": "1 pN/um. Nothing in the store gives a trap stiffness; the experiment calibrates each trap after it is set. Chosen at the soft end, where the stiffness-matching tolerance is about five per cent at this width"
+    },
+    {
+      "name": "trap_stiffness_2",
+      "value": 1e-06,
+      "unit": "N/m",
+      "source": "assumed:a_holding_stiffness",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#trap_stiffness_2",
+      "precision": "order_of_magnitude",
+      "note": "EQUAL to trap 1, and that is the finding rather than a simplification: with wells hundreds of kT deep, any ratio of 0.5 or below leaves a barrier from the deeper well of tens to thousands of kT at every separation, so the person's 1-to-100 range holds no hops at all"
+    },
+    {
+      "name": "trap_width_1",
+      "value": 1e-06,
+      "unit": "m",
+      "source": "assumed:a_trap_width",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#trap_width_1",
+      "precision": "order_of_magnitude",
+      "note": "the Gaussian width of each well. Unknown; the store holds none. Near the bead radius is the microscope side's estimate, and the lower end of the map's 1-2.5 um"
+    },
+    {
+      "name": "trap_width_2",
+      "value": 1e-06,
+      "unit": "m",
+      "source": "assumed:a_trap_width",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#trap_width_2",
+      "precision": "order_of_magnitude",
+      "note": "equal to trap 1's"
+    },
+    {
+      "name": "barrier_target",
+      "value": 4,
+      "unit": "1",
+      "source": "assumed:a_barrier_target",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#barrier_target",
+      "precision": "order_of_magnitude",
+      "note": "the barrier from the deeper well in units of k_B*T -- a ratio, so the operator can pass it through: kT has no fixed SI factor. Inside the 1-10 kT window. THE SEPARATION IS NOT ON THIS CARD, AND THAT IS DELIBERATE: the barrier moves by about 0.55 kT per 10 nm here, so the separation that gives 4 kT has to be known to about a per cent, which an explore-mode number cannot state and a bench cannot dial. The engine solves the separation from this barrier and reports it in the run record, and the bench tunes its separation the same way -- by the histogram, not by a number"
+    },
+    {
+      "name": "milestone_core_fraction",
+      "value": 0.2,
+      "unit": "1",
+      "source": "assumed:a_core_fraction",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#milestone_core_fraction",
+      "precision": "order_of_magnitude",
+      "note": "the core radius around each histogram peak, as a fraction of the peak spacing. Near merging the minima sit far inside the trap centres (+-0.67 w against +-1.08 w at the stiff point), so cores on the trap centres would miss the wells; the experiment applies the same rule to its own histogram"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v2_synthesis.json#temperature",
+      "precision": "significant_figures",
+      "note": "the room's reading, not established to be the sample's. In this model it is a coordinate -- the noise amplitude -- and citing the room records why this value was chosen"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v2_synthesis.json#viscosity",
+      "precision": "significant_figures",
+      "note": "pure water; asked over 292-294 K and the entry's validity covers it. The bench's in-situ diffusivity, near the coverslip, replaces the Stokes drag in the re-prediction"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "origin": "v2_synthesis.json#bead_diameter",
+      "precision": "significant_figures",
+      "note": "the tracer in the bottle in use"
+    },
+    {
+      "name": "drag_coefficient",
+      "value": 5e-08,
+      "unit": "N*s/m",
+      "source": "computed:stokes_drag",
+      "grade": "E4",
+      "origin": "v2_synthesis.json#drag_coefficient",
+      "precision": "order_of_magnitude",
+      "note": "bulk Stokes drag. Near the coverslip the drag is larger; the bench's in-situ diffusivity replaces this in the re-prediction"
+    },
+    {
+      "name": "trap_relaxation_time",
+      "value": 0.05,
+      "unit": "s",
+      "source": "computed:drag_over_stiffness",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#trap_relaxation_time",
+      "precision": "order_of_magnitude",
+      "note": "gamma/k at the bottom of one well alone: the shortest time in the problem. Near merging the curvature at the minima is smaller, so the true in-well time is longer and this bound is safe"
+    },
+    {
+      "name": "integration_timestep_max",
+      "value": 0.001,
+      "unit": "s",
+      "source": "computed:factor_times_relaxation_time",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#integration_timestep_max",
+      "precision": "order_of_magnitude",
+      "note": "the stiff trap sets it; equal stiffnesses here, so either"
+    },
+    {
+      "name": "startup_discard_min",
+      "value": 10.0,
+      "unit": "s",
+      "source": "computed:relaxation_times_times_tau",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#startup_discard_min",
+      "precision": "order_of_magnitude",
+      "note": "the walkers start at the trap centres, half in each; two hundred in-well times relaxes each into its well. It does not relax the occupancy between wells, and for equal wells it need not"
+    },
+    {
+      "name": "hops_per_record_min",
+      "value": 10,
+      "unit": "count",
+      "source": "assumed:a_hops",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#hops_per_record_min",
+      "precision": "significant_figures",
+      "note": "below this a record bounds the rate rather than measuring it (the observable's own note)"
+    },
+    {
+      "name": "box_edge_min",
+      "value": 0.0001,
+      "unit": "m",
+      "source": "computed:hundred_widths",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#box_edge_min",
+      "precision": "order_of_magnitude",
+      "note": "the wells are zero beyond a few widths, so a box of a hundred keeps the far field flat and never wrapped. The walkers carry no pair force, so they need no spacing from each other"
+    },
+    {
+      "name": "save_interval_max",
+      "value": 0.03,
+      "unit": "s",
+      "source": "computed:half_relaxation_time",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#save_interval_max",
+      "precision": "order_of_magnitude",
+      "note": "frames closer than the in-well relaxation, so a short excursion into a core is not missed and milestoning does not undercount returns"
+    },
+    {
+      "name": "particle_step_rate",
+      "value": 1000000.0,
+      "unit": "1/s",
+      "source": "assumed:a_step_rate",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_step_rate",
+      "precision": "order_of_magnitude",
+      "note": "walker-steps a second on one core, HOOMD CPU with the wells as a Python force"
+    },
+    {
+      "name": "bytes_per_coordinate",
+      "value": 8e-09,
+      "unit": "GB",
+      "source": "assumed:a_step_rate",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#bytes_per_coordinate",
+      "precision": "significant_figures",
+      "note": "eight bytes, double precision in memory; the text trajectory is larger per coordinate"
+    },
+    {
+      "name": "particle_steps_point",
+      "value": 100000000,
+      "unit": "1",
+      "source": "computed:walkers_times_steps",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_point",
+      "precision": "order_of_magnitude",
+      "note": "two hundred records of 610 s at a millisecond step, to one figure"
+    },
+    {
+      "name": "coordinates_stored_point",
+      "value": 20000000,
+      "unit": "1",
+      "source": "computed:walkers_times_frames_times_two",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#coordinates_stored_point",
+      "precision": "order_of_magnitude",
+      "note": "two coordinates a frame: the configuration is two-dimensional"
+    },
+    {
+      "name": "smoke_record_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_bench_record",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#smoke_record_fraction",
+      "precision": "order_of_magnitude",
+      "note": "the smoke run records a tenth of the record, so it is a small job and not the same job under a tighter ceiling"
+    },
+    {
+      "name": "wall_clock_estimate",
+      "value": 100.0,
+      "unit": "s",
+      "source": "computed:particle_steps_over_rate",
+      "grade": "E5",
+      "formula": "particle_steps_point / particle_step_rate",
+      "inputs": [
+        "particle_steps_point",
+        "particle_step_rate"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "stepping only, and so a LOWER BOUND: 61000 frames are read out of the engine and written as text after the run, a term this estimate does not carry (task 023)"
+    },
+    {
+      "name": "storage_estimate",
+      "value": 0.2,
+      "unit": "GB",
+      "source": "computed:coordinates_times_bytes",
+      "grade": "E5",
+      "formula": "coordinates_stored_point * bytes_per_coordinate",
+      "inputs": [
+        "coordinates_stored_point",
+        "bytes_per_coordinate"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "in memory; the text trajectory on disk is several times larger per coordinate"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_holding_stiffness",
+      "statement": "1 pN/um for both traps: the soft end of what the tweezers hold a 5 um bead at, where the matching tolerance is about five per cent. Nothing measured picks it.",
+      "numbers": [
+        "trap_stiffness_1",
+        "trap_stiffness_2"
+      ],
+      "falsifier": "the experiment's calibrated stiffness of each trap, returned after the traps are set, replaces both and the simulation re-predicts at them",
+      "gap_ref": "trap_stiffness_absent"
+    },
+    {
+      "rationale_id": "a_trap_width",
+      "statement": "A Gaussian width of 1 um, near the bead radius. Unknown, and the map spans 1-2.5 um to show how much the answer depends on it.",
+      "numbers": [
+        "trap_width_1",
+        "trap_width_2"
+      ],
+      "falsifier": "the width read off the calibrated single-trap histogram's departure from a Gaussian, or off the separation at which the two wells merge",
+      "gap_ref": "trap_potential_width_absent"
+    },
+    {
+      "rationale_id": "a_barrier_target",
+      "statement": "4 kT, inside the 1-10 kT window where hops are frequent enough to count and rare enough to be hops.",
+      "numbers": [
+        "barrier_target"
+      ],
+      "falsifier": "a run returning under a handful of hops per record lowers it",
+      "gap_ref": "interwell_barrier_height_absent"
+    },
+    {
+      "rationale_id": "a_bench_record",
+      "statement": "The record as the bench might take it, and the ensemble that stands for it: ten minutes, the short end of what the bench may record; 10 ms between frames, the middle of the camera's likely range; two hundred independent records, enough to see the spread one record shows; and a smoke run of a tenth of the record, one minute, enough to time the engine.",
+      "numbers": [
+        "record_length",
+        "save_interval",
+        "walkers",
+        "smoke_record_fraction"
+      ],
+      "falsifier": "the bench's actual record length and frame interval replace the first two, and the thousand-record spread study replaces the ensemble",
+      "gap_ref": "record_length_absent"
+    },
+    {
+      "rationale_id": "a_core_fraction",
+      "statement": "Cores a fifth of the peak spacing around each histogram peak; the occupancy moved by under 0.001 between a tenth and three tenths in the engine validation.",
+      "numbers": [
+        "milestone_core_fraction"
+      ],
+      "falsifier": "a record whose rate moves by more than its scatter between 0.1 and 0.3 needs a stated choice rather than this default",
+      "gap_ref": "milestone_core_fraction_absent"
+    },
+    {
+      "rationale_id": "a_hops",
+      "statement": "Ten hops a record separates a measured rate from a bound.",
+      "numbers": [
+        "hops_per_record_min"
+      ],
+      "falsifier": "a record with fewer is reported as a bound and the plan's barrier is lowered",
+      "gap_ref": "interwell_transition_rate_absent"
+    },
+    {
+      "rationale_id": "a_step_rate",
+      "statement": "About a million walker-steps a second: task 024 timed 1.1e6 at 200 walkers and 3.6e6 at 2000 on this machine, in a study rather than a run, so it stands here as an assumption.",
+      "numbers": [
+        "particle_step_rate",
+        "bytes_per_coordinate"
+      ],
+      "falsifier": "this plan's smoke run log replaces the rate, and its peak memory the bytes",
+      "gap_ref": "particle_step_rate_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-a1bb4a5acf25",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's."
+    },
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-a1bb4a5acf25",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-a1bb4a5acf25",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "camera_exposure_time_absent",
+      "observable": "camera_exposure_time",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "camera_frame_interval_absent",
+      "observable": "camera_frame_interval",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "flow_speed_absent",
+      "observable": "flow_speed",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "integration_timestep_resolution_factor_absent",
+      "observable": "integration_timestep_resolution_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "interwell_barrier_height_absent",
+      "observable": "interwell_barrier_height",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "interwell_transition_rate_absent",
+      "observable": "interwell_transition_rate",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "milestone_core_fraction_absent",
+      "observable": "milestone_core_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "particle_step_rate_absent",
+      "observable": "particle_step_rate",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "record_length_absent",
+      "observable": "record_length",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "trap_potential_width_absent",
+      "observable": "trap_potential_width",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "trap_separation_absent",
+      "observable": "trap_separation",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    },
+    {
+      "gap_id": "trap_stiffness_absent",
+      "observable": "trap_stiffness",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a1bb4a5acf25"
+    }
+  ],
+  "degraded": []
+}
