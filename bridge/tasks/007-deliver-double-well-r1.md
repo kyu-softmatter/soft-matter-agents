@@ -10,6 +10,17 @@ that in this seat's window, answering "Yes, send it now" to a direct question.
 It was not taken from the architecture relay that asked for it. Name the person
 as the trigger. Do not name this seat or architecture.
 
+**The run does not wait for this delivery** (update, about 10:30 PDT). In the
+architecture seat's window the person decided directly to "Start now".
+`manager-microscope-20260924-1` is carding `microscope-20260924-6` onto the
+measurement, citing the simulation's committed ask by id. **Still file r1,
+without hurry**, so the thread exists and the microscope goal's `from_round`
+can be linked afterwards. Say plainly in `r1_ask_experiment.md`, and in
+`status.json` if it has a place for it, that **the run started before
+delivery, on the person's decision**. Architecture is recording it in
+`plan.md` 11-23. Do not rush the round to beat the bench, and do not
+backdate anything.
+
 ## The round
 
 | field | value |
