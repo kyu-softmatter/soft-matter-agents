@@ -8,8 +8,22 @@
     },
     {
       "if": {
-        "required": [
-          "operation"
+        "anyOf": [
+          {
+            "required": [
+              "operation"
+            ]
+          },
+          {
+            "required": [
+              "trap_steps"
+            ],
+            "not": {
+              "required": [
+                "goal_id"
+              ]
+            }
+          }
         ]
       },
       "then": {
@@ -92,7 +106,8 @@
           "success_criteria",
           "open_risks"
         ]
-      }
+      },
+      "$comment": "The operation branch: a plan that verifies rather than measures (plan.md 11-21). It holds for an `operation` block, and, since 2026-09-25, for a plan carrying `trap_steps` and no `goal_id`: placing a trap and having the person confirm a bead is held verifies a setup and measures nothing, so it takes no goal, no observable and no S3 to S5, exactly as a piezo verification step does. Proposed by microscope-20260924-6 when the first trap plan of the double-well day could not otherwise be written without claiming a record length it does not record. A plan with trap_steps AND a goal is a measurement plan and takes the full pipeline."
     }
   ],
   "properties": {

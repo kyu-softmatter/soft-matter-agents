@@ -109,6 +109,14 @@ class Card:
         return {n["name"]: n for n in self.data.get("numbers", []) if isinstance(n, dict) and "name" in n}
 
 
+def is_operation_plan(data: dict) -> bool:
+    """A plan that verifies rather than measures (11-21): an `operation` block,
+    or `trap_steps` with no goal. Placing a trap and having the person confirm a
+    bead is held is a setup, not a measurement; that second form was added on
+    2026-09-25 for the double-well day's first trap plan."""
+    return "operation" in data or ("trap_steps" in data and "goal_id" not in data)
+
+
 @dataclass
 class Bundle:
     cards: list[Card] = field(default_factory=list)
@@ -131,7 +139,7 @@ class Bundle:
         approved with it. A check that asks a plan for any of those asks it of
         these only, and check 86 is what judges an operation plan instead.
         """
-        return [c for c in self.of_kind("plan") if "operation" not in c.data]
+        return [c for c in self.of_kind("plan") if not is_operation_plan(c.data)]
 
     def by_qid(self) -> dict[str, list[Card]]:
         out: dict[str, list[Card]] = {}
@@ -4934,7 +4942,7 @@ def check_52_target_is_a_decision(b: Bundle) -> list[Finding]:
 
         if c.kind == "goal":
             continue
-        if c.kind == "plan" and "operation" in c.data:
+        if c.kind == "plan" and is_operation_plan(c.data):
             # An operation plan has no goal: its targets are its own decisions,
             # approved with it through the ordinary plan_approval, so there is
             # no copy to compare. Their shape was checked above all the same.
