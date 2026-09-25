@@ -686,6 +686,34 @@
         "microscope_agent"
       ],
       "note": "The sixth microscope execution session of 2026-09-24 (local), opened by the person that evening for the 'sim to real' work: the next day's asymmetric double well with one particle held by the optical tweezers, tested against the simulation (plan.md 11-23). The person told the architecture session directly. The first session opened for it ran in a Claude scratch workspace rather than microscope_agent/, so it loaded none of the agent's instructions, settings or boundary; the name belongs to whichever session the person seats in microscope_agent/. Registered before its first commit. `owns` copied by code from microscope-20260924-5; n is 6."
+    },
+    {
+      "seat": "manager-microscope-20260925-1",
+      "committer_email": "manager-microscope-20260925-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "microscope_agent/CLAUDE.md",
+        "microscope_agent/.claude/",
+        "microscope_agent/tasks/",
+        "microscope_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/capabilities/microscope.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "The microscope manager session the person opened on the morning of 2026-09-25 (local) for that day's running -- the first simulation-to-experiment double well (plan.md 11-23). The person told the architecture session directly. manager-microscope-20260924-1's session is still open beside it, so this opens a seat rather than inheriting one; the two are told apart by name. Registered before its first commit; the person names it in its own window. owns, paths, excludes and the contracts fields copied by code from manager-microscope-20260924-1; n is 1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
