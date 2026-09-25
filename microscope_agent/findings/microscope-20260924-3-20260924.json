@@ -239,15 +239,15 @@
     },
     {
       "id": "mm_load_hung_after_nis_force_kill",
-      "fact": "After NIS was force-killed, loading Micro-Manager's dual-camera configuration (without its DAQ devices and startup preset) did not return for about six minutes, and the run was stopped. The same file loaded in about 3 s in run-20260924-008, after NIS had been closed normally. Which device held the load up was not established.",
+      "fact": "After NIS was force-killed, Micro-Manager's configuration load did not return, twice: the dual-camera configuration (without its DAQ devices and startup preset) for about six minutes in run-20260924-009, and the Ti2 stand alone, with no camera, confocal unit, light engine or DAQ device, for about two minutes in run-20260924-010. The same stand devices loaded in about 3 s in run-20260924-008, after NIS had been closed normally. So what does not answer after the kill is the stand's own connection.",
       "kind": "document_fact",
-      "how": "run-20260924-009's log: the kill at events[7], the blanking close-all at events[9], then no event from loadSystemConfiguration until this seat stopped the process (events[10]). run-20260924-008's load event (events[2]) for the comparison.",
+      "how": "run-20260924-009's log: the kill at events[7], the close-all at events[9], then no load event until the stop at events[10]. run-20260924-010's log: the kill, the close-all, load_start, then no load event until the stop. run-20260924-008's load event (events[2]) for the comparison.",
       "source": {
         "type": "document",
         "path": "microscope_agent/runs/run-20260924-009/log.json"
       },
       "for_store": true,
-      "note": "The prior project reports loading a configuration of the same shape after a force-kill on 2026-09-07, so this may depend on something that differs tonight. Afterwards the person restarted NIS and it worked normally."
+      "note": "The prior project reports loading a configuration of the same shape after a force-kill on 2026-09-07, so something differs now. Untried: reconnecting or power-cycling the stand's controller after the kill. After run-20260924-009 the person restarted NIS and it worked normally. The person deferred confocal work on 2026-09-24 by about a month."
     },
     {
       "id": "blanking_lines_free_right_after_nis_kill",
