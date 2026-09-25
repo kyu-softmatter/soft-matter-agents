@@ -85,6 +85,18 @@ taking. Card 047 holds the readiness context: the camera, the calibration,
 the feasibility question, and the person's bench procedure. **Start nothing
 from 047 itself.**
 
+**Two contract questions deferred to after the bench, deliberately.**
+Changing a definition the night before, while both sides write against the
+current text, is the wrong moment:
+- **a shared tolerance for "reached the minimum"** in the milestoning
+  definition in `contracts/observables.json`. `manager-bridge-20260924-1`
+  takes it, drafting with `manager-simulation`, from what the bench track
+  shows, and sends it to both sides before it lands
+- **no schema slot holds a requested range** on a goal written from a
+  delivered round (the bridge review's G9). A microscope manager takes it.
+  Tomorrow uses the interim convention: order-of-magnitude scalars read as
+  targets, with prose
+
 **Worth doing first thing: install the hooks** (`git config core.hooksPath
 contracts/hooks`) while someone watches the first commits. A day of
 multi-device commits from several seats is when the gate earns its keep.
