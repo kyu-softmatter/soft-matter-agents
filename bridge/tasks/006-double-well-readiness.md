@@ -67,7 +67,13 @@ the eve and is what this card exists to shorten.
   declares `trapped_position_distribution` under trapping and none of the four
   double-well observables on any configuration. Answerability against the
   experiment reads **`undeclared`**. Under the growth rule that is an ordering,
-  not a refusal: declare them, then plan with them.
+  not a refusal: declare them, then plan with them. **Closed at `0a4fae4`**
+  (`manager-microscope-20260924-1`): all four are declared on `transmitted`,
+  `widefield_inline`, `widefield_side` and `confocal`, each requiring
+  composition with `trapping`. Recomputed with the validator's own
+  `derive_producible` against that commit: `yes` for all four, on those four
+  configurations. Recompute it again against r1's own tree when r1 is
+  written.
 - **G5 — no per-trap calibration path.** 11-23 asks for each trap's stiffness,
   each trap's width, and the separation, in SI, trap by trap. Nothing in the
   capability table says how the width `w_i` of a trap's Gaussian is measured,
