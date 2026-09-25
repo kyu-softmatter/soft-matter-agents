@@ -1,0 +1,407 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "round": 0,
+  "author": "microscope_agent",
+  "degraded": [],
+  "purpose": "verify",
+  "intent": "confirm",
+  "id": "plan-mic-20260925-004-r1",
+  "qid": "mic-20260925-004",
+  "thread": "solo-mic-20260925-004",
+  "revision": 1,
+  "created_at": "2026-09-25T20:32:53Z",
+  "status": "VALIDATED",
+  "numbers": [
+    {
+      "name": "nosepiece_position",
+      "value": 5,
+      "unit": "count",
+      "source": "operator_read:kyuhwan_20260925",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "at": "stand_ti2e",
+      "note": "The 100x oil objective, MRD71970, position 5 on a turret indexed from 0 (nosepiece_objective_assignment, E3). The person confirmed it at hand-over in this seat's window ('correct' to 'The objective: 100x oil'). SET BY THE PERSON'S HAND AND NEVER COMMANDED. Added in r2 because the clearance floor resolves from the objective in the path, and r1's run refused before its first command for want of it."
+    }
+  ],
+  "actions": [
+    {
+      "id": "ready",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_0",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_1_at_1",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_1_0",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_01",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_1_01",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_02",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_1_02",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_03",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_1_03",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_04",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_1_04",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_05",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_1_05",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_06",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_1_06",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_07",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_1_07",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_08",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_1_08",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_09",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_1_09",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_10",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_1_10",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [
+      "tweezers_trap_strength_min",
+      "tweezers_trap_strength_max"
+    ],
+    "status": "inside",
+    "note": "Strengths only, 0.0 to 1.0 in 0.1 steps, inside the person's 0 to 1. No position is commanded: trap_1 stays where run-20260925-004 put it and trap_2 where run-20260925-008 put it (commanded +6 um; the person reported it at 2 um, which is unsettled). The dial, 0.02, is the person's hand."
+  },
+  "targets": [
+    {
+      "metric": "strength_pair_scanned",
+      "kind": "detection",
+      "value": 1,
+      "unit": "count",
+      "note": "the person's yes at the last hold: the pair reached 1/1. A decision about what counts as done, so no grade"
+    }
+  ],
+  "stop_criteria": [
+    {
+      "id": "sc_person_stops",
+      "metric": "strength_pair_scanned",
+      "comparator": "<",
+      "target": "strength_pair_scanned",
+      "on_met": "complete",
+      "statement": "a no at any hold ends the plan as a planned stop, leaving both traps as the last accepted step left them -- no abort and no further command. An 'abort' answer, or any command not answered 0, aborts, and the abort sends TRAP_OFF for nothing and LASER_OFF: emission off"
+    }
+  ],
+  "success_criteria": [
+    {
+      "id": "ok_scanned",
+      "metric": "strength_pair_scanned",
+      "comparator": ">=",
+      "target": "strength_pair_scanned",
+      "statement": "the scan reaches trap_1 1.0 / trap_2 1.0 with the person's yes at every hold"
+    }
+  ],
+  "open_risks": [
+    "The tweezers are blind. Where the bead sits at each ratio is the person's eye on the live view; this plan records no frames.",
+    "The Tweez300 shares the dial's power among its traps; how it splits 0.02 between two traps at unequal strengths is not recorded here.",
+    "trap_2's position is in the GUI's um, whose calibration at 100x is unsettled (commanded +6, reported at 2). No position is sent by this plan, so it does not depend on that scale.",
+    "The simulation expects no hops at a ratio of 0.5 or below; the scan goes through those ratios on the way to 1/1.",
+    "An abort sends LASER_OFF, which only the person can reverse at the instrument."
+  ],
+  "trap_steps": {
+    "device": "optical_tweezers",
+    "objective": "100x",
+    "read_back": "none",
+    "verifies": "how the held bead responds as trap_2's strength is raised from 0 to 1 with trap_1 at 1, at the person's dial setting of 0.02, judged by the person on the live view",
+    "falsified_by": "the person reports the bead leaves both traps, or a strength command is not accepted",
+    "steps": [
+      {
+        "id": "ready",
+        "kind": "hold_for_person",
+        "statement": "Before anything is sent: is the laser emitting, with the dial at 0.02, and is one bead held in trap_1 at the centre? Answer yes to set trap_2's strength to 0 (trap_1 stays at 1). Answer no to send nothing."
+      },
+      {
+        "id": "trap_2_to_0",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.0
+      },
+      {
+        "id": "trap_1_at_1",
+        "kind": "strength",
+        "trap": "trap_1",
+        "strength": 1.0
+      },
+      {
+        "id": "check_1_0",
+        "kind": "hold_for_person",
+        "statement": "Strengths are now trap_1 1.0, trap_2 0.0. Is the bead held in trap_1? Answer yes to raise trap_2 to 0.1; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "trap_2_to_01",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.1
+      },
+      {
+        "id": "check_1_01",
+        "kind": "hold_for_person",
+        "statement": "Strengths are now trap_1 1.0, trap_2 0.1. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.2; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "trap_2_to_02",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.2
+      },
+      {
+        "id": "check_1_02",
+        "kind": "hold_for_person",
+        "statement": "Strengths are now trap_1 1.0, trap_2 0.2. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.3; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "trap_2_to_03",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.3
+      },
+      {
+        "id": "check_1_03",
+        "kind": "hold_for_person",
+        "statement": "Strengths are now trap_1 1.0, trap_2 0.3. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.4; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "trap_2_to_04",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.4
+      },
+      {
+        "id": "check_1_04",
+        "kind": "hold_for_person",
+        "statement": "Strengths are now trap_1 1.0, trap_2 0.4. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.5; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "trap_2_to_05",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.5
+      },
+      {
+        "id": "check_1_05",
+        "kind": "hold_for_person",
+        "statement": "Strengths are now trap_1 1.0, trap_2 0.5. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.6; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "trap_2_to_06",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.6
+      },
+      {
+        "id": "check_1_06",
+        "kind": "hold_for_person",
+        "statement": "Strengths are now trap_1 1.0, trap_2 0.6. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.7; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "trap_2_to_07",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.7
+      },
+      {
+        "id": "check_1_07",
+        "kind": "hold_for_person",
+        "statement": "Strengths are now trap_1 1.0, trap_2 0.7. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.8; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "trap_2_to_08",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.8
+      },
+      {
+        "id": "check_1_08",
+        "kind": "hold_for_person",
+        "statement": "Strengths are now trap_1 1.0, trap_2 0.8. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.9; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "trap_2_to_09",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.9
+      },
+      {
+        "id": "check_1_09",
+        "kind": "hold_for_person",
+        "statement": "Strengths are now trap_1 1.0, trap_2 0.9. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 1.0; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "trap_2_to_10",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 1.0
+      },
+      {
+        "id": "check_1_10",
+        "kind": "hold_for_person",
+        "statement": "Strengths are now trap_1 1.0, trap_2 1.0. Watch the bead: note where it sits and whether it hops. Answer yes to finish, leaving both traps at 1.0; no to stop here, both traps left as they are; abort to abort."
+      }
+    ]
+  },
+  "kb_refs": [],
+  "kb_gaps": []
+}
