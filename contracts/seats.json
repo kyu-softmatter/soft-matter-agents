@@ -678,6 +678,14 @@
         "simulation_agent"
       ],
       "note": "The simulation execution session the person opened on the evening of 2026-09-24 (local), in simulation_agent/, beside manager-simulation-20260924-1. The person told the architecture session directly. Registered before its first commit; the person names it in its own window. `owns` copied by code from simulation-20260923-3; n is 1."
+    },
+    {
+      "seat": "microscope-20260924-6",
+      "committer_email": "microscope-20260924-6@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "note": "The sixth microscope execution session of 2026-09-24 (local), opened by the person that evening for the 'sim to real' work: the next day's asymmetric double well with one particle held by the optical tweezers, tested against the simulation (plan.md 11-23). The person told the architecture session directly. The first session opened for it ran in a Claude scratch workspace rather than microscope_agent/, so it loaded none of the agent's instructions, settings or boundary; the name belongs to whichever session the person seats in microscope_agent/. Registered before its first commit. `owns` copied by code from microscope-20260924-5; n is 6."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
