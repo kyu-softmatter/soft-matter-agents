@@ -186,27 +186,81 @@
           "description": "Whether the instrument was asked to confirm this command took effect. 4.6.6.1 rule 3 put its rule on this field and nothing carried it until 2026-09-20: the subsection says the run record carries `verification: none` for a channel that cannot be confirmed, and no such field existed. A rule written with nothing to hold it is the class counted most often that day.\n\n`readback` means the channel's state was QUERIED AFTER the command and matched what was commanded. A return code is not a read-back: on the Tweez 300 a zero means the GUI accepted the text, and six distinct ways a command can be ignored all return zero (tweez300_reports_nothing_back, E3). An acknowledgement is `none`.\n\nOPTIONAL ON PURPOSE, and check 66 rather than this schema is what requires it. Which actions need a read-back depends on reversibility, and reversibility lives on the plan's actions[] where a run log cannot see it -- an irreversible action requires one, a reversible one may legitimately go without. Leaving it out of `required` also keeps the two run logs written before the field existed valid, which is the honest reading: nothing asked them to record a read-back, so their silence is not a claim."
         },
         "params": {
-          "type": "object",
-          "description": "parameters as sent. Each one names the field it came from, so a number in a command can be traced to the card that justified it (check 14).",
-          "additionalProperties": {
-            "type": "object",
-            "properties": {
-              "value": {},
-              "unit": {
-                "type": "string"
-              },
-              "grade": {
-                "$ref": "common.schema.json#/$defs/grade"
-              },
-              "from": {
-                "type": "string",
-                "description": "field path in plan.json, e.g. numbers[exposure_time]. A parameter that cannot name its origin does not go out"
+          "anyOf": [
+            {
+              "type": "object",
+              "description": "parameters as sent. Each one names the field it came from, so a number in a command can be traced to the card that justified it (check 14).",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "value": {},
+                  "unit": {
+                    "type": "string"
+                  },
+                  "grade": {
+                    "$ref": "common.schema.json#/$defs/grade"
+                  },
+                  "from": {
+                    "type": "string",
+                    "description": "field path in plan.json, e.g. numbers[exposure_time]. A parameter that cannot name its origin does not go out"
+                  }
+                },
+                "required": [
+                  "from"
+                ]
               }
             },
-            "required": [
-              "from"
-            ]
-          }
+            {
+              "type": "object",
+              "description": "A TRAP STEP's params (2026-09-25, first planned trap run, run-20260925-004): the literal commands sent to the Tweez300, and the plan step they were derived from. Not the named-number form, because a tweezers command is text on a wire and not a set of graded numbers; recording exactly what went out is the record. Provenance is kept: `step.from` names the plan field, trap_steps.steps[<id>], as the named-number form's `from` does. Allowed only on an event whose channel is optical_tweezers.",
+              "properties": {
+                "commands": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "prefixItems": [
+                      {
+                        "type": "string",
+                        "pattern": "^[A-Z_]+$"
+                      }
+                    ]
+                  }
+                },
+                "step": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string"
+                    },
+                    "trap": {
+                      "type": "string"
+                    },
+                    "from": {
+                      "type": "string",
+                      "pattern": "^trap_steps\\.steps\\[[a-z0-9_-]+\\]$"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "from"
+                  ],
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "commands",
+                "step"
+              ],
+              "additionalProperties": false
+            }
+          ],
+          "description": "parameters as sent. Each one names the field it came from, so a number in a command can be traced to the card that justified it (check 14). Or, on an optical_tweezers event, a trap step's literal commands and source step."
         },
         "deletion": {
           "type": "object",
@@ -312,6 +366,30 @@
             },
             "required": [
               "event"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "params": {
+                "required": [
+                  "commands"
+                ]
+              }
+            },
+            "required": [
+              "params"
+            ]
+          },
+          "then": {
+            "properties": {
+              "channel": {
+                "const": "optical_tweezers"
+              }
+            },
+            "required": [
+              "channel"
             ]
           }
         }
