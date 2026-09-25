@@ -74,6 +74,17 @@ its release:
 - `lunf.py` (`3fcf1e0`) takes the person's voltage pair as its covering
   limit, and the person's `safety.json` with it is still uncommitted
 
+**The first simulation-experiment comparison arrives through the bridge.**
+The simulation writes the ask for one bead in an asymmetric double well, and
+the bridge delivers it into `microscope_agent/inbox/`. **When it lands, a
+microscope manager writes a short taking card** that names
+`microscope-20260924-6`, points at the round's path in `inbox/`, and carries
+**no task content**. It is what stops two of six seats taking one round, and
+architecture confirmed it. The goal's `from_round` is the record of the
+taking. Card 047 holds the readiness context: the camera, the calibration,
+the feasibility question, and the person's bench procedure. **Start nothing
+from 047 itself.**
+
 **Worth doing first thing: install the hooks** (`git config core.hooksPath
 contracts/hooks`) while someone watches the first commits. A day of
 multi-device commits from several seats is when the gate earns its keep.
