@@ -102,6 +102,14 @@ the eve and is what this card exists to shorten.
   against the current text, and this blocks comparability, not the round.
   G9 is `manager-microscope-20260924-1`'s on the same terms. Both are on
   card 000.
+  **The same post-bench work covers residence time** (2026-09-25). The
+  simulation's ask computes `well_residence_time` as the mean completed
+  dwell, while the registered estimator is the renewal form. This seat found
+  it (card 007), and so did `microscope-20260924-6` independently. The
+  microscope reports the renewal value as the observable and the mean
+  completed dwell only as a secondary figure. Before residence can turn
+  comparable, the simulation has to report the renewal form too. Nothing
+  changed on 2026-09-25.
 - **G6 — sampling interval has no field.** Every entry's `window_parameter` is
   `record_length` only. 11-23 condition (3) also asks for the sampling
   interval, and at a stiffness ratio of 100 the stiff well's dwell is what the
