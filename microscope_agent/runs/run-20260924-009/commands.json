@@ -1,0 +1,126 @@
+[
+  {
+    "from": "card-036:b3-nis-present",
+    "device": null,
+    "action": "process_check",
+    "settings": null,
+    "note": "NIS must be running before the handoff"
+  },
+  {
+    "from": "card-036:b3-gate-preload",
+    "device": null,
+    "action": "gate",
+    "settings": null
+  },
+  {
+    "from": "card-036:b3-gate-kill",
+    "device": null,
+    "action": "gate",
+    "settings": null
+  },
+  {
+    "from": "card-036:b3-kill",
+    "device": "nis_ar.exe",
+    "action": "taskkill_force",
+    "settings": null,
+    "note": "then confirm no nis_ar.exe remains"
+  },
+  {
+    "from": "card-036:b3-lines-free",
+    "device": "laser_combiner",
+    "action": "lines_free_probe",
+    "settings": null,
+    "note": "reserve and release; no level"
+  },
+  {
+    "from": "card-036:b3-close-all",
+    "device": "laser_combiner",
+    "action": "enable",
+    "settings": {
+      "laser_combiner": {
+        "enable": []
+      }
+    },
+    "note": "the first write after the kill"
+  },
+  {
+    "from": "card-036:b3-load",
+    "device": "Core",
+    "action": "load_configuration",
+    "settings": {
+      "path": "D:\\soft-matter-agents\\microscope_agent\\runs\\run-20260924-009\\dualcam_noDMD_nolaser_nostartup.cfg",
+      "sha256": "8939edb4a0eb1d3a48d9120aba6e3fe3411eddc77af1663cbe087d502298a209"
+    }
+  },
+  {
+    "from": "card-036:b3-read",
+    "device": null,
+    "action": "get_state_and_properties",
+    "settings": null,
+    "note": "LightPath, CSUW1-*, FilterTurret1, Nosepiece, Aura, LightEngine, DiaLamp"
+  },
+  {
+    "from": "card-036:b3-exposure",
+    "device": "Kinetix_red",
+    "action": "set_exposure",
+    "settings": {
+      "Kinetix_red": {
+        "exposure_ms": 100.0
+      }
+    }
+  },
+  {
+    "from": "card-036:b3-gate-light",
+    "device": null,
+    "action": "gate",
+    "settings": null
+  },
+  {
+    "from": "card-036:b3-dark",
+    "device": "Kinetix_red",
+    "action": "snap_image",
+    "settings": null
+  },
+  {
+    "from": "card-036:b3-enable",
+    "device": "laser_combiner",
+    "action": "enable",
+    "settings": {
+      "laser_combiner": {
+        "enable": [
+          "561"
+        ]
+      }
+    },
+    "note": "through lunf.apply, every gate"
+  },
+  {
+    "from": "card-036:b3-lit",
+    "device": "Kinetix_red",
+    "action": "snap_image",
+    "settings": null
+  },
+  {
+    "from": "card-036:b3-close",
+    "device": "laser_combiner",
+    "action": "enable",
+    "settings": {
+      "laser_combiner": {
+        "enable": []
+      }
+    }
+  },
+  {
+    "from": "card-036:b3-after",
+    "device": "Kinetix_red",
+    "action": "snap_image",
+    "settings": null
+  },
+  {
+    "from": "card-036:b3-abort",
+    "device": "laser_combiner",
+    "action": "abort",
+    "settings": null,
+    "note": "on finish and on any failure"
+  }
+]

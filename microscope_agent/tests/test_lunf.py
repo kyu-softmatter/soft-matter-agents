@@ -69,18 +69,19 @@ class Gates(unittest.TestCase):
         return [{"from": "test", "device": "laser_combiner", "action": "enable",
                  "settings": {"laser_combiner": {"enable": list(s)}}} for s in sets]
 
-    def arm(self, *, limit="illumination_power_max", kind="physical", state=7, pinned=None,
+    def arm(self, *, limit=_ALL, kind="physical", ends=(0, 5), drop_end=None, state=7, pinned=None,
             reader=None, transport=None, approved=_ALL, approved_by="test person",
             bench=("test seat", "the bench is yours"), log=None, with_log=True):
         """Every gate satisfied unless a keyword says otherwise."""
         m = self.mod
         m.reset()
-        env = {"targets": [{"target": m.BENCH_TARGET, "limits": {
-            "illumination_power_max": {"value": 1, "unit": "mW",
-                                       "confirmation": {"kind": kind}}}}]}
+        names = ("laser_combiner_command_voltage_min", "laser_combiner_command_voltage_max")
+        limits = {n: {"value": v, "unit": "V", "bounds": b, "confirmation": {"kind": kind}}
+                  for n, v, b in zip(names, ends, ("min", "max")) if n != drop_end}
+        env = {"targets": [{"target": m.BENCH_TARGET, "limits": limits}]}
         m.ENVELOPE_PATH = self.tmp / "safety.json"
         m.ENVELOPE_PATH.write_text(json.dumps(env), encoding="utf-8")
-        m.COVERING_LIMIT = limit
+        m.COVERING_LIMIT = names if limit is _ALL else limit
         t = transport or m.MockTransport()
         m.use_transport(t)
         m.bind_light_path(reader or (lambda: {"state": state, "read_back": True}),
@@ -108,9 +109,16 @@ class Gates(unittest.TestCase):
         self.assertTrue(self.refused({"enable": ["a"]}), "enabled with no covering limit")
         self.assertEqual(t.writes, [])
 
-    def test_no_enable_with_limit_named_but_absent(self):
-        t = self.arm(limit="no_such_limit")
-        self.assertTrue(self.refused({"enable": ["a"]}))
+    def test_no_enable_with_either_end_absent(self):
+        for end in ("laser_combiner_command_voltage_min", "laser_combiner_command_voltage_max"):
+            with self.subTest(absent=end):
+                t = self.arm(drop_end=end)
+                self.assertTrue(self.refused({"enable": ["a"]}), f"enabled with {end} absent")
+                self.assertEqual(t.writes, [])
+
+    def test_no_enable_on_an_inverted_range(self):
+        t = self.arm(ends=(5, 0))
+        self.assertTrue(self.refused({"enable": ["a"]}), "enabled on an inverted range")
         self.assertEqual(t.writes, [])
 
     def test_no_enable_with_unconfirmed_limit(self):
@@ -118,10 +126,17 @@ class Gates(unittest.TestCase):
         self.assertTrue(self.refused({"enable": ["a"]}), "enabled under a carried_over limit")
         self.assertEqual(t.writes, [])
 
-    def test_the_shipped_module_names_no_covering_limit(self):
-        # the person has not answered; the module as loaded must not carry an answer
+    def test_the_shipped_module_names_the_persons_voltage_pair(self):
+        # the person's answer of 2026-09-24, and nothing else
         # (tearDown restores the loaded value after every test that sets one)
-        self.assertIsNone(self.mod.COVERING_LIMIT)
+        self.assertEqual(self.mod.COVERING_LIMIT, ("laser_combiner_command_voltage_min",
+                                                   "laser_combiner_command_voltage_max"))
+
+    def test_the_real_transport_loads_nothing_until_used(self):
+        t = self.mod.NiDaqTransport(library="no_such_library_anywhere")
+        self.assertIsNone(t._dll)
+        with self.assertRaises(OSError):
+            t.lines_free(["x"])
 
     # -- the light path (2.1 rule 11) ----------------------------------------- #
 
@@ -218,6 +233,16 @@ class Gates(unittest.TestCase):
         self.assertEqual([r["written"] for r in out["blanked"]], [True, True, True])
         with self.assertRaises(RuntimeError):
             self.mod.apply({"enable": []})
+
+    def test_a_blind_laser_is_assumed_on_after_any_command(self):
+        self.arm()
+        self.assertIsNone(self.mod.read()["beam"], "no command yet, nothing to assume")
+        self.mod.apply({"enable": []})
+        self.assertEqual(self.mod.read()["beam"], "assumed_on", "a blanking command is not a closed beam")
+        out = self.mod.abort()
+        self.assertEqual(out["beam"], "assumed_on")
+        self.assertIsNone(out["barrier"])
+        self.assertEqual(self.mod.read()["beam"], "assumed_on")
 
     def test_abort_reports_a_failed_line_and_blanks_the_rest(self):
         t = self.arm(transport=self.mod.MockTransport(fail_on={"dl1"}))
