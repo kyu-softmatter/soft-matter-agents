@@ -31,8 +31,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c 'exec python3 \"$(git rev-parse --show-toplevel)/contracts/validate.py\" --quiet'",
-            "$comment": "The validator's exit code is the only truth (plan.md 8). This read $CLAUDE_PROJECT_DIR until 2026-09-19, which is the session's own directory -- so from librarian_agent/ it looked for librarian_agent/contracts/validate.py, did not find it, and failed. A PostToolUse failure does not stop the write, so there was no symptom: every write from this seat went unvalidated at write time, and only the commit gate ever saw them. Same defect plan.md 7 records for .mcp.json, same fix: ask git where the repository root is instead of assuming the session is standing at it."
+            "command": "sh -c 'for c in python3 python py; do command -v \"$c\" >/dev/null 2>&1 || continue; \"$c\" -c \"\" >/dev/null 2>&1 || continue; exec \"$c\" \"$(git rev-parse --show-toplevel)/contracts/validate.py\" --quiet; done; echo \"validate: no RUNNABLE python on PATH (python3, python, py all failed a -c probe)\" >&2; exit 1'",
+            "$comment": "The validator's exit code is the only truth (plan.md 8). This read $CLAUDE_PROJECT_DIR until 2026-09-19, which is the session's own directory -- so from librarian_agent/ it looked for librarian_agent/contracts/validate.py, did not find it, and failed. A PostToolUse failure does not stop the write, so there was no symptom: every write from this seat went unvalidated at write time, and only the commit gate ever saw them. Same defect plan.md 7 records for .mcp.json, same fix: ask git where the repository root is instead of assuming the session is standing at it. AND IT STILL NAMED python3 BARE until 2026-09-25, which on the microscope computer is a Store alias that exits 49 -- so it failed silently the same way a second time. It now probes each name by running it, the loop the root settings use (plan.md 11-22)."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'for c in python3 python py; do command -v \"$c\" >/dev/null 2>&1 || continue; \"$c\" -c \"\" >/dev/null 2>&1 || continue; exec \"$c\" \"$(git rev-parse --show-toplevel)/.claude/end-of-turn-commit-check.py\"; done; exit 0'",
+            "$comment": "The person's request, 2026-09-25: sessions commit and push what they made and learned before they stop. This asks and does not act: it blocks a stop once, listing uncommitted paths in the session's own boundary, and the session commits what is finished and validated under its own identity, pushes, records what it learned, or says in one line why not. It never commits itself -- in a shared working copy a hook cannot tell a draft from a finished card or one seat's file from another's. Never twice in a row, never for an unchanged set, at most once per 30 minutes; any error lets the stop through. The path resolves through git, so an agent's settings can run the same line."
           }
         ]
       }
