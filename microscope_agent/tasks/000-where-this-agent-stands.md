@@ -42,9 +42,9 @@ here so the day's seats start from it.
 5. ~~correct the approval~~ **done by the person at `e389d4d`**:
    `approved_at` 2026-09-24T20:08:51Z, the file's own save time, 33 s before
    run `-005` began. It carries a byte-order mark, and the validator reads
-   it since `f1e5b0b`. **Run `-005` is still to commit**:
-   `microscope-20260924-2` has closed, so a card must name the microscope
-   seat that commits it, with its result card after
+   it since `f1e5b0b`. **Run `-005` is committed** at `829f241` by
+   `microscope-20260924-6` on card 048; `-2` made it. **Its result card is
+   still to write**, carrying the tracking error and the settled read-backs
 6. **decided by the person**: a resting read-back may fall up to 10 nm short
    of a piezo floor and still count as at it, on every axis, and commands
    never go below the floor. The schema slot is
@@ -145,7 +145,7 @@ older.** Read it as history.
 
 | | where it waits |
 |---|---|
-| run `-005` is **uncommitted by the person's choice**: its approval's written time (21:00Z) follows the run (20:09:24Z), so check 15 fails it. The approval file was saved at 20:08:51Z, before the run. **The record is `D:\soft-matter-agents-frames\run-20260924-005\`**, with hashes in `failures.jsonl` (`ee0e42c`). Its result card, the tracking error, waits on it | the person: correct the time in `appr-mic-20260924-002-r1` and commit `microscope_agent/approvals/` as the person. Then a microscope seat commits `-005`, and check 15 clears |
+| run `-005` is **committed** (`829f241`, made by `-2`, committed by `-6` on card 048), and check 15 is clear. **Its committed blobs hash differently from the sha256s `-2` recorded** for three of its four files (`deviations.json`, `log.json`, `position_vs_time.svg`). **The content is identical**: `-2` hashed the files on disk with CRLF endings, and git stores them LF on this checkout. Verified by folding CRLF to LF: each folded hash equals the committed blob, and `report.md` matches either way. The out-of-tree copy at `D:\soft-matter-agents-frames\run-20260924-005\` keeps the CRLF bytes the recorded hashes name. **Its result card, the tracking error, is still to write** | a card naming the seat that writes the result card |
 | card 041: the dispatcher reaching Micro-Manager, plus the byte-order-mark fix for approvals | `microscope-20260924-1`'s |
 | **the day's findings are in the store**: 62 entries, 24 of them self-reports citing today's runs, `-4`'s twelve tweezers entries, and both piezo ranges (the controller's 0 to 600 µm and the person's −100 to 600 µm) naming each other. No observable value cites a preparatory run. Published at `kbv-a1bb4a5acf25`, pushed at `d2162d9` | done |
 | `librarian_agent/tasks/037` is untracked | `manager-librarian-20260924-1`'s to commit |
