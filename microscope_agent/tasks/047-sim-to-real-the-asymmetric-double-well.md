@@ -78,6 +78,29 @@ by the trap separation and overlap, not by a 1:100 power ratio.** The
 feasibility measurement is what tests this. **The store holds no trap
 stiffness at all**, and that gap is what the calibration fills.
 
+## From the bridge manager's readiness review (`bridge/tasks/006`, `3ea532b`)
+
+For the microscope side, as context:
+
+- **the capability table now declares the four observables** (`0a4fae4`),
+  on every imaging configuration that produces the trapped position
+  distribution, each requiring trapping. Without that, the round would have
+  been held and not delivered
+- **trap naming, shared with the simulation**: `trap_1` is the deeper, stiffer
+  trap, and **+x points from `trap_1` to `trap_2`**
+- **say how each trap's Gaussian width and the separation are measured, in
+  µm.** The barrier comes from the width, and nothing yet says how it is
+  measured
+- **the frame interval and the exposure go on the result card**: exposure
+  averaging narrows the position histogram, and so the barrier read off it
+- **"reached the minimum" needs a tolerance** that both sides apply to the
+  same camera track. How close to a well's minimum counts as reaching it is
+  part of the milestoning definition, and it must match the simulation's
+- **what the simulation asks back** for its re-prediction: the calibrated
+  `k1`, `k2`, `w` and the in-situ diffusivity `D`. The targets arrive as
+  order-of-magnitude scalars plus prose, because no schema slot holds a
+  requested range yet
+
 ## The person's bench procedure for 2026-09-25
 
 Relayed from architecture, the person's own description. The task still
