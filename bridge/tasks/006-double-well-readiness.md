@@ -95,6 +95,13 @@ the eve and is what this card exists to shorten.
   camera track. Condition (1) needs **one** definition — minimum location
   method, reach tolerance, barrier region — registered and used on both sides.
   Until it is, the two sides run estimators with the same name.
+  **Owner: `manager-bridge-20260924-1`** (agreed with
+  `manager-microscope-20260924-1`, 2026-09-24). Drafted **after the bench**,
+  from what the real track looks like, together with `manager-simulation`,
+  and sent to both sides before it lands. Not tonight: both sides are writing
+  against the current text, and this blocks comparability, not the round.
+  G9 is `manager-microscope-20260924-1`'s on the same terms. Both are on
+  card 000.
 - **G6 — sampling interval has no field.** Every entry's `window_parameter` is
   `record_length` only. 11-23 condition (3) also asks for the sampling
   interval, and at a stiffness ratio of 100 the stiff well's dwell is what the
