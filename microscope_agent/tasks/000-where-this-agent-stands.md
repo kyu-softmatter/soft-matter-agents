@@ -36,14 +36,22 @@ here so the day's seats start from it.
 
 **The person's, before the first orchestrated run:**
 
-4. commit `envelope/safety.json` with the confocal command-voltage limit,
-   0 to 5 V (schema `79f44bc`, card 036 `b285223`), replacing the per-line
-   mW limits. Then a manager removes the three `illumination_power_max_<nm>`
-   names from the schema
-5. correct the approval `appr-mic-20260924-002-r1` (21:00Z) and commit it;
-   then run `-005` can be committed
-6. whether piezo Z resting a few nm below 0 counts as at 0, with commands
-   never below 0
+4. ~~commit the confocal command-voltage limit~~ **done by the person at
+   `e389d4d`** (policy 7, 0 to 5 V). The per-line mW names are removed from
+   the schema at `458c6df`
+5. ~~correct the approval~~ **done by the person at `e389d4d`**:
+   `approved_at` 2026-09-24T20:08:51Z, the file's own save time, 33 s before
+   run `-005` began. It carries a byte-order mark, and the validator reads
+   it since `f1e5b0b`. **Run `-005` is still to commit**:
+   `microscope-20260924-2` has closed, so a card must name the microscope
+   seat that commits it, with its result card after
+6. **decided by the person**: a resting read-back may fall up to 10 nm short
+   of a piezo floor and still count as at it, on every axis, and commands
+   never go below the floor. The schema slot is
+   `piezo_position_readback_tolerance` (`458c6df`). **Still to do**: the
+   person writes it into `safety.json`, then a card has the piezo wrapper
+   use it **only** for the resting check, refusing as today when it is
+   absent
 
 **The confocal work is paused for about a month**, by the person on the
 evening of 2026-09-24: *"let's give up to connect confocal at this stage.
@@ -53,11 +61,12 @@ its release:
 
 - **the eyepiece mapping is recorded, by integer** (run `-008`, `9c9f598`):
   `LightPath` states **0 and 2 reach the eyepieces; 1 and 3 do not**
-- **after NIS was force-killed, the fiber shutter was left open with nothing
-  owning it**, and the four blanking lines were written closed with no
-  read-back, so **the beam is assumed on**. The person was asked to restart
-  NIS and close the shutter normally. **Read its state at the bench before
-  anything else**
+- after NIS was force-killed, the fiber shutter was left open with nothing
+  owning it, and the beam was assumed on. **The person then closed the
+  barrier by hand**: *"i turned off both"*, to `microscope-20260924-3`,
+  meaning NIS closed and the combiner switched off at its own power.
+  **Software read none of it**, so the person is the barrier the blind-laser
+  rule accepts. **Read the state at the bench before anything else anyway**
 - after that kill, **the stand stopped answering a Micro-Manager load**,
   hanging 2 to 6 minutes (runs `-009` and `-010`). Nobody has tried
   reconnecting or power-cycling its controller. **This may block tomorrow's
