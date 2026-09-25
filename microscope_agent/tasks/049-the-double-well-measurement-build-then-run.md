@@ -30,6 +30,17 @@ restored for you**, and the ~10:40 withdrawal is superseded. You send
 5. **the bench handed to you in your own window**, with the four hand-over
    statements from card 047 logged first
 
+**Condition 2 and 3 status, 2026-09-25 afternoon:** the person's limits are
+in `safety.json` (policy 8, valid, uncommitted, the person's to commit), and
+the schema follows the person's names at `4ba2d1c`. **The trap-step
+exemption (`759e9f0`) is accepted by architecture** (`plan.md` 11-23 at
+`4a64512`), after this seat and architecture each re-ran its 19 tests and 11
+mutations independently. **One note, not a condition: a strength change has
+no step limit**, so one step could drop a trap from 1 to 0 and release the
+bead. **Write strength trims as small, separate steps.** That also matches
+the simulation's few-per-cent tolerance at the stiff end. **Conditions 4
+and 5 remain.**
+
 The analysis and record-committing work of the ~10:40 revision still
 stands. Architecture's stopped run's logs sit at
 `D:\soft-matter-agents-frames\run-20260925-001\`, for you to commit when
