@@ -318,6 +318,73 @@
             }
           ],
           "$comment": "INSTRUMENT. How far a RESTING read-back may fall short of a piezo floor and still count as at it, on every piezo axis. The person's decision of 2026-09-24: 10 nm, i.e. 0.01 um. It exists because the controller rests at its floor with a reading a hair below it (Z at -0.0017 um in run -004) and the wrapper refused every Z command as starting outside the limit. The wrapper uses it ONLY when judging whether a resting position is inside the range before a move. It NEVER widens a commanded position: every target stays inside piezo_<axis>_position_min/_max exactly, and check 86 checks targets against those, not against this. Optional; when absent the wrapper refuses a start below the floor, as before. A magnitude, so `limit`'s rule against zero applies: a tolerance of zero is the same as none, and is refused rather than written."
+        },
+        "optical_tweezers_x_position_min": {
+          "$ref": "#/$defs/trap_position_floor",
+          "$comment": "INSTRUMENT and SAMPLE. The lowest X a trap may be commanded to. Optional in the schema; required at use: the plan-derived exemption for optical_tweezers refuses every positioning command while either end is absent. The two ends are required together."
+        },
+        "optical_tweezers_x_position_max": {
+          "$ref": "#/$defs/trap_position_ceiling",
+          "$comment": "The highest X a trap may be commanded to. See optical_tweezers_x_position_min."
+        },
+        "optical_tweezers_y_position_min": {
+          "$ref": "#/$defs/trap_position_floor",
+          "$comment": "INSTRUMENT and SAMPLE. The lowest Y a trap may be commanded to. Optional in the schema; required at use: the plan-derived exemption for optical_tweezers refuses every positioning command while either end is absent. The two ends are required together."
+        },
+        "optical_tweezers_y_position_max": {
+          "$ref": "#/$defs/trap_position_ceiling",
+          "$comment": "The highest Y a trap may be commanded to. See optical_tweezers_y_position_min."
+        },
+        "optical_tweezers_strength_max": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ceiling"
+            },
+            {
+              "properties": {
+                "unit": {
+                  "const": "1"
+                },
+                "value": {
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "not": {
+                "required": [
+                  "resolved_from"
+                ]
+              }
+            }
+          ],
+          "$comment": "SAMPLE and DATA. The highest relative strength a trap may be set to: a fraction of the laser power the Tweez300 distributes, 0 to 1 by its own format. It does NOT bound the total power, which is the person's hand at the dial (trap_laser_power_has_no_software_path), and nothing here reads or verifies it. Optional; the exemption refuses every strength command while it is absent."
+        },
+        "optical_tweezers_position_step_max": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ceiling"
+            },
+            {
+              "properties": {
+                "unit": {
+                  "const": "um"
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "not": {
+                "required": [
+                  "resolved_from"
+                ]
+              }
+            }
+          ],
+          "$comment": "SAMPLE. The largest single change in a trap's position, in um, so a trap is walked rather than jumped and a held bead is not dropped. Optional; when present the wrapper refuses a step larger than it, and splits nothing on its own: a larger move is written in the plan as several steps."
         }
       },
       "required": [
@@ -350,6 +417,18 @@
         ],
         "laser_combiner_command_voltage_max": [
           "laser_combiner_command_voltage_min"
+        ],
+        "optical_tweezers_x_position_min": [
+          "optical_tweezers_x_position_max"
+        ],
+        "optical_tweezers_x_position_max": [
+          "optical_tweezers_x_position_min"
+        ],
+        "optical_tweezers_y_position_min": [
+          "optical_tweezers_y_position_max"
+        ],
+        "optical_tweezers_y_position_max": [
+          "optical_tweezers_y_position_min"
         ]
       }
     },
@@ -717,6 +796,190 @@
         "unit",
         "bounds",
         "confirmation"
+      ],
+      "additionalProperties": false
+    },
+    "trap_position_floor": {
+      "type": "object",
+      "description": "The low end of an optical-tweezers trap position on one axis, in um in the Tweez300's calibrated field, a constant and never a lookup. Added 2026-09-25 when the person moved the tweezers to microscope-20260924-6. A coordinate, not a magnitude, so any sign is legitimate and `limit`'s rule against zero does not apply. The GUI's pixel-to-um calibration is valid only for the objective it was done with, and nothing reads it over TCP, so the wrapper records the calibration state beside every command. The schema cannot say the floor is below the ceiling; the wrapper compares the pair. Keyed to one objective by its required `objective` field (added 2026-09-25): a limit for another objective is a separate decision, the person's, and never derived by scaling.",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "const": "um"
+        },
+        "note": {
+          "type": "string"
+        },
+        "confirmation": {
+          "type": "object",
+          "description": "How this particular ceiling came to be in this file. Required per limit, not per file: a file-level `written_by` is the bulk stamp -- one signature covering twelve limits and saying which of them anyone actually checked. Librarian rule 10 already says a confirmation applied in bulk is not a confirmation, and if that holds for a KB entry it holds harder for the file P0 hands to deterministic code.\n\nCopying a limit from another document is NOT forbidden. Forbidding it would mean confirming every limit before the file can exist, and then nobody starts the file. What is required is that the two be DISTINGUISHABLE, so a later check can say `an unconfirmed limit is parameterising an irreversible action` (2.1 rule 3's shape), which today it cannot.\n\nThis is not a grade. 10.3 rule 4 keeps a limit a policy with no source and no grade, and that is unchanged: the ceiling is a decision about what is allowed. What is recorded here is the EVENT of confirming, and an event is something that happened rather than something claimed.",
+          "oneOf": [
+            {
+              "$comment": "Confirmed physically, outside the system, as 10.3 rule 4 requires.",
+              "properties": {
+                "kind": {
+                  "const": "physical"
+                },
+                "by": {
+                  "type": "string",
+                  "minLength": 2,
+                  "description": "who did it"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "how": {
+                  "type": "string",
+                  "minLength": 10,
+                  "description": "what was actually done. `confirmed` is not a how -- the point is that someone reading this later can tell whether the check would catch the thing the limit exists to catch."
+                }
+              },
+              "required": [
+                "kind",
+                "by",
+                "on",
+                "how"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "$comment": "Carried from another document without being re-confirmed here. Legal, and visibly so.",
+              "properties": {
+                "kind": {
+                  "const": "carried_over"
+                },
+                "from": {
+                  "type": "string",
+                  "minLength": 3,
+                  "description": "the document it was taken from"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "note": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "kind",
+                "from",
+                "on"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "bounds": {
+          "const": "min"
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the objective this limit was set for, as the person names it (for example 100x). REQUIRED: the Tweez300's pixel-to-um calibration is valid only for the objective it was made with, and a position limit read under another objective bounds the wrong field. The wrapper refuses every trap command while the objective in place, from the person's hand-over statement, is not the one named here. One objective per limit today. Limits for other objectives are the person's to give, and are not computed by scaling"
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "bounds",
+        "confirmation",
+        "objective"
+      ],
+      "additionalProperties": false
+    },
+    "trap_position_ceiling": {
+      "type": "object",
+      "description": "The high end of an optical-tweezers trap position on one axis, in um in the Tweez300's calibrated field, a constant and never a lookup. Added 2026-09-25 when the person moved the tweezers to microscope-20260924-6. A coordinate, not a magnitude, so any sign is legitimate and `limit`'s rule against zero does not apply. The GUI's pixel-to-um calibration is valid only for the objective it was done with, and nothing reads it over TCP, so the wrapper records the calibration state beside every command. The schema cannot say the floor is below the ceiling; the wrapper compares the pair. Keyed to one objective by its required `objective` field (added 2026-09-25): a limit for another objective is a separate decision, the person's, and never derived by scaling.",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "const": "um"
+        },
+        "note": {
+          "type": "string"
+        },
+        "confirmation": {
+          "type": "object",
+          "description": "How this particular ceiling came to be in this file. Required per limit, not per file: a file-level `written_by` is the bulk stamp -- one signature covering twelve limits and saying which of them anyone actually checked. Librarian rule 10 already says a confirmation applied in bulk is not a confirmation, and if that holds for a KB entry it holds harder for the file P0 hands to deterministic code.\n\nCopying a limit from another document is NOT forbidden. Forbidding it would mean confirming every limit before the file can exist, and then nobody starts the file. What is required is that the two be DISTINGUISHABLE, so a later check can say `an unconfirmed limit is parameterising an irreversible action` (2.1 rule 3's shape), which today it cannot.\n\nThis is not a grade. 10.3 rule 4 keeps a limit a policy with no source and no grade, and that is unchanged: the ceiling is a decision about what is allowed. What is recorded here is the EVENT of confirming, and an event is something that happened rather than something claimed.",
+          "oneOf": [
+            {
+              "$comment": "Confirmed physically, outside the system, as 10.3 rule 4 requires.",
+              "properties": {
+                "kind": {
+                  "const": "physical"
+                },
+                "by": {
+                  "type": "string",
+                  "minLength": 2,
+                  "description": "who did it"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "how": {
+                  "type": "string",
+                  "minLength": 10,
+                  "description": "what was actually done. `confirmed` is not a how -- the point is that someone reading this later can tell whether the check would catch the thing the limit exists to catch."
+                }
+              },
+              "required": [
+                "kind",
+                "by",
+                "on",
+                "how"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "$comment": "Carried from another document without being re-confirmed here. Legal, and visibly so.",
+              "properties": {
+                "kind": {
+                  "const": "carried_over"
+                },
+                "from": {
+                  "type": "string",
+                  "minLength": 3,
+                  "description": "the document it was taken from"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "note": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "kind",
+                "from",
+                "on"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "bounds": {
+          "const": "max"
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the objective this limit was set for, as the person names it (for example 100x). REQUIRED: the Tweez300's pixel-to-um calibration is valid only for the objective it was made with, and a position limit read under another objective bounds the wrong field. The wrapper refuses every trap command while the objective in place, from the person's hand-over statement, is not the one named here. One objective per limit today. Limits for other objectives are the person's to give, and are not computed by scaling"
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "bounds",
+        "confirmation",
+        "objective"
       ],
       "additionalProperties": false
     }

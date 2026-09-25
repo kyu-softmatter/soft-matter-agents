@@ -1,0 +1,65 @@
+{
+  "artifact": "envelope_safety",
+  "schema_version": "0.1",
+  "policy_version": "4",
+  "agent": "microscope",
+  "written_by": "FIXTURE",
+  "written_at": "2026-09-20",
+  "targets": [
+    {
+      "target": "bench",
+      "label": "REJECTED FIXTURE. A relative trap strength limit of 1.5. The Tweez300's format defines strength as 0 to 1, so a ceiling above 1 bounds nothing. Check 1 refuses it.",
+      "limits": {
+        "optical_power_max": {
+          "value": 1020,
+          "unit": "mW",
+          "note": "Laser output at the sample plane. The highest point the dial reached under measurement; the next point up over-ranged the meter and is an extrapolation, not a measurement.",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-09-20",
+            "how": "Measured at the sample plane with a Thorlabs power meter across the dial range, by the person recording it here. The bench work predates this entry; what is dated today is this person confirming it holds for this instrument as configured."
+          }
+        },
+        "objective_clearance_min": {
+          "resolved_from": {
+            "quantity": "working_distance",
+            "keyed_by": "the objective in the nosepiece position the plan drives to",
+            "note": "Six objectives span 20 mm to 0.13 mm, a factor of 150. One constant is right for one lens and wrong for five -- which is what 130 um was doing: the 100x oil value applied to all six. The 40x WI (MRD77400) has no single working distance: a correction collar moves it, so the catalogue quotes 0.16 to 0.2 mm and the store carries both ends rather than compressing a quotation. The fallback says which end binds, and it is the near one: the true working distance is at least the minimum at any collar setting, so a floor at 0.16 mm is not crossed before focus while one at 0.2 mm can be. That is a policy choice, so it is written here and not in the store.",
+            "fallback": [
+              "working_distance_min"
+            ]
+          },
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "Nikon catalogue working distances, held as kb entries objective_mrd70040 / 70170 / 70270 / 71670 / 71970 / 77400",
+            "on": "2026-09-20",
+            "note": "Catalogue values. Nobody has checked where these lenses actually focus on this bench; carried_over is the honest kind until someone does."
+          }
+        },
+        "objective_clearance_absolute_min": {
+          "value": 130,
+          "unit": "um",
+          "note": "An absolute floor on clearance, independent of which objective is seated. It is the tightest working distance across the six (100x Oil, MRD71970), so it never binds while the lookup above is right, and it catches a lookup that has gone wrong -- a wrong key, a mis-seated nosepiece, a bad store value. Both limits are minima on clearance, so the LARGER of the two binds.",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-09-20",
+            "how": "Approach test on the stage."
+          }
+        },
+        "optical_tweezers_strength_max": {
+          "value": 1.5,
+          "unit": "1",
+          "bounds": "max",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-09-20",
+            "how": "Measured at the sample plane with a Thorlabs power meter across the dial range, by the person recording it here. The bench work predates this entry; what is dated today is this person confirming it holds for this instrument as configured."
+          }
+        }
+      }
+    }
+  ]
+}
