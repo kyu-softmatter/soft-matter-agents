@@ -1,6 +1,6 @@
 # 036 — catalogue the lab's manual archive, and a safety guide per device
 
-status: **open** · issued 2026-09-24 by manager-librarian, on the person's
+status: **open** · issued 2026-09-24 by manager-librarian-20260924-1 (committed under the undated `manager-librarian` at `4e21f59` and `4395e82`, see below), on the person's
 instruction of the same day · **assigned to librarian-20260924-2** (below)
 
 ## Who takes it, and two corrections to this file as first committed
@@ -21,7 +21,7 @@ microscope-20260924-4's findings intake.
 
 **The person's words on the edition, and when.** Before that, the person had
 told librarian-20260924-1 directly to record both editions and decide later.
-The ruling below was asked in the manager-librarian session and answered
+The ruling below was asked in the manager-librarian-20260924-1 session and answered
 **before 13:21 -0700 on 2026-09-24** (this file's first commit, `4e21f59`).
 It was a multiple-choice question and the person's answer is the option they
 chose, verbatim. The question was: *"There are two editions of each

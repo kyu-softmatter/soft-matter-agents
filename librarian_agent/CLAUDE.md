@@ -177,7 +177,7 @@ server was reachable has to name the gap it stands on (check 39).
    **The line is the vocabulary**: a registered observable's value never
    enters this way and still waits for a plan that cites the run; check 85
    lists every entry citing such a run. The same absolute failed the same way
-   a second time. manager-librarian repeated it in task 037, and
+   a second time. manager-librarian-20260924-1 repeated it in task 037, and
    librarian-20260924-2 followed `plan.md` over both.
 10. **A confirmation mark applied in bulk is not a confirmation.** Stamp the row
     you re-read, never a batch.

@@ -1,6 +1,6 @@
 # 037 — the microscope findings of 2026-09-24, into the store
 
-status: **open** · issued 2026-09-24 by manager-librarian, at
+status: **open** · issued 2026-09-24 by manager-librarian-20260924-1 (committed under the undated `manager-librarian` at `4395e82`), at
 librarian-20260924-2's request so the intake survives a clear. It records
 work already under way, not work begun here · **assigned to
 librarian-20260924-2** · **reported done before this file was first
