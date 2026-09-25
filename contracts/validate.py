@@ -8061,7 +8061,40 @@ def describe_tree(staged: bool = False) -> str:
         # The index already names a blob per path, so its identity is read
         # rather than computed.
         ident = hashlib.sha256(raw.encode()).hexdigest()[:8]
-        return f"tree: the index as it would be committed, on top of {head} [staged {ident}]"
+        # WHICH index, because `--staged` means two different things and the
+        # flag cannot tell you which one you got. git sets GIT_INDEX_FILE for
+        # both commit forms and they differ: `git commit -- <paths>` points
+        # it at a TEMPORARY index holding your paths on top of HEAD, while a
+        # plain `git commit` points it at `.git/index` itself -- the shared
+        # one, carrying whatever any session has staged. Measured both ways
+        # in a scratch repository rather than read off the hook's comment,
+        # which said only that a temporary index exists.
+        #
+        # So the same flag is an isolated judgement under one commit form and
+        # a shared one under the other, and run by hand with no variable set
+        # it is the shared index again -- which is why it is not a way to
+        # read your own failures apart from a colleague's, a use two manager
+        # seats reached for on 2026-09-25 before measuring it.
+        # Resolved against GIT_REPO, because git hands this over relative to
+        # the root for a plain commit and absolute for the path form -- and
+        # NOT via `git rev-parse --git-path index`, which returns the variable
+        # itself when it is set and so can never tell the two apart.
+        env = os.environ.get("GIT_INDEX_FILE")
+        here = Path(env) if env and Path(env).is_absolute() else (GIT_REPO / (env or ""))
+        try:
+            own = Path(git("rev-parse", "--git-dir").strip())
+        except (OSError, subprocess.CalledProcessError):
+            own = GIT_REPO / ".git"
+        if not own.is_absolute():
+            own = GIT_REPO / own
+        if env and here.resolve() != (own / "index").resolve():
+            whose = "a temporary index holding one commit's paths on top of"
+        elif env:
+            whose = ("THE SHARED INDEX -- a plain `git commit`, so anything any session has staged "
+                     "is in this verdict and in that commit -- on top of")
+        else:
+            whose = ("the shared index, which is every session's and not a commit's, on top of")
+        return f"tree: {whose} {head} [staged {ident}]"
     if not dirty:
         return f"tree: {head}, clean"
     return (f"tree: {head} plus {len(dirty)} uncommitted paths [dirty {digest_of(dirty)}], which is "

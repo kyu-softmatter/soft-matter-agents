@@ -103,6 +103,37 @@ fi
 echo "pre-commit: committing"
 echo "$STAGED" | sed 's#^#  #'
 
+# WHICH COMMIT FORM THIS IS, because the list above looks the same either way
+# and the two are not the same commit. git sets GIT_INDEX_FILE for both and
+# they differ: `git commit -- <paths>` points it at a temporary index holding
+# your paths on top of HEAD, so another session's staging is already excluded
+# from what is listed; a plain `git commit` points it at `.git/index` itself,
+# the shared one, so whatever anyone staged is in that list and in the commit.
+# Measured both forms in a scratch repository -- the hook comment below said
+# only that a temporary index exists, which reads as though it always does.
+#
+# The list alone cannot warn: another seat's path is a legal path and looks
+# like work. This says which kind of commit is being made, at the moment the
+# identity is spent.
+# NOT `git rev-parse --git-path index`, which was the obvious way and is
+# circular: when GIT_INDEX_FILE is set, --git-path index RETURNS it, so the
+# comparison matched under both forms and the warning fired on every commit.
+# Caught by running both rather than by reading, on the first attempt.
+# `--git-dir` does not consult the variable -- measured, it is `.git` under
+# both -- so the repository's own index is what to compare against. Either
+# side may be relative to the root, which we have cd'd to, so both are made
+# absolute before comparing.
+_IDX="$(git rev-parse --git-dir)/index"
+_GIF=${GIT_INDEX_FILE:-}
+case "$_IDX" in /*) ;; *) _IDX="$REPO/$_IDX" ;; esac
+case "$_GIF" in /*) ;; *) _GIF="$REPO/$_GIF" ;; esac
+if [ -n "${GIT_INDEX_FILE:-}" ] && [ "$_GIF" = "$_IDX" ]; then
+    echo "pre-commit: this is a PLAIN git commit, judged on the SHARED index --"
+    echo "            everything above is going in under your identity, including"
+    echo "            anything another session staged. Use \`git commit -- <paths>\`"
+    echo "            to commit only your own paths on top of HEAD."
+fi
+
 # And name what inside them is changing, because the filename is not enough to
 # recognise your own work. `git commit -- <path>` builds its index from the
 # WORKTREE state of that path, so another session's edit to the same file rides
