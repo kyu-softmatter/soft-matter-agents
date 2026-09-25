@@ -1,0 +1,20 @@
+﻿{
+  "card": "plan_approval",
+  "schema_version": "0.1",
+  "id": "appr-mic-20260925-005-r1",
+  "qid": "mic-20260925-005",
+  "thread": "solo-mic-20260925-005",
+  "round": 0,
+  "revision": 1,
+  "author": "human",
+  "created_at": "PUT-THE-ACTUAL-UTC-TIME-HERE",
+  "status": "APPROVED",
+  "plan_id": "plan-mic-20260925-005-r1",
+  "plan_revision": 1,
+  "plan_hash": "sha256:f3d77d864eb4a365237be1d13833a6ae653ce42ec180c3801d8a6215f2ebc1a9",
+  "approved_by": "kyuhwan",
+  "approved_at": "PUT-THE-ACTUAL-UTC-TIME-HERE",
+  "note": "trap_2 re-made at (+5, 0); strengths 0.2 to 1.0; 3 min each.",
+  "numbers": [],
+  "degraded": []
+}
