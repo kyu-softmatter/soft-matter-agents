@@ -1,0 +1,268 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "round": 0,
+  "author": "microscope_agent",
+  "numbers": [
+    {
+      "name": "nosepiece_position",
+      "value": 5,
+      "unit": "count",
+      "source": "operator_read:kyuhwan_20260925",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "at": "stand_ti2e",
+      "note": "The 100x oil objective, MRD71970, position 5 on a turret indexed from 0 (nosepiece_objective_assignment, E3). The person confirmed it at hand-over in this seat's window ('correct' to 'The objective: 100x oil'). SET BY THE PERSON'S HAND AND NEVER COMMANDED. Added in r2 because the clearance floor resolves from the objective in the path, and r1's run refused before its first command for want of it."
+    }
+  ],
+  "degraded": [],
+  "purpose": "verify",
+  "intent": "confirm",
+  "id": "plan-mic-20260925-003-r1",
+  "qid": "mic-20260925-003",
+  "thread": "solo-mic-20260925-003",
+  "revision": 1,
+  "created_at": "2026-09-25T20:25:00Z",
+  "status": "VALIDATED",
+  "actions": [
+    {
+      "id": "make_trap_2",
+      "device": "optical_tweezers",
+      "action": "create",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_on",
+      "device": "optical_tweezers",
+      "action": "on",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_at_6",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_5",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_at_5",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_4",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_at_4",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_3",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_at_3",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_2",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_at_2",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_to_1",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "check_at_1",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [
+      "tweezers_trap_position_100x_min",
+      "tweezers_trap_position_100x_max",
+      "tweezers_trap_strength_min",
+      "tweezers_trap_strength_max",
+      "tweezers_trap_step_max"
+    ],
+    "status": "inside",
+    "note": "trap_2 is created at (+6, 0) um and walked to +5, +4, +3, +2, +1 um in 1 um steps: every position inside the person's -40 to +40 um at 100x, every step exactly the person's 1 um limit, strength 1.0 at the top of 0 to 1. trap_1 is not commanded; it stays at (0, 0), strength 1.0, from run-20260925-004."
+  },
+  "targets": [
+    {
+      "metric": "second_trap_placed",
+      "kind": "detection",
+      "value": 1,
+      "unit": "count",
+      "note": "the person's yes at the first hold: the bead still held in trap_1 once trap_2 is on. A decision about what counts as done, so no grade"
+    }
+  ],
+  "stop_criteria": [
+    {
+      "id": "sc_person_stops",
+      "metric": "second_trap_placed",
+      "comparator": "<",
+      "target": "second_trap_placed",
+      "on_met": "fault",
+      "statement": "every hold stops the plan unless the person answers yes. A no at any separation leaves both traps on at that separation, which is the intended way to stop where the bead hops. Any command not answered 0 also stops the plan, and a silence is never retried"
+    }
+  ],
+  "success_criteria": [
+    {
+      "id": "ok_second_trap",
+      "metric": "second_trap_placed",
+      "comparator": ">=",
+      "target": "second_trap_placed",
+      "statement": "the person confirms the bead still held in trap_1 after trap_2 is switched on at +6 um"
+    }
+  ],
+  "open_risks": [
+    "The tweezers are blind: every command records verification none, and only the person's eye on the live view says where the bead is.",
+    "The Tweez300 shares the dial's power among the traps it holds. Whether switching trap_2 on lowers trap_1's force is not recorded anywhere here, so the bead may loosen or escape when trap_2 comes on; the first hold is there to catch it.",
+    "Two equal traps, the protocol's first stage. How close the traps must be for hops to happen is not known for a 5 um bead; the walk stops wherever the person says no, down to 1 um, where the two wells may merge into one.",
+    "Separations are in the GUI's micrometres, whose calibration nothing reads over TCP; the analysis takes scale from the store's pixel size, never from these numbers.",
+    "The plan ends with both traps on. Nothing is recorded by this plan; the live view shows the person, and the double-well record is a later plan."
+  ],
+  "trap_steps": {
+    "device": "optical_tweezers",
+    "objective": "100x",
+    "read_back": "none",
+    "verifies": "that a second trap of equal strength can be switched on beside the held bead without losing it, and at which separation between the two traps the bead starts to hop, judged by the person on the live view",
+    "falsified_by": "the bead leaves trap_1 when trap_2 comes on at +6 um, or it never hops at any separation down to 1 um",
+    "steps": [
+      {
+        "id": "make_trap_2",
+        "kind": "create",
+        "trap": "trap_2",
+        "x_um": 6.0,
+        "y_um": 0.0,
+        "strength": 1.0
+      },
+      {
+        "id": "trap_2_on",
+        "kind": "on",
+        "trap": "trap_2"
+      },
+      {
+        "id": "check_at_6",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is on at +6 um (to the right of the centre on screen), strength 1.0, and trap_1 is still at the centre. Is the bead still held in trap_1? Answer yes to walk trap_2 one micrometre closer; answer no to stop here with both traps on."
+      },
+      {
+        "id": "trap_2_to_5",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 5.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "check_at_5",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is now at +5 um, 5 um from trap_1. Watch the bead. If it hops between the two traps, or you want to stay at this separation, answer no: the plan stops here with both traps on. Answer yes to walk trap_2 one micrometre closer."
+      },
+      {
+        "id": "trap_2_to_4",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 4.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "check_at_4",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is now at +4 um, 4 um from trap_1. Watch the bead. If it hops between the two traps, or you want to stay at this separation, answer no: the plan stops here with both traps on. Answer yes to walk trap_2 one micrometre closer."
+      },
+      {
+        "id": "trap_2_to_3",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 3.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "check_at_3",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is now at +3 um, 3 um from trap_1. Watch the bead. If it hops between the two traps, or you want to stay at this separation, answer no: the plan stops here with both traps on. Answer yes to walk trap_2 one micrometre closer."
+      },
+      {
+        "id": "trap_2_to_2",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 2.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "check_at_2",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is now at +2 um, 2 um from trap_1. Watch the bead. If it hops between the two traps, or you want to stay at this separation, answer no: the plan stops here with both traps on. Answer yes to walk trap_2 one micrometre closer."
+      },
+      {
+        "id": "trap_2_to_1",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 1.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "check_at_1",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is now at +1 um, 1 um from trap_1. Watch the bead. If it hops between the two traps, or you want to stay at this separation, answer no: the plan stops here with both traps on. Answer yes to walk trap_2 one micrometre closer."
+      }
+    ]
+  },
+  "kb_refs": [],
+  "kb_gaps": []
+}
