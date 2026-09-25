@@ -16,6 +16,18 @@
       },
       "for_store": false,
       "note": "A session event for this mount, listed so the bead's height above the substrate can be computed against it: the reference for the bead-height hand-over statement. Not stated: which drive reported it (the stand's focus drive, presumably, as read in NIS or Micro-Manager), which objective was in place, how the surface was judged in focus, or whether PFS was engaged. A focus-drive difference is not a height in the sample: through oil into water the axial scale differs, and that correction is not applied here."
+    },
+    {
+      "id": "optical_tweezers_work_with_40x_60x_100x",
+      "fact": "On this instrument the optical tweezers work with the 40x, 60x and 100x objectives, and not with the others.",
+      "kind": "person_statement",
+      "how": "Said to this seat in its window on 2026-09-25, while settling the tweezers' position limits per objective: 'OT is working in 40x, 60x, and 100x.'",
+      "source": {
+        "type": "person",
+        "recorded_at": "the message of the commit that adds this item to microscope_agent/findings/microscope-20260924-6-20260925.json, which quotes the person's words"
+      },
+      "for_store": true,
+      "note": "Not stated: why the other three do not (trapping needs a high-NA objective, but that reason is not the person's statement and is not recorded as theirs), which of 40x WI and any other 40x is meant (the store's 40x is the water-immersion MRD77400), or whether a trap was ever tried at 20x. For limits: position limits are wanted only for these three objectives, and a missing row means software refuses every trap command at any other objective."
     }
   ]
 }
