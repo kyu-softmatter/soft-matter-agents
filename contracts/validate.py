@@ -1719,6 +1719,15 @@ def check_15_approval_precedes_run(b: Bundle) -> list[Finding]:
             if (d / "config.json").exists():
                 out.append(Finding(15, PENDING, "config.json and no log.json yet: a run in flight, or one that "
                                                 "stopped before writing what it stood on", rel))
+            elif (d / "commands.json").exists():
+                # A preparatory run's approved list is written BEFORE its
+                # approve_light gate (card 038), so it can be committed
+                # while the run has not yet happened. That is the same case
+                # as config.json: approved and not yet run. microscope-
+                # 20260924-3 found it failing on 2026-09-24. Still PENDING,
+                # not a pass, so an approved run that never ran stays visible.
+                out.append(Finding(15, PENDING, "commands.json and no log.json yet: an approved preparatory "
+                                                "run not yet run, or one that stopped before writing its log", rel))
             else:
                 out.append(Finding(15, FAIL, "run directory with neither config.json nor log.json, so nothing "
                                              "records what it stood on or even that it was configured (4.6)", rel))
