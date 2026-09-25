@@ -43,7 +43,11 @@ the eve and is what this card exists to shorten.
   (one harmonic trap, produces only `trapped_position_distribution`). So a
   prototype run grades as nothing a card may carry, and answerability for any
   of the four against the simulation reads **`undeclared`** — the round would
-  be held at the first gate.
+  be held at the first gate. **Since `4ab86d9` the simulation side is closed**:
+  `bd_overdamped_gaussian_double_well_2d` is declared and produces
+  `well_occupancy`. Re-read which of the four it lists. G2 on the microscope
+  side is still open, and answerability is checked against the **receiving**
+  side, which for r1 is the microscope, so r1 still holds without it.
 - **G4 — reduced units.** The prototype works in length `w1`, energy `kT` and
   time `w1^2/D`. `to_physical(temperature, viscosity, diameter, w1)` returns the
   scales, but nothing yet emits a card in SI, and the bridge will not convert.
@@ -108,20 +112,38 @@ Because a trap's stiffness is measured after the traps are set and cannot be
 dialled to a value, the round has to run as **target, then as-measured,
 then re-prediction**:
 
-1. **r1, simulation to experiment** (`plan_completion`): target trap
-   parameters as ranges or decades.
+1. **r1, simulation to experiment**: target trap parameters as ranges or
+   decades. **The payload may be a plan or a result** (asked by
+   `manager-simulation-20260924-1`, 2026-09-24). A plan opens with
+   `trigger: plan_completion`. A result opens with **`trigger: human`**, and
+   check 8 refuses a result that arrives under `plan_completion`. The
+   simulation chose a result: the result of `sim-20260923-101`'s sweep, which
+   carries the conditions each point ran at and the predicted observables.
 2. **r2, experiment to simulation** (`human`, the only way a result crosses):
    each trap's calibrated values, plus the four observables if measured.
-3. **r3, simulation to experiment**: a new plan revision at the calibrated
-   values, its inputs citing the experiment's result card (`measured:<run_id>`)
-   and not restated as assumptions. Only then is there a value to compare.
+3. **r3, simulation to experiment**: a prediction at the calibrated values,
+   its inputs citing the experiment's result card (`measured:<run_id>`) and
+   not restated as assumptions. Only then is there a value to compare.
+   **With a result as r1's payload, r3 cannot sit in the same thread on the
+   same observable** — see the re-prediction row below.
 
 ### Can the round carry "target versus as-measured"? — partly; one gap
 
 - **As-measured: yes.** A result card's numbers carry the calibrated values
   with `measured:`/`calibration:` sources, and r3 can cite them.
-- **Re-prediction: yes.** `supersedes` exists for a round whose source moved
-  to a new revision; check it treats r3 as superseding r1 and not as a repeat.
+- **Re-prediction: only in the shape check 8 accepts.** Its duplicate key is
+  (direction, observable) within a thread. `supersedes` passes only when the
+  two rounds carry **the same card_id at a later revision**. A plan re-issued
+  at the calibrated values is a later revision of the same plan, so it
+  supersedes cleanly. A result from a new run is a **different card**, and
+  gated on the same observable in the same direction it is refused either
+  way: as a repeat without `supersedes`, or as "a different card is a
+  different question" with it. So if r1 carries a result gated on
+  `well_occupancy`, r3 has three options: (a) open a new thread, pointing at
+  this one in words; (b) gate on a different observable; (c) carry the plan
+  revision rather than its result. (a) is the honest one — r3 asks a
+  question at new conditions and is not a repeat. It is not needed until
+  after the bench.
 - **Target as a range: NO structured slot. This is the gap, G9.** A plan's
   `conditions` point only at scalar `numbers[]`. The goal the microscope
   writes has `constraint_notes`, which is free text. The only structured
