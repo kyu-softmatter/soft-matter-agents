@@ -3,6 +3,46 @@
 Written by `manager-microscope-20260924-1`. You read this; you do not edit it
 (§6.2-2).
 
+## REVISED, 2026-09-25 ~10:40: you do NOT drive hardware today
+
+**Read this section first. It overrides everything below it.**
+
+After this card was written, the person told architecture in its window:
+*"or you can operate tweez300. I can run micro-manager myself."* and then
+*"i still prefer running it yourself."* So **today architecture operates the
+Tweez300 over TCP** (trap creation, strengths, separation), and **the person
+runs Micro-Manager and the camera by hand.** Asked directly in this seat's
+window which to follow, the person stated no preference. **Two drivers of one
+instrument is the outcome to avoid**, so the person's direct instruction to
+architecture stands, and **phase 2 below is WITHDRAWN.** Open no device and
+send no command. The bench is not yours today.
+
+**What this card assigns you today, instead:**
+
+1. **the analysis**, from the person's frames and architecture's command log:
+   the position along the trap axis, the projected-trajectory histogram,
+   occupancy, residence, rate and barrier, **by the simulation's milestone
+   rule** (below), and each trap's stiffness from its own record, **with
+   the method declared before you look at the data.** Pixel size from the
+   store for the objective used, never from frame metadata. Architecture
+   holds the command log outside the tree until a microscope seat commits
+   it
+2. **committing the run records architecture writes**, the way run `-005`
+   was committed on card 048: verify each file against the hashes
+   architecture records, change nothing, commit only those paths, and say in
+   the message who made the run and that you are only the committer.
+   Check 35 refuses architecture's commits into `microscope_agent/`, which
+   is why this falls to you
+3. **phase 1 may go on as code only**, at lower priority: never used live
+   today, and it touches no device. It is what a later planned run needs.
+   The exemption in item 2 still comes to me before any live use
+
+**This run is not a planned measurement** through this agent's dispatcher,
+so its numbers are a preparatory record. Whether they reach the store, and
+how they meet `plan.md` 11-23's comparability conditions, is architecture's
+and the person's to settle. **Do not write a result card for it on your
+own.**
+
 **Assigned to `microscope-20260924-6`.** The person decided on 2026-09-25,
 to architecture and then in this seat's window:
 
