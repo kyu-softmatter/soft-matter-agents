@@ -8,7 +8,7 @@
   "targets": [
     {
       "target": "bench",
-      "label": "REJECTED FIXTURE. Only the high end of the trap X range. Half a range leaves the other side open, so the two ends are required together. Check 1 refuses it.",
+      "label": "REJECTED FIXTURE. Only the high end of the 100x trap position range. Half a range leaves the other side open, so the two are required together. Check 1 refuses it.",
       "limits": {
         "optical_power_max": {
           "value": 1020,
@@ -48,8 +48,8 @@
             "how": "Approach test on the stage."
           }
         },
-        "optical_tweezers_x_position_max": {
-          "value": 20,
+        "tweezers_trap_position_100x_max": {
+          "value": 40,
           "unit": "um",
           "bounds": "max",
           "confirmation": {
@@ -57,8 +57,7 @@
             "by": "kyuhwan",
             "on": "2026-09-20",
             "how": "Measured at the sample plane with a Thorlabs power meter across the dial range, by the person recording it here. The bench work predates this entry; what is dated today is this person confirming it holds for this instrument as configured."
-          },
-          "objective": "100x"
+          }
         }
       }
     }

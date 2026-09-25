@@ -669,6 +669,202 @@
         "moves"
       ],
       "additionalProperties": false
+    },
+    "trap_steps": {
+      "type": "object",
+      "description": "TRAP STEPS for the optical tweezers, inside a measurement plan (added 2026-09-25, proposed by microscope-20260924-6 for the double-well run, card 049). The `operation` shape cannot hold them: it requires a position read back before and after each move, and the Tweez300 reports nothing back, so that could never be met, and its moves carry no trap or strength. This sits BESIDE the full pipeline's fields and lifts none of them: a plan carrying it still has its goal, observable and S3 to S5. Each step names an action of the same id, and the dispatcher derives exactly one TCP command per step. POSITIONS ARE ABSOLUTE ONLY: a relative move re-sent after a lost reply would move a trap twice, and the shape has no field for one. What the schema cannot check, the exemption checks before the first command is sent: every x and y inside tweezers_trap_position_<objective>_{min,max} for this block's objective, which must equal the hand-over's; every strength inside tweezers_trap_strength_{min,max}; each position step's distance from that trap's previous absolute position at most tweezers_trap_step_max, a first position with no known start refusing; and any missing limit refusing. A hold_for_person step stops the dispatcher until the person answers in the seat's window, because the tweezers are blind and a caught bead can only be the person's statement or a frame. The beam is assumed on after any step.",
+      "properties": {
+        "device": {
+          "const": "optical_tweezers"
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the objective in place; tweezers_trap_position_<this>_{min,max} must exist for it, and it must equal the person's hand-over statement, or the exemption refuses"
+        },
+        "read_back": {
+          "const": "none",
+          "description": "always none: the Tweez300 has no query of any kind, and a return code is not a read-back"
+        },
+        "verifies": {
+          "type": "string",
+          "minLength": 20
+        },
+        "falsified_by": {
+          "type": "string",
+          "minLength": 20
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_-]+$"
+                  },
+                  "kind": {
+                    "const": "create"
+                  },
+                  "trap": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_]+$",
+                    "description": "the plan's own name for the trap, e.g. trap_1 (the deeper, stiffer one by the shared naming) or trap_2"
+                  },
+                  "x_um": {
+                    "type": "number",
+                    "description": "ABSOLUTE position in um in the Tweez300's calibrated field, relative to the image centre"
+                  },
+                  "y_um": {
+                    "type": "number",
+                    "description": "ABSOLUTE position in um in the Tweez300's calibrated field, relative to the image centre"
+                  },
+                  "strength": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "relative strength, 0 to 1, the Tweez300's own format. It shares out the laser power; the total is the person's hand"
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "trap",
+                  "x_um",
+                  "y_um",
+                  "strength"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_-]+$"
+                  },
+                  "kind": {
+                    "const": "strength"
+                  },
+                  "trap": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_]+$",
+                    "description": "the plan's own name for the trap, e.g. trap_1 (the deeper, stiffer one by the shared naming) or trap_2"
+                  },
+                  "strength": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "relative strength, 0 to 1, the Tweez300's own format. It shares out the laser power; the total is the person's hand"
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "trap",
+                  "strength"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_-]+$"
+                  },
+                  "kind": {
+                    "const": "position"
+                  },
+                  "trap": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_]+$",
+                    "description": "the plan's own name for the trap, e.g. trap_1 (the deeper, stiffer one by the shared naming) or trap_2"
+                  },
+                  "x_um": {
+                    "type": "number",
+                    "description": "ABSOLUTE position in um in the Tweez300's calibrated field, relative to the image centre"
+                  },
+                  "y_um": {
+                    "type": "number",
+                    "description": "ABSOLUTE position in um in the Tweez300's calibrated field, relative to the image centre"
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "trap",
+                  "x_um",
+                  "y_um"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_-]+$"
+                  },
+                  "kind": {
+                    "enum": [
+                      "on",
+                      "off",
+                      "delete"
+                    ]
+                  },
+                  "trap": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_]+$",
+                    "description": "the plan's own name for the trap, e.g. trap_1 (the deeper, stiffer one by the shared naming) or trap_2"
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "trap"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_-]+$"
+                  },
+                  "kind": {
+                    "const": "hold_for_person"
+                  },
+                  "statement": {
+                    "type": "string",
+                    "minLength": 10,
+                    "description": "what the person is asked to confirm before the dispatcher goes on, e.g. that a bead is caught in trap_1"
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "statement"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "device",
+        "objective",
+        "read_back",
+        "verifies",
+        "falsified_by",
+        "steps"
+      ],
+      "additionalProperties": false
     }
   },
   "unevaluatedProperties": false,

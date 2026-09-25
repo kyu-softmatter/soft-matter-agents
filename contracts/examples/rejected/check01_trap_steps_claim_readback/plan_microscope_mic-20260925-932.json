@@ -1,0 +1,403 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "id": "plan-mic-20260925-932-r1",
+  "qid": "mic-20260925-932",
+  "thread": "solo-mic-20260925-932",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-17T08:30:00Z",
+  "status": "APPROVED",
+  "goal_id": "goal-mic-20260917-001-r1",
+  "synthesis_id": "synthesis-mic-20260917-001-r1",
+  "purpose": "screen",
+  "intent": "explore",
+  "observable": {
+    "name": "tracer_diffusivity"
+  },
+  "system_configuration": {
+    "config": "brightfield",
+    "optical_path": null,
+    "devices": [
+      "dia_lamp",
+      "objective_turret",
+      "camera1",
+      "motor_stage"
+    ],
+    "model": null
+  },
+  "conditions": [
+    {
+      "parameter": "exposure_time",
+      "number": "exposure_time",
+      "device": "camera1"
+    },
+    {
+      "parameter": "frame_rate",
+      "number": "frame_rate",
+      "device": "camera1"
+    },
+    {
+      "parameter": "record_length",
+      "number": "record_length",
+      "device": "camera1"
+    },
+    {
+      "parameter": "pixel_size",
+      "number": "pixel_size",
+      "device": "camera1"
+    },
+    {
+      "parameter": "illumination_power",
+      "number": "illumination_power",
+      "device": "dia_lamp"
+    },
+    {
+      "parameter": "wall_distance",
+      "number": "wall_distance",
+      "device": "motor_stage"
+    },
+    {
+      "parameter": "max_lag_time",
+      "number": "max_lag_time"
+    }
+  ],
+  "actions": [
+    {
+      "id": "act_stage",
+      "device": "motor_stage",
+      "action": "move_to_wall_distance",
+      "reversible": true,
+      "parameters": [
+        "wall_distance"
+      ],
+      "tier": 2
+    },
+    {
+      "id": "act_illum",
+      "device": "dia_lamp",
+      "action": "set_power",
+      "reversible": true,
+      "parameters": [
+        "illumination_power"
+      ],
+      "tier": 2
+    },
+    {
+      "id": "act_acquire",
+      "device": "camera1",
+      "action": "acquire_series",
+      "reversible": true,
+      "parameters": [
+        "exposure_time",
+        "frame_rate",
+        "record_length"
+      ],
+      "tier": 1
+    },
+    {
+      "id": "act_bleach_ref",
+      "device": "dia_lamp",
+      "action": "bleach_reference_field",
+      "reversible": false,
+      "parameters": [
+        "illumination_power"
+      ],
+      "tier": 2
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [],
+    "status": "unavailable",
+    "note": "envelope/safety.json does not exist before M3, so no comparison was made. The validator reports check 5 as pending rather than passing."
+  },
+  "cost": {
+    "wall_clock": "about five minutes of acquisition plus setup",
+    "numbers": [
+      "total_time_estimate"
+    ],
+    "note": "one sample, one configuration, no repeats"
+  },
+  "stop_criteria": [
+    {
+      "id": "sc_drift",
+      "metric": "stage_drift_over_record",
+      "comparator": "<=",
+      "number": "drift_tolerance",
+      "window": "the whole record",
+      "statement": "abort if the field drifts by more than the tolerance, because the mean squared displacement would pick up the drift instead of the diffusion"
+    }
+  ],
+  "success_criteria": [
+    {
+      "id": "ok_decade",
+      "metric": "diffusivity_decades_resolved",
+      "comparator": ">=",
+      "number": "target_decade_resolution",
+      "statement": "the diffusivity is placed within one decade"
+    }
+  ],
+  "alternatives_rejected": [
+    {
+      "what": "darkfield",
+      "reason": "the detection floor on exposure time sits above the blur ceiling, so the allowed sets do not overlap",
+      "grounds": [
+        "exposure_floor_darkfield",
+        "exposure_ceiling_darkfield"
+      ]
+    }
+  ],
+  "open_risks": [
+    "the temperature is a room setpoint rather than a measurement at the sample, so the diffusivity carries whatever the real temperature does",
+    "the librarian was unreachable, so both exposure bounds are estimates rather than literature values"
+  ],
+  "numbers": [
+    {
+      "name": "exposure_time",
+      "value": 0.007,
+      "unit": "s",
+      "source": "computed:geometric_middle",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "synthesis.json#exposure_time_chosen"
+    },
+    {
+      "name": "record_length",
+      "value": 200,
+      "unit": "s",
+      "source": "computed:ten_diffusive_times",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "origin": "synthesis.json#record_length_min"
+    },
+    {
+      "name": "exposure_floor_darkfield",
+      "value": 0.5,
+      "unit": "s",
+      "source": "assumed:a_dark_floor",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "synthesis.json#exposure_floor_darkfield"
+    },
+    {
+      "name": "exposure_ceiling_darkfield",
+      "value": 0.02,
+      "unit": "s",
+      "source": "computed:blur_limit",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "synthesis.json#exposure_ceiling_darkfield"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 2,
+      "unit": "um",
+      "source": "spec:bead_lot_ds01",
+      "grade": "E3",
+      "origin": "axis_brightfield_a2.json#bead_diameter"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "spec:lab_air_setpoint",
+      "grade": "E3",
+      "origin": "axis_brightfield_a2.json#temperature"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "axis_brightfield_a2.json#viscosity"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.2,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "origin": "axis_brightfield_a2.json#diffusivity"
+    },
+    {
+      "name": "tau_d",
+      "value": 20,
+      "unit": "s",
+      "source": "computed:diffusive_time",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "derived": true,
+      "symbol": "tau_d",
+      "origin": "axis_brightfield_a2.json#tau_d"
+    },
+    {
+      "name": "target_decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "source": "assumed:a_target",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "goal.json#target_decade_resolution"
+    },
+    {
+      "name": "frame_rate",
+      "value": 50,
+      "unit": "Hz",
+      "source": "spec:camera_cam1",
+      "grade": "E3"
+    },
+    {
+      "name": "pixel_size",
+      "value": 0.1,
+      "unit": "um",
+      "source": "spec:camera_cam1",
+      "grade": "E3"
+    },
+    {
+      "name": "illumination_power",
+      "value": 0.5,
+      "unit": "mW",
+      "source": "calibration:dia_lamp_20260910",
+      "grade": "E2"
+    },
+    {
+      "name": "wall_distance",
+      "value": 20,
+      "unit": "um",
+      "source": "assumed:a_wall",
+      "grade": "E5",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "drift_tolerance",
+      "value": 1,
+      "unit": "um",
+      "source": "assumed:a_drift",
+      "grade": "E5",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "total_time_estimate",
+      "value": 300,
+      "unit": "s",
+      "source": "assumed:a_cost",
+      "grade": "E5",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "max_lag_time",
+      "value": 2,
+      "unit": "s",
+      "source": "computed:lag_window",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "0.1*tau_d",
+      "inputs": [
+        "tau_d"
+      ],
+      "note": "the estimator fits lags strictly below the diffusive time; a tenth of it keeps the fit inside the free regime with room to spare"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_exp_min",
+      "statement": "Carried from axis_brightfield_a1: read noise puts a floor of order one millisecond on a useful brightfield exposure.",
+      "numbers": [
+        "exposure_time"
+      ],
+      "falsifier": "a usable centroid at a shorter exposure retires this bound"
+    },
+    {
+      "rationale_id": "a_dark_floor",
+      "statement": "Carried from axis_darkfield_a1: darkfield needs an exposure of order half a second to reach the signal to noise target.",
+      "numbers": [
+        "exposure_floor_darkfield"
+      ],
+      "falsifier": "a centroid at the target signal to noise ratio with a shorter darkfield exposure retires the rejection of darkfield"
+    },
+    {
+      "rationale_id": "a_dark_diff",
+      "statement": "Carried from axis_darkfield_a2: the diffusivity behind the blur ceiling is a bulk order of magnitude.",
+      "numbers": [
+        "exposure_ceiling_darkfield"
+      ],
+      "falsifier": "a measured diffusivity outside this decade retires the ceiling"
+    },
+    {
+      "rationale_id": "a_target",
+      "statement": "Carried from the goal: one decade of resolution answers the question being asked.",
+      "numbers": [
+        "target_decade_resolution"
+      ],
+      "falsifier": "two candidate regimes inside one decade"
+    },
+    {
+      "rationale_id": "a_wall",
+      "statement": "Twenty micrometres from the wall keeps the hydrodynamic correction to the drag inside the decade we are trying to resolve; nothing has been measured on this holder.",
+      "numbers": [
+        "wall_distance"
+      ],
+      "falsifier": "a measured diffusivity that depends on the wall distance at this stand-off"
+    },
+    {
+      "rationale_id": "a_drift",
+      "statement": "A drift of one micrometre over the record is the largest that leaves the mean squared displacement dominated by diffusion rather than translation.",
+      "numbers": [
+        "drift_tolerance"
+      ],
+      "falsifier": "a drift-corrected and an uncorrected diffusivity differing by more than a decade"
+    },
+    {
+      "rationale_id": "a_cost",
+      "statement": "Five minutes covers the record plus stage settling; no scheduling data exists for this holder yet.",
+      "numbers": [
+        "total_time_estimate"
+      ],
+      "falsifier": "a measured setup time beyond the estimate"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-6757e8d916c5",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second."
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "trap_steps": {
+    "device": "optical_tweezers",
+    "objective": "100x",
+    "read_back": "readback",
+    "verifies": "REJECTED FIXTURE. Trap steps claiming a read-back. The Tweez300 has no query of any kind, so read_back is always none. The schema refuses it (check 1).",
+    "falsified_by": "no hops over the record, or the bead leaves both traps",
+    "steps": [
+      {
+        "id": "t1_create",
+        "kind": "create",
+        "trap": "trap_1",
+        "x_um": -1.0,
+        "y_um": 0.0,
+        "strength": 0.5
+      },
+      {
+        "id": "hold_bead",
+        "kind": "hold_for_person",
+        "statement": "the person confirms a bead is caught in trap_1"
+      },
+      {
+        "id": "t2_create",
+        "kind": "create",
+        "trap": "trap_2",
+        "x_um": 1.0,
+        "y_um": 0.0,
+        "strength": 0.5
+      }
+    ]
+  }
+}

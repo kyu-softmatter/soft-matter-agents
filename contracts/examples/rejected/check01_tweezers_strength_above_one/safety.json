@@ -8,7 +8,7 @@
   "targets": [
     {
       "target": "bench",
-      "label": "REJECTED FIXTURE. A relative trap strength limit of 1.5. The Tweez300's format defines strength as 0 to 1, so a ceiling above 1 bounds nothing. Check 1 refuses it.",
+      "label": "REJECTED FIXTURE. A trap strength ceiling of 1.5. The Tweez300 defines strength as 0 to 1, so a ceiling above 1 bounds nothing. Check 1 refuses it.",
       "limits": {
         "optical_power_max": {
           "value": 1020,
@@ -48,7 +48,18 @@
             "how": "Approach test on the stage."
           }
         },
-        "optical_tweezers_strength_max": {
+        "tweezers_trap_strength_min": {
+          "value": 0,
+          "unit": "1",
+          "bounds": "min",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-09-20",
+            "how": "Measured at the sample plane with a Thorlabs power meter across the dial range, by the person recording it here. The bench work predates this entry; what is dated today is this person confirming it holds for this instrument as configured."
+          }
+        },
+        "tweezers_trap_strength_max": {
           "value": 1.5,
           "unit": "1",
           "bounds": "max",

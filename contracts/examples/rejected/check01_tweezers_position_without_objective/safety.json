@@ -8,7 +8,7 @@
   "targets": [
     {
       "target": "bench",
-      "label": "REJECTED FIXTURE. A trap position floor with no objective named. The GUI's calibration is valid for one objective only, so a position limit with no objective bounds an unknown field. Check 1 refuses it.",
+      "label": "REJECTED FIXTURE. A trap position limit named with no objective. The GUI's calibration holds for one objective only, so a position limit must name its objective. Check 1 refuses the unknown name.",
       "limits": {
         "optical_power_max": {
           "value": 1020,
@@ -48,7 +48,7 @@
             "how": "Approach test on the stage."
           }
         },
-        "optical_tweezers_y_position_min": {
+        "tweezers_trap_position_min": {
           "value": -40,
           "unit": "um",
           "bounds": "min",
@@ -59,7 +59,7 @@
             "how": "Measured at the sample plane with a Thorlabs power meter across the dial range, by the person recording it here. The bench work predates this entry; what is dated today is this person confirming it holds for this instrument as configured."
           }
         },
-        "optical_tweezers_y_position_max": {
+        "tweezers_trap_position_max": {
           "value": 40,
           "unit": "um",
           "bounds": "max",
@@ -68,8 +68,7 @@
             "by": "kyuhwan",
             "on": "2026-09-20",
             "how": "Measured at the sample plane with a Thorlabs power meter across the dial range, by the person recording it here. The bench work predates this entry; what is dated today is this person confirming it holds for this instrument as configured."
-          },
-          "objective": "100x"
+          }
         }
       }
     }
