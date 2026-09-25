@@ -65,10 +65,24 @@ REMOTE_NAME="$1"
 REPO=$(git rev-parse --show-toplevel)
 cd "$REPO"
 
-if ! command -v python3 >/dev/null 2>&1; then
-    echo "pre-push: python3 not found; cannot run the gate" >&2
+# Probe by RUNNING, not by `command -v`. On Windows `python3` is a Microsoft
+# Store App Execution Alias: a real file that `command -v` finds, which prints
+# "Python was not found" and exits 49. Testing existence picked it every time,
+# and then every gate below ran the placeholder -- which reads as a refusal
+# with an empty failure list, because the alias's complaint contains no FAIL
+# (2026-09-24, plan.md 11-22). Only a zero exit from `-c ''` counts.
+PY=""
+for _c in python3 python; do
+    if "$_c" -c '' >/dev/null 2>&1; then PY="$_c"; break; fi
+done
+if [ -z "$PY" ]; then
+    echo "pre-push: no runnable python on PATH; cannot run the gate" >&2
     exit 1
 fi
+# The validator reads text without naming an encoding, and on a cp1252 locale
+# it dies before it checks anything. UTF-8 mode makes the default what every
+# file here is.
+export PYTHONUTF8=1
 
 ZERO='^0*$'
 REFUSED=0
@@ -116,7 +130,7 @@ while read -r LOCAL_REF LOCAL_OID REMOTE_REF REMOTE_OID; do
     # own docstring, because diffing the endpoints would aggregate two seats'
     # work into one apparent crossing -- so one invocation covers every commit.
     export SMA_GIT_REPO="$REPO"
-    OUT=$(python3 "$EXPORT/contracts/validate.py" --commit-range "$RANGE" 2>&1 || true)
+    OUT=$("$PY" "$EXPORT/contracts/validate.py" --commit-range "$RANGE" 2>&1 || true)
 
     BOUNDARY=$(echo "$OUT" | grep -E '^ *check (35|41) +FAIL' || true)
     if [ -n "$BOUNDARY" ]; then

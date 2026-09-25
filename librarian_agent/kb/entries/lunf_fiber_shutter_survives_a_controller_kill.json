@@ -1,0 +1,24 @@
+{
+  "entry_id": "lunf_fiber_shutter_survives_a_controller_kill",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The laser combiner's fiber shutter stays open when the vendor acquisition program that opened it is force-killed: only that program's clean shutdown closes it, and the combiner has no watchdog that shuts the fiber when its controlling link drops. After a kill, a line driven from other software still emitted.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "laser_shutter"
+    },
+    {
+      "kind": "device",
+      "id": "laser_combiner"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+  "grade": "E3",
+  "source_ref": "src_prior_lunf_first_light_20260902",
+  "validity_conditions": "Ruled TRANSFER under 10.2.1, passed 10.3 rule 1 (E3: measured in another project on 2026-09-02, by a force-kill followed by a line driven from Python, on that project's second attempt -- the first attempt killed nothing and its conclusion was withdrawn in the record's own corrections). Slot: the orchestrator's abort path and O1 preflight -- a controller that dies does not close this shutter, so nothing may count a dead controller as a closed beam. A control-path fact and not a limit; which shutter an abort closes stays policy, in envelope/safety.json. Falsified by a kill after which the fiber is found closed. Delivered as item `fiber_shutter_survives_controller_kill` of microscope_agent/findings/microscope-20260924-3-20260924.json at a5e7647 (card 044); the source was opened at fbedef0 and its sha256 matched before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

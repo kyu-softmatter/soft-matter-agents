@@ -34,10 +34,24 @@ set -e
 REPO=$(git rev-parse --show-toplevel)
 cd "$REPO"
 
-if ! command -v python3 >/dev/null 2>&1; then
-    echo "pre-commit: python3 not found; cannot run the gate" >&2
+# Probe by RUNNING, not by `command -v`. On Windows `python3` is a Microsoft
+# Store App Execution Alias: a real file that `command -v` finds, which prints
+# "Python was not found" and exits 49. Testing existence picked it every time,
+# and then every gate below ran the placeholder -- which reads as a refusal
+# with an empty failure list, because the alias's complaint contains no FAIL
+# (2026-09-24, plan.md 11-22). Only a zero exit from `-c ''` counts.
+PY=""
+for _c in python3 python; do
+    if "$_c" -c '' >/dev/null 2>&1; then PY="$_c"; break; fi
+done
+if [ -z "$PY" ]; then
+    echo "pre-commit: no runnable python on PATH; cannot run the gate" >&2
     exit 1
 fi
+# The validator reads text without naming an encoding, and on a cp1252 locale
+# it dies before it checks anything. UTF-8 mode makes the default what every
+# file here is.
+export PYTHONUTF8=1
 
 STAGED=$(git diff --cached --name-only)
 if [ -z "$STAGED" ]; then
@@ -214,7 +228,7 @@ echo "pre-commit: contracts"
 # two-run form was exempt because a command in an `if` condition is; the
 # capture-once rewrite lost that exemption and nobody noticed, because the
 # hook only breaks this way when a check actually fails.
-OUT=$(python3 "$EXPORT/contracts/validate.py" --staged 2>&1) && STATUS=0 || STATUS=$?
+OUT=$("$PY" "$EXPORT/contracts/validate.py" --staged 2>&1) && STATUS=0 || STATUS=$?
 if [ "$STATUS" -ne 0 ]; then
     echo "$OUT" | grep -E "FAIL|UNDECIDED" >&2 || true
     echo >&2
@@ -248,11 +262,11 @@ if [ -n "$ATTRIB" ]; then
 fi
 
 echo "pre-commit: the cards that must fail"
-if ! python3 "$EXPORT/contracts/validate.py" --expect-fail "$EXPORT/contracts/examples/rejected" >/dev/null 2>&1; then
+if ! "$PY" "$EXPORT/contracts/validate.py" --expect-fail "$EXPORT/contracts/examples/rejected" >/dev/null 2>&1; then
     echo >&2
     echo "pre-commit: refused. A card in contracts/examples/rejected/ stopped failing," >&2
     echo "            which means a check stopped working. Run:" >&2
-    echo "            python3 contracts/validate.py --expect-fail contracts/examples/rejected" >&2
+    echo "            $PY contracts/validate.py --expect-fail contracts/examples/rejected" >&2
     exit 1
 fi
 

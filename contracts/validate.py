@@ -101,7 +101,7 @@ class Card:
     @property
     def rel(self) -> str:
         try:
-            return str(self.path.relative_to(REPO))
+            return self.path.relative_to(REPO).as_posix()
         except ValueError:
             return str(self.path)
 
@@ -122,6 +122,16 @@ class Bundle:
     def of_artifact(self, *kinds: str) -> list[Card]:
         """Thread ledgers are not cards: they carry no numbers, so no grades."""
         return [a for a in self.artifacts if a.data.get("artifact") in kinds]
+
+    def plans_from_pipeline(self) -> list[Card]:
+        """Plan cards that came out of S3 to S5, leaving out operation plans.
+
+        An operation plan (11-21, 2026-09-24) is a move that verifies: no goal,
+        no synthesis, no observable, and its targets are its own decisions,
+        approved with it. A check that asks a plan for any of those asks it of
+        these only, and check 86 is what judges an operation plan instead.
+        """
+        return [c for c in self.of_kind("plan") if "operation" not in c.data]
 
     def by_qid(self) -> dict[str, list[Card]]:
         out: dict[str, list[Card]] = {}
@@ -240,6 +250,10 @@ ARTIFACT_SCHEMA = {
     # through this dict alone, so until this line existed a budget.json would
     # have been refused as an unknown artifact the moment it appeared.
     "envelope_budget": "envelope_budget.schema.json",
+    # 2026-09-24: what an execution seat established, handed to the librarian.
+    # A preparatory run produces no result card, so without this the day's
+    # self-reports had no card to travel in.
+    "findings": "findings.schema.json",
     # 2026-09-23, for the person's request that a run keep its trajectory as one
     # text file and analysis read it instead of re-running. The forty-four metas
     # written before this carry no `artifact` and so are not judged by it; a
@@ -557,11 +571,11 @@ def check_01_schema(b: Bundle) -> list[Finding]:
             try:
                 cap = json.loads(f.read_text())
             except json.JSONDecodeError as exc:
-                out.append(Finding(1, FAIL, f"unreadable capability table: {exc}", str(f.relative_to(REPO))))
+                out.append(Finding(1, FAIL, f"unreadable capability table: {exc}", f.relative_to(REPO).as_posix()))
                 continue
             for err in sorted(cv.iter_errors(cap), key=lambda e: list(e.path)):
                 loc = "/".join(str(x) for x in err.path) or "(root)"
-                out.append(Finding(1, FAIL, f"{loc}: {err.message}", str(f.relative_to(REPO))))
+                out.append(Finding(1, FAIL, f"{loc}: {err.message}", f.relative_to(REPO).as_posix()))
 
     obs_path = CONTRACTS / "observables.json"
     if obs_path.exists():
@@ -579,11 +593,11 @@ def check_01_schema(b: Bundle) -> list[Finding]:
             try:
                 entry = json.loads(p.read_text())
             except json.JSONDecodeError as exc:
-                out.append(Finding(1, FAIL, f"unreadable kb entry: {exc}", str(p.relative_to(REPO))))
+                out.append(Finding(1, FAIL, f"unreadable kb entry: {exc}", p.relative_to(REPO).as_posix()))
                 continue
             for err in sorted(ev.iter_errors(entry), key=lambda e: list(e.path)):
                 loc = "/".join(str(x) for x in err.path) or "(root)"
-                out.append(Finding(1, FAIL, f"{loc}: {err.message}", str(p.relative_to(REPO))))
+                out.append(Finding(1, FAIL, f"{loc}: {err.message}", p.relative_to(REPO).as_posix()))
 
     for a in b.artifacts:
         name = ARTIFACT_SCHEMA.get(a.data.get("artifact"))
@@ -768,7 +782,7 @@ def check_05_envelope(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     n = 0
     for env in envs:
-        rel = str(env.relative_to(REPO))
+        rel = env.relative_to(REPO).as_posix()
         try:
             doc = json.loads(env.read_text())
         except (OSError, json.JSONDecodeError) as exc:
@@ -1507,7 +1521,13 @@ ALLOWED_PATHS = [
     # guessing. Kept as a separate commit from the section 7 half because one
     # commit touching contracts/ and plan.md is refused by check 41 as one
     # seat's or the other's.
-    r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock)$",
+    #
+    # .gitattributes by the same route, 2026-09-24, on architecture's request:
+    # these two lists first, then the section 7 item and the seat's paths, then
+    # the file. It exists because git on the microscope computer checks out
+    # with core.autocrlf=true, so everything that hashes file contents -- check
+    # 25 against kb/index.json first -- saw CRLF bytes where LF was committed.
+    r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.gitattributes|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock)$",
     r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|seats\.json|validate\.py|validation_limits\.json|history_fixtures\.py)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
@@ -1532,6 +1552,16 @@ ALLOWED_PATHS = [
     r"^(microscope|simulation)_agent/questions/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
     r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
+    # The microscope's device wrappers carry refusal tests that are watched
+    # failing (cards 035-037, 2026-09-24): three seats writing three wrappers
+    # at once, and a test beside its module in src/ would read as code the
+    # router can load. A tests/ directory of flat .py files, microscope only
+    # until the simulation asks. This list first, then section 7's item,
+    # which is architecture's, then check 13 goes green.
+    r"^microscope_agent/tests/[A-Za-z0-9_.-]+\.py$",
+    # An execution seat's findings for the librarian, one file per seat and
+    # day (findings.schema.json). This list first, then section 7's item.
+    r"^microscope_agent/findings/[a-z0-9-]+\.json$",
     r"^librarian_agent/CLAUDE\.md$",
     r"^((microscope|simulation|librarian)_agent|bridge)/failures\.jsonl$",
     # 7.1 rule 9. Beside failures.jsonl and deliberately the same idiom -- a
@@ -1566,7 +1596,7 @@ def check_13_paths(b: Bundle) -> list[Finding]:
     n = 0
     for p in b.all_files:
         try:
-            rel = str(p.relative_to(REPO))
+            rel = p.relative_to(REPO).as_posix()
         except ValueError:
             continue
         if p.name == ".DS_Store":
@@ -1631,7 +1661,7 @@ def check_15_approval_precedes_run(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     checked = 0
     for d in sorted(runs):
-        rel = str(d.relative_to(REPO))
+        rel = d.relative_to(REPO).as_posix()
         log_path = d / "log.json"
         if not log_path.exists():
             # A run writes its directory and config first and its log last, so
@@ -1706,14 +1736,14 @@ def check_16_dependency_direction(b: Bundle) -> list[Finding]:
         bad = [m for m in re.findall(r"^\s*(?:from|import)\s+([A-Za-z0-9_.]+)", f.read_text(), re.M)
                if m.split(".")[0] in {"microscope_agent", "simulation_agent", "librarian_agent", "bridge"}]
         if bad:
-            out.append(Finding(16, FAIL, f"contracts imports {bad}; contracts must import nothing (7.2 rule 1)", str(f.relative_to(REPO))))
+            out.append(Finding(16, FAIL, f"contracts imports {bad}; contracts must import nothing (7.2 rule 1)", f.relative_to(REPO).as_posix()))
     src = list(REPO.glob("*_agent/src/*.py")) + list(REPO.glob("*_agent/src/devices/*.py"))
     if not src:
         out.append(Finding(16, PASS, "contracts imports no agent (7.2 rule 1)"))
         out.append(Finding(16, PENDING, "the other four rules need agent code under src/, which M1 produces"))
         return out
     for f in src:
-        rel = str(f.relative_to(REPO))
+        rel = f.relative_to(REPO).as_posix()
         text = f.read_text()
         imports = re.findall(r"^\s*(?:from|import)\s+([A-Za-z0-9_.]+)", text, re.M)
         is_device = "/devices/" in rel
@@ -1960,10 +1990,10 @@ def check_19_scope_validity(b: Bundle) -> list[Finding]:
 
 
 def check_20_alternatives(b: Bundle) -> list[Finding]:
-    plans = b.of_kind("plan")
+    plans = b.plans_from_pipeline()   # an operation plan has no synthesis to count against
     syn = {c.data.get("qid"): c for c in b.of_kind("synthesis")}
     if not plans:
-        return [Finding(20, NA, "no plan cards")]
+        return [Finding(20, NA, "no plan cards from S3 to S5")]
     out: list[Finding] = []
     for c in plans:
         s = syn.get(c.data.get("qid"))
@@ -2344,9 +2374,19 @@ def check_25_kb_refs(b: Bundle) -> list[Finding]:
 
     if KB_INDEX is not None:
         entries = {}
+        # The digest of the entry as git stores it, not as this checkout shows
+        # it: CRLF folded to LF, exactly as librarian_agent/src/kb_index.py's
+        # entry_digest does since 39a1c75. On a core.autocrlf=true checkout
+        # (the microscope computer, 2026-09-24) the raw bytes are CRLF, and
+        # this check called all 112 entries changed and told the librarian to
+        # rebuild an index that was correct. The two must fold identically or
+        # they disagree again, and contracts may not import the agent's
+        # function (7.2 rule 1), so the rule is written twice and this names
+        # its twin.
         for p in sorted((KB_DIR / "entries").glob("*.json")):
             try:
-                entries[json.loads(p.read_text())["entry_id"]] = hashlib.sha256(p.read_bytes()).hexdigest()
+                entries[json.loads(p.read_text())["entry_id"]] = hashlib.sha256(
+                    p.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
             except (json.JSONDecodeError, KeyError):
                 continue
         stale = [eid for eid, digest in entries.items()
@@ -2443,7 +2483,7 @@ def check_26_snapshot(b: Bundle) -> list[Finding]:
             return None
 
     for p in snaps:
-        rel = str(p.relative_to(REPO))
+        rel = p.relative_to(REPO).as_posix()
         try:
             doc = json.loads(p.read_text())
         except json.JSONDecodeError as exc:
@@ -2503,8 +2543,8 @@ def check_27_knowledge_ownership(b: Bundle) -> list[Finding]:
         if not root.exists():
             continue
         for p in root.rglob("*"):
-            if p.is_file() and KB_LIKE.search(str(p.relative_to(root))):
-                out.append(Finding(27, FAIL, "looks like a knowledge store inside an execution agent (P14)", str(p.relative_to(REPO))))
+            if p.is_file() and KB_LIKE.search(p.relative_to(root).as_posix()):
+                out.append(Finding(27, FAIL, "looks like a knowledge store inside an execution agent (P14)", p.relative_to(REPO).as_posix()))
     return out or [Finding(27, PASS, "no execution agent keeps its own knowledge store")]
 
 
@@ -2581,16 +2621,16 @@ def check_29_failure_record(b: Bundle) -> list[Finding]:
             try:
                 rec = json.loads(line)
             except json.JSONDecodeError as exc:
-                out.append(Finding(29, FAIL, f"line {i}: {exc}", str(p.relative_to(REPO))))
+                out.append(Finding(29, FAIL, f"line {i}: {exc}", p.relative_to(REPO).as_posix()))
                 continue
             missing = required - set(rec)
             if missing:
-                out.append(Finding(29, FAIL, f"line {i}: missing {sorted(missing)}", str(p.relative_to(REPO))))
+                out.append(Finding(29, FAIL, f"line {i}: missing {sorted(missing)}", p.relative_to(REPO).as_posix()))
             owners = {k for k in ("qid", "task", "occasion") if rec.get(k)}
             if not owners:
-                out.append(Finding(29, FAIL, f"line {i}: names no qid, task or occasion, so nothing says what this attempt belonged to", str(p.relative_to(REPO))))
+                out.append(Finding(29, FAIL, f"line {i}: names no qid, task or occasion, so nothing says what this attempt belonged to", p.relative_to(REPO).as_posix()))
             elif len(owners) > 1:
-                out.append(Finding(29, FAIL, f"line {i}: names {sorted(owners)}; one record belongs to one of them", str(p.relative_to(REPO))))
+                out.append(Finding(29, FAIL, f"line {i}: names {sorted(owners)}; one record belongs to one of them", p.relative_to(REPO).as_posix()))
             t = rec.get("task")
             if t:
                 stem = str(t).split()[0].split("--")[0].strip()
@@ -2598,7 +2638,7 @@ def check_29_failure_record(b: Bundle) -> list[Finding]:
                            for q in task_files):
                     invented.append(f"{p.parent.name}:{str(t)[:40]}")
             if rec.get("kind") not in kinds:
-                out.append(Finding(29, FAIL, f"line {i}: unknown kind {rec.get('kind')!r}", str(p.relative_to(REPO))))
+                out.append(Finding(29, FAIL, f"line {i}: unknown kind {rec.get('kind')!r}", p.relative_to(REPO).as_posix()))
     if out:
         return out
     tail = ""
@@ -2622,9 +2662,9 @@ def check_30_lessons(b: Bundle) -> list[Finding]:
         rec = json.loads(p.read_text())
         missing = need - set(rec)
         if missing:
-            out.append(Finding(30, FAIL, f"missing {sorted(missing)} (8.2)", str(p.relative_to(REPO))))
+            out.append(Finding(30, FAIL, f"missing {sorted(missing)} (8.2)", p.relative_to(REPO).as_posix()))
         if not rec.get("evidence"):
-            out.append(Finding(30, FAIL, "no evidence id: a lesson must cite a real record, not an interpretation", str(p.relative_to(REPO))))
+            out.append(Finding(30, FAIL, "no evidence id: a lesson must cite a real record, not an interpretation", p.relative_to(REPO).as_posix()))
     return out or [Finding(30, PASS, f"{len(lessons)} lessons carry evidence, n and a falsifier")]
 
 
@@ -2743,7 +2783,7 @@ AGENT_OF_PATH = [
 # verified by doing it, which produced `seat 'architecture' owns ['design'];
 # this path is unattributable's` on 952205c, 31f86c1 and 8d61a3a. A path
 # classifier for history must keep every name history ever had.
-SHARED_PATHS = re.compile(r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock|\.claude/|docs/)")
+SHARED_PATHS = re.compile(r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.gitattributes|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock|\.claude/|docs/)")
 # Both lists, because they answer different questions about the same file:
 # ALLOWED_PATHS says it may exist and SHARED_PATHS says whose boundary it is
 # in. A root file added to the first alone passes check 13 and classifies as
@@ -3055,7 +3095,7 @@ def _rel(p) -> str:
     table helpers, which is the same miss twice.
     """
     try:
-        return str(pathlib.Path(p).relative_to(REPO))
+        return pathlib.Path(p).relative_to(REPO).as_posix()
     except ValueError:
         return str(p)
 
@@ -3114,7 +3154,7 @@ def check_38_one_table(b: Bundle) -> list[Finding]:
 
     for f in caps:
         cap = json.loads(f.read_text())
-        rel = str(f.relative_to(REPO))
+        rel = f.relative_to(REPO).as_posix()
         configs = cap.get("configurations", []) or []
 
         by_config = {c.get("config"): c for c in configs}
@@ -3752,7 +3792,7 @@ def check_43_entry_grade(b: Bundle) -> list[Finding]:
     numbers_derived = 0
     for p in files:
         try:
-            rel = str(p.relative_to(REPO))
+            rel = p.relative_to(REPO).as_posix()
         except ValueError:
             rel = str(p)                    # a store outside the repo: a self-test
         try:
@@ -3932,7 +3972,7 @@ def check_44_subject_resolves(b: Bundle) -> list[Finding]:
         except json.JSONDecodeError:
             continue
         try:
-            rel = str(p.relative_to(REPO))
+            rel = p.relative_to(REPO).as_posix()
         except ValueError:
             rel = str(p)
         subjects = e.get("subject") or []
@@ -4031,9 +4071,9 @@ def check_40_window_condition(b: Bundle) -> list[Finding]:
     result land in one column under one name, and nothing in the record says
     they were different measurements.
     """
-    plans = b.of_kind("plan")
+    plans = b.plans_from_pipeline()   # an operation plan measures no observable
     if not plans:
-        return [Finding(40, NA, "no plan cards")]
+        return [Finding(40, NA, "no plan cards from S3 to S5")]
     vocab = load_observables()
     out: list[Finding] = []
     checked = 0
@@ -4833,6 +4873,11 @@ def check_52_target_is_a_decision(b: Bundle) -> list[Finding]:
 
         if c.kind == "goal":
             continue
+        if c.kind == "plan" and "operation" in c.data:
+            # An operation plan has no goal: its targets are its own decisions,
+            # approved with it through the ordinary plan_approval, so there is
+            # no copy to compare. Their shape was checked above all the same.
+            continue
         goal = goals.get(c.data.get("qid"))
         if goal is None:
             out.append(Finding(52, FAIL, f"carries a target and no goal for {c.data.get('qid')!r} is in this "
@@ -4889,7 +4934,7 @@ def check_53_deny_rules_do_not_block_reading(b: Bundle) -> list[Finding]:
         return [Finding(53, NA, "no settings files in this repository")]
     n = 0
     for p in files:
-        rel = str(p.relative_to(REPO))
+        rel = p.relative_to(REPO).as_posix()
         try:
             doc = json.loads(p.read_text())
         except json.JSONDecodeError as exc:
@@ -4976,7 +5021,7 @@ def check_76_the_settings_file_no_tree_contains(b: Bundle) -> list[Finding]:
 
     out: list[Finding] = []
     for p in found:
-        rel = str(p.relative_to(REPO))
+        rel = p.relative_to(REPO).as_posix()
         try:
             doc = json.loads(p.read_text())
         except (json.JSONDecodeError, OSError) as exc:
@@ -5152,7 +5197,7 @@ def check_80_a_role_is_read_not_spelled(b: Bundle) -> list[Finding]:
             tree = ast.parse(src.read_text())
         except (SyntaxError, OSError, ValueError):
             continue
-        where = str(src.relative_to(REPO))
+        where = src.relative_to(REPO).as_posix()
 
         # FORM 5. Which names in this file are bound by iterating a registry
         # accessor -- `for e in channel.element_ids()`. A `.startswith` on one
@@ -6820,7 +6865,7 @@ def check_77_a_deletion_names_a_declared_trigger(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     n = 0
     for log in sorted(REPO.glob("*_agent/runs/*/log.json")):
-        rel = str(log.relative_to(REPO))
+        rel = log.relative_to(REPO).as_posix()
         try:
             doc = json.loads(log.read_text())
         except Exception:
@@ -7274,7 +7319,7 @@ def check_83_written_trajectories_are_present(b: Bundle) -> list[Finding]:
     wrote = present = by_pipeline = 0
     out: list[Finding] = []
     for meta in metas:
-        rel = str(meta.relative_to(REPO))
+        rel = meta.relative_to(REPO).as_posix()
         try:
             doc = json.loads(meta.read_text())
         except (OSError, ValueError):
@@ -7416,6 +7461,339 @@ def check_84_seat_registry_is_sound(b: Bundle) -> list[Finding]:
                                     f"excludes the registry, {n_dated} registered since the dated form all dated")]
 
 
+#: What a preparatory run may not dispatch to (11-21 condition 3). The devices
+#: that change WHERE the objective, the sample or a trapped object sits -- the
+#: things that can collide or displace -- named both ways a log may name them:
+#: the registry's element and channel ids, and the Micro-Manager labels a
+#: session script calls. Selectors are deliberately NOT here: a mirror, a filter,
+#: a port or a condenser position changes which light reaches the detector and
+#: cannot reach the sample. The first preparatory run's load moved the Lapp
+#: branch mirror by its Startup preset, as the person's recorded decision, and
+#: that is a selector. A written choice, reported to architecture on 2026-09-24
+#: with the check, for correction rather than as a ruling.
+PREPARATORY_MOTION_SET = frozenset({
+    "z_drive", "nosepiece", "motor_stage", "pfs", "piezo_stage", "optical_tweezers",
+    "ZDrive", "Nosepiece", "XYStage", "PFS", "PFSOffset",
+})
+#: Events that send something to a device. `apply_failed` counts: a command
+#: that was sent and refused by the device was still sent.
+_DISPATCH_EVENTS = frozenset({"apply", "apply_failed", "dispatch"})
+#: The two answered gates that, together and before the first command, take
+#: optical_tweezers out of the motion set for one run (plan.md at 49a94cc).
+_TWEEZERS_UNTRAPPABLE_GATES = frozenset({"trapping_laser_off", "no_sample_mounted"})
+
+
+def check_85_preparatory_run(b: Bundle) -> list[Finding]:
+    """A run with no plan is a preparatory run, and holds to its four conditions (11-21).
+
+    Settled 2026-09-24, the day the first one happened: no plan fitted the
+    first real acquisition on the microscope computer, and a revision citing
+    another configuration's axis ranges would have laundered them. The schema
+    holds conditions 1 and 2 in shape -- `plan_id` null only with
+    `no_plan_because` and `approved_commands`, and neither field on a run
+    that had a plan. This holds what a schema cannot see:
+
+      - 2, the approved list is the file it names: its sha256 is checked
+        when the path is readable from here. It may sit outside the tree --
+        the first one sat beside its frames -- and then that is SAID, not
+        passed silently and not failed for being elsewhere
+      - 3, NOTHING MOVES: no dispatch event whose channel, element or
+        parameter name is in PREPARATORY_MOTION_SET. First focus-
+        finding moves Z, which is why it stays a planned operation
+      - 4, NO RESULT OF ITS OWN: no result card names this run_id, and no KB
+        entry carries a `measured:<run_id>` number. Its numbers reach the
+        record only when a later plan cites the run as an input, and that
+        later plan's own run is what produces the result
+
+    WHAT IT DOES NOT DO. It does not look for a later plan citing the run:
+    the plan schema has no inputs field yet, and a preparatory run nothing
+    cites is legal -- it is waiting, not wrong.
+    """
+    logs = [c for c in b.of_artifact("run_log")
+            if "__unreadable__" not in c.data and c.data.get("plan_id", "") is None]
+    if not logs:
+        return [Finding(85, NA, "no preparatory runs: every run log names the plan it carried out")]
+
+    results_by_run: dict[str, list[str]] = {}
+    for c in b.of_kind("result"):
+        rid = c.data.get("run_id")
+        if isinstance(rid, str):
+            results_by_run.setdefault(rid, []).append(c.rel)
+    # Condition 4 bars MEASUREMENTS, not a device's report of itself (narrowed
+    # at 20a688b, the evening of the day it was written). The line is the
+    # vocabulary: a number named as a registered observable, citing a
+    # preparatory run, is a measurement entering without the plan that must
+    # declare its estimator, and it fails. Anything else citing the run is a
+    # self-report -- a serial, a rest position, a setting read back -- which
+    # the librarian may enter, and it is counted, not failed.
+    observable_ids = set(load_observables())
+    kb_by_run: dict[str, list[str]] = {}
+    reports_by_run: dict[str, list[str]] = {}
+    for p in sorted((KB_DIR / "entries").glob("*.json")):
+        try:
+            entry = json.loads(p.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        eid = entry.get("entry_id", p.stem)
+        cited = [entry.get("source")] + [n.get("source") for n in entry.get("numbers") or [] if isinstance(n, dict)]
+        for n in entry.get("numbers") or []:
+            src = n.get("source") if isinstance(n, dict) else None
+            if isinstance(src, str) and src.startswith("measured:") and n.get("name") in observable_ids:
+                kb_by_run.setdefault(src.split(":", 1)[1], []).append(f"{eid} ({n.get('name')})")
+        for src in cited:
+            if isinstance(src, str) and src.startswith("measured:"):
+                reports_by_run.setdefault(src.split(":", 1)[1], []).append(eid)
+
+    out: list[Finding] = []
+    for log in logs:
+        d, rel = log.data, log.rel
+        rid = d.get("run_id", "?")
+        bad = False
+
+        moved = []
+        events = d.get("events") or []
+        # The one case where optical_tweezers leaves the motion set (plan.md
+        # at 49a94cc): the person has said, BEFORE the first command to it,
+        # both that the trapping laser is off at its hand control and that no
+        # sample is mounted. Each alone leaves nothing trappable; both are
+        # asked because the laser is blind and assumed on. Read as answered
+        # gates, the way session scripts record the person's answers, by the
+        # person and not relayed -- a relayed statement is no statement.
+        said: dict[str, int] = {}
+        for i, ev in enumerate(events):
+            if (isinstance(ev, dict) and ev.get("event") == "gate_answered"
+                    and ev.get("gate") in _TWEEZERS_UNTRAPPABLE_GATES
+                    and str(ev.get("answer", "")).lower() == "yes"
+                    and ev.get("by") and not ev.get("relayed_by")):
+                said.setdefault(ev["gate"], i)
+        first_tweezers = next((i for i, ev in enumerate(events)
+                               if isinstance(ev, dict) and ev.get("event") in _DISPATCH_EVENTS
+                               and "optical_tweezers" in {ev.get("channel"), ev.get("element")}), None)
+        untrappable = (first_tweezers is not None
+                       and set(said) == _TWEEZERS_UNTRAPPABLE_GATES
+                       and max(said.values()) < first_tweezers)
+        for i, ev in enumerate(events):
+            if not isinstance(ev, dict) or ev.get("event") not in _DISPATCH_EVENTS:
+                continue
+            # A run log keys params by parameter name, and earlier logs key
+            # them by element (`lapp_branch`), so a motion device can sit
+            # there too. A plan's `params.settings` is flattened before a run
+            # log sees it, so it has no level of its own here.
+            names = [ev.get("channel"), ev.get("element")]
+            names += list((ev.get("params") or {}).keys())
+            hit = sorted({str(n) for n in names if n in PREPARATORY_MOTION_SET})
+            if untrappable:
+                hit = [h for h in hit if h != "optical_tweezers"]
+            if hit:
+                moved.append(f"event {i} ({ev.get('event')} {ev.get('action') or ''}) reaches {hit}")
+        if moved:
+            bad = True
+            out.append(Finding(85, FAIL, f"{rid} is a preparatory run and dispatches to the motion set: "
+                                         f"{'; '.join(moved)}. A run with no plan moves nothing (11-21 "
+                                         "condition 3); a run that must move needs a plan", rel))
+
+        own = results_by_run.get(rid, []) + [f"kb:{e}" for e in kb_by_run.get(rid, [])]
+        if own:
+            bad = True
+            out.append(Finding(85, FAIL, f"{rid} is a preparatory run and has a result of its own: {own}. "
+                                         "A value of a registered observable reaches the record only when a "
+                                         "later plan cites the run as an input; a device's report of itself "
+                                         "may enter citing it (11-21 condition 4)", rel))
+        reports = sorted(set(reports_by_run.get(rid, [])) - {e.split(" (")[0] for e in kb_by_run.get(rid, [])})
+        report_note = ""
+        if reports:
+            report_note = f"; {len(reports)} store entr{'y' if len(reports) == 1 else 'ies'} cite it as a self-report ({', '.join(reports[:3])}{'...' if len(reports) > 3 else ''})"
+
+        ac = d.get("approved_commands") or {}
+        path, want = ac.get("path"), ac.get("sha256")
+        where = "no approved command list is named"
+        if isinstance(path, str) and isinstance(want, str):
+            f = Path(path)
+            f = f if f.is_absolute() else REPO / f
+            if f.is_file():
+                # Either the bytes as they sit or with CRLF folded to LF, as
+                # check 25 does. A list inside the tree is LF in git and CRLF
+                # on a core.autocrlf=true checkout, so a raw-only hash fails
+                # untouched bytes after any checkout there -- microscope-
+                # 20260924-1 caught it on the first two runs, 2026-09-24. A
+                # list outside the tree may have been WRITTEN with CRLF, and
+                # its recorded hash is then of those bytes, so the raw form
+                # must still count. Only line endings are forgiven.
+                raw = f.read_bytes()
+                got = hashlib.sha256(raw).hexdigest()
+                folded = hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest()
+                if want not in (got, folded):
+                    bad = True
+                    out.append(Finding(85, FAIL, f"{rid}: the approved command list at {path} hashes to "
+                                                 f"{got[:12]}, not the {want[:12]} the log records. The list "
+                                                 "the person approved is not the list on disk (11-21 condition 2)",
+                                       rel))
+                where = f"its approved list {path} matches its sha256"
+            else:
+                where = (f"its approved list {path} is not readable from here, so its sha256 "
+                         f"{want[:12]} is recorded and not checked")
+        if not bad:
+            out.append(Finding(85, PASS, f"{rid} is a preparatory run: nothing dispatched to the motion set, "
+                                         f"no result of its own, and {where}{report_note}"
+                                         + ("; its optical_tweezers commands follow the person's statements "
+                                            "that the trapping laser is off and no sample is mounted, so they "
+                                            "move nothing trappable" if untrappable else ""), rel))
+    return out
+
+
+#: The store entry whose presence lifts check 86's restriction on piezo Z. The
+#: name follows z_retract_direction_is_measured, the Z drive's twin. It is
+#: named here so the librarian can enter it under exactly this id: an entry
+#: under another name would leave Z restricted, which fails safe but silently.
+PIEZO_Z_DIRECTION_ENTRY = "piezo_z_direction_is_measured"
+
+#: Which envelope limit names bound which device's positions. A device absent
+#: here has no position limits at all, and an operation plan commanding it is
+#: refused rather than checked against nothing. Written as a table, not derived
+#: from the device name, because the envelope's names are the person's
+#: (`piezo_x_position_min`, not `piezo_stage_x_...`) and a guessed mapping that
+#: matched nothing would read as "no limit" and refuse -- safe, but for the
+#: wrong reason.
+_OPERATION_LIMIT_PREFIX = {"piezo_stage": "piezo"}
+
+def check_86_operation_plan(b: Bundle) -> list[Finding]:
+    """An operation plan moves only inside the person's limits, one device and one axis at a time (11-21).
+
+    Settled 2026-09-24, when the person chose to check piezo X with one
+    watched step before driving it with a sine. A verification move measures
+    nothing about the sample, so it carries no S3 to S5; the schema holds its
+    shape -- `purpose: verify`, reversible actions only, a sine on X or Y only
+    and always host-timed, no goal, synthesis or observable. This holds what
+    the schema cannot see:
+
+      - ONE DEVICE: every action commands `operation.device`, and every move
+        is an action of that name
+      - INSIDE THE LIMITS: every position a move commands -- a step's
+        `target_um`, a sine's centre plus and minus its amplitude -- lies
+        within that axis's `<device>_<axis>_position_min` / `_max` in the
+        microscope's envelope. A missing limit REFUSES, and so does a floor
+        above its ceiling: the schema cannot compare the pair
+      - Z GETS ONLY THE DIRECTION-FINDING STEP UNTIL THAT DIRECTION IS
+        RECORDED: while the store lacks PIEZO_Z_DIRECTION_ENTRY, a Z move is
+        `direction_finding` or `return`, with at most one `direction_finding`.
+        Once the entry exists the restriction lifts and the limits still bind
+      - A SINE HAS AN EXPLICIT APPROACH: the move before it on its axis is a
+        step to its centre, because the controller rests at its floor
+
+    WHAT IT CANNOT SEE. objective_clearance_min binds piezo Z as it binds the
+    Z drive, and whether a Z target is clear of the coverslip depends on where
+    focus sits at run time -- so that comparison is the wrapper's, at the
+    moment of the move, and not a static one here. Nor can it see the
+    approval: that is the ordinary plan_approval, checked where approvals are.
+    """
+    ops = [c for c in b.of_kind("plan") if "__unreadable__" not in c.data and "operation" in c.data]
+    if not ops:
+        return [Finding(86, NA, "no operation plans")]
+
+    limits: dict[str, dict] = {}
+    for env in envelope_files():
+        if env.name != "safety.json" or not env.parent.parent.name.startswith("microscope"):
+            continue
+        try:
+            doc = json.loads(env.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        for tgt in doc.get("targets", []) or []:
+            for name, lim in (tgt.get("limits") or {}).items():
+                if isinstance(lim, dict):
+                    limits[name] = lim
+
+    out: list[Finding] = []
+    for c in ops:
+        op = c.data.get("operation") or {}
+        dev = op.get("device")
+        moves = [m for m in op.get("moves") or [] if isinstance(m, dict)]
+        actions = [a for a in c.data.get("actions") or [] if isinstance(a, dict)]
+        bad: list[str] = []
+
+        other = sorted({a.get("device") for a in actions if a.get("device") != dev})
+        if other:
+            bad.append(f"actions command {other} besides {dev!r}: an operation plan commands one device")
+        unacted = sorted({m.get("id") for m in moves} - {a.get("id") for a in actions})
+        if unacted:
+            bad.append(f"moves {unacted} have no action of the same id, so nothing says how they are sent")
+
+        for m in moves:
+            ax = m.get("axis")
+            prefix = _OPERATION_LIMIT_PREFIX.get(dev)
+            if prefix is None:
+                bad.append(f"move {m.get('id')}: {dev!r} has no position limits the envelope can name, "
+                           f"so no operation plan may command it. A missing limit refuses")
+                continue
+            lo = limits.get(f"{prefix}_{ax}_position_min")
+            hi = limits.get(f"{prefix}_{ax}_position_max")
+            if m.get("kind") == "sine":
+                pts = [m.get("centre_um", 0) - m.get("amplitude_um", 0),
+                       m.get("centre_um", 0) + m.get("amplitude_um", 0)]
+            else:
+                pts = [m.get("target_um")]
+            if lo is None or hi is None:
+                bad.append(f"move {m.get('id')} on {dev} {ax}: the envelope has no "
+                           f"{prefix}_{ax}_position_min/_max, and a missing limit refuses")
+                continue
+            lv, hv = lo.get("value"), hi.get("value")
+            if not isinstance(lv, (int, float)) or not isinstance(hv, (int, float)) or lv > hv:
+                bad.append(f"move {m.get('id')} on {dev} {ax}: the limits {lv}..{hv} are not a range")
+                continue
+            outside = [x for x in pts if not isinstance(x, (int, float)) or x < lv or x > hv]
+            if outside:
+                bad.append(f"move {m.get('id')} on {dev} {ax} commands {outside} um, outside the "
+                           f"person's {lv}..{hv} um")
+
+        # A sine starts where the axis was left. The controller rests at its
+        # floor (microscope-20260924-2 read x 0.025 um, y 0.006 um on
+        # 2026-09-24), so a sine centred mid-range would otherwise make its
+        # first point a long move nobody approved as one. The move before it
+        # on the same axis must be a step to its centre.
+        last_on_axis: dict[str, dict] = {}
+        speeds: list[str] = []
+        for m in moves:
+            if m.get("kind") == "sine":
+                c0, a0 = m.get("centre_um", 0), m.get("amplitude_um", 0)
+                first = {"centre": c0, "minimum": c0 - a0, "maximum": c0 + a0}.get(m.get("start"))
+                prev = last_on_axis.get(m.get("axis"))
+                if not prev or prev.get("kind") != "step" or prev.get("target_um") != first:
+                    bad.append(f"sine {m.get('id')} on {m.get('axis')} is not preceded on that axis by a step "
+                               f"to its first point, {first} um ({m.get('start')}): the approach is a move of "
+                               "its own, written and approved, not the sine's first point")
+                if isinstance(a0, (int, float)) and isinstance(m.get("period_s"), (int, float)) and m["period_s"] > 0:
+                    speeds.append(f"{m.get('id')} peaks at {2 * math.pi * a0 / m['period_s']:.0f} um/s")
+            last_on_axis[m.get("axis")] = m
+
+        # UNTIL the direction is recorded, and not for ever: architecture
+        # corrected "a single direction-finding step" to this at 1b2d10e,
+        # because the first wording would have barred piezo Z permanently.
+        # The lift is the store holding the measured direction, by the entry
+        # id named below, the way z_retract_direction_is_measured holds the Z
+        # drive's. Until the librarian enters it, Z stays restricted.
+        z = [m for m in moves if m.get("axis") == "z"]
+        if z and not (KB_DIR / "entries" / f"{PIEZO_Z_DIRECTION_ENTRY}.json").exists():
+            if [m for m in z if m.get("role") not in ("direction_finding", "return")]:
+                bad.append("a Z move is neither direction_finding nor return: until the piezo-Z direction "
+                           f"is recorded ({PIEZO_Z_DIRECTION_ENTRY} is not in the store), Z gets only the "
+                           "direction-finding step")
+            if sum(1 for m in z if m.get("role") == "direction_finding") > 1:
+                bad.append("more than one Z direction-finding step: until the direction is recorded, Z gets one")
+
+        if bad:
+            out.append(Finding(86, FAIL, f"{c.data.get('id')}: " + "; ".join(bad) + " (11-21)", c.rel))
+        else:
+            # The peak speed is REPORTED and not judged: no envelope limit
+            # bounds a piezo's speed, and whether one should is the person's
+            # (asked 2026-09-24, when the first sine designed peaked near 29x
+            # the fastest the prior project drove). Saying it keeps it visible.
+            out.append(Finding(86, PASS, f"{c.data.get('id')}: {len(moves)} move(s) on {dev}, every commanded "
+                                         f"position inside the person's limits"
+                                         + (f"; {'; '.join(speeds)}, and no envelope limit bounds a piezo's "
+                                            "speed" if speeds else ""), c.rel))
+    return out
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -7431,6 +7809,7 @@ CHECKS = [
     check_78_history_paths_classify, check_79_gitignored_dirs_are_skipped,
     check_81_relative_imports_resolve, check_82_imports_are_declared,
     check_83_written_trajectories_are_present, check_84_seat_registry_is_sound,
+    check_85_preparatory_run, check_86_operation_plan,
     check_50_delivery_has_a_reader,
     check_51_open_question_has_a_home,
     check_52_target_is_a_decision,
@@ -7575,7 +7954,7 @@ def describe_tree(staged: bool = False) -> str:
                 # and it cannot be made expensive by something large landing
                 # inside one.
                 inner = sorted(
-                    f"{q.relative_to(GIT_REPO)}:{q.stat().st_size}"
+                    f"{q.relative_to(GIT_REPO).as_posix()}:{q.stat().st_size}"
                     for q in f.rglob("*") if q.is_file())
                 return hashlib.sha256("\n".join(inner).encode()).hexdigest()
         except OSError:

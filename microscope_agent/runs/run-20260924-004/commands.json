@@ -1,0 +1,69 @@
+{
+  "task": "035-piezo-then-confocal-laser-then-tweezers.md, phase B step 1: read-only",
+  "run_id": "run-20260924-004",
+  "device": "piezo_stage, the piezo controller on COM4 through the vendor library",
+  "what_this_run_does": "Opens COM4, reads, closes. It writes no position, does not change the controller's security level, and does not touch the waveform generator. Nothing moves.",
+  "sequence": [
+    {
+      "step": "library_version",
+      "call": "GetDllVersion",
+      "writes": false
+    },
+    {
+      "step": "open",
+      "call": "OpenSession",
+      "argument": "COM4",
+      "writes": false,
+      "note": "opens the serial port; the vendor program must be closed, and the person said it is"
+    },
+    {
+      "step": "command_list",
+      "call": "FindCommands and GetCommand for every index",
+      "writes": false,
+      "note": "the controller's own list of commands at its current security level; library introspection, nothing is sent as a command"
+    },
+    {
+      "step": "security_level",
+      "command": "controller.security.user.get",
+      "writes": false
+    },
+    {
+      "step": "position",
+      "command": "stage.position.measured.get",
+      "channels": [
+        1,
+        2,
+        3
+      ],
+      "writes": false
+    },
+    {
+      "step": "calibrated_range",
+      "commands": [
+        "stage.position.calibrated-range.minimum.get",
+        "stage.position.calibrated-range.maximum.get"
+      ],
+      "channels": [
+        1,
+        2,
+        3
+      ],
+      "writes": false,
+      "note": "fixes the position unit: a 600 um axis reading 6.0e8 is picometres"
+    },
+    {
+      "step": "path_and_identity",
+      "rule": "every command in the controller's own list whose name ends in '.get' AND contains one of: 'mode', 'analogue', 'analog', 'digital', 'identity', 'version', 'serial'",
+      "channels": "each such command taking one parameter is read on channels 1, 2 and 3; one taking none is read once; any other is not sent and is recorded as skipped",
+      "writes": false,
+      "note": "the analogue and digital command enables settle whether the controller listens to the analogue line NIS can drive; the exact command names are read from the controller rather than guessed"
+    },
+    {
+      "step": "close",
+      "call": "CloseSession and Uninit",
+      "writes": false
+    }
+  ],
+  "refused_by_the_script": "any command not ending in '.get', any '.set', 'lock', 'unlock', 'start', 'stop', 'waveform' or 'function' command, and any command not matched above. The link is opened read-only, so a position write or a security change is refused by the driver as well.",
+  "left_as": "the controller at the security level it was found at, no position written, the port closed"
+}

@@ -113,26 +113,20 @@ ABSENT = {
     "disk_period": "the disk period is not in the store: the entry states the relation an "
                    "exposure must satisfy and says in its own text that it does not carry the "
                    "number to satisfy it against",
-    "read_noise": "the camera entry enters no sensor number, and says so explicitly",
-    "quantum_efficiency": "same entry, same absence",
-    "tracer_brightness": "nothing describes the fluorophore on these beads -- not the dye, not "
-                         "a photon rate, not a labelling density",
+    "read_noise": "the service answered `absent` for the camera's read noise",
+    "quantum_efficiency": "the service answered `absent` for the camera's quantum efficiency",
+    "tracer_brightness": "no photon rate per particle exists for this sample on this "
+                         "instrument, and none can be asked for: it depends on the dye, the "
+                         "lot, the illumination and the camera together",
     "background_rate": "no background measurement exists on this instrument",
     "pixel_size": "no sample-plane pixel size is served at this pin under the registered "
-                  "quantity name. Through revision 4 this axis asked under "
-                  "`pixel_size_in_sample` and read the empty answer as a missing "
-                  "measurement, while twelve calibrations sat in this card's own kb_refs the "
-                  "whole time: quantities.json rule 1, the locus glued on behind the name",
+                  "quantity name, and the pixel size is keyed by the objective-and-zoom pair, "
+                  "which the goal has to declare before one row applies",
     "tracer_diffusivity_expected":
-        "no expected diffusivity is served at this pin, and the name is not what is wrong. "
-        "`tracer_diffusivity_expected` is a registered quantity, and kb_group -- the tool for "
-        "an entry shaped like a derivation rather than a value -- is REFUSED here: no formula "
-        "carries that symbol at this version. Following the service's own near name returns "
-        "one E4 entry about how a temperature enters an experiment differently from a "
-        "simulation, which is not a diffusivity. So the remedy is a re-pin and not a rename, "
-        "and not a computation here either: knowledge lives in one place (P14), and computing "
-        "it in this axis would put the drag in two files, which 4.5.2.1 forbids because the "
-        "two would eventually disagree",
+        "no expected diffusivity is served at this pin. The remedy is a re-pin and not a "
+        "computation here: knowledge lives in one place (P14), and computing it in this axis "
+        "would put the drag in two files, which 4.5.2.1 forbids because the two would "
+        "eventually disagree",
     "bleaching_rate": "no bleaching rate exists for this fluorophore",
 }
 
@@ -176,26 +170,61 @@ def _one_value(responses: dict, name: str) -> bool:
     return len({v for _, v in _values_for(responses, name)}) == 1
 
 
-def _why_missing(responses: dict, absent: set[str], name: str) -> str:
-    """The reason for one missing input, and ABSENT only when the service said absent.
+# What closes a gap, where that is an acquisition rather than a question. The
+# person settled on 2026-09-19 that brightness and bleaching depend on this dye,
+# this lot, this illumination and this camera together, so no store can hold
+# them for a sample nobody has imaged -- and an abstention that names only the
+# absence leaves the reader to work out what it wants.
+REMEDY = {
+    "tracer_brightness": (
+        "It closes by acquiring, not by asking: image the bare particles on a coverslip under "
+        "the illumination the record will use, which gives the photon rate per particle and "
+        "its decay in one short run. On mic-20260924-001 that run is the preparatory run of "
+        "2026-09-24 (card 033), and it becomes citable once its run log is in runs/ with a "
+        "run_id. Bare particles are not the mount, so the run spends nothing a later "
+        "measurement needs"
+    ),
+    "bleaching_rate": (
+        "It closes by the same bare-particle run that closes tracer_brightness: the decay over "
+        "the record is the bleaching rate, so one acquisition closes both"
+    ),
+}
 
-    ABSENT's sentences say the store HOLDS NOTHING, and until 2026-09-24 they
-    were used for every missing input -- so a card whose own kb_refs carried
-    four read noises said `the camera entry enters no sensor number`, and one
-    carrying the Stokes-Einstein entry said no expected diffusivity is served.
-    Both were true of an earlier pin and false of the card. The other two
-    shapes _one_value refuses get their own words, from the served answer.
+# Which condition selects among several served values, where the store says so.
+SELECTED_BY = {
+    "read_noise": "the camera mode, and this plan names none",
+    "quantum_efficiency": ("the wavelength the path collects; one value is the datasheet's "
+                           "peak, a maximum over the range and not a value at any band, and "
+                           "the other is a point read off a different body's graph"),
+}
+
+
+def _reason(name: str, responses: dict, absent: set[str]) -> str:
+    """Why this input is missing, from what the service answered and nothing else.
+
+    Until 2026-09-24 this was a fixed table, and three of its eight sentences had
+    gone false: the read noise and quantum efficiency were said to be absent from
+    the store while the service returned four and two values for them, and the
+    expected diffusivity was said to be unserved while it came back as an entry.
+    A table written for one pin describes that pin; the answer describes this one.
     """
     if name in absent:
-        return ABSENT.get(name, f"{name} came back absent")
-    values = _values_for(responses, name)
-    if not values:
-        return (f"{name} answered as a relation rather than a value: the store holds the entry "
-                f"and no number for it, so this bound has nothing to evaluate")
-    distinct = sorted({v for _, v in values})
-    return (f"{name} is answered by {len(values)} served values, {len(distinct)} distinct "
-            f"({', '.join(map(str, distinct))}), and not by one, so which applies is a condition "
-            f"the plan has to carry; this axis does not pick among them")
+        base = ABSENT.get(name, f"the service answered `absent` for {name}")
+        return f"{base}. {REMEDY[name]}" if name in REMEDY else base
+    served = _values_for(responses, name)
+    if len(served) > 1:
+        listed = ", ".join(f"{v} ({eid})" for eid, v in served)
+        why = SELECTED_BY.get(name, "nothing on this plan that selects one")
+        return (f"the service returned {len(served)} values for {name} -- {listed} -- and "
+                f"what selects among them is {why}. Taking one would be picking by "
+                "iteration order and calling it evidence")
+    carriers = sorted(eid for eid, e in responses["entries"].items()
+                      if name in (eid, e.get("symbol")))
+    if carriers:
+        return (f"{name} was served as {', '.join(carriers)}, a relation with no value: it "
+                "composes from inputs this axis does not bind, and computing it here would put "
+                "the knowledge in two places (P14)")
+    return f"nothing the service returned carries a value named {name}"
 
 
 def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str) -> axc.AxisRun:
@@ -258,32 +287,36 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         # the axis has no code when what it has is no value.
         missing = [n for n in ineq.needs if n in absent or not _one_value(responses, n)]
         if missing:
-            reason = "; ".join(_why_missing(responses, absent, m) for m in missing)
+            reason = "; ".join(_reason(m, responses, absent) for m in missing)
             if ineq.id == "motion_blur" and "pixel_size" not in missing:
+                pixels = _values_for(responses, "pixel_size")
                 reason += (
-                    ". The other side of this bound is served, and saying so is the point of this "
-                    "revision: asking for `pixel_size` -- the registered quantity, with the locus "
-                    "out of the name -- returns twelve entries at E2, measured at the sample plane "
-                    "on this instrument and keyed by objective and intermediate magnification. They "
-                    "are in this card's kb_refs and were in revision 4's too, while revision 4 "
-                    "recorded the same quantity as a gap. What is still not a librarian's to hold is "
-                    "WHICH of the twelve applies: that is the objective-and-zoom pair, S4 chooses it, "
-                    "and A6 returns the pairs that satisfy Nyquist where this axis may not read them "
-                    "(4.5.3 rule b). One condition rides with them -- every one is valid at 1x1 "
-                    "binning and the query passed no binning, so the service reported binning "
-                    "`unasked`; at another binning the value scales and this bound needs re-asking "
-                    "rather than re-using"
+                    ". The other side of this bound is served: pixel_size "
+                    + ", ".join(f"{v} um ({eid})" for eid, v in pixels)
+                    + ", the calibrated row for the objective-and-zoom pair the goal declares, "
+                    "valid at 1x1 binning only -- at another binning the value scales and this "
+                    "bound needs re-asking rather than re-using"
                 )
             if ineq.id == "snr_sustained_over_window":
-                reason += (
-                    ". The coupling is what makes this bound matter on this configuration rather "
-                    "than in general: widefield fluorescence bleaches while the record runs, and "
-                    "the observable is a diffusivity read from the mean squared displacement over "
-                    "the whole window. Falling signal-to-noise raises the localisation error, so "
-                    "the displacement variance is inflated in the later part of the record and "
-                    "the fitted slope is biased. A bleaching rate is what turns that from a "
-                    "direction into a bound"
-                )
+                observable = (goal.get("observable") or {}).get("name", "")
+                if observable == "tracer_brightness":
+                    reason += (
+                        ". On this question the coupling runs through the observable itself: a "
+                        "brightness measured over a record in which the sample bleaches is "
+                        "depressed by the bleaching, so the window the brightness is read over "
+                        "has to be short against the decay -- and the decay is this question's "
+                        "own by-product, which is why the window is declared before the run and "
+                        "judged by the fit after it"
+                    )
+                else:
+                    reason += (
+                        ". The coupling is what makes this bound matter on this configuration "
+                        "rather than in general: widefield fluorescence bleaches while the record "
+                        "runs, and the observable is read over the whole window. Falling "
+                        "signal-to-noise raises the localisation error, so the later part of the "
+                        "record is noisier and a fit across it is biased. A bleaching rate is what "
+                        "turns that from a direction into a bound"
+                    )
             run.outcomes.append(axc.Outcome(
                 inequality_id=ineq.id, parameter=ineq.parameter, state="abstained",
                 kind="no_input", missing=missing, reason=reason,
@@ -300,51 +333,37 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
     # after the quantity turned out to be served -- a prose count outliving the
     # thing it counted, which is the failure this repository keeps naming.
     no_input = sum(1 for o in run.outcomes if o.kind == "no_input")
-    measurements = sorted(absent - {"tracer_diffusivity_expected"})
-    expected_where = ("the store holds at a later version than this card's pin"
-                      if "tracer_diffusivity_expected" in absent else
-                      "the store serves at this pin as a relation with no number in it")
     run.notes.append(
         f"Every bound here abstains, and {no_input} of the {len(OWNED)} abstain for want of an "
-        f"input rather than because they do not apply. Read as a list, the inputs are: "
-        f"{', '.join(measurements)} -- none of them exotic and none guessable (P2) -- and, "
-        f"separately, tracer_diffusivity_expected, which no one measures: it is a derived entry "
-        f"{expected_where}."
+        f"input rather than because they do not apply. Asked and absent: {', '.join(sorted(absent))}. "
+        "Served but not a single value: "
+        + (", ".join(n for n in ("read_noise", "quantum_efficiency", "tracer_diffusivity_expected")
+                     if n not in absent and not _one_value(responses, n)) or "none")
+        + ". The two are different next actions -- an absence is an acquisition or a question, "
+        "several values are a condition the plan has not chosen -- and each bound's reason says "
+        "which."
     )
-    run.notes.append(
-        "Revisions 1 and 2 of this card read the store's files and carried "
-        "degraded: [librarian_agent]; revision 3 asked the service and carries none. Not one "
-        "bound moved -- the same six, the same kinds, the same reasons -- so what changed is the "
-        "standing of the claim rather than the claim. Two differences are worth naming. The gaps "
-        "went from four to eight because each observable is now its own call and its own answer, "
-        "where before this axis chose what to group. And the near-misses are gone: revision 2 "
-        "named cameras_both_kinetix22 against read_noise, and the viscosity and ambient "
-        "temperature against the expected diffusivity, all judged by this axis; the service "
-        "returns nearest empty for every one. Those were the axis answering its own question in "
-        "a field that says the service answered it, so their absence is the more honest state -- "
-        "but the entries they named are still there and still nearly relevant, and at this pin "
-        "the service cannot see that, because 17 of the 25 entries carry no machine-readable "
-        "validity to match against."
-    )
-    run.notes.append(
-        "What changed in this revision is one name and no number. The pixel-size input was asked "
-        "under `pixel_size_in_sample` through revision 4 and is asked under `pixel_size` from here "
-        "on: the registered quantity is the pixel size and `in_sample` is the locus, which "
-        "quantities.json rule 1 keeps out of a name, and the gap this axis recorded under the long "
-        "name was answered under the short one by twelve E2 entries that were already in its own "
-        "kb_refs. A6 had the same rule broken in the other direction, with the subject in front. "
-        "Nothing here re-grades, re-computes or re-pins anything."
-    )
+    # History of the cards this module wrote for earlier questions, kept on those
+    # questions. Emitted unconditionally until 2026-09-24, so mic-20260924-001's
+    # first A1 card described revisions it never had.
+    if goal.get("qid") in ("mic-20260918-001", "mic-20260920-001"):
+        run.notes.append(
+            "Revisions 1 and 2 of this card read the store's files and carried "
+            "degraded: [librarian_agent]; revision 3 asked the service and carries none. Not one "
+            "bound moved -- the same six, the same kinds, the same reasons -- so what changed is "
+            "the standing of the claim rather than the claim. The pixel-size input was asked under "
+            "`pixel_size_in_sample` through revision 4 and under `pixel_size` from then on: the "
+            "registered quantity is the pixel size and `in_sample` is the locus, which "
+            "quantities.json rule 1 keeps out of a name."
+        )
     if "tracer_diffusivity_expected" in absent and pin == "kbv-7c77fa74ee5a":
         run.notes.append(
             "The second gap card 015 expected to close does not close at this pin, and it was "
             "measured rather than argued: an entry named tracer_diffusivity_expected exists in this "
             "repository's store and is outside this pin's history -- it was added at 03fe7a3, which "
             "is not an ancestor of a4e1449, the commit the service says kbv-7c77fa74ee5a resolves "
-            "to. The same fan-out asked for it at kbv-bf4f559baf68 earlier on 2026-09-20 and got "
-            "coverage rather than a gap, so the absence is this pin's and not the store's. It "
-            "closes by re-pinning the whole fan-out, which check 58 will not let one card do alone, "
-            "and until then motion_blur stays unbounded on that input."
+            "to. It closes by re-pinning the whole fan-out, which check 58 will not let one card do "
+            "alone, and until then motion_blur stays unbounded on that input."
         )
     if not through_the_disk:
         run.notes.append(

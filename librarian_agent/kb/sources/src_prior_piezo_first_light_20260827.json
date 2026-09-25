@@ -1,0 +1,11 @@
+{
+  "source_id": "src_prior_piezo_first_light_20260827",
+  "kind": "prior_run",
+  "identifier": "agentic-microscope (C:\\agentic_microscope) at main fbedef0: kb/decisions/2026-08-27-piezo-first-light-measured-limits.md, the prior project's record of first driving the piezo controller. sha256 of the committed blob 9ca9a54bb34712dba21386d0129444e93f4dc7291e42d51d520d392cbef15ba1, checked by this seat on 2026-09-24.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, grade_tag absent (prior_run has no place in the E3 grade_tag enum). A run taken in another project is not a run taken here (10.3 rule 1).",
+  "what_crossed": "Section 7b's finding that the controller's hardware waveform generator does not read its samples in the picometres the position command takes.",
+  "what_did_not": "Every figure: the swing, the requested amplitude, the crossing intervals, the round-trip and settling times and the lag, all of which sit in prose or a markdown table (10.3 rule 3). The prior timing item delivered with this one was discarded whole for that reason, since its content is the figures. The two candidate explanations for the unit are the prior project's untested hypotheses and do not cross.",
+  "delivered_by": "microscope-20260924-2, microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043).",
+  "license_note": "No text reproduced; facts restated."
+}

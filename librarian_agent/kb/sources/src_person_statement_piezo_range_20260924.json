@@ -1,0 +1,9 @@
+{
+  "source_id": "src_person_statement_piezo_range_20260924",
+  "kind": "operator_recall",
+  "identifier": "The person's statement of 2026-09-24 to the architecture session that each piezo axis's device range is -100 to 600 um, recorded in microscope_agent/tasks/035-piezo-then-confocal-laser-then-tweezers.md at be5a848 under 'What the person stated', and as the confirmation note on each piezo limit in microscope_agent/envelope/safety.json at 58d55cd.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E5. The record calls it the person's statement and not a reading, and does not say it was read off the stage or its documentation when given, so it takes the recollection grade (5.3). Which it was belongs to the person; the conservative grade is filed until the person says otherwise.",
+  "what_was_not": "the person's choice of 0 to 600 um for software, which is policy in envelope/safety.json and not knowledge.",
+  "delivered_by": "microscope-20260924-2, microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043), item person_piezo_device_range."
+}

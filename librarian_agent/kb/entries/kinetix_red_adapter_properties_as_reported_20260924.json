@@ -1,0 +1,23 @@
+{
+  "entry_id": "kinetix_red_adapter_properties_as_reported_20260924",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "At load, the PVCAM adapter describes Kinetix_red as BitDepth 16, PixelType 16bit, ReadoutRate '100MHz 16bit' and Binning 1x1. These are the adapter's self-descriptions and not a measurement of the camera's bit depth.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "camera_red"
+    }
+  ],
+  "source": "measured:run-20260924-002",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_002_first_acquisition",
+  "validity_conditions": "Read back in a preparatory run -- the first real acquisition on this computer, with no plan, the person having placed the 20x and moved the microscope by hand, software moving nothing. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system: E1 from `measured:`. Not a value of any registered observable. IT DISAGREES WITH pixeltype_misreports_bit_depth, the prior project's record that PixelType reported 12bit while the data were 16-bit: here PixelType reports 16bit. Kept side by side and not reconciled (rule 7). The readout mode, adapter version or camera settings may differ between the two, and neither record is a measurement of bit depth -- which remains a gap here, because no frame today saturated. Slot: A1 and the acquisition wrapper, which must not take a bit depth from either property. Delivered as item kinetix_red_reported_properties of microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042). Checked by this seat against microscope_agent/runs/run-20260924-002/log.json read at bf8f91f (unchanged since): event 18.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [
+    "pixeltype_misreports_bit_depth"
+  ],
+  "curated_by": "seat:librarian-20260924-2"
+}

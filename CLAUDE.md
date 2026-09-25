@@ -52,6 +52,9 @@ python3 librarian_agent/src/kb_index.py                          # after editing
 git config core.hooksPath contracts/hooks                        # once per working copy
 ```
 
+**On the microscope computer (Windows, from 2026-09-24).** `python3` there is a Microsoft Store App Execution Alias that is not Python, so type `python` where the commands above say `python3`; everything in this repository that picks an interpreter now probes it by running it. **Since `9a796f8` the validator and the hooks run correctly there** -- paths print with `/`, `--expect-fail` prints both totals, and the validator no longer needs `PYTHONUTF8`. Agent code outside `contracts/` still reads text without naming an encoding in places, so set `PYTHONUTF8=1` when running an agent's scripts. **The hooks are fixed and not installed**: installing them is a manager's call, made while someone watches the first commits through them. **Pushing** needs the credential manager named, because git there has no helper configured: `git -c credential.helper=manager push origin main` uses the GitHub login saved in Windows, and a plain `git push` fails asking for a username. `sh` is not on the Windows PATH by default; `Gitin` was added to the user PATH so the librarian's server starts. See §11-22.
+
+
 The first must end `0 failed`. The last prints two totals, cards and groups,
 and every one of both must still be rejected — a fixture that stops failing
 means a check stopped working. **Read every count off the run, never off
@@ -441,6 +444,8 @@ magnitude. See §5.8.
 `sim-exp-bridge`, nor any mirror, export or summary of them. This covers
 filenames, not just contents: a filename carries vocabulary, and vocabulary
 carries design.
+
+**One narrow exception, 2026-09-24, the person's own and confirmed directly:** `librarian-agent` (at `C:\librarian-agent` on the microscope computer) was opened for **one search only** -- the confocal/illumination power calibration -- with every item found ruled under §10.2.1, nothing copied as-is, and no safety limit crossing. Nothing else in it may be consulted, and the other two stay closed. See §10.2.
 
 **`agentic-microscope` was opened on 2026-09-17**, by the person, with the
 condition that nothing is transplanted as-is and that anything over-claimed is

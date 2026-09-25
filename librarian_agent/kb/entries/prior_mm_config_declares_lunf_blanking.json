@@ -1,0 +1,24 @@
+{
+  "entry_id": "prior_mm_config_declares_lunf_blanking",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The prior project's Micro-Manager configuration dualcam_noDMD.cfg declares the combiner's blanking lines as a Micro-Manager device, LUNF-Blanking, an NIDAQ digital-output device on Dev1 port 0 under an NIDAQHub. A session that loads a configuration carrying that declaration has a route to switch a confocal laser line that does not pass through any wrapper written here.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "line_select"
+    },
+    {
+      "kind": "device",
+      "id": "laser_combiner"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0/config/micromanager/dualcam_noDMD.cfg",
+  "grade": "E3",
+  "source_ref": "src_prior_mm_dualcam_nodmd_cfg",
+  "validity_conditions": "Ruled TRANSFER, passed 10.3 rule 1 (E3, a fact about one file at fbedef0). Configurations from that folder are loaded here by path (plan.md 10.2.1), which is why a device declaration inside one is a control-path fact about this instrument's sessions. Slot: O1 preflight -- a loaded configuration can be checked for this device before light. What this repository's code refuses today is not in this entry: that is code state, owned by the microscope and changed by a commit. Falsified for a given configuration by reading it. Delivered as item `mm_second_route_to_blanking` of microscope_agent/findings/microscope-20260924-3-20260924.json at a5e7647 (card 044); the source was opened at fbedef0 and its sha256 matched before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

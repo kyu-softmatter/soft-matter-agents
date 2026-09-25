@@ -96,14 +96,25 @@ def collisions(entries: dict[str, dict]) -> list[dict]:
 
 
 def entry_digest(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    """sha256 of the entry as git stores it, not as this checkout shows it.
+
+    A checkout with core.autocrlf=true -- the Windows default, and the
+    microscope computer on 2026-09-24 -- writes every entry with CRLF, so a
+    digest of the raw bytes named a kb_version no commit carries and no other
+    machine could reproduce, and --check called a clean tree stale. Folding
+    CRLF to LF is what autocrlf's clean filter does, and every committed entry
+    is LF (`git ls-files --eol`: i/lf), so a digest taken on an LF checkout is
+    unchanged. An entry committed WITH CRLF from a machine without autocrlf
+    would still disagree; nothing here refuses that yet.
+    """
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 
 def build(kb: Path | None = None) -> dict:
     kb = kb or KB
     entries = {}
     for p in sorted((kb / "entries").glob("*.json")):
-        data = json.loads(p.read_text())
+        data = json.loads(p.read_text(encoding="utf-8"))
         entries[data["entry_id"]] = {
             "file": f"entries/{p.name}",
             "kind": data["kind"],
@@ -116,7 +127,7 @@ def build(kb: Path | None = None) -> dict:
         }
     blob = json.dumps(entries, sort_keys=True, separators=(",", ":"))
     version = "kbv-" + hashlib.sha256(blob.encode()).hexdigest()[:12]
-    parsed = {eid: json.loads((kb / meta["file"]).read_text()) for eid, meta in entries.items()}
+    parsed = {eid: json.loads((kb / meta["file"]).read_text(encoding="utf-8")) for eid, meta in entries.items()}
     found = collisions(parsed)
     return {
         "schema_version": "0.1",
@@ -154,7 +165,7 @@ def main(argv: list[str] | None = None) -> int:
         if not target.exists():
             print("index.json is missing")
             return 1
-        current = json.loads(target.read_text())
+        current = json.loads(target.read_text(encoding="utf-8"))
         if current.get("kb_version") != fresh["kb_version"]:
             print(f"index.json is stale: {current.get('kb_version')} but entries hash to {fresh['kb_version']}")
             return 1
@@ -168,7 +179,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"index.json is current at {fresh['kb_version']} ({fresh['entry_count']} entries), "
               f"{len(fresh['handles']['collisions'])} handle collisions")
         return 0
-    target.write_text(json.dumps(fresh, indent=2, ensure_ascii=False) + "\n")
+    target.write_text(json.dumps(fresh, indent=2, ensure_ascii=False) + "\n",
+                      encoding="utf-8", newline="\n")
     print(f"wrote {target.name}: {fresh['kb_version']} ({fresh['entry_count']} entries)")
     return 0
 

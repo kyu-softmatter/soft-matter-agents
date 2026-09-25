@@ -168,9 +168,19 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                 "illumination meets P0's safety limit before it meets the sample's tolerance "
                 "(4.5.3 A7), and those limits are policy in envelope/safety.json, written by a "
                 "person who confirmed them physically and deliberately not extracted from the "
-                "prior project (10.3 rule 4). That file does not exist. This axis bounds what the "
+                "prior project (10.3 rule 4). Whether that file exists does not change this bound, "
+                "which does not read it. This axis bounds what the "
                 "sample can take and not what the instrument may emit, and it may not supply the "
                 "second from the first"
+            )
+
+        if ineq.id == "bleaching_over_record":
+            reason += (
+                ". It closes by acquiring, not by asking: image the bare particles under the "
+                "illumination the record will use, and the decay over that record is the rate. "
+                "On mic-20260924-001 that run is the preparatory run of 2026-09-24 (card 033), "
+                "citable once its run log is in runs/ with a run_id; bare particles are not the "
+                "mount, so the run spends nothing a later measurement needs"
             )
 
         if ineq.id == "bleaching_over_record" and spent:

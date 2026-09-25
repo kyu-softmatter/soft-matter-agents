@@ -1,0 +1,24 @@
+{
+  "entry_id": "lunf_analog_outputs_are_not_cabled_to_the_combiner",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The DAQ's four analog outputs are not cabled to the combiner's power inputs. Driving them, together and one at a time, stepped and at speed, with the blanking line held open, changed nothing in the emitted light.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "laser_combiner"
+    },
+    {
+      "kind": "device",
+      "id": "line_power"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+  "grade": "E3",
+  "source_ref": "src_prior_lunf_first_light_20260902",
+  "validity_conditions": "Ruled TRANSFER, passed 10.3 rule 1 (E3, tested in another project on 2026-09-02). A negative result carried so the route is not proposed again. Slot: A4 (automatability of line_power) -- it removes one candidate path and adds none. The drive voltages of the test are in prose and are not carried (10.3 rule 3). Falsified by an analog output that modulates a line, which would also mean the cabling changed. Delivered as item `combiner_ao_route_not_cabled` of microscope_agent/findings/microscope-20260924-3-20260924.json at a5e7647 (card 044); the source was opened at fbedef0 and its sha256 matched before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

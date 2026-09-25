@@ -1,0 +1,21 @@
+{
+  "entry_id": "piezo_interface_library_version_on_this_computer",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The piezo controller's vendor interface library installed on this computer, loaded from the NanoBench 6000 install, reports version 2.8.1.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "piezo_stage"
+    }
+  ],
+  "source": "measured:run-20260924-004",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_004_piezo_readonly",
+  "validity_conditions": "A device's report of itself, read in a preparatory run -- a read-only first contact that sent only .get commands from a list the person approved by sha256, and moved nothing. 11-21 condition 4 as narrowed at 20a688b lets such a report enter citing the run, graded as an observation by this system; it is not a measurement of any registered observable, and check 85 counts it rather than failing it. E1 from `measured:`. A fact about this computer's installation, not about the controller: reinstalling or updating NanoBench falsifies it. The interface-library manual this store holds (src_npcd_interface_library_manual) is for 2.7.9, an earlier release. Slot: O1 preflight. Delivered as item piezo_library_version of microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043). Checked by this seat against microscope_agent/runs/run-20260924-004/log.json read at a0fda99 (committed at 03e0cd2, unchanged since): events 4, each the command named and the value stated.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

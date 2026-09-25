@@ -47,5 +47,8 @@
   "date": "2026-09-19",
   "supersedes": null,
   "conflict_with": [],
-  "curated_by": "kyuhwan"
+  "curated_by": "kyuhwan",
+  "refuted_by": [
+    "pixel_size_10x_zoom_1_5x_computed"
+  ]
 }

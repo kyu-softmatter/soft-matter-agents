@@ -1,0 +1,22 @@
+{
+  "artifact": "findings",
+  "schema_version": "0.1",
+  "seat": "microscope-20260924-9",
+  "on": "2026-09-24",
+  "delivered_to": "librarian_agent",
+  "items": [
+    {
+      "id": "bleach_quick_look",
+      "fact": "EXAMPLE. Mean particle intensity fell about 19 percent over 60 s.",
+      "kind": "observable_value",
+      "how": "a quick look at run -002's frames, not a fit",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-002",
+        "event_index": 0
+      },
+      "for_store": true,
+      "note": "REJECTED FIXTURE. An observable's value marked for the store. A preparatory run may carry a device's report of itself into the store, never an observable's value. The schema refuses it (check 1)."
+    }
+  ]
+}

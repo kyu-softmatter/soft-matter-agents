@@ -1,0 +1,12 @@
+{
+  "source_id": "src_prior_lunf_scripts_20260907",
+  "kind": "prior_run",
+  "identifier": "agentic-microscope at main fbedef0: config/lunf/probe_lunf.py (sha256 525746756fa4dd5c6fabcaa754675648889f71ed797c234198c91360df12452e), whose WL table and OPEN/CLOSED constants carry the line map and polarity in machine-readable form, and config/lunf/disk_survives_kill.py (sha256 a18216eb1989cfeeb6d865a99b637e28117ec27d51e3ebe7a4d3cb0643224381), added at a7b880b on 2026-09-07 and touched by no later commit on any branch. Both hashes checked by this seat on 2026-09-24.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, grade_tag absent (prior_run has no place in the E3 grade_tag enum, as src_prior_filter_records records). A run taken in another project is not a run taken here, whatever it measured; confirming a fact on this instrument promotes it to E1 through a result card and supersedes the entry. An assertion there with no measurement behind it enters at E5 with a falsifier, under 10.2.1's downgrade.",
+  "delivered_by": "microscope-20260924-3, microscope_agent/findings/microscope-20260924-3-20260924.json at a5e7647 (card 044). The findings file grades nothing: this seat opened each document below at the named commit, matched its sha256 to the one the file gives, and read the passage each item cites before ruling it.",
+  "what_crossed": "The line map and blanking polarity (machine-readable constants, corroborated by the first-light record's dialog readout), the filter-turret-1 state that blocked the confocal path, and the fact that the disk kill test was written and never run.",
+  "what_did_not": "The turret contrast figures, which sit in an argparse help string (prose, 10.3 rule 3), and the script's regime thresholds, which the microscope seat already ruled discard because nobody here chose them. The scripts themselves are the prior project's implementation and do not cross.",
+  "caution": "A script constant is what the prior project's code believed; the line map is carried because the record says it was read off the vendor program's live configuration dialog, which outranked three device-database copies, two of which disagreed about 405.",
+  "license_note": "No text reproduced; facts restated and re-placed into this store's decomposition."
+}

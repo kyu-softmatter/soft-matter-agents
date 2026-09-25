@@ -1,0 +1,9 @@
+{
+  "source_id": "src_prior_mm_single_cam_red_nodmd_nocom10_cfg",
+  "kind": "prior_run",
+  "identifier": "agentic-microscope (C:\\agentic_microscope) at main fbedef0: config/micromanager/single_cam_red_noDMD_nocom10.cfg, sha256 8184073e31e1a7a63731932a20a622131d4dba04cf839bc9e651bf9abcd53120 -- the configuration the person chose for the first real acquisition on 2026-09-24 and which run-20260924-002 loaded by path with that hash. Read by this seat on 2026-09-24.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, grade_tag absent: a configuration written in another project. Its figures -- the PixelSize block, the 20.078x phrasing, the FocusDirection note -- are discarded as a source (plan.md 10.2.1, and microscope-20260924-1's ruling).",
+  "what_crossed": "that it declares LUNF-Blanking with a LaserLine group, that it sets the core shutter to LightEngine with AutoShutter on, and that its Startup preset puts the Lapp mirror in.",
+  "delivered_by": "found while checking microscope-20260924-1's findings at bf8f91f (card 042)."
+}

@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "findings.schema.json",
+  "title": "<agent>/findings/<seat>-<YYYYMMDD>.json -- what one execution seat established, handed to the librarian",
+  "description": "An execution seat's findings, on their way to the store. Added 2026-09-24, when the person asked that everything the day's sessions established be saved properly, and the only route from an execution seat to the librarian was a result card: that needs a plan, and most of the day's findings came from preparatory runs, which produce none (plan.md 11-21 condition 4). The librarian may enter a device's report of itself citing a preparatory run's log (20a688b), but nothing carried the list of what to enter. A message would carry it and leave no trace on disk, which is exactly what file cards exist to prevent. So this is the file. It is not a KB entry and grades nothing: the librarian reads it, checks each source, and enters what passes. Every item says what kind of fact it is, because the kinds travel differently. A value of a registered observable is listed so that it is not lost, and it is marked not for the store: it waits for the plan that cites its run.",
+  "type": "object",
+  "properties": {
+    "artifact": { "const": "findings" },
+    "schema_version": { "const": "0.1" },
+    "seat": { "type": "string", "pattern": "^[a-z]+(-[a-z0-9]+)*$" },
+    "on": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "delivered_to": { "const": "librarian_agent" },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/item" }
+    }
+  },
+  "required": ["artifact", "schema_version", "seat", "on", "delivered_to", "items"],
+  "additionalProperties": false,
+  "$defs": {
+    "item": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "fact": { "type": "string", "minLength": 10, "description": "the fact, in words, as it would be entered" },
+        "kind": {
+          "enum": ["self_report", "document_fact", "person_statement", "prior_project_ruling", "observable_value", "unmeasured"],
+          "description": "self_report: what a device said about itself, read back in a run. document_fact: read from a named document. person_statement: said by the person, and recorded somewhere this names. prior_project_ruling: an item from the prior project, ruled under 10.2.1. observable_value: a value of an observable registered in contracts/observables.json, which a preparatory run may not carry into the store. unmeasured: something a session looked for and could not establish, or that was never seen -- bit depth when no frame saturated, a reply code that never came. It is a finding because it tells the next session not to look for it as though it were known, and the store may hold it as a named gap. Its source is where the absence was established: the run event, the document, or the record searched. Added 2026-09-24, after microscope-20260924-4 found the cards asked for unmeasured items and this shape gave them no kind"
+        },
+        "how": { "type": "string", "minLength": 10, "description": "how it was established, in words" },
+        "source": { "$ref": "#/$defs/source" },
+        "for_store": { "type": "boolean", "description": "whether the seat proposes it for entry. Always false for an observable_value" },
+        "note": { "type": "string" }
+      },
+      "required": ["id", "fact", "kind", "how", "source", "for_store"],
+      "additionalProperties": false,
+      "allOf": [
+        { "if": { "properties": { "kind": { "const": "observable_value" } } },
+          "then": { "properties": { "for_store": { "const": false } } } },
+        { "if": { "properties": { "kind": { "const": "self_report" } } },
+          "then": { "properties": { "source": { "properties": { "type": { "const": "run_event" } }, "required": ["type", "run_id", "event_index"] } } } },
+        { "if": { "properties": { "kind": { "const": "person_statement" } } },
+          "then": { "properties": { "source": { "properties": { "type": { "const": "person" } }, "required": ["type", "recorded_at"] } } } },
+        { "if": { "properties": { "kind": { "const": "document_fact" } } },
+          "then": { "properties": { "source": { "properties": { "type": { "const": "document" } }, "required": ["type", "path"] } } } },
+        { "if": { "properties": { "kind": { "const": "prior_project_ruling" } } },
+          "then": { "properties": { "source": { "properties": { "type": { "const": "prior_project" } }, "required": ["type", "path", "ruling"] } } } }
+      ]
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "type": { "enum": ["run_event", "document", "person", "prior_project"] },
+        "run_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "event_index": { "type": "integer", "minimum": 0, "description": "the index of the event in the run log's events[] that carries the reading" },
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "recorded_at": { "type": "string", "minLength": 3, "description": "where the person's statement is recorded: a commit, a file and field, or a run log event. A statement recorded nowhere is not a finding" },
+        "ruling": { "enum": ["transfer", "downgrade", "discard"] }
+      },
+      "required": ["type"],
+      "additionalProperties": false
+    }
+  }
+}

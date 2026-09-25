@@ -1,0 +1,24 @@
+{
+  "entry_id": "single_cam_red_config_can_switch_confocal_lines",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The configuration single_cam_red_noDMD_nocom10.cfg declares the confocal combiner's blanking lines as the Micro-Manager device LUNF-Blanking and defines a LaserLine group whose presets 405, 488, 561 and 640 each set one blanking line to 1 -- line2, line4, line6 and line8 respectively -- and whose AllOff preset sets all four to 0. So a session that loads it can switch a confocal laser line with an ordinary Micro-Manager group call.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "line_select"
+    },
+    {
+      "kind": "device",
+      "id": "laser_combiner"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0/config/micromanager/single_cam_red_noDMD_nocom10.cfg",
+  "grade": "E3",
+  "source_ref": "src_prior_mm_single_cam_red_nodmd_nocom10_cfg",
+  "validity_conditions": "A fact about one file: agentic-microscope at fbedef0, config/micromanager/single_cam_red_noDMD_nocom10.cfg, sha256 8184073e31e1a7a63731932a20a622131d4dba04cf839bc9e651bf9abcd53120, lines 90, 103-105, 124 and 218-238, read by this seat. That hash is the one run-20260924-002 recorded for the configuration it loaded (event 8), and that run lists LUNF-Blanking among the loaded devices. E3: a configuration written in another project. The group's line map agrees with lunf_line_map_and_blanking_polarity (405 on line2, 488 on line4, 561 on line6, 640 on line8, 1 opens), which makes two prior records agreeing and still nothing confirmed on this bench. Slot: O1 preflight -- a loaded configuration offers this route before any wrapper written here is involved; whether the microscope's code refuses the group is code state and is not in this entry. Found while checking microscope-20260924-1's findings (bf8f91f); not an item of that file.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

@@ -69,6 +69,214 @@ WRAPPED = ("widefield_source_a", "camera_red", "stand_ti2e")
 _LOCK = threading.Lock()
 _ABORTED = False
 
+#: A STRONG reference to the loaded core, held for the life of the process.
+#: pymmcore-plus's CMMCorePlus.instance() keeps its singleton only WEAKLY: the
+#: first real run (run-20260924-001) loaded all 20 devices inside
+#: load_configuration, the function returned, its local `core` was the last
+#: strong reference, and destroying a core unloads every device. Every later
+#: call got a fresh empty core -- "No device with label" -- before any light or
+#: frame. Nothing here may depend on someone else holding the core alive.
+_CORE = None
+
+# --------------------------------------------------------------------------- #
+# what software may command (card 033 section 1)
+# --------------------------------------------------------------------------- #
+#
+# AN ALLOW-LIST, NOT A DENY-LIST. The request that produced card 033 named ten
+# devices to keep software away from; the configuration loaded on this
+# instrument declares more motorised or light-emitting hardware than that --
+# the spinning-disk unit's wheels, dichroic, port and shutter, a SECOND light
+# engine labelled `Aura`, the DMD, the dia lamp, the Lapp branch, both turret
+# shutters and the Ti2 hub itself. A deny-list written from the request would
+# have passed every one of them. A device nobody thought about is refused,
+# not permitted (2.1 rule 2).
+#
+# Keys are Micro-Manager labels, because that is the vocabulary a call into
+# MMCore uses. `None` means every property of that device; a set names the
+# only properties allowed. `Core` is here for the three role properties only:
+# AutoShutter, which must be set to 0 after loading (see load_configuration),
+# and the Camera / Shutter roles if they have to be named at all.
+#
+# This is the ONE copy. The orchestrator loads this file by path and asks
+# `refusal()` before any command of a plan goes out, whatever the backend --
+# so a plan fails whole on mock exactly as it would here -- and GuardedCore
+# asks the same function at every call, as the backstop for a path that does
+# not go through a plan. Two enforcement points, one list.
+#
+# Lifting it is a card's decision and not an edit made in passing: the
+# retract and clearance interlocks block the first software-driven motion,
+# and this list is what keeps today's session from being that motion.
+SOFTWARE_MAY_COMMAND: dict[str, frozenset[str] | None] = {
+    # The Aura III is today's excitation, by the person's word (card 033 at
+    # 18e5456). LightEngine, the Spectra III, is now the second engine and is
+    # refused by name below. The Core Shutter role stays pinned at its loaded
+    # value, LightEngine: with AutoShutter 0 nothing opens it, and repointing
+    # it at the Aura would be a write that buys nothing.
+    "Aura": None,
+    "Kinetix_red": None,
+    "Core": frozenset({"AutoShutter", "Camera", "Shutter"}),
+}
+
+#: The Core role properties are allowed ONLY at these values. A property on
+#: the list is not enough: `AutoShutter` back at 1 makes every snap switch the
+#: shutter device on by itself, and `Shutter` pointed at `Aura` would make that
+#: shutter the second light engine -- light on the sample from a device that is
+#: refused by name everywhere else.
+CORE_VALUES = {"AutoShutter": frozenset({"0"}), "Camera": frozenset({"Kinetix_red"}),
+               "Shutter": frozenset({"LightEngine"})}
+
+#: Calls refused on EVERY device, allowed or not. Each of them moves something
+#: or can: a group preset (`setConfig`) can set any property of any device,
+#: and the focus calls drive Z on a stand that runs no escape for software.
+REFUSED_CALLS = frozenset({
+    "setPosition", "setRelativePosition", "setXYPosition", "setRelativeXYPosition",
+    "setOriginXY", "setOriginX", "setOriginY", "setOrigin", "setAdapterOrigin",
+    "setAdapterOriginXY", "home",
+    "setState", "setStateLabel", "setConfig", "setSystemState", "setPixelSizeConfig",
+    "fullFocus", "incrementalFocus", "enableContinuousFocus", "setAutoFocusOffset",
+    "setFocusDevice", "setXYStageDevice", "setAutoFocusDevice",
+    "setShutterOpen", "setGalvoPosition", "setSLMImage", "setSLMPixelsTo",
+    "displaySLMImage", "loadGalvoPolygons", "runGalvoPolygons", "runGalvoSequence",
+    "startStageSequence", "startXYStageSequence", "startPropertySequence",
+    "loadStageSequence", "loadXYStageSequence", "loadPropertySequence",
+    "mda", "run_mda", "snap", "setChannelGroup", "definePixelSizeConfig",
+    "defineConfig", "defineConfigGroup", "loadDevice", "unloadDevice",
+    "unloadAllDevices", "initializeDevice", "initializeAllDevices",
+    "setParentLabel", "setSerialPortCommand", "writeToSerialPort",
+    "setShutterDevice", "setCameraDevice",
+})
+
+#: The camera calls that write. Each is checked against the camera it would
+#: act on -- the current Core camera when the call does not name one.
+_CAMERA_CALLS = frozenset({
+    "setExposure", "snapImage", "startSequenceAcquisition", "stopSequenceAcquisition",
+    "startContinuousSequenceAcquisition", "prepareSequenceAcquisition",
+    "clearCircularBuffer", "initializeCircularBuffer", "setCircularBufferMemoryFootprint",
+    "setROI", "clearROI",
+})
+
+#: The camera calls that take a frame, and so would open the shutter device
+#: by themselves if AutoShutter were on.
+_EXPOSES = frozenset({"snapImage", "startSequenceAcquisition",
+                      "startContinuousSequenceAcquisition"})
+
+#: Anything else that does not write. Reading is not motion (card 033 section 1):
+#: getProperty / getState / getStateLabel / getPosition on the stand are how a
+#: session records what the person set by hand.
+_READ_PREFIXES = ("get", "is", "has", "wait", "device", "supports", "pop")
+
+
+#: Devices card 033 names as refused. They are refused already, because they
+#: are not in SOFTWARE_MAY_COMMAND -- this tuple adds no permission and no
+#: refusal. It exists so the names a person was told about can be checked
+#: against the list mechanically (`named_refusals_hold()`), instead of trusting
+#: that an allow-list covers them.
+NAMED_REFUSALS = (
+    "ZDrive", "Nosepiece", "XYStage", "PFS", "PFSOffset", "IntermediateMagnification",
+    "FilterTurret1", "FilterTurret2", "LightPath", "CondenserTurret",
+    "CSUW1-Filter_Red", "CSUW1-Filter_Blue", "CSUW1-Dichroic", "CSUW1-Port",
+    "CSUW1-Bright", "CSUW1-Shutter", "LightEngine", "MightexPolygon1000", "DiaLamp",
+    "LappMainBranch1", "Turret1Shutter", "Turret2Shutter", "Ti2-E__0",
+    "NIDAQHub", "LUNF-Blanking",
+)
+
+
+def named_refusals_hold() -> list[str]:
+    """Every name in NAMED_REFUSALS that the allow-list would NOT refuse. Empty is correct."""
+    return [d for d in NAMED_REFUSALS if refusal(d, "State", "setProperty") is None]
+
+
+class SoftwareMotionRefused(RuntimeError):
+    """A call outside what software may command today, refused before it is sent."""
+
+
+def refusal(device: str | None, prop: str | None = None,
+            call: str = "setProperty", value: object = None) -> str | None:
+    """Why this write is refused, or None if software may make it.
+
+    Pure: it imports no driver, so the orchestrator can ask it on mock and on
+    a machine without Micro-Manager. The reason is returned rather than raised
+    so a plan check can collect every refusal in a plan and report them all.
+    """
+    if call in REFUSED_CALLS:
+        return (f"{call}({device!r}) is refused on every device: it moves something or can. "
+                "Software moves nothing today; the person moves the microscope by hand")
+    if device is None:
+        return None
+    if device not in SOFTWARE_MAY_COMMAND:
+        return (f"{device!r} is not a device software may command today. Allowed: "
+                f"{sorted(SOFTWARE_MAY_COMMAND)}. Every other device is refused by name, "
+                "including ones nobody listed -- a device nobody thought about is refused, "
+                "not permitted")
+    props = SOFTWARE_MAY_COMMAND[device]
+    if props is not None and prop is not None and prop not in props:
+        return (f"{device}.{prop} is refused: on {device} software may set only "
+                f"{sorted(props)}")
+    if device == "Core" and prop in CORE_VALUES and value is not None             and str(int(value) if isinstance(value, bool) else value) not in CORE_VALUES[prop]:
+        return (f"Core.{prop} = {value!r} is refused: it may be set only to "
+                f"{sorted(CORE_VALUES[prop])}")
+    return None
+
+
+class GuardedCore:
+    """The MMCore handle with every write checked against the allow-list.
+
+    AN ALLOW-LIST AT THE CALL LEVEL TOO. Reads pass through; `setProperty`,
+    the camera calls and `setAutoShutter` are checked; every other method is
+    refused because nobody listed it. pymmcore-plus adds convenience writes
+    on top of MMCore -- `snap()`, `mda`, `setPosition` overloads -- and a
+    wrapper that forwarded unknown names would forward those.
+    """
+
+    def __init__(self, core) -> None:
+        object.__setattr__(self, "_core", core)
+
+    def _check(self, device, prop=None, call="setProperty", value=None) -> None:
+        why = refusal(device, prop, call, value)
+        if why is not None:
+            raise SoftwareMotionRefused(why)
+
+    def setProperty(self, device, prop, value):
+        self._check(str(device), str(prop), value=value)
+        return self._core.setProperty(device, prop, value)
+
+    def setAutoShutter(self, state):
+        self._check("Core", "AutoShutter", value=int(bool(state)))
+        return self._core.setAutoShutter(state)
+
+    def __getattr__(self, name):
+        attr = getattr(self._core, name)
+        if name in REFUSED_CALLS:
+            def refused(*args, **_kw):
+                self._check(str(args[0]) if args else None, None, name)
+            return refused
+        if name in _CAMERA_CALLS:
+            def camera_call(*args, **kw):
+                # The overloads that name a camera take it first as a string;
+                # the rest act on the Core camera, which is checked instead.
+                named = args[0] if args and isinstance(args[0], str) else None
+                self._check(named or self._core.getCameraDevice(), None, name)
+                # And no exposure while AutoShutter is on: with it on, the
+                # shutter device opens for the frame by itself, which is light
+                # on the sample that no logged command put there.
+                if name in _EXPOSES and self._core.getAutoShutter():
+                    raise SoftwareMotionRefused(
+                        f"{name} refused: Core AutoShutter is on, so this frame would switch "
+                        "the light engine on by itself. Set it to 0 and read it back first")
+                return attr(*args, **kw)
+            return camera_call
+        if name.startswith(_READ_PREFIXES) or not callable(attr):
+            return attr
+        def unlisted(*_args, **_kw):
+            raise SoftwareMotionRefused(
+                f"{name} is not on the list of calls software may make today, so it is refused "
+                "rather than forwarded. Reads, setProperty on an allowed device, the camera "
+                "calls and setAutoShutter are the whole of what passes")
+        return unlisted
+
+    def __setattr__(self, name, value):
+        raise SoftwareMotionRefused(f"setting {name!r} on the core is not a listed call")
+
 
 class MicroManagerUnavailable(RuntimeError):
     """The driver is not installed or no configuration is loaded.
@@ -95,13 +303,19 @@ def _core():
             "pymmcore-plus is not installed, so this control path does not exist on "
             "this machine. mock.py is a first-class backend and is what runs here (4.6.5)"
         ) from exc
-    core = CMMCorePlus.instance()
-    if not core.getLoadedDevices():                             # pragma: no cover
+    core = _CORE if _CORE is not None else CMMCorePlus.instance()
+    # `Core` is always listed, so an empty core returns ('Core',) and passed a
+    # bare truth test -- which is how run-20260924-001's calls reached a fresh
+    # core and failed as missing devices instead of as no configuration.
+    if not [d for d in core.getLoadedDevices() if d != "Core"]:  # pragma: no cover
         raise MicroManagerUnavailable(
             "no Micro-Manager configuration is loaded; a person loads one, and until then "
             "there is nothing to preflight against"
         )
-    return core
+    # Guarded, always: nothing in this file reaches the unguarded handle
+    # except load_configuration, which has to set AutoShutter before any
+    # other call can be made.
+    return GuardedCore(core)
 
 
 def _settings(params: dict) -> tuple[tuple[str, str, object], ...]:
@@ -234,3 +448,170 @@ def reset() -> None:
     """Not part of the interface. Scaffolding, and only that."""
     global _ABORTED
     _ABORTED = False
+
+
+# --------------------------------------------------------------------------- #
+# loading, and acquisition (card 033 sections 2 and 3)
+# --------------------------------------------------------------------------- #
+#
+# NO BACKEND ACQUIRED ANYTHING until these were written: no snapImage, no
+# sequence, no setExposure anywhere in src/. They are primitives -- set, read
+# back, report -- and hold no policy. Which order the light goes off in, and
+# what counts as dark, is the session's and is written there.
+
+
+def load_configuration(path: str, mm_dir: str | None = None) -> dict:
+    """Load a configuration file IN PLACE, and set AutoShutter to 0 before anything else.
+
+    THE AUTOSHUTTER LINE IS THE REASON THIS FUNCTION EXISTS. The file card
+    033 names ends `Property,Core,Shutter,LightEngine` and
+    `Property,Core,AutoShutter,1`, so as loaded every snap switches the light
+    engine on by itself -- light on the sample that no logged command put
+    there, and a dark frame that is lit by the very act of taking it. This is
+    the one place that touches the unguarded handle, because it runs before
+    the guard's own AutoShutter check could pass.
+
+    Returns the sha256 of the bytes loaded, so the run log can name the exact
+    file. A hash is taken before and after loading; a file that changed under
+    the load is reported, not reconciled.
+
+    `loadSystemConfiguration` is the ONE call made on the unguarded handle --
+    the guard does not list it and is right to refuse it (card 033 3b
+    condition 2). Everything after it, AutoShutter first, goes through
+    GuardedCore. The load also applies the file's System/Startup preset, which
+    is a command the file issues and not this function; the caller logs it.
+    """
+    import hashlib
+    from pathlib import Path as _Path
+    try:
+        from pymmcore_plus import CMMCorePlus, find_micromanager
+    except ImportError as exc:                                  # pragma: no cover
+        raise MicroManagerUnavailable("pymmcore-plus is not installed") from exc
+
+    def digest() -> str:
+        return hashlib.sha256(_Path(path).read_bytes()).hexdigest()
+
+    global _CORE
+    before = digest()
+    core = CMMCorePlus.instance()
+    _CORE = core                                                # held; see _CORE
+    mm_dir = mm_dir or find_micromanager()
+    if not mm_dir:
+        raise MicroManagerUnavailable("no Micro-Manager installation found for the adapters")
+    core.setDeviceAdapterSearchPaths([str(mm_dir)])
+    core.loadSystemConfiguration(str(path))                     # the one unguarded call
+    guarded = GuardedCore(core)
+    guarded.setAutoShutter(False)                               # first call after the load
+    guarded.waitForSystem()
+    auto_core = guarded.getAutoShutter()
+    auto_prop = guarded.getProperty("Core", "AutoShutter")
+    after = digest()
+    return {
+        "path": str(path), "sha256": before, "sha256_after_load": after,
+        "changed_during_load": before != after, "mm_dir": str(mm_dir),
+        "api": guarded.getAPIVersionInfo(), "mmcore": guarded.getVersionInfo(),
+        "loaded_devices": list(guarded.getLoadedDevices()),
+        "autoshutter": {"wanted": "0", "read_getAutoShutter": bool(auto_core),
+                        "read_property": auto_prop,
+                        "verified": (not auto_core) and str(auto_prop) == "0"},
+        "core_shutter": guarded.getShutterDevice(), "core_camera": guarded.getCameraDevice(),
+    }
+
+
+def set_and_read(device: str, prop: str, value) -> dict:
+    """One guarded write, waited for, read back. The read is the return value."""
+    core = _core()
+    core.setProperty(device, prop, value)
+    core.waitForDevice(device)
+    got = core.getProperty(device, prop)
+    return {"device": device, "property": prop, "wanted": str(value), "read": got,
+            "verified": str(got) == str(value)}
+
+
+def set_exposure(ms: float) -> dict:
+    """Exposure through the core call, read back with getExposure.
+
+    It is a core call and not a property, so it publishes no allowed values
+    (card 018 4e): the read-back is the only check that the camera took it.
+    Compared as floats because MMCore returns a double; the camera may round
+    to its own clock, and that difference is reported, not hidden.
+    """
+    core = _core()
+    core.setExposure(float(ms))
+    core.waitForDevice(core.getCameraDevice())
+    got = core.getExposure()
+    return {"wanted_ms": float(ms), "read_ms": got, "verified": abs(got - float(ms)) < 1e-6}
+
+
+def _metadata(md) -> dict:
+    """pymmcore-plus's Metadata as a plain dict, whatever shape this version returns."""
+    if md is None:
+        return {}
+    try:
+        return {str(k): str(v) for k, v in dict(md).items()}
+    except Exception:                                           # pragma: no cover
+        try:
+            return {k: str(md.GetSingleTag(k).GetValue()) for k in md.GetKeys()}
+        except Exception:
+            return {"unreadable": repr(md)}
+
+
+def snap():
+    """One frame. Refused by the guard if AutoShutter is on."""
+    core = _core()
+    core.snapImage()
+    image = core.getImage()
+    return image, {"camera": core.getCameraDevice(), "exposure_ms": core.getExposure()}
+
+
+def sequence(n: int, sink, timeout_s: float | None = None) -> dict:
+    """`n` frames through the sequence calls, each handed to `sink(i, image, metadata)`.
+
+    `n` is an integer and the loop counts popped frames against it -- never an
+    accumulated time (card 018 4c): a boundary comparison is a decision, and a
+    running sum lands a hair either side of it depending on the step.
+
+    Frames go to the sink as they arrive rather than into a list: a full
+    sensor frame is tens of MB and a series of hundreds would not fit. Each
+    frame's metadata is kept because ImageNumber is the only evidence of a
+    dropped frame (card 018 4b).
+    """
+    import time as _time
+    n = int(n)
+    core = _core()
+    exposure_s = core.getExposure() / 1000.0
+    timeout_s = timeout_s if timeout_s is not None else 30.0 + 3.0 * n * exposure_s
+    numbers = []
+    core.startSequenceAcquisition(n, 0.0, True)
+    started = _time.monotonic()
+    got = 0
+    try:
+        while got < n:
+            if core.getRemainingImageCount() > 0:
+                image, md = core.popNextImageAndMD()
+                meta = _metadata(md)
+                numbers.append(meta.get("ImageNumber"))
+                sink(got, image, meta)
+                got += 1
+                continue
+            if not core.isSequenceRunning() and core.getRemainingImageCount() == 0:
+                break
+            if _time.monotonic() - started > timeout_s:
+                break
+            _time.sleep(0.001)
+    finally:
+        if core.isSequenceRunning():
+            core.stopSequenceAcquisition()
+    return {"wanted": n, "received": got, "image_numbers": numbers,
+            "gaps": image_number_gaps(numbers), "overflowed": bool(core.isBufferOverflowed())}
+
+
+def image_number_gaps(numbers: list) -> list:
+    """Every missing ImageNumber between consecutive frames, or a note that none could be read."""
+    ints = []
+    for value in numbers:
+        try:
+            ints.append(int(value))
+        except (TypeError, ValueError):
+            return [{"unreadable": value}]
+    return [{"after": a, "before": b} for a, b in zip(ints, ints[1:]) if b != a + 1]

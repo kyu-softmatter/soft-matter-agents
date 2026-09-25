@@ -1,0 +1,10 @@
+{
+  "source_id": "src_prior_tweezers_driver_20260827",
+  "kind": "prior_run",
+  "identifier": "agentic-microscope hardware/optical_tweezers.py at fbedef0: the comments recording what was measured against Tweez300GUI on the microscope PC on 2026-08-27.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, prior_run -- a measurement taken in another project is not one taken here.",
+  "license_note": "Identifier only.",
+  "ruling": "Transfer the two measurements; discard the constants. MIN_COMMAND_GAP_S 0.010, BUSY_RETRIES 6, BUSY_BACKOFF_S 0.05 and reply_timeout 2.0 are design choices -- the file itself calls 10 ms 'that floor with margin', and gives the retry count, backoff and timeout no measurement at all -- so they are engineering decisions for the seat that writes the driver, not knowledge. What was measured is entered.",
+  "slot": "The device interface's command path (hardware control path, open under 10.2)."
+}

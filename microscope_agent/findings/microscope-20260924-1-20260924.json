@@ -1,0 +1,223 @@
+{
+  "artifact": "findings",
+  "schema_version": "0.1",
+  "seat": "microscope-20260924-1",
+  "on": "2026-09-24",
+  "delivered_to": "librarian_agent",
+  "items": [
+    {
+      "id": "kinetix_red_serial_a24m723015",
+      "fact": "The camera opened as Micro-Manager label Kinetix_red (PVCAM Camera-2 in the configuration single_cam_red_noDMD_nocom10.cfg) reports SerialNumber A24M723015 and ChipName TMP-Kinetix. Which body that is (red or blue) is for comparison with camera_bodies_are_told_apart_by_serial; this seat did not make that comparison.",
+      "kind": "self_report",
+      "how": "Read with getProperty on the loaded camera in run-20260924-002, step 4.6, after a frame showed the image change when the Aura went on.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 40},
+      "for_store": true
+    },
+    {
+      "id": "kinetix_red_reported_properties",
+      "fact": "Kinetix_red reports BitDepth '16', PixelType '16bit', ReadoutRate '100MHz 16bit' and Binning '1x1' among its properties at load. These are the adapter's self-descriptions; BitDepth and PixelType are not a measurement of bit depth (see kinetix_red_bit_depth_unmeasured).",
+      "kind": "self_report",
+      "how": "Every property of the camera read with getProperty in run-20260924-002 and logged as camera_properties.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 18},
+      "for_store": true
+    },
+    {
+      "id": "aura_line_names",
+      "fact": "The Aura III light engine (Micro-Manager label Aura, Lumencor adapter, COM7) reports lines UV, CYAN, GREEN, RED and NIR, each as NAME (on/off) plus NAME_Intensity, and a master State property; also Connection, Description, FirmwareVersion, LEModel, Model, Name and SerialNumber.",
+      "kind": "self_report",
+      "how": "getDevicePropertyNames('Aura') in run-20260924-002.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 16},
+      "for_store": true
+    },
+    {
+      "id": "aura_green_intensity_is_per_mille",
+      "fact": "Aura GREEN_Intensity has property limits with upper limit 1000, and the value 100 written reads back as '100', so the scale is per-mille (100 = 10%).",
+      "kind": "self_report",
+      "how": "getPropertyUpperLimit in step 4.4 of run-20260924-002; the write and read-back of 100 is event 29 of the same run.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 17},
+      "for_store": true
+    },
+    {
+      "id": "aura_master_off_keeps_green_dark",
+      "fact": "With the Aura master State=0, setting GREEN=1 at GREEN_Intensity 1000 leaves the Kinetix_red frame dark: its mean differs from the line-off dark frame by 0.13 ADU and its 99.9th percentile by 0 ADU, against a 14.1 ADU frame-difference noise. Lapp mirror at State 1 (mirror_in), 20x objective, 100 ms exposure.",
+      "kind": "self_report",
+      "how": "Two dark frames with the line off at intensity 0, then one with GREEN=1 at 1000 and State=0, all at 100 ms, compared in step 4.3 of run-20260924-002.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 30},
+      "for_store": true,
+      "note": "A measured gating check in a preparatory run rather than a device's statement about itself; self_report is the nearest kind, cited to its run event."
+    },
+    {
+      "id": "kinetix_red_frame_difference_noise_14adu",
+      "fact": "Two consecutive dark frames on Kinetix_red at 100 ms, 1x1 binning, give a per-pixel frame-difference noise of 14.1 ADU (standard deviation of the difference divided by the square root of 2).",
+      "kind": "self_report",
+      "how": "Computed in step 4.3 of run-20260924-002 from the frames dark_a1 and dark_a2.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 30},
+      "for_store": false,
+      "note": "A suspicion, not proposed for the store: 14 ADU is high for a Kinetix and may reflect the readout mode or fixed pattern rather than read noise. Needs a proper read-noise measurement."
+    },
+    {
+      "id": "kinetix_red_bit_depth_unmeasured",
+      "fact": "The bit depth of Kinetix_red was not measured. The dia-lamp frame at 500 ms reached a maximum of 861 ADU on one pixel (saturated fraction 3.5e-7) and did not saturate. The run log's 'bits: 10' at this event is a flaw in the script, which did not test for saturation; it is not a bit depth. The brightest pixel seen today was about 13,990 ADU, in the particle series, so full scale is above that.",
+      "kind": "unmeasured",
+      "how": "Step 4.7 of run-20260924-002: dia lamp raised by hand by the person, Aura off, 500 ms exposure, one frame.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 45},
+      "for_store": true
+    },
+    {
+      "id": "kinetix_red_frame_period_equals_exposure_100ms",
+      "fact": "In a 600-frame sequence acquisition at 100 ms exposure the frame period was 100 ms: consecutive ElapsedTime-ms differences have median 100.0 ms (range 99 to 101), and PVCAM-TimeStampBOF steps 1000 ticks per frame.",
+      "kind": "document_fact",
+      "how": "Differences of consecutive frames' ElapsedTime-ms and PVCAM-TimeStampBOF in the series' per-frame metadata, computed after run-20260924-002. The file is outside the repository; its sha256 is also recorded in event 53 of that run.",
+      "source": {"type": "document", "path": "D:\\soft-matter-agents-frames\\run-20260924-002\\particles_series_metadata.json", "sha256": "634cca21caef484c6380b4cbc1884da00e5a01a4c66958484c4deb623c62851c"},
+      "for_store": true
+    },
+    {
+      "id": "kinetix_red_sequence_no_dropped_frames",
+      "fact": "Sequence acquisitions on Kinetix_red of 20 dark frames and of 600 particle frames (100 ms, 2400 x 2400 uint16, streamed to an HDD) delivered every frame with contiguous ImageNumber and no circular-buffer overflow, with the buffer footprint set to about twice the series size.",
+      "kind": "self_report",
+      "how": "ImageNumber of every frame checked for gaps in run-20260924-002; the 20-frame dark sequence is event 32 of the same run.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 53},
+      "for_store": true
+    },
+    {
+      "id": "stand_read_with_20x_in_place",
+      "fact": "With the 20x objective placed by hand, the Nosepiece reads state 2, label '3-Plan Apo LmbdD0.8 20x'. In the same read LightPath is state 3 '4-L100', FilterTurret1 state 0 '1-MXR00724 -Empty', FilterTurret2 state 0 '1-Empty', and LappMainBranch1 state 1 'mirror_in'.",
+      "kind": "self_report",
+      "how": "getState and getStateLabel (reads only) on the stand after load in run-20260924-002.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 15},
+      "for_store": true
+    },
+    {
+      "id": "intermediate_magnification_not_a_state_device",
+      "fact": "IntermediateMagnification in the NikonTi2 adapter is not a state device: getState raises 'is of the wrong type for the requested operation'. Its value has to be read as a property.",
+      "kind": "self_report",
+      "how": "getState attempted in the stand read of run-20260924-002.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 15},
+      "for_store": true
+    },
+    {
+      "id": "lapp_mirror_state_1_after_startup_preset",
+      "fact": "After loading single_cam_red_noDMD_nocom10.cfg, whose System/Startup preset sets LappMainBranch1 State=1, LappMainBranch1 reads State 1.",
+      "kind": "self_report",
+      "how": "getProperty on LappMainBranch1 State directly after the load in run-20260924-002.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 12},
+      "for_store": true
+    },
+    {
+      "id": "autoshutter_zero_read_back_after_load",
+      "fact": "The configuration sets Core AutoShutter=1 and Core Shutter=LightEngine. After setting AutoShutter to 0 as the first call after the load, getAutoShutter returns False and the Core AutoShutter property reads '0'.",
+      "kind": "self_report",
+      "how": "Read back two ways after the load in run-20260924-002.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 8},
+      "for_store": true
+    },
+    {
+      "id": "kinetix_red_exposure_and_binning_readback",
+      "fact": "setExposure on Kinetix_red reads back exactly: 100 ms reads 100.0 and 500 ms reads 500.0. Binning '1x1' written reads '1x1'.",
+      "kind": "self_report",
+      "how": "setExposure then getExposure, and setProperty then getProperty for Binning, in run-20260924-002; 500 ms is event 43 and binning event 19.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 20},
+      "for_store": true
+    },
+    {
+      "id": "pixel_size_um_reports_config_figure_at_load",
+      "fact": "Directly after loading single_cam_red_noDMD_nocom10.cfg with the 20x in place, getPixelSizeUm() returned 0.32373, which is the figure in the file's own PixelSize block, so frames carry it in their metadata. It is the configuration echoing itself, not a measurement, and is not a source for pixel size.",
+      "kind": "self_report",
+      "how": "getPixelSizeUm read after the load in run-20260924-002, logged as pixel_size_um_reported in the note at this event.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 9},
+      "for_store": false,
+      "note": "Corrected 2026-09-24 on librarian-20260924-2's reading. The first version of this item said getPixelSizeUm() returned 0.0 and cited run-20260924-002; the 0.0 is in run-20260924-001's event 9, read after that run's core had already been freed, so it came from an empty core and says nothing about the configuration."
+    },
+    {
+      "id": "lit_frame_response_green_10pct",
+      "fact": "With Aura GREEN at 100 per-mille, 100 ms, 20x, the frame mean rose 181 ADU over dark; the brightest particle pixel was about 13,800 ADU, and particle pixels averaged about 5,270 ADU above dark in the first series frame. Counts, not a photon rate.",
+      "kind": "observable_value",
+      "how": "Step 4.6 of run-20260924-002, and the first frame of that run's series.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 40},
+      "for_store": false,
+      "note": "Bears on tracer_brightness (Hz), which needs a conversion to photons this seat did not make. Waits for the plan that cites this run."
+    },
+    {
+      "id": "photostability_curve_run_002",
+      "fact": "Under continuous Aura GREEN at 100 per-mille (20x, 100 ms frames), particle brightness (mean over 21,766 particle pixels, dark and local background subtracted) fell to 80.7% of the first frame after 60 s. A straight-line fit to its logarithm gives 0.0036 per second (1/e about 280 s); 60 s cannot tell one exponential from a multi-rate decay. A 1.5-point bump near 51 s is unexplained. Local background rose from 64 to 82 ADU over the minute.",
+      "kind": "observable_value",
+      "how": "Computed by this seat after the run from the saved series frames; not in the run log.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 53},
+      "for_store": false,
+      "note": "bleaching_rate, per second at this per-mille setting and not per dose: no power meter reading exists for the Aura at the sample. Card 038's five-minute run has not happened; run-20260924-003 stopped at preload because the tweezers program was running."
+    },
+    {
+      "id": "lab_mm_install_is_device_api_71",
+      "fact": "The Micro-Manager in C:\\Program Files\\Micro-Manager-2.0 is MMCore 11.1.1, device API 71. pymmcore 12.5.0.75 with pymmcore-plus 0.18.1 needs device API 75, and every adapter this configuration needs (Lumencor, PVCAM, NikonTi2, CSUW1, MightexPolygon1000, SerialManager) fails to load from that directory under it.",
+      "kind": "document_fact",
+      "how": "The install's own CoreLog header gives the version; getAvailableDevices per adapter from a pymmcore-plus core pointed at that directory gave the failures, 2026-09-24, recorded in commit 9db8abf.",
+      "source": {"type": "document", "path": "C:\\Program Files\\Micro-Manager-2.0\\CoreLogs\\CoreLog20260924T111255_pid18744.txt"},
+      "for_store": true
+    },
+    {
+      "id": "pymmcore_plus_copy_loads_this_config",
+      "fact": "pymmcore-plus's own Micro-Manager_2.0.3_20260806 (MMCore 12.5.0, device API 75) loads single_cam_red_noDMD_nocom10.cfg with all 21 devices, including Aura, LightEngine, Kinetix_red, NIDAQHub and LUNF-Blanking. That copy has no MightexPolygon1000 adapter.",
+      "kind": "self_report",
+      "how": "configuration_loaded in run-20260924-002 names the install, the API and the device list; the missing Mightex adapter was found by getAvailableDevices the same morning (commit 9db8abf).",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 8},
+      "for_store": true
+    },
+    {
+      "id": "pymmcore_plus_singleton_is_weak",
+      "fact": "pymmcore-plus 0.18.1's CMMCorePlus.instance() holds its singleton weakly: when the last strong reference is dropped the core is destroyed, and destroying a core unloads every device. A later instance() returns a new empty core, whose getLoadedDevices() still lists 'Core'. Code must keep its own strong reference to a loaded core.",
+      "kind": "document_fact",
+      "how": "run-20260924-001 loaded all devices and failed 16 ms later with 'No device with label' (its event 12); the core log showed 'Did unload all devices ... Core session ended' right after the load; reproduced without hardware by dropping the reference and collecting. The fix and its account are commit 0d94690, and the file below carries the reason.",
+      "source": {"type": "document", "path": "microscope_agent/src/devices/micromanager.py"},
+      "for_store": true
+    },
+    {
+      "id": "no_nidaq_analogue_output_loaded",
+      "fact": "single_cam_red_noDMD_nocom10.cfg loads no NIDAQ analogue-output device, so nothing in it addresses Dev1/ao2.",
+      "kind": "self_report",
+      "how": "Loaded devices' library and adapter names checked after the load in run-20260924-002.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 11},
+      "for_store": true
+    },
+    {
+      "id": "nidaq_hub_init_analogue_write_unmeasured",
+      "fact": "Whether NIDAQHub's own initialisation writes any analogue line, and so could move a piezo that follows Dev1/ao2, was not established: it happens inside the adapter and is not observable from Micro-Manager.",
+      "kind": "unmeasured",
+      "how": "Recorded as not confirmable in the analogue-output check of run-20260924-002.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 11},
+      "for_store": true
+    },
+    {
+      "id": "piezo_controller_state_unconfirmed_run_002",
+      "fact": "Whether the piezo controller was switched off during run-20260924-002 is not known: the person's answer to that question was 'every things are good now', which does not say.",
+      "kind": "unmeasured",
+      "how": "Recorded in run-20260924-002's preload gate answer.",
+      "source": {"type": "run_event", "run_id": "run-20260924-002", "event_index": 5},
+      "for_store": false
+    },
+    {
+      "id": "excitation_choice_aura",
+      "fact": "The person chose the Aura III instead of the Spectra III as the excitation for today's runs ('today you can use Aura3', then 'Yes, switch to the Aura').",
+      "kind": "person_statement",
+      "how": "Said to this seat in chat, and written into card 033 by the manager.",
+      "source": {"type": "person", "recorded_at": "microscope_agent/tasks/033-one-real-acquisition-today-by-hand.md at 18e5456"},
+      "for_store": false,
+      "note": "A session decision, not knowledge about the instrument; listed so the runs can be read."
+    },
+    {
+      "id": "objective_declared_20x_by_hand",
+      "fact": "The person declared the 20x dry objective and moved the microscope by hand for today's runs; software moved nothing.",
+      "kind": "person_statement",
+      "how": "Card 033's section on what the person decided today, read back by the nosepiece (see stand_read_with_20x_in_place).",
+      "source": {"type": "person", "recorded_at": "microscope_agent/tasks/033-one-real-acquisition-today-by-hand.md at 6dbea44"},
+      "for_store": false
+    },
+    {
+      "id": "config_single_cam_red_nodmd_nocom10",
+      "fact": "The configuration file single_cam_red_noDMD_nocom10.cfg (sha256 8184073e31e1a7a63731932a20a622131d4dba04cf839bc9e651bf9abcd53120) is ruled a transfer, placed as today's runs' loaded configuration by path and hash, loaded in place and never copied. Its labels are downgraded until a frame confirms each (nosepiece and Lapp mirror read back consistent today; camera serial read, store comparison pending). Its figures (the PixelSize block, the 20.078x phrasing, the FocusDirection note) are discarded as a source. Its Startup preset was not ruled: moving the Lapp mirror at load was the person's decision.",
+      "kind": "prior_project_ruling",
+      "how": "Ruled by this seat under the prior-project procedure and recorded by the manager in tasks/033-rulings.md.",
+      "source": {"type": "prior_project", "path": "C:\\agentic_microscope\\config\\micromanager\\single_cam_red_noDMD_nocom10.cfg", "ruling": "transfer", "sha256": "8184073e31e1a7a63731932a20a622131d4dba04cf839bc9e651bf9abcd53120"},
+      "for_store": false
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "entry_id": "tweez300_readiness_probe_answers_minus_22",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "On this bench, TRAP_DELETE of a trap name that does not exist answers -22 ('no resource selected') from a working Tweez 300 GUI, not the -25 the Command Reference implies -- so -22 must count as ready in a readiness probe.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0",
+  "grade": "E3",
+  "source_ref": "src_prior_tweezers_driver_20260827",
+  "validity_conditions": "Measured in the prior project on the microscope PC on 2026-08-27, same session showing the GUI fully live (a create and a delete of a real trap both answered 0). ALSO SEEN HERE: the same probe answered -22 as the first command of the 2026-09-24 session (D:/soft-matter-agents-frames/tweezers-20260924-001/exchanges.jsonl line 2). That is agreement, not a promotion -- no run_id -- so it stays E3. Ruled TRANSFER; slot: the command path. Without -22 counted as ready, a probe calls a healthy GUI dead.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-1"
+}

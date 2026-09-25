@@ -1,0 +1,32 @@
+{
+  "entry_id": "lunf_reports_nothing_back",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Nothing about the laser combiner can be read back. Its DAC is write-only; reading back a blanking line returns the writer's own output, not the shutter's state; no combiner monitor signal is wired to any of the DAQ's analog inputs, which float; and the vendor library exports no shutter or status entry point.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "laser_combiner"
+    },
+    {
+      "kind": "device",
+      "id": "line_select"
+    },
+    {
+      "kind": "device",
+      "id": "line_power"
+    },
+    {
+      "kind": "device",
+      "id": "laser_shutter"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+  "grade": "E3",
+  "source_ref": "src_prior_lunf_first_light_20260902",
+  "validity_conditions": "Ruled TRANSFER, passed 10.3 rule 1 (E3, checked in another project on 2026-09-02). It is the evidence behind the device table's read_back false on laser_combiner, stated out loud the way tweez300_reports_nothing_back states it for the trap. The echo point matters most: a digital-output read-back looks like confirmation and is not. The floating-input voltages are prose and are not carried. Slot: A4 (read-back availability) and the orchestrator's verify step, which cannot verify this device. Falsified by any read path that reports a state the software did not write. Delivered as item `combiner_reports_nothing_back` of microscope_agent/findings/microscope-20260924-3-20260924.json at a5e7647 (card 044); the source was opened at fbedef0 and its sha256 matched before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

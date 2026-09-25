@@ -119,8 +119,9 @@ ABSENT = {
     "target_relative_error":
         "no target relative error exists anywhere. It is not the goal's decade resolution and not "
         "its signal-to-noise target: a decade says how coarsely the answer may land, SNR says "
-        "whether the tracer is detectable, and neither says how precisely a displacement has to "
-        "be resolved. Only the operator can state it",
+        "whether the tracer is detectable, and neither says how precisely the observable has to "
+        "be resolved -- a displacement on a diffusion question, a photon rate on a brightness "
+        "one. Only the operator can state it",
     "localisation_error":
         "no localisation error has been measured on this instrument, and it cannot be derived "
         "here either, since it needs the pixel size and the signal-to-noise actually achieved",
@@ -128,6 +129,18 @@ ABSENT = {
         "nothing states how many tracers are in the sample or in a field: no concentration, no "
         "count, no dilution record",
 }
+
+
+# Bounds that exist because a mean squared displacement is FITTED. Their
+# statements say so -- a slope over lag times, displacements per lag -- and on a
+# question whose observable is read without fitting any displacement they are
+# not unmet, they are not asked. Until 2026-09-24 this axis reported them as
+# `no_input` on mic-20260920-001 and mic-20260924-001, whose observable is a
+# brightness, which told S4 a record length was waiting on a diffusive time
+# that nothing in the question depends on. A7 draws the same line for its
+# trapping bounds with `not_requested`.
+MSD_BOUNDS = {"record_length_vs_diffusive_time", "displacement_samples_per_lag"}
+MSD_OBSERVABLES = {"tracer_diffusivity", "mean_squared_displacement"}
 
 
 def consumed_sample_note(goal: dict) -> str | None:
@@ -171,7 +184,19 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         entry = served.get(name)
         return bool(entry and (entry.get("numbers") or []))
 
+    observable = (goal.get("observable") or {}).get("name", "")
     for ineq in OWNED:
+        if ineq.id in MSD_BOUNDS and observable not in MSD_OBSERVABLES:
+            run.outcomes.append(axc.Outcome(
+                inequality_id=ineq.id, parameter=ineq.parameter, state="abstained",
+                kind="not_requested",
+                reason=(f"this bound sizes a fit of a mean squared displacement, and this "
+                        f"question's observable is {observable!r}, which fits no displacement. "
+                        "So it was evaluated against the question and is not asked, which is "
+                        "not the same as an input missing: nothing here waits on a diffusive "
+                        "time or a localisation error for this bound's sake"),
+            ))
+            continue
         missing = [n for n in ineq.needs if n in absent or not has_a_value(n)]
         if not missing:
             run.outcomes.append(axc.Outcome(
@@ -229,14 +254,15 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
         f"version here are computed rather than typed -- cards carried a stale pin in this "
         f"sentence after a re-pin because they were typed."
     )
+    not_asked = [o.inequality_id for o in run.outcomes if o.kind == "not_requested"]
+    waiting = sorted({m for o in run.outcomes for m in o.missing})
     run.notes.append(
-        "All four bounds abstain and the four missing inputs are not alike. Two are measurements "
-        "nobody has taken here -- the localisation error and the tracer loading. One is "
-        "derivable and deliberately not derived: the expected diffusivity, which belongs in the "
-        "store as an entry because two axes already need it. The fourth is not a measurement at "
-        "all: the target relative error is a decision only the operator can make, and the goal's "
-        "decade resolution and SNR target are neither substitute. Read as a to-do list, that is "
-        "two experiments, one KB entry and one question for a person."
+        f"{len(run.outcomes) - len(not_asked)} of the {len(OWNED)} bounds apply to this "
+        f"question and abstain for want of: {', '.join(waiting) or 'nothing'}."
+        + (f" {len(not_asked)} are not asked, because they size an MSD fit and the observable "
+           f"here is {observable!r}: {', '.join(not_asked)}." if not_asked else "")
+        + " The target relative error is a decision only the person can make; the others are "
+        "measurements nobody has taken here."
     )
     if no_remount:
         run.notes.append(

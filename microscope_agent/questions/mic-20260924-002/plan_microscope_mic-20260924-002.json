@@ -1,0 +1,130 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "id": "plan-mic-20260924-002-r1",
+  "qid": "mic-20260924-002",
+  "thread": "solo-mic-20260924-002",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-24T20:30:00Z",
+  "status": "VALIDATED",
+  "numbers": [
+    {
+      "name": "nosepiece_position",
+      "value": 2,
+      "unit": "count",
+      "source": "operator_read:kyuhwan_20260924",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "at": "stand_ti2e",
+      "note": "The person read the objective at the stand on 2026-09-24: the 20x dry, MRD70270, at position 2 of a turret indexed from 0. Stated so objective_clearance_min resolves from that lens's working distance, 0.8 mm; this plan commands no Z and no turret, and the stand is not moved."
+    }
+  ],
+  "degraded": [],
+  "purpose": "verify",
+  "intent": "confirm",
+  "operation": {
+    "device": "piezo_stage",
+    "verifies": "How closely the piezo X axis follows a host-timed sine of 290 um about 300 um at 1 Hz: the measured position against the commanded position at every point, over five cycles, as a position-against-time record. It also confirms that controller channel 1 moves the stage along X, by the image moving along X while it runs.",
+    "falsified_by": "the read-back after the approach or the return differs from its target by more than 1 um, or the image moves along Y or does not move while channel 1 is driven",
+    "read_back": "before_and_after_each_move",
+    "moves": [
+      {
+        "id": "approach_x",
+        "axis": "x",
+        "kind": "step",
+        "target_um": 10,
+        "role": "approach"
+      },
+      {
+        "id": "sine_x",
+        "axis": "x",
+        "kind": "sine",
+        "centre_um": 300,
+        "amplitude_um": 290,
+        "period_s": 1,
+        "cycles": 5,
+        "points_per_period": 200,
+        "host_timed": true,
+        "start": "minimum"
+      },
+      {
+        "id": "return_x",
+        "axis": "x",
+        "kind": "step",
+        "target_um": 0.5,
+        "role": "return"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "id": "approach_x",
+      "device": "piezo_stage",
+      "action": "move_absolute",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "sine_x",
+      "device": "piezo_stage",
+      "action": "move_absolute",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "return_x",
+      "device": "piezo_stage",
+      "action": "move_absolute",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [
+      "piezo_x_position_min",
+      "piezo_x_position_max"
+    ],
+    "status": "inside"
+  },
+  "targets": [
+    {
+      "metric": "position_readback_error",
+      "kind": "uncertainty",
+      "value": 1,
+      "unit": "um"
+    }
+  ],
+  "stop_criteria": [
+    {
+      "id": "sc_readback",
+      "metric": "position_readback_error",
+      "comparator": ">",
+      "target": "position_readback_error",
+      "on_met": "fault",
+      "statement": "stop, before the next move, if a read-back after a move differs from its target by more than 1 um"
+    }
+  ],
+  "success_criteria": [
+    {
+      "id": "ok_trace",
+      "metric": "position_readback_error",
+      "comparator": "<=",
+      "target": "position_readback_error",
+      "statement": "the approach and the return each read back within 1 um, all 1000 sine points are sent and read, and the image moves along X"
+    }
+  ],
+  "open_risks": [
+    "PEAK SPEED about 1.8 mm/s (2 pi x 290 um x 1 Hz). No envelope limit bounds a piezo's speed, and it is about 29 times the fastest this stage was driven in the prior project; the person was told so in words and chose 1 Hz on 2026-09-24. How closely the stage tracks at that speed is what this run measures, and a sample on the stage is shaken across 580 um once a second.",
+    "Points 5 ms apart; the largest step between consecutive points is 9.1 um. A point sent more than one interval late is logged as late and never re-timed.",
+    "The sine starts at its minimum, 10 um, so the approach from the stage's rest (x = 0.025 um in run-20260924-004) is a 10 um step, not a 300 um one.",
+    "The return target is 0.5 um, not the rest position 0.025 um, so a read-back a few nanometres low cannot put the axis below the person's 0 um floor and leave the next command refused.",
+    "Piezo Z is not commanded: it rests 1.7 nm below the person's 0 um floor, and its direction toward the objective is unmeasured.",
+    "The channel-to-axis mapping (1 = x) is the person's statement and the controller's own label; the run watches the image to confirm it.",
+    "The objective in the path is the 20x dry at position 2, as the person read it at the stand; objective_clearance_min resolves to its 0.8 mm working distance. Nothing in this plan moves toward the objective."
+  ]
+}

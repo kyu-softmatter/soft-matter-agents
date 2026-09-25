@@ -254,6 +254,77 @@ class Command:
             )
 
 
+#: Card 040 item 4: the one device whose operation moves the software-motion
+#: allow-list does not bind, and only on these axes. Z is absent on purpose:
+#: objective_clearance_min binds piezo Z and nothing compares a Z target
+#: against it at the moment of the move yet.
+OPERATION_EXEMPT_DEVICE = "piezo_stage"
+OPERATION_EXEMPT_AXES = ("x", "y")
+
+#: Card 040 item 3 and plan.md 4.6.6 rule 5: the two channels with no read-back
+#: that the PERSON named as exceptions, routed to their wrappers with
+#: verification `none`. Named here rather than read from the registry because
+#: the exception is the person's statement, not a property of the channel: any
+#: other unreadable channel still goes to the manual sheet whatever its row says.
+BLIND_BY_PERSONS_EXCEPTION = ("laser_combiner", "optical_tweezers")
+
+
+def operation_exemptions(plan: dict | None, commands: list["Command"]) -> dict[int, str]:
+    """Which commands the software-motion allow-list does not bind, from the PLAN's structure.
+
+    Decided from the plan and the command's `from`, never from anything the
+    command carries about itself: a flag on a command would be a claim the
+    command makes, and this is a question about where the command came from.
+    Exempt means ALL of: the plan has `operation`; `operation.device` is
+    piezo_stage; the command's `from` is `operation.moves[<id>]` of a move in
+    that plan; that move's axis is x or y; the command is on that device.
+    Returns {index into commands: the plan field}, for logging.
+    """
+    op = (plan or {}).get("operation")
+    if not isinstance(op, dict) or op.get("device") != OPERATION_EXEMPT_DEVICE:
+        return {}
+    moves = {m.get("id"): (i, m) for i, m in enumerate(op.get("moves") or []) if m.get("id")}
+    out = {}
+    for n, command in enumerate(commands):
+        field_ = command.from_field
+        if not (field_.startswith("operation.moves[") and field_.endswith("]")):
+            continue
+        mid = field_[len("operation.moves["):-1]
+        if mid not in moves:
+            continue
+        index, move = moves[mid]
+        if (move.get("axis") in OPERATION_EXEMPT_AXES
+                and command.channel == OPERATION_EXEMPT_DEVICE):
+            out[n] = f"operation.moves[{index}]"
+    return out
+
+
+def from_operation_move(command: "Command") -> bool:
+    return command.from_field.startswith("operation.moves[")
+
+
+_OPERATOR = None
+
+
+def _operator():
+    """operator.py, loaded by path at the moment of use, for its approval and point checks.
+
+    One implementation of each: authorise() is the gate every plan meets, and
+    check_operation_points() is card 040 item 1. Loaded lazily because
+    operator.py loads this file, and by path because `operator` shadows the
+    standard module (see operator.py's header).
+    """
+    global _OPERATOR
+    if _OPERATOR is None:
+        spec = importlib.util.spec_from_file_location(
+            "_mic_operator_for_gate", Path(__file__).resolve().parent / "operator.py")
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)                        # type: ignore[union-attr]
+        _OPERATOR = module
+    return _OPERATOR
+
+
 # --------------------------------------------------------------------------- #
 # the orchestrator
 # --------------------------------------------------------------------------- #
@@ -363,15 +434,24 @@ class Orchestrator:
         channel = self.channels[channel_id]
         if self.backend == "mock":
             name = "mock"
+        elif channel_id in BLIND_BY_PERSONS_EXCEPTION and channel.automatable != "none":
+            # The person's named exception (card 040 item 3). verification_of
+            # still answers `none` for these, because their rows say read_back
+            # false -- routing to a wrapper does not make a blind channel see.
+            name = self.driver_module(channel)
         elif channel.automatable == "none" or not channel.verifiable:
             name = "manual"
         else:
             name = self.driver_module(channel)
+        return self._device_module(name, needed_by=f"channel {channel_id!r}")
+
+    def _device_module(self, name: str, needed_by: str):
+        """Load devices/<name>.py once, by path, and check it has the interface."""
         if name not in self._modules:
             path = DEVICES / f"{name}.py"
             if not path.exists():
                 raise GapError(
-                    f"channel {channel_id!r} needs devices/{name}.py, which does not exist. "
+                    f"{needed_by} needs devices/{name}.py, which does not exist. "
                     "A channel with no module is not driven by guessing at one"
                 )
             spec = importlib.util.spec_from_file_location(f"_dev_{name}", path)
@@ -389,6 +469,55 @@ class Orchestrator:
         return self._modules[name]
 
     # -- interlocks (2.1, 4.6.8) -------------------------------------------- #
+
+    def check_software_motion(self, commands: list[Command]) -> None:
+        """Refuse the WHOLE plan if any command reaches outside what software may command.
+
+        Card 033: today the person moves the microscope by hand and software
+        commands the excitation and the camera and nothing else. The list is
+        micromanager.py's `SOFTWARE_MAY_COMMAND`, loaded here by path on every
+        backend -- the one copy, so a plan refuses on mock exactly as it
+        would on the instrument, and a plan refused here never reaches the
+        call-level guard at all.
+
+        It runs over every command BEFORE the first goes out, and before names
+        are resolved against the registry: a plan that names `ZDrive` must fail
+        as a plan that commands the focus drive, not as a name the registry
+        does not know. Every refusal in the plan is collected, so a person
+        reading it sees all of what is wrong at once rather than the first.
+
+        What a command reaches is the name the plan wrote, the element if one
+        was named, and every device under `params.settings`; the verb is also
+        asked, because `setConfig` or `setPosition` moves things whatever the
+        device.
+        """
+        mm = self._device_module("micromanager", needed_by="the software-motion check")
+        refused = []
+        for command in commands:
+            reached = [command.channel]
+            if command.element and command.element != command.channel:
+                reached.append(command.element)
+            settings = (command.params or {}).get("settings") or {}
+            why = mm.refusal(None, None, command.action)
+            if why:
+                refused.append(f"{command.from_field}: {why}")
+            for name in reached:
+                why = mm.refusal(name, None, "setProperty")
+                if why:
+                    refused.append(f"{command.from_field}: {why}")
+            for device, props in settings.items():
+                for prop, value in (props or {}).items():
+                    why = mm.refusal(str(device), str(prop), "setProperty", value)
+                    if why:
+                        refused.append(f"{command.from_field}: settings {device}.{prop}: {why}")
+        if refused:
+            self.record(event="software_motion_refused", commands=len(commands),
+                        refusals=refused)
+            raise InterlockError(
+                f"refusing the whole plan before any command goes out: {len(refused)} "
+                "refusal(s). " + " | ".join(refused))
+        self.record(event="software_motion_checked", commands=len(commands),
+                    allowed=sorted(mm.SOFTWARE_MAY_COMMAND))
 
     def shutters(self) -> list[tuple[str, str]]:
         """Every shutter the registry knows, as (channel, element).
@@ -697,7 +826,65 @@ class Orchestrator:
             return command
         return replace(command, channel=cid, element=command.element or element)
 
-    def dispatch(self, commands: list[Command], timeout: float = 30.0) -> list[dict]:
+    def check_software_motion_for(self, plan: dict | None, commands: list[Command]) -> None:
+        """check_software_motion over every command card 040 item 4 does not exempt.
+
+        The check itself is unchanged; what changes is what it is applied to,
+        and only for a plan whose structure qualifies. Each exemption is its
+        own event naming the plan field, so the log shows where the allow-list
+        did not bind and why. What replaces it for those commands is the
+        derived-point envelope check the operator runs before dispatch.
+        """
+        exempt = operation_exemptions(plan, commands)
+        if exempt:
+            exempt = self._operation_gate(plan, commands, exempt)
+        for n, plan_field in sorted(exempt.items()):
+            self.record(event="software_motion_exempt", plan_field=plan_field,
+                        channel=commands[n].channel, action=commands[n].action,
+                        reason=("card 040 item 4: an operation move of piezo_stage on x or y; the "
+                                "derived-point envelope check binds it instead of the allow-list"))
+        self.check_software_motion([c for n, c in enumerate(commands) if n not in exempt])
+
+    def _operation_gate(self, plan: dict, commands: list[Command],
+                        candidates: dict[int, str]) -> dict[int, str]:
+        """The three things an exemption stands on, checked in the call that grants it.
+
+        Architecture's conditions on card 040 item 4 (9ac69dc): (a) the plan's
+        REVISION carries the person's approval -- `operation` present is not
+        enough, anyone can write that; (b) the derived-point envelope check is
+        on this path and nothing can skip it. And one this seat adds, so a
+        hand-built command cannot ride an approved plan: each candidate must be
+        exactly what the plan derives for that move.
+
+        No approval, or a command that is not the derivation: the candidate is
+        not exempt, and meets the allow-list like anything else -- which
+        refuses piezo_stage. A derived point outside the envelope: Refusal of
+        the whole plan, raised here.
+        """
+        op = _operator()
+        decision = op.authorise(plan)
+        if not decision.permitted:
+            self.record(event="software_motion_exemption_refused",
+                        reason="no approval covers this plan revision: " + "; ".join(decision.reasons))
+            return {}
+        derived = {c.from_field: c for c in op.derive_operation(plan)}
+        kept = {}
+        for n, plan_field in candidates.items():
+            c = commands[n]
+            d = derived.get(c.from_field)
+            if d is None or d.params != c.params or d.channel != c.channel or d.action != c.action:
+                self.record(event="software_motion_exemption_refused", plan_field=plan_field,
+                            reason="the command is not what the approved plan derives for this move")
+                continue
+            kept[n] = plan_field
+        if kept:
+            for comparison in op.check_operation_points(plan, [commands[n] for n in kept],
+                                                        op.load_safety()):
+                self.record(event="operation_points_checked", **comparison)
+        return kept
+
+    def dispatch(self, commands: list[Command], timeout: float = 30.0,
+                 plan: dict | None = None) -> list[dict]:
         """One worker per channel, ordered by the power rule, locks held.
 
         Commands for the same channel run in sequence because the channel is one
@@ -715,6 +902,10 @@ class Orchestrator:
         It ranks after `raises_power` too, and that is the point rather than
         an accident: illumination has to be up before the light is collected.
         """
+        # Before resolution and before any worker starts, so a refused plan
+        # leaves the instrument untouched. run() asks it earlier still, ahead
+        # of preflight; asking again here covers a caller that skips run().
+        self.check_software_motion_for(plan, commands)
         ordered = self.order([self._resolved(c) for c in commands])
         by_rank: dict[int, list[Command]] = defaultdict(list)
         for c in ordered:
@@ -756,10 +947,37 @@ class Orchestrator:
                                 # would be read as a second dispatch -- check 66
                                 # would report one command twice.
                                 detail["disagreed"] = value["disagreed"]
+                            if from_operation_move(command) and isinstance(value, dict):
+                                # Where the stage WAS, beside where it was told to go.
+                                # The params already carry the commanded points; the
+                                # measured ones exist only in what the device returned,
+                                # and the dispatch outcomes are read by nobody -- so
+                                # without this the run log could not show the one thing
+                                # an operation plan's result is made of.
+                                detail["measured"] = {k: value.get(k) for k in (
+                                    "before_um", "after_um", "points_planned", "points_sent",
+                                    "late_points", "dt_s", "samples", "settle",
+                                    "settle_wait_s")}
                             self.record(event="apply", channel=cid, element=command.element,
                                         action=command.action, params=command.params,
                                         verification=verification, verification_note=why,
                                         **detail, **{"from": command.from_field})
+                            if from_operation_move(command) and verification != "readback":
+                                # Card 040 item 2: an operation move whose read-back
+                                # is not within the plan's tolerance stops the run
+                                # BEFORE the next move -- the next move would start
+                                # from a place nobody confirmed. Marked failed so
+                                # run() aborts, exactly as a refused command does.
+                                self._aborted.set()
+                                out[-1]["ok"] = False
+                                out[-1]["error"] = (f"read-back not within tolerance after "
+                                                    f"{command.from_field}: {why}")
+                                self.record(event="stop_criterion_violated",
+                                            criterion="position_readback_error",
+                                            plan_field=command.from_field,
+                                            disagreed=(value.get("disagreed")
+                                                       if isinstance(value, dict) else None),
+                                            note=why)
                         except Exception as exc:                # noqa: BLE001 - recorded, and it stops the run
                             # A FAILED COMMAND STOPS EVERYTHING AFTER IT. This
                             # said "re-raised by the caller" and the caller did

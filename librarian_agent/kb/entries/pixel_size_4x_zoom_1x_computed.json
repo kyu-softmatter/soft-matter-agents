@@ -1,0 +1,57 @@
+{
+  "entry_id": "pixel_size_4x_zoom_1x_computed",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "With the 4x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 1.625 micrometres at the sample plane, CALCULATED from the camera's pixel pitch and the nominal magnification rather than measured.",
+  "identifiers": {
+    "nominal_magnification": "4x",
+    "intermediate_magnification": "1x"
+  },
+  "numbers": [
+    {
+      "name": "pixel_size",
+      "value": 1.625,
+      "unit": "um",
+      "source": "computed:pixel_size_from_sensor_pitch",
+      "grade": "E4",
+      "precision": "significant_figures",
+      "note": "same value, to every digit, as the row it replaces; what changed is how it was obtained"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "device",
+      "id": "nosepiece"
+    },
+    {
+      "kind": "quantity",
+      "id": "pixel_size"
+    }
+  ],
+  "inputs": [
+    "pixel_size"
+  ],
+  "source": "computed:pixel_size_from_sensor_pitch",
+  "grade": "E4",
+  "grade_tag": "computed",
+  "source_ref": "src_person_ruling_20260924",
+  "validity": {
+    "binning": {
+      "min": 1,
+      "max": 1,
+      "unit": "count"
+    }
+  },
+  "valid_until": {
+    "date": "2041-09-19",
+    "event": "the camera is replaced. Ruled by the person on 2026-09-21 (src_person_ruling_20260921); the date beside it is unchanged and is still the operator's stated fifteen years anchored to the report rather than to the measurement, because asked whether to re-anchor they had no preference.\n\nTHE MECHANISM, because a trigger on its own is not checkable: a pixel size at the sample plane is the sensor pitch divided by the total magnification, and the pitch belongs to the camera -- camera_sensor_geometry carries the Kinetix 22's 6.5 um. A different sensor moves the numerator of every row at once, which is why this is ONE event and not twelve: all twelve come from the single calibration cal-pixel-size-20260919 and end together.\n\nAN OBJECTIVE CHANGE DOES NOT END THIS, and that near miss is worth naming here because it is the one a reader is most likely to assume. Each row carries its objective and intermediate magnification as `identifiers`, exact by definition, rather than as conditions -- so turning the nosepiece selects a different row instead of falsifying one (objective_change_selects_a_pixel_size_row). The store also holds objective_change_invalidates_trap_calibration, which says the opposite about a DIFFERENT calibration: the tweezers hold one pixel-to-micrometre calibration that a swap destroys.\n\nIT TRIGGERS CONSERVATIVELY AND THAT IS DELIBERATE. cameras_both_kinetix22 records that both bodies on this bench are the same model and therefore share a pixel size, so swapping one Kinetix 22 for the other would fire this event without moving any value here. Over-triggering costs a re-check; under-triggering costs a number that is silently wrong, and nothing on this instrument would report it. The wording keeps the person's trigger rather than narrowing it to `a camera of a different pitch`, because narrowing it would make the expiry depend on a judgement about the replacement instead of on an observable event."
+  },
+  "validity_conditions": "HOW IT WAS OBTAINED: The Kinetix 22's 6.5 um sensor pitch (camera_sensor_geometry, E3, the vendor specification) divided by the nominal total magnification 4x x 1x = 4x: 6.5 / 4 = 1.625. It rests on camera_sensor_geometry (E3) and on the nominal magnification being exact. That second assumption is known to be imperfect: the one measured row, 20x at 1x, gives 0.32373 against a nominal 0.325, a real 20.078x, so a nominal magnification can be off by about 0.4 per cent and this value by the same.\n\nWHY THIS REPLACES pixel_size_4x_zoom_1x. That row said the operator measured this value, graded E2. On 2026-09-24 the person ruled that only 20x at 1x was measured (src_person_ruling_20260924); the other eleven were calculated. A prior-project Micro-Manager configuration had already said so (recorded on src_operator_calibration_20260919 under contradicted_2026_09_24), and the numbers agree with it: every 1.5x row is its 1x row over 1.5, and five 1x rows are exactly 6.5 um over the nominal magnification. pixel_size_4x_zoom_1x stays, marked refuted_by this entry; its value is not wrong, its claim that it was measured is. `inputs` names `pixel_size` because both operands carry that name -- the sensor pitch in camera_sensor_geometry and the measured row -- and check 62 therefore reports the name divergent rather than composing it; the grade is E4 either way, max(E4, E3) or max(E4, E2).\n\nConditions otherwise as the replaced row: this instrument, 1x1 binning (in `validity`), objective and zoom as exact identifiers. The camera-replacement event in `valid_until` applies with more force here, since the pitch is the numerator outright.",
+  "date": "2026-09-24",
+  "supersedes": "pixel_size_4x_zoom_1x",
+  "conflict_with": [],
+  "refutes": [
+    "pixel_size_4x_zoom_1x"
+  ],
+  "curated_by": "seat:librarian-20260924-1"
+}

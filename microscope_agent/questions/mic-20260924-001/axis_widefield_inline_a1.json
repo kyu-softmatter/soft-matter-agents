@@ -1,0 +1,186 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260924-001-widefield_inline-a1",
+  "qid": "mic-20260924-001",
+  "thread": "solo-mic-20260924-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-24T19:01:51Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260924-001:v1:widefield_inline:a1",
+  "config": "widefield_inline",
+  "axis": "a1",
+  "kb_version": "kbv-4b981dc870d3",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "disk_period_multiple",
+      "parameter": "exposure_time",
+      "state": "abstained",
+      "kind": "not_constraining",
+      "reason": "this configuration's optical path is 'widefield_inline' and the disk is out of it: the store records that disk-in is the confocal path while disk-out serves widefield fluorescence and brightfield, and the exposure rule applies to an exposure taken through the disk. So the rule was evaluated and does not bite here. On the confocal configuration the same inequality would abstain with kind no_input instead, because the disk period itself is not in the store -- which is why the two cannot be one word"
+    },
+    {
+      "inequality": "snr_floor",
+      "parameter": "exposure_time",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the service returned 4 values for read_noise -- 1.6 (camera_read_noise_dynamicrange), 1.2 (camera_read_noise_sensitivity), 2.0 (camera_read_noise_speed), 0.7 (camera_read_noise_subelectron) -- and what selects among them is the camera mode, and this plan names none. Taking one would be picking by iteration order and calling it evidence; the service returned 2 values for quantum_efficiency -- 0.96 (camera_qe_at_600nm_from_the_kinetix_graph), 0.95 (camera_qe_peak) -- and what selects among them is the wavelength the path collects; one value is the datasheet's peak, a maximum over the range and not a value at any band, and the other is a point read off a different body's graph. Taking one would be picking by iteration order and calling it evidence; no photon rate per particle exists for this sample on this instrument, and none can be asked for: it depends on the dye, the lot, the illumination and the camera together. It closes by acquiring, not by asking: image the bare particles on a coverslip under the illumination the record will use, which gives the photon rate per particle and its decay in one short run. On mic-20260924-001 that run is the preparatory run of 2026-09-24 (card 033), and it becomes citable once its run log is in runs/ with a run_id. Bare particles are not the mount, so the run spends nothing a later measurement needs",
+      "missing": [
+        "read_noise",
+        "quantum_efficiency",
+        "tracer_brightness"
+      ]
+    },
+    {
+      "inequality": "detection_limit",
+      "parameter": "tracer_signal_per_frame",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the service returned 4 values for read_noise -- 1.6 (camera_read_noise_dynamicrange), 1.2 (camera_read_noise_sensitivity), 2.0 (camera_read_noise_speed), 0.7 (camera_read_noise_subelectron) -- and what selects among them is the camera mode, and this plan names none. Taking one would be picking by iteration order and calling it evidence; no photon rate per particle exists for this sample on this instrument, and none can be asked for: it depends on the dye, the lot, the illumination and the camera together. It closes by acquiring, not by asking: image the bare particles on a coverslip under the illumination the record will use, which gives the photon rate per particle and its decay in one short run. On mic-20260924-001 that run is the preparatory run of 2026-09-24 (card 033), and it becomes citable once its run log is in runs/ with a run_id. Bare particles are not the mount, so the run spends nothing a later measurement needs",
+      "missing": [
+        "read_noise",
+        "tracer_brightness"
+      ]
+    },
+    {
+      "inequality": "background_budget",
+      "parameter": "background_rate",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no background measurement exists on this instrument; no photon rate per particle exists for this sample on this instrument, and none can be asked for: it depends on the dye, the lot, the illumination and the camera together. It closes by acquiring, not by asking: image the bare particles on a coverslip under the illumination the record will use, which gives the photon rate per particle and its decay in one short run. On mic-20260924-001 that run is the preparatory run of 2026-09-24 (card 033), and it becomes citable once its run log is in runs/ with a run_id. Bare particles are not the mount, so the run spends nothing a later measurement needs",
+      "missing": [
+        "background_rate",
+        "tracer_brightness"
+      ]
+    },
+    {
+      "inequality": "motion_blur",
+      "parameter": "exposure_time",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "tracer_diffusivity_expected was served as tracer_diffusivity_expected, a relation with no value: it composes from inputs this axis does not bind, and computing it here would put the knowledge in two places (P14). The other side of this bound is served: pixel_size 0.32373 um (pixel_size_20x_zoom_1x), the calibrated row for the objective-and-zoom pair the goal declares, valid at 1x1 binning only -- at another binning the value scales and this bound needs re-asking rather than re-using",
+      "missing": [
+        "tracer_diffusivity_expected"
+      ]
+    },
+    {
+      "inequality": "snr_sustained_over_window",
+      "parameter": "record_duration",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no bleaching rate exists for this fluorophore. It closes by the same bare-particle run that closes tracer_brightness: the decay over the record is the bleaching rate, so one acquisition closes both. On this question the coupling runs through the observable itself: a brightness measured over a record in which the sample bleaches is depressed by the bleaching, so the window the brightness is read over has to be short against the decay -- and the decay is this question's own by-product, which is why the window is declared before the run and judged by the fit after it",
+      "missing": [
+        "bleaching_rate"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [
+    {
+      "entry_id": "camera_qe_at_600nm_from_the_kinetix_graph",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "At 600 nm the quantum efficiency carried for the Photometrics Kinetix22 is 0.96, and it is not the Kinetix22's own figure: it is one point of the Kinetix's datasheet graph, read off by eye, borrowed a"
+    },
+    {
+      "entry_id": "camera_qe_peak",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The Photometrics Kinetix22 has a stated peak quantum efficiency of 0.95, which is the figure its own datasheet gives."
+    },
+    {
+      "entry_id": "camera_read_noise_dynamicrange",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "In its DynamicRange mode (16-bit) the Photometrics Kinetix22 has a read noise of 1.6 electrons rms, as specified by the datasheet's CAMERA MODES table. This is the widest dynamic range of the four and"
+    },
+    {
+      "entry_id": "camera_read_noise_sensitivity",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "In its Sensitivity mode (12-bit) the Photometrics Kinetix22 has a read noise of 1.2 electrons rms, as specified by the datasheet's CAMERA MODES table. This is the lowest read noise among the modes tha"
+    },
+    {
+      "entry_id": "camera_read_noise_speed",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "In its Speed mode (8-bit) the Photometrics Kinetix22 has a read noise of 2.0 electrons rms, as specified by the datasheet's CAMERA MODES table. This is the fastest and the noisiest of the four."
+    },
+    {
+      "entry_id": "camera_read_noise_subelectron",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "In its SubElectron mode (16-bit, 8x CMS) the Photometrics Kinetix22 has a read noise of 0.7 electrons rms, as specified by the datasheet's CAMERA MODES table. This is the lowest read noise of the four"
+    },
+    {
+      "entry_id": "pixel_size_20x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "With the 20x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.32373 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "tracer_diffusivity_expected",
+      "grade": "E4",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The expected translational diffusivity of a tracer sphere in a bulk fluid is the Stokes-Einstein value, k_B T over 3 pi eta d. It is a prediction from the viscosity, the temperature and the diameter, "
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "background_rate",
+      "observable": "background_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=background_rate, caller_id=mic-20260924-001:v1:widefield_inline:a1, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_inline:a1",
+      "asked_at": "2026-09-24T18:41:38+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "tracer_bleaching",
+      "observable": "bleaching_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=bleaching_rate, caller_id=mic-20260924-001:v1:widefield_inline:a1, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_inline:a1",
+      "asked_at": "2026-09-24T18:41:49+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "disk_period",
+      "observable": "disk_period",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=disk_period, caller_id=mic-20260924-001:v1:widefield_inline:a1, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_inline:a1",
+      "asked_at": "2026-09-24T18:41:14+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "tracer_photophysics",
+      "observable": "tracer_brightness",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_brightness, caller_id=mic-20260924-001:v1:widefield_inline:a1, kb_version=kbv-4b981dc870d3) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "mic-20260924-001:v1:widefield_inline:a1",
+      "asked_at": "2026-09-24T18:41:32+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "Every bound here abstains, and 5 of the 6 abstain for want of an input rather than because they do not apply. Asked and absent: background_rate, bleaching_rate, disk_period, tracer_brightness. Served but not a single value: read_noise, quantum_efficiency, tracer_diffusivity_expected. The two are different next actions -- an absence is an acquisition or a question, several values are a condition the plan has not chosen -- and each bound's reason says which. The sixth is different and the difference is the point: the disk rule was evaluated against this configuration's optical path and does not constrain it. That is an answer, not a missing one, and recording it with the same word as the other five would lose it.",
+  "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
+}

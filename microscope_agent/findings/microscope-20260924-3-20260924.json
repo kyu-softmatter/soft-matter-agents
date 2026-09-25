@@ -1,0 +1,241 @@
+{
+  "artifact": "findings",
+  "schema_version": "0.1",
+  "seat": "microscope-20260924-3",
+  "on": "2026-09-24",
+  "delivered_to": "librarian_agent",
+  "items": [
+    {
+      "id": "confocal_lines_no_power_calibration_found",
+      "fact": "No power calibration of the confocal laser combiner's four lines (405, 488, 561, 640 nm) was found in any place listed under how. The prior project's own record says none existed there: no stored mW calibration anywhere, NIS's mW display is a user-entered table that was empty (CALIBRATED0..3 = 0), and volts -> mW was listed under 'still unknown'. The power meter available from 2026-09-02 was a standalone display, and no measurement taken with it on these lines is recorded.",
+      "kind": "unmeasured",
+      "how": "Searched on 2026-09-24, read only. In C:\\agentic_microscope, at main fbedef0, with the working tree identical for these files: kb/decisions/2026-09-02-lunf-first-light-measured-limits.md, sections 4, 5, 9 and 'Still unknown'; hardware/lunf_power.py, header; data/light_sources.yaml, entry LUN-F-XL, where power_at_sample_mw is empty for all four lines; config/lunf/*.py (four files); and kb/systems/current.md. Also the 53 files, across main, particle-registry, restore-manuals-locally and origin/readme-safety-and-next-step, whose text names LUN-F. Their content was read at main, and every line matching 'calibrat' or 'power meter' was kept if it also named a laser, the confocal path, a line wavelength or mW. Only three places matched: the 2026-09-02 record's 'there is none'; docs/02-knowledge-base.md, a schema placeholder ('measured mW filled in after calibration', and LaserCalibration.points staying empty); and docs/mhs-integration.md ('power_at_sample_mw still needs a power meter'). The rest were about the trap, pixel size or other devices. Also every commit message on all branches for 'calibrat', 'power meter' and 'mW', with no hit on the confocal lines' power; and the working tree, by filename, for *calib* and *power*. Those hits were a trap calibration script, calibration tests, validity/power.py, which names no laser or confocal line, and a pixel-size table (next item). In this repository: librarian_agent/kb/entries (only lunf_per_line_power_is_not_transmittable mentions the combiner's power, and it holds no calibration), and librarian_agent/kb/staging/devices.v0.json. NOT SEARCHED by this seat: the NIS-Elements installation and its device database on this computer. The prior project reports searching them on 2026-09-02 and finding every calibration record empty and no calibration XML or CSV under any Laboratory Imaging path; that is its search, not this seat's. Also not searched: lab notebooks or spreadsheets outside that repository beyond the Desktop filename in the next item, the power meter's own memory, and any vendor service record.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\kb\\decisions\\2026-09-02-lunf-first-light-measured-limits.md",
+        "sha256": "483034634b38067a453a2ba5af0853b0948ffd658d1d805e2ae6600607bea028",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "sha256 is of the committed blob at main fbedef0. The device table said 'calibrated: true' for line_power from 116cd6c (2026-09-17), sourced to operator_read:kyuhwan_20260917, and 440d999 changed it today to not known. This item records what was found and where it was looked for. It does not say whether the person's calibration exists, and the places not searched are where it could be. Rulings: rulings.jsonl, the 'no stored mW calibration' line of 12:05 and the light_sources.yaml and lunf_power.py lines of 13:06."
+    },
+    {
+      "id": "confocal_calibration_file_is_pixel_size",
+      "fact": "The one file the prior project names as a calibration of the confocal microscope, 'Confocal_microscope_conversion_factor(Apr 2025).xlsx', is recorded there as a Kinetix effective pixel-size table per objective (4x-100x) and intermediate magnification (1x, 1.5x), not a laser power table. A file with that name exists on this computer's Desktop (9097 bytes). It was not opened in this session.",
+      "kind": "prior_project_ruling",
+      "how": "Read kb/systems/current.md at main fbedef0: sources[] line 7, the pixel_size_calibration block and the numbered source list near line 1562. Listed the Desktop directory for the filename. The spreadsheet itself was not read.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\kb\\systems\\current.md",
+        "sha256": "f265f13d29f5e7bf4969938449bd661e08a3c57ab0041ec3dd9ec762a1948f5c",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "Recorded because it may be what the calibration being remembered is. If it is, it calibrates pixel size and not power. The store already holds this table's pixel sizes under src_operator_calibration_20260919, with the prior file's disagreement recorded there, so no figure is offered here."
+    },
+    {
+      "id": "only_power_measurement_here_is_the_trap",
+      "fact": "The only laser power measured with a power meter anywhere in this repository is the trapping laser's: optical_power_max in microscope_agent/envelope/safety.json, measured at the sample plane with a Thorlabs meter across the dial range and confirmed physically by the person on 2026-09-20. The file says nothing about the confocal lines.",
+      "kind": "document_fact",
+      "how": "Read microscope_agent/envelope/safety.json at HEAD on 2026-09-24. Its only power limit is optical_power_max, whose note and confirmation name the trapping laser's dial. illumination_power_max is not written.",
+      "source": {
+        "type": "document",
+        "path": "microscope_agent/envelope/safety.json"
+      },
+      "for_store": false,
+      "note": "For the librarian's question and not an entry: if the person remembers a power measurement with a meter, this is the one on record, and it is the trap's. The prior project's kb/systems/current.md recorded the trap dial as uncalibrated there (dial% -> mW deferred 2026-08-19), so this measurement is later than anything that project holds."
+    },
+    {
+      "id": "disk_kill_test_never_run",
+      "fact": "The prior project's test of whether force-killing the vendor acquisition software (NIS) stops the spinning disk was written and never run. No result, report or later commit exists. Its record calls 'the kill stopped the disk' the most likely reading and leaves 'the disk was never started' not excluded.",
+      "kind": "unmeasured",
+      "how": "Read config/lunf/disk_survives_kill.py; read commit a7b880b, which added it; checked that no later commit on any branch touches config/lunf or mentions its result; read the 2026-09-07 amendment in the 2026-09-02 LUN-F record.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\config\\lunf\\disk_survives_kill.py",
+        "sha256": "a18216eb1989cfeeb6d865a99b637e28117ec27d51e3ebe7a4d3cb0643224381",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "E5 as an assertion. Falsifier: the kill-then-watch test showing smooth illumination at every delay. Its ruling is in rulings.jsonl."
+    },
+    {
+      "id": "fiber_shutter_survives_controller_kill",
+      "fact": "On the confocal combiner, the fiber shutter (Fiber1) stays open when its controlling program (NIS) is force-killed: the combiner has no link-drop watchdog, and in the prior project only NIS's clean shutdown closed it. Measured there on 2026-09-02: PID 6544 killed, then 561 blinked when driven from Python.",
+      "kind": "prior_project_ruling",
+      "how": "Read section 9 of the 2026-09-02 LUN-F record, config/lunf/handoff_from_nis.py, and commit c13178a, which carries the before and after output.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\kb\\decisions\\2026-09-02-lunf-first-light-measured-limits.md",
+        "sha256": "483034634b38067a453a2ba5af0853b0948ffd658d1d805e2ae6600607bea028",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "E3 at most: measured in another project. Its ruling is in rulings.jsonl."
+    },
+    {
+      "id": "killed_process_can_leave_a_line_unblanked",
+      "fact": "If a program driving the confocal combiner's blanking lines is killed rather than closed, a line it left open can stay open, with the fiber shutter open, and no software in this repository can close either. The barrier left is the confocal unit's own shutter, which Micro-Manager is refused from writing today, so the person moves it.",
+      "kind": "prior_project_ruling",
+      "how": "Composed from two prior-project readings and this repository's code. First, probe_lunf.py's blink creates and clears a digital-output task for every write, and the light stayed on between writes, so a line holds its level after the writing task is gone. That the level also survives the writing process dying is not measured. Second, the fiber shutter survives a kill (previous item). Third, lunf.py reaches neither the fiber shutter nor the unit's shutter, and micromanager.py refuses CSUW1-Shutter by name.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\config\\lunf\\probe_lunf.py",
+        "sha256": "525746756fa4dd5c6fabcaa754675648889f71ed797c234198c91360df12452e",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "E5: an inference, not a measurement. Falsifier: kill the driving process with one line open, and see that line go dark on its own. The closed-versus-killed table is in microscope_agent/src/devices/lunf_live_checklist.md at 196c346."
+    },
+    {
+      "id": "nis_holds_blanking_lines_exclusively",
+      "fact": "While NIS runs, it holds the DAQ's port 0 exclusively, which carries the combiner's blanking lines, and the FT4222 interfaces A, B and C. A digital-output task elsewhere fails with DAQmx error -200587.",
+      "kind": "prior_project_ruling",
+      "how": "Read section 8 of the 2026-09-02 LUN-F record and the measured table in hardware/lunf_power.py's header.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\kb\\decisions\\2026-09-02-lunf-first-light-measured-limits.md",
+        "sha256": "483034634b38067a453a2ba5af0853b0948ffd658d1d805e2ae6600607bea028",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "E3 at most. It also means the fiber shutter and the per-line levels, which only NIS reaches, and blanking from anything else can't be held at the same time. That is why the prior project force-killed NIS. Its ruling is in rulings.jsonl."
+    },
+    {
+      "id": "combiner_line_map_and_polarity",
+      "fact": "In the prior project, the combiner's lines mapped to DAQ Dev1 port 0 as 405 -> line2, 488 -> line4, 561 -> line6, 640 -> line8, with DAC indices 0-3. Blanking is active-HIGH: 1 opens a line. The map was read off the live NIS configuration dialog on 2026-09-02, and the polarity was measured by eye that day.",
+      "kind": "prior_project_ruling",
+      "how": "Read section 3 and 'What was achieved' of the 2026-09-02 LUN-F record, and the WL and OPEN/CLOSED constants in config/lunf/probe_lunf.py.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\kb\\decisions\\2026-09-02-lunf-first-light-measured-limits.md",
+        "sha256": "483034634b38067a453a2ba5af0853b0948ffd658d1d805e2ae6600607bea028",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "E3 at most. lunf.py reads both from the channel row, at elements[line_select].lines, open_level and closed_level, and refuses without them. So this is what the registry would carry if the librarian enters it. The record says two of three device-database copies disagree about 405 and the dialog outranks them. Its rulings are in rulings.jsonl."
+    },
+    {
+      "id": "combiner_ao_route_not_cabled",
+      "fact": "The DAQ's analog outputs ao0-ao3 are not cabled to the confocal combiner's power inputs. Tested in the prior project on 2026-09-02 with the blanking held open, together, one at a time and at speed, with no change in output.",
+      "kind": "prior_project_ruling",
+      "how": "Read section 7 of the 2026-09-02 LUN-F record and probe_lunf.py's ao-sweep subcommand.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\kb\\decisions\\2026-09-02-lunf-first-light-measured-limits.md",
+        "sha256": "483034634b38067a453a2ba5af0853b0948ffd658d1d805e2ae6600607bea028",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "E3 at most. A negative result, kept so the route is not proposed again."
+    },
+    {
+      "id": "combiner_reports_nothing_back",
+      "fact": "Nothing about the confocal combiner can be read back. The DAC is write-only. A digital-output read-back is the writer's own echo, not the shutter's state. No combiner monitor is wired to any of the DAQ's 32 analog inputs, which all float to the rail. The DLL exports no shutter or status entry point.",
+      "kind": "prior_project_ruling",
+      "how": "Read section 5 of the 2026-09-02 LUN-F record.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\kb\\decisions\\2026-09-02-lunf-first-light-measured-limits.md",
+        "sha256": "483034634b38067a453a2ba5af0853b0948ffd658d1d805e2ae6600607bea028",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "E3 at most. It agrees with the device table's read_back false. The echo point was also ruled transfer into lunf.read(), in rulings.jsonl."
+    },
+    {
+      "id": "mm_exposes_no_disk_speed",
+      "fact": "In the prior project's Micro-Manager configurations, the CSU-W1 is reached as Hub, Filter_Red, Filter_Blue, Dichroic, Shutter, Bright Field and Port. No device reports or sets the disk's speed, so the disk period can't be read from Micro-Manager.",
+      "kind": "prior_project_ruling",
+      "how": "Read the 2026-09-07 amendment in the 2026-09-02 LUN-F record, and commit a7b880b's message, which states it.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\kb\\decisions\\2026-09-02-lunf-first-light-measured-limits.md",
+        "sha256": "483034634b38067a453a2ba5af0853b0948ffd658d1d805e2ae6600607bea028",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "E3 at most. It bears on csuw1_disk_speed_exposure_constraint, which says a plan needs the period from the device: on this account no device supplies it."
+    },
+    {
+      "id": "stopped_disk_looks_bright",
+      "fact": "A confocal frame taken with the spinning disk stopped is a stationary pinhole grid at full brightness, 5-53x over all-off, so nothing looks wrong until the texture is checked. The off-centre power-spectrum peak over median, on a central crop of (line on - all off), was 25,978 to 210,347 in grid frames, against 129 in the one condition with no signal.",
+      "kind": "prior_project_ruling",
+      "how": "Read the 2026-09-07 amendment in the 2026-09-02 LUN-F record, and pinhole_ratio() in config/lunf/disk_survives_kill.py.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\kb\\decisions\\2026-09-02-lunf-first-light-measured-limits.md",
+        "sha256": "483034634b38067a453a2ba5af0853b0948ffd658d1d805e2ae6600607bea028",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "E3 at most, for the two regimes. The prior thresholds of 2,000 and 10,000 were ruled discard: nobody here chose them. The method was ruled transfer, into the live checklist."
+    },
+    {
+      "id": "turret1_state0_blocks_confocal",
+      "fact": "In the prior project, filter turret 1 at state 0 held the multiband cube (MXR00724) and blocked the confocal path, with 1.00x contrast. States 1, 2 and 3 were empty slots, at 5.16, 5.15 and 5.13x. Measured 2026-09-07.",
+      "kind": "prior_project_ruling",
+      "how": "Read the help text of --turret1-state in config/lunf/disk_survives_kill.py.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\config\\lunf\\disk_survives_kill.py",
+        "sha256": "a18216eb1989cfeeb6d865a99b637e28117ec27d51e3ebe7a4d3cb0643224381",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "E3 at most. Pin it by the state's integer, never its label."
+    },
+    {
+      "id": "confocal_488_leaks_into_red_arm",
+      "fact": "On the confocal path in the prior project, 488 excitation leaked into the red camera arm about as strongly as 561 did (5.9x against 5.2x over all-off), and the red arm was additive across the two lines, so species assignment there has to strobe the lines.",
+      "kind": "prior_project_ruling",
+      "how": "Read the 2026-09-07 amendment in the 2026-09-02 LUN-F record.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\kb\\decisions\\2026-09-02-lunf-first-light-measured-limits.md",
+        "sha256": "483034634b38067a453a2ba5af0853b0948ffd658d1d805e2ae6600607bea028",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "E3 at most."
+    },
+    {
+      "id": "mm_second_route_to_blanking",
+      "fact": "A Micro-Manager configuration in the prior project declares the combiner's blanking lines as a device: LUNF-Blanking, an NIDAQ digital-output device on Dev1/port0 under NIDAQHub. Any configuration carrying it gives Micro-Manager a route to switch a confocal laser line that does not pass through lunf.py. micromanager.py refuses both names today.",
+      "kind": "prior_project_ruling",
+      "how": "Read config/micromanager/dualcam_noDMD.cfg, lines 86-87, 101-105 and 134, and NAMED_REFUSALS in microscope_agent/src/devices/micromanager.py.",
+      "source": {
+        "type": "prior_project",
+        "path": "C:\\agentic_microscope\\config\\micromanager\\dualcam_noDMD.cfg",
+        "sha256": "0a4046e4686ea27ccdb3444b41ae734da8eb454219a6d1d84b7e3a815bdfb419",
+        "ruling": "downgrade"
+      },
+      "for_store": true,
+      "note": "E3 at most, as a fact about that configuration. Lifting either name in micromanager.py opens this route; the manager is recording that beside the allow-list."
+    },
+    {
+      "id": "eyepiece_path_mapping_unmeasured",
+      "fact": "UNMEASURED: which states of the stand's light_path_port send the image to the eyepieces. No store entry, no device-table field and no prior-project record read today gives it. So the confocal wrapper counts every state as reaching the eyepieces.",
+      "kind": "unmeasured",
+      "how": "Read the light_path_port element of stand_ti2e in librarian_agent/kb/staging/devices.v0.json, and searched the contents of every file in librarian_agent/kb/staging and librarian_agent/kb/entries for 'eyepiece' and 'ocular': no hits.",
+      "source": {
+        "type": "document",
+        "path": "librarian_agent/kb/staging/devices.v0.json"
+      },
+      "for_store": true,
+      "note": "A named gap, not a value: it closes at the bench with the person, by the state's integer and with the lamp only. Listed so the next session does not look for it as though it were known."
+    },
+    {
+      "id": "confocal_wrapper_unreachable_by_router",
+      "fact": "The router cannot reach the confocal wrapper. The device table's driver for laser_combiner begins 'split:', so its head token names no file, and the orchestrator sends every read_back false channel to manual.py.",
+      "kind": "document_fact",
+      "how": "Read orchestrator.driver_module() and module_for() in microscope_agent/src/orchestrator.py, and laser_combiner's driver value in librarian_agent/kb/staging/devices.v0.json.",
+      "source": {
+        "type": "document",
+        "path": "microscope_agent/src/orchestrator.py"
+      },
+      "for_store": false,
+      "note": "A fact about this repository's code and registry, not about the world. The driver value went to the librarian and the routing question to architecture. lunf.py stays unreachable until architecture answers."
+    }
+  ]
+}

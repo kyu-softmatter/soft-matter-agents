@@ -1,0 +1,24 @@
+{
+  "entry_id": "stopped_disk_frame_looks_bright",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "A confocal frame taken with the spinning disk stopped is a stationary pinhole grid at full brightness, so brightness and contrast look normal and nothing seems wrong. The texture gives it away: on the difference of a lit and an unlit frame, the largest off-centre term of the power spectrum over its median is orders of magnitude higher with a stationary grid than with smooth illumination, and a frame with no signal stays low.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "csuw1_disk_speed"
+    },
+    {
+      "kind": "device",
+      "id": "confocal_csuw1"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+  "grade": "E3",
+  "source_ref": "src_prior_lunf_first_light_20260902",
+  "validity_conditions": "Ruled TRANSFER, passed 10.3 rules 1 and 3: the observation and the method cross; the ratios, the grid period and the prior thresholds do not, because they sit in prose and a markdown table and because nobody here chose the thresholds (the microscope seat ruled them discard). Measured in another project on 2026-09-07 at 20x through both camera arms. Slot: A1 (artefacts) and O1 preflight -- the microscope already carries the method in its live checklist. Falsified by a stopped-disk frame whose spectrum is indistinguishable from a spinning one. Delivered as item `stopped_disk_looks_bright` of microscope_agent/findings/microscope-20260924-3-20260924.json at a5e7647 (card 044); the source was opened at fbedef0 and its sha256 matched before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

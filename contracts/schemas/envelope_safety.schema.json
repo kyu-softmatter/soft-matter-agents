@@ -262,6 +262,30 @@
         "exposure_time_max": {
           "$ref": "#/$defs/ceiling",
           "$comment": "SAMPLE. Dose is power times time; bounding one without the other bounds nothing."
+        },
+        "piezo_x_position_min": {
+          "$ref": "#/$defs/piezo_position_floor",
+          "$comment": "INSTRUMENT. The piezo stage's X axis, on controller channel 1 by the person's statement of 2026-09-24, a statement and not yet a reading. Device range -100 to 600 um; the person prefers 0 to 600 um. OPTIONAL IN THE SCHEMA, so the file stays valid without it, and REQUIRED AT USE: the piezo wrapper refuses every command on this axis while either end is absent, rather than defaulting to the device range. The two ends are required together (dependentRequired below), because half a range leaves the other side open."
+        },
+        "piezo_x_position_max": {
+          "$ref": "#/$defs/piezo_position_ceiling",
+          "$comment": "The high end of the piezo X axis. See piezo_x_position_min."
+        },
+        "piezo_y_position_min": {
+          "$ref": "#/$defs/piezo_position_floor",
+          "$comment": "INSTRUMENT. The piezo stage's Y axis, on controller channel 2 by the person's statement of 2026-09-24, a statement and not yet a reading. Device range -100 to 600 um; the person prefers 0 to 600 um. OPTIONAL IN THE SCHEMA, so the file stays valid without it, and REQUIRED AT USE: the piezo wrapper refuses every command on this axis while either end is absent, rather than defaulting to the device range. The two ends are required together (dependentRequired below), because half a range leaves the other side open."
+        },
+        "piezo_y_position_max": {
+          "$ref": "#/$defs/piezo_position_ceiling",
+          "$comment": "The high end of the piezo Y axis. See piezo_y_position_min."
+        },
+        "piezo_z_position_min": {
+          "$ref": "#/$defs/piezo_position_floor",
+          "$comment": "INSTRUMENT. The piezo stage's Z axis, on controller channel 3 by the person's statement of 2026-09-24, a statement and not yet a reading. Device range -100 to 600 um; the person prefers 0 to 600 um. OPTIONAL IN THE SCHEMA, so the file stays valid without it, and REQUIRED AT USE: the piezo wrapper refuses every command on this axis while either end is absent, rather than defaulting to the device range. The two ends are required together (dependentRequired below), because half a range leaves the other side open. Z IS A COLLISION AXIS, and a travel limit is not a clearance limit: which piezo-Z direction approaches the objective is unmeasured, and objective_clearance_min binds piezo Z as it binds ZDrive."
+        },
+        "piezo_z_position_max": {
+          "$ref": "#/$defs/piezo_position_ceiling",
+          "$comment": "The high end of the piezo Z axis. See piezo_z_position_min."
         }
       },
       "required": [
@@ -269,7 +293,27 @@
         "objective_clearance_min"
       ],
       "$comment": "Only the two P0 ranks highest are required. Requiring all six would mean nothing can be written until every one is settled, and then nobody starts the file -- the same argument that made carried_over legal. A limit that is absent is not permissive: the operator resolves it, finds nothing and refuses.",
-      "additionalProperties": false
+      "additionalProperties": false,
+      "dependentRequired": {
+        "piezo_x_position_min": [
+          "piezo_x_position_max"
+        ],
+        "piezo_x_position_max": [
+          "piezo_x_position_min"
+        ],
+        "piezo_y_position_min": [
+          "piezo_y_position_max"
+        ],
+        "piezo_y_position_max": [
+          "piezo_y_position_min"
+        ],
+        "piezo_z_position_min": [
+          "piezo_z_position_max"
+        ],
+        "piezo_z_position_max": [
+          "piezo_z_position_min"
+        ]
+      }
     },
     "ceiling": {
       "$ref": "#/$defs/limit",
@@ -293,6 +337,178 @@
         }
       ],
       "description": "A floor that may not be a lookup. Every other limit may be either, and this one may not, because what it is for is being independent of the lookup: a backstop that resolves the same way the thing it backs up resolves is not a backstop, it is a second copy of the same failure."
+    },
+    "piezo_position_floor": {
+      "type": "object",
+      "description": "The low end of one piezo axis's allowed position, in um, a constant and never a lookup. NOT a `limit`, deliberately, because `limit` refuses a value of zero or below: that rule is right for a magnitude and for a clearance floor, where zero means the front element may touch the coverslip, and wrong for a COORDINATE. The person's preferred range starts at 0 um and the device's own at -100 um, so inheriting it would refuse the person's limit. Everything else a limit carries is kept: the same `confirmation`, and `bounds` REQUIRED rather than optional, since these are new names and requiring it refuses no existing file. WHAT A SCHEMA CANNOT SAY: that the low end is on the right side of the high end. A consumer compares the pair before use.",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "const": "um"
+        },
+        "note": {
+          "type": "string"
+        },
+        "confirmation": {
+          "type": "object",
+          "description": "How this particular ceiling came to be in this file. Required per limit, not per file: a file-level `written_by` is the bulk stamp -- one signature covering twelve limits and saying which of them anyone actually checked. Librarian rule 10 already says a confirmation applied in bulk is not a confirmation, and if that holds for a KB entry it holds harder for the file P0 hands to deterministic code.\n\nCopying a limit from another document is NOT forbidden. Forbidding it would mean confirming every limit before the file can exist, and then nobody starts the file. What is required is that the two be DISTINGUISHABLE, so a later check can say `an unconfirmed limit is parameterising an irreversible action` (2.1 rule 3's shape), which today it cannot.\n\nThis is not a grade. 10.3 rule 4 keeps a limit a policy with no source and no grade, and that is unchanged: the ceiling is a decision about what is allowed. What is recorded here is the EVENT of confirming, and an event is something that happened rather than something claimed.",
+          "oneOf": [
+            {
+              "$comment": "Confirmed physically, outside the system, as 10.3 rule 4 requires.",
+              "properties": {
+                "kind": {
+                  "const": "physical"
+                },
+                "by": {
+                  "type": "string",
+                  "minLength": 2,
+                  "description": "who did it"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "how": {
+                  "type": "string",
+                  "minLength": 10,
+                  "description": "what was actually done. `confirmed` is not a how -- the point is that someone reading this later can tell whether the check would catch the thing the limit exists to catch."
+                }
+              },
+              "required": [
+                "kind",
+                "by",
+                "on",
+                "how"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "$comment": "Carried from another document without being re-confirmed here. Legal, and visibly so.",
+              "properties": {
+                "kind": {
+                  "const": "carried_over"
+                },
+                "from": {
+                  "type": "string",
+                  "minLength": 3,
+                  "description": "the document it was taken from"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "note": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "kind",
+                "from",
+                "on"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "bounds": {
+          "const": "min"
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "bounds",
+        "confirmation"
+      ],
+      "additionalProperties": false
+    },
+    "piezo_position_ceiling": {
+      "type": "object",
+      "description": "The high end of one piezo axis's allowed position, in um, a constant and never a lookup. NOT a `limit`, deliberately, because `limit` refuses a value of zero or below: that rule is right for a magnitude and for a clearance floor, where zero means the front element may touch the coverslip, and wrong for a COORDINATE. The person's preferred range starts at 0 um and the device's own at -100 um, so inheriting it would refuse the person's limit. Everything else a limit carries is kept: the same `confirmation`, and `bounds` REQUIRED rather than optional, since these are new names and requiring it refuses no existing file. WHAT A SCHEMA CANNOT SAY: that the high end is on the right side of the low end. A consumer compares the pair before use.",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "const": "um"
+        },
+        "note": {
+          "type": "string"
+        },
+        "confirmation": {
+          "type": "object",
+          "description": "How this particular ceiling came to be in this file. Required per limit, not per file: a file-level `written_by` is the bulk stamp -- one signature covering twelve limits and saying which of them anyone actually checked. Librarian rule 10 already says a confirmation applied in bulk is not a confirmation, and if that holds for a KB entry it holds harder for the file P0 hands to deterministic code.\n\nCopying a limit from another document is NOT forbidden. Forbidding it would mean confirming every limit before the file can exist, and then nobody starts the file. What is required is that the two be DISTINGUISHABLE, so a later check can say `an unconfirmed limit is parameterising an irreversible action` (2.1 rule 3's shape), which today it cannot.\n\nThis is not a grade. 10.3 rule 4 keeps a limit a policy with no source and no grade, and that is unchanged: the ceiling is a decision about what is allowed. What is recorded here is the EVENT of confirming, and an event is something that happened rather than something claimed.",
+          "oneOf": [
+            {
+              "$comment": "Confirmed physically, outside the system, as 10.3 rule 4 requires.",
+              "properties": {
+                "kind": {
+                  "const": "physical"
+                },
+                "by": {
+                  "type": "string",
+                  "minLength": 2,
+                  "description": "who did it"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "how": {
+                  "type": "string",
+                  "minLength": 10,
+                  "description": "what was actually done. `confirmed` is not a how -- the point is that someone reading this later can tell whether the check would catch the thing the limit exists to catch."
+                }
+              },
+              "required": [
+                "kind",
+                "by",
+                "on",
+                "how"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "$comment": "Carried from another document without being re-confirmed here. Legal, and visibly so.",
+              "properties": {
+                "kind": {
+                  "const": "carried_over"
+                },
+                "from": {
+                  "type": "string",
+                  "minLength": 3,
+                  "description": "the document it was taken from"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "note": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "kind",
+                "from",
+                "on"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "bounds": {
+          "const": "max"
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "bounds",
+        "confirmation"
+      ],
+      "additionalProperties": false
     }
   },
   "allOf": [

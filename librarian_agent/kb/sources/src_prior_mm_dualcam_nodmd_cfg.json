@@ -1,0 +1,12 @@
+{
+  "source_id": "src_prior_mm_dualcam_nodmd_cfg",
+  "kind": "prior_run",
+  "identifier": "agentic-microscope at main fbedef0: config/micromanager/dualcam_noDMD.cfg, lines 86-87, 101-105 and 134. sha256 0a4046e4686ea27ccdb3444b41ae734da8eb454219a6d1d84b7e3a815bdfb419, checked by this seat on 2026-09-24.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, grade_tag absent (prior_run has no place in the E3 grade_tag enum, as src_prior_filter_records records). A run taken in another project is not a run taken here, whatever it measured; confirming a fact on this instrument promotes it to E1 through a result card and supersedes the entry. An assertion there with no measurement behind it enters at E5 with a falsifier, under 10.2.1's downgrade.",
+  "delivered_by": "microscope-20260924-3, microscope_agent/findings/microscope-20260924-3-20260924.json at a5e7647 (card 044). The findings file grades nothing: this seat opened each document below at the named commit, matched its sha256 to the one the file gives, and read the passage each item cites before ruling it.",
+  "what_crossed": "That this configuration declares the combiner's blanking lines as a Micro-Manager digital-output device under an NIDAQ hub, which is a fact about the file and so about any session that loads it by path.",
+  "what_did_not": "The rest of the file. Loading a configuration by path is ruled piece by piece under 10.2.1 (plan.md, 'no fourth word for used where it sits'), and this entry rules only this device declaration.",
+  "caution": "A fact about one file at one commit. Whether a configuration loaded here carries the same declaration is read off that configuration, not off this entry.",
+  "license_note": "No text reproduced; facts restated and re-placed into this store's decomposition."
+}

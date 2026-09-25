@@ -1,0 +1,10 @@
+{
+  "source_id": "src_operator_recall_20260924",
+  "kind": "operator_recall",
+  "identifier": "Things the person (kyuhwan) stated from experience on 2026-09-24, as distinct from anything read at the instrument that day.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E5. A statement of how a program behaves, made from experience, is not a reading of the instrument; whether it is recall or reading is the person's to say, and nothing here says it was read.",
+  "license_note": "Identifier only.",
+  "provenance": "RELAYED, NOT HEARD HERE. The person said it in microscope-20260924-4's window; that seat relayed it to this one and recorded it on its checklist at e06512c (microscope_agent/src/tweezers_live_checklist.md, line 0a). The quotation is the seat's record of the person's words.",
+  "not_entered": "The same message relayed a second statement: that the 100x objective was in the path during that day's tweezers commands. Held with the eight observations from the same session, because whether the trapping laser was emitting during them is still unanswered and a sample was mounted."
+}

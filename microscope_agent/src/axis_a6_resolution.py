@@ -271,6 +271,27 @@ def _nyquist(responses: dict):
     return satisfying, failing, band, table
 
 
+# Questions whose A6 cards were written before these notes were computed. Their
+# history stays on them; it was emitted unconditionally until 2026-09-24, so the
+# first card of mic-20260924-001 described revisions, pins and a transport it
+# never had, and said its goal's only target was a decade on a diffusivity.
+HISTORY_QIDS = ("mic-20260918-001", "mic-20260919-001", "mic-20260920-001")
+
+
+def _sensor_pixels(responses: dict) -> tuple[str, int, int] | None:
+    """The sensor's pixel counts, if any served entry carries both."""
+    for eid, e in sorted(responses["entries"].items()):
+        nums = {n.get("name"): n.get("value") for n in (e.get("numbers") or [])}
+        if "sensor_pixels_x" in nums and "sensor_pixels_y" in nums:
+            return eid, nums["sensor_pixels_x"], nums["sensor_pixels_y"]
+    return None
+
+
+def _targets_said(goal: dict) -> str:
+    kinds = [f"{t.get('kind')} on {t.get('metric')}" for t in goal.get("targets", [])]
+    return ", ".join(kinds) if kinds else "none"
+
+
 def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str) -> axc.AxisRun:
     """Every inequality A6 owns, each with a constraint or a reason it has none."""
     run = axc.AxisRun(axis=AXIS, caller_id=caller_id, config=config, kb_version=pin,
@@ -339,8 +360,8 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                     f"The immersion indices arrived per medium and this axis reports which. "
                     f"Media with an index served: {sorted(served_media) or 'none'}. Media an "
                     f"objective on this turret uses and no index answers for: "
-                    f"{uncovered}. So depth_of_field closes for a lens in "
-                    f"{sorted(served_media) or 'no medium'} and stays open for one in "
+                    f"{uncovered}. So depth_of_field has its index for a lens in "
+                    f"{sorted(served_media) or 'no medium'} and lacks it for one in "
                     f"{uncovered} -- which is what task 024 said to expect, because an "
                     f"immersion oil is a specific product's specification rather than a "
                     f"universal constant, and the bottle on this bench is not identified. "
@@ -368,22 +389,20 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
             run.outcomes.append(axc.Outcome(
                 inequality_id=ineq.id, parameter=ineq.parameter, state="abstained",
                 kind="no_input", missing=missing,
-                reason="Half of this bound is fully served and the other half is empty. NA came "
-                       "back for all six objectives at E3, from 0.20 on the 4x to 1.45 on the "
-                       "100x, and it came back only because this axis asked by entry id: "
-                       "kb_query(observable=numerical_aperture) answers absent while six entries "
-                       "carry numbers[].name = na. What is missing is a wavelength -- asked "
-                       "under emission_wavelength and under wavelength, absent both times, and "
-                       "then looked for by id in the four entries at this pin that could "
-                       "plausibly hold a band: the dichroic slots, the port-is-the-splitter "
-                       "entry and the two shutter entries. None of the four carries a number. "
-                       "That is the second-name check 004 requires, finished -- and a required "
-                       "lateral resolution, "
-                       "which the goal does not state -- its one target is one decade on the "
-                       "diffusivity, and a decade on a diffusivity is not a length. Without "
-                       "lambda the spot size is not computable; without a required resolution "
-                       "there is no inequality to compare it against. Either input alone would "
-                       "still leave this abstaining, and neither is guessed (P5).",
+                reason=(
+                    f"NA is served for {len(run.numbers)} objectives at E3, from "
+                    f"{min(n['value'] for n in run.numbers)} to "
+                    f"{max(n['value'] for n in run.numbers)}. "
+                    + ("The wavelength side is the red arm's filter passband, served as a band "
+                       "(filter_ff01_595_31_32_passband, E3) rather than a peak, so a spot size "
+                       "is computable at each edge of it. "
+                       if "filter_ff01_595_31_32_passband" in served else
+                       "No wavelength is served, so no spot size is computable. ")
+                    + "What is missing is the other side of the inequality: a required lateral "
+                    "resolution, which is the question's to state and which this goal card does "
+                    f"not. Its targets are {_targets_said(goal)}, and none of those is a length. "
+                    "Neither side is guessed (P5)."
+                ),
             ))
             continue
 
@@ -398,6 +417,11 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                 ))
                 continue
             satisfying, failing, band, table = computed
+            edge = [name for name, _, _, _, pitch, lo, hi in table if lo < pitch <= hi]
+            verdicts: dict[float, set[bool]] = {}
+            for name, _, _, _, pitch, lo, _ in table:
+                verdicts.setdefault(pitch, set()).add(pitch <= lo)
+            split = [f"{pitch:.5f} um" for pitch, v in sorted(verdicts.items()) if len(v) == 2]
             basis = ["kb:filter_ff01_595_31_32_passband"]
             basis += sorted({f"kb:{obj}" for _, obj, _, _, _, _, _ in table})
             basis += sorted({f"kb:{pix}" for _, _, pix, _, _, _, _ in table})
@@ -414,40 +438,51 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
                     "basis": basis,
                 },
                 reason=(
-                    "This is the bound this axis said would close on one calibration per "
-                    "configuration, and it has. Twelve sample-plane pixel sizes at E2 measured on "
-                    "this instrument, six objective NAs at E3, and the red arm's passband at E3 "
-                    "are enough to compare a pixel against a diffraction-limited spot without "
-                    "back-deriving anything. " + rows + ". Four of twelve satisfy "
-                    "pixel <= lambda/(4*NA) at both edges of the band and eight fail at both; "
-                    "none is edge-dependent, so the band's width changes no verdict here. "
-                    "**The permitted thing is the pair and not the pixel size**, which is why "
-                    "this is a set and not an interval: 0.10833 um appears twice, at 40x with "
-                    "1.5x zoom and at 60x with 1x, and it satisfies in the first and fails in the "
-                    "second because the limit moves with NA. A bound stated on the length alone "
-                    "would be false for one of them whichever way it was written. "
-                    "**Magnification is not an input any more and that is the real change.** The "
-                    "earlier revision named it missing because the pixel size then available "
-                    "would have been a sensor pitch needing division by a magnification this "
-                    "instrument has never measured -- 5.3's 20.078x precedent. These twelve are "
-                    "measured at the sample plane already, so nothing is divided and the "
-                    "refusal that blocked this bound no longer applies to it."
+                    f"{len(table)} sample-plane pixel sizes at E2 measured on this instrument, "
+                    f"{len({obj for _, obj, _, _, _, _, _ in table})} objective NAs at E3 and the "
+                    "red arm's passband at E3 are enough to compare a pixel against a "
+                    "diffraction-limited spot without back-deriving anything. " + rows + ". "
+                    f"{len(satisfying)} of {len(table)} satisfy pixel <= lambda/(4*NA) at the "
+                    f"band's short edge; {len(failing)} do not"
+                    + (f", and {len(edge)} of those pass at the long edge only, so the band's "
+                       f"width decides them: {', '.join(sorted(edge))}" if edge else
+                       ", and none is edge-dependent, so the band's width changes no verdict")
+                    + ". **The permitted thing is the pair and not the pixel size**, which is why "
+                    "this is a set and not an interval"
+                    + (f": {', '.join(split)} appear with both verdicts, because the limit moves "
+                       "with NA" if split else "")
+                    + ". Magnification is not an input: these pixel sizes are measured at the "
+                    "sample plane, so nothing is divided by a magnification this instrument has "
+                    "never measured (5.3's 20.078x rule). Which pair the plan uses is S4's "
+                    "intersection with the pair the goal declares, not this axis's choice."
                 ),
             ))
             continue
             continue
 
         if ineq.id == "field_of_view":
+            sensor = _sensor_pixels(responses)
+            if sensor:
+                missing = [m for m in missing if m not in ("sensor_active_area", "magnification")]
+                reason = (
+                    f"The instrument side is served: {sensor[0]} gives the sensor as "
+                    f"{sensor[1]} by {sensor[2]} pixels, and the sample-plane pixel sizes are "
+                    "measured per objective-and-zoom pair, so the imaged field follows from "
+                    "those two without any magnification. `sensor_active_area` answers absent "
+                    "under that name and is not needed. What is missing is how much area has "
+                    "to be in frame at once, and that has to arrive on the goal card: how many "
+                    "tracers a measurement needs in view is A2's question, and 4.5.3 rule (b) "
+                    "forbids taking a sibling's output as input. It is not there."
+                )
+            else:
+                reason = (
+                    "The sensor's size is not served, magnification is a designation and not a "
+                    "number, and nothing on the goal card states how much area has to be in "
+                    "frame at once."
+                )
             run.outcomes.append(axc.Outcome(
                 inequality_id=ineq.id, parameter=ineq.parameter, state="abstained",
-                kind="no_input", missing=missing,
-                reason="Three inputs and none of them present. The sensor's active area is not "
-                       "in the store; magnification is the designation described above; and "
-                       "nothing states how much area has to be in frame at once. That last one "
-                       "is where this axis has to stop rather than reason: how many tracers a "
-                       "measurement needs in view is A2's question, and 4.5.3 rule (b) forbids "
-                       "taking a sibling's output as input, so the requirement can only arrive "
-                       "on the goal card. It is not there.",
+                kind="no_input", missing=missing, reason=reason,
             ))
             continue
 
@@ -470,38 +505,29 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
             continue
 
         if ineq.id == "depth_of_field":
+            lens_media = sorted({(e.get("identifiers") or {}).get("immersion")
+                                 for e in served.values()
+                                 if (e.get("identifiers") or {}).get("part_number")} - {None})
+            tracer_material = sorted(eid for eid in served
+                                     if eid.startswith("polystyrene_refractive_index"))
+            unserved = sorted(set(lens_media) - served_media)
+            reason = (
+                f"The lenses on this turret sit in {', '.join(lens_media) or 'no stated medium'}; "
+                f"an immersion index is served for {', '.join(sorted(served_media)) or 'none of them'}"
+                + (f" and not for {', '.join(unserved)}" if unserved else "")
+                + ". "
+                + (f"The {len(tracer_material)} polystyrene indices that also came back are the "
+                   "tracer's material, not a medium a lens sits in, so they answer another "
+                   "question and are not a fallback at any grade. " if tracer_material else "")
+                + "Even with every index and the band in hand this bound would not close here: "
+                "its other side is how far a tracer wanders axially over the record, which "
+                "depends on the record length, A2's parameter, and this axis does not take a "
+                "sibling's output as input (4.5.3 rule b). So it states what is missing and "
+                "leaves the intersection to S4."
+            )
             run.outcomes.append(axc.Outcome(
                 inequality_id=ineq.id, parameter=ineq.parameter, state="abstained",
-                kind="no_input", missing=missing,
-                reason="One of three inputs is present, and the split between the other two is "
-                       "worth reading. NA is served for all six objectives. The immersion medium "
-                       "is answered and its refractive index is not, and the second half needs "
-                       "saying precisely because the query does not say it: asking for "
-                       "`immersion` returns in_published_table, pointing at the devices table's "
-                       "immersion column, while asking for `refractive_index` returns EIGHT "
-                       "entries at E3 and every one of them is polystyrene -- the tracer's "
-                       "material, not the medium the lens sits in. The name is answered and the "
-                       "subject is not, and kb_query has no subject argument, so the server "
-                       "reports no gap at all and the discrimination is the caller's: its own "
-                       "description says to read `identifiers` on each row to tell a class "
-                       "apart. Asking from the subject side instead -- kb_query(water) -- "
-                       "returns the 40x water objective and nothing about water. So the store "
-                       "knows which medium each lens takes and holds no index for any of the "
-                       "three. A medium name is a string identifier; turning one into a "
-                       "number here would be this axis inventing knowledge, which P14 puts in "
-                       "the librarian's hands and P2 grades E6 and refuses. And the eight are "
-                       "not a fallback at any grade: a bead is not an immersion medium, so they "
-                       "are not a worse answer to this question, they are an answer to another "
-                       "one. One literature entry per medium closes it. The wavelength is the "
-                       "same input missing from lateral_resolution, and it is not independent "
-                       "of this one -- the index is dispersive, so pinning it at a measured "
-                       "wavelength may move this gap from absent to condition_mismatch rather "
-                       "than close it. Worth recording even if all three arrived: the "
-                       "requirement side is not available to this axis either, because how far a "
-                       "tracer wanders out of focus during a record is the diffusivity -- which "
-                       "is this question's observable, the thing being measured -- times the "
-                       "record length, which is A2's parameter. So this bound would still state "
-                       "a range and let S4 intersect it, rather than deciding it here.",
+                kind="no_input", missing=missing, reason=reason,
             ))
             continue
 
@@ -514,54 +540,57 @@ def evaluate(goal: dict, config: str, caller_id: str, responses: dict, pin: str)
     run.notes.append(
         "Answered by the librarian service rather than by reading the store, which is what makes "
         f"degraded empty here: {len(run.kb_refs)} entries came back with their own grades and "
-        f"{len(run.kb_gaps)} questions came back absent, all at the pinned {pin}, and every call "
-        "is in librarian_agent/queries/log.jsonl under this caller_id."
+        f"{len(run.kb_gaps)} questions came back without one, all at the pinned {pin}, and every "
+        "call is in librarian_agent/queries/log.jsonl under this caller_id."
         # A sentence here said the transport was a stdio client because the attached server
-        # had failed since 07:47:44Z. That was one session's circumstance on 2026-09-20 and
-        # every later run printed it as its own; how a run reached the service is not a
-        # constant of this file (task 032, 2026-09-24).
+        # had failed since 07:47:44Z. That was one session's circumstance on 2026-09-20, and
+        # keeping it for HISTORY_QIDS still prints it into every re-run of those questions,
+        # which reached the service however they did: the v3 and v6 fan-outs of 2026-09-24
+        # used the attached server. How a run reached the service is not a constant of this
+        # file (task 032).
     )
-    run.notes.append(
-        "The finding this axis exists to report: NA is in the store six times and the query for "
-        "it says absent. kb_query(observable=numerical_aperture) returns kind=absent at this "
-        "pin, while objective_mrd70040 and its five siblings each carry numbers[].name = na at "
-        "E3. Nothing is indexed under that observable name, so the query misses what the store "
-        "holds. A gap recorded off that query would have been false, and this card would have "
-        "been the second in this fan-out to carry one."
-    )
-    run.notes.append(
-        "001 and 004 both expected the diffraction limit to compute here, and it still does "
-        "not, but only half of the reason survives. The wavelength has arrived and it is a "
-        "band rather than a peak -- the red arm is position 3 and the filter there passes "
-        "579.5 to 610.5 nm, at E3 -- so the inputs the six objectives were said to carry are "
-        "now complete on the instrument side, and nyquist above computes from exactly them. "
-        "What is still missing is not the librarian's: a required lateral resolution is a "
-        "property of the question, and this goal card states no spatial target at all. Its "
-        "only target is one decade on a diffusivity, which is not a length. So the "
-        "diffraction limit is computable and there is nothing to compare it against."
-    )
-    run.notes.append(
-        "Revision 2 exists to finish the second-name check revision 1 could not. 004 requires it "
-        "because an empty kb_query is not evidence of absence in this store -- eight of ten such "
-        "calls missed knowledge held under another name. Every one of the five gaps here was "
-        "asked twice: under its own name, and then by entry id against whatever at this pin "
-        "could hold it. The wavelength and the index were the two left open, and both are now "
-        "settled as absent -- " + ", ".join(NEGATIVE_EVIDENCE) + " were fetched and none of "
-        "them carries a number. Nothing in the five verdicts moved; what moved is that they are "
-        "now checked rather than assumed."
-    )
-    run.notes.append(
-        "One answer came back as neither an entry nor an absence. `immersion` returns "
-        "in_published_table, naming the devices table in this agent's own snapshot and the "
-        "column, with a sha256. It is not recorded as a gap on this card, for two reasons worth "
-        "separating. The medium is already in hand from the six objective entries' identifiers, "
-        "so nothing here depends on the pointer. And the pointer does not resolve against this "
-        "agent's envelope: the served hash is the table as of the pinned kbv-49feb73662b7, while "
-        "envelope/snapshot.json holds kbv-67f9ad766d92, and the two tables differ. A caller that "
-        "pins an older version than its snapshot is told to look somewhere its own copy does not "
-        "match. That is a finding for the librarian and the manager, not something to bake into "
-        "a card as a hash nobody can verify."
-    )
+    if goal.get("qid") in HISTORY_QIDS:
+        run.notes.append(
+            "The finding this axis exists to report: NA is in the store six times and the query for "
+            "it says absent. kb_query(observable=numerical_aperture) returns kind=absent at this "
+            "pin, while objective_mrd70040 and its five siblings each carry numbers[].name = na at "
+            "E3. Nothing is indexed under that observable name, so the query misses what the store "
+            "holds. A gap recorded off that query would have been false, and this card would have "
+            "been the second in this fan-out to carry one."
+        )
+        run.notes.append(
+            "001 and 004 both expected the diffraction limit to compute here, and it still does "
+            "not, but only half of the reason survives. The wavelength has arrived and it is a "
+            "band rather than a peak -- the red arm is position 3 and the filter there passes "
+            "579.5 to 610.5 nm, at E3 -- so the inputs the six objectives were said to carry are "
+            "now complete on the instrument side, and nyquist above computes from exactly them. "
+            "What is still missing is not the librarian's: a required lateral resolution is a "
+            "property of the question, and this goal card states no spatial target at all. Its "
+            "only target is one decade on a diffusivity, which is not a length. So the "
+            "diffraction limit is computable and there is nothing to compare it against."
+        )
+        run.notes.append(
+            "Revision 2 exists to finish the second-name check revision 1 could not. 004 requires it "
+            "because an empty kb_query is not evidence of absence in this store -- eight of ten such "
+            "calls missed knowledge held under another name. Every one of the five gaps here was "
+            "asked twice: under its own name, and then by entry id against whatever at this pin "
+            "could hold it. The wavelength and the index were the two left open, and both are now "
+            "settled as absent -- " + ", ".join(NEGATIVE_EVIDENCE) + " were fetched and none of "
+            "them carries a number. Nothing in the five verdicts moved; what moved is that they are "
+            "now checked rather than assumed."
+        )
+        run.notes.append(
+            "One answer came back as neither an entry nor an absence. `immersion` returns "
+            "in_published_table, naming the devices table in this agent's own snapshot and the "
+            "column, with a sha256. It is not recorded as a gap on this card, for two reasons worth "
+            "separating. The medium is already in hand from the six objective entries' identifiers, "
+            "so nothing here depends on the pointer. And the pointer does not resolve against this "
+            "agent's envelope: the served hash is the table as of the pinned kbv-49feb73662b7, while "
+            "envelope/snapshot.json holds kbv-67f9ad766d92, and the two tables differ. A caller that "
+            "pins an older version than its snapshot is told to look somewhere its own copy does not "
+            "match. That is a finding for the librarian and the manager, not something to bake into "
+            "a card as a hash nobody can verify."
+        )
     run.notes.append(
         "constraints[] is empty and there is one candidate it could have held: the NA set. It is "
         "six discrete values and `interval` can only say a continuous range, so returning it "

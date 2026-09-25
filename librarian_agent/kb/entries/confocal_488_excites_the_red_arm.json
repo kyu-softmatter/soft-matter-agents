@@ -1,0 +1,28 @@
+{
+  "entry_id": "confocal_488_excites_the_red_arm",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "On the confocal path, 488 nm excitation produced signal in the red camera arm about as strongly as 561 nm did, and the red arm's signal was additive across the two lines. So assigning species on the red arm requires the lines to be strobed, not run together.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "laser_combiner"
+    },
+    {
+      "kind": "device",
+      "id": "camera_red"
+    },
+    {
+      "kind": "device",
+      "id": "confocal_csuw1"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+  "grade": "E3",
+  "source_ref": "src_prior_lunf_first_light_20260902",
+  "validity_conditions": "Ruled TRANSFER, passed 10.3 rules 1 and 3: the finding crosses, its contrast figures and additivity sum do not. Measured in another project on 2026-09-07 at 20x on its own sample, so the strength of the leak belongs to that sample's dye; this is an E3 fact about the path, not about any tracer here. Slot: A1 (background) and A4 (whether two lines may run at once for a two-colour plan). Falsified by a two-line confocal frame on the red arm with no 488 contribution. Delivered as item `confocal_488_leaks_into_red_arm` of microscope_agent/findings/microscope-20260924-3-20260924.json at a5e7647 (card 044); the source was opened at fbedef0 and its sha256 matched before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

@@ -1,0 +1,24 @@
+{
+  "entry_id": "csuw1_disk_speed_is_not_exposed_in_micromanager",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In the prior project's Micro-Manager configurations, the spinning-disk unit is reached as Hub, Filter_Red, Filter_Blue, Dichroic, Shutter, Bright Field and Port. No device there reports or sets the disk's rotation, so the disk period cannot be read from Micro-Manager with those configurations.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "csuw1_disk_speed"
+    },
+    {
+      "kind": "device",
+      "id": "confocal_csuw1"
+    }
+  ],
+  "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+  "grade": "E3",
+  "source_ref": "src_prior_lunf_first_light_20260902",
+  "validity_conditions": "Ruled TRANSFER, passed 10.3 rule 1 (E3, the device list of that project's configurations as of 2026-09-07). Slot: A1 -- csuw1_disk_speed_exposure_constraint requires an exposure to be an integer multiple of the disk period, and this says no device supplies the period through that route; it bears directly on the `disk_period` gap, asked for from three questions. Scope: those configurations and that adapter version. A different device adapter or configuration could expose the speed, and would falsify this for that configuration. Delivered as item `mm_exposes_no_disk_speed` of microscope_agent/findings/microscope-20260924-3-20260924.json at a5e7647 (card 044); the source was opened at fbedef0 and its sha256 matched before this was ruled.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

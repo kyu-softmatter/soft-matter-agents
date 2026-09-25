@@ -168,7 +168,7 @@ REPO = AGENT.parent
 
 def _git(*args: str) -> str:
     return subprocess.run(["git", "-C", str(REPO), *args],
-                          capture_output=True, text=True, check=True).stdout
+                          capture_output=True, text=True, encoding="utf-8", check=True).stdout
 
 
 def version_history() -> dict[str, str]:
@@ -224,13 +224,13 @@ class Store:
         # this seat wrote that in task 006 and then shipped a window anyway.
         self.entries: dict[str, dict] = {}
         for p in sorted((self.kb / "entries").glob("*.json")):
-            e = json.loads(p.read_text())
+            e = json.loads(p.read_text(encoding="utf-8"))
             self.entries[e["entry_id"]] = e
         fresh = kb_index.build(self.kb)
         self.index = fresh
         self.kb_version = fresh["kb_version"]
         index_path = self.kb / "index.json"
-        written = json.loads(index_path.read_text()) if index_path.exists() else {}
+        written = json.loads(index_path.read_text(encoding="utf-8")) if index_path.exists() else {}
         self.index_stale = written.get("kb_version") != self.kb_version
 
     # -- serving the version that was pinned, not the one we happen to be at -- #
@@ -654,7 +654,7 @@ def published_table_for(store: Store, caller_id: str, name: str) -> dict | None:
         published = store.kb / "exports"
         if published.exists():
             for snap_path in sorted(published.glob("snapshot_*.json")):
-                snapshots[snap_path.name] = snap_path.read_text()
+                snapshots[snap_path.name] = snap_path.read_text(encoding="utf-8")
     if not snapshots:
         return None
 
@@ -1395,9 +1395,9 @@ def _self_test() -> int:                                    # noqa: C901
         except ImportError:
             print("note: jsonschema not installed, so gap shape was not checked against the contract")
         else:
-            res = {f.name: Resource.from_contents(json.loads(f.read_text()))
+            res = {f.name: Resource.from_contents(json.loads(f.read_text(encoding="utf-8")))
                    for f in (CONTRACTS / "schemas").glob("*.json")}
-            gap_schema = json.loads((CONTRACTS / "schemas" / "common.schema.json").read_text())
+            gap_schema = json.loads((CONTRACTS / "schemas" / "common.schema.json").read_text(encoding="utf-8"))
             gv = jsonschema.Draft202012Validator(
                 {"$ref": "common.schema.json#/$defs/kb_gap", "$defs": gap_schema.get("$defs", {})},
                 registry=Registry().with_resources(res.items()))
@@ -1860,7 +1860,7 @@ def _self_test() -> int:                                    # noqa: C901
         problems = query_log.verify(log)
         if problems:
             bad(f"the query log did not audit clean: {problems}")
-        lines = [json.loads(x) for x in log.read_text().splitlines() if x.strip()]
+        lines = [json.loads(x) for x in log.read_text(encoding="utf-8").splitlines() if x.strip()]
         if {x["tool"] for x in lines} != set(TOOLS):
             bad(f"not every tool reached the log: {sorted({x['tool'] for x in lines})}")
 
@@ -1877,7 +1877,7 @@ def _self_test() -> int:                                    # noqa: C901
                 attempt()
             except Refused:
                 pass
-        after = [json.loads(x) for x in log.read_text().splitlines() if x.strip()]
+        after = [json.loads(x) for x in log.read_text(encoding="utf-8").splitlines() if x.strip()]
         if len(after) != before + 2:
             bad(f"two refusals produced {len(after) - before} records")
         refusals = [r for r in after[before:] if r.get("outcome") == "refused"]
@@ -2018,7 +2018,7 @@ def _self_test() -> int:                                    # noqa: C901
             if query_log.verify(p):
                 bad(f"{p.parent.name} did not audit clean: {query_log.verify(p)}")
         marks = [json.loads(x).get("unusable")
-                 for p in logs for x in p.read_text().splitlines() if x.strip()]
+                 for p in logs for x in p.read_text(encoding="utf-8").splitlines() if x.strip()]
         if [m for m in marks if m] != [[victim]]:
             bad(f"exactly the one skipping answer should carry `unusable` in the log, got {marks}")
 
@@ -2089,7 +2089,7 @@ def _self_test() -> int:                                    # noqa: C901
         # by the test is a guard that cries at other people's work. The
         # session stamp makes the question exact: did anything I did land
         # there.
-        if shared.exists() and SERVER_SESSION in shared.read_text():
+        if shared.exists() and SERVER_SESSION in shared.read_text(encoding="utf-8"):
             bad(f"the self-test wrote to {shared}, the log real callers are attributed by")
 
     print("self-test: ok" if ok else "self-test: FAILED")

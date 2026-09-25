@@ -54,6 +54,7 @@ sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.curdir) != _HERE]
 import argparse                                                  # noqa: E402
 import importlib.util                                            # noqa: E402
 import json                                                      # noqa: E402
+import math                                                      # noqa: E402
 from fractions import Fraction                                   # noqa: E402
 from dataclasses import dataclass, field                         # noqa: E402
 from datetime import datetime, timezone                          # noqa: E402
@@ -623,6 +624,142 @@ POWER_DOWN = {"ramp_down", "close_shutter", "disable", "blank"}
 ACQUIRE = {"acquire", "acquire_series", "snap", "stream"}
 
 
+# --------------------------------------------------------------------------- #
+# operation plans (plan.md 11-21, card 040): a move that verifies
+# --------------------------------------------------------------------------- #
+
+#: The interval between the writes of a RAMPED step. The schema gives a ramp a
+#: rate and no interval, so one is chosen here; it is written into every
+#: command it shapes, so the log says what paced the ramp. Not a limit.
+RAMP_DT_S = 0.005
+
+
+def _sine_point(move: dict, i: int) -> float:
+    """Point i of a sine, from the integer index -- never from an accumulated phase."""
+    c, a = float(move["centre_um"]), float(move["amplitude_um"])
+    phase = 2 * math.pi * i / int(move["points_per_period"])
+    start = move["start"]
+    if start == "minimum":
+        return c - a * math.cos(phase)
+    if start == "maximum":
+        return c + a * math.cos(phase)
+    return c + a * math.sin(phase)                               # centre, rising
+
+
+def _start_point(move: dict) -> float:
+    return _sine_point(move, 0)
+
+
+def readback_tolerance(plan: dict) -> dict:
+    """The plan's own tolerance for a read-back, from targets[position_readback_error]."""
+    for t in plan.get("targets", []) or []:
+        if t.get("metric") == "position_readback_error" and t.get("unit") == "um":
+            return {"value": t.get("value"), "unit": "um",
+                    "from": "targets[position_readback_error]"}
+    raise Refusal("an operation plan states no position_readback_error target in um, so no "
+                  "read-back could be judged; condition 4 needs one")
+
+
+def derive_operation(plan: dict) -> list[orch.Command]:
+    """operation.moves -> one command per move, each carrying every point it will send.
+
+    A step is one absolute write, or a ramp of writes paced from the integer
+    index when it names `ramp_um_per_s` -- starting from the previous move's
+    target on that axis, because a ramp needs a known start and a position read
+    at run time would make the points depend on something not in the plan. A
+    sine is `cycles * points_per_period` writes, point i at t0 + i * dt. The
+    move before a sine on its axis must be a step to exactly the sine's start.
+    Every point is checked against the envelope before anything is sent, by
+    check_operation_points below.
+    """
+    op = plan["operation"]
+    device = op.get("device", "")
+    actions = {a.get("id"): a for a in plan.get("actions", []) or []}
+    tolerance = readback_tolerance(plan)
+    last_target: dict[str, float] = {}
+    commands: list[orch.Command] = []
+    for move in op.get("moves", []) or []:
+        mid, axis, kind = move.get("id"), move.get("axis"), move.get("kind")
+        action = actions.get(mid)
+        if action is None or action.get("device") != device:
+            raise Refusal(f"operation.moves[{mid}] has no action of the same id on {device!r}; "
+                          "the move and the action that approves it must name each other")
+        if action.get("reversible") is not True:
+            raise Refusal(f"operation.moves[{mid}] is not marked reversible; an operation plan "
+                          "carries reversible moves only (condition 6)")
+        if kind == "step":
+            target = float(move["target_um"])
+            rate = move.get("ramp_um_per_s")
+            if rate:
+                if axis not in last_target:
+                    raise Refusal(f"operation.moves[{mid}] ramps from an unknown start: a ramp "
+                                  "has to follow a move on the same axis")
+                start = last_target[axis]
+                n = max(1, math.ceil(abs(target - start) / (float(rate) * RAMP_DT_S)))
+                points = [[i, start + (target - start) * i / n] for i in range(1, n + 1)]
+                dt = RAMP_DT_S
+            else:
+                points, dt = [[0, target]], RAMP_DT_S
+            last_target[axis] = target
+        elif kind == "sine":
+            if last_target.get(axis) != _start_point(move):
+                raise Refusal(f"operation.moves[{mid}] starts at its {move['start']} "
+                              f"({_start_point(move)} um) and the move before it on {axis} does "
+                              f"not end there ({last_target.get(axis)!r})")
+            ppp, n = int(move["points_per_period"]), int(move["cycles"]) * int(move["points_per_period"])
+            dt = float(move["period_s"]) / ppp
+            points = [[i, _sine_point(move, i)] for i in range(1, n + 1)]
+            last_target[axis] = points[-1][1]
+        else:
+            raise Refusal(f"operation.moves[{mid}] has kind {kind!r}, which is neither step nor sine")
+        commands.append(orch.Command(
+            channel=device, action="move_trajectory",
+            params={"trajectory": {"move_id": mid, "axis": axis, "dt_s": dt, "points": points,
+                                   "from": f"operation.moves[{mid}]"},
+                    "tolerance_um": tolerance},
+            from_field=f"operation.moves[{mid}]",
+            tier=int(action.get("tier", 1)),
+        ))
+    return commands
+
+
+def check_operation_points(plan: dict, commands: list[orch.Command], safety: dict) -> list[dict]:
+    """Every derived point against the envelope, before the first is sent (condition 2).
+
+    Check 86 checks the plan statically; this checks what was actually derived.
+    A missing limit refuses. A point outside refuses, and if the plan claimed
+    `inside` that is a disagreement between the plan and its derivation, said
+    as one.
+    """
+    limits: dict[str, dict] = {}
+    for target in safety.get("targets") or []:
+        limits.update({k: v for k, v in (target.get("limits") or {}).items()
+                       if k.startswith("piezo_")})
+    claimed = (plan.get("envelope_check") or {}).get("status")
+    out, bad = [], []
+    for command in commands:
+        traj = command.params["trajectory"]
+        axis = traj["axis"]
+        lo = limits.get(f"piezo_{axis}_position_min", {})
+        hi = limits.get(f"piezo_{axis}_position_max", {})
+        if lo.get("unit") != "um" or hi.get("unit") != "um" or lo.get("value") is None \
+                or hi.get("value") is None:
+            raise Refusal(f"{command.from_field}: envelope/safety.json has no piezo_{axis}_position "
+                          "min and max in um; a missing limit refuses (condition 2)")
+        xs = [x for _, x in traj["points"]]
+        outside = [x for x in xs if not (lo["value"] <= x <= hi["value"])]
+        out.append({"plan_field": command.from_field, "axis": axis, "points": len(xs),
+                    "min_um": min(xs), "max_um": max(xs),
+                    "limit_um": [lo["value"], hi["value"]], "inside": not outside})
+        if outside:
+            bad.append(f"{command.from_field}: {len(outside)} point(s) outside "
+                       f"{lo['value']} to {hi['value']} um")
+    if bad:
+        raise Refusal(("the plan says its points are inside the envelope and its derivation "
+                       "disagrees: " if claimed == "inside" else "") + "; ".join(bad))
+    return out
+
+
 def derive_commands(plan: dict) -> list[orch.Command]:
     """plan.json -> commands, mechanically.
 
@@ -630,6 +767,8 @@ def derive_commands(plan: dict) -> list[orch.Command]:
     parameter cannot name its origin does not go out; orchestrator.Command
     refuses to be built without one.
     """
+    if "operation" in plan:
+        return derive_operation(plan)
     numbers = {n["name"]: n for n in plan.get("numbers", [])}
     commands: list[orch.Command] = []
 
@@ -747,8 +886,22 @@ def compile_monitors(plan: dict) -> list[Monitor]:
     """
     numbers = {n["name"]: n for n in plan.get("numbers", [])}
     monitors = []
+    targets = {t.get("metric"): t for t in plan.get("targets", []) or []}
     for criterion in plan.get("stop_criteria", []) or []:
         name = criterion.get("number")
+        if name is None and criterion.get("target") in targets:
+            # An operation plan's criteria point at its own targets -- the
+            # read-back tolerance is a decision the person approved, not a
+            # number with a grade -- and plan.schema.json lets them.
+            target = targets[criterion["target"]]
+            comparator = criterion.get("comparator")
+            if comparator not in COMPARATORS:
+                raise Refusal(f"stop criterion {criterion.get('id')!r} uses comparator {comparator!r}, which is not machine readable")
+            monitors.append(Monitor(
+                id=criterion.get("id", criterion["target"]), metric=criterion.get("metric", ""),
+                comparator=comparator, limit=target.get("value"), unit=target.get("unit", ""),
+                statement=criterion.get("statement", "")))
+            continue
         if name not in numbers:
             raise Refusal(f"stop criterion {criterion.get('id')!r} points at {name!r}, which is not in numbers[]")
         comparator = criterion.get("comparator")
@@ -786,6 +939,12 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None) -> di
     safety = load_safety()                       # refuses when absent
     decision = authorise(plan)
     tier = highest_tier(plan)
+    if "operation" in plan and not decision.permitted:
+        # Condition 3 of an operation plan: each move approved by the person,
+        # whatever tier its actions carry. A Tier 1 move of a stage is still a
+        # move of a stage.
+        raise Refusal(f"operation plan {plan.get('id')} is not approved: "
+                      + "; ".join(decision.reasons))
     if tier >= 2 and not decision.permitted:
         raise Refusal(
             f"plan {plan.get('id')} reaches Tier {tier} and is not approved: "
@@ -833,9 +992,16 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None) -> di
     for comparison in check_envelope(plan, resolutions):
         o.record(event="limit_compared", **comparison)
 
+    # Card 033: the whole plan is refused here if any command reaches outside
+    # what software may command, before preflight touches anything.
+    # Card 040 item 4: the allow-list over everything it binds, and for an
+    # approved operation plan's piezo X/Y moves the derived-point envelope
+    # check instead -- both inside check_software_motion_for, one call, so no
+    # caller can lift the one without running the other.
+    o.check_software_motion_for(plan, commands)
     o.preflight(sorted({c.channel for c in commands}))
     o.snapshot("before")
-    dispatched = o.dispatch(commands)
+    dispatched = o.dispatch(commands, plan=plan)
 
     # A COMMAND THAT DID NOT HAPPEN STOPS THE PLAN. dispatch's return value
     # was read by nobody, so a refusal inside it left no mark on the run's

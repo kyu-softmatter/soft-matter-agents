@@ -149,6 +149,18 @@ asked for both, and attached the condition that makes it safe: **nothing is
 transplanted as it stands.** Anything that claimed more than it knew is
 trusted less here, and anything that does not help is dropped.
 
+**On 2026-09-24 the person opened it for the upgrade**, at
+`C:\agentic_microscope` on the microscope computer: every `plan.md` §10.2 row
+that applies to it is open from that day, including the two that were
+waiting on a condition. **Looking is not taking.** The ruling below still
+applies to every item that crosses, the condition above was not lifted,
+§10.3 stands whole, and **no safety limit crosses**, however well measured
+it looks over there. That repository writes its safety content into comments
+beside the settings it governs: `FocusDirection` in its configuration files
+carries a retract-direction account, for one. Such a comment is still a
+safety limit and still stays behind. The other three prior repositories stay
+closed.
+
 **Read the difference between the branches before reading either branch.**
 What changed from `main` to `version2` is a record of what did not work the
 first time, and it is the one reading that gives the most while inheriting the
@@ -194,20 +206,23 @@ looked at and did not take is a line here** — that is the whole point of the
 file, and the line costs less than the argument about why the drop was
 invisible.
 
-**You cannot write that file today, and this seat caused that.** The
-paragraph above said the sibling file was yours; the deny list then closed
-`tasks/**` to you, because that is where descending instruction lives and a
-seat that can edit its own orders has none. Both are this seat's and they
-contradict. Until it is resolved, **report your rulings up in the same
-sentence that reports the task, and `manager-microscope` writes them into
-`tasks/NNN-rulings.md`** — the judgement stays yours and is attributed to
-you; only the hand that writes it changes.
+**Write your rulings to `microscope_agent/rulings.jsonl`, one line each,
+attributed to your seat.** That ledger has been open since `7eee404`, and
+it is the fix the paragraph that stood here asked for: a place for rulings
+that is not `tasks/`. You cannot write `tasks/**`, because that is where
+descending instruction lives, and a seat that can edit its own orders has
+none. The ledger is outside it. A `tasks/NNN-rulings.md` written by a manager
+from your report still counts, and several exist. Use the ledger for new
+work, so the judgement and the hand that writes it are the same seat.
 
-Do not resolve it by asking for an allow rule. Deny wins over allow in this
+The words are **transfer**, **downgrade** and **discard**, and there is no
+fourth (`plan.md` 10.2.1 at `32e2263`). An artifact loaded where it sits, a
+configuration file read by path, still crosses and is ruled piece by piece.
+The older lines in the ledger say `drop`; read it as `discard`.
+
+Do not ask for an allow rule on `tasks/`. Deny wins over allow in this
 harness, and cards and rulings share the `NNN-` prefix, so a glob that
-separated them would be one rename away from failing open. The real fix is a
-directory that is not `tasks/`, which is §7.1 and therefore architecture's;
-it is raised.
+separated them would be one rename away from failing open.
 
 One precedent, already caught: the prior project's `20.078x`. A nominal
 magnification wearing a value back-derived from a calibrated pixel size — a

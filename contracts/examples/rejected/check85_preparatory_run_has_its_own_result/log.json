@@ -1,0 +1,59 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260924-906",
+  "plan_id": null,
+  "revision": null,
+  "no_plan_because": "EXAMPLE. A preparatory run: no plan fitted it, because the only plan for this measurement was written for another objective and its axis ranges were computed for that configuration, so citing them would launder them (11-21).",
+  "approved_commands": {
+    "path": "D:/soft-matter-agents-frames/run-20260924-901/commands.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "approved_by": "the person, in words, before any light"
+  },
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "4",
+  "stop_criteria": [],
+  "t0_wall": "2026-09-24T00:00:00+00:00",
+  "t0_mono": 100.0,
+  "backend": "micromanager",
+  "time_base_note": "REJECTED GROUP, with result.json beside it. Individually this log is a sound preparatory run; the defect is the result card naming it as its own run. A preparatory run produces no result of its own (11-21 condition 4).",
+  "events": [
+    {
+      "t_mono": 0.0,
+      "time_base": "software",
+      "event": "not_dispatched",
+      "note": "this run did not come through the plan dispatcher"
+    },
+    {
+      "t_mono": 0.1,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "GREEN_Intensity": {
+          "value": "50",
+          "from": "approved_commands[1]"
+        }
+      },
+      "verification": "readback"
+    },
+    {
+      "t_mono": 0.2,
+      "time_base": "software",
+      "event": "acquire",
+      "channel": "Kinetix_red",
+      "action": "snap"
+    },
+    {
+      "t_mono": 0.3,
+      "time_base": "software",
+      "event": "shutdown",
+      "reason": "finished"
+    }
+  ],
+  "finished_at": "2026-09-24T00:00:01+00:00"
+}

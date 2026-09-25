@@ -1,0 +1,8 @@
+{
+  "source_id": "src_pymmcore_plus_0_18_1_source",
+  "kind": "vendor_spec",
+  "identifier": "pymmcore-plus 0.18.1 as installed on this computer: C:\\Users\\Takatori lab\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\pymmcore_plus\\core\\_mmcore_plus.py, sha256 12eef1d98aa1719f7536045cf24c91b876b9326f5f3998c4a5a6c04019b98f54, read by this seat on 2026-09-24.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, grade_tag vendor_spec: a library's own source, read at the version installed. Not a measurement taken here; its consequence was observed in run-20260924-001.",
+  "delivered_by": "microscope-20260924-1, microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042), item pymmcore_plus_singleton_is_weak."
+}

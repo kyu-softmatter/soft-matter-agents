@@ -1,0 +1,97 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "id": "plan-mic-20260924-921-r1",
+  "qid": "mic-20260924-921",
+  "thread": "solo-mic-20260924-921",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-24T12:00:00Z",
+  "status": "DRAFT",
+  "numbers": [],
+  "degraded": [],
+  "purpose": "verify",
+  "intent": "confirm",
+  "operation": {
+    "device": "piezo_stage",
+    "verifies": "REJECTED FIXTURE. An operation plan carrying an observable, which is the full pipeline's field. The schema refuses it (check 1).",
+    "falsified_by": "the image moves along Y, or does not move, or the read-back after the step differs from the target by more than the tolerance",
+    "read_back": "before_and_after_each_move",
+    "moves": [
+      {
+        "id": "step_x_out",
+        "axis": "x",
+        "kind": "step",
+        "target_um": 310,
+        "role": "verify_mapping"
+      },
+      {
+        "id": "step_x_back",
+        "axis": "x",
+        "kind": "step",
+        "target_um": 300,
+        "role": "return"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "id": "step_x_out",
+      "device": "piezo_stage",
+      "action": "move_absolute",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "step_x_back",
+      "device": "piezo_stage",
+      "action": "move_absolute",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [
+      "piezo_x_position_min",
+      "piezo_x_position_max"
+    ],
+    "status": "inside"
+  },
+  "targets": [
+    {
+      "metric": "position_readback_error",
+      "kind": "uncertainty",
+      "value": 1,
+      "unit": "um",
+      "note": "the person's decision for this operation"
+    }
+  ],
+  "stop_criteria": [
+    {
+      "id": "sc_readback",
+      "metric": "position_readback_error",
+      "comparator": ">",
+      "target": "position_readback_error",
+      "on_met": "fault",
+      "statement": "stop if a read-back after a move differs from its target by more than the tolerance"
+    }
+  ],
+  "success_criteria": [
+    {
+      "id": "ok_mapping",
+      "metric": "position_readback_error",
+      "comparator": "<=",
+      "target": "position_readback_error",
+      "statement": "each move read back within tolerance, and the image moved along X"
+    }
+  ],
+  "open_risks": [
+    "the piezo-Z direction is unmeasured; this plan commands no Z"
+  ],
+  "observable": {
+    "name": "tracer_brightness"
+  }
+}

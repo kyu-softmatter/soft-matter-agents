@@ -1,0 +1,21 @@
+{
+  "artifact": "findings",
+  "schema_version": "0.1",
+  "seat": "microscope-20260924-9",
+  "on": "2026-09-24",
+  "delivered_to": "librarian_agent",
+  "items": [
+    {
+      "id": "camera_serial_behind_label",
+      "fact": "EXAMPLE. The camera Micro-Manager labels Kinetix_red reports serial A24M723015.",
+      "kind": "self_report",
+      "how": "read back from the camera's SerialNumber property during the run",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-002"
+      },
+      "for_store": true,
+      "note": "REJECTED FIXTURE. A self-report that names its run but not the event it came from, so the librarian cannot find the reading. The schema refuses it (check 1)."
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "source_id": "src_run_20260924_004_piezo_readonly",
+  "kind": "measured",
+  "identifier": "microscope_agent/runs/run-20260924-004/log.json, the read-only first contact with the piezo controller over COM4 on 2026-09-24 by microscope-20260924-2: a preparatory run (plan_id null), sending only .get commands from microscope_agent/runs/run-20260924-004/commands.json, which the person approved by sha256 (f508160e...) before it ran. Committed at 03e0cd2; read by this seat at a0fda99, where it is unchanged.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E1 for a device's report of itself: this system read it, in a run with a run_id, so the recorded event is the measurement event rule 9 asks for. Not a measurement of a registered observable -- 11-21 condition 4 bars those from a preparatory run, and check 85 fails any store number named as one that cites this run.",
+  "what_was_entered": "the controller's and stage's identity, software and library versions, axis labels, calibrated range, rest positions, command-path settings and security level.",
+  "what_was_not": "the analogue command scaling (60), because the controller reports no unit for it and a number without a unit cannot enter (P2); held until the unit is known. The approval and bench events are the run's own record and not knowledge.",
+  "delivered_by": "microscope-20260924-2, microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043)."
+}

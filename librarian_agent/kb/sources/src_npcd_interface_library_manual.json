@@ -1,0 +1,10 @@
+{
+  "source_id": "src_npcd_interface_library_manual",
+  "kind": "vendor_spec",
+  "identifier": "Queensgate/Prior NPC-D Series Digital Controller Interface Library, document revision 6.0, for DLL 2.7.9: NPC-D_Series_Digital_Controller_Interface_Library_2.7.9.pdf, section 4.3.7 'Controller emulator'. Read by this seat from the copy in C:\\agentic_microscope\\manual\\Piezo Stage\\, sha256 88da6849c45ae1349582eccb8c4cddffef8330b7e2189088559c99178f137ccb. The prior repository is where the document was found, not the source (10.3 rule 2).",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, grade_tag vendor_spec. A published specification is not a measurement taken here.",
+  "caution": "The manual is for DLL 2.7.9. microscope-20260924-2 reports the library on this computer as 2.8.1, from a run log this seat has not been able to read; if that holds, the manual is for an earlier release than the one installed.",
+  "delivered_by": "microscope-20260924-2, microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043).",
+  "license_note": "No text reproduced beyond a short identifier; facts restated."
+}
