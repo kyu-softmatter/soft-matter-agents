@@ -112,6 +112,13 @@ and should read as such.
 
 A script in `librarian_agent/src/` renders
 `librarian_agent/kb/guides/safety_<device_id>.md` from the entries and gaps.
+**When this was first filed the commit gate refused `kb/guides/`**, and
+librarian-20260924-2 found it. It has been allowed since `9e2cf98`, flat files
+only. `plan.md` §7 does not name the folder yet. That line is architecture's,
+and it was requested after architecture had closed, so **the request lives
+here**: *"kb/guides/<name>.md — generated person-facing pages, rendered from
+entries and gaps, never hand-edited; outside kb_version, which hashes
+kb/entries/ only."* Check 55 is one-way, so its absence blocks nothing.
 Markdown is generated and never hand-edited, so a correction goes into an
 entry and the guide is regenerated. Each guide has:
 
