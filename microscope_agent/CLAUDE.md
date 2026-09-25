@@ -538,6 +538,20 @@ not that sample — it is particles without it — so it does not spend the one
 mount. Say so, or the pre-measurement looks like it costs the thing it is
 protecting.
 
+**Brightness over time on a drifting sample is never read through a mask
+fixed at frame 0.** Use a whole-frame total, or track each particle. Found
+the hard way on 2026-09-24 by `microscope-20260924-1`: run `-002` showed a
+19% "fade" in 60 s that was particles drifting off a frame-0 mask. Over the
+whole frame the same run stays within 1%. The five-minute run `-006` measured
+the drift, a median of 17 px (about 5.5 µm at 20x), with some particles
+leaving the field. **And normalise to the settled level, not to frame 0**:
+just after the Aura's `State` goes to 1, the total sits about 3.5% below
+where it settles within 5 s, so a curve normalised to frame 0 starts with a
+rise that is the source, not the sample. Evidence: findings at `ac20ee4`,
+run `-006` at `adb57f4`. **A drift that large also bounds the bleaching
+measurement more than the bleaching does**, so card 034's design has to
+bound drift first.
+
 ## What the operator still owes, and what each one unlocks
 
 Kept here rather than in a card because these are not missing values -- a

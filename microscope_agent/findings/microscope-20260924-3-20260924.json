@@ -214,18 +214,6 @@
       "note": "E3 at most, as a fact about that configuration. Lifting either name in micromanager.py opens this route; the manager is recording that beside the allow-list."
     },
     {
-      "id": "eyepiece_path_mapping_unmeasured",
-      "fact": "UNMEASURED: which states of the stand's light_path_port send the image to the eyepieces. No store entry, no device-table field and no prior-project record read today gives it. So the confocal wrapper counts every state as reaching the eyepieces.",
-      "kind": "unmeasured",
-      "how": "Read the light_path_port element of stand_ti2e in librarian_agent/kb/staging/devices.v0.json, and searched the contents of every file in librarian_agent/kb/staging and librarian_agent/kb/entries for 'eyepiece' and 'ocular': no hits.",
-      "source": {
-        "type": "document",
-        "path": "librarian_agent/kb/staging/devices.v0.json"
-      },
-      "for_store": true,
-      "note": "A named gap, not a value: it closes at the bench with the person, by the state's integer and with the lamp only. Listed so the next session does not look for it as though it were known."
-    },
-    {
       "id": "confocal_wrapper_unreachable_by_router",
       "fact": "The router cannot reach the confocal wrapper. The device table's driver for laser_combiner begins 'split:', so its head token names no file, and the orchestrator sends every read_back false channel to manual.py.",
       "kind": "document_fact",
@@ -236,6 +224,55 @@
       },
       "for_store": false,
       "note": "A fact about this repository's code and registry, not about the world. The driver value went to the librarian and the routing question to architecture. lunf.py stays unreachable until architecture answers."
+    },
+    {
+      "id": "confocal_561_level_1v_run009",
+      "fact": "For run-20260924-009 the person set the confocal combiner's 561 nm line in NIS to 1 V, which NIS showed as 20% of the 0-5 V range, before NIS was force-killed. The level was never read by software; it is the person's statement.",
+      "kind": "person_statement",
+      "how": "Said by the person in chat during the run: first '20% on 561nm', then 'it was 1V, i checked'.",
+      "source": {
+        "type": "person",
+        "recorded_at": "the message of the commit that adds this item to this file"
+      },
+      "for_store": false,
+      "note": "Not a calibration and not an observable: the setting a run stood on, kept so a later reading of that run knows the level. Nothing was enabled in that run, so no light was produced at it."
+    },
+    {
+      "id": "mm_load_hung_after_nis_force_kill",
+      "fact": "After NIS was force-killed, Micro-Manager's configuration load did not return, twice: the dual-camera configuration (without its DAQ devices and startup preset) for about six minutes in run-20260924-009, and the Ti2 stand alone, with no camera, confocal unit, light engine or DAQ device, for about two minutes in run-20260924-010. The same stand devices loaded in about 3 s in run-20260924-008, after NIS had been closed normally. So what does not answer after the kill is the stand's own connection.",
+      "kind": "document_fact",
+      "how": "run-20260924-009's log: the kill at events[7], the close-all at events[9], then no load event until the stop at events[10]. run-20260924-010's log: the kill, the close-all, load_start, then no load event until the stop. run-20260924-008's load event (events[2]) for the comparison.",
+      "source": {
+        "type": "document",
+        "path": "microscope_agent/runs/run-20260924-009/log.json"
+      },
+      "for_store": true,
+      "note": "The prior project reports loading a configuration of the same shape after a force-kill on 2026-09-07, so something differs now. Untried: reconnecting or power-cycling the stand's controller after the kill. After run-20260924-009 the person restarted NIS and it worked normally. The person deferred confocal work on 2026-09-24 by about a month."
+    },
+    {
+      "id": "blanking_lines_free_right_after_nis_kill",
+      "fact": "Within about 1.6 s of NIS being force-killed, all four of the combiner's blanking lines (Dev1/port0 lines 2, 4, 6, 8) could be reserved and written from Python through NI-DAQmx; every write returned without error. The writes were not read back, and no light was produced, so what the lines did is not established.",
+      "kind": "document_fact",
+      "how": "run-20260924-009's log: the kill at events[7] (t 68.06 s), the reserve-only probe ready at events[8] (t 69.69 s), the close-all writes at events[9]; the second close-all in the recovery step at events[12].",
+      "source": {
+        "type": "document",
+        "path": "microscope_agent/runs/run-20260924-009/log.json"
+      },
+      "for_store": true,
+      "note": "It confirms the prior project's claim that the kill frees the port, here. It does not confirm the line map or polarity: those still wait for a lit frame."
+    },
+    {
+      "id": "csuw1_reports_no_disk_speed_here",
+      "fact": "Loaded through Micro-Manager on this computer, the CSU-W1's devices (Hub, Shutter, Bright Field, Port, Dichroic, both filter wheels) expose no property that reports the spinning disk's speed. The only 'Speed' properties are the two filter wheels', which is wheel speed.",
+      "kind": "self_report",
+      "how": "run-20260924-008 read every property of each CSU-W1 device and listed those whose names mention speed, rpm, motor, rotation or disk.",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-008",
+        "event_index": 4
+      },
+      "for_store": true,
+      "note": "events[4] to [10] carry the seven devices; the index given is the first. It confirms here what the prior project recorded, so the disk period still has no source."
     }
   ]
 }

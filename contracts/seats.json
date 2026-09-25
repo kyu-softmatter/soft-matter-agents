@@ -610,6 +610,82 @@
       ],
       "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
       "note": "The librarian manager session the person opened on 2026-09-24, beside librarian-20260924-1 and -2. The person told the architecture session directly that they made one manager session and one agent session. The session first called itself manager-librarian, an undated identity a previous session holds commits under; a vacated identity is not inherited, and since the dated form an undated name registered later is refused by check 84, so it takes this one. It was opened in librarian_agent/, where that agent's own settings deny Write and Edit on tasks/, CLAUDE.md and .claude/ -- exactly the paths this seat writes -- so it belongs at the repository root. owns, paths, excludes and the contracts fields copied by code from manager-librarian; n is 1."
+    },
+    {
+      "seat": "bridge-20260924-1",
+      "committer_email": "bridge-20260924-1@seat.invalid",
+      "owns": [
+        "bridge"
+      ],
+      "note": "The bridge execution session the person opened on the evening of 2026-09-24 (local), in bridge/. The person told the architecture session directly that they opened it. It first introduced itself as 'the bridge' with no dated name; a vacated identity is not inherited and an undated name registered now is refused by check 84, so it takes this one. Registered before its first commit; the person names it in its own window. `owns` copied by code from bridge-20260923-1; n is 1, first bridge seat of this local date."
+    },
+    {
+      "seat": "manager-bridge-20260924-1",
+      "committer_email": "manager-bridge-20260924-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "bridge/CLAUDE.md",
+        "bridge/.claude/",
+        "bridge/tasks/",
+        "bridge/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/seats.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/schemas/round_hashes.schema.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "The bridge manager session the person asked for on the evening of 2026-09-24 (local), registered BEFORE the session existed on the person's instruction in the architecture session -- the shape of 3a136e5 that morning -- so its first commit attributes. It belongs at the repository root, not in bridge/, whose own settings deny a manager's paths. The person names it in its own window. If no session takes it, it carries no commits and can be withdrawn. owns, paths, excludes and the contracts fields copied by code from manager-bridge; n is 1."
+    },
+    {
+      "seat": "manager-simulation-20260924-1",
+      "committer_email": "manager-simulation-20260924-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "simulation_agent/CLAUDE.md",
+        "simulation_agent/.claude/",
+        "simulation_agent/tasks/",
+        "simulation_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "note": "The simulation manager session the person opened on the evening of 2026-09-24 (local), at the repository root, for the next day's first simulation-experiment comparison (plan.md 11-23). The person told the architecture session directly. Registered before its first commit; the person names it in its own window. owns, paths, excludes and the contracts fields copied by code from manager-simulation-20260923-1, so the registry exclusion carries over; n is 1."
+    },
+    {
+      "seat": "simulation-20260924-1",
+      "committer_email": "simulation-20260924-1@seat.invalid",
+      "owns": [
+        "simulation_agent"
+      ],
+      "note": "The simulation execution session the person opened on the evening of 2026-09-24 (local), in simulation_agent/, beside manager-simulation-20260924-1. The person told the architecture session directly. Registered before its first commit; the person names it in its own window. `owns` copied by code from simulation-20260923-3; n is 1."
+    },
+    {
+      "seat": "microscope-20260924-6",
+      "committer_email": "microscope-20260924-6@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "note": "The sixth microscope execution session of 2026-09-24 (local), opened by the person that evening for the 'sim to real' work: the next day's asymmetric double well with one particle held by the optical tweezers, tested against the simulation (plan.md 11-23). The person told the architecture session directly. The first session opened for it ran in a Claude scratch workspace rather than microscope_agent/, so it loaded none of the agent's instructions, settings or boundary; the name belongs to whichever session the person seats in microscope_agent/. Registered before its first commit. `owns` copied by code from microscope-20260924-5; n is 6."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",

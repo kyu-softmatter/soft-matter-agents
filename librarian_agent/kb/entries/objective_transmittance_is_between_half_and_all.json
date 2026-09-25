@@ -1,0 +1,41 @@
+{
+  "entry_id": "objective_transmittance_is_between_half_and_all",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Each of the six objectives on this nosepiece transmits between 50 and 100 percent of the light at 488, 561 and 640 nm and at 1000 nm, by the person's reading of Nikon's published transmittance graphs.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "nosepiece"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "objective_transmittance_min",
+      "value": 0.5,
+      "unit": "1",
+      "source": "operator_read:kyuhwan_20260924_transmittance_graphs",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "a band read by the person, not a value"
+    },
+    {
+      "name": "objective_transmittance_max",
+      "value": 1.0,
+      "unit": "1",
+      "source": "operator_read:kyuhwan_20260924_transmittance_graphs",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "a band read by the person, not a value"
+    }
+  ],
+  "source": "operator_read:kyuhwan_20260924_transmittance_graphs",
+  "grade": "E3",
+  "grade_tag": "operator_read",
+  "source_ref": "src_operator_read_20260924_transmittance_graphs",
+  "validity_conditions": "The six models as Nikon publishes them (MRD70040, MRD70170, MRD70270, MRD77400, MRD71670, MRD71970), graphs held in kb/sources/. A band, answered yes by the person to a question put as a band, so it supports an order of magnitude and nothing finer. Glass only: it says nothing about how much of a laser beam an objective's back aperture accepts. The person ruled that the 1000 nm value stands in for 1064 nm for rough estimates; for the 40x, whose curve is still falling at 1000 nm, that is an assumption that it stays above half at 1064.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-1"
+}

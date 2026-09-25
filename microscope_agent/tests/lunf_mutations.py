@@ -31,11 +31,19 @@ MUTATIONS = {
     "limit gate off": (
         [('    if COVERING_LIMIT is None:\n        return ("the person',
           '    return None\n    if COVERING_LIMIT is None:\n        return ("the person')],
-        ["test_no_enable_without_limit", "test_no_enable_with_limit_named_but_absent",
-         "test_no_enable_with_unconfirmed_limit"]),
-    "a covering limit shipped without the person": (
-        [('COVERING_LIMIT: str | None = None', 'COVERING_LIMIT: str | None = "illumination_power_max"')],
-        ["test_the_shipped_module_names_no_covering_limit"]),
+        ["test_no_enable_without_limit", "test_no_enable_with_either_end_absent",
+         "test_no_enable_with_unconfirmed_limit", "test_no_enable_on_an_inverted_range"]),
+    "only the first end of the pair checked": (
+        [('    for name in COVERING_LIMIT:\n', '    for name in COVERING_LIMIT[:1]:\n'),
+         ('    if ends[0] > ends[1]:', '    if len(ends) < 2:')],
+        ["test_no_enable_with_either_end_absent"]),
+    "an inverted range accepted": (
+        [('    if ends[0] > ends[1]:', '    if False:')],
+        ["test_no_enable_on_an_inverted_range"]),
+    "a different covering limit shipped": (
+        [('COVERING_LIMIT: tuple[str, str] | None = ("laser_combiner_command_voltage_min",',
+          'COVERING_LIMIT: tuple[str, str] | None = ("optical_power_max",')],
+        ["test_the_shipped_module_names_the_persons_voltage_pair"]),
     "approval gate off": (
         [('    if _APPROVED is None or not', '    return None\n    if _APPROVED is None or not')],
         ["test_no_enable_on_a_clean_readback_alone"]),
@@ -92,6 +100,10 @@ MUTATIONS = {
           '                row.update(written=False, error=repr(exc))\n'
           '                report["blanked"].append(row)\n                break\n')],
         ["test_abort_reports_a_failed_line_and_blanks_the_rest"]),
+    "an abort reported as a closed beam": (
+        [('              "beam": ASSUMED_ON, "barrier": None,\n',
+          '              "beam": "off", "barrier": None,\n')],
+        ["test_a_blind_laser_is_assumed_on_after_any_command"]),
     "held lines written anyway": (
         [('    if not free:\n        return f"the digital lines are not free',
           '    if False:\n        return f"the digital lines are not free')],

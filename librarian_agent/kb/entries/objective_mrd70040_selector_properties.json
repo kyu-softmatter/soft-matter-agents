@@ -1,0 +1,43 @@
+{
+  "entry_id": "objective_mrd70040_selector_properties",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Nikon lists the CFI Plan Apochromat Lambda D 4X (MRD70040) as a Plan Apochromat objective, primary technique Brightfield, air, for 0-0.17 mm cover glass, with no correction collar listed, no spring-loaded front listed, Ti2-E PFS compatible; applications marked: Clinical / Laboratory, Confocal, Research.",
+  "identifiers": {
+    "part_number": "MRD70040",
+    "nominal_magnification": "4x"
+  },
+  "numbers": [
+    {
+      "name": "cover_glass_thickness_min",
+      "value": 0.0,
+      "unit": "mm",
+      "source": "spec:MRD70040",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "cover_glass_thickness_max",
+      "value": 0.17,
+      "unit": "mm",
+      "source": "spec:MRD70040",
+      "grade": "E3",
+      "precision": "significant_figures"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "device",
+      "id": "nosepiece"
+    }
+  ],
+  "source": "spec:MRD70040",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_nikon_objective_selector_pages",
+  "validity_conditions": "The model as Nikon publishes it on https://www.microscope.healthcare.nikon.com/products/optics/selector/comparison/-179794, read 2026-09-24. Technique ratings as the page words them: Brightfield: recommended for best results; Fluorescence (visible): recommended for best results; Fluorescence (NIR): recommended for best results. NA and working distance are in objective_mrd70040 and are not repeated here. A property the page leaves blank is not listed, which is not the same as the page saying the objective lacks it.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-1"
+}

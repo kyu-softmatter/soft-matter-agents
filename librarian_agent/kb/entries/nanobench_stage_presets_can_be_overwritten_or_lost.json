@@ -1,0 +1,21 @@
+{
+  "entry_id": "nanobench_stage_presets_can_be_overwritten_or_lost",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In NanoBench, storing a stage calibration preset overwrites the settings held in it, and deleting a preset from the stage's memory cannot be undone.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "piezo_stage"
+    }
+  ],
+  "source": "spec:nanobench_6000_user_manual_v1_0_19",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_nanobench_6000_user_manual",
+  "validity_conditions": "Read from Nanobench 6000 Customer Interface Software User Manual, PS-000006-UM issue 4 / v1.0.19 (sha256 2acb47b5...): printed page 29 (PDF page 29). E3 vendor_spec: the manufacturer's statement, not an observation on this bench. These manuals are for the controller's software; the archive holds no hardware manual for the stage or the controller. KNOWLEDGE, NOT POLICY: this is what the manufacturer says. What any session may do, and every limit anyone here acts on, is the person's, written into the envelope after confirming it on the instrument.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

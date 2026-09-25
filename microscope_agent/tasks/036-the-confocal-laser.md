@@ -15,13 +15,19 @@ and **checked live only with the bench handed to you by the person.**
 
 ## This is a hazard to people first
 
-**No laser line is enabled from software, in either phase, until the person
-has said which limit covers the confocal lines.** `optical_power_max` in
-`envelope/safety.json` is the **trapping** laser's dial range, measured at
-the sample plane, and says nothing about these lines. `illumination_power_max`
-exists in the schema and is unwritten. Which one covers these lines, and at
-what value, is the person's to decide and to write. Nothing from the prior
-project or from a model enters that file.
+**No laser line is enabled from software, in either phase, until the
+person's limit for these lines is in `envelope/safety.json`.** **The person
+has said which limit it is (2026-09-24): the command voltage, 0 to 5 V**,
+*"we can only change the voltage on the confocal unit from 0-5V, as a
+limit. we don't need to keep the mW in safety purpose."* The schema names it
+`laser_combiner_command_voltage_min` / `_max` (`79f44bc`). **Until the
+person's file carries that pair, no line is enabled from software.** Your
+wrapper sends no power command outside it, and none while either end is
+absent. The mW at the sample is a calibration, in the store as
+`confocal_power_at_sample_*`, and is **not** a limit. `optical_power_max` is
+the trapping laser's, and says nothing about these lines. Only the person
+writes that file, and nothing from the prior project or from a model enters
+it.
 
 **And no laser line is enabled while the light path can reach the
 eyepieces.** That is `plan.md` 2.1 rule 11, written on 2026-09-24 when this

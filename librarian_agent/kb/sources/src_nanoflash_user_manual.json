@@ -1,0 +1,89 @@
+{
+  "source_id": "src_nanoflash_user_manual",
+  "kind": "vendor_spec",
+  "identifier": "Queensgate/Prior NanoFlash Reflash Application User Manual, the piezo controller's firmware tool. C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/User Manuals/NanoFlash Reflash Application - User Manual.pdf, sha256 98fbdbf682d916a3254320a2b8e6a654e7500f25880fea485128338df48cc1b2, file date 2024-03-21, 19 PDF pages.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, grade_tag vendor_spec.",
+  "url_note": "Referenced in place, not copied: the vendor's copyright.",
+  "license_note": "No manual prose is reproduced in any entry.",
+  "read": "its safety page (PDF 2, the same text as the NPC-D interface library manual's) and its statements on interrupted and wrong-version programming (PDF 5, 13).",
+  "safety_entries": {
+    "nanoflash_interrupted_reprogramming_is_recoverable": [
+      {
+        "document": "NanoFlash Reflash Application User Manual",
+        "printed_page": 5,
+        "pdf_page": 5
+      },
+      {
+        "document": "NanoFlash Reflash Application User Manual",
+        "printed_page": 13,
+        "pdf_page": 13
+      }
+    ],
+    "npcd_connectors_are_static_sensitive": [
+      {
+        "document": "NPC-D Series Controller Interface Library manual (revision 6.0)",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "NanoFlash Reflash Application User Manual",
+        "printed_page": 2,
+        "pdf_page": 2
+      }
+    ],
+    "npcd_controller_covers_must_stay_on": [
+      {
+        "document": "NPC-D Series Controller Interface Library manual (revision 6.0)",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "NanoFlash Reflash Application User Manual",
+        "printed_page": 2,
+        "pdf_page": 2
+      }
+    ],
+    "npcd_controller_generates_hazardous_voltages": [
+      {
+        "document": "NPC-D Series Controller Interface Library manual (revision 6.0)",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "NanoFlash Reflash Application User Manual",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "Nanobench 6000 User Manual (issue 4)",
+        "printed_page": 5,
+        "pdf_page": 5
+      }
+    ],
+    "npcd_operating_environment": [
+      {
+        "document": "NPC-D Series Controller Interface Library manual (revision 6.0)",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "NanoFlash Reflash Application User Manual",
+        "printed_page": 2,
+        "pdf_page": 2
+      }
+    ],
+    "npcd_switch_off_and_unplug_when_not_in_use": [
+      {
+        "document": "NPC-D Series Controller Interface Library manual (revision 6.0)",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "NanoFlash Reflash Application User Manual",
+        "printed_page": 2,
+        "pdf_page": 2
+      }
+    ]
+  }
+}

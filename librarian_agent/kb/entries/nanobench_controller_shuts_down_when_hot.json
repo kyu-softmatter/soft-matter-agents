@@ -1,0 +1,21 @@
+{
+  "entry_id": "nanobench_controller_shuts_down_when_hot",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The piezo controller performs a safety shutdown if parts of its circuit board get hot enough to be damaged, and shows it on an over-temperature light. The first thing to check is that its air vents are not covered; if it recurs with the vents clear, the manufacturer asks to be contacted.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "piezo_stage"
+    }
+  ],
+  "source": "spec:nanobench_6000_user_manual_v1_0_19",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_nanobench_6000_user_manual",
+  "validity_conditions": "Read from Nanobench 6000 Customer Interface Software User Manual, PS-000006-UM issue 4 / v1.0.19 (sha256 2acb47b5...): printed page 9 (PDF page 9), printed page 16 (PDF page 16). E3 vendor_spec: the manufacturer's statement, not an observation on this bench. These manuals are for the controller's software; the archive holds no hardware manual for the stage or the controller. KNOWLEDGE, NOT POLICY: this is what the manufacturer says. What any session may do, and every limit anyone here acts on, is the person's, written into the envelope after confirming it on the instrument.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

@@ -1,7 +1,39 @@
 # 036 — catalogue the lab's manual archive, and a safety guide per device
 
-status: **open** · issued 2026-09-24 by manager-librarian, on the person's
-instruction of the same day
+status: **open** · issued 2026-09-24 by manager-librarian-20260924-1 (committed under the undated `manager-librarian` at `4e21f59` and `4395e82`, see below), on the person's
+instruction of the same day · **assigned to librarian-20260924-2** (below)
+
+## Who takes it, and two corrections to this file as first committed
+
+**Assigned to librarian-20260924-2, by the person.** Earlier that day the person
+had answered librarian-20260924-1 with *"let's do this in session2"*, and that
+session did not know which session was meant; its handoff is the
+`not_yet_catalogued` list in `src_aresis_tweez300_manuals` (`19930b6`). Asked
+by this seat at about 17:10 -0700, the person chose between the second
+librarian session, keeping it with the first, and a new session, and answered:
+**"Second librarian session".** librarian-20260924-1 keeps
+microscope-20260924-4's findings intake.
+
+**The pixel-size work was not uncommitted when this was filed.** It landed at
+`19930b6` and was published at `3b52868`; the last piece,
+`tweez300_does_not_restore_last_project`, landed at `21f49e8`, published
+`f039683`. The instruction below to finish it first is void.
+
+**The person's words on the edition, and when.** Before that, the person had
+told librarian-20260924-1 directly to record both editions and decide later.
+The ruling below was asked in the manager-librarian-20260924-1 session and answered
+**before 13:21 -0700 on 2026-09-24** (this file's first commit, `4e21f59`).
+It was a multiple-choice question and the person's answer is the option they
+chose, verbatim. The question was: *"There are two editions of each
+optical-tweezers safety manual on this computer. The copies installed with
+the tweezers software are dated 2022-11-02; the copies in the Desktop Setup
+folder are dated 2021-11. Earlier today you said to record both and decide
+later. Which edition should the tweezers safety guide follow?"* The answer
+was **"Installed (2022-11)"**. The option's description, written by this
+seat: *"The later copies installed with the tweezers software. The guide cites
+these and notes that the 2021 edition exists."* The answer reached the
+librarian only through this file, so the `person_ruling` source cites this
+file and says the ruling was relayed.
 
 ## GOAL
 
@@ -80,6 +112,13 @@ and should read as such.
 
 A script in `librarian_agent/src/` renders
 `librarian_agent/kb/guides/safety_<device_id>.md` from the entries and gaps.
+**When this was first filed the commit gate refused `kb/guides/`**, and
+librarian-20260924-2 found it. It has been allowed since `9e2cf98`, flat files
+only. `plan.md` §7 does not name the folder yet. That line is architecture's,
+and it was requested after architecture had closed, so **the request lives
+here**: *"kb/guides/<name>.md — generated person-facing pages, rendered from
+entries and gaps, never hand-edited; outside kb_version, which hashes
+kb/entries/ only."* Check 55 is one-way, so its absence blocks nothing.
 Markdown is generated and never hand-edited, so a correction goes into an
 entry and the guide is regenerated. Each guide has:
 
@@ -106,7 +145,7 @@ a manual title and a page. Put a single line at the bottom giving the
   device, and not while a fan-out is pinned mid-flight. Check the query log
   for in-flight pins first.
 - Name files when committing, not `librarian_agent/`. Another librarian
-  session has uncommitted pixel-size work in the same tree.
+  session works in the same tree.
 - Nothing crosses into any envelope. If a guide exposes a limit the
   envelope lacks, **report it up**, and the person decides.
 

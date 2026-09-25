@@ -1,0 +1,29 @@
+{
+  "entry_id": "tweez_microscope_interlock_blocks_the_laser_at_the_eyepieces",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The Nikon Ti2's own interlock switch is triggered whenever light could enter the eyepieces -- when the light path selector is set to the eyepieces -- and it is wired to the tweezers' optical unit, so that laser operation is disabled in that position. The manufacturer calls it an additional measure: an infrared filter already keeps the laser out of the eyepiece path. If the interlock cable is disconnected, laser operation is disabled. The Ti2's interlock works only while the microscope is powered, and with the microscope off, tweezers laser operation is disabled too.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    },
+    {
+      "kind": "device",
+      "id": "stand_ti2e"
+    },
+    {
+      "kind": "device",
+      "id": "light_path_port"
+    }
+  ],
+  "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_aresis_tweez300_manuals",
+  "validity_conditions": "Read from Tweez 305/310 Laser Safety Manual V3.0, November 2022, as installed in C:/Program Files/Aresis/Tweez300/Manuals/ (sha256 264ab54b...): printed page 7 (PDF page 9). Also Tweez 305/310 System Installation Guide, 2021 (sha256 1f664a72..., byte-identical in the installed folder and the lab archive): printed page 12 (PDF page 16). E3 vendor_spec: the manufacturer's statement, not an observation on this bench. Which light-path positions send light to the eyepieces is the open gap light_path_port_eyepiece_states; the Ti2 Control manual's port list narrows it (ti2e_optical_path_addresses). KNOWLEDGE, NOT POLICY: this is what the manufacturer says. What any session may do, and every limit anyone here acts on, is the person's, written into the envelope after confirming it on the instrument.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

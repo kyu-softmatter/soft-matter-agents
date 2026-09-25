@@ -1,8 +1,9 @@
 """The confocal laser combiner, `laser_combiner`: four lines, blanking only.
 
-Card 036, phase A. **Nothing here has touched the hardware.** The only
-transport that exists is `MockTransport`; the NI-DAQmx one is not written,
-and with no transport bound every function reports not-ready or refuses.
+Card 036. Two transports: `MockTransport`, which the tests use, and
+`NiDaqTransport`, which writes the real lines and loads the driver only when
+first called. With no transport bound every function reports not-ready or
+refuses; nothing picks a transport by default.
 
 It implements preflight / apply / read / abort, knows only itself and imports
 nothing from the agent (7.2 rule 5). Unlike micromanager.py it DOES hold
@@ -43,16 +44,16 @@ light-path read-back with any other gate failing still refuses.
 
 1. **The person's limit for these lines.** `optical_power_max` in
    `envelope/safety.json` is the trapping laser's dial range at the sample
-   plane and says nothing about these lines. Which limit covers them, and at
-   what value, is the person's to decide; `COVERING_LIMIT` is `None` until
-   the person has said. A named limit absent from the file refuses; one
-   present but not confirmed physically refuses too, because an unconfirmed
-   limit does not parameterise an exposure a person's eye can take.
+   plane and says nothing about these lines. The person decided on
+   2026-09-24 that the limit is the **command voltage** on the combiner's
+   power input, 0 to 5 V, written as `laser_combiner_command_voltage_min`
+   and `_max` (`COVERING_LIMIT`). Either end absent refuses, either end not
+   confirmed physically refuses, and an inverted pair refuses.
 
    **This gate cannot compare anything against the limit.** Power is not
    transmitted, so this file never knows the level: it is whatever was last
-   set by hand. The gate checks that the person's decision exists. That the
-   level honours it is the person's to set before the bench.
+   set by hand in the vendor program. The gate checks that the person's
+   decision exists. That the level honours it is the person's to set.
 
 2. **The approved command list names this enable.** `bind_approval` takes
    the list a person approved and who approved it; the enable must appear in
@@ -96,6 +97,11 @@ knows which level closes a line, and it says so rather than guessing.
 
 ## abort
 
+**The beam is assumed on after any command, blanking included**, until
+something readable shows it blocked; `read` and `abort` say `beam:
+assumed_on`, never off, and `barrier: None`, because nothing this file
+reaches reads back.
+
 Blanks **every mapped line**, not only the ones this file opened, and reports
 one row per line. Recorded as written, not read back: `verification: none`.
 It cannot close the fiber shutter at the source, which nothing here reaches
@@ -112,11 +118,17 @@ from pathlib import Path
 BACKEND = "lunf"
 CHANNEL = "laser_combiner"
 
-#: The person's answer to "which limit covers the confocal lines". None until
-#: given. Naming a limit here is not a value and grants nothing by itself: the
-#: named limit must then be present in envelope/safety.json and confirmed
-#: physically, and it is read from the file at every enable.
-COVERING_LIMIT: str | None = None
+#: The person's answer to "which limit covers the confocal lines", given on
+#: 2026-09-24 and written into envelope/safety.json at policy 7: the command
+#: voltage on the combiner's power input, 0 to 5 V, and not the power at the
+#: sample (the mW readings are a calibration, in the store). Naming the pair
+#: here grants nothing by itself: both ends must be present in the file,
+#: confirmed physically and in order, read from the file at every enable.
+#: This wrapper sends no voltage -- power is set by hand in the vendor
+#: program -- so the gate checks that the decision exists, not that a level
+#: honours it.
+COVERING_LIMIT: tuple[str, str] | None = ("laser_combiner_command_voltage_min",
+                                           "laser_combiner_command_voltage_max")
 
 #: Read at every enable, never cached. Tests point it elsewhere.
 ENVELOPE_PATH = Path(__file__).resolve().parents[2] / "envelope" / "safety.json"
@@ -133,6 +145,14 @@ _APPROVED_BY: str | None = None
 _BENCH: dict | None = None
 _LOG = None
 _COMMANDED: dict[str, str] | None = None
+
+#: What this file reports about the beam after ANY command to it, blanking
+#: included (card 036 at b285223, plan.md at 66e3d83): a blind laser is
+#: assumed on until something readable -- a shutter that reads back, the light
+#: path read back, or the person -- shows the beam blocked. Nothing this file
+#: reaches can show that, so `barrier` is always None here; a caller that
+#: reads a barrier reports it itself.
+ASSUMED_ON = "assumed_on"
 
 
 class LaserRefused(RuntimeError):
@@ -217,21 +237,29 @@ def _limit_refusal(enable: list[str]) -> str | None:
     if COVERING_LIMIT is None:
         return ("the person has not said which limit in envelope/safety.json covers the "
                 "confocal lines. optical_power_max is the trapping laser's dial range and does "
-                "not cover them, and illumination_power_max is unwritten")
+                "not cover them")
     try:
         envelope = json.loads(Path(ENVELOPE_PATH).read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
         return f"envelope/safety.json could not be read ({exc}), so no limit can be found"
     limits = next((t.get("limits") or {} for t in envelope.get("targets") or []
                    if t.get("target") == BENCH_TARGET), {})
-    limit = limits.get(COVERING_LIMIT)
-    if not isinstance(limit, dict):
-        return (f"{COVERING_LIMIT!r} is named as covering the confocal lines and is not in "
-                f"envelope/safety.json under target {BENCH_TARGET!r}")
-    kind = (limit.get("confirmation") or {}).get("kind")
-    if kind != "physical":
-        return (f"{COVERING_LIMIT!r} is present with confirmation {kind!r}, not 'physical'. "
-                "An unconfirmed limit does not parameterise a laser exposure")
+    ends = []
+    for name in COVERING_LIMIT:
+        limit = limits.get(name)
+        if not isinstance(limit, dict):
+            return (f"{name!r} covers the confocal lines and is not in envelope/safety.json "
+                    f"under target {BENCH_TARGET!r}; both ends are required together")
+        kind = (limit.get("confirmation") or {}).get("kind")
+        if kind != "physical":
+            return (f"{name!r} is present with confirmation {kind!r}, not 'physical'. "
+                    "An unconfirmed limit does not parameterise a laser exposure")
+        if not isinstance(limit.get("value"), (int, float)) or isinstance(limit.get("value"), bool):
+            return f"{name!r} carries no numeric value"
+        ends.append(limit["value"])
+    if ends[0] > ends[1]:
+        return (f"the covering range is inverted: {COVERING_LIMIT[0]} {ends[0]} is above "
+                f"{COVERING_LIMIT[1]} {ends[1]}")
     return None
 
 
@@ -392,9 +420,12 @@ def read() -> dict:
     with _LOCK:
         commanded = dict(_COMMANDED) if _COMMANDED is not None else None
     return {"state": None, "commanded": commanded, "verification": "none",
+            "beam": ASSUMED_ON if commanded is not None else None, "barrier": None,
             "aborted": _ABORTED, "backend": BACKEND,
             "note": ("a digital-output read-back would be this program's own echo, not the "
-                     "shutter's state, so nothing here is reported as state")}
+                     "shutter's state, so nothing here is reported as state. After any "
+                     "command the beam is assumed on until something readable shows it "
+                     "blocked, and nothing this file reaches can show that")}
 
 
 def abort() -> dict:
@@ -403,6 +434,7 @@ def abort() -> dict:
     _ABORTED = True
     lines, _, closed_level, missing = _wiring(_ROW)
     report = {"aborted": True, "backend": BACKEND, "verification": "none", "blanked": [],
+              "beam": ASSUMED_ON, "barrier": None,
               "not_reachable": ("the fiber shutter at the source: nothing here reaches it, "
                                 "and it stays open when its controlling program dies")}
     if _TRANSPORT is None or missing:
@@ -420,7 +452,8 @@ def abort() -> dict:
             report["blanked"].append(row)
         _COMMANDED = {r["line"]: "closed" for r in report["blanked"] if r["written"]}
     report["note"] = (f"{sum(r['written'] for r in report['blanked'])} of {len(lines)} lines "
-                      "written closed; none read back")
+                      "written closed; none read back, so the beam is still assumed on. A "
+                      "blanking command that returned is not a closed beam")
     return report
 
 
@@ -432,6 +465,79 @@ def reset() -> None:
         _ABORTED, _ROW, _TRANSPORT, _PATH_READER = False, None, None, None
         _EYEPIECE_FREE, _COMMANDED = {}, None
         _APPROVED, _APPROVED_BY, _BENCH, _LOG = None, None, None, None
+
+
+class NiDaqTransport:
+    """The blanking lines through NI-DAQmx, by ctypes. Opens nothing until called.
+
+    Ruled transfer from the prior project as a shape (rulings.jsonl, card
+    036): one digital line written at one level, the task created, written,
+    stopped and cleared per write; and a reserve-only probe that asks whether
+    a line is free without writing a level. The driver is found by name on
+    the system search path, not by a path carried over. No figure crosses:
+    which physical line is which laser, and which level opens it, come from
+    the channel row, never from here.
+
+    A write that returns is NOT a read-back: the level is this program's own
+    command, and the combiner reports nothing (lunf_reports_nothing_back).
+    """
+
+    _RESERVE, _UNRESERVE, _CHAN_PER_LINE, _GROUP_BY_CHANNEL = 4, 5, 0, 0
+
+    def __init__(self, library: str = "nicaiu"):
+        self._library = library
+        self._dll = None
+
+    def _d(self):
+        if self._dll is None:
+            import ctypes
+            self._dll = ctypes.WinDLL(self._library)
+        return self._dll
+
+    def _check(self, rc: int, where: str) -> None:
+        if rc >= 0:
+            return
+        import ctypes
+        buf = ctypes.create_string_buffer(2048)
+        self._d().DAQmxGetExtendedErrorInfo(buf, ctypes.c_uint32(2048))
+        msg = buf.value.decode(errors="replace").strip().split("\n")[0]
+        raise OSError(f"{where} rc={rc}: {msg}")
+
+    def lines_free(self, digital_lines: list[str]) -> tuple[bool, str]:
+        """Reserve each line and let it go again. Writes no level."""
+        import ctypes
+        d = self._d()
+        for line in digital_lines:
+            task = ctypes.c_void_p()
+            if d.DAQmxCreateTask(b"", ctypes.byref(task)) < 0:
+                return False, f"could not create a task to probe {line}"
+            try:
+                if d.DAQmxCreateDOChan(task, line.encode(), b"",
+                                       ctypes.c_int32(self._CHAN_PER_LINE)) < 0:
+                    return False, f"{line} could not be opened as a digital output"
+                if d.DAQmxTaskControl(task, ctypes.c_int32(self._RESERVE)) < 0:
+                    return False, f"{line} is reserved by another program"
+                d.DAQmxTaskControl(task, ctypes.c_int32(self._UNRESERVE))
+            finally:
+                d.DAQmxClearTask(task)
+        return True, ""
+
+    def write_level(self, digital_line: str, level) -> None:
+        import ctypes
+        d = self._d()
+        task = ctypes.c_void_p()
+        self._check(d.DAQmxCreateTask(b"", ctypes.byref(task)), "CreateTask")
+        try:
+            self._check(d.DAQmxCreateDOChan(task, digital_line.encode(), b"",
+                                            ctypes.c_int32(self._CHAN_PER_LINE)), "CreateDOChan")
+            written = ctypes.c_int32()
+            self._check(d.DAQmxWriteDigitalLines(
+                task, ctypes.c_int32(1), ctypes.c_uint32(1), ctypes.c_double(5.0),
+                ctypes.c_int32(self._GROUP_BY_CHANNEL), (ctypes.c_ubyte * 1)(int(level)),
+                ctypes.byref(written), None), "WriteDigitalLines")
+        finally:
+            d.DAQmxStopTask(task)
+            d.DAQmxClearTask(task)
 
 
 class MockTransport:

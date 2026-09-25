@@ -23,6 +23,30 @@
           "requires_composition": [
             "trapping"
           ]
+        },
+        {
+          "id": "well_occupancy",
+          "requires_composition": [
+            "trapping"
+          ]
+        },
+        {
+          "id": "well_residence_time",
+          "requires_composition": [
+            "trapping"
+          ]
+        },
+        {
+          "id": "interwell_transition_rate",
+          "requires_composition": [
+            "trapping"
+          ]
+        },
+        {
+          "id": "interwell_barrier_height",
+          "requires_composition": [
+            "trapping"
+          ]
         }
       ],
       "requires_contrast": "label_free"
@@ -50,7 +74,31 @@
           ]
         },
         "tracer_brightness",
-        "bleaching_rate"
+        "bleaching_rate",
+        {
+          "id": "well_occupancy",
+          "requires_composition": [
+            "trapping"
+          ]
+        },
+        {
+          "id": "well_residence_time",
+          "requires_composition": [
+            "trapping"
+          ]
+        },
+        {
+          "id": "interwell_transition_rate",
+          "requires_composition": [
+            "trapping"
+          ]
+        },
+        {
+          "id": "interwell_barrier_height",
+          "requires_composition": [
+            "trapping"
+          ]
+        }
       ],
       "requires_contrast": "fluorescence"
     },
@@ -76,7 +124,31 @@
           ]
         },
         "tracer_brightness",
-        "bleaching_rate"
+        "bleaching_rate",
+        {
+          "id": "well_occupancy",
+          "requires_composition": [
+            "trapping"
+          ]
+        },
+        {
+          "id": "well_residence_time",
+          "requires_composition": [
+            "trapping"
+          ]
+        },
+        {
+          "id": "interwell_transition_rate",
+          "requires_composition": [
+            "trapping"
+          ]
+        },
+        {
+          "id": "interwell_barrier_height",
+          "requires_composition": [
+            "trapping"
+          ]
+        }
       ],
       "requires_contrast": "fluorescence"
     },
@@ -102,7 +174,31 @@
           ]
         },
         "tracer_brightness",
-        "bleaching_rate"
+        "bleaching_rate",
+        {
+          "id": "well_occupancy",
+          "requires_composition": [
+            "trapping"
+          ]
+        },
+        {
+          "id": "well_residence_time",
+          "requires_composition": [
+            "trapping"
+          ]
+        },
+        {
+          "id": "interwell_transition_rate",
+          "requires_composition": [
+            "trapping"
+          ]
+        },
+        {
+          "id": "interwell_barrier_height",
+          "requires_composition": [
+            "trapping"
+          ]
+        }
       ],
       "requires_contrast": "fluorescence"
     },

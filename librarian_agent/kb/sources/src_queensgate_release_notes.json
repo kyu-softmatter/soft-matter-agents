@@ -1,0 +1,14 @@
+{
+  "source_id": "src_queensgate_release_notes",
+  "kind": "vendor_spec",
+  "identifier": "Four Queensgate/Prior release notes for the piezo controller's software, catalogued so the archive is complete: C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/User Manuals/NPC-D-6xx0 NanoMechanism Controller Firmware Platform External Release Note.pdf (sha256 79877e66e487c2d2a27d16389a55c2809529af6e58d1480d0c857b1a577df9e4); C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/Controller Interface DLL & Drivers/NPC-D Digital Controller Interface DLL Production Release/NPC-D_Digital_Controller_Interface_DLL_Release_Note_2.7.9.pdf (sha256 24e62f1079f3b4873672d55e31f7ef733e0f181c88e1bfbf33e1e94d43adb0ca); C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/Nanobench/Nanobench 6000 Customer Interface Software External Release Note.pdf (sha256 744ea0cc69b26900402579b24a28c642ff0be90b9cae8916838b60f04ae8ded7); C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/Nanoflash/NanoFlash Reflash Application - External Release Note.pdf (sha256 10b40545979feb7525f39c2dce96a71eb3257e8a696db00a8d61a4d34bb42a4b)",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, grade_tag vendor_spec.",
+  "read": "catalogued only; one to three pages each of version history. Nothing entered: they carry no safety statement.",
+  "guide_devices": [
+    "piezo_stage"
+  ],
+  "guide_notes": [
+    "Four release notes for the piezo controller's software are in the archive and were catalogued; they carry no safety statement."
+  ]
+}

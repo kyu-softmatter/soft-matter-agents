@@ -1,7 +1,7 @@
 {
   "artifact": "envelope_safety",
   "schema_version": "0.1",
-  "policy_version": "5",
+  "policy_version": "7",
   "agent": "microscope",
   "written_by": "kyuhwan",
   "written_at": "2026-09-24",
@@ -10,22 +10,48 @@
       "target": "bench",
       "label": "The instrument itself",
       "limits": {
+        "laser_combiner_command_voltage_min": {
+          "value": 0,
+          "unit": "V",
+          "bounds": "min",
+          "note": "Confocal laser combiner, every line: the lowest command voltage on its power input. The limit on the confocal lines is this voltage, not the power at the sample; the mW readings of 2026-09-09 are a calibration and live in the store.",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-09-24",
+            "how": "Read on the NIS LUN-F pad: each line's power slider runs 0 to 5 V, and kyuhwan allows that whole range for software."
+          }
+        },
+        "laser_combiner_command_voltage_max": {
+          "value": 5,
+          "unit": "V",
+          "bounds": "max",
+          "note": "Confocal laser combiner, every line: the highest command voltage on its power input, 5 V, the full scale of the NIS slider. The limit on the confocal lines is this voltage, not the power at the sample.",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-09-24",
+            "how": "Read on the NIS LUN-F pad: each line's power slider runs 0 to 5 V, and kyuhwan allows that whole range for software."
+          }
+        },
         "optical_power_max": {
           "value": 1020,
           "unit": "mW",
-          "note": "Laser output at the sample plane. The highest point the dial reached under measurement; the next point up over-ranged the meter and is an extrapolation, not a measurement.",
+          "bounds": "max",
+          "note": "Laser output at the sample plane. The highest dial point that was measured; the next point up over-ranged the meter and is an extrapolation, not a measurement.",
           "confirmation": {
             "kind": "physical",
             "by": "kyuhwan",
             "on": "2026-09-20",
-            "how": "Measured at the sample plane with a Thorlabs power meter across the dial range, by the person recording it here. The bench work predates this entry; what is dated today is this person confirming it holds for this instrument as configured."
+            "how": "Measured at the sample plane with a Thorlabs power meter across the dial range. The bench work predates this entry; what is dated 2026-09-20 is kyuhwan confirming it holds for this instrument as configured."
           }
         },
         "objective_clearance_min": {
+          "bounds": "min",
           "resolved_from": {
             "quantity": "working_distance",
             "keyed_by": "the objective in the nosepiece position the plan drives to",
-            "note": "Six objectives span 20 mm to 0.13 mm, a factor of 150. One constant is right for one lens and wrong for five -- which is what 130 um was doing: the 100x oil value applied to all six. The 40x WI (MRD77400) has no single working distance: a correction collar moves it, so the catalogue quotes 0.16 to 0.2 mm and the store carries both ends rather than compressing a quotation. The fallback says which end binds, and it is the near one: the true working distance is at least the minimum at any collar setting, so a floor at 0.16 mm is not crossed before focus while one at 0.2 mm can be. That is a policy choice, so it is written here and not in the store.",
+            "note": "Six objectives span 20 mm to 0.13 mm, a factor of 150, so one constant is right for one lens and wrong for five. The previous 130 um constant was the 100x Oil value applied to all six. The 40x WI (MRD77400) has a correction collar, so the catalogue quotes 0.16 to 0.2 mm and the store carries both ends. The fallback picks the near end: the true working distance at any collar setting is at least 0.16 mm, so a floor at 0.16 mm never blocks focus, while a floor at 0.2 mm would block it at collar settings below 0.2 mm. That is a policy choice, so it is written here and not in the store.",
             "fallback": [
               "working_distance_min"
             ]
@@ -40,7 +66,8 @@
         "objective_clearance_absolute_min": {
           "value": 130,
           "unit": "um",
-          "note": "An absolute floor on clearance, independent of which objective is seated. It is the tightest working distance across the six (100x Oil, MRD71970), so it never binds while the lookup above is right, and it catches a lookup that has gone wrong -- a wrong key, a mis-seated nosepiece, a bad store value. Both limits are minima on clearance, so the LARGER of the two binds.",
+          "bounds": "min",
+          "note": "An absolute floor on clearance, independent of which objective is seated. It equals the tightest working distance across the six (100x Oil, MRD71970), so it never binds while the lookup above is right. It catches a looked-up limit that has come out too small: a store value below 130 um, or a missing or corrupt entry. It does not catch a clearance estimate that is itself wrong, such as one computed with the wrong objective after a mis-seated nosepiece. Both limits are minima on clearance, so the LARGER of the two binds.",
           "confirmation": {
             "kind": "physical",
             "by": "kyuhwan",
@@ -52,10 +79,10 @@
           "value": 0,
           "unit": "um",
           "bounds": "min",
-          "note": "Piezo stage axis X, controller channel 1: lowest position software may command. The device itself reaches -100 to 600 um; the person keeps software to 0 to 600 um.",
+          "note": "Piezo stage axis X, controller channel 1: lowest position software may command. The device itself reaches -100 to 600 um; kyuhwan keeps software to 0 to 600 um.",
           "confirmation": {
             "kind": "carried_over",
-            "from": "the person's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and the person chose 0 to 600 um as the range software may use",
+            "from": "kyuhwan's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and 0 to 600 um was chosen as the range software may use",
             "on": "2026-09-24",
             "note": "Not yet exercised on the stage. Change to kind 'physical', with how it was checked, once the first live check has moved each axis inside this range."
           }
@@ -64,10 +91,10 @@
           "value": 600,
           "unit": "um",
           "bounds": "max",
-          "note": "Piezo stage axis X, controller channel 1: highest position software may command. The device itself reaches -100 to 600 um; the person keeps software to 0 to 600 um.",
+          "note": "Piezo stage axis X, controller channel 1: highest position software may command. The device itself reaches -100 to 600 um; kyuhwan keeps software to 0 to 600 um.",
           "confirmation": {
             "kind": "carried_over",
-            "from": "the person's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and the person chose 0 to 600 um as the range software may use",
+            "from": "kyuhwan's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and 0 to 600 um was chosen as the range software may use",
             "on": "2026-09-24",
             "note": "Not yet exercised on the stage. Change to kind 'physical', with how it was checked, once the first live check has moved each axis inside this range."
           }
@@ -76,10 +103,10 @@
           "value": 0,
           "unit": "um",
           "bounds": "min",
-          "note": "Piezo stage axis Y, controller channel 2: lowest position software may command. The device itself reaches -100 to 600 um; the person keeps software to 0 to 600 um.",
+          "note": "Piezo stage axis Y, controller channel 2: lowest position software may command. The device itself reaches -100 to 600 um; kyuhwan keeps software to 0 to 600 um.",
           "confirmation": {
             "kind": "carried_over",
-            "from": "the person's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and the person chose 0 to 600 um as the range software may use",
+            "from": "kyuhwan's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and 0 to 600 um was chosen as the range software may use",
             "on": "2026-09-24",
             "note": "Not yet exercised on the stage. Change to kind 'physical', with how it was checked, once the first live check has moved each axis inside this range."
           }
@@ -88,10 +115,10 @@
           "value": 600,
           "unit": "um",
           "bounds": "max",
-          "note": "Piezo stage axis Y, controller channel 2: highest position software may command. The device itself reaches -100 to 600 um; the person keeps software to 0 to 600 um.",
+          "note": "Piezo stage axis Y, controller channel 2: highest position software may command. The device itself reaches -100 to 600 um; kyuhwan keeps software to 0 to 600 um.",
           "confirmation": {
             "kind": "carried_over",
-            "from": "the person's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and the person chose 0 to 600 um as the range software may use",
+            "from": "kyuhwan's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and 0 to 600 um was chosen as the range software may use",
             "on": "2026-09-24",
             "note": "Not yet exercised on the stage. Change to kind 'physical', with how it was checked, once the first live check has moved each axis inside this range."
           }
@@ -100,10 +127,10 @@
           "value": 0,
           "unit": "um",
           "bounds": "min",
-          "note": "Piezo stage axis Z, controller channel 3: lowest position software may command. The device itself reaches -100 to 600 um; the person keeps software to 0 to 600 um. A travel limit is NOT a clearance limit: which Z direction approaches the objective is unmeasured, and objective_clearance_min binds piezo Z as it binds the Z drive.",
+          "note": "Piezo stage axis Z, controller channel 3: lowest position software may command. The device itself reaches -100 to 600 um; kyuhwan keeps software to 0 to 600 um. A travel limit is NOT a clearance limit: which Z direction approaches the objective is unmeasured, and objective_clearance_min binds piezo Z as it binds the Z drive.",
           "confirmation": {
             "kind": "carried_over",
-            "from": "the person's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and the person chose 0 to 600 um as the range software may use",
+            "from": "kyuhwan's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and 0 to 600 um was chosen as the range software may use",
             "on": "2026-09-24",
             "note": "Not yet exercised on the stage. Change to kind 'physical', with how it was checked, once the first live check has moved each axis inside this range."
           }
@@ -112,10 +139,10 @@
           "value": 600,
           "unit": "um",
           "bounds": "max",
-          "note": "Piezo stage axis Z, controller channel 3: highest position software may command. The device itself reaches -100 to 600 um; the person keeps software to 0 to 600 um. A travel limit is NOT a clearance limit: which Z direction approaches the objective is unmeasured, and objective_clearance_min binds piezo Z as it binds the Z drive.",
+          "note": "Piezo stage axis Z, controller channel 3: highest position software may command. The device itself reaches -100 to 600 um; kyuhwan keeps software to 0 to 600 um. A travel limit is NOT a clearance limit: which Z direction approaches the objective is unmeasured, and objective_clearance_min binds piezo Z as it binds the Z drive.",
           "confirmation": {
             "kind": "carried_over",
-            "from": "the person's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and the person chose 0 to 600 um as the range software may use",
+            "from": "kyuhwan's own statement, 2026-09-24: each piezo axis travels -100 to 600 um on the NPC-D controller, and 0 to 600 um was chosen as the range software may use",
             "on": "2026-09-24",
             "note": "Not yet exercised on the stage. Change to kind 'physical', with how it was checked, once the first live check has moved each axis inside this range."
           }

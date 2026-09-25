@@ -93,5 +93,340 @@
         "sha256": "703bf1d7a957378f78e84f72140c5f45d41b58c888b606e8599f31e816dc49bd"
       }
     ]
-  }
+  },
+  "edition_ruled": "THE PERSON HAS RULED, 2026-09-24, and the ruling is its own record: src_person_ruling_tweez300_edition_20260924. The safety guide follows the INSTALLED 2022-11 editions of the Laser Safety Manual and the General Hardware and Safety Manual; the 2021-11 copies in the lab archive (second_copies_in_the_lab_archive) are catalogued as the superseded edition and nothing is entered from them. safety_manual_versions_differ above is kept as written, because it records that the person first said to record both and decide later.",
+  "safety_entries": {
+    "tweez_back_panel_inputs_have_absolute_maxima": [
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 7,
+        "pdf_page": 9
+      }
+    ],
+    "tweez_calibration_photodiode_needs_the_laser_off": [
+      {
+        "document": "Tweez 300 User Manual",
+        "printed_page": 28,
+        "pdf_page": 34
+      },
+      {
+        "document": "Tweez 300 User Manual",
+        "printed_page": 29,
+        "pdf_page": 35
+      }
+    ],
+    "tweez_contains_nickel": [
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 3,
+        "pdf_page": 5
+      }
+    ],
+    "tweez_fibre_is_enclosed_end_to_end": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 3,
+        "pdf_page": 5
+      }
+    ],
+    "tweez_filter_cube_shutter_and_blocking_filter": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 8,
+        "pdf_page": 10
+      }
+    ],
+    "tweez_has_no_user_serviceable_parts": [
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 4,
+        "pdf_page": 6
+      }
+    ],
+    "tweez_install_guide_releases_the_safety_switch_counterclockwise": [
+      {
+        "document": "Tweez 305/310 System Installation Guide (2021)",
+        "printed_page": 11,
+        "pdf_page": 15
+      }
+    ],
+    "tweez_installation_needs_qualified_personnel": [
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 10,
+        "pdf_page": 12
+      },
+      {
+        "document": "Tweez 305/310 System Installation Guide (2021)",
+        "printed_page": 3,
+        "pdf_page": 7
+      }
+    ],
+    "tweez_interlocks_are_in_hardware": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 4,
+        "pdf_page": 6
+      },
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 9,
+        "pdf_page": 11
+      }
+    ],
+    "tweez_internal_shutter_closes_by_spring": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 4,
+        "pdf_page": 6
+      }
+    ],
+    "tweez_is_a_class_4_laser_device": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 1,
+        "pdf_page": 3
+      }
+    ],
+    "tweez_key_switch_cuts_all_power": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 4,
+        "pdf_page": 6
+      },
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 6,
+        "pdf_page": 8
+      }
+    ],
+    "tweez_laser_exits_only_at_one_aperture": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 9,
+        "pdf_page": 11
+      }
+    ],
+    "tweez_laser_power_is_set_as_a_fraction_of_maximum": [
+      {
+        "document": "Tweez 300 User Manual",
+        "printed_page": 24,
+        "pdf_page": 30
+      }
+    ],
+    "tweez_laser_safety_glasses_must_be_worn": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 9,
+        "pdf_page": 11
+      },
+      {
+        "document": "Tweez 305/310 System Installation Guide (2021)",
+        "printed_page": 22,
+        "pdf_page": 26
+      }
+    ],
+    "tweez_laser_safety_switch_stops_emission": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 5,
+        "pdf_page": 7
+      }
+    ],
+    "tweez_laser_safety_training_is_part_of_safety": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 10,
+        "pdf_page": 12
+      }
+    ],
+    "tweez_laser_source_is_a_1064nm_fiber_laser": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 3,
+        "pdf_page": 5
+      }
+    ],
+    "tweez_microscope_interlock_blocks_the_laser_at_the_eyepieces": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 7,
+        "pdf_page": 9
+      },
+      {
+        "document": "Tweez 305/310 System Installation Guide (2021)",
+        "printed_page": 12,
+        "pdf_page": 16
+      }
+    ],
+    "tweez_must_be_grounded_through_its_power_cord": [
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 4,
+        "pdf_page": 6
+      },
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 9,
+        "pdf_page": 11
+      },
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 8,
+        "pdf_page": 10
+      }
+    ],
+    "tweez_operating_environment": [
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 4,
+        "pdf_page": 6
+      },
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 11,
+        "pdf_page": 13
+      }
+    ],
+    "tweez_optical_unit_cover_must_stay_on": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 7,
+        "pdf_page": 9
+      }
+    ],
+    "tweez_proprietary_connectors_take_only_aresis_equipment": [
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 8,
+        "pdf_page": 10
+      },
+      {
+        "document": "Tweez 305/310 System Installation Guide (2021)",
+        "printed_page": 20,
+        "pdf_page": 24
+      }
+    ],
+    "tweez_sample_safety_shield_goes_on_before_the_laser": [
+      {
+        "document": "Tweez 305/310 System Installation Guide (2021)",
+        "printed_page": 22,
+        "pdf_page": 26
+      },
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 2,
+        "pdf_page": 4
+      }
+    ],
+    "tweez_software_shows_laser_power_and_interlocks": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 9,
+        "pdf_page": 11
+      },
+      {
+        "document": "Tweez 300 User Manual",
+        "printed_page": 23,
+        "pdf_page": 29
+      },
+      {
+        "document": "Tweez 300 User Manual",
+        "printed_page": 24,
+        "pdf_page": 30
+      }
+    ],
+    "tweez_standby_then_hibernation": [
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 6,
+        "pdf_page": 8
+      }
+    ],
+    "tweez_status_lights_steady_ready_flashing_emitting": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 5,
+        "pdf_page": 7
+      },
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 6,
+        "pdf_page": 8
+      },
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 6,
+        "pdf_page": 8
+      }
+    ],
+    "tweez_three_independent_ways_to_stop_emission": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 8,
+        "pdf_page": 10
+      },
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 9,
+        "pdf_page": 11
+      }
+    ],
+    "tweez_use_only_the_original_power_supply": [
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 9,
+        "pdf_page": 11
+      },
+      {
+        "document": "Tweez 305/310 System Installation Guide (2021)",
+        "printed_page": 14,
+        "pdf_page": 18
+      }
+    ],
+    "tweez_ventilation_must_not_be_blocked": [
+      {
+        "document": "Tweez 305/310 General Hardware and Safety Manual (V3.0, November 2022)",
+        "printed_page": 4,
+        "pdf_page": 6
+      }
+    ],
+    "tweez_warning_sign_carries_a_remote_interlock": [
+      {
+        "document": "Tweez 305/310 Laser Safety Manual (V3.0, November 2022)",
+        "printed_page": 6,
+        "pdf_page": 8
+      },
+      {
+        "document": "Tweez 305/310 System Installation Guide (2021)",
+        "printed_page": 13,
+        "pdf_page": 17
+      }
+    ]
+  },
+  "read_for_036": "Read in full by librarian-20260924-2 on 2026-09-24: the 2022 Laser Safety Manual (13 PDF pages) and the 2022 General Hardware and Safety Manual (14). Read for every WARNING, CAUTION and IMPORTANT statement and the laser-safety sections: the System Installation Guide (33) and the User Manual (107). NOT read line by line: the User Manual's operating chapters outside those statements, the Laser Control section and the TCP/IP Command Reference, which librarian-20260924-1 had read.",
+  "not_yet_catalogued_closed": {
+    "note": "The handoff list below is kept as written so the handoff and its closure both stay readable. Every document on it was re-hashed by librarian-20260924-2 on 2026-09-24 and every hash matched. Where each went:",
+    "where_each_went": {
+      "NPC-D-6xx0 NanoMechanism Controller Firmware Platform External Release Note.pdf": "src_queensgate_release_notes",
+      "NanoFlash Reflash Application - User Manual.pdf": "src_nanoflash_user_manual",
+      "Nanobench 6000 Customer Interface Software User Manual.pdf": "src_nanobench_6000_user_manual (which already cited the same bytes from another folder)",
+      "NPC-D_Digital_Controller_Interface_DLL_Release_Note_2.7.9.pdf": "src_queensgate_release_notes",
+      "NPC-D_Series_Digital_Controller_Interface_Library_2.7.9.pdf": "src_npcd_interface_library_manual (same bytes)",
+      "Nanobench 6000 Customer Interface Software External Release Note.pdf": "src_queensgate_release_notes",
+      "NanoFlash Reflash Application - External Release Note.pdf": "src_queensgate_release_notes",
+      "M706_E15_Ti2Control_Windows.pdf": "src_nikon_ti2_control_manual",
+      "M706_J15_Ti2Control_Windows.pdf": "src_nikon_ti2_control_manual, catalogued as the Japanese translation and not entered from",
+      "Mightex Polygon1000 documentation and Readme": "src_mightex_polygon1000_micromanager_note"
+    },
+    "by": "seat:librarian-20260924-2"
+  },
+  "guide_devices": [
+    "optical_tweezers"
+  ],
+  "guide_notes": [
+    "Two editions of the two tweezers safety manuals are on this computer. This page follows the November 2022 editions installed with the tweezers software, as the person chose; the November 2021 copies in the lab's archive are the older edition and nothing here is taken from them.",
+    "The tweezers manuals are written for the Tweez 305/310 family, rated 5 W or 10 W. This bench's unit is recorded as a Tweez 300; which rating it carries comes from the store's record of the unit, not from these manuals.",
+    "The 107-page User Manual was read for its warnings and its laser-safety sections, not line by line; its operating chapters may hold more."
+  ]
 }

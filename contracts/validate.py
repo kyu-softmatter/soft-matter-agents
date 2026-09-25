@@ -451,6 +451,47 @@ def card_env(card: Card) -> tuple[dict[str, tuple[float, dict]], list[str]]:
 # never in .gitignore at all.
 SKIP_DIRS = {".git", "__pycache__", ".venv", ".pixi", "node_modules"}
 
+#: Entries outside SKIP_DIRS that could not even be stat'ed. Check 79 reports
+#: them. A set, because collect() runs twice in an --expect-fail run.
+UNSTATABLE: set[str] = set()
+
+
+def _note_unstatable(path) -> None:
+    rel = str(path)
+    try:
+        rel = Path(path).relative_to(REPO).as_posix()
+    except (ValueError, TypeError):
+        pass
+    if not any(part in SKIP_DIRS for part in Path(rel).parts):
+        UNSTATABLE.add(rel)
+
+
+def walk_files(root: Path, suffix: str | None = None) -> list[Path]:
+    """Every file under `root`, with SKIP_DIRS pruned BEFORE anything inside them is touched.
+
+    `root.rglob("*")` followed by a SKIP_DIRS filter stats every entry first,
+    and on 2026-09-24 that crashed the validator for every seat: pixi, run
+    from WSL2, makes `.pixi/envs` a Linux symlink that Windows cannot stat
+    (WinError 1920), and recreates it on every `pixi run`. `.pixi` was in
+    SKIP_DIRS and was stat'ed anyway, because the filter ran after the walk.
+    os.walk lets the names be dropped from `dirnames` in place, so a skipped
+    directory is never listed at all. An entry elsewhere that cannot be
+    stat'ed is not a crash: it is noted for check 79 and passed over.
+    """
+    out: list[Path] = []
+    for dirpath, dirnames, filenames in os.walk(root, onerror=lambda e: _note_unstatable(e.filename)):
+        dirnames[:] = sorted(d for d in dirnames if d not in SKIP_DIRS)
+        for name in filenames:
+            f = Path(dirpath) / name
+            if suffix is not None and f.suffix != suffix:
+                continue
+            try:
+                if f.is_file():
+                    out.append(f)
+            except OSError:
+                _note_unstatable(f)
+    return sorted(out)
+
 
 REJECTED = "rejected"
 GROUP_DIR = re.compile(r"^check([0-9]{2})_[a-z0-9_]+$")
@@ -487,7 +528,7 @@ def collect(roots: Iterable[Path], include_rejected: bool = False) -> Bundle:
     normal sweep steps over them; --expect-fail is the run that opens them."""
     b = Bundle()
     for root in roots:
-        paths = [root] if root.is_file() else sorted(p for p in root.rglob("*") if p.is_file())
+        paths = [root] if root.is_file() else walk_files(root)
         for p in paths:
             if any(part in SKIP_DIRS for part in p.parts):
                 continue
@@ -499,7 +540,14 @@ def collect(roots: Iterable[Path], include_rejected: bool = False) -> Bundle:
             if p.suffix != ".json":
                 continue
             try:
-                raw = p.read_text()
+                # utf-8-sig: a byte-order mark is accepted and dropped, and a
+                # file without one reads exactly as before. Windows PowerShell
+                # 5.1's Set-Content -Encoding utf8 writes the mark, and it is
+                # how the person writes approvals on this machine, so a BOM'd
+                # approval read as unreadable would fail a correct record.
+                # Found 2026-09-24 by microscope-20260924-2 in the operator;
+                # the operator's own read is card 041's.
+                raw = p.read_text(encoding="utf-8-sig")
                 data = json.loads(raw)
             except (OSError, json.JSONDecodeError) as exc:
                 b.cards.append(Card(p, {"__unreadable__": str(exc)}, ""))
@@ -1570,7 +1618,11 @@ ALLOWED_PATHS = [
     # and a drop produces no other artefact, so until this path existed the
     # count of them was 0 for want of anywhere to write one.
     r"^((microscope|simulation|librarian)_agent|bridge)/rulings\.jsonl$",
-    r"^librarian_agent/kb/(index\.json|(sources|distilled|entries|lessons|staging|exports)/[A-Za-z0-9_.-]+)$",
+    # kb/guides/: person-facing pages GENERATED from entries and gaps (task
+    # 036, the per-device safety guides), never hand-edited, outside
+    # kb_version's hash, which covers kb/entries/ only. Allowed here before
+    # 7 names it -- check 55 is one-way, so this side goes first.
+    r"^librarian_agent/kb/(index\.json|(sources|distilled|entries|lessons|staging|exports|guides)/[A-Za-z0-9_.-]+)$",
     r"^librarian_agent/queries/[A-Za-z0-9_.-]+$",
     r"^librarian_agent/tasks/[A-Za-z0-9_.-]+$",
     r"^bridge/tasks/[A-Za-z0-9_.-]+$",
@@ -1674,6 +1726,15 @@ def check_15_approval_precedes_run(b: Bundle) -> list[Finding]:
             if (d / "config.json").exists():
                 out.append(Finding(15, PENDING, "config.json and no log.json yet: a run in flight, or one that "
                                                 "stopped before writing what it stood on", rel))
+            elif (d / "commands.json").exists():
+                # A preparatory run's approved list is written BEFORE its
+                # approve_light gate (card 038), so it can be committed
+                # while the run has not yet happened. That is the same case
+                # as config.json: approved and not yet run. microscope-
+                # 20260924-3 found it failing on 2026-09-24. Still PENDING,
+                # not a pass, so an approved run that never ran stays visible.
+                out.append(Finding(15, PENDING, "commands.json and no log.json yet: an approved preparatory "
+                                                "run not yet run, or one that stopped before writing its log", rel))
             else:
                 out.append(Finding(15, FAIL, "run directory with neither config.json nor log.json, so nothing "
                                              "records what it stood on or even that it was configured (4.6)", rel))
@@ -2542,7 +2603,7 @@ def check_27_knowledge_ownership(b: Bundle) -> list[Finding]:
         root = REPO / agent
         if not root.exists():
             continue
-        for p in root.rglob("*"):
+        for p in walk_files(root):
             if p.is_file() and KB_LIKE.search(p.relative_to(root).as_posix()):
                 out.append(Finding(27, FAIL, "looks like a knowledge store inside an execution agent (P14)", p.relative_to(REPO).as_posix()))
     return out or [Finding(27, PASS, "no execution agent keeps its own knowledge store")]
@@ -3696,7 +3757,7 @@ def check_64_every_rejected_fixture_is_reached(b: Bundle) -> list[Finding]:
     root = CONTRACTS / "examples" / "rejected"
     if not root.exists():
         return [Finding(64, NA, "no rejected fixtures on disk")]
-    files = sorted(p for p in root.rglob("*") if p.is_file())
+    files = walk_files(root)
     if not files:
         return [Finding(64, NA, "no rejected fixtures on disk")]
 
@@ -3714,7 +3775,7 @@ def check_64_every_rejected_fixture_is_reached(b: Bundle) -> list[Finding]:
             continue
         by_stem = any(_rel(s) in subjects for s in f.parent.glob(f.stem + ".*") if s != f)
         group = next((q for q in f.parents if q.name.startswith("check") and q.parent == root), None)
-        by_group = bool(group) and any(_rel(m) in subjects for m in group.rglob("*") if m.is_file())
+        by_group = bool(group) and any(_rel(m) in subjects for m in walk_files(group))
         (inputs if (by_stem or by_group) else orphans).append(rel)
 
     if orphans:
@@ -7044,9 +7105,16 @@ def check_79_gitignored_dirs_are_skipped(b: Bundle) -> list[Finding]:
     for the same reason: SKIP_DIRS legitimately holds `.git`, which is never
     in .gitignore, and `node_modules` defensively.
     """
+    # Entries the walk could not stat, outside SKIP_DIRS (walk_files). Inside
+    # a skipped directory nothing is stat'ed at all, which is the point; out
+    # here an unstatable entry is a file nobody can check, so it is said.
+    unstatable = [Finding(79, FAIL, f"{u} could not be stat'ed, so no check could read it. On this "
+                                    "machine that is typically a Linux symlink WSL left in the working "
+                                    "copy; outside SKIP_DIRS it is reported rather than walked past", u)
+                  for u in sorted(UNSTATABLE)]
     gi = REPO / ".gitignore"
     if not gi.exists():
-        return [Finding(79, PENDING, ".gitignore is not in this tree, so there is nothing to compare SKIP_DIRS against")]
+        return unstatable + [Finding(79, PENDING, ".gitignore is not in this tree, so there is nothing to compare SKIP_DIRS against")]
 
     declared: list[str] = []
     for raw in gi.read_text().splitlines():
@@ -7061,16 +7129,16 @@ def check_79_gitignored_dirs_are_skipped(b: Bundle) -> list[Finding]:
         declared.append(entry.strip("/").lstrip("/"))
 
     if not declared:
-        return [Finding(79, NA, ".gitignore excludes no directory wholesale, so SKIP_DIRS has nothing to cover")]
+        return unstatable + [Finding(79, NA, ".gitignore excludes no directory wholesale, so SKIP_DIRS has nothing to cover")]
 
     missing = sorted(d for d in declared if d not in SKIP_DIRS)
     if missing:
-        return [Finding(79, FAIL,
+        return unstatable + [Finding(79, FAIL,
                         f".gitignore excludes {', '.join(missing)} and SKIP_DIRS does not, so the validator "
                         f"walks {'them' if len(missing) > 1 else 'it'} -- content that is not this "
                         f"repository's, reported as this repository's failures",
                         ".gitignore")]
-    return [Finding(79, PASS,
+    return unstatable + [Finding(79, PASS,
                     f"{len(declared)} directories .gitignore excludes are all in SKIP_DIRS")]
 
 
@@ -7109,7 +7177,7 @@ def check_81_relative_imports_resolve(b: Bundle) -> list[Finding]:
     """
     out: list[Finding] = []
     tested = 0
-    for f in sorted(REPO.rglob("*.py")):
+    for f in walk_files(REPO, ".py"):
         try:
             rel = f.relative_to(REPO).as_posix()
         except ValueError:
@@ -7219,7 +7287,7 @@ def check_82_imports_are_declared(b: Bundle) -> list[Finding]:
     # reports until something does, which is true.
     programs = PROGRAM_PACKAGES & declared
 
-    files = [f for f in sorted(REPO.rglob("*.py"))
+    files = [f for f in walk_files(REPO, ".py")
              if AGENT_SRC.match(f.relative_to(REPO).as_posix())
              and not any(part in SKIP_DIRS for part in f.parts)]
     if not files:
@@ -7955,7 +8023,7 @@ def describe_tree(staged: bool = False) -> str:
                 # inside one.
                 inner = sorted(
                     f"{q.relative_to(GIT_REPO).as_posix()}:{q.stat().st_size}"
-                    for q in f.rglob("*") if q.is_file())
+                    for q in walk_files(f))
                 return hashlib.sha256("\n".join(inner).encode()).hexdigest()
         except OSError:
             return "unreadable"
@@ -8066,4 +8134,19 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    # UTF-8 mode, or run again in it. Every file here is UTF-8, and this
+    # module reads text without naming an encoding in dozens of places, and
+    # decodes `git show` output the same way. On Windows the default is the
+    # ANSI code page, so the first curly quote in a file those reads reach
+    # crashed nine checks with UnicodeDecodeError. manager-simulation-
+    # 20260924-1 reproduced it on 2026-09-24 from PowerShell, which does not
+    # set PYTHONUTF8 where Git Bash does. One place closes the whole class,
+    # the subprocess decoding included, where naming encoding="utf-8" at
+    # each call would close it only as far as the last call remembered.
+    # A child process, not os.execv: on Windows execv does not keep the exit
+    # code or the order of output reliably. Importing this module is
+    # unaffected.
+    if not sys.flags.utf8_mode:
+        import subprocess
+        sys.exit(subprocess.run([sys.executable, "-X", "utf8", *sys.argv]).returncode)
     sys.exit(main())

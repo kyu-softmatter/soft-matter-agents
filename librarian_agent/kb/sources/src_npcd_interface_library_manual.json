@@ -6,5 +6,84 @@
   "grade_rule": "E3, grade_tag vendor_spec. A published specification is not a measurement taken here.",
   "caution": "The manual is for DLL 2.7.9. microscope-20260924-2 reports the library on this computer as 2.8.1, from a run log this seat has not been able to read; if that holds, the manual is for an earlier release than the one installed.",
   "delivered_by": "microscope-20260924-2, microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043).",
-  "license_note": "No text reproduced beyond a short identifier; facts restated."
+  "license_note": "No text reproduced beyond a short identifier; facts restated.",
+  "lab_archive_copy": {
+    "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/Controller Interface DLL & Drivers/NPC-D Digital Controller Interface DLL Production Release/NPC-D_Series_Digital_Controller_Interface_Library_2.7.9.pdf",
+    "note": "the same bytes as the copy first cited (sha256 re-checked 2026-09-24); the lab archive is where the person pointed for task 036"
+  },
+  "safety_entries": {
+    "npcd_connectors_are_static_sensitive": [
+      {
+        "document": "NPC-D Series Controller Interface Library manual (revision 6.0)",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "NanoFlash Reflash Application User Manual",
+        "printed_page": 2,
+        "pdf_page": 2
+      }
+    ],
+    "npcd_controller_covers_must_stay_on": [
+      {
+        "document": "NPC-D Series Controller Interface Library manual (revision 6.0)",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "NanoFlash Reflash Application User Manual",
+        "printed_page": 2,
+        "pdf_page": 2
+      }
+    ],
+    "npcd_controller_generates_hazardous_voltages": [
+      {
+        "document": "NPC-D Series Controller Interface Library manual (revision 6.0)",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "NanoFlash Reflash Application User Manual",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "Nanobench 6000 User Manual (issue 4)",
+        "printed_page": 5,
+        "pdf_page": 5
+      }
+    ],
+    "npcd_network_must_stay_off_wider_networks": [
+      {
+        "document": "NPC-D Series Controller Interface Library manual (revision 6.0)",
+        "printed_page": 16,
+        "pdf_page": 16
+      }
+    ],
+    "npcd_operating_environment": [
+      {
+        "document": "NPC-D Series Controller Interface Library manual (revision 6.0)",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "NanoFlash Reflash Application User Manual",
+        "printed_page": 2,
+        "pdf_page": 2
+      }
+    ],
+    "npcd_switch_off_and_unplug_when_not_in_use": [
+      {
+        "document": "NPC-D Series Controller Interface Library manual (revision 6.0)",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "NanoFlash Reflash Application User Manual",
+        "printed_page": 2,
+        "pdf_page": 2
+      }
+    ]
+  },
+  "hardware_manual": "NOT IN THE ARCHIVE: this is a software manual, and no hardware manual for the piezo stage or its controller is on this computer. The environmental Table 2.1 the controller manuals refer to is in that missing document."
 }

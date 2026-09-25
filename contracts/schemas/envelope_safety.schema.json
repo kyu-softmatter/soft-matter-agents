@@ -286,6 +286,38 @@
         "piezo_z_position_max": {
           "$ref": "#/$defs/piezo_position_ceiling",
           "$comment": "The high end of the piezo Z axis. See piezo_z_position_min."
+        },
+        "laser_combiner_command_voltage_min": {
+          "$ref": "#/$defs/command_voltage_floor",
+          "$comment": "PEOPLE. The lowest voltage software may command on the confocal unit's power input. Required together with its max; the confocal wrapper (card 036) sends no power command while either is absent."
+        },
+        "laser_combiner_command_voltage_max": {
+          "$ref": "#/$defs/command_voltage_ceiling",
+          "$comment": "PEOPLE. The highest voltage software may command on the confocal unit's power input: 5 V by the person's decision of 2026-09-24. Required together with its min."
+        },
+        "piezo_position_readback_tolerance": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/limit"
+            },
+            {
+              "properties": {
+                "unit": {
+                  "const": "um"
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "not": {
+                "required": [
+                  "resolved_from"
+                ]
+              }
+            }
+          ],
+          "$comment": "INSTRUMENT. How far a RESTING read-back may fall short of a piezo floor and still count as at it, on every piezo axis. The person's decision of 2026-09-24: 10 nm, i.e. 0.01 um. It exists because the controller rests at its floor with a reading a hair below it (Z at -0.0017 um in run -004) and the wrapper refused every Z command as starting outside the limit. The wrapper uses it ONLY when judging whether a resting position is inside the range before a move. It NEVER widens a commanded position: every target stays inside piezo_<axis>_position_min/_max exactly, and check 86 checks targets against those, not against this. Optional; when absent the wrapper refuses a start below the floor, as before. A magnitude, so `limit`'s rule against zero applies: a tolerance of zero is the same as none, and is refused rather than written."
         }
       },
       "required": [
@@ -312,6 +344,12 @@
         ],
         "piezo_z_position_max": [
           "piezo_z_position_min"
+        ],
+        "laser_combiner_command_voltage_min": [
+          "laser_combiner_command_voltage_max"
+        ],
+        "laser_combiner_command_voltage_max": [
+          "laser_combiner_command_voltage_min"
         ]
       }
     },
@@ -433,6 +471,178 @@
         },
         "unit": {
           "const": "um"
+        },
+        "note": {
+          "type": "string"
+        },
+        "confirmation": {
+          "type": "object",
+          "description": "How this particular ceiling came to be in this file. Required per limit, not per file: a file-level `written_by` is the bulk stamp -- one signature covering twelve limits and saying which of them anyone actually checked. Librarian rule 10 already says a confirmation applied in bulk is not a confirmation, and if that holds for a KB entry it holds harder for the file P0 hands to deterministic code.\n\nCopying a limit from another document is NOT forbidden. Forbidding it would mean confirming every limit before the file can exist, and then nobody starts the file. What is required is that the two be DISTINGUISHABLE, so a later check can say `an unconfirmed limit is parameterising an irreversible action` (2.1 rule 3's shape), which today it cannot.\n\nThis is not a grade. 10.3 rule 4 keeps a limit a policy with no source and no grade, and that is unchanged: the ceiling is a decision about what is allowed. What is recorded here is the EVENT of confirming, and an event is something that happened rather than something claimed.",
+          "oneOf": [
+            {
+              "$comment": "Confirmed physically, outside the system, as 10.3 rule 4 requires.",
+              "properties": {
+                "kind": {
+                  "const": "physical"
+                },
+                "by": {
+                  "type": "string",
+                  "minLength": 2,
+                  "description": "who did it"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "how": {
+                  "type": "string",
+                  "minLength": 10,
+                  "description": "what was actually done. `confirmed` is not a how -- the point is that someone reading this later can tell whether the check would catch the thing the limit exists to catch."
+                }
+              },
+              "required": [
+                "kind",
+                "by",
+                "on",
+                "how"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "$comment": "Carried from another document without being re-confirmed here. Legal, and visibly so.",
+              "properties": {
+                "kind": {
+                  "const": "carried_over"
+                },
+                "from": {
+                  "type": "string",
+                  "minLength": 3,
+                  "description": "the document it was taken from"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "note": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "kind",
+                "from",
+                "on"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "bounds": {
+          "const": "max"
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "bounds",
+        "confirmation"
+      ],
+      "additionalProperties": false
+    },
+    "command_voltage_floor": {
+      "type": "object",
+      "description": "The low end of the command voltage software may send to the confocal unit's laser-power input, in volts, a constant and never a lookup. Decided by the person on 2026-09-24: the safety limit on the confocal lines is the voltage software can command, 0 to 5 V, and not the power at the sample, which is a calibration fact and lives in the store (confocal_power_at_sample_*). Like the piezo positions it is a range and not a magnitude, so a floor of 0 V is legitimate and `limit`'s rule against zero does not apply. `bounds` is required. The schema cannot say the floor is below the ceiling; the wrapper compares the pair.",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "const": "V"
+        },
+        "note": {
+          "type": "string"
+        },
+        "confirmation": {
+          "type": "object",
+          "description": "How this particular ceiling came to be in this file. Required per limit, not per file: a file-level `written_by` is the bulk stamp -- one signature covering twelve limits and saying which of them anyone actually checked. Librarian rule 10 already says a confirmation applied in bulk is not a confirmation, and if that holds for a KB entry it holds harder for the file P0 hands to deterministic code.\n\nCopying a limit from another document is NOT forbidden. Forbidding it would mean confirming every limit before the file can exist, and then nobody starts the file. What is required is that the two be DISTINGUISHABLE, so a later check can say `an unconfirmed limit is parameterising an irreversible action` (2.1 rule 3's shape), which today it cannot.\n\nThis is not a grade. 10.3 rule 4 keeps a limit a policy with no source and no grade, and that is unchanged: the ceiling is a decision about what is allowed. What is recorded here is the EVENT of confirming, and an event is something that happened rather than something claimed.",
+          "oneOf": [
+            {
+              "$comment": "Confirmed physically, outside the system, as 10.3 rule 4 requires.",
+              "properties": {
+                "kind": {
+                  "const": "physical"
+                },
+                "by": {
+                  "type": "string",
+                  "minLength": 2,
+                  "description": "who did it"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "how": {
+                  "type": "string",
+                  "minLength": 10,
+                  "description": "what was actually done. `confirmed` is not a how -- the point is that someone reading this later can tell whether the check would catch the thing the limit exists to catch."
+                }
+              },
+              "required": [
+                "kind",
+                "by",
+                "on",
+                "how"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "$comment": "Carried from another document without being re-confirmed here. Legal, and visibly so.",
+              "properties": {
+                "kind": {
+                  "const": "carried_over"
+                },
+                "from": {
+                  "type": "string",
+                  "minLength": 3,
+                  "description": "the document it was taken from"
+                },
+                "on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "note": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "kind",
+                "from",
+                "on"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "bounds": {
+          "const": "min"
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "bounds",
+        "confirmation"
+      ],
+      "additionalProperties": false
+    },
+    "command_voltage_ceiling": {
+      "type": "object",
+      "description": "The high end of the command voltage software may send to the confocal unit's laser-power input, in volts, a constant and never a lookup. Decided by the person on 2026-09-24: the safety limit on the confocal lines is the voltage software can command, 0 to 5 V, and not the power at the sample, which is a calibration fact and lives in the store (confocal_power_at_sample_*). Like the piezo positions it is a range and not a magnitude, so a floor of 0 V is legitimate and `limit`'s rule against zero does not apply. `bounds` is required. The schema cannot say the floor is below the ceiling; the wrapper compares the pair.",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "const": "V"
         },
         "note": {
           "type": "string"
