@@ -1,0 +1,49 @@
+{
+  "declaration": "analysis method, declared before data",
+  "declared_by": "microscope-20260924-6",
+  "declared_on": "2026-09-25",
+  "for": "the double-well run of 2026-09-25: the person's frames (Micro-Manager, camera by hand) and architecture's Tweez300 command log. Card 049 as revised at 3469285, item 1.",
+  "declared_before_data": "This file is committed before any frame or command log of the run has been read by this seat. The commit that adds it is the evidence; nothing in it may be changed after the data is opened. A change after that is a new file that says what changed and why, and the analysis reports both.",
+  "not_a_planned_measurement": "The run does not go through this agent's dispatcher, so every number from it is a preparatory record. No result card is written from it by this seat (card 049).",
+  "target_cited_not_copied": "simulation_agent/questions/sim-20260923-101/result_run-20260924-101-v3-hold.json at 735a1a0, whose bench_* numbers are targets graded E5.",
+
+  "position": {
+    "localisation": "Per frame, the bead centre by intensity-weighted centroid of a fixed square window around the previous frame's centre, after subtracting the window's median. One bead, so no linking. A frame whose centroid moves more than half the window, or whose window touches the frame edge, is marked lost, not interpolated; lost frames split the record and every count below says how many there were.",
+    "pixel_size": "From the store for the objective and intermediate magnification the person states were used, never from frame metadata. At 100x, 1x, 1x1 binning that is pixel_size_100x_zoom_1x, 0.065 um, calibration E2. Any other setting takes its own row and its own grade, and a computed row travels as computed.",
+    "axis": "The line joining the two trap centres as architecture's command log sets them. +x points from trap_1 to trap_2, and trap_1 sits at negative x, as the simulation's ask states. The trajectory is projected onto that line; the perpendicular component is kept and reported, not used.",
+    "trap_axis_in_pixels": "The command log gives positions in the Tweez300's own units, measured from the image centre with +x to the right on screen. The direction is taken from the log; the log's micrometres are NOT used for scale, because the GUI's pixel-to-micrometre calibration is readable by nobody (objective_change_invalidates_trap_calibration). Scale comes from the store's pixel size only.",
+    "drift": "No detrending of the projected coordinate. If the record shows drift, it is reported with its size, and the record is split rather than corrected, because a subtracted drift in a two-well record is indistinguishable from a changing occupancy."
+  },
+
+  "stiffness": {
+    "method": "POWER SPECTRUM, declared before data. For each single-trap record (one trap on, the other off, at the strength used in the double-well record), fit the one-sided power spectral density of the bead position along each axis with the aliased Lorentzian for a sampled, exposure-averaged overdamped oscillator. The fit returns the corner frequency f_c and the diffusivity D together, so stiffness k = 2*pi*gamma*f_c with gamma = k_B*T/D, and the in-situ diffusivity near the coverslip comes out of the same record, as card 049 asks.",
+    "fit_details": "Welch-averaged periodogram in blocks, blocks of at least 20 corner times; fit between 2 blocks' lowest frequency and 0.8 of Nyquist; maximum-likelihood for the averaged periodogram's gamma-distributed errors. Exposure time is taken from the frame metadata only as the exposure, never for scale.",
+    "temperature": "The room reading if the person reads one on the day, else lab_ambient_temperature, 20 C, operator reading E3, stated as the room's and not the sample's.",
+    "cross_check": "Equipartition, k = k_B*T / var(x), on the same record, reported beside the spectrum value and never averaged with it. If the two differ by more than a factor of two the stiffness is reported as not determined and both are shown.",
+    "why_spectrum_over_equipartition": "At 0.1 to 1 pN/um a 5 um bead's positional spread is about 60 to 200 nm, so equipartition would be usable; but it is biased by drift, which lowers k over a ten-minute record, and it gives no diffusivity. The spectrum is insensitive to slow drift above its lowest fitted frequency and returns the diffusivity the simulation's re-prediction needs.",
+    "if_no_single_trap_record": "The trap stiffness is reported as NOT MEASURED. The curvature of -k_B*T ln P(x) inside each milestone core of the double-well record is reported instead, labelled as the curvature of the total potential at that minimum, which is not either trap's stiffness when the wells overlap.",
+    "width": "Each trap's Gaussian width is not fitted from a single-trap record, because at the bead's excursions the harmonic and Gaussian forms do not differ measurably. It is reported only if the double-well histogram constrains it, by fitting the person's two-Gaussian model to -k_B*T ln P(x), and then with the fit's spread."
+  },
+
+  "milestoning": {
+    "rule": "The simulation's rule, as its ask states it: cores around the two peaks of the pooled record's projected histogram, core radius a fixed fraction of the peak spacing, sticky milestoning at the frame interval.",
+    "core_fraction": "0.2, the simulation's milestone_core_fraction (E5, a chosen value). The same number here, so the two sides apply one rule.",
+    "peaks": "The two highest local maxima of the pooled histogram along the projected axis, histogram bin 0.02 of the peak spacing found first with a bin of 20 nm; if two peaks cannot be found, no well statistics are computed and the record is reported as one basin.",
+    "sticky": "Each frame belongs to the well whose core it most recently entered; frames before the first core entry belong to neither and are dropped from occupancy and residence, and counted.",
+    "transition": "A transition is a change of assigned well."
+  },
+
+  "observables": {
+    "well_occupancy": "Time assigned to well 1 over time assigned to either well, and the same for well 2.",
+    "interwell_transition_rate": "Per ordered pair, transitions out of the origin well over the time assigned to the origin well, not over the record length.",
+    "well_residence_time": "BOTH forms, labelled: the renewal form contracts/observables.json registers (time assigned to the well over the number of exits from it), and the mean completed dwell the simulation's ask used. They differ by construction when the record ends mid-dwell, and the difference between the two sides' registered and used forms is reported, not resolved here.",
+    "interwell_barrier_height": "U(x) = -k_B*T ln P(x) of the projected pooled histogram, per ordered pair from each minimum to the saddle between them, with the bin width and record length stated beside it.",
+    "window": "Record length and frame interval are stated with every number, because three of the four are window-dependent."
+  },
+
+  "what_would_stop_the_analysis": [
+    "no statement from the person of the objective and intermediate magnification used, which leaves no pixel size",
+    "a record with no identifiable trap axis in architecture's command log",
+    "frames whose timestamps show gaps: each gap splits the record and is counted, and if a record has none long enough for 20 corner times, no stiffness is fitted from it"
+  ]
+}
