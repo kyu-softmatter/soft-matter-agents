@@ -370,6 +370,19 @@
         "event_index": 30
       },
       "note": "Supports the suspicion that neither figure is the camera's read noise; not proposed for the store."
+    },
+    {
+      "id": "photostability_run_007_slow_decline",
+      "kind": "observable_value",
+      "for_store": false,
+      "fact": "Repeat of run-20260924-006 at another fresh location (card 038 repeats): continuous Aura GREEN at 100 per-mille for 300 s, 20x, one 100 ms frame per second. Total particle fluorescence (whole-frame sum of pixels more than 300 ADU above the frame median, dark subtracted), normalised to the settled level at 5-10 s: frame 0 at 96.6% (the light settling), then a steady decline to 96.4% by 299 s, about 3.6% in 295 s, roughly 1.2e-4 per second if linear. Drift beside it: nearest-neighbour displacement from frame 0, median 3.8 px after 60 s and 9.9 px after 299 s (48% more than 10 px, max 28 px), about 30 particles throughout. Median background 80 to 82 ADU. Together with run -006 (about 2.6% with drift of median 17 px), a slow decline of a few percent per five minutes at this setting; drift and focus were not controlled, so it is an upper bound on bleaching.",
+      "how": "Computed by this seat after the run from the saved frames by the method in microscope_agent/CLAUDE.md at b48c9b3: no frame-0 mask, normalised to the settled level, drift reported beside; not in the run log.",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260924-007",
+        "event_index": 42
+      },
+      "note": "bleaching_rate, per second at this per-mille setting and not per dose. Waits for the plan that cites this run."
     }
   ]
 }
