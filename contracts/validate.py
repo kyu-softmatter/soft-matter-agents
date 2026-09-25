@@ -1570,7 +1570,11 @@ ALLOWED_PATHS = [
     # and a drop produces no other artefact, so until this path existed the
     # count of them was 0 for want of anywhere to write one.
     r"^((microscope|simulation|librarian)_agent|bridge)/rulings\.jsonl$",
-    r"^librarian_agent/kb/(index\.json|(sources|distilled|entries|lessons|staging|exports)/[A-Za-z0-9_.-]+)$",
+    # kb/guides/: person-facing pages GENERATED from entries and gaps (task
+    # 036, the per-device safety guides), never hand-edited, outside
+    # kb_version's hash, which covers kb/entries/ only. Allowed here before
+    # 7 names it -- check 55 is one-way, so this side goes first.
+    r"^librarian_agent/kb/(index\.json|(sources|distilled|entries|lessons|staging|exports|guides)/[A-Za-z0-9_.-]+)$",
     r"^librarian_agent/queries/[A-Za-z0-9_.-]+$",
     r"^librarian_agent/tasks/[A-Za-z0-9_.-]+$",
     r"^bridge/tasks/[A-Za-z0-9_.-]+$",
