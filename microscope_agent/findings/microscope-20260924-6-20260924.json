@@ -1,0 +1,33 @@
+{
+  "artifact": "findings",
+  "schema_version": "0.1",
+  "seat": "microscope-20260924-6",
+  "on": "2026-09-24",
+  "delivered_to": "librarian_agent",
+  "items": [
+    {
+      "id": "tweez300_opens_the_red_arm_kinetix",
+      "fact": "When the Tweez 300 software starts, it opens the red-arm Kinetix camera: the body Micro-Manager reads as serial A24M723015 under the label Kinetix_red. This is the person's word and has not been read off the tweezers software by serial.",
+      "kind": "person_statement",
+      "how": "Asked in this seat's window on the evening of 2026-09-24 which of the two Kinetix bodies the tweezers software opens, with the red arm's Micro-Manager serial A24M723015 given in the question, the person chose 'The red-arm body'. This seat opened no device and read no serial.",
+      "source": {
+        "type": "person",
+        "recorded_at": "the message of the commit that adds microscope_agent/findings/microscope-20260924-6-20260924.json (git log --diff-filter=A -- that path), which quotes the question and the person's answer"
+      },
+      "for_store": true,
+      "note": "The person identified the arm, not a serial read from the tweezers software. camera_bodies_are_told_apart_by_serial holds that bodies are told apart by serial, so reading the serial the tweezers software opens settles it, and until then the identity is the person's word. kinetix_red_label_opens_serial_a24m723015 ties the red arm to that serial in Micro-Manager only. Consistent with camera_red being exclusive with optical_tweezers_gui in the device registry, and does not test it."
+    },
+    {
+      "id": "tweez300_software_records_no_frames",
+      "fact": "The Tweez 300 software shows and records no camera image in this lab's use: the camera is always released from it, and nothing can be seen in the tweezers software. Frames of a trapped bead therefore come from Micro-Manager after the tweezers software has released the camera, not from the tweezers software.",
+      "kind": "person_statement",
+      "how": "Asked in this seat's window on the evening of 2026-09-24 whether the tweezers software can save frames of the trapped bead at a set frame rate, the person answered: 'we always release the camera, and you cannot see anything on the tweezer software.'",
+      "source": {
+        "type": "person",
+        "recorded_at": "the message of the commit that adds microscope_agent/findings/microscope-20260924-6-20260924.json (git log --diff-filter=A -- that path), which quotes the person's words"
+      },
+      "for_store": true,
+      "note": "Not stated: how the release is done (a button in the software, or closing it), whether trap commands over TCP keep working with the camera released, or whether the software needs the camera at start before releasing it. The last one bears on whether the red body is locked while the tweezers software starts."
+    }
+  ]
+}
