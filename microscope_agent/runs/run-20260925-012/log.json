@@ -1,0 +1,3032 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260925-012",
+  "plan_id": "plan-mic-20260925-004-r1",
+  "revision": 1,
+  "approval": {
+    "id": "appr-mic-20260925-004-r1",
+    "kind": "plan_approval"
+  },
+  "safety_policy_version": "8",
+  "stop_criteria": [
+    "sc_person_stops"
+  ],
+  "t0_wall": "2026-09-25T20:42:26.168+00:00",
+  "t0_mono": 64587.531,
+  "backend": "hardware",
+  "registry_source": "microscope_agent\\envelope\\snapshot.json",
+  "time_base_note": "software offsets order the log and nothing else. A value physics depends on comes from a trigger counter or a device timestamp (4.6.9)",
+  "events": [
+    {
+      "t_mono": 0.0,
+      "time_base": "software",
+      "event": "handover",
+      "objective": "100x",
+      "statements": [
+        {
+          "gate": "bench_is_this_seats",
+          "said": "it is yours. no other session",
+          "asked": "A bead is in view, and the bench is mine, with no other session on the camera or tweezers."
+        },
+        {
+          "gate": "laser_power_at_the_dial",
+          "said": "now 0.05",
+          "asked": "The laser power on the dial, and that the laser is emitting.",
+          "note": "the person's reading of the hand control; nothing here reads it. Emission was not restated"
+        },
+        {
+          "gate": "objective",
+          "said": "correct",
+          "asked": "The objective: 100x oil."
+        },
+        {
+          "gate": "bead_height",
+          "said": "I wiil see that, show me live view (you don't need to show me full frame)",
+          "asked": "How you'll judge the bead is lifted off the glass.",
+          "note": "judged by the person by eye on a centre-crop live view this seat started"
+        }
+      ],
+      "tweezers_calibration": {
+        "objective": "100x",
+        "stated_by": "kyuhwan",
+        "pixel_to_um": "calibrated at 100x, the person's statement; value not given"
+      },
+      "lamp_at_handover": "DiaLamp State 1, Intensity 2100, set and read back by this seat's live view"
+    },
+    {
+      "t_mono": 0.0,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "laser_combiner_command_voltage_min",
+      "target": "bench",
+      "value": 0,
+      "unit": "V",
+      "confirmation": "physical",
+      "note": "Confocal laser combiner, every line: the lowest command voltage on its power input. The limit on the confocal lines is this voltage, not the power at the sample; the mW readings of 2026-09-09 are a calibration and live in the store."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "laser_combiner_command_voltage_max",
+      "target": "bench",
+      "value": 5,
+      "unit": "V",
+      "confirmation": "physical",
+      "note": "Confocal laser combiner, every line: the highest command voltage on its power input, 5 V, the full scale of the NIS slider. The limit on the confocal lines is this voltage, not the power at the sample."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "optical_power_max",
+      "target": "bench",
+      "value": 1020,
+      "unit": "mW",
+      "confirmation": "physical",
+      "note": "Laser output at the sample plane. The highest dial point that was measured; the next point up over-ranged the meter and is an extrapolation, not a measurement."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "lookup",
+      "limit": "objective_clearance_min",
+      "target": "bench",
+      "quantity": "working_distance",
+      "keyed_by": "the objective in the nosepiece position the plan drives to",
+      "key": {
+        "field": "nosepiece_position",
+        "value": 5,
+        "objective": "100x-oil",
+        "part_number": "MRD71970"
+      },
+      "value": 0.13,
+      "unit": "mm",
+      "grade": "E3",
+      "entry": "objective_mrd71970",
+      "number": "working_distance",
+      "kb_version": "kbv-4b981dc870d3",
+      "built_from_commit": "9f9238781e43c8d23added75b5ec7ab01b02591b",
+      "confirmation": "carried_over",
+      "note": "a point value, as five of the six lenses carry it"
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "objective_clearance_absolute_min",
+      "target": "bench",
+      "value": 130,
+      "unit": "um",
+      "confirmation": "physical",
+      "note": "An absolute floor on clearance, independent of which objective is seated. It equals the tightest working distance across the six (100x Oil, MRD71970), so it never binds while the lookup above is right. It catches a looked-up limit that has come out too small: a store value below 130 um, or a missing or corrupt entry. It does not catch a clearance estimate that is itself wrong, such as one computed with the wrong objective after a mis-seated nosepiece. Both limits are minima on clearance, so the LARGER of the two binds."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "piezo_x_position_min",
+      "target": "bench",
+      "value": 0,
+      "unit": "um",
+      "confirmation": "carried_over",
+      "note": "Piezo stage axis X, controller channel 1: lowest position software may command. The device itself reaches -100 to 600 um; kyuhwan keeps software to 0 to 600 um."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "piezo_x_position_max",
+      "target": "bench",
+      "value": 600,
+      "unit": "um",
+      "confirmation": "carried_over",
+      "note": "Piezo stage axis X, controller channel 1: highest position software may command. The device itself reaches -100 to 600 um; kyuhwan keeps software to 0 to 600 um."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "piezo_y_position_min",
+      "target": "bench",
+      "value": 0,
+      "unit": "um",
+      "confirmation": "carried_over",
+      "note": "Piezo stage axis Y, controller channel 2: lowest position software may command. The device itself reaches -100 to 600 um; kyuhwan keeps software to 0 to 600 um."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "piezo_y_position_max",
+      "target": "bench",
+      "value": 600,
+      "unit": "um",
+      "confirmation": "carried_over",
+      "note": "Piezo stage axis Y, controller channel 2: highest position software may command. The device itself reaches -100 to 600 um; kyuhwan keeps software to 0 to 600 um."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "piezo_z_position_min",
+      "target": "bench",
+      "value": 0,
+      "unit": "um",
+      "confirmation": "carried_over",
+      "note": "Piezo stage axis Z, controller channel 3: lowest position software may command. The device itself reaches -100 to 600 um; kyuhwan keeps software to 0 to 600 um. A travel limit is NOT a clearance limit: which Z direction approaches the objective is unmeasured, and objective_clearance_min binds piezo Z as it binds the Z drive."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "piezo_z_position_max",
+      "target": "bench",
+      "value": 600,
+      "unit": "um",
+      "confirmation": "carried_over",
+      "note": "Piezo stage axis Z, controller channel 3: highest position software may command. The device itself reaches -100 to 600 um; kyuhwan keeps software to 0 to 600 um. A travel limit is NOT a clearance limit: which Z direction approaches the objective is unmeasured, and objective_clearance_min binds piezo Z as it binds the Z drive."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "tweezers_trap_position_100x_min",
+      "target": "bench",
+      "value": -40,
+      "unit": "um",
+      "confirmation": "carried_over",
+      "note": "Optical tweezers at the 100x objective: the most negative x or y a trap may be placed at, measured from the image centre, +x to the right on screen. Applies to both axes and to every trap."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "tweezers_trap_position_100x_max",
+      "target": "bench",
+      "value": 40,
+      "unit": "um",
+      "confirmation": "carried_over",
+      "note": "Optical tweezers at the 100x objective: the most positive x or y a trap may be placed at, from the image centre. Applies to both axes and to every trap."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "tweezers_trap_position_60x_min",
+      "target": "bench",
+      "value": -67,
+      "unit": "um",
+      "confirmation": "carried_over",
+      "note": "Optical tweezers at the 60x objective: the most negative x or y a trap may be placed at, from the image centre. Both axes, every trap."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "tweezers_trap_position_60x_max",
+      "target": "bench",
+      "value": 67,
+      "unit": "um",
+      "confirmation": "carried_over",
+      "note": "Optical tweezers at the 60x objective: the most positive x or y a trap may be placed at, from the image centre. Both axes, every trap."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "tweezers_trap_position_40x_min",
+      "target": "bench",
+      "value": -100,
+      "unit": "um",
+      "confirmation": "carried_over",
+      "note": "Optical tweezers at the 40x objective: the most negative x or y a trap may be placed at, from the image centre. Both axes, every trap."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "tweezers_trap_position_40x_max",
+      "target": "bench",
+      "value": 100,
+      "unit": "um",
+      "confirmation": "carried_over",
+      "note": "Optical tweezers at the 40x objective: the most positive x or y a trap may be placed at, from the image centre. Both axes, every trap."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "tweezers_trap_strength_min",
+      "target": "bench",
+      "value": 0,
+      "unit": "1",
+      "confirmation": "carried_over",
+      "note": "Optical tweezers: the lowest strength software may set on any trap, as a fraction of the laser power set on the hand dial."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "tweezers_trap_strength_max",
+      "target": "bench",
+      "value": 1,
+      "unit": "1",
+      "confirmation": "carried_over",
+      "note": "Optical tweezers: the highest strength software may set on any trap. Total laser power is still capped by the hand dial, which only kyuhwan sets."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_resolved",
+      "kind": "constant",
+      "limit": "tweezers_trap_step_max",
+      "target": "bench",
+      "value": 1,
+      "unit": "um",
+      "confirmation": "carried_over",
+      "note": "Optical tweezers: the largest distance one command may move a trap, at any objective. The tweezers never report where a trap is, so this caps the damage from one lost or doubled command."
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_compared",
+      "quantity": "laser_combiner_command_voltage",
+      "limit": "laser_combiner_command_voltage_min",
+      "direction": "min",
+      "limit_value": 0,
+      "limit_unit": "V",
+      "limit_si_float": 0.0,
+      "binds_over": [
+        "laser_combiner_command_voltage_max",
+        "laser_combiner_command_voltage_min"
+      ],
+      "compared": null
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_compared",
+      "quantity": "objective_clearance",
+      "limit": "objective_clearance_min",
+      "direction": "min",
+      "limit_value": 0.13,
+      "limit_unit": "mm",
+      "limit_si_float": 0.00013,
+      "binds_over": [
+        "objective_clearance_absolute_min",
+        "objective_clearance_min"
+      ],
+      "compared": null
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_compared",
+      "quantity": "optical_power",
+      "limit": "optical_power_max",
+      "direction": "max",
+      "limit_value": 1020,
+      "limit_unit": "mW",
+      "limit_si_float": 1.02,
+      "binds_over": [
+        "optical_power_max"
+      ],
+      "compared": null
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_compared",
+      "quantity": "piezo_x_position",
+      "limit": "piezo_x_position_min",
+      "direction": "min",
+      "limit_value": 0,
+      "limit_unit": "um",
+      "limit_si_float": 0.0,
+      "binds_over": [
+        "piezo_x_position_max",
+        "piezo_x_position_min"
+      ],
+      "compared": null
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_compared",
+      "quantity": "piezo_y_position",
+      "limit": "piezo_y_position_min",
+      "direction": "min",
+      "limit_value": 0,
+      "limit_unit": "um",
+      "limit_si_float": 0.0,
+      "binds_over": [
+        "piezo_y_position_max",
+        "piezo_y_position_min"
+      ],
+      "compared": null
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_compared",
+      "quantity": "piezo_z_position",
+      "limit": "piezo_z_position_min",
+      "direction": "min",
+      "limit_value": 0,
+      "limit_unit": "um",
+      "limit_si_float": 0.0,
+      "binds_over": [
+        "piezo_z_position_max",
+        "piezo_z_position_min"
+      ],
+      "compared": null
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_compared",
+      "quantity": "tweezers_trap_position_100x",
+      "limit": "tweezers_trap_position_100x_min",
+      "direction": "min",
+      "limit_value": -40,
+      "limit_unit": "um",
+      "limit_si_float": -4e-05,
+      "binds_over": [
+        "tweezers_trap_position_100x_max",
+        "tweezers_trap_position_100x_min"
+      ],
+      "compared": null
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_compared",
+      "quantity": "tweezers_trap_position_40x",
+      "limit": "tweezers_trap_position_40x_min",
+      "direction": "min",
+      "limit_value": -100,
+      "limit_unit": "um",
+      "limit_si_float": -0.0001,
+      "binds_over": [
+        "tweezers_trap_position_40x_max",
+        "tweezers_trap_position_40x_min"
+      ],
+      "compared": null
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_compared",
+      "quantity": "tweezers_trap_position_60x",
+      "limit": "tweezers_trap_position_60x_min",
+      "direction": "min",
+      "limit_value": -67,
+      "limit_unit": "um",
+      "limit_si_float": -6.7e-05,
+      "binds_over": [
+        "tweezers_trap_position_60x_max",
+        "tweezers_trap_position_60x_min"
+      ],
+      "compared": null
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_compared",
+      "quantity": "tweezers_trap_step",
+      "limit": "tweezers_trap_step_max",
+      "direction": "max",
+      "limit_value": 1,
+      "limit_unit": "um",
+      "limit_si_float": 1e-06,
+      "binds_over": [
+        "tweezers_trap_step_max"
+      ],
+      "compared": null
+    },
+    {
+      "t_mono": 0.047,
+      "time_base": "software",
+      "event": "limit_compared",
+      "quantity": "tweezers_trap_strength",
+      "limit": "tweezers_trap_strength_min",
+      "direction": "min",
+      "limit_value": 0,
+      "limit_unit": "1",
+      "limit_si_float": 0.0,
+      "binds_over": [
+        "tweezers_trap_strength_max",
+        "tweezers_trap_strength_min"
+      ],
+      "compared": null
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_0]",
+      "trap": "trap_2",
+      "strength": 0.0
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_1_at_1]",
+      "trap": "trap_1",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_01]",
+      "trap": "trap_2",
+      "strength": 0.1
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_02]",
+      "trap": "trap_2",
+      "strength": 0.2
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_03]",
+      "trap": "trap_2",
+      "strength": 0.3
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_04]",
+      "trap": "trap_2",
+      "strength": 0.4
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_05]",
+      "trap": "trap_2",
+      "strength": 0.5
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_06]",
+      "trap": "trap_2",
+      "strength": 0.6
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_07]",
+      "trap": "trap_2",
+      "strength": 0.7
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_08]",
+      "trap": "trap_2",
+      "strength": 0.8
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_09]",
+      "trap": "trap_2",
+      "strength": 0.9
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_10]",
+      "trap": "trap_2",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[1]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[2]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[4]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[6]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[8]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[10]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[12]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[14]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[16]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[18]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[20]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[22]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 0,
+      "allowed": [
+        "Aura",
+        "Core",
+        "DiaLamp",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "preflight",
+      "channel": "optical_tweezers",
+      "named_as": [],
+      "verified": false,
+      "state": {
+        "channel": "optical_tweezers",
+        "backend": "python_tcp",
+        "read_back": false,
+        "verification": "none",
+        "ready": true,
+        "probe": {
+          "status": -22,
+          "code_meaning": "no resource selected",
+          "means": "up",
+          "source": "agentic-microscope, measured on its bench 2026-08-27",
+          "measured_here": false,
+          "seq": 3
+        },
+        "calibration": {
+          "pixel_to_um": "calibrated at 100x, the person's statement; value not given",
+          "aod_field": "not stated",
+          "objective": "100x",
+          "stated_by": "kyuhwan"
+        }
+      }
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "preflight_unverified",
+      "channel": "optical_tweezers",
+      "note": "state cannot be read back; this channel goes to a manual sheet"
+    },
+    {
+      "t_mono": 0.062,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "stand_ti2e",
+      "driver": "micromanager",
+      "module": "micromanager",
+      "tried": [
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 0.875,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "confocal_csuw1",
+      "driver": "micromanager",
+      "module": "micromanager",
+      "tried": [
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 0.89,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "camera_red",
+      "driver": "micromanager_pvcam",
+      "module": "micromanager",
+      "tried": [
+        "micromanager_pvcam",
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 0.906,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "camera_blue",
+      "driver": "micromanager_pvcam",
+      "module": "micromanager",
+      "tried": [
+        "micromanager_pvcam",
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 0.922,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "widefield_source_a",
+      "driver": "micromanager",
+      "module": "micromanager",
+      "tried": [
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 0.922,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "widefield_source_b",
+      "driver": "micromanager",
+      "module": "micromanager",
+      "tried": [
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 0.937,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "dmd",
+      "driver": "micromanager, device adapter MightexPolygon1000 (Mightex vendor package V1.0-202103)",
+      "module": "micromanager",
+      "tried": [
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 0.953,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "piezo_stage",
+      "driver": "python_serial + vendor_dll",
+      "module": "python_serial",
+      "tried": [
+        "python_serial"
+      ]
+    },
+    {
+      "t_mono": 0.953,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 0.953,
+      "time_base": "software",
+      "event": "snapshot",
+      "label": "before",
+      "states": {
+        "stand_ti2e": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "confocal_csuw1": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "camera_red": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "camera_blue": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "widefield_source_a": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "widefield_source_b": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "laser_combiner": {
+          "error": "channel 'laser_combiner' declares driver 'split: blanking and line select over DAQ, per-line power over SPI' and no module in devices/ answers to it; tried ['split:']. A channel with no module is not driven by guessing at one, and it is not quietly handed to the mock either"
+        },
+        "dmd": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "piezo_stage": {
+          "error": "no link is open; open_link() first. Nothing opens one implicitly, because an implicit open is how a port gets opened by accident"
+        },
+        "optical_tweezers": {
+          "read_back": false,
+          "verification": "none",
+          "note": "the Tweez 300 interface has no query of any kind; this is not a state",
+          "beam": {
+            "state": "assumed on",
+            "shown_blocked_by": null
+          },
+          "fate_unknown": null,
+          "calibration": {
+            "pixel_to_um": "calibrated at 100x, the person's statement; value not given",
+            "aod_field": "not stated",
+            "objective": "100x",
+            "stated_by": "kyuhwan"
+          }
+        }
+      }
+    },
+    {
+      "t_mono": 2.656,
+      "time_base": "software",
+      "event": "hold_for_person",
+      "plan_field": "trap_steps.steps[ready]",
+      "statement": "Before anything is sent: is the laser emitting, with the dial at 0.02, and is one bead held in trap_1 at the centre? Answer yes to set trap_2's strength to 0 (trap_1 stays at 1). Answer no to send nothing.",
+      "answer": "yes"
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_0]",
+      "trap": "trap_2",
+      "strength": 0.0
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_1_at_1]",
+      "trap": "trap_1",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_01]",
+      "trap": "trap_2",
+      "strength": 0.1
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_02]",
+      "trap": "trap_2",
+      "strength": 0.2
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_03]",
+      "trap": "trap_2",
+      "strength": 0.3
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_04]",
+      "trap": "trap_2",
+      "strength": 0.4
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_05]",
+      "trap": "trap_2",
+      "strength": 0.5
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_06]",
+      "trap": "trap_2",
+      "strength": 0.6
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_07]",
+      "trap": "trap_2",
+      "strength": 0.7
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_08]",
+      "trap": "trap_2",
+      "strength": 0.8
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_09]",
+      "trap": "trap_2",
+      "strength": 0.9
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_10]",
+      "trap": "trap_2",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[1]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 0,
+      "allowed": [
+        "Aura",
+        "Core",
+        "DiaLamp",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 2.672,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "optical_tweezers",
+      "element": null,
+      "action": "trap_strength",
+      "params": {
+        "commands": [
+          [
+            "TRAP_STRENGTH",
+            "trap_2",
+            0.0
+          ]
+        ],
+        "step": {
+          "id": "trap_2_to_0",
+          "kind": "strength",
+          "trap": "trap_2",
+          "from": "trap_steps.steps[trap_2_to_0]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the channel table marks optical_tweezers read_back False, so there is nothing to query",
+      "from": "trap_steps.steps[trap_2_to_0]"
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_0]",
+      "trap": "trap_2",
+      "strength": 0.0
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_1_at_1]",
+      "trap": "trap_1",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_01]",
+      "trap": "trap_2",
+      "strength": 0.1
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_02]",
+      "trap": "trap_2",
+      "strength": 0.2
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_03]",
+      "trap": "trap_2",
+      "strength": 0.3
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_04]",
+      "trap": "trap_2",
+      "strength": 0.4
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_05]",
+      "trap": "trap_2",
+      "strength": 0.5
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_06]",
+      "trap": "trap_2",
+      "strength": 0.6
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_07]",
+      "trap": "trap_2",
+      "strength": 0.7
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_08]",
+      "trap": "trap_2",
+      "strength": 0.8
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_09]",
+      "trap": "trap_2",
+      "strength": 0.9
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_10]",
+      "trap": "trap_2",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[2]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 0,
+      "allowed": [
+        "Aura",
+        "Core",
+        "DiaLamp",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 2.687,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 2.781,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "optical_tweezers",
+      "element": null,
+      "action": "trap_strength",
+      "params": {
+        "commands": [
+          [
+            "TRAP_STRENGTH",
+            "trap_1",
+            1.0
+          ]
+        ],
+        "step": {
+          "id": "trap_1_at_1",
+          "kind": "strength",
+          "trap": "trap_1",
+          "from": "trap_steps.steps[trap_1_at_1]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the channel table marks optical_tweezers read_back False, so there is nothing to query",
+      "from": "trap_steps.steps[trap_1_at_1]"
+    },
+    {
+      "t_mono": 41.031,
+      "time_base": "software",
+      "event": "hold_for_person",
+      "plan_field": "trap_steps.steps[check_1_0]",
+      "statement": "Strengths are now trap_1 1.0, trap_2 0.0. Is the bead held in trap_1? Answer yes to raise trap_2 to 0.1; no to stop here, both traps left as they are; abort to abort.",
+      "answer": "yes"
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_0]",
+      "trap": "trap_2",
+      "strength": 0.0
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_1_at_1]",
+      "trap": "trap_1",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_01]",
+      "trap": "trap_2",
+      "strength": 0.1
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_02]",
+      "trap": "trap_2",
+      "strength": 0.2
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_03]",
+      "trap": "trap_2",
+      "strength": 0.3
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_04]",
+      "trap": "trap_2",
+      "strength": 0.4
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_05]",
+      "trap": "trap_2",
+      "strength": 0.5
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_06]",
+      "trap": "trap_2",
+      "strength": 0.6
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_07]",
+      "trap": "trap_2",
+      "strength": 0.7
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_08]",
+      "trap": "trap_2",
+      "strength": 0.8
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_09]",
+      "trap": "trap_2",
+      "strength": 0.9
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_10]",
+      "trap": "trap_2",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[4]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 0,
+      "allowed": [
+        "Aura",
+        "Core",
+        "DiaLamp",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 41.047,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 41.062,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "optical_tweezers",
+      "element": null,
+      "action": "trap_strength",
+      "params": {
+        "commands": [
+          [
+            "TRAP_STRENGTH",
+            "trap_2",
+            0.1
+          ]
+        ],
+        "step": {
+          "id": "trap_2_to_01",
+          "kind": "strength",
+          "trap": "trap_2",
+          "from": "trap_steps.steps[trap_2_to_01]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the channel table marks optical_tweezers read_back False, so there is nothing to query",
+      "from": "trap_steps.steps[trap_2_to_01]"
+    },
+    {
+      "t_mono": 62.781,
+      "time_base": "software",
+      "event": "hold_for_person",
+      "plan_field": "trap_steps.steps[check_1_01]",
+      "statement": "Strengths are now trap_1 1.0, trap_2 0.1. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.2; no to stop here, both traps left as they are; abort to abort.",
+      "answer": "yes"
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_0]",
+      "trap": "trap_2",
+      "strength": 0.0
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_1_at_1]",
+      "trap": "trap_1",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_01]",
+      "trap": "trap_2",
+      "strength": 0.1
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_02]",
+      "trap": "trap_2",
+      "strength": 0.2
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_03]",
+      "trap": "trap_2",
+      "strength": 0.3
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_04]",
+      "trap": "trap_2",
+      "strength": 0.4
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_05]",
+      "trap": "trap_2",
+      "strength": 0.5
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_06]",
+      "trap": "trap_2",
+      "strength": 0.6
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_07]",
+      "trap": "trap_2",
+      "strength": 0.7
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_08]",
+      "trap": "trap_2",
+      "strength": 0.8
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_09]",
+      "trap": "trap_2",
+      "strength": 0.9
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_10]",
+      "trap": "trap_2",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[6]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 0,
+      "allowed": [
+        "Aura",
+        "Core",
+        "DiaLamp",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 62.797,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 62.812,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "optical_tweezers",
+      "element": null,
+      "action": "trap_strength",
+      "params": {
+        "commands": [
+          [
+            "TRAP_STRENGTH",
+            "trap_2",
+            0.2
+          ]
+        ],
+        "step": {
+          "id": "trap_2_to_02",
+          "kind": "strength",
+          "trap": "trap_2",
+          "from": "trap_steps.steps[trap_2_to_02]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the channel table marks optical_tweezers read_back False, so there is nothing to query",
+      "from": "trap_steps.steps[trap_2_to_02]"
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "hold_for_person",
+      "plan_field": "trap_steps.steps[check_1_02]",
+      "statement": "Strengths are now trap_1 1.0, trap_2 0.2. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.3; no to stop here, both traps left as they are; abort to abort.",
+      "answer": "yes"
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_0]",
+      "trap": "trap_2",
+      "strength": 0.0
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_1_at_1]",
+      "trap": "trap_1",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_01]",
+      "trap": "trap_2",
+      "strength": 0.1
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_02]",
+      "trap": "trap_2",
+      "strength": 0.2
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_03]",
+      "trap": "trap_2",
+      "strength": 0.3
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_04]",
+      "trap": "trap_2",
+      "strength": 0.4
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_05]",
+      "trap": "trap_2",
+      "strength": 0.5
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_06]",
+      "trap": "trap_2",
+      "strength": 0.6
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_07]",
+      "trap": "trap_2",
+      "strength": 0.7
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_08]",
+      "trap": "trap_2",
+      "strength": 0.8
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_09]",
+      "trap": "trap_2",
+      "strength": 0.9
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_10]",
+      "trap": "trap_2",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[8]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 0,
+      "allowed": [
+        "Aura",
+        "Core",
+        "DiaLamp",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 93.047,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 93.062,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "optical_tweezers",
+      "element": null,
+      "action": "trap_strength",
+      "params": {
+        "commands": [
+          [
+            "TRAP_STRENGTH",
+            "trap_2",
+            0.3
+          ]
+        ],
+        "step": {
+          "id": "trap_2_to_03",
+          "kind": "strength",
+          "trap": "trap_2",
+          "from": "trap_steps.steps[trap_2_to_03]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the channel table marks optical_tweezers read_back False, so there is nothing to query",
+      "from": "trap_steps.steps[trap_2_to_03]"
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "hold_for_person",
+      "plan_field": "trap_steps.steps[check_1_03]",
+      "statement": "Strengths are now trap_1 1.0, trap_2 0.3. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.4; no to stop here, both traps left as they are; abort to abort.",
+      "answer": "yes"
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_0]",
+      "trap": "trap_2",
+      "strength": 0.0
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_1_at_1]",
+      "trap": "trap_1",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_01]",
+      "trap": "trap_2",
+      "strength": 0.1
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_02]",
+      "trap": "trap_2",
+      "strength": 0.2
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_03]",
+      "trap": "trap_2",
+      "strength": 0.3
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_04]",
+      "trap": "trap_2",
+      "strength": 0.4
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_05]",
+      "trap": "trap_2",
+      "strength": 0.5
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_06]",
+      "trap": "trap_2",
+      "strength": 0.6
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_07]",
+      "trap": "trap_2",
+      "strength": 0.7
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_08]",
+      "trap": "trap_2",
+      "strength": 0.8
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_09]",
+      "trap": "trap_2",
+      "strength": 0.9
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_10]",
+      "trap": "trap_2",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[10]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 0,
+      "allowed": [
+        "Aura",
+        "Core",
+        "DiaLamp",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 572.203,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 572.219,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "optical_tweezers",
+      "element": null,
+      "action": "trap_strength",
+      "params": {
+        "commands": [
+          [
+            "TRAP_STRENGTH",
+            "trap_2",
+            0.4
+          ]
+        ],
+        "step": {
+          "id": "trap_2_to_04",
+          "kind": "strength",
+          "trap": "trap_2",
+          "from": "trap_steps.steps[trap_2_to_04]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the channel table marks optical_tweezers read_back False, so there is nothing to query",
+      "from": "trap_steps.steps[trap_2_to_04]"
+    },
+    {
+      "t_mono": 759.594,
+      "time_base": "software",
+      "event": "hold_for_person",
+      "plan_field": "trap_steps.steps[check_1_04]",
+      "statement": "Strengths are now trap_1 1.0, trap_2 0.4. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.5; no to stop here, both traps left as they are; abort to abort.",
+      "answer": "yes"
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_0]",
+      "trap": "trap_2",
+      "strength": 0.0
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_1_at_1]",
+      "trap": "trap_1",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_01]",
+      "trap": "trap_2",
+      "strength": 0.1
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_02]",
+      "trap": "trap_2",
+      "strength": 0.2
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_03]",
+      "trap": "trap_2",
+      "strength": 0.3
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_04]",
+      "trap": "trap_2",
+      "strength": 0.4
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_05]",
+      "trap": "trap_2",
+      "strength": 0.5
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_06]",
+      "trap": "trap_2",
+      "strength": 0.6
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_07]",
+      "trap": "trap_2",
+      "strength": 0.7
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_08]",
+      "trap": "trap_2",
+      "strength": 0.8
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_09]",
+      "trap": "trap_2",
+      "strength": 0.9
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_10]",
+      "trap": "trap_2",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[12]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 0,
+      "allowed": [
+        "Aura",
+        "Core",
+        "DiaLamp",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 759.609,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "optical_tweezers",
+      "element": null,
+      "action": "trap_strength",
+      "params": {
+        "commands": [
+          [
+            "TRAP_STRENGTH",
+            "trap_2",
+            0.5
+          ]
+        ],
+        "step": {
+          "id": "trap_2_to_05",
+          "kind": "strength",
+          "trap": "trap_2",
+          "from": "trap_steps.steps[trap_2_to_05]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the channel table marks optical_tweezers read_back False, so there is nothing to query",
+      "from": "trap_steps.steps[trap_2_to_05]"
+    },
+    {
+      "t_mono": 946.984,
+      "time_base": "software",
+      "event": "hold_for_person",
+      "plan_field": "trap_steps.steps[check_1_05]",
+      "statement": "Strengths are now trap_1 1.0, trap_2 0.5. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.6; no to stop here, both traps left as they are; abort to abort.",
+      "answer": "yes"
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_0]",
+      "trap": "trap_2",
+      "strength": 0.0
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_1_at_1]",
+      "trap": "trap_1",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_01]",
+      "trap": "trap_2",
+      "strength": 0.1
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_02]",
+      "trap": "trap_2",
+      "strength": 0.2
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_03]",
+      "trap": "trap_2",
+      "strength": 0.3
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_04]",
+      "trap": "trap_2",
+      "strength": 0.4
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_05]",
+      "trap": "trap_2",
+      "strength": 0.5
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_06]",
+      "trap": "trap_2",
+      "strength": 0.6
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_07]",
+      "trap": "trap_2",
+      "strength": 0.7
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_08]",
+      "trap": "trap_2",
+      "strength": 0.8
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_09]",
+      "trap": "trap_2",
+      "strength": 0.9
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_10]",
+      "trap": "trap_2",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[14]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 0,
+      "allowed": [
+        "Aura",
+        "Core",
+        "DiaLamp",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 947.0,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "optical_tweezers",
+      "element": null,
+      "action": "trap_strength",
+      "params": {
+        "commands": [
+          [
+            "TRAP_STRENGTH",
+            "trap_2",
+            0.6
+          ]
+        ],
+        "step": {
+          "id": "trap_2_to_06",
+          "kind": "strength",
+          "trap": "trap_2",
+          "from": "trap_steps.steps[trap_2_to_06]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the channel table marks optical_tweezers read_back False, so there is nothing to query",
+      "from": "trap_steps.steps[trap_2_to_06]"
+    },
+    {
+      "t_mono": 1133.875,
+      "time_base": "software",
+      "event": "hold_for_person",
+      "plan_field": "trap_steps.steps[check_1_06]",
+      "statement": "Strengths are now trap_1 1.0, trap_2 0.6. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.7; no to stop here, both traps left as they are; abort to abort.",
+      "answer": "yes"
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_0]",
+      "trap": "trap_2",
+      "strength": 0.0
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_1_at_1]",
+      "trap": "trap_1",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_01]",
+      "trap": "trap_2",
+      "strength": 0.1
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_02]",
+      "trap": "trap_2",
+      "strength": 0.2
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_03]",
+      "trap": "trap_2",
+      "strength": 0.3
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_04]",
+      "trap": "trap_2",
+      "strength": 0.4
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_05]",
+      "trap": "trap_2",
+      "strength": 0.5
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_06]",
+      "trap": "trap_2",
+      "strength": 0.6
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_07]",
+      "trap": "trap_2",
+      "strength": 0.7
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_08]",
+      "trap": "trap_2",
+      "strength": 0.8
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_09]",
+      "trap": "trap_2",
+      "strength": 0.9
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_10]",
+      "trap": "trap_2",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[16]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 0,
+      "allowed": [
+        "Aura",
+        "Core",
+        "DiaLamp",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 1133.89,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "optical_tweezers",
+      "element": null,
+      "action": "trap_strength",
+      "params": {
+        "commands": [
+          [
+            "TRAP_STRENGTH",
+            "trap_2",
+            0.7
+          ]
+        ],
+        "step": {
+          "id": "trap_2_to_07",
+          "kind": "strength",
+          "trap": "trap_2",
+          "from": "trap_steps.steps[trap_2_to_07]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the channel table marks optical_tweezers read_back False, so there is nothing to query",
+      "from": "trap_steps.steps[trap_2_to_07]"
+    },
+    {
+      "t_mono": 1320.765,
+      "time_base": "software",
+      "event": "hold_for_person",
+      "plan_field": "trap_steps.steps[check_1_07]",
+      "statement": "Strengths are now trap_1 1.0, trap_2 0.7. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.8; no to stop here, both traps left as they are; abort to abort.",
+      "answer": "yes"
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_0]",
+      "trap": "trap_2",
+      "strength": 0.0
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_1_at_1]",
+      "trap": "trap_1",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_01]",
+      "trap": "trap_2",
+      "strength": 0.1
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_02]",
+      "trap": "trap_2",
+      "strength": 0.2
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_03]",
+      "trap": "trap_2",
+      "strength": 0.3
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_04]",
+      "trap": "trap_2",
+      "strength": 0.4
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_05]",
+      "trap": "trap_2",
+      "strength": 0.5
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_06]",
+      "trap": "trap_2",
+      "strength": 0.6
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_07]",
+      "trap": "trap_2",
+      "strength": 0.7
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_08]",
+      "trap": "trap_2",
+      "strength": 0.8
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_09]",
+      "trap": "trap_2",
+      "strength": 0.9
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_10]",
+      "trap": "trap_2",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[18]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 0,
+      "allowed": [
+        "Aura",
+        "Core",
+        "DiaLamp",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 1320.781,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "optical_tweezers",
+      "element": null,
+      "action": "trap_strength",
+      "params": {
+        "commands": [
+          [
+            "TRAP_STRENGTH",
+            "trap_2",
+            0.8
+          ]
+        ],
+        "step": {
+          "id": "trap_2_to_08",
+          "kind": "strength",
+          "trap": "trap_2",
+          "from": "trap_steps.steps[trap_2_to_08]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the channel table marks optical_tweezers read_back False, so there is nothing to query",
+      "from": "trap_steps.steps[trap_2_to_08]"
+    },
+    {
+      "t_mono": 1507.656,
+      "time_base": "software",
+      "event": "hold_for_person",
+      "plan_field": "trap_steps.steps[check_1_08]",
+      "statement": "Strengths are now trap_1 1.0, trap_2 0.8. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 0.9; no to stop here, both traps left as they are; abort to abort.",
+      "answer": "yes"
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_0]",
+      "trap": "trap_2",
+      "strength": 0.0
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_1_at_1]",
+      "trap": "trap_1",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_01]",
+      "trap": "trap_2",
+      "strength": 0.1
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_02]",
+      "trap": "trap_2",
+      "strength": 0.2
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_03]",
+      "trap": "trap_2",
+      "strength": 0.3
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_04]",
+      "trap": "trap_2",
+      "strength": 0.4
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_05]",
+      "trap": "trap_2",
+      "strength": 0.5
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_06]",
+      "trap": "trap_2",
+      "strength": 0.6
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_07]",
+      "trap": "trap_2",
+      "strength": 0.7
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_08]",
+      "trap": "trap_2",
+      "strength": 0.8
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_09]",
+      "trap": "trap_2",
+      "strength": 0.9
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_10]",
+      "trap": "trap_2",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[20]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 0,
+      "allowed": [
+        "Aura",
+        "Core",
+        "DiaLamp",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 1507.672,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 1507.687,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "optical_tweezers",
+      "element": null,
+      "action": "trap_strength",
+      "params": {
+        "commands": [
+          [
+            "TRAP_STRENGTH",
+            "trap_2",
+            0.9
+          ]
+        ],
+        "step": {
+          "id": "trap_2_to_09",
+          "kind": "strength",
+          "trap": "trap_2",
+          "from": "trap_steps.steps[trap_2_to_09]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the channel table marks optical_tweezers read_back False, so there is nothing to query",
+      "from": "trap_steps.steps[trap_2_to_09]"
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "hold_for_person",
+      "plan_field": "trap_steps.steps[check_1_09]",
+      "statement": "Strengths are now trap_1 1.0, trap_2 0.9. Watch the bead: note where it sits and whether it hops. Answer yes to raise trap_2 to 1.0; no to stop here, both traps left as they are; abort to abort.",
+      "answer": "yes"
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_0]",
+      "trap": "trap_2",
+      "strength": 0.0
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_1_at_1]",
+      "trap": "trap_1",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_01]",
+      "trap": "trap_2",
+      "strength": 0.1
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_02]",
+      "trap": "trap_2",
+      "strength": 0.2
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_03]",
+      "trap": "trap_2",
+      "strength": 0.3
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_04]",
+      "trap": "trap_2",
+      "strength": 0.4
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_05]",
+      "trap": "trap_2",
+      "strength": 0.5
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_06]",
+      "trap": "trap_2",
+      "strength": 0.6
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_07]",
+      "trap": "trap_2",
+      "strength": 0.7
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_08]",
+      "trap": "trap_2",
+      "strength": 0.8
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_09]",
+      "trap": "trap_2",
+      "strength": 0.9
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "trap_step_checked",
+      "plan_field": "trap_steps.steps[trap_2_to_10]",
+      "trap": "trap_2",
+      "strength": 1.0
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "software_motion_exempt",
+      "plan_field": "trap_steps.steps[22]",
+      "channel": "optical_tweezers",
+      "action": "trap_strength",
+      "verification": "none",
+      "reason": "card 049 item 2: a trap step of an approved plan on optical_tweezers; the derived position, strength and step checks against the envelope bind it instead of the allow-list. The channel is blind: nothing it returns is a verification"
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 0,
+      "allowed": [
+        "Aura",
+        "Core",
+        "DiaLamp",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 1695.047,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 1695.062,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "optical_tweezers",
+      "element": null,
+      "action": "trap_strength",
+      "params": {
+        "commands": [
+          [
+            "TRAP_STRENGTH",
+            "trap_2",
+            1.0
+          ]
+        ],
+        "step": {
+          "id": "trap_2_to_10",
+          "kind": "strength",
+          "trap": "trap_2",
+          "from": "trap_steps.steps[trap_2_to_10]"
+        }
+      },
+      "verification": "none",
+      "verification_note": "the channel table marks optical_tweezers read_back False, so there is nothing to query",
+      "from": "trap_steps.steps[trap_2_to_10]"
+    },
+    {
+      "t_mono": 1882.437,
+      "time_base": "software",
+      "event": "hold_for_person",
+      "plan_field": "trap_steps.steps[check_1_10]",
+      "statement": "Strengths are now trap_1 1.0, trap_2 1.0. Watch the bead: note where it sits and whether it hops. Answer yes to finish, leaving both traps at 1.0; no to stop here, both traps left as they are; abort to abort.",
+      "answer": "yes"
+    },
+    {
+      "t_mono": 1882.437,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "stand_ti2e",
+      "driver": "micromanager",
+      "module": "micromanager",
+      "tried": [
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 1882.437,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "confocal_csuw1",
+      "driver": "micromanager",
+      "module": "micromanager",
+      "tried": [
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 1882.453,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "camera_red",
+      "driver": "micromanager_pvcam",
+      "module": "micromanager",
+      "tried": [
+        "micromanager_pvcam",
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 1882.469,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "camera_blue",
+      "driver": "micromanager_pvcam",
+      "module": "micromanager",
+      "tried": [
+        "micromanager_pvcam",
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 1882.469,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "widefield_source_a",
+      "driver": "micromanager",
+      "module": "micromanager",
+      "tried": [
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 1882.5,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "widefield_source_b",
+      "driver": "micromanager",
+      "module": "micromanager",
+      "tried": [
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 1882.5,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "dmd",
+      "driver": "micromanager, device adapter MightexPolygon1000 (Mightex vendor package V1.0-202103)",
+      "module": "micromanager",
+      "tried": [
+        "micromanager"
+      ]
+    },
+    {
+      "t_mono": 1882.515,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "piezo_stage",
+      "driver": "python_serial + vendor_dll",
+      "module": "python_serial",
+      "tried": [
+        "python_serial"
+      ]
+    },
+    {
+      "t_mono": 1882.515,
+      "time_base": "software",
+      "event": "driver_resolved",
+      "channel": "optical_tweezers",
+      "driver": "python_tcp",
+      "module": "python_tcp",
+      "tried": [
+        "python_tcp"
+      ]
+    },
+    {
+      "t_mono": 1882.515,
+      "time_base": "software",
+      "event": "snapshot",
+      "label": "after",
+      "states": {
+        "stand_ti2e": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "confocal_csuw1": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "camera_red": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "camera_blue": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "widefield_source_a": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "widefield_source_b": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "laser_combiner": {
+          "error": "channel 'laser_combiner' declares driver 'split: blanking and line select over DAQ, per-line power over SPI' and no module in devices/ answers to it; tried ['split:']. A channel with no module is not driven by guessing at one, and it is not quietly handed to the mock either"
+        },
+        "dmd": {
+          "error": "no Micro-Manager configuration is loaded; a person loads one, and until then there is nothing to preflight against"
+        },
+        "piezo_stage": {
+          "error": "no link is open; open_link() first. Nothing opens one implicitly, because an implicit open is how a port gets opened by accident"
+        },
+        "optical_tweezers": {
+          "read_back": false,
+          "verification": "none",
+          "note": "the Tweez 300 interface has no query of any kind; this is not a state",
+          "beam": {
+            "state": "assumed on",
+            "shown_blocked_by": null
+          },
+          "fate_unknown": null,
+          "calibration": {
+            "pixel_to_um": "calibrated at 100x, the person's statement; value not given",
+            "aod_field": "not stated",
+            "objective": "100x",
+            "stated_by": "kyuhwan"
+          }
+        }
+      }
+    }
+  ],
+  "finished_at": "2026-09-25T21:13:48+00:00"
+}
