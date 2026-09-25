@@ -36,7 +36,12 @@ HANDOVER = {
          "asked": "How you'll judge the bead is lifted off the glass.",
          "note": "judged by the person by eye on a centre-crop live view this seat started"},
     ],
-    "lamp_at_handover": "DiaLamp State 1, Intensity 2100, set and read back by this seat's live view",
+    # Asked in this seat's window at ~20:40Z: "Is the tweezers software's position
+    # calibration done for the 100x objective as it sits now?" -> "Yes, calibrated
+    # at 100x". No value was given, so pixel_to_um records the statement itself.
+    "tweezers_calibration": {"objective": "100x", "stated_by": "kyuhwan",
+                             "pixel_to_um": "calibrated at 100x, the person's statement; value not given"},
+    "lamp_at_handover":"DiaLamp State 1, Intensity 2100, set and read back by this seat's live view",
 }
 
 # Every number the link needs, with where it came from (python_tcp.Link has no defaults).
@@ -68,9 +73,19 @@ def main(run_id: str, answer_dir: str) -> int:
         (ans / "question.txt").write_text(statement, encoding="utf-8")
         print(f"HOLD: {statement}", flush=True)
         f = ans / "answer.txt"
+        # A stale answer must never answer the next hold: clear any leftover
+        # before asking, and consume the answer when it is read. Until
+        # run-20260925-011 the file stayed, so a second hold would have read the
+        # first hold's "yes" and gone on without the person.
+        if f.exists():
+            f.unlink()
+        (ans / "question.txt").write_text(statement, encoding="utf-8")
         while not f.exists():
             time.sleep(0.5)
-        return f.read_text(encoding="utf-8").strip()
+        time.sleep(0.2)                     # let the writer finish
+        answer = f.read_text(encoding="utf-8").strip()
+        f.unlink()
+        return answer
 
     op = _load("_mic_operator_run", Path(_HERE) / "operator.py")
     link = {**LINK, "log_path": ans / "tweezers_dispatch.jsonl"}

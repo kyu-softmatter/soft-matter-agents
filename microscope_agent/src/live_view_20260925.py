@@ -102,8 +102,40 @@ def main(out_dir: str) -> int:
     core.startContinuousSequenceAcquisition(0.0)
     rec(event="acquisition_started")
 
+    record = "--record" in sys.argv
+    raw = (out / "frames_uint16.raw").open("ab") if record else None
+    stamps = (out / "frames_meta.jsonl").open("a", encoding="utf-8") if record else None
+    if record:
+        rec(event="recording", raw=str(out / "frames_uint16.raw"), dtype="uint16",
+            shape=[CROP, CROP], order="C",
+            note="every frame popped from the camera buffer, in order, with its metadata "
+                 "(ImageNumber, ElapsedTime-ms) in frames_meta.jsonl; the time base is the "
+                 "camera's, not this process's")
+
     def tick():
         if not state["open"]:
+            return
+        if record:
+            last = None
+            while core.getRemainingImageCount() > 0:
+                frame, md = core.popNextImageAndMD()
+                raw.write(np.asarray(frame, dtype=np.uint16).tobytes())
+                meta = mm._metadata(md)
+                stamps.write(json.dumps({"n": state["frames"], "ImageNumber": meta.get("ImageNumber"),
+                                         "ElapsedTime-ms": meta.get("ElapsedTime-ms"),
+                                         "host_t": time.time()}) + "\n")
+                state["frames"] += 1
+                last = frame
+            if last is not None:
+                raw.flush()
+                stamps.flush()
+                img = np.asarray(last, dtype=np.float32)
+                lo, hi = float(img.min()), float(img.max())
+                g = ((img - lo) * (255.0 / max(hi - lo, 1.0))).astype(np.uint8)
+                data = b"P5 %d %d 255\n" % (g.shape[1], g.shape[0]) + g.tobytes()
+                photo["img"] = tk.PhotoImage(data=data, format="PPM")
+                canvas.itemconfigure(item, image=photo["img"])
+            root.after(15, tick)
             return
         if core.getRemainingImageCount() > 0:
             img = np.asarray(core.getLastImage(), dtype=np.float32)
@@ -125,6 +157,9 @@ def main(out_dir: str) -> int:
     finally:
         if core.isSequenceRunning():
             core.stopSequenceAcquisition()
+        if raw:
+            raw.close()
+            stamps.close()
         rec(event="stop", frames_displayed=state["frames"],
             left_as=("Aura GREEN ON at 50 per-mille, State 1; DiaLamp State 0"
                      if "--aura" in sys.argv else "lamp ON (State 1, Intensity 2100)")
