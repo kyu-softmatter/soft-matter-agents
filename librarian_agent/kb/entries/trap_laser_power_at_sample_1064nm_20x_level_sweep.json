@@ -1,0 +1,78 @@
+{
+  "entry_id": "trap_laser_power_at_sample_1064nm_20x_level_sweep",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Through the 20x objective the trapping laser (1064 nm) delivered 64, 126 and 380 mW at 5, 10 and 30% level, inside the power meter head's range, and 633 mW at 50%, above it -- roughly in proportion to the level.",
+  "identifiers": {
+    "light_source": "optical_tweezers",
+    "laser_line": "1064 nm",
+    "nominal_magnification": "20x"
+  },
+  "numbers": [
+    {
+      "name": "illumination_power",
+      "value": 64,
+      "unit": "mW",
+      "source": "calibration:cal-illumination-power-20260909",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "at 5% level"
+    },
+    {
+      "name": "illumination_power",
+      "value": 126,
+      "unit": "mW",
+      "source": "calibration:cal-illumination-power-20260909",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "at 10% level"
+    },
+    {
+      "name": "illumination_power",
+      "value": 380,
+      "unit": "mW",
+      "source": "calibration:cal-illumination-power-20260909",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "at 30% level"
+    },
+    {
+      "name": "illumination_power",
+      "value": 633,
+      "unit": "mW",
+      "source": "calibration:cal-illumination-power-20260909",
+      "grade": "E2",
+      "precision": "order_of_magnitude",
+      "note": "at 50% level; above the S121C's 500 mW range"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    },
+    {
+      "kind": "quantity",
+      "id": "illumination_power"
+    }
+  ],
+  "source": "calibration:cal-illumination-power-20260909",
+  "grade": "E2",
+  "grade_tag": "calibration",
+  "source_ref": "src_illumination_power_worksheet_20260909",
+  "valid_until": {
+    "date": "2036-09-24"
+  },
+  "validity": {
+    "illumination_level": {
+      "min": 0.05,
+      "max": 0.5,
+      "unit": "1"
+    }
+  },
+  "validity_conditions": "Worksheet Power rows 128-132; 0 % read 0. Each number is at the level its note names, in order. The three below 500 mW are inside the S121C's range and carry their significant figures; 633 mW is above it. Roughly 12-13 mW per percent across the range, which is proportional to within the scatter of four points; not entered as a linearity claim. Measured 2026-09-09 by Kyu Hwan Choi and Saksham Malik with a Thorlabs PM100A and an S121C photodiode head (the person, 2026-09-24), wavelength set to the line, every spot inside the sensor. Mirror in, multiband in, IR in. Valid to 2036-09-24. WHAT THE LEVEL IS: the trapping laser's level setting as used in the measurement; trap_laser_power_has_no_software_path records that software can neither set nor read it.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-1"
+}

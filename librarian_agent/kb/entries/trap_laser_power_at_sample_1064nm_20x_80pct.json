@@ -1,0 +1,52 @@
+{
+  "entry_id": "trap_laser_power_at_sample_1064nm_20x_80pct",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "With the trapping laser (1064 nm) at 80% level through the 20x objective, about 1020 mW reached the sample plane on 2026-09-09 -- read above the power meter head's rated range, so an order of magnitude only.",
+  "identifiers": {
+    "light_source": "optical_tweezers",
+    "laser_line": "1064 nm",
+    "nominal_magnification": "20x",
+    "level_percent": "80"
+  },
+  "numbers": [
+    {
+      "name": "illumination_power",
+      "value": 1020,
+      "unit": "mW",
+      "source": "calibration:cal-illumination-power-20260909",
+      "grade": "E2",
+      "precision": "order_of_magnitude",
+      "note": "above the S121C's 500 mW range"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    },
+    {
+      "kind": "quantity",
+      "id": "illumination_power"
+    }
+  ],
+  "source": "calibration:cal-illumination-power-20260909",
+  "grade": "E2",
+  "grade_tag": "calibration",
+  "source_ref": "src_illumination_power_worksheet_20260909",
+  "valid_until": {
+    "date": "2036-09-24"
+  },
+  "validity": {
+    "illumination_level": {
+      "min": 0.8,
+      "max": 0.8,
+      "unit": "1"
+    }
+  },
+  "validity_conditions": "Worksheet Power row 133. Measured 2026-09-09 by Kyu Hwan Choi and Saksham Malik with a Thorlabs PM100A and an S121C photodiode head (the person, 2026-09-24), wavelength set to the line, every spot inside the sensor. Mirror in, multiband in, IR in. Valid to 2036-09-24. OUT OF THE HEAD'S RANGE: Thorlabs rates the S121C at 500 nW - 500 mW, and this reading is above it, so it is outside the sensor's specification. A photodiode past its range usually reads low rather than high, so the true power is more likely at or above this than below it -- but that is the usual behaviour, not a property anyone checked on this head. Entered on the person's ruling to enter all readings, at order-of-magnitude precision. WHAT THE LEVEL IS: the trapping laser's level setting as used in the measurement; trap_laser_power_has_no_software_path records that software can neither set nor read it.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-1"
+}

@@ -54,7 +54,7 @@
   "validity_period": "ten years, stated by the person on 2026-09-24, until 2036-09-24",
   "meter": "Thorlabs PM100A console with an S120C or S121C photodiode head (which of the two not known)",
   "trapping_laser_rows": {
-    "status": "NOT ENTERED. Held on two problems found 2026-09-24.",
+    "status": "ENTERED 2026-09-24 on the person's two rulings below.",
     "readings": "Power sheet rows 128-135, OT 1064 nm, mirror in, multiband in, IR in: at 20x 0 / 64 / 126 / 380 / 633 mW at 0 / 5 / 10 / 30 / 50 %, and 1020 mW at 80 %; at 4x 890 mW and at 10x 1050 mW, both at 20 %.",
     "head": {
       "answer": "S121C",
@@ -64,6 +64,19 @@
     },
     "head_range": "Thorlabs' product page for the S121C, read 2026-09-24 in a browser: 'Standard Photodiode Power Sensor, Si, 400 - 1100 nm, 500 nW - 500 mW'. So 1064 nm is inside its wavelength range and 633, 1020, 890 and 1050 mW are ABOVE its power range. A photodiode above range typically reads low, not high, but out of range is out of its specification either way.",
     "inconsistent_rows": "At 20x the output rises steadily with level (64, 126, 380 mW at 5, 10, 30 %), which puts 20 % near 250 mW; the 4x and 10x rows give 890 and 1050 mW at 20 %. Either their level column is wrong or they were taken in a different state. Put to the person.",
-    "within_range": "The 20x readings at 5, 10 and 30 % (64, 126, 380 mW) are inside the head's range."
+    "within_range": "The 20x readings at 5, 10 and 30 % (64, 126, 380 mW) are inside the head's range.",
+    "ruling_enter_all": {
+      "asked": "enter only the in-range 20x readings and flag the rest, or re-measure with a head rated above 1 W?",
+      "answer": "nope",
+      "on": "2026-09-24",
+      "read_as": "neither: enter all of them. Readings above the head's 500 mW range are entered flagged, at order-of-magnitude precision, since the purpose is a rough magnitude."
+    },
+    "ruling_levels": {
+      "asked": "were the 4x and 10x rows really taken at 20 %?",
+      "answer": "if it seems switched, pls replace them properly",
+      "on": "2026-09-24",
+      "correction": "20 % -> 80 % on rows 134 and 135",
+      "why": "the correction this seat inferred and the person's answer authorised. In every other block of the worksheet the 'objective' rows are taken at that block's REFERENCE level (100 %); this block's reference is 80 % (row 133), and 890 and 1050 mW sit beside the 20x 1020 mW at 80 % where a 20 % reading, by the 20x sweep, would be near 250 mW. The worksheet file is not edited; the correction lives here and in the entries."
+    }
   }
 }

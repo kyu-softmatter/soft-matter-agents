@@ -1,0 +1,58 @@
+{
+  "entry_id": "trap_laser_power_at_sample_1064nm_40x_80pct_rough",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The trapping laser (1064 nm) at 80% level delivers ROUGHLY 1 W at the sample through the 40x objective -- an order-of-magnitude estimate, not a measurement, and probably high.",
+  "identifiers": {
+    "light_source": "optical_tweezers",
+    "laser_line": "1064 nm",
+    "nominal_magnification": "40x",
+    "part_number": "MRD77400",
+    "level_percent": "80"
+  },
+  "numbers": [
+    {
+      "name": "illumination_power",
+      "value": 1000,
+      "unit": "mW",
+      "source": "computed:power_scaled_by_objective_transmittance_band",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "note": "from about 1020 mW at 20x; transmittance between half and all"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    },
+    {
+      "kind": "quantity",
+      "id": "illumination_power"
+    }
+  ],
+  "supports": [
+    {
+      "entry": "trap_laser_power_at_sample_1064nm_20x_80pct"
+    },
+    {
+      "entry": "objective_transmittance_is_between_half_and_all"
+    }
+  ],
+  "source": "computed:power_scaled_by_objective_transmittance_band",
+  "grade": "E4",
+  "grade_tag": "computed",
+  "source_ref": "src_illumination_power_worksheet_20260909",
+  "validity": {
+    "illumination_level": {
+      "min": 0.8,
+      "max": 0.8,
+      "unit": "1"
+    }
+  },
+  "validity_conditions": "HOW: the 20x reading at 80% (about 1020 mW, itself above the head's range and an order of magnitude only) scaled by the 40x objective's transmittance relative to the 20x, which the person read as between half and all at 1000 nm (objective_transmittance_is_between_half_and_all); the person ruled that 1000 nm stands in for 1064 nm for this purpose. So the same decade as at 20x.\n\nWHY IT IS PROBABLY HIGH: an optical trap deliberately overfills the objective's back aperture to reach its full NA, so a real fraction of the beam is clipped before the sample, and the high-NA objectives have the smallest apertures. Transmittance is the glass only and cannot show that. For the 40x the 1000 nm stand-in is itself an assumption: its curve is still falling there.\n\nSuperseded by any measurement at this objective -- for the oil objectives, with oil between lens and meter, and with a head rated above 1 W.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-1"
+}
