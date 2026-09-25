@@ -41,6 +41,18 @@
       },
       "for_store": false,
       "note": "Unmeasured until the person says which it was and a frame shows both trap positions against the store's pixel size. If the scale is off, the remedy is the person re-calibrating in the GUI; nothing in code rescales. Until the person states the calibration for the objective in place, the trap-step exemption refuses every position command."
+    },
+    {
+      "id": "final_hand_set_run_particle_possibly_lost_20260925",
+      "fact": "Of the 2026-09-25 final recording (trap_2 set by hand at 2.5 um, 1/0.5), which shows no bead and a field about a quarter as bright as before, the person said: \"I think we just lost a particle\".",
+      "kind": "person_statement",
+      "how": "Said in manager-microscope-20260924-1's window, not this seat's, in answer to this seat's question whether the bead left or the light path changed; relayed by that seat. Kept with the person's hedge.",
+      "source": {
+        "type": "person",
+        "recorded_at": "the message of the commit that adds this item to microscope_agent/findings/microscope-20260924-6-20260925.json, which quotes the person's words and says they were relayed"
+      },
+      "for_store": false,
+      "note": "Not a finding that the bead was lost. A lost bead does not by itself explain a field about four times darker (median 128 against 469 counts) unless the bead's glow set the frame's background; that was not measured."
     }
   ]
 }

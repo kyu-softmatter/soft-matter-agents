@@ -142,7 +142,9 @@ def main(rec_dir: str, out_html: str) -> int:
                   f"{rtop:.0f} over {rmed:.0f} with the bead at 1/0. The field is also about a quarter as bright, "
                   f"although the Aura was set and read back exactly as before, so something besides the traps "
                   f"changed when they were set by hand -- the light path, a filter, or the bead leaving. Nothing "
-                  f"can be said about hopping at 2.5 um from this record.</p>")
+                  f"can be said about hopping at 2.5 um from this record. Asked afterwards, you said: "
+                  f"<i>\"I think we just lost a particle\"</i> -- which fits the missing bead; whether it also "
+                  f"explains the darker field was not measured.</p>")
     if final:
         f = final[0]
         f["name"], f["color"] = "2.5 um, 1/0.5 (set by hand)", AQUA
