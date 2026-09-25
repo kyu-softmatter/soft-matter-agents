@@ -1,0 +1,114 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "id": "plan-mic-20260925-002-r1",
+  "qid": "mic-20260925-002",
+  "thread": "solo-mic-20260925-002",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-25T21:30:00Z",
+  "status": "VALIDATED",
+  "numbers": [],
+  "degraded": [],
+  "purpose": "verify",
+  "intent": "confirm",
+  "actions": [
+    {
+      "id": "make_trap_1",
+      "device": "optical_tweezers",
+      "action": "create",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_1_on",
+      "device": "optical_tweezers",
+      "action": "on",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "bead_caught",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [
+      "tweezers_trap_position_100x_min",
+      "tweezers_trap_position_100x_max",
+      "tweezers_trap_strength_min",
+      "tweezers_trap_strength_max"
+    ],
+    "status": "inside",
+    "note": "trap_1 at (0, 0) um, inside the person's -40 to +40 um at 100x, at strength 1.0, the top of the person's 0 to 1. No position step follows the create, so the 1 um step limit has nothing to act on. The operator re-checks every derived value before the first command and refuses on a missing limit. The laser's total power is the person's hand at the dial; nothing here reads it."
+  },
+  "targets": [
+    {
+      "metric": "bead_held",
+      "kind": "detection",
+      "value": 1,
+      "unit": "count",
+      "note": "the person's yes at the hold: one bead held at the image centre. A decision about what counts as done, so no grade"
+    }
+  ],
+  "stop_criteria": [
+    {
+      "id": "sc_no_bead",
+      "metric": "bead_held",
+      "comparator": "<",
+      "target": "bead_held",
+      "on_met": "fault",
+      "statement": "the plan stops at the hold unless the person answers yes. Any trap command not answered 0 -- a rejection, a silence, an unparsed reply -- also stops the plan before the next, and a silence is never retried"
+    }
+  ],
+  "success_criteria": [
+    {
+      "id": "ok_bead",
+      "metric": "bead_held",
+      "comparator": ">=",
+      "target": "bead_held",
+      "statement": "the person answers yes: one bead held by trap_1 at the image centre"
+    }
+  ],
+  "open_risks": [
+    "The tweezers are blind: every command records verification none, the beam is assumed on after any command, and only the person can say a bead is held or the beam is blocked.",
+    "Strength 1.0, the person's choice, puts all of the dial's delivered power into one trap. The dial is the person's and nothing reads it. The store's only figure at 100x is a rough computed 1 W at 80 per cent on the dial, probably high; the person recalls noticing sample heating only above roughly 20 per cent.",
+    "The GUI's pixel-to-um calibration is unreadable over TCP. Only (0, 0) is used, which the store records as the image centre.",
+    "The plan ends with trap_1 ON and a bead held, which is the state the double-well measurement starts from. The abort path sends TRAP_OFF then LASER_OFF, and the person can switch the trap off in the GUI.",
+    "The lamp stays as architecture left it, DiaLamp State 1 at Intensity 2100; this plan does not command it."
+  ],
+  "trap_steps": {
+    "device": "optical_tweezers",
+    "objective": "100x",
+    "read_back": "none",
+    "verifies": "that software can create one trap at the image centre at full strength and switch it on, and that a bead the person brings under it by moving the stage by hand is held there",
+    "falsified_by": "the person does not confirm a bead held, or a bead brought under the trap does not stay when the stage stops, with every command answered 0",
+    "steps": [
+      {
+        "id": "make_trap_1",
+        "kind": "create",
+        "trap": "trap_1",
+        "x_um": 0.0,
+        "y_um": 0.0,
+        "strength": 1.0
+      },
+      {
+        "id": "trap_1_on",
+        "kind": "on",
+        "trap": "trap_1"
+      },
+      {
+        "id": "bead_caught",
+        "kind": "hold_for_person",
+        "statement": "trap_1 is on at the image centre at strength 1.0. Move the stage by hand until one bead sits under it. Answer yes only when a bead is held at the centre and stays when the stage stops; otherwise answer no, and the plan stops with the trap on."
+      }
+    ]
+  }
+}
