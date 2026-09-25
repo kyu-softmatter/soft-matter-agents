@@ -167,6 +167,18 @@ server was reachable has to name the gap it stands on (check 39).
    which §12 had named as E2 all along. An operator saying a number from memory
    is `operator_recall:` and E5; what separates them is the calibration event,
    not who spoke.
+
+   **E1 has a second path too, since 2026-09-24, and this rule went on
+   denying it after `plan.md` opened it.** §11-21 as narrowed at `20a688b`: a
+   **device's report of itself** — which body answered to a label, where an
+   axis rests, a command set listed, a setting read back — may enter citing a
+   preparatory run's log as `measured:<run_id>`, with the event, **graded as
+   an observation by this system**, so E1. The run log is the recorded event.
+   **The line is the vocabulary**: a registered observable's value never
+   enters this way and still waits for a plan that cites the run; check 85
+   lists every entry citing such a run. The same absolute failed the same way
+   a second time. manager-librarian repeated it in task 037, and
+   librarian-20260924-2 followed `plan.md` over both.
 10. **A confirmation mark applied in bulk is not a confirmation.** Stamp the row
     you re-read, never a batch.
 
