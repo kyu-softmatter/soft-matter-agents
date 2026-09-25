@@ -85,6 +85,17 @@ taking. Card 047 holds the readiness context: the camera, the calibration,
 the feasibility question, and the person's bench procedure. **Start nothing
 from 047 itself.**
 
+**The microscope envelope snapshot is behind the store.** The librarian
+published `kbv-d2db58512e78` (257 entries) at `b7dcc9b`, including seven
+trapping-laser power-at-sample entries from the person's 2026-09-09
+calibration and regenerated per-device safety guides in
+`librarian_agent/kb/guides/`. Re-copying `kb/exports/snapshot_microscope.json`
+into `envelope/snapshot.json` is an execution seat's, from committed export
+bytes only, **never under a fan-out already pinned**:
+- `mic-20260924-001` (card 034) re-copies once, at its v2 re-pin at S4
+- **the double-well round opens a new question, so re-copy before its fan-out
+  starts**, and name the export commit taken
+
 **Two contract questions deferred to after the bench, deliberately.**
 Changing a definition the night before, while both sides write against the
 current text, is the wrong moment:
