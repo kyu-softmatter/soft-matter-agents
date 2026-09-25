@@ -61,7 +61,13 @@ def main() -> None:
     if not top:
         allow()
 
-    rel_cwd = os.path.relpath(os.path.abspath(cwd), os.path.abspath(top)).replace(os.sep, "/")
+    # realpath on both sides: Windows can spell one directory two ways (an 8.3
+    # short name such as TAKATO~1 against the long one), and a relpath across the
+    # two spellings climbs out of the repository and misreads an agent session as
+    # a root one. If it still lands outside, the boundary is unknown: say nothing.
+    rel_cwd = os.path.relpath(os.path.realpath(cwd), os.path.realpath(top)).replace(os.sep, "/")
+    if rel_cwd.startswith(".."):
+        allow()
     agent = rel_cwd.split("/")[0] if rel_cwd.split("/")[0] in AGENT_DIRS else None
 
     paths = []
@@ -79,12 +85,16 @@ def main() -> None:
 
     def mine(p: str) -> bool:
         head = p.split("/")[0]
+        rest = p[len(head) + 1:]
+        design = any(rest == d or rest.startswith(d) for d in DESIGN_IN_AGENT)
         if agent:
-            return head == agent
+            # An agent's CLAUDE.md, README.md, .claude/ and tasks/ are its manager's
+            # paths, so an execution seat is not asked about them. manager-librarian-
+            # 20260924-1 found the first version asking a librarian about task cards.
+            return head == agent and not design
         if head not in AGENT_DIRS:
             return True
-        rest = p[len(head) + 1:]
-        return any(rest == d or rest.startswith(d) for d in DESIGN_IN_AGENT)
+        return design
 
     own = sorted(p for p in paths if mine(p))
     if not own:
