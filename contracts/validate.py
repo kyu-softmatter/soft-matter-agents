@@ -540,7 +540,14 @@ def collect(roots: Iterable[Path], include_rejected: bool = False) -> Bundle:
             if p.suffix != ".json":
                 continue
             try:
-                raw = p.read_text()
+                # utf-8-sig: a byte-order mark is accepted and dropped, and a
+                # file without one reads exactly as before. Windows PowerShell
+                # 5.1's Set-Content -Encoding utf8 writes the mark, and it is
+                # how the person writes approvals on this machine, so a BOM'd
+                # approval read as unreadable would fail a correct record.
+                # Found 2026-09-24 by microscope-20260924-2 in the operator;
+                # the operator's own read is card 041's.
+                raw = p.read_text(encoding="utf-8-sig")
                 data = json.loads(raw)
             except (OSError, json.JSONDecodeError) as exc:
                 b.cards.append(Card(p, {"__unreadable__": str(exc)}, ""))
