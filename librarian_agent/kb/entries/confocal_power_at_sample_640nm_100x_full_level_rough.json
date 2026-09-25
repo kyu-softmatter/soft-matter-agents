@@ -1,0 +1,58 @@
+{
+  "entry_id": "confocal_power_at_sample_640nm_100x_full_level_rough",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The confocal laser's 640 nm line at 100% level delivers ROUGHLY 10 mW at the sample through the 100x objective -- an order-of-magnitude estimate, not a measurement, and possibly high.",
+  "identifiers": {
+    "light_source": "confocal",
+    "laser_line": "640 nm",
+    "nominal_magnification": "100x",
+    "part_number": "MRD71970",
+    "level_percent": "100"
+  },
+  "numbers": [
+    {
+      "name": "illumination_power",
+      "value": 10,
+      "unit": "mW",
+      "source": "computed:power_scaled_by_objective_transmittance_band",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "note": "from 9.9 mW measured at 20x; transmittance between half and all, so within a factor of 2"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "device",
+      "id": "laser_combiner"
+    },
+    {
+      "kind": "quantity",
+      "id": "illumination_power"
+    }
+  ],
+  "supports": [
+    {
+      "entry": "confocal_power_at_sample_640nm_20x_full_level"
+    },
+    {
+      "entry": "objective_transmittance_is_between_half_and_all"
+    }
+  ],
+  "source": "computed:power_scaled_by_objective_transmittance_band",
+  "grade": "E4",
+  "grade_tag": "computed",
+  "source_ref": "src_operator_read_20260924_transmittance_graphs",
+  "validity": {
+    "illumination_level": {
+      "min": 1,
+      "max": 1,
+      "unit": "1"
+    }
+  },
+  "validity_conditions": "HOW: the measured 20x power (9.9 mW, confocal_power_at_sample_640nm_20x_full_level, E2), scaled by the 100x objective's transmittance relative to the 20x. The person read every objective's transmittance as between half and all (objective_transmittance_is_between_half_and_all), so the ratio lies between about 0.5 and 2 and the power is the same decade as at 20x. Done on the person's instruction of 2026-09-24, whose stated purpose was 'a rough sense of the magnitude of the power, not an exact power'. The same scaling reproduces the measured 4x and 10x powers.\n\nWHY IT MAY BE HIGH: transmittance is the glass only. The beam must also fit the objective's back aperture, which shrinks as magnification rises, and whatever it clips never reaches the sample. Untested at 40x-100x.\n\nConditions as the measured row: 100% level, mirror in, multiband out, IR in. Superseded by any measurement at this objective and line -- for an oil objective, with oil between lens and meter.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-1"
+}
