@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c 'exec python3 \"$(git rev-parse --show-toplevel)/contracts/validate.py\" --quiet'",
+            "command": "sh -c 'for c in python3 python py; do command -v \"$c\" >/dev/null 2>&1 || continue; \"$c\" -c \"\" >/dev/null 2>&1 || continue; exec \"$c\" \"$(git rev-parse --show-toplevel)/contracts/validate.py\" --quiet; done; echo \"validate: no RUNNABLE python on PATH (python3, python, py all failed a -c probe)\" >&2; exit 1'",
             "$comment": "The validator's exit code is the only truth (plan.md 8). Resolved from the git root rather than from $CLAUDE_PROJECT_DIR, which is the session's cwd: rooted at bridge/ it looked for bridge/contracts/validate.py and failed on every write in every bridge session, silently, because a PostToolUse failure does not stop the write. Same resolution .mcp.json uses, and for the same reason."
           }
         ]
