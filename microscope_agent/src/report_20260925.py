@@ -125,6 +125,24 @@ def main(rec_dir: str, out_html: str) -> int:
     fig3 = overlay("x(t), first position, trap_2 from 0 (light) to 1 (dark)", first, ref_x)
     fig4 = overlay("x(t), trap_2 at 5 um", [ref] + five, ref_x)
     finals = ""
+    raw_final = rec / "final_hand_2p5um_1_0.5.raw"
+    if not final and raw_final.exists():
+        # Recorded and not analysable: no bead in the frame. Said with the numbers
+        # that show it, rather than dropped.
+        st = np.memmap(raw_final, dtype=np.uint16, mode="r")
+        n = st.size // (256 * 256)
+        st = st[: n * 256 * 256].reshape(n, 256, 256)
+        samp = st[:: max(1, n // 50)].astype(float)
+        med, top = float(np.median(samp)), float(samp.max())
+        refst = np.memmap(rec / "strength_1_0.0.raw", dtype=np.uint16, mode="r").reshape(-1, 256, 256)
+        rmed, rtop = float(np.median(refst[::120].astype(float))), float(refst[::120].max())
+        finals = (f"<h3>Final setting, set by hand: trap_2 at 2.5 um, 1/0.5</h3>"
+                  f"<p><b>No bead in the recording.</b> {n} frames (3 min) were taken as before, but no frame holds a "
+                  f"bright spot: brightest pixel {top:.0f} counts over a background of {med:.0f}, against "
+                  f"{rtop:.0f} over {rmed:.0f} with the bead at 1/0. The field is also about a quarter as bright, "
+                  f"although the Aura was set and read back exactly as before, so something besides the traps "
+                  f"changed when they were set by hand -- the light path, a filter, or the bead leaving. Nothing "
+                  f"can be said about hopping at 2.5 um from this record.</p>")
     if final:
         f = final[0]
         f["name"], f["color"] = "2.5 um, 1/0.5 (set by hand)", AQUA
