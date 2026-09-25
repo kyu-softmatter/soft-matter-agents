@@ -816,6 +816,20 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             from . import trap_rest_backend  # noqa: PLC0415
             engine_class = trap_rest_backend.TrapRestHoomdBackend
             fallback_class = trap_rest_backend.TrapRestBackend
+        elif config_name == "bd_overdamped_gaussian_double_well_2d":
+            # The double well has NO fallback. The NumPy integrator in
+            # `double_well` is the reference the engine was validated against
+            # (task 024), not a backend: running it under the plan's id would
+            # record the reference as the engine. And a missing module refuses
+            # rather than falling through to free diffusion, which would finish
+            # green with no wells at all.
+            try:
+                from . import double_well_hoomd_backend  # noqa: PLC0415
+            except ImportError as exc:
+                raise Refused(f"{config_name} declares executed_by double_well_hoomd_backend and it "
+                              f"cannot be imported here ({exc}); there is no substitute") from exc
+            engine_class = double_well_hoomd_backend.DoubleWellHoomdBackend
+            fallback_class = None
         else:
             # READ THE DECLARATION, which is what the comment above always
             # claimed and the code did not do. It dispatched on the name
