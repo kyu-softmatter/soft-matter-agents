@@ -1,10 +1,10 @@
 {
   "artifact": "envelope_safety",
   "schema_version": "0.1",
-  "policy_version": "7",
+  "policy_version": "8",
   "agent": "microscope",
   "written_by": "kyuhwan",
-  "written_at": "2026-09-24",
+  "written_at": "2026-09-25",
   "targets": [
     {
       "target": "bench",
@@ -146,7 +146,116 @@
             "on": "2026-09-24",
             "note": "Not yet exercised on the stage. Change to kind 'physical', with how it was checked, once the first live check has moved each axis inside this range."
           }
+        },
+        "tweezers_trap_position_100x_min": {
+          "value": -40,
+          "unit": "um",
+          "bounds": "min",
+          "note": "Optical tweezers at the 100x objective: the most negative x or y a trap may be placed at, measured from the image centre, +x to the right on screen. Applies to both axes and to every trap.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "kyuhwan's own statement, 2026-09-25: -40 um to +40 um at the 100x objective",
+            "on": "2026-09-25",
+            "note": "Not yet exercised. Change to kind 'physical', with how it was checked, after the first live trap moves inside this range."
+          }
+        },
+        "tweezers_trap_position_100x_max": {
+          "value": 40,
+          "unit": "um",
+          "bounds": "max",
+          "note": "Optical tweezers at the 100x objective: the most positive x or y a trap may be placed at, from the image centre. Applies to both axes and to every trap.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "kyuhwan's own statement, 2026-09-25: -40 um to +40 um at the 100x objective",
+            "on": "2026-09-25",
+            "note": "Not yet exercised."
+          }
+        },
+        "tweezers_trap_position_60x_min": {
+          "value": -67,
+          "unit": "um",
+          "bounds": "min",
+          "note": "Optical tweezers at the 60x objective: the most negative x or y a trap may be placed at, from the image centre. Both axes, every trap.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "kyuhwan's 100x range of +-40 um, scaled by magnification (40 x 100/60) by the microscope session and confirmed by kyuhwan on 2026-09-25",
+            "on": "2026-09-25",
+            "note": "A calculation, not a measurement. Not yet exercised."
+          }
+        },
+        "tweezers_trap_position_60x_max": {
+          "value": 67,
+          "unit": "um",
+          "bounds": "max",
+          "note": "Optical tweezers at the 60x objective: the most positive x or y a trap may be placed at, from the image centre. Both axes, every trap.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "kyuhwan's 100x range of +-40 um, scaled by magnification (40 x 100/60) by the microscope session and confirmed by kyuhwan on 2026-09-25",
+            "on": "2026-09-25",
+            "note": "A calculation, not a measurement. Not yet exercised."
+          }
+        },
+        "tweezers_trap_position_40x_min": {
+          "value": -100,
+          "unit": "um",
+          "bounds": "min",
+          "note": "Optical tweezers at the 40x objective: the most negative x or y a trap may be placed at, from the image centre. Both axes, every trap.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "kyuhwan's 100x range of +-40 um, scaled by magnification (40 x 100/40) by the microscope session and confirmed by kyuhwan on 2026-09-25",
+            "on": "2026-09-25",
+            "note": "A calculation, not a measurement. Not yet exercised."
+          }
+        },
+        "tweezers_trap_position_40x_max": {
+          "value": 100,
+          "unit": "um",
+          "bounds": "max",
+          "note": "Optical tweezers at the 40x objective: the most positive x or y a trap may be placed at, from the image centre. Both axes, every trap.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "kyuhwan's 100x range of +-40 um, scaled by magnification (40 x 100/40) by the microscope session and confirmed by kyuhwan on 2026-09-25",
+            "on": "2026-09-25",
+            "note": "A calculation, not a measurement. Not yet exercised."
+          }
+        },
+        "tweezers_trap_strength_min": {
+          "value": 0,
+          "unit": "1",
+          "bounds": "min",
+          "note": "Optical tweezers: the lowest strength software may set on any trap, as a fraction of the laser power set on the hand dial.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "kyuhwan's own statement, 2026-09-25: strength 0 to 1",
+            "on": "2026-09-25",
+            "note": "Not yet exercised."
+          }
+        },
+        "tweezers_trap_strength_max": {
+          "value": 1,
+          "unit": "1",
+          "bounds": "max",
+          "note": "Optical tweezers: the highest strength software may set on any trap. Total laser power is still capped by the hand dial, which only kyuhwan sets.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "kyuhwan's own statement, 2026-09-25: strength 0 to 1",
+            "on": "2026-09-25",
+            "note": "Not yet exercised."
+          }
+        },
+        "tweezers_trap_step_max": {
+          "value": 1,
+          "unit": "um",
+          "bounds": "max",
+          "note": "Optical tweezers: the largest distance one command may move a trap, at any objective. The tweezers never report where a trap is, so this caps the damage from one lost or doubled command.",
+          "confirmation": {
+            "kind": "carried_over",
+            "from": "kyuhwan's own statement, 2026-09-25: a largest step of 1 um",
+            "on": "2026-09-25",
+            "note": "Not yet exercised."
+          }
         }
+        
       }
     }
   ]
