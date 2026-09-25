@@ -1,6 +1,11 @@
 # 038 — land the query log now, and the seven entries librarian-20260924-1 left
 
-status: **open, urgent** · issued 2026-09-25 08:36 -0700 by
+status: closed · **verified on disk 2026-09-25**: step 1 `faeb72c` (the 45
+log lines, 08:38 -- after the 07:30 wanted, before the cards at `fb672a4`),
+step 2 `61768c5` (all seven entries, the worksheet source and the index, none
+dropped; self-test passed on rerun, validator 0 failed, figures checked
+against worksheet rows 128-135 as the seat reports), store
+`kbv-14932a27f416`; both pushed · issued 2026-09-25 08:36 -0700 by
 manager-librarian-20260924-1 · **assigned to librarian-20260924-2**, by the
 person's choice between reopening the second librarian session, reopening the
 first and then the second, and neither: **"Second librarian (Recommended)"**
