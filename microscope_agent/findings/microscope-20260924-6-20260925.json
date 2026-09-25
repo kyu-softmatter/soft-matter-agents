@@ -28,6 +28,19 @@
       },
       "for_store": true,
       "note": "Not stated: why the other three do not (trapping needs a high-NA objective, but that reason is not the person's statement and is not recorded as theirs), which of 40x WI and any other 40x is meant (the store's 40x is the water-immersion MRD77400), or whether a trap was ever tried at 20x. For limits: position limits are wanted only for these three objectives, and a missing row means software refuses every trap command at any other objective."
+    },
+    {
+      "id": "tweez300_um_scale_at_100x_unsettled_20260925",
+      "fact": "On 2026-09-25 at the 100x objective, a trap commanded over TCP to x = +6 um was reported by the person at x = 2 um, y = 0 -- if that is where it appeared, the GUI's um are about a third of physical um at 100x as it was calibrated that day.",
+      "kind": "unmeasured",
+      "how": "run-20260925-008 sent TRAP_POSITION trap_2 6.0 0.0 (accepted 0). At the hold the person answered 'nope second trap is x = 2um , y = 0.' Whether that reports where the trap appeared, or asks for 2 um, has been asked and not yet answered; no frame of the two traps was analysed.",
+      "source": {
+        "type": "run_event",
+        "run_id": "run-20260925-008",
+        "event_index": 0
+      },
+      "for_store": false,
+      "note": "Unmeasured until the person says which it was and a frame shows both trap positions against the store's pixel size. If the scale is off, the remedy is the person re-calibrating in the GUI; nothing in code rescales. Until the person states the calibration for the objective in place, the trap-step exemption refuses every position command."
     }
   ]
 }

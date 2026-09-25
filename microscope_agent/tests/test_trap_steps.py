@@ -117,6 +117,11 @@ class FakeGUI:
             return
 
 
+HANDOVER = {"objective": "100x",
+            "tweezers_calibration": {"objective": "100x", "stated_by": "test",
+                                     "pixel_to_um": "test scaffolding"}}
+
+
 class Base(unittest.TestCase):
     def setUp(self):
         self._approvals, self._safety = op.approvals_on_disk, op.load_safety
@@ -143,7 +148,7 @@ class Base(unittest.TestCase):
         path.write_text(json.dumps(p))
         answers = list(answers)
         return op.run(path, "run-test", backend="hardware",
-                      handover={"objective": "100x"} if handover is None else handover,
+                      handover=HANDOVER if handover is None else handover,
                       ask_person=lambda s: answers.pop(0) if answers else None,
                       tweezers_link=self.link())
 
@@ -222,7 +227,7 @@ class Exemption(Base):
         p = plan()
         op.approvals_on_disk = lambda: approve(p)
         o = orch.Orchestrator(backend="mock")
-        o.handover = {"objective": "100x"}
+        o.handover = dict(HANDOVER)
         o.check_software_motion_for(p, op.derive_trap_steps(p))
         exempt = [e for e in o.log if e.get("event") == "software_motion_exempt"]
         self.assertEqual(len(exempt), 5)
@@ -232,7 +237,7 @@ class Exemption(Base):
         p = plan()
         op.approvals_on_disk = lambda: []
         o = orch.Orchestrator(backend="mock")
-        o.handover = {"objective": "100x"}
+        o.handover = dict(HANDOVER)
         with self.assertRaises(orch.InterlockError):
             o.check_software_motion_for(p, op.derive_trap_steps(p))
 
@@ -245,7 +250,7 @@ class Exemption(Base):
                                        "step": cmds[3].params["step"]},
                                from_field=cmds[3].from_field)
         o = orch.Orchestrator(backend="mock")
-        o.handover = {"objective": "100x"}
+        o.handover = dict(HANDOVER)
         with self.assertRaises(orch.InterlockError):
             o.check_software_motion_for(p, cmds)
 
@@ -272,6 +277,38 @@ class Run(Base):
         self.run_plan(plan(), answers=("no",))
         self.assertNotIn("TRAP_ON t1", self.gui.received)
         self.assertNotIn("TRAP_POSITION t1 -1.0 0.0", self.gui.received)
+
+    def test_a_declined_hold_does_not_abort_or_switch_the_laser_off(self):
+        # run-20260925-008: a no at a hold aborted, and the abort sent LASER_OFF
+        # while the plan said the traps stay on.
+        record = self.run_plan(plan(), answers=("no",))
+        self.assertNotIn("LASER_OFF", self.gui.received)
+        self.assertNotIn("TRAP_OFF t1", self.gui.received)
+        events = [e.get("event") for e in record["events"]]
+        self.assertNotIn("abort_begin", events)
+        self.assertIn("hold_declined", events)
+
+    def test_an_explicit_abort_at_a_hold_aborts(self):
+        record = self.run_plan(plan(), answers=("abort",))
+        events = [e.get("event") for e in record["events"]]
+        self.assertIn("hold_aborted_by_person", events)
+        self.assertIn("abort_begin", events)
+
+    def test_no_position_goes_out_without_the_persons_calibration(self):
+        with self.assertRaises(orch.InterlockError):
+            self.run_plan(plan(), handover={"objective": "100x"})
+        self.assertNotIn("SIMPLE_TRAP_CREATE t1", self.gui.received)
+
+    def test_a_calibration_for_another_objective_is_refused(self):
+        h = {"objective": "100x", "tweezers_calibration": {"objective": "60x", "stated_by": "t",
+                                                           "pixel_to_um": "x"}}
+        with self.assertRaises(orch.InterlockError):
+            self.run_plan(plan(), handover=h)
+
+    def test_a_rejected_step_still_aborts(self):
+        self.gui.replies = [0, 0, 0, -27]
+        record = self.run_plan(plan())
+        self.assertIn("abort_begin", [e.get("event") for e in record["events"]])
 
     def test_a_rejected_step_stops_the_plan(self):
         # probe, create, position -> then the strength line is rejected

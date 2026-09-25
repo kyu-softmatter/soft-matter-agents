@@ -74,7 +74,8 @@ def main(run_id: str, answer_dir: str) -> int:
 
     op = _load("_mic_operator_run", Path(_HERE) / "operator.py")
     link = {**LINK, "log_path": ans / "tweezers_dispatch.jsonl"}
-    record = op.run(PLAN, run_id, backend="hardware", handover=HANDOVER,
+    plan = Path(sys.argv[3]) if len(sys.argv) > 3 else PLAN
+    record = op.run(plan, run_id, backend="hardware", handover=HANDOVER,
                     ask_person=ask_person, tweezers_link=link)
     folder = op.write_run(record)
     print(f"WROTE {folder}", flush=True)

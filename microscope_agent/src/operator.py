@@ -1113,7 +1113,13 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         if not tweezers_link:
             raise Refusal("a trap-step plan on the instrument needs tweezers_link: host, port and "
                           "every timing number with numbers_from; python_tcp holds none of them")
-        o.module_for(orch.TRAP_EXEMPT_DEVICE).connect(**tweezers_link)
+        link = o.module_for(orch.TRAP_EXEMPT_DEVICE).connect(**tweezers_link)
+        cal = o.handover.get("tweezers_calibration") or {}
+        if cal:
+            # Recorded in the tweezers' own exchange log too, beside every dispatch.
+            link.confirm_calibration(by=cal.get("stated_by"), objective=cal.get("objective"),
+                                     pixel_to_um=cal.get("pixel_to_um"),
+                                     aod_field=cal.get("aod_field", "not stated"))
     record: dict = {
         # The collector picks up a json file only when it carries `card` or
         # `artifact`, so a run log without this pair is not rejected -- it is
@@ -1218,10 +1224,27 @@ def _run_trap_steps(o, plan: dict, commands: list, ask_person) -> list[dict]:
             answer = ask_person(statement) if ask_person else None
             o.record(event="hold_for_person", plan_field=field_, statement=statement,
                      answer=answer)
-            if not answer or str(answer).strip().lower() not in ("yes", "y"):
+            said = str(answer or "").strip().lower()
+            if said in ("abort", "stop"):
+                # The person's call that something is wrong: this route stays,
+                # and it is a failure, so run() aborts and the log says whose call.
+                o.record(event="hold_aborted_by_person", plan_field=field_, answer=answer)
                 outcomes.append({"rank": None, "results": {"hold": [{
                     "command": field_, "ok": False,
-                    "error": f"the person did not confirm: {statement!r} -> {answer!r}"}]}})
+                    "error": f"the person answered {answer!r} at {field_}: abort"}]}})
+                break
+            if said not in ("yes", "y"):
+                # A PLANNED STOP, NOT A FAILURE. A hold's other answer is how
+                # the person ends the plan where they want it -- "stop here
+                # with both traps on". It was marked ok False until
+                # run-20260925-008, and run() then aborted, and the abort's
+                # fan-out sent LASER_OFF: the plan said the traps stay on and
+                # the laser went off. Nothing failed, so nothing aborts; the
+                # plan ends with the instrument as the last accepted step left it.
+                o.record(event="hold_declined", plan_field=field_, answer=answer,
+                         note="the plan ends here as the person chose; no abort, no further command")
+                outcomes.append({"rank": None, "results": {"hold": [{
+                    "command": field_, "ok": True, "declined": True, "answer": answer}]}})
                 break
             continue
         batch = o.dispatch([by_field[field_]], plan=plan)

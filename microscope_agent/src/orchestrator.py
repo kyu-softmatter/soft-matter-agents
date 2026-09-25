@@ -905,6 +905,26 @@ class Orchestrator:
             self.record(event="software_motion_exemption_refused",
                         reason="no approval covers this plan revision: " + "; ".join(decision.reasons))
             return {}
+        # THE GUI'S MICROMETRES ARE A CALIBRATION NOBODY READS. On
+        # run-20260925-008 a trap commanded to +6 um was reported by the person
+        # at 2 um, so every um sent -- and the person's limits, in the same
+        # unit -- may mean a third of what it says. No position goes out until
+        # the person has stated the GUI's calibration for the objective in
+        # place. Nothing here rescales to compensate: a factor in code is a
+        # limit nobody wrote, and the remedy is the person re-calibrating in the GUI.
+        cal = self.handover.get("tweezers_calibration") or {}
+        positions = [c for c in op.derive_trap_steps(plan)
+                     if any(l[0] == "TRAP_POSITION" for l in c.params["commands"])]
+        if positions and not (cal.get("stated_by") and cal.get("pixel_to_um")
+                              and cal.get("objective") == self.handover.get("objective")):
+            self.record(event="software_motion_exemption_refused",
+                        reason="the tweezers' calibration for the objective in place is not stated")
+            raise InterlockError(
+                "refusing every trap position: the person has not stated the Tweez300's "
+                "pixel-to-um calibration for the objective in place "
+                f"({self.handover.get('objective')!r}); stated: {cal or 'nothing'}. The GUI's um "
+                "are its own calibration, which nothing reads, and a stale one moves every trap "
+                "by a factor nobody wrote")
         derived = {c.from_field: c for c in op.derive_trap_steps(plan)}
         kept = {}
         for n, plan_field in candidates.items():

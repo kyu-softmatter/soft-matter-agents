@@ -131,7 +131,47 @@ def m_relative_positions(t):
     t.op.derive_trap_steps = derive
 
 
+def m_declined_hold_aborts(t):
+    real = t.op._run_trap_steps
+
+    def run(o, plan, commands, ask_person):
+        out = real(o, plan, commands, ask_person)
+        for b in out:
+            for rows in b["results"].values():
+                for r in rows:
+                    if r.get("declined"):
+                        r["ok"] = False
+                        r["error"] = "declined"
+        return out
+    t.op._run_trap_steps = run
+
+
+def m_explicit_abort_ignored(t):
+    real = t.op._run_trap_steps
+
+    def run(o, plan, commands, ask_person):
+        def ask(s):
+            a = ask_person(s)
+            return "no" if str(a or "").lower() in ("abort", "stop") else a
+        return real(o, plan, commands, ask)
+    t.op._run_trap_steps = run
+
+
+def m_calibration_unchecked(t):
+    real = t.orch.Orchestrator._trap_gate
+
+    def gate(self, plan, commands, candidates):
+        self.handover = {**self.handover, "tweezers_calibration": {
+            "objective": self.handover.get("objective"), "stated_by": "forged", "pixel_to_um": "x"}}
+        return real(self, plan, commands, candidates)
+    t.orch.Orchestrator._trap_gate = gate
+
+
 MUTATIONS = [
+    (m_explicit_abort_ignored, ["Run.test_an_explicit_abort_at_a_hold_aborts"]),
+    (m_calibration_unchecked, ["Run.test_no_position_goes_out_without_the_persons_calibration",
+                               "Run.test_a_calibration_for_another_objective_is_refused"]),
+    (m_declined_hold_aborts, ["Run.test_a_declined_hold_does_not_abort_or_switch_the_laser_off"]),
     (m_range_unchecked, ["Envelope.test_position_outside_refuses"]),
     (m_objective_ignored, ["Envelope.test_limit_for_another_objective_refuses"]),
     (m_step_unchecked, ["Envelope.test_step_larger_than_the_limit_refuses"]),
