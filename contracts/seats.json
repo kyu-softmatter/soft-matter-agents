@@ -730,6 +730,132 @@
         ".gitignore"
       ],
       "note": "The architecture session on the person's MacBook (the machine the note on architecture-20260925-1 calls the other machine), rooted at the repository root there. The person named it directly on 2026-09-25: first architecture-20260925-1, then within minutes this name, asking for the machine in it ('architecture-' followed by their name and MacBook). The dated tail is kept because check 84 requires it of every entry after the dated form's epoch; the person chose that over changing the rule. Parsed from the right, the role is `architecture-kyuhwan-macbook`. Its commits before this row went out as `architecture <architecture@seat.invalid>` (6cad23e, e61d2c3, 4a7f861, 8b54fe8), and none under architecture-20260925-1. Registered by a commit made under architecture-20260925-1, because the registry is read at a commit's parent and a row cannot authorise its own registration. owns, paths and excludes copied by code from architecture-20260925-1."
+    },
+    {
+      "seat": "microscope-kyuhwan-macbook-20260925-1",
+      "committer_email": "microscope-kyuhwan-macbook-20260925-1@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "note": "A microscope session on the person's MacBook, rooted at microscope directory. Seated by the person on 2026-09-25, who chose the machine-named form used by architecture-kyuhwan-macbook-20260925-1 so that numbers cannot collide with the other machine. owns, paths and excludes copied by code from microscope-20260924-6."
+    },
+    {
+      "seat": "simulation-kyuhwan-macbook-20260925-1",
+      "committer_email": "simulation-kyuhwan-macbook-20260925-1@seat.invalid",
+      "owns": [
+        "simulation_agent"
+      ],
+      "note": "A simulation session on the person's MacBook, rooted at simulation directory. Seated by the person on 2026-09-25, who chose the machine-named form used by architecture-kyuhwan-macbook-20260925-1 so that numbers cannot collide with the other machine. owns, paths and excludes copied by code from simulation-20260924-1."
+    },
+    {
+      "seat": "librarian-kyuhwan-macbook-20260925-1",
+      "committer_email": "librarian-kyuhwan-macbook-20260925-1@seat.invalid",
+      "owns": [
+        "librarian_agent"
+      ],
+      "note": "A librarian session on the person's MacBook, rooted at librarian directory. Seated by the person on 2026-09-25, who chose the machine-named form used by architecture-kyuhwan-macbook-20260925-1 so that numbers cannot collide with the other machine. owns, paths and excludes copied by code from librarian-20260924-2."
+    },
+    {
+      "seat": "bridge-kyuhwan-macbook-20260925-1",
+      "committer_email": "bridge-kyuhwan-macbook-20260925-1@seat.invalid",
+      "owns": [
+        "bridge"
+      ],
+      "note": "A bridge session on the person's MacBook, rooted at bridge directory. Seated by the person on 2026-09-25, who chose the machine-named form used by architecture-kyuhwan-macbook-20260925-1 so that numbers cannot collide with the other machine. owns, paths and excludes copied by code from bridge-20260924-1."
+    },
+    {
+      "seat": "manager-microscope-kyuhwan-macbook-20260925-1",
+      "committer_email": "manager-microscope-kyuhwan-macbook-20260925-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "microscope_agent/CLAUDE.md",
+        "microscope_agent/.claude/",
+        "microscope_agent/tasks/",
+        "microscope_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "note": "A manager-microscope session on the person's MacBook, rooted at the repository root. Seated by the person on 2026-09-25, who chose the machine-named form used by architecture-kyuhwan-macbook-20260925-1 so that numbers cannot collide with the other machine. owns, paths and excludes copied by code from manager-microscope-20260924-1."
+    },
+    {
+      "seat": "manager-simulation-kyuhwan-macbook-20260925-1",
+      "committer_email": "manager-simulation-kyuhwan-macbook-20260925-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "simulation_agent/CLAUDE.md",
+        "simulation_agent/.claude/",
+        "simulation_agent/tasks/",
+        "simulation_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "note": "A manager-simulation session on the person's MacBook, rooted at the repository root. Seated by the person on 2026-09-25, who chose the machine-named form used by architecture-kyuhwan-macbook-20260925-1 so that numbers cannot collide with the other machine. owns, paths and excludes copied by code from manager-simulation-20260924-1."
+    },
+    {
+      "seat": "manager-librarian-kyuhwan-macbook-20260925-1",
+      "committer_email": "manager-librarian-kyuhwan-macbook-20260925-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "librarian_agent/CLAUDE.md",
+        "librarian_agent/.claude/",
+        "librarian_agent/tasks/",
+        "librarian_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/seats.json",
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json"
+      ],
+      "note": "A manager-librarian session on the person's MacBook, rooted at the repository root. Seated by the person on 2026-09-25, who chose the machine-named form used by architecture-kyuhwan-macbook-20260925-1 so that numbers cannot collide with the other machine. owns, paths and excludes copied by code from manager-librarian-20260924-1."
+    },
+    {
+      "seat": "manager-bridge-kyuhwan-macbook-20260925-1",
+      "committer_email": "manager-bridge-kyuhwan-macbook-20260925-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "bridge/CLAUDE.md",
+        "bridge/.claude/",
+        "bridge/tasks/",
+        "bridge/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/seats.json"
+      ],
+      "note": "A manager-bridge session on the person's MacBook, rooted at the repository root. Seated by the person on 2026-09-25, who chose the machine-named form used by architecture-kyuhwan-macbook-20260925-1 so that numbers cannot collide with the other machine. owns, paths and excludes copied by code from manager-bridge-20260924-1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
