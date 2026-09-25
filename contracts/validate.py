@@ -7779,8 +7779,9 @@ def check_86_operation_plan(b: Bundle) -> list[Finding]:
     approval: that is the ordinary plan_approval, checked where approvals are.
     """
     ops = [c for c in b.of_kind("plan") if "__unreadable__" not in c.data and "operation" in c.data]
-    if not ops:
-        return [Finding(86, NA, "no operation plans")]
+    traps = [c for c in b.of_kind("plan") if "__unreadable__" not in c.data and "trap_steps" in c.data]
+    if not ops and not traps:
+        return [Finding(86, NA, "no operation plans and no plans with trap steps")]
 
     limits: dict[str, dict] = {}
     for env in envelope_files():
@@ -7883,6 +7884,70 @@ def check_86_operation_plan(b: Bundle) -> list[Finding]:
                                          f"position inside the person's limits"
                                          + (f"; {'; '.join(speeds)}, and no envelope limit bounds a piezo's "
                                             "speed" if speeds else ""), c.rel))
+
+    # THE TWEEZERS FORM (plan.md 11-21 at 0f5914b): trap steps against the
+    # person's tweezers_trap_* limits for the block's own objective. The
+    # run-time gate (operator.check_trap_steps, 759e9f0) checks the same
+    # against the objective in the person's hand-over, which a commit cannot
+    # know; this is the commit-time half, so a plan the gate would refuse is
+    # refused before anyone approves it. Distance is straight-line, as the
+    # gate measures it, and the step limit binds moves, not creation.
+    for c in traps:
+        ts = c.data.get("trap_steps") or {}
+        obj = ts.get("objective")
+        steps = [st for st in ts.get("steps") or [] if isinstance(st, dict)]
+        bad: list[str] = []
+        missing: list[str] = []
+
+        def lim(name):
+            v = limits.get(name)
+            return v.get("value") if isinstance(v, dict) and isinstance(v.get("value"), (int, float)) else None
+
+        lo, hi = lim(f"tweezers_trap_position_{obj}_min"), lim(f"tweezers_trap_position_{obj}_max")
+        smin, smax = lim("tweezers_trap_strength_min"), lim("tweezers_trap_strength_max")
+        step_max = lim("tweezers_trap_step_max")
+        last: dict[str, tuple[float, float]] = {}
+        for st in steps:
+            kind, trap, sid = st.get("kind"), st.get("trap"), st.get("id")
+            if kind in ("create", "position"):
+                x, y = st.get("x_um"), st.get("y_um")
+                if lo is None or hi is None:
+                    missing.append(f"tweezers_trap_position_{obj}_min/_max")
+                elif not all(isinstance(v, (int, float)) and lo <= v <= hi for v in (x, y)):
+                    bad.append(f"step {sid} puts {trap} at ({x}, {y}) um, outside {lo}..{hi} um at {obj}")
+                if kind == "position":
+                    if trap not in last:
+                        bad.append(f"step {sid} moves {trap} before the plan has placed it")
+                    elif step_max is None:
+                        missing.append("tweezers_trap_step_max")
+                    elif isinstance(x, (int, float)) and isinstance(y, (int, float)):
+                        d = math.hypot(x - last[trap][0], y - last[trap][1])
+                        if d > step_max:
+                            bad.append(f"step {sid} moves {trap} {d:.3g} um, more than the {step_max} um step limit")
+                if isinstance(x, (int, float)) and isinstance(y, (int, float)):
+                    last[trap] = (x, y)
+            if kind in ("create", "strength"):
+                v = st.get("strength")
+                if smin is None or smax is None:
+                    missing.append("tweezers_trap_strength_min/_max")
+                elif not (isinstance(v, (int, float)) and smin <= v <= smax):
+                    bad.append(f"step {sid} sets {trap} to strength {v}, outside {smin}..{smax}")
+        if not any(st.get("kind") == "hold_for_person" for st in steps):
+            bad.append("no hold_for_person step: the tweezers are blind, so a step a later one relies on "
+                       "needs the person's confirmation")
+        if bad:
+            out.append(Finding(86, FAIL, f"{c.data.get('id')}: " + "; ".join(bad) + " (11-21)", c.rel))
+        elif missing:
+            # Waiting, not wrong: the person's limits are not in this tree yet.
+            # The run-time gate refuses such a plan outright, so PENDING here
+            # hides nothing, and it keeps a committed tree from reading red
+            # merely because the person has not committed their envelope.
+            out.append(Finding(86, PENDING, f"{c.data.get('id')}: the envelope in this tree carries no "
+                                            f"{', '.join(sorted(set(missing)))}, so these trap steps cannot be "
+                                            f"checked yet, and the run-time gate refuses them until it does", c.rel))
+        else:
+            out.append(Finding(86, PASS, f"{c.data.get('id')}: {len(steps)} trap step(s) at {obj}, every position, "
+                                         f"strength and step inside the person's tweezers limits", c.rel))
     return out
 
 
