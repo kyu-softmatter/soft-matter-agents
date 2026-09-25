@@ -278,7 +278,7 @@
         "uv.lock",
         ".gitignore"
       ],
-      "note": "CLOSED, having been opened twice by the person and closed twice, both times on the person's word. Seated 2026-09-20 concurrently with `architecture`, vacated the same day; reopened 2026-09-22 to write \u00a713, and closed again that afternoon. **Eight commits, and the entry stays** -- deleting it would make all eight unknown-committer -- and `paths` stays exactly as it stood, because that list is what check 41 judges those commits against and the registry is read at each commit's parent.\n\nTwo of its commits sit under `architecture` instead: `fe9c0fb`, and the commit that added this row, which could not use the new name because the registry is read at the parent. They are indistinguishable in the history from the other session's, which is the loss `one_identity_per_session` names.\n\n**Both vacancies were about the same thing and the second proved the first right.** The first ended because `plan.md` then carried a sha256 of `plan_ko.md` with no generator, so the pair could only be edited by a seat that rendered both, and two seats doing that concurrently broke the header rather than merely conflicting. The pair is gone, so the second reopening was safe in that respect -- and the underlying hazard was not: `git commit -- plan.md` takes the worktree state, so for a few hours whichever architecture seat committed second would have carried the other's uncommitted edits. **Nothing collided, because the sections they touched did not overlap, which is luck and not a guard.** The registry said CLOSED throughout those hours; the row is only as current as whoever remembers to edit it, and nobody did until the commits were noticed."
+      "note": "CLOSED, having been opened twice by the person and closed twice, both times on the person's word. Seated 2026-09-20 concurrently with `architecture`, vacated the same day; reopened 2026-09-22 to write §13, and closed again that afternoon. **Eight commits, and the entry stays** -- deleting it would make all eight unknown-committer -- and `paths` stays exactly as it stood, because that list is what check 41 judges those commits against and the registry is read at each commit's parent.\n\nTwo of its commits sit under `architecture` instead: `fe9c0fb`, and the commit that added this row, which could not use the new name because the registry is read at the parent. They are indistinguishable in the history from the other session's, which is the loss `one_identity_per_session` names.\n\n**Both vacancies were about the same thing and the second proved the first right.** The first ended because `plan.md` then carried a sha256 of `plan_ko.md` with no generator, so the pair could only be edited by a seat that rendered both, and two seats doing that concurrently broke the header rather than merely conflicting. The pair is gone, so the second reopening was safe in that respect -- and the underlying hazard was not: `git commit -- plan.md` takes the worktree state, so for a few hours whichever architecture seat committed second would have carried the other's uncommitted edits. **Nothing collided, because the sections they touched did not overlap, which is luck and not a guard.** The registry said CLOSED throughout those hours; the row is only as current as whoever remembers to edit it, and nobody did until the commits were noticed."
     },
     {
       "seat": "manager-microscope",
@@ -707,7 +707,29 @@
         "pixi.lock",
         ".gitignore"
       ],
-      "note": "The architecture session on the person's OTHER machine, which works on its own working copy and syncs with the microscope computer through GitHub. Until 2026-09-25 it committed as `architecture <architecture@seat.invalid>`, the same email as the microscope computer's architecture session (committer name `seat:architecture`), so two sessions shared one identity and check 41 could not tell them apart -- one_identity_per_session broken across machines. Found when a push from the microscope computer was refused and the fetched merges (6cad23e, e61d2c3, 4a7f861, committer name `architecture`) turned out to be the other machine's. The person decided that session takes this new name and the microscope computer's keeps `architecture`. Its commits before this row stay under `architecture` and are told apart only by the committer NAME, `architecture` there against `seat:architecture` here -- a convention, not a check. It must pull this row before its first commit under the new name, because the registry is read at a commit's parent. owns, paths and excludes copied by code from `architecture`; n is 1."
+      "note": "The architecture session on the person's OTHER machine, which works on its own working copy and syncs with the microscope computer through GitHub. Until 2026-09-25 it committed as `architecture <architecture@seat.invalid>`, the same email as the microscope computer's architecture session (committer name `seat:architecture`), so two sessions shared one identity and check 41 could not tell them apart -- one_identity_per_session broken across machines. Found when a push from the microscope computer was refused and the fetched merges (6cad23e, e61d2c3, 4a7f861, committer name `architecture`) turned out to be the other machine's. The person decided that session takes this new name and the microscope computer's keeps `architecture`. Its commits before this row stay under `architecture` and are told apart only by the committer NAME, `architecture` there against `seat:architecture` here -- a convention, not a check. It must pull this row before its first commit under the new name, because the registry is read at a commit's parent. owns, paths and excludes copied by code from `architecture`; n is 1. SUPERSEDED 2026-09-25, before any commit under it: the person renamed this machine's seat to architecture-kyuhwan-macbook-20260925-1. The row stays, because a name once held is never reissued, and exactly one commit is made under it -- the one registering its successor."
+    },
+    {
+      "seat": "architecture-kyuhwan-macbook-20260925-1",
+      "committer_email": "architecture-kyuhwan-macbook-20260925-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "plan.md",
+        "CLAUDE.md",
+        "ARCHITECT.md",
+        "README.md",
+        "docs/",
+        ".claude/",
+        ".mcp.json",
+        "contracts/seats.json",
+        "pyproject.toml",
+        "uv.lock",
+        "pixi.lock",
+        ".gitignore"
+      ],
+      "note": "The architecture session on the person's MacBook (the machine the note on architecture-20260925-1 calls the other machine), rooted at the repository root there. The person named it directly on 2026-09-25: first architecture-20260925-1, then within minutes this name, asking for the machine in it ('architecture-' followed by their name and MacBook). The dated tail is kept because check 84 requires it of every entry after the dated form's epoch; the person chose that over changing the rule. Parsed from the right, the role is `architecture-kyuhwan-macbook`. Its commits before this row went out as `architecture <architecture@seat.invalid>` (6cad23e, e61d2c3, 4a7f861, 8b54fe8), and none under architecture-20260925-1. Registered by a commit made under architecture-20260925-1, because the registry is read at a commit's parent and a row cannot authorise its own registration. owns, paths and excludes copied by code from architecture-20260925-1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
