@@ -97,19 +97,45 @@ the eve and is what this card exists to shorten.
   zero-transition record has no honest shape, and on an asymmetric well that
   is the likely outcome.
 
-## 2. Direction of the first round — proposed, not decided
+## 2. Direction of the first round — DECIDED: simulation to experiment
 
-**Recommended: `experiment_to_simulation`.** The experiment calibrates each
-trap first — stiffness, width, separation, temperature, viscosity, all SI,
-all `measured:` or `calibration:` — and puts them in a plan card; the plan
-crossing (`trigger: plan_completion`) asks the simulation for a prediction at
-exactly those parameters. The reverse asks the tweezers to set a stiffness to
-a value, and they cannot: a stiffness is measured after the fact, not dialled
-in. The reverse would also leave every simulated input `assumed:` against a
-measured counterpart, so the comparison would grade at the assumption.
+The person decided it on 2026-09-24, relayed by architecture; the bridge's
+earlier proposal (experiment first) is withdrawn. The simulation writes the
+ask, and the bridge delivers it into `microscope_agent/inbox/`, where the
+microscope seat takes it as its goal (`from_round`).
 
-The bridge proposes this; **the managers and the person decide.** Record the
-decision in the thread ledger when the round opens, not before.
+Because a trap's stiffness is measured after the traps are set and cannot be
+dialled to a value, the round has to run as **target, then as-measured,
+then re-prediction**:
+
+1. **r1, simulation to experiment** (`plan_completion`): target trap
+   parameters as ranges or decades.
+2. **r2, experiment to simulation** (`human`, the only way a result crosses):
+   each trap's calibrated values, plus the four observables if measured.
+3. **r3, simulation to experiment**: a new plan revision at the calibrated
+   values, its inputs citing the experiment's result card (`measured:<run_id>`)
+   and not restated as assumptions. Only then is there a value to compare.
+
+### Can the round carry "target versus as-measured"? — partly; one gap
+
+- **As-measured: yes.** A result card's numbers carry the calibrated values
+  with `measured:`/`calibration:` sources, and r3 can cite them.
+- **Re-prediction: yes.** `supersedes` exists for a round whose source moved
+  to a new revision; check it treats r3 as superseding r1 and not as a repeat.
+- **Target as a range: NO structured slot. This is the gap, G9.** A plan's
+  `conditions` point only at scalar `numbers[]`. The goal the microscope
+  writes has `constraint_notes`, which is free text. The only structured
+  approximation is a scalar marked `precision: order_of_magnitude` ("about
+  1 pN/um, to a decade"). That says how precise the target is. It does not
+  say the value is a target the experiment may land anywhere inside, as
+  opposed to a prediction. `common.schema.json` has an `interval` shape
+  (`parameter`, `unit`, `min`, `max`, `basis`), but only axis cards use it,
+  and neither plan nor goal can hold one. Raise it to the four managers,
+  because the schemas involved are shared. Two possible answers: an interval
+  list on the plan for requested conditions, or a stated convention that r1's
+  trap numbers are `order_of_magnitude` scalars read as targets. Until one
+  of them lands, r1 carries its targets as prose plus decade scalars, and
+  a check can hold the experiment to neither.
 
 ## 3. Can the envelope carry a full parameter set?
 
@@ -122,7 +148,7 @@ temperature and viscosity are seven named numbers, e.g. `trap_1_stiffness`
 `trap_separation` (um), `temperature` (K), `viscosity` (Pa*s). Every one of
 those units is registered.
 
-Two points to raise, both to the managers and neither blocking tonight:
+Two more points to raise, both to the managers and neither blocking tonight (see also G9 above):
 
 - **Which trap is which is carried by the name only.** `at` must resolve to a
   registry id or `ambient`, and two traps from one 1064 nm laser are one
