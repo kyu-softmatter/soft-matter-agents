@@ -1,0 +1,1104 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260924-006",
+  "plan_id": null,
+  "revision": null,
+  "no_plan_because": "No plan fits this run, so none is named (card 038, as card 033 section 6). The only pre-measurement plan, plan-mic-20260920-001, is written for the 100x oil objective with software-driven turret and focus steps, and its axis ranges were computed for that configuration; a revision citing them for this 20x, hand-moved run would launder them. Card 034's plan for the 20x question cites this run as an acquisition.",
+  "not_dispatched": "This run did NOT come through the plan dispatcher (operator.run). Card 038 carries card 033 section 3b's route to this run: the device registry has no Micro-Manager labels, so Aura and Kinetix_red raise GapError at preflight, and derive_commands never produces params.settings, so micromanager.apply() would verify nothing. The script is microscope_agent/src/session_038.py, committed before the run.",
+  "approved_commands": {
+    "path": "microscope_agent/runs/run-20260924-006/commands.json",
+    "sha256": "1c17986a18d2ebe8f7a1e80df675b2fb7239d4b0732429d4d23b8b40ba834400",
+    "approved_by": "the person at the approve_light gate, before any light: 'Approve'"
+  },
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "stop_criteria": [],
+  "t0_wall": "2026-09-25T00:34:28.386+00:00",
+  "t0_mono": 845849.015,
+  "backend": "micromanager",
+  "registry_source": "microscope_agent\\envelope\\snapshot.json",
+  "time_base_note": "software offsets order the log and nothing else. A value physics depends on comes from a trigger counter or a device timestamp (4.6.9)",
+  "events": [
+    {
+      "t_mono": 0.0,
+      "time_base": "software",
+      "event": "not_dispatched",
+      "note": "This run did NOT come through the plan dispatcher (operator.run). Card 038 carries card 033 section 3b's route to this run: the device registry has no Micro-Manager labels, so Aura and Kinetix_red raise GapError at preflight, and derive_commands never produces params.settings, so micromanager.apply() would verify nothing. The script is microscope_agent/src/session_038.py, committed before the run."
+    },
+    {
+      "t_mono": 0.0,
+      "time_base": "software",
+      "event": "software_motion_checked",
+      "commands": 18,
+      "allowed": [
+        "Aura",
+        "Core",
+        "Kinetix_red"
+      ]
+    },
+    {
+      "t_mono": 0.016,
+      "time_base": "software",
+      "event": "command_list",
+      "commands": [
+        {
+          "from": "card-033:s2-autoshutter",
+          "device": "Core",
+          "action": "set_property",
+          "settings": {
+            "Core": {
+              "AutoShutter": 0
+            }
+          }
+        },
+        {
+          "from": "card-033:s5-binning",
+          "device": "Kinetix_red",
+          "action": "set_property",
+          "settings": {
+            "Kinetix_red": {
+              "Binning": "1x1"
+            }
+          }
+        },
+        {
+          "from": "card-033:s4.9-exposure",
+          "device": "Kinetix_red",
+          "action": "set_exposure",
+          "settings": null
+        },
+        {
+          "from": "card-033:s4.3-dark-master",
+          "device": "Aura",
+          "action": "set_property",
+          "settings": {
+            "Aura": {
+              "State": 0
+            }
+          }
+        },
+        {
+          "from": "card-033:s4.3-dark-line-off",
+          "device": "Aura",
+          "action": "set_property",
+          "settings": {
+            "Aura": {
+              "GREEN": 0
+            }
+          }
+        },
+        {
+          "from": "card-033:s4.3-dark-intensity-0",
+          "device": "Aura",
+          "action": "set_property",
+          "settings": {
+            "Aura": {
+              "GREEN_Intensity": 0
+            }
+          }
+        },
+        {
+          "from": "card-033:s4.3-dark-frame-a",
+          "device": "Kinetix_red",
+          "action": "snap_image",
+          "settings": null
+        },
+        {
+          "from": "card-033:s4.3-line-max-master-off",
+          "device": "Aura",
+          "action": "set_property",
+          "settings": {
+            "Aura": {
+              "GREEN": 1
+            }
+          }
+        },
+        {
+          "from": "card-033:s4.4-intensity-max",
+          "device": "Aura",
+          "action": "set_property",
+          "settings": {
+            "Aura": {
+              "GREEN_Intensity": 1000
+            }
+          }
+        },
+        {
+          "from": "card-033:s4.3-dark-frame-b",
+          "device": "Kinetix_red",
+          "action": "snap_image",
+          "settings": null
+        },
+        {
+          "from": "card-033:s4.4-intensity-first",
+          "device": "Aura",
+          "action": "set_property",
+          "settings": {
+            "Aura": {
+              "GREEN_Intensity": 100
+            }
+          }
+        },
+        {
+          "from": "card-033:shutdown-line-off",
+          "device": "Aura",
+          "action": "set_property",
+          "settings": {
+            "Aura": {
+              "GREEN": 0
+            }
+          }
+        },
+        {
+          "from": "card-033:s4.8-dark-sequence",
+          "device": "Kinetix_red",
+          "action": "acquire_series",
+          "settings": null
+        },
+        {
+          "from": "card-033:s4.5-line-on",
+          "device": "Aura",
+          "action": "set_property",
+          "settings": {
+            "Aura": {
+              "GREEN": 1
+            }
+          }
+        },
+        {
+          "from": "card-033:s038-light-on",
+          "device": "Aura",
+          "action": "set_property",
+          "settings": {
+            "Aura": {
+              "State": 1
+            }
+          }
+        },
+        {
+          "from": "card-033:s038-paced-series",
+          "device": "Kinetix_red",
+          "action": "snap_image",
+          "settings": null
+        },
+        {
+          "from": "card-033:shutdown-master-off",
+          "device": "Aura",
+          "action": "set_property",
+          "settings": {
+            "Aura": {
+              "State": 0
+            }
+          }
+        },
+        {
+          "from": "card-033:shutdown-intensity-0",
+          "device": "Aura",
+          "action": "set_property",
+          "settings": {
+            "Aura": {
+              "GREEN_Intensity": 0
+            }
+          }
+        }
+      ],
+      "written_to": "microscope_agent/runs/run-20260924-006/commands.json",
+      "sha256": "1c17986a18d2ebe8f7a1e80df675b2fb7239d4b0732429d4d23b8b40ba834400"
+    },
+    {
+      "t_mono": 0.469,
+      "time_base": "software",
+      "event": "process_check",
+      "holders_found": [],
+      "note": "tweezers GUI, Micro-Manager, and NIS (which may drive the piezo's analogue line)"
+    },
+    {
+      "t_mono": 0.469,
+      "time_base": "software",
+      "event": "gate_open",
+      "gate": "preload",
+      "question": "The bench is handed to this session. Before anything connects: Micro-Manager closed, the tweezers program closed, NIS closed, the piezo controller off, the trapping laser off at its hand control, the LUN-F off at its own power, the Aura chassis on. The first check sets the green line to FULL with the Aura's master switch OFF, to prove the switch keeps the sample dark. Proceed?"
+    },
+    {
+      "t_mono": 0.672,
+      "time_base": "software",
+      "event": "gate_answered",
+      "gate": "preload",
+      "answer": "yes",
+      "by": "the person, in chat to microscope-20260924-1, 2026-09-24 evening",
+      "said": "Asked to confirm the bench is handed to this session; Micro-Manager, the tweezers program and NIS closed; the piezo controller OFF; trapping laser off at its hand control; LUN-F off at its own power; Aura chassis on; warned that the first check sets green to full with the master switch off: 'Yes, all confirmed, bench is yours'.",
+      "relayed_by": null
+    },
+    {
+      "t_mono": 1.141,
+      "time_base": "software",
+      "event": "decision",
+      "topic": "startup_preset",
+      "decision": "the person accepts the configuration's Startup preset LappMainBranch1 State=1 moving at load: 'accept it, load the file as chosen'",
+      "recorded_in": "card 033 at 02d269b, relayed by manager-microscope-20260924-1"
+    },
+    {
+      "t_mono": 1.141,
+      "time_base": "software",
+      "event": "decision",
+      "topic": "micro_manager_install",
+      "decision": "load against pymmcore-plus's own Micro-Manager copy; confirmed by the person to this seat in chat, 2026-09-24"
+    },
+    {
+      "t_mono": 5.141,
+      "time_base": "software",
+      "event": "configuration_loaded",
+      "path": "C:\\agentic_microscope\\config\\micromanager\\single_cam_red_noDMD_nocom10.cfg",
+      "sha256": "8184073e31e1a7a63731932a20a622131d4dba04cf839bc9e651bf9abcd53120",
+      "sha256_after_load": "8184073e31e1a7a63731932a20a622131d4dba04cf839bc9e651bf9abcd53120",
+      "changed_during_load": false,
+      "mm_dir": "C:\\Users\\Takatori lab\\AppData\\Local\\pymmcore-plus\\pymmcore-plus\\mm\\Micro-Manager_2.0.3_20260806",
+      "api": "Device API version 75, Module API version 10",
+      "mmcore": "MMCore version 12.5.0",
+      "loaded_devices": [
+        "Ti2-E__0",
+        "ZDrive",
+        "XYStage",
+        "Nosepiece",
+        "CondenserTurret",
+        "FilterTurret1",
+        "Turret1Shutter",
+        "FilterTurret2",
+        "Turret2Shutter",
+        "LightPath",
+        "PFS",
+        "PFSOffset",
+        "IntermediateMagnification",
+        "LappMainBranch1",
+        "DiaLamp",
+        "LightEngine",
+        "Kinetix_red",
+        "Aura",
+        "NIDAQHub",
+        "LUNF-Blanking",
+        "Core"
+      ],
+      "autoshutter": {
+        "wanted": "0",
+        "read_getAutoShutter": false,
+        "read_property": "0",
+        "verified": true
+      },
+      "core_shutter": "LightEngine",
+      "core_camera": "Kinetix_red",
+      "note": "loadSystemConfiguration is the one unguarded call (033 3b condition 2)"
+    },
+    {
+      "t_mono": 5.141,
+      "time_base": "software",
+      "event": "note",
+      "topic": "pixel_size_in_frame_metadata",
+      "pixel_size_um_reported": 0.32373,
+      "note": "frame metadata carries a pixel size stamped from the loaded configuration's PixelSize block. It is NOT a source: any pixel size comes from the store's pixel_size_20x_zoom_1x through the librarian (card 033 section 5, 3ef97a4)"
+    },
+    {
+      "t_mono": 5.141,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "LappMainBranch1",
+      "action": "load_time_startup_preset",
+      "params": {
+        "LappMainBranch1.State": {
+          "value": 1,
+          "from": "single_cam_red_noDMD_nocom10.cfg:ConfigGroup,System,Startup"
+        }
+      },
+      "from": "single_cam_red_noDMD_nocom10.cfg:ConfigGroup,System,Startup",
+      "verification": "none",
+      "verification_note": "read back in the next event"
+    },
+    {
+      "t_mono": 5.141,
+      "time_base": "software",
+      "event": "analogue_output_check",
+      "nidaq_devices": {
+        "NIDAQHub": "NIDAQHub",
+        "LUNF-Blanking": "NIDAQDO-Dev1/port0"
+      },
+      "analogue_output_devices": [],
+      "note": "no NIDAQ analogue-output device is loaded, so nothing in this configuration addresses Dev1/ao2. NOT confirmed: whether NIDAQHub's own initialisation writes any analogue line -- that is inside the adapter and not observable here"
+    },
+    {
+      "t_mono": 5.141,
+      "time_base": "software",
+      "event": "read",
+      "channel": "LappMainBranch1",
+      "property": "State",
+      "read": "1",
+      "matches_startup_preset": true
+    },
+    {
+      "t_mono": 5.141,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Core",
+      "action": "set_property",
+      "params": {
+        "Core.AutoShutter": {
+          "value": 0,
+          "from": "card-033:s2-autoshutter"
+        }
+      },
+      "verification": "readback",
+      "verification_note": "getAutoShutter False and property 0",
+      "from": "card-033:s2-autoshutter"
+    },
+    {
+      "t_mono": 5.141,
+      "time_base": "software",
+      "event": "step",
+      "step": "4.1",
+      "loaded": [
+        "Aura",
+        "CondenserTurret",
+        "Core",
+        "DiaLamp",
+        "FilterTurret1",
+        "FilterTurret2",
+        "IntermediateMagnification",
+        "Kinetix_red",
+        "LUNF-Blanking",
+        "LappMainBranch1",
+        "LightEngine",
+        "LightPath",
+        "NIDAQHub",
+        "Nosepiece",
+        "PFS",
+        "PFSOffset",
+        "Ti2-E__0",
+        "Turret1Shutter",
+        "Turret2Shutter",
+        "XYStage",
+        "ZDrive"
+      ],
+      "missing": []
+    },
+    {
+      "t_mono": 5.141,
+      "time_base": "software",
+      "event": "stand_read",
+      "stand": {
+        "Nosepiece": {
+          "state": 2,
+          "label": "3-Plan Apo LmbdD0.8 20x"
+        },
+        "IntermediateMagnification": {
+          "error": "Device \"IntermediateMagnification\" is of the wrong type for the requested operation"
+        },
+        "LightPath": {
+          "state": 3,
+          "label": "4-L100"
+        },
+        "FilterTurret1": {
+          "state": 0,
+          "label": "1-MXR00724 -Empty"
+        },
+        "FilterTurret2": {
+          "state": 0,
+          "label": "1-Empty"
+        },
+        "LappMainBranch1": {
+          "state": 1,
+          "label": "mirror_in"
+        },
+        "CondenserTurret": {
+          "state": 0,
+          "label": "1-ND"
+        }
+      },
+      "declared_objective": "3-Plan Apo LmbdD0.8 20x",
+      "note": "the person declared the 20x; this is the read-back of that declaration"
+    },
+    {
+      "t_mono": 5.141,
+      "time_base": "software",
+      "event": "light_engine_properties",
+      "names": [
+        "CYAN",
+        "CYAN_Intensity",
+        "Connection",
+        "Description",
+        "FirmwareVersion",
+        "GREEN",
+        "GREEN_Intensity",
+        "LEModel",
+        "Model",
+        "NIR",
+        "NIR_Intensity",
+        "Name",
+        "RED",
+        "RED_Intensity",
+        "SerialNumber",
+        "State",
+        "UV",
+        "UV_Intensity"
+      ]
+    },
+    {
+      "t_mono": 5.141,
+      "time_base": "software",
+      "event": "step",
+      "step": "4.4",
+      "property": "GREEN_Intensity",
+      "has_limits": true,
+      "upper_limit": 1000.0,
+      "expected": 1000
+    },
+    {
+      "t_mono": 5.141,
+      "time_base": "software",
+      "event": "camera_properties",
+      "properties": {
+        "ActualInterval-ms": "0.0000",
+        "Binning": "1x1",
+        "BitDepth": "16",
+        "CCDTemperature": "0.0000",
+        "CCDTemperatureSetPoint": "0.0000",
+        "ChipName": "TMP-Kinetix",
+        "CircularBufferAutoSize": "ON",
+        "CircularBufferEnabled": "ON",
+        "CircularBufferFrameCount": "20",
+        "CircularBufferFrameRecovery": "OFF",
+        "ClearCycles": "2",
+        "ClearMode": "Auto",
+        "Color": "OFF",
+        "Description": "PVCAM API device adapter",
+        "DiskStreamingCoreSkipRatio": "1:100",
+        "DiskStreamingEnabled": "No",
+        "DiskStreamingPath": "",
+        "ExposeOutMode": "First Row",
+        "Exposure": "10.0000",
+        "FTCapable": "No",
+        "FanSpeedSetpoint": "High",
+        "FirmwareVersion": "30.48",
+        "FrameSummingCount": "5",
+        "FrameSummingEnabled": "No",
+        "FrameSummingFormat": "16-bit",
+        "FullWellCapacity": "15000",
+        "Gain": "1-Standard",
+        "ImageFormat": "Mono16",
+        "MetadataEnabled": "No",
+        "MetadataResetTimestamp": "No",
+        "Name": "PMPCIECam01",
+        "Offset": "100",
+        "PMode": "Normal",
+        "PP  0 DESPECKLE BRIGHT LOW": "DESPECKLE BRIGHT LOW",
+        "PP  1   ENABLED": "Yes",
+        "PP  1   THRESHOLD": "120",
+        "PP  1 DESPECKLE BRIGHT HIGH": "DESPECKLE BRIGHT HIGH",
+        "PP  2   ENABLED": "Yes",
+        "PP  2   MIN ADU AFFECTED": "200",
+        "PP  2   THRESHOLD": "130",
+        "PP  2 DESPECKLE DARK LOW": "DESPECKLE DARK LOW",
+        "PP  3   ENABLED": "Yes",
+        "PP  3   THRESHOLD": "75",
+        "PP  3 DESPECKLE DARK HIGH": "DESPECKLE DARK HIGH",
+        "PP  4   ENABLED": "Yes",
+        "PP  4   MIN ADU AFFECTED": "200",
+        "PP  4   THRESHOLD": "70",
+        "PP  4 LARGE CLUSTER CORRECTION": "LARGE CLUSTER CORRECTION",
+        "PP  5   ENABLED": "Yes",
+        "PP  5 FRAME AVERAGING": "FRAME AVERAGING",
+        "PP  6   COUNT (POWER OF 2)": "0",
+        "PP  6   ENABLED": "Yes",
+        "PP  7 Reset": "No",
+        "PVCAM Adapter Version": "1.4.5",
+        "PVCAM Version": "3.10.2",
+        "PixelType": "16bit",
+        "Port": "Dynamic Range",
+        "PreampDelay": "0",
+        "PreampOffLimit": "10000",
+        "ReadoutRate": "100MHz 16bit",
+        "ReadoutRateName": "Standard",
+        "SMARTStreamingEnabled": "No",
+        "SMARTStreamingValues[ms]": "10.000;20.000;30.000;40.000",
+        "ScanDirection": "Down",
+        "ScanDirectionReset": "Yes",
+        "ScanLineDelay": "0",
+        "ScanLineTime": "3750.0000",
+        "ScanMode": "Auto",
+        "ScanWidth": "2400",
+        "SerialNumber": "A24M723015",
+        "ShutterCloseDelay": "0",
+        "ShutterMode": "Pre-Exposure",
+        "ShutterOpenDelay": "0",
+        "Timing-ClearingTimeNs": "0.0000",
+        "Timing-ExposureTimeNs": "10001000.0000",
+        "Timing-PostTriggerDelayNs": "3750.0000",
+        "Timing-PreTriggerDelayNs": "0.0000",
+        "Timing-ReadoutTimeNs": "9000000.0000",
+        "TransposeCorrection": "0",
+        "TransposeMirrorX": "0",
+        "TransposeMirrorY": "0",
+        "TransposeXY": "0",
+        "Trigger Timeout (secs)": "10",
+        "Trigger-Expose Out-Mux": "1",
+        "TriggerMode": "Internal Trigger",
+        "X-dimension": "2400",
+        "Y-dimension": "2400"
+      }
+    },
+    {
+      "t_mono": 5.141,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Kinetix_red",
+      "action": "set_property",
+      "params": {
+        "Kinetix_red.Binning": {
+          "value": "1x1",
+          "from": "card-033:s5-binning"
+        }
+      },
+      "read": "1x1",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:s5-binning"
+    },
+    {
+      "t_mono": 5.172,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Kinetix_red",
+      "action": "set_exposure",
+      "params": {
+        "exposure": {
+          "value": 100.0,
+          "unit": "ms",
+          "from": "card-033:s4.9-exposure"
+        }
+      },
+      "read": 100.0,
+      "verification": "readback",
+      "from": "card-033:s4.9-exposure"
+    },
+    {
+      "t_mono": 5.172,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.State": {
+          "value": 0,
+          "from": "card-033:s4.3-dark-master"
+        }
+      },
+      "read": "0",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:s4.3-dark-master"
+    },
+    {
+      "t_mono": 5.172,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.GREEN": {
+          "value": 0,
+          "from": "card-033:s4.3-dark-line-off"
+        }
+      },
+      "read": "0",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:s4.3-dark-line-off"
+    },
+    {
+      "t_mono": 5.235,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.GREEN_Intensity": {
+          "value": 0,
+          "from": "card-033:s4.3-dark-intensity-0"
+        }
+      },
+      "read": "0",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:s4.3-dark-intensity-0"
+    },
+    {
+      "t_mono": 5.485,
+      "time_base": "software",
+      "event": "acquire",
+      "channel": "Kinetix_red",
+      "action": "snap",
+      "frame": {
+        "label": "dark_a1",
+        "path": "D:\\soft-matter-agents-frames\\run-20260924-006\\dark_a1.npy",
+        "sha256": "e23a183111b3efc2e1cc045a87f3901371b3b161911386fa0b0300ecbedd9960",
+        "shape": [
+          2400,
+          2400
+        ],
+        "dtype": "uint16",
+        "camera": "Kinetix_red",
+        "exposure_ms": 100.0
+      },
+      "stats": {
+        "mean": 107.69775034722223,
+        "std": 9.087234426512596,
+        "min": 69,
+        "max": 152,
+        "p99.9": 136.0,
+        "frac_at_max": 1.7361111111111112e-07
+      },
+      "verification": "none",
+      "verification_note": "a frame is data, not a setting",
+      "from": "card-033:s4.3-dark-frame-a"
+    },
+    {
+      "t_mono": 5.735,
+      "time_base": "software",
+      "event": "acquire",
+      "channel": "Kinetix_red",
+      "action": "snap",
+      "frame": {
+        "label": "dark_a2",
+        "path": "D:\\soft-matter-agents-frames\\run-20260924-006\\dark_a2.npy",
+        "sha256": "4e1735164c6efbb88ebc721f9f53645506dcb9ad9065d66c3748331171592706",
+        "shape": [
+          2400,
+          2400
+        ],
+        "dtype": "uint16",
+        "camera": "Kinetix_red",
+        "exposure_ms": 100.0
+      },
+      "stats": {
+        "mean": 107.63370920138888,
+        "std": 9.109231522625675,
+        "min": 67,
+        "max": 156,
+        "p99.9": 136.0,
+        "frac_at_max": 5.208333333333334e-07
+      },
+      "verification": "none",
+      "verification_note": "a frame is data, not a setting",
+      "from": "card-033:s4.3-dark-frame-a"
+    },
+    {
+      "t_mono": 5.735,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.GREEN": {
+          "value": 1,
+          "from": "card-033:s4.3-line-max-master-off"
+        }
+      },
+      "read": "1",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:s4.3-line-max-master-off"
+    },
+    {
+      "t_mono": 5.781,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.GREEN_Intensity": {
+          "value": 1000,
+          "from": "card-033:s4.4-intensity-max"
+        }
+      },
+      "read": "1000",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:s4.4-intensity-max"
+    },
+    {
+      "t_mono": 6.047,
+      "time_base": "software",
+      "event": "acquire",
+      "channel": "Kinetix_red",
+      "action": "snap",
+      "frame": {
+        "label": "dark_b_line_max_master_off",
+        "path": "D:\\soft-matter-agents-frames\\run-20260924-006\\dark_b_line_max_master_off.npy",
+        "sha256": "583685404c74a805aebea50e885359ad173375ae280c7a93334fe8103f4632ca",
+        "shape": [
+          2400,
+          2400
+        ],
+        "dtype": "uint16",
+        "camera": "Kinetix_red",
+        "exposure_ms": 100.0
+      },
+      "stats": {
+        "mean": 107.59546128472222,
+        "std": 9.10588797557244,
+        "min": 70,
+        "max": 153,
+        "p99.9": 136.0,
+        "frac_at_max": 1.7361111111111112e-07
+      },
+      "verification": "none",
+      "verification_note": "a frame is data, not a setting",
+      "from": "card-033:s4.3-dark-frame-b"
+    },
+    {
+      "t_mono": 6.125,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.GREEN_Intensity": {
+          "value": 100,
+          "from": "card-033:s4.4-intensity-first"
+        }
+      },
+      "read": "100",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:s4.4-intensity-first"
+    },
+    {
+      "t_mono": 6.188,
+      "time_base": "software",
+      "event": "step",
+      "step": "4.3",
+      "read_noise_adu": 8.754285000857399,
+      "delta_mean_adu": -0.10228906250000591,
+      "delta_p999_adu": 0.0,
+      "criterion": "|dmean| < read noise and |dp99.9| < 3 x read noise",
+      "dark_matches": true,
+      "lapp_state": "1"
+    },
+    {
+      "t_mono": 6.188,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.GREEN": {
+          "value": 0,
+          "from": "card-033:shutdown-line-off"
+        }
+      },
+      "read": "0",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:shutdown-line-off"
+    },
+    {
+      "t_mono": 10.25,
+      "time_base": "software",
+      "event": "acquire",
+      "channel": "Kinetix_red",
+      "action": "acquire_series",
+      "frames": {
+        "label": "dark_sequence",
+        "path": "D:\\soft-matter-agents-frames\\run-20260924-006\\dark_sequence.npy",
+        "sha256": "4a166d2f1956f701dadeebe89106f460ffaad8f674ec01669f510acac3181dab",
+        "metadata_path": "D:\\soft-matter-agents-frames\\run-20260924-006\\dark_sequence_metadata.json",
+        "metadata_sha256": "fdb47d7f4590d7a2d0f138e7f1c72a48f204a6be8250ac80a6de013d6b9c505c",
+        "shape": [
+          20,
+          2400,
+          2400
+        ],
+        "dtype": "uint16"
+      },
+      "wanted": 20,
+      "received": 20,
+      "gaps": [],
+      "overflowed": false,
+      "image_numbers_first_last": [
+        "0",
+        "19"
+      ],
+      "verification": "none",
+      "verification_note": "frames are data; ImageNumber is the check",
+      "from": "card-033:s4.8-dark-sequence"
+    },
+    {
+      "t_mono": 10.25,
+      "time_base": "software",
+      "event": "gate_open",
+      "gate": "approve_light",
+      "question": "The checked command list (18 commands, all passed the software-motion check) is written to microscope_agent/runs/run-20260924-006/commands.json (sha256 1c17986a18d2). The light goes on at the next step: Aura green 100 per-mille (10%), continuously for 300 s, one 100 ms frame per second, then off. Nothing caps excitation in the safety file; this setting is the person's. Do you approve?"
+    },
+    {
+      "t_mono": 54.469,
+      "time_base": "software",
+      "event": "gate_answered",
+      "gate": "approve_light",
+      "answer": "yes",
+      "by": "the person, in chat to microscope-20260924-1, 2026-09-24 evening",
+      "said": "Approve",
+      "relayed_by": null
+    },
+    {
+      "t_mono": 54.469,
+      "time_base": "software",
+      "event": "gate_open",
+      "gate": "fresh_field",
+      "question": "Is the area you found fresh -- NOT lit with the green light before (focused by eye or with the dia lamp only)? Say yes when the stage is there and focused."
+    },
+    {
+      "t_mono": 65.672,
+      "time_base": "software",
+      "event": "gate_answered",
+      "gate": "fresh_field",
+      "answer": "yes",
+      "by": "the person, in chat to microscope-20260924-1, 2026-09-24 evening",
+      "said": "Asked whether the stage is on the fresh area, focused, and not lit with green before (eye or dia lamp only): 'Yes, fresh and focused, go'.",
+      "relayed_by": null
+    },
+    {
+      "t_mono": 65.766,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.GREEN_Intensity": {
+          "value": 100,
+          "from": "card-033:s4.4-intensity-first"
+        }
+      },
+      "read": "100",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:s4.4-intensity-first"
+    },
+    {
+      "t_mono": 65.766,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.GREEN": {
+          "value": 1,
+          "from": "card-033:s4.5-line-on"
+        }
+      },
+      "read": "1",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:s4.5-line-on"
+    },
+    {
+      "t_mono": 65.781,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.State": {
+          "value": 1,
+          "from": "card-033:s038-light-on"
+        }
+      },
+      "read": "1",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:s038-light-on"
+    },
+    {
+      "t_mono": 65.953,
+      "time_base": "software",
+      "event": "step",
+      "step": "038-first-frame",
+      "lit_mean_minus_dark_adu": 137.2778880208333,
+      "image_changed": true
+    },
+    {
+      "t_mono": 364.922,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.State": {
+          "value": 0,
+          "from": "card-033:shutdown-master-off"
+        }
+      },
+      "read": "0",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:shutdown-master-off"
+    },
+    {
+      "t_mono": 385.156,
+      "time_base": "software",
+      "event": "acquire",
+      "channel": "Kinetix_red",
+      "action": "paced_snaps",
+      "frames": {
+        "label": "particles_paced",
+        "path": "D:\\soft-matter-agents-frames\\run-20260924-006\\particles_paced.npy",
+        "sha256": "a35041be46283c09973c967e858245f305ae297d62b861228f351aa885618c2f",
+        "timing_path": "D:\\soft-matter-agents-frames\\run-20260924-006\\particles_paced_timing.json",
+        "timing_sha256": "7a3929300f1660c1b07ca863de82eff70e7e2e78352d7f4aac98e7bac2b61328",
+        "shape": [
+          300,
+          2400,
+          2400
+        ],
+        "dtype": "uint16"
+      },
+      "wanted": 300,
+      "received": 300,
+      "period_s": 1,
+      "frames_late_over_50ms": 0,
+      "worst_late_s": 0.016,
+      "illumination": "continuous: Aura State=1 for the whole series",
+      "no_image_number": "Frames here are single snaps, and snaps carry no ImageNumber. The frame count is the integer loop index; each frame's scheduled time (t0 + i x 1 s, from the integer), its actual monotonic time and any camera timestamp the driver returns are logged beside it.",
+      "verification": "none",
+      "verification_note": "frames are data",
+      "from": "card-038:s038-paced-series"
+    },
+    {
+      "t_mono": 385.156,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.State": {
+          "value": 0,
+          "from": "card-033:shutdown-master-off"
+        }
+      },
+      "read": "0",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:shutdown-master-off"
+    },
+    {
+      "t_mono": 385.156,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.GREEN": {
+          "value": 0,
+          "from": "card-033:shutdown-line-off"
+        }
+      },
+      "read": "0",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:shutdown-line-off"
+    },
+    {
+      "t_mono": 385.219,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "Aura.GREEN_Intensity": {
+          "value": 0,
+          "from": "card-033:shutdown-intensity-0"
+        }
+      },
+      "read": "0",
+      "verification": "readback",
+      "verification_note": "queried after the write and matched",
+      "from": "card-033:shutdown-intensity-0"
+    },
+    {
+      "t_mono": 385.219,
+      "time_base": "software",
+      "event": "shutdown",
+      "reason": "complete"
+    },
+    {
+      "t_mono": 385.219,
+      "time_base": "software",
+      "event": "run_end",
+      "outcome": "complete",
+      "frames": [
+        {
+          "label": "dark_a1",
+          "path": "D:\\soft-matter-agents-frames\\run-20260924-006\\dark_a1.npy",
+          "sha256": "e23a183111b3efc2e1cc045a87f3901371b3b161911386fa0b0300ecbedd9960",
+          "shape": [
+            2400,
+            2400
+          ],
+          "dtype": "uint16",
+          "camera": "Kinetix_red",
+          "exposure_ms": 100.0
+        },
+        {
+          "label": "dark_a2",
+          "path": "D:\\soft-matter-agents-frames\\run-20260924-006\\dark_a2.npy",
+          "sha256": "4e1735164c6efbb88ebc721f9f53645506dcb9ad9065d66c3748331171592706",
+          "shape": [
+            2400,
+            2400
+          ],
+          "dtype": "uint16",
+          "camera": "Kinetix_red",
+          "exposure_ms": 100.0
+        },
+        {
+          "label": "dark_b_line_max_master_off",
+          "path": "D:\\soft-matter-agents-frames\\run-20260924-006\\dark_b_line_max_master_off.npy",
+          "sha256": "583685404c74a805aebea50e885359ad173375ae280c7a93334fe8103f4632ca",
+          "shape": [
+            2400,
+            2400
+          ],
+          "dtype": "uint16",
+          "camera": "Kinetix_red",
+          "exposure_ms": 100.0
+        },
+        {
+          "label": "dark_sequence",
+          "path": "D:\\soft-matter-agents-frames\\run-20260924-006\\dark_sequence.npy",
+          "sha256": "4a166d2f1956f701dadeebe89106f460ffaad8f674ec01669f510acac3181dab",
+          "metadata_path": "D:\\soft-matter-agents-frames\\run-20260924-006\\dark_sequence_metadata.json",
+          "metadata_sha256": "fdb47d7f4590d7a2d0f138e7f1c72a48f204a6be8250ac80a6de013d6b9c505c",
+          "shape": [
+            20,
+            2400,
+            2400
+          ],
+          "dtype": "uint16"
+        },
+        {
+          "label": "particles_paced",
+          "path": "D:\\soft-matter-agents-frames\\run-20260924-006\\particles_paced.npy",
+          "sha256": "a35041be46283c09973c967e858245f305ae297d62b861228f351aa885618c2f",
+          "timing_path": "D:\\soft-matter-agents-frames\\run-20260924-006\\particles_paced_timing.json",
+          "timing_sha256": "7a3929300f1660c1b07ca863de82eff70e7e2e78352d7f4aac98e7bac2b61328",
+          "shape": [
+            300,
+            2400,
+            2400
+          ],
+          "dtype": "uint16"
+        }
+      ]
+    }
+  ],
+  "finished_at": "2026-09-25T00:40:53+00:00"
+}
