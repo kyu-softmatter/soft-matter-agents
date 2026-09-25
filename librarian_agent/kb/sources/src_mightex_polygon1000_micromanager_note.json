@@ -1,0 +1,9 @@
+{
+  "source_id": "src_mightex_polygon1000_micromanager_note",
+  "kind": "vendor_spec",
+  "identifier": "Mightex, 'Using Polygon1000 with Micro-Manager', a two-page setup note, and the support package's Readme.txt: C:/Users/Takatori lab/Desktop/Maintanance/Setup/DMD/Mightex Polygon1000 uManager v2.0 Support Package V1.0-202103/.../Mightex/Polygon1000/Documentation/Using Polygon1000 with Micro-Manager.pdf (sha256 703bf1d7a957378f78e84f72140c5f45d41b58c888b606e8599f31e816dc49bd) and .../Readme.txt (sha256 74023261ce2f415c42d12d3d1236360c4a8ff4741bcc4d810601226cdd80dece). The same PDF is also installed under C:/Program Files/Micro-Manager-2.0/Mightex/.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, grade_tag vendor_spec.",
+  "read": "both, in full. No safety statement: the note is Micro-Manager configuration, and its only instructions are that the output-trigger enable and delay properties are fixed and must not be changed. Nothing entered.",
+  "hardware_manual": "NOT IN THE ARCHIVE: no hardware or safety manual for the Polygon1000 is on this computer."
+}

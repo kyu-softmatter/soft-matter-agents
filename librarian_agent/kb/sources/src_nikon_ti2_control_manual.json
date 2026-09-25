@@ -1,0 +1,62 @@
+{
+  "source_id": "src_nikon_ti2_control_manual",
+  "kind": "vendor_spec",
+  "identifier": "Nikon Ti2 Control Ver2.90 for Windows, manual M706 E15 (English): C:/Users/Takatori lab/Desktop/Maintanance/Setup/Ti2 Ver2.90/MEA54000_Ti2 Control Ver2.90_Windows/Docs/M706_E15_Ti2Control_Windows.pdf, sha256 5e43517c32b36e30b16d780b9ff348c63ae16b5aba7c4b3b5cdb64759e362e16, file date 2023-02-21, 119 PDF pages; printed page N is PDF page N+8. Also catalogued, not entered from: the Japanese translation M706 J15, same folder, sha256 5a5ee2ce9b578f6a77cdc5768985772e9f8b6659f5d4557fce3add7900c6e489.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, grade_tag vendor_spec.",
+  "url_note": "Referenced in place, not copied.",
+  "license_note": "No manual prose is reproduced in any entry.",
+  "read": "every CAUTION (ten), and the Ti2-E setup sections on the optical path, the nosepiece escape, the Z-stage and the filter shutter. Its cautions are about installation and USB, not hazards.",
+  "hardware_manual": "NOT IN THE ARCHIVE: this is the control software's manual; no Ti2-E hardware manual is on this computer.",
+  "guide_devices": [
+    "stand_ti2e"
+  ],
+  "guide_notes": [
+    "The Ti2 Control manual's cautions are about installing the software and the USB cable, not about hazards. A Japanese copy of the same manual is in the archive and was not read, being a translation."
+  ],
+  "safety_entries": {
+    "ti2_control_usb_must_not_be_unplugged": [
+      {
+        "document": "Nikon Ti2 Control Ver2.90 manual (English)",
+        "printed_page": 2,
+        "pdf_page": 10
+      },
+      {
+        "document": "Nikon Ti2 Control Ver2.90 manual (English)",
+        "printed_page": 3,
+        "pdf_page": 11
+      },
+      {
+        "document": "Nikon Ti2 Control Ver2.90 manual (English)",
+        "printed_page": 6,
+        "pdf_page": 14
+      }
+    ],
+    "ti2e_filter_shutter_state_at_startup_is_a_setting": [
+      {
+        "document": "Nikon Ti2 Control Ver2.90 manual (English)",
+        "printed_page": 75,
+        "pdf_page": 83
+      }
+    ],
+    "ti2e_objective_escape_is_set_per_nosepiece_address": [
+      {
+        "document": "Nikon Ti2 Control Ver2.90 manual (English)",
+        "printed_page": 73,
+        "pdf_page": 81
+      }
+    ],
+    "ti2e_optical_path_addresses": [
+      {
+        "document": "Nikon Ti2 Control Ver2.90 manual (English)",
+        "printed_page": 67,
+        "pdf_page": 75
+      },
+      {
+        "document": "Nikon Ti2 Control Ver2.90 manual (English)",
+        "printed_page": 75,
+        "pdf_page": 83
+      }
+    ]
+  }
+}

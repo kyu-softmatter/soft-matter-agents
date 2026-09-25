@@ -1,0 +1,47 @@
+{
+  "entry_id": "tweez_laser_source_is_a_1064nm_fiber_laser",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The tweezers' control laser unit houses an infrared fibre laser at 1064 nm, of 5 W or 10 W depending on the model, with its control electronics. 1064 nm is invisible.",
+  "numbers": [
+    {
+      "name": "tweez_laser_wavelength",
+      "value": 1064,
+      "unit": "nm",
+      "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+      "grade": "E3",
+      "note": "the manufacturer's figure"
+    },
+    {
+      "name": "tweez_305_rated_output",
+      "value": 5,
+      "unit": "W",
+      "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+      "grade": "E3",
+      "note": "the manufacturer's figure for the Tweez 305"
+    },
+    {
+      "name": "tweez_310_rated_output",
+      "value": 10,
+      "unit": "W",
+      "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+      "grade": "E3",
+      "note": "the manufacturer's figure for the Tweez 310"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    }
+  ],
+  "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_aresis_tweez300_manuals",
+  "validity_conditions": "Read from Tweez 305/310 Laser Safety Manual V3.0, November 2022, as installed in C:/Program Files/Aresis/Tweez300/Manuals/ (sha256 264ab54b...): printed page 3 (PDF page 5). E3 vendor_spec: the manufacturer's statement, not an observation on this bench. The manual is written for the Tweez 305/310 family; this bench's unit is recorded as a Tweez 300 (trapping_laser_identity), and the family naming is the manufacturer's. Which of the two ratings this unit carries is recorded in trapping_laser_identity, not here. KNOWLEDGE, NOT POLICY: this is what the manufacturer says. What any session may do, and every limit anyone here acts on, is the person's, written into the envelope after confirming it on the instrument.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

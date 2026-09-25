@@ -1,0 +1,25 @@
+{
+  "entry_id": "lapp_state_1_brings_the_aura_to_the_sample",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "On this stand, with the Lapp main branch at State 1 -- where the device reports the label 'mirror_in' -- the Aura III light engine's light reaches the sample: the person saw particles lit by the Aura in that state and said the position is the Aura's.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "lapp_branch"
+    },
+    {
+      "kind": "device",
+      "id": "stand_ti2e"
+    }
+  ],
+  "source": "operator_read:kyuhwan_20260924_lapp_aura",
+  "grade": "E3",
+  "grade_tag": "operator_read",
+  "source_ref": "src_person_statement_lapp_aura_20260924",
+  "validity_conditions": "The person's reading and observation on the evening of 2026-09-24, recorded verbatim in commit cd09784's message. About the INTEGER 1: branch_selector_is_pinned_by_integer_not_label holds that this selector's labels were inverted relative to its positions on the prior bench, so the label is given only as what the device reports there. Consistent with run-20260924-002, where the Aura lit the particles while LappMainBranch1 read back 1 (stand_state_read_20260924_20x_in_place). NOT established: what the other positions route; whether the Spectra III also reaches the sample in State 1; which of the device table's widefield_source_a and widefield_source_b is the Aura. Neither observation blocked one engine, which is the decisive test the lapp_branch_assignment gap names, so this narrows that gap and does not close it. Delivered as item lapp_main_branch_state_1_is_the_aura_iii_position of microscope_agent/findings/microscope-20260924-5-20260924.json at cd09784 (card 046).",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

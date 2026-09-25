@@ -568,7 +568,8 @@
       "kind": "absent",
       "searched": ["the prior project's own record, which states that the asymmetric geometry came from the same 2026-08-10 dictation as a transmission figure later found inverted, and that its measurement agrees equally well with the two engines being the other way round", "the pass of 2026-09-17, which did not go through these two rows"],
       "status": "open as a LABEL and no longer open as a risk. The actionable half closed on 2026-09-18: the prior project ran Spectra -> DMD -> sample, so a patterned-illumination plan names the Spectra (see paired_with on the dmd row) whatever the branch turns out to be called. What is still unknown is which channel id, widefield_source_a or widefield_source_b, is which engine. It was previously recorded as confirmed -- the stamp is removed and the claim demoted rather than left standing. Settled by acquiring, not by read-back, and this selector is the reason that rule exists: it is the branch selector whose label-to-state mapping was inverted in the configuration file for weeks while both label and state read back consistently. Block one engine, switch the branch, and see which state goes dark; or pattern with the DMD and see which engine's light carries the pattern. The engines' identities are a separate question from their branches, and the session holding the prior dossier is entering those.",
-      "not_entered_here": "this session did not read the prior dossier, so the engine model names and the measured LappMainBranch1 state mapping are not written here. Removing an unsupported claim needs no new source; adding one does."
+      "not_entered_here": "this session did not read the prior dossier, so the engine model names and the measured LappMainBranch1 state mapping are not written here. Removing an unsupported claim needs no new source; adding one does.",
+      "update_20260924": "NARROWED, NOT CLOSED. The person, on the evening of 2026-09-24, saw particles lit by the Aura III with LappMainBranch1 at State 1 ('mirror_in') and said that position is the Aura's (lapp_state_1_brings_the_aura_to_the_sample, E3); run-20260924-002 earlier that day is consistent with it. Neither blocked one engine, so the decisive test above still stands, and which channel id is which engine is still open. Written by librarian-20260924-2 from microscope-20260924-5's findings (cd09784)."
     },
     {
       "what": "which wavelengths the eight Spectra III channels and the five Aura III channels actually are",
@@ -744,6 +745,7 @@
       "why_it_matters": "whether light can reach a person's eye through the eyepieces depends on it; until it is known, the microscope's confocal wrapper counts every state as reaching the eyepieces",
       "kind": "absent",
       "searched": ["the light_path_port element of stand_ti2e in this table", "the contents of every file in librarian_agent/kb/staging and librarian_agent/kb/entries, for 'eyepiece' and 'ocular': no hits", "the prior-project records microscope-20260924-3 read on 2026-09-24, none of which gives it"],
+      "nearest": "ti2e_optical_path_addresses (the Ti2 Control manual): address 1 is the eyepiece port, and address 3 with the split prism sends 20 per cent to the eyepieces, so two addresses can reach them. How those addresses map to Micro-Manager's state numbers is not stated there; one read on 2026-09-24 fits address = state + 1 and does not establish it. And tweez_microscope_interlock_blocks_the_laser_at_the_eyepieces: the stand's own interlock disables the tweezers laser when the path is at the eyepieces, while the stand is powered. Added by librarian-20260924-2 for task 036.",
       "status": "open. It closes at the bench with the person, by the state's integer and with the lamp only. Delivered by microscope-20260924-3 (findings a5e7647, item eyepiece_path_mapping_unmeasured)."
     },
     {
@@ -794,6 +796,77 @@
       "kind": "absent",
       "searched": ["run-20260924-002 event 45: a 500 ms dia-lamp frame reached 861 ADU and did not saturate; the event's 'bits: 10' is a flaw in the script, not a measurement", "the same run's particle series, whose brightest pixel was about 14,000 ADU, so full scale is above that", "kinetix_red_adapter_properties_as_reported_20260924: BitDepth 16, PixelType 16bit, as reported"],
       "status": "open. It closes with a frame that saturates. Delivered by microscope-20260924-1 (findings bf8f91f, item kinetix_red_bit_depth_unmeasured); source read at that commit."
+    },
+    {
+      "what": "the laser combiner's hardware and laser-safety manual -- its laser class, its per-line maximum output, its interlocks and its shutter",
+      "gap_id": "laser_combiner_manual_absent",
+      "device": ["laser_combiner"],
+      "why_it_matters": "THE MOST IMPORTANT GAP IN THE ARCHIVE. The combiner is the second laser on this bench, four lines from 405 to 640 nm, and nothing about it can be read back (lunf_reports_nothing_back, lunf_per_line_power_is_not_transmittable). Its manufacturer's own statement of its hazard class and what protects the operator is not on this computer, so its safety guide can say only that",
+      "kind": "absent",
+      "searched": ["C:/Users/Takatori lab/Desktop/Maintanance/Setup/ (every folder, every PDF, text and help file outside the licence folders): no folder for it", "C:/Program Files, C:/Program Files (x86) and C:/ProgramData, five levels deep, for PDF and help files naming the maker or model -- which found the tweezers manuals, the Mightex note, the NIS-Elements help and a PVCam colour tutorial and nothing else", "the NIS-Elements help installed at C:/Program Files/NIS-Elements/Docs/ (6,208 files), searched for the combiner's name and for laser-safety and laser-class wording: no hardware or safety document"],
+      "do_not": "do not fill it from general knowledge of the model or of lasers like it. A laser class or an output figure remembered by a model is a model-produced value and enters nothing.",
+      "what_would_close_it": "the Nikon LUN-F XL hardware and laser-safety documentation, from Nikon or from wherever the lab keeps the paper manuals",
+      "status": "open. Filed for task 036 by librarian-20260924-2."
+    },
+    {
+      "what": "the spinning-disk confocal unit's hardware and safety manual",
+      "gap_id": "confocal_csuw1_manual_absent",
+      "device": ["confocal_csuw1"],
+      "why_it_matters": "it carries the confocal laser through its own shutter and disk, and its safety guide has no manufacturer's statement to give",
+      "kind": "absent",
+      "searched": ["C:/Users/Takatori lab/Desktop/Maintanance/Setup/ (every folder, every PDF, text and help file outside the licence folders): no folder for it", "C:/Program Files, C:/Program Files (x86) and C:/ProgramData, five levels deep, for PDF and help files naming the maker or model -- which found the tweezers manuals, the Mightex note, the NIS-Elements help and a PVCam colour tutorial and nothing else", "the NIS-Elements help installed at C:/Program Files/NIS-Elements/Docs/ (6,208 files), searched for the combiner's name and for laser-safety and laser-class wording: no hardware or safety document"],
+      "what_would_close_it": "the Yokogawa CSU-W1 instruction manual",
+      "status": "open. Filed for task 036 by librarian-20260924-2."
+    },
+    {
+      "what": "the two widefield light engines' manuals -- the Lumencor Spectra III and Aura III",
+      "gap_id": "widefield_light_engine_manuals_absent",
+      "device": ["widefield_source_a", "widefield_source_b"],
+      "why_it_matters": "both are high-power LED light engines lighting the sample on this bench; their manufacturer's safety statements and output figures are not on this computer. Which channel id is which engine is itself open (lapp_branch_assignment), so the gap is filed against both",
+      "kind": "absent",
+      "searched": ["C:/Users/Takatori lab/Desktop/Maintanance/Setup/ (every folder, every PDF, text and help file outside the licence folders): no folder for either", "C:/Program Files, C:/Program Files (x86) and C:/ProgramData, five levels deep, for PDF and help files naming the maker or model -- which found the tweezers manuals, the Mightex note, the NIS-Elements help and a PVCam colour tutorial and nothing else"],
+      "what_would_close_it": "the Lumencor Spectra III and Aura III user manuals",
+      "status": "open. Filed for task 036 by librarian-20260924-2."
+    },
+    {
+      "what": "the cameras' manual",
+      "gap_id": "camera_manual_absent",
+      "device": ["camera_red", "camera_blue"],
+      "why_it_matters": "the archive's Camera folder holds only installers -- PVCam 3.10.1.1 (SDK), PVCam 3.10.2.7 and an evaluation tool named PmPrimeCamEval -- while the store holds a Kinetix 22 datasheet. The tool's name suggests a different camera line and does not establish one; that is recorded and not resolved by guessing",
+      "kind": "absent",
+      "searched": ["C:/Users/Takatori lab/Desktop/Maintanance/Setup/Camera/: three installers, no document", "C:/Program Files, C:/Program Files (x86) and C:/ProgramData, five levels deep, for PDF and help files naming the maker or model -- which found the tweezers manuals, the Mightex note, the NIS-Elements help and a PVCam colour tutorial and nothing else; the one camera document is C:/Program Files/Photometrics/PVCam/Documentation/PVCamTest Color Tutorial.pdf, a software tutorial"],
+      "what_would_close_it": "the Photometrics Kinetix user manual",
+      "status": "open. Filed for task 036 by librarian-20260924-2."
+    },
+    {
+      "what": "the DMD's hardware and safety manual",
+      "gap_id": "dmd_manual_absent",
+      "device": ["dmd"],
+      "why_it_matters": "the archive holds only a two-page Micro-Manager setup note and a Readme, neither with a safety statement",
+      "kind": "absent",
+      "searched": ["C:/Users/Takatori lab/Desktop/Maintanance/Setup/DMD/: the setup note and Readme, read in full (src_mightex_polygon1000_micromanager_note)", "C:/Program Files, C:/Program Files (x86) and C:/ProgramData, five levels deep, for PDF and help files naming the maker or model -- which found the tweezers manuals, the Mightex note, the NIS-Elements help and a PVCam colour tutorial and nothing else"],
+      "what_would_close_it": "the Mightex Polygon1000 user manual",
+      "status": "open. Filed for task 036 by librarian-20260924-2."
+    },
+    {
+      "what": "the piezo stage's and controller's hardware manual, including the environmental Table 2.1 the controller's software manuals refer to",
+      "gap_id": "piezo_hardware_manual_absent",
+      "device": ["piezo_stage"],
+      "why_it_matters": "every piezo manual in the archive is for software; the controller's operating temperature and humidity limits are stated to be in a table that none of them contains",
+      "kind": "absent",
+      "searched": ["C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/: six software documents and release notes, no hardware manual", "C:/Program Files, C:/Program Files (x86) and C:/ProgramData, five levels deep, for PDF and help files naming the maker or model -- which found the tweezers manuals, the Mightex note, the NIS-Elements help and a PVCam colour tutorial and nothing else"],
+      "what_would_close_it": "the Queensgate NPC-D-6000 controller and SP-XYZ-600 stage manuals",
+      "status": "open. Filed for task 036 by librarian-20260924-2."
+    },
+    {
+      "what": "the Ti2-E microscope stand's hardware manual",
+      "gap_id": "stand_ti2e_hardware_manual_absent",
+      "device": ["stand_ti2e"],
+      "why_it_matters": "the stand carries the motorised focus and nosepiece, whose collision with a coverslip is the bench's worst irreversible risk, and the only Nikon document in the archive is the control software's manual",
+      "kind": "absent",
+      "searched": ["C:/Users/Takatori lab/Desktop/Maintanance/Setup/Ti2 Ver2.90/: the Ti2 Control software manual in English and Japanese only", "C:/Program Files, C:/Program Files (x86) and C:/ProgramData, five levels deep, for PDF and help files naming the maker or model -- which found the tweezers manuals, the Mightex note, the NIS-Elements help and a PVCam colour tutorial and nothing else; C:/Program Files/Nikon holds data tables, no manual"],
+      "what_would_close_it": "the Nikon Ti2-E instruction manual",
+      "status": "open. Filed for task 036 by librarian-20260924-2."
     }
   ],
   "resolved_gaps": [

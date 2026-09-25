@@ -1,0 +1,29 @@
+{
+  "entry_id": "ti2e_filter_shutter_state_at_startup_is_a_setting",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In Ti2 Control, whether the fluorescence turret's shutter is open or closed when the microscope starts is a setting.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "stand_ti2e"
+    },
+    {
+      "kind": "device",
+      "id": "filter_turret_1"
+    },
+    {
+      "kind": "device",
+      "id": "filter_turret_2"
+    }
+  ],
+  "source": "spec:nikon_ti2_control_v2_90_m706_e15",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_nikon_ti2_control_manual",
+  "validity_conditions": "Read from Nikon Ti2 Control Ver2.90 for Windows, English manual M706 E15 (sha256 5e43517c...): printed page 75 (PDF page 83). E3 vendor_spec: the manufacturer's statement, not an observation on this bench. This manual is for the Ti2 Control software; the archive holds no Ti2-E hardware manual. How this stand is set is not recorded here; a shutter set to open at start-up admits light as soon as a source is on. KNOWLEDGE, NOT POLICY: this is what the manufacturer says. What any session may do, and every limit anyone here acts on, is the person's, written into the envelope after confirming it on the instrument.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

@@ -5,5 +5,79 @@
   "accessed": "2026-09-24",
   "grade_rule": "E3, grade_tag vendor_spec. A published specification is not a measurement taken here.",
   "delivered_by": "microscope-20260924-2, microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043).",
-  "license_note": "No text reproduced; facts restated."
+  "license_note": "No text reproduced; facts restated.",
+  "lab_archive_copy": {
+    "path": "C:/Users/Takatori lab/Desktop/Maintanance/Setup/Piezo Stage/User Manuals/Nanobench 6000 Customer Interface Software User Manual.pdf",
+    "note": "the same bytes as the copy first cited (sha256 re-checked 2026-09-24); the lab archive is where the person pointed for task 036"
+  },
+  "safety_entries": {
+    "nanobench_controller_gives_limited_protection": [
+      {
+        "document": "Nanobench 6000 User Manual (issue 4)",
+        "printed_page": 5,
+        "pdf_page": 5
+      }
+    ],
+    "nanobench_controller_shuts_down_when_hot": [
+      {
+        "document": "Nanobench 6000 User Manual (issue 4)",
+        "printed_page": 9,
+        "pdf_page": 9
+      },
+      {
+        "document": "Nanobench 6000 User Manual (issue 4)",
+        "printed_page": 16,
+        "pdf_page": 16
+      }
+    ],
+    "nanobench_higher_security_levels_expose_damaging_settings": [
+      {
+        "document": "Nanobench 6000 User Manual (issue 4)",
+        "printed_page": 8,
+        "pdf_page": 8
+      }
+    ],
+    "nanobench_stage_presets_can_be_overwritten_or_lost": [
+      {
+        "document": "Nanobench 6000 User Manual (issue 4)",
+        "printed_page": 29,
+        "pdf_page": 29
+      }
+    ],
+    "nanobench_wrong_loop_settings_damage_the_stage": [
+      {
+        "document": "Nanobench 6000 User Manual (issue 4)",
+        "printed_page": 12,
+        "pdf_page": 12
+      },
+      {
+        "document": "Nanobench 6000 User Manual (issue 4)",
+        "printed_page": 30,
+        "pdf_page": 30
+      },
+      {
+        "document": "Nanobench 6000 User Manual (issue 4)",
+        "printed_page": 31,
+        "pdf_page": 31
+      }
+    ],
+    "npcd_controller_generates_hazardous_voltages": [
+      {
+        "document": "NPC-D Series Controller Interface Library manual (revision 6.0)",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "NanoFlash Reflash Application User Manual",
+        "printed_page": 2,
+        "pdf_page": 2
+      },
+      {
+        "document": "Nanobench 6000 User Manual (issue 4)",
+        "printed_page": 5,
+        "pdf_page": 5
+      }
+    ]
+  },
+  "hardware_manual": "NOT IN THE ARCHIVE: this is a software manual, and no hardware manual for the piezo stage or its controller is on this computer. The environmental Table 2.1 the controller manuals refer to is in that missing document."
 }

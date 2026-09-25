@@ -1,0 +1,8 @@
+{
+  "source_id": "src_person_statement_lapp_aura_20260924",
+  "kind": "operator_read",
+  "identifier": "The person's statement to microscope-20260924-5 on the evening of 2026-09-24, with a screenshot of Micro-Manager's device property browser reading LappMainBranch1-Label 'mirror_in' and LappMainBranch1-State 1, that 'this is for the Aura3 light source', said just after 'i can see particles now with Aura3' on a newly loaded sample. Recorded verbatim, with the screenshot transcribed, in the message of commit cd09784, which adds microscope_agent/findings/microscope-20260924-5-20260924.json; the screenshot itself is not committed.",
+  "accessed": "2026-09-24",
+  "grade_rule": "E3, operator_read: the state was read off the running software at the time and the person had the Aura's light on the sample in that state -- a reading and an observation, not a recollection. It is still the person's reading, not this system's.",
+  "relayed": "Read from the commit message the findings item cites (plan.md 7 as widened at 0e06fb2), not from a message."
+}

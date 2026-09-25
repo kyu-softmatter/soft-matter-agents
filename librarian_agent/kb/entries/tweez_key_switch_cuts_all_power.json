@@ -1,0 +1,21 @@
+{
+  "entry_id": "tweez_key_switch_cuts_all_power",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "A key switch on the front of the control laser unit controls the system's main power. With the key removed the system and the laser are shut down and no emission is possible; the key can be removed only in the OFF position.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    }
+  ],
+  "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_aresis_tweez300_manuals",
+  "validity_conditions": "Read from Tweez 305/310 Laser Safety Manual V3.0, November 2022, as installed in C:/Program Files/Aresis/Tweez300/Manuals/ (sha256 264ab54b...): printed page 4 (PDF page 6). Also Tweez 305/310 General Hardware and Safety Manual V3.0, November 2022, as installed (sha256 1c112ed1...): printed page 6 (PDF page 8). E3 vendor_spec: the manufacturer's statement, not an observation on this bench. KNOWLEDGE, NOT POLICY: this is what the manufacturer says. What any session may do, and every limit anyone here acts on, is the person's, written into the envelope after confirming it on the instrument.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}

@@ -1,0 +1,9 @@
+{
+  "source_id": "src_person_ruling_tweez300_edition_20260924",
+  "kind": "person_ruling",
+  "identifier": "The person's ruling of 2026-09-24, before 13:21 -0700, on which edition of the Tweez 300 safety manuals the safety guide follows. Asked as a multiple-choice question in the manager-librarian session; answered 'Installed (2022-11)', meaning the copies installed with the tweezers software, dated 2022-11-02, over the 2021-11 copies in the lab's Setup archive.",
+  "recorded_at": "librarian_agent/tasks/036-catalogue-the-lab-archive-and-a-safety-guide-per-device.md, which quotes the question and the answer verbatim with its time (first committed at 4e21f59).",
+  "relayed": "RELAYED, NOT HEARD. The answer reached this seat only through that task file; the person did not say it in this seat's session. The file is the record the ruling stands on.",
+  "grade_rule": "A ruling is a decision, not a claim about the world, and grades no number.",
+  "supersedes_the_earlier_word": "the person's earlier instruction the same day to record both editions and decide later, which src_aresis_tweez300_manuals keeps under safety_manual_versions_differ"
+}

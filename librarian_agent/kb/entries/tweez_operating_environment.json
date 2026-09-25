@@ -1,0 +1,55 @@
+{
+  "entry_id": "tweez_operating_environment",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The tweezers are designed for a research laboratory at 20 to 28 degrees Celsius and 20 to 80 per cent relative humidity, non-condensing, and must never be stored or run in a wet, damp or dusty place.",
+  "numbers": [
+    {
+      "name": "tweez_operating_temperature_min",
+      "value": 293.15,
+      "unit": "K",
+      "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+      "grade": "E3",
+      "note": "printed as 20 C"
+    },
+    {
+      "name": "tweez_operating_temperature_max",
+      "value": 301.15,
+      "unit": "K",
+      "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+      "grade": "E3",
+      "note": "printed as 28 C"
+    },
+    {
+      "name": "tweez_operating_humidity_min",
+      "value": 0.2,
+      "unit": "1",
+      "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+      "grade": "E3",
+      "note": "printed as 20 %"
+    },
+    {
+      "name": "tweez_operating_humidity_max",
+      "value": 0.8,
+      "unit": "1",
+      "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+      "grade": "E3",
+      "note": "printed as 80 %, non-condensing"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    }
+  ],
+  "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_aresis_tweez300_manuals",
+  "validity_conditions": "Read from Tweez 305/310 General Hardware and Safety Manual V3.0, November 2022, as installed (sha256 1c112ed1...): printed page 4 (PDF page 6), printed page 11 (PDF page 13). E3 vendor_spec: the manufacturer's statement, not an observation on this bench. Printed as 20-28 C and 20-80 %; carried in kelvin and as fractions because the store's unit registry has no Celsius and no per cent. The appendix gives the humidity only as less than 80 %. This laboratory's recorded ambient, lab_ambient_temperature, sits at about the lower end of this range. KNOWLEDGE, NOT POLICY: this is what the manufacturer says. What any session may do, and every limit anyone here acts on, is the person's, written into the envelope after confirming it on the instrument.",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20260924-2"
+}
