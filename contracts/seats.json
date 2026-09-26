@@ -856,6 +856,146 @@
         "contracts/seats.json"
       ],
       "note": "A manager-bridge session on the person's MacBook, rooted at the repository root. Seated by the person on 2026-09-25, who chose the machine-named form used by architecture-kyuhwan-macbook-20260925-1 so that numbers cannot collide with the other machine. owns, paths and excludes copied by code from manager-bridge-20260924-1."
+    },
+    {
+      "seat": "microscope-20260926-1",
+      "committer_email": "microscope-20260926-1@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "note": "A microscope session on the microscope computer, rooted at microscope_agent/. Registered by the architecture seat on 2026-09-26 BEFORE the session existed, on the person's instruction in the architecture session to make eight new sessions -- four manager seats and one execution seat per agent -- grouped together; the same pattern as the MacBook's eight of 2026-09-25. Registered ahead because the registry is read at a commit's parent. Whether the earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. owns, paths and excludes copied by code from microscope-20260924-6."
+    },
+    {
+      "seat": "simulation-20260926-1",
+      "committer_email": "simulation-20260926-1@seat.invalid",
+      "owns": [
+        "simulation_agent"
+      ],
+      "note": "A simulation session on the microscope computer, rooted at simulation_agent/. Registered by the architecture seat on 2026-09-26 BEFORE the session existed, on the person's instruction in the architecture session to make eight new sessions -- four manager seats and one execution seat per agent -- grouped together; the same pattern as the MacBook's eight of 2026-09-25. Registered ahead because the registry is read at a commit's parent. Whether the earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. owns, paths and excludes copied by code from simulation-20260924-1."
+    },
+    {
+      "seat": "librarian-20260926-1",
+      "committer_email": "librarian-20260926-1@seat.invalid",
+      "owns": [
+        "librarian_agent"
+      ],
+      "note": "A librarian session on the microscope computer, rooted at librarian_agent/. Registered by the architecture seat on 2026-09-26 BEFORE the session existed, on the person's instruction in the architecture session to make eight new sessions -- four manager seats and one execution seat per agent -- grouped together; the same pattern as the MacBook's eight of 2026-09-25. Registered ahead because the registry is read at a commit's parent. Whether the earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. owns, paths and excludes copied by code from librarian-20260924-2."
+    },
+    {
+      "seat": "bridge-20260926-1",
+      "committer_email": "bridge-20260926-1@seat.invalid",
+      "owns": [
+        "bridge"
+      ],
+      "note": "A bridge session on the microscope computer, rooted at bridge/. Registered by the architecture seat on 2026-09-26 BEFORE the session existed, on the person's instruction in the architecture session to make eight new sessions -- four manager seats and one execution seat per agent -- grouped together; the same pattern as the MacBook's eight of 2026-09-25. Registered ahead because the registry is read at a commit's parent. Whether the earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. owns, paths and excludes copied by code from bridge-20260924-1."
+    },
+    {
+      "seat": "manager-microscope-20260926-1",
+      "committer_email": "manager-microscope-20260926-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "microscope_agent/CLAUDE.md",
+        "microscope_agent/.claude/",
+        "microscope_agent/tasks/",
+        "microscope_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/capabilities/microscope.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "A manager-microscope session on the microscope computer, rooted at the repository root. Registered by the architecture seat on 2026-09-26 BEFORE the session existed, on the person's instruction in the architecture session to make eight new sessions -- four manager seats and one execution seat per agent -- grouped together; the same pattern as the MacBook's eight of 2026-09-25. Registered ahead because the registry is read at a commit's parent. Whether the earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. owns, paths and excludes copied by code from manager-microscope-20260924-1."
+    },
+    {
+      "seat": "manager-simulation-20260926-1",
+      "committer_email": "manager-simulation-20260926-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "simulation_agent/CLAUDE.md",
+        "simulation_agent/.claude/",
+        "simulation_agent/tasks/",
+        "simulation_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "note": "A manager-simulation session on the microscope computer, rooted at the repository root. Registered by the architecture seat on 2026-09-26 BEFORE the session existed, on the person's instruction in the architecture session to make eight new sessions -- four manager seats and one execution seat per agent -- grouped together; the same pattern as the MacBook's eight of 2026-09-25. Registered ahead because the registry is read at a commit's parent. Whether the earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. owns, paths and excludes copied by code from manager-simulation-20260924-1."
+    },
+    {
+      "seat": "manager-librarian-20260926-1",
+      "committer_email": "manager-librarian-20260926-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "librarian_agent/CLAUDE.md",
+        "librarian_agent/.claude/",
+        "librarian_agent/tasks/",
+        "librarian_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/seats.json",
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/schemas/kb_entry.schema.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "A manager-librarian session on the microscope computer, rooted at the repository root. Registered by the architecture seat on 2026-09-26 BEFORE the session existed, on the person's instruction in the architecture session to make eight new sessions -- four manager seats and one execution seat per agent -- grouped together; the same pattern as the MacBook's eight of 2026-09-25. Registered ahead because the registry is read at a commit's parent. Whether the earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. owns, paths and excludes copied by code from manager-librarian-20260924-1."
+    },
+    {
+      "seat": "manager-bridge-20260926-1",
+      "committer_email": "manager-bridge-20260926-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "bridge/CLAUDE.md",
+        "bridge/.claude/",
+        "bridge/tasks/",
+        "bridge/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/seats.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/schemas/round_hashes.schema.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "A manager-bridge session on the microscope computer, rooted at the repository root. Registered by the architecture seat on 2026-09-26 BEFORE the session existed, on the person's instruction in the architecture session to make eight new sessions -- four manager seats and one execution seat per agent -- grouped together; the same pattern as the MacBook's eight of 2026-09-25. Registered ahead because the registry is read at a commit's parent. Whether the earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. owns, paths and excludes copied by code from manager-bridge-20260924-1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
