@@ -1,0 +1,20 @@
+{
+  "entry_id": "bangs_flash_red_plain_ps_material",
+  "schema_version": "0.1",
+  "source": "spec:bangs_flash_red_plain_ps",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_bangs_fluorescent_plain_ps_page",
+  "date": "2026-09-26",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "kind": "claim",
+  "claim": "Bangs Laboratories FSFR004 and FSFR005 are polystyrene microspheres with the Flash Red fluorophore embedded within the bead matrix and a plain (non-functionalised) surface.",
+  "identifiers": {
+    "supplier": "Bangs Laboratories, Inc.",
+    "catalogue_product": "FSFR004, FSFR005",
+    "product_line": "Fluorescent Plain Polystyrene"
+  },
+  "validity_conditions": "From the category page: the line is 'Fluorescent Plain Polystyrene' and the page states the fluorophores are embedded within the bead matrix. Spherical shape is stated by the product name 'Microspheres'. Plain means no carboxyl or amine surface group is sold on these codes -- which differs from the Abvigen carboxyl particles already in this store, and matters for sticking to glass. The suspension medium and any surfactant are not stated on the page read. Type-level fact about the catalogue product as sold. It says nothing about a bottle on this bench until a person reads the catalogue number and lot off it; no such reading is on record yet."
+}

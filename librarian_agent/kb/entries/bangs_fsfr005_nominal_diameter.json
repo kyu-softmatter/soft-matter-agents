@@ -1,0 +1,36 @@
+{
+  "entry_id": "bangs_fsfr005_nominal_diameter",
+  "schema_version": "0.1",
+  "source": "spec:bangs_flash_red_plain_ps",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_bangs_fluorescent_plain_ps_page",
+  "date": "2026-09-26",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "kind": "claim",
+  "claim": "Bangs Laboratories FSFR005, Fluorescent Polystyrene Microspheres, Flash Red, is sold with a nominal diameter of 2.00 um and a specified range of 1.80 - 2.20 um.",
+  "numbers": [
+    {
+      "name": "bangs_fsfr005_diameter",
+      "value": 2.0,
+      "unit": "um",
+      "source": "spec:bangs_flash_red_plain_ps",
+      "grade": "E3",
+      "precision": "significant_figures"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "bangs_fsfr005_diameter"
+    }
+  ],
+  "identifiers": {
+    "supplier": "Bangs Laboratories, Inc.",
+    "catalogue_product": "FSFR005",
+    "product": "Fluorescent Polystyrene Microspheres, Flash Red - 2.00um"
+  },
+  "validity_conditions": "The catalogue 'SPEC RANGE' is 1.80 - 2.20 um: the supplier's acceptance window for a lot's mean diameter, not a size distribution and not a lot's certificate. A given lot's measured mean and CV are on its certificate, which has not been read. The nominal value is entered as the number; the window is kept here in words so a caller does not treat 2.00 as tighter than the supplier claims. Type-level fact about the catalogue product as sold. It says nothing about a bottle on this bench until a person reads the catalogue number and lot off it; no such reading is on record yet."
+}

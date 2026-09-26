@@ -1,0 +1,12 @@
+{
+  "source_id": "src_bangs_fluorescent_plain_ps_page",
+  "kind": "vendor_spec",
+  "identifier": "Bangs Laboratories, Inc., product category page 'Fluorescent Plain Polystyrene' (catalogue table: CAT. #, product name, SPEC RANGE) and the Flash Red trace on the page 'Fluorescent Dye Spectra' (image BLI.GR_.FlashRed_fluor_spectra.gif, headed 'Flash Red (660, 690)').",
+  "accessed": "2026-09-26",
+  "grade_rule": "E3, grade_tag vendor_spec. A supplier's published specification, not a measurement taken here.",
+  "url": "https://bangslabs.com/product-category/fluorescent-microspheres/fluorescent-plain-polystyrene/",
+  "url_note": "Spectra: https://bangslabs.com/technical-library/fluorescent-dye-spectra/ and https://bangslabs.com/wp-content/uploads/BLI.GR_.FlashRed_fluor_spectra.gif. Read in the built-in browser; nothing downloaded or held here, so no sha256. The product data sheet PDS 731 (linked from the category page) was NOT read: it serves as a file download, and downloading needs the person's yes.",
+  "license_note": "Catalogue numbers, size ranges and the two peak wavelengths only. No prose reproduced.",
+  "provenance": "The person named FSFR004 and FSFR005 on 2026-09-26 as particles being prepared that day and asked for them to be added. Not from any prior repository.",
+  "not_entered": "Solids content, density, refractive index, surfactant and storage: none are on the pages read; they are presumably in PDS 731, unread. Nothing about the bottles on this bench: no lot number has been read."
+}
