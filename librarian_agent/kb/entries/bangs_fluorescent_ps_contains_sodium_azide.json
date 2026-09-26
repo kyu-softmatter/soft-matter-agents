@@ -1,0 +1,19 @@
+{
+  "entry_id": "bangs_fluorescent_ps_contains_sodium_azide",
+  "schema_version": "0.1",
+  "source": "spec:bangs_pds731",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_bangs_pds731_fluorescent_microspheres",
+  "date": "2026-09-26",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "kind": "claim",
+  "claim": "Bangs fluorescent microsphere suspensions covered by PDS 731 contain sodium azide.",
+  "identifiers": {
+    "supplier": "Bangs Laboratories, Inc.",
+    "catalogue_product": "FSFR004, FSFR005 (stated line-wide in PDS 731)"
+  },
+  "validity_conditions": "The concentration is not given in PDS 731; the Safety Data Sheet would hold it and was not read. The sheet's disposal note: azide can form explosive metal azides with lead or copper plumbing, so flush with a large volume of water. This is knowledge about the product; handling rules are the person's. Azide also matters to any biological sample mixed with these beads. Type-level: about the product as supplied, not about a bottle on this bench until its catalogue and lot numbers are read."
+}

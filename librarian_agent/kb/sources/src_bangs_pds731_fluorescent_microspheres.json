@@ -1,0 +1,14 @@
+{
+  "source_id": "src_bangs_pds731_fluorescent_microspheres",
+  "kind": "vendor_spec",
+  "identifier": "Bangs Laboratories, Inc., Product Data Sheet 731, 'Fluorescent Microspheres', revision BL.PDS731.r09102025, 3 pages.",
+  "accessed": "2026-09-26",
+  "grade_rule": "E3, grade_tag vendor_spec.",
+  "url": "https://bangslabs.com/wp-content/uploads/PDS731_BLIFluorSpheres.pdf",
+  "license_note": "Numeric specifications, storage conditions and the hazard statement only; no prose reproduced.",
+  "provenance": "Downloaded on the person's yes, 2026-09-26; the person also downloaded the same file to their Downloads folder.",
+  "held_at": "kb/sources/src_bangs_pds731_fluorescent_microspheres.pdf",
+  "sha256": "cc7df2370e7681b8be08801a817ef5897d954f558b88a01c0474703eb6b5b9a1",
+  "note": "A line-wide sheet: characteristics are stated once for every catalogue code on it, not per code. It lists FSFR004 as '1.00um Flash Red' and FSFR005 as '2.00um Flash Red' and repeats Flash Red (660, 690), agreeing with src_bangs_fluorescent_plain_ps_page.",
+  "not_entered": "Density, refractive index, size CV, surfactant and suspension medium: not stated in this sheet. The Safety Data Sheet was not read."
+}

@@ -1,0 +1,35 @@
+{
+  "entry_id": "bangs_fluorescent_ps_stock_concentration",
+  "schema_version": "0.1",
+  "source": "spec:bangs_pds731",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_bangs_pds731_fluorescent_microspheres",
+  "date": "2026-09-26",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "kind": "claim",
+  "claim": "Bangs fluorescent microspheres covered by PDS 731, including FSFR004 and FSFR005, are supplied at 1% solids, 10 mg/mL.",
+  "numbers": [
+    {
+      "name": "bangs_fluorescent_ps_stock_concentration",
+      "value": 10,
+      "unit": "mg/ml",
+      "source": "spec:bangs_pds731",
+      "grade": "E3",
+      "precision": "significant_figures"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "bangs_fluorescent_ps_stock_concentration"
+    }
+  ],
+  "identifiers": {
+    "supplier": "Bangs Laboratories, Inc.",
+    "catalogue_product": "FSFR004, FSFR005 (stated line-wide in PDS 731)"
+  },
+  "validity_conditions": "As supplied, in the bottle; any dilution stands between this and the sample. Stated once for the whole line, not per code. A number density needs the density and diameter as well, and this sheet gives no density. Type-level: about the product as supplied, not about a bottle on this bench until its catalogue and lot numbers are read."
+}

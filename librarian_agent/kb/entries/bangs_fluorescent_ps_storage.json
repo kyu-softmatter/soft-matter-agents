@@ -1,0 +1,19 @@
+{
+  "entry_id": "bangs_fluorescent_ps_storage",
+  "schema_version": "0.1",
+  "source": "spec:bangs_pds731",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_bangs_pds731_fluorescent_microspheres",
+  "date": "2026-09-26",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "kyuhwan",
+  "kind": "claim",
+  "claim": "PDS 731 specifies storage at 2-8 C in the supplied opaque bottle, warns that freezing, drying or centrifuging may cause irreversible aggregation, and states stability of 12 months from purchase under the manufacturer's handling.",
+  "identifiers": {
+    "supplier": "Bangs Laboratories, Inc.",
+    "catalogue_product": "FSFR004, FSFR005 (stated line-wide in PDS 731)"
+  },
+  "validity_conditions": "Stability is counted from the purchase date, which is not on record here. Opaque storage is against photobleaching. The centrifugation warning matters for any washing step in sample preparation. Type-level: about the product as supplied, not about a bottle on this bench until its catalogue and lot numbers are read."
+}
