@@ -875,9 +875,18 @@
         "pyproject.toml",
         "uv.lock",
         "pixi.lock",
-        ".gitignore"
+        ".gitignore",
+        "microscope_agent/tasks/050-"
       ],
-      "note": "The architecture session the person opened on the MacBook on 2026-09-28 and seated directly, in that session's first message, as the day's architecture; rooted at the repository root. n is 1, the first architecture seat of that date. The session that had committed as architecture-kyuhwan-macbook-20260925-1 earlier the same day (21e48ac, 5a9ac97) was still listed in the app when this one was seated and was gone from it, archived sessions included, by 13:25; whether this seat replaces it is the person's to say, and this row claims neither. It registers itself, which no row can authorise, because the registry is read at a commit's parent; and it does not borrow the older name, because a vacated identity is not inherited and a live one would put two sessions under one identity. So the registering commit carries no attribution, which unknown_committer: report allows and the commit gate warns about; every later commit from this session is attributed. owns, paths and excludes copied by code from architecture-kyuhwan-macbook-20260925-1."
+      "note": "The architecture session the person opened on the MacBook on 2026-09-28 and seated directly, in that session's first message, as the day's architecture; rooted at the repository root. n is 1, the first architecture seat of that date. The session that had committed as architecture-kyuhwan-macbook-20260925-1 earlier the same day (21e48ac, 5a9ac97) was still listed in the app when this one was seated and was gone from it, archived sessions included, by 13:25; whether this seat replaces it is the person's to say, and this row claims neither. It registers itself, which no row can authorise, because the registry is read at a commit's parent; and it does not borrow the older name, because a vacated identity is not inherited and a live one would put two sessions under one identity. So the registering commit carries no attribution, which unknown_committer: report allows and the commit gate warns about; every later commit from this session is attributed. owns, paths and excludes copied by code from architecture-kyuhwan-macbook-20260925-1. WIDENED 2026-09-28: the person told this seat in its window to give the microscope agent the double-well diagnosis itself -- \"You give the microscope agent the work\" (the person's Korean, rendered) -- in place of the microscope manager. paths gains the one prefix microscope_agent/tasks/050-, for that single card, and nothing else in the manager's tree."
+    },
+    {
+      "seat": "microscope-kyuhwan-macbook-20260928-1",
+      "committer_email": "microscope-kyuhwan-macbook-20260928-1@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "note": "A microscope session on the person's MacBook, rooted at microscope_agent/, opened by the person on 2026-09-28 with the other MacBook windows of that day. The person chose this new name in that session's window rather than microscope-kyuhwan-macbook-20260925-1, whose session was gone from the list with no commits: a vacated identity is not inherited. The seating reached architecture by relay -- that session's own record of the person's words, and the microscope manager's request -- which is not a seating; the person seated it directly, this row records what they did, and it is corrected if they say otherwise. The MacBook is not the bench machine, so this seat plans and analyses and never acquires. owns, paths and excludes copied by code from microscope-kyuhwan-macbook-20260925-1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
