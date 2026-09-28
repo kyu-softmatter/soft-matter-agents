@@ -856,6 +856,28 @@
         "contracts/seats.json"
       ],
       "note": "A manager-bridge session on the person's MacBook, rooted at the repository root. Seated by the person on 2026-09-25, who chose the machine-named form used by architecture-kyuhwan-macbook-20260925-1 so that numbers cannot collide with the other machine. owns, paths and excludes copied by code from manager-bridge-20260924-1."
+    },
+    {
+      "seat": "architecture-kyuhwan-macbook-20260928-1",
+      "committer_email": "architecture-kyuhwan-macbook-20260928-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "plan.md",
+        "CLAUDE.md",
+        "ARCHITECT.md",
+        "README.md",
+        "docs/",
+        ".claude/",
+        ".mcp.json",
+        "contracts/seats.json",
+        "pyproject.toml",
+        "uv.lock",
+        "pixi.lock",
+        ".gitignore"
+      ],
+      "note": "The architecture session the person opened on the MacBook on 2026-09-28 and seated directly, in that session's first message, as the day's architecture; rooted at the repository root. n is 1, the first architecture seat of that date. The session that had committed as architecture-kyuhwan-macbook-20260925-1 earlier the same day (21e48ac, 5a9ac97) was still listed in the app when this one was seated and was gone from it, archived sessions included, by 13:25; whether this seat replaces it is the person's to say, and this row claims neither. It registers itself, which no row can authorise, because the registry is read at a commit's parent; and it does not borrow the older name, because a vacated identity is not inherited and a live one would put two sessions under one identity. So the registering commit carries no attribution, which unknown_committer: report allows and the commit gate warns about; every later commit from this session is attributed. owns, paths and excludes copied by code from architecture-kyuhwan-macbook-20260925-1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
