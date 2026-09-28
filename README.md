@@ -116,9 +116,8 @@ Design and tooling around it:
 Related by topic only -- nothing here references their code:
 [psf-autofocus](https://github.com/kyu-softmatter/psf-autofocus),
 [goa-optical-forces](https://github.com/kyu-softmatter/goa-optical-forces),
-[ot-microrheology](https://github.com/kyu-softmatter/ot-microrheology),
-[frap-toolkit](https://github.com/kyu-softmatter/frap-toolkit),
-[HOOMD_GUI](https://github.com/kyu-softmatter/HOOMD_GUI).
+[ot-microrheology](https://github.com/kyu-softmatter/ot-microrheology) and
+[frap-toolkit](https://github.com/kyu-softmatter/frap-toolkit).
 
 ## Installing
 
