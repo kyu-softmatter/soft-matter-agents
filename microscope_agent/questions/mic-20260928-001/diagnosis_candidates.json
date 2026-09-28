@@ -1,0 +1,1011 @@
+{
+  "declaration": "diagnosis: why the 2026-09-25 double-well measurement did not behave like the simulation's double well",
+  "for": "microscope_agent/tasks/050-why-the-double-well-did-not-behave-like-the-simulation.md, committed at f77259a",
+  "by": "microscope-kyuhwan-macbook-20260928-1",
+  "on": "2026-09-28",
+  "what_this_file_is": "The candidate explanations, each shaped so the librarian can later distil it into a lesson (plan.md 8.2: trigger, claim, evidence as run ids, n, condition_range, falsifier, valid_until, grade). A plain JSON document in a question directory, the same kind of file as questions/mic-20260925-001/analysis_method_declared.json: the validator admits it by its path (check 13) and holds it to no schema, because no card or artifact schema has a slot for a ranked set of hypotheses. It is deliberately NOT a findings file: that artifact is addressed to the librarian by its own schema, and card 050 holds this diagnosis in microscope_agent/ until the person says otherwise.",
+  "held_here": "Delivered to nobody: nothing for the store and nothing for the bridge to carry, so that the simulation side can be given the same chance without having seen this (card 050).",
+  "hints": [
+    {
+      "n": 1,
+      "from": "the person, in architecture's window on 2026-09-28, carried word for word by card 050 in architecture's English",
+      "words_en": "The hint is that the double potential seen in the simulation is a clean potential, but in the actual experiment it was implemented with optical tweezers; and that because of this, nonlinear phenomena appear."
+    },
+    {
+      "n": 2,
+      "from": "the person, typed in this seat's window on 2026-09-28 at about 22:50 UTC, while this diagnosis was being written and before any of it was committed",
+      "words_en": "Think about radiation pressure.",
+      "rendering": "the person's Korean, rendered word for word by this seat; the words 'radiation pressure' were typed in English",
+      "note": "Not asked for: card 050 forbids asking the person for the cause, and none was asked. What it changed is recorded under ranking.what_the_second_hint_changed."
+    }
+  ],
+  "worked_from": {
+    "the_ask": "result-sim-20260923-101-run-20260924-101-v3-hold, revision 1, at 735a1a0 (simulation_agent/questions/sim-20260923-101/result_run-20260924-101-v3-hold.json). Cited, not copied: its bench_* numbers are targets graded E5",
+    "the_model": "contracts/capabilities/simulation.json, config bd_overdamped_gaussian_double_well_2d: two Gaussian wells that add, each 0.5*k*dr^2 at its centre with k = eps/w^2, in the focal plane only; the axis along the beam is not modelled",
+    "friday": [
+      "runs run-20260925-004, -008, -009, -010, -012, -014, -015 (log.json), and their plans questions/mic-20260925-002 to -006; -006 was drafted and not run",
+      "questions/mic-20260925-001/goal.json and analysis_method_declared.json (declared at 5cd2b54, before data)",
+      "src/analyze_double_well_20260925.py, src/report_20260925.py, and src/record_20260925.py and src/scan_driver_20260925.py for how the recordings were made",
+      "findings/microscope-20260924-6-20260925.json",
+      "the messages of 8b18356, 5353a54, 0b0df94 and 921537b",
+      "tasks/049, the section added after run -008, and the two failures.jsonl lines dated 2026-09-25"
+    ],
+    "not_read": "Friday's per-recording numbers -- position, spread and stiffness at each setting -- sit beside the frames on the bench computer under D:\\soft-matter-agents-frames\\ and are in no commit. Every Friday number below is one the tree states in words. None was read off a frame or an analysis file.",
+    "boundary_note": "At the start of this work this seat ran a grep for 'caller_id' over librarian_agent/src/mcp_server.py to learn the issued id forms, before remembering that reading that tree is the librarian's side. It printed matching line numbers and one refusal message; nothing from it is used. The forms were then taken from contracts/schemas/common.schema.json, and the id used below follows the precedent of mic-20260924-001:v1:s2."
+  },
+  "observations": [
+    {
+      "id": "o1_first_position",
+      "what": "With trap_2 where run-20260925-008 created it (commanded +6 um, x 0, before any tweezers calibration at 100x had been stated) and never re-commanded, raising trap_2 from strength 0 to 1 with trap_1 at 1 moved the bead steadily toward trap_2, about 1 um at 1/1. One basin at every strength. The bead was held more stiffly along the trap axis as trap_2 grew.",
+      "records": [
+        "run-20260925-012 (strengths 0.3 to 1.0 recorded at its holds)",
+        "run-20260925-014 (0, 0.1, 0.2 recorded; its 'no' at 0.2 is scan_driver_20260925.py's --last planned stop)",
+        "5353a54: 'trap_2 pulled the bead about 1 um at a commanded +6'",
+        "8b18356: 'one basin at every strength from 0 to 1 at the current separation'",
+        "src/report_20260925.py interpretation: 'held more stiffly along the axis as trap_2 grows'; limits: 'The first trap_2 was most likely much closer than +6 um'"
+      ]
+    },
+    {
+      "id": "o2_plus_5",
+      "what": "trap_2 deleted and created again at +5 um (after the person's statement, first logged at run -010, that the tweezers software was calibrated at 100x), then raised from 0 to 1 in steps of 0.2: no measurable pull. Position, spread and stiffness matched trap_1 alone at every strength.",
+      "records": [
+        "run-20260925-015",
+        "5353a54: 'and not at all at +5'",
+        "src/report_20260925.py: 'With trap_2 at 5 um the bead does not feel it'"
+      ]
+    },
+    {
+      "id": "o3_hand_set",
+      "what": "trap_2 set by hand in the tweezers software at 2.5 um, strengths 1/0.5, 3 min recorded: no bead in any frame; brightest pixel 219 counts over a median 128, against 13597 over 469 with the bead at 1/0. The person: 'I think we just lost a particle'.",
+      "records": [
+        "plan-mic-20260925-006-r1, drafted and not run",
+        "0b0df94",
+        "921537b",
+        "findings item final_hand_set_run_particle_possibly_lost_20260925"
+      ],
+      "reading_added_here": "src/record_20260925.py sets the transmitted lamp to State 0 and lights only the green line, so every recording was fluorescence alone and the frame's background is mostly the bead's own out-of-focus glow. A bead gone from the field takes that glow with it, so a field about a quarter as bright is what a lost bead predicts. Reasoned from the recorder's settings, not measured."
+    },
+    {
+      "id": "o4_no_hop",
+      "what": "No setting showed two basins or a crossing.",
+      "records": [
+        "8b18356",
+        "src/report_20260925.py summary"
+      ]
+    },
+    {
+      "id": "o5_frame_limited",
+      "what": "The bead relaxes in about 30 ms, one frame, so the stiffness is at the frame rate's limit, and the power-spectrum and variance methods disagreed by up to a factor the tree does not state.",
+      "records": [
+        "src/report_20260925.py, limits"
+      ]
+    },
+    {
+      "id": "o6_state_changed_by_hand",
+      "what": "At run -008's first hold the person answered 'nope second trap is x = 2um , y = 0.', which asked directly meant 'I wanted it at 2 um'. Run -009 then aborted because trap_1's strength command was not accepted in full while trap_2's was. Runs -004, -008 and -009 carry the tweezers calibration as unknown; from run -010 on the hand-over carries 'calibrated at 100x, the person's statement; value not given'. So between the creation of the first-position trap and the creation of the +5 trap, the software's state changed by hand in a way no record describes.",
+      "records": [
+        "run-20260925-008 (hold answer)",
+        "run-20260925-009 (abort)",
+        "run-20260925-010 (hand-over tweezers_calibration)",
+        "5353a54",
+        "tasks/049, section added after run -008"
+      ]
+    }
+  ],
+  "numbers": [
+    {
+      "name": "tracer_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the bottle in use, CV at most 0.02"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "ambient_temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the room's, not the sample's"
+    },
+    {
+      "name": "na",
+      "value": 1.45,
+      "unit": "1",
+      "source": "kb:objective_mrd71970",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the 100x oil objective used on 2026-09-25"
+    },
+    {
+      "name": "trap_wavelength",
+      "value": 1064,
+      "unit": "nm",
+      "source": "kb:trapping_laser_identity",
+      "grade": "E3",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "pixel_size_100x",
+      "value": 0.065,
+      "unit": "um",
+      "source": "kb:pixel_size_100x_zoom_1x_computed",
+      "grade": "E4",
+      "precision": "significant_figures",
+      "note": "the value Friday's analysis used, from the row it cited as a measurement at E2; the store has since ruled that row calculated, not measured, and the value is unchanged"
+    },
+    {
+      "name": "pixel_size_40x",
+      "value": 0.1625,
+      "unit": "um",
+      "source": "kb:pixel_size_40x_zoom_1x_computed",
+      "grade": "E4",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "pixel_size_60x",
+      "value": 0.10833,
+      "unit": "um",
+      "source": "kb:pixel_size_60x_zoom_1x_computed",
+      "grade": "E4",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "power_at_sample_20x_level_0p05",
+      "value": 64,
+      "unit": "mW",
+      "source": "kb:trap_laser_power_at_sample_1064nm_20x_level_sweep",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "at a 5 per cent level, through the 20x"
+    },
+    {
+      "name": "power_at_sample_100x_level_0p8",
+      "value": 1000,
+      "unit": "mW",
+      "source": "kb:trap_laser_power_at_sample_1064nm_100x_80pct_rough",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "note": "the store's own word: probably high"
+    },
+    {
+      "name": "laser_level_friday",
+      "value": 0.02,
+      "unit": "1",
+      "source": "operator_read:kyuhwan_20260925",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the person's yes to 'with the dial at 0.02' at the readiness holds of runs -009, -012 and -014; the hand-over of run -004 recorded 0.05"
+    },
+    {
+      "name": "relaxation_time_friday",
+      "value": 0.03,
+      "unit": "s",
+      "source": "measured:preparatory_recordings_20260925",
+      "grade": "E1",
+      "precision": "order_of_magnitude",
+      "note": "'the bead relaxes in about 30 ms, one frame' (src/report_20260925.py). Measured on this bench, in recordings that were not a planned measurement; stated only in words"
+    },
+    {
+      "name": "shift_first_position_1_1",
+      "value": 1,
+      "unit": "um",
+      "source": "measured:preparatory_recordings_20260925",
+      "grade": "E1",
+      "precision": "order_of_magnitude",
+      "note": "'about 1 um' (5353a54), the bead's move toward trap_2 at 1/1 at the first position"
+    },
+    {
+      "name": "frame_interval_friday",
+      "value": 0.03,
+      "unit": "s",
+      "source": "measured:preparatory_recordings_20260925",
+      "grade": "E1",
+      "precision": "significant_figures",
+      "note": "'6000 frames, 30.0 ms apart by the camera's clock, no gaps' (src/report_20260925.py); the exposure was set to 30 ms (src/record_20260925.py)"
+    },
+    {
+      "name": "final_brightest_counts",
+      "value": 219,
+      "unit": "count",
+      "source": "measured:preparatory_recordings_20260925",
+      "grade": "E1",
+      "precision": "significant_figures",
+      "note": "0b0df94; against 13597 with the bead at 1/0"
+    },
+    {
+      "name": "final_median_counts",
+      "value": 128,
+      "unit": "count",
+      "source": "measured:preparatory_recordings_20260925",
+      "grade": "E1",
+      "precision": "significant_figures",
+      "note": "0b0df94; against 469 with the bead at 1/0"
+    },
+    {
+      "name": "drag_unbounded",
+      "value": 4.7e-08,
+      "unit": "N*s/m",
+      "source": "computed:stokes_drag",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "6*pi*viscosity*tracer_diameter/2",
+      "note": "unbounded medium. Near the glass the drag is larger, by an amount the store cannot give (gaps wall_drag_correction_absent, bead_height_absent)"
+    },
+    {
+      "name": "stiffness_trap_1_alone",
+      "value": 1.6e-06,
+      "unit": "N/m",
+      "source": "computed:drag_over_relaxation_time",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "drag_unbounded/relaxation_time_friday",
+      "note": "1.6 pN/um. A check of scale only: Friday's own per-recording stiffness sits beside the frames, and the wall would make both the drag and this larger"
+    },
+    {
+      "name": "spread_one_trap",
+      "value": 5.1e-08,
+      "unit": "m",
+      "source": "computed:equipartition",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "sqrt(k_B*ambient_temperature/stiffness_trap_1_alone)",
+      "note": "51 nm along one axis"
+    },
+    {
+      "name": "diameter_in_wavelengths",
+      "value": 4.7,
+      "unit": "1",
+      "source": "computed:tracer_diameter_over_trap_wavelength",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "tracer_diameter/trap_wavelength",
+      "note": "the bead is several wavelengths across, so its own size, not the focus, sets how far out a trap's grip reaches -- the ground of the trap-shape candidate, reasoned and not measured"
+    },
+    {
+      "name": "power_at_sample_level_0p02",
+      "value": 26,
+      "unit": "mW",
+      "source": "computed:level_proportion_between_calibration_points",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "power_at_sample_20x_level_0p05*laser_level_friday/0.05",
+      "note": "through the 20x, between the 0 and 5 per cent readings. Through the 100x the store gives the same decade and calls it probably high; shared between two traps. Tens of milliwatts is what makes each well hundreds of k_B*T deep"
+    },
+    {
+      "name": "command_scale_if_last_calibrated_at_40x",
+      "value": 0.4,
+      "unit": "1",
+      "source": "computed:pixel_size_ratio",
+      "grade": "E4",
+      "precision": "significant_figures",
+      "formula": "pixel_size_100x/pixel_size_40x",
+      "note": "IF the tweezers software's pixel-to-micrometre calibration had last been made at the 40x objective, one commanded micrometre at 100x would be 0.4 of a camera micrometre and a commanded 6 um would land about 2.4 um from trap_1; at 60x the ratio is 0.60 and it would land about 3.6 um. The ratio is computed; the premise is not recorded anywhere and is a question to the person"
+    },
+    {
+      "name": "model_check_barrier",
+      "value": 3.0,
+      "unit": "1",
+      "source": "computed:src/diagnose_double_well_20260928.py, on an assumed trap shape",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "k_B*T. The simulation's Gaussian at 1 pN/um and 1 um width, at 2.124 um: the script reproduces the ask's 3.00, which checks its arithmetic. E5 because the ask's own potential is assumed there"
+    },
+    {
+      "name": "model_sim_width_spread_ratio_at_1um",
+      "value": 1.95,
+      "unit": "1",
+      "source": "computed:src/diagnose_double_well_20260928.py, on an assumed trap shape",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the LEAST spread, relative to one trap, of a bead 0.9 to 1.1 um toward trap_2 in one basin, over every separation and a trap_2 at half to all of trap_1's depth, with the simulation's 1 um width at Friday's stiffness; the most is 4.64. For 0.7 to 0.9 um it is 1.12 to 1.91; beyond 1.1 um no setting of that shape puts the bead in one basin"
+    },
+    {
+      "name": "model_wide_spread_ratio_at_2um",
+      "value": 0.71,
+      "unit": "1",
+      "source": "computed:src/diagnose_double_well_20260928.py, on an assumed trap shape",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "a trap whose force stays proportional out to 1.5 um and is gone by 3.5 um, two of them 2 um apart at equal depth: the bead sits at 1 um with 0.71 of one trap's spread (stiffer). Gaussians of 2.0 and 2.5 um width give 0.87 and 0.80"
+    },
+    {
+      "name": "model_pull_at_5um_gaussian_w2",
+      "value": 302,
+      "unit": "nm",
+      "source": "computed:src/diagnose_double_well_20260928.py, on an assumed trap shape",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the pull a Gaussian trap wide enough to stiffen the first position would exert at 5 um. A 2.5 um width pulls the bead to the midpoint (2500 nm); 1.5 um pulls 20 nm but does not stiffen the first position (1.06); the short-tailed shape pulls 0"
+    },
+    {
+      "name": "model_window_width",
+      "value": 50,
+      "unit": "nm",
+      "source": "computed:src/diagnose_double_well_20260928.py, on an assumed trap shape",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the band of separations with a 1 to 4 k_B*T barrier: 42 to 56 nm for every shape tried. Where it sits moves with the shape: 2.06 um for the simulation's width, about 3.05 um for a 1.5 um core, 4.06 um for a 2 um width, 5.05 um for 2.5 um"
+    },
+    {
+      "name": "model_well_depth",
+      "value": 400,
+      "unit": "1",
+      "source": "computed:src/diagnose_double_well_20260928.py, on an assumed trap shape",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "k_B*T: 388 to 2427 for the shapes tried at Friday's stiffness. The simulation's own wells at 1 pN/um and 1 um are 247"
+    },
+    {
+      "name": "ask_barrier_sensitivity",
+      "value": 0.5,
+      "unit": "1",
+      "source": "cited: result-sim-20260923-101-run-20260924-101-v3-hold r1, estimation note",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "k_B*T per 10 nm of separation at 1 pN/um, from the simulation's map (not on disk in this tree)"
+    },
+    {
+      "name": "ask_stiffness_mismatch_max",
+      "value": 0.04,
+      "unit": "1",
+      "source": "cited: result-sim-20260923-101-run-20260924-101-v3-hold r1, bench_stiffness_mismatch_max (computed:depth_difference_bound there)",
+      "grade": "E5",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "ask_hops_per_hour_at_3kT",
+      "value": 104,
+      "unit": "1",
+      "source": "cited: result-sim-20260923-101-run-20260924-101-v3-hold r1, hops_per_hour_mean (simulated:run-20260924-101-v3-hold there)",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "so about 5 in a 3 min record"
+    },
+    {
+      "name": "water_refractive_index_589nm",
+      "value": 1.3329877,
+      "unit": "1",
+      "source": "kb:water_refractive_index_589_26nm_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "at 589.26 nm and 293.15 K. At 1064 nm the store holds no value (condition mismatch); the same source's table falls to 1.3300 by 706.5 nm, so at 1064 nm the index is lower still and the objective's 1.45 exceeds it by more"
+    },
+    {
+      "name": "water_density",
+      "value": 0.998201,
+      "unit": "g/cm^3",
+      "source": "kb:water_density_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "air-saturated distilled water at 293.15 K; the suspension is not that, and the substitution is this document's"
+    },
+    {
+      "name": "particle_density_type",
+      "value": 1.03,
+      "unit": "g/cm^3",
+      "source": "kb:tracer_particle_density",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the product type; applied to the bottle it inherits the E5 of the identity link particle_suspension_a_identity"
+    },
+    {
+      "name": "buoyant_weight",
+      "value": 2e-14,
+      "unit": "N",
+      "source": "computed:buoyant_weight",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "(4/3)*pi*(tracer_diameter/2)^3*(particle_density_type - water_density)*9.81",
+      "note": "0.02 pN. E5 because the particle's density reaches the bottle only through an E5 link"
+    },
+    {
+      "name": "lateral_force_at_1um",
+      "value": 1.6e-12,
+      "unit": "N",
+      "source": "computed:stiffness_times_shift",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "stiffness_trap_1_alone*shift_first_position_1_1",
+      "note": "1.6 pN: what trap_1 exerted to hold the bead about 1 um off its centre at the first position, if it was still proportional there. The bead's weight in water is about a hundredth of it, so nothing but the light holds the bead along the beam"
+    }
+  ],
+  "kb": {
+    "caller_id": "mic-20260928-001:v1:s2",
+    "kb_version": "kbv-d2db58512e78",
+    "answered_from": "commit aa34700, the version published to this agent (librarian_agent/kb/exports/snapshot_microscope_agent.json, b7dcc9b); one first call was answered at this agent's older envelope pin, kbv-4b981dc870d3",
+    "log_status": "The calls are lines in librarian_agent/queries/log.jsonl in the working copy, none of them in HEAD when this was written: that log was last committed on 2026-09-25 (dd8c371). So no card here claims the service answered -- check 45 would find no line -- and the plan in this directory carries no store facts. This file carries them instead, and says so.",
+    "kb_refs": [
+      {
+        "entry_id": "tracer_diameter_measured",
+        "grade": "E2"
+      },
+      {
+        "entry_id": "water_viscosity_293k",
+        "grade": "E3"
+      },
+      {
+        "entry_id": "lab_ambient_temperature",
+        "grade": "E3"
+      },
+      {
+        "entry_id": "objective_mrd71970",
+        "grade": "E3"
+      },
+      {
+        "entry_id": "trapping_laser_identity",
+        "grade": "E3"
+      },
+      {
+        "entry_id": "pixel_size_100x_zoom_1x_computed",
+        "grade": "E4"
+      },
+      {
+        "entry_id": "pixel_size_40x_zoom_1x_computed",
+        "grade": "E4"
+      },
+      {
+        "entry_id": "pixel_size_60x_zoom_1x_computed",
+        "grade": "E4"
+      },
+      {
+        "entry_id": "trap_laser_power_at_sample_1064nm_20x_level_sweep",
+        "grade": "E2"
+      },
+      {
+        "entry_id": "trap_laser_power_at_sample_1064nm_100x_80pct_rough",
+        "grade": "E4"
+      },
+      {
+        "entry_id": "objective_change_invalidates_trap_calibration",
+        "grade": "E3",
+        "used_for": "the geometry candidate: an objective change silently invalidates the tweezers' pixel-to-micrometre calibration and the AOD's trapping-field response, and neither is readable over TCP"
+      },
+      {
+        "entry_id": "tweez300_reports_nothing_back",
+        "grade": "E3",
+        "used_for": "the geometry and dead-trap candidates: a 0 means the command was accepted, not done, and a GUI calibrated at another objective makes every commanded micrometre wrong by that ratio"
+      },
+      {
+        "entry_id": "tweez_three_independent_ways_to_stop_emission",
+        "grade": "E3",
+        "used_for": "the balance candidate: the traps are steered by acousto-optic deflectors"
+      },
+      {
+        "entry_id": "tweez_laser_power_is_set_as_a_fraction_of_maximum",
+        "grade": "E3",
+        "used_for": "the balance candidate: the software's scale is relative"
+      },
+      {
+        "entry_id": "tweez300_new_trap_starts_at_strength_zero",
+        "grade": "E3",
+        "used_for": "the dead-trap candidate"
+      },
+      {
+        "entry_id": "tweez300_trap_strength_takes_the_last_value",
+        "grade": "E3",
+        "used_for": "the dead-trap candidate"
+      },
+      {
+        "entry_id": "trap_heating_detection_bound",
+        "grade": "E5",
+        "used_for": "considered_not_carried: heating. Not a limit and not used as one"
+      },
+      {
+        "entry_id": "water_refractive_index_589_26nm_293k",
+        "grade": "E3",
+        "used_for": "the radiation-pressure candidate: the objective's NA exceeds water's index"
+      },
+      {
+        "entry_id": "water_density_293k",
+        "grade": "E3",
+        "used_for": "the bead's weight in water"
+      },
+      {
+        "entry_id": "tracer_particle_density",
+        "grade": "E3",
+        "used_for": "the bead's weight in water; applied to the bottle through the E5 link particle_suspension_a_identity"
+      }
+    ],
+    "read_and_not_used": "the query for optical_tweezers returned 57 entries, most of them the manufacturer's safety text, and the query for pixel_size 25 rows; all were read, and those not listed above bear on nothing Friday showed. polystyrene_refractive_index_1052nm and tracer_particle_material_and_shape were fetched and are not used for a number: the store has no water index at 1064 nm to take a ratio against. The refractive_index query at 1064 nm returned fourteen entries, all disjoint in wavelength, all read.",
+    "kb_gaps": [
+      {
+        "gap_id": "trap_stiffness_absent",
+        "observable": "trap_stiffness",
+        "kind": "absent",
+        "asked_at": "2026-09-28T22:20:24+00:00"
+      },
+      {
+        "gap_id": "trap_potential_width_absent",
+        "observable": "trap_potential_width",
+        "kind": "absent",
+        "asked_at": "2026-09-28T22:20:26+00:00"
+      },
+      {
+        "gap_id": "trap_separation_absent",
+        "observable": "trap_separation",
+        "kind": "absent",
+        "asked_at": "2026-09-28T22:20:27+00:00"
+      },
+      {
+        "gap_id": "trap_multiplexing_absent",
+        "observable": "trap_multiplexing",
+        "kind": "absent",
+        "asked_at": "2026-09-28T22:20:28+00:00",
+        "note": "whether the deflectors time-share one beam between the traps or hold both at once is not in the store"
+      },
+      {
+        "gap_id": "trapping_efficiency_absent",
+        "observable": "trapping_efficiency",
+        "kind": "absent",
+        "asked_at": "2026-09-28T22:20:41+00:00"
+      },
+      {
+        "gap_id": "wall_drag_correction_absent",
+        "observable": "wall_drag_correction",
+        "kind": "absent",
+        "asked_at": "2026-09-28T22:20:43+00:00"
+      },
+      {
+        "gap_id": "bead_height_absent",
+        "observable": "bead_height",
+        "kind": "absent",
+        "asked_at": "2026-09-28T22:20:44+00:00"
+      },
+      {
+        "gap_id": "axial_trap_stiffness_absent",
+        "observable": "axial_trap_stiffness",
+        "kind": "absent",
+        "asked_at": "2026-09-28T22:20:46+00:00"
+      },
+      {
+        "gap_id": "trap_strength_absent",
+        "observable": "trap_strength",
+        "kind": "absent",
+        "asked_at": "2026-09-28T22:21:02+00:00",
+        "note": "what the software's relative strength does to a trap's power is not in the store; the near name was tweez300_trap_strength_takes_the_last_value"
+      },
+      {
+        "gap_id": "tweezers_position_scale_absent",
+        "observable": "tweezers_position_scale",
+        "kind": "absent",
+        "asked_at": "2026-09-28T22:21:03+00:00"
+      },
+      {
+        "gap_id": "acousto_optic_deflector_absent",
+        "observable": "acousto_optic_deflector",
+        "kind": "absent",
+        "asked_at": "2026-09-28T22:21:04+00:00"
+      },
+      {
+        "gap_id": "radiation_pressure_absent",
+        "observable": "radiation_pressure",
+        "kind": "absent",
+        "asked_at": "2026-09-28T22:51:24+00:00"
+      },
+      {
+        "gap_id": "scattering_force_absent",
+        "observable": "scattering_force",
+        "kind": "absent",
+        "asked_at": "2026-09-28T22:51:25+00:00"
+      },
+      {
+        "gap_id": "refractive_index_condition_mismatch",
+        "observable": "refractive_index",
+        "kind": "condition_mismatch",
+        "condition_range": {
+          "wavelength": {
+            "min": 1064,
+            "max": 1064,
+            "unit": "nm"
+          }
+        },
+        "asked_at": "2026-09-28T22:53:32+00:00",
+        "note": "fourteen entries answer at other wavelengths, all disjoint: water at 589.26, 595 and 605 nm, polystyrene at eight wavelengths up to 1052 nm, air near 600 nm"
+      }
+    ],
+    "searched": "every gap: kb_query(observable, caller_id mic-20260928-001:v1:s2, kb_version kbv-d2db58512e78) -> absent, searched ['kb/entries', 'kb/exports']",
+    "answered_by_a_near_name": "water_density was asked and came back absent with the near name water_density_293k, which kb_get then returned; not carried as a gap"
+  },
+  "candidates": [
+    {
+      "id": "radiation_pressure_opens_the_saddle",
+      "rank": 1,
+      "status": "standing",
+      "origin": "The first pass carried this as 'the bead leaves along the beam', fourth, with no mechanism named. The person's second hint, radiation pressure, supplied the mechanism; worked through, it is this.",
+      "claim": "A trap's light does two things to the bead: it pulls it toward the focus, and it pushes it along the beam, away from the objective -- radiation pressure. A single trap holds the bead only where the pull back along the beam outweighs that push. For this bead the margin is thin: the objective's aperture (1.45) is larger than water's refractive index (1.333 at 589 nm, and lower at 1064 nm), so its steepest rays -- the ones that pull hardest back along the beam -- never enter the water; and the bead's weight in water, about 0.02 pN, is about a hundredth of the optical forces in play, so nothing but the light holds it along the beam. The margin shrinks as the bead moves off a beam's axis, and it is smallest where the trap's sideways pull is largest, near the bead's edge. That is exactly where two traps' wells part: the dividing point between them lies, for each trap, near that edge. So the dividing point of the simulation's flat double well is, on the bench, where the bead is held least along the beam and pushed by two beams at once. A bead brought there is lifted out of both traps instead of crossing, and a setting meant to give a few-k_B*T barrier loses the bead. The simulation models the focal plane only, and its own configuration says a real trap is weaker along the beam.",
+      "predicts": {
+        "o1_first_position": "consistent: with the traps about 2 um apart both foci lie well inside the bead, and it was held at every strength. It predicts what Friday's analysis did not look at: as trap_2 grew the bead rose along the beam, so its image changed with trap_2's strength -- testable in the existing frames",
+        "o2_plus_5": "consistent: at 5 um trap_2's light reaches the bead only at its flank. It says nothing about a sideways pull there and predicts a small lift along the beam, which Friday's analysis did not look for",
+        "o3_hand_set": "consistent, and the only candidate that predicts it: the one setting taken toward the parting lost the bead, and with it the bead's glow -- a bead lifted out of the traps goes on up the beam, away from the focal plane, and the field darkens as it did",
+        "o4_no_hop": "consistent: the crossing is replaced by an exit",
+        "o5_frame_limited": "silent",
+        "o6_state_changed_by_hand": "silent"
+      },
+      "supported_by": [
+        "o3: the lost bead and the darker field (0b0df94, 921537b, findings)",
+        "the simulation's own configuration, contracts/capabilities/simulation.json: 'The axis along the beam is not modelled: a real trap is weaker there'",
+        "the store: NA 1.45 (objective_mrd71970) above water's 1.333 (water_refractive_index_589_26nm_293k; at 1064 nm the store holds no value, and the same table falls to 1.3300 by 706.5 nm)",
+        "computed: the bead's weight in water, 0.02 pN, against the 1.6 pN trap_1 exerted to hold it 1 um off centre",
+        "gaps radiation_pressure_absent, scattering_force_absent, axial_trap_stiffness_absent and bead_height_absent: nothing here has measured or stored how hard a trap holds this bead along the beam, or how high it sits",
+        "the person's second hint"
+      ],
+      "contradicted_by": [],
+      "rests_on": "Physical reasoning about which way the light pushes and where the grip along the beam is weakest; no measurement here bears on the bead's height. Friday's one loss is its only direct support, and how that setting was made by hand is unrecorded.",
+      "rival_for_o3": "The hand-setting itself: a trap dragged through the bead, or switched off for a moment, loses it as well. That is a question to the person.",
+      "falsifier": "Either retires it: (a) walking trap_2 through the parting at equal strengths, the bead stays in its single-trap focus -- image size and peak brightness in transmitted light within a tenth of the reference, or within 0.5 um of its height where a focus series calibrates the image -- and crosses between the wells; (b) in the existing frames of the first-position scan, the bead's image size and peak brightness change by less than a tenth from 1/0 to 1/1.",
+      "why_first": "It is the only candidate under which the simulation's double well does not exist on this bench at any separation, the only one that explains the loss, and no record contradicts it; it needs no event nobody saw.",
+      "numbers": [
+        "na",
+        "water_refractive_index_589nm",
+        "buoyant_weight",
+        "lateral_force_at_1um",
+        "final_brightest_counts",
+        "final_median_counts"
+      ],
+      "lesson": {
+        "trigger": "building a double well from two single-beam optical traps on one bead several wavelengths across, planned from a model of the focal plane alone",
+        "claim": "the light pushes the bead along the beam, and the grip against that push is weakest exactly where two traps' wells part, so the dividing point is a way out along the beam; expect the bead to be lifted out there rather than cross, and read its focus as well as its position",
+        "evidence": [
+          "the hand-set recording of 2026-09-25, final_hand_2p5um_1_0.5, no run id",
+          "run-20260925-012",
+          "run-20260925-014"
+        ],
+        "n": "one loss whose setting is unrecorded, and one held merged position",
+        "condition_range": {
+          "tracer_diameter": {
+            "min": 5,
+            "max": 5,
+            "unit": "um"
+          },
+          "na": {
+            "min": 1.45,
+            "max": 1.45,
+            "unit": "1"
+          },
+          "trap_wavelength": {
+            "min": 1064,
+            "max": 1064,
+            "unit": "nm"
+          },
+          "illumination_level": {
+            "min": 0.02,
+            "max": 0.02,
+            "unit": "1"
+          }
+        },
+        "valid_until": {
+          "event": "a measured grip along the beam, or a bead height, for this bead and objective"
+        },
+        "grade_proposed": "E5"
+      }
+    },
+    {
+      "id": "trap_shape_is_not_the_clean_potential",
+      "rank": 2,
+      "status": "standing",
+      "claim": "For this 5 um bead a real optical trap is not the simulation's 1 um Gaussian. Its pull stays roughly proportional to the displacement out to well beyond 1 um and then dies away within a few micrometres of the focus, and the well is hundreds of k_B*T deep. Two such traps therefore make either one well, stiffer than one trap, with the bead between them, or two wells separated by a barrier of hundreds of k_B*T. The band of separations with a barrier of a few k_B*T is about fifty nanometres wide and lies at a larger separation than the 2.1 um the simulation derived for its 1 um width. Friday's settings fell either side of that band and never in it.",
+      "how_it_meets_the_hint": "The person's hint says the simulation's double potential is clean while the bench's is made with optical tweezers, and that nonlinear phenomena appear because of it. This candidate is that hint made specific enough to be wrong: the trap's force law is linear only in a core set by the bead, then collapses, and the sum of two such laws switches abruptly between one stiff well and two deep ones. It is flat, as the simulation is: it says nothing of the axis along the beam, which is where the radiation-pressure candidate takes the second hint.",
+      "predicts": {
+        "o1_first_position": "consistent: at a separation of about 2 um (twice the 1 um shift, if the wells were equal) both foci sit inside the bead, the wells add into one, and the bead is held more stiffly (model spread 0.71 of one trap's). The simulation's own width predicts the opposite at any separation and any trap_2 depth from half to equal: a bead about 1 um over in one basin is 1.95 to 4.64 times more spread",
+        "o2_plus_5": "consistent: at 5 um the focus is 2.5 um outside the bead's surface and a short-tailed trap pulls nothing. A Gaussian wide enough to stiffen the first position (2 um) would pull about 0.3 um there",
+        "o3_hand_set": "silent: at 2.5 um with 1/0.5 the two wells are still one and the bead should stay, nearer trap_1. It does not predict the loss",
+        "o4_no_hop": "consistent: a 50 nm band between a merged setting near 2 um and a separated one at 5 um",
+        "o5_frame_limited": "silent",
+        "o6_state_changed_by_hand": "silent; it needs the geometry candidate's reading of o1 and o2"
+      },
+      "supported_by": [
+        "o1 and o2 together, read through src/diagnose_double_well_20260928.py: no Gaussian of any width both stiffens the first position and leaves the +5 bead untouched; a trap with a long proportional core and a short tail does both",
+        "the ask itself: its barrier moves about half a k_B*T per 10 nm, and it asks for stiffnesses matched to 4 per cent -- the window is narrow for the clean potential too",
+        "the depth: Friday's own relaxation time gives about 1.6 pN/um, and holding the bead 1 um off trap_1's centre in a proportional trap is already about 190 k_B*T"
+      ],
+      "contradicted_by": [],
+      "rests_on": "Friday's words 'one basin', 'about 1 um' and 'held more stiffly' being right at the precision the words imply -- the per-recording numbers were not read -- and on the +5 trap being at about 5 um and delivering light (the geometry and dead-trap candidates)",
+      "falsifier": "Any one retires it in favour of a Gaussian-like trap: (a) with both traps' positions measured on the camera, trap_2 at equal strength pulls the held bead more than 100 nm while the traps are still more than 1 um beyond the separation at which the bead moves between them; (b) the bead's spread along the axis grows more than twofold before the traps merge; (c) the band with a 1 to 4 k_B*T barrier is wider than 0.2 um. Without bench time: if Friday's analysis files show the spread at 1/1 at the first position larger than 1.5 times trap_1's alone, the stiffening this rests on was not there.",
+      "numbers": [
+        "model_sim_width_spread_ratio_at_1um",
+        "model_wide_spread_ratio_at_2um",
+        "model_pull_at_5um_gaussian_w2",
+        "model_window_width",
+        "model_well_depth",
+        "stiffness_trap_1_alone",
+        "diameter_in_wavelengths",
+        "shift_first_position_1_1",
+        "relaxation_time_friday",
+        "ask_barrier_sensitivity",
+        "ask_stiffness_mismatch_max"
+      ],
+      "lesson": {
+        "trigger": "planning a double well from two optical traps on one bead several wavelengths across, from a simulation that models each trap as a Gaussian of assumed width",
+        "claim": "the bench's well is set by the bead and not by the focus: expect one stiff merged well out to a separation well above twice the assumed width, then two wells hundreds of k_B*T deep, with the few-k_B*T band tens of nanometres wide somewhere between -- find it by a separation scan read off the camera, not by the simulation's separation",
+        "evidence": [
+          "run-20260925-012",
+          "run-20260925-014",
+          "run-20260925-015"
+        ],
+        "n": "one bead, two separations, one day",
+        "condition_range": {
+          "tracer_diameter": {
+            "min": 5,
+            "max": 5,
+            "unit": "um"
+          },
+          "na": {
+            "min": 1.45,
+            "max": 1.45,
+            "unit": "1"
+          },
+          "trap_wavelength": {
+            "min": 1064,
+            "max": 1064,
+            "unit": "nm"
+          },
+          "illumination_level": {
+            "min": 0.02,
+            "max": 0.02,
+            "unit": "1"
+          },
+          "trap_separation": {
+            "min": 2,
+            "max": 5,
+            "unit": "um",
+            "note": "inferred, not measured"
+          }
+        },
+        "valid_until": {
+          "event": "a bead of another size, another objective, or other trapping optics"
+        },
+        "grade_proposed": "E5"
+      }
+    },
+    {
+      "id": "commanded_micrometres_were_not_the_cameras",
+      "rank": 3,
+      "status": "standing in its second form only",
+      "origin": "Friday's candidate: the tweezers software's micrometres were never checked against the camera, so no commanded separation is a number (5353a54, tasks/049). Sharpened here.",
+      "claim": "Neither Friday separation is the number that was commanded. Read as a constant wrong scale, this is contradicted by Friday's own order of results: any trap that reaches the bead from a commanded +6 reaches it harder from +5, whatever the scale. It survives in a second form: the software's state changed between the two positions. The first-position trap was created before any calibration at 100x was stated and while the person wanted it at 2 um; by run -010 the person stated the software was calibrated at 100x, and the +5 trap was created after that. So the first position was about 2 to 3 um from trap_1 -- a scale left from another objective, or the trap moved by hand -- and the +5 trap was about 5 um away.",
+      "predicts": {
+        "o1_first_position": "consistent: a trap 2 to 3 um away reaches a 5 um bead; one commanded 6 um away, 2.5 um beyond the bead's surface, holding it 1 um off trap_1 against about 1.6 pN/um is not what any trap shape does",
+        "o2_plus_5": "consistent: the +5 trap was really about 5 um away",
+        "o3_hand_set": "silent",
+        "o4_no_hop": "partly: the day's settings were not where they were meant to be, so no separation was chosen; it does not say why the setting that was reached, about 2 um, gave no double well",
+        "o5_frame_limited": "silent",
+        "o6_state_changed_by_hand": "consistent: this is that record"
+      },
+      "supported_by": [
+        "run logs -004, -008 and -009 carry the tweezers calibration as unknown; -010 onward carries 'calibrated at 100x, the person's statement; value not given'",
+        "run -009's abort on trap_1's strength command, after run -008 had aborted: the software's traps changed between runs by some means no record describes",
+        "the store: an objective change silently invalidates the tweezers' calibration (objective_change_invalidates_trap_calibration) and makes every commanded micrometre wrong by the ratio (tweez300_reports_nothing_back)",
+        "arithmetic: a calibration left from the 40x would put a commanded 6 um at about 2.4 um (command_scale_if_last_calibrated_at_40x) -- an illustration of the mechanism, not evidence that it was the 40x"
+      ],
+      "contradicted_by": [
+        "its first form, a constant scale, by o1 and o2 in that order"
+      ],
+      "falsifier": "For Friday: the person states that neither the tweezers calibration nor the second trap was changed by hand between run -008 and run -015; the first position was then really 6 um, and o1 and o2 together would need the +5 trap to have delivered nothing (the dead-trap candidate). For any later run: the camera shows the traps where they are commanded, within a tenth, at the calibration the software holds -- which the draft plan's first stage measures.",
+      "numbers": [
+        "shift_first_position_1_1",
+        "stiffness_trap_1_alone",
+        "pixel_size_100x",
+        "pixel_size_40x",
+        "pixel_size_60x",
+        "command_scale_if_last_calibrated_at_40x"
+      ],
+      "lesson": {
+        "trigger": "commanding optical-trap positions in the tweezers software's micrometres",
+        "claim": "a commanded micrometre is a camera micrometre only after a calibration at the objective in use, confirmed on the camera; a calibration done during a session changes what the numbers of traps placed before it mean, and nothing reports it",
+        "evidence": [
+          "run-20260925-008",
+          "run-20260925-009",
+          "run-20260925-010",
+          "run-20260925-012",
+          "run-20260925-015"
+        ],
+        "n": "one session",
+        "condition_range": {
+          "na": {
+            "min": 1.45,
+            "max": 1.45,
+            "unit": "1"
+          }
+        },
+        "valid_until": {
+          "event": "the tweezers report their calibration, or a camera check is built into every hand-over"
+        },
+        "grade_proposed": "E5"
+      }
+    },
+    {
+      "id": "equal_strengths_are_not_equal_wells",
+      "rank": 4,
+      "status": "standing, untested",
+      "claim": "Both traps are made from one beam steered by acousto-optic deflectors, and the software's strength is a relative share, so trap_2 may take power from trap_1 by existing, and equal strengths at two places in the field need not make wells of equal depth. With wells hundreds of k_B*T deep the simulation allows about 4 per cent mismatch at 1 pN/um; a larger one leaves the bead in the deeper well at every separation.",
+      "predicts": {
+        "o1_first_position": "silent without the traps' camera positions: unequal wells put the merged bead nearer the deeper trap, which the 1 um shift cannot show alone",
+        "o2_plus_5": "the form 'raising one trap's strength lowers the other's' predicts trap_1 softening as trap_2 rose at +5; o2 says it did not. The form 'trap_2's existence takes a share of the time' is untested: every Friday reference had trap_2 present at strength 0",
+        "o3_hand_set": "silent",
+        "o4_no_hop": "would add to it, but the trap-shape candidate already leaves no hop at Friday's separations whatever the balance",
+        "o5_frame_limited": "silent",
+        "o6_state_changed_by_hand": "silent"
+      },
+      "supported_by": [
+        "tweez_three_independent_ways_to_stop_emission and objective_change_invalidates_trap_calibration: acousto-optic deflectors, with a trapping-field response that is itself a calibration",
+        "tweez_laser_power_is_set_as_a_fraction_of_maximum",
+        "gaps trap_multiplexing_absent and trap_strength_absent: how the traps share the beam, and what a strength does to power, are not in the store",
+        "the ask's bench_stiffness_mismatch_max"
+      ],
+      "contradicted_by": [
+        "o2, for the form in which raising trap_2's strength takes power from trap_1"
+      ],
+      "falsifier": "trap_1's stiffness with trap_2 deleted, with trap_2 present at strength 0 far away, and with trap_2 at strength 1 far away agree within a quarter; and, in the merged regime at equal strengths, the bead sits at the midpoint of the two camera-measured trap positions within a tenth of their separation.",
+      "numbers": [
+        "ask_stiffness_mismatch_max",
+        "model_well_depth"
+      ],
+      "lesson": {
+        "trigger": "setting two optical traps to equal software strengths and expecting equal wells",
+        "claim": "equal strengths are equal wells only once each trap has been calibrated where it is used, with the other one present",
+        "evidence": [
+          "run-20260925-015"
+        ],
+        "n": "one scan, and that scan tests only one of the two forms",
+        "condition_range": {
+          "illumination_level": {
+            "min": 0.02,
+            "max": 0.02,
+            "unit": "1"
+          }
+        },
+        "valid_until": {
+          "event": "the store records how the tweezers share the beam between traps"
+        },
+        "grade_proposed": "E5"
+      },
+      "why_fourth": "It can make the next attempt fail but cannot be why Friday failed: at the separations Friday reached, the trap-shape candidate leaves no hop at any balance."
+    },
+    {
+      "id": "the_plus_5_trap_delivered_nothing",
+      "rank": 5,
+      "status": "standing, less economical",
+      "claim": "The +5 trap was accepted and did nothing. The tweezers answer 0 to a command they ignore in six known ways, so 'no pull at +5' may be a trap that never delivered light and not distance.",
+      "predicts": {
+        "o1_first_position": "silent: a different trap",
+        "o2_plus_5": "consistent",
+        "o3_hand_set": "silent",
+        "o4_no_hop": "partly",
+        "o5_frame_limited": "silent",
+        "o6_state_changed_by_hand": "silent"
+      },
+      "supported_by": [
+        "tweez300_reports_nothing_back",
+        "run -015's sequence -- delete, create at strength 0, on, then strengths -- each answered 0 and none verifiable"
+      ],
+      "contradicted_by": [],
+      "why_fifth": "It explains one observation by an unseen failure, where the geometry candidate explains the same observation with a change the records show happened. The same strength command worked on trap_2 at the first position (runs -012 and -014), and a new trap starting at 0 and taking its last strength is recorded behaviour (tweez300_new_trap_starts_at_strength_zero, tweez300_trap_strength_takes_the_last_value).",
+      "falsifier": "trap_2, walked toward the held bead at strength 1, pulls it at any separation below 3 um.",
+      "numbers": [],
+      "lesson": {
+        "trigger": "reading 'no effect' from a blind tweezers channel",
+        "claim": "an accepted trap command that shows no effect is either distance or a trap that did nothing; only a frame in which that trap moves a bead separates them",
+        "evidence": [
+          "run-20260925-015"
+        ],
+        "n": "one scan",
+        "condition_range": {},
+        "valid_until": {
+          "event": "the tweezers gain a read-back"
+        },
+        "grade_proposed": "E5"
+      }
+    },
+    {
+      "id": "the_records_could_not_have_shown_a_hop",
+      "rank": 6,
+      "status": "contradicted as the explanation; kept as a limit",
+      "claim": "Three-minute records at 30 ms frames, a bead always started in trap_1, and an analysis that reports one basin when no second peak appears could all miss a second well the bead never entered.",
+      "predicts": {
+        "o1_first_position": "contradicted: there was no second well to miss -- the bead sat between the traps",
+        "o2_plus_5": "consistent only trivially: a second well at 5 um lay behind hundreds of k_B*T, which no record length crosses",
+        "o3_hand_set": "silent",
+        "o4_no_hop": "consistent",
+        "o5_frame_limited": "consistent",
+        "o6_state_changed_by_hand": "silent"
+      },
+      "supported_by": [
+        "o5"
+      ],
+      "contradicted_by": [
+        "o1",
+        "the ask: at 3 k_B*T it expects about 104 hops an hour, about 5 in a 3 min record, so a setting inside the band would have shown hops even in Friday's records"
+      ],
+      "falsifier": "not needed for Friday. For the next plan it sets the floor: at least 10 min at any setting inside the band, at frames of 10 ms or faster.",
+      "numbers": [
+        "frame_interval_friday",
+        "relaxation_time_friday",
+        "ask_hops_per_hour_at_3kT"
+      ],
+      "lesson": null
+    }
+  ],
+  "considered_not_carried": [
+    {
+      "item": "heating by the trapping laser",
+      "why": "at level 0.02 it is far below the person's recalled point of noticing any warming (trap_heating_detection_bound, E5, not a limit and not used as one), and nothing Friday recorded bears on it"
+    },
+    {
+      "item": "interference between the two traps",
+      "why": "the traps are steered by acousto-optic deflectors; whether they time-share one beam or hold both is a gap (trap_multiplexing_absent), but in neither case do two deflected beams hold a steady fringe pattern -- reasoned -- and nothing Friday recorded bears on it"
+    },
+    {
+      "item": "non-conservative light forces, so that the landscape is not a potential",
+      "why": "it bears on turning a histogram into a barrier, not on whether hops occur"
+    },
+    {
+      "item": "the bead stuck to the glass",
+      "why": "contradicted by o1: it moved about 1 um and back"
+    },
+    {
+      "item": "a bead of another size",
+      "why": "the diameter is a measurement on the bottle in use, E2"
+    }
+  ],
+  "ranking": {
+    "order": [
+      "radiation_pressure_opens_the_saddle",
+      "trap_shape_is_not_the_clean_potential",
+      "commanded_micrometres_were_not_the_cameras",
+      "equal_strengths_are_not_equal_wells",
+      "the_plus_5_trap_delivered_nothing",
+      "the_records_could_not_have_shown_a_hop"
+    ],
+    "decided_by": "First, how much of the mismatch each would explain if true. The simulation's double well is a barrier in the focal plane that the bead crosses; a candidate under which that crossing cannot happen at any separation outranks one that only moves the barrier, and both outrank one that says only that the day's settings missed it. Second, how many of Friday's observations it explains that nothing else does. Third, how few unrecorded events it needs. A candidate a committed record contradicts drops below every one that is not. The first criterion ranks how much a candidate would answer, not how likely it is, so the confidence in each is stated beside the order.",
+    "how_the_top_three_relate": "They are not rivals, and the likely answer is all three. The geometry candidate is the best-evidenced: the records show the tweezers' state changing between the two positions, and it puts the first position near 2 um and the +5 trap at 5 um. The trap-shape candidate says why, at those separations, the bench showed one stiff well and then nothing, where the simulation expected a soft well or hops. The radiation-pressure candidate says why the band in between would not behave like the simulation either: its dividing point leaks along the beam -- which is what the one setting taken toward it did. If the geometry candidate is wrong and the first position really was 6 um, the trap-shape candidate loses its separations and the dead-trap candidate must carry o2.",
+    "confidence": {
+      "radiation_pressure_opens_the_saddle": "moderate: physically expected for a bead this size with an oil objective in water, and it fits the one loss; but nothing Friday measured bears on the bead's height, and how the last setting was made is unrecorded",
+      "trap_shape_is_not_the_clean_potential": "moderate: it rests on three of Friday's words -- one basin, about 1 um, more stiffly -- not on numbers read here",
+      "commanded_micrometres_were_not_the_cameras": "high that the first position was much closer than 6 um or the +5 trap did nothing, from the order of Friday's results alone"
+    },
+    "what_the_second_hint_changed": "In the first pass the loss along the beam was fourth: one observation, no mechanism, and a rival in the unrecorded hand-setting. Radiation pressure names the mechanism, and the mechanism ties the loss to the geometry at which two wells part, which the trap-shape candidate had already located near the bead's edge. That turned a fourth-ranked aside into the one candidate that removes the simulation's crossing altogether. Nothing in Friday's record moved; the ranking did, because a mechanism was supplied, and this file says so rather than presenting the order as found unaided.",
+    "first_pass_ranking": {
+      "order": [
+        "trap_shape_is_not_the_clean_potential",
+        "commanded_micrometres_were_not_the_cameras",
+        "equal_strengths_are_not_equal_wells",
+        "the bead leaves along the beam, no mechanism named",
+        "the_plus_5_trap_delivered_nothing",
+        "the_records_could_not_have_shown_a_hop"
+      ],
+      "decided_by_then": "which candidate explains the first-position observation, where the simulation's own potential makes a sharp prediction that the bench contradicts",
+      "kept_because": "the record should show what the person's second hint changed"
+    }
+  },
+  "questions_to_the_person": [
+    {
+      "asked": "2026-09-28, in this seat's window, with the report",
+      "question": "On Friday, after the run where you said you wanted trap 2 at 2 um and before the first strength scan, did you move trap 2 or re-calibrate the tweezers software by hand? If you re-calibrated, with which objective had it been calibrated before?",
+      "why": "decides between the two ways the first position came to be closer than commanded, and whether the +5 trap was really 5 um away; the next measurement does not depend on it",
+      "answer": null
+    },
+    {
+      "asked": "2026-09-28, in this seat's window, with the report",
+      "question": "For the last recording, how did you set trap 2 at 2.5 um -- typed, or dragged -- and in what order did you set the two strengths?",
+      "why": "decides whether the bead was lost by the setting itself or left along the beam",
+      "answer": null
+    }
+  ],
+  "requests_to_the_person": [
+    "Friday's analysis files for the first position and for +5 (strength_1_*_analysis.json and sep5_strength_1_*_analysis.json, with their *_xy_um.npy), not the frames. They would test the trap-shape candidate's stiffening and read the first position's separation from how the shift grew with trap_2's strength, without bench time.",
+    "If a session on the bench computer may do it, the bead's image size and peak brightness in each of Friday's first-position and +5 recordings, computed where the frames are. They would test the radiation-pressure candidate's lift without bench time; only the numbers need to come here."
+  ],
+  "next_measurement": "questions/mic-20260928-001/plan_microscope_mic-20260928-001.json, DRAFT, with its method declared before data in analysis_method_declared.json beside it. It runs only on the bench computer, after the person approves it and hands over the bench, and never from this Mac."
+}
