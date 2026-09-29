@@ -163,9 +163,10 @@
   "questions_to_the_person": [
     "still open from the first submission: whether trap 2 was moved or the software recalibrated by hand after run -008, and how the last setting was made",
     "whether this bench can bring a beam from above the sample, and what sample-chamber heights are to hand -- facts about the instrument, for choosing among the options above",
-    "whether beads of about 1 to 2 um, silica or polystyrene, are to hand",
     "whether the Tweez 300 can be steered from outside faster than TCP commands allow -- an analog input or a streaming mode -- and how fast",
-    "whether a thin chamber can be used with the traps focused just under its upper glass"
+    "whether a thin chamber can be used with the traps focused just under its upper glass",
+    "with the 2 um polystyrene, what was seen: the bead kicked out, or held in one trap without crossing",
+    "whether silica beads of about 2 um are to hand"
   ],
   "remedies": {
     "asked": "the person, in this seat's window on 2026-09-28, after the fourth hint: 'Check whether there is a way to solve this too.' (the person's Korean, rendered word for word)",
@@ -183,18 +184,35 @@
       "albay_paneru_pak_jun": "arXiv:1810.00288 (2018), read from its pages 1-6: an optical feedback trap. One trap on a 1 um polystyrene bead; its position read by back-focal-plane interferometry to about 1 nm and the trap centre moved through an acousto-optic deflector every 10 us from an FPGA, so the bead feels any potential chosen in software. A virtual double well with barriers of 2, 3 and 4 k_B*T and minima 50 nm from the middle, whose dwell times matched Kramers' prediction. The bead stays at the centre of one trap, so no focus ever sits at its periphery",
       "mccann_dykman_golding": "Nature 402, 785 (1999), from its abstract only: a sub-micrometre particle in a double-well optical trap, whose full three-dimensional potential was measured from its motion and whose transition rates agreed with Kramers' theory"
     },
-    "ranked": [
+    "facts_to_ask": [
+      "with the 2 um polystyrene, what was seen: the bead kicked out, or held in one trap without crossing",
+      "whether silica beads of about 2 um are to hand",
+      "whether the Tweez 300 can be steered from outside faster than TCP commands allow -- an analog input or a streaming mode -- and how fast",
+      "whether a thin chamber can be used with the traps focused just under its upper glass"
+    ],
+    "ranked_before_the_persons_report": [
       "1. a bead of about 2 um with two traps about 1 um apart, as Berut et al. did on the same kind of instrument: the only change is the sample, and the double well it gives is tunable by separation and by the time the beam spends on each trap. The simulation has to be re-run for that bead, and the model here says nothing about a bead that small (ray optics does not hold there)",
       "2. a feedback trap: one trap, moved fast enough in answer to the bead's position that the bead feels exactly the simulation's potential, with no second focus anywhere near it. The cleanest match to the simulation, and it needs a loop far faster than the 10 Hz position streaming the store records for this unit; whether the Tweez 300 can be steered that fast is unknown. A 5 um bead relaxes in about 30 ms, which eases the demand and does not remove it",
       "3. this bead against the chamber's upper glass: the push can no longer kick it out, the power can be lowered and a fine separation scan then makes sense; but per the model the landscape is three wells, not two, and the glass adds friction and slows diffusion",
       "4. a dual-beam trap: removes the push outright, and needs a beam from above that this unit does not have",
       "5. a lower-index bead of this size, or its weight: not enough on their own"
     ],
-    "recommendation": "The first, with the second as the cleaner test if the tweezers can be steered fast enough. Both are the person's choice, as is whether the simulation side is asked to re-run for a new bead.",
-    "facts_to_ask": [
-      "whether beads of about 1 to 2 um, silica or polystyrene, are to hand",
-      "whether the Tweez 300 can be steered from outside faster than TCP commands allow -- an analog input or a streaming mode -- and how fast",
-      "whether a thin chamber can be used with the traps focused just under its upper glass"
-    ]
+    "recommendation_before_the_persons_report": "The first, with the second as the cleaner test if the tweezers can be steered fast enough. Both are the person's choice, as is whether the simulation side is asked to re-run for a new bead.",
+    "persons_report": {
+      "words_en": "I tried 2 um polystyrene too, and it did not work well either.",
+      "rendering": "the person's Korean, rendered word for word by this seat, in this seat's window on 2026-09-28 in reply to the ranking above",
+      "kind": "the person's report of an experiment of their own; how it failed was not said, and no record of it is in this tree",
+      "what_it_retires": "the first-ranked remedy as it was written -- 'a bead of about 2 um' -- because it named the size and not the material. The successful precedent used silica",
+      "why_it_fits_the_diagnosis": "Reasoned, not computed: in the precedent's geometry the two traps are about 1 um apart, about one radius of a 2 um bead, so a bead sitting in one well has the other trap's focus near its periphery -- the same condition as Friday's 5 um bead with trap_2 at 2.5 um. What differs between the precedent and the person's attempt is the material: the push relative to the pull grows with how far the bead's index is from water's, and polystyrene is further from it than silica. The model here cannot put a number on that for a 2 um bead, because ray optics does not hold at that size; a wave-optics calculation would be needed",
+      "what_it_supports": "the feedback trap: its precedent used a 1 um POLYSTYRENE bead and worked, because one trap carries the bead and no second focus ever comes near its periphery"
+    },
+    "ranked": [
+      "1. a feedback trap: one trap moved in answer to the bead's position so that the bead feels the simulation's potential. It removes the second focus altogether, which is the geometry the push needs, and its precedent worked with polystyrene. It needs a steering loop much faster than the 10 Hz position streaming the store records for this unit; whether the Tweez 300 allows one is the first thing to find out",
+      "2. a silica bead of about 2 um with two traps about 1 um apart, exactly as the precedent: the material is what the person's 2 um polystyrene attempt did not share with it. Still reasoned, not computed, and the simulation would have to be re-run for that bead",
+      "3. this bead against the chamber's upper glass, which stops the push from carrying it away; three wells rather than two in the model, and the glass adds friction and slows diffusion",
+      "4. a dual-beam trap, which needs a beam from above that this unit does not have",
+      "5. a lower-index bead of 5 um, or its weight: not enough on their own"
+    ],
+    "recommendation": "Find out first whether the tweezers can be steered from outside fast enough for a feedback trap: it is the only remedy that removes the geometry itself and has worked with polystyrene. If not, silica rather than polystyrene. The choice is the person's."
   }
 }
