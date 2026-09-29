@@ -2,6 +2,7 @@
 
     python src/ray_optics_two_traps_20260928.py              # Friday's settings and the draft walk
     python src/ray_optics_two_traps_20260928.py --remedies   # what removes or blocks the push
+    python src/ray_optics_two_traps_20260928.py --shape      # the x-distribution Friday's first position should show
 
 Touches no device and reads no frame. Written after the person asked, on
 2026-09-28, whether the trapping force and stiffness had been computed along z
@@ -212,5 +213,37 @@ def remedies() -> int:
     return 0
 
 
+def shape() -> int:
+    """The x-distribution the model expects at Friday's first position, for comparison with its
+    recordings. The power per trap is set so that one trap's stiffness equals the one Friday's
+    stated relaxation time gives (6*pi*eta*a / 30 ms). Boltzmann weights along x at the bead's
+    settled height: the push's effect on the distribution through the height is not included."""
+    kt = 1.380649e-23 * 293.0
+    a_m = A_UM * 1e-6
+    k_friday = 6 * np.pi * 1e-3 * a_m / 0.030
+    z0 = height_on_axis()
+    slope = (on_bead((0.02, 0, z0), [(0, 0, 0)], [1])[0] - on_bead((-0.02, 0, z0), [(0, 0, 0)], [1])[0]) / 0.04
+    power = k_friday * 2.998e8 * a_m / (-slope * N1)
+    unit = N1 * power * a_m / 2.998e8 / kt
+    print(f"power per trap that gives Friday's stiffness: {power * 1e3:.1f} mW")
+    print("first position, trap_2 raised with the bead starting in trap_1 (x toward trap_2):")
+    print("  d (um)  power  mean x (um)  spread (nm)  skewness  excess kurtosis")
+    for d_um in (2.0, 2.4):
+        d = d_um / A_UM
+        for rho in (0.0, 0.1, 0.2, 0.3, 0.5, 1.0):
+            c, _ = relax(np.array([0.0, 0.0, z0]), [(0, 0, 0), (d, 0, 0)], [1.0, rho])
+            xs = c[0] + np.linspace(-0.12, 0.12, 121)
+            qx = np.array([on_bead((x, 0, c[2]), [(0, 0, 0), (d, 0, 0)], [1.0, rho])[0] for x in xs])
+            u = -np.concatenate([[0], np.cumsum(0.5 * (qx[1:] + qx[:-1]) * np.diff(xs))]) * unit
+            w = np.exp(-(u - u.min()))
+            w /= w.sum()
+            mu = (w * xs).sum()
+            var = (w * (xs - mu) ** 2).sum()
+            print(f"  {d_um:5.1f}   {rho:4.1f}    {c[0] * A_UM:6.2f}       {np.sqrt(var) * A_UM * 1e3:5.1f}      "
+                  f"{(w * (xs - mu) ** 3).sum() / var ** 1.5:6.3f}      {(w * (xs - mu) ** 4).sum() / var ** 2 - 3:6.3f}")
+    return 0
+
+
 if __name__ == "__main__":
-    sys.exit(remedies() if "--remedies" in sys.argv[1:] else main())
+    args = sys.argv[1:]
+    sys.exit(remedies() if "--remedies" in args else shape() if "--shape" in args else main())

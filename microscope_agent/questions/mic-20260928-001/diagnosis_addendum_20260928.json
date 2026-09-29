@@ -18,11 +18,18 @@
       "words_en": "Looking more finely does not solve it. If the radiation pressure cannot be removed, the particle will be kicked out.",
       "rendering": "the person's Korean, rendered word for word by this seat; 'radiation pressure' was typed in English",
       "kind": "a statement of how this instrument behaves, from the person's knowledge of it. Not a measurement, and carried as the person's"
+    },
+    {
+      "n": 5,
+      "from": "the person, in this seat's window on 2026-09-28, in two messages, when this seat said that a closer look at the x-distributions already recorded might show something Friday's summary did not",
+      "words_en": "Right. It is just not hopping.",
+      "rendering": "the person's Korean, rendered word for word by this seat",
+      "kind": "a remark on what the existing recordings hold: that there is structure in them to be found, and that it is not thermally activated hopping. Carried as the person's"
     }
   ],
   "answer_to_hint_3": "No. Nothing here had computed a force along the beam. Friday's stiffness was fitted to positions in the image plane, the simulation's configuration is two-dimensional, and src/diagnose_double_well_20260928.py is one-dimensional, along the line between the traps. The radiation-pressure candidate of the first submission was reasoned, not computed.",
   "computation": {
-    "script": "src/ray_optics_two_traps_20260928.py, device-free: python src/ray_optics_two_traps_20260928.py for Friday's settings and the draft walk, with --remedies for the ways out",
+    "script": "src/ray_optics_two_traps_20260928.py, device-free: python src/ray_optics_two_traps_20260928.py for Friday's settings and the draft walk, --remedies for the ways out, --shape for the x-distribution Friday's first position should show",
     "method": "each ray of a focused beam traced to the bead's surface and given Ashkin's single-ray force (Biophys. J. 61, 569, 1992), a push along the ray and a pull across it with every internal reflection summed. Forces are efficiencies Q = F c / (n1 P) per unit power entering the objective",
     "assumptions": [
       "ray optics, for a bead whose radius is about three wavelengths in water",
@@ -214,5 +221,27 @@
       "5. a lower-index bead of 5 um, or its weight: not enough on their own"
     ],
     "recommendation": "Find out first whether the tweezers can be steered from outside fast enough for a feedback trap: it is the only remedy that removes the geometry itself and has worked with polystyrene. If not, silica rather than polystyrene. The choice is the person's."
+  },
+  "friday_x_distribution": {
+    "prediction": {
+      "source": "python src/ray_optics_two_traps_20260928.py --shape; computed on the model's assumptions (E5), with the power per trap, 4.7 mW, set so that one trap's stiffness equals the one Friday's stated relaxation time gives",
+      "first_position": "raising trap_2 from 0 to equal power, the bead's mean moves from 0 to 1.00 um (traps 2.0 um apart) or 1.20 um (2.4 um apart), and its spread along x narrows from 51 to 33 or 31 nm; skewness stays under 0.01 and excess kurtosis near zero: Gaussian",
+      "reading": "if Friday's recordings are Gaussian at every strength and narrow as above, the model's in-plane picture is enough. Structure beyond that -- a skew, a shoulder, a second population, bursts -- is the push acting in ways this model leaves out, and per the person it is not hopping"
+    },
+    "what_not_hopping_could_look_like": [
+      "lifted and recaught: the bead, near a focus at its periphery, is carried up the beam, loses its grip, and comes back down into one trap or the other -- two populations in x, with each change of population coinciding with the bead going out of focus",
+      "a loop in the plane of x and height: the push along the beam is not the slope of any potential, so the bead can circulate, rising as it moves one way and sinking as it returns -- a broadened or skewed x-distribution, and x and brightness that trace a loop with a lag rather than a line",
+      "bursts: brief excursions toward trap_2, each ending with the bead pushed back -- a tail on one side, not a second peak"
+    ],
+    "how_to_tell_them_from_hopping": [
+      "dwell times: hopping gives exponentially distributed dwells in each state; a lift-and-recapture cycle or a loop does not",
+      "focus during the change: a hop crosses in the focal plane; a lift leaves it, so the bead's image dims or blurs as it goes",
+      "the order of x and brightness in time: a loop shows as a nonzero area in the plane of x against brightness; motion in a potential shows none"
+    ],
+    "what_it_needs": [
+      "the x trajectories already written beside the frames (strength_1_*_xy_um.npy and sep5_strength_1_*_xy_um.npy) for the distribution shapes and dwell statistics -- these can be analysed on this Mac",
+      "the bead's peak brightness and image size frame by frame, computed where the frames are, for the focus test; the frames themselves need not move"
+    ],
+    "status": "not done: no recording was read here"
   }
 }
