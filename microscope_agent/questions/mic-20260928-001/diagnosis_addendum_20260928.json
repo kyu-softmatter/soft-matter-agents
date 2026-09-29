@@ -1,0 +1,200 @@
+{
+  "declaration": "addendum to diagnosis_candidates.json: the person's third and fourth hints, a ray-optics computation of the push along the beam, what they change, and the ways to remove or block the push",
+  "for": "microscope_agent/tasks/050-why-the-double-well-did-not-behave-like-the-simulation.md",
+  "by": "microscope-kyuhwan-macbook-20260928-1",
+  "on": "2026-09-28",
+  "first_submission": "diagnosis_candidates.json, plan_microscope_mic-20260928-001.json and analysis_method_declared.json are left exactly as first committed. This file records what came after them, so the record shows the order in which things were given and found.",
+  "held_here": "As card 050 says: nothing to the librarian and nothing for the bridge.",
+  "hints": [
+    {
+      "n": 3,
+      "from": "the person, in this seat's window on 2026-09-28, after the report",
+      "words_en": "When you calculate the optical tweezers' trapping force and stiffness, do you calculate the force in the z direction too? You know that when the trap holds the particle at its periphery, the force in z rises sharply.",
+      "rendering": "the person's Korean, rendered word for word by this seat"
+    },
+    {
+      "n": 4,
+      "from": "the person, in this seat's window on 2026-09-28, in reply to this seat's suggestion to scan the parting of the wells more finely",
+      "words_en": "Looking more finely does not solve it. If the radiation pressure cannot be removed, the particle will be kicked out.",
+      "rendering": "the person's Korean, rendered word for word by this seat; 'radiation pressure' was typed in English",
+      "kind": "a statement of how this instrument behaves, from the person's knowledge of it. Not a measurement, and carried as the person's"
+    }
+  ],
+  "answer_to_hint_3": "No. Nothing here had computed a force along the beam. Friday's stiffness was fitted to positions in the image plane, the simulation's configuration is two-dimensional, and src/diagnose_double_well_20260928.py is one-dimensional, along the line between the traps. The radiation-pressure candidate of the first submission was reasoned, not computed.",
+  "computation": {
+    "script": "src/ray_optics_two_traps_20260928.py, device-free: python src/ray_optics_two_traps_20260928.py for Friday's settings and the draft walk, with --remedies for the ways out",
+    "method": "each ray of a focused beam traced to the bead's surface and given Ashkin's single-ray force (Biophys. J. 61, 569, 1992), a push along the ray and a pull across it with every internal reflection summed. Forces are efficiencies Q = F c / (n1 P) per unit power entering the objective",
+    "assumptions": [
+      "ray optics, for a bead whose radius is about three wavelengths in water",
+      "an aberration-free focus: the spherical aberration of focusing through oil into water is ignored, so the grip along the beam comes out stronger than a real trap's",
+      "the back aperture filled uniformly at NA 1.45 (objective_mrd71970); rays whose NA exceeds water's index are lost at the glass",
+      "relative index 1.572 / 1.333 (polystyrene_refractive_index_1052nm, bulk plates; water_refractive_index_589_26nm_293k -- the store holds no value at 1064 nm); s and p forces averaged",
+      "two traps add as independent beams, and only the ratio of their powers enters, because the push and the pull both scale with power"
+    ],
+    "numbers": [
+      {
+        "name": "rays_lost_at_glass",
+        "value": 0.155,
+        "unit": "1",
+        "source": "computed:src/ray_optics_two_traps_20260928.py",
+        "grade": "E5",
+        "precision": "order_of_magnitude",
+        "note": "the fraction of a uniformly filled NA 1.45 aperture beyond water's index; E5 because the filling is assumed"
+      },
+      {
+        "name": "height_one_trap",
+        "value": 0.3,
+        "unit": "um",
+        "source": "computed:src/ray_optics_two_traps_20260928.py",
+        "grade": "E5",
+        "precision": "order_of_magnitude",
+        "note": "the bead's centre above one trap's focus, 0.12 radii"
+      },
+      {
+        "name": "pull_back_max",
+        "value": 0.14,
+        "unit": "1",
+        "source": "computed:src/ray_optics_two_traps_20260928.py",
+        "grade": "E5",
+        "precision": "order_of_magnitude",
+        "note": "the largest efficiency with which one trap, on axis, pulls the bead back against the push"
+      },
+      {
+        "name": "push_at_periphery",
+        "value": 0.094,
+        "unit": "1",
+        "source": "computed:src/ray_optics_two_traps_20260928.py",
+        "grade": "E5",
+        "precision": "order_of_magnitude",
+        "note": "the push along the beam with the focus at the bead's periphery, one radius off its centre, at the height above: about two-thirds of pull_back_max. It is under 0.006 while the focus is within 0.6 radii of the centre, 0.021 at 0.8, 0.046 at 0.9, peaks at 1.0, and is 0.028 at 1.2"
+      },
+      {
+        "name": "sideways_pull_max",
+        "value": 0.26,
+        "unit": "1",
+        "source": "computed:src/ray_optics_two_traps_20260928.py",
+        "grade": "E5",
+        "precision": "order_of_magnitude",
+        "note": "at 0.9 radii, just inside the periphery; 0.22 at 1.0, 0.10 at 1.1, 0.06 at 1.2 -- the short tail the trap-shape candidate inferred from Friday's words"
+      },
+      {
+        "name": "separation_equal_to_radius",
+        "value": 2.5,
+        "unit": "um",
+        "source": "computed:tracer_diameter_over_two",
+        "grade": "E4",
+        "precision": "significant_figures",
+        "formula": "tracer_diameter/2",
+        "note": "Friday's last, hand-set separation was 2.5 um: with the bead centred on trap_1, trap_2's focus lay on its periphery, where the push peaks"
+      },
+      {
+        "name": "model_first_position",
+        "value": 1.0,
+        "unit": "um",
+        "source": "computed:src/ray_optics_two_traps_20260928.py",
+        "grade": "E5",
+        "precision": "order_of_magnitude",
+        "note": "trap_2 at 2 um raised to equal power: the bead settles 1.00 um toward it, one well, 0.33 um above the focus -- as Friday's words say"
+      },
+      {
+        "name": "model_plus_5_pull",
+        "value": 0.07,
+        "unit": "um",
+        "source": "computed:src/ray_optics_two_traps_20260928.py",
+        "grade": "E5",
+        "precision": "order_of_magnitude",
+        "note": "trap_2 at 5 um raised to equal power pulls the bead 70 nm; Friday said nothing measurable"
+      },
+      {
+        "name": "model_last_setting_height",
+        "value": 0.36,
+        "unit": "um",
+        "source": "computed:src/ray_optics_two_traps_20260928.py",
+        "grade": "E5",
+        "precision": "order_of_magnitude",
+        "note": "trap_2 at 2.5 um raised to half power: the model HOLDS the bead, lifted to 0.36 um. It does not reproduce the loss, because its aberration-free focus grips harder along the beam than a real one"
+      },
+      {
+        "name": "model_walk_jump_in",
+        "value": 3.5,
+        "unit": "um",
+        "source": "computed:src/ray_optics_two_traps_20260928.py",
+        "grade": "E5",
+        "precision": "order_of_magnitude",
+        "note": "trap_2 walked in at equal power: the bead stays by trap_1 to 3.75 um, lifted most there (0.70 um), and jumps to the midpoint at 3.5 um"
+      },
+      {
+        "name": "model_walk_jump_out",
+        "value": 4.5,
+        "unit": "um",
+        "source": "computed:src/ray_optics_two_traps_20260928.py",
+        "grade": "E5",
+        "precision": "order_of_magnitude",
+        "note": "walked out, the bead stays at the midpoint to 4.25 um, lifted to 0.84 um there, and jumps back at 4.5 um. Between the two jumps it has three places to sit -- by either trap and between them -- which no sum of two Gaussians can give"
+      }
+    ]
+  },
+  "what_changed": {
+    "the_answer": "Radiation pressure is why the bench could not behave like the simulation. A trap's light pushes the bead along the beam; that push rises sharply when the focus reaches the bead's periphery, and every way to a separation with a barrier of a few k_B*T passes through that condition -- a trap's focus crossing the periphery on the way in, or two foci near it at the dividing point. There, per the person, the bead is kicked out. Friday's only loss happened at the one setting that put trap_2's focus on the periphery of a bead centred on trap_1.",
+    "why_a_finer_scan_cannot_help": "The push and the pull both scale with the laser power, so no power and no step size changes their ratio; the condition is geometric. A finer scan only locates more precisely where the bead leaves. This seat suggested one, and it was wrong.",
+    "what_the_model_does_and_does_not_show": "It shows the push rising sharply at the periphery, to about two-thirds of the largest pull-back, exactly as the person said. It does not show the bead leaving, because its focus is aberration-free; a real focus through oil into water grips less along the beam, and how much less is not in the store (axial_trap_stiffness_absent). So the loss rests on the person's statement and on Friday's one loss, not on this computation.",
+    "candidates": {
+      "radiation_pressure_opens_the_saddle": "confirmed as the answer by the person's statement, and consistent with Friday's loss at a separation equal to the bead's radius. The first submission's mechanism -- the grip along the beam weakest where the wells part -- becomes more specific: the push itself peaks when a focus sits at the periphery",
+      "trap_shape_is_not_the_clean_potential": "the same physics across the beam: in the model the sideways pull peaks at 0.9 radii and is nearly gone by 1.2, the short tail inferred from Friday's words. It explains where the wells would part; the push decides that the bead never gets there",
+      "commanded_micrometres_were_not_the_cameras": "unaffected, and still what places Friday's first position near 2 um",
+      "equal_strengths_are_not_equal_wells": "secondary: it matters only once the push is removed",
+      "the_plus_5_trap_delivered_nothing": "less needed: the model gives 70 nm of pull at 5 um, near what Friday called nothing",
+      "the_records_could_not_have_shown_a_hop": "still contradicted"
+    },
+    "draft_plan": "plan-mic-20260928-001-r1 stays a DRAFT and is not to be run to look for hops: its walk takes trap_2's focus to the bead's periphery at equal power, and per the person the bead will be kicked out there. Its first two stages still answer what they were for -- the software's micrometres on the camera, and whether trap_2 weakens trap_1 -- and its walk would do no more than confirm where the bead leaves. The file is not edited: a changed plan is a new revision, and which one to write depends on the person's choice below.",
+    "what_would_remove_or_counter_the_push": {
+      "note": "Reasoned, not checked against this bench. Which is possible here is the person's to say.",
+      "options": [
+        "a second beam from the opposite side, whose push cancels the first's -- the classical dual-beam trap; it needs a beam path from above the sample",
+        "a sample chamber only a little taller than the bead, so the push presses it against the upper glass instead of carrying it away; the price is friction and sticking at the wall and a larger drag, which the simulation would then have to carry",
+        "a bead of lower relative index, such as silica: the push comes largely from reflection, which falls faster than the refraction that makes the pull as the index ratio approaches one",
+        "a much smaller bead: the periphery effect belongs to a bead several wavelengths across, while a bead near the focus's own size feels a smooth force and a stronger grip along the beam -- at the cost of traps about a micrometre apart",
+        "a denser bead with soft traps, so that its weight outweighs the push; not this polystyrene bead, whose weight in water is about 0.02 pN"
+      ]
+    },
+    "for_the_simulation": "Its configuration models the focal plane only and says a real trap is weaker along the beam. A comparison with this bench needs the axis along the beam and the push along it -- where the model would predict loss, not hops -- or an experiment that removes the push. Held here, not delivered.",
+    "the_model_s_other_finding": "Once the push is removed, the model still says the bench's landscape is not the simulation's: between about 3.75 and 4.25 um two equal traps give a 5 um bead three stable places, with a jump in at 3.5 um and a jump back out at 4.5 um. An estimate on assumed optics, recorded so that the next design does not rediscover it."
+  },
+  "questions_to_the_person": [
+    "still open from the first submission: whether trap 2 was moved or the software recalibrated by hand after run -008, and how the last setting was made",
+    "whether this bench can bring a beam from above the sample, and what sample-chamber heights are to hand -- facts about the instrument, for choosing among the options above",
+    "whether beads of about 1 to 2 um, silica or polystyrene, are to hand",
+    "whether the Tweez 300 can be steered from outside faster than TCP commands allow -- an analog input or a streaming mode -- and how fast",
+    "whether a thin chamber can be used with the traps focused just under its upper glass"
+  ],
+  "remedies": {
+    "asked": "the person, in this seat's window on 2026-09-28, after the fourth hint: 'Check whether there is a way to solve this too.' (the person's Korean, rendered word for word)",
+    "store": "Asked under the same caller_id: silica, sample_chamber_height, trap_axial_position, counter_propagating_beam and particle_suspension all came back absent, the last with only particle_suspension_a -- this 5 um polystyrene -- as a near name. tweez_laser_exits_only_at_one_aperture (E3) says the unit's light leaves through one aperture, so as installed there is no second beam from above (reasoned from that entry).",
+    "computed": {
+      "note": "src/ray_optics_two_traps_20260928.py --remedies; estimates on the model's assumptions, E5, the push and the pull per unit power",
+      "lower_index_same_size": "the push at the periphery over the largest pull-back falls only from 0.67 (polystyrene, relative index 1.179) to 0.56 at 1.08 and 0.50 at 1.05: a lower-index bead of this size helps a little and does not remove the push",
+      "dual_beam": "a second beam running the other way through each focus cancels the push everywhere in the focal plane (0.002 or less at any offset) and doubles the pull across (0.51 at 0.9 radii): the bead cannot leave along the beam. Not available as installed",
+      "upper_glass": "a chamber whose upper glass sits where the free bead's centre does (0.30 um above the focus): through the whole walk in and out the bead is pressed against it and never leaves, so it moves in the plane only, as in the simulation. With nothing to kick it out, the power can be lowered freely, and the barrier out of trap_1's well scales with power: 13 k_B*T per mW per trap at 4.0 um, 44 at 4.25, 89 at 4.5, 150 at 4.75, 225 at 5.0. But between 4.0 and 4.75 um the model gives three wells -- by each trap and between them -- not the simulation's two, and friction, sticking and the slower diffusion at a wall are not modelled",
+      "weight": "not for this bead: its weight in water, about 0.02 pN, would outweigh the push at the periphery only below about 0.05 mW per trap"
+    },
+    "literature": {
+      "status": "external papers read today by this seat to answer the person's question. Not in the store and not graded; for the librarian to verify and enter when the person lifts the hold",
+      "berut_petrosyan_ciliberto": "arXiv:1503.06537 (2015), the long account of Berut et al., Nature 483, 187 (2012), read from its pages 4-6: silica beads of radius 1.00 +/- 0.05 um; an acousto-optic deflector switching a 1024 nm beam at 10 kHz between two positions about 1 um apart; 10 to over 100 mW measured before the objective; a 63x NA 1.4 objective; beads 25 um above the cell bottom; the double well tuned by the distance between the traps and the time the beam spends on each, its asymmetry brought to about 0.1 k_B*T; a measured double well of about 3 k_B*T at 15 mW, tracked by camera at 502 Hz. The same kind of instrument as this bench, with a bead two and a half times smaller in diameter and the two foci inside it",
+      "albay_paneru_pak_jun": "arXiv:1810.00288 (2018), read from its pages 1-6: an optical feedback trap. One trap on a 1 um polystyrene bead; its position read by back-focal-plane interferometry to about 1 nm and the trap centre moved through an acousto-optic deflector every 10 us from an FPGA, so the bead feels any potential chosen in software. A virtual double well with barriers of 2, 3 and 4 k_B*T and minima 50 nm from the middle, whose dwell times matched Kramers' prediction. The bead stays at the centre of one trap, so no focus ever sits at its periphery",
+      "mccann_dykman_golding": "Nature 402, 785 (1999), from its abstract only: a sub-micrometre particle in a double-well optical trap, whose full three-dimensional potential was measured from its motion and whose transition rates agreed with Kramers' theory"
+    },
+    "ranked": [
+      "1. a bead of about 2 um with two traps about 1 um apart, as Berut et al. did on the same kind of instrument: the only change is the sample, and the double well it gives is tunable by separation and by the time the beam spends on each trap. The simulation has to be re-run for that bead, and the model here says nothing about a bead that small (ray optics does not hold there)",
+      "2. a feedback trap: one trap, moved fast enough in answer to the bead's position that the bead feels exactly the simulation's potential, with no second focus anywhere near it. The cleanest match to the simulation, and it needs a loop far faster than the 10 Hz position streaming the store records for this unit; whether the Tweez 300 can be steered that fast is unknown. A 5 um bead relaxes in about 30 ms, which eases the demand and does not remove it",
+      "3. this bead against the chamber's upper glass: the push can no longer kick it out, the power can be lowered and a fine separation scan then makes sense; but per the model the landscape is three wells, not two, and the glass adds friction and slows diffusion",
+      "4. a dual-beam trap: removes the push outright, and needs a beam from above that this unit does not have",
+      "5. a lower-index bead of this size, or its weight: not enough on their own"
+    ],
+    "recommendation": "The first, with the second as the cleaner test if the tweezers can be steered fast enough. Both are the person's choice, as is whether the simulation side is asked to re-run for a new bead.",
+    "facts_to_ask": [
+      "whether beads of about 1 to 2 um, silica or polystyrene, are to hand",
+      "whether the Tweez 300 can be steered from outside faster than TCP commands allow -- an analog input or a streaming mode -- and how fast",
+      "whether a thin chamber can be used with the traps focused just under its upper glass"
+    ]
+  }
+}
