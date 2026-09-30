@@ -1,0 +1,72 @@
+{
+  "entry_id": "binary_2d_assembly_gives_square_crystallites_first_then_hexagonal",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In self-assembly runs of the same two-dimensional binary model from a dilute disordered start at area fraction 0.083, at like-to-unlike attraction ratio 0.15 and kT/E_AB = 0.1, the first crystallites are square and turn into the compositionally ordered hexagonal structure once they grow past a certain size, growth proceeding mostly by clusters merging; the change happens in crystallites far above critical size and is driven by their own size-dependent thermodynamics rather than by the surrounding fluid.",
+  "numbers": [
+    {
+      "name": "packing_fraction",
+      "value": 0.083,
+      "unit": "1",
+      "source": "literature:src_pretti_2019_size_dependent_selection",
+      "grade": "E3",
+      "note": "area fraction of the initial dilute mixture (rho sigma^2 = 0.1)."
+    },
+    {
+      "name": "like_to_unlike_attraction_ratio",
+      "value": 0.15,
+      "unit": "1",
+      "source": "literature:src_pretti_2019_size_dependent_selection",
+      "grade": "E3",
+      "note": "E_AA/E_AB = E_BB/E_AB."
+    },
+    {
+      "name": "reduced_temperature",
+      "value": 0.1,
+      "unit": "1",
+      "source": "literature:src_pretti_2019_size_dependent_selection",
+      "grade": "E3",
+      "note": "kT/E_AB."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT, run in LAMMPS, not HOOMD. Two-dimensional 1:1 binary mixture with a short-ranged Fermi-Jagla pair potential (parameters in the Supplementary Text, not in the file), constant NVT with a Langevin thermostat; the unlike attraction E_AB is the energy scale, the like attractions E_AA and E_BB are given relative to it, and temperature as kT/E_AB. At least 1,000 particles at number density rho sigma^2 = 0.1 (area fraction 0.083); nucleation barriers and critical sizes are very low (fig. S1, not in the file), so the vapour depletes quickly. On lattice energy alone the hexagonal lattice is favoured at these conditions. The same effect appears in a model with explicit DNA strands run in HOOMD-blue.",
+  "validity": {
+    "packing_fraction": {
+      "min": 0.083,
+      "max": 0.083,
+      "unit": "1"
+    },
+    "like_to_unlike_attraction_ratio": {
+      "min": 0.15,
+      "max": 0.15,
+      "unit": "1"
+    },
+    "reduced_temperature": {
+      "min": 0.1,
+      "max": 0.1,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "like_to_unlike_attraction_ratio"
+    },
+    {
+      "kind": "quantity",
+      "id": "reduced_temperature"
+    },
+    {
+      "kind": "quantity",
+      "id": "packing_fraction"
+    }
+  ],
+  "source": "literature:src_pretti_2019_size_dependent_selection",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_pretti_2019_size_dependent_selection",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

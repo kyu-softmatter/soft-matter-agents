@@ -1,0 +1,73 @@
+{
+  "entry_id": "binary_2d_crystallite_free_energies_cross_near_100_particles",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Free energies of isolated non-periodic crystallites of the same two-dimensional binary model, at like-to-unlike attraction ratio 0.1 and kT/E_AB = 0.06, cross at about 100 particles, square being favoured below and hexagonal above, although the lattice energy alone favours hexagonal at every size considered; the crossover comes from the finite-temperature terms, the surface entropy with a heat-capacity contribution to the surface internal energy.",
+  "numbers": [
+    {
+      "name": "crystallite_particle_count",
+      "value": 100,
+      "unit": "count",
+      "source": "literature:src_pretti_2019_size_dependent_selection",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "the free-energy crossover size, stated as about 100."
+    },
+    {
+      "name": "like_to_unlike_attraction_ratio",
+      "value": 0.1,
+      "unit": "1",
+      "source": "literature:src_pretti_2019_size_dependent_selection",
+      "grade": "E3",
+      "note": "E_AA/E_AB = E_BB/E_AB."
+    },
+    {
+      "name": "reduced_temperature",
+      "value": 0.06,
+      "unit": "1",
+      "source": "literature:src_pretti_2019_size_dependent_selection",
+      "grade": "E3",
+      "note": "kT/E_AB."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT, run in LAMMPS, not HOOMD. Two-dimensional 1:1 binary mixture with a short-ranged Fermi-Jagla pair potential (parameters in the Supplementary Text, not in the file), constant NVT with a Langevin thermostat; the unlike attraction E_AB is the energy scale, the like attractions E_AA and E_BB are given relative to it, and temperature as kT/E_AB. Free energies by an extension of the Einstein-molecule method to crystals with exposed surfaces, kT/E_AB from 0.02 to 0.11, 32-point Gauss-Legendre integration, sizes from 36, extrapolation to infinite size over sizes of 100 and more. The molecular dynamics at the same conditions puts the crossover nearer 144 particles; the authors attribute the difference to the time transformations take in larger crystallites and to layer sliding that thermodynamic integration suppresses.",
+  "validity": {
+    "like_to_unlike_attraction_ratio": {
+      "min": 0.1,
+      "max": 0.1,
+      "unit": "1"
+    },
+    "reduced_temperature": {
+      "min": 0.06,
+      "max": 0.06,
+      "unit": "1"
+    },
+    "crystallite_particle_count": {
+      "min": 36,
+      "max": 324,
+      "unit": "count"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "crystallite_particle_count"
+    },
+    {
+      "kind": "quantity",
+      "id": "like_to_unlike_attraction_ratio"
+    },
+    {
+      "kind": "quantity",
+      "id": "reduced_temperature"
+    }
+  ],
+  "source": "literature:src_pretti_2019_size_dependent_selection",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_pretti_2019_size_dependent_selection",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}
