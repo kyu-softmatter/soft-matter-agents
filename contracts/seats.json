@@ -887,6 +887,124 @@
         "microscope_agent"
       ],
       "note": "A microscope session on the person's MacBook, rooted at microscope_agent/, opened by the person on 2026-09-28 with the other MacBook windows of that day. The person chose this new name in that session's window rather than microscope-kyuhwan-macbook-20260925-1, whose session was gone from the list with no commits: a vacated identity is not inherited. The seating reached architecture by relay -- that session's own record of the person's words, and the microscope manager's request -- which is not a seating; the person seated it directly, this row records what they did, and it is corrected if they say otherwise. The MacBook is not the bench machine, so this seat plans and analyses and never acquires. owns, paths and excludes copied by code from microscope-kyuhwan-macbook-20260925-1."
+    },
+    {
+      "seat": "manager-microscope-kyuhwan-macbook-20260928-1",
+      "committer_email": "manager-microscope-kyuhwan-macbook-20260928-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "microscope_agent/CLAUDE.md",
+        "microscope_agent/.claude/",
+        "microscope_agent/tasks/",
+        "microscope_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "note": "A session on the person's MacBook, rooted at the repository root, whose window the app titles 'microscope manager 1' with this name. The person opened it on 2026-09-28 with the other MacBook windows of that day and seated it in its own window. It is a new session by creation time, so it takes a new name rather than manager-microscope-kyuhwan-macbook-20260925-1's: a vacated identity is not inherited. Registered on 2026-09-29 on the person's instruction in architecture's window, 'Do both' (the person's Korean, rendered), given when asked whether to register the two librarian windows or all seven windows opened that day. The seating reached architecture by relay -- the window's title and its own records -- which is not a seating; this row records what the person did and is corrected if they say otherwise. owns, paths and excludes copied by code from manager-microscope-kyuhwan-macbook-20260925-1."
+    },
+    {
+      "seat": "manager-simulation-kyuhwan-macbook-20260928-2",
+      "committer_email": "manager-simulation-kyuhwan-macbook-20260928-2@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "simulation_agent/CLAUDE.md",
+        "simulation_agent/.claude/",
+        "simulation_agent/tasks/",
+        "simulation_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "note": "A session on the person's MacBook, rooted at the repository root, whose window the app titles 'simulation manager 2' with this name. The person opened it on 2026-09-28 with the other MacBook windows of that day and seated it in its own window. It is a new session by creation time, so it takes a new name rather than manager-simulation-kyuhwan-macbook-20260925-1's: a vacated identity is not inherited. Registered on 2026-09-29 on the person's instruction in architecture's window, 'Do both' (the person's Korean, rendered), given when asked whether to register the two librarian windows or all seven windows opened that day. The seating reached architecture by relay -- the window's title and its own records -- which is not a seating; this row records what the person did and is corrected if they say otherwise. owns, paths and excludes copied by code from manager-simulation-kyuhwan-macbook-20260925-1."
+    },
+    {
+      "seat": "manager-librarian-kyuhwan-macbook-20260928-3",
+      "committer_email": "manager-librarian-kyuhwan-macbook-20260928-3@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "librarian_agent/CLAUDE.md",
+        "librarian_agent/.claude/",
+        "librarian_agent/tasks/",
+        "librarian_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/seats.json",
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json"
+      ],
+      "note": "A session on the person's MacBook, rooted at the repository root, whose window the app titles 'librarian manager 3' with this name. The person opened it on 2026-09-28 with the other MacBook windows of that day and seated it in its own window. It is a new session by creation time, so it takes a new name rather than manager-librarian-kyuhwan-macbook-20260925-1's: a vacated identity is not inherited. Registered on 2026-09-29 on the person's instruction in architecture's window, 'Do both' (the person's Korean, rendered), given when asked whether to register the two librarian windows or all seven windows opened that day. The seating reached architecture by relay -- the window's title and its own records -- which is not a seating; this row records what the person did and is corrected if they say otherwise. owns, paths and excludes copied by code from manager-librarian-kyuhwan-macbook-20260925-1."
+    },
+    {
+      "seat": "manager-bridge-kyuhwan-macbook-20260928-4",
+      "committer_email": "manager-bridge-kyuhwan-macbook-20260928-4@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "bridge/CLAUDE.md",
+        "bridge/.claude/",
+        "bridge/tasks/",
+        "bridge/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/seats.json"
+      ],
+      "note": "A session on the person's MacBook, rooted at the repository root, whose window the app titles 'bridge manager 4' with this name. The person opened it on 2026-09-28 with the other MacBook windows of that day and seated it in its own window. It is a new session by creation time, so it takes a new name rather than manager-bridge-kyuhwan-macbook-20260925-1's: a vacated identity is not inherited. Registered on 2026-09-29 on the person's instruction in architecture's window, 'Do both' (the person's Korean, rendered), given when asked whether to register the two librarian windows or all seven windows opened that day. The seating reached architecture by relay -- the window's title and its own records -- which is not a seating; this row records what the person did and is corrected if they say otherwise. owns, paths and excludes copied by code from manager-bridge-kyuhwan-macbook-20260925-1."
+    },
+    {
+      "seat": "simulation-kyuhwan-macbook-20260928-2",
+      "committer_email": "simulation-kyuhwan-macbook-20260928-2@seat.invalid",
+      "owns": [
+        "simulation_agent"
+      ],
+      "note": "A session on the person's MacBook, rooted at simulation_agent/, whose window the app titles 'simulation execution seat 2' with this name. The person opened it on 2026-09-28 with the other MacBook windows of that day and seated it in its own window. It is a new session by creation time, so it takes a new name rather than simulation-kyuhwan-macbook-20260925-1's: a vacated identity is not inherited. Registered on 2026-09-29 on the person's instruction in architecture's window, 'Do both' (the person's Korean, rendered), given when asked whether to register the two librarian windows or all seven windows opened that day. The seating reached architecture by relay -- the window's title and its own records -- which is not a seating; this row records what the person did and is corrected if they say otherwise. owns, paths and excludes copied by code from simulation-kyuhwan-macbook-20260925-1."
+    },
+    {
+      "seat": "librarian-kyuhwan-macbook-20260928-3",
+      "committer_email": "librarian-kyuhwan-macbook-20260928-3@seat.invalid",
+      "owns": [
+        "librarian_agent"
+      ],
+      "note": "A session on the person's MacBook, rooted at librarian_agent/, whose window the app titles 'librarian execution seat 3' with this name. The person opened it on 2026-09-28 with the other MacBook windows of that day and seated it in its own window. It is a new session by creation time, so it takes a new name rather than librarian-kyuhwan-macbook-20260925-1's: a vacated identity is not inherited. Registered on 2026-09-29 on the person's instruction in architecture's window, 'Do both' (the person's Korean, rendered), given when asked whether to register the two librarian windows or all seven windows opened that day. The seating reached architecture by relay -- the window's title and its own records -- which is not a seating; this row records what the person did and is corrected if they say otherwise. owns, paths and excludes copied by code from librarian-kyuhwan-macbook-20260925-1."
+    },
+    {
+      "seat": "bridge-kyuhwan-macbook-20260928-4",
+      "committer_email": "bridge-kyuhwan-macbook-20260928-4@seat.invalid",
+      "owns": [
+        "bridge"
+      ],
+      "note": "A session on the person's MacBook, rooted at bridge/, whose window the app titles 'bridge execution seat 4' with this name. The person opened it on 2026-09-28 with the other MacBook windows of that day and seated it in its own window. It is a new session by creation time, so it takes a new name rather than bridge-kyuhwan-macbook-20260925-1's: a vacated identity is not inherited. Registered on 2026-09-29 on the person's instruction in architecture's window, 'Do both' (the person's Korean, rendered), given when asked whether to register the two librarian windows or all seven windows opened that day. The seating reached architecture by relay -- the window's title and its own records -- which is not a seating; this row records what the person did and is corrected if they say otherwise. owns, paths and excludes copied by code from bridge-kyuhwan-macbook-20260925-1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
