@@ -2876,7 +2876,7 @@ is never touched. The revision comes later, with `013`, and then the corrected c
 
 | Number | What | Seat holding it |
 |---|---|---|
-| _(empty)_ | 86 reached declaration on 2026-09-24; **an empty table is the normal state** |  |
+| 87 | Every safety guide names the store version it was rendered from, and that version is the store's current one or its published one | manager-librarian-kyuhwan-macbook-20260928-3 |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
 
