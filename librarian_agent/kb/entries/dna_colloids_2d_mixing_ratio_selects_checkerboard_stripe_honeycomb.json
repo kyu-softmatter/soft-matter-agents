@@ -1,0 +1,38 @@
+{
+  "entry_id": "dna_colloids_2d_mixing_ratio_selects_checkerboard_stripe_honeycomb",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In experiment, 619-nm DNA-coated polystyrene spheres in a two-dimensional chamber -- particle A carrying strand S, particle B a mixture of S and its complement S*, the mixing ratio alpha being the fraction of S on B -- crystallise as square checkerboard at alpha = 0, as hexagonal stripe from alpha = 0.1 (coexisting with checkerboard up to alpha = 0.3) and as hexagonal honeycomb at alpha = 0.5; at alpha = 0.3 a crystal nucleates square and becomes hexagonal as it grows, while at alpha = 0 and 0.5 it keeps its first symmetry.",
+  "numbers": [
+    {
+      "name": "dna_strand_fraction",
+      "value": 0.3,
+      "unit": "1",
+      "source": "literature:src_fang_2020_two_step_crystallization",
+      "grade": "E3",
+      "note": "the mixing ratio at which the two-step pathway was followed."
+    }
+  ],
+  "validity_conditions": "AN EXPERIMENT, NOT A MODEL RESULT. Suspension at about 1.0% volume fraction and about 1:1 A:B, squeezed between two plasma-cleaned coverslips; the temperature quenched to just above the melting temperature (half the particles unbound) and held about an hour; bright-field video and confocal imaging. At alpha = 0.4 the stripe pattern is gone, leaving small A clusters surrounded by B. The crystals' A:B ratio falls from 1:1 to about 1:2 as alpha rises although every sample started at 1:1. The authors read the checkerboard-stripe coexistence at alpha 0.1-0.2 as an unfinished transition within experimental time. The companion simulation entries (binary_2d_gcmc_*) reproduce the same sequence in a model with no hydrodynamics.",
+  "validity": {
+    "dna_strand_fraction": {
+      "min": 0.0,
+      "max": 0.5,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "dna_strand_fraction"
+    }
+  ],
+  "source": "literature:src_fang_2020_two_step_crystallization",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_fang_2020_two_step_crystallization",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}
