@@ -155,5 +155,7 @@ quantity in two places, and next week it is two quantities (P3).
 python3 contracts/validate.py
 ```
 
-A commit from this session touches `bridge/` and nothing else (§6.2, check 35).
+A commit from this session touches `bridge/` and the inboxes it delivers
+into, `<agent>/inbox/<thread>/`, and nothing else (§6.2, check 35). An inbox
+sits in the receiving agent's tree and is still the bridge's to write.
 `contracts/` is read here and written by the design session.
