@@ -1,0 +1,38 @@
+{
+  "entry_id": "frictional_contact_fluid_viscosity_drops_without_frictional_noise",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In three-dimensional pressure-driven flow of WCA spheres with Coulomb-Newton contact friction at volume fraction 0.15 between walls of immobilised particles, with no background medium and no hydrodynamic interactions, the shear viscosity rises only slightly with the linear friction parameter and does not depend on the Coulomb parameter, while stronger contact friction shortens the slip length; leaving out the frictional noise lowers the viscosity by roughly a factor of five and raises the slip strongly.",
+  "numbers": [
+    {
+      "name": "packing_fraction",
+      "value": 0.15,
+      "unit": "1",
+      "source": "literature:src_hofmann_2026_frictional_contacts",
+      "grade": "E3",
+      "note": "volume fraction of the flowing fluid."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT in HOOMD-blue. 10,000 particles in an accessible volume 151.694 x 15.1694 x 15.1694 sigma^3, periodic along the flow and the vorticity, walls on a square lattice of spacing sigma with Gaussian roughness; bulk force 0.01 kT/sigma, in the linear-response range (0.02 checked); kappa_f = 5 with gamma_f from 0.2 to 6 kT t0/sigma^2. The profiles are parabolic with substantial slip because particles can roll at the wall. The authors' reading: at this volume fraction the viscosity is set by the conservative interactions. At larger forces in a wall-free periodic set-up vortices destroy the flow, so the linear regime is narrow.",
+  "validity": {
+    "packing_fraction": {
+      "min": 0.15,
+      "max": 0.15,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "packing_fraction"
+    }
+  ],
+  "source": "literature:src_hofmann_2026_frictional_contacts",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_hofmann_2026_frictional_contacts",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

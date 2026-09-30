@@ -1,0 +1,39 @@
+{
+  "entry_id": "contact_friction_without_its_own_noise_breaks_equipartition",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "For spheres with tangential contact friction in a Langevin bath, keeping the dissipative friction force and torque but leaving out the stochastic force and torque that belong to them gives speed and angular-speed distributions that are not Maxwell-Boltzmann: the fitted effective temperatures fall below the bath temperature and differ between translation and rotation, so the system cannot be mapped onto any equilibrium one. With the matching multiplicative noise derived by Hofmann et al. included, both distributions sit at the bath temperature. Shown in two dimensions at area fraction 0.6 and in three dimensions at volume fraction 0.3.",
+  "numbers": [
+    {
+      "name": "packing_fraction",
+      "value": 0.6,
+      "unit": "1",
+      "source": "literature:src_hofmann_2026_frictional_contacts",
+      "grade": "E3",
+      "note": "two-dimensional area fraction of the consistency test."
+    },
+    {
+      "name": "packing_fraction",
+      "value": 0.3,
+      "unit": "1",
+      "source": "literature:src_hofmann_2026_frictional_contacts",
+      "grade": "E3",
+      "note": "three-dimensional volume fraction of the consistency test."
+    }
+  ],
+  "validity_conditions": "A THEORY RESULT CHECKED IN A MODEL. The need for the noise follows from requiring the Boltzmann distribution to be stationary (a fluctuation-dissipation relation), so it is not specific to the densities tested. Tested in HOOMD-blue with WCA spheres of radius sigma/2 and moment of inertia (2/5) m R^2, 10,000 particles, periodic, for linear, Coulomb and Coulomb-Newton friction, in two dimensions at area fraction 0.6 and three dimensions at volume fraction 0.3, Euler-forward (Ito) integration; the deviations grow with the friction parameters. The noise expressions are given for the Ito, Stratonovich and Hanggi-Klimontovich conventions; spinning friction and static friction are outside the model.",
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "packing_fraction"
+    }
+  ],
+  "source": "literature:src_hofmann_2026_frictional_contacts",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_hofmann_2026_frictional_contacts",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}
