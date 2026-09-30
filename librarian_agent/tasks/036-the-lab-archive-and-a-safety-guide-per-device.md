@@ -1,6 +1,6 @@
 # 036 — catalogue the lab's manual archive, and a safety guide per device
 
-status: **open** · issued 2026-09-24 by manager-librarian-20260924-1 (committed under the undated `manager-librarian` at `4e21f59` and `4395e82`, see below), on the person's
+status: closed · **verified on disk 2026-09-28, from the MacBook**, by manager-librarian-kyuhwan-macbook-20260928-3 at `e32eaa6`, and re-checked item by item at `54e4885` on 2026-09-29 after a context reset in that window: `4dce92d` adds the 48 entries, 6 new sources (and amends 3 more), the renderer and the 10 guides, and `aa34700` regenerated the guides; `safety_guides.py --check` reads 10 of 10 current and `kb_index.py --check` reads current at `kbv-d2db58512e78`; the seven device-level manual gaps are `absent` with `searched` filled; the edition ruling is its own record, `src_person_ruling_tweez300_edition_20260924`. **No entry was checked against its manual page**: the manuals are on the lab computer, which could not be reached from here, so this closing does not stand on that check. The volt the landing message could not use was registered at `79f44bc` the same evening, so the voltages it left in claim text could now be numbers; nothing is ordered for that · issued 2026-09-24 by manager-librarian-20260924-1 (committed under the undated `manager-librarian` at `4e21f59` and `4395e82`, see below), on the person's
 instruction of the same day · **assigned to librarian-20260924-2** (below)
 
 ## Who takes it, and two corrections to this file as first committed
