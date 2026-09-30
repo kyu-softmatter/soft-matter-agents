@@ -7955,6 +7955,116 @@ def check_86_operation_plan(b: Bundle) -> list[Finding]:
     return out
 
 
+GUIDE_FOOTER = re.compile(r"Generated from the knowledge store at (kbv-[0-9a-f]+)\.")
+
+
+def check_87_safety_guides_follow_the_store(b: Bundle) -> list[Finding]:
+    """Every safety guide names a store version that is current or published.
+
+    `librarian_agent/src/safety_guides.py` renders one page per device into
+    `kb/guides/safety_<device>.md`, for the person to read before touching the
+    instrument, and ends each page with the store version it was rendered
+    from. On 2026-09-29 the publish of task 039 (`a16a650`) moved the store
+    and all three exports to kbv-49b098a90994 and regenerated none of the ten
+    guides: every footer still named kbv-d2db58512e78, `safety_guides.py
+    --check` read 0 of 10, and every seat's gate read 0 failed, because
+    nothing here read the guides at all. The content happened not to have
+    moved -- regenerating changed one footer line per page (`62d6c9a`) -- but
+    that was luck and not design. On the day a publish carries a new device
+    safety fact, the page the person reads would lack it, and nothing would
+    say so.
+
+    THE RULE, AND WHY IT IS TWO VERSIONS AND NOT ONE. A guide passes if its
+    footer names `kb/index.json`'s `kb_version` or the version the exports
+    carry. The store's own version alone would refuse correct work: 039 was
+    committed paper by paper, each commit moved the index, and the published
+    store -- the one every other agent reads -- did not move until the
+    publish. Guides left at the published version between publishes are what
+    publishing means, not staleness. The exports' version alone would refuse
+    the other correct order, which is the house's: `aa34700` regenerated the
+    guides in its content commit, before the publish at `b7dcc9b` moved the
+    exports. What neither admits is a guide behind BOTH, which is exactly a
+    publish that did not regenerate the guides -- the shape that happened --
+    or a regeneration at a version since left behind on both sides.
+
+    So the gate refuses the publish commit itself unless the guides move with
+    it or before it. That is the order `librarian_agent/CLAUDE.md` now states.
+
+    A guide with no footer fails as well: it cannot say which store it shows,
+    and a hand edit is the likeliest way to lose the line.
+
+    WHAT IT DOES NOT SEE, SAID SO IT IS NOT MISTAKEN FOR MORE. It reads the
+    version line, not the content, and not which devices get a page. A guide
+    edited by hand under an intact footer, or a guide deleted by hand while
+    the rest stay current, passes here; `safety_guides.py --check` renders
+    and compares and sees both, and it is the librarian's tool, run by hand.
+    Rendering here would mean importing the librarian's source, which
+    contracts/ may not do (check 16's direction), or re-implementing the
+    renderer, and two renderers that can disagree is the failure check 61's
+    docstring already names for its own copied comparison.
+
+    FIXTURES are built repositories in `contracts/history_fixtures.py`: a
+    guide behind both versions, a guide with no footer, and -- asserted from
+    the other side -- guides left at the published version while the store
+    moved, which has to pass. The rejected folder cannot host them, because
+    it iterates cards and no file here is one.
+    """
+    guides_dir = KB_DIR / "guides"
+    guides = sorted(guides_dir.glob("safety_*.md")) if guides_dir.is_dir() else []
+    if not guides:
+        return [Finding(87, NA, "no safety guide has been rendered, so none can trail the store")]
+
+    try:
+        store = json.loads(KB_INDEX_PATH.read_text(encoding="utf-8")).get("kb_version")
+    except (OSError, json.JSONDecodeError):
+        store = None                        # check 25 owns a missing or unreadable index
+    published: set[str] = set()
+    for p in sorted((KB_DIR / "exports").glob("snapshot_*.json")):
+        try:
+            v = json.loads(p.read_text(encoding="utf-8")).get("kb_version")
+        except (OSError, json.JSONDecodeError):
+            continue                        # check 1 owns an export that does not parse
+        if v:
+            published.add(v)
+    allowed = ({store} if store else set()) | published
+    if not allowed:
+        return [Finding(87, PENDING, f"{len(guides)} safety guides exist and neither kb/index.json nor any "
+                                     f"export names a store version, so none of them can be judged",
+                        _rel(guides_dir))]
+
+    where = (f"the store is at {store or 'no readable version'} and the exports at "
+             f"{', '.join(sorted(published)) or 'nothing published'}")
+    out: list[Finding] = []
+    at: dict[str, int] = {}
+    for g in guides:
+        m = GUIDE_FOOTER.search(g.read_text(encoding="utf-8"))
+        if m is None:
+            out.append(Finding(87, FAIL, "names no store version in its footer, so which store it shows cannot "
+                                         "be read. Regenerate it with librarian_agent/src/safety_guides.py; "
+                                         "a guide is never edited by hand", _rel(g)))
+            continue
+        v = m.group(1)
+        at[v] = at.get(v, 0) + 1
+        if v not in allowed:
+            out.append(Finding(87, FAIL, f"was rendered from {v}, and {where} -- behind both, which is a publish "
+                                         f"that did not regenerate the guides. A page the person reads before "
+                                         f"touching the instrument could lack a safety fact the store holds. Run "
+                                         f"librarian_agent/src/safety_guides.py and commit the guides with the "
+                                         f"publish or before it", _rel(g)))
+    if out:
+        return out
+
+    parts = []
+    for v, n in sorted(at.items()):
+        role = " and ".join(r for r, ok in (("the store's own", v == store), ("the published", v in published)) if ok)
+        parts.append(f"{n} at {v}, {role} version")
+    note = ""
+    if store and store not in at and published:
+        note = (f"; the store has moved to {store} since, and the guides follow at the next publish, which is "
+                f"when they have to")
+    return [Finding(87, PASS, f"{len(guides)} safety guides name the store they show: " + "; ".join(parts) + note)]
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -7990,6 +8100,7 @@ CHECKS = [
     check_73_a_result_names_an_approval_and_a_run_that_exist,
     check_60_observables_are_registered_quantities,
     check_61_envelope_currency,
+    check_87_safety_guides_follow_the_store,
     check_67_entry_units_are_declared,
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,

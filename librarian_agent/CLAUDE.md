@@ -234,10 +234,30 @@ those after confirming them physically.
 ## Commands
 
 ```bash
-python3 librarian_agent/src/kb_index.py          # rebuild kb/index.json
-python3 librarian_agent/src/kb_index.py --check  # fail if it is stale
-python3 contracts/validate.py                    # entries are schema-checked here too
+python3 librarian_agent/src/kb_index.py                # rebuild kb/index.json
+python3 librarian_agent/src/kb_index.py --check        # fail if it is stale
+python3 librarian_agent/src/export_snapshot.py         # publish kb/exports/snapshot_<agent>.json
+python3 librarian_agent/src/export_snapshot.py --check # fail if a published snapshot is stale
+python3 librarian_agent/src/safety_guides.py           # regenerate kb/guides/ -- with every publish
+python3 librarian_agent/src/safety_guides.py --check   # fail if any guide differs from what the store renders
+python3 contracts/validate.py                          # entries are schema-checked here too
 ```
+
+**A PUBLISH MOVES EVERY SAFETY GUIDE.** Each page in `kb/guides/` ends with
+the store version it was rendered from. So run `safety_guides.py` in the same
+sitting as `export_snapshot.py`, and commit the guides **with the publish or
+before it -- never after.** Check 87 refuses a guide whose version is neither
+the store's own nor the published one, so a publish committed without them
+fails its own gate.
+
+It exists because on 2026-09-29 the 039 publish (`a16a650`) left all ten pages
+at the previous version. `safety_guides.py --check` read 0 of 10, and every
+gate read 0 failed. Nothing a librarian seat re-read said the guides move.
+
+Guides left at the published version while entries are committed between
+publishes are correct, and they pass. Check 87 reads versions only: a page
+edited or deleted by hand is seen by `safety_guides.py --check`, not by the
+gate.
 
 **COMMIT `queries/log.jsonl` OFTEN, AND BEFORE YOU GO IDLE.** The log is
 append-only and it is **the only thing that can back another agent's card.**
