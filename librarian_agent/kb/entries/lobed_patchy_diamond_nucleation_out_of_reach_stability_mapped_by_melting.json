@@ -1,0 +1,25 @@
+{
+  "entry_id": "lobed_patchy_diamond_nucleation_out_of_reach_stability_mapped_by_melting",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Kim et al. found that unbiased Langevin simulations of their tetrahedrally lobed patchy particles started from a disordered gas gave spontaneous cubic diamond only for some parameter sets, nucleation and growth not being seen within reachable simulation times over much of the compression-ratio and size-ratio space, and mapped the stability region instead by melting runs started from the crystal.",
+  "validity_conditions": "A MODEL RESULT. Tetrahedrally lobed patchy particles modelled as five spheres (four lobes and one central sphere for the patches) with an Alexander-de Gennes brush repulsion plus Asakura-Oosawa depletion (parameters in the SI, not in the file); Langevin dynamics in HOOMD-blue v2.9.7. Melting runs: 600 particles started in cubic diamond, 1e8 steps at time step 0.0001, stability judged by the fraction still diamond by common-neighbour analysis in OVITO; parameter sets outside the region melted completely. A melting run bounds where the crystal is stable, not where it can nucleate, so a plan reading this should not expect spontaneous diamond everywhere inside the region.",
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "lobe_compression_ratio"
+    },
+    {
+      "kind": "quantity",
+      "id": "patch_protrusion_ratio"
+    }
+  ],
+  "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_kim_2026_depletion_colloidal_diamond",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

@@ -1,0 +1,55 @@
+{
+  "entry_id": "pairwise_depletion_potentials_overestimate_for_large_depletants_on_lobed_particles",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "For a pair of tetrahedrally lobed patchy particles in the fully staggered, touching configuration at compression ratio 0.7, Monte Carlo integration of the excluded-volume overlap shows the separate lobe-lobe overlap regions stay separate for depletant-to-lobe radius ratios up to 0.075 but overlap from 0.10 upward, where adding up pairwise depletion potentials overestimates the attraction by up to 30%; pairwise depletion potentials therefore fail for large depletants on these shapes.",
+  "numbers": [
+    {
+      "name": "depletant_to_colloid_radius_ratio",
+      "value": 0.075,
+      "unit": "1",
+      "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+      "grade": "E3",
+      "note": "largest ratio at which the overlap regions stay separate."
+    },
+    {
+      "name": "depletant_to_colloid_radius_ratio",
+      "value": 0.1,
+      "unit": "1",
+      "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+      "grade": "E3",
+      "note": "ratio from which they overlap and pairwise additivity overestimates."
+    }
+  ],
+  "validity_conditions": "A GEOMETRIC CALCULATION, not a dynamics result: Monte Carlo integration of the depletant-excluded volume for a fixed pair, compared with the sum of pairwise overlaps, for depletant-to-lobe radius ratios from 0.01 to 0.20 at compression ratio 0.7. It warns against the pairwise-additive depletion potential common in molecular dynamics, including the kind this paper's own dynamics uses; the paper's own runs sit at a ratio of 0.02, below the 0.075 up to which the overlap regions stay separate.",
+  "validity": {
+    "depletant_to_colloid_radius_ratio": {
+      "min": 0.01,
+      "max": 0.2,
+      "unit": "1"
+    },
+    "lobe_compression_ratio": {
+      "min": 0.7,
+      "max": 0.7,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "depletant_to_colloid_radius_ratio"
+    },
+    {
+      "kind": "quantity",
+      "id": "lobe_compression_ratio"
+    }
+  ],
+  "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_kim_2026_depletion_colloidal_diamond",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

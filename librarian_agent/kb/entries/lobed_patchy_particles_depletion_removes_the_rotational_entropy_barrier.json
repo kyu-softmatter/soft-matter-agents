@@ -1,0 +1,60 @@
+{
+  "entry_id": "lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In umbrella-sampling simulations of a pair of tetrahedrally lobed patchy particles with brush repulsion and Asakura-Oosawa depletion, at compression ratio 0.6, size ratio 1.21 and depletant-to-lobe radius ratio 0.02, the free energy without depletant rises steadily as the pair approaches -- the rotational-entropy cost of interlocking -- while adding depletant creates a local minimum at the staggered bonding separation (1.229 um), and a depletant volume fraction of 0.05 removes the entropic barrier and makes the staggered bond the global minimum.",
+  "numbers": [
+    {
+      "name": "depletant_volume_fraction",
+      "value": 0.05,
+      "unit": "1",
+      "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+      "grade": "E3",
+      "note": "the depletant volume fraction at which the barrier is gone: parameter of an implicit AO potential; the paper does not say whether it is the reservoir or the system fraction."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT. Tetrahedrally lobed patchy particles modelled as five spheres (four lobes and one central sphere for the patches) with an Alexander-de Gennes brush repulsion plus Asakura-Oosawa depletion (parameters in the SI, not in the file); Langevin dynamics in HOOMD-blue v2.9.7. Harmonic restraint on the centre separation with spring constant 3,333 kT/um^2, 40 windows with rest lengths from 1.16 to 3 um, 2e8 steps per window with the second half analysed by WHAM. The geometry matches the experiment. The authors contrast this with the DNA patch-patch model of their reference 10, whose landscape follows the purely entropic curve until the patches touch and then has a narrow minimum behind an entropic barrier.",
+  "validity": {
+    "lobe_compression_ratio": {
+      "min": 0.6,
+      "max": 0.6,
+      "unit": "1"
+    },
+    "patch_protrusion_ratio": {
+      "min": 1.21,
+      "max": 1.21,
+      "unit": "1"
+    },
+    "depletant_to_colloid_radius_ratio": {
+      "min": 0.02,
+      "max": 0.02,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "lobe_compression_ratio"
+    },
+    {
+      "kind": "quantity",
+      "id": "patch_protrusion_ratio"
+    },
+    {
+      "kind": "quantity",
+      "id": "depletant_to_colloid_radius_ratio"
+    },
+    {
+      "kind": "quantity",
+      "id": "depletant_volume_fraction"
+    }
+  ],
+  "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_kim_2026_depletion_colloidal_diamond",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

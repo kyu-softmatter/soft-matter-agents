@@ -1,0 +1,25 @@
+{
+  "entry_id": "depletion_driven_lobed_diamond_forms_at_or_below_the_kissing_size_ratio",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Experimentally, depletion-driven cubic diamond from tetrahedrally lobed patchy particles forms at size ratios below or near the kissing geometry -- patches retracted, lobes fully interlocked with six contacts -- whereas for DNA-mediated patch-patch binding the simulations the authors cite find diamond only above the kissing geometry; they attribute the difference to depletion favouring the higher coordination and larger excluded-volume overlap of the fully interlocked state.",
+  "validity_conditions": "AN EXPERIMENTAL OBSERVATION with a comparison to other work. The kissing geometry is the size ratio at which neighbouring patches just touch while the lobes stay fully interlocked; it depends on the compression ratio and is drawn only in Fig. 5, so no numerical boundary is entered. The contrast with DNA binding rests on the authors' reference 10 (Gales et al. 2025) and a re-analysis of He et al. 2020 in their SI; see dna_patchy_tetrahedral_clusters_crystallise_diamond_at_compression_0_63_to_0_78 for that system.",
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "patch_protrusion_ratio"
+    },
+    {
+      "kind": "quantity",
+      "id": "lobe_compression_ratio"
+    }
+  ],
+  "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_kim_2026_depletion_colloidal_diamond",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

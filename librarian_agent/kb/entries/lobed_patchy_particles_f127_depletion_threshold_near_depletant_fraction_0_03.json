@@ -1,0 +1,32 @@
+{
+  "entry_id": "lobed_patchy_particles_f127_depletion_threshold_near_depletant_fraction_0_03",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In experiment, tetrahedrally lobed patchy particles with 1-um polystyrene lobes crystallised into cubic diamond with Pluronic F127 micelles as depletant in 500 mM NaCl at 0.60% (w/v) F127, just above the critical micelle concentration and corresponding to a depletant volume fraction of about 0.03; nothing crystallised at 0.55% (w/v), and above 0.60% the structures grew increasingly dendritic.",
+  "numbers": [
+    {
+      "name": "depletant_volume_fraction",
+      "value": 0.03,
+      "unit": "1",
+      "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "volume fraction of F127 micelles actually in the sample at the 0.60% (w/v) threshold, explicit depletant, as the paper states it."
+    }
+  ],
+  "validity_conditions": "AN EXPERIMENT, NOT A MODEL RESULT. Room temperature, 500 mM NaCl (Debye length 0.43 nm), HMDS-treated glass capillaries of 100 um x 2 mm x 5 cm; the series ran from 0.6% to 0.8% (w/v) F127. The authors attribute the dendritic growth at higher depletion to rapid sticking and kinetic roughening, as in diffusion-limited aggregation. The F127 critical micelle concentration is about 0.1% (w/v). Mass-per-volume percentages are carried in words; the store registers mg/ml but the paper states w/v percent, and no conversion was made.",
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "depletant_volume_fraction"
+    }
+  ],
+  "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_kim_2026_depletion_colloidal_diamond",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}
