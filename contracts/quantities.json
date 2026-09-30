@@ -301,6 +301,139 @@
       "unit": "1",
       "kind": "physical",
       "note": "TWO IDS AND NOT ONE, and the reason was measured on 2026-09-23 rather than argued. Nondimensionalising the exact free-ABP mean squared displacement on s=(d-1)*D_R*t and sqrt(D_T/((d-1)*D_R)) leaves MSD* = 2d*s + 2L*(s - 1 + exp(-s)) with L = v0^2/((d-1)*D_R*D_T) = this number squared, and NO LENGTH ANYWHERE. Four combinations of D_R and D_T spread over four decades at fixed L collapsed to a relative deviation of 1e-14, and moving L to 5 and 500 spread them by 0.87 and 8.7. Measured independently by the execution seat and by this one, with the same figures.\n\nThe steric convention cannot stand in for it in a free question: with v0, D_R and D_T swept independently the diameter D_T implies and the diameter Stokes-Einstein-Debye implies disagree by up to 9129x. The two names are not rivals -- where a diameter is real they are the same number written twice -- and merging them would make two groups look comparable by sharing a string, which is what `comparable: false` exists to prevent."
+    },
+    {
+      "id": "packing_fraction",
+      "definition": "The fraction of space the particles occupy, in the system's own dimension: an area fraction in two dimensions and a volume fraction in three.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Registered 2026-09-28 from use that already existed: the simulation agent writes this name, unit 1, in its two-dimensional WCA questions, and the HOOMD papers of librarian task 039 write it in two and three dimensions. A 2D value and a 3D value are different numbers for one idea, and nothing in `validity` can carry the dimension because no dimension quantity is registered, so an entry says which it is in its claim and its validity_conditions. A depletant's fraction is not written under this name but as `depletant_volume_fraction`: in a depletion system it is a second control variable beside this one, and one name for both would make a validity range ambiguous."
+    },
+    {
+      "id": "pair_well_depth",
+      "definition": "The depth of the minimum of an attractive pair potential between two named particle types, measured from the potential's value at large separation.",
+      "unit": "kT",
+      "kind": "physical",
+      "note": "Which pair it is (A-A, A-B, ...) is named with the number. A purely repulsive potential's energy scale, such as the simulation agent's `wca_epsilon`, is not a well depth. Like `interwell_barrier_height`, a value in kT cannot bound a validity condition today: kT has no fixed SI factor and the server refuses a unit without one, so this name appears in numbers[] and not in `validity` until the server can compare kT with kT directly."
+    },
+    {
+      "id": "like_to_unlike_attraction_ratio",
+      "definition": "In a binary mixture, the attraction strength of a like pair (A-A or B-B) divided by that of the unlike pair (A-B).",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Pretti et al.'s E_AA/E_AB. Where the two like pairs differ, the number names which one."
+    },
+    {
+      "id": "reduced_temperature",
+      "definition": "The thermal energy kT divided by the energy unit of the model it is stated in.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Comparable only within one model, because each model chooses its own energy unit: Pretti et al. divide by the unlike-pair attraction E_AB, and He et al. state a melting temperature in their model's energy units. The entry names the energy unit with the number."
+    },
+    {
+      "id": "crystallite_particle_count",
+      "definition": "The number of particles in one finite crystallite.",
+      "unit": "count",
+      "kind": "physical",
+      "note": "The size of a crystallite counted in particles, as Pretti et al. study it. It is not the number of particles in a periodic simulation box, which the simulation agent writes as `n_particles` (not registered), and the two are not to be matched against each other."
+    },
+    {
+      "id": "dipolar_coupling_strength",
+      "definition": "lambda = mu^2/(kT*sigma^3): a particle's point-dipole moment squared, over kT and the cube of its diameter, as Kelidou et al. write it.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Pinned to that convention. A convention carrying 4*pi or mu_0 gives a different number for the same system and needs its own id."
+    },
+    {
+      "id": "reduced_number_density",
+      "definition": "The number density times the particle diameter to the power of the dimension, n*sigma^d.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Its relation to `packing_fraction` depends on the particle's shape and on d, so the two are not converted into each other here. As with `packing_fraction`, a 2D and a 3D value are different numbers and the entry says which."
+    },
+    {
+      "id": "lobe_compression_ratio",
+      "definition": "For a cluster of overlapping spherical lobes, the centre-to-centre distance between lobes divided by the lobe diameter, d_cc/(2a).",
+      "unit": "1",
+      "kind": "physical",
+      "note": "He et al. and Kim et al. call it the compression ratio. Registered with `lobe_` so that it cannot be confused with the compression ratio of a simulation box."
+    },
+    {
+      "id": "patch_protrusion_ratio",
+      "definition": "For a cluster of overlapping spherical lobes with a central patch, the radial extent of the patch from the cluster's centre divided by the lobe radius, b/a.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "He et al. and Kim et al. call it a size ratio, which is too generic to register: the large-to-small radius ratio of a mixture is also a size ratio."
+    },
+    {
+      "id": "depletant_to_colloid_radius_ratio",
+      "definition": "The depletant's radius divided by the colloid's radius, a/R. For a particle made of lobes, R is the lobe radius.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "As Kim et al. write it."
+    },
+    {
+      "id": "depletant_volume_fraction",
+      "definition": "The volume fraction of a depletant, n*v_d: the depletant's number density times the volume of one depletant particle.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "In an experiment it is the fraction in the sample. In a model with an implicit depletant it is the parameter the depletion potential is written with, and n there may be a reservoir density or the system's own: Kim et al. write U_d = -n*kT*dV_ov and do not say which. The entry says which, or that the paper does not; if a question ever needs the two told apart, the reservoir fraction gets its own id then. Kept apart from `packing_fraction`, the colloids' own fraction, which sits beside this one in a depletion system."
+    },
+    {
+      "id": "active_fraction",
+      "definition": "In a mixture of active and passive particles, the fraction of the particles that are active.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Shee et al.'s alpha."
+    },
+    {
+      "id": "active_energy",
+      "definition": "The product of `active_fraction` and the square of `peclet_number_steric`, alpha*Pe^2, which Shee et al. use as the control parameter of active dopants.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Dimensionless: the bare product, as the paper defines it. Despite the name it carries no kT; an energy in kT would be a different quantity with its own id."
+    },
+    {
+      "id": "reduced_active_force",
+      "definition": "F_a*sigma/kT: an active particle's self-propulsion force times its diameter, over kT, as Kelidou et al. write f_a.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "In overdamped Brownian dynamics with one friction coefficient, F_a = gamma*v0 and D_T = kT/gamma, so this equals v0*sigma/D_T. That is neither registered Peclet number, and it is kept apart from them for the reason they are kept apart from each other: the tie holds only in that model."
+    },
+    {
+      "id": "peclet_number_shear",
+      "definition": "The shear rate times the particle's Brownian time: 6*pi*eta*gammadot*a^3/kT, with a the particle RADIUS, as Lee and Park write it.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Beside `peclet_number_steric` and `peclet_number_thermal`, which are about self-propulsion and not shear. Pinned to the radius and the 6*pi: a convention written with the diameter, or without the 6*pi, gives a different number and needs its own id."
+    },
+    {
+      "id": "shear_strain",
+      "definition": "The accumulated shear strain: the shear rate integrated over the time since shear started.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Lee and Park use it for startup shear."
+    },
+    {
+      "id": "hexatic_correlation_exponent",
+      "definition": "eta_6: the exponent of the algebraic decay, r^(-eta_6), of the bond-orientational correlation function g_6(r).",
+      "unit": "1",
+      "kind": "physical",
+      "note": "As Vyas et al. use it for two-dimensional melting."
+    },
+    {
+      "id": "hexatic_order_parameter",
+      "definition": "|Psi_6| = |(1/N) sum_j psi_6,j|: the magnitude of the six-fold bond-orientational order averaged over all N particles, where psi_6,j is particle j's local bond-orientational order.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "THE GLOBAL MAGNITUDE, and the definition pins it. The average of the local magnitudes, (1/N) sum_j |psi_6,j|, is a different number for the same configuration and would need its own id. The `structural_relaxation_time` observable averages psi6 over particles without saying which of the two, so the two are not yet known to be the same number."
+    },
+    {
+      "id": "dna_strand_fraction",
+      "definition": "For a DNA-coated particle carrying two strand types, the fraction of its strands that are of one named type.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Fang et al.'s mixing ratio alpha: the fraction of strand S among the strands on particle B in their S/S* scheme. A fraction, so the name says fraction."
     }
   ],
   "not_yet_registered": {
