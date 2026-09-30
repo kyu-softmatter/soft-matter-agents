@@ -1583,7 +1583,11 @@ ALLOWED_PATHS = [
     # the file. It exists because git on the microscope computer checks out
     # with core.autocrlf=true, so everything that hashes file contents -- check
     # 25 against kb/index.json first -- saw CRLF bytes where LF was committed.
-    r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.gitattributes|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock)$",
+    #
+    # LICENSE by the same route, 2026-09-29, on architecture's request: the
+    # person asked for an MIT license at the repository root. These two lists
+    # first, then the section 7 item and the seat's paths, then the file.
+    r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|LICENSE|\.gitignore|\.gitattributes|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock)$",
     r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|seats\.json|validate\.py|validation_limits\.json|history_fixtures\.py)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
@@ -2852,7 +2856,7 @@ AGENT_OF_PATH = [
 # verified by doing it, which produced `seat 'architecture' owns ['design'];
 # this path is unattributable's` on 952205c, 31f86c1 and 8d61a3a. A path
 # classifier for history must keep every name history ever had.
-SHARED_PATHS = re.compile(r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|\.gitignore|\.gitattributes|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock|\.claude/|docs/)")
+SHARED_PATHS = re.compile(r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|LICENSE|\.gitignore|\.gitattributes|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock|\.claude/|docs/)")
 # Both lists, because they answer different questions about the same file:
 # ALLOWED_PATHS says it may exist and SHARED_PATHS says whose boundary it is
 # in. A root file added to the first alone passes check 13 and classifies as
