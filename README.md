@@ -197,6 +197,10 @@ a bare run is nobody's commit.
 Ask the run, not this file. Counts written into prose here were wrong three
 times in one day, which is why there are none.
 
+## License
+
+MIT. See [LICENSE](LICENSE).
+
 ---
 
 Public, and in development. The design is deliberately slower than it needs to
