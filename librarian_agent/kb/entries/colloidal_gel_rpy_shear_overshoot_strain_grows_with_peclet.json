@@ -1,0 +1,59 @@
+{
+  "entry_id": "colloidal_gel_rpy_shear_overshoot_strain_grows_with_peclet",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In Brownian dynamics of a three-dimensional Morse-attractive colloidal gel at volume fraction 0.2 with far-field Rotne-Prager-Yamakawa hydrodynamics and no lubrication, the strain at the shear-stress overshoot under startup shear grows with the shear Peclet number between 15 and 300; the authors cite gel simulations without hydrodynamic interactions in which that strain does not change, unlike in experiments, and take the difference as showing hydrodynamic interactions are needed for the transient rheology of gels.",
+  "numbers": [
+    {
+      "name": "pair_well_depth",
+      "value": 15,
+      "unit": "kT",
+      "source": "literature:src_lee_park_2026_gel_normal_stress",
+      "grade": "E3",
+      "note": "V0, the Morse well depth, chosen in the gel-forming range."
+    },
+    {
+      "name": "packing_fraction",
+      "value": 0.2,
+      "unit": "1",
+      "source": "literature:src_lee_park_2026_gel_normal_stress",
+      "grade": "E3",
+      "note": "volume fraction of the gel."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT. Brownian dynamics of spheres (radius a = 1) with a Morse attraction of depth 15 kT and kappa a = 30, cut off at 3.0, and many-body far-field hydrodynamics through the Rotne-Prager-Yamakawa mobility (Positively Split Ewald), no lubrication, overdamped; 10,648 particles gelled from a random start at volume fraction 0.2 for 100 time units (6 pi eta a^3/kT) at time step 1e-4, then sheared at time step 1e-6; shear Peclet number 6 pi eta gammadot a^3/kT from 15 to 300, equivalently Mason number 1 to 20; stress from the interparticle forces only. HOOMD 2.4.0 with the authors' plugin. The comparison with simulations without hydrodynamics is the authors' reading of other work (their refs. 70, 94, 95), not a run in this paper.",
+  "validity": {
+    "peclet_number_shear": {
+      "min": 15,
+      "max": 300,
+      "unit": "1"
+    },
+    "packing_fraction": {
+      "min": 0.2,
+      "max": 0.2,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "peclet_number_shear"
+    },
+    {
+      "kind": "quantity",
+      "id": "pair_well_depth"
+    },
+    {
+      "kind": "quantity",
+      "id": "packing_fraction"
+    }
+  ],
+  "source": "literature:src_lee_park_2026_gel_normal_stress",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_lee_park_2026_gel_normal_stress",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

@@ -1,0 +1,69 @@
+{
+  "entry_id": "colloidal_gel_rpy_second_normal_stress_negative_and_overshoots_later",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In the same gel model (three dimensions, volume fraction 0.2), the second normal stress difference is negative throughout yielding and larger in magnitude than the first, and its overshoot comes at a larger strain than the shear-stress overshoot -- about 0.2 against about 0.1 at shear Peclet number 150 -- with the two strains converging as the Peclet number rises until they coincide at 300. The shear overshoot follows bond rupture along the extensional axis; the normal-stress overshoot follows compression and near-vertical bond alignment along the gradient direction.",
+  "numbers": [
+    {
+      "name": "shear_strain",
+      "value": 0.1,
+      "unit": "1",
+      "source": "literature:src_lee_park_2026_gel_normal_stress",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "strain at the shear-stress maximum at shear Peclet number 150."
+    },
+    {
+      "name": "shear_strain",
+      "value": 0.2,
+      "unit": "1",
+      "source": "literature:src_lee_park_2026_gel_normal_stress",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "strain at the second-normal-stress maximum at shear Peclet number 150."
+    },
+    {
+      "name": "peclet_number_shear",
+      "value": 300,
+      "unit": "1",
+      "source": "literature:src_lee_park_2026_gel_normal_stress",
+      "grade": "E3",
+      "note": "the Peclet number at which the two strains coincide."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT. Brownian dynamics of spheres (radius a = 1) with a Morse attraction of depth 15 kT and kappa a = 30, cut off at 3.0, and many-body far-field hydrodynamics through the Rotne-Prager-Yamakawa mobility (Positively Split Ewald), no lubrication, overdamped; 10,648 particles gelled from a random start at volume fraction 0.2 for 100 time units (6 pi eta a^3/kT) at time step 1e-4, then sheared at time step 1e-6; shear Peclet number 6 pi eta gammadot a^3/kT from 15 to 300, equivalently Mason number 1 to 20; stress from the interparticle forces only. HOOMD 2.4.0 with the authors' plugin. The first normal stress difference is briefly negative at the start and positive afterwards at every Peclet number. The authors call the normal-stress overshoot potential yielding, as against the mechanical yielding of the shear overshoot.",
+  "validity": {
+    "peclet_number_shear": {
+      "min": 15,
+      "max": 300,
+      "unit": "1"
+    },
+    "packing_fraction": {
+      "min": 0.2,
+      "max": 0.2,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "peclet_number_shear"
+    },
+    {
+      "kind": "quantity",
+      "id": "shear_strain"
+    },
+    {
+      "kind": "quantity",
+      "id": "packing_fraction"
+    }
+  ],
+  "source": "literature:src_lee_park_2026_gel_normal_stress",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_lee_park_2026_gel_normal_stress",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}
