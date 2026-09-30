@@ -1,0 +1,46 @@
+{
+  "entry_id": "repulsive_disks_in_active_noise_span_the_box_only_at_packing_0_4",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In the same two-dimensional active-noise model, cluster size grows with both the noise correlation length and correlation time and can greatly exceed the correlation length; clusters that span the system, with the largest cluster approaching all the particles, appear only at area fraction 0.4 (two dimensions) and relatively large correlation length and time, not at 0.1, where elongated clusters can stretch across the 200 x 200 box while holding far fewer than all the particles.",
+  "numbers": [
+    {
+      "name": "packing_fraction",
+      "value": 0.4,
+      "unit": "1",
+      "source": "literature:src_frechette_2025_active_noise_clustering",
+      "grade": "E3",
+      "note": "the two-dimensional area fraction at which system-spanning clusters appear."
+    },
+    {
+      "name": "packing_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "literature:src_frechette_2025_active_noise_clustering",
+      "grade": "E3",
+      "note": "the two-dimensional area fraction at which they do not, in a 200 x 200 box."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT. Repulsive WCA disks (cutoff 2^(1/6) sigma), overdamped, each displaced by the potential force plus the local value of a Gaussian noise field correlated over lambda_a in space and tau_a in time with magnitude va, standing in for an active fluid; no separate thermal noise; HOOMD-blue (version not stated) with the authors' noise generator; box 200 x 200 and grid spacing 0.5 in reduced units (sigma, epsilon, t0 = gamma sigma^2/epsilon), time step 1e-4, 250 time units, 50 independent runs. The authors call the model highly simplified and not expected to be quantitatively accurate. The noise parameters are in reduced units the registry cannot express and so appear here in words only. Two area fractions were studied in two dimensions, 0.1 (5,016 disks) and 0.4 (20,372 disks); a close-packed start breaks up into the same dynamic finite clusters, which the authors use to distinguish this from motility-induced phase separation. The cluster-size and structure-factor scalings are figure-only.",
+  "validity": {
+    "packing_fraction": {
+      "min": 0.1,
+      "max": 0.4,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "packing_fraction"
+    }
+  ],
+  "source": "literature:src_frechette_2025_active_noise_clustering",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_frechette_2025_active_noise_clustering",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

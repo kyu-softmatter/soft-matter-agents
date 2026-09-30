@@ -1,0 +1,38 @@
+{
+  "entry_id": "repulsive_disks_in_active_noise_cluster_only_if_the_noise_is_compressible",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In the two-dimensional model of repulsive disks advected by a spatiotemporally correlated noise field (Frechette, Baskaran and Hagan), at area fraction 0.1, the disks form dynamic finite-sized clusters when the noise field is compressible and no large-scale clusters when it is made divergence-free: clustering comes from particles settling in low-noise regions of the field, which requires the field to have sinks.",
+  "numbers": [
+    {
+      "name": "packing_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "literature:src_frechette_2025_active_noise_clustering",
+      "grade": "E3",
+      "note": "two-dimensional area fraction of the incompressible-noise comparison (5,016 disks)."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT. Repulsive WCA disks (cutoff 2^(1/6) sigma), overdamped, each displaced by the potential force plus the local value of a Gaussian noise field correlated over lambda_a in space and tau_a in time with magnitude va, standing in for an active fluid; no separate thermal noise; HOOMD-blue (version not stated) with the authors' noise generator; box 200 x 200 and grid spacing 0.5 in reduced units (sigma, epsilon, t0 = gamma sigma^2/epsilon), time step 1e-4, 250 time units, 50 independent runs. The authors call the model highly simplified and not expected to be quantitatively accurate. The noise parameters are in reduced units the registry cannot express and so appear here in words only. The incompressible comparison is shown at area fraction 0.1 (two dimensions) with va = 1, lambda_a = 10, tau_a = 10. The paper draws a prediction from it that is not tested there: purely repulsive colloids should not cluster in an active nematic confined to a two-dimensional interface, but may in a two-dimensional slice of a three-dimensional incompressible flow, whose projection is compressible.",
+  "validity": {
+    "packing_fraction": {
+      "min": 0.1,
+      "max": 0.1,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "packing_fraction"
+    }
+  ],
+  "source": "literature:src_frechette_2025_active_noise_clustering",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_frechette_2025_active_noise_clustering",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}
