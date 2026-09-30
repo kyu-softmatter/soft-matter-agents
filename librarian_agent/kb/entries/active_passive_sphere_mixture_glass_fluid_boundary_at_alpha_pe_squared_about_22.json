@@ -1,0 +1,76 @@
+{
+  "entry_id": "active_passive_sphere_mixture_glass_fluid_boundary_at_alpha_pe_squared_about_22",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In the dry three-dimensional model of Shee et al. -- a bidisperse mixture of soft repulsive active and passive Brownian spheres under steady shear -- at volume fraction 0.66 the glass-to-fluid boundary in the plane of Peclet number and active fraction follows alpha*Pe^2 = constant, fitted as about 22 (a second route through the flow curves gives about 17); the same combination, the active energy, also collapses the steady-shear stress and viscosity across a broad range around the transition, the collapse failing slightly at the lowest shear rate.",
+  "numbers": [
+    {
+      "name": "active_energy",
+      "value": 22,
+      "unit": "1",
+      "source": "literature:src_shee_2025_active_dopants_rheology",
+      "grade": "E3",
+      "note": "alpha*Pe^2 on the glass-fluid boundary, fitted in Fig. 3."
+    },
+    {
+      "name": "active_energy",
+      "value": 17,
+      "unit": "1",
+      "source": "literature:src_shee_2025_active_dopants_rheology",
+      "grade": "E3",
+      "note": "the same boundary from the Hill-form fits to the flow curves; the paper calls the two roughly matching."
+    },
+    {
+      "name": "packing_fraction",
+      "value": 0.66,
+      "unit": "1",
+      "source": "literature:src_shee_2025_active_dopants_rheology",
+      "grade": "E3",
+      "note": "volume fraction of the Peclet-active-fraction scan."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT. Dry three-dimensional mixture of soft repulsive spheres (a harmonic repulsion approximated by a Morse form), half small and half large (radius ratio sqrt(2)) in both the active and the passive population; active particles are overdamped active Brownian particles, passive ones have no propulsion; kT = 1e-4, Dr = 3 Dt/a0^2 with a0 the small diameter; steady shear with Lees-Edwards boundaries; Euler-Maruyama at time step 1e-2 in HOOMD-blue (version not stated); total strain 10 with the first 5 discarded; no hydrodynamics, no walls, no friction. Peclet number v0/(a0 Dr), which is peclet_number_steric with the small diameter as the length. Shear rates in model units from 1e-6 to 1e-2. Volume fractions (three dimensions) from 0.60 to 0.72. Active fraction from 0 to 0.5 and Peclet number from 0 to 20, ranges chosen to avoid motility-induced phase separation. The glass is identified by a finite yield stress from Herschel-Bulkley fits. The authors read the failure of the collapse at the lowest shear rate as a breakdown of treating sparse activity as one global effective temperature.",
+  "validity": {
+    "packing_fraction": {
+      "min": 0.66,
+      "max": 0.66,
+      "unit": "1"
+    },
+    "peclet_number_steric": {
+      "min": 0,
+      "max": 20,
+      "unit": "1"
+    },
+    "active_fraction": {
+      "min": 0,
+      "max": 0.5,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "active_energy"
+    },
+    {
+      "kind": "quantity",
+      "id": "active_fraction"
+    },
+    {
+      "kind": "quantity",
+      "id": "peclet_number_steric"
+    },
+    {
+      "kind": "quantity",
+      "id": "packing_fraction"
+    }
+  ],
+  "source": "literature:src_shee_2025_active_dopants_rheology",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_shee_2025_active_dopants_rheology",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}
