@@ -1,0 +1,35 @@
+{
+  "entry_id": "driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In simulations of a two-dimensional dipolar-repulsive crystal melted by spinning a fraction of its particles, melting goes solid to hexatic to liquid as in thermal melting: isolated dislocations proliferate first and isolated disclinations second, the global hexatic order falls with disclination density along the same curve for driven and thermal melting, and the orientational correlation exponent eta6 reaches the KTHNY value 1/4 at the hexatic-fluid transition in the driven system as well.",
+  "numbers": [
+    {
+      "name": "hexatic_correlation_exponent",
+      "value": 0.25,
+      "unit": "1",
+      "source": "literature:src_vyas_2026_nonequilibrium_melting",
+      "grade": "E3",
+      "note": "eta6 at the hexatic-fluid transition: the KTHNY value, which the driven system reaches before its correlations turn exponential."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT, filed apart from the experiment. Molecular dynamics in HOOMD-Blue v4.4.1 with custom plug-ins described only in the Supplementary Information: two-dimensional particles with dipolar repulsion U = A/r^3, a fraction of sites being spinners whose rotlet flow, cut off at 1.5 particle radii, adds transverse forces; roughly 1e5 to 1e6 particles; integrator, thermostat and time step not stated in the file. Thermal melting is by the inverse temperature Gamma = A (pi rho)^(3/2)/kT, driven melting by the ratio of spinner drag to dipolar force. The exponent is fitted over up to a quarter of the periodic box. The transition locations in Gamma and in the drive parameter, and the defect densities at them, are figure-only and not entered. The experiment shows the same (charged_colloids_2d_driven_melting_follows_defect_densities_in_experiment).",
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "hexatic_correlation_exponent"
+    },
+    {
+      "kind": "quantity",
+      "id": "hexatic_order_parameter"
+    }
+  ],
+  "source": "literature:src_vyas_2026_nonequilibrium_melting",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_vyas_2026_nonequilibrium_melting",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

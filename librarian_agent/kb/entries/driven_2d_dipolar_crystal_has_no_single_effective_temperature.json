@@ -1,0 +1,21 @@
+{
+  "entry_id": "driven_2d_dipolar_crystal_has_no_single_effective_temperature",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In the same simulations, no single effective temperature describes the driven crystal: its fluid is superdiffusive where the thermal fluid is diffusive, and hexatic order and disclination density plotted against dislocation density give separate curves for driven and thermal melting, so each transition is predicted by its own defect density but the two are not tied together by one temperature.",
+  "validity_conditions": "A MODEL RESULT, filed apart from the experiment. Molecular dynamics in HOOMD-Blue v4.4.1 with custom plug-ins described only in the Supplementary Information: two-dimensional particles with dipolar repulsion U = A/r^3, a fraction of sites being spinners whose rotlet flow, cut off at 1.5 particle radii, adds transverse forces; roughly 1e5 to 1e6 particles; integrator, thermostat and time step not stated in the file. Thermal melting is by the inverse temperature Gamma = A (pi rho)^(3/2)/kT, driven melting by the ratio of spinner drag to dipolar force. The paper reports the same comparison in its experiments (Fig. 5). It finds no measurable odd-elastic signature, a rough estimate giving odd-to-conventional elastic constants of order 1e-2 (Supplementary Information).",
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "hexatic_order_parameter"
+    }
+  ],
+  "source": "literature:src_vyas_2026_nonequilibrium_melting",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_vyas_2026_nonequilibrium_melting",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}
