@@ -1,0 +1,72 @@
+{
+  "entry_id": "dipolar_active_brownian_spheres_stay_a_gas_below_coupling_6_at_packing_0_01",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In the three-dimensional model of active Brownian spheres carrying a point dipole along their propulsion direction (Kelidou et al.), at volume fraction 0.010 the system stays an active gas of mostly unbound particles for dipolar coupling lambda below 6; above 6, an active force beyond a threshold that rises with lambda breaks the aggregates back into a gas -- at lambda = 6.25 the chains are mostly destroyed already at f_a = 20.",
+  "numbers": [
+    {
+      "name": "dipolar_coupling_strength",
+      "value": 6,
+      "unit": "1",
+      "source": "literature:src_kelidou_2024_dipolar_active_brownian",
+      "grade": "E3",
+      "note": "the coupling below which no significant structure forms at this density."
+    },
+    {
+      "name": "dipolar_coupling_strength",
+      "value": 6.25,
+      "unit": "1",
+      "source": "literature:src_kelidou_2024_dipolar_active_brownian",
+      "grade": "E3",
+      "note": "the coupling of the example below."
+    },
+    {
+      "name": "reduced_active_force",
+      "value": 20,
+      "unit": "1",
+      "source": "literature:src_kelidou_2024_dipolar_active_brownian",
+      "grade": "E3",
+      "note": "the active force at which chains are mostly destroyed at lambda = 6.25."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT. Three-dimensional overdamped active Brownian spheres with a WCA core and a point magnetic dipole along the propulsion direction, no hydrodynamics; lambda = mu^2/(kT sigma^3), f_a = Fa sigma/kT, gamma_t* = 3 so that the Peclet number va = f_a/3; HOOMD-blue on GPU (version not stated), time step 2e-4 tau with tau = 1/Dr, 8,788 particles, dipole sum without Ewald (see dipolar_active_brownian_spheres_dipole_sum_without_ewald_at_low_density); steady state reached from equilibrated passive systems by raising the active force gradually; states by cluster analysis with a 1.2 sigma neighbour cutoff: gas below half the particles polymerised, string fluid above half with the largest cluster under 70%, percolated network at 70% or more. Three-dimensional volume fraction pi rho*/6: 0.010 at rho* = 0.02 and 0.08 at rho* = 0.15. Reduced density rho* = 0.02. The threshold line is figure-only; the authors estimate it as the active force equal to the head-to-tail dipole force at the nearest-neighbour distance.",
+  "validity": {
+    "packing_fraction": {
+      "min": 0.01,
+      "max": 0.01,
+      "unit": "1"
+    },
+    "dipolar_coupling_strength": {
+      "min": 1,
+      "max": 16,
+      "unit": "1"
+    },
+    "reduced_active_force": {
+      "min": 0,
+      "max": 200,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "dipolar_coupling_strength"
+    },
+    {
+      "kind": "quantity",
+      "id": "reduced_active_force"
+    },
+    {
+      "kind": "quantity",
+      "id": "packing_fraction"
+    }
+  ],
+  "source": "literature:src_kelidou_2024_dipolar_active_brownian",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_kelidou_2024_dipolar_active_brownian",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}
