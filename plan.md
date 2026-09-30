@@ -2218,6 +2218,8 @@ rebuild/
   CLAUDE.md                the monorepo's common rules (P0-P16, a summary of the card contracts).
                              **All six sessions read it, so its length is multiplied by six**
   ARCHITECT.md             standing orders for the architecture position. It binds one position only, so it is not in CLAUDE.md
+  LICENSE                  the MIT licence, copyright Kyu Hwan Choi, at the person's request (2026-09-29).
+                             **Architecture's.** It went through the four places every root file does
   pyproject.toml           **two manifests in one file since 2026-09-22.** `[project]` still holds the PyPI side --
                              `jsonschema`, `referencing`, `numpy`, counted from the source and filtered through
                              `sys.stdlib_module_names`; `referencing` is separate because check 1 builds a `$ref`

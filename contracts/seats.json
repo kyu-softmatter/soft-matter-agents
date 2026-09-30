@@ -248,6 +248,7 @@
         "CLAUDE.md",
         "ARCHITECT.md",
         "README.md",
+        "LICENSE",
         "docs/",
         ".claude/",
         ".mcp.json",
@@ -257,7 +258,7 @@
         "pixi.lock",
         ".gitignore"
       ],
-      "note": "The top tier of D12 (6.2). It writes what the rules are: plan.md, the repository's own instructions, ARCHITECT.md (this seat's own standing orders, deliberately out of CLAUDE.md because that file is loaded by all six sessions), and this registry. It owns this file because the tier being constrained must not own the file that says what it may touch -- a manager that could edit its own `paths` has no boundary, only a preference. pyproject.toml and uv.lock were added 2026-09-20. Boundary and narrowing are two gates and both must pass: seat_boundary_of puts them in `design`, and then no seat's `paths` covered them, so all five narrowed seats -- this one and the four managers -- were refused while only the unnarrowed design and human identities could have committed them. Put on this seat alone rather than on all five: a manager adding a dependency round-trips through architecture, which is real and rare, against the same two lines living in five places and drifting, which is 11-11 and silent. If the round-trip becomes expensive the answer is a shared prefix in paths, not five copies. docs/ was added 2026-09-20, beside README.md and for the same reason: it is the repository's front door and belongs to no agent. It went on this seat alone rather than on all five, the same call pyproject.toml and uv.lock got -- a manager needing a page change round-trips through architecture, which is real and rare, against the line living in five places and drifting, which is 11-11 and silent."
+      "note": "The top tier of D12 (6.2). It writes what the rules are: plan.md, the repository's own instructions, ARCHITECT.md (this seat's own standing orders, deliberately out of CLAUDE.md because that file is loaded by all six sessions), and this registry. It owns this file because the tier being constrained must not own the file that says what it may touch -- a manager that could edit its own `paths` has no boundary, only a preference. pyproject.toml and uv.lock were added 2026-09-20. Boundary and narrowing are two gates and both must pass: seat_boundary_of puts them in `design`, and then no seat's `paths` covered them, so all five narrowed seats -- this one and the four managers -- were refused while only the unnarrowed design and human identities could have committed them. Put on this seat alone rather than on all five: a manager adding a dependency round-trips through architecture, which is real and rare, against the same two lines living in five places and drifting, which is 11-11 and silent. If the round-trip becomes expensive the answer is a shared prefix in paths, not five copies. docs/ was added 2026-09-20, beside README.md and for the same reason: it is the repository's front door and belongs to no agent. It went on this seat alone rather than on all five, the same call pyproject.toml and uv.lock got -- a manager needing a page change round-trips through architecture, which is real and rare, against the line living in five places and drifting, which is 11-11 and silent. LICENSE added to paths 2026-09-29: the person asked for an MIT licence, copyright Kyu Hwan Choi, and a root file is architecture's."
     },
     {
       "seat": "architecture-2",
@@ -868,6 +869,7 @@
         "CLAUDE.md",
         "ARCHITECT.md",
         "README.md",
+        "LICENSE",
         "docs/",
         ".claude/",
         ".mcp.json",
@@ -878,7 +880,7 @@
         ".gitignore",
         "microscope_agent/tasks/050-"
       ],
-      "note": "The architecture session the person opened on the MacBook on 2026-09-28 and seated directly, in that session's first message, as the day's architecture; rooted at the repository root. n is 1, the first architecture seat of that date. The session that had committed as architecture-kyuhwan-macbook-20260925-1 earlier the same day (21e48ac, 5a9ac97) was still listed in the app when this one was seated and was gone from it, archived sessions included, by 13:25; whether this seat replaces it is the person's to say, and this row claims neither. It registers itself, which no row can authorise, because the registry is read at a commit's parent; and it does not borrow the older name, because a vacated identity is not inherited and a live one would put two sessions under one identity. So the registering commit carries no attribution, which unknown_committer: report allows and the commit gate warns about; every later commit from this session is attributed. owns, paths and excludes copied by code from architecture-kyuhwan-macbook-20260925-1. WIDENED 2026-09-28: the person told this seat in its window to give the microscope agent the double-well diagnosis itself -- \"You give the microscope agent the work\" (the person's Korean, rendered) -- in place of the microscope manager. paths gains the one prefix microscope_agent/tasks/050-, for that single card, and nothing else in the manager's tree."
+      "note": "The architecture session the person opened on the MacBook on 2026-09-28 and seated directly, in that session's first message, as the day's architecture; rooted at the repository root. n is 1, the first architecture seat of that date. The session that had committed as architecture-kyuhwan-macbook-20260925-1 earlier the same day (21e48ac, 5a9ac97) was still listed in the app when this one was seated and was gone from it, archived sessions included, by 13:25; whether this seat replaces it is the person's to say, and this row claims neither. It registers itself, which no row can authorise, because the registry is read at a commit's parent; and it does not borrow the older name, because a vacated identity is not inherited and a live one would put two sessions under one identity. So the registering commit carries no attribution, which unknown_committer: report allows and the commit gate warns about; every later commit from this session is attributed. owns, paths and excludes copied by code from architecture-kyuhwan-macbook-20260925-1. WIDENED 2026-09-28: the person told this seat in its window to give the microscope agent the double-well diagnosis itself -- \"You give the microscope agent the work\" (the person's Korean, rendered) -- in place of the microscope manager. paths gains the one prefix microscope_agent/tasks/050-, for that single card, and nothing else in the manager's tree. LICENSE added to paths 2026-09-29: the person asked for an MIT licence, copyright Kyu Hwan Choi, and a root file is architecture's."
     },
     {
       "seat": "microscope-kyuhwan-macbook-20260928-1",
