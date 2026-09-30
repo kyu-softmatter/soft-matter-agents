@@ -1,0 +1,50 @@
+{
+  "entry_id": "dna_patchy_tetrahedral_clusters_crystallise_diamond_at_compression_0_63_to_0_78",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In experiment, compressed tetrahedral clusters of four 1.0-um polystyrene lobes whose retracted TPM patches carry self-complementary DNA crystallised into cubic diamond -- ABC stacking of the (111) honeycomb planes seen by confocal microscopy -- for compression ratios from 0.63 to 0.78 with size ratios near 1.2, the interlocked crystals reaching a particle volume fraction of about 0.68.",
+  "numbers": [
+    {
+      "name": "patch_protrusion_ratio",
+      "value": 1.2,
+      "unit": "1",
+      "source": "literature:src_he_2020_colloidal_diamond",
+      "grade": "E3",
+      "note": "the size ratio the crystallising particles were near, stated as near 1.2."
+    },
+    {
+      "name": "packing_fraction",
+      "value": 0.68,
+      "unit": "1",
+      "source": "literature:src_he_2020_colloidal_diamond",
+      "grade": "E3",
+      "note": "particle volume fraction in the interlocked crystals, stated as around 0.68."
+    }
+  ],
+  "validity_conditions": "AN EXPERIMENT, NOT A MODEL RESULT. Compression ratio is the lobe centre-to-centre distance over the lobe diameter; size ratio is the patch's radial extent from the cluster centre over the lobe radius. Crystallised overnight in a 50/50 D2O/PBS buffer (10 mM, pH 7.4, 280 mM NaCl, 1 wt% F-127) in a capillary tilted about 20 degrees with a ~1 degC gradient spanning the DNA melting temperature of about 40 degC; crystals typically 40 um across, some beyond 100 um, about ten layers thick. The crystal volume fraction of about 0.68 compares with 0.74 for close packing and 0.34 for a diamond lattice of touching spheres.",
+  "validity": {
+    "lobe_compression_ratio": {
+      "min": 0.63,
+      "max": 0.78,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "lobe_compression_ratio"
+    },
+    {
+      "kind": "quantity",
+      "id": "patch_protrusion_ratio"
+    }
+  ],
+  "source": "literature:src_he_2020_colloidal_diamond",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_he_2020_colloidal_diamond",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}
