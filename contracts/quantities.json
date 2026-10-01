@@ -434,6 +434,13 @@
       "unit": "1",
       "kind": "physical",
       "note": "Fang et al.'s mixing ratio alpha: the fraction of strand S among the strands on particle B in their S/S* scheme. A fraction, so the name says fraction."
+    },
+    {
+      "id": "bleach_recovery_diffusivity",
+      "definition": "The in-plane translational diffusivity of fluorescent tracers read from how fast fluorescence returns to a uniform disc bleached as a column through the sample depth: a self-diffusivity over the disc's length scale, averaged over the chamber depth. What either side measures or models by that route, as distinct from what Stokes-Einstein predicts.",
+      "unit": "um^2/s",
+      "kind": "physical",
+      "note": "Registered on 2026-09-30 with the observable of the same id, because check 60 requires every observable to be a registered quantity. The canonical unit is the first the observable admits. NOT a synonym of tracer_diffusivity: no particle is followed, the number comes from a concentration field relaxing over the disc radius, and near-wall hindrance enters it averaged over the depth. For free dilute tracers the two should agree, and whether they do is a result, not a premise. The name carries the route because the route is the estimator, and the estimator is the identity."
     }
   ],
   "not_yet_registered": {
