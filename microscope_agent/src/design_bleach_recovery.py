@@ -71,7 +71,13 @@ NEAR_NAMES_SERVED = {
     "tracer_brightness": [], "F8801": [], "bleaching_rate": [], "dmd": [],
     "light_engine_channel_sets": [], "light_engine_output_power": [], "drift": [],
     "illumination_numerical_aperture": [], "dmd_pixel_size_at_sample": ["pixel_size"],
+    "lot_number": [],
 }
+
+# The goal card this fan-out reads. Revision 1 is goal.json; a re-run at a new
+# pin reads v<N>_goal.json, and a carried number's origin must name the file it
+# was carried from (check 12), so the name is set once in main().
+GOAL_FILE = "goal.json"
 
 
 def build_responses(caller_id: str, pin: str, commit: str) -> dict:
@@ -174,13 +180,15 @@ def expected_diffusivity(nums: Numbers, goal: dict, responses: dict, run: ac.Axi
                  note="pure water, valid 288 to 298 K. The beads are suspended in what the vendor "
                       "ships them in, diluted by the person; if the diluent is not water this "
                       "number is the wrong one")
-    if "F8801" not in {g["observable"] for g in responses["gaps"]}:
-        raise ac.AxisError("an axis standing on the bead identity must have asked the store for "
-                           "it (F8801) under its own caller_id, so its assumption can name the gap")
     run.assumptions = [a for a in goal.get("assumptions", []) if "tracer_diameter" in a.get("numbers", [])]
+    asked = {f"{g['observable'].lower()}_absent" for g in responses["gaps"]}
+    unnamed = [a["gap_ref"] for a in run.assumptions if a.get("gap_ref") not in asked]
+    if unnamed:
+        raise ac.AxisError(f"the diameter's assumption stands on {unnamed}, which this axis did not "
+                           "ask the store for under its own caller_id; ask, so the gap is its own")
     nums.add({"name": "tracer_diameter", "value": d["value"], "unit": d["unit"],
               "source": d["source"], "grade": d["grade"], "precision": d["precision"],
-              "origin": "goal.json#tracer_diameter"})
+              "origin": f"{GOAL_FILE}#tracer_diameter"})
     t = nums.si("ambient_temperature", 1.0)
     eta = nums.si("viscosity", 1.0)
     dia = nums.si("tracer_diameter", 1e-6)
@@ -562,7 +570,11 @@ def main(argv: list[str] | None = None) -> int:
                         "answered_from.commit states; the query log does not record it")
     p.add_argument("--write", action="store_true")
     a = p.parse_args(argv)
+    global GOAL_FILE
+    GOAL_FILE = a.goal.name
     goal = json.loads(a.goal.read_text())
+    revision = int(goal.get("revision", 1))
+    prefix = f"v{revision}_" if revision > 1 else ""
     qid = goal["qid"]
     configs = json.loads((a.goal.parent / "configs.json").read_text())
     issued = {f["caller_id"] for f in configs.get("fan_out", [])}
@@ -577,7 +589,7 @@ def main(argv: list[str] | None = None) -> int:
     if not a.write:
         return 0
     try:
-        card = ac.to_card(run, goal, qid, a.created_at)
+        card = ac.to_card(run, goal, qid, a.created_at, revision)
     except ac.AxisError as exc:
         print(f"no card written: {exc}", file=sys.stderr)
         return 3
@@ -585,7 +597,8 @@ def main(argv: list[str] | None = None) -> int:
     # assumed diameter must explain it beside the number (check 4).
     if getattr(run, "assumptions", None):
         card["assumptions"] = run.assumptions
-    out = AGENT / "questions" / qid / f"axis_{run.config}_{run.axis}.json"
+    # A re-run lands BESIDE the set it replaces (4.5.5): v<N>_axis_*, never on top.
+    out = AGENT / "questions" / qid / f"{prefix}axis_{run.config}_{run.axis}.json"
     out.write_text(json.dumps(card, ensure_ascii=False, indent=2) + "\n")
     print(f"wrote {out.relative_to(REPO)}")
     return 0
