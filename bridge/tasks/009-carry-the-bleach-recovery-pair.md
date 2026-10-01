@@ -66,6 +66,15 @@ still DRAFT, or a result has no hand-over, there is nothing to carry yet.
   `git var GIT_COMMITTER_IDENT`.
 - Run `git diff HEAD -- <paths>`, then `git commit -F <file> -- <paths>`, then
   read the last lines and `git log -1`. Do not amend.
+- **Commit and push when done.** This is the person's standing instruction,
+  given in architecture's window on 2026-09-30 ("완료시 커밋 푸시") and relayed
+  through architecture to this seat and to you. When a piece of work is
+  finished and `python3 contracts/validate.py` ends `0 failed`, commit your own
+  paths as above. Then `git fetch`, merge if origin moved, and
+  `git push origin main`. Never force. Unfinished or failing work stays
+  uncommitted, and another seat's paths are never yours to commit. If a commit
+  prints `fatal:` because another seat holds `.git/index.lock`, it was not
+  made. Retry once the lock is gone, and confirm with `git log -1`.
 
 ## Card 008
 
