@@ -63,21 +63,6 @@
       "unit": "mm",
       "where": "working_distance on five objective entries; the min/max pair on objective_mrd77400 alone",
       "why_it_matters": "Not a synonym and not a mistake: a dry or oil lens has one working distance and the 40x water-immersion lens has a RANGE, because its correction collar moves it. So the store is right and a caller still cannot see it. On 2026-09-20 manager-microscope looked for `working_distance` on all six objectives, found five, and reported the sixth as missing -- the value was there under two other names.\n\nWhat this exposes is bigger than the pair. `kb_query('working_distance')` returns five entries and NO GAP, because five is a real answer. `near_names` only rides on a gap, so a PARTIAL answer offers nothing: five out of six looks complete to anyone who does not already know there are six. The mechanism built to say 'the store calls it something else' fires only when the store says nothing at all."
-    },
-    {
-      "names": [
-        "excitation_peak_wavelength",
-        "abvigen_product_excitation_wavelength",
-        "emission_peak_wavelength",
-        "abvigen_product_emission_wavelength",
-        "storage_temperature_min",
-        "abvigen_product_storage_temperature_min",
-        "storage_temperature_max",
-        "abvigen_product_storage_temperature_max"
-      ],
-      "unit": "nm for the wavelengths, K for the storage bounds",
-      "where": "the four unprefixed names on the F8801 type entries (task 041, 21ca509); the four abvigen_product_* names on the AFR-0500-COOH type entries tracer_excitation_peak, tracer_emission_peak and tracer_storage_conditions",
-      "why_it_matters": "Rule 1, on the subject. Each pair is one quantity, and the prefixed form puts the product in the name, which identifiers.catalogue_product already carries. The two bead types are exactly what a caller would want to compare -- which filter path sees which bead -- and with two strings per quantity it cannot ask by id. The four unprefixed names are the ones registered. Renaming the abvigen_product_* names means editing librarian entries and moving kb_version, so that is the librarian's task and not this file's; until then both strings are in use."
     }
   ],
   "quantities": [
@@ -462,28 +447,28 @@
       "definition": "The vacuum wavelength at which a fluorophore's excitation (absorption) spectrum peaks. A property of a dye in a stated medium, so a vendor's value is for the vendor's conditions and not a measurement on this bench.",
       "unit": "nm",
       "kind": "physical",
-      "note": "Registered on 2026-10-01 for librarian task 041, whose F8801 type entries carry it in numbers[]; two live questions on the 100 nm beads (mic-20260930-001, sim-20260930-401) cite those entries, which is the question that needs the name. Same quantity as abvigen_product_excitation_wavelength on the 5 um entries; see open_collisions."
+      "note": "Registered on 2026-10-01 for librarian task 041, whose F8801 type entries carry it in numbers[]; two live questions on the 100 nm beads (mic-20260930-001, sim-20260930-401) cite those entries, which is the question that needs the name. The 5 um AFR-0500-COOH entries wrote this quantity as abvigen_product_excitation_wavelength until librarian task 042 renamed them (75b5753), so both bead types now answer to this one name."
     },
     {
       "id": "emission_peak_wavelength",
       "definition": "The vacuum wavelength at which a fluorophore's emission spectrum peaks. A property of a dye in a stated medium, so a vendor's value is for the vendor's conditions and not a measurement on this bench.",
       "unit": "nm",
       "kind": "physical",
-      "note": "Registered on 2026-10-01 for librarian task 041, whose F8801 type entries carry it in numbers[]; two live questions on the 100 nm beads (mic-20260930-001, sim-20260930-401) cite those entries, which is the question that needs the name. Same quantity as abvigen_product_emission_wavelength on the 5 um entries; see open_collisions."
+      "note": "Registered on 2026-10-01 for librarian task 041, whose F8801 type entries carry it in numbers[]; two live questions on the 100 nm beads (mic-20260930-001, sim-20260930-401) cite those entries, which is the question that needs the name. The 5 um AFR-0500-COOH entries wrote this quantity as abvigen_product_emission_wavelength until librarian task 042 renamed them (75b5753), so both bead types now answer to this one name."
     },
     {
       "id": "storage_temperature_min",
       "definition": "The lowest temperature at which a supplier states a material is to be stored. A bound stated by the supplier, not a measured temperature and not a limit anything here enforces.",
       "unit": "K",
       "kind": "physical",
-      "note": "Registered on 2026-10-01 for librarian task 041, whose F8801 type entries carry it in numbers[]; two live questions on the 100 nm beads (mic-20260930-001, sim-20260930-401) cite those entries, which is the question that needs the name. Not `temperature` with a qualifier glued on: `temperature` is what something IS at, and this is a bound on where something should be kept, so the two are not compared with each other. NOT AN ENVELOPE VALUE -- registering it here does not make it a safety or handling limit. Same quantity as abvigen_product_storage_temperature_min; see open_collisions."
+      "note": "Registered on 2026-10-01 for librarian task 041, whose F8801 type entries carry it in numbers[]; two live questions on the 100 nm beads (mic-20260930-001, sim-20260930-401) cite those entries, which is the question that needs the name. Not `temperature` with a qualifier glued on: `temperature` is what something IS at, and this is a bound on where something should be kept, so the two are not compared with each other. NOT AN ENVELOPE VALUE -- registering it here does not make it a safety or handling limit. The 5 um AFR-0500-COOH entries wrote this quantity as abvigen_product_storage_temperature_min until librarian task 042 renamed them (75b5753), so both bead types now answer to this one name."
     },
     {
       "id": "storage_temperature_max",
       "definition": "The highest temperature at which a supplier states a material is to be stored. A bound stated by the supplier, not a measured temperature and not a limit anything here enforces.",
       "unit": "K",
       "kind": "physical",
-      "note": "Registered on 2026-10-01 for librarian task 041, whose F8801 type entries carry it in numbers[]; two live questions on the 100 nm beads (mic-20260930-001, sim-20260930-401) cite those entries, which is the question that needs the name. The pair to storage_temperature_min, in the same shape as working_distance_min and working_distance_max. NOT AN ENVELOPE VALUE. Same quantity as abvigen_product_storage_temperature_max; see open_collisions."
+      "note": "Registered on 2026-10-01 for librarian task 041, whose F8801 type entries carry it in numbers[]; two live questions on the 100 nm beads (mic-20260930-001, sim-20260930-401) cite those entries, which is the question that needs the name. The pair to storage_temperature_min, in the same shape as working_distance_min and working_distance_max. NOT AN ENVELOPE VALUE. The 5 um AFR-0500-COOH entries wrote this quantity as abvigen_product_storage_temperature_max until librarian task 042 renamed them (75b5753), so both bead types now answer to this one name."
     }
   ],
   "not_yet_registered": {
