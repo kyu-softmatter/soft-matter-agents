@@ -1,0 +1,121 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260930-001-widefield_inline-a1",
+  "qid": "mic-20260930-001",
+  "thread": "solo-mic-20260930-001",
+  "round": 0,
+  "revision": 2,
+  "author": "microscope_agent",
+  "created_at": "2026-10-01T07:15:00Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260930-001:v2:widefield_inline:a1",
+  "config": "widefield_inline",
+  "axis": "a1",
+  "kb_version": "kbv-a0f093a66393",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "bead_count_in_bleached_column",
+      "parameter": "bead_count_in_bleached_column",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "how many beads one curve needs depends on how deep the bleach is and on how much one curve scatters at that count. The first closes by the bare-bead pre-measurement (the bleach depth a given dose reaches), the second arrives from the simulation as the scatter of the fitted D against beads in the disc. Neither is guessed here; the plan carries a provisional count as an assumption",
+      "missing": [
+        "recovery_fit_scatter_vs_bead_count",
+        "bleaching_rate"
+      ]
+    },
+    {
+      "inequality": "photon_budget_per_frame",
+      "parameter": "exposure_time",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no photon rate per bead exists for these beads under this light and cannot be asked for: it depends on this dye, this lot, the Spectra line and this camera together. One short run of bare beads on the coverslip under the planned line through the DMD closes it, and the same run gives the bleaching rate. That run spends no sample the measurement needs",
+      "missing": [
+        "tracer_brightness"
+      ]
+    },
+    {
+      "inequality": "number_density_under_the_objective",
+      "parameter": "tracer_number_density",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the vendor page the person supplied gives no stock concentration, and no dilution has been chosen. Both are the person's: the concentration printed on the bottle or the lot certificate, and the dilution they plan. The bead count the column needs is then that density times pi w^2 h",
+      "missing": [
+        "tracer_stock_concentration",
+        "dilution_factor"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [
+    {
+      "entry_id": "f8801_emission_peak",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The supplier specifies Invitrogen F8801 microspheres as emitting at 605 nm."
+    },
+    {
+      "entry_id": "f8801_excitation_peak",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The supplier specifies Invitrogen F8801 microspheres as excited at 580 nm."
+    },
+    {
+      "entry_id": "f8801_material_and_surface",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "Invitrogen F8801 microspheres are polystyrene, carboxylate-modified on the surface, and loaded with a red fluorescent dye."
+    },
+    {
+      "entry_id": "f8801_nominal_diameter",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The supplier specifies Invitrogen F8801 microspheres as 0.1 um in diameter (nominal)."
+    },
+    {
+      "entry_id": "f8801_storage_conditions",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The supplier specifies storing Invitrogen F8801 microspheres refrigerated at 2-8 degrees Celsius, protected from light."
+    },
+    {
+      "entry_id": "particle_suspension_b_identity",
+      "grade": "E5",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The 100 nm fluorescent beads on this bench, instance particle_suspension_b, are Invitrogen FluoSpheres carboxylate-modified microspheres, catalogue F8801. This is the person's statement of 2026-09-30,"
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "lot_number_absent",
+      "observable": "lot_number",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=lot_number, caller_id=mic-20260930-001:v2:widefield_inline:a1, kb_version=kbv-a0f093a66393) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-a0f093a66393",
+      "asked_by": "mic-20260930-001:v2:widefield_inline:a1",
+      "asked_at": "2026-10-01T07:10:07+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "tracer_brightness_absent",
+      "observable": "tracer_brightness",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_brightness, caller_id=mic-20260930-001:v2:widefield_inline:a1, kb_version=kbv-a0f093a66393) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-a0f093a66393",
+      "asked_by": "mic-20260930-001:v2:widefield_inline:a1",
+      "asked_at": "2026-10-01T07:10:01+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "Every bound here waits on an acquisition or on the person, and each reason names which.",
+  "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
+}

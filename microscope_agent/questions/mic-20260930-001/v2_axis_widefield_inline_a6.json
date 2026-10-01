@@ -1,0 +1,328 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260930-001-widefield_inline-a6",
+  "qid": "mic-20260930-001",
+  "thread": "solo-mic-20260930-001",
+  "round": 0,
+  "revision": 2,
+  "author": "microscope_agent",
+  "created_at": "2026-10-01T07:15:00Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260930-001:v2:widefield_inline:a6",
+  "config": "widefield_inline",
+  "axis": "a6",
+  "kb_version": "kbv-a0f093a66393",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "bleach_radius",
+      "unit": "um",
+      "min": 5.0,
+      "basis": [
+        "bleach_radius_min"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "parameter": "bleach_radius",
+      "unit": "um",
+      "min": 3.0,
+      "basis": [
+        "bleach_radius_min_sampling"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "parameter": "bleach_radius",
+      "unit": "um",
+      "max": 70.0,
+      "basis": [
+        "bleach_radius_max"
+      ],
+      "precision": "order_of_magnitude"
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "edge_sharp_against_radius",
+      "parameter": "bleach_radius",
+      "state": "returned",
+      "interval": {
+        "parameter": "bleach_radius",
+        "unit": "um",
+        "min": 5.0,
+        "basis": [
+          "bleach_radius_min"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    },
+    {
+      "inequality": "radius_sampled_by_camera",
+      "parameter": "bleach_radius",
+      "state": "returned",
+      "interval": {
+        "parameter": "bleach_radius",
+        "unit": "um",
+        "min": 3.0,
+        "basis": [
+          "bleach_radius_min_sampling"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    },
+    {
+      "inequality": "reference_region_in_field",
+      "parameter": "bleach_radius",
+      "state": "returned",
+      "interval": {
+        "parameter": "bleach_radius",
+        "unit": "um",
+        "max": 70.0,
+        "basis": [
+          "bleach_radius_max"
+        ],
+        "precision": "order_of_magnitude"
+      }
+    },
+    {
+      "inequality": "dmd_field_covers_reference",
+      "parameter": "bleach_radius",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the DMD's projection onto the sample is unmeasured, so whether its field is as large as the camera's is not known. Closed at the bench by displaying a known pattern and imaging it, which gives the DMD pixel at the sample and its field in one frame. If its field is smaller, it caps the radius below the camera's bound",
+      "missing": [
+        "dmd_pixel_size_at_sample"
+      ]
+    },
+    {
+      "inequality": "column_holds_through_depth",
+      "parameter": "chamber_depth",
+      "state": "returned",
+      "precondition": {
+        "parameter": "chamber_depth",
+        "basis": [
+          "defocus_cone_slope"
+        ],
+        "requires": "make the chamber no deeper than 0.2 x bleach_radius / defocus_cone_slope, which is 0.25 x the radius at the 20x, focused at mid-depth, so the disc spreads by at most a tenth of its radius at either face. Measure the depth by focusing on the two glass faces and record it beside the curve; a deeper chamber is a softer edge and D reads low"
+      }
+    },
+    {
+      "inequality": "objective_choice",
+      "parameter": "objective_zoom_pair",
+      "state": "returned",
+      "allowed_set": {
+        "parameter": "objective_zoom_pair",
+        "values": [
+          "20x@1x",
+          "10x@1x"
+        ],
+        "excluded": [
+          "40x@1x",
+          "60x@1x",
+          "100x@1x"
+        ],
+        "basis": [
+          "kb:objective_mrd70270",
+          "kb:objective_mrd70170",
+          "kb:pixel_size_20x_zoom_1x",
+          "kb:pixel_size_10x_zoom_1x"
+        ]
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "na",
+      "value": 0.8,
+      "unit": "1",
+      "source": "kb:objective_mrd70270",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the 20x, MRD70270"
+    },
+    {
+      "name": "filter_centre_wavelength",
+      "value": 595,
+      "unit": "nm",
+      "source": "kb:filter_ff01_595_31_32_passband",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the red path's emission band, which the bench calls 605. The beads emit near 605 nm by the vendor page; 595 against 605 is a tie"
+    },
+    {
+      "name": "pixel_size",
+      "value": 0.32373,
+      "unit": "um",
+      "source": "kb:pixel_size_20x_zoom_1x",
+      "grade": "E2",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "refractive_index",
+      "value": 1.3325138,
+      "unit": "1",
+      "source": "kb:water_refractive_index_605nm_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "water at 605 nm and 20 C. The suspension is mostly water once diluted"
+    },
+    {
+      "name": "lateral_resolution",
+      "value": 0.5,
+      "unit": "um",
+      "source": "computed:rayleigh",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "0.61*filter_centre_wavelength/na",
+      "inputs": [
+        "filter_centre_wavelength",
+        "na"
+      ],
+      "note": "the in-focus edge width of the bleached disc as the camera sees it"
+    },
+    {
+      "name": "bleach_radius_min",
+      "value": 5.0,
+      "unit": "um",
+      "source": "computed:ten_resolution_elements",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "10*lateral_resolution",
+      "inputs": [
+        "lateral_resolution"
+      ],
+      "note": "a soft edge read with the sharp-disc model biases D low by 2 to 4x (the observable's note); an edge a tenth of w keeps that inside a tie"
+    },
+    {
+      "name": "field_width",
+      "value": 800.0,
+      "unit": "um",
+      "source": "computed:sensor_times_pixel",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "sensor_pixels_x*pixel_size",
+      "inputs": [
+        "kb:camera_sensor_geometry",
+        "pixel_size"
+      ],
+      "note": "the camera's field at 20x and 1x zoom, full chip: 2400 pixels (kb:camera_sensor_geometry) times the calibrated pixel"
+    },
+    {
+      "name": "bleach_radius_max",
+      "value": 70.0,
+      "unit": "um",
+      "source": "computed:reference_region_fits",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "field_width/12",
+      "inputs": [
+        "field_width"
+      ],
+      "note": "disc at the centre, reference region 5 w from it and w wide, both inside half the field: 6 w <= field/2"
+    },
+    {
+      "name": "bleach_radius_min_sampling",
+      "value": 3.0,
+      "unit": "um",
+      "source": "computed:ten_pixels",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "10*pixel_size",
+      "inputs": [
+        "pixel_size"
+      ],
+      "note": "ten pixels across the radius, so the radial profile has a half-contrast point worth the name"
+    },
+    {
+      "name": "defocus_cone_slope",
+      "value": 0.8,
+      "unit": "1",
+      "source": "computed:objective_na_in_water",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "(na/refractive_index)/(1-(na/refractive_index)**2)**0.5",
+      "inputs": [
+        "na",
+        "refractive_index"
+      ],
+      "note": "tan of the steepest ray the objective admits in water. The DMD path's own illumination NA is unknown (illumination_numerical_aperture_absent) and cannot exceed the objective's, so this is the steepest the disc can spread: a conservative slope"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "camera_sensor_geometry",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The Photometrics Kinetix22 sensor is a 2400 by 2400 pixel back-illuminated sCMOS array on a 6.5 micrometre pitch, which is 15.6 by 15.6 mm and a 22 mm diagonal."
+    },
+    {
+      "entry_id": "filter_ff01_595_31_32_passband",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The Semrock BrightLine FF01-595/31-32 bandpass filter is specified with a centre wavelength of 595 nm and a full width at half maximum of 31 nm, giving a nominal passband of 579.5 to 610.5 nm."
+    },
+    {
+      "entry_id": "objective_mrd70170",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "Nikon CFI Plan Apo Lambda D 10X, part number MRD70170: a dry 10x objective of numerical aperture 0.45 with a working distance of 4 mm, specified for 170 micrometre coverglass."
+    },
+    {
+      "entry_id": "objective_mrd70270",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "Nikon CFI Plan Apo Lambda D 20X, part number MRD70270: a dry 20x objective of numerical aperture 0.80 with a working distance of 0.8 mm, specified for 170 micrometre coverglass."
+    },
+    {
+      "entry_id": "pixel_size_10x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "With the 10x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.65 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_20x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "With the 20x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.32373 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "water_refractive_index_605nm_293k",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "Distilled water at 20 degrees Celsius has a refractive index of 1.3325138 at a wavelength of 605.0 nm, at atmospheric pressure, from measurements whose stated accuracy is plus or minus 1e-6."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "dmd_pixel_size_at_sample_absent",
+      "observable": "dmd_pixel_size_at_sample",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=dmd_pixel_size_at_sample, caller_id=mic-20260930-001:v2:widefield_inline:a6, kb_version=kbv-a0f093a66393) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-a0f093a66393",
+      "asked_by": "mic-20260930-001:v2:widefield_inline:a6",
+      "asked_at": "2026-10-01T07:11:36+00:00",
+      "near_names": [
+        "pixel_size"
+      ]
+    },
+    {
+      "gap_id": "illumination_numerical_aperture_absent",
+      "observable": "illumination_numerical_aperture",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=illumination_numerical_aperture, caller_id=mic-20260930-001:v2:widefield_inline:a6, kb_version=kbv-a0f093a66393) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-a0f093a66393",
+      "asked_by": "mic-20260930-001:v2:widefield_inline:a6",
+      "asked_at": "2026-10-01T07:11:33+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "The two dry objectives permit a column: the 20x's cone allows a chamber about a quarter of the radius deep and the 10x's (NA 0.45) about half. The 40x, 60x and 100x have NA of 1.25 or more, a cone slope above 2 in water, and would hold the chamber under a tenth of the radius; the 4x and the 1.5x zoom settings were not evaluated. The radius bounds are written for the 20x at 1x, and the 10x doubles both pixel-set ends."
+}
