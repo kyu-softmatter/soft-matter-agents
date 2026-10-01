@@ -289,6 +289,7 @@ def unbounded_of(cards: dict[str, dict]) -> list[dict]:
                 "parameter": row.get("parameter"),
                 "state": row.get("state"),
                 "kind": row.get("kind"),
+                "reason": row.get("reason"),
                 "missing": row.get("missing") or [],
             })
     return out
@@ -316,6 +317,60 @@ def geometric_middle(row: dict) -> float | None:
     if lo <= 0 or hi <= 0:
         return (lo + hi) / 2
     return math.sqrt(lo * hi)
+
+
+GRADES = ["E1", "E2", "E3", "E4", "E5", "E6"]
+
+
+def decade(grade: str, goal: dict) -> bool:
+    """Whether a value is worth one figure: explore mode at E4 or worse (P15, 5.8)."""
+    return goal.get("intent", "explore") == "explore" and GRADES.index(grade) >= GRADES.index("E4")
+
+
+def written(value: float, grade: str, goal: dict) -> float:
+    """The value as it is written out: no more figures than its grade supports.
+
+    The computation keeps every digit; only the written number is rounded,
+    and to the figures the validator compares an order of magnitude at
+    (validation_limits.json), so the two cannot disagree about what one
+    figure means. A 17-digit middle of a decade-wide interval claims a
+    precision nothing behind it has (card 052).
+    """
+    if value == 0:
+        return 0.0
+    limits = json.loads((REPO / "contracts" / "validation_limits.json").read_text())
+    digits = limits["order_of_magnitude_sig_figs"] if decade(grade, goal) else 3
+    exponent = math.floor(math.log10(abs(value))) - digits + 1
+    return float(round(value / 10 ** exponent) * 10 ** exponent)
+
+
+def binding_end(row: dict, side: str, cards: dict[str, dict]) -> dict | None:
+    """The axis number that set this end of an intersected interval, carried with its origin.
+
+    The tightest end came from one interval on one axis card, and its basis
+    names a number on that card with the same value and unit. Carried under
+    `origin`, check 12 compares it against that card field by field, so the
+    middle computed from it can be recomputed here without re-deriving the
+    axis's own formula.
+    """
+    target = row.get(side)
+    for axis in sorted(cards):
+        card = cards[axis]
+        by_name = {n["name"]: n for n in card.get("numbers") or []}
+        for ineq in card.get("inequalities") or []:
+            iv = ineq.get("interval")
+            if ineq.get("state") != "returned" or not iv or iv.get("parameter") != row["parameter"]:
+                continue
+            if iv.get(side) != target:
+                continue
+            for name in iv.get("basis") or []:
+                n = by_name.get(name)
+                if n and n.get("unit") == row["unit"] and float(n["value"]) == float(target):
+                    carried = {k: n[k] for k in ("name", "value", "unit", "source", "grade",
+                                                 "precision") if k in n}
+                    carried["origin"] = f"{Path(card['__path']).name}#{name}"
+                    return carried
+    return None
 
 
 def choose_config(survivors: list[str], goal: dict) -> tuple[str | None, str, list[str], str]:
@@ -422,20 +477,40 @@ def synthesise(qid: str, revision: int = 1, created_at: str | None = None) -> di
     numbers: list[dict] = []
     operating_point: list[dict] = []
     if chosen is not None:
+        cards = by_config[chosen]
         for row in next(r for r in per_config if r["config"] == chosen).get("intersection", []):
             middle = geometric_middle(row)
             if middle is None:
                 continue
+            ends = [binding_end(row, side, cards) for side in ("min", "max")]
+            if None in ends:
+                # The middle is computed from the two ends, and check 17 wants
+                # those ends as numbers on this card. An end that rests on no
+                # axis number (a kb: basis alone) cannot be carried, so no point
+                # is chosen rather than one written with no derivation behind it.
+                why += (f". No operating point for {row['parameter']}: an end of its interval "
+                        "rests on no number an axis card carries, so the middle would have no "
+                        "derivation on this card")
+                continue
+            for end in ends:
+                if not any(n["name"] == end["name"] for n in numbers):
+                    numbers.append(end)
+            grade = max(["E4"] + [e["grade"] for e in ends], key=GRADES.index)
             numbers.append({
                 "name": row["parameter"],
-                "value": middle,
+                "value": written(middle, grade, goal),
                 "unit": row["unit"],
                 "source": "computed:geometric_middle",
-                "grade": "E4",
-                "precision": row.get("precision", "order_of_magnitude"),
+                "grade": grade,
+                "precision": "order_of_magnitude" if decade(grade, goal) else
+                             row.get("precision", "significant_figures"),
+                "formula": f"({ends[0]['name']}*{ends[1]['name']})**0.5",
+                "inputs": [ends[0]["name"], ends[1]["name"]],
                 "note": (f"the geometric middle of the intersected interval "
-                         f"{row.get('min')} to {row.get('max')} {row['unit']}; a decade-wide "
-                         "interval has no arithmetic middle worth the name (5.8)"),
+                         f"{row.get('min')} to {row.get('max')} {row['unit']}, whose ends are "
+                         f"carried above from the axes that set them; a decade-wide interval "
+                         "has no arithmetic middle worth the name (5.8). Rounded where it is "
+                         "written, not where it is computed"),
             })
             operating_point.append({"parameter": row["parameter"], "number": row["parameter"]})
 
@@ -482,23 +557,25 @@ def carry(card: dict, detail: dict) -> None:
     missing exactly the rows the refusal existed to protect. The two have to
     move together, so they are in one file and this comment is the reason.
 
-    Shape, measured rather than assumed. `config` and `origin` sit BESIDE the
-    bound and not inside it, because common.schema.json's `interval`,
-    `allowed_set` and `precondition` are all `additionalProperties: false` --
-    so `allOf: [{$ref: allowed_set}, {properties: {config, origin}}]` is
-    REJECTED, which this seat proposed to architecture before checking and
-    had to withdraw. Nesting costs one level and needs no change to
-    common.schema.json at all.
+    Shape, read off synthesis.schema.json and not assumed. The envelope
+    beside each bound is `config` plus WHICH AXES produced it: `from_axes`, a
+    list, on an allowed set, because a set can be the intersection of
+    several; `axis`, one name, on a precondition, because two axes issuing
+    one instruction are two records. That is what check 54 resolves a carried
+    `kb:` basis against -- the axis card that asked (architecture's ruling,
+    061ee6d) -- and it is why the envelope names axes and not files.
 
-    `origin` is `<file>#<inequality>`, the form check 12 already reads for a
-    carried number, pointing at the axis card that asked. That is what makes
-    a carried `kb:` basis resolvable: not an exemption from check 54 but the
-    right card to resolve against, because that card is the one that asked
-    (architecture's ruling, 061ee6d).
+    THIS WROTE `origin: <file>#<inequality>` UNTIL 2026-09-30 (card 052), the
+    shape this docstring proposed before the schema was written. The schema
+    landed with `from_axes` and `axis` instead and this writer was never
+    brought into line, so every card it wrote failed check 1 -- and none was
+    ever committed, because no microscope question had run --write until
+    mic-20260930-001 did. tests/test_synthesis_write.py now runs the writer
+    and the validator together, so the two cannot drift apart silently again.
 
-    If the declared shape differs from this one, check 1 fails on the written
-    card. That is the intended outcome -- a loud mismatch beats a card that
-    validates by leaving things out.
+    `unbounded` rows carry only the fields the schema declares, and `reason`
+    with them: the axis wrote why it abstained, and dropping it here would
+    leave a reader the `missing` list without the remedy the axis named.
     """
     schema = json.loads((REPO / "contracts" / "schemas" / "synthesis.schema.json").read_text())
     declared = set(schema.get("properties") or {})
@@ -508,15 +585,16 @@ def carry(card: dict, detail: dict) -> None:
                 bound = {k: v for k, v in allowed.items() if k not in ("from_axes",)}
                 card.setdefault("allowed_sets", []).append({
                     "config": config,
-                    "origin": d["origins"].get(parameter, [""])[0],
+                    "from_axes": list(allowed["from_axes"]),
                     "bound": bound})
         if "preconditions" in declared:
             for pre in d["preconditions"]:
                 card.setdefault("preconditions", []).append({
-                    "config": config, "origin": pre["origin"], "bound": pre["bound"]})
+                    "config": config, "axis": pre["axis"], "bound": pre["bound"]})
         if "unbounded" in declared:
             for row in d["unbounded"]:
-                card.setdefault("unbounded", []).append({"config": config, **row})
+                kept = {k: v for k, v in row.items() if v not in (None, "", [])}
+                card.setdefault("unbounded", []).append({"config": config, **kept})
 
 
 # --------------------------------------------------------------------------- #
