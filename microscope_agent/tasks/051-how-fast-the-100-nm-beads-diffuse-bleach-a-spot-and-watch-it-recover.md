@@ -82,10 +82,20 @@ slope of single particles. **A D read off a bleach-recovery curve is a
 different estimator, so it needs its own vocabulary id**. The rules in
 `contracts/observables.json` make the estimator part of the identity. Draft
 the entry (id, definition, estimator, window parameter, units,
-`producible_by`) in your question folder and send it to this seat. This seat
-registers it in `contracts/observables.json`, and the plan cites it only
-after it lands. Leave `comparable` false: the simulation side has to run the
-same estimator first.
+`producible_by`) in your question folder, and send it to this seat early,
+before the rest of the design. **Both sides use one entry.** The simulation
+side has to read its predicted curve with the same estimator. Its seat is
+proposing an entry too, so the bleach geometry you choose matters to them:
+a uniform disc or a Gaussian spot, and a column bleached through the depth
+or a 3-D volume. This seat agrees the estimator with the simulation manager,
+and **the simulation manager registers the single agreed entry** in
+`contracts/observables.json`. Your plan cites it only after it lands. A plan
+naming an unregistered observable is held at the bridge. Leave `comparable`
+false: it turns true only once the same estimator has run on both sides.
+
+*Added after `5db144a`, the same evening: the earlier text had this seat
+registering the entry. The simulation manager asked to agree first and
+register once, so that two managers do not register two entries.*
 
 ## Safety, which this card does not decide
 
@@ -113,9 +123,13 @@ The three closed repositories stay closed.
 ## What comes back
 
 - **In your tree:** `questions/mic-20260930-001/` with the goal, the axis
-  cards and the plan as S5 emits it, plus the draft vocabulary entry. The plan
-  stays unapproved, so nothing goes to the bridge or the librarian from this
-  card.
+  cards and the plan as S5 emits it, plus the draft vocabulary entry.
+  **Your validated plan is how the settings reach the simulation.** Once it
+  is past DRAFT, the bridge carries it there as a card (bridge card 009).
+  Spot sizes, frame intervals, bleach durations and concentrations travel
+  that way and **never by chat**, so put every one you are weighing into the
+  plan as a range. Validated is not approved: approval is the person's, and
+  nothing runs on it. Nothing goes to the librarian from this card.
 - **To this seat, by message, at most 10 lines:** the key settings with
   units, what the design is waiting on from the simulation, and what the
   person must decide. This seat relays it to architecture.
