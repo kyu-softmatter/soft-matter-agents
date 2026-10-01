@@ -145,6 +145,30 @@ used.
   over.** Commit the result card, then tell me **it is ready for hand-over**.
   Don't tell the bridge. I tell the person.
 
+## Added later the same evening: what the result card must answer
+
+The microscope manager sent me by message the three things its design
+waits on. Each one is a result you were already producing. The result card
+must answer each by name:
+
+1. **tau against w** over the whole assumed range.
+2. **The scatter of fitted D against the number of beads in the disc**, which
+   sets the concentration and the number of repeats.
+3. **The finite-bleach and finite-frame bias of D_fit/D**, at bleach tau/10 and
+   tau/30 and at frame intervals up to tau/5. Edge softness is the third bias
+   already in the observable's note.
+
+**Widen the assumed disc range to 0.3–100 µm.** The same message said the
+design is weighing discs much larger than this card's 10 µm ceiling. Its
+values are a chat number. They enter no card, and the rule against taking
+microscope numbers by chat stands. What the message changes is only the
+**width of your own assumed range**: up to 100 µm, a decade-level assumption
+labelled assumed, so that whatever radius the plan eventually carries falls
+inside it. At large discs, say what starts to bind as tau grows: record
+length, imaging bleach over the record, drift. The real radii, objective and
+brightness arrive only in the microscope plan that the bridge carries, which
+is not emitted yet.
+
 ## Done when
 
 Stage 1 is committed with feasibility stated first. The observable proposal has
