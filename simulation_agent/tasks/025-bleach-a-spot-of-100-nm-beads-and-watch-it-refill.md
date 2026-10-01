@@ -32,13 +32,21 @@ from that design reaches you by chat (see "What crosses, and how").
   it as the comparison. A run here checks the integrator and the estimator. It
   says nothing independent about the beads, and the card must not read as if it
   did.
-- **Bead properties come from the librarian, with your caller_id.** The store
-  holds a datasheet for red carboxylate-modified polystyrene beads. Take the
-  diameter, its spread, and whatever it says about the medium. Put everything
-  that came back in `kb_refs`. Everything you asked for and did not get (the
-  viscosity at the sample's temperature, for example) goes in `kb_gaps`.
-  **"100 nm" in the person's sentence is a nominal size, not a measurement.**
-  Use the store's value and say which you used.
+- **CORRECTED the same evening: the store holds nothing on these beads.** The
+  first version of this bullet said the store holds a datasheet for red
+  carboxylate polystyrene beads, so the diameter could be taken from it. That
+  was wrong, and it came from the relay. The store's `tracer_*` entries
+  (`tracer_diameter_measured`, `tracer_diffusivity_expected` and the rest)
+  describe **Abvigen AFR-0500-COOH, measured by the operator at 5 µm**. A 5 µm
+  diameter would give a D about 50x too small. So:
+  - **Diameter:** the person's stated **100 nm**, labelled as the person's
+    nominal value. It is not a stored value and not a measurement.
+  - **`kb_gaps`:** record the 100 nm beads as absent from the store. Their
+    product, diameter spread, dye and dilution are for the person to supply.
+  - **The 5 µm entries** go in `kb_refs` only if you actually use them, and then
+    labelled as a different bead. They never stand as this bead's size or D.
+  - **Viscosity and temperature:** from the store with your caller_id if it has
+    them. Otherwise assumed, labelled assumed, and recorded in `kb_gaps`.
 - **No registered observable describes a recovery.** `tracer_diffusivity` is
   defined by its estimator, a weighted MSD fit on single-particle positions.
   D read off a bleach recovery is a **different estimator**, so it needs a
