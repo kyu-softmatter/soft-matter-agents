@@ -1,0 +1,537 @@
+{
+  "kind": "stage1_closed_forms",
+  "qid": "sim-20260930-401",
+  "generated_by": "simulation_agent/src/frap_stage1.py",
+  "inputs": [
+    {
+      "name": "temperature",
+      "value": 293.0,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "note": "the room's thermometer reading; the sample is neither read nor actuated"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "note": "pure water; asked over 292-294 K, answered full"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 100,
+      "unit": "nm",
+      "source": "assumed:a_nominal_diameter",
+      "grade": "E5",
+      "note": "the person's nominal size; the store holds nothing on these beads"
+    },
+    {
+      "name": "bead_material_density",
+      "value": 1.03,
+      "unit": "g/cm^3",
+      "source": "kb:tracer_particle_density",
+      "grade": "E3",
+      "note": "the 5 um AFR-0500-COOH product's polystyrene, assumed the same material; sedimentation only"
+    },
+    {
+      "name": "chamber_depth",
+      "value": 10.0,
+      "unit": "um",
+      "source": "assumed:a_chamber_depth",
+      "grade": "E5",
+      "note": "the widefield camera counts the whole column; the store has no chamber depth, bead counts scale linearly with it"
+    }
+  ],
+  "diffusivity": {
+    "name": "diffusivity",
+    "value": 4.0,
+    "unit": "um^2/s",
+    "source": "computed:stokes_einstein",
+    "grade": "E5",
+    "precision": "order_of_magnitude",
+    "unrounded": 4.292198274419366,
+    "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)"
+  },
+  "sedimentation": {
+    "velocity_nm_per_s": 0.2,
+    "gravitational_length_mm": 20.0,
+    "density_note": "water density 998 kg/m^3 at 293 K is this script's constant, not a store citation; at a 3 per cent density contrast a 0.2 per cent change in it moves nothing"
+  },
+  "solver_validation": {
+    "max_abs_error": 0.00166,
+    "half_time_numeric": 0.895,
+    "half_time_closed_form": 0.895
+  },
+  "half_time_over_tau_D": {
+    "column_uniform": 0.895,
+    "column_gaussian_K0.5": 1.27,
+    "column_gaussian_K2": 1.31,
+    "column_gaussian_K5": 1.41
+  },
+  "spots": [
+    {
+      "spot_radius_um": 0.3,
+      "tau_D_s": 0.0052,
+      "half_time_s": {
+        "column_uniform": 0.0047,
+        "column_gaussian_K0.5": 0.0067,
+        "column_gaussian_K2": 0.0068,
+        "column_gaussian_K5": 0.0074
+      },
+      "bleach_max_ms": 0.52,
+      "frame_interval_max_ms": 1.0,
+      "window_min_s": 0.052,
+      "frames_in_window_at_max_interval": 50,
+      "bleach_rate_needed_per_s": 1900.0,
+      "frame_interval_passes_ms": [
+        1
+      ],
+      "beads_in_column": {
+        "1e-07": 0.00054,
+        "1e-06": 0.0054,
+        "1e-05": 0.054,
+        "0.0001": 0.54,
+        "0.001": 5.4,
+        "0.01": 54.0
+      },
+      "volume_fraction_for_enough_beads": 0.0019,
+      "reference_region_distance_um": 1.5,
+      "engine_box_min_um": 3.0
+    },
+    {
+      "spot_radius_um": 0.5,
+      "tau_D_s": 0.015,
+      "half_time_s": {
+        "column_uniform": 0.013,
+        "column_gaussian_K0.5": 0.019,
+        "column_gaussian_K2": 0.019,
+        "column_gaussian_K5": 0.02
+      },
+      "bleach_max_ms": 1.5,
+      "frame_interval_max_ms": 2.9,
+      "window_min_s": 0.15,
+      "frames_in_window_at_max_interval": 50,
+      "bleach_rate_needed_per_s": 690.0,
+      "frame_interval_passes_ms": [
+        1
+      ],
+      "beads_in_column": {
+        "1e-07": 0.0015,
+        "1e-06": 0.015,
+        "1e-05": 0.15,
+        "0.0001": 1.5,
+        "0.001": 15.0,
+        "0.01": 150.0
+      },
+      "volume_fraction_for_enough_beads": 0.00067,
+      "reference_region_distance_um": 2.5,
+      "engine_box_min_um": 5.0
+    },
+    {
+      "spot_radius_um": 1,
+      "tau_D_s": 0.058,
+      "half_time_s": {
+        "column_uniform": 0.052,
+        "column_gaussian_K0.5": 0.074,
+        "column_gaussian_K2": 0.076,
+        "column_gaussian_K5": 0.082
+      },
+      "bleach_max_ms": 5.8,
+      "frame_interval_max_ms": 12.0,
+      "window_min_s": 0.58,
+      "frames_in_window_at_max_interval": 50,
+      "bleach_rate_needed_per_s": 170.0,
+      "frame_interval_passes_ms": [
+        1,
+        3,
+        10
+      ],
+      "beads_in_column": {
+        "1e-07": 0.006,
+        "1e-06": 0.06,
+        "1e-05": 0.6,
+        "0.0001": 6.0,
+        "0.001": 60.0,
+        "0.01": 600.0
+      },
+      "volume_fraction_for_enough_beads": 0.00017,
+      "reference_region_distance_um": 5,
+      "engine_box_min_um": 10
+    },
+    {
+      "spot_radius_um": 2,
+      "tau_D_s": 0.23,
+      "half_time_s": {
+        "column_uniform": 0.21,
+        "column_gaussian_K0.5": 0.3,
+        "column_gaussian_K2": 0.3,
+        "column_gaussian_K5": 0.33
+      },
+      "bleach_max_ms": 23.0,
+      "frame_interval_max_ms": 47.0,
+      "window_min_s": 2.3,
+      "frames_in_window_at_max_interval": 50,
+      "bleach_rate_needed_per_s": 43.0,
+      "frame_interval_passes_ms": [
+        1,
+        3,
+        10,
+        30
+      ],
+      "beads_in_column": {
+        "1e-07": 0.024,
+        "1e-06": 0.24,
+        "1e-05": 2.4,
+        "0.0001": 24.0,
+        "0.001": 240.0,
+        "0.01": 2400.0
+      },
+      "volume_fraction_for_enough_beads": 4.2e-05,
+      "reference_region_distance_um": 10,
+      "engine_box_min_um": 20
+    },
+    {
+      "spot_radius_um": 3,
+      "tau_D_s": 0.52,
+      "half_time_s": {
+        "column_uniform": 0.47,
+        "column_gaussian_K0.5": 0.67,
+        "column_gaussian_K2": 0.68,
+        "column_gaussian_K5": 0.74
+      },
+      "bleach_max_ms": 52.0,
+      "frame_interval_max_ms": 100.0,
+      "window_min_s": 5.2,
+      "frames_in_window_at_max_interval": 50,
+      "bleach_rate_needed_per_s": 19.0,
+      "frame_interval_passes_ms": [
+        1,
+        3,
+        10,
+        30,
+        100
+      ],
+      "beads_in_column": {
+        "1e-07": 0.054,
+        "1e-06": 0.54,
+        "1e-05": 5.4,
+        "0.0001": 54.0,
+        "0.001": 540.0,
+        "0.01": 5400.0
+      },
+      "volume_fraction_for_enough_beads": 1.9e-05,
+      "reference_region_distance_um": 15,
+      "engine_box_min_um": 30
+    },
+    {
+      "spot_radius_um": 5,
+      "tau_D_s": 1.5,
+      "half_time_s": {
+        "column_uniform": 1.3,
+        "column_gaussian_K0.5": 1.9,
+        "column_gaussian_K2": 1.9,
+        "column_gaussian_K5": 2.0
+      },
+      "bleach_max_ms": 150.0,
+      "frame_interval_max_ms": 290.0,
+      "window_min_s": 15.0,
+      "frames_in_window_at_max_interval": 50,
+      "bleach_rate_needed_per_s": 6.9,
+      "frame_interval_passes_ms": [
+        1,
+        3,
+        10,
+        30,
+        100
+      ],
+      "beads_in_column": {
+        "1e-07": 0.15,
+        "1e-06": 1.5,
+        "1e-05": 15.0,
+        "0.0001": 150.0,
+        "0.001": 1500.0,
+        "0.01": 15000.0
+      },
+      "volume_fraction_for_enough_beads": 6.7e-06,
+      "reference_region_distance_um": 25,
+      "engine_box_min_um": 50
+    },
+    {
+      "spot_radius_um": 10,
+      "tau_D_s": 5.8,
+      "half_time_s": {
+        "column_uniform": 5.2,
+        "column_gaussian_K0.5": 7.4,
+        "column_gaussian_K2": 7.6,
+        "column_gaussian_K5": 8.2
+      },
+      "bleach_max_ms": 580.0,
+      "frame_interval_max_ms": 1200.0,
+      "window_min_s": 58.0,
+      "frames_in_window_at_max_interval": 50,
+      "bleach_rate_needed_per_s": 1.7,
+      "frame_interval_passes_ms": [
+        1,
+        3,
+        10,
+        30,
+        100,
+        300,
+        1000
+      ],
+      "beads_in_column": {
+        "1e-07": 0.6,
+        "1e-06": 6.0,
+        "1e-05": 60.0,
+        "0.0001": 600.0,
+        "0.001": 6000.0,
+        "0.01": 60000.0
+      },
+      "volume_fraction_for_enough_beads": 1.7e-06,
+      "reference_region_distance_um": 50,
+      "engine_box_min_um": 100
+    }
+  ],
+  "finite_bleach": [
+    {
+      "k_tauD": 3.0,
+      "bleach_tauD": 0.03,
+      "dip": 0.081,
+      "half_contrast_radius_over_w": 1.0,
+      "D_fit_over_D_nominal_w": 0.87,
+      "D_fit_over_D_estimator_w": 0.87,
+      "bleach_over_fitted_tau": 0.026,
+      "refused_by_bleach_bound": false,
+      "F_inf": 1.0
+    },
+    {
+      "k_tauD": 3.0,
+      "bleach_tauD": 0.1,
+      "dip": 0.23,
+      "half_contrast_radius_over_w": 1.0,
+      "D_fit_over_D_nominal_w": 0.76,
+      "D_fit_over_D_estimator_w": 0.75,
+      "bleach_over_fitted_tau": 0.076,
+      "refused_by_bleach_bound": false,
+      "F_inf": 1.0
+    },
+    {
+      "k_tauD": 3.0,
+      "bleach_tauD": 0.3,
+      "dip": 0.49,
+      "half_contrast_radius_over_w": 1.0,
+      "D_fit_over_D_nominal_w": 0.61,
+      "D_fit_over_D_estimator_w": 0.61,
+      "bleach_over_fitted_tau": 0.18,
+      "refused_by_bleach_bound": true,
+      "F_inf": 1.0
+    },
+    {
+      "k_tauD": 3.0,
+      "bleach_tauD": 1.0,
+      "dip": 0.76,
+      "half_contrast_radius_over_w": 1.1,
+      "D_fit_over_D_nominal_w": 0.4,
+      "D_fit_over_D_estimator_w": 0.47,
+      "bleach_over_fitted_tau": 0.4,
+      "refused_by_bleach_bound": true,
+      "F_inf": 1.1
+    },
+    {
+      "k_tauD": 10.0,
+      "bleach_tauD": 0.03,
+      "dip": 0.24,
+      "half_contrast_radius_over_w": 1.0,
+      "D_fit_over_D_nominal_w": 0.87,
+      "D_fit_over_D_estimator_w": 0.87,
+      "bleach_over_fitted_tau": 0.026,
+      "refused_by_bleach_bound": false,
+      "F_inf": 1.0
+    },
+    {
+      "k_tauD": 10.0,
+      "bleach_tauD": 0.1,
+      "dip": 0.57,
+      "half_contrast_radius_over_w": 1.0,
+      "D_fit_over_D_nominal_w": 0.74,
+      "D_fit_over_D_estimator_w": 0.76,
+      "bleach_over_fitted_tau": 0.074,
+      "refused_by_bleach_bound": false,
+      "F_inf": 1.0
+    },
+    {
+      "k_tauD": 10.0,
+      "bleach_tauD": 0.3,
+      "dip": 0.85,
+      "half_contrast_radius_over_w": 1.1,
+      "D_fit_over_D_nominal_w": 0.56,
+      "D_fit_over_D_estimator_w": 0.63,
+      "bleach_over_fitted_tau": 0.17,
+      "refused_by_bleach_bound": true,
+      "F_inf": 1.1
+    },
+    {
+      "k_tauD": 10.0,
+      "bleach_tauD": 1.0,
+      "dip": 0.93,
+      "half_contrast_radius_over_w": 1.2,
+      "D_fit_over_D_nominal_w": 0.33,
+      "D_fit_over_D_estimator_w": 0.49,
+      "bleach_over_fitted_tau": 0.33,
+      "refused_by_bleach_bound": true,
+      "F_inf": 1.1
+    },
+    {
+      "k_tauD": 30.0,
+      "bleach_tauD": 0.03,
+      "dip": 0.56,
+      "half_contrast_radius_over_w": 1.0,
+      "D_fit_over_D_nominal_w": 0.86,
+      "D_fit_over_D_estimator_w": 0.88,
+      "bleach_over_fitted_tau": 0.026,
+      "refused_by_bleach_bound": false,
+      "F_inf": 1.0
+    },
+    {
+      "k_tauD": 30.0,
+      "bleach_tauD": 0.1,
+      "dip": 0.89,
+      "half_contrast_radius_over_w": 1.0,
+      "D_fit_over_D_nominal_w": 0.71,
+      "D_fit_over_D_estimator_w": 0.77,
+      "bleach_over_fitted_tau": 0.071,
+      "refused_by_bleach_bound": false,
+      "F_inf": 1.0
+    },
+    {
+      "k_tauD": 30.0,
+      "bleach_tauD": 0.3,
+      "dip": 0.96,
+      "half_contrast_radius_over_w": 1.1,
+      "D_fit_over_D_nominal_w": 0.5,
+      "D_fit_over_D_estimator_w": 0.64,
+      "bleach_over_fitted_tau": 0.15,
+      "refused_by_bleach_bound": true,
+      "F_inf": 1.1
+    },
+    {
+      "k_tauD": 30.0,
+      "bleach_tauD": 1.0,
+      "dip": 0.98,
+      "half_contrast_radius_over_w": 1.3,
+      "D_fit_over_D_nominal_w": 0.29,
+      "D_fit_over_D_estimator_w": 0.47,
+      "bleach_over_fitted_tau": 0.29,
+      "refused_by_bleach_bound": true,
+      "F_inf": 1.2
+    },
+    {
+      "k_tauD": 100.0,
+      "bleach_tauD": 0.03,
+      "dip": 0.92,
+      "half_contrast_radius_over_w": 1.0,
+      "D_fit_over_D_nominal_w": 0.84,
+      "D_fit_over_D_estimator_w": 0.88,
+      "bleach_over_fitted_tau": 0.025,
+      "refused_by_bleach_bound": false,
+      "F_inf": 1.0
+    },
+    {
+      "k_tauD": 100.0,
+      "bleach_tauD": 0.1,
+      "dip": 0.98,
+      "half_contrast_radius_over_w": 1.1,
+      "D_fit_over_D_nominal_w": 0.65,
+      "D_fit_over_D_estimator_w": 0.77,
+      "bleach_over_fitted_tau": 0.065,
+      "refused_by_bleach_bound": false,
+      "F_inf": 1.0
+    },
+    {
+      "k_tauD": 100.0,
+      "bleach_tauD": 0.3,
+      "dip": 0.99,
+      "half_contrast_radius_over_w": 1.2,
+      "D_fit_over_D_nominal_w": 0.45,
+      "D_fit_over_D_estimator_w": 0.63,
+      "bleach_over_fitted_tau": 0.14,
+      "refused_by_bleach_bound": true,
+      "F_inf": 1.1
+    },
+    {
+      "k_tauD": 100.0,
+      "bleach_tauD": 1.0,
+      "dip": 0.99,
+      "half_contrast_radius_over_w": 1.3,
+      "D_fit_over_D_nominal_w": 0.25,
+      "D_fit_over_D_estimator_w": 0.45,
+      "bleach_over_fitted_tau": 0.25,
+      "refused_by_bleach_bound": true,
+      "F_inf": 1.2
+    },
+    {
+      "k_tauD": 300.0,
+      "bleach_tauD": 0.03,
+      "dip": 0.99,
+      "half_contrast_radius_over_w": 1.0,
+      "D_fit_over_D_nominal_w": 0.8,
+      "D_fit_over_D_estimator_w": 0.88,
+      "bleach_over_fitted_tau": 0.024,
+      "refused_by_bleach_bound": false,
+      "F_inf": 1.0
+    },
+    {
+      "k_tauD": 300.0,
+      "bleach_tauD": 0.1,
+      "dip": 0.99,
+      "half_contrast_radius_over_w": 1.1,
+      "D_fit_over_D_nominal_w": 0.62,
+      "D_fit_over_D_estimator_w": 0.76,
+      "bleach_over_fitted_tau": 0.062,
+      "refused_by_bleach_bound": false,
+      "F_inf": 1.1
+    },
+    {
+      "k_tauD": 300.0,
+      "bleach_tauD": 0.3,
+      "dip": 1.0,
+      "half_contrast_radius_over_w": 1.2,
+      "D_fit_over_D_nominal_w": 0.42,
+      "D_fit_over_D_estimator_w": 0.61,
+      "bleach_over_fitted_tau": 0.13,
+      "refused_by_bleach_bound": true,
+      "F_inf": 1.1
+    },
+    {
+      "k_tauD": 300.0,
+      "bleach_tauD": 1.0,
+      "dip": 1.0,
+      "half_contrast_radius_over_w": 1.4,
+      "D_fit_over_D_nominal_w": 0.23,
+      "D_fit_over_D_estimator_w": 0.43,
+      "bleach_over_fitted_tau": 0.23,
+      "refused_by_bleach_bound": true,
+      "F_inf": 1.2
+    }
+  ],
+  "edge_profile_cross_fit": {
+    "K0.5": {
+      "half_contrast_radius_over_w": 0.64,
+      "D_fit_over_D_estimator_w": 0.24
+    },
+    "K2": {
+      "half_contrast_radius_over_w": 0.79,
+      "D_fit_over_D_estimator_w": 0.37
+    },
+    "K5": {
+      "half_contrast_radius_over_w": 1.0,
+      "D_fit_over_D_estimator_w": 0.55
+    }
+  },
+  "assumed_thresholds": {
+    "beads_in_column": 10,
+    "note": "this seat's working threshold, not measured; Stage 2 measures the spread a single curve shows at a given bead count and replaces it. The bleach, frame and window bounds are the registered estimator's and are not assumptions"
+  }
+}
