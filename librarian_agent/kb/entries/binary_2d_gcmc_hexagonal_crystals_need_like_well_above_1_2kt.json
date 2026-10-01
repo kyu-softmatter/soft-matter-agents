@@ -1,0 +1,38 @@
+{
+  "entry_id": "binary_2d_gcmc_hexagonal_crystals_need_like_well_above_1_2kt",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In the two-dimensional grand canonical Monte Carlo model of Fang, Hagan and Rogers -- a binary mixture with a short-ranged attractive well and no A-A binding, fed from a reservoir at 0.5% area fraction -- crystals with strong unlike binding E_AB form a square lattice with checkerboard order while the like binding E_BB is weak, and form hexagonal crystals (with stripe, then honeycomb, then demixed compositional order) once E_BB exceeds 1.2 kT.",
+  "numbers": [
+    {
+      "name": "pair_well_depth",
+      "value": 1.2,
+      "unit": "kT",
+      "source": "literature:src_fang_2020_two_step_crystallization",
+      "grade": "E3",
+      "note": "E_BB, the B-B well depth above which the simulated crystals are hexagonal; the paper defines each E_ij as the depth of the pair-potential minimum."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT, NOT A MEASUREMENT ON COLLOIDS. Two dimensions; grand canonical Monte Carlo with the authors' own C++ code, not HOOMD; periodic box 53.3 x 53.3 particle diameters; the pair potential is Rogers and Crocker's measured DNA-hybridisation potential with its range rescaled to about 5% of the diameter; A-A pairs never bind (E_AA = 0); reservoir at 0.5% area fraction with equal chemical potentials for A and B; insertion/deletion and species-flip moves once per 1,000 displacements on average; at least 2e10 displacement trials per run; no hydrodynamics. The 1.2 kT threshold is the one number the text gives for the simulated phase diagram (Fig. 3); how the boundary depends on E_AB is shown only in the figure and is not asserted here. A well depth in kT cannot bound a query condition in this store (kT needs a temperature to convert), so the threshold is carried in numbers and not in validity; validity holds the one convertible condition, the reservoir density.",
+  "validity": {
+    "packing_fraction": {
+      "min": 0.005,
+      "max": 0.005,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "pair_well_depth"
+    }
+  ],
+  "source": "literature:src_fang_2020_two_step_crystallization",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_fang_2020_two_step_crystallization",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

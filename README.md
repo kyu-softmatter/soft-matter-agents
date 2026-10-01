@@ -89,6 +89,36 @@ rather than passing.
 | `pyproject.toml` | **two manifests in one file.** `[project]` is the PyPI side; `[tool.pixi.*]` is the conda side, which is where HOOMD, `mcp` and `pymmcore-plus` live. The pixi tables state a different dependency set per platform, because Windows has no HOOMD build |
 | `uv.lock` | the exact versions the PyPI side resolves to. Being handed over to `pixi.lock` and kept until that exists |
 
+## Predecessors and related repositories
+
+This repository rebuilds four earlier ones from scratch, one per agent.
+
+| predecessor | became |
+|---|---|
+| [agentic-microscope](https://github.com/kyu-softmatter/agentic-microscope) | `microscope_agent/` |
+| [Brownian-Dynamics-Agent](https://github.com/kyu-softmatter/Brownian-Dynamics-Agent) | `simulation_agent/` |
+| [librarian-agent](https://github.com/kyu-softmatter/librarian-agent) | `librarian_agent/` |
+| [sim-exp-bridge](https://github.com/kyu-softmatter/sim-exp-bridge) | `bridge/` |
+
+**Sessions working in this repository do not open three of these** --
+Brownian-Dynamics-Agent, librarian-agent and sim-exp-bridge -- and open
+agentic-microscope only under the rules in `CLAUDE.md` and `plan.md` §10.2.
+The links are for readers, not for the agents.
+
+Design and tooling around it:
+
+| | |
+|---|---|
+| [research-topic](https://github.com/kyu-softmatter/research-topic) | a design sketch for choosing research topics. Outside this system, which does not choose topics (`plan.md` §1) |
+| [agent-layer](https://github.com/kyu-softmatter/agent-layer) | checks the `.claude` layer a session boots with; its `agent-layer-check.sh` is the SessionStart hook `CLAUDE.md` names |
+| [autofocus-jev](https://github.com/kyu-softmatter/autofocus-jev) | the Jev autofocus trial (`plan.md`, and `microscope_agent/tasks/026`) |
+
+Related by topic only -- nothing here references their code:
+[psf-autofocus](https://github.com/kyu-softmatter/psf-autofocus),
+[goa-optical-forces](https://github.com/kyu-softmatter/goa-optical-forces),
+[ot-microrheology](https://github.com/kyu-softmatter/ot-microrheology) and
+[frap-toolkit](https://github.com/kyu-softmatter/frap-toolkit).
+
 ## Installing
 
 **One command, on every platform.** `pixi` is itself on conda-forge, so there
@@ -166,6 +196,10 @@ a bare run is nobody's commit.
 
 Ask the run, not this file. Counts written into prose here were wrong three
 times in one day, which is why there are none.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
 
 ---
 

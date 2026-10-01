@@ -1,0 +1,46 @@
+{
+  "entry_id": "binary_2d_gcmc_two_step_crystallisation_square_then_hexagonal",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In the same two-dimensional GCMC model (reservoir at 0.5% area fraction) with E_AA = 0, E_AB = 7.0 kT and E_BB = 1.6 kT, the free-energy landscape over crystal size and lattice symmetry has a square (checkerboard) minimum at small sizes and a hexagonal (stripe) minimum at large sizes, so a square crystal nucleates first and turns hexagonal as it grows, by a diffusionless rearrangement: a two-step pathway between two crystals. With E_BB = 0 (E_AB = 7.0 kT) the checkerboard, and with E_AB = 6.3 kT and E_BB = 3.5 kT the honeycomb, is favoured at every size and crystallisation is one-step.",
+  "numbers": [
+    {
+      "name": "pair_well_depth",
+      "value": 7.0,
+      "unit": "kT",
+      "source": "literature:src_fang_2020_two_step_crystallization",
+      "grade": "E3",
+      "note": "E_AB, the unlike (A-B) well depth, for the two-step case."
+    },
+    {
+      "name": "pair_well_depth",
+      "value": 1.6,
+      "unit": "kT",
+      "source": "literature:src_fang_2020_two_step_crystallization",
+      "grade": "E3",
+      "note": "E_BB, the like (B-B) well depth, for the two-step case."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT, NOT A MEASUREMENT ON COLLOIDS. Two dimensions; grand canonical Monte Carlo with the authors' own C++ code, not HOOMD; periodic box 53.3 x 53.3 particle diameters; the pair potential is Rogers and Crocker's measured DNA-hybridisation potential with its range rescaled to about 5% of the diameter; A-A pairs never bind (E_AA = 0); reservoir at 0.5% area fraction with equal chemical potentials for A and B; insertion/deletion and species-flip moves once per 1,000 displacements on average; at least 2e10 displacement trials per run; no hydrodynamics. Landscapes from umbrella sampling with WHAM in crystal size and the symmetry parameter Phi = (2/pi) arctan(Psi6/Psi4); 200 unbiased runs started at saddle points follow the landscape. The paper's reading of the mechanism: a two-step path appears when one phase has the lower effective bulk free energy but the higher effective surface free energy; its fitted bulk and surface densities are in the Supplementary Information and are not entered. A preliminary HOOMD-blue molecular-dynamics check (set-up not in the file) also shows the checkerboard-to-stripe transition, which the authors take as evidence it is not a Monte Carlo artefact. Well depths are in kT and so appear in numbers, not validity.",
+  "validity": {
+    "packing_fraction": {
+      "min": 0.005,
+      "max": 0.005,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "pair_well_depth"
+    }
+  ],
+  "source": "literature:src_fang_2020_two_step_crystallization",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_fang_2020_two_step_crystallization",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

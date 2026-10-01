@@ -118,13 +118,18 @@ def main() -> None:
     shown = "\n".join("  - " + p for p in own[:LIST_MAX])
     more = f"\n  ... and {len(own) - LIST_MAX} more" if len(own) > LIST_MAX else ""
     where = f"`{agent}/`" if agent else "the design paths (root files, contracts/, agents' CLAUDE.md, .claude/, tasks/)"
+    # The credential-manager form is the Windows machine's: git there has no helper
+    # configured. On the Mac it fails ("'credential-manager' is not a git command",
+    # reported 2026-09-30), and a plain push uses the keychain.
+    push = ("`git -c credential.helper=manager push origin main`" if os.name == "nt"
+            else "`git push origin main`")
     reason = (
         f"End-of-turn check: {len(own)} uncommitted path(s) in {where}:\n{shown}{more}\n\n"
         "Before you stop, answer for them:\n"
         "1. If your task is FINISHED, run the validator. For each path that is YOURS and finished, check "
         "`git diff HEAD -- <paths>`, commit under your seat identity with a message file "
         "(`git commit -F <file> -- <paths>`, committer from contracts/seats.json), then push with "
-        "`git -c credential.helper=manager push origin main`.\n"
+        f"{push}.\n"
         "2. If you LEARNED something a future session needs -- a failure, a correction, a fact -- write it where "
         "your instructions put it (failures.jsonl, a findings file, your task report) and commit that too.\n"
         "3. If the work is unfinished, fails the validator, or is another seat's, say so in one line and stop. "

@@ -1,0 +1,63 @@
+{
+  "declaration": "analysis method, declared before data",
+  "declared_by": "microscope-kyuhwan-macbook-20260928-1",
+  "declared_on": "2026-09-28",
+  "for": "plan-mic-20260928-001-r1 (DRAFT, beside this file): the walk that separates the candidates in diagnosis_candidates.json. Card 050, item 4.",
+  "declared_before_data": "No frame of this walk exists. This file is committed with the draft plan, before the person approves it; nothing in it may change once data exist. A change after that is a new file that says what changed and why, and the analysis reports both.",
+  "not_a_planned_measurement": "The plan is the verify form -- trap steps and no goal -- like every tweezers plan of 2026-09-25. The recordings made at its holds are therefore preparatory records, and no result card is written from them by this seat. Turning it into a measurement plan would take a goal and S3 to S5, which is the person's to ask for.",
+  "recording": {
+    "camera": "the red Kinetix through Micro-Manager, released by the tweezers software first (tweez300_camera_is_released_so_it_shows_no_image), 1x1 binning, a 256 x 256 px crop at the image centre -- 16.6 um across at 0.065 um per pixel, which holds trap_1 at the centre and the bead anywhere from -2.5 to +6.5 um",
+    "light": "the transmitted lamp on at the person's intensity (the live view of 2026-09-25 used 2100), the green line off. Not the green line of 2026-09-25: over about an hour it would fade the bead, and in transmitted light the bead's image changes with its height, which is what the radiation-pressure candidate is read from",
+    "exposure_and_frame_interval": "10 ms each, stated and read back. The ask wants 10 ms or finer, and Friday's 30 ms equalled the bead's relaxation time",
+    "per_hold": "the reference with trap_1 alone, 120 s; each position of trap_1's walk, 20 s; the two far records of stage B, 120 s each; each position of trap_2's walk in and out, 60 s. Frames are counted, never timed",
+    "who_records": "src/record_20260925.py as committed fixes a 30 ms exposure and the green line. So either it gains exposure and light arguments -- a code change outside this draft, with its own card -- or the person records by hand in Micro-Manager at these settings. Either way the hold is answered only after its recording is complete and shows a bead",
+    "focus_series": "Before trap_1 is made: if a bead rests on the glass in view, it is recorded 5 s at each of the focus offsets 0, +1, +2, 0, -1, -2, 0 um, set by hand on the stand and read off its display. That calibrates the height proxy against distance from focus, for this bead type, this light and this camera. It has to be a resting bead: a trapped bead moves with the objective when the focus is turned, because the trap is formed by the same objective, so it never leaves focus that way. The stand's Z reading at the glass and with the held bead in focus are both stated at the holds, so the bead's height above the glass is recorded -- as a focus-drive difference, which through oil into water is not a height in the sample"
+  },
+  "position": {
+    "localisation": "Per frame, the centroid of |I - median| in a fixed 150 px window around the previous frame's centre. The absolute value because a transmitted-light image of a 5 um bead has bright and dark rings, where Friday's fluorescence centroid clipped at zero would lose half the image. A frame whose centroid jumps more than half the window, or whose window touches the edge, is marked lost and never interpolated",
+    "height_proxy": "per frame, the radius of gyration of |I - median| in the same window; per record, its median, and the median peak brightness in the window. With the focus series, both convert to distance from focus; without it they are reported as ratios to the stage A reference, never converted",
+    "pixel_size": "0.065 um, pixel_size_100x_zoom_1x_computed, E4 -- the store's row for the 100x at 1x and 1x1 binning. Never from frame metadata",
+    "axis": "+x from trap_1 to trap_2, right on screen (tweez300_positive_x_is_right_on_screen). The perpendicular is kept and reported"
+  },
+  "scale": {
+    "method": "From stage A: the bead's mean camera position at each of trap_1's commanded positions 0, 1, 2, 3, 4 um and back, fitted by a straight line. The slope S is camera micrometres per commanded micrometre; the offset and the largest residual are reported beside it, and y as well",
+    "trap_positions": "trap_1's camera position is the mean of the stage A reference. trap_2's is S times its command from the same origin, because the same deflectors place both; that is checked where the bead sits between the two traps. Every separation below is a camera separation, d = S x commanded"
+  },
+  "stiffness": "As declared for 2026-09-25 at 5cd2b54: the power spectrum of x, fitted to an exposure-averaged, sampled overdamped oscillator, with equipartition beside it and never averaged; a factor-two disagreement reports the stiffness as not determined. At 10 ms frames the relaxation time of about 30 ms is resolved",
+  "per_record": [
+    "frames and lost frames",
+    "mean x and y, camera um, from trap_1's camera position",
+    "std x and y",
+    "k_B*T/var(x) and the spectral stiffness and diffusivity",
+    "median height proxy",
+    "the fraction of frames with a bead",
+    "the projected histogram by the simulation's milestone rule (cores 0.2 of the peak spacing, sticky at the frame interval): one basin or two, and crossings"
+  ],
+  "rules": {
+    "note": "Thresholds here are decisions and carry no grade. Where a number comes from src/diagnose_double_well_20260928.py it is an estimate on an assumed trap shape, E5, and is cited so that the reason for the threshold is on disk. Candidates are named as in diagnosis_candidates.json: radiation pressure, trap shape, geometry, balance, dead trap.",
+    "r1_scale": "Report S. The plan's scale-check hold continues only for S between 0.83 and 1.67: inside that, trap_2's walk from 6 to 1.5 commanded um spans 2.5 to 5 camera um, the band the trap-shape candidate places the parting of the wells in. |S - 1| of 0.05 or less says the software's micrometres are the camera's at 100x today",
+    "r2_trap_2_delivers": "trap_2 delivers light if at some position of the walk in the bead's mean moves more than 100 nm toward it, compared with the far record at 1/1. 100 nm is about twice one trap's spread (51 nm, computed) and fifty times the error of a 60 s mean. None down to the last position: the dead-trap candidate stands and r3 is not evaluated",
+    "r3_trap_shape": {
+      "d_m": "the largest camera separation at which the bead's mean lies more than 0.4 of the separation toward trap_2 -- the bead is between the traps",
+      "a_merge": "the trap-shape candidate predicts d_m above 2.2 um, since Friday's first position, near 2 um, was one well. The simulation's 1 um width predicts d_m near 2.0 um",
+      "b_softening": "the trap-shape candidate predicts no position with a spread along x more than twice the far record's, outside a record that shows two basins. Every Gaussian softens strongly as its wells merge: 4.64 times at the simulation's width (model)",
+      "c_merged_stiffness": "at positions more than 0.5 um inside d_m, the trap-shape candidate predicts a spread below the far record's (0.71 in the model); the simulation's width predicts more",
+      "d_tail": "at separations 1 um or more beyond d_m, the trap-shape candidate predicts a pull under 100 nm; a Gaussian wide enough to be one well near 2 um predicts more (143 nm for a 1.5 um width at 4 um, 302 nm for 2 um at 5 um, model). The simulation's own 1 um width has a short tail too (37 nm at 3 um), which is why a_merge and b_softening, not d_tail, are what separate it",
+      "verdict": "The trap-shape candidate stands if a_merge, c_merged_stiffness and d_tail all go its way and b_softening does not go against it. It is retired by d_tail (a long tail) or by a_merge together with b_softening (the simulation's shape). Anything else is reported as mixed, with the four readings"
+    },
+    "r4_sharing": "the balance candidate: trap_1's k_B*T/var(x) and spectral stiffness in the stage A reference (trap_2 absent), in stage B at 1/0 (trap_2 present at 0, far) and at 1/1 (far). A ratio outside 0.8 to 1.25 between any two supports it. In the one-well positions at 1/1, a bead more than a tenth of the separation off the midpoint of the two camera trap positions says the wells are unequal, and which way; so does the trap the bead ends in on the walk out",
+    "r6_two_basins": "any record with two basins and at least one crossing has found the band at that camera separation. It is reported with its crossings and occupancy, and the next plan scans 0.25 um either side in 20 nm steps with at least 10 min per setting. If that record also shows the bead lifting, both the trap-shape and radiation-pressure readings are reported for it and neither is dropped",
+    "r5_radiation_pressure": {
+      "reading": "per record, the height proxy and peak brightness against the stage A reference, and the bead-present fraction",
+      "lift": "the radiation-pressure candidate predicts the bead rises along the beam as the traps approach the parting: a proxy moving by more than a tenth, or by more than 0.5 um where the focus series calibrates it, at positions within 0.5 um of d_m, before the bead is lost or instead of it",
+      "loss": "a record with bead-present fraction below 0.99, or a bead that does not come back when trap_2 walks out, at a position within 0.5 um of d_m, supports it -- and says at which camera separation the dividing point leaked",
+      "flank": "stage B: trap_2 raised from 0 to 1 at +6 um lifts the bead if its light pushes on the bead's flank; a change in the proxy between the two far records by more than a tenth supports that part",
+      "retired": "the bead held through the whole walk in and out, the proxy within a tenth of the reference (0.5 um where calibrated), and at least one record in the band with two basins and a crossing"
+    }
+  },
+  "what_would_stop_the_analysis": [
+    "no hand-over statement of the objective and intermediate magnification, which leaves no pixel size",
+    "the bead not following trap_1's walk in stage A, which leaves no scale",
+    "timestamp gaps: each splits its record and is counted, and a record with no stretch of 20 relaxation times fits no stiffness"
+  ]
+}

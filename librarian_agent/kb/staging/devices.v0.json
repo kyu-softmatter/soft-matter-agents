@@ -869,6 +869,15 @@
       "searched": ["C:/Users/Takatori lab/Desktop/Maintanance/Setup/Ti2 Ver2.90/: the Ti2 Control software manual in English and Japanese only", "C:/Program Files, C:/Program Files (x86) and C:/ProgramData, five levels deep, for PDF and help files naming the maker or model -- which found the tweezers manuals, the Mightex note, the NIS-Elements help and a PVCam colour tutorial and nothing else; C:/Program Files/Nikon holds data tables, no manual"],
       "what_would_close_it": "the Nikon Ti2-E instruction manual",
       "status": "open. Filed for task 036 by librarian-20260924-2."
+    },
+    {
+      "what": "the agreement within which a piezo position read back after a move counts as the position commanded",
+      "gap_id": "piezo_position_tolerance",
+      "why_it_matters": "without one, nothing a piezo move reads back can be marked verified. On 2026-09-24 the read-back was compared against the operation plan's own 1 um target, which is a decision and not a measurement",
+      "kind": "absent",
+      "searched": ["microscope_agent/src/piezo_live_checklist.md step 3b at a0fda99, which names this gap and says the envelope has no position tolerance", "this store's entries: none", "this table's gaps: none by this name or holding position_tolerance"],
+      "do_not": "do NOT fill this with a number from the store. A tolerance is policy, the person's to set in the envelope; the store can hold only that none has been set. Not from the controller's resolution, the plan's target, or the prior project.",
+      "status": "open. It closes when the person sets a tolerance in the envelope, and the closing note then points there rather than carrying the value. Filed so the checklist's reference to it resolves. Delivered by microscope-20260924-2 (findings a0fda99, item unmeasured_piezo_position_tolerance); ruled in task 040."
     }
   ],
   "resolved_gaps": [

@@ -1,0 +1,225 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260930-401-bd_overdamped-a4-r2",
+  "qid": "sim-20260930-401",
+  "thread": "solo-sim-20260930-401",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-10-01T07:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260930-401:v2:bd_overdamped:a4",
+  "config": "bd_overdamped",
+  "axis": "a4",
+  "kb_version": "kbv-49b098a90994",
+  "method": "llm_estimate",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "frame_interval",
+      "unit": "s",
+      "basis": [
+        "frame_interval_max"
+      ],
+      "precision": "order_of_magnitude",
+      "max": 0.1
+    },
+    {
+      "parameter": "bleach_duration",
+      "unit": "s",
+      "basis": [
+        "bleach_duration_max"
+      ],
+      "precision": "order_of_magnitude",
+      "max": 0.06
+    },
+    {
+      "parameter": "max_recovery_time",
+      "unit": "s",
+      "basis": [
+        "max_recovery_time_min"
+      ],
+      "precision": "order_of_magnitude",
+      "min": 6
+    },
+    {
+      "parameter": "pre_bleach_frames",
+      "unit": "1",
+      "basis": [
+        "pre_bleach_frames_min"
+      ],
+      "precision": "order_of_magnitude",
+      "min": 10
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "frame_interval <= tau/5; a coarser frame resolves no recovery and the curve is a bound",
+      "parameter": "frame_interval",
+      "state": "returned",
+      "interval": {
+        "parameter": "frame_interval",
+        "unit": "s",
+        "basis": [
+          "frame_interval_max"
+        ],
+        "precision": "order_of_magnitude",
+        "max": 0.1
+      }
+    },
+    {
+      "inequality": "bleach_duration <= tau/10; a longer bleach refills while it bleaches",
+      "parameter": "bleach_duration",
+      "state": "returned",
+      "interval": {
+        "parameter": "bleach_duration",
+        "unit": "s",
+        "basis": [
+          "bleach_duration_max"
+        ],
+        "precision": "order_of_magnitude",
+        "max": 0.06
+      }
+    },
+    {
+      "inequality": "max_recovery_time >= 10 tau; the Soumpasis tail is slow (0.91 at 10 tau) and Finf is free",
+      "parameter": "max_recovery_time",
+      "state": "returned",
+      "interval": {
+        "parameter": "max_recovery_time",
+        "unit": "s",
+        "basis": [
+          "max_recovery_time_min"
+        ],
+        "precision": "order_of_magnitude",
+        "min": 6
+      }
+    },
+    {
+      "inequality": "pre_bleach_frames >= 10, so the normalising mean is not the noisiest number in the curve",
+      "parameter": "pre_bleach_frames",
+      "state": "returned",
+      "interval": {
+        "parameter": "pre_bleach_frames",
+        "unit": "1",
+        "basis": [
+          "pre_bleach_frames_min"
+        ],
+        "precision": "order_of_magnitude",
+        "min": 10
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "recovery_time",
+      "value": 0.6,
+      "unit": "s",
+      "source": "computed:soumpasis_tau",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "derived": true,
+      "symbol": "tau",
+      "formula": "bleach_radius**2/(4*diffusivity)",
+      "inputs": [
+        "bleach_radius",
+        "diffusivity"
+      ],
+      "note": "tau of the registered fit at the operating point; half recovery is 0.895 tau",
+      "origin": "v2_goal.json#recovery_time"
+    },
+    {
+      "name": "frame_fraction_max",
+      "value": 0.2,
+      "unit": "1",
+      "source": "spec:contracts/observables.json:bleach_recovery_diffusivity",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the registered estimator: frame interval <= tau/5"
+    },
+    {
+      "name": "bleach_fraction_max",
+      "value": 0.1,
+      "unit": "1",
+      "source": "spec:contracts/observables.json:bleach_recovery_diffusivity",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the registered estimator: bleach duration <= tau/10"
+    },
+    {
+      "name": "window_multiple_min",
+      "value": 10,
+      "unit": "1",
+      "source": "spec:contracts/observables.json:bleach_recovery_diffusivity",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the registered estimator: max_recovery_time >= 10 tau"
+    },
+    {
+      "name": "pre_bleach_frames_min",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_pre_frames",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "frames before the bleach, whose mean normalises the curve"
+    },
+    {
+      "name": "frame_interval_max",
+      "value": 0.1,
+      "unit": "s",
+      "source": "computed:recovery_time_times_fraction",
+      "grade": "E5",
+      "formula": "recovery_time*frame_fraction_max",
+      "inputs": [
+        "recovery_time",
+        "frame_fraction_max"
+      ],
+      "precision": "significant_figures"
+    },
+    {
+      "name": "bleach_duration_max",
+      "value": 0.06,
+      "unit": "s",
+      "source": "computed:recovery_time_times_fraction",
+      "grade": "E5",
+      "formula": "recovery_time*bleach_fraction_max",
+      "inputs": [
+        "recovery_time",
+        "bleach_fraction_max"
+      ],
+      "precision": "significant_figures"
+    },
+    {
+      "name": "max_recovery_time_min",
+      "value": 6,
+      "unit": "s",
+      "source": "computed:recovery_time_times_multiple",
+      "grade": "E5",
+      "formula": "recovery_time*window_multiple_min",
+      "inputs": [
+        "recovery_time",
+        "window_multiple_min"
+      ],
+      "precision": "significant_figures"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_pre_frames",
+      "gap_ref": "pre_bleach_frames_absent",
+      "statement": "Ten frames before the bleach put the counting error of the normalising mean at about a third of one frame's, so normalisation adds little to a curve's scatter.",
+      "numbers": [
+        "pre_bleach_frames_min"
+      ],
+      "falsifier": "a scatter that falls when the pre-bleach frames are doubled raises the count"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "note": "The three bounds are the registered estimator's own refusals, applied here to the planned tau. The estimator applies them again to each curve's fitted tau, which a noisy curve can push outside them -- the refused fraction is a result"
+}

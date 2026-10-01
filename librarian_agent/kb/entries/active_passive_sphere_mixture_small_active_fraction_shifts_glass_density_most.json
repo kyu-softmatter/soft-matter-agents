@@ -1,0 +1,64 @@
+{
+  "entry_id": "active_passive_sphere_mixture_small_active_fraction_shifts_glass_density_most",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In the same model at Peclet number 10, the glass-transition volume fraction rises steeply and nonlinearly with the active fraction: 5% active particles already move the transition far from the passive case, while going from 35% to 50% moves it little; the crossover fits phi_G(alpha) = phi_0 + a1*alpha^b1 with a1 about 0.064 and b1 about 0.16, phi_0 = 0.61 being the passive value the authors take from earlier work.",
+  "numbers": [
+    {
+      "name": "active_fraction",
+      "value": 0.05,
+      "unit": "1",
+      "source": "literature:src_shee_2025_active_dopants_rheology",
+      "grade": "E3",
+      "note": "the smallest active fraction shown to shift the transition strongly."
+    },
+    {
+      "name": "peclet_number_steric",
+      "value": 10,
+      "unit": "1",
+      "source": "literature:src_shee_2025_active_dopants_rheology",
+      "grade": "E3",
+      "note": "Peclet number of the volume-fraction scan."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT. Dry three-dimensional mixture of soft repulsive spheres (a harmonic repulsion approximated by a Morse form), half small and half large (radius ratio sqrt(2)) in both the active and the passive population; active particles are overdamped active Brownian particles, passive ones have no propulsion; kT = 1e-4, Dr = 3 Dt/a0^2 with a0 the small diameter; steady shear with Lees-Edwards boundaries; Euler-Maruyama at time step 1e-2 in HOOMD-blue (version not stated); total strain 10 with the first 5 discarded; no hydrodynamics, no walls, no friction. Peclet number v0/(a0 Dr), which is peclet_number_steric with the small diameter as the length. Shear rates in model units from 1e-6 to 1e-2. Volume fractions (three dimensions) from 0.60 to 0.72. Volume fractions 0.60 to 0.72 and active fractions 0 to 0.5 at Peclet number 10. The exponent b1 well below one is the paper's evidence that the glass density depends strongly and nonlinearly on the active fraction. phi_0 = 0.61 is cited (Ikeda, Berthier and Sollich 2012; Wiese, Kroy and Levis 2023), not found here, and is not asserted by this entry.",
+  "validity": {
+    "peclet_number_steric": {
+      "min": 10,
+      "max": 10,
+      "unit": "1"
+    },
+    "active_fraction": {
+      "min": 0,
+      "max": 0.5,
+      "unit": "1"
+    },
+    "packing_fraction": {
+      "min": 0.6,
+      "max": 0.72,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "active_fraction"
+    },
+    {
+      "kind": "quantity",
+      "id": "peclet_number_steric"
+    },
+    {
+      "kind": "quantity",
+      "id": "packing_fraction"
+    }
+  ],
+  "source": "literature:src_shee_2025_active_dopants_rheology",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_shee_2025_active_dopants_rheology",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

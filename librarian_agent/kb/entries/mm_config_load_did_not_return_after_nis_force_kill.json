@@ -1,0 +1,21 @@
+{
+  "entry_id": "mm_config_load_did_not_return_after_nis_force_kill",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "On the microscope computer, after NIS-Elements was force-killed, Micro-Manager's configuration load did not return, twice: in run-20260924-009 for about six minutes, and in run-20260924-010, loading a configuration named ti2_only.cfg, until the seat stopped the process after about two minutes. In run-20260924-008, with NIS closed normally, a configuration holding the same stand devices loaded in about 3 s.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "stand_ti2e"
+    }
+  ],
+  "source": "measured:run-20260924-010",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_runs_20260924_008_to_010_card036",
+  "validity_conditions": "What the control software did, recorded as run events: an observation by this system and not a measurement of any registered observable, so E1 from `measured:` under 11-21 condition 4 as narrowed, and counted by check 85. Cited as run-010 because that run is the sharper one -- a stand-only configuration -- and the source record names all three logs. WHAT THE LOGS SHOW AND WHAT THEY DO NOT. run-009: the kill at events[7], the close-all at events[9], and no load event after it; the seat's stop at events[10] says loadSystemConfiguration had not returned for about six minutes. The log does NOT name which configuration was loading -- the finding calls it the dual-camera configuration without its DAQ devices and startup preset, and that is the seat's word. run-010: the kill at events[7], load_start of ti2_only.cfg at events[10], and the seat's stop at events[11], whose reason says about two minutes; its t_mono of 257 s is a recovery process's wall-clock estimate, not the run's clock. That the file holds the stand alone is the seat's description; the file itself was not read here. run-008 events[2]: the derived dual-camera configuration, which includes the stand's devices, loaded at t 3.0 s with NIS not running. WHERE IT POINTS AND WHY THAT IS AN INFERENCE. That the stand-only load hung too is what places the fault at the stand's own connection rather than at a camera or the confocal unit. Two runs and one comparison support it; nothing tested the stand's controller directly. Untried: reconnecting or power-cycling the stand's controller after a kill. The person restarted NIS after run-009 and NIS then worked normally (the finding's note, not a log event). THE PRIOR PROJECT. The finding says the prior project loaded a configuration of the same shape after a force-kill on 2026-09-07. No entry here holds that report, so nothing is named in conflict_with; if it is wanted it comes in under 10.2.1 like any prior item. Falsified by a configuration load that returns promptly after a NIS force-kill on this computer. Not a safety statement. Delivered as item mm_load_hung_after_nis_force_kill of microscope_agent/findings/microscope-20260924-3-20260924.json at 0ecf94b.",
+  "date": "2026-10-01",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260930-1"
+}

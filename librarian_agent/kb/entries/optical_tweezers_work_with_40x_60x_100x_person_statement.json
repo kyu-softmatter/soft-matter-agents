@@ -1,0 +1,21 @@
+{
+  "entry_id": "optical_tweezers_work_with_40x_60x_100x_person_statement",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The person states that on this instrument the optical tweezers work with the 40x, 60x and 100x objectives: \"OT is working in 40x, 60x, and 100x.\" (2026-09-25).",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    }
+  ],
+  "source": "operator_recall:person_statement_tweezers_objectives_20260925",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_person_statement_tweezers_objectives_20260925",
+  "validity_conditions": "THE PERSON'S WORDS AND ONLY THOSE, at E5 as a statement. WHAT THE QUOTE DOES NOT SAY, and none of it is filled here: (1) that the tweezers do not work with the 4x, 10x and 20x -- it names three objectives and is silent on the rest; the finding's own sentence adds 'not with the others' and that is the seat's reading; (2) why -- that trapping needs a high-NA objective is general knowledge and not the person's statement, so it is not recorded as theirs; (3) which 40x. The nosepiece as entered in nosepiece_objective_assignment holds one 40x (MRD77400, water immersion), one 60x (MRD71670, oil) and one 100x (MRD71970, oil), but the person named magnifications and not parts, so this entry does not join to those parts and a caller that does so adds its own assumption. WHAT IT IS FOR. The microscope seat was settling per-objective position limits for the tweezers; which objectives get limits is policy and belongs to the person, and is not entered. Falsified by a trap that fails at one of the three, or confirmed per objective by a trap observed there. Delivered as item optical_tweezers_work_with_40x_60x_100x of microscope_agent/findings/microscope-20260924-6-20260925.json at 921537b.",
+  "date": "2026-10-01",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260930-1"
+}

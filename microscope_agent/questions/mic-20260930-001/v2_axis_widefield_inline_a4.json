@@ -1,0 +1,102 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260930-001-widefield_inline-a4",
+  "qid": "mic-20260930-001",
+  "thread": "solo-mic-20260930-001",
+  "round": 0,
+  "revision": 2,
+  "author": "microscope_agent",
+  "created_at": "2026-10-01T07:15:00Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260930-001:v2:widefield_inline:a4",
+  "config": "widefield_inline",
+  "axis": "a4",
+  "kb_version": "kbv-a0f093a66393",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "patterned_source_is_the_spectra",
+      "parameter": "excitation_source",
+      "state": "returned",
+      "precondition": {
+        "parameter": "excitation_source",
+        "basis": [
+          "kb:mm_label_lightengine_is_the_spectra_iii"
+        ],
+        "requires": "drive the excitation as the Micro-Manager device LightEngine (the Spectra III), which the staging device table records as the engine the DMD patterns; load the DMD on a core pinned to device interface 71, which the same table requires; use the DMD for both the bleach disc and the full-field imaging pattern so the reference region sees the same imaging light; and set the light path to widefield, with the spinning disk out of it, by hand"
+      }
+    },
+    {
+      "inequality": "excitation_line_for_580",
+      "parameter": "excitation_line",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the Spectra III has eight channels whose set is unread, so which line excites these beads near 580 nm is not known. Closed by reading the engine's channel names on the microscope computer before the run; the DMD itself selects no wavelength",
+      "missing": [
+        "light_engine_channel_sets"
+      ]
+    },
+    {
+      "inequality": "dmd_core_and_power_known",
+      "parameter": "bleach_power_at_sample",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no power at the sample has been measured for the Spectra through the DMD; every power the store holds there is for the confocal lasers or the trap. Closed by a power-meter reading at the sample plane with the bleach disc displayed, at the line and level the bleach will use. Separately, the safety file holds no limit for the DMD or the Spectra, so the bleach dose is the person's decision before anything on this path runs",
+      "missing": [
+        "light_engine_output_power"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [
+    {
+      "entry_id": "mm_label_lightengine_is_the_spectra_iii",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "On the prior project's configuration the MMCore device label `LightEngine` is the Lumencor Spectra III 8-NII-XS on COM3, serial 28145, firmware 3.5.4. The label is not `SpectraIII`; that is the produc"
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "dmd_absent",
+      "observable": "dmd",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=dmd, caller_id=mic-20260930-001:v2:widefield_inline:a4, kb_version=kbv-a0f093a66393) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-a0f093a66393",
+      "asked_by": "mic-20260930-001:v2:widefield_inline:a4",
+      "asked_at": "2026-10-01T07:10:47+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "light_engine_channel_sets_absent",
+      "observable": "light_engine_channel_sets",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=light_engine_channel_sets, caller_id=mic-20260930-001:v2:widefield_inline:a4, kb_version=kbv-a0f093a66393) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-a0f093a66393",
+      "asked_by": "mic-20260930-001:v2:widefield_inline:a4",
+      "asked_at": "2026-10-01T07:10:44+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "light_engine_output_power_absent",
+      "observable": "light_engine_output_power",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=light_engine_output_power, caller_id=mic-20260930-001:v2:widefield_inline:a4, kb_version=kbv-a0f093a66393) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-a0f093a66393",
+      "asked_by": "mic-20260930-001:v2:widefield_inline:a4",
+      "asked_at": "2026-10-01T07:10:50+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": ""
+}

@@ -11,7 +11,7 @@
   ],
   "identifiers": {
     "instance": "particle_suspension_a",
-    "catalogue_product": "AFR-0500-COOH",
+    "catalog_number": "AFR-0500-COOH",
     "supplier": "Abvigen Inc",
     "what_it_joins": "the instance in kb/staging/samples.v0.json to the type facts filed as tracer_particle_material_and_shape, tracer_particle_density, tracer_stock_concentration, tracer_storage_conditions, tracer_number_density_from_diameter, tracer_emission_peak and tracer_excitation_peak"
   },

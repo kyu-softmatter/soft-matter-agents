@@ -1,0 +1,2308 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "id": "plan-sim-20260930-401-r2",
+  "qid": "sim-20260930-401",
+  "thread": "solo-sim-20260930-401",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-10-01T07:10:00Z",
+  "status": "VALIDATED",
+  "goal_id": "goal-sim-20260930-401-r2",
+  "synthesis_id": "synthesis-sim-20260930-401-r2",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "bleach_recovery_diffusivity"
+  },
+  "system_configuration": {
+    "config": "bd_overdamped",
+    "optical_path": null,
+    "devices": [
+      "hoomd_backend"
+    ],
+    "model": "non-interacting spheres in overdamped Brownian motion in a periodic box, three-dimensional, no pair potential, no wall. A uniform disc is bleached as a column through the whole depth by labelling beads, not by any force: the label changes nothing about how a bead moves. The depth-projected count of unbleached beads inside the disc is read as a camera would read it"
+  },
+  "targets": [
+    {
+      "metric": "bleach_recovery_diffusivity",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "explore: the person asked how fast the beads diffuse and what a bleach recovery would show, so one decade is the resolution asked for. The most important output is whether the measurement can be taken at all, stated first (task 025)"
+    }
+  ],
+  "sweep": {
+    "axes": [
+      {
+        "parameter": "n_particles",
+        "levels": [
+          "n_particles_10",
+          "n_particles_30",
+          "n_particles_100",
+          "n_particles_300",
+          "n_particles_1000"
+        ]
+      },
+      {
+        "parameter": "integration_timestep",
+        "levels": [
+          "integration_timestep_point",
+          "integration_timestep_half"
+        ]
+      },
+      {
+        "parameter": "frame_interval",
+        "levels": [
+          "frame_interval_fast",
+          "frame_interval_point",
+          "frame_interval_slow"
+        ]
+      },
+      {
+        "parameter": "bleach_duration",
+        "levels": [
+          "bleach_duration_point",
+          "bleach_duration_long"
+        ]
+      }
+    ],
+    "points": [
+      {
+        "point": "n10_dt_f30_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_10"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n10_dt_f30_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_10"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n10_dt_f12_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_10"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ]
+      },
+      {
+        "point": "n10_dt_f12_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_10"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n10_dt_f6_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_10"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n10_dt_f6_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_10"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n10_dt2_f30_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_10"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n10_dt2_f30_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_10"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n10_dt2_f12_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_10"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n10_dt2_f12_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_10"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n10_dt2_f6_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_10"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n10_dt2_f6_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_10"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n30_dt_f30_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_30"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n30_dt_f30_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_30"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n30_dt_f12_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_30"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ]
+      },
+      {
+        "point": "n30_dt_f12_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_30"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n30_dt_f6_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_30"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n30_dt_f6_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_30"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n30_dt2_f30_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_30"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n30_dt2_f30_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_30"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n30_dt2_f12_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_30"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n30_dt2_f12_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_30"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n30_dt2_f6_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_30"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n30_dt2_f6_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_30"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n100_dt_f30_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_100"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n100_dt_f30_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_100"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n100_dt_f12_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_100"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ]
+      },
+      {
+        "point": "n100_dt_f12_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_100"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n100_dt_f6_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_100"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n100_dt_f6_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_100"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n100_dt2_f30_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_100"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n100_dt2_f30_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_100"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n100_dt2_f12_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_100"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n100_dt2_f12_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_100"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n100_dt2_f6_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_100"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n100_dt2_f6_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_100"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n300_dt_f30_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_300"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ]
+      },
+      {
+        "point": "n300_dt_f30_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_300"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n300_dt_f12_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_300"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ]
+      },
+      {
+        "point": "n300_dt_f12_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_300"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ]
+      },
+      {
+        "point": "n300_dt_f6_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_300"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ]
+      },
+      {
+        "point": "n300_dt_f6_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_300"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ]
+      },
+      {
+        "point": "n300_dt2_f30_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_300"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n300_dt2_f30_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_300"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n300_dt2_f12_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_300"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ]
+      },
+      {
+        "point": "n300_dt2_f12_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_300"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n300_dt2_f6_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_300"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n300_dt2_f6_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_300"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n1000_dt_f30_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_1000"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n1000_dt_f30_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_1000"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n1000_dt_f12_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_1000"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ]
+      },
+      {
+        "point": "n1000_dt_f12_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_1000"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n1000_dt_f6_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_1000"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n1000_dt_f6_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_1000"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_point"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n1000_dt2_f30_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_1000"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n1000_dt2_f30_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_1000"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_fast"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n1000_dt2_f12_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_1000"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n1000_dt2_f12_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_1000"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_point"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n1000_dt2_f6_b30",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_1000"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_point"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      },
+      {
+        "point": "n1000_dt2_f6_b12",
+        "conditions": [
+          {
+            "parameter": "n_particles",
+            "number": "n_particles_1000"
+          },
+          {
+            "parameter": "integration_timestep",
+            "number": "integration_timestep_half"
+          },
+          {
+            "parameter": "frame_interval",
+            "number": "frame_interval_slow"
+          },
+          {
+            "parameter": "bleach_duration",
+            "number": "bleach_duration_long"
+          }
+        ],
+        "skipped": "one factor at a time: this cell moves more than one factor away from the base point n300_dt_f12_b30 and is not the declared corner"
+      }
+    ]
+  },
+  "conditions": [
+    {
+      "parameter": "temperature",
+      "number": "temperature"
+    },
+    {
+      "parameter": "viscosity",
+      "number": "viscosity"
+    },
+    {
+      "parameter": "bead_diameter",
+      "number": "bead_diameter"
+    },
+    {
+      "parameter": "bleach_radius",
+      "number": "bleach_radius"
+    },
+    {
+      "parameter": "box_length",
+      "number": "box_length_point"
+    },
+    {
+      "parameter": "chamber_depth",
+      "number": "chamber_depth"
+    },
+    {
+      "parameter": "bleach_rate",
+      "number": "bleach_rate"
+    },
+    {
+      "parameter": "max_recovery_time",
+      "number": "max_recovery_time_point"
+    },
+    {
+      "parameter": "pre_bleach_frames",
+      "number": "pre_bleach_frames_min"
+    },
+    {
+      "parameter": "record_length",
+      "number": "record_length_point"
+    },
+    {
+      "parameter": "curve_period",
+      "number": "curve_period"
+    }
+  ],
+  "actions": [
+    {
+      "id": "integrate",
+      "device": "hoomd_backend",
+      "reversible": true,
+      "tier": 1,
+      "action": "integrate independent curves of free overdamped motion, each from a fresh uniform draw, reading the beads' xy positions at every step",
+      "parameters": [
+        "temperature",
+        "viscosity",
+        "bead_diameter",
+        "bleach_radius",
+        "box_length",
+        "chamber_depth",
+        "bleach_rate",
+        "max_recovery_time",
+        "pre_bleach_frames",
+        "record_length",
+        "curve_period",
+        "n_particles",
+        "integration_timestep",
+        "frame_interval",
+        "bleach_duration"
+      ]
+    },
+    {
+      "id": "estimate_recovery",
+      "device": "hoomd_backend",
+      "reversible": true,
+      "tier": 0,
+      "action": "label beads dark inside the disc during the bleach, sample the depth-projected bright count as an integrating camera, and apply the registered estimator to each curve: half-contrast w, Soumpasis fit, D = w^2/(4 tau), refusals on tau",
+      "parameters": [
+        "bleach_radius",
+        "bleach_rate",
+        "bleach_duration",
+        "frame_interval",
+        "max_recovery_time",
+        "pre_bleach_frames"
+      ]
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [
+      "simulation_agent/envelope/budget.json"
+    ],
+    "status": "inside",
+    "note": "target local: every cost number of this plan that lines up with a ceiling is under it: wall_clock_estimate against wall_clock_max, storage_estimate against storage_max. Re-confirmed at run time (4.6 O1)."
+  },
+  "cost": {
+    "wall_clock": "about 6e9 particle-steps over ten points on one core, of order ten minutes at the assumed rate; points run in parallel on at most four cores",
+    "numbers": [
+      "wall_clock_estimate",
+      "storage_estimate"
+    ],
+    "note": "the rate is A5's assumption; each run's cost_measured event replaces it"
+  },
+  "stop_criteria": [
+    {
+      "id": "planned_record_reached",
+      "metric": "record_time_completed",
+      "comparator": ">=",
+      "number": "record_length_point",
+      "on_met": "complete",
+      "statement": "stop when the planned number of curves has run; the record is curves times the curve period"
+    },
+    {
+      "id": "step_displacement_diverged",
+      "metric": "max_single_step_displacement",
+      "comparator": ">",
+      "number": "bleach_radius",
+      "on_met": "fault",
+      "statement": "a bead moving more than the disc radius in one step is a broken integration; stop and keep the run, because divergence is a result"
+    }
+  ],
+  "smoke": {
+    "record_fraction": "smoke_record_fraction"
+  },
+  "success_criteria": [
+    {
+      "id": "agrees_with_solver",
+      "metric": "deviation_from_solver_in_standard_errors",
+      "comparator": "<=",
+      "number": "agreement_z_max",
+      "window": "over the curves of one point",
+      "statement": "the point's mean fitted D lies within three standard errors of what the diffusion equation predicts for the same bleach, camera and fit; this is the integrator check, and it is against the solver and not against Stokes-Einstein"
+    },
+    {
+      "id": "dt_halving_unchanged",
+      "metric": "dt_halving_deviation_in_standard_errors",
+      "comparator": "<=",
+      "number": "agreement_z_max",
+      "window": "base point against its half-step twin",
+      "statement": "halving the engine step moves the mean fitted D by no more than three combined standard errors"
+    }
+  ],
+  "alternatives_rejected": [
+    {
+      "what": "a full product grid of bead count x timestep x frame x bleach",
+      "reason": "sixty cells for questions that each move one factor; the base point and one move per factor answer them, and the corner tests the two allowed extremes together",
+      "grounds": [
+        "particle_steps_total",
+        "particle_steps_max"
+      ]
+    },
+    {
+      "what": "frame and bleach lengths beyond A4's ceilings",
+      "reason": "the estimator refuses such curves as one-sided bounds; a point there measures the refusal and not the bias, and A4's interval excludes it",
+      "grounds": [
+        "frame_interval_max",
+        "bleach_duration_max"
+      ]
+    },
+    {
+      "what": "a disc larger than 3 um",
+      "reason": "in units of tau and w the problem is scale-free: at a fixed bleach/tau, frame/tau, k*tau and beads per disc the curve and its bias are the same at any w, so a larger disc needs no run of its own; the first stage's closed form gives tau at any w",
+      "grounds": [
+        "bleach_radius",
+        "recovery_time"
+      ]
+    }
+  ],
+  "open_risks": [
+    "The run's D is fixed by its inputs (the configuration says so): it checks the integrator, the bleach and the estimator, and says nothing independent about the beads.",
+    "The bleach rate is a guess. It sets how deep the dip is, which sets how noisy one curve is; a slower real bleach makes every point here an optimistic case.",
+    "No imaging bleach, no background, no drift and no walls are modelled. The reference ratio and background the estimator applies are identities here. At large discs, where the record runs for minutes, these are what bind first, and none of them is in this model.",
+    "The camera is ideal: it counts beads, with no point-spread function, no shot noise from photons and no pixel grid. Counting noise is the only noise."
+  ],
+  "numbers": [
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v2_synthesis.json#temperature",
+      "precision": "significant_figures",
+      "note": "the room's reading, applied to the sample as an assumption -- see the gap"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v2_synthesis.json#viscosity",
+      "precision": "significant_figures",
+      "note": "pure water; asked over 292-294 K, the interval the reading supports, and the store answered full. That the beads sit in water and not a buffer is the person's to confirm"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 100,
+      "unit": "nm",
+      "source": "assumed:a_nominal_diameter",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#bead_diameter",
+      "precision": "order_of_magnitude",
+      "note": "the person's nominal size, not a measurement"
+    },
+    {
+      "name": "diffusivity",
+      "value": 4,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "the store's relation (kb:tracer_diffusivity_expected), evaluated at the nominal 100 nm: 4.3 unrounded, carried to one figure because the diameter is a guess. Bulk sphere, no slip, dilute. This is the model's prediction, not a measurement"
+    },
+    {
+      "name": "bleach_radius",
+      "value": 3,
+      "unit": "um",
+      "source": "assumed:a_bleach_radius",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#bleach_radius",
+      "precision": "order_of_magnitude",
+      "note": "the operating point the first stage picks as comfortably inside every bound of the estimator; the range considered is 0.3 to 100 um. A condition of the observable, carried beside the window"
+    },
+    {
+      "name": "recovery_time",
+      "value": 0.6,
+      "unit": "s",
+      "source": "computed:soumpasis_tau",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#recovery_time",
+      "precision": "order_of_magnitude",
+      "note": "tau of the registered fit at the operating point; half recovery is 0.895 tau"
+    },
+    {
+      "name": "chamber_depth",
+      "value": 10,
+      "unit": "um",
+      "source": "assumed:a_chamber_depth",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#chamber_depth",
+      "precision": "order_of_magnitude",
+      "note": "bead counts per curve scale linearly with it; D does not depend on it in the column geometry"
+    },
+    {
+      "name": "bleach_rate",
+      "value": 50,
+      "unit": "1/s",
+      "source": "assumed:a_bleach_rate",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#bleach_rate",
+      "precision": "order_of_magnitude",
+      "note": "the rate at which a bead inside the disc goes dark under the patterning light. Nobody has measured it for these beads or this light; fifty per second puts one bleaching time inside the bleach length the runs use, so the dip is deep enough to read. The real value decides the smallest disc that can work"
+    },
+    {
+      "name": "integration_timestep_max",
+      "value": 0.006,
+      "unit": "s",
+      "source": "computed:recovery_time_over_steps",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#integration_timestep_max",
+      "precision": "order_of_magnitude",
+      "note": "the longest engine step. Not a stability bound: free Brownian increments are exact at any dt"
+    },
+    {
+      "name": "n_curves_min",
+      "value": 50,
+      "unit": "1",
+      "source": "computed:spread_over_target_squared",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#n_curves_min",
+      "precision": "order_of_magnitude",
+      "note": "independent curves per point; each curve starts from a fresh uniform draw, an exact equilibrium sample for non-interacting beads, so curves are independent by construction"
+    },
+    {
+      "name": "box_length_min",
+      "value": 30,
+      "unit": "um",
+      "source": "computed:ten_disc_radii",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#box_length_min",
+      "precision": "significant_figures",
+      "note": "the lateral box edge. The finite reservoir sets the plateau at one minus the bleached amount over the box area, which the free Finf of the fit absorbs and the result states"
+    },
+    {
+      "name": "frame_interval_max",
+      "value": 0.1,
+      "unit": "s",
+      "source": "computed:recovery_time_times_fraction",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#frame_interval_max",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "bleach_duration_max",
+      "value": 0.06,
+      "unit": "s",
+      "source": "computed:recovery_time_times_fraction",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#bleach_duration_max",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "max_recovery_time_min",
+      "value": 6,
+      "unit": "s",
+      "source": "computed:recovery_time_times_multiple",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#max_recovery_time_min",
+      "precision": "significant_figures"
+    },
+    {
+      "name": "pre_bleach_frames_min",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_pre_frames",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#pre_bleach_frames_min",
+      "precision": "order_of_magnitude",
+      "note": "frames before the bleach, whose mean normalises the curve"
+    },
+    {
+      "name": "particle_steps_max",
+      "value": 70000000000.0,
+      "unit": "1",
+      "source": "computed:ceiling_times_rate",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_max",
+      "precision": "order_of_magnitude",
+      "note": "n_particles * steps over every curve of every point may not exceed this"
+    },
+    {
+      "name": "integration_timestep_point",
+      "value": 0.005,
+      "unit": "s",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#integration_timestep_point",
+      "precision": "significant_figures",
+      "note": "A1's ceiling exactly: a hundred and twenty steps per planned tau"
+    },
+    {
+      "name": "integration_timestep_half",
+      "value": 0.002,
+      "unit": "s",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#integration_timestep_half",
+      "precision": "significant_figures",
+      "note": "a step two and a half times finer, for the integrator check; it divides the base frame and bleach"
+    },
+    {
+      "name": "frame_interval_point",
+      "value": 0.05,
+      "unit": "s",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#frame_interval_point",
+      "precision": "significant_figures",
+      "note": "a twelfth of tau, comfortably inside A4's fifth, so a curve whose fitted tau comes out short is still read"
+    },
+    {
+      "name": "frame_interval_fast",
+      "value": 0.02,
+      "unit": "s",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#frame_interval_fast",
+      "precision": "significant_figures",
+      "note": "a faster camera, for the finite-frame bias"
+    },
+    {
+      "name": "frame_interval_slow",
+      "value": 0.1,
+      "unit": "s",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#frame_interval_slow",
+      "precision": "significant_figures",
+      "note": "near A4's ceiling of a fifth of tau, for the finite-frame bias at the edge it allows"
+    },
+    {
+      "name": "bleach_duration_point",
+      "value": 0.02,
+      "unit": "s",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#bleach_duration_point",
+      "precision": "significant_figures",
+      "note": "a thirtieth of tau, four steps"
+    },
+    {
+      "name": "bleach_duration_long",
+      "value": 0.05,
+      "unit": "s",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#bleach_duration_long",
+      "precision": "significant_figures",
+      "note": "near A4's ceiling of a tenth of tau, for the finite-bleach bias at the edge it allows"
+    },
+    {
+      "name": "max_recovery_time_point",
+      "value": 9,
+      "unit": "s",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#max_recovery_time_point",
+      "precision": "significant_figures",
+      "note": "fifteen planned taus, 1.5 times A4's floor, so a curve whose fitted tau comes out half again as long is still inside the estimator's window bound"
+    },
+    {
+      "name": "box_length_point",
+      "value": 30,
+      "unit": "um",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#box_length_point",
+      "precision": "significant_figures",
+      "note": "A3's floor exactly"
+    },
+    {
+      "name": "n_curves_point",
+      "value": 50,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#n_curves_point",
+      "precision": "significant_figures",
+      "note": "A2's floor exactly"
+    },
+    {
+      "name": "curve_period",
+      "value": 20,
+      "unit": "s",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#curve_period",
+      "precision": "significant_figures",
+      "note": "a bookkeeping period per curve, longer than any point's curve (at most ten seconds of pre-bleach frames, bleach and record); only the steps a curve needs are integrated, so the period costs nothing. A smoke run shortens the record by curves, not by time per curve"
+    },
+    {
+      "name": "record_length_point",
+      "value": 1000,
+      "unit": "s",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#record_length_point",
+      "precision": "significant_figures",
+      "note": "curves times the curve period: a count of curves in the unit of the record"
+    },
+    {
+      "name": "n_particles_10",
+      "value": 300,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#n_particles_10",
+      "precision": "significant_figures",
+      "note": "about 10 beads in the disc (9.42 exactly at this count), at the uniform density this many particles have in the box"
+    },
+    {
+      "name": "n_particles_30",
+      "value": 1000,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#n_particles_30",
+      "precision": "significant_figures",
+      "note": "about 30 beads in the disc (31.4 exactly at this count), at the uniform density this many particles have in the box"
+    },
+    {
+      "name": "n_particles_100",
+      "value": 3000,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#n_particles_100",
+      "precision": "significant_figures",
+      "note": "about 100 beads in the disc (94.2 exactly at this count), at the uniform density this many particles have in the box"
+    },
+    {
+      "name": "n_particles_300",
+      "value": 10000,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#n_particles_300",
+      "precision": "significant_figures",
+      "note": "about 300 beads in the disc (314 exactly at this count), at the uniform density this many particles have in the box"
+    },
+    {
+      "name": "n_particles_1000",
+      "value": 30000,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#n_particles_1000",
+      "precision": "significant_figures",
+      "note": "about 1000 beads in the disc (942 exactly at this count), at the uniform density this many particles have in the box"
+    },
+    {
+      "name": "particle_steps_n10_dt_f12_b30",
+      "value": 30000000.0,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_n10_dt_f12_b30",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps this point costs"
+    },
+    {
+      "name": "particle_steps_n30_dt_f12_b30",
+      "value": 100000000.0,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_n30_dt_f12_b30",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps this point costs"
+    },
+    {
+      "name": "particle_steps_n100_dt_f12_b30",
+      "value": 300000000.0,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_n100_dt_f12_b30",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps this point costs"
+    },
+    {
+      "name": "particle_steps_n300_dt_f12_b30",
+      "value": 1000000000.0,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_n300_dt_f12_b30",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps this point costs"
+    },
+    {
+      "name": "particle_steps_n1000_dt_f12_b30",
+      "value": 3000000000.0,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_n1000_dt_f12_b30",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps this point costs"
+    },
+    {
+      "name": "particle_steps_n300_dt2_f12_b30",
+      "value": 2000000000.0,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_n300_dt2_f12_b30",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps this point costs"
+    },
+    {
+      "name": "particle_steps_n300_dt_f30_b30",
+      "value": 900000000.0,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_n300_dt_f30_b30",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps this point costs"
+    },
+    {
+      "name": "particle_steps_n300_dt_f6_b30",
+      "value": 1000000000.0,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_n300_dt_f6_b30",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps this point costs"
+    },
+    {
+      "name": "particle_steps_n300_dt_f12_b12",
+      "value": 1000000000.0,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_n300_dt_f12_b12",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps this point costs"
+    },
+    {
+      "name": "particle_steps_n300_dt_f6_b12",
+      "value": 1000000000.0,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_n300_dt_f6_b12",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps this point costs"
+    },
+    {
+      "name": "particle_steps_total",
+      "value": 10000000000.0,
+      "unit": "1",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_synthesis.json#particle_steps_total",
+      "precision": "order_of_magnitude",
+      "note": "the sum over points, against A5's ceiling of 7e10"
+    },
+    {
+      "name": "particle_step_rate",
+      "value": 10000000.0,
+      "unit": "1/s",
+      "source": "assumed:a_cost_reference",
+      "grade": "E5",
+      "origin": "v2_axis_bd_overdamped_a5.json#particle_step_rate",
+      "precision": "order_of_magnitude",
+      "note": "particle-steps per second including the per-step readout, on one CPU core of this MacBook. A scratch timing on 2026-09-30 read 8.7 million; no plan cites that timing, so it stands here as an assumption the smoke run replaces"
+    },
+    {
+      "name": "bytes_per_value",
+      "value": 8e-09,
+      "unit": "GB",
+      "source": "spec:ieee754_double",
+      "grade": "E3",
+      "origin": "v2_axis_bd_overdamped_a5.json#bytes_per_value",
+      "precision": "significant_figures",
+      "note": "one double, in the unit the ceiling is written in"
+    },
+    {
+      "name": "wall_clock_estimate",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "computed:particle_steps_over_rate",
+      "grade": "E5",
+      "formula": "particle_steps_total/particle_step_rate",
+      "inputs": [
+        "particle_steps_total",
+        "particle_step_rate"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the whole sweep on one core; the rate is A5's assumption and the smoke run measures it"
+    },
+    {
+      "name": "values_stored_point",
+      "value": 100000,
+      "unit": "1",
+      "source": "computed:frames_times_curves_times_points",
+      "grade": "E5",
+      "formula": "10*n_curves_point*(pre_bleach_frames_min + max_recovery_time_point/frame_interval_point)",
+      "inputs": [
+        "n_curves_point",
+        "pre_bleach_frames_min",
+        "max_recovery_time_point",
+        "frame_interval_point"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one bright count per frame per curve over the ten points, kept in observables.json; no position is stored"
+    },
+    {
+      "name": "storage_estimate",
+      "value": 0.0008,
+      "unit": "GB",
+      "source": "computed:values_times_bytes",
+      "grade": "E5",
+      "formula": "values_stored_point*bytes_per_value",
+      "inputs": [
+        "values_stored_point",
+        "bytes_per_value"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "no trajectory is written"
+    },
+    {
+      "name": "smoke_record_fraction",
+      "value": 0.1,
+      "unit": "1",
+      "source": "assumed:a_run_design",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "a smoke run of one point runs a tenth of its curves"
+    },
+    {
+      "name": "agreement_z_max",
+      "value": 3,
+      "unit": "1",
+      "source": "assumed:a_run_design",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "a point agrees with the deterministic prediction when its mean D lies within three standard errors of it"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_nominal_diameter",
+      "statement": "The beads are 100 nm across, as the person named them. Nothing measured says so, and a nominal size can be off by tens of per cent, which moves D by the same fraction -- inside explore's tie band.",
+      "numbers": [
+        "bead_diameter"
+      ],
+      "falsifier": "a measured diameter, or the product's specification sheet, replaces it",
+      "gap_ref": "bead_diameter_absent"
+    },
+    {
+      "rationale_id": "a_bleach_radius",
+      "statement": "A 3 um bleach disc, chosen from Stage 1 as the size at which the estimator's bleach, frame and window bounds are all comfortable (bleach up to 50 ms, frames up to 100 ms, a 6 s record). It is this agent's pick until the microscope plan states the disc it can make.",
+      "numbers": [
+        "bleach_radius"
+      ],
+      "falsifier": "the disc radius in the microscope plan the bridge carries replaces it",
+      "gap_ref": "bleach_radius_absent"
+    },
+    {
+      "rationale_id": "a_chamber_depth",
+      "statement": "A 10 um deep chamber, a round guess. It sets how many beads one curve counts and nothing else.",
+      "numbers": [
+        "chamber_depth"
+      ],
+      "falsifier": "the chamber the microscope side uses replaces it",
+      "gap_ref": "sample_chamber_depth_absent"
+    },
+    {
+      "rationale_id": "a_bleach_rate",
+      "statement": "Beads inside the disc go dark at fifty per second under the patterning light: one bleaching time inside the runs' bleach length, so the dip is of order one half. It sets how deep the dip is and nothing about how fast the disc refills.",
+      "numbers": [
+        "bleach_rate"
+      ],
+      "falsifier": "a measured bleaching rate under the patterning illumination replaces it",
+      "gap_ref": "bleaching_rate_absent"
+    },
+    {
+      "rationale_id": "a_pre_frames",
+      "gap_ref": "pre_bleach_frames_absent",
+      "statement": "Ten frames before the bleach put the counting error of the normalising mean at about a third of one frame's, so normalisation adds little to a curve's scatter.",
+      "numbers": [
+        "pre_bleach_frames_min"
+      ],
+      "falsifier": "a scatter that falls when the pre-bleach frames are doubled raises the count"
+    },
+    {
+      "rationale_id": "a_cost_reference",
+      "gap_ref": "particle_step_rate_absent",
+      "statement": "Of order ten million particle-steps a second with a readout every step: HOOMD's Brownian step without a neighbour list, and a NumPy pass over the positions to label and count.",
+      "numbers": [
+        "particle_step_rate"
+      ],
+      "falsifier": "the smoke run's cost_measured event replaces it"
+    },
+    {
+      "rationale_id": "a_run_design",
+      "gap_ref": "run_design_choices_absent",
+      "statement": "Two choices of how the runs are checked, which nothing measured: a smoke run of a tenth of a point's curves sees the run work end to end inside the five-minute smoke ceiling, and three standard errors separates a real difference from the scatter of fifty curves at about the one-in-four-hundred level.",
+      "numbers": [
+        "smoke_record_fraction",
+        "agreement_z_max"
+      ],
+      "falsifier": "a smoke run over its ceiling, or a point that disagrees and agrees when re-run"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    },
+    {
+      "entry_id": "tracer_diffusivity_expected",
+      "grade": "E4",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "The expected translational diffusivity of a tracer sphere in a bulk fluid is the Stokes-Einstein value, k_B T over 3 pi eta d. Used here as the relation only, at the person's nominal 100 nm; the store's diameter for it belongs to a different bottle."
+    },
+    {
+      "entry_id": "tracer_particle_density",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "The Abvigen AFR-0500-COOH particle material has a density of 1.03 g/cm3. A different bead from the 100 nm ones; cited for sedimentation only, on the assumption both are polystyrene."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "bead_diameter_absent",
+      "observable": "bead_diameter",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='bead_diameter') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "fluorescent_bead_absent",
+      "observable": "fluorescent_bead",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='fluorescent_bead') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "photobleaching_absent",
+      "observable": "photobleaching",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='photobleaching') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "sample_chamber_depth_absent",
+      "observable": "sample_chamber_depth",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='sample_chamber_depth') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "tracer_number_density_absent",
+      "observable": "tracer_number_density",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='tracer_number_density') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [
+        "density",
+        "tracer_number_density_from_diameter"
+      ],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "tracer_volume_fraction_absent",
+      "observable": "tracer_volume_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='tracer_volume_fraction') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "bleach_radius_absent",
+      "observable": "bleach_radius",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='bleach_radius') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "self_diffusivity_concentration_dependence_absent",
+      "observable": "self_diffusivity_concentration_dependence",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='self_diffusivity_concentration_dependence') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "debye_length_absent",
+      "observable": "debye_length",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='debye_length') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "bleaching_rate_absent",
+      "observable": "bleaching_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='bleaching_rate') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

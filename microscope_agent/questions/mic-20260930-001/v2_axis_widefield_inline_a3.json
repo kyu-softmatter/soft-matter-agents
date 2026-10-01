@@ -1,0 +1,78 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260930-001-widefield_inline-a3",
+  "qid": "mic-20260930-001",
+  "thread": "solo-mic-20260930-001",
+  "round": 0,
+  "revision": 2,
+  "author": "microscope_agent",
+  "created_at": "2026-10-01T07:15:00Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260930-001:v2:widefield_inline:a3",
+  "config": "widefield_inline",
+  "axis": "a3",
+  "kb_version": "kbv-a0f093a66393",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "imaging_bleach_small_against_recovery",
+      "parameter": "imaging_dose_rate",
+      "state": "returned",
+      "precondition": {
+        "parameter": "imaging_dose_rate",
+        "basis": [],
+        "requires": "keep the imaging light's bleaching over the whole window under a tenth of the bleach dip: with a dip of at least 30 per cent made in at most tau/10 and a window of at least 10 tau, the bleach's dose rate must exceed the imaging's time-averaged dose rate about 360-fold. Reach it by lowering the imaging level and by exposing only during each frame, and verify it on the reference region, whose decay over the record is this loss measured directly"
+      }
+    },
+    {
+      "inequality": "sealed_still_chamber",
+      "parameter": "chamber_seal",
+      "state": "returned",
+      "precondition": {
+        "parameter": "chamber_seal",
+        "basis": [],
+        "requires": "seal the chamber on every edge before the record and let it settle; an open edge drives evaporation flow, and a flow that carries the bleached column sideways reads as fast recovery. Confirm stillness by watching the bleached disc's centre in the first post-bleach frames: it must not move"
+      }
+    },
+    {
+      "inequality": "sample_temperature_uncontrolled",
+      "parameter": "sample_temperature",
+      "state": "returned",
+      "precondition": {
+        "parameter": "sample_temperature",
+        "basis": [
+          "kb:sample_temperature_not_actuated"
+        ],
+        "requires": "record the room temperature at the start and end of each record; nothing actuates the sample, so temperature is a condition of the result and not a setting of the plan"
+      }
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [
+    {
+      "entry_id": "sample_temperature_not_actuated",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "Sample temperature is not under control on this instrument. A temperature stage exists but has never been connected, so nothing actuates the sample temperature and there is no setpoint to appeal to: a"
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "bleaching_rate_absent",
+      "observable": "bleaching_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=bleaching_rate, caller_id=mic-20260930-001:v2:widefield_inline:a3, kb_version=kbv-a0f093a66393) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-a0f093a66393",
+      "asked_by": "mic-20260930-001:v2:widefield_inline:a3",
+      "asked_at": "2026-10-01T07:10:36+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "The dose-rate bound rests on the registered estimator's own validity ratios, which are contract text and not numbers, so its basis is empty by design."
+}

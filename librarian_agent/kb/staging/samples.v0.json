@@ -60,6 +60,22 @@
       ],
       "type_facts_reach_this_instance_via": "identified_as, at E5",
       "what_now_points_here": "Three entries carry `subject: [{kind: sample, id: particle_suspension_a}]` as of a675c4e, which added `sample` to the subject enum and wired check 44 to resolve it against THIS FILE and nothing else. That wiring matters: the `quantity` kind resolves against names used in numbers[] anywhere, which an entry can satisfy by itself -- and on 2026-09-19 renaming one number dangled five subjects that had only ever resolved against a number in the same file. A registry an entry can write itself into is not a registry. Verified: querying `particle_suspension_a` returns all three."
+    },
+    {
+      "id": "particle_suspension_b",
+      "what_it_observably_is": "a bottle of fluorescent beads the person calls the 100 nm beads, asked about by mic-20260930-001 and sim-20260930-401. Nothing about it has been observed on this bench yet; the description is what the person said it is for, not what anyone has seen.",
+      "first_recorded": "2026-10-01",
+      "label": {
+        "read": false,
+        "note": "NOT CHECKED, which is different from read-and-silent (particle_suspension_a). The person named the product by pasting the vendor page; nobody has recorded reading the bottle."
+      },
+      "identified_as": {
+        "type": "F8801",
+        "grade": "E5",
+        "source": "operator_recall:person_statement_f8801_20260930",
+        "entry_ref": "particle_suspension_b_identity",
+        "why_e5": "the person's statement, made by pasting the product page and not by reading the container. Every type-level fact applied to this bottle inherits E5 by 5.8."
+      }
     }
   ],
   "types_referenced": {
@@ -76,6 +92,16 @@
         "tracer_excitation_peak"
       ],
       "caution": "abvigen_published_data_is_unreliable applies to every one of these. Two of them, the excitation and emission peaks, are marked DISPROVED by two independent instrument observations and are kept only under rule 8."
+    },
+    "F8801": {
+      "supplier": "Invitrogen (Thermo Fisher Scientific)",
+      "entries": [
+        "f8801_nominal_diameter",
+        "f8801_excitation_peak",
+        "f8801_emission_peak",
+        "f8801_material_and_surface",
+        "f8801_storage_conditions"
+      ]
     }
   },
   "gaps": [
@@ -97,6 +123,51 @@
       ],
       "status": "Recorded nowhere, and no card has asked for it. So even with a diameter, the number density under the objective does not follow from the stock concentration -- there is an unrecorded factor in between.",
       "why_it_matters": "tracer_number_density in any real sample"
+    },
+    {
+      "what": "the lot number of particle_suspension_b",
+      "instance": "particle_suspension_b",
+      "kind": "absent",
+      "searched": [
+        "microscope_agent/questions/mic-20260930-001/asked_of_the_person.jsonl at 51c61eb (listed under not_answered)",
+        "the vendor product page"
+      ],
+      "status": "Only a person reading the bottle can close it. It would lift particle_suspension_b_identity to E3 and name the lot's Certificate of Analysis, which gives a measured mean diameter in place of the nominal 0.1 um.",
+      "why_it_matters": "the bead diameter that a diffusivity estimate depends on, at better than one decade"
+    },
+    {
+      "what": "the stock concentration of particle_suspension_b",
+      "instance": "particle_suspension_b",
+      "kind": "absent",
+      "searched": [
+        "the vendor product page (prints none)",
+        "asked_of_the_person.jsonl at 51c61eb (not_answered)",
+        "kb/entries"
+      ],
+      "status": "Not filled from what FluoSpheres usually are, and not from tracer_stock_concentration, which is the 5 um Abvigen bottle's. The lot certificate or the bottle label may state it.",
+      "why_it_matters": "number density, and so spacing and concentration-dependent diffusion, in any sample made from it"
+    },
+    {
+      "what": "the dilution between particle_suspension_b's stock and the sample",
+      "instance": "particle_suspension_b",
+      "kind": "absent",
+      "searched": [
+        "asked_of_the_person.jsonl at 51c61eb (not_answered)",
+        "kb/entries"
+      ],
+      "status": "A plan, not yet a fact. Recorded nowhere.",
+      "why_it_matters": "even with a stock concentration, the number density under the objective does not follow without it"
+    },
+    {
+      "what": "the photobleaching rate of F8801's dye",
+      "instance": "particle_suspension_b",
+      "kind": "unqualified_source",
+      "searched": [
+        "the vendor product page: says only that the dye inside the bead is shielded from photobleaching, with no rate",
+        "kb/entries (bleaching_rate, photobleaching: absent)"
+      ],
+      "status": "An adjective is not a rate, so nothing was entered. A rate would come from a measurement on this bench or from literature that measured this product at stated illumination.",
+      "why_it_matters": "the bleach-recovery questions mic-20260930-001 and sim-20260930-401 both need it"
     }
   ],
   "a_correction_recorded_in_place": "THIS FILE SAID THE DIAMETER `DOES NOT RESOLVE AND GOT WORSE`, AND THAT WAS ALREADY FALSE WHEN WRITTEN. The measurement landed at 19:41; this table was written after it and did not know. It is the exact failure librarian_agent/CLAUDE.md describes -- a reference that was correct when taken and wrong when used -- committed by the seat that had spent the day counting it in others. Recorded here rather than silently overwritten, because the file is young enough that the diff would otherwise be the only trace.",

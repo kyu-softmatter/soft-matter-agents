@@ -1,0 +1,10 @@
+{
+  "source_id": "src_runs_20260924_008_to_010_card036",
+  "kind": "measured",
+  "identifier": "Three run logs of microscope-20260924-3's card-036 session on 2026-09-24, all preparatory runs (plan_id null): microscope_agent/runs/run-20260924-008/log.json (read-only property read of a derived dual-camera configuration, NIS not running) and run-20260924-009/log.json (the first software control of a confocal line, stopped after NIS was force-killed), both read at 0ecf94b; run-20260924-010/log.json (stand-only configuration load after a force-kill), read at 08de0a7, where it was committed.",
+  "accessed": "2026-10-01",
+  "grade_rule": "E1 for what the control software reported of itself in a recorded run event -- the properties a loaded device exposes, a DAQ reservation granted, a native call that did not return. This system observed each, in a run with a run_id. None is a value of a registered observable, which 11-21 condition 4 bars from a preparatory run; check 85 counts these citations as self-reports.",
+  "what_was_entered": "csuw1_disk_speed_is_not_exposed_here (run-008 events 4-10), lunf_blanking_lines_reservable_right_after_nis_kill (run-009 events 7-9 and 12; run-010 events 7-9 agree), mm_config_load_did_not_return_after_nis_force_kill (run-009 events 9-10, run-010 events 7-11, run-008 event 2 for the comparison).",
+  "what_was_not": "the person's gate answers, the eyepiece mapping of run-008 (not delivered in these items), and the bench state recorded in the gate questions: they are each run's own record. The fiber-shutter state after the kill is the gate text's warning, not an observation, and is not entered.",
+  "delivered_by": "microscope-20260924-3, items mm_load_hung_after_nis_force_kill, blanking_lines_free_right_after_nis_kill and csuw1_reports_no_disk_speed_here of microscope_agent/findings/microscope-20260924-3-20260924.json at 0ecf94b (added at d8570f1, after task 037's intake had read the file). Ruled in task 040."
+}

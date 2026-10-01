@@ -1,0 +1,75 @@
+{
+  "entry_id": "binary_2d_crystallites_small_ones_square_large_ones_hexagonal",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In two-dimensional Langevin molecular dynamics of isolated crystallites of a 1:1 binary mixture with a short-ranged Fermi-Jagla attraction, at like-to-unlike attraction ratio 0.15 for both like pairs and kT/E_AB = 0.08, a square crystallite of 100 particles turns hexagonal while a hexagonal one of 64 turns square: the square lattice is stable for small crystallites and the hexagonal for large ones, the change is reversible, and smaller crystallites stay square up to larger like attractions.",
+  "numbers": [
+    {
+      "name": "crystallite_particle_count",
+      "value": 100,
+      "unit": "count",
+      "source": "literature:src_pretti_2019_size_dependent_selection",
+      "grade": "E3",
+      "note": "size of the square crystallite that turned hexagonal."
+    },
+    {
+      "name": "crystallite_particle_count",
+      "value": 64,
+      "unit": "count",
+      "source": "literature:src_pretti_2019_size_dependent_selection",
+      "grade": "E3",
+      "note": "size of the hexagonal crystallite that turned square."
+    },
+    {
+      "name": "like_to_unlike_attraction_ratio",
+      "value": 0.15,
+      "unit": "1",
+      "source": "literature:src_pretti_2019_size_dependent_selection",
+      "grade": "E3",
+      "note": "E_AA/E_AB = E_BB/E_AB for both examples."
+    },
+    {
+      "name": "reduced_temperature",
+      "value": 0.08,
+      "unit": "1",
+      "source": "literature:src_pretti_2019_size_dependent_selection",
+      "grade": "E3",
+      "note": "kT/E_AB for both examples."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT, run in LAMMPS, not HOOMD. Two-dimensional 1:1 binary mixture with a short-ranged Fermi-Jagla pair potential (parameters in the Supplementary Text, not in the file), constant NVT with a Langevin thermostat; the unlike attraction E_AB is the energy scale, the like attractions E_AA and E_BB are given relative to it, and temperature as kT/E_AB. Crystallites of 36 to 324 particles with (10)-type surfaces, 10 replicates per condition and start. A 36-particle crystallite at like ratio 0.19 oscillates between the two structures. Differences between square and hexagonal starts at large sizes are attributed to finite run lengths. Raising the temperature stabilises the square lattice to larger like attractions, likely through the larger vibrational entropy of the less rigid square lattice.",
+  "validity": {
+    "reduced_temperature": {
+      "min": 0.08,
+      "max": 0.08,
+      "unit": "1"
+    },
+    "crystallite_particle_count": {
+      "min": 36,
+      "max": 324,
+      "unit": "count"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "crystallite_particle_count"
+    },
+    {
+      "kind": "quantity",
+      "id": "like_to_unlike_attraction_ratio"
+    },
+    {
+      "kind": "quantity",
+      "id": "reduced_temperature"
+    }
+  ],
+  "source": "literature:src_pretti_2019_size_dependent_selection",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_pretti_2019_size_dependent_selection",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

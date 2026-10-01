@@ -746,6 +746,62 @@ def fixture_68_a_superseded_record_cannot_be_rewritten(repo: Path) -> str:
     return f"{head}..{sha}"
 
 
+def _guides_repo(repo: Path, store: str, exports: str, footers: list[str | None], message: str) -> str:
+    """A store with an index, one export and one guide per footer, for check 87.
+
+    The index and the export carry nothing but the version the check reads.
+    Other checks will object to a store that thin, and they are allowed to:
+    the row counts check 87's verdict alone, the same tolerance a group folder
+    has.
+    """
+    start = base(repo)
+    kb = "librarian_agent/kb"
+    write(repo, f"{kb}/index.json", {"schema_version": 1, "kb_version": store, "entry_count": 0,
+                                     "entries": {}, "handles": {}})
+    write(repo, f"{kb}/exports/snapshot_microscope_agent.json", {"agent": "microscope_agent", "kb_version": exports,
+                                                                 "entry_count": 0, "entries": {}})
+    for i, v in enumerate(footers):
+        tail = (f"<sub>Generated from the knowledge store at {v}. Do not edit by hand: correct the store "
+                f"and regenerate.</sub>\n") if v else "Edited by hand, and the footer went with it.\n"
+        write(repo, f"{kb}/guides/safety_device_{i}.md", f"# Device {i}\n\nWhat the manufacturer warns about.\n\n{tail}")
+    commit(repo, message, kb, seat="librarian")
+    return f"{start}..HEAD"
+
+
+def fixture_87_a_publish_that_left_the_guides_behind(repo: Path) -> str:
+    """The shape of 2026-09-29: the store and its export both moved, the guides
+    did not. One guide of two is current. The row matches the behind-both
+    wording and the trailing guide's path as one string, so only that finding
+    can satisfy it -- the right guide, for the right reason."""
+    return _guides_repo(repo, "kbv-bbbbbbbbbbbb", "kbv-bbbbbbbbbbbb", ["kbv-bbbbbbbbbbbb", "kbv-aaaaaaaaaaaa"],
+                        "a publish that regenerated one guide of two")
+
+
+def fixture_87_a_guide_with_no_footer(repo: Path) -> str:
+    """A page that cannot say which store it shows, which is what a hand edit
+    most often leaves behind."""
+    return _guides_repo(repo, "kbv-bbbbbbbbbbbb", "kbv-bbbbbbbbbbbb", [None],
+                        "a guide edited by hand")
+
+
+def fixture_87_guides_at_the_published_version_while_the_store_moved(repo: Path) -> str:
+    """Entries committed between publishes move the index and not the export,
+    and the guides stay at what was published. That is publishing working, and
+    it has to pass: refusing it would make every per-paper commit of task 039
+    fail its own gate."""
+    return _guides_repo(repo, "kbv-cccccccccccc", "kbv-bbbbbbbbbbbb", ["kbv-bbbbbbbbbbbb"],
+                        "an entry committed after the last publish")
+
+
+def fixture_87_guides_regenerated_before_the_publish(repo: Path) -> str:
+    """The house order before 2026-09-29: `aa34700` regenerated the guides in
+    its content commit and `b7dcc9b` published after it. Between the two the
+    guides name the store's own version and the export is behind. It has to
+    pass, or the order that was always right is refused."""
+    return _guides_repo(repo, "kbv-cccccccccccc", "kbv-bbbbbbbbbbbb", ["kbv-cccccccccccc"],
+                        "entries and their guides, committed before the publish")
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -783,6 +839,17 @@ FIXTURES = [
     # `/v2_axis_live_a2.json]`, so each row can only be satisfied by its own
     # file. Watched: the swap now breaks both.
     (68, "FAIL", "/v2_axis_live_a2.json]", fixture_68_a_superseded_record_cannot_be_rewritten),
+    # Matched on the branch's last words and the guide's path as one string, for
+    # the reason the check 68 rows give: a phrase alone is satisfied by the
+    # wrong file, and a path alone by the wrong branch.
+    (87, "FAIL", "with the publish or before it [librarian_agent/kb/guides/safety_device_1.md]",
+     fixture_87_a_publish_that_left_the_guides_behind),
+    (87, "FAIL", "a guide is never edited by hand [librarian_agent/kb/guides/safety_device_0.md]",
+     fixture_87_a_guide_with_no_footer),
+    (87, "PASS", "the store has moved to kbv-cccccccccccc since",
+     fixture_87_guides_at_the_published_version_while_the_store_moved),
+    (87, "PASS", "at kbv-cccccccccccc, the store's own version",
+     fixture_87_guides_regenerated_before_the_publish),
 ]
 
 

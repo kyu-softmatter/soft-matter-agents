@@ -1,0 +1,37 @@
+{
+  "entry_id": "f8801_excitation_peak",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The supplier specifies Invitrogen F8801 microspheres as excited at 580 nm.",
+  "source": "spec:invitrogen_f8801",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_invitrogen_f8801_product_page_20261001",
+  "date": "2026-10-01",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260930-1",
+  "identifiers": {
+    "catalog_number": "F8801",
+    "supplier": "Invitrogen (Thermo Fisher Scientific)",
+    "product": "FluoSpheres Carboxylate-Modified Microspheres, 0.1 um, red fluorescent (580/605)",
+    "applies_to": "the type F8801. Applying it to the beads on this bench goes through the E5 linking claim particle_suspension_b_identity, which a card applying this to the bench must cite alongside it and which fixes the grade at E5 by 5.8"
+  },
+  "validity_conditions": "A band reported as a point: the page prints Excitation/Emission 580/605 nm and no width, so none is asserted. WHETHER THIS BENCH CAN DELIVER 580 nm is a separate question about the light engine and the filters and is not answered here. Named excitation_peak_wavelength, stating the quantity only; the 5 um Abvigen entries used a product-prefixed name for the same quantity until task 042 renamed it to this one on 2026-10-01, so a query by the name returns both products. THIS IS ABOUT THE TYPE, NOT THE BOTTLE. Under the instance/type split, F8801 is a type and its facts are ordinary entries at E3 from the supplier; the beads on the bench are the instance particle_suspension_b, and the claim joining them is particle_suspension_b_identity at E5, because the person named the product by pasting this page and did not read the bottle. Anything here applied to the bench inherits E5. READ BY THIS SEAT, NOT ONLY PASTED. The person's paste (microscope_agent/questions/mic-20260930-001/asked_of_the_person.jsonl at 51c61eb) is what identified the product; the values here were read by this seat off the vendor's own page on 2026-10-01 and agree with the paste on every field, which is why this is spec: at E3 and not a copy of a copy.",
+  "numbers": [
+    {
+      "name": "excitation_peak_wavelength",
+      "value": 580,
+      "unit": "nm",
+      "source": "spec:invitrogen_f8801",
+      "grade": "E3",
+      "precision": "significant_figures"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "excitation_peak_wavelength"
+    }
+  ]
+}

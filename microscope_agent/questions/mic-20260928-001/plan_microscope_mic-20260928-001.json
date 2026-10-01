@@ -1,0 +1,1489 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "id": "plan-mic-20260928-001-r1",
+  "qid": "mic-20260928-001",
+  "thread": "solo-mic-20260928-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-28T23:00:00Z",
+  "status": "DRAFT",
+  "numbers": [
+    {
+      "name": "nosepiece_position",
+      "value": 5,
+      "unit": "count",
+      "source": "operator_read:kyuhwan_20260925",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "at": "stand_ti2e",
+      "note": "The 100x oil objective, MRD71970, position 5 on a turret indexed from 0 (nosepiece_objective_assignment, E3), as the person confirmed it on 2026-09-25. SET BY THE PERSON'S HAND AND NEVER COMMANDED. It is Friday's reading: the hand-over restates the objective before any command, and a different one refuses every trap step, because the tweezers limits are per objective."
+    }
+  ],
+  "degraded": [],
+  "purpose": "verify",
+  "intent": "confirm",
+  "actions": [
+    {
+      "id": "ready",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "make_trap_1",
+      "device": "optical_tweezers",
+      "action": "create",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_1_on",
+      "device": "optical_tweezers",
+      "action": "on",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "bead_caught",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_to_1",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_at_1",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_to_2",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_at_2",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_to_3",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_at_3",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_to_4",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_at_4",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_back_to_3",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_back_at_3",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_back_to_2",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_back_at_2",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_back_to_1",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_back_at_1",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "a_back_to_0",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "scale_check",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "make_trap_2_far",
+      "device": "optical_tweezers",
+      "action": "create",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "trap_2_on",
+      "device": "optical_tweezers",
+      "action": "on",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "b_far_1_0",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "b_trap_2_to_0p25",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "b_trap_2_to_0p5",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "b_trap_2_to_0p75",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "b_trap_2_to_1",
+      "device": "optical_tweezers",
+      "action": "strength",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "b_far_1_1",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_5p75",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_5p75",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_5p5",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_5p5",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_5p25",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_5p25",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_5",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_5",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_4p75",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_4p75",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_4p5",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_4p5",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_4p25",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_4p25",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_4",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_4",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_3p75",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_3p75",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_3p5",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_3p5",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_3p25",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_3p25",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_3",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_3",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_2p75",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_2p75",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_2p5",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_2p5",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_2p25",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_2p25",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_2",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_2",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_1p75",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_1p75",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_to_1p5",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "c_at_1p5",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_1p75",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_1p75",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_2",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_2",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_2p25",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_2p25",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_2p5",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_2p5",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_2p75",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_2p75",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_3",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_3",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_3p25",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_3p25",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_3p5",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_3p5",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_3p75",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_3p75",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_4",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_4",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_4p25",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_4p25",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_4p5",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_4p5",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_4p75",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_4p75",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_5",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_5",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_5p25",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_5p25",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_5p5",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_5p5",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_5p75",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_5p75",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_to_6",
+      "device": "optical_tweezers",
+      "action": "position",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    },
+    {
+      "id": "d_at_6",
+      "device": "optical_tweezers",
+      "action": "hold_for_person",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [
+      "tweezers_trap_position_100x_min",
+      "tweezers_trap_position_100x_max",
+      "tweezers_trap_strength_min",
+      "tweezers_trap_strength_max",
+      "tweezers_trap_step_max"
+    ],
+    "status": "inside",
+    "note": "Every position between 0 and +6 um, inside the person's -40 to +40 um at 100x. trap_1 moves in 1 um steps, exactly the person's step limit, and trap_2 in 0.25 um steps; both traps are created at an absolute position, so every move has a known start. Strengths 0 to 1 in steps of 0.25, inside 0 to 1. The laser's level is the person's hand at the control and nothing here reads it."
+  },
+  "targets": [
+    {
+      "metric": "walk_completed",
+      "kind": "detection",
+      "value": 1,
+      "unit": "count",
+      "note": "the person's yes at the last hold, with trap_2 back at +6 um after the walk in and out. A decision about what counts as done, so no grade. A bead lost on the way is not a failure of the plan: where it was lost is one of the readings the method declares"
+    }
+  ],
+  "stop_criteria": [
+    {
+      "id": "sc_person_stops",
+      "metric": "walk_completed",
+      "comparator": "<",
+      "target": "walk_completed",
+      "on_met": "complete",
+      "statement": "a no at any hold ends the plan as a planned stop, both traps left as the last accepted step left them -- no abort and no further command. An 'abort' answer, or any command not answered 0, aborts, and the abort sends TRAP_OFF for nothing and LASER_OFF: emission off, which only the person can reverse"
+    }
+  ],
+  "success_criteria": [
+    {
+      "id": "ok_walk",
+      "metric": "walk_completed",
+      "comparator": ">=",
+      "target": "walk_completed",
+      "statement": "the walk in and out completes with a yes at every hold, each hold answered only after its recording is complete"
+    }
+  ],
+  "open_risks": [
+    "A DRAFT. It runs only on the bench computer, after the person approves it and hands over the bench, and never from this Mac.",
+    "The tweezers are blind: every command records verification none. Where the traps and the bead are is read from the camera, which this plan does not command -- a separate recorder takes the record at each hold, as on 2026-09-25, or the person records by hand.",
+    "src/record_20260925.py as committed fixes a 30 ms exposure and the green line. The method beside this plan asks for 10 ms in transmitted light, so either the recorder gains exposure and light arguments (a separate change, with its own card) or the person records by hand in Micro-Manager at those settings.",
+    "trap_1's walk moves the trapped bead relative to the sample. The person's standing preference is to move the stage and not the trap for relative motion in a measurement; here the trap's own position is the thing measured, so the trap moves. Said so the person can refuse it.",
+    "The walk takes trap_2 through the separation where the two wells part, which is where the bead is expected to be pulled across, lifted out along the beam, or lost. A lost bead ends the plan at that hold with a no, and nothing else is sent; where it was lost is data.",
+    "At +1.5 um both foci are well inside the bead, which sits between them.",
+    "trap_2's strength rises in four steps at +6 um with no hold between them, because nothing depends on the bead there. If the scale check were wrong, +6 um could be nearer than intended; the check comes first for that reason.",
+    "About an hour: 48 holds, 36 records of 60 s, 3 of 120 s and 8 of 20 s, plus the focus series and the person's answers. Stated so the person can shorten it.",
+    "The focus series is the person's hand on the stand's focus, a few micrometres either side, on a bead resting on the glass. Nothing here commands Z.",
+    "An abort sends LASER_OFF, which only the person can reverse at the instrument."
+  ],
+  "trap_steps": {
+    "device": "optical_tweezers",
+    "objective": "100x",
+    "read_back": "none",
+    "verifies": "where trap_1 and trap_2 land on the camera when commanded at 100x today; whether trap_1 is weakened by trap_2 existing or strengthening far away; whether trap_2 pulls a held 5 um bead and from how far; and how the bead's position, spread and focus change as trap_2 at equal strength is walked from 6 um to 1.5 um from trap_1 and back -- whether the two wells part abruptly or gradually, and whether the bead crosses between them or is lifted out along the beam",
+    "falsified_by": "the bead does not follow trap_1's walk, or is lost before trap_2 is created, or a command is not accepted, so that neither the positions nor the pull can be read off the camera",
+    "steps": [
+      {
+        "id": "ready",
+        "kind": "hold_for_person",
+        "statement": "Before anything is sent. State at hand-over: the laser level on the hand control (2026-09-25 used 0.02), that the 100x oil objective is in place, that the tweezers software holds no trap, and the stand's Z reading at the bottom glass. Transmitted lamp on, green line off, camera released to Micro-Manager at 10 ms. If a bead rests on the glass in view, record it 5 s at each hand-set focus offset 0, +1, +2, 0, -1, -2, 0 um and return; say if none is in view. Answer yes to create trap_1 at the image centre at strength 1 and switch it on; no to send nothing."
+      },
+      {
+        "id": "make_trap_1",
+        "kind": "create",
+        "trap": "trap_1",
+        "x_um": 0.0,
+        "y_um": 0.0,
+        "strength": 1.0
+      },
+      {
+        "id": "trap_1_on",
+        "kind": "on",
+        "trap": "trap_1"
+      },
+      {
+        "id": "bead_caught",
+        "kind": "hold_for_person",
+        "statement": "trap_1 is on at the image centre at strength 1, and no trap_2 exists. Move the stage by hand until one bead sits under it, and state the stand's Z reading with the held bead in focus. Record 120 s: trap_1 alone. Answer yes when the recording is complete and one bead is held; no stops the plan with trap_1 on."
+      },
+      {
+        "id": "a_to_1",
+        "kind": "position",
+        "trap": "trap_1",
+        "x_um": 1.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "a_at_1",
+        "kind": "hold_for_person",
+        "statement": "trap_1 is at +1 um, carrying the bead. Record 20 s, then answer yes to move it to +2 um; no to stop here with trap_1 on; abort to abort."
+      },
+      {
+        "id": "a_to_2",
+        "kind": "position",
+        "trap": "trap_1",
+        "x_um": 2.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "a_at_2",
+        "kind": "hold_for_person",
+        "statement": "trap_1 is at +2 um, carrying the bead. Record 20 s, then answer yes to move it to +3 um; no to stop here with trap_1 on; abort to abort."
+      },
+      {
+        "id": "a_to_3",
+        "kind": "position",
+        "trap": "trap_1",
+        "x_um": 3.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "a_at_3",
+        "kind": "hold_for_person",
+        "statement": "trap_1 is at +3 um, carrying the bead. Record 20 s, then answer yes to move it to +4 um; no to stop here with trap_1 on; abort to abort."
+      },
+      {
+        "id": "a_to_4",
+        "kind": "position",
+        "trap": "trap_1",
+        "x_um": 4.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "a_at_4",
+        "kind": "hold_for_person",
+        "statement": "trap_1 is at +4 um, carrying the bead. Record 20 s, then answer yes to move it to +3 um; no to stop here with trap_1 on; abort to abort."
+      },
+      {
+        "id": "a_back_to_3",
+        "kind": "position",
+        "trap": "trap_1",
+        "x_um": 3.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "a_back_at_3",
+        "kind": "hold_for_person",
+        "statement": "trap_1 is at +3 um, carrying the bead. Record 20 s, then answer yes to move it to +2 um; no to stop here with trap_1 on; abort to abort."
+      },
+      {
+        "id": "a_back_to_2",
+        "kind": "position",
+        "trap": "trap_1",
+        "x_um": 2.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "a_back_at_2",
+        "kind": "hold_for_person",
+        "statement": "trap_1 is at +2 um, carrying the bead. Record 20 s, then answer yes to move it to +1 um; no to stop here with trap_1 on; abort to abort."
+      },
+      {
+        "id": "a_back_to_1",
+        "kind": "position",
+        "trap": "trap_1",
+        "x_um": 1.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "a_back_at_1",
+        "kind": "hold_for_person",
+        "statement": "trap_1 is at +1 um, carrying the bead. Record 20 s, then answer yes to move it to 0 um; no to stop here with trap_1 on; abort to abort."
+      },
+      {
+        "id": "a_back_to_0",
+        "kind": "position",
+        "trap": "trap_1",
+        "x_um": 0.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "scale_check",
+        "kind": "hold_for_person",
+        "statement": "trap_1 is back at the centre with the bead. Record 20 s. From trap_1's nine positions the seat reports how many camera micrometres the bead moved per commanded micrometre. Answer yes to go on only if that is between 0.83 and 1.67 -- then trap_2's walk below spans 2.5 to 5 camera um. Otherwise answer no: the plan stops with trap_1 on, and the tweezers software is re-calibrated at 100x before a revised plan."
+      },
+      {
+        "id": "make_trap_2_far",
+        "kind": "create",
+        "trap": "trap_2",
+        "x_um": 6.0,
+        "y_um": 0.0,
+        "strength": 0.0
+      },
+      {
+        "id": "trap_2_on",
+        "kind": "on",
+        "trap": "trap_2"
+      },
+      {
+        "id": "b_far_1_0",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is on at +6 um at strength 0; trap_1 at 1 at the centre holds the bead. Record 120 s, then answer yes to raise trap_2 to 1 in four steps at +6 um; no to stop here; abort to abort."
+      },
+      {
+        "id": "b_trap_2_to_0p25",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.25
+      },
+      {
+        "id": "b_trap_2_to_0p5",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.5
+      },
+      {
+        "id": "b_trap_2_to_0p75",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 0.75
+      },
+      {
+        "id": "b_trap_2_to_1",
+        "kind": "strength",
+        "trap": "trap_2",
+        "strength": 1.0
+      },
+      {
+        "id": "b_far_1_1",
+        "kind": "hold_for_person",
+        "statement": "Strengths are now trap_1 1 and trap_2 1, trap_2 at +6 um. Record 120 s, then answer yes to walk trap_2 toward trap_1 in 0.25 um steps; no to stop here; abort to abort."
+      },
+      {
+        "id": "c_to_5p75",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 5.75,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_5p75",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +5.75 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_5p5",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 5.5,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_5p5",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +5.5 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_5p25",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 5.25,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_5p25",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +5.25 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_5",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 5.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_5",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +5 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_4p75",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 4.75,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_4p75",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +4.75 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_4p5",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 4.5,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_4p5",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +4.5 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_4p25",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 4.25,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_4p25",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +4.25 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_4",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 4.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_4",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +4 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_3p75",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 3.75,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_3p75",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +3.75 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_3p5",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 3.5,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_3p5",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +3.5 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_3p25",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 3.25,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_3p25",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +3.25 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_3",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 3.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_3",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +3 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_2p75",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 2.75,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_2p75",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +2.75 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_2p5",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 2.5,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_2p5",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +2.5 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_2p25",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 2.25,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_2p25",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +2.25 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_2",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 2.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_2",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +2 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_1p75",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 1.75,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_1p75",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +1.75 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to move trap_2 0.25 um closer; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "c_to_1p5",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 1.5,
+        "y_um": 0.0
+      },
+      {
+        "id": "c_at_1p5",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is at +1.5 um, strengths 1 and 1. Record 60 s, and say if the bead left focus or the field. Answer yes to start walking trap_2 back out; no if the bead is lost or to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_1p75",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 1.75,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_1p75",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +1.75 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_2",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 2.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_2",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +2 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_2p25",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 2.25,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_2p25",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +2.25 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_2p5",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 2.5,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_2p5",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +2.5 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_2p75",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 2.75,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_2p75",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +2.75 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_3",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 3.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_3",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +3 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_3p25",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 3.25,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_3p25",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +3.25 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_3p5",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 3.5,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_3p5",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +3.5 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_3p75",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 3.75,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_3p75",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +3.75 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_4",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 4.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_4",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +4 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_4p25",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 4.25,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_4p25",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +4.25 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_4p5",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 4.5,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_4p5",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +4.5 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_4p75",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 4.75,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_4p75",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +4.75 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_5",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 5.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_5",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +5 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_5p25",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 5.25,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_5p25",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +5.25 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_5p5",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 5.5,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_5p5",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +5.5 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_5p75",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 5.75,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_5p75",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +5.75 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to move trap_2 0.25 um further out; no to stop here, both traps left as they are; abort to abort."
+      },
+      {
+        "id": "d_to_6",
+        "kind": "position",
+        "trap": "trap_2",
+        "x_um": 6.0,
+        "y_um": 0.0
+      },
+      {
+        "id": "d_at_6",
+        "kind": "hold_for_person",
+        "statement": "trap_2 is back at +6 um, strengths 1 and 1. Record 60 s, and say which trap holds the bead, or that it left focus or the field. Answer yes to finish, both traps left on; no to stop here, both traps left as they are; abort to abort."
+      }
+    ]
+  },
+  "kb_refs": [],
+  "kb_gaps": []
+}

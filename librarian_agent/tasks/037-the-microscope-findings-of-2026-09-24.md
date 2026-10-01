@@ -1,6 +1,6 @@
 # 037 — the microscope findings of 2026-09-24, into the store
 
-status: **open** · issued 2026-09-24 by manager-librarian-20260924-1 (committed under the undated `manager-librarian` at `4395e82`), at
+status: closed · **verified on disk 2026-09-28, from the MacBook**, by manager-librarian-kyuhwan-macbook-20260928-3 at `e32eaa6`, and re-checked at `54e4885` on 2026-09-29 after a context reset in that window: of the three files this task covered, as delivered (-1 at `bf8f91f`/`b4ef73d` and `ac20ee4`, -2 at `a0fda99`, -3 at `a5e7647`), every for-store item is entered, held or excluded with its reason in the messages of `8a00537`, `a14ec7a` and `aa34700`, or named in an entry or gap on disk -- except two of -2's, whose fate is written nowhere. Checked by matching item ids against the store and reading those messages; no entry was re-derived from its run log. **Six delivered items are 040's**: those two, the three -3 added at `d8570f1` after its intake, and the one for-store item of -6's file for 2026-09-25 · issued 2026-09-24 by manager-librarian-20260924-1 (committed under the undated `manager-librarian` at `4395e82`), at
 librarian-20260924-2's request so the intake survives a clear. It records
 work already under way, not work begun here · **assigned to
 librarian-20260924-2** · **reported done before this file was first

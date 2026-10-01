@@ -1,0 +1,21 @@
+{
+  "entry_id": "charged_colloids_2d_driven_melting_follows_defect_densities_in_experiment",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In experiment, a two-dimensional crystal of charged PMMA microspheres at an oil-water interface, melted either thermally by changing the density or by spinning magnetic TPM-haematite particles held beneath a fraction of the sites, loses hexatic order as a function of isolated disclination density along one curve for both routes and loses translational order as isolated dislocations appear, as the simulations do.",
+  "validity_conditions": "AN EXPERIMENT, NOT A MODEL RESULT. The particles repel as permanent dipoles, U = A/r^3; a droplet about 1 cm across holds about 1e5 particles and each analysed sample about 1e3 to 1e4; the magnetic particles are rotated by an external rotating field and their flows break detailed balance. The authors read both routes as topological rather than thermal melting. The simulation side is driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation.",
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "hexatic_order_parameter"
+    }
+  ],
+  "source": "literature:src_vyas_2026_nonequilibrium_melting",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_vyas_2026_nonequilibrium_melting",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

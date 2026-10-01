@@ -1,0 +1,17 @@
+{
+  "artifact": "trajectory_meta",
+  "schema_version": 1,
+  "run_id": "run-20260930-401-smoke-n300",
+  "trajectory": {
+    "written": false,
+    "reason": "no frames were saved"
+  },
+  "frames_saved": 5,
+  "simulated_time": 47.6,
+  "steps_taken": 9520,
+  "max_single_step_displacement": 3.588397246722197e-07,
+  "stopped_by": "planned_record_reached",
+  "stop_outcome": "complete",
+  "stopped_early": false,
+  "completed_planned_duration": true
+}

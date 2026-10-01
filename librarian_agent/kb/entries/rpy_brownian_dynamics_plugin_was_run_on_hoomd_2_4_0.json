@@ -1,0 +1,20 @@
+{
+  "entry_id": "rpy_brownian_dynamics_plugin_was_run_on_hoomd_2_4_0",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Lee and Park ran their Rotne-Prager-Yamakawa Brownian dynamics through the Positively Split Ewald HOOMD-blue plugin of Fiore et al. under HOOMD 2.4.0 with CUDA 9.2, at about 1,500 time steps per hour for 10,648 particles on one NVIDIA GeForce GTX 1070, and report that the plugin has compatibility problems across HOOMD releases and fails unless modified, the current HOOMD release when they wrote being 5.4.0.",
+  "validity_conditions": "A STATEMENT ABOUT SOFTWARE BY THE AUTHORS, as of their writing (published February 2026). This repository pins HOOMD-blue 7.2.0, three major versions later than 2.4.0; nothing in the source says the plugin runs there, and nothing here asserts it. For reproducibility the authors point to a separate Python Stokesian-dynamics implementation with RPY mobility that avoids the HOOMD dependency. The speed depends on the mean bond number.",
+  "identifiers": {
+    "product": "HOOMD-blue",
+    "version": "2.4.0",
+    "plugin": "Positively Split Ewald (Fiore et al.)"
+  },
+  "source": "literature:src_lee_park_2026_gel_normal_stress",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_lee_park_2026_gel_normal_stress",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

@@ -1,0 +1,188 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260930-001-widefield_inline-a2",
+  "qid": "mic-20260930-001",
+  "thread": "solo-mic-20260930-001",
+  "round": 0,
+  "revision": 2,
+  "author": "microscope_agent",
+  "created_at": "2026-10-01T07:15:00Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260930-001:v2:widefield_inline:a2",
+  "config": "widefield_inline",
+  "axis": "a2",
+  "kb_version": "kbv-a0f093a66393",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "frame_interval_resolves_recovery",
+      "parameter": "frame_interval",
+      "state": "returned",
+      "precondition": {
+        "parameter": "frame_interval",
+        "basis": [
+          "tracer_diffusivity_expected"
+        ],
+        "requires": "set the frame interval to at most one fifth of the expected recovery time tau = w^2/(4 D) at the chosen radius, and refuse the curve if the fitted tau comes out under five frame intervals, reporting D only as a lower bound"
+      }
+    },
+    {
+      "inequality": "window_reaches_plateau",
+      "parameter": "max_recovery_time",
+      "state": "returned",
+      "precondition": {
+        "parameter": "max_recovery_time",
+        "basis": [
+          "tracer_diffusivity_expected"
+        ],
+        "requires": "record at least ten expected recovery times after the bleach, and refuse the curve if the fitted tau exceeds a tenth of the window, reporting D only as an upper bound; the tail is slow (0.91 of full at 10 tau), so the plateau is not reached sooner"
+      }
+    },
+    {
+      "inequality": "pre_bleach_baseline",
+      "parameter": "pre_bleach_frame_count",
+      "state": "returned",
+      "precondition": {
+        "parameter": "pre_bleach_frame_count",
+        "basis": [
+          "tracer_diffusivity_expected"
+        ],
+        "requires": "record at least ten frames before the bleach at the same frame interval and exposure, so the pre-bleach mean that both normalisations divide by carries a third of one frame's noise"
+      }
+    },
+    {
+      "inequality": "independent_repeats",
+      "parameter": "repeat_count",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the number of bleaches needed to state a spread of D depends on how much one curve scatters at the planned bead count, which the simulation is computing; awaited, not guessed. Each repeat is a fresh field, so repeats cost time and not sample",
+      "missing": [
+        "recovery_fit_scatter_vs_bead_count"
+      ]
+    }
+  ],
+  "numbers": [
+    {
+      "name": "ambient_temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the room, read; the sample is not actuated and has no thermometer, so this stands in for the sample. A kelvin moves water's viscosity about 2 per cent, a tie in explore mode"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "pure water, valid 288 to 298 K. The beads are suspended in what the vendor ships them in, diluted by the person; if the diluent is not water this number is the wrong one"
+    },
+    {
+      "name": "tracer_diameter",
+      "value": 0.1,
+      "unit": "um",
+      "source": "assumed:a_bead_identity",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "origin": "v2_goal.json#tracer_diameter"
+    },
+    {
+      "name": "tracer_diffusivity_expected",
+      "value": 4.0,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*ambient_temperature/(3*pi*viscosity*tracer_diameter)",
+      "inputs": [
+        "ambient_temperature",
+        "viscosity",
+        "tracer_diameter"
+      ],
+      "note": "Stokes-Einstein, unbounded medium. FOR SCALE ONLY: it sets which radii are worth weighing and is not a prediction this plan reports. The simulation's recovery times are awaited and replace the tau it implies; the lot certificate's measured diameter would replace the nominal one at E3"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "f8801_emission_peak",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The supplier specifies Invitrogen F8801 microspheres as emitting at 605 nm."
+    },
+    {
+      "entry_id": "f8801_excitation_peak",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The supplier specifies Invitrogen F8801 microspheres as excited at 580 nm."
+    },
+    {
+      "entry_id": "f8801_material_and_surface",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "Invitrogen F8801 microspheres are polystyrene, carboxylate-modified on the surface, and loaded with a red fluorescent dye."
+    },
+    {
+      "entry_id": "f8801_nominal_diameter",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The supplier specifies Invitrogen F8801 microspheres as 0.1 um in diameter (nominal)."
+    },
+    {
+      "entry_id": "f8801_storage_conditions",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The supplier specifies storing Invitrogen F8801 microspheres refrigerated at 2-8 degrees Celsius, protected from light."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what m"
+    },
+    {
+      "entry_id": "particle_suspension_b_identity",
+      "grade": "E5",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The 100 nm fluorescent beads on this bench, instance particle_suspension_b, are Invitrogen FluoSpheres carboxylate-modified microspheres, catalogue F8801. This is the person's statement of 2026-09-30,"
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "lot_number_absent",
+      "observable": "lot_number",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=lot_number, caller_id=mic-20260930-001:v2:widefield_inline:a2, kb_version=kbv-a0f093a66393) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-a0f093a66393",
+      "asked_by": "mic-20260930-001:v2:widefield_inline:a2",
+      "asked_at": "2026-10-01T07:10:18+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "The expected diffusivity is computed for scale from the nominal size and is E5; every bound here is written as a rule in tau so that the simulation's predicted recovery times, when they arrive, move the numbers and not the rules.",
+  "assumptions": [
+    {
+      "rationale_id": "a_bead_identity",
+      "statement": "The beads this question measures are Invitrogen FluoSpheres F8801. The store now carries the person's identification as particle_suspension_b_identity (E5: the person pasted the vendor page and did not read the bottle) and the vendor's type facts at E3 -- nominal diameter 0.1 um (f8801_nominal_diameter), excitation 580 nm, emission 605 nm, polystyrene with a carboxylate surface, stored at 2 to 8 C away from light. Applied to the bench through the join, each is E5. The nominal size is a size class and not a measured mean; that measured mean is what the lot's certificate would give, and no lot number is on record.",
+      "numbers": [
+        "tracer_diameter"
+      ],
+      "falsifier": "the bottle's own label and its lot's certificate of analysis. A lot number read off the bottle raises the identification to E3 and yields the lot's measured mean diameter; a label naming another catalogue number retires this assumption.",
+      "gap_ref": "lot_number_absent"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "entry_id": "shear_stress_fluctuation_shape_marks_the_glass_fluid_transition",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In the same model at volume fraction 0.66, the skewness and excess kurtosis of the distribution of shear-stress magnitudes change more sharply across the glass-fluid transition than the mean stress does: in the fluid the magnitude is effectively half-normal (skewness about 0.995, excess kurtosis about 0.869), in the glass the skewness is near zero and the excess kurtosis negative, and a contour at 0.5 in either marks the transition.",
+  "validity_conditions": "A MODEL RESULT. Dry three-dimensional mixture of soft repulsive spheres (a harmonic repulsion approximated by a Morse form), half small and half large (radius ratio sqrt(2)) in both the active and the passive population; active particles are overdamped active Brownian particles, passive ones have no propulsion; kT = 1e-4, Dr = 3 Dt/a0^2 with a0 the small diameter; steady shear with Lees-Edwards boundaries; Euler-Maruyama at time step 1e-2 in HOOMD-blue (version not stated); total strain 10 with the first 5 discarded; no hydrodynamics, no walls, no friction. Peclet number v0/(a0 Dr), which is peclet_number_steric with the small diameter as the length. Shear rates in model units from 1e-6 to 1e-2. Volume fractions (three dimensions) from 0.60 to 0.72. Shown at volume fraction 0.66 and the lowest shear rate, 1e-6 in model units. A method the paper offers as an additional and probably better criterion than the mean stress; the half-normal values follow from uncorrelated collisions in a flowing fluid.",
+  "validity": {
+    "packing_fraction": {
+      "min": 0.66,
+      "max": 0.66,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "packing_fraction"
+    }
+  ],
+  "source": "literature:src_shee_2025_active_dopants_rheology",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_shee_2025_active_dopants_rheology",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

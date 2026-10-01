@@ -1,0 +1,20 @@
+{
+  "entry_id": "hoomd_blue_6_1_0_documents_a_contact_friction_pair_module",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Hofmann et al. state that their frictional-contact force, with its thermodynamically consistent noise, was merged into HOOMD-blue and is documented in HOOMD-blue version 6.1.0 as the module hoomd.md.pair.friction.",
+  "validity_conditions": "A STATEMENT ABOUT SOFTWARE BY THE AUTHORS, as of the article's publication (online 21 April 2026). It names version 6.1.0 and says nothing about later releases. This repository pins HOOMD-blue 7.2.0; whether the module is present and unchanged there is not asserted by this entry and has to be checked against that release before a plan relies on it. The paper's MIPS results were not run in HOOMD but in LAMMPS.",
+  "identifiers": {
+    "product": "HOOMD-blue",
+    "version": "6.1.0",
+    "module": "hoomd.md.pair.friction"
+  },
+  "source": "literature:src_hofmann_2026_frictional_contacts",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_hofmann_2026_frictional_contacts",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

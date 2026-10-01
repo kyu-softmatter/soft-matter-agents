@@ -1,0 +1,438 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-sim-20260930-401-r2",
+  "qid": "sim-20260930-401",
+  "thread": "solo-sim-20260930-401",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-10-01T06:45:00Z",
+  "caller_id": "sim-20260930-401:v2:s2",
+  "status": "DRAFT",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "bleach_recovery_diffusivity"
+  },
+  "targets": [
+    {
+      "metric": "bleach_recovery_diffusivity",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "explore: the person asked how fast the beads diffuse and what a bleach recovery would show, so one decade is the resolution asked for. The most important output is whether the measurement can be taken at all, stated first (task 025)"
+    }
+  ],
+  "constraint_notes": [
+    "the person, 2026-09-30, relayed by manager-simulation-kyuhwan-macbook-20260930-4 in task 025: 'Can you check how fast our 100 nm fluorescent beads diffuse? Maybe bleach a round spot and watch it come back. Simulate it too.' -- then 'simulation first' and 'and experiment design together'",
+    "the beads are the person's 100 nm fluorescent beads. The store holds nothing on them: its tracer_* entries describe a different bottle, AFR-0500-COOH, measured at 5 um. 100 nm is the person's nominal size and is used as that; no 5 um value enters this question",
+    "the beads are Invitrogen F8801, red, 580/605 nm: the person's statement, made directly to manager-simulation-kyuhwan-macbook-20260930-4 on 2026-09-30 and relayed by it. The product's nominal size agrees with the person's 100 nm, which stays a nominal size and not a measurement. Stock concentration, lot and dilution are unknown. No per-lot diameter or dye photophysics is taken from memory or elsewhere; the store holds nothing on this product yet",
+    "geometry is fixed by the registered estimator: a uniform disc bleached as a column through the whole chamber depth, because the only light-confining device on this instrument is a DMD on the widefield branch, which does not confine in depth. A 3-D ellipsoidal bleach has no experimental counterpart and is not computed",
+    "detection is widefield, so a curve counts every bead in the bleached column through the chamber depth, not an optical section",
+    "the beads do not interact in bd_overdamped, so concentration does not enter D in the model; it enters only how many beads one curve counts. What concentration would move a real suspension's self-diffusivity is absent from the store (self_diffusivity_concentration_dependence_absent, debye_length_absent), so it is stated as a gap and not as a number",
+    "bd_overdamped's output is fixed by its inputs: a run checks the integrator and the estimator and says nothing independent about the beads",
+    "the temperature is the room's thermometer reading; nothing reads or actuates the sample; a kelvin moves the viscosity by about two per cent, far inside explore's tie band",
+    "spot sizes, frame intervals, bleach durations, chamber depth and concentrations the microscope side is weighing reach this question only as a card the bridge carries. Until one does, the ranges here are stated assumptions, and the numbers are re-predicted when real values arrive",
+    "the result crosses to the microscope only on the person's hand-over (task 025 addendum)",
+    "revision 2, 2026-09-30: the same question with two things revision 1 did not carry, both for the second stage's runs -- the bleach rate the runs assume, and the bead counts per curve the scatter question spans. Nothing in revision 1 moved. The store was asked again under this revision's id at the same pinned version and answered the same; bleaching_rate was asked for the first time and is absent",
+    "the disc radius range is 0.3 to 100 um, widened from 10 um because the microscope side is weighing larger discs; nothing from that design enters this card -- only the width of this agent's own assumed range changed"
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "requested_by": "human",
+  "numbers": [
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the room's reading, applied to the sample as an assumption -- see the gap"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "pure water; asked over 292-294 K, the interval the reading supports, and the store answered full. That the beads sit in water and not a buffer is the person's to confirm"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 100,
+      "unit": "nm",
+      "source": "assumed:a_nominal_diameter",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the nominal size of the product the person named (Invitrogen F8801), which agrees with their 100 nm; not a measurement"
+    },
+    {
+      "name": "diffusivity",
+      "value": 4,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "the store's relation (kb:tracer_diffusivity_expected), evaluated at the nominal 100 nm: 4.3 unrounded, carried to one figure because the diameter is a guess. Bulk sphere, no slip, dilute. This is the model's prediction, not a measurement"
+    },
+    {
+      "name": "bleach_radius",
+      "value": 3,
+      "unit": "um",
+      "source": "assumed:a_bleach_radius",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the operating point the first stage picks as comfortably inside every bound of the estimator; the range considered is 0.3 to 100 um. A condition of the observable, carried beside the window"
+    },
+    {
+      "name": "recovery_time",
+      "value": 0.6,
+      "unit": "s",
+      "source": "computed:soumpasis_tau",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "derived": true,
+      "symbol": "tau",
+      "formula": "bleach_radius**2/(4*diffusivity)",
+      "inputs": [
+        "bleach_radius",
+        "diffusivity"
+      ],
+      "note": "tau of the registered fit at the operating point; half recovery is 0.895 tau"
+    },
+    {
+      "name": "max_recovery_time",
+      "value": 6,
+      "unit": "s",
+      "source": "assumed:a_window",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the estimator's minimum window, 10 tau, at the operating point. bleach_recovery_diffusivity is window_required, so this travels with the plan as a condition"
+    },
+    {
+      "name": "chamber_depth",
+      "value": 10,
+      "unit": "um",
+      "source": "assumed:a_chamber_depth",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "bead counts per curve scale linearly with it; D does not depend on it in the column geometry"
+    },
+    {
+      "name": "tracer_volume_fraction",
+      "value": 0.0001,
+      "unit": "1",
+      "source": "assumed:a_volume_fraction",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "Stage 1 spans 1e-7 to 1e-2; at 1e-4 a 3 um disc through 10 um holds about 5000 beads"
+    },
+    {
+      "name": "bead_material_density",
+      "value": 1.03,
+      "unit": "g/cm^3",
+      "source": "kb:tracer_particle_density",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "A DIFFERENT BEAD'S MATERIAL: the 5 um AFR-0500-COOH product's polystyrene, applied here on the assumption that the 100 nm beads are polystyrene too. Used only to show sedimentation is negligible -- 0.2 nm/s, gravitational length about 20 mm against a 10 um chamber"
+    },
+    {
+      "name": "bleach_rate",
+      "value": 50,
+      "unit": "1/s",
+      "source": "assumed:a_bleach_rate",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the rate at which a bead inside the disc goes dark under the patterning light. Nobody has measured it for these beads or this light; fifty per second puts one bleaching time inside the bleach length the runs use, so the dip is deep enough to read. The real value decides the smallest disc that can work"
+    },
+    {
+      "name": "beads_in_disc_10",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_bead_levels",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "one level of beads in the bleached column, for the scatter question: how far one curve's D strays at this many beads"
+    },
+    {
+      "name": "beads_in_disc_30",
+      "value": 30,
+      "unit": "1",
+      "source": "assumed:a_bead_levels",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "one level of beads in the bleached column, for the scatter question: how far one curve's D strays at this many beads"
+    },
+    {
+      "name": "beads_in_disc_100",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_bead_levels",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "one level of beads in the bleached column, for the scatter question: how far one curve's D strays at this many beads"
+    },
+    {
+      "name": "beads_in_disc_300",
+      "value": 300,
+      "unit": "1",
+      "source": "assumed:a_bead_levels",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "one level of beads in the bleached column, for the scatter question: how far one curve's D strays at this many beads"
+    },
+    {
+      "name": "beads_in_disc_1000",
+      "value": 1000,
+      "unit": "1",
+      "source": "assumed:a_bead_levels",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "one level of beads in the bleached column, for the scatter question: how far one curve's D strays at this many beads"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_nominal_diameter",
+      "statement": "The beads are 100 nm across, as the person named them. Nothing measured says so, and a nominal size can be off by tens of per cent, which moves D by the same fraction -- inside explore's tie band.",
+      "numbers": [
+        "bead_diameter"
+      ],
+      "falsifier": "a measured diameter, or the product's specification sheet, replaces it",
+      "gap_ref": "bead_diameter_absent"
+    },
+    {
+      "rationale_id": "a_bleach_radius",
+      "statement": "A 3 um bleach disc, chosen from Stage 1 as the size at which the estimator's bleach, frame and window bounds are all comfortable (bleach up to 50 ms, frames up to 100 ms, a 6 s record). It is this agent's pick until the microscope plan states the disc it can make.",
+      "numbers": [
+        "bleach_radius"
+      ],
+      "falsifier": "the disc radius in the microscope plan the bridge carries replaces it",
+      "gap_ref": "bleach_radius_absent"
+    },
+    {
+      "rationale_id": "a_window",
+      "statement": "The record is ten recovery times long, the registered estimator's minimum.",
+      "numbers": [
+        "max_recovery_time"
+      ],
+      "falsifier": "the microscope plan's record length, if longer, replaces it; a shorter one makes the result a one-sided bound",
+      "gap_ref": "bleach_radius_absent"
+    },
+    {
+      "rationale_id": "a_chamber_depth",
+      "statement": "A 10 um deep chamber, a round guess. It sets how many beads one curve counts and nothing else.",
+      "numbers": [
+        "chamber_depth"
+      ],
+      "falsifier": "the chamber the microscope side uses replaces it",
+      "gap_ref": "sample_chamber_depth_absent"
+    },
+    {
+      "rationale_id": "a_volume_fraction",
+      "statement": "A volume fraction of 1e-4, the middle of the dilute range Stage 1 spans. Nothing records how the suspension is diluted.",
+      "numbers": [
+        "tracer_volume_fraction"
+      ],
+      "falsifier": "the stock concentration and dilution of the 100 nm beads replace it",
+      "gap_ref": "tracer_volume_fraction_absent"
+    },
+    {
+      "rationale_id": "a_bleach_rate",
+      "statement": "Beads inside the disc go dark at fifty per second under the patterning light: one bleaching time inside the runs' bleach length, so the dip is of order one half. It sets how deep the dip is and nothing about how fast the disc refills.",
+      "numbers": [
+        "bleach_rate"
+      ],
+      "falsifier": "a measured bleaching rate under the patterning illumination replaces it",
+      "gap_ref": "bleaching_rate_absent"
+    },
+    {
+      "rationale_id": "a_bead_levels",
+      "statement": "Ten to a thousand beads per curve, in half-decade steps, spans the counts at which one curve goes from noise to a reading; the levels are a design of the scatter question and not a claim about the sample.",
+      "numbers": [
+        "beads_in_disc_10",
+        "beads_in_disc_30",
+        "beads_in_disc_100",
+        "beads_in_disc_300",
+        "beads_in_disc_1000"
+      ],
+      "falsifier": "the bead count the microscope plan's disc and dilution give replaces the levels by one point",
+      "gap_ref": "tracer_volume_fraction_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    },
+    {
+      "entry_id": "tracer_diffusivity_expected",
+      "grade": "E4",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "The expected translational diffusivity of a tracer sphere in a bulk fluid is the Stokes-Einstein value, k_B T over 3 pi eta d. Used here as the relation only, at the person's nominal 100 nm; the store's diameter for it belongs to a different bottle."
+    },
+    {
+      "entry_id": "tracer_particle_density",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "The Abvigen AFR-0500-COOH particle material has a density of 1.03 g/cm3. A different bead from the 100 nm ones; cited for sedimentation only, on the assumption both are polystyrene."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "bead_diameter_absent",
+      "observable": "bead_diameter",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='bead_diameter') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "fluorescent_bead_absent",
+      "observable": "fluorescent_bead",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='fluorescent_bead') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "photobleaching_absent",
+      "observable": "photobleaching",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='photobleaching') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "sample_chamber_depth_absent",
+      "observable": "sample_chamber_depth",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='sample_chamber_depth') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "tracer_number_density_absent",
+      "observable": "tracer_number_density",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='tracer_number_density') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [
+        "density",
+        "tracer_number_density_from_diameter"
+      ],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "tracer_volume_fraction_absent",
+      "observable": "tracer_volume_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='tracer_volume_fraction') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "bleach_radius_absent",
+      "observable": "bleach_radius",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='bleach_radius') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "self_diffusivity_concentration_dependence_absent",
+      "observable": "self_diffusivity_concentration_dependence",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='self_diffusivity_concentration_dependence') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "debye_length_absent",
+      "observable": "debye_length",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='debye_length') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "bleaching_rate_absent",
+      "observable": "bleaching_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='bleaching_rate') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    }
+  ],
+  "degraded": []
+}

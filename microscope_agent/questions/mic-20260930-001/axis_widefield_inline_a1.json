@@ -1,0 +1,84 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260930-001-widefield_inline-a1",
+  "qid": "mic-20260930-001",
+  "thread": "solo-mic-20260930-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-10-01T06:45:00Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260930-001:v1:widefield_inline:a1",
+  "config": "widefield_inline",
+  "axis": "a1",
+  "kb_version": "kbv-49b098a90994",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "bead_count_in_bleached_column",
+      "parameter": "bead_count_in_bleached_column",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "how many beads one curve needs depends on how deep the bleach is and on how much one curve scatters at that count. The first closes by the bare-bead pre-measurement (the bleach depth a given dose reaches), the second arrives from the simulation as the scatter of the fitted D against beads in the disc. Neither is guessed here; the plan carries a provisional count as an assumption",
+      "missing": [
+        "recovery_fit_scatter_vs_bead_count",
+        "bleaching_rate"
+      ]
+    },
+    {
+      "inequality": "photon_budget_per_frame",
+      "parameter": "exposure_time",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no photon rate per bead exists for these beads under this light and cannot be asked for: it depends on this dye, this lot, the Spectra line and this camera together. One short run of bare beads on the coverslip under the planned line through the DMD closes it, and the same run gives the bleaching rate. That run spends no sample the measurement needs",
+      "missing": [
+        "tracer_brightness"
+      ]
+    },
+    {
+      "inequality": "number_density_under_the_objective",
+      "parameter": "tracer_number_density",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "the vendor page the person supplied gives no stock concentration, and no dilution has been chosen. Both are the person's: the concentration printed on the bottle or the lot certificate, and the dilution they plan. The bead count the column needs is then that density times pi w^2 h",
+      "missing": [
+        "tracer_stock_concentration",
+        "dilution_factor"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "f8801_absent",
+      "observable": "F8801",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=F8801, caller_id=mic-20260930-001:v1:widefield_inline:a1, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:widefield_inline:a1",
+      "asked_at": "2026-10-01T06:21:35+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "tracer_brightness_absent",
+      "observable": "tracer_brightness",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_brightness, caller_id=mic-20260930-001:v1:widefield_inline:a1, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:widefield_inline:a1",
+      "asked_at": "2026-10-01T06:21:33+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "Every bound here waits on an acquisition or on the person, and each reason names which.",
+  "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
+}

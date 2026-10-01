@@ -1,0 +1,55 @@
+{
+  "entry_id": "active_langevin_disks_mips_depends_on_whether_friction_noise_is_kept",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In two-dimensional active Langevin particles with Coulomb-Newton contact friction, at active force F0 = 25 kT/sigma and number density 0.3/sigma^2, the treatment that keeps the friction but not its noise phase-separates by motility while the thermodynamically consistent treatment does not; contact friction widens the motility-induced phase separation region in either treatment, and the two treatments give differently shaped regions near the transition line.",
+  "numbers": [
+    {
+      "name": "reduced_active_force",
+      "value": 25,
+      "unit": "1",
+      "source": "literature:src_hofmann_2026_frictional_contacts",
+      "grade": "E3",
+      "note": "F0 sigma/kT: the paper's active force 25 kT/sigma written as the dimensionless number it is."
+    },
+    {
+      "name": "reduced_number_density",
+      "value": 0.3,
+      "unit": "1",
+      "source": "literature:src_hofmann_2026_frictional_contacts",
+      "grade": "E3",
+      "note": "n sigma^2: the paper's number density 0.3/sigma^2."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT, run in LAMMPS, not HOOMD. 20,000 underdamped active Langevin disks, mass 0.05 kT (t_R/sigma)^2 with t_R = gamma_R/kT, gamma = t_R kT/sigma^2, WCA epsilon = 10 kT, Coulomb-Newton friction gamma_f = 1 kT t_R/sigma^2 and kappa_f = 1, time step 1e-5 t_R, periodic; phase separation identified by a bimodal local-density histogram. The single state point is the snapshot comparison of Fig. 6; the phase diagrams are figure-only. The authors note that the coexistence densities do not match the edges of the phase-separated region, from non-equilibrium or finite-size effects.",
+  "validity": {
+    "reduced_active_force": {
+      "min": 25,
+      "max": 25,
+      "unit": "1"
+    },
+    "reduced_number_density": {
+      "min": 0.3,
+      "max": 0.3,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "reduced_active_force"
+    },
+    {
+      "kind": "quantity",
+      "id": "reduced_number_density"
+    }
+  ],
+  "source": "literature:src_hofmann_2026_frictional_contacts",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_hofmann_2026_frictional_contacts",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

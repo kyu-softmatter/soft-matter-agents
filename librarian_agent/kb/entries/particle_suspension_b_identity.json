@@ -1,0 +1,31 @@
+{
+  "entry_id": "particle_suspension_b_identity",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The 100 nm fluorescent beads on this bench, instance particle_suspension_b, are Invitrogen FluoSpheres carboxylate-modified microspheres, catalogue F8801. This is the person's statement of 2026-09-30, made by pasting the vendor's product page, not a reading of the container.",
+  "subject": [
+    {
+      "kind": "sample",
+      "id": "particle_suspension_b"
+    }
+  ],
+  "identifiers": {
+    "instance": "particle_suspension_b",
+    "catalog_number": "F8801",
+    "supplier": "Invitrogen (Thermo Fisher Scientific)",
+    "what_it_joins": "the instance in kb/staging/samples.v0.json to the type facts filed as f8801_nominal_diameter, f8801_excitation_peak, f8801_emission_peak, f8801_material_and_surface and f8801_storage_conditions"
+  },
+  "source": "operator_recall:person_statement_f8801_20260930",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_person_statement_f8801_20260930",
+  "valid_until": {
+    "date": "2036-10-01",
+    "event": "the bottle now in use is replaced, emptied, or decanted into another container. The event is the one that matters and the date is only an outer bound: this claim is about one physical container. Reading the label does NOT end it -- it either raises it to E3 or refutes it, and both are entries, not expiries."
+  },
+  "validity_conditions": "THE JOINING CLAIM, filed the way particle_suspension_a_identity was. Every type-level fact about F8801 reaches these beads through it, so a caller applying the 0.1 um nominal diameter, the 580/605 nm spectra, the polystyrene material or the storage range to the bench cites this entry as well and takes E5, not the E3 those entries carry about the type (5.8). WHY E5. The record says the person pasted the product page and did not read the bottle, so this is a statement about which product they have and not an observation of the container. Nothing on this bench has been observed of these beads yet: no measurement on the instance exists, so unlike particle_suspension_a there is nothing that would stay true if the identification were overturned. WHAT WOULD MOVE IT TO E3: the lot number read off the bottle by a person (operator_read:, E3). It would also yield the lot's Certificate of Analysis, which the vendor page says exists per lot and which gives a measured mean diameter -- the number that the nominal 0.1 um stands in for. WHAT IS NOT KNOWN about this bottle and is not filled from anything: stock concentration, lot number, the dilution to the coverslip, and any photobleaching data. Each is a gap in kb/staging/samples.v0.json. NOT RELATED TO THE 5 um BOTTLE. Every tracer_* entry and particle_suspension_a_identity are about the Abvigen AFR-0500-COOH bottle; none of them applies here, and none was used.",
+  "date": "2026-10-01",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260930-1"
+}

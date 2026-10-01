@@ -16,7 +16,8 @@
         "hoomd_backend"
       ],
       "produces": [
-        "tracer_diffusivity"
+        "tracer_diffusivity",
+        "bleach_recovery_diffusivity"
       ],
       "output_independent_of_input": {
         "independent": false,

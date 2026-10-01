@@ -1,0 +1,66 @@
+{
+  "entry_id": "tetrahedral_patchy_clusters_crystallise_cubic_diamond_in_hoomd_model",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In the HOOMD-blue model of He et al. -- rigid tetrahedral clusters of four overlapping spherical lobes with an attractive central patch sphere, the patch-patch attraction a 2n-n Lennard-Jones form with n = 24 and depth 10, the lobe-lobe attraction the same form with depth 3, the lobe-patch interaction repulsive -- slow cooling at 5% volume fraction near the aggregation temperature crystallises cubic diamond over a region of compression ratio and size ratio (for example at compression ratio 0.70); a shorter-ranged patch attraction moves that region to larger size ratios and a longer-ranged one to smaller.",
+  "numbers": [
+    {
+      "name": "reduced_temperature",
+      "value": 1.6,
+      "unit": "1",
+      "source": "literature:src_he_2020_colloidal_diamond",
+      "grade": "E3",
+      "note": "lower end of the patch melting temperature, in the model's energy units (patch well depth 10)."
+    },
+    {
+      "name": "reduced_temperature",
+      "value": 1.7,
+      "unit": "1",
+      "source": "literature:src_he_2020_colloidal_diamond",
+      "grade": "E3",
+      "note": "upper end of the same range."
+    },
+    {
+      "name": "packing_fraction",
+      "value": 0.05,
+      "unit": "1",
+      "source": "literature:src_he_2020_colloidal_diamond",
+      "grade": "E3",
+      "note": "three-dimensional volume fraction of the simulated suspension."
+    },
+    {
+      "name": "lobe_compression_ratio",
+      "value": 0.7,
+      "unit": "1",
+      "source": "literature:src_he_2020_colloidal_diamond",
+      "grade": "E3",
+      "note": "the compression ratio of the crystallising snapshot in Extended Data Fig. 3b."
+    }
+  ],
+  "validity_conditions": "A MODEL RESULT, filed apart from the experiment entry on the same particles. HOOMD-blue version, integrator, thermostat, time step and cooling rate are not stated in the file; 216 to 8,000 particles in a three-dimensional periodic box at 5% volume fraction; final states classified with OVITO as crystal or random aggregate. The well depths 10 and 3 are in the model's own energy unit, in which the patch melting temperature is 1.6 to 1.7 -- they are not in kT. The length sigma of the patch potential is the sphere radius, putting its minimum at 1.03 radii. The region itself is known only from Extended Data Fig. 3 and is not asserted beyond the one crystallising example.",
+  "validity": {
+    "packing_fraction": {
+      "min": 0.05,
+      "max": 0.05,
+      "unit": "1"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "lobe_compression_ratio"
+    },
+    {
+      "kind": "quantity",
+      "id": "patch_protrusion_ratio"
+    }
+  ],
+  "source": "literature:src_he_2020_colloidal_diamond",
+  "grade": "E3",
+  "grade_tag": "peer_reviewed",
+  "source_ref": "src_he_2020_colloidal_diamond",
+  "date": "2026-09-28",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260928-3"
+}

@@ -1,0 +1,17 @@
+{
+  "artifact": "round_hashes",
+  "schema_version": "0.1",
+  "thread": "thr-bleach-recovery-diffusivity-001",
+  "round": 1,
+  "ask_card": "r1_ask_experiment.json",
+  "source": {
+    "path": "simulation_agent/questions/sim-20260930-401/result_run-20260930-401-n300-dt-f12-b30.json",
+    "card_id": "result-sim-20260930-401-run-20260930-401-n300-dt-f12-b30",
+    "revision": 2,
+    "status": "DONE",
+    "sha256": "sha256:a0188c6b342741a4362dadc52006972673a5744a92d2c7c34cde1515bd809a8d"
+  },
+  "payload_sha256": "sha256:e103856a75a87b4aed8da63aefa874caf331b35fc49eb2f2afe1044687f840b3",
+  "verified_at": "2026-10-01T15:59:51Z",
+  "note": "Re-derived from disk in this seat. payload_sha256 is canon_sha of the card as carried and equals the canonical hash recorded when the person handed it over; had it differed the round would not have been opened, because a different payload needs a different hand-over. source.sha256 is card_sha, which leaves status out. The source is unchanged since de441d8, the commit that wrote it."
+}

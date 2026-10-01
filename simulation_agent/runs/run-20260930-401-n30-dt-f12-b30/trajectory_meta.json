@@ -1,0 +1,17 @@
+{
+  "artifact": "trajectory_meta",
+  "schema_version": 1,
+  "run_id": "run-20260930-401-n30-dt-f12-b30",
+  "trajectory": {
+    "written": false,
+    "reason": "no frames were saved"
+  },
+  "frames_saved": 50,
+  "simulated_time": 476.0,
+  "steps_taken": 95200,
+  "max_single_step_displacement": 3.5883972288051065e-07,
+  "stopped_by": "planned_record_reached",
+  "stop_outcome": "complete",
+  "stopped_early": false,
+  "completed_planned_duration": true
+}
