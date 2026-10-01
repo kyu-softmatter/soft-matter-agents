@@ -1,0 +1,9 @@
+{
+  "source_id": "src_person_statement_tweezers_objectives_20260925",
+  "kind": "operator_recall",
+  "identifier": "The person's statement to microscope-20260924-6 in its window on 2026-09-25, while settling the tweezers' position limits per objective: 'OT is working in 40x, 60x, and 100x.' Quoted verbatim in the message of commit dee04b3, which adds the item optical_tweezers_work_with_40x_60x_100x to microscope_agent/findings/microscope-20260924-6-20260925.json.",
+  "accessed": "2026-10-01",
+  "grade_rule": "E5: stated from the person's knowledge of the bench, not read off an instrument when said. A recorded trapping attempt at each objective would supersede it at a higher grade.",
+  "what_was_not": "the reason the other objectives do not trap. The findings item names one (trapping needs a high-NA objective) and says in the same breath that it is not the person's statement, so it is not entered as theirs. Also not entered from the same file: the bottom-substrate focus position, the um scale at 100x and the possibly lost particle, all three marked for_store false by the delivering seat.",
+  "delivered_by": "microscope-20260924-6, microscope_agent/findings/microscope-20260924-6-20260925.json, item added at dee04b3."
+}

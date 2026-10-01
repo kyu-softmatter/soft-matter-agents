@@ -1,0 +1,21 @@
+{
+  "entry_id": "tweez300_traps_with_the_40x_60x_and_100x",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The person states that on this instrument the optical tweezers work with the 40x, 60x and 100x objectives and not with the others -- by the nosepiece table, MRD77400 (40XC WI), MRD71670 (60X Oil) and MRD71970 (100X Oil), and not MRD70040 (4X), MRD70170 (10X) or MRD70270 (20X).",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "optical_tweezers"
+    }
+  ],
+  "source": "operator_recall:kyuhwan_20260925_tweezers_objectives",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_person_statement_tweezers_objectives_20260925",
+  "validity_conditions": "The person's statement in microscope-20260924-6's window on 2026-09-25, quoted verbatim in the message of commit dee04b3, which adds this item to microscope_agent/findings/microscope-20260924-6-20260925.json; read by this seat from that message, as the findings item cites. E5, operator_recall: stated from knowledge of the bench, not read off an instrument at the time. The person named magnifications, not part numbers; the mapping to part numbers is this seat's, and it holds only because nosepiece_objective_assignment, operator-read on 2026-09-17, has exactly one lens at each of 40x, 60x and 100x -- a lens swap falsifies the mapping and not the statement. NOT STATED, AND NOT ENTERED: why the other three do not trap (the delivering seat named a reason and said it was not the person's), and whether a trap was ever tried at 20x. Valid for the nosepiece as assigned on 2026-09-17. Working with an objective does not make a trap position right at it: objective_change_invalidates_trap_calibration still holds at each of the three. Delivered as item optical_tweezers_work_with_40x_60x_100x, the one item of that file marked for the store.",
+  "date": "2026-09-25",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261001-1"
+}
