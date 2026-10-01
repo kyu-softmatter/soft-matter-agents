@@ -501,7 +501,7 @@ def run_axis(axis: str, goal: dict, caller_id: str, pin: str, responses: dict) -
         out.append(O("column_holds_through_depth", "chamber_depth", "returned",
                      precondition={"parameter": "chamber_depth", "basis": ["defocus_cone_slope"],
                                    "requires": f"make the chamber no deeper than 0.2 x bleach_radius / "
-                                   f"defocus_cone_slope, which is {sig1(0.2 / slope)} x the radius at the "
+                                   f"defocus_cone_slope, which is {0.2 / slope:.2g} x the radius at the "
                                    f"20x, focused at mid-depth, so the disc spreads by at most a tenth of its "
                                    f"radius at either face. Measure the depth by focusing on the two glass "
                                    f"faces and record it beside the curve; a deeper chamber is a softer edge "
