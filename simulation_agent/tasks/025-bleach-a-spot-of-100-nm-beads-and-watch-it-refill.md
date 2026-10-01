@@ -122,6 +122,21 @@ used.
 - Architecture sent a back-of-envelope number with the relay, marked "not a
   source and not for any card". I have left it out on purpose. Compute your own.
 
+## Added the same evening: one vocabulary, and the hand-over
+
+- **This seat is the one writer of the recovery observable.** Architecture
+  settled that on 2026-09-30. The microscope seat is drafting an entry too
+  (`microscope_agent/tasks/051`). I merge the two drafts with
+  `manager-microscope-kyuhwan-macbook-20260930-2` and register one id in
+  `contracts/observables.json`. I then add it to `bd_overdamped`'s
+  observables in `contracts/capabilities/simulation.json`. The microscope
+  manager adds only the microscope capability. **Use the name I send you in
+  the goal card and in nothing else.** `comparable` stays false until the
+  same estimator has run on both sides.
+- **The result crosses to the microscope side only when the person hands it
+  over.** Commit the result card, then tell me **it is ready for hand-over**.
+  Don't tell the bridge. I tell the person.
+
 ## Done when
 
 Stage 1 is committed with feasibility stated first. The observable proposal has
