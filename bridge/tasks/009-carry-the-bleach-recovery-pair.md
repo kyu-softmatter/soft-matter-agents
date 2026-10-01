@@ -70,9 +70,10 @@ still DRAFT, or a result has no hand-over, there is nothing to carry yet.
 ## Card 008
 
 `thr-double-well-001` r1 is still unfiled, and card 008 names a seat that has
-been archived. Whether it comes to you is being asked of the person separately.
-Until this seat says so, it is not yours, and it does not wait on this card or
-this card on it.
+been archived. **The person was asked in this seat's window, on 2026-09-30,
+whether to re-issue it to you, and answered no.** It is not yours. Do not file
+`thr-double-well-001` r1. Card 008 stays as written, unassigned, and nothing
+in this card waits on it.
 
 ## Report
 
