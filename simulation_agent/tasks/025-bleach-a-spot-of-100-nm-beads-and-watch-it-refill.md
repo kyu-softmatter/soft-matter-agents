@@ -197,3 +197,14 @@ Then send me **a report of about ten lines**: D with its unit and where every
 input came from (store, computed, or assumed), the recovery time against spot
 size, and whether the measurement is feasible as asked, and if not, what would
 make it feasible.
+
+## Hand-over, 2026-10-01
+
+The result card is `questions/sim-20260930-401/result_run-20260930-401-n300-dt-f12-b30.json`
+(committed at `de441d8`). The seat reported it ready for hand-over. I put the
+summary to the person in my window and asked whether to send it to the
+microscope side. The person answered **"넘겨"** (hand it over), directly, in this
+manager's window, on 2026-10-01. Under `bridge/tasks/009` a relay naming the
+person is not a hand-over, so this paragraph only records what was said here.
+The bridge manager confirms it with the person in its own window before the
+round opens.
