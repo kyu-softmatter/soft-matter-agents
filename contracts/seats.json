@@ -996,6 +996,28 @@
       ],
       "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
       "note": "A manager-bridge session on the microscope computer, rooted at the repository root. Registered by the architecture seat on 2026-09-26 BEFORE the session existed, on the person's instruction in the architecture session to make eight new sessions -- four manager seats and one execution seat per agent -- grouped together; the same pattern as the MacBook's eight of 2026-09-25. Registered ahead because the registry is read at a commit's parent. Whether the earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. owns, paths and excludes copied by code from manager-bridge-20260924-1."
+    },
+    {
+      "seat": "architecture-20261001-1",
+      "committer_email": "architecture-20261001-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "plan.md",
+        "CLAUDE.md",
+        "ARCHITECT.md",
+        "README.md",
+        "docs/",
+        ".claude/",
+        ".mcp.json",
+        "contracts/seats.json",
+        "pyproject.toml",
+        "uv.lock",
+        "pixi.lock",
+        ".gitignore"
+      ],
+      "note": "The architecture session on the microscope computer seated by the person directly on 2026-10-01, rooted at the repository root. The person said 'architecture' and then asked for a seat to be set; n is 1, the first architecture seat for that date. Whether earlier architecture sessions on this machine are still running is not stated, so this is opened concurrently and closes none of them. owns and paths copied by code from architecture."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
