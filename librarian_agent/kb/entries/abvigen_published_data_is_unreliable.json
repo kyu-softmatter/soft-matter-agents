@@ -5,7 +5,7 @@
   "claim": "Abvigen's published product data for the Red PS Fluorescent Particles-COOH line carries documented errors, including a monoclonal-antibody filing and the product name printed in the Particle Size field, in addition to excitation and emission figures that instrument testing has disproved. Nothing on that page should be treated as load-bearing without independent confirmation.",
   "identifiers": {
     "supplier": "Abvigen Inc",
-    "catalogue_product": "AFR-0500-COOH"
+    "catalog_number": "AFR-0500-COOH"
   },
   "source": "prior_run:agentic-microscope@abvigen-verification-2026-09-06",
   "grade": "E3",
