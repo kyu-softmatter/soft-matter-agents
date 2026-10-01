@@ -320,6 +320,11 @@ class _BleachBackend:
             "per_curve": [{k: (v if not isinstance(v, dict) else {kk: vv for kk, vv in v.items()})
                            for k, v in r.items()} for r in res],
             "mean_curve": mean_curve,
+            # Every curve, so a fit to the mean curve can be given a resampled
+            # error. Added 2026-09-30 after the first runs of sim-20260930-401
+            # showed the mean of single-curve fits is selected by the fit's
+            # refusals; runs made before this have no such field.
+            "curves_F": [[round(float(x), 6) for x in f] for f in Fs],
             "units": {"per_curve": "lengths um, times s, D um^2/s", "summary": "SI"},
         }
 

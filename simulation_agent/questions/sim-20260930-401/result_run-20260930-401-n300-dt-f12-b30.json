@@ -1,0 +1,694 @@
+{
+  "card": "result",
+  "schema_version": "0.1",
+  "id": "result-sim-20260930-401-run-20260930-401-n300-dt-f12-b30",
+  "qid": "sim-20260930-401",
+  "thread": "solo-sim-20260930-401",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-10-01T07:02:53.559376+00:00",
+  "status": "DONE",
+  "plan_id": "plan-sim-20260930-401-r2",
+  "plan_revision": 2,
+  "plan_hash": "sha256:129c43324bfd6053f079089f067cea9b673edfff3dd09414e40156837b8ffc33",
+  "approval_id": null,
+  "run_id": "run-20260930-401-n300-dt-f12-b30",
+  "observable": {
+    "name": "bleach_recovery_diffusivity"
+  },
+  "outcome": "DONE",
+  "values": [
+    {
+      "metric": "bleach_recovery_diffusivity",
+      "number": "diffusivity",
+      "uncertainty": null
+    }
+  ],
+  "criteria_evaluation": [
+    {
+      "id": "planned_record_reached",
+      "kind": "stop",
+      "met": true,
+      "observed_number": "record_time_completed"
+    },
+    {
+      "id": "step_displacement_diverged",
+      "kind": "stop",
+      "met": false,
+      "observed_number": "max_single_step_displacement"
+    },
+    {
+      "id": "agrees_with_solver",
+      "kind": "success",
+      "met": false,
+      "observed_number": "deviation_from_solver_in_standard_errors"
+    },
+    {
+      "id": "dt_halving_unchanged",
+      "kind": "success",
+      "met": true,
+      "observed_number": "dt_halving_deviation_in_standard_errors"
+    }
+  ],
+  "deviations": [
+    {
+      "parameter": "read_against_solver_n300_dt_f12_b30",
+      "planned_number": "predicted_ratio_n300_dt_f12_b30",
+      "actual_number": "read_ratio_n300_dt_f12_b30",
+      "within_tolerance": true,
+      "note": "run-20260930-401-n300-dt-f12-b30: the declared comparison, 2.44 standard errors apart against a tolerance of three. Where the fit refuses many curves the kept ones are a selected set and their mean is pulled away from the prediction; the note on the reading gives the curve-level comparison, which no selection biases"
+    },
+    {
+      "parameter": "read_against_solver_n10_dt_f12_b30",
+      "planned_number": "predicted_ratio_n10_dt_f12_b30",
+      "actual_number": "read_ratio_n10_dt_f12_b30",
+      "within_tolerance": true,
+      "note": "run-20260930-401-n10-dt-f12-b30: the declared comparison, 0.0897 standard errors apart against a tolerance of three. Where the fit refuses many curves the kept ones are a selected set and their mean is pulled away from the prediction; the note on the reading gives the curve-level comparison, which no selection biases"
+    },
+    {
+      "parameter": "read_against_solver_n100_dt_f12_b30",
+      "planned_number": "predicted_ratio_n100_dt_f12_b30",
+      "actual_number": "read_ratio_n100_dt_f12_b30",
+      "within_tolerance": false,
+      "note": "run-20260930-401-n100-dt-f12-b30: the declared comparison, 3.15 standard errors apart against a tolerance of three. Where the fit refuses many curves the kept ones are a selected set and their mean is pulled away from the prediction; the note on the reading gives the curve-level comparison, which no selection biases"
+    },
+    {
+      "parameter": "read_against_solver_n1000_dt_f12_b30",
+      "planned_number": "predicted_ratio_n1000_dt_f12_b30",
+      "actual_number": "read_ratio_n1000_dt_f12_b30",
+      "within_tolerance": true,
+      "note": "run-20260930-401-n1000-dt-f12-b30: the declared comparison, 1.73 standard errors apart against a tolerance of three. Where the fit refuses many curves the kept ones are a selected set and their mean is pulled away from the prediction; the note on the reading gives the curve-level comparison, which no selection biases"
+    },
+    {
+      "parameter": "read_against_solver_n30_dt_f12_b30",
+      "planned_number": "predicted_ratio_n30_dt_f12_b30",
+      "actual_number": "read_ratio_n30_dt_f12_b30",
+      "within_tolerance": true,
+      "note": "run-20260930-401-n30-dt-f12-b30: the declared comparison, 0.821 standard errors apart against a tolerance of three. Where the fit refuses many curves the kept ones are a selected set and their mean is pulled away from the prediction; the note on the reading gives the curve-level comparison, which no selection biases"
+    },
+    {
+      "parameter": "read_against_solver_n300_dt_f12_b12",
+      "planned_number": "predicted_ratio_n300_dt_f12_b12",
+      "actual_number": "read_ratio_n300_dt_f12_b12",
+      "within_tolerance": true,
+      "note": "run-20260930-401-n300-dt-f12-b12: the declared comparison, 2.23 standard errors apart against a tolerance of three. Where the fit refuses many curves the kept ones are a selected set and their mean is pulled away from the prediction; the note on the reading gives the curve-level comparison, which no selection biases"
+    },
+    {
+      "parameter": "read_against_solver_n300_dt_f12_b30_s2",
+      "planned_number": "predicted_ratio_n300_dt_f12_b30_s2",
+      "actual_number": "read_ratio_n300_dt_f12_b30_s2",
+      "within_tolerance": true,
+      "note": "run-20260930-401-n300-dt-f12-b30-s2: the declared comparison, 2.99 standard errors apart against a tolerance of three. Where the fit refuses many curves the kept ones are a selected set and their mean is pulled away from the prediction; the note on the reading gives the curve-level comparison, which no selection biases"
+    },
+    {
+      "parameter": "read_against_solver_n300_dt_f30_b30",
+      "planned_number": "predicted_ratio_n300_dt_f30_b30",
+      "actual_number": "read_ratio_n300_dt_f30_b30",
+      "within_tolerance": false,
+      "note": "run-20260930-401-n300-dt-f30-b30: the declared comparison, 3.71 standard errors apart against a tolerance of three. Where the fit refuses many curves the kept ones are a selected set and their mean is pulled away from the prediction; the note on the reading gives the curve-level comparison, which no selection biases"
+    },
+    {
+      "parameter": "read_against_solver_n300_dt_f6_b12",
+      "planned_number": "predicted_ratio_n300_dt_f6_b12",
+      "actual_number": "read_ratio_n300_dt_f6_b12",
+      "within_tolerance": true,
+      "note": "run-20260930-401-n300-dt-f6-b12: the declared comparison, 2.33 standard errors apart against a tolerance of three. Where the fit refuses many curves the kept ones are a selected set and their mean is pulled away from the prediction; the note on the reading gives the curve-level comparison, which no selection biases"
+    },
+    {
+      "parameter": "read_against_solver_n300_dt_f6_b30",
+      "planned_number": "predicted_ratio_n300_dt_f6_b30",
+      "actual_number": "read_ratio_n300_dt_f6_b30",
+      "within_tolerance": false,
+      "note": "run-20260930-401-n300-dt-f6-b30: the declared comparison, 4.14 standard errors apart against a tolerance of three. Where the fit refuses many curves the kept ones are a selected set and their mean is pulled away from the prediction; the note on the reading gives the curve-level comparison, which no selection biases"
+    },
+    {
+      "parameter": "read_against_solver_n300_dt2_f12_b30",
+      "planned_number": "predicted_ratio_n300_dt2_f12_b30",
+      "actual_number": "read_ratio_n300_dt2_f12_b30",
+      "within_tolerance": false,
+      "note": "run-20260930-401-n300-dt2-f12-b30: the declared comparison, 3.04 standard errors apart against a tolerance of three. Where the fit refuses many curves the kept ones are a selected set and their mean is pulled away from the prediction; the note on the reading gives the curve-level comparison, which no selection biases"
+    },
+    {
+      "parameter": "read_against_solver_n300_dt2_f12_b30_s2",
+      "planned_number": "predicted_ratio_n300_dt2_f12_b30_s2",
+      "actual_number": "read_ratio_n300_dt2_f12_b30_s2",
+      "within_tolerance": false,
+      "note": "run-20260930-401-n300-dt2-f12-b30-s2: the declared comparison, 4.7 standard errors apart against a tolerance of three. Where the fit refuses many curves the kept ones are a selected set and their mean is pulled away from the prediction; the note on the reading gives the curve-level comparison, which no selection biases"
+    }
+  ],
+  "time_base": {
+    "t0_wall": "2026-10-01T07:00:39.136259+00:00",
+    "t0_mono": 1863308.224561833,
+    "alignment": "model_step_index"
+  },
+  "estimation": {
+    "vocabulary_version": "obs-e07ac0ba7a15",
+    "followed": true,
+    "note": "estimator_bleach.estimate, the registered steps; background 0 and reference ratio 1 are identities in the engine and were applied. WHAT THE RUNS FOUND, in full in stage2_runs.json and stage2_runs.md beside this card: one bleach needs about 300 beads in the disc before its D is inside a factor of ten (90 per cent of single curves); below that most curves are refused. Averaging single-curve D is biased by those refusals; average the curves, then fit once"
+  },
+  "caller_id": "sim-20260930-401:v2:operator",
+  "numbers": [
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "origin": "v2_plan_simulation_sim-20260930-401.json#temperature",
+      "precision": "significant_figures",
+      "note": "the room's reading, applied to the sample as an assumption -- see the gap"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "origin": "v2_plan_simulation_sim-20260930-401.json#viscosity",
+      "precision": "significant_figures",
+      "note": "pure water; asked over 292-294 K, the interval the reading supports, and the store answered full. That the beads sit in water and not a buffer is the person's to confirm"
+    },
+    {
+      "name": "bead_diameter",
+      "value": 100,
+      "unit": "nm",
+      "source": "assumed:a_nominal_diameter",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260930-401.json#bead_diameter",
+      "precision": "order_of_magnitude",
+      "note": "the person's nominal size, not a measurement. THE VALUE DID NOT CHANGE, ITS SOURCE DID: 100 nm nominal, now the cited f8801_nominal_diameter applied to the bench through particle_suspension_b_identity, so E5 either way; the run used the same 100 nm"
+    },
+    {
+      "name": "diffusivity",
+      "value": 4,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260930-401.json#diffusivity",
+      "precision": "order_of_magnitude",
+      "note": "the store's relation (kb:tracer_diffusivity_expected), evaluated at the nominal 100 nm: 4.3 unrounded, carried to one figure because the diameter is a guess. Bulk sphere, no slip, dilute. This is the model's prediction, not a measurement"
+    },
+    {
+      "name": "bleach_radius",
+      "value": 3,
+      "unit": "um",
+      "source": "assumed:a_bleach_radius",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260930-401.json#bleach_radius",
+      "precision": "order_of_magnitude",
+      "note": "the operating point the first stage picks as comfortably inside every bound of the estimator; the range considered is 0.3 to 100 um. A condition of the observable, carried beside the window"
+    },
+    {
+      "name": "recovery_time",
+      "value": 0.6,
+      "unit": "s",
+      "source": "computed:soumpasis_tau",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260930-401.json#recovery_time",
+      "precision": "order_of_magnitude",
+      "note": "tau of the registered fit at the operating point; half recovery is 0.895 tau"
+    },
+    {
+      "name": "bleach_rate",
+      "value": 50,
+      "unit": "1/s",
+      "source": "assumed:a_bleach_rate",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260930-401.json#bleach_rate",
+      "precision": "order_of_magnitude",
+      "note": "the rate at which a bead inside the disc goes dark under the patterning light. Nobody has measured it for these beads or this light; fifty per second puts one bleaching time inside the bleach length the runs use, so the dip is deep enough to read. The real value decides the smallest disc that can work"
+    },
+    {
+      "name": "agreement_z_max",
+      "value": 3,
+      "unit": "1",
+      "source": "assumed:a_run_design",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "a point agrees with the deterministic prediction when its mean D lies within three standard errors of it",
+      "origin": "v2_plan_simulation_sim-20260930-401.json#agreement_z_max"
+    },
+    {
+      "name": "record_length_point",
+      "value": 1000,
+      "unit": "s",
+      "source": "computed:operating_point_of_bd_overdamped_bleach",
+      "grade": "E5",
+      "origin": "v2_plan_simulation_sim-20260930-401.json#record_length_point",
+      "precision": "significant_figures",
+      "note": "curves times the curve period: a count of curves in the unit of the record"
+    },
+    {
+      "name": "predicted_ratio_n300_dt_f12_b30",
+      "value": 0.968,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt-f12-b30",
+      "grade": "E4",
+      "note": "what the fit reads on the diffusion equation solved at this run's own bleach, camera, box and fit (bleach_solver) -- deterministic, not from the particle engine"
+    },
+    {
+      "name": "read_ratio_n300_dt_f12_b30",
+      "value": 1.15,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt-f12-b30",
+      "grade": "E4",
+      "note": "mean D of the 33 curves the fit read, of 50, over the value put in; standard error 0.074; 315 beads in the disc; one curve's middle 90 per cent over every fitted curve 0.24 to 2.1 of the value put in (x8.9); ADDED AFTER THE DATA: the mean curve lies within 2 standard errors of the equation at every frame, and one fit to it reads 0.904"
+    },
+    {
+      "name": "predicted_ratio_n10_dt_f12_b30",
+      "value": 0.968,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n10-dt-f12-b30",
+      "grade": "E4",
+      "note": "what the fit reads on the diffusion equation solved at this run's own bleach, camera, box and fit (bleach_solver) -- deterministic, not from the particle engine"
+    },
+    {
+      "name": "read_ratio_n10_dt_f12_b30",
+      "value": 1.0,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n10-dt-f12-b30",
+      "grade": "E4",
+      "note": "mean D of the 6 curves the fit read, of 50, over the value put in; standard error 0.399; 10 beads in the disc; one curve's middle 90 per cent over every fitted curve 0.0024 to 3.6 of the value put in (x1.5e+03); ADDED AFTER THE DATA: the mean curve lies within 2.3 standard errors of the equation at every frame, and one fit to it reads 0.310"
+    },
+    {
+      "name": "predicted_ratio_n100_dt_f12_b30",
+      "value": 0.968,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n100-dt-f12-b30",
+      "grade": "E4",
+      "note": "what the fit reads on the diffusion equation solved at this run's own bleach, camera, box and fit (bleach_solver) -- deterministic, not from the particle engine"
+    },
+    {
+      "name": "read_ratio_n100_dt_f12_b30",
+      "value": 1.32,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n100-dt-f12-b30",
+      "grade": "E4",
+      "note": "mean D of the 23 curves the fit read, of 50, over the value put in; standard error 0.113; 96 beads in the disc; one curve's middle 90 per cent over every fitted curve 0.024 to 3.2 of the value put in (x1.3e+02); ADDED AFTER THE DATA: the mean curve lies within 2.2 standard errors of the equation at every frame, and one fit to it reads 0.899"
+    },
+    {
+      "name": "predicted_ratio_n1000_dt_f12_b30",
+      "value": 0.968,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n1000-dt-f12-b30",
+      "grade": "E4",
+      "note": "what the fit reads on the diffusion equation solved at this run's own bleach, camera, box and fit (bleach_solver) -- deterministic, not from the particle engine"
+    },
+    {
+      "name": "read_ratio_n1000_dt_f12_b30",
+      "value": 1.04,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n1000-dt-f12-b30",
+      "grade": "E4",
+      "note": "mean D of the 43 curves the fit read, of 50, over the value put in; standard error 0.039; 944 beads in the disc; one curve's middle 90 per cent over every fitted curve 0.49 to 1.4 of the value put in (x2.9); ADDED AFTER THE DATA: the mean curve lies within 1.3 standard errors of the equation at every frame, and one fit to it reads 0.960"
+    },
+    {
+      "name": "predicted_ratio_n30_dt_f12_b30",
+      "value": 0.968,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n30-dt-f12-b30",
+      "grade": "E4",
+      "note": "what the fit reads on the diffusion equation solved at this run's own bleach, camera, box and fit (bleach_solver) -- deterministic, not from the particle engine"
+    },
+    {
+      "name": "read_ratio_n30_dt_f12_b30",
+      "value": 1.16,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n30-dt-f12-b30",
+      "grade": "E4",
+      "note": "mean D of the 13 curves the fit read, of 50, over the value put in; standard error 0.232; 32 beads in the disc; one curve's middle 90 per cent over every fitted curve 0.00091 to 5.5 of the value put in (x6e+03); ADDED AFTER THE DATA: the mean curve lies within 1.7 standard errors of the equation at every frame, and one fit to it reads 0.787"
+    },
+    {
+      "name": "predicted_ratio_n300_dt_f12_b12",
+      "value": 0.958,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt-f12-b12",
+      "grade": "E4",
+      "note": "what the fit reads on the diffusion equation solved at this run's own bleach, camera, box and fit (bleach_solver) -- deterministic, not from the particle engine"
+    },
+    {
+      "name": "read_ratio_n300_dt_f12_b12",
+      "value": 0.881,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt-f12-b12",
+      "grade": "E4",
+      "note": "mean D of the 28 curves the fit read, of 50, over the value put in; standard error 0.035; 317 beads in the disc; one curve's middle 90 per cent over every fitted curve 0.53 to 1.6 of the value put in (x3.1); ADDED AFTER THE DATA: the mean curve lies within 2.5 standard errors of the equation at every frame, and one fit to it reads 0.949 +/- 0.050 (jackknife over curves)"
+    },
+    {
+      "name": "predicted_ratio_n300_dt_f12_b30_s2",
+      "value": 0.968,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt-f12-b30-s2",
+      "grade": "E4",
+      "note": "what the fit reads on the diffusion equation solved at this run's own bleach, camera, box and fit (bleach_solver) -- deterministic, not from the particle engine"
+    },
+    {
+      "name": "read_ratio_n300_dt_f12_b30_s2",
+      "value": 1.2,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt-f12-b30-s2",
+      "grade": "E4",
+      "note": "mean D of the 36 curves the fit read, of 50, over the value put in; standard error 0.077; 316 beads in the disc; one curve's middle 90 per cent over every fitted curve 0.36 to 2.4 of the value put in (x6.6); ADDED AFTER THE DATA: the mean curve lies within 1.4 standard errors of the equation at every frame, and one fit to it reads 1.038 +/- 0.082 (jackknife over curves)"
+    },
+    {
+      "name": "predicted_ratio_n300_dt_f30_b30",
+      "value": 0.973,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt-f30-b30",
+      "grade": "E4",
+      "note": "what the fit reads on the diffusion equation solved at this run's own bleach, camera, box and fit (bleach_solver) -- deterministic, not from the particle engine"
+    },
+    {
+      "name": "read_ratio_n300_dt_f30_b30",
+      "value": 1.25,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt-f30-b30",
+      "grade": "E4",
+      "note": "mean D of the 42 curves the fit read, of 50, over the value put in; standard error 0.073; 313 beads in the disc; one curve's middle 90 per cent over every fitted curve 0.37 to 2.3 of the value put in (x6.3); ADDED AFTER THE DATA: the mean curve lies within 2.6 standard errors of the equation at every frame, and one fit to it reads 1.100"
+    },
+    {
+      "name": "predicted_ratio_n300_dt_f6_b12",
+      "value": 0.956,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt-f6-b12",
+      "grade": "E4",
+      "note": "what the fit reads on the diffusion equation solved at this run's own bleach, camera, box and fit (bleach_solver) -- deterministic, not from the particle engine"
+    },
+    {
+      "name": "read_ratio_n300_dt_f6_b12",
+      "value": 0.878,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt-f6-b12",
+      "grade": "E4",
+      "note": "mean D of the 24 curves the fit read, of 50, over the value put in; standard error 0.034; 313 beads in the disc; one curve's middle 90 per cent over every fitted curve 0.43 to 1.7 of the value put in (x4); ADDED AFTER THE DATA: the mean curve lies within 2 standard errors of the equation at every frame, and one fit to it reads 0.976 +/- 0.050 (jackknife over curves)"
+    },
+    {
+      "name": "predicted_ratio_n300_dt_f6_b30",
+      "value": 0.964,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt-f6-b30",
+      "grade": "E4",
+      "note": "what the fit reads on the diffusion equation solved at this run's own bleach, camera, box and fit (bleach_solver) -- deterministic, not from the particle engine"
+    },
+    {
+      "name": "read_ratio_n300_dt_f6_b30",
+      "value": 0.816,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt-f6-b30",
+      "grade": "E4",
+      "note": "mean D of the 16 curves the fit read, of 50, over the value put in; standard error 0.036; 315 beads in the disc; one curve's middle 90 per cent over every fitted curve 0.36 to 2.1 of the value put in (x5.9); ADDED AFTER THE DATA: the mean curve lies within 1.8 standard errors of the equation at every frame, and one fit to it reads 1.017"
+    },
+    {
+      "name": "predicted_ratio_n300_dt2_f12_b30",
+      "value": 0.969,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt2-f12-b30",
+      "grade": "E4",
+      "note": "what the fit reads on the diffusion equation solved at this run's own bleach, camera, box and fit (bleach_solver) -- deterministic, not from the particle engine"
+    },
+    {
+      "name": "read_ratio_n300_dt2_f12_b30",
+      "value": 1.18,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt2-f12-b30",
+      "grade": "E4",
+      "note": "mean D of the 36 curves the fit read, of 50, over the value put in; standard error 0.071; 314 beads in the disc; one curve's middle 90 per cent over every fitted curve 0.31 to 2.5 of the value put in (x8.1); ADDED AFTER THE DATA: the mean curve lies within 2.5 standard errors of the equation at every frame, and one fit to it reads 1.088"
+    },
+    {
+      "name": "predicted_ratio_n300_dt2_f12_b30_s2",
+      "value": 0.969,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt2-f12-b30-s2",
+      "grade": "E4",
+      "note": "what the fit reads on the diffusion equation solved at this run's own bleach, camera, box and fit (bleach_solver) -- deterministic, not from the particle engine"
+    },
+    {
+      "name": "read_ratio_n300_dt2_f12_b30_s2",
+      "value": 1.26,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt2-f12-b30-s2",
+      "grade": "E4",
+      "note": "mean D of the 36 curves the fit read, of 50, over the value put in; standard error 0.062; 315 beads in the disc; one curve's middle 90 per cent over every fitted curve 0.47 to 2.9 of the value put in (x6.1); ADDED AFTER THE DATA: the mean curve lies within 3.2 standard errors of the equation at every frame, and one fit to it reads 1.286 +/- 0.096 (jackknife over curves)"
+    },
+    {
+      "name": "deviation_from_solver_in_standard_errors",
+      "value": 4.7,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt2-f12-b30-s2",
+      "grade": "E4",
+      "note": "the largest declared deviation over the 12 runs, at n300_dt2_f12_b30_s2; 5 of them exceed three"
+    },
+    {
+      "name": "record_time_completed",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "simulated:run-20260930-401-n300-dt-f12-b30",
+      "grade": "E4",
+      "note": "the fewest curves any run completed (50) times the 20 s curve period; every run completed its planned record"
+    },
+    {
+      "name": "max_single_step_displacement",
+      "value": 0.4,
+      "unit": "um",
+      "source": "simulated:run-20260930-401-n300-dt-f12-b30",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "note": "the largest one-step move over every run, against a 3 um disc; not met is the good outcome"
+    },
+    {
+      "name": "dt_halving_deviation_in_standard_errors",
+      "value": 0.33,
+      "unit": "1",
+      "source": "simulated:run-20260930-401-n300-dt-f12-b30",
+      "grade": "E4",
+      "note": "base point against its finer-step twin, means of the read curves"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_nominal_diameter",
+      "statement": "The beads are 100 nm across, as the person named them. Nothing measured says so, and a nominal size can be off by tens of per cent, which moves D by the same fraction -- inside explore's tie band.",
+      "numbers": [
+        "bead_diameter"
+      ],
+      "falsifier": "a measured diameter, or the product's specification sheet, replaces it",
+      "gap_ref": "bead_diameter_absent"
+    },
+    {
+      "rationale_id": "a_bleach_radius",
+      "statement": "A 3 um bleach disc, chosen from Stage 1 as the size at which the estimator's bleach, frame and window bounds are all comfortable (bleach up to 50 ms, frames up to 100 ms, a 6 s record). It is this agent's pick until the microscope plan states the disc it can make.",
+      "numbers": [
+        "bleach_radius"
+      ],
+      "falsifier": "the disc radius in the microscope plan the bridge carries replaces it",
+      "gap_ref": "bleach_radius_absent"
+    },
+    {
+      "rationale_id": "a_bleach_rate",
+      "statement": "Beads inside the disc go dark at fifty per second under the patterning light: one bleaching time inside the runs' bleach length, so the dip is of order one half. It sets how deep the dip is and nothing about how fast the disc refills.",
+      "numbers": [
+        "bleach_rate"
+      ],
+      "falsifier": "a measured bleaching rate under the patterning illumination replaces it",
+      "gap_ref": "bleaching_rate_absent"
+    },
+    {
+      "rationale_id": "a_run_design",
+      "gap_ref": "run_design_choices_absent",
+      "statement": "Two choices of how the runs are checked, which nothing measured: a smoke run of a tenth of a point's curves sees the run work end to end inside the five-minute smoke ceiling, and three standard errors separates a real difference from the scatter of fifty curves at about the one-in-four-hundred level.",
+      "numbers": [
+        "agreement_z_max"
+      ],
+      "falsifier": "a smoke run over its ceiling, or a point that disagrees and agrees when re-run"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    },
+    {
+      "entry_id": "f8801_emission_peak",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The supplier specifies Invitrogen F8801 microspheres as emitting at 605 nm."
+    },
+    {
+      "entry_id": "f8801_excitation_peak",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The supplier specifies Invitrogen F8801 microspheres as excited at 580 nm."
+    },
+    {
+      "entry_id": "f8801_material_and_surface",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "Invitrogen F8801 microspheres are polystyrene, carboxylate-modified on the surface, and loaded with a red fluorescent dye."
+    },
+    {
+      "entry_id": "f8801_nominal_diameter",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The supplier specifies Invitrogen F8801 microspheres as 0.1 um in diameter (nominal)."
+    },
+    {
+      "entry_id": "f8801_storage_conditions",
+      "grade": "E3",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The supplier specifies storing Invitrogen F8801 microspheres refrigerated at 2-8 degrees Celsius, protected from light."
+    },
+    {
+      "entry_id": "particle_suspension_b_identity",
+      "grade": "E5",
+      "kb_version": "kbv-a0f093a66393",
+      "claim": "The 100 nm fluorescent beads on this bench, instance particle_suspension_b, are Invitrogen FluoSpheres carboxylate-modified microspheres, catalogue F8801. This is the person's statement of 2026-09-30, made by pasting the vendor's product page, not a reading of the container."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "bead_diameter_absent",
+      "observable": "bead_diameter",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='bead_diameter') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "fluorescent_bead_absent",
+      "observable": "fluorescent_bead",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='fluorescent_bead') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "photobleaching_absent",
+      "observable": "photobleaching",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='photobleaching') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "sample_chamber_depth_absent",
+      "observable": "sample_chamber_depth",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='sample_chamber_depth') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "tracer_number_density_absent",
+      "observable": "tracer_number_density",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='tracer_number_density') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [
+        "density",
+        "tracer_number_density_from_diameter"
+      ],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "tracer_volume_fraction_absent",
+      "observable": "tracer_volume_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='tracer_volume_fraction') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "bleach_radius_absent",
+      "observable": "bleach_radius",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='bleach_radius') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "self_diffusivity_concentration_dependence_absent",
+      "observable": "self_diffusivity_concentration_dependence",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='self_diffusivity_concentration_dependence') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "debye_length_absent",
+      "observable": "debye_length",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='debye_length') against the service at kbv-49b098a90994",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "gap_id": "bleaching_rate_absent",
+      "observable": "bleaching_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='bleaching_rate') against the service at kbv-a0f093a66393",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-a0f093a66393"
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

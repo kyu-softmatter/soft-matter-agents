@@ -1,0 +1,158 @@
+{
+  "run_id": "run-20260930-401-n1000-dt-f12-b30",
+  "qid": "sim-20260930-401",
+  "plan_id": "plan-sim-20260930-401-r2",
+  "plan_revision": 2,
+  "plan_hash": "sha256:129c43324bfd6053f079089f067cea9b673edfff3dd09414e40156837b8ffc33",
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "envelope_check": {
+    "status": "inside",
+    "target": "local",
+    "budget": "full",
+    "compared": [
+      {
+        "cost": "wall_clock_estimate",
+        "limit": "wall_clock_max",
+        "cost_si": 1000.0,
+        "limit_si": 7200.0
+      },
+      {
+        "cost": "storage_estimate",
+        "limit": "storage_max",
+        "cost_si": 0.0008,
+        "limit_si": 10.0
+      }
+    ],
+    "exceeded": []
+  },
+  "backend": "bleach_hoomd_backend",
+  "seed": 1,
+  "parameters_si": {
+    "temperature": 293.0,
+    "viscosity": 0.001,
+    "bead_diameter": 1.0000000000000001e-07,
+    "bleach_radius": 3e-06,
+    "box_length": 2.9999999999999997e-05,
+    "chamber_depth": 9.999999999999999e-06,
+    "bleach_rate": 50.0,
+    "max_recovery_time": 9.0,
+    "pre_bleach_frames": 10.0,
+    "record_length": 1000.0,
+    "curve_period": 20.0,
+    "n_particles": 30000.0,
+    "integration_timestep": 0.005,
+    "frame_interval": 0.05,
+    "bleach_duration": 0.02
+  },
+  "provenance": [
+    {
+      "parameter": "temperature",
+      "value_si": 293.0,
+      "unit_in_plan": "K",
+      "from": "conditions[0].number -> numbers[temperature]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "viscosity",
+      "value_si": 0.001,
+      "unit_in_plan": "Pa*s",
+      "from": "conditions[1].number -> numbers[viscosity]",
+      "grade": "E3"
+    },
+    {
+      "parameter": "bead_diameter",
+      "value_si": 1.0000000000000001e-07,
+      "unit_in_plan": "nm",
+      "from": "conditions[2].number -> numbers[bead_diameter]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "bleach_radius",
+      "value_si": 3e-06,
+      "unit_in_plan": "um",
+      "from": "conditions[3].number -> numbers[bleach_radius]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "box_length",
+      "value_si": 2.9999999999999997e-05,
+      "unit_in_plan": "um",
+      "from": "conditions[4].number -> numbers[box_length_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "chamber_depth",
+      "value_si": 9.999999999999999e-06,
+      "unit_in_plan": "um",
+      "from": "conditions[5].number -> numbers[chamber_depth]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "bleach_rate",
+      "value_si": 50.0,
+      "unit_in_plan": "1/s",
+      "from": "conditions[6].number -> numbers[bleach_rate]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "max_recovery_time",
+      "value_si": 9.0,
+      "unit_in_plan": "s",
+      "from": "conditions[7].number -> numbers[max_recovery_time_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "pre_bleach_frames",
+      "value_si": 10.0,
+      "unit_in_plan": "1",
+      "from": "conditions[8].number -> numbers[pre_bleach_frames_min]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "record_length",
+      "value_si": 1000.0,
+      "unit_in_plan": "s",
+      "from": "conditions[9].number -> numbers[record_length_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "curve_period",
+      "value_si": 20.0,
+      "unit_in_plan": "s",
+      "from": "conditions[10].number -> numbers[curve_period]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "n_particles",
+      "value_si": 30000.0,
+      "unit_in_plan": "1",
+      "from": "conditions[11].number -> numbers[n_particles_1000]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "integration_timestep",
+      "value_si": 0.005,
+      "unit_in_plan": "s",
+      "from": "conditions[12].number -> numbers[integration_timestep_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "frame_interval",
+      "value_si": 0.05,
+      "unit_in_plan": "s",
+      "from": "conditions[13].number -> numbers[frame_interval_point]",
+      "grade": "E5"
+    },
+    {
+      "parameter": "bleach_duration",
+      "value_si": 0.02,
+      "unit_in_plan": "s",
+      "from": "conditions[14].number -> numbers[bleach_duration_point]",
+      "grade": "E5"
+    }
+  ],
+  "compare_arm": "n1000_dt_f12_b30"
+}

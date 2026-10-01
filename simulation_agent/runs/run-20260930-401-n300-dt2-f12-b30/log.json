@@ -1,0 +1,250 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260930-401-n300-dt2-f12-b30",
+  "plan_id": "plan-sim-20260930-401-r2",
+  "plan_path": "simulation_agent/questions/sim-20260930-401/v2_plan_simulation_sim-20260930-401.json",
+  "revision": 2,
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "1",
+  "stop_criteria": [
+    "planned_record_reached",
+    "step_displacement_diverged"
+  ],
+  "t0_wall": "2026-10-01T06:54:17.046785+00:00",
+  "t0_mono": 1862926.136091166,
+  "time_base_note": "Every offset is software: this side has no trigger counter and no device clock. Simulated time is a coordinate of the model, not a clock reading, so it is recorded in trajectory_meta.json rather than as this log's time base (4.6.9).",
+  "backend": "bleach_hoomd_backend",
+  "events": [
+    {
+      "t_mono": 1e-05,
+      "time_base": "software",
+      "event": "gate",
+      "tier": 1,
+      "approval": {
+        "id": null,
+        "kind": null
+      },
+      "envelope": {
+        "status": "inside",
+        "target": "local",
+        "budget": "full",
+        "compared": [
+          {
+            "cost": "wall_clock_estimate",
+            "limit": "wall_clock_max",
+            "cost_si": 1000.0,
+            "limit_si": 7200.0
+          },
+          {
+            "cost": "storage_estimate",
+            "limit": "storage_max",
+            "cost_si": 0.0008,
+            "limit_si": 10.0
+          }
+        ],
+        "exceeded": []
+      },
+      "compare_arm": "n300_dt2_f12_b30",
+      "arm_cost": null
+    },
+    {
+      "t_mono": 0.002134,
+      "time_base": "software",
+      "event": "preflight",
+      "report": {
+        "backend": "bleach_hoomd_backend",
+        "missing_parameters": [],
+        "steps_per_frame": 25,
+        "save_interval_divides_step": true,
+        "curve_fits_its_period": true,
+        "simulated_time_per_curve_s": 9.52,
+        "curves_expected": 50,
+        "steps_per_curve": 4760,
+        "diffusivity_si": 4.292198274419366e-12,
+        "seed": 1,
+        "engine_build": {
+          "engine": "hoomd",
+          "version": "7.2.0",
+          "gpu_enabled": false,
+          "mpi_enabled": false,
+          "gpu_platform": null,
+          "compile_flags": "DOUBLE[SINGLE]",
+          "floating_point_precision": "(64, 32)",
+          "conda_package": {
+            "fn": "hoomd-7.2.0-cpu_py312_h203d2c3_0.conda",
+            "version": "7.2.0",
+            "build": "cpu_py312_h203d2c3_0",
+            "channel": "https://conda.anaconda.org/conda-forge/",
+            "subdir": "osx-arm64",
+            "sha256": "b0b961dd79e54df99048c70bcc20c5ca33b35447cf3489594b6a9739323260b9"
+          },
+          "python": "3.12.14",
+          "interpreter": "/Users/kyuhwan/Desktop/rebuild/.pixi/envs/sim/bin/python",
+          "platform": "Darwin-arm64"
+        }
+      }
+    },
+    {
+      "t_mono": 0.003964,
+      "time_base": "software",
+      "event": "dispatch",
+      "action": "integrate",
+      "from": "actions[integrate]",
+      "handle": "bleach_hoomd_backend:1:1176ad910",
+      "state": "submitted",
+      "params": {
+        "temperature": {
+          "value_si": 293.0,
+          "unit_in_plan": "K",
+          "grade": "E3",
+          "from": "conditions[0].number -> numbers[temperature]"
+        },
+        "viscosity": {
+          "value_si": 0.001,
+          "unit_in_plan": "Pa*s",
+          "grade": "E3",
+          "from": "conditions[1].number -> numbers[viscosity]"
+        },
+        "bead_diameter": {
+          "value_si": 1.0000000000000001e-07,
+          "unit_in_plan": "nm",
+          "grade": "E5",
+          "from": "conditions[2].number -> numbers[bead_diameter]"
+        },
+        "bleach_radius": {
+          "value_si": 3e-06,
+          "unit_in_plan": "um",
+          "grade": "E5",
+          "from": "conditions[3].number -> numbers[bleach_radius]"
+        },
+        "box_length": {
+          "value_si": 2.9999999999999997e-05,
+          "unit_in_plan": "um",
+          "grade": "E5",
+          "from": "conditions[4].number -> numbers[box_length_point]"
+        },
+        "chamber_depth": {
+          "value_si": 9.999999999999999e-06,
+          "unit_in_plan": "um",
+          "grade": "E5",
+          "from": "conditions[5].number -> numbers[chamber_depth]"
+        },
+        "bleach_rate": {
+          "value_si": 50.0,
+          "unit_in_plan": "1/s",
+          "grade": "E5",
+          "from": "conditions[6].number -> numbers[bleach_rate]"
+        },
+        "max_recovery_time": {
+          "value_si": 9.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[7].number -> numbers[max_recovery_time_point]"
+        },
+        "pre_bleach_frames": {
+          "value_si": 10.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[8].number -> numbers[pre_bleach_frames_min]"
+        },
+        "record_length": {
+          "value_si": 1000.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[9].number -> numbers[record_length_point]"
+        },
+        "curve_period": {
+          "value_si": 20.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[10].number -> numbers[curve_period]"
+        },
+        "n_particles": {
+          "value_si": 10000.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[11].number -> numbers[n_particles_300]"
+        },
+        "integration_timestep": {
+          "value_si": 0.002,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[12].number -> numbers[integration_timestep_half]"
+        },
+        "frame_interval": {
+          "value_si": 0.05,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[13].number -> numbers[frame_interval_point]"
+        },
+        "bleach_duration": {
+          "value_si": 0.02,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[14].number -> numbers[bleach_duration_point]"
+        }
+      }
+    },
+    {
+      "t_mono": 0.003971,
+      "time_base": "software",
+      "event": "monitors_compiled",
+      "monitors": [
+        "planned_record_reached",
+        "step_displacement_diverged"
+      ],
+      "from": "stop_criteria"
+    },
+    {
+      "t_mono": 331.049788,
+      "time_base": "software",
+      "event": "complete",
+      "monitor": {
+        "id": "planned_record_reached",
+        "metric": "record_time_completed",
+        "comparator": ">=",
+        "threshold_si": 1000.0,
+        "on_met": "complete",
+        "from": "stop_criteria[planned_record_reached].number -> numbers[record_length_point]",
+        "met": true,
+        "outcome": "complete"
+      },
+      "state": {
+        "state": "complete",
+        "initialised": true,
+        "handle": "bleach_hoomd_backend:1:1176ad910",
+        "steps_taken": 238000,
+        "simulated_time": 476.0,
+        "record_time_completed": 1000.0,
+        "curves_completed": 50,
+        "frames_saved": 50,
+        "max_single_step_displacement": 2.2695016917609623e-07,
+        "integration_wall_s": 277.12172552361153,
+        "frame_readout_wall_s": 53.69874021690339,
+        "failure": null
+      },
+      "note": "the criterion that fired declares on_met complete"
+    },
+    {
+      "t_mono": 331.054786,
+      "time_base": "software",
+      "event": "cost_measured",
+      "steps_taken": 238000,
+      "frames_saved": 50,
+      "n_particles": 10000,
+      "integration_wall_s": 277.12172552361153,
+      "frame_readout_wall_s": 53.69874021690339,
+      "frame_write_wall_s": null,
+      "trajectory_write_after_run_s": 0.0003317499067634344,
+      "particle_step_rate": 8588283.706385978,
+      "particle_frame_cost": 0.00010739748043380678,
+      "peak_rss_bytes": 243449856,
+      "note": "peak_rss is the operator process's high-water mark, which includes the backend running in it. particle_frame_cost covers readout only; a streaming backend's in-loop write is frame_write_wall_s"
+    }
+  ],
+  "finished_at": "2026-10-01T06:59:48.104582+00:00"
+}

@@ -4,7 +4,7 @@
 
 ## Can it be measured? Feasibility first
 
-**Yes on timing, for bleach discs of about 3 to 10 um radius. Below about 1 um it is hard, and at 0.3 um it needs sub-millisecond bleaching and frames.** The fit the two sides agreed refuses a curve whose bleach is longer than a tenth of the recovery time tau, whose frame interval is longer than a fifth of it, or whose record is shorter than ten of it. Those three limits against disc size:
+**Yes on timing, for bleach discs of about 3 to 30 um radius. Below about 1 um it is hard, and at 0.3 um it needs sub-millisecond bleaching and frames. Above about 30 um the record runs to many minutes and drift and imaging bleach bind first.** The fit the two sides agreed refuses a curve whose bleach is longer than a tenth of the recovery time tau, whose frame interval is longer than a fifth of it, or whose record is shorter than ten of it. Those three limits against disc size:
 
 | disc radius (um) | tau (s) | longest bleach (ms) | longest frame interval (ms) | shortest record (s) | bleach rate needed (1/s) | volume fraction for 10 beads |
 |---|---|---|---|---|---|---|
@@ -15,8 +15,12 @@
 | 3 | 0.52 | 52 | 100 | 5.2 | 19 | 1.9e-05 |
 | 5 | 1.5 | 150 | 290 | 15 | 6.9 | 6.7e-06 |
 | 10 | 5.8 | 580 | 1200 | 58 | 1.7 | 1.7e-06 |
+| 30 | 52 | 5200 | 10000 | 520 | 0.19 | 1.9e-07 |
+| 100 | 580 | 58000 | 120000 | 5800 | 0.017 | 1.7e-08 |
 
 **What decides it is how fast the beads bleach, and nobody knows that yet.** To leave a dip of about 60 per cent inside the longest allowed bleach, the dye has to bleach at the rate in the sixth column under the patterning light: about 20 per second for a 3 um disc, 170 per second for 1 um. The knowledge base holds no bleaching rate for these beads or this light. **Measure the bleaching rate under the patterning illumination first**; it decides the smallest disc that can work before any recovery is recorded.
+
+**Large discs are easy on every limit above and hard on the record itself.** At 30 um tau is 52 s and at 100 um 580 s, so the shortest record the fit allows is 520 s and 5800 s -- many minutes to over an hour. Over a record that long, other things bind before diffusion does: bleaching by the imaging light (the fit's reference region corrects it only if that region sees exactly the same light), drift of the stage and focus, and the field of view, since the reference region must sit at least five disc radii away -- half a millimetre from a 100 um disc. None of these is in the model. The model's own numbers do not change with disc size: measured in recovery times and disc radii, the curve and the fit's biases below are the same at any w, so the second stage's runs at 3 um carry to any disc.
 
 The bead count is not the limit at ordinary dilutions: a 3 um disc through a 10 um chamber holds ten beads already at a volume fraction of 2e-5. The bead count only binds for sub-micrometre discs, which the timing has already ruled out.
 
@@ -45,6 +49,8 @@ The bleach is a column through the whole sample depth, because the only way this
 | 3 | 0.47 | 0.67 - 0.74 |
 | 5 | 1.3 | 1.9 - 2 |
 | 10 | 5.2 | 7.4 - 8.2 |
+| 30 | 47 | 67 - 74 |
+| 100 | 520 | 740 - 820 |
 
 A three-dimensional ellipsoidal bleach is not computed: this instrument cannot make one.
 
@@ -77,6 +83,7 @@ Both were found by solving the diffusion equation with the bleach as it would re
 
 - disc radius 3 um as the working point, chamber depth 10 um, volume fraction 1e-4, and ten beads as the least a single curve can use: this agent's working values. The microscope plan's disc, chamber and dilution replace the first three; the second stage of this question measures the fourth.
 - the 100 nm diameter: replaced by a measured size or the product's specification.
+- **ten beads per curve has been replaced by a measurement**: the second stage finds one curve needs about 300 beads in the disc before its scatter is inside a factor of ten (see stage2_runs.md). Read the bead-count column of the first table above with that in mind: the volume fractions it needs are about 30 times those shown.
 
 ![Stage 1](stage1_closed_forms.png)
 

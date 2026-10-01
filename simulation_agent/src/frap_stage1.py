@@ -81,7 +81,7 @@ DIAMETER = 100e-9            # m
 PS_DENSITY = 1030.0          # kg/m^3
 WATER_DENSITY = 998.0        # kg/m^3 -- see density_note below
 
-SPOT_RADII_UM = [0.3, 0.5, 1, 2, 3, 5, 10]
+SPOT_RADII_UM = [0.3, 0.5, 1, 2, 3, 5, 10, 30, 100]   # assumed range, widened 2026-09-30
 FRAME_INTERVALS_MS = [1, 3, 10, 30, 100, 300, 1000]
 VOLUME_FRACTIONS = [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
 DEPTH_UM = 10.0              # assumed chamber depth; bead counts scale with it
@@ -378,8 +378,9 @@ def _markdown(r: dict) -> str:
     a("")
     a("## Can it be measured? Feasibility first")
     a("")
-    a("**Yes on timing, for bleach discs of about 3 to 10 um radius. Below about 1 um it is hard, "
-      "and at 0.3 um it needs sub-millisecond bleaching and frames.** The fit the two sides agreed "
+    a("**Yes on timing, for bleach discs of about 3 to 30 um radius. Below about 1 um it is hard, "
+      "and at 0.3 um it needs sub-millisecond bleaching and frames. Above about 30 um the record runs "
+      "to many minutes and drift and imaging bleach bind first.** The fit the two sides agreed "
       "refuses a curve whose bleach is longer than a tenth of the recovery time tau, whose frame "
       "interval is longer than a fifth of it, or whose record is shorter than ten of it. Those three "
       "limits against disc size:")
@@ -396,6 +397,17 @@ def _markdown(r: dict) -> str:
       "second for 1 um. The knowledge base holds no bleaching rate for these beads or this light. **Measure "
       "the bleaching rate under the patterning illumination first**; it decides the smallest disc "
       "that can work before any recovery is recorded.")
+    a("")
+    big = rows[100]
+    a("**Large discs are easy on every limit above and hard on the record itself.** At 30 um tau is "
+      f"{rows[30]['tau_D_s']:g} s and at 100 um {big['tau_D_s']:g} s, so the shortest record the fit allows "
+      f"is {rows[30]['window_min_s']:g} s and {big['window_min_s']:g} s -- many minutes to over an hour. "
+      "Over a record that long, other things bind before diffusion does: bleaching by the imaging light "
+      "(the fit's reference region corrects it only if that region sees exactly the same light), drift of "
+      "the stage and focus, and the field of view, since the reference region must sit at least five disc "
+      "radii away -- half a millimetre from a 100 um disc. None of these is in the model. The model's own "
+      "numbers do not change with disc size: measured in recovery times and disc radii, the curve and the "
+      "fit's biases below are the same at any w, so the second stage's runs at 3 um carry to any disc.")
     a("")
     a("The bead count is not the limit at ordinary dilutions: a 3 um disc through a 10 um chamber "
       "holds ten beads already at a volume fraction of 2e-5. The bead count only binds for "
@@ -481,6 +493,14 @@ def _markdown(r: dict) -> str:
       "disc, chamber and dilution replace the first three; the second stage of this question "
       "measures the fourth.")
     a("- the 100 nm diameter: replaced by a measured size or the product's specification.")
+    s2 = QDIR / "stage2_runs.json"
+    if s2.exists():
+        th = json.loads(s2.read_text())["single_curve_threshold"]["beads_where_spread_is_a_tie"]
+        if th:
+            a(f"- **ten beads per curve has been replaced by a measurement**: the second stage finds one "
+              f"curve needs about {int(float(f'{th:.1g}'))} beads in the disc before its scatter is inside a factor of ten "
+              "(see stage2_runs.md). Read the bead-count column of the first table above with that in mind: "
+              f"the volume fractions it needs are about {th / 10:.0f} times those shown.")
     a("")
     a("![Stage 1](stage1_closed_forms.png)")
     a("")
@@ -510,7 +530,7 @@ def _figure(result: dict, D_um2: float) -> None:
     ax[0].set_title("Recovery shape and the fit's three limits")
     ax[0].legend(fontsize=8, loc="upper left")
 
-    w = np.geomspace(0.3, 10, 100)
+    w = np.geomspace(0.3, 100, 100)
     tau = w**2 / (4 * D_um2)
     ax[1].plot(w, BLEACH_MAX * tau, label="longest bleach allowed")
     ax[1].plot(w, FRAME_MAX * tau, label="longest frame interval allowed")

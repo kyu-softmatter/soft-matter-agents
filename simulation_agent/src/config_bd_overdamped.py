@@ -691,113 +691,158 @@ def render_plan(card: dict) -> str:
 # --------------------------------------------------------------------------- #
 
 
-def build_result(run_ids: list[str]) -> dict:
+def build_result(run_ids: list[str], kb_answer: dict | None = None) -> dict:
     """The result card: the first run id is the card's run, and the readings of
     every other run of the same plan revision ride along under their own run
-    ids, so the one card the bridge carries holds the whole sweep."""
-    from . import bleach_solver, result_card              # noqa: PLC0415
+    ids, so the one card the bridge carries holds the whole sweep.
+
+    The numbers are `report_bleach.collect`'s, so the card and the person's
+    report cannot disagree. Two comparisons sit side by side, and only the
+    first was declared before the runs:
+
+    - DECLARED: the mean of single-curve fits against the solver
+      (`agrees_with_solver`, evaluated as written). At a few hundred beads
+      the fit's refusals remove the slow curves, so this mean is selected
+      and reads high. That is a property of averaging single-curve reads,
+      and the card says so rather than redefining the criterion.
+    - ADDED AFTER THE DATA, labelled in every note: the mean curve against
+      the equation frame by frame, and one fit to the mean curve with a
+      jackknife error over curves where the run saved its curves.
+    """
     from contracts.validate import vocabulary_version      # noqa: PLC0415
 
-    runs = [result_card.read_run(r) for r in run_ids]
-    plan, plan_path = result_card.plan_of(runs[0])
-    for r in runs[1:]:
-        if r["config"]["plan_hash"] != runs[0]["config"]["plan_hash"]:
-            raise SystemExit(f"{r['config']['run_id']} ran a different plan")
-    qid = runs[0]["config"]["qid"]
+    from . import report_bleach, result_card              # noqa: PLC0415
+
+    runs = {r: result_card.read_run(r) for r in run_ids}
+    first = runs[run_ids[0]]
+    plan, plan_path = result_card.plan_of(first)
+    for rid, r in runs.items():
+        if r["config"]["plan_hash"] != first["config"]["plan_hash"]:
+            raise SystemExit(f"{rid} ran a different plan")
+    qid = first["config"]["qid"]
+    points = report_bleach.collect(run_ids)
+    threshold_beads = report_bleach.threshold(points)["beads_where_spread_is_a_tie"]
+    by_run = {p["run_id"]: p for p in points.values()}
     numbers: list[dict] = []
-
-    def carry(name, as_name=None):
-        n = result_card.carried(plan, plan_path, name, as_name)
-        numbers.append(n)
-        return n
-
     for name in ("temperature", "viscosity", "bead_diameter", "diffusivity", "bleach_radius",
-                 "recovery_time", "bleach_rate", "agreement_z_max", "box_length_point",
-                 "max_recovery_time_point", "record_length_point"):
-        carry(name)
-    grades = _grades(numbers)
+                 "recovery_time", "bleach_rate", "agreement_z_max", "record_length_point"):
+        numbers.append(result_card.carried(plan, plan_path, name))
     inputs = [n for n in numbers if n["name"] in ("temperature", "viscosity", "bead_diameter", "bleach_rate")]
 
-    criteria, deviations, per_point = [], [], {}
+    def reading(name, value, unit, rid, note, graded=True):
+        n = result_card.reading(name, value, unit, rid, inputs if graded else [], note)
+        numbers.append(n)
+        return name
+
+    criteria, deviations = [], []
     z_max = float(_val(numbers, "agreement_z_max"))
-    for run in runs:
-        rid = run["config"]["run_id"]
-        point = run["config"].get("compare_arm") or "-"
-        tag = point
-        s = run["observables"]["summary"]
-        params = run["config"]["parameters_si"]
-        pred = bleach_solver.predict_si(params)
-        D_se = pred["D_stokes_einstein_m2_per_s"]
-        rd = lambda name, v, unit, note: numbers.append(result_card.reading(
-            f"{name}_{tag}", v, unit, rid, inputs, note)) or f"{name}_{tag}"
-        names = {}
-        names["beads"] = rd("beads_in_disc_read", float(f"{s['beads_in_disc_mean']:.3g}"), "count",
-                            f"mean bright count in the disc before the bleach, over {s['n_curves']} curves")
-        names["reported"] = rd("curves_reported", s["n_reported"], "count",
-                               f"curves the estimator reported a value for, of {s['n_curves']}; the rest are "
-                               f"one-sided bounds: {s['refusals']}")
-        if s.get("D_mean"):
-            ratio = s["D_mean"] / D_se
-            names["D"] = rd("bleach_recovery_diffusivity_read", float(f"{s['D_mean']:.3g}"), "um^2/s",
-                            f"mean over the {s['n_reported']} reported curves")
-            names["sd"] = rd("one_curve_spread", float(f"{s['D_sd_one_curve'] / s['D_mean']:.2g}") if s.get("D_sd_one_curve") else 0.0, "1",
-                             "standard deviation of D over single curves, relative to the mean: what ONE "
-                             f"bleach scatters by. 5th-95th percentile {s['D_p05']*1e12:.2g}-{s['D_p95']*1e12:.2g} um^2/s")
-            names["ratio"] = rd("D_over_stokes_einstein", float(f"{ratio:.3g}"), "1",
-                                "mean fitted D over Stokes-Einstein at the same inputs")
-            if pred.get("D_fit_over_D"):
-                se_rel = (s["D_sem"] / D_se) if s.get("D_sem") else None
-                z = abs(ratio - pred["D_fit_over_D"]) / se_rel if se_rel else None
-                names["pred"] = rd("D_over_stokes_einstein_predicted", float(f"{pred['D_fit_over_D']:.3g}"), "1",
-                                   "what the diffusion equation predicts the fit reads at this bleach, camera "
-                                   "and box -- bleach_solver.predict_si on this run's parameters")
-                if z is not None:
-                    names["z"] = rd("deviation_from_solver_in_standard_errors", float(f"{z:.2g}"), "1",
-                                    "|read - predicted| over the standard error of the read mean")
-                    per_point[point] = {"ratio": ratio, "se": se_rel, "pred": pred["D_fit_over_D"], "z": z,
-                                        "names": names, "run": rid}
-        criteria.append({"id": f"planned_record_reached", "kind": "stop",
-                         "met": bool(run["meta"].get("completed_planned_duration")),
-                         "observed_number": names["reported"]})
-        deviations.append({"parameter": f"curves_{tag}", "planned_number": "record_length_point",
-                           "actual_number": names["reported"],
-                           "within_tolerance": bool(run["meta"].get("completed_planned_duration")),
-                           "note": f"{rid}: every planned curve ran; the count is of curves the estimator "
-                                   "reported, refusals are listed in the reading's note"})
-    # success criteria, once each
-    zs = [v for v in per_point.values() if v.get("z") is not None]
-    criteria.append({"id": "agrees_with_solver", "kind": "success",
-                     "met": bool(zs) and all(v["z"] <= z_max for v in zs),
-                     "observed_number": max(zs, key=lambda v: v["z"])["names"]["z"] if zs else names["reported"]})
-    base, half = per_point.get("n300_dt_f12_b30"), per_point.get("n300_dt2_f12_b30")
-    if base and half:
-        zz = abs(base["ratio"] - half["ratio"]) / math.hypot(base["se"], half["se"])
-        numbers.append(result_card.reading("dt_halving_deviation_in_standard_errors", float(f"{zz:.2g}"), "1",
-                                           base["run"], inputs, "base point against its half-step twin"))
+    declared_z = []
+    for rid in run_ids:
+        p = by_run[rid]
+        tag = rid.replace("run-20260930-401-", "").replace("-", "_")
+        if p.get("ratio_mean") is None:
+            continue
+        spread = (f"; one curve's middle 90 per cent over every fitted curve {p['all_p05']:.2g} to "
+                  f"{p['all_p95']:.2g} of the value put in (x{p['all_spread_factor_90']:.2g})"
+                  if p.get("all_spread_factor_90") else "")
+        curve = (f"; ADDED AFTER THE DATA: the mean curve lies within {p['curve_z_max']:.2g} standard errors of "
+                 f"the equation at every frame, and one fit to it reads {p['mean_curve_ratio']:.3f}"
+                 + (f" +/- {p['mean_curve_ratio_se']:.3f} (jackknife over curves)" if p.get("mean_curve_ratio_se") else "")
+                 if p.get("curve_z_max") is not None and p.get("mean_curve_ratio") else "")
+        pr = reading(f"predicted_ratio_{tag}", float(f"{p['predicted_ratio']:.3g}"), "1", rid,
+                     "what the fit reads on the diffusion equation solved at this run's own bleach, camera, box "
+                     "and fit (bleach_solver) -- deterministic, not from the particle engine", graded=False)
+        rr = reading(f"read_ratio_{tag}", float(f"{p['ratio_mean']:.3g}"), "1", rid,
+                     f"mean D of the {p['n_reported']} curves the fit read, of {p['n_curves']}, over the value put "
+                     f"in; standard error {p['ratio_sem']:.3f}; {p['beads_in_disc']:.0f} beads in the disc"
+                     + spread + curve, graded=False)
+        z = p.get("z_vs_solver")
+        if z is not None:
+            declared_z.append((z, tag))
+        deviations.append({"parameter": f"read_against_solver_{tag}", "planned_number": pr, "actual_number": rr,
+                           "within_tolerance": bool(z is not None and z <= z_max),
+                           "note": f"{rid}: the declared comparison, {z:.3g} standard errors apart against a "
+                                   "tolerance of three. Where the fit refuses many curves the kept ones are a "
+                                   "selected set and their mean is pulled away from the prediction; the note on "
+                                   "the reading gives the curve-level comparison, which no selection biases"})
+    if declared_z:
+        worst_z, worst_tag = max(declared_z)
+        reading("deviation_from_solver_in_standard_errors", float(f"{worst_z:.3g}"), "1",
+                f"run-20260930-401-{worst_tag.replace('_', '-')}",
+                f"the largest declared deviation over the {len(declared_z)} runs, at {worst_tag}; "
+                f"{sum(1 for z, _ in declared_z if z > z_max)} of them exceed three", graded=False)
+    meta_ok = all(r["meta"].get("completed_planned_duration") for r in runs.values())
+    period = float(first["config"]["parameters_si"]["curve_period"])
+    curves_run = min(by_run[r]["n_curves"] for r in run_ids)
+    reading("record_time_completed", curves_run * period, "s", run_ids[0],
+            f"the fewest curves any run completed ({curves_run}) times the {period:g} s curve period; "
+            "every run completed its planned record", graded=False)
+    criteria.append({"id": "planned_record_reached", "kind": "stop", "met": meta_ok,
+                     "observed_number": "record_time_completed"})
+    max_step = max(float(r["meta"].get("max_single_step_displacement") or 0) for r in runs.values())
+    numbers.append(cards.num("max_single_step_displacement", float(f"{max_step * 1e6:.1g}"), "um",
+                             f"simulated:{run_ids[0]}", precision="order_of_magnitude",
+                             note="the largest one-step move over every run, against a 3 um disc; not met is the good outcome"))
+    criteria.append({"id": "step_displacement_diverged", "kind": "stop", "met": bool(max_step > 3e-6),
+                     "observed_number": "max_single_step_displacement"})
+    if declared_z:
+        criteria.append({"id": "agrees_with_solver", "kind": "success",
+                         "met": bool(all(z <= z_max for z, _ in declared_z)),
+                         "observed_number": "deviation_from_solver_in_standard_errors"})
+    else:
+        criteria.append({"id": "agrees_with_solver", "kind": "success", "met": None,
+                         "why_unevaluated": "no point produced a mean over read curves"})
+    base, finer = points.get("n300_dt_f12_b30"), points.get("n300_dt2_f12_b30")
+    if base and finer and base.get("ratio_sem") and finer.get("ratio_sem"):
+        zz = abs(base["ratio_mean"] - finer["ratio_mean"]) / math.hypot(base["ratio_sem"], finer["ratio_sem"])
+        reading("dt_halving_deviation_in_standard_errors", float(f"{zz:.2g}"), "1", base["run_id"],
+                "base point against its finer-step twin, means of the read curves", graded=False)
         criteria.append({"id": "dt_halving_unchanged", "kind": "success", "met": bool(zz <= z_max),
                          "observed_number": "dt_halving_deviation_in_standard_errors"})
     else:
         criteria.append({"id": "dt_halving_unchanged", "kind": "success", "met": None,
-                         "why_unevaluated": "the base point or its half-step twin is not among the runs given"})
+                         "why_unevaluated": "the base point or its finer-step twin is not among the runs given"})
 
     card = cards.head(
-        "result", f"result-{qid}-{run_ids[0]}", qid, runs[0]["log"]["finished_at"],
-        revision=int(runs[0]["config"]["plan_revision"]),
-        plan_id=plan["id"], plan_revision=int(runs[0]["config"]["plan_revision"]),
-        plan_hash=runs[0]["config"]["plan_hash"], approval_id=None, run_id=run_ids[0],
+        "result", f"result-{qid}-{run_ids[0]}", qid, first["log"]["finished_at"],
+        revision=int(first["config"]["plan_revision"]),
+        plan_id=plan["id"], plan_revision=int(first["config"]["plan_revision"]),
+        plan_hash=first["config"]["plan_hash"], approval_id=None, run_id=run_ids[0],
         observable=cards.observable(OBSERVABLE),
-        outcome=result_card.outcome_of(runs[0]["meta"]),
+        outcome=result_card.outcome_of(first["meta"]),
         values=[{"metric": OBSERVABLE, "number": "diffusivity", "uncertainty": None}],
-        criteria_evaluation=_dedupe(criteria), deviations=deviations,
-        time_base=result_card.time_base(runs[0]["log"]),
+        criteria_evaluation=criteria, deviations=deviations,
+        time_base=result_card.time_base(first["log"]),
         estimation={"vocabulary_version": vocabulary_version(), "followed": True,
                     "note": "estimator_bleach.estimate, the registered steps; background 0 and reference "
-                            "ratio 1 are identities in the engine and were applied"},
+                            "ratio 1 are identities in the engine and were applied. WHAT THE RUNS FOUND, in "
+                            "full in stage2_runs.json and stage2_runs.md beside this card: one bleach needs "
+                            f"about {int(float(f'{threshold_beads:.1g}'))} beads in the disc before its D is "
+                            "inside a factor of ten (90 per cent of single curves); below that most curves are "
+                            "refused. Averaging single-curve D is biased by those refusals; average the curves, "
+                            "then fit once" if threshold_beads else
+                            "estimator_bleach.estimate, the registered steps"},
     )
     card["status"] = "DONE" if card["outcome"] == "DONE" else "FAILED"
+    for n in numbers:
+        if n["name"] == "bead_diameter":
+            n["note"] = (n.get("note", "") + ". THE VALUE DID NOT CHANGE, ITS SOURCE DID: 100 nm nominal, now "
+                         "the cited f8801_nominal_diameter applied to the bench through "
+                         "particle_suspension_b_identity, so E5 either way; the run used the same 100 nm")
+    refs, gaps, degraded = result_card.kb_refs_for(plan, numbers), list(plan.get("kb_gaps") or []), ["librarian_agent"]
+    if kb_answer is not None:
+        # The bead identity, published after the question was pinned, asked for
+        # under the operator id at the version that holds it (fanout.issue_operator).
+        refs = refs + [{"entry_id": e["entry_id"], "grade": e["grade"], "kb_version": kb_answer["kb_version"],
+                        "claim": e["claim"]} for e in kb_answer["entries"]]
+        newer = {g["gap_id"]: g for g in kb_answer.get("gaps", [])}
+        gaps = [newer.pop(g["gap_id"], g) for g in gaps] + list(newer.values())
+        # `degraded` keeps the librarian's name: the plan's axes made no calls,
+        # and a result inherits what its plan stood on (check 10). The calls
+        # this card made are in the log under its caller_id regardless.
+        card["caller_id"] = kb_answer["caller_id"]
     card.update(cards.tail(numbers, assumptions=result_card.assumptions_for(plan, numbers),
-                           kb_refs=result_card.kb_refs_for(plan, numbers),
-                           kb_gaps=plan.get("kb_gaps") or [], degraded=["librarian_agent"]))
+                           kb_refs=refs, kb_gaps=gaps, degraded=degraded))
     return card
 
 
@@ -822,8 +867,15 @@ if __name__ == "__main__":
         print(cards.write(target, card).relative_to(cards.REPO))
     elif what == "result":
         from . import result_card                          # noqa: PLC0415
-        run_ids = sys.argv[2:]
-        card = build_result(run_ids)
+        args = sys.argv[2:]
+        kb_answer = None
+        if args and args[0] == "--kb":
+            # {"caller_id", "kb_version", "entries": [...], "gaps": [...]}: what the
+            # session's librarian calls under fanout.issue_operator returned
+            kb_answer = json.loads(open(args[1]).read())
+            args = args[2:]
+        run_ids = args
+        card = build_result(run_ids, kb_answer)
         path = result_card.path_for(card["qid"], run_ids[0])
         print(cards.write(path, card).relative_to(cards.REPO))
     else:

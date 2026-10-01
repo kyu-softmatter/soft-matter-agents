@@ -140,6 +140,21 @@ def issue_s2(qid: str, revision: int) -> str:
     return f"{qid}:v{revision}:s2"
 
 
+def issue_operator(qid: str, revision: int) -> str:
+    """The operator form of an issued id: `<qid>:v<N>:operator`.
+
+    For the stage after the runs. A result card that cites an entry the
+    store published after the question was pinned asks for it here, so the
+    entry lands in kb_refs with a log line under an id the launcher issued.
+    That is what sim-20260930-401's result needed when the bead identity was
+    published mid-run (2026-09-30): re-pinning would have made a new
+    revision whose plan no run stood on. The server already names the form;
+    this module issued only the other two until then. It carries the
+    revision for the reason `issue` does.
+    """
+    return f"{qid}:v{revision}:operator"
+
+
 def current_kb_version(qid: str | None = None) -> str:
     """The store state this question cites -- pinned once, then kept.
 
