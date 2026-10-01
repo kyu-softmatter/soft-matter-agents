@@ -1,0 +1,276 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-mic-20260930-001-r1",
+  "qid": "mic-20260930-001",
+  "thread": "solo-mic-20260930-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-10-01T06:30:00Z",
+  "status": "VALIDATED",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "bleach_recovery_diffusivity"
+  },
+  "targets": [
+    {
+      "metric": "bleach_recovery_diffusivity",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "One decade. The person asked how fast the beads diffuse, with no precision attached, and card 051 says explore applies: targets in decades, differences under 10x are ties. A target is a decision and carries no grade."
+    }
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "sample_contrast": [
+    "fluorescence"
+  ],
+  "sample_contrast_provenance": {
+    "source": "operator_recall:kyuhwan_20260930_f8801_product_page",
+    "grade": "E5"
+  },
+  "requested_by": "human",
+  "numbers": [
+    {
+      "name": "tracer_diameter",
+      "value": 0.1,
+      "unit": "um",
+      "source": "assumed:a_bead_identity",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "The catalogue's nominal size for F8801 (0.1 um), applied to the bottle in use through the person's identification. A nominal designation and not a measurement, and it reaches the bench through an E5 link, so it is carried as an order of magnitude. It sizes the design's ranges and nothing else: no number in the plan is reported from it. The store holds a measured tracer_diameter, 5 um at E2, and it is about a DIFFERENT bottle (the 5 um particle_suspension_a); it is not cited here."
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_bead_identity",
+      "statement": "The beads this question measures are Invitrogen FluoSpheres carboxylate-modified microspheres, catalogue F8801: 0.1 um, red, excitation/emission 580/605 nm, polystyrene, 10 mL. The person identified them on 2026-09-30 by pasting the vendor's product page into this session's window, in answer to the question of which product and dye the beads are. The page is a vendor specification and so type-level; the link from the bottle on the bench to that catalogue number is the person's statement, so everything type-level that reaches the bench through it is E5.",
+      "numbers": [
+        "tracer_diameter"
+      ],
+      "falsifier": "the bottle's own label and its lot's certificate of analysis. The vendor lists certificates per lot for F8801, and a certificate states the lot's measured mean diameter, which would replace the nominal 0.1 um with a measured value at E3. A label naming another catalogue number retires this assumption.",
+      "gap_ref": "f8801_absent"
+    }
+  ],
+  "degraded": [],
+  "constraint_notes": [
+    "WHAT THIS QUESTION IS. The person asked, on 2026-09-30, how fast the 100 nm fluorescent beads diffuse, suggested bleaching a round spot and watching it recover, and asked for a simulation of it alongside. This card is the experiment's design, made on the MacBook with no device opened; the run is later, on the microscope computer, under the person's approval. The simulation is a separate question on the simulation side and reaches this one only as a card the bridge carries.",
+    "THE OBSERVABLE. bleach_recovery_diffusivity, registered at 1d988e1 and declared on widefield_inline only at 004d8d4. Its estimator fixes the geometry as a uniform disc bleached as a column through the whole sample depth. The fallback for a suspension too sparse to bleach as a field is single-bead tracking, read as tracer_diffusivity, which is already registered; the plan names when it switches.",
+    "THE SAMPLE. The person identified the beads as Invitrogen FluoSpheres F8801 (0.1 um, red, 580/605 nm, carboxylate-modified polystyrene, 10 mL, stored at 2 to 8 C protected from light) by pasting the vendor's page. The store holds nothing under that catalogue number (f8801_absent). Its tracer_* entries -- diameter, stock concentration, excitation and emission -- describe the 5 um bottle particle_suspension_a and do not apply to these beads, so none is cited. What the page does NOT give: the stock concentration, the lot, and the lot's measured diameter. The page says the dye is held inside the bead, which shields it from photobleaching; that is a vendor's qualitative claim with no number, it enters no bound, and it is worth knowing because it points the same way as the design's main risk -- a bleach that is too slow.",
+    "HOW A SPOT IS BLEACHED. The confocal unit is a spinning disk, so its lasers cover the field and cannot confine light to a disc; that branch is closed. The only device on this instrument that confines light to a chosen shape is the DMD (Mightex Polygon1000) on the inline widefield branch, and the staging device table records it as fed by the Spectra III light engine, from a prior-project run at E3. Widefield light is not confined in depth, which is why the observable's geometry is a column. The store answers to no name for the DMD or the inline branch (dmd_absent, widefield_inline_absent); what is known about them is in kb/staging/devices.v0.json, which the plan cites as a table.",
+    "WHAT IS NOT KNOWN ABOUT THE LIGHT, and each is a named gap. Which Spectra III line excites near 580 nm: the engine's channel set is unread. The power the Spectra delivers at the sample through the DMD: light_engine_output_power_absent; every power the store holds at the sample is for the confocal lasers or the trap. The illumination numerical aperture on the DMD path, which sets how fast the disc blurs above and below focus: illumination_numerical_aperture_absent. The DMD's pixel size at the sample: dmd_pixel_size_at_sample_absent. The camera's frame rate: frame_rate_absent.",
+    "BRIGHTNESS AND BLEACHING RATE CLOSE BY ACQUIRING, NOT BY ASKING. Neither is in the store for these beads and neither can be (tracer_brightness_absent, bleaching_rate_absent): both depend on this dye, this lot, this light and this camera together. One short run of bare beads on a coverslip under the planned Spectra line through the DMD gives the photon rate per bead and its decay with time, and closes both. That run is a pre-measurement and comes before the bleach-recovery record it unblocks.",
+    "SAFETY, WHICH THIS CARD DOES NOT DECIDE. envelope/safety.json holds no limit for the DMD or the Spectra III, so nothing on that path can execute until the person writes one. The bleach dose -- power at the sample, duration and spot area -- is stated by the plan as what the measurement needs, and put to the person as a decision.",
+    "WHAT IS AWAITED FROM THE SIMULATION. The expected recovery times against spot radius, the scatter of the fitted diffusivity at a given number of beads in the spot, and the effect of a finite bleach and a finite frame interval. Until that card arrives the design does not guess them; it states its settings as rules in the recovery time and names which settings move when the numbers arrive."
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what m"
+    },
+    {
+      "entry_id": "objective_mrd70270",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "Nikon CFI Plan Apo Lambda D 20X, part number MRD70270: a dry 20x objective of numerical aperture 0.80 with a working distance of 0.8 mm, specified for 170 micrometre coverglass."
+    },
+    {
+      "entry_id": "objective_mrd70170",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "Nikon CFI Plan Apo Lambda D 10X, part number MRD70170: a dry 10x objective of numerical aperture 0.45 with a working distance of 4 mm, specified for 170 micrometre coverglass."
+    },
+    {
+      "entry_id": "objective_mrd77400",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "Nikon CFI Apo Lambda S 40XC WI, part number MRD77400: a water-immersion 40x objective of numerical aperture 1.25 with a correction collar, specified for coverglass from 150 to 190 micrometres. Its wor"
+    },
+    {
+      "entry_id": "pixel_size_20x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "With the 20x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.32373 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "pixel_size_10x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "With the 10x objective at 1x intermediate magnification and 1x1 binning, one pixel spans 0.65 micrometres at the sample plane, measured by the operator on this instrument."
+    },
+    {
+      "entry_id": "camera_sensor_geometry",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "The Photometrics Kinetix22 sensor is a 2400 by 2400 pixel back-illuminated sCMOS array on a 6.5 micrometre pitch, which is 15.6 by 15.6 mm and a 22 mm diagonal."
+    },
+    {
+      "entry_id": "mm_label_lightengine_is_the_spectra_iii",
+      "grade": "E3",
+      "kb_version": "kbv-49b098a90994",
+      "claim": "On the prior project's configuration the MMCore device label `LightEngine` is the Lumencor Spectra III 8-NII-XS on COM3, serial 28145, firmware 3.5.4. The label is not `SpectraIII`; that is the produc"
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "dmd_absent",
+      "observable": "dmd",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=dmd, caller_id=mic-20260930-001:v1:s2, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:s2",
+      "asked_at": "2026-10-01T06:12:28+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "widefield_inline_absent",
+      "observable": "widefield_inline",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=widefield_inline, caller_id=mic-20260930-001:v1:s2, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:s2",
+      "asked_at": "2026-10-01T06:12:39+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "illumination_numerical_aperture_absent",
+      "observable": "illumination_numerical_aperture",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=illumination_numerical_aperture, caller_id=mic-20260930-001:v1:s2, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:s2",
+      "asked_at": "2026-10-01T06:12:40+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "light_engine_output_power_absent",
+      "observable": "light_engine_output_power",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=light_engine_output_power, caller_id=mic-20260930-001:v1:s2, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:s2",
+      "asked_at": "2026-10-01T06:12:42+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "objective_absent",
+      "observable": "objective",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=objective, caller_id=mic-20260930-001:v1:s2, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:s2",
+      "asked_at": "2026-10-01T06:14:12+00:00",
+      "near_names": [
+        "nosepiece_objective_assignment",
+        "objective_40x_collar_setting",
+        "objective_change_invalidates_trap_calibration",
+        "objective_change_selects_a_pixel_size_row",
+        "objective_mrd70040",
+        "objective_mrd70040_selector_properties",
+        "objective_mrd70170",
+        "objective_mrd70170_selector_properties"
+      ]
+    },
+    {
+      "gap_id": "spectra_iii_absent",
+      "observable": "spectra_iii",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=spectra_iii, caller_id=mic-20260930-001:v1:s2, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:s2",
+      "asked_at": "2026-10-01T06:14:16+00:00",
+      "near_names": [
+        "mm_label_lightengine_is_the_spectra_iii"
+      ]
+    },
+    {
+      "gap_id": "frame_rate_absent",
+      "observable": "frame_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=frame_rate, caller_id=mic-20260930-001:v1:s2, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:s2",
+      "asked_at": "2026-10-01T06:14:40+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "f8801_absent",
+      "observable": "F8801",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=F8801, caller_id=mic-20260930-001:v1:s2, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:s2",
+      "asked_at": "2026-10-01T06:16:03+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "bleaching_rate_absent",
+      "observable": "bleaching_rate",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=bleaching_rate, caller_id=mic-20260930-001:v1:s2, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:s2",
+      "asked_at": "2026-10-01T06:16:06+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "tracer_brightness_absent",
+      "observable": "tracer_brightness",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=tracer_brightness, caller_id=mic-20260930-001:v1:s2, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:s2",
+      "asked_at": "2026-10-01T06:16:08+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "dmd_pixel_size_at_sample_absent",
+      "observable": "dmd_pixel_size_at_sample",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=dmd_pixel_size_at_sample, caller_id=mic-20260930-001:v1:s2, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:s2",
+      "asked_at": "2026-10-01T06:16:10+00:00",
+      "near_names": [
+        "pixel_size"
+      ]
+    }
+  ]
+}

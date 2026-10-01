@@ -1,0 +1,96 @@
+{
+  "artifact": "screening",
+  "schema_version": "0.1",
+  "qid": "mic-20260930-001",
+  "goal_id": "goal-mic-20260930-001-r1",
+  "goal_revision": 1,
+  "stage": "S3.0",
+  "observable": "bleach_recovery_diffusivity",
+  "kb_version": "kbv-49b098a90994",
+  "cap": 3,
+  "candidates": [
+    {
+      "config": "widefield_inline",
+      "optical_path": "widefield_inline",
+      "devices": [
+        "stand_ti2e",
+        "confocal_csuw1",
+        "camera_red",
+        "camera_blue",
+        "widefield_source_a",
+        "dmd"
+      ],
+      "composed_with": [],
+      "grounds": "declares 'bleach_recovery_diffusivity'"
+    }
+  ],
+  "rejected": [
+    {
+      "config": "confocal",
+      "reason": "does not produce 'bleach_recovery_diffusivity'"
+    },
+    {
+      "config": "transmitted",
+      "reason": "does not produce 'bleach_recovery_diffusivity'"
+    },
+    {
+      "config": "trapping",
+      "reason": "perturbation: it drives the sample and produces no observable of its own"
+    },
+    {
+      "config": "widefield_side",
+      "reason": "does not produce 'bleach_recovery_diffusivity'"
+    }
+  ],
+  "cap_unresolved": false,
+  "cap_resolved_by": null,
+  "preference_honoured": null,
+  "preference_refused": [],
+  "priority_terms_not_evaluable_here": [],
+  "fan_out": [
+    {
+      "caller_id": "mic-20260930-001:v1:widefield_inline:a1",
+      "config": "widefield_inline",
+      "axis": "a1",
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "caller_id": "mic-20260930-001:v1:widefield_inline:a2",
+      "config": "widefield_inline",
+      "axis": "a2",
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "caller_id": "mic-20260930-001:v1:widefield_inline:a3",
+      "config": "widefield_inline",
+      "axis": "a3",
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "caller_id": "mic-20260930-001:v1:widefield_inline:a4",
+      "config": "widefield_inline",
+      "axis": "a4",
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "caller_id": "mic-20260930-001:v1:widefield_inline:a5",
+      "config": "widefield_inline",
+      "axis": "a5",
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "caller_id": "mic-20260930-001:v1:widefield_inline:a6",
+      "config": "widefield_inline",
+      "axis": "a6",
+      "kb_version": "kbv-49b098a90994"
+    },
+    {
+      "caller_id": "mic-20260930-001:v1:widefield_inline:a7",
+      "config": "widefield_inline",
+      "axis": "a7",
+      "kb_version": "kbv-49b098a90994"
+    }
+  ],
+  "degraded": [],
+  "screened_against": "contracts/capabilities/microscope.json and contracts/observables.json only; no lessons (P16). The kb_version above is a pin and not an input to the screen: it was read from microscope_agent/envelope/snapshot.json, which is a committed published export this agent copied"
+}
