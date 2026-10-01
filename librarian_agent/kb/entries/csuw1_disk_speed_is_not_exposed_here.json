@@ -1,0 +1,29 @@
+{
+  "entry_id": "csuw1_disk_speed_is_not_exposed_here",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Loaded through Micro-Manager on the microscope computer, the CSU-W1's seven devices (Hub, Shutter, Bright Field, Port, Dichroic and both filter wheels) expose no property that reports the spinning disk's speed. The only Speed properties are the two filter wheels', which is wheel speed.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "csuw1_disk_speed"
+    },
+    {
+      "kind": "device",
+      "id": "confocal_csuw1"
+    }
+  ],
+  "identifiers": {
+    "configuration": "dualcam_noDMD_nolaser_nostartup.cfg",
+    "micromanager": "Micro-Manager 2.0.3 20260806, MMCore 12.5.0, Device API 75"
+  },
+  "source": "measured:run-20260924-008",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_runs_20260924_008_to_010_card036",
+  "validity_conditions": "A device's report of itself: run-20260924-008 events[4] to [10] list every property of each CSU-W1 device as read back, and none names the disk's speed or period; events[9] and [10] carry Speed 3 on Filter_Red and Filter_Blue, which is the filter wheels'. E1 from `measured:` under 11-21 condition 4, counted by check 85. Checked here against the property lists themselves, not only the run's own disk_related_properties filter. SCOPE: this configuration (derived dual-camera, no DMD, no laser, no startup preset) and this Micro-Manager build, as named in identifiers. A different device adapter could expose the speed and would falsify this for that adapter. SAME FINDING, DIFFERENT CONDITIONS, SO NOT A SUPERSEDE. csuw1_disk_speed_is_not_exposed_in_micromanager says the same of the prior project's configurations as of 2026-09-07, at E3. That entry's scope is those configurations and that adapter version, which this does not re-observe, so it stays valid for its own scope and this is its own entry. Together they say the disk period has no source through Micro-Manager in either; the disk_period gap stays open. Delivered as item csuw1_reports_no_disk_speed_here of microscope_agent/findings/microscope-20260924-3-20260924.json at 0ecf94b.",
+  "date": "2026-10-01",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260930-1"
+}

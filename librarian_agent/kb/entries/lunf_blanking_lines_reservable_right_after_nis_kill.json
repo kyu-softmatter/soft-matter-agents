@@ -1,0 +1,25 @@
+{
+  "entry_id": "lunf_blanking_lines_reservable_right_after_nis_kill",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "On the microscope computer, within about 1.6 s of NIS-Elements being force-killed, all four of the laser combiner's blanking lines (Dev1/port0 lines 2, 4, 6 and 8) could be reserved from Python through NI-DAQmx, and level-0 writes to each returned without error. The writes were not read back and no light was produced, so what the lines actually did is not established.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "line_select"
+    },
+    {
+      "kind": "device",
+      "id": "laser_combiner"
+    }
+  ],
+  "source": "measured:run-20260924-009",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_runs_20260924_008_to_010_card036",
+  "validity_conditions": "What the DAQ driver granted, recorded as run events: run-20260924-009's kill at events[7] (t 68.06 s), the lines reported ready at events[8] (t 69.69 s), level-0 writes to all four at events[9] with verification none, and a second close-all at events[12] in the recovery step. run-20260924-010 shows the same at events[7] to [9], 2.2 s after its kill. An observation by this system, not a registered observable's value: E1 from `measured:`, counted by check 85. WHAT IT ADDS. lunf_blanking_port_is_held_by_one_program says the vendor program holds this port exclusively WHILE IT RUNS; this says the port is free about a second and a half after that program is killed, observed here. lunf_fiber_shutter_survives_a_controller_kill implies the same freeing (a line driven from other software after a kill still emitted) in the prior project; this is the first direct observation of it on this instrument. Both stay as they are -- this is a different claim, not the same one re-observed, so it supersedes neither. WHAT IT DOES NOT ESTABLISH. Not the line map or the polarity (both still wait for a lit frame), and not lunf_killed_writer_may_leave_a_line_open: these writes set level 0 and were not read back, so nothing here tells whether a line's level survives its writer dying. Not a safety statement and not a limit: that the lines can be written after a kill says nothing about whether the beam is blocked, and the fiber shutter is not reached by these lines at all. Falsified by a reservation refused with NIS killed and no other program holding the port. Delivered as item blanking_lines_free_right_after_nis_kill of microscope_agent/findings/microscope-20260924-3-20260924.json at 0ecf94b.",
+  "date": "2026-10-01",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260930-1"
+}
