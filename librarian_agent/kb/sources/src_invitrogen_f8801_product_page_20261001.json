@@ -1,0 +1,13 @@
+{
+  "source_id": "src_invitrogen_f8801_product_page_20261001",
+  "kind": "vendor_spec",
+  "identifier": "Thermo Fisher Scientific product page for Invitrogen FluoSpheres Carboxylate-Modified Microspheres 0.1 um, catalog number F8801: its Specifications block and its Contents & Storage line.",
+  "url": "https://www.thermofisher.com/order/catalog/product/F8801",
+  "accessed": "2026-10-01",
+  "grade_rule": "E3, grade_tag vendor_spec. A published specification from the supplier, not a measurement taken here.",
+  "how_it_was_reached": "The person pasted this page into the microscope seat's window on 2026-09-30 to say which product the 100 nm beads are. This seat then fetched the page itself on 2026-10-01 (HTTP 200) and read the values off it, so the entries cite the vendor's page and not the paste. The fetched HTML had sha256 79a51a057b7d4f6cd635f05fe2e300182a85cbbd1598df37321da00e365dad13. It is NOT held here: a commercial web page that renders prices and scripts, about 2 MB, which changes without notice, so the hash says what was read and does not promise the page still reads that way.",
+  "what_it_states": "Diameter (Metric) 0.1 um; Color Red; Excitation/Emission 580/605 nm; Material Polystyrene; Surface Modification Carboxylate; Product Type Carboxylate-Modified Microsphere; Quantity 10 mL; Contents & Storage: store in refrigerator (2 C to 8 C) and protect from light. The FAQ says a Certificate of Analysis exists per lot.",
+  "not_entered": "(1) Concentration: the page does not print one, so tracer_stock_concentration for this type stays a gap -- not filled from what FluoSpheres usually are. (2) Photobleaching: the page says only that the dye inside the bead is shielded from photobleaching, which is an adjective and not a rate; bleaching_rate stays absent. (3) The 10 mL unit size and the price: packaging, not a property of the beads. (4) The marketing prose, not reproduced (4.3).",
+  "license_note": "Numeric specifications and identifiers only.",
+  "provenance": "Not from any prior repository, so 10.2 and 10.2.1 do not apply."
+}

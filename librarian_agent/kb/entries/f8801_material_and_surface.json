@@ -1,0 +1,21 @@
+{
+  "entry_id": "f8801_material_and_surface",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Invitrogen F8801 microspheres are polystyrene, carboxylate-modified on the surface, and loaded with a red fluorescent dye.",
+  "source": "spec:invitrogen_f8801",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_invitrogen_f8801_product_page_20261001",
+  "date": "2026-10-01",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-kyuhwan-macbook-20260930-1",
+  "identifiers": {
+    "catalog_number": "F8801",
+    "supplier": "Invitrogen (Thermo Fisher Scientific)",
+    "product": "FluoSpheres Carboxylate-Modified Microspheres, 0.1 um, red fluorescent (580/605)",
+    "applies_to": "the type F8801. Applying it to the beads on this bench goes through the E5 linking claim particle_suspension_b_identity, which a card applying this to the bench must cite alongside it and which fixes the grade at E5 by 5.8"
+  },
+  "validity_conditions": "Material Polystyrene, Surface Modification Carboxylate and Color Red are the page's own Specifications rows. Polystyrene is the premise a Stokes-Einstein estimate and a refractive index lookup rest on; the carboxylate surface is what governs sticking to glass. The page does NOT state that the beads are spherical in so many words beyond calling them microspheres, nor the suspending medium, nor the density -- none of those is asserted here. The dye is proprietary and unnamed. No quantity subject: nothing here is a number. THIS IS ABOUT THE TYPE, NOT THE BOTTLE. Under the instance/type split, F8801 is a type and its facts are ordinary entries at E3 from the supplier; the beads on the bench are the instance particle_suspension_b, and the claim joining them is particle_suspension_b_identity at E5, because the person named the product by pasting this page and did not read the bottle. Anything here applied to the bench inherits E5. READ BY THIS SEAT, NOT ONLY PASTED. The person's paste (microscope_agent/questions/mic-20260930-001/asked_of_the_person.jsonl at 51c61eb) is what identified the product; the values here were read by this seat off the vendor's own page on 2026-10-01 and agree with the paste on every field, which is why this is spec: at E3 and not a copy of a copy."
+}

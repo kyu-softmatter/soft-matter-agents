@@ -1,0 +1,10 @@
+{
+  "source_id": "src_person_statement_f8801_20260930",
+  "kind": "operator_recall",
+  "identifier": "The person's answer of 2026-10-01T06:25Z (2026-09-30 local) to the microscope seat's question about which product the 100 nm beads are: they pasted the vendor page for Invitrogen FluoSpheres F8801. Recorded in microscope_agent/questions/mic-20260930-001/asked_of_the_person.jsonl at 51c61eb, its one line.",
+  "accessed": "2026-10-01",
+  "grade_rule": "E5. The record's own note says the product was named by pasting a page and not by reading the bottle, so the link from the bottle to the catalogue number is the person's statement. It is not operator_read (nobody read the container) and not a calibration. Same grade the 2026-09-19 and 2026-09-24 person statements took for the same reason.",
+  "what_was_not_answered": "stock concentration, dilution factor and lot number -- the record lists all three under not_answered.",
+  "not_a_source": "The person also said yes in the simulation manager's window to a question naming F8801. That is not on disk, so it is not cited; it agrees with this line.",
+  "delivered_by": "manager-librarian-kyuhwan-macbook-20260930-1, task 041 at 4515e5e."
+}
