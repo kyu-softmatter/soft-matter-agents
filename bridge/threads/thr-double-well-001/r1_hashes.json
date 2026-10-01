@@ -1,0 +1,17 @@
+{
+  "artifact": "round_hashes",
+  "schema_version": "0.1",
+  "thread": "thr-double-well-001",
+  "round": 1,
+  "ask_card": "r1_ask_experiment.json",
+  "source": {
+    "path": "simulation_agent/questions/sim-20260923-101/result_run-20260924-101-v3-hold.json",
+    "card_id": "result-sim-20260923-101-run-20260924-101-v3-hold",
+    "revision": 1,
+    "status": "DONE",
+    "sha256": "sha256:9e0cbc16fb28fb53ad41f2237f75238e4667481966a64c0438aeb40165ad8b31"
+  },
+  "payload_sha256": "sha256:8a20adcd7718b6cddf63df6a1a010123b7c7dac61e33ab6ac099eb9199392fd5",
+  "verified_at": "2026-10-01T17:19:15Z",
+  "note": "Derived in this seat from the committed card on disk, last touched at 735a1a0. source.sha256 is card_sha, status left out; payload_sha256 is canon_sha of the card as carried. Two functions with two jobs, so the two digests differ by design."
+}

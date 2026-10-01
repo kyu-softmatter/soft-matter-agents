@@ -1,0 +1,13 @@
+{
+  "artifact": "thread_status",
+  "schema_version": "0.1",
+  "thread": "thr-double-well-001",
+  "round": 1,
+  "turn": "microscope_agent",
+  "state": "open",
+  "updated_at": "2026-10-01T17:19:15Z",
+  "blocked_pairs": [],
+  "substitutions": [],
+  "note": "Round one opened on the person's hand-over: the payload is a result, so the trigger is human, and the person answered 'Yes, send it now' to a direct question in the bridge manager's window on 2026-09-25. THE RUN STARTED BEFORE DELIVERY, ON THE PERSON'S DECISION: in the architecture window the person chose to start the bench without waiting for this round, and the microscope seat carded the measurement citing the simulation's committed result by id. This round is filed afterwards, on 2026-10-01, so the thread exists and the microscope goal's from_round has something to point at. Nothing here is backdated: created_at is the time of writing, and the bench is recorded in plan.md 11-23. Answerability was recomputed from this tree with the validator's own derive_producible and not copied from the task card. The duplicate gate was run under this round's caller_id on 2026-09-25 at kbv-d2db58512e78 and returned absent for well_occupancy, so there is nothing to substitute and the round is spent; the call is in the query log at dd8c371. A re-run against the current store was attempted on 2026-10-01 and refused by this session's permission layer, not by the server, so the gate stands on the earlier call. Only well_occupancy gates the round; the other three double-well observables ride in the payload unchanged. Values stay in the payload; this ledger restates none.",
+  "open_question": null
+}
