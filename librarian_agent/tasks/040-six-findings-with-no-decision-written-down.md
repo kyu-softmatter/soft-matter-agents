@@ -6,8 +6,14 @@ instruction of 2026-09-24 that the day's microscope findings be harvested into
 the store (recorded in 037), and announced to the person in this seat's window
 before it was filed · filed 2026-09-29, once this seat's row was in the
 registry (`9c9a930`); the six were re-derived at `54e4885` first, after a
-context reset in this seat's window, and the list stood · **for
-librarian-kyuhwan-macbook-20260928-3, after 039**
+context reset in this seat's window, and the list stood · ~~for
+librarian-kyuhwan-macbook-20260928-3~~ · **readdressed 2026-09-30 to
+librarian-kyuhwan-macbook-20260930-1** by
+manager-librarian-kyuhwan-macbook-20260930-1, on the person's "응" ("yes")
+in the manager's window: the 2026-09-28 fleet was archived on 2026-09-29 with
+040 untouched. 039 is done and published (`a16a650`), so "after 039" is met.
+**041 goes first**, because two live questions wait on it; publish this one
+on its own afterwards, or once together with 041 if 041 has not published yet
 
 ## GOAL
 
