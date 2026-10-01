@@ -1,0 +1,50 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-mic-20260930-001-widefield_inline-a5",
+  "qid": "mic-20260930-001",
+  "thread": "solo-mic-20260930-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-10-01T06:45:00Z",
+  "status": "VALIDATED",
+  "caller_id": "mic-20260930-001:v1:widefield_inline:a5",
+  "config": "widefield_inline",
+  "axis": "a5",
+  "kb_version": "kbv-49b098a90994",
+  "method": "deterministic",
+  "verdict": "abstain",
+  "constraints": [],
+  "inequalities": [
+    {
+      "inequality": "drift_small_against_radius",
+      "parameter": "max_recovery_time",
+      "state": "abstained",
+      "kind": "no_input",
+      "reason": "no lateral drift rate is in the store. The bare-bead pre-measurement closes it too if the beads stick to the glass: track them over the planned window and the motion they share is the drift. Then the window must satisfy drift x max_recovery_time <= w/10, and since the window grows as w^2 and the budget as w, drift caps the radius from above",
+      "missing": [
+        "drift"
+      ]
+    }
+  ],
+  "numbers": [],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "drift_absent",
+      "observable": "drift",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable=drift, caller_id=mic-20260930-001:v1:widefield_inline:a5, kb_version=kbv-49b098a90994) -> absent, searched ['kb/entries', 'kb/exports']"
+      ],
+      "kb_version": "kbv-49b098a90994",
+      "asked_by": "mic-20260930-001:v1:widefield_inline:a5",
+      "asked_at": "2026-10-01T06:21:51+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": [],
+  "note": "",
+  "abstain_reason": "Every inequality this axis owns abstained, each for its own reason; the ledger carries them one by one rather than collapsing them into this sentence."
+}
