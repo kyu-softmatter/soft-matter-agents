@@ -169,6 +169,25 @@ length, imaging bleach over the record, drift. The real radii, objective and
 brightness arrive only in the microscope plan that the bridge carries, which
 is not emitted yet.
 
+## Standing instruction from the person: commit and push when done
+
+The person gave this in architecture's window on 2026-09-30 ("완료시 커밋
+푸시", commit and push when done), and it reached me as relayed work. It
+applies to you. When a piece of work is finished and `contracts/validate.py`
+ends `0 failed`:
+
+1. Commit **only your own paths**. Check `git diff HEAD -- <paths>` first.
+   Then run `git commit -F <message file> -- <paths>` under your seat's
+   committer identity, and confirm it with `git log -1`. Do not filter the
+   commit's output down to FAIL lines: a held `.git/index.lock` prints
+   `fatal:`, and the commit is not made.
+2. Push. Run `git fetch`, merge if origin moved, then
+   `git -c credential.helper=manager push origin main`. **Never force, and
+   never `--amend`.**
+
+Unfinished or failing work stays uncommitted. Another seat's paths are never
+yours to commit, even when they are what keeps the tree dirty.
+
 ## Done when
 
 Stage 1 is committed with feasibility stated first. The observable proposal has
