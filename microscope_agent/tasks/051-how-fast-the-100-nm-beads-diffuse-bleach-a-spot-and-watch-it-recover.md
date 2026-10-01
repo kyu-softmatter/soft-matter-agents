@@ -142,4 +142,17 @@ Commit with `git commit -F <file> -- <paths>`, after
 `seat:microscope-kyuhwan-macbook-20260930-2` and the email from
 `contracts/seats.json`. Run the validator and read its tree line.
 
+**Commit and push when a piece is done.** This is the person's standing
+instruction, given in architecture's window on 2026-09-30 ("완료시 커밋
+푸시", commit and push when done). Architecture relayed it to this seat.
+When a piece of work is finished and the validator ends `0 failed`:
+
+1. commit only your own paths, as above;
+2. confirm with `git log -1`;
+3. `git fetch`, and merge if origin moved;
+4. `git push origin main`.
+
+Never force and never `--amend`. Unfinished or failing work stays
+uncommitted. Another seat's paths are never yours to commit or push.
+
 **Re-read this card immediately before committing.**
