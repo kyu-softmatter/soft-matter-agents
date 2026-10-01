@@ -59,7 +59,13 @@ def build(qid: str, created_at: str, revision: int = 1) -> dict:
     from . import configs as _configs
     _own = _configs.plan_builder(config)
     if _own is not None:
-        return _own(qid, created_at, revision)
+        # A module may serve only some goals of its configuration and hand
+        # the rest back with None: `config_bd_overdamped` builds the plan for
+        # a bleach-recovery goal and returns None for tracer_diffusivity,
+        # whose plan is the body below, unchanged.
+        _card = _own(qid, created_at, revision)
+        if _card is not None:
+            return _card
 
     point = {p["parameter"]: p["number"] for p in syn["operating_point"]}
     # tracer_diffusivity_expected is carried because a success criterion

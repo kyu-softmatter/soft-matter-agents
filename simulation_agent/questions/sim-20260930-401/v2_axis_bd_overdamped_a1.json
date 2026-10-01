@@ -1,0 +1,104 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260930-401-bd_overdamped-a1-r2",
+  "qid": "sim-20260930-401",
+  "thread": "solo-sim-20260930-401",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-10-01T07:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260930-401:v2:bd_overdamped:a1",
+  "config": "bd_overdamped",
+  "axis": "a1",
+  "kb_version": "kbv-49b098a90994",
+  "method": "llm_estimate",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "integration_timestep",
+      "unit": "s",
+      "basis": [
+        "integration_timestep_max"
+      ],
+      "precision": "order_of_magnitude",
+      "max": 0.006
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "dt <= recovery_time / steps_per_recovery_min: the step resolves the bleach, the only time-dependent term; free diffusion itself sets no stability limit",
+      "parameter": "integration_timestep",
+      "state": "returned",
+      "interval": {
+        "parameter": "integration_timestep",
+        "unit": "s",
+        "basis": [
+          "integration_timestep_max"
+        ],
+        "precision": "order_of_magnitude",
+        "max": 0.006
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "recovery_time",
+      "value": 0.6,
+      "unit": "s",
+      "source": "computed:soumpasis_tau",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "derived": true,
+      "symbol": "tau",
+      "formula": "bleach_radius**2/(4*diffusivity)",
+      "inputs": [
+        "bleach_radius",
+        "diffusivity"
+      ],
+      "note": "tau of the registered fit at the operating point; half recovery is 0.895 tau",
+      "origin": "v2_goal.json#recovery_time"
+    },
+    {
+      "name": "steps_per_recovery_min",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_bleach_resolution",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "engine steps per recovery time. The shortest bleach worth planning is a few hundredths of tau, and a few steps across it needs of order a hundred steps per tau"
+    },
+    {
+      "name": "integration_timestep_max",
+      "value": 0.006,
+      "unit": "s",
+      "source": "computed:recovery_time_over_steps",
+      "grade": "E5",
+      "formula": "recovery_time/steps_per_recovery_min",
+      "inputs": [
+        "recovery_time",
+        "steps_per_recovery_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "the longest engine step. Not a stability bound: free Brownian increments are exact at any dt"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_bleach_resolution",
+      "gap_ref": "bleach_step_resolution_absent",
+      "statement": "The bleach is applied once per engine step, so a bleach a few steps long is a few kicks rather than a continuous exposure. Four steps across the shortest bleach worth running keeps the kick sequence close to continuous; the dt-halving point of the plan measures whether it is.",
+      "numbers": [
+        "steps_per_recovery_min"
+      ],
+      "falsifier": "a fitted D that moves by more than three standard errors when the step is halved"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "note": "bd_overdamped's tracer A1 bounds dt by curvature and the diffusive time. Neither enters here: there is no potential, and the bead size never appears in a column bleach"
+}

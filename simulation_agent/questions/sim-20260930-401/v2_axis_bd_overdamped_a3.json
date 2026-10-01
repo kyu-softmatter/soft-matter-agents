@@ -1,0 +1,97 @@
+{
+  "card": "axis",
+  "schema_version": "0.1",
+  "id": "axis-sim-20260930-401-bd_overdamped-a3-r2",
+  "qid": "sim-20260930-401",
+  "thread": "solo-sim-20260930-401",
+  "round": 0,
+  "revision": 2,
+  "author": "simulation_agent",
+  "created_at": "2026-10-01T07:00:00Z",
+  "status": "VALIDATED",
+  "caller_id": "sim-20260930-401:v2:bd_overdamped:a3",
+  "config": "bd_overdamped",
+  "axis": "a3",
+  "kb_version": "kbv-49b098a90994",
+  "method": "deterministic",
+  "verdict": "feasible",
+  "constraints": [
+    {
+      "parameter": "box_length",
+      "unit": "um",
+      "basis": [
+        "box_length_min"
+      ],
+      "precision": "order_of_magnitude",
+      "min": 30
+    }
+  ],
+  "inequalities": [
+    {
+      "inequality": "box_length >= 10 * bleach_radius (the registered estimator), so the reservoir outside the disc is much larger than the disc",
+      "parameter": "box_length",
+      "state": "returned",
+      "interval": {
+        "parameter": "box_length",
+        "unit": "um",
+        "basis": [
+          "box_length_min"
+        ],
+        "precision": "order_of_magnitude",
+        "min": 30
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "name": "bleach_radius",
+      "value": 3,
+      "unit": "um",
+      "source": "assumed:a_bleach_radius",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the operating point the first stage picks as comfortably inside every bound of the estimator; the range considered is 0.3 to 100 um. A condition of the observable, carried beside the window",
+      "origin": "v2_goal.json#bleach_radius"
+    },
+    {
+      "name": "box_to_radius_min",
+      "value": 10,
+      "unit": "1",
+      "source": "spec:contracts/observables.json:bleach_recovery_diffusivity",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the registered estimator: the engine's box is periodic and at least 10 w across"
+    },
+    {
+      "name": "box_length_min",
+      "value": 30,
+      "unit": "um",
+      "source": "computed:ten_disc_radii",
+      "grade": "E5",
+      "formula": "box_to_radius_min*bleach_radius",
+      "inputs": [
+        "box_to_radius_min",
+        "bleach_radius"
+      ],
+      "precision": "significant_figures",
+      "note": "the lateral box edge. The finite reservoir sets the plateau at one minus the bleached amount over the box area, which the free Finf of the fit absorbs and the result states"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_bleach_radius",
+      "statement": "A 3 um bleach disc, chosen from Stage 1 as the size at which the estimator's bleach, frame and window bounds are all comfortable (bleach up to 50 ms, frames up to 100 ms, a 6 s record). It is this agent's pick until the microscope plan states the disc it can make.",
+      "numbers": [
+        "bleach_radius"
+      ],
+      "falsifier": "the disc radius in the microscope plan the bridge carries replaces it",
+      "gap_ref": "bleach_radius_absent"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "note": "No image bound: the signal is a count of labels inside a disc, not a displacement, so a bead crossing the periodic edge carries nothing wrong into it. The chamber depth is the experiment's and only sets how many beads one curve counts"
+}

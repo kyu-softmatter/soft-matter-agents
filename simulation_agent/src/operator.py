@@ -824,6 +824,18 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             from . import trap_rest_backend  # noqa: PLC0415
             engine_class = trap_rest_backend.TrapRestHoomdBackend
             fallback_class = trap_rest_backend.TrapRestBackend
+        elif config_name == "bd_overdamped" and \
+                (plan.get("observable") or {}).get("name") == "bleach_recovery_diffusivity":
+            # One configuration, a second observable. HoomdBackend reads an
+            # MSD and knows nothing of a bleach, so it would run the beads and
+            # report a tracer diffusivity under the bleach plan's id. The
+            # fallback is the bleach mock, the same physics in NumPy with
+            # the same label and the same observables, and never
+            # MockBackend, which has no bleach and would finish green having
+            # measured nothing this plan asked for.
+            from . import bleach_backend  # noqa: PLC0415
+            engine_class = bleach_backend.BleachHoomdBackend
+            fallback_class = bleach_backend.BleachMockBackend
         elif config_name == "bd_overdamped_gaussian_double_well_2d":
             # The double well has NO fallback. The NumPy integrator in
             # `double_well` is the reference the engine was validated against
