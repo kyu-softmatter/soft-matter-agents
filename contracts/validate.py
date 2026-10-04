@@ -456,8 +456,10 @@ def card_env(card: Card) -> tuple[dict[str, tuple[float, dict]], list[str]]:
 # once. Check 79 compares the two lists so the next one is a word, not an
 # outage. The comparison runs one way: .gitignore also holds file patterns
 # like *.pyc that have no business in a directory skip list, and `.git` is
-# never in .gitignore at all.
-SKIP_DIRS = {".git", "__pycache__", ".venv", ".pixi", "node_modules"}
+# never in .gitignore at all. `.agent` is a usage tracker's, writing
+# .agent/usage/* at the root: three check-13 failures on every bare run on
+# 2026-10-03, and gitignoring it without this entry is a check-79 failure.
+SKIP_DIRS = {".git", "__pycache__", ".venv", ".pixi", "node_modules", ".agent"}
 
 #: Entries outside SKIP_DIRS that could not even be stat'ed. Check 79 reports
 #: them. A set, because collect() runs twice in an --expect-fail run.
