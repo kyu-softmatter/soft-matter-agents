@@ -440,7 +440,7 @@ differences under 10x are ties. A computed value inherits the worst precision
 of its inputs; one estimate in the chain means the answer is an order of
 magnitude. See §5.8.
 
-## The prior repositories — three closed, one open under rules
+## The prior repositories — three closed, one open under rules, and one live source
 
 **Do not consult** `Brownian-Dynamics-Agent`, `librarian-agent` or
 `sim-exp-bridge`, nor any mirror, export or summary of them. This covers
@@ -457,6 +457,12 @@ transferred item **names the A1–A7 slot it went into and the §10.3 rule it
 passed**. An item that cannot name its slot is discarded. Which rows of §10.2
 are open is a separate question from whether the repository is — read the
 table, not this paragraph.
+
+**`dino-autofocus` was accepted as a source on 2026-10-03**, by the person,
+directly to architecture. It is the person's live focus repository, not a
+prior one. Only its pure focus core may cross, by copy, and only once its
+place exists (§11-24); nothing has crossed yet. The 2026-09-17 condition,
+§10.2.1 and §10.3 apply unchanged, and no safety limit crosses. See §10.2.
 
 Until 2026-09-16 a SessionStart hook injected `~/.claude/knowledge/`, a
 read-only mirror of the first two, into every session on this machine, and its

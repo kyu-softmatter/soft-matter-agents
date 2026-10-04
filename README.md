@@ -112,6 +112,7 @@ Design and tooling around it:
 | [research-topic](https://github.com/kyu-softmatter/research-topic) | a design sketch for choosing research topics. Outside this system, which does not choose topics (`plan.md` §1) |
 | [agent-layer](https://github.com/kyu-softmatter/agent-layer) | checks the `.claude` layer a session boots with; its `agent-layer-check.sh` is the SessionStart hook `CLAUDE.md` names |
 | [autofocus-jev](https://github.com/kyu-softmatter/autofocus-jev) | the Jev autofocus trial (`plan.md`, and `microscope_agent/tasks/026`) |
+| [dino-autofocus](https://github.com/kyu-softmatter/dino-autofocus) | focus finding and sample mapping on the same stand, plus the operator console. Its pure focus core is to be copied into `microscope_agent/` once its place there is designed (`plan.md` §10.2, §11-24). The console stays there and acts here only through plans the person approves |
 
 Related by topic only -- nothing here references their code:
 [psf-autofocus](https://github.com/kyu-softmatter/psf-autofocus),
