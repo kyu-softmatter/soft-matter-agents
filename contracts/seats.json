@@ -1517,6 +1517,14 @@
         "microscope_agent"
       ],
       "note": "A microscope session on the Office computer (Windows, hostname Office -- not the microscope computer; corrected 2026-10-03), already running when registered. The person opened it and said so directly in architecture-20261003-1's window on 2026-10-03 (\"I opened the two sessions, register the seats\"), after architecture wrote its first instruction. n is 1, the first microscope seat for that date. Whether earlier microscope sessions are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from microscope-20261001-1."
+    },
+    {
+      "seat": "librarian-20261004-1",
+      "committer_email": "librarian-20261004-1@seat.invalid",
+      "owns": [
+        "librarian_agent"
+      ],
+      "note": "A librarian session on the Office computer (Windows, hostname Office -- not the microscope computer), already running when registered. The person opened it and said so directly in architecture-20261003-1's window on 2026-10-04 (\"I opened the librarian session, register the seat\"). n is 1, the first librarian seat for that date. Whether earlier librarian sessions are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from librarian-20261001-1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
