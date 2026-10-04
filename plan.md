@@ -2878,7 +2878,7 @@ is never touched. The revision comes later, with `013`, and then the corrected c
 
 | Number | What | Seat holding it |
 |---|---|---|
-| _(empty)_ | 87 reached declaration on 2026-09-29; **an empty table is the normal state** |  |
+| 88 | A focus search moves Z only inside the person's per-objective limits, from fields the plan declares (11-24) | manager-microscope-20261003-1 |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
 
