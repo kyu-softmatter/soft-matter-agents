@@ -21,8 +21,12 @@ comparison it names.
   piezo (`operation_exemptions` + `_operation_gate`) and card 049 opened the
   tweezers. It never lifts a refusal.
 - `orchestrator.py:259` says it plainly: *nothing compares a Z target against
-  `objective_clearance_min` at the moment of the move yet.* That comparison is
-  new work for this card, not a call to something that exists.
+  `objective_clearance_min` at the moment of the move yet.* **For the focus
+  search, the person settled what replaces it** (2026-10-04, recorded at
+  `250a138` in plan.md 11-24): `focus_z_<objective>_max` is the closest that
+  lens may ever come to the coverslip. It is an absolute encoder value the
+  person writes per lens, and nothing derives it from a measured coverslip
+  position plus a working distance.
 - **`PFS` is in `NAMED_REFUSALS` too**, so software cannot switch it off.
   "PFS off before any Z command" here means **read it, and refuse while it is
   engaged**. The person switches it off. Do not ask for PFS on the allow-list.
@@ -70,10 +74,15 @@ The decider supplies a branch and never a number; a branch outside the plan's
 **4. At every step, before the move goes out:**
 
 - the target lies inside `range_um` **and** inside the person's limits;
-- **the clearance comparison against `objective_clearance_min`, live.** Its
-  reference is the question below for the person. Until the person answers,
-  build the comparison so that **an unknown reference refuses**: it records
-  `compared: null` and stops. It must never pass;
+- **the clearance comparison, live: the next target against
+  `focus_z_<objective>_max`, and nothing else.** A target above it refuses
+  before the move goes out. That key is the person's written closest approach
+  (`250a138`). Do not compute a clearance from a coverslip position, a working
+  distance or `objective_clearance_min`, and do not combine it with one: that
+  computation would itself become a safety number nobody wrote. **A missing
+  key refuses.** Read the key again at every step rather than caching it from
+  preflight, and record the comparison each time (`target`, `limit`,
+  `compared: true/false`);
 - the move count is under `max_moves`. Reaching the ceiling ends the search
   as **not found**, never as found.
 
@@ -99,8 +108,10 @@ counted as a miss.
 5. A command that is not the derivation, or carries a number the decider
    supplied, is refused; so is a branch not in `branches`.
 6. A target outside `range_um` or outside the limits refuses at that step.
-7. With the clearance reference unknown, the first step refuses with
-   `compared: null`.
+7. A step whose target is one `step_um` above `focus_z_<objective>_max` is
+   refused before it goes out, with the comparison recorded and no Z write. A
+   target exactly at the limit is allowed. With the `_max` key removed after
+   preflight, the next step refuses.
 8. `max_moves` reached ends as not found.
 9. A read-back out of tolerance stops the search before the next move.
 10. `named_refusals_hold()` is still empty, and `ZDrive` and `PFS` are still in
@@ -110,7 +121,7 @@ counted as a miss.
 
 **Separate from the build, and the person must be present.** On the instrument,
 with the person watching, run the refusals: no limits, the wrong objective,
-PFS engaged, no approval, and an unknown clearance reference. Each must be
+PFS engaged, no approval, and a target above `focus_z_<objective>_max`. Each must be
 seen to refuse with no Z motion. Only after that, and only with the person's
 word, does a search send a real Z command. Card 033 asked for refusals on
 mock; this asks for them on the instrument.
@@ -119,12 +130,10 @@ mock; this asks for them on the instrument.
 
 Put these to the person in plain words. Do not answer them here:
 
-- **Clearance:** should each lens's upper focus limit already be the closest
-  the lens may ever come to the coverslip, or should the software work out the
-  distance to the coverslip from a coverslip position the person measures
-  first?
 - **Limits:** what Z range, in encoder micrometres, may the focus search use
   for each lens, including the wide range for each dry lens you have released?
+  The top of each range is the closest that lens may ever come to the
+  coverslip.
 - **Watching:** when can you be at the microscope to watch the refusals before
   the first real focus move?
 
