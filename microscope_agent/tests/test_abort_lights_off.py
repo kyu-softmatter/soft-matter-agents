@@ -89,6 +89,7 @@ class AbortTurnsTheLightsOffOnMock(unittest.TestCase):
             self.assertIsNone(row["read_back"], source)
             self.assertIsNone(row["matched"], source)
             self.assertIn("not software-controllable", row["note"], source)
+            self.assertIn("STILL ON", row["note"], source)
 
     def test_power_down_after_shutter_coverage_and_before_any_channel_abort(self):
         self.o.abort("test")

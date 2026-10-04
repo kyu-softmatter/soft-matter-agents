@@ -301,15 +301,18 @@ LIGHT_SOURCES: tuple[dict, ...] = (
      "property": "State", "off": "0", "software_commandable": True},
     {"source": "optical tweezers", "channel": "optical_tweezers", "device": None,
      "property": None, "off": None, "software_commandable": False,
-     "why": ("LASER_ON stays refused and the laser's power dial is the person's; the TCP "
+     "why": ("refused to software by policy, not by physics: LASER_ON stays refused and "
+             "the laser's power dial is the person's; the TCP "
              "interface reads nothing back, so an off written there could not be confirmed")},
     {"source": "Spectra III (LightEngine)", "channel": "widefield_source_b", "device": None,
      "property": None, "off": None, "software_commandable": False,
-     "why": ("LightEngine is refused by name in micromanager.py, and card 054 does not lift "
+     "why": ("refused to software by name (NAMED_REFUSALS in micromanager.py), a policy and "
+             "not a physical inability, and card 054 does not lift "
              "that refusal")},
     {"source": "confocal laser lines", "channel": "laser_combiner", "device": None,
      "property": None, "off": None, "software_commandable": False,
-     "why": ("not commanded by card 054: its fast cut-off is laser_shutter, which is in the "
+     "why": ("refused to software by name (LUNF-Blanking in NAMED_REFUSALS), and not "
+             "commanded by card 054: its fast cut-off is laser_shutter, which is in the "
              "shutter rows; the per-line power is not lowered here")},
 )
 
@@ -1299,7 +1302,9 @@ class Orchestrator:
             row = {"source": src["source"], "channel": src["channel"],
                    "commanded": None, "read_back": None, "matched": None}
             if not src["software_commandable"]:
-                row["note"] = f"not software-controllable: {src['why']}. A person turns it off"
+                row["note"] = (f"not software-controllable: {src['why']}. This abort writes nothing to "
+                               "it, so if a person switched it on by hand it is STILL ON; a "
+                               "person turns it off")
                 rows.append(row)
                 continue
             device, prop, off = src["device"], src["property"], src["off"]
