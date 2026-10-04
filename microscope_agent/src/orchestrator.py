@@ -294,6 +294,30 @@ BLIND_BY_PERSONS_EXCEPTION = ("laser_combiner", "optical_tweezers")
 #: The three `software_commandable: False` rows exist to be READ. They write
 #: nothing and claim nothing; their whole content is that a person turns them
 #: off, and the abort record has to show it.
+#: How abort() closes each shutter `shutters()` recognises, DECLARED per
+#: element (card 056 part 1), because each backend takes a different command
+#: and one shape sent to all of them was the defect: `{"element", "state"}`
+#: is ignored by micromanager (`_settings()` reads only `settings`) and
+#: refused by lunf, and the row said `closed: True` on the first anyway.
+#:
+#: Recognition is unchanged -- which rows exist is still `shutters()` and
+#: replacing that is check 80's backlog. This table decides only what a row
+#: SENDS and what it may CLAIM. A recognised shutter with no entry here is
+#: not commanded and its row says so; nothing guesses a command for it.
+#:
+#: `verify` names the (device, property) whose read-back decides `closed`.
+#: None means the backend reads nothing back, and then `closed` is None --
+#: never True on a call returning.
+SHUTTER_CLOSES: tuple[dict, ...] = (
+    {"element": "laser_shutter", "commandable": True, "command": {"enable": []},
+     "verify": None,
+     "why": ("lunf `{\"enable\": []}` blanks every mapped line and is already permitted; lunf "
+             "reads nothing back")},
+    {"element": "csuw1_shutter", "commandable": False, "command": None, "verify": None,
+     "why": ("CSUW1-Shutter is refused to software by name (NAMED_REFUSALS in micromanager.py), "
+             "so no call is sent just to collect the refusal")},
+)
+
 LIGHT_SOURCES: tuple[dict, ...] = (
     {"source": "Aura III", "channel": "widefield_source_a", "device": "Aura",
      "property": "State", "off": "0", "software_commandable": True},
@@ -1208,25 +1232,20 @@ class Orchestrator:
         # applies is what P0 forbids. The denominator is every channel; the
         # reader draws the conclusion, and the reader is a person.
         found = dict(self.shutters())            # channel -> element, at most one per channel
+        closes = {entry["element"]: entry for entry in SHUTTER_CLOSES}
         for cid in self.channels:
             element = found.get(cid)
             if element is None:
                 report["shutters"].append({
-                    "channel": cid, "element": None, "identified": False, "closed": None,
+                    "channel": cid, "element": None, "identified": False,
+                    "commanded": None, "read_back": None, "closed": None,
                     "note": ("no element of this channel was recognised as a fast cut-off, by "
                              f"the test `'shutter' in element_id` over {self.channels[cid].element_ids()}. "
                              "Whether this channel needs one is NOT decided here: nothing in the "
                              "registry says which channels emit, and inferring it from a role "
                              "string would be the same guess this record exists to expose")})
                 continue
-            try:
-                self.module_for(cid).apply({"element": element, "state": "closed"})
-                report["shutters"].append({"channel": cid, "element": element,
-                                           "identified": True, "closed": True})
-            except Exception as exc:                            # noqa: BLE001 - keep going, record it
-                report["shutters"].append({"channel": cid, "element": element,
-                                           "identified": True, "closed": False,
-                                           "error": str(exc)})
+            report["shutters"].append(self._close_shutter(cid, element, closes.get(element)))
 
         identified = [r for r in report["shutters"] if r["identified"]]
         report["shutter_coverage"] = {
@@ -1283,6 +1302,44 @@ class Orchestrator:
 
         self.record(event="abort_end", report=report)
         return report
+
+    def _close_shutter(self, cid: str, element: str, entry: dict | None) -> dict:
+        """One recognised shutter's row: what was sent, what came back, what that shows.
+
+        `closed` is True or False only from the backend's own read-back of
+        the declared pair, the way `_power_down()` judges `matched`. A call
+        that returned with nothing read back gives `closed: None`, never
+        True -- the defect this replaces wrote True on the call returning,
+        including through micromanager, where the call wrote nothing.
+        A failure is recorded and the abort goes on.
+        """
+        row = {"channel": cid, "element": element, "identified": True,
+               "commanded": None, "read_back": None, "closed": None}
+        if entry is None:
+            row["note"] = ("not commanded: no close command is declared for this shutter in "
+                           "SHUTTER_CLOSES, and none is guessed. A person closes it")
+            return row
+        if not entry["commandable"]:
+            row["note"] = f"not commanded: {entry['why']}. A person closes it"
+            return row
+        try:
+            returned = self.module_for(cid).apply(entry["command"])
+            row["commanded"] = entry["command"]
+        except Exception as exc:                                # noqa: BLE001 - keep going, record it
+            row["error"] = str(exc)
+            return row
+        returned = returned if isinstance(returned, dict) else {}
+        verify = entry["verify"]
+        pair = [] if verify is None else [
+            r for r in (returned.get("verified") or []) + (returned.get("disagreed") or [])
+            if (r.get("device"), r.get("property")) == tuple(verify)]
+        if not pair:
+            row["note"] = (f"close sent and not confirmed: {entry['why']}, so whether the "
+                           "shutter is closed was never asked")
+        else:
+            row["read_back"] = None if pair[0].get("read") is None else str(pair[0]["read"])
+            row["closed"] = pair[0] in (returned.get("verified") or [])
+        return row
 
     def _power_down(self) -> list[dict]:
         """One row per declared light source: off written, read back, compared.
