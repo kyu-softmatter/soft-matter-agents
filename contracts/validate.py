@@ -113,8 +113,11 @@ def is_operation_plan(data: dict) -> bool:
     """A plan that verifies rather than measures (11-21): an `operation` block,
     or `trap_steps` with no goal. Placing a trap and having the person confirm a
     bead is held is a setup, not a measurement; that second form was added on
-    2026-09-25 for the double-well day's first trap plan."""
-    return "operation" in data or ("trap_steps" in data and "goal_id" not in data)
+    2026-09-25 for the double-well day's first trap plan. A `focus_search` with
+    no goal is the third form, since 2026-10-03 (11-24): it finds a plane and
+    measures nothing about the sample, the same rule plan.schema.json holds."""
+    return "operation" in data or (("trap_steps" in data or "focus_search" in data)
+                                   and "goal_id" not in data)
 
 
 @dataclass
@@ -8073,6 +8076,112 @@ def check_87_safety_guides_follow_the_store(b: Bundle) -> list[Finding]:
     return [Finding(87, PASS, f"{len(guides)} safety guides name the store they show: " + "; ".join(parts) + note)]
 
 
+def check_88_focus_search(b: Bundle) -> list[Finding]:
+    """A focus search moves Z only inside the person's limits, from fields the plan declares (11-24).
+
+    The schema holds the shape: the Z drive of stand_ti2e, encoder read-back,
+    PFS off, a walk from retract, typed branches that always include in_focus
+    and unsure, and success declared against the person's manual focus. This
+    holds what the schema cannot compare:
+
+      - INSIDE THE LIMITS: `range_um` lies within the microscope envelope's
+        `focus_z_<objective>_min` / `_max` for this block's own objective. A
+        missing limit REFUSES, and so does a floor above its ceiling. The
+        person writes these per objective, as the tweezers limits are
+        written; they are never resolved from the store (11-24 item 5). A dry
+        lens the person has "released" still has both keys, written wide:
+        released never means absent, and absent never means unlimited
+      - A RANGE: `range_um.min` <= `range_um.max`
+      - A TARGET IS INSIDE IT: a `target_z_um` handed over from a coarse stage
+        lies inside `range_um`. It is still a target the walk heads toward,
+        and reaching it is not finding focus
+      - ONE STEP STAYS INSIDE: `step_um` no larger than the range, or one move
+        would leave it
+      - THE ACTION IS THE Z DRIVE'S: the action `focus_search.action` names
+        exists, commands stand_ti2e, and is reversible
+
+    WHAT IT DELIBERATELY DOES NOT REFUSE. A range wider than `max_moves *
+    step_um` can cover: the ceiling ending a search as not found is the
+    ceiling working, so the reach is reported and not judged. Nor other
+    actions beside the search in a plan with a goal: setting illumination
+    before the search is how the plan sets what the search then leaves alone.
+
+    WHAT IT CANNOT SEE. Whether a step is clear of the coverslip depends on
+    where Z is at run time, so the clearance comparison is the gate's at the
+    moment of each move; so is the objective in the person's hand-over, which
+    a commit cannot know. The approval is the ordinary plan_approval's.
+    """
+    plans = [c for c in b.of_kind("plan") if "__unreadable__" not in c.data and "focus_search" in c.data]
+    if not plans:
+        return [Finding(88, NA, "no plans with a focus search")]
+
+    limits: dict[str, dict] = {}
+    for env in envelope_files():
+        if env.name != "safety.json" or not env.parent.parent.name.startswith("microscope"):
+            continue
+        try:
+            doc = json.loads(env.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        for tgt in doc.get("targets", []) or []:
+            for name, lim in (tgt.get("limits") or {}).items():
+                if isinstance(lim, dict):
+                    limits[name] = lim
+
+    def lim(name):
+        v = limits.get(name)
+        return v.get("value") if isinstance(v, dict) and isinstance(v.get("value"), (int, float)) else None
+
+    out: list[Finding] = []
+    for c in plans:
+        fs = c.data.get("focus_search") or {}
+        obj = fs.get("objective")
+        rng = fs.get("range_um") or {}
+        rmin, rmax = rng.get("min"), rng.get("max")
+        step, moves, target = fs.get("step_um"), fs.get("max_moves"), fs.get("target_z_um")
+        bad: list[str] = []
+
+        numeric = all(isinstance(v, (int, float)) for v in (rmin, rmax))
+        if not numeric:
+            bad.append(f"range_um {rmin}..{rmax} is not two numbers")
+        elif rmin > rmax:
+            bad.append(f"range_um {rmin}..{rmax} um is not a range: its floor is above its ceiling")
+
+        lo, hi = lim(f"focus_z_{obj}_min"), lim(f"focus_z_{obj}_max")
+        if lo is None or hi is None:
+            bad.append(f"the envelope has no focus_z_{obj}_min/_max, and a missing limit refuses: the "
+                       f"person writes the Z range per objective before any search at {obj}")
+        elif lo > hi:
+            bad.append(f"the person's focus_z_{obj} limits {lo}..{hi} um are not a range")
+        elif numeric and (rmin < lo or rmax > hi):
+            bad.append(f"range_um {rmin}..{rmax} um leaves the person's {lo}..{hi} um at {obj}")
+
+        if target is not None and numeric and not (rmin <= target <= rmax):
+            bad.append(f"target_z_um {target} um lies outside range_um {rmin}..{rmax} um")
+        if numeric and isinstance(step, (int, float)) and step > rmax - rmin:
+            bad.append(f"step_um {step} um is larger than the {rmax - rmin} um range, so one move leaves it")
+
+        action = next((a for a in c.data.get("actions") or []
+                       if isinstance(a, dict) and a.get("id") == fs.get("action")), None)
+        if action is None:
+            bad.append(f"no action has the id {fs.get('action')!r}, so nothing says how the search is sent")
+        else:
+            if action.get("device") != fs.get("channel"):
+                bad.append(f"action {fs.get('action')!r} commands {action.get('device')!r}, not the Z drive's "
+                           f"channel {fs.get('channel')!r}")
+            if action.get("reversible") is not True:
+                bad.append(f"action {fs.get('action')!r} is not reversible, and a focus move is")
+
+        if bad:
+            out.append(Finding(88, FAIL, f"{c.data.get('id')}: " + "; ".join(bad) + " (11-24)", c.rel))
+        else:
+            reach = moves * step if isinstance(moves, int) and isinstance(step, (int, float)) else None
+            out.append(Finding(88, PASS, f"{c.data.get('id')}: a search over {rmin}..{rmax} um at {obj}, inside "
+                                         f"the person's {lo}..{hi} um; {moves} moves of {step} um reach "
+                                         f"{reach} um, reported and not judged", c.rel))
+    return out
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -8108,7 +8217,7 @@ CHECKS = [
     check_73_a_result_names_an_approval_and_a_run_that_exist,
     check_60_observables_are_registered_quantities,
     check_61_envelope_currency,
-    check_87_safety_guides_follow_the_store,
+    check_87_safety_guides_follow_the_store, check_88_focus_search,
     check_67_entry_units_are_declared,
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,

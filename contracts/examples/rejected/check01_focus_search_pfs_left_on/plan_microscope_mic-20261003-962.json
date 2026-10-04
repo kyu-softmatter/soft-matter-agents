@@ -1,0 +1,107 @@
+{
+  "card": "plan",
+  "schema_version": "0.1",
+  "id": "plan-mic-20261003-962-r1",
+  "qid": "mic-20261003-962",
+  "thread": "solo-mic-20261003-962",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-10-03T12:00:00Z",
+  "status": "DRAFT",
+  "numbers": [],
+  "degraded": [],
+  "purpose": "verify",
+  "intent": "confirm",
+  "focus_search": {
+    "channel": "stand_ti2e",
+    "element": "z_drive",
+    "action": "focus_search",
+    "objective": "60x",
+    "read_back": "encoder",
+    "pfs": "on",
+    "approach_from": "retract",
+    "target_z_um": 3000,
+    "range_um": {
+      "min": 2900,
+      "max": 3100
+    },
+    "step_um": 1,
+    "max_moves": 200,
+    "branches": [
+      "in_focus",
+      "step_up",
+      "step_down",
+      "no_sample_here",
+      "unsure"
+    ],
+    "decided_by": "metric_maximum",
+    "metric": {
+      "name": "normalised_variance",
+      "computed": "deterministic"
+    },
+    "illumination": "as_set_by_plan",
+    "success": {
+      "reference": "person_manual_focus",
+      "baseline": "metric_maximum",
+      "fields": 5,
+      "tolerance_fraction_of_depth_of_field": 0.5,
+      "depth_of_field_ref": "kb:objective_depth_of_field",
+      "counted_apart": [
+        "hit",
+        "miss",
+        "unsure"
+      ]
+    },
+    "verifies": "REJECTED FIXTURE. PFS left on during the search, where a held focus fights the sweep. The schema refuses it.",
+    "falsified_by": "the encoder Z found differs from the person's manual focus on the same field by more than the tolerance"
+  },
+  "actions": [
+    {
+      "id": "focus_search",
+      "device": "stand_ti2e",
+      "action": "focus_search",
+      "reversible": true,
+      "parameters": [],
+      "tier": 1
+    }
+  ],
+  "envelope_check": {
+    "checked_against": [
+      "focus_z_60x_min",
+      "focus_z_60x_max"
+    ],
+    "status": "inside"
+  },
+  "targets": [
+    {
+      "metric": "focus_error",
+      "kind": "uncertainty",
+      "value": 0.5,
+      "unit": "um",
+      "note": "a fraction of the depth of field, for this fixture only"
+    }
+  ],
+  "stop_criteria": [
+    {
+      "id": "sc_moves",
+      "metric": "focus_error",
+      "comparator": ">",
+      "target": "focus_error",
+      "on_met": "fault",
+      "statement": "stop when the move ceiling is reached without in_focus"
+    }
+  ],
+  "success_criteria": [
+    {
+      "id": "ok_focus",
+      "metric": "focus_error",
+      "comparator": "<=",
+      "target": "focus_error",
+      "statement": "the encoder Z found lies within the tolerance of the person's manual focus"
+    }
+  ],
+  "open_risks": [
+    "the clearance comparison is the run-time gate's and is not visible here"
+  ]
+}

@@ -23,6 +23,16 @@
                 "goal_id"
               ]
             }
+          },
+          {
+            "required": [
+              "focus_search"
+            ],
+            "not": {
+              "required": [
+                "goal_id"
+              ]
+            }
           }
         ]
       },
@@ -107,7 +117,7 @@
           "open_risks"
         ]
       },
-      "$comment": "The operation branch: a plan that verifies rather than measures (plan.md 11-21). It holds for an `operation` block, and, since 2026-09-25, for a plan carrying `trap_steps` and no `goal_id`: placing a trap and having the person confirm a bead is held verifies a setup and measures nothing, so it takes no goal, no observable and no S3 to S5, exactly as a piezo verification step does. Proposed by microscope-20260924-6 when the first trap plan of the double-well day could not otherwise be written without claiming a record length it does not record. A plan with trap_steps AND a goal is a measurement plan and takes the full pipeline."
+      "$comment": "The operation branch: a plan that verifies rather than measures (plan.md 11-21). It holds for an `operation` block, and, since 2026-09-25, for a plan carrying `trap_steps` and no `goal_id`: placing a trap and having the person confirm a bead is held verifies a setup and measures nothing, so it takes no goal, no observable and no S3 to S5, exactly as a piezo verification step does. Proposed by microscope-20260924-6 when the first trap plan of the double-well day could not otherwise be written without claiming a record length it does not record. A plan with trap_steps AND a goal is a measurement plan and takes the full pipeline. Since 2026-10-03 the same holds for `focus_search` (plan.md 11-24): a search with no goal finds a plane and measures nothing about the sample, and a search with a goal takes the full pipeline."
     }
   ],
   "properties": {
@@ -682,6 +692,197 @@
         "falsified_by",
         "read_back",
         "moves"
+      ],
+      "additionalProperties": false
+    },
+    "focus_search": {
+      "type": "object",
+      "description": "A FOCUS SEARCH on the Z drive (plan.md 11-24 and 13.2, added 2026-10-03 by manager-microscope-20261003-1). Two forms, as trap_steps: with a goal_id it sits beside the full pipeline and lifts none of it; with NO goal_id it is operation-style, purpose verify, no goal or observable. THE BRANCH IS A JUDGEMENT AND THE COMMAND IS NOT: whoever decides -- the metric maximum or a model -- picks one of `branches`, and the dispatcher derives the move from this block's fields alone. step_up is the last encoder read plus step_um and step_down the last read minus step_um, each sent as an ABSOLUTE target, because a relative move re-sent after a lost reply would move Z twice; in_focus, no_sample_here and unsure move nothing. Every command carries `from` naming the field it came from (check 14). THE Z FOUND IS AN ENCODER READ, never a decider's number. A target_z_um handed over from a coarse stage is a TARGET and not a destination: the search walks from retract toward it with the clearance comparison live at every step, and never jumps to it (card 026). PFS IS OFF for the whole search (4.6.8 interlock 3): a held focus fights a sweep. THE SEARCH CHANGES NO OUTPUT: illumination is what the plan set before it, and its frames are charged to A3's sample-health budget. THE Z DRIVE IS OPENED ONLY HERE, through the operator's exemption for an approved plan, and is never added to SOFTWARE_MAY_COMMAND. What the schema cannot compare, check 88 does at commit time: range_um inside the person's focus_z_<objective>_min/_max for this block's objective, a missing limit refusing; range_um a range; target_z_um inside range_um; step_um no larger than the range; and the named action on stand_ti2e and reversible. The run-time gate checks the same against the person's hand-over objective, which a commit cannot know. Success is declared before starting: the person's manual focus on the same fields is the reference, the metric maximum the baseline, the tolerance a fraction of the depth of field taken from the store, and hits, misses and unsure counted apart -- unsure is an abstention and is not a miss.",
+      "properties": {
+        "channel": {
+          "const": "stand_ti2e"
+        },
+        "element": {
+          "const": "z_drive"
+        },
+        "action": {
+          "type": "string",
+          "pattern": "^[a-z0-9_-]+$",
+          "description": "the id of the action in actions[] this search is dispatched as; it must command stand_ti2e and be reversible (check 88)"
+        },
+        "objective": {
+          "type": "string",
+          "pattern": "^[0-9]+x$",
+          "description": "the objective in place, spelled as the tweezers limits spell it (40x, 60x, 100x), so one objective has one token across the envelope. focus_z_<this>_{min,max} must exist in the microscope's envelope, and it must equal the person's hand-over statement, or the gate refuses. A DRY LENS THE PERSON HAS RELEASED STILL HAS BOTH KEYS: released means the person writes wide values for it, and never that the keys are absent. An absent key refuses for every objective, dry or immersion, and is never read as unlimited (the person's word of 2026-10-02, held to P0)"
+        },
+        "read_back": {
+          "const": "encoder",
+          "description": "the Z found is the Z drive's encoder read after the decision, never a number the decider gave"
+        },
+        "pfs": {
+          "const": "off",
+          "description": "PFS off before the first Z command and for the whole search (4.6.8 interlock 3)"
+        },
+        "approach_from": {
+          "const": "retract",
+          "description": "the search starts from the retracted Z and walks; it never jumps to a target"
+        },
+        "target_z_um": {
+          "type": "number",
+          "description": "optional. An ABSOLUTE encoder Z handed over from a coarse stage, which the walk heads toward. A target, not a destination: reaching it is not finding focus"
+        },
+        "range_um": {
+          "type": "object",
+          "description": "the ABSOLUTE encoder Z the search may visit, inside the person's focus_z_<objective> limits",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "min",
+            "max"
+          ],
+          "additionalProperties": false
+        },
+        "step_um": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "the size of one step_up or step_down, in um of encoder Z"
+        },
+        "max_moves": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "the ceiling on moves; reaching it ends the search as not found, never as found"
+        },
+        "branches": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "in_focus",
+              "step_up",
+              "step_down",
+              "no_sample_here",
+              "unsure"
+            ]
+          },
+          "allOf": [
+            {
+              "contains": {
+                "const": "in_focus"
+              }
+            },
+            {
+              "contains": {
+                "const": "unsure"
+              }
+            }
+          ],
+          "description": "the choices the decider may make, each a typed branch. in_focus and unsure are always among them: a search with no way to abstain forces a guess"
+        },
+        "decided_by": {
+          "enum": [
+            "metric_maximum",
+            "model_branch"
+          ],
+          "description": "who picks the branch. Either way the command is derived from this block, and the metric maximum is the baseline in success"
+        },
+        "metric": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "computed": {
+              "const": "deterministic",
+              "description": "computed by code from the frame, never by a model"
+            }
+          },
+          "required": [
+            "name",
+            "computed"
+          ],
+          "additionalProperties": false
+        },
+        "illumination": {
+          "const": "as_set_by_plan",
+          "description": "the search touches no output; its frames are charged to A3's sample-health budget"
+        },
+        "success": {
+          "type": "object",
+          "properties": {
+            "reference": {
+              "const": "person_manual_focus"
+            },
+            "baseline": {
+              "const": "metric_maximum"
+            },
+            "fields": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "how many fields are searched and compared"
+            },
+            "tolerance_fraction_of_depth_of_field": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1
+            },
+            "depth_of_field_ref": {
+              "type": "string",
+              "pattern": "^kb:",
+              "description": "the store entry the depth of field comes from"
+            },
+            "counted_apart": {
+              "const": [
+                "hit",
+                "miss",
+                "unsure"
+              ]
+            }
+          },
+          "required": [
+            "reference",
+            "baseline",
+            "fields",
+            "tolerance_fraction_of_depth_of_field",
+            "depth_of_field_ref",
+            "counted_apart"
+          ],
+          "additionalProperties": false
+        },
+        "verifies": {
+          "type": "string",
+          "minLength": 20
+        },
+        "falsified_by": {
+          "type": "string",
+          "minLength": 20
+        }
+      },
+      "required": [
+        "channel",
+        "element",
+        "action",
+        "objective",
+        "read_back",
+        "pfs",
+        "approach_from",
+        "range_um",
+        "step_um",
+        "max_moves",
+        "branches",
+        "decided_by",
+        "metric",
+        "illumination",
+        "success",
+        "verifies",
+        "falsified_by"
       ],
       "additionalProperties": false
     },
