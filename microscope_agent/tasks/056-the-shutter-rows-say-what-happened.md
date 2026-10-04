@@ -33,7 +33,8 @@ safety claim.
 
 ## Part 1 — build now. No change to what software may command
 
-Do not touch `SOFTWARE_MAY_COMMAND` or `NAMED_REFUSALS` in this part.
+Do not touch `SOFTWARE_MAY_COMMAND` or `NAMED_REFUSALS` in this part. Neither
+part ever touches them.
 
 1. **A shutter row's `closed` comes from the backend's own read-back**, the
    way card 054's light-source rows judge `matched`: from `verified` /
@@ -73,28 +74,48 @@ Do not touch `SOFTWARE_MAY_COMMAND` or `NAMED_REFUSALS` in this part.
   reaching every channel;
 - no shutter row anywhere is `true` unless its pair is in `verified`.
 
-## Part 2 — a proposal for the person. Do NOT build it until the person says yes
+## Part 2 — APPROVED by the person on 2026-10-04. Build it after part 1 lands
 
-**An abort-only, close-only exemption for `Turret1Shutter` and
-`Turret2Shutter`.** Each would get its `State` set to its closed value and read
-back. The closed value is read off the loaded configuration's property values,
-not from memory; if you cannot find it, the proposal says so. Only the
-orchestrator's abort could reach the exemption. It never opens a shutter, and
-no plan, operation or exemption list can reach it. The same could cover
-`CSUW1-Shutter`. Closing is the safe direction, but it is still a change to
-what software may command, so it is the person's call.
+**The person's decision is recorded at `10561c8`, in plan.md 4.6.8
+interlock 1.** It was asked directly in architecture's window, and the person
+chose all three shutters. Read it there, not here. This card carries the
+terms and does not restate them as its own.
 
-**What to put in your report**:
+**An abort-only, close-only exemption for `Turret1Shutter`, `Turret2Shutter`
+and `CSUW1-Shutter`**, on these terms and no wider:
 
-- how you would make it unreachable from anything but `abort()`, and how a
-  test would prove that, for example a plan that names the device and is
-  refused;
-- how the turret shutters get declared, given that the registry does not list
-  them as elements;
-- the question for the person, in one sentence:
-  *"When the microscope aborts, may the software close the two filter-turret
-  shutters (and the spinning-disk shutter) — close only, never open — so that
-  light is cut even if no one is at the bench?"*
+- **close only, never open.** Each gets `State` set to its closed value. Read
+  that value off the loaded configuration's property values, not from memory.
+  If you cannot find it for any of the three, build nothing for that one and
+  report up;
+- **reachable only from `orchestrator.abort`, never from a plan**, an
+  operation, an exemption list, or any other caller;
+- **read back on every close.** A row says `closed: true` only when the
+  read-back confirms it, as in part 1;
+- **all three stay in `NAMED_REFUSALS`**, and `named_refusals_hold()` stays
+  empty. `SOFTWARE_MAY_COMMAND` does not change. The exemption is a separate,
+  narrow path, not a lifted refusal.
+
+The turret shutters are not registry elements, so they join the declared
+shutter table from part 1, routed through `stand_ti2e`, with the device
+names above. Do not infer them from a name (check 80).
+
+**Tests part 2 needs, each watched failing before the code exists:**
+
+1. **No plan path reaches the exemption.** A plan, an operation plan, and a
+   direct `apply()` naming each of the three devices with its closed value are
+   each refused, exactly as today. The abort, on the same fake core, closes
+   all three.
+2. **An open value is refused**, on the abort path too. Exercise the exemption
+   with each of the three devices at its open value and see it refuse without
+   writing. Then confirm the fake core recorded no write.
+3. **`named_refusals_hold()` is still empty** after the change, and all three
+   names are still in `NAMED_REFUSALS`.
+4. **A read-back that disagrees** gives `closed: false`, and the abort still
+   reaches the light sources and the fan-out.
+
+**The first run on the instrument waits for the person to watch.** Mock and
+fake-core tests only until then.
 
 ## Boundaries
 
@@ -114,5 +135,6 @@ force, never amend.
 
 To this seat, 8 lines at most: the commit, the test's failing and then passing
 output, the validator's `verdict:` and `tree:` lines, what `lunf` did with
-`{"enable": []}`, and part 2's proposal with the closed value and where you
-read it.
+`{"enable": []}`, and, once part 2 lands, its commit, each shutter's closed
+value and where you read it, and the four tests' failing and then passing
+output.
