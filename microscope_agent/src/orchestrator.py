@@ -268,6 +268,51 @@ OPERATION_EXEMPT_AXES = ("x", "y")
 #: other unreadable channel still goes to the manual sheet whatever its row says.
 BLIND_BY_PERSONS_EXCEPTION = ("laser_combiner", "optical_tweezers")
 
+#: Every light source on this instrument, DECLARED, for abort()'s power-down
+#: step (card 054). The registry has no role field a program may read -- its
+#: `role` is prose, and check 80 forbids deciding a role from how an
+#: identifier is spelled -- so which elements emit is written here, one entry
+#: per source, and abort() iterates this table rather than testing registry
+#: ids against it. An emitter not in this table is not turned off; one found
+#: is reported up, not added in passing.
+#:
+#: `channel` is the registry channel the write routes through. The pairing
+#: Aura III = `widefield_source_a` comes from micromanager.py's header and card
+#: 033, not from the registry, which leaves the branch assignment unconfirmed
+#: (lapp_branch_assignment) -- so the Aura row may route through the channel
+#: that is really the Spectra III's. On mock and through micromanager.apply
+#: that changes no write (the `settings` name the device, Aura), only which
+#: channel the row says.
+#:
+#: The Aura's off property is `State` = 0, its master switch. It was read off
+#: the device: `getDevicePropertyNames("Aura")` as recorded in
+#: runs/run-20260924-002/log.json (`light_engine_properties`) lists `State`
+#: beside the per-line CYAN/GREEN/NIR/RED/UV switches, and session_033 turns
+#: the light off with that same write. The per-line switches are left as they
+#: are: the master is the one property that is off whatever the lines say.
+#:
+#: The three `software_commandable: False` rows exist to be READ. They write
+#: nothing and claim nothing; their whole content is that a person turns them
+#: off, and the abort record has to show it.
+LIGHT_SOURCES: tuple[dict, ...] = (
+    {"source": "Aura III", "channel": "widefield_source_a", "device": "Aura",
+     "property": "State", "off": "0", "software_commandable": True},
+    {"source": "DiaLamp", "channel": "stand_ti2e", "device": "DiaLamp",
+     "property": "State", "off": "0", "software_commandable": True},
+    {"source": "optical tweezers", "channel": "optical_tweezers", "device": None,
+     "property": None, "off": None, "software_commandable": False,
+     "why": ("LASER_ON stays refused and the laser's power dial is the person's; the TCP "
+             "interface reads nothing back, so an off written there could not be confirmed")},
+    {"source": "Spectra III (LightEngine)", "channel": "widefield_source_b", "device": None,
+     "property": None, "off": None, "software_commandable": False,
+     "why": ("LightEngine is refused by name in micromanager.py, and card 054 does not lift "
+             "that refusal")},
+    {"source": "confocal laser lines", "channel": "laser_combiner", "device": None,
+     "property": None, "off": None, "software_commandable": False,
+     "why": ("not commanded by card 054: its fast cut-off is laser_shutter, which is in the "
+             "shutter rows; the per-line power is not lowered here")},
+)
+
 
 def operation_exemptions(plan: dict | None, commands: list["Command"]) -> dict[int, str]:
     """Which commands the software-motion allow-list does not bind, from the PLAN's structure.
@@ -1189,6 +1234,17 @@ class Orchestrator:
                      "one -- the second number is not knowable from the registry today")}
         self.record(event="abort_shutter_coverage", **report["shutter_coverage"])
 
+        # POWER DOWN, BETWEEN THE SHUTTERS AND THE FAN-OUT, and the second
+        # half of that is not just order (card 054). After the shutters,
+        # because a shutter beats a ramp (4.6.8 interlock 1). BEFORE every
+        # channel's abort(), because both mock.apply and micromanager.apply
+        # refuse every command once their module's abort() has set
+        # `_ABORTED` -- a power-down placed after the fan-out would be refused
+        # by the very abort it belongs to, and would record that refusal as
+        # the lamp's state.
+        report["light_sources"] = self._power_down()
+        self.record(event="abort_light_sources", rows=report["light_sources"])
+
         # `aborted` IS A THIRD BOOLEAN CARRYING MORE THAN IT KNOWS, and it is
         # the answer to 028's last question. `module.abort()` returning means
         # the command was ACCEPTED, and on optical_tweezers that is all it can
@@ -1224,6 +1280,48 @@ class Orchestrator:
 
         self.record(event="abort_end", report=report)
         return report
+
+    def _power_down(self) -> list[dict]:
+        """One row per declared light source: off written, read back, compared.
+
+        `matched` is judged from the backend's own read-back -- the
+        `verified` / `disagreed` lists apply returns -- and never from the
+        call returning. The shutter rows above record `closed: True` on the
+        call returning, and on micromanager that call sends `element`/`state`,
+        which `_settings()` does not read, so it writes nothing; these rows
+        go through `settings` so that they cannot repeat that.
+
+        Nothing here stops the abort: a source that raises, refuses or reads
+        back wrong is recorded, and the next source is tried.
+        """
+        rows = []
+        for src in LIGHT_SOURCES:
+            row = {"source": src["source"], "channel": src["channel"],
+                   "commanded": None, "read_back": None, "matched": None}
+            if not src["software_commandable"]:
+                row["note"] = f"not software-controllable: {src['why']}. A person turns it off"
+                rows.append(row)
+                continue
+            device, prop, off = src["device"], src["property"], src["off"]
+            try:
+                returned = self.module_for(src["channel"]).apply(
+                    {"settings": {device: {prop: off}}})
+                row["commanded"] = off
+            except Exception as exc:                            # noqa: BLE001 - keep going, record it
+                row["error"] = str(exc)
+                rows.append(row)
+                continue
+            returned = returned if isinstance(returned, dict) else {}
+            pair = [r for r in (returned.get("verified") or []) + (returned.get("disagreed") or [])
+                    if r.get("device") == device and r.get("property") == prop]
+            if not pair:
+                row["note"] = ("the backend reported no read-back for this pair, so the write "
+                               "was accepted and whether the source is off was never asked")
+            else:
+                row["read_back"] = None if pair[0].get("read") is None else str(pair[0]["read"])
+                row["matched"] = pair[0] in (returned.get("verified") or [])
+            rows.append(row)
+        return rows
 
     def snapshot(self, label: str) -> dict:
         """read() from every channel, gathered into the log around each step."""

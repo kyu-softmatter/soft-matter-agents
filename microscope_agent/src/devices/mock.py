@@ -17,6 +17,7 @@ from __future__ import annotations
 import threading
 
 _STATE: dict[str, object] = {}
+_PROPS: dict[tuple[str, str], str] = {}     # (device, property) -> value, as MMCore stores it
 _LOCK = threading.Lock()
 _ABORTED = False
 
@@ -40,12 +41,34 @@ def preflight(channel: dict | None = None) -> dict:
 
 
 def apply(params: dict) -> dict:
-    """Accept a parameter set and remember it, so read() can return it."""
+    """Accept a parameter set and remember it, so read() can return it.
+
+    `settings` -- `{device: {property: value}}`, the shape micromanager.apply
+    takes -- is also kept per (device, property) and read back from there,
+    and reported as `verified` / `disagreed` the way that backend reports it.
+    Without it a caller that judges a write by its read-back (card 054's
+    power-down) could only ever meet the "no read-back" branch here and would
+    meet the real one for the first time on the instrument.
+    """
     if _ABORTED:
         raise RuntimeError("aborted: this backend refuses commands until it is reset")
+    out: dict[str, object] = {"applied": dict(params)}
     with _LOCK:
         _STATE.update(params)
-    return {"applied": dict(params)}
+        settings = params.get("settings") or {}
+        if settings:
+            verified, disagreed = [], []
+            for device, props in settings.items():
+                for prop, value in (props or {}).items():
+                    _PROPS[(str(device), str(prop))] = str(value)
+            for device, props in settings.items():
+                for prop, value in (props or {}).items():
+                    got = _PROPS[(str(device), str(prop))]
+                    record = {"device": str(device), "property": str(prop),
+                              "wanted": value, "read": got}
+                    (verified if got == str(value) else disagreed).append(record)
+            out.update(verified=verified, disagreed=disagreed)
+    return out
 
 
 def read() -> dict:
@@ -72,4 +95,5 @@ def reset() -> None:
     global _ABORTED
     with _LOCK:
         _STATE.clear()
+        _PROPS.clear()
     _ABORTED = False
