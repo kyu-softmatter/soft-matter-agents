@@ -1481,6 +1481,42 @@
         ".gitignore"
       ],
       "note": "The architecture session on the microscope computer seated by the person directly on 2026-10-03, rooted at the repository root. The person answered 'architecture' when asked whether this session is architecture or manager; n is 1, the first architecture seat for that date. It leads this repository's side of a merge the person asked for; plan.md carries the record of that merge, not this note. Whether earlier architecture sessions on this machine are still running is not stated, so this is opened concurrently and closes none of them. owns and paths copied by code from architecture."
+    },
+    {
+      "seat": "manager-microscope-20261003-1",
+      "committer_email": "manager-microscope-20261003-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "microscope_agent/CLAUDE.md",
+        "microscope_agent/.claude/",
+        "microscope_agent/tasks/",
+        "microscope_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/capabilities/microscope.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "A manager-microscope session on the microscope computer, already running when registered. The person opened it and said so directly in architecture-20261003-1's window on 2026-10-03 (\"I opened the two sessions, register the seats\"), after architecture wrote its first instruction. n is 1, the first manager-microscope seat for that date. Whether earlier manager-microscope sessions are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-microscope-20261001-1."
+    },
+    {
+      "seat": "microscope-20261003-1",
+      "committer_email": "microscope-20261003-1@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "note": "A microscope session on the microscope computer, already running when registered. The person opened it and said so directly in architecture-20261003-1's window on 2026-10-03 (\"I opened the two sessions, register the seats\"), after architecture wrote its first instruction. n is 1, the first microscope seat for that date. Whether earlier microscope sessions are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from microscope-20261001-1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
