@@ -16,3 +16,9 @@ __pycache__/
 # section 4.6 on trajectories.
 simulation_agent/runs/*/trajectory*
 !simulation_agent/runs/*/trajectory_meta.json
+
+# A usage tracker on the microscope computer writes its ledger into .agent/
+# at whatever directory a session starts in. It is not a record of this
+# repository; SKIP_DIRS in contracts/validate.py carries the same name, and
+# check 79 requires the two to agree (2026-10-03).
+.agent/
