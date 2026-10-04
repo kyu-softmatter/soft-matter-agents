@@ -601,17 +601,23 @@ def check_01_schema(b: Bundle) -> list[Finding]:
     cards = [c for c in b.cards if "__unreadable__" not in c.data]
     if not cards:
         return out or [Finding(1, NA, "no cards found")]
+    # The message names the import that failed. It said "jsonschema not
+    # installed" for both, and on 2026-10-03 the interpreter on this machine
+    # had jsonschema 4.16 and no `referencing`: the line pointed at the wrong
+    # library, and 30 --expect-fail fixtures read as checks that had stopped
+    # working when the schema check had simply not run.
     try:
         import jsonschema
         from referencing import Registry, Resource
-    except ImportError:
+    except ImportError as exc:
         for c in cards:
             if c.kind not in CARD_SCHEMA:
                 out.append(Finding(1, FAIL, f"unknown card kind {c.kind!r}", c.rel))
         for a in b.artifacts:
             if a.data.get("artifact") not in ARTIFACT_SCHEMA:
                 out.append(Finding(1, FAIL, f"unknown artifact kind {a.data.get('artifact')!r}", a.rel))
-        out.append(Finding(1, PENDING, "jsonschema not installed: only the card discriminator was checked"))
+        out.append(Finding(1, PENDING, f"{exc.name or exc} not importable under {sys.executable}: "
+                                       "only the card discriminator was checked"))
         return out
 
     resources = {}
@@ -8346,6 +8352,15 @@ def main(argv: list[str] | None = None) -> int:
             print(f"expect-fail: {len(groups) - len(ungrouped)}/{len(groups)} groups rejected as intended")
 
         if unbroken or ungrouped:
+            # A check that did not RUN cannot reject anything, and a fixture
+            # it owns then looks exactly like a check that stopped working.
+            # Say which it is before the list, and still exit 1: this run
+            # cannot vouch for those fixtures either way.
+            for f in findings:
+                if f.check == 1 and f.status == PENDING:
+                    print(f"  check 1 did not run: {f.message}. Every fixture it owns reads as "
+                          "NOT REJECTED below for that reason, not because the check broke; "
+                          "rerun under an interpreter with the dependencies pyproject.toml declares")
             for rel in unbroken:
                 print(f"  NOT REJECTED  {rel}")
             for msg in ungrouped:
