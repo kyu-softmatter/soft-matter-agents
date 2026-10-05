@@ -9,11 +9,13 @@ on card 055 and the bench.
 
 ## The pin
 
-**`dino-autofocus` `b802837`**, the tip of branch
-`merge-plan/D-03c-no-constants-no-model`, named by architecture on 2026-10-04.
-The file bodies are those of **`399be77`**, which `b802837` contains. Two
-earlier pins were superseded before use: `81a895b` carried the constants and
-the model branch, and `4de8586` still carried model grade vocabulary.
+**`dino-autofocus` `5cc5057`**, on branch `merge-plan/D-03f-search-no-light`
+(based on `main` `bdd64da`), named by architecture on 2026-10-05. The file
+bodies are those of **`ab49787`**, which `5cc5057` contains. Three earlier
+pins were superseded: `81a895b` carried the constants and the model branch;
+`4de8586` still carried model grade vocabulary; and `b802837` was the first
+copy's pin, **and that copy stopped correctly**. `focus_search.py` carried Aura
+line and power defaults and `MAX_EXTENSIONS = 3` in code.
 
 At this pin the `dino-autofocus` side has changed its own source so that it
 can cross without edits:
@@ -23,14 +25,18 @@ can cross without edits:
   `frame_stats(ceiling=)`, `peak_brightness(img, bin_px)`,
   `block_scores(img, n)`. `score()` refuses the peak metric without `bin_px`;
 - the model-reading branch and the model grade vocabulary are gone from
-  `focus_verdict`.
+  `focus_verdict`;
+- **`aura_line` and `aura_percent` are gone from `focus_search`**: the plan
+  sets the light and the search never does;
+- **`max_extensions` is a required `FocusArgs` field**, a whole number of at
+  least 0, with no default.
 
 ## Two gates before you start
 
 1. **Card 055 has landed on mock.** The focus search's place exists only once
    it does (plan.md 11-24, 3ba8733), and 10.2 says no code crosses before its
    place exists.
-2. **`b802837` is reachable on the remote.** Pushing it is the person's
+2. **`5cc5057` is reachable on the remote.** Pushing it is the person's
    decision, and today it is not pushed. Until `git ls-remote` on
    `https://github.com/kyu-softmatter/dino-autofocus` shows it, do nothing
    here. Do not copy from a local checkout and cite the commit as if it were
@@ -38,7 +44,7 @@ can cross without edits:
 
 ## What crosses: six files, no more
 
-| from `dino-autofocus` at `b802837` | to |
+| from `dino-autofocus` at `5cc5057` | to |
 |---|---|
 | `microscope_agent/src/focus_classical.py` | `microscope_agent/src/focus_classical.py` |
 | `microscope_agent/src/focus_verdict.py` | `microscope_agent/src/focus_verdict.py` |
@@ -48,10 +54,10 @@ can cross without edits:
 | `microscope_agent/tests/test_focus_search.py` | `microscope_agent/tests/test_focus_search.py` |
 
 They run alone: `focus_verdict` loads `focus_classical` as a sibling and
-nothing else, using numpy and the standard library only. **No count was given
-with this pin**, so run the six in isolation at `b802837`, outside this tree,
-and then again here after the copy. **Report the count, and it must be the
-same in both places.** A difference is a stop, and so is any failure.
+nothing else, using numpy and the standard library only. **The `dino-autofocus`
+side reports 15 tests run in isolation.** Run the six in isolation at
+`5cc5057`, outside this tree, and then again here after the copy. **The count
+must be 15 in both places.** A difference is a stop, and so is any failure.
 
 **Explicitly out:**
 
@@ -65,35 +71,34 @@ same in both places.** A difference is a stop, and so is any failure.
 ## How it crosses
 
 - **Byte for byte, except one origin header.** If a file already carries an
-  origin header naming `399be77`, keep it as it is and add nothing. If it
+  origin header naming `ab49787`, keep it as it is and add nothing. If it
   carries none, add one at the top naming the source repository, the path,
-  `399be77` as the body's commit, `b802837` as the pin, and the body's sha256.
+  `ab49787` as the body's commit, `5cc5057` as the pin, and the body's sha256.
   Say which case each file was. **No other edit**: no reformatting, no
   renaming, no import changes.
-- **Recompute each body sha256 yourself**, from `399be77` and again from
-  `b802837`, with CRLF normalised to LF and excluding any origin header. The
+- **Recompute each body sha256 yourself**, from `ab49787` and again from
+  `5cc5057`, with CRLF normalised to LF and excluding any origin header. The
   two must agree. Architecture relayed the values the `dino-autofocus` side
   reports, below. **Do not trust them: compare, and report any difference as
   a stop.**
   - `src/focus_classical.py`: `a1155a04c9f180ed8d257d081ff03b4e1a205d7d2d886010821e265778e9b127`
   - `src/focus_verdict.py`: `727286e55ac0f4b2b613e0bc0cc8d37b67e1c8bb7a9e8bfb18da6450b69e267c`
-  - `src/focus_search.py`: `7ffaf28f014ffdd87587f803f2481e3d9eff47219fde15432d97932483655bc6`
+  - `src/focus_search.py`: `bbb8da6ff31dfa01a44fc13edb77c86fd1e60e2ab4422589bae6e7130a83e720`
   - `tests/test_focus_core.py`: `401dc7ec20c99e857db5e4a8266f8cbc1c553d6023e9d6cc3e21f912797f4d11`
   - `tests/test_focus_contract.py`: `d863c62cee1f1894ee92a7e395ac53408bd7e0aeae4902a861f48b9b5407c3d4`
-  - `tests/test_focus_search.py`: `34ccbf778fd70d3ab5220fc7234d85117d6692a91046585066d2a236554cef72`
+  - `tests/test_focus_search.py`: `317b654a3c42dab90fef5e79fa312ef2eaa5dff48e78394577122c8afe766c20`
 
-  `focus_search.py`'s value equals the store's record at `fa97903`. That file
-  was not changed, and that is the check that it was not.
-  `focus_classical.py` and `focus_verdict.py` differ from the store's
-  `fa97903` records (`2fa776fa…` and `07bc1342…`) because they were changed for
-  this copy. That difference is expected; report it, it is not a stop.
+  **All three source files now differ from the store's `fa97903` records**
+  (`2fa776fa…`, `07bc1342…` and `7ffaf28f…`), because each was changed for
+  this copy. That difference is expected; report it, it is not a stop. Compare
+  only against the values above and between the body commit and the pin.
 - **One line per file in `microscope_agent/rulings.jsonl`**, in the shape the
   file already uses: `ruling` (`transfer` for a file that crosses whole),
   `item` (the path and what it is), `slot`: *the operator's focus search
   (plan.md 11-24)*, `rule`: *10.3*, plus `by`, `at` and `recorded_from`. The
-  last names `b802837`, `399be77` and the body sha256.
+  last names `5cc5057`, `ab49787` and the body sha256.
 
-## What is already ruled at this pin (architecture, 2026-10-04)
+## What is already ruled at this pin (architecture, 2026-10-04 and 2026-10-05)
 
 Put these in the rulings lines, and check each against the code rather than
 taking it on trust.
@@ -109,14 +114,20 @@ taking it on trust.
   carries a self-description would be exactly the thing that rule forbids.
   The copy brings the vocabulary in unchanged. The code that reads it later,
   in this repository, has to derive the grade, and your report must say so.
-- **The three new arguments sort as follows:**
-  - `ceiling` is **a fact about the camera**: the full-scale count for this
+- **`GRADE_COMPUTED` in `focus_search` is the same kind of thing**: an origin
+  kind, which carries a line saying so, and never an E-grade.
+- **The four new arguments sort as follows:**
+  - `ceiling` is **a fact about the camera**, an integer in ADU: the full-scale count for this
     camera in this readout mode. It needs a `kb:` source, and **today the store
     holds no such entry**. The adapter's self-reported `BitDepth 16` is not one,
     and the store records the camera misreporting its own bit depth. So it is a
     gap, never a default;
-  - `bin_px` and `n` are **the plan's choices of method**. They carry no
-    source and no grade.
+  - `bin_px` (integer px), `n` (integer blocks per side) and
+    `max_extensions` (a whole number of at least 0) are **the plan's choices
+    of method**. They carry no source and no grade.
+  - The plan supplies all four from `focus_search` in `plan.schema.json`,
+    added at the same time as this repin. Read them from there; never wire a
+    value into code.
 
 ## Stop and report up, and copy nothing, if any of these is true
 
@@ -128,20 +139,24 @@ file can cross only by being edited, it does not cross under this card.
    reading, stop.
 2. **A figure written into code beyond the four ruled above**: a clip level,
    a grid or bin size, any threshold or default about this instrument or a
-   camera. Also a default value left on `ceiling`, `bin_px` or `n`. 10.3 says a
+   camera, and any light setting. Also a default value left on `ceiling`,
+   `bin_px`, `n` or `max_extensions`. 10.3 says a
    number crosses only through the librarian, never pasted into code.
 3. **A test that needs an import or path change** to run here.
 4. **A body sha256 you compute differs** from the relayed value, or between
-   `399be77` and `b802837`; or the test count differs between there and here.
+   `ab49787` and `5cc5057`; or the test count is not 15 in both places.
 
 In each case, report up which file, which line, and why. The decision on how
 it may cross is architecture's and the person's, not this card's.
 
-**The copy creates a need on this side, and it is not yours to meet.** The
-plan has to supply `ceiling`, `bin_px` and `n`, and `focus_search` in
-`plan.schema.json` has no field for them yet. That is a manager's to add. Wire
-no value into code meanwhile, and report each argument's unit as the code
-uses it.
+**Where the four values come from in a plan.** `focus_search` in
+`plan.schema.json` carries them, and check 88 checks them:
+`metric_arguments.bin_px`, `metric_arguments.blocks_per_side`, `max_extensions`,
+and `camera_ceiling`. The ceiling names either a `numbers[]` entry in ADU with
+a `kb:` source, or a `kb_gaps` entry. **Today it is a gap, so a plan can be
+written and approved but cannot run**: the code that reads it must refuse a
+gap and never substitute a value. If the arguments in the code do not match
+these fields one for one, stop and report.
 
 ## Boundaries
 
