@@ -12,6 +12,8 @@ commit, with the reason.
 
 ## Status
 
+**The dino-autofocus merge is in progress on branch `feature/autofocus-ui`. Its handoff -- purpose, what is done, what waits on whom, what comes next -- is `plan.md` §14. Read it before touching that work.**
+
 **M0 landed. The four agents are built concurrently.** Milestone names M0–M5
 name bodies of work, not an order. What actually blocks what is the column in
 `plan.md` §9. §11-1 no longer blocks anything: on 2026-09-19 the person settled
