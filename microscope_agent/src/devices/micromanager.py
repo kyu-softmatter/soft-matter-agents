@@ -187,6 +187,68 @@ NAMED_REFUSALS = (
 )
 
 
+#: THE ONE EXCEPTION TO NAMED_REFUSALS, and it is not a lifted refusal (card
+#: 056 part 2). The person, on 2026-10-04 (plan.md 4.6.8 interlock 1 at
+#: 10561c8): on an abort software may close these shutters -- close only,
+#: never open, only from orchestrator.abort, read back every time -- and they
+#: stay refused on every other path. So nothing here touches
+#: SOFTWARE_MAY_COMMAND, `refusal()` or GuardedCore: a plan, an operation and
+#: `apply()` are refused exactly as before, and the only way in is
+#: `close_for_abort()`, which orchestrator._close_shutter calls and nothing
+#: else does (a test counts the call sites).
+#:
+#: Each entry is (property, the CLOSED value), and only that value passes:
+#: an open value is refused before anything is written. State 0 for both
+#: turret shutters is the person's statement in microscope-20261003-1's
+#: window on 2026-10-04, "Turret shutters close at State 0".
+#:
+#: CSUW1-Shutter was approved too and is NOT here: its State reads as a
+#: label ("Open" in run-20260924-008) and no closed value for it is recorded
+#: anywhere this seat could read. Card 056 says build nothing for a shutter
+#: whose closed value is not known, so it stays refused on every path.
+ABORT_CLOSE_ONLY: dict[str, tuple[str, str]] = {
+    "Turret1Shutter": ("State", "0"),
+    "Turret2Shutter": ("State", "0"),
+}
+
+
+def abort_close_refusal(device: str, prop: str, value: object) -> str | None:
+    """Why this abort close is refused, or None. Pure, so the orchestrator asks it on every backend."""
+    if device not in ABORT_CLOSE_ONLY:
+        return (f"{device!r} has no abort-only close: only {sorted(ABORT_CLOSE_ONLY)} do, by "
+                "the person's decision of 2026-10-04")
+    want_prop, closed = ABORT_CLOSE_ONLY[device]
+    if prop != want_prop or str(value) != closed:
+        return (f"{device}.{prop} = {value!r} is refused: the abort may only set "
+                f"{device}.{want_prop} to its closed value {closed!r}, never anything that opens")
+    return None
+
+
+def close_for_abort(device: str, prop: str, value: object) -> dict:
+    """Close one shutter for an abort, then read it back. Refuses before writing.
+
+    Writes on the core GuardedCore wraps, because GuardedCore refuses these
+    devices by name, and must keep doing so for every other caller. That is
+    why this path checks `abort_close_refusal()` itself rather than trusting
+    its caller, and why its result is the read-back and not the write.
+    """
+    why = abort_close_refusal(device, prop, value)
+    if why is not None:
+        raise SoftwareMotionRefused(why)
+    if _ABORTED:
+        raise RuntimeError("aborted: this backend refuses commands until it is reset")
+    core = object.__getattribute__(_core(), "_core")
+    with _LOCK:
+        core.setProperty(device, prop, value)
+        core.waitForSystem()
+        got = core.getProperty(device, prop)
+    record = {"device": device, "property": prop, "wanted": value, "read": got}
+    ok = str(got) == str(value)
+    return {"applied": [{"device": device, "property": prop, "value": value}],
+            "verified": [record] if ok else [], "disagreed": [] if ok else [record],
+            "backend": BACKEND}
+
+
 def named_refusals_hold() -> list[str]:
     """Every name in NAMED_REFUSALS that the allow-list would NOT refuse. Empty is correct."""
     return [d for d in NAMED_REFUSALS if refusal(d, "State", "setProperty") is None]

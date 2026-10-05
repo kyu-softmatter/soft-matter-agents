@@ -71,6 +71,25 @@ def apply(params: dict) -> dict:
     return out
 
 
+def close_for_abort(device: str, prop: str, value: object) -> dict:
+    """micromanager.close_for_abort's shape: write one pair, read it back.
+
+    Holds no policy, like the rest of this file. Which closes are allowed is
+    micromanager.abort_close_refusal(), and the orchestrator asks it before
+    calling this on any backend.
+    """
+    if _ABORTED:
+        raise RuntimeError("aborted: this backend refuses commands until it is reset")
+    with _LOCK:
+        _PROPS[(str(device), str(prop))] = str(value)
+        got = _PROPS[(str(device), str(prop))]
+    record = {"device": str(device), "property": str(prop), "wanted": value, "read": got}
+    ok = got == str(value)
+    return {"applied": [{"device": device, "property": prop, "value": value}],
+            "verified": [record] if ok else [], "disagreed": [] if ok else [record],
+            "backend": "mock"}
+
+
 def read() -> dict:
     """Return the state this backend was last told to hold.
 

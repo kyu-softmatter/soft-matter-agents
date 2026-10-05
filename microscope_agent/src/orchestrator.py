@@ -314,8 +314,24 @@ SHUTTER_CLOSES: tuple[dict, ...] = (
      "why": ("lunf `{\"enable\": []}` blanks every mapped line and is already permitted; lunf "
              "reads nothing back")},
     {"element": "csuw1_shutter", "commandable": False, "command": None, "verify": None,
-     "why": ("CSUW1-Shutter is refused to software by name (NAMED_REFUSALS in micromanager.py), "
-             "so no call is sent just to collect the refusal")},
+     "why": ("CSUW1-Shutter is refused to software by name (NAMED_REFUSALS in micromanager.py). "
+             "The person allowed an abort-only close of it on 2026-10-04, and it is not built: "
+             "no closed value for it is recorded, so no call is sent")},
+    # The two filter-turret shutters (card 056 part 2). They are not registry
+    # elements, so `shutters()` never recognises them: they are DECLARED here
+    # with the device they are and the channel the close routes through, and
+    # abort() closes them FIRST, before the recognised ones, because
+    # interlock 1 names them first. `abort_close` goes through
+    # micromanager.close_for_abort, the only path the person opened; every
+    # other path still refuses these devices by name.
+    {"element": None, "device": "Turret1Shutter", "channel": "stand_ti2e", "commandable": True,
+     "command": None, "abort_close": ("Turret1Shutter", "State", "0"),
+     "verify": ("Turret1Shutter", "State"),
+     "why": "the abort-only close the person allowed on 2026-10-04, State 0 being closed"},
+    {"element": None, "device": "Turret2Shutter", "channel": "stand_ti2e", "commandable": True,
+     "command": None, "abort_close": ("Turret2Shutter", "State", "0"),
+     "verify": ("Turret2Shutter", "State"),
+     "why": "the abort-only close the person allowed on 2026-10-04, State 0 being closed"},
 )
 
 LIGHT_SOURCES: tuple[dict, ...] = (
@@ -1232,7 +1248,10 @@ class Orchestrator:
         # applies is what P0 forbids. The denominator is every channel; the
         # reader draws the conclusion, and the reader is a person.
         found = dict(self.shutters())            # channel -> element, at most one per channel
-        closes = {entry["element"]: entry for entry in SHUTTER_CLOSES}
+        closes = {entry["element"]: entry for entry in SHUTTER_CLOSES if entry["element"]}
+        for entry in SHUTTER_CLOSES:
+            if entry["element"] is None:
+                report["shutters"].append(self._close_shutter(entry["channel"], None, entry))
         for cid in self.channels:
             element = found.get(cid)
             if element is None:
@@ -1247,13 +1266,17 @@ class Orchestrator:
                 continue
             report["shutters"].append(self._close_shutter(cid, element, closes.get(element)))
 
-        identified = [r for r in report["shutters"] if r["identified"]]
+        recognised = [r for r in report["shutters"] if not r.get("declared")]
+        identified = [r for r in recognised if r["identified"]]
         report["shutter_coverage"] = {
             "channels": len(self.channels), "identified": len(identified),
-            "without": sorted(r["channel"] for r in report["shutters"] if not r["identified"]),
+            "without": sorted(r["channel"] for r in recognised if not r["identified"]),
+            "declared": sorted(r["device"] for r in report["shutters"] if r.get("declared")),
             "note": ("the denominator, so a partial miss is as visible as a total one. This "
                      "counts channels with a RECOGNISED cut-off and not channels that need "
-                     "one -- the second number is not knowable from the registry today")}
+                     "one -- the second number is not knowable from the registry today. "
+                     "`declared` lists the shutters closed from SHUTTER_CLOSES by device, "
+                     "which recognition does not see and this count does not include")}
         self.record(event="abort_shutter_coverage", **report["shutter_coverage"])
 
         # POWER DOWN, BETWEEN THE SHUTTERS AND THE FAN-OUT, and the second
@@ -1315,6 +1338,8 @@ class Orchestrator:
         """
         row = {"channel": cid, "element": element, "identified": True,
                "commanded": None, "read_back": None, "closed": None}
+        if element is None:
+            row.update(device=entry["device"], declared=True)
         if entry is None:
             row["note"] = ("not commanded: no close command is declared for this shutter in "
                            "SHUTTER_CLOSES, and none is guessed. A person closes it")
@@ -1323,8 +1348,22 @@ class Orchestrator:
             row["note"] = f"not commanded: {entry['why']}. A person closes it"
             return row
         try:
-            returned = self.module_for(cid).apply(entry["command"])
-            row["commanded"] = entry["command"]
+            if entry.get("abort_close"):
+                # The person's abort-only close. Its refusal is asked from
+                # micromanager on EVERY backend, so a close the instrument
+                # would refuse is refused on mock as well; the backend asks it
+                # again before writing.
+                device, prop, value = entry["abort_close"]
+                mm = self._device_module("micromanager", needed_by="the abort-only shutter close")
+                why = mm.abort_close_refusal(device, prop, value)
+                if why is not None:
+                    row["error"] = f"refused before sending: {why}"
+                    return row
+                returned = self.module_for(cid).close_for_abort(device, prop, value)
+                row["commanded"] = value
+            else:
+                returned = self.module_for(cid).apply(entry["command"])
+                row["commanded"] = entry["command"]
         except Exception as exc:                                # noqa: BLE001 - keep going, record it
             row["error"] = str(exc)
             return row

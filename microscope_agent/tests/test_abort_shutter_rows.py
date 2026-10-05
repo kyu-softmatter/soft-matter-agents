@@ -134,17 +134,31 @@ class LaserShutterThroughLunf(unittest.TestCase):
 
 
 class NoShutterRowIsTrueUnread(unittest.TestCase):
+    """`closed: true` only where a read-back of the commanded value came back.
+
+    Until card 056 part 2 no shutter could be read back, so this asserted no
+    row was true at all. The rule was always the read-back one; part 2's
+    turret closes are the first rows that can meet it.
+    """
+
+    def _check(self, row):
+        for key in ("commanded", "read_back", "closed"):
+            self.assertIn(key, row, row)
+        if row["closed"] is True:
+            self.assertIsNotNone(row["read_back"], row)
+            self.assertEqual(row["read_back"], row["commanded"], row)
+        if row.get("element") is not None:          # recognised shutters: none can be read back
+            self.assertIsNot(row["closed"], True, row)
+
     def test_on_mock(self):
         o = orch.Orchestrator(backend="mock")
         o.module_for(next(iter(o.channels))).reset()
         for row in o.abort("test")["shutters"]:
-            self.assertIsNot(row["closed"], True, row)
+            self._check(row)
 
     def test_through_the_real_backends(self):
         for row in _Rig().abort()["shutters"]:
-            self.assertIsNot(row["closed"], True, row)
-            for key in ("commanded", "read_back", "closed"):
-                self.assertIn(key, row, row)
+            self._check(row)
 
 
 if __name__ == "__main__":
