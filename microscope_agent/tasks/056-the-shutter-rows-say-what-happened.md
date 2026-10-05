@@ -79,7 +79,9 @@ part ever touches them.
 **The person's decision is recorded at `10561c8`, in plan.md 4.6.8
 interlock 1.** It was asked directly in architecture's window, and the person
 chose all three shutters. Read it there, not here. This card carries the
-terms and does not restate them as its own.
+terms and does not restate them as its own. **The person also confirmed it
+directly in this seat's window on 2026-10-04**: *"Yes, close only, the turret
+and spinning-disk shutters too."*
 
 **An abort-only, close-only exemption for `Turret1Shutter`, `Turret2Shutter`
 and `CSUW1-Shutter`**, on these terms and no wider:
