@@ -7,22 +7,31 @@ nothing from this card and report up. It re-issues card 026's first stage:
 the classical metrics and the verdict that read a sweep. The rest of 026 waits
 on card 055 and the bench.
 
-## Two gates before you start
+## Three gates before you start
 
 1. **Card 055 has landed on mock.** The focus search's place exists only once
    it does (plan.md 11-24, 3ba8733), and 10.2 says no code crosses before its
    place exists.
-2. **The pinned commit is reachable on the remote.** The pin is
-   `dino-autofocus` **`81a895b`**, on branch
-   `merge-plan/D-03b-run-log-tests-apart`, and it is **not public yet**.
-   Pushing it is the person's decision. Until `git ls-remote` on
+2. **A new pin exists.** `81a895b` was the first pin, and **it is
+   superseded before use** (architecture, 2026-10-04). The `dino-autofocus`
+   side is changing the source so that it can cross without edits:
+   - the camera clip levels, the bin size and the block grid in
+     `focus_classical` become **required arguments with no module defaults**,
+     which the plan supplies;
+   - **the model-reading branch leaves `focus_verdict`**.
+
+   A new commit is pinned after that. **Architecture names it**; this card
+   does not guess it.
+   Until architecture has named the new commit to this seat, do nothing here.
+3. **The new pin is reachable on the remote.** Pushing it is the person's
+   decision. Until `git ls-remote` on
    `https://github.com/kyu-softmatter/dino-autofocus` shows that commit, do
    nothing here. Do not copy from a local checkout and cite the commit as if
    it were public.
 
 ## What crosses: six files, no more
 
-| from `dino-autofocus` at `81a895b` | to |
+| from `dino-autofocus` at the new pin | to |
 |---|---|
 | `microscope_agent/src/focus_classical.py` | `microscope_agent/src/focus_classical.py` |
 | `microscope_agent/src/focus_verdict.py` | `microscope_agent/src/focus_verdict.py` |
@@ -32,8 +41,9 @@ on card 055 and the bench.
 | `microscope_agent/tests/test_focus_search.py` | `microscope_agent/tests/test_focus_search.py` |
 
 They run alone. `focus_verdict` loads `focus_classical` as a sibling and
-nothing else, using numpy and the standard library only. There are 18 tests.
-**Run them here and see 18 pass**; a different count is a stop.
+nothing else, using numpy and the standard library only. There were 18 tests
+at `81a895b`; architecture names the count at the new pin. **Run them here
+and see that many pass**; a different count is a stop.
 
 **Explicitly out:**
 
@@ -47,21 +57,26 @@ nothing else, using numpy and the standard library only. There are 18 tests.
 ## How it crosses
 
 - **Byte for byte, except one origin header** added at the top of each file,
-  naming the source repository, the path, commit `81a895b`, and the body's
+  naming the source repository, the path, the new pin's commit, and the body's
   sha256 (the file at the commit, CRLF normalised to LF, before the header).
   **No other edit**: no reformatting, no renaming, no import changes.
-- **Recompute each body sha256 from the pinned commit** and cite what you
-  compute. For the three source files, the store's records at `fa97903` give
-  the values below. Architecture reports them unchanged at `81a895b`. Compare
-  and report; a mismatch is a stop.
+- **Recompute each body sha256 from the new pin** and cite what you compute.
+  The store's records at `fa97903` give the values below, and they are what
+  the librarian ruled.
   - `focus_classical.py`: `2fa776faeb2b366f5dd1892345715d087e63a702cc168e179e81cb0bfd3f2af3`
   - `focus_verdict.py`: `07bc1342a4c868e5856b549bc8bc6a8c3a5af8fd8bd6dd83cc6c6970d01be099`
   - `focus_search.py`: `7ffaf28f014ffdd87587f803f2481e3d9eff47219fde15432d97932483655bc6`
+
+  **`focus_classical` and `focus_verdict` will differ at the new pin, and
+  that is expected**: their sources are being changed for this copy. Report
+  both hashes, old and new; that difference is not a stop. `focus_search` is
+  not being changed, so a difference there is a stop. So is a test count other
+  than the one architecture names with the new pin.
 - **One line per file in `microscope_agent/rulings.jsonl`**, in the shape the
   file already uses: `ruling` (`transfer` for a file that crosses whole),
   `item` (the path and what it is), `slot`: *the operator's focus search
   (plan.md 11-24)*, `rule`: *10.3*, plus `by`, `at` and `recorded_from`, which
-  names `81a895b` and the body sha256.
+  names the new pin and the body sha256.
 
 ## Stop and report up, and copy nothing, if any of these is true
 
@@ -84,7 +99,18 @@ file can cross only by being edited, it does not cross under this card.
 
    One figure in a file stops that file.
 3. **A test that needs an import or path change** to run here.
-4. A body sha256 that does not match, or a test count other than 18.
+4. `focus_search`'s body sha256 differs from the store's, or the test count
+   differs from the one architecture names with the new pin.
+
+These stay in force at the new pin. The source change is meant to clear 1
+and 2. If it does not, for instance if a default value is left behind or the
+model branch still lives in the file, stop.
+
+**What clears 2 here creates a need on this side.** The plan has to supply
+the clip levels, the bin size and the block grid, and `focus_search` in
+`plan.schema.json` has no field for them yet. Adding one is a manager's.
+Report the new arguments' names and units, and do not wire a value into code
+meanwhile.
 
 In each case, report up which file, which line, and why. The decision on how
 it may cross is architecture's and the person's, not this card's.
@@ -108,5 +134,5 @@ force, never amend.
 ## What comes back
 
 To this seat, 8 lines at most: the commit; the six body sha256 values and
-whether the three match; the 18 tests passing here; your call on every
+how each compares with the store's; the tests passing here, with their count; your call on every
 numeric constant, by file; and any stop, with its file and line.
