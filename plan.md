@@ -3914,7 +3914,7 @@ Written for whoever picks this up next, person or session, without the conversat
 1. The twelve focus limits `focus_z_<objective>_{min,max}` in `envelope/safety.json`. Write a wide value for each dry lens; absent never means unlimited.
 2. Watching the refusals on the instrument before the first software Z command (card 055's instrument gate), and the first abort with lamps and shutters on the real stand.
 3. The spinning-disk shutter's closed value. It is approved but not built, because no closed value is recorded.
-4. Whether a run stops when its viewer drops (default: it keeps going), and whether live frames show outside a plan (default: no).
+4. Whether live frames show outside a plan (default: no). Whether a run stops when its viewer drops is settled: it does not (batch A, below).
 
 **Waiting on a seat that is not open:** a manager-librarian session, to card the camera's full-scale count per readout mode. The store has none, so every focus search records that gap. Copying `map_*` (sample maps) waits for an XY design; nothing here designs one yet.
 
@@ -3926,5 +3926,14 @@ Written for whoever picks this up next, person or session, without the conversat
 - Push with `git -c credential.helper=manager push origin feature/autofocus-ui`.
 - On the Office computer, validate with `uv run --offline --no-project --python 3.12 --with jsonschema python contracts/validate.py`. Bare `python` there skips check 1.
 - The commit hooks are not installed on this working copy. Installing them is the person's to watch.
+
+**The person's batch A, 2026-10-05**, relayed from dino-autofocus `docs/integration-sma.md` 7.1, not said in this seat's window, so it is recorded as relayed:
+- Once copied, this repository holds the original of the focus core, and dino-autofocus keeps a pinned read-only mirror. A change to those files is made here first.
+- No live view at the bench until the frame tap is used, and never two Micro-Manager cores at once.
+- The console's Abort stays disabled for plans run here until the console uses the stop channel.
+- `map_*` stays in dino-autofocus.
+- **No viewer-loss auto-abort** for plans run here. That matches 11-25 (d)'s default.
+- The autofocus seat is a `microscope-<date>-<n>` row; which session holds it, the person says in that window.
+dino `main` is `bdd64da`. It contains every commit card 059 cites, merged without rebase.
 
 **The dino side's own record** is its `docs/integration-sma.md` (the person's decisions) and `docs/integration-sma-workplan.md` (items, owners, open decisions). It is read as data, and this section is what binds here.
