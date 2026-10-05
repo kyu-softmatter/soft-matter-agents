@@ -1070,12 +1070,19 @@ def compile_monitors(plan: dict) -> list[Monitor]:
 
 def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         handover: dict | None = None, ask_person=None,
-        tweezers_link: dict | None = None) -> dict:
+        tweezers_link: dict | None = None, runs_root: Path | None = None) -> dict:
     """O1 preflight -> O2 dispatch -> O3 watch -> O4 record.
 
     Returns the run record. Writes nothing until the gate has been passed,
     because a run directory that exists without an approval is itself the thing
     check 15 looks for.
+
+    With `runs_root` (card 057), the run is followed as it happens:
+    `<runs_root>/<run_id>/events.jsonl` is opened once the gate has passed,
+    every event is appended as it is recorded, and a loopback stop channel
+    is open for the length of the run. The folder must not exist yet -- a
+    run id is never reused -- and `run_ended` closes the file however the
+    run ends. Without it, nothing is written, as before.
     """
     plan = json.loads(Path(plan_path).read_text())
     if plan.get("card") != "plan":
@@ -1104,6 +1111,30 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     commands = derive_commands(plan)
 
     o = orch.Orchestrator(backend=backend)
+    folder = None
+    if runs_root is not None:
+        folder = Path(runs_root) / run_id
+        if folder.exists():
+            raise Refusal(f"{folder} already exists. A run id is never reused; raise it (P9)")
+        o.begin_run(folder, run_id=run_id, plan_id=plan.get("id"), revision=plan.get("revision"))
+    how = "failed"
+    try:
+        record = _run_body(o, plan, run_id, backend, observe, handover, ask_person,
+                           tweezers_link, safety, decision, monitors, commands)
+        monitor_abort, failed = record.pop("_monitor_abort"), record.pop("_failed")
+        how = ("stopped_from_outside" if getattr(o, "stopped_from_outside", False)
+               else "aborted_by_monitor" if monitor_abort
+               else "failed" if failed
+               else "completed")
+        return record
+    finally:
+        if folder is not None:
+            o.end_run(how)
+
+
+def _run_body(o, plan: dict, run_id: str, backend: str, observe, handover, ask_person,
+              tweezers_link, safety: dict, decision, monitors, commands) -> dict:
+    """run()'s body from the hand-over on, so run() can close the stream however it ends."""
     o.handover = dict(handover or {})
     if o.handover:
         o.record(event="handover", **o.handover)
@@ -1178,6 +1209,7 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     # partial success to be reported afterwards.
     failed = [r for batch in dispatched for rows in batch["results"].values()
               for r in rows if r.get("ok") is False]
+    monitor_abort = False
     if failed:
         o.abort(reason=("a command was refused or failed, so the plan did not happen as "
                         "approved: " + "; ".join(f"{r['command']}: {r['error']}"
@@ -1185,12 +1217,19 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
 
     if observe is not None:
         for monitor in monitors:
+            if getattr(o, "stopped_from_outside", False):
+                # Stopped from outside: the abort has run, and no monitor is
+                # evaluated after it, so nothing more is decided on this run.
+                break
             value = observe(monitor.metric)
+            if getattr(o, "stopped_from_outside", False):
+                break
             if value is None:
                 o.record(event="monitor_blind", criterion=monitor.id, metric=monitor.metric)
                 o.abort(reason=f"{monitor.metric} cannot be observed, so {monitor.id} cannot be evaluated")
                 break
             if monitor.violated(value):
+                monitor_abort = True
                 o.record(event="stop_criterion_violated", criterion=monitor.id,
                          observed=value, limit=monitor.limit, unit=monitor.unit)
                 o.abort(reason=f"{monitor.id}: {monitor.metric} = {value} {monitor.unit} breaks {monitor.comparator} {monitor.limit}")
@@ -1199,6 +1238,7 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     o.snapshot("after")
     record["events"] = o.log
     record["finished_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    record["_monitor_abort"], record["_failed"] = monitor_abort, bool(failed)
     return record
 
 
@@ -1260,12 +1300,22 @@ def _run_trap_steps(o, plan: dict, commands: list, ask_person) -> list[dict]:
     return outcomes
 
 
-def write_run(record: dict, deviations: list[dict] | None = None) -> Path:
-    """runs/<run_id>/ is append-only; a second write makes a new run (P9)."""
-    folder = AGENT / "runs" / record["run_id"]
-    if folder.exists():
-        raise Refusal(f"{folder} already exists. Runs are never overwritten; raise the run id (P9)")
-    folder.mkdir(parents=True)
+def write_run(record: dict, deviations: list[dict] | None = None,
+              runs_root: Path | None = None) -> Path:
+    """runs/<run_id>/ is append-only; a second write makes a new run (P9).
+
+    THE GUARD IS ON log.json, NOT ON THE FOLDER, since card 057. A followed
+    run creates its folder at the start, to hold events.jsonl, so "the folder
+    exists" no longer means "this run was written". The rule is unchanged: a
+    second write still refuses, because log.json is what a write creates.
+    run() refuses a run id whose folder already exists before it starts, so
+    an id is still never reused.
+    """
+    folder = (AGENT / "runs" if runs_root is None else Path(runs_root)) / record["run_id"]
+    if (folder / "log.json").exists():
+        raise Refusal(f"{folder / 'log.json'} already exists. Runs are never overwritten; "
+                      "raise the run id (P9)")
+    folder.mkdir(parents=True, exist_ok=True)
     (folder / "log.json").write_text(json.dumps(record, indent=2) + "\n")
     (folder / "deviations.json").write_text(json.dumps(deviations or [], indent=2) + "\n")
     return folder
@@ -1308,7 +1358,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        record = run(args.plan, run_id=args.run_id, backend=args.backend)
+        # With --write the run is followed as it happens (card 057): its folder
+        # and events.jsonl exist from the start, beside the stop channel.
+        record = run(args.plan, run_id=args.run_id, backend=args.backend,
+                     runs_root=AGENT / "runs" if args.write else None)
     except Refusal as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2

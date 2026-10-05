@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import socket
 import sys
 import threading
 import time
@@ -514,6 +515,72 @@ def _operator():
     return _OPERATOR
 
 
+class _StopChannel(threading.Thread):
+    """A loopback socket for one run that accepts a stop and nothing else (card 057).
+
+    Bound to 127.0.0.1 only, on a port the OS chooses, and announced only in
+    the run's `run_started` line. Each connection is read to one message of
+    at most STOP_MAX_BYTES (+1, so an oversized one is seen as oversized),
+    judged by Orchestrator._stop_request, answered only if it was a valid
+    stop, and closed. A valid stop calls the same abort() every other path
+    calls, from this thread, so it does not wait for the run's next check.
+    """
+
+    def __init__(self, orchestrator, run_id: str) -> None:
+        super().__init__(name=f"stop-channel:{run_id}", daemon=True)
+        self._o = orchestrator
+        self._closed = threading.Event()
+        self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._sock.bind(("127.0.0.1", 0))
+        self._sock.listen(4)
+        self._sock.settimeout(0.05)
+        host, port = self._sock.getsockname()[:2]
+        self._addr = {"host": host, "port": port}       # what the socket IS bound to
+
+    def address(self) -> dict:
+        return dict(self._addr)
+
+    def run(self) -> None:
+        while not self._closed.is_set():
+            try:
+                conn, _ = self._sock.accept()
+            except (socket.timeout, OSError):
+                continue
+            with conn:
+                try:
+                    conn.settimeout(2.0)
+                    cap = self._o.STOP_MAX_BYTES + 1
+                    raw = b""
+                    while len(raw) < cap and b"\n" not in raw:
+                        chunk = conn.recv(cap - len(raw))
+                        if not chunk:
+                            break
+                        raw += chunk
+                    if b"\n" in raw and len(raw) < cap:
+                        # Anything after the first line makes it not one line;
+                        # look briefly rather than wait for a close that may
+                        # never come.
+                        conn.settimeout(0.05)
+                        try:
+                            raw += conn.recv(cap - len(raw))
+                        except (socket.timeout, OSError):
+                            pass
+                    reply = self._o._stop_request(raw)
+                    if reply is not None:
+                        conn.sendall(reply)
+                except OSError as exc:
+                    self._o.record(event="stop_refused", reason=f"connection failed: {exc}")
+
+    def close(self) -> None:
+        self._closed.set()
+        try:
+            self._sock.close()
+        except OSError:
+            pass
+        if self.is_alive():
+            self.join(2.0)
+
+
 # --------------------------------------------------------------------------- #
 # the orchestrator
 # --------------------------------------------------------------------------- #
@@ -552,7 +619,101 @@ class Orchestrator:
         event = {"t_mono": self.clock.offset(), "time_base": SOFTWARE, **fields}
         with self._log_lock:
             self.log.append(event)
+            # The same event, the same order, written as it happens (card
+            # 057): under the log lock, so the file's order is the list's.
+            if getattr(self, "_stream", None) is not None:
+                self._stream_line(event)
         return event
+
+    # -- the run a viewer can follow, and stop (card 057) -------------------- #
+
+    #: The longest stop message accepted, in bytes. A stop is two short
+    #: fields; anything longer is not a stop.
+    STOP_MAX_BYTES = 1024
+
+    def _stream_line(self, event: dict) -> None:
+        """Append one line and flush. Never seeks, never truncates: append mode only."""
+        self._stream.write(json.dumps(event, default=str) + "\n")
+        self._stream.flush()
+
+    def begin_run(self, folder: Path, run_id: str, plan_id, revision) -> dict:
+        """Open runs/<run_id>/events.jsonl and the stop channel; announce both in one line.
+
+        The first line is `run_started`, carrying the stop channel's address,
+        which is written NOWHERE else. Events recorded before this call are
+        written next, in order, so the file between its first and last line is
+        always exactly `self.log`.
+        """
+        folder = Path(folder)
+        folder.mkdir(parents=True, exist_ok=True)
+        self._stop_run_id = run_id
+        self.stopped_from_outside = False
+        self._stop = _StopChannel(self, run_id)
+        addr = self._stop.address()
+        with self._log_lock:
+            self._stream = open(folder / "events.jsonl", "a", encoding="utf-8")
+            self._stream_line({"event": "run_started", "run_id": run_id, "plan_id": plan_id,
+                               "revision": revision, "t0_wall": self.clock.t0_wall,
+                               "stop_channel": addr})
+            for event in self.log:
+                self._stream_line(event)
+        self._stop.start()
+        return addr
+
+    def end_run(self, how: str, **detail) -> None:
+        """Close the stop channel, then write `run_ended` as the last line and close the file.
+
+        `how` is completed, aborted_by_monitor, stopped_from_outside or failed.
+        The channel closes first, so nothing can be stopped once the run says
+        it has ended.
+        """
+        stop = getattr(self, "_stop", None)
+        if stop is not None:
+            stop.close()
+            self._stop = None
+        with self._log_lock:
+            if getattr(self, "_stream", None) is not None:
+                self._stream_line({"event": "run_ended", "how": how,
+                                   "t_mono": self.clock.offset(), **detail})
+                self._stream.close()
+                self._stream = None
+
+    def stop_channel_address(self) -> dict | None:
+        stop = getattr(self, "_stop", None)
+        return None if stop is None else stop.address()
+
+    def _stop_request(self, raw: bytes) -> bytes | None:
+        """Judge one message on the stop channel. A reply for a valid stop, None for a refusal.
+
+        One form only: one line of JSON, exactly {"stop": <this run>,
+        "reason": <text>}. No status, no pause, nothing that sets a value,
+        and nothing that names a file. A stop can only stop.
+        """
+        def refuse(why: str) -> None:
+            self.record(event="stop_refused", reason=why, bytes=len(raw))
+            return None
+
+        if len(raw) > self.STOP_MAX_BYTES:
+            return refuse(f"longer than {self.STOP_MAX_BYTES} bytes")
+        text = raw.decode("utf-8", errors="replace")
+        if text.endswith("\n"):
+            text = text[:-1]
+        if "\n" in text or "\r" in text:
+            return refuse("not one line")
+        try:
+            message = json.loads(text)
+        except ValueError:
+            return refuse("not JSON")
+        if not isinstance(message, dict) or set(message) != {"stop", "reason"}:
+            return refuse("not exactly the keys stop and reason")
+        if not isinstance(message["reason"], str):
+            return refuse("reason is not text")
+        if message["stop"] != self._stop_run_id:
+            return refuse(f"names run {message['stop']!r}, not this run")
+        self.stopped_from_outside = True
+        self.record(event="stop_requested", reason=message["reason"])
+        self.abort(reason=f"stop from outside the process: {message['reason']}")
+        return b'{"abort": "begun"}\n'
 
     def log_header(self) -> dict:
         return {
