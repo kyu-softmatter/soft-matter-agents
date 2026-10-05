@@ -8099,6 +8099,13 @@ def check_88_focus_search(b: Bundle) -> list[Finding]:
         would leave it
       - THE ACTION IS THE Z DRIVE'S: the action `focus_search.action` names
         exists, commands stand_ti2e, and is reversible
+      - THE CAMERA CEILING RESOLVES (2026-10-05, card 059): `camera_ceiling`
+        names a numbers[] entry that is a whole count in ADU with a kb:
+        source, or a kb_gaps entry. A gap PASSES and says the plan cannot
+        run, because a plan may be written and approved before the store has
+        the count; refusing to run it is the code's. The three method
+        choices beside it, bin_px, blocks_per_side and max_extensions, are
+        the plan's own, and nothing here asks them for a source
 
     WHAT IT DELIBERATELY DOES NOT REFUSE. A range wider than `max_moves *
     step_um` can cover: the ceiling ending a search as not found is the
@@ -8172,13 +8179,45 @@ def check_88_focus_search(b: Bundle) -> list[Finding]:
             if action.get("reversible") is not True:
                 bad.append(f"action {fs.get('action')!r} is not reversible, and a focus move is")
 
+        # THE CAMERA CEILING IS A FACT, NOT A METHOD CHOICE (card 059,
+        # architecture's ruling of 2026-10-04). bin_px, blocks_per_side and
+        # max_extensions are the plan's own and carry no source, so nothing
+        # here asks one of them. The ceiling names a numbers[] entry or a
+        # kb_gaps entry, and the name has to resolve: a ceiling that points at
+        # nothing would read as present and be neither a value nor a gap.
+        ceiling = fs.get("camera_ceiling") or {}
+        ceiling_gap = None
+        if "number" in ceiling:
+            num = c.numbers().get(ceiling["number"])
+            if num is None:
+                bad.append(f"camera_ceiling names number {ceiling['number']!r}, which is not in numbers[]")
+            else:
+                if num.get("unit") != "ADU":
+                    bad.append(f"camera ceiling {ceiling['number']!r} is in {num.get('unit')!r}, not ADU")
+                v = num.get("value")
+                if not (isinstance(v, int) and not isinstance(v, bool) and v >= 1) and not (
+                        isinstance(v, float) and v.is_integer() and v >= 1):
+                    bad.append(f"camera ceiling {ceiling['number']!r} is {v!r}, not a whole count of at least 1")
+                if not str(num.get("source", "")).startswith("kb:"):
+                    bad.append(f"camera ceiling {ceiling['number']!r} has source {num.get('source')!r}: it is a "
+                               "fact about the camera and comes from the store, as kb:<entry>, or is a gap")
+        elif "gap" in ceiling:
+            gaps = {g.get("gap_id") for g in c.data.get("kb_gaps") or [] if isinstance(g, dict)}
+            if ceiling["gap"] not in gaps:
+                bad.append(f"camera_ceiling names gap {ceiling['gap']!r}, which is not in kb_gaps")
+            else:
+                ceiling_gap = ceiling["gap"]
+
         if bad:
             out.append(Finding(88, FAIL, f"{c.data.get('id')}: " + "; ".join(bad) + " (11-24)", c.rel))
         else:
             reach = moves * step if isinstance(moves, int) and isinstance(step, (int, float)) else None
             out.append(Finding(88, PASS, f"{c.data.get('id')}: a search over {rmin}..{rmax} um at {obj}, inside "
                                          f"the person's {lo}..{hi} um; {moves} moves of {step} um reach "
-                                         f"{reach} um, reported and not judged", c.rel))
+                                         f"{reach} um, reported and not judged"
+                                         + (f"; the camera ceiling is the gap {ceiling_gap!r}, so this plan "
+                                            "cannot run until the store holds that count" if ceiling_gap else ""),
+                               c.rel))
     return out
 
 

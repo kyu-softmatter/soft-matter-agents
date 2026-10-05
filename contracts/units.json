@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "note": "Authoritative unit registry (P3: JSON wins over units.md). dim is the dimension vector: L length, T time, M mass, Th temperature, A angle, N count, I electric current. I was added on 2026-09-24 for the volt, when the person made the confocal unit's command voltage, 0 to 5 V, its safety limit. si_factor converts the unit to SI base units.",
+  "note": "Authoritative unit registry (P3: JSON wins over units.md). dim is the dimension vector: L length, T time, M mass, Th temperature, A angle, N count, I electric current, D a camera's digital number. I was added on 2026-09-24 for the volt, when the person made the confocal unit's command voltage, 0 to 5 V, its safety limit. D was added on 2026-10-05 for ADU, for the focus search's camera ceiling (plan.md 11-24). si_factor converts the unit to SI base units.",
   "offset_units": "The registry is multiplicative. si_factor and dim express a scale and a dimension, and neither can express an ORIGIN, so an offset unit -- Celsius, Fahrenheit -- cannot be registered here and no entry for one should be added: an offset unit does not survive the operations a multiplicative one does, and a degC that scaled like a K would be wrong silently. Temperature is carried in kelvin everywhere. The consequence worth writing down is not the absent unit but the absent provenance: a person says 20 C, a card stores 293 K, and nothing in the number records that the reading arrived in Celsius. That goes in the number's note, beside the rounding -- 293 rather than 293.15, because the exact conversion would claim five figures from a reading given to the nearest degree. Found 2026-09-17 while entering lab_ambient_temperature.",
   "units": {
     "1": {
@@ -348,6 +348,13 @@
       },
       "$comment": "An electron, as a count of charge carriers. Same dimension as `count` and the conversion between them really is 1 -- what `e` carries that `count` does not is WHICH thing was counted, and a unit string is exactly where that belongs. Added 2026-09-20 for camera read noise, which the librarian seat parked in `count` rather than inventing a symbol; not inventing it was right and 025 is why.\n\nDO NOT GIVE ADU THIS DIMENSION IF IT EVER ARRIVES. Electrons and analogue-to-digital units are both counts and they differ by the camera's gain, which is not 1. Sharing `N` would let the registry convert one into the other silently, which is the failure `count` was given its own dimension to avoid one level up. ADU needs either its own dimension or an explicit gain on every crossing. The prior repository's ADU figures were dropped rather than carried, so the question is not live today and this note is here for the day it is.\n\nQuantum efficiency stays dimensionless under this: electrons per photon is N/N, which cancels to `1`, and that is the right answer."
     },
+    "ADU": {
+      "si_factor": 1.0,
+      "dim": {
+        "D": 1
+      },
+      "$comment": "An analogue-to-digital unit: the integer a camera reports for a pixel. Added 2026-10-05 for the focus search's camera ceiling, the full-scale count of one camera in one readout mode (plan.md 11-24, card 059). ITS OWN DIMENSION, D, as the note on `e` asked: ADU and electrons are both counts and differ by the camera's gain, which is not 1, so sharing N would let the registry convert one into the other silently. Nothing converts between D and N here. A crossing needs a gain, written as a number of its own with its own source."
+    },
     "1/s": {
       "si_factor": 1.0,
       "dim": {
@@ -440,6 +447,9 @@
     ],
     "count": [
       "count"
+    ],
+    "camera_digital_number": [
+      "ADU"
     ],
     "dimensionless": [
       "1"

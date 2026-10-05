@@ -758,6 +758,59 @@
           "minimum": 1,
           "description": "the ceiling on moves; reaching it ends the search as not found, never as found"
         },
+        "max_extensions": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "how many times the search may extend its range at the top end, a whole number of at least 0. A METHOD CHOICE: it carries no source and no grade, as max_moves does not. Required, with no default, because the copied search core takes it as a required argument (card 059); 0 means the search never extends"
+        },
+        "metric_arguments": {
+          "type": "object",
+          "description": "the classical metrics' two size arguments (card 059). Both are METHOD CHOICES: the plan's own, with no source and no grade, as a target or a tolerance carries none. They are integers because the code takes them as integers",
+          "properties": {
+            "bin_px": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "the bin size, in px, for the peak-brightness metric"
+            },
+            "blocks_per_side": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "the block grid, in blocks per side, for the block scores"
+            }
+          },
+          "required": [
+            "bin_px",
+            "blocks_per_side"
+          ],
+          "additionalProperties": false
+        },
+        "camera_ceiling": {
+          "type": "object",
+          "description": "the camera's full-scale count in the readout mode the search uses, in ADU. A FACT ABOUT THE CAMERA, unlike the method choices beside it, so it is never written here as a value. It names EXACTLY ONE of two things. `number`: an entry in this card's numbers[] in ADU whose source is kb:, so the grade is derived from the store and never self-reported. `gap`: the gap_id of an entry in this card's kb_gaps, which is what a plan carries while the store has no such count -- true on 2026-10-05, when the store held the adapter's self-reported BitDepth 16 and a record of the camera misreporting its own bit depth, and no measured full-scale count. A GAP IS NEVER A DEFAULT: a plan naming one is valid and may be approved, and the code that reads it refuses to run the search rather than substitute a value. Check 88 checks that the name resolves",
+          "properties": {
+            "number": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "gap": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          },
+          "oneOf": [
+            {
+              "required": [
+                "number"
+              ]
+            },
+            {
+              "required": [
+                "gap"
+              ]
+            }
+          ],
+          "additionalProperties": false
+        },
         "branches": {
           "type": "array",
           "minItems": 3,
@@ -876,6 +929,9 @@
         "range_um",
         "step_um",
         "max_moves",
+        "max_extensions",
+        "metric_arguments",
+        "camera_ceiling",
         "branches",
         "decided_by",
         "metric",

@@ -11,6 +11,17 @@
   "status": "DRAFT",
   "numbers": [],
   "degraded": [],
+  "kb_gaps": [
+    {
+      "gap_id": "camera_full_scale_count",
+      "observable": "camera_full_scale_count",
+      "kind": "absent",
+      "searched": [
+        "FIXTURE: kb/entries read by hand for the Kinetix full-scale count in the readout mode in use"
+      ],
+      "kb_version": "kbv-70754d3df50b"
+    }
+  ],
   "purpose": "verify",
   "intent": "confirm",
   "focus_search": {
@@ -28,6 +39,14 @@
     },
     "step_um": 1,
     "max_moves": 200,
+    "max_extensions": 0,
+    "metric_arguments": {
+      "bin_px": 4,
+      "blocks_per_side": 3
+    },
+    "camera_ceiling": {
+      "gap": "camera_full_scale_count"
+    },
     "branches": [
       "in_focus",
       "step_up",

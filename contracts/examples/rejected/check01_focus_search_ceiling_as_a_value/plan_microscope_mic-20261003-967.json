@@ -1,9 +1,9 @@
 {
   "card": "plan",
   "schema_version": "0.1",
-  "id": "plan-mic-20261003-966-r1",
-  "qid": "mic-20261003-966",
-  "thread": "solo-mic-20261003-966",
+  "id": "plan-mic-20261003-967-r1",
+  "qid": "mic-20261003-967",
+  "thread": "solo-mic-20261003-967",
   "round": 0,
   "revision": 1,
   "author": "microscope_agent",
@@ -29,7 +29,7 @@
     "element": "z_drive",
     "action": "focus_search",
     "objective": "60x",
-    "read_back": "decider",
+    "read_back": "encoder",
     "pfs": "off",
     "approach_from": "retract",
     "target_z_um": 3000,
@@ -45,7 +45,7 @@
       "blocks_per_side": 3
     },
     "camera_ceiling": {
-      "gap": "camera_full_scale_count"
+      "value": 65535
     },
     "branches": [
       "in_focus",
@@ -72,7 +72,7 @@
         "unsure"
       ]
     },
-    "verifies": "REJECTED FIXTURE. The Z found taken from the decider rather than read from the encoder. The schema refuses it.",
+    "verifies": "REJECTED FIXTURE. The camera ceiling written as a bare value, where it must name a numbers[] entry with a kb: source or a gap. The schema refuses it.",
     "falsified_by": "the encoder Z found differs from the person's manual focus on the same field by more than the tolerance"
   },
   "actions": [
