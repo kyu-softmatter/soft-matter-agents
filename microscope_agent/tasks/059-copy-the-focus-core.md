@@ -110,7 +110,15 @@ model branch still lives in the file, stop.
 the clip levels, the bin size and the block grid, and `focus_search` in
 `plan.schema.json` has no field for them yet. Adding one is a manager's.
 Report the new arguments' names and units, and do not wire a value into code
-meanwhile.
+meanwhile. **Sort each argument into one of two kinds**, because the schema
+treats them differently:
+- **the plan's choice of method**, like the block grid and the bin size. It
+  carries no source and no grade, as a target or a tolerance does not;
+- **a fact about the camera**, like the clip levels. It needs a `kb:` source
+  from the store, and a missing entry is a gap, never a default.
+
+If an argument does not plainly fall in one kind, say so and do not decide
+it.
 
 In each case, report up which file, which line, and why. The decision on how
 it may cross is architecture's and the person's, not this card's.
