@@ -3885,3 +3885,46 @@ On 2026-09-22 the person looked at **Jev**, TypeSafe AI's "System One Model" (`t
 - **§4.6.1's table** said the LLM is not on the normal path. Both trials put a decision model there, flag-only and branch-only, and a pointer now sits under that table so the two places do not disagree. The command rule is unchanged.
 - **Nothing in §2.1 moves.** Safety stays with deterministic code; ambiguity stops; a signal refuses and never permits.
 - **The work is the microscope agent's execution layer** -- O3 for the watcher, `devices/` and the operator for the search -- and it is that seat's to implement. This section is the specification and its reasons, in the tier §6.2 gives the root: specify, do not implement.
+
+## 14. Merging dino-autofocus -- the handoff (kept current; last updated 2026-10-05)
+
+Written for whoever picks this up next, person or session, without the conversation that produced it. Every claim below is a commit or a file, so check it rather than trust it. The branch is `feature/autofocus-ui`. It reaches `main` only when the person merges it.
+
+**Purpose.** Bring [dino-autofocus](https://github.com/kyu-softmatter/dino-autofocus)'s focus finding into this repository's microscope agent, so focus is found by the same engine that runs every other plan, under the same safety rules. Its operator console (screens, server, launcher) **stays in dino-autofocus** and acts here only by drafting plans the person approves (the person, 2026-10-02). Public target: 2026-10-23.
+
+**The rules it runs under** (all in this file): 10.2's 2026-10-03 paragraph (what may cross, and that it crosses only by copy), 10.2.1 (every item ruled; the places list now includes the operator's focus search), 10.3 (numbers only through the librarian, E3 at most, and no safety limit ever), 11-24 (the focus search), 11-25 (what the console may use), 4.6.8 interlock 1 (the abort order, and the person's close-only shutter exemption).
+
+**Done** (on mock or fake core; nothing has run on the instrument):
+
+| What | Where |
+|---|---|
+| dino-autofocus accepted as a source; merge recorded | `96db738`, `7159f67`, `75af4b6` |
+| The abort turns the lamps off and reads them back; the rows for sources refused by name say they stay on | card 054; `5dfb922`, `a50ffe6` |
+| An abort's shutter rows say closed only from a read-back; it closes the two filter-turret shutters, close-only | card 056; `4494c57`, `35c5d6d`; exemption `10561c8` |
+| The focus-search plan shape and its commit-time check | `d247607`, check 88 declared at `e67098a` |
+| Per-lens focus limits in the envelope schema, with no values (the person writes them; the upper limit is written, never derived) | `e079983`, `250a138` |
+| The focus search is refused at dispatch and walks Z only for an approved plan | card 055; `fee80a0` |
+| Run events a viewer can follow, a loopback stop, a frame tap that commands nothing | cards 057/058; `f6c0996`, `0c6452d` |
+| The method's 17 definitions in the store, no numbers | `6d322fa`, `3c3f112` |
+| `.agent/` ignored; the validator command for the Office computer | `1f90eb2`, `6ed51d8`, `4ec5d1e` |
+
+**In progress.** Card 059 copies the pure focus core: `focus_classical`, `focus_verdict`, `focus_search` and their three tests, from dino-autofocus `b802837` (bodies at `399be77`, public on branch `merge-plan/D-03c-no-constants-no-model`). It goes to `microscope-20261003-1`, with hashes recomputed and one `rulings.jsonl` line per file. After it lands, manager-microscope adds the plan fields for the new arguments: `ceiling` is a camera fact and needs a store entry, while `bin_px` and the block count `n` are method choices.
+
+**Waiting on the person, at the bench:**
+1. The twelve focus limits `focus_z_<objective>_{min,max}` in `envelope/safety.json`. Write a wide value for each dry lens; absent never means unlimited.
+2. Watching the refusals on the instrument before the first software Z command (card 055's instrument gate), and the first abort with lamps and shutters on the real stand.
+3. The spinning-disk shutter's closed value. It is approved but not built, because no closed value is recorded.
+4. Whether a run stops when its viewer drops (default: it keeps going), and whether live frames show outside a plan (default: no).
+
+**Waiting on a seat that is not open:** a manager-librarian session, to card the camera's full-scale count per readout mode. The store has none, so every focus search records that gap. Copying `map_*` (sample maps) waits for an XY design; nothing here designs one yet.
+
+**Next, in order:** 059 lands → the schema fields for the new arguments → the person's bench visit (limits, watched refusals, first real abort) → the first focus-search plan, run with the person present → merge `feature/autofocus-ui` to `main`. On the dino side, its merge-plan branches merge into its own `main` **by merge, not rebase**, so the pinned commits stay reachable.
+
+**How to work here** (the root `CLAUDE.md` has the reasons):
+- One session per seat, seated by the person; architecture registers the row in `contracts/seats.json` before the seat's first commit.
+- Commit with `GIT_COMMITTER_NAME`/`GIT_COMMITTER_EMAIL` from that row: `git diff HEAD -- <paths>`, then `git commit -F <file> -- <paths>`. Never `--amend`.
+- Push with `git -c credential.helper=manager push origin feature/autofocus-ui`.
+- On the Office computer, validate with `uv run --offline --no-project --python 3.12 --with jsonschema python contracts/validate.py`. Bare `python` there skips check 1.
+- The commit hooks are not installed on this working copy. Installing them is the person's to watch.
+
+**The dino side's own record** is its `docs/integration-sma.md` (the person's decisions) and `docs/integration-sma-workplan.md` (items, owners, open decisions). It is read as data, and this section is what binds here.
