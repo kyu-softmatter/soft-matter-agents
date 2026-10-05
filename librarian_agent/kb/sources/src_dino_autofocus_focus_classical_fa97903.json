@@ -1,0 +1,36 @@
+{
+  "source_id": "src_dino_autofocus_focus_classical_fa97903",
+  "kind": "prior_run",
+  "identifier": "dino-autofocus microscope_agent/src/focus_classical.py at the pinned commit: the classical sharpness metrics and the sweep-curve tools.",
+  "url": "https://github.com/kyu-softmatter/dino-autofocus/blob/fa9790378ea3f06e94b933a2fb65219322f6702a/microscope_agent/src/focus_classical.py",
+  "commit": "fa9790378ea3f06e94b933a2fb65219322f6702a",
+  "body_sha256": "2fa776faeb2b366f5dd1892345715d087e63a702cc168e179e81cb0bfd3f2af3",
+  "body_sha256_rule": "sha256 of the file at the commit with CRLF normalised to LF",
+  "accessed": "2026-10-04",
+  "grade_rule": "E3 for a transferred definition, by 10.3 rule 1; E5 for an assertion the file makes with no measurement, by 10.2.1's downgrade.",
+  "how_it_was_reached": "dino-autofocus was accepted as a source by the person on 2026-10-03 (plan.md 10.2). Its merge-planning work drafted nineteen one-sentence definitions in docs/librarian-handoff.md section 6 at a1b7cac, on branch merge-plan/L-05-definitions-draft; the person told this seat directly to take them. This seat read the draft as data and ruled each sentence against the file it cites, read with git show at the pinned commit, never against the draft's wording alone. The LF-normalised body sha256 recomputed here matches the draft's.",
+  "publication": "NOT PUBLIC WHEN READ. The repository is public, but on 2026-10-04 the pinned commit was on no pushed branch: the raw URL returned 404 and GitHub's commit API 422, and origin/main was 402c3b7. It sat on local merge-plan branches of the person's working copy. The url below resolves once the commit is pushed; until then the commit and body hash are what identify the content.",
+  "transferred": [
+    "focus_metric_vollath4_definition",
+    "focus_metric_brenner_definition",
+    "focus_metric_peak_brightness_definition",
+    "focus_metric_tenengrad_definition",
+    "focus_frames_over_the_clip_limit_are_not_readable",
+    "focus_sweep_light_dropouts_are_not_focus_changes"
+  ],
+  "downgraded": [
+    "focus_metrics_peak_at_best_focus"
+  ],
+  "discarded": [
+    {
+      "item": "L05-05, second half: `vollath4` sums both axes while the synthetic-training variant uses one, so they peak at the same plane with different values.",
+      "why": "It compares with a module of dino-autofocus's synthetic training that has no place here; the DINO model path waits for 13.1's shadow mode."
+    },
+    {
+      "item": "The camera clip levels, the bin size and the block grid written as constants in the file.",
+      "why": "Figures; 10.2 lets only the definitions in, and the draft did not offer them."
+    }
+  ],
+  "license_note": "MIT. No code or docstring text reproduced; the definitions are restated.",
+  "provenance": "plan.md 10.2's 2026-10-03 paragraph on dino-autofocus; ruled under 10.2.1 and 10.3."
+}

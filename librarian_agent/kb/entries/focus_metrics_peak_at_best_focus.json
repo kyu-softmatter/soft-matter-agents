@@ -1,0 +1,25 @@
+{
+  "entry_id": "focus_metrics_peak_at_best_focus",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Each of dino-autofocus's classical focus metrics -- `vollath4`, `brenner`, `tenengrad` and `peak_brightness` -- reaches its maximum over a z sweep at the plane of best focus.",
+  "source": "assumed:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+  "grade": "E5",
+  "grade_tag": "assumed",
+  "source_ref": "src_dino_autofocus_focus_classical_fa97903",
+  "validity_conditions": "A classical sharpness metric of one monochrome widefield frame as read, clipped pixels not masked. It ranks frames of one sweep against each other; it says nothing about which plane holds the sample, and its value is not comparable across metrics or across sweeps taken with different exposure or binning. Best focus here means the plane of greatest sharpness, which need not be the plane holding the sample of interest. 10.2.1: DOWNGRADE. The source states this in its module docstring with no measurement attached, so it enters as an assertion without grounds, E5, rather than at the E3 its sibling definitions carry. Falsifier: a sweep on this stand through the person's manual focus in which a metric's maximum is not at the manual focus plane -- most likely `brenner` on a dim frame, which the source itself says rises on noise, or `peak_brightness` on a dense field. Measured here, the claim is promoted per metric and supersedes this entry. Place: a store entry, cited by the 11-24 design as the premise its baseline rests on. The other half of the drafted sentence, that `vollath4` and the synthetic-training variant peak at the same plane with different values, is DISCARDED: it describes a module that has no place here.",
+  "date": "2026-10-04",
+  "valid_until": {
+    "no_event": "The claim describes one file at one commit, identified by its LF-normalised body sha256, so nothing ends it. A later change to that file in dino-autofocus is a new source, and the entry describing it supersedes this one."
+  },
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261004-1",
+  "identifiers": {
+    "repository": "kyu-softmatter/dino-autofocus",
+    "commit": "fa9790378ea3f06e94b933a2fb65219322f6702a",
+    "file": "microscope_agent/src/focus_classical.py",
+    "body_sha256": "2fa776faeb2b366f5dd1892345715d087e63a702cc168e179e81cb0bfd3f2af3",
+    "name": "every metric"
+  }
+}

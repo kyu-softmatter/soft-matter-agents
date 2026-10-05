@@ -1,0 +1,24 @@
+{
+  "entry_id": "focus_metric_peak_brightness_definition",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In dino-autofocus's focus core, `peak_brightness` (registered as `peak`) is the brightest spot of the block-binned frame minus the median of the binned frame, in raw counts; it is deliberately not scale-invariant, being meant for sparse particle fields at high magnification where a whole-frame sharpness barely moves.",
+  "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+  "grade": "E3",
+  "source_ref": "src_dino_autofocus_focus_classical_fa97903",
+  "validity_conditions": "A classical sharpness metric of one monochrome widefield frame as read, clipped pixels not masked. It ranks frames of one sweep against each other; it says nothing about which plane holds the sample, and its value is not comparable across metrics or across sweeps taken with different exposure or binning. Because it is in raw counts, a clipped particle caps it at the camera ceiling; the bin size is a structural default of the source and is not entered. 10.2.1: TRANSFER. Place: a store entry -- the one place 10.2's 2026-10-03 paragraph opens for dino-autofocus before 11-24 designs the focus search, so that design can cite the method without any code having crossed. Rule: 10.3 rule 1, capped at E3 as a run taken in another project. No figure crosses (rules 3 and 4): every threshold the method uses is its caller's argument and none is entered. It says what the method IS at the pinned commit, not that it works on this stand.",
+  "date": "2026-10-04",
+  "valid_until": {
+    "no_event": "The claim describes one file at one commit, identified by its LF-normalised body sha256, so nothing ends it. A later change to that file in dino-autofocus is a new source, and the entry describing it supersedes this one."
+  },
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261004-1",
+  "identifiers": {
+    "repository": "kyu-softmatter/dino-autofocus",
+    "commit": "fa9790378ea3f06e94b933a2fb65219322f6702a",
+    "file": "microscope_agent/src/focus_classical.py",
+    "body_sha256": "2fa776faeb2b366f5dd1892345715d087e63a702cc168e179e81cb0bfd3f2af3",
+    "name": "peak_brightness"
+  }
+}

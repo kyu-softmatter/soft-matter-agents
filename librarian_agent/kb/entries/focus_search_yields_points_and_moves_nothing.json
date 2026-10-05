@@ -1,0 +1,24 @@
+{
+  "entry_id": "focus_search_yields_points_and_moves_nothing",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "dino-autofocus's focus search file yields spans and ascending z points only: the floor and ceiling are arguments, the points are clipped to them and a span lying wholly outside them is refused, nothing in the file moves anything, and no model value takes part.",
+  "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+  "grade": "E3",
+  "source_ref": "src_dino_autofocus_focus_search_fa97903",
+  "validity_conditions": "Describes the order and layout of spans only. Every span size, centre, floor and ceiling is an argument the caller supplies, and in this repository the floor and ceiling come from the person's per-objective focus limits, not from dino-autofocus. The drafted sentence also said every move is checked and read back by the caller; that half is DISCARDED here because it describes the caller, which in this repository is the orchestrator and its run-time gate, not anything this source can assert. 10.2.1: TRANSFER. Place: a store entry -- the one place 10.2's 2026-10-03 paragraph opens for dino-autofocus before 11-24 designs the focus search, so that design can cite the method without any code having crossed. Rule: 10.3 rule 1, capped at E3 as a run taken in another project. No figure crosses (rules 3 and 4): every threshold the method uses is its caller's argument and none is entered. It says what the method IS at the pinned commit, not that it works on this stand.",
+  "date": "2026-10-04",
+  "valid_until": {
+    "no_event": "The claim describes one file at one commit, identified by its LF-normalised body sha256, so nothing ends it. A later change to that file in dino-autofocus is a new source, and the entry describing it supersedes this one."
+  },
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261004-1",
+  "identifiers": {
+    "repository": "kyu-softmatter/dino-autofocus",
+    "commit": "fa9790378ea3f06e94b933a2fb65219322f6702a",
+    "file": "microscope_agent/src/focus_search.py",
+    "body_sha256": "7ffaf28f014ffdd87587f803f2481e3d9eff47219fde15432d97932483655bc6",
+    "name": "sweep_z"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "source_id": "src_dino_autofocus_focus_verdict_fa97903",
+  "kind": "prior_run",
+  "identifier": "dino-autofocus microscope_agent/src/focus_verdict.py at the pinned commit: the verdict vocabulary and its two mappings.",
+  "url": "https://github.com/kyu-softmatter/dino-autofocus/blob/fa9790378ea3f06e94b933a2fb65219322f6702a/microscope_agent/src/focus_verdict.py",
+  "commit": "fa9790378ea3f06e94b933a2fb65219322f6702a",
+  "body_sha256": "07bc1342a4c868e5856b549bc8bc6a8c3a5af8fd8bd6dd83cc6c6970d01be099",
+  "body_sha256_rule": "sha256 of the file at the commit with CRLF normalised to LF",
+  "accessed": "2026-10-04",
+  "grade_rule": "E3 for a transferred definition, by 10.3 rule 1; E5 for an assertion the file makes with no measurement, by 10.2.1's downgrade.",
+  "how_it_was_reached": "dino-autofocus was accepted as a source by the person on 2026-10-03 (plan.md 10.2). Its merge-planning work drafted nineteen one-sentence definitions in docs/librarian-handoff.md section 6 at a1b7cac, on branch merge-plan/L-05-definitions-draft; the person told this seat directly to take them. This seat read the draft as data and ruled each sentence against the file it cites, read with git show at the pinned commit, never against the draft's wording alone. The LF-normalised body sha256 recomputed here matches the draft's.",
+  "publication": "NOT PUBLIC WHEN READ. The repository is public, but on 2026-10-04 the pinned commit was on no pushed branch: the raw URL returned 404 and GitHub's commit API 422, and origin/main was 402c3b7. It sat on local merge-plan branches of the person's working copy. The url below resolves once the commit is pushed; until then the commit and body hash are what identify the content.",
+  "transferred": [
+    "focus_verdict_vocabulary",
+    "focus_verdict_step_direction",
+    "focus_verdict_z_is_a_taken_frames_readback",
+    "focus_verdict_returns_a_branch_never_a_z",
+    "focus_verdict_unsure_is_an_abstention",
+    "focus_verdict_from_a_classical_sweep",
+    "focus_verdict_thresholds_are_all_the_callers"
+  ],
+  "downgraded": [],
+  "discarded": [
+    {
+      "item": "L05-14: the verdict from one signed model reading in depth-of-field units.",
+      "why": "Its input is a learned model's output, which is E6 here and has no place until 13.1's shadow mode and a pixi change. Entering how a model number becomes a branch would give that path a citable definition before the model may be used at all."
+    },
+    {
+      "item": "L05-09, second half: at the oil-immersion objective a step up is the operator's call.",
+      "why": "An operating rule about moving toward an immersed lens. Policy, the person's to write (10.3 rule 4), not knowledge."
+    }
+  ],
+  "license_note": "MIT. No code or docstring text reproduced; the definitions are restated.",
+  "provenance": "plan.md 10.2's 2026-10-03 paragraph on dino-autofocus; ruled under 10.2.1 and 10.3."
+}

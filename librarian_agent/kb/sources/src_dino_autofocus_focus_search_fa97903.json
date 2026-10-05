@@ -1,0 +1,31 @@
+{
+  "source_id": "src_dino_autofocus_focus_search_fa97903",
+  "kind": "prior_run",
+  "identifier": "dino-autofocus microscope_agent/src/focus_search.py at the pinned commit: the focus search as spans and z points.",
+  "url": "https://github.com/kyu-softmatter/dino-autofocus/blob/fa9790378ea3f06e94b933a2fb65219322f6702a/microscope_agent/src/focus_search.py",
+  "commit": "fa9790378ea3f06e94b933a2fb65219322f6702a",
+  "body_sha256": "7ffaf28f014ffdd87587f803f2481e3d9eff47219fde15432d97932483655bc6",
+  "body_sha256_rule": "sha256 of the file at the commit with CRLF normalised to LF",
+  "accessed": "2026-10-04",
+  "grade_rule": "E3 for a transferred definition, by 10.3 rule 1; E5 for an assertion the file makes with no measurement, by 10.2.1's downgrade.",
+  "how_it_was_reached": "dino-autofocus was accepted as a source by the person on 2026-10-03 (plan.md 10.2). Its merge-planning work drafted nineteen one-sentence definitions in docs/librarian-handoff.md section 6 at a1b7cac, on branch merge-plan/L-05-definitions-draft; the person told this seat directly to take them. This seat read the draft as data and ruled each sentence against the file it cites, read with git show at the pinned commit, never against the draft's wording alone. The LF-normalised body sha256 recomputed here matches the draft's.",
+  "publication": "NOT PUBLIC WHEN READ. The repository is public, but on 2026-10-04 the pinned commit was on no pushed branch: the raw URL returned 404 and GitHub's commit API 422, and origin/main was 402c3b7. It sat on local merge-plan branches of the person's working copy. The url below resolves once the commit is pushed; until then the commit and body hash are what identify the content.",
+  "transferred": [
+    "focus_search_is_coarse_then_fine",
+    "focus_search_top_end_extension_layout",
+    "focus_search_yields_points_and_moves_nothing"
+  ],
+  "downgraded": [],
+  "discarded": [
+    {
+      "item": "L05-17, second half: the operator is asked before each extension, a bounded number of times.",
+      "why": "A procedure of dino-autofocus's engine and a count. Whether and how often to extend belongs to the 11-24 design and the person."
+    },
+    {
+      "item": "L05-18, second half: every move is checked and read back by the caller.",
+      "why": "A claim about the caller, which here is this repository's orchestrator and run-time gate; the source cannot assert it."
+    }
+  ],
+  "license_note": "MIT. No code or docstring text reproduced; the definitions are restated.",
+  "provenance": "plan.md 10.2's 2026-10-03 paragraph on dino-autofocus; ruled under 10.2.1 and 10.3."
+}

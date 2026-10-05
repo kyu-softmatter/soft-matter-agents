@@ -1,0 +1,23 @@
+{
+  "source_id": "src_dino_autofocus_focus_run_log_fa97903",
+  "kind": "prior_run",
+  "identifier": "dino-autofocus microscope_agent/src/focus_run_log.py at the pinned commit: a focus verdict as one run-log event.",
+  "url": "https://github.com/kyu-softmatter/dino-autofocus/blob/fa9790378ea3f06e94b933a2fb65219322f6702a/microscope_agent/src/focus_run_log.py",
+  "commit": "fa9790378ea3f06e94b933a2fb65219322f6702a",
+  "body_sha256": "cb47d6d43e1d4695be71480afb945ff114a2cda103728c783631098d736a06c6",
+  "body_sha256_rule": "sha256 of the file at the commit with CRLF normalised to LF",
+  "accessed": "2026-10-04",
+  "grade_rule": "E3 for a transferred definition, by 10.3 rule 1; E5 for an assertion the file makes with no measurement, by 10.2.1's downgrade.",
+  "how_it_was_reached": "dino-autofocus was accepted as a source by the person on 2026-10-03 (plan.md 10.2). Its merge-planning work drafted nineteen one-sentence definitions in docs/librarian-handoff.md section 6 at a1b7cac, on branch merge-plan/L-05-definitions-draft; the person told this seat directly to take them. This seat read the draft as data and ruled each sentence against the file it cites, read with git show at the pinned commit, never against the draft's wording alone. The LF-normalised body sha256 recomputed here matches the draft's.",
+  "publication": "NOT PUBLIC WHEN READ. The repository is public, but on 2026-10-04 the pinned commit was on no pushed branch: the raw URL returned 404 and GitHub's commit API 422, and origin/main was 402c3b7. It sat on local merge-plan branches of the person's working copy. The url below resolves once the commit is pushed; until then the commit and body hash are what identify the content.",
+  "transferred": [],
+  "downgraded": [],
+  "discarded": [
+    {
+      "item": "L05-19: a focus verdict is one run-log event that is not a command, with readback and computed values graded E1 and E4 and model numbers as ungraded signals.",
+      "why": "A proposed shape for this repository's run-log event, not knowledge about anything. Its place is a contract field, a manager's, and the source itself says its grade mapping is provisional until the person rules."
+    }
+  ],
+  "license_note": "MIT. No code or docstring text reproduced; the definitions are restated.",
+  "provenance": "plan.md 10.2's 2026-10-03 paragraph on dino-autofocus; ruled under 10.2.1 and 10.3."
+}

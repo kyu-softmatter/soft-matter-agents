@@ -1,0 +1,24 @@
+{
+  "entry_id": "focus_verdict_thresholds_are_all_the_callers",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Every threshold dino-autofocus's focus verdict uses is a keyword argument its caller must supply, with no default in the file and no bench number held there.",
+  "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+  "grade": "E3",
+  "source_ref": "src_dino_autofocus_focus_verdict_fa97903",
+  "validity_conditions": "A verdict is for display and for the record only: it never sets a motion limit, opens a gate or takes part in a safety decision, which stay with deterministic guards reading encoder readbacks against limits the person wrote. Here the caller is an approved plan, so the thresholds are carried in the plan and not taken from dino-autofocus's own bench tables. 10.2.1: TRANSFER. Place: a store entry -- the one place 10.2's 2026-10-03 paragraph opens for dino-autofocus before 11-24 designs the focus search, so that design can cite the method without any code having crossed. Rule: 10.3 rule 1, capped at E3 as a run taken in another project. No figure crosses (rules 3 and 4): every threshold the method uses is its caller's argument and none is entered. It says what the method IS at the pinned commit, not that it works on this stand.",
+  "date": "2026-10-04",
+  "valid_until": {
+    "no_event": "The claim describes one file at one commit, identified by its LF-normalised body sha256, so nothing ends it. A later change to that file in dino-autofocus is a new source, and the entry describing it supersedes this one."
+  },
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261004-1",
+  "identifiers": {
+    "repository": "kyu-softmatter/dino-autofocus",
+    "commit": "fa9790378ea3f06e94b933a2fb65219322f6702a",
+    "file": "microscope_agent/src/focus_verdict.py",
+    "body_sha256": "07bc1342a4c868e5856b549bc8bc6a8c3a5af8fd8bd6dd83cc6c6970d01be099",
+    "name": "from_sweep / from_reading"
+  }
+}
