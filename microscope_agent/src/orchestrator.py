@@ -581,6 +581,127 @@ class _StopChannel(threading.Thread):
             self.join(2.0)
 
 
+class _FrameTap(threading.Thread):
+    """The latest frame a run's own acquisition produced, served on loopback (card 058).
+
+    IT COMMANDS NOTHING, AND IT HOLDS NO CORE. It is handed frames by the
+    orchestrator's tee on the run's own sink and snap(), keeps a COPY of the
+    most recent one, and serves that copy. There is no reference here to any
+    device module or core, so it cannot start, stop, configure or even read
+    an acquisition; when no frame is arriving it says so and never snaps.
+
+    `put()` is the only thing the run's thread calls: it copies the frame,
+    swaps one reference under a lock and returns. Serving -- serialising the
+    copy and writing it to the socket -- happens on this thread, so a reader
+    that is slow, never sends, or never reads holds up this thread and
+    nothing else.
+
+    One request: one line of JSON, exactly {"get": "latest_frame"}. The
+    reply is one header line, then the frame's bytes; or a header saying no
+    frame yet. Anything else is refused, recorded, and closed unanswered.
+    """
+
+    MAX_REQUEST_BYTES = 256
+
+    def __init__(self, orchestrator, run_id: str) -> None:
+        super().__init__(name=f"frame-tap:{run_id}", daemon=True)
+        self._o = orchestrator
+        self._closed = threading.Event()
+        self._lock = threading.Lock()
+        self._latest: tuple | None = None
+        self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._sock.bind(("127.0.0.1", 0))
+        self._sock.listen(4)
+        self._sock.settimeout(0.05)
+        host, port = self._sock.getsockname()[:2]
+        self._addr = {"host": host, "port": port}       # what the socket IS bound to
+
+    def address(self) -> dict:
+        return dict(self._addr)
+
+    def put(self, image, metadata: dict, t_mono: float) -> None:
+        """Copy one frame in, replacing the last. Nothing queues."""
+        copy = image.copy() if hasattr(image, "copy") else bytes(image)
+        latest = (copy, dict(metadata or {}), t_mono)
+        with self._lock:
+            self._latest = latest
+
+    def _reply(self) -> bytes:
+        with self._lock:
+            latest = self._latest
+        if latest is None:
+            return json.dumps({"frame": False, "note": "no frame yet: nothing has been "
+                               "acquired in this run, and the tap never acquires"}).encode() + b"\n"
+        image, metadata, t_mono = latest
+        if hasattr(image, "tobytes"):
+            body = image.tobytes()
+            shape, dtype = list(getattr(image, "shape", [])), str(getattr(image, "dtype", ""))
+        else:
+            body, shape, dtype = bytes(image), [len(image)], "bytes"
+        head = {"frame": True, "metadata": metadata, "t_mono": t_mono, "bytes": len(body),
+                "shape": shape, "dtype": dtype}
+        return json.dumps(head, default=str).encode() + b"\n" + body
+
+    def _judge(self, raw: bytes) -> bytes | None:
+        def refuse(why: str) -> None:
+            self._o.record(event="frame_tap_refused", reason=why, bytes=len(raw))
+            return None
+        if len(raw) > self.MAX_REQUEST_BYTES:
+            return refuse(f"longer than {self.MAX_REQUEST_BYTES} bytes")
+        text = raw.decode("utf-8", errors="replace")
+        if text.endswith("\n"):
+            text = text[:-1]
+        if "\n" in text or "\r" in text:
+            return refuse("not one line")
+        try:
+            message = json.loads(text)
+        except ValueError:
+            return refuse("not JSON")
+        if message != {"get": "latest_frame"}:
+            return refuse('not the one request this tap answers, {"get": "latest_frame"}')
+        return self._reply()
+
+    def run(self) -> None:
+        while not self._closed.is_set():
+            try:
+                conn, _ = self._sock.accept()
+            except (socket.timeout, OSError):
+                continue
+            with conn:
+                try:
+                    conn.settimeout(1.0)
+                    cap = self.MAX_REQUEST_BYTES + 1
+                    raw = b""
+                    while len(raw) < cap and b"\n" not in raw:
+                        chunk = conn.recv(cap - len(raw))
+                        if not chunk:
+                            break
+                        raw += chunk
+                    if b"\n" in raw and len(raw) < cap:
+                        conn.settimeout(0.05)
+                        try:
+                            raw += conn.recv(cap - len(raw))
+                        except (socket.timeout, OSError):
+                            pass
+                    reply = self._judge(raw)
+                    if reply is not None:
+                        conn.settimeout(1.0)
+                        conn.sendall(reply)
+                except OSError:
+                    # A reader that went away or never read: its loss, and not
+                    # a fact about the run, so nothing is recorded.
+                    pass
+
+    def close(self) -> None:
+        self._closed.set()
+        try:
+            self._sock.close()
+        except OSError:
+            pass
+        if self.is_alive():
+            self.join(3.0)
+
+
 # --------------------------------------------------------------------------- #
 # the orchestrator
 # --------------------------------------------------------------------------- #
@@ -649,15 +770,17 @@ class Orchestrator:
         self._stop_run_id = run_id
         self.stopped_from_outside = False
         self._stop = _StopChannel(self, run_id)
+        self._tap = _FrameTap(self, run_id)
         addr = self._stop.address()
         with self._log_lock:
             self._stream = open(folder / "events.jsonl", "a", encoding="utf-8")
             self._stream_line({"event": "run_started", "run_id": run_id, "plan_id": plan_id,
                                "revision": revision, "t0_wall": self.clock.t0_wall,
-                               "stop_channel": addr})
+                               "stop_channel": addr, "frame_tap": self._tap.address()})
             for event in self.log:
                 self._stream_line(event)
         self._stop.start()
+        self._tap.start()
         return addr
 
     def end_run(self, how: str, **detail) -> None:
@@ -671,6 +794,10 @@ class Orchestrator:
         if stop is not None:
             stop.close()
             self._stop = None
+        tap = getattr(self, "_tap", None)
+        if tap is not None:
+            tap.close()
+            self._tap = None
         with self._log_lock:
             if getattr(self, "_stream", None) is not None:
                 self._stream_line({"event": "run_ended", "how": how,
@@ -681,6 +808,34 @@ class Orchestrator:
     def stop_channel_address(self) -> dict | None:
         stop = getattr(self, "_stop", None)
         return None if stop is None else stop.address()
+
+    def frame_tap_address(self) -> dict | None:
+        tap = getattr(self, "_tap", None)
+        return None if tap is None else tap.address()
+
+    def _tap_frame(self, image, metadata) -> None:
+        tap = getattr(self, "_tap", None)
+        if tap is not None:
+            tap.put(image, metadata, self.clock.offset())
+
+    def acquire_sequence(self, channel_id: str, n: int, sink, timeout_s: float | None = None):
+        """The channel's own sequence(), with the run's sink teed into the frame tap.
+
+        The run's sink is called FIRST, with the frame exactly as it came; the
+        tap's copy is taken after it returns, so nothing the tap does can reach
+        the run's data. The tap adds no camera call: this is the run's
+        acquisition, and the tee is the only thing added to it.
+        """
+        def tee(i, image, metadata):
+            sink(i, image, metadata)
+            self._tap_frame(image, metadata)
+        return self.module_for(channel_id).sequence(n, tee, timeout_s=timeout_s)
+
+    def acquire_snap(self, channel_id: str):
+        """The channel's own snap(); its frame is copied into the tap and returned unchanged."""
+        image, metadata = self.module_for(channel_id).snap()
+        self._tap_frame(image, metadata)
+        return image, metadata
 
     def _stop_request(self, raw: bytes) -> bytes | None:
         """Judge one message on the stop channel. A reply for a valid stop, None for a refusal.

@@ -118,6 +118,42 @@ def read_property(device: str, prop: str) -> str | None:
         return _PROPS.get((str(device), str(prop)))
 
 
+#: Seconds between mock frames. 0 by default; a test that needs a sequence
+#: with a duration sets it.
+FRAME_DELAY_S = 0.0
+
+#: Bytes in one mock frame. Small by default; a test that needs a frame too big
+#: for a socket buffer sets it.
+FRAME_BYTES = 64
+
+
+def snap():
+    """micromanager.snap's shape: one frame and its metadata. The frame is synthetic bytes."""
+    if _ABORTED:
+        raise RuntimeError("aborted: this backend refuses commands until it is reset")
+    return bytes(64), {"camera": "mock", "exposure_ms": None, "ImageNumber": "0"}
+
+
+def sequence(n: int, sink, timeout_s: float | None = None) -> dict:
+    """micromanager.sequence's shape: `n` synthetic frames, each handed to `sink(i, image, md)`.
+
+    Counted by integer, as the real one is. The frames are bytes, not sensor
+    data; each carries the ImageNumber the real metadata would.
+    """
+    import time as _time
+    if _ABORTED:
+        raise RuntimeError("aborted: this backend refuses commands until it is reset")
+    numbers = []
+    for i in range(int(n)):
+        if FRAME_DELAY_S:
+            _time.sleep(FRAME_DELAY_S)
+        meta = {"Camera": "mock", "ImageNumber": str(i)}
+        numbers.append(meta["ImageNumber"])
+        sink(i, bytes([i % 256]) * FRAME_BYTES, meta)
+    return {"wanted": int(n), "received": len(numbers), "image_numbers": numbers,
+            "gaps": [], "overflowed": False}
+
+
 def read() -> dict:
     """Return the state this backend was last told to hold.
 
