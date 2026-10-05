@@ -90,6 +90,34 @@ def close_for_abort(device: str, prop: str, value: object) -> dict:
             "backend": "mock"}
 
 
+def focus_z_move(target_um: float) -> dict:
+    """micromanager.focus_z_move's shape: one ABSOLUTE Z target, then the encoder read.
+
+    No policy: which Z moves may be made is the orchestrator's focus-search
+    gate (card 055). The mock's encoder reads back exactly what was sent;
+    a test that needs a drift replaces this function.
+    """
+    if _ABORTED:
+        raise RuntimeError("aborted: this backend refuses commands until it is reset")
+    with _LOCK:
+        _PROPS[("ZDrive", "Position")] = str(float(target_um))
+        got = float(_PROPS[("ZDrive", "Position")])
+    return {"target_um": float(target_um), "read_um": got, "backend": "mock"}
+
+
+def read_z() -> float | None:
+    """The mock encoder, or None if nothing has moved Z: the mock does not invent a position."""
+    with _LOCK:
+        value = _PROPS.get(("ZDrive", "Position"))
+    return None if value is None else float(value)
+
+
+def read_property(device: str, prop: str) -> str | None:
+    """One stored (device, property), or None if nothing set it."""
+    with _LOCK:
+        return _PROPS.get((str(device), str(prop)))
+
+
 def read() -> dict:
     """Return the state this backend was last told to hold.
 

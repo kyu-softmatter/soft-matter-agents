@@ -249,6 +249,45 @@ def close_for_abort(device: str, prop: str, value: object) -> dict:
             "backend": BACKEND}
 
 
+#: The Z drive's Micro-Manager label, as the loaded configuration declares it
+#: (`Device,ZDrive,NikonTi2,ZDrive`). ZDrive stays in NAMED_REFUSALS and off
+#: SOFTWARE_MAY_COMMAND (card 055): GuardedCore keeps refusing setPosition on
+#: it for every caller, and the one way a Z move goes out is focus_z_move(),
+#: which only the orchestrator's focus-search gate calls (a test counts the
+#: call sites). Like close_for_abort, it holds no policy: whether a target
+#: may be sent -- approval, derivation, range, the person's limits, the live
+#: clearance comparison -- is decided before it is called.
+Z_DRIVE = "ZDrive"
+
+
+def focus_z_move(target_um: float) -> dict:
+    """One ABSOLUTE Z target for an approved focus search, then the encoder read.
+
+    Absolute, never relative: a relative move re-sent after a lost reply
+    moves Z twice. The return is what the encoder reads after the move, and
+    the caller judges it against the plan's tolerance -- the write returning
+    is not a position.
+    """
+    if _ABORTED:
+        raise RuntimeError("aborted: this backend refuses commands until it is reset")
+    core = object.__getattribute__(_core(), "_core")
+    with _LOCK:
+        core.setPosition(Z_DRIVE, float(target_um))
+        core.waitForDevice(Z_DRIVE)
+        got = float(core.getPosition(Z_DRIVE))
+    return {"target_um": float(target_um), "read_um": got, "backend": BACKEND}
+
+
+def read_z() -> float:
+    """The Z encoder, through GuardedCore: a read, which every device allows."""
+    return float(_core().getPosition(Z_DRIVE))
+
+
+def read_property(device: str, prop: str) -> str:
+    """One property, read through GuardedCore."""
+    return str(_core().getProperty(device, prop))
+
+
 def named_refusals_hold() -> list[str]:
     """Every name in NAMED_REFUSALS that the allow-list would NOT refuse. Empty is correct."""
     return [d for d in NAMED_REFUSALS if refusal(d, "State", "setProperty") is None]

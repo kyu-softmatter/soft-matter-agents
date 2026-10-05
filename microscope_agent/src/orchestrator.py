@@ -418,6 +418,80 @@ def from_operation_move(command: "Command") -> bool:
     return command.from_field.startswith("operation.moves[")
 
 
+# --------------------------------------------------------------------------- #
+# the focus search (card 055, plan.md 11-24)
+# --------------------------------------------------------------------------- #
+
+#: The third exemption, for an approved plan's focus search on the Z drive.
+#: ZDrive stays refused by name everywhere else; nothing here lifts it.
+FOCUS_EXEMPT_CHANNEL, FOCUS_EXEMPT_ELEMENT = "stand_ti2e", "z_drive"
+
+#: What each branch does to Z, from the last ENCODER READ: +1 or -1 step_um.
+#: The three branches absent here move nothing. The decider names a branch
+#: and never a number; the target is derived here.
+FOCUS_STEPS = {"step_up": +1, "step_down": -1}
+FOCUS_NO_MOVE = ("in_focus", "no_sample_here", "unsure")
+
+#: The only keys a decision may carry. A decision carrying anything else --
+#: a target, a position, an offset -- is a decider supplying a number, which
+#: the card refuses, so it is refused rather than ignored.
+FOCUS_DECISION_KEYS = frozenset({"branch", "confidence", "note"})
+
+#: Which reading of which device means PFS is NOT engaged, as (device,
+#: property, value). PFS is in NAMED_REFUSALS, so software cannot switch it
+#: off; the search reads it and refuses while it is engaged, and the person
+#: switches it off. **Nothing on disk records the value**: no run has read a
+#: PFS property, and the loaded configuration declares the device and no
+#: values. A reading inferred from the property's name would be a spelling
+#: deciding a safety guard (check 80), so until a person states it this stays
+#: None and EVERY focus search refuses here. That is the correct default.
+PFS_NOT_ENGAGED: tuple[str, str, str] | None = None
+
+
+def focus_search_exemptions(plan: dict | None, commands: list["Command"]) -> dict[int, str]:
+    """Which commands are candidates for the focus-search exemption, from the PLAN's structure.
+
+    The shape of operation_exemptions and trap_step_exemptions: the plan has
+    `focus_search` on stand_ti2e / z_drive, the command's `from` names a
+    focus_search field, and the command is on that channel and element.
+    Being a candidate grants nothing; `_focus_gate` decides.
+    """
+    fs = (plan or {}).get("focus_search")
+    if not isinstance(fs, dict) or fs.get("channel") != FOCUS_EXEMPT_CHANNEL \
+            or fs.get("element") != FOCUS_EXEMPT_ELEMENT:
+        return {}
+    return {n: c.from_field for n, c in enumerate(commands)
+            if c.from_field.startswith("focus_search.")
+            and c.channel == FOCUS_EXEMPT_CHANNEL and c.element == FOCUS_EXEMPT_ELEMENT}
+
+
+def focus_limits(safety: dict, objective: str) -> dict:
+    """The person's focus_z_<objective>_{min,max}, read fresh. A missing key refuses.
+
+    `max` is the closest that lens may ever come to the coverslip, written by
+    the person per lens (plan.md 11-24 at 250a138). Nothing derives it, and
+    nothing here combines it with a coverslip position, a working distance or
+    objective_clearance_min. A dry lens the person has released carries wide
+    values and is never absent; an absent key is never read as unlimited.
+    """
+    limits: dict[str, dict] = {}
+    for target in safety.get("targets") or []:
+        limits.update({k: v for k, v in (target.get("limits") or {}).items()
+                       if k.startswith("focus_z_")})
+    out = {}
+    for end in ("min", "max"):
+        name = f"focus_z_{objective}_{end}"
+        lim = limits.get(name)
+        if not isinstance(lim, dict) or lim.get("value") is None or lim.get("unit") != "um":
+            raise InterlockError(
+                f"envelope/safety.json has no {name} in um. A missing focus limit refuses the "
+                "search for every lens, dry or immersion; the person writes it")
+        out[end] = float(lim["value"])
+    if not out["min"] < out["max"]:
+        raise InterlockError(f"focus_z_{objective}_min {out['min']} is not below _max {out['max']}")
+    return out
+
+
 _OPERATOR = None
 
 
@@ -973,8 +1047,217 @@ class Orchestrator:
                                 "optical_tweezers; the derived position, strength and step checks "
                                 "against the envelope bind it instead of the allow-list. The "
                                 "channel is blind: nothing it returns is a verification"))
-        exempt = {**exempt, **traps}
+        focus = focus_search_exemptions(plan, commands)
+        if focus:
+            focus = self._focus_gate(plan, commands, focus)
+        for n, plan_field in sorted(focus.items()):
+            self.record(event="software_motion_exempt", plan_field=plan_field,
+                        channel=commands[n].channel, action=commands[n].action,
+                        reason=("card 055: a focus-search move of an approved plan, equal to "
+                                "what the plan, the last encoder read and the decided branch "
+                                "derive; the range, the person's limits and the live clearance "
+                                "comparison bind it instead of the allow-list"))
+        exempt = {**exempt, **traps, **focus}
         self.check_software_motion([c for n, c in enumerate(commands) if n not in exempt])
+
+    def _focus_gate(self, plan: dict, commands: list[Command],
+                    candidates: dict[int, str]) -> dict[int, str]:
+        """The focus-search exemption's conditions, checked in the call that grants it.
+
+        (a) a plan_approval covers this revision, or nothing is exempt; (b)
+        each candidate equals the ONE command the running search derived for
+        this step -- from the plan, the last encoder read and the branch, all
+        held here and none taken from the command. A command built anywhere
+        else, or a second command riding the first, is not exempt and meets
+        the allow-list, which refuses ZDrive.
+        """
+        decision = _operator().authorise(plan)
+        if not decision.permitted:
+            self.record(event="software_motion_exemption_refused",
+                        reason="no approval covers this plan revision: " + "; ".join(decision.reasons))
+            return {}
+        expected = getattr(self, "_focus_expected", None)
+        kept = {}
+        for n, plan_field in candidates.items():
+            c = commands[n]
+            if expected is None or (c.channel, c.element, c.action, c.params, c.from_field) != (
+                    expected.channel, expected.element, expected.action, expected.params,
+                    expected.from_field):
+                self.record(event="software_motion_exemption_refused", plan_field=plan_field,
+                            reason=("the command is not what the running focus search derived "
+                                    "for this step"))
+                continue
+            kept[n] = plan_field
+        return kept
+
+    def run_focus_search(self, plan: dict, decide, load_safety=None) -> dict:
+        """Walk Z from the retract, one decided branch at a time, refusing at every gate.
+
+        `decide(last_read_um)` returns `{"branch", "confidence"}` and nothing
+        else; it never supplies a number. Every target is derived here from
+        the plan and the last ENCODER READ, sent ABSOLUTE, and read back. The
+        envelope is re-read at every step through `load_safety`, so a limit
+        the person changes or removes mid-search binds the next step.
+
+        Returns {"outcome": found | not_found | no_sample_here | unsure,
+        "z_um": the last encoder read, "moves": n}. Any refusal raises
+        InterlockError after recording it; nothing moves after a refusal.
+        """
+        load_safety = load_safety or _operator().load_safety
+        try:
+            return self._focus_search(plan, decide, load_safety)
+        except InterlockError as exc:
+            self.record(event="focus_search_refused", reason=str(exc))
+            raise
+        finally:
+            self._focus_expected = None
+
+    def _focus_search(self, plan: dict, decide, load_safety) -> dict:
+        fs = plan.get("focus_search")
+        if not isinstance(fs, dict) or fs.get("channel") != FOCUS_EXEMPT_CHANNEL \
+                or fs.get("element") != FOCUS_EXEMPT_ELEMENT:
+            raise InterlockError("the plan carries no focus_search on stand_ti2e / z_drive")
+        actions = {a.get("id"): a for a in plan.get("actions") or []}
+        action = actions.get(fs.get("action"))
+        if not action or action.get("device") != FOCUS_EXEMPT_CHANNEL \
+                or action.get("reversible") is not True:
+            raise InterlockError(f"focus_search.action {fs.get('action')!r} is not a reversible "
+                                 "action on stand_ti2e in this plan")
+
+        # -- before the first Z command ------------------------------------ #
+        objective = self.handover.get("objective")
+        if not objective:
+            raise InterlockError("no objective stated at hand-over; a focus search waits for the "
+                                 "person to say which lens is in place, and nothing fills it in")
+        if objective != fs.get("objective"):
+            raise InterlockError(f"the plan's focus search is for {fs.get('objective')!r} and the "
+                                 f"person states {objective!r} is in place")
+        limits = focus_limits(load_safety(), objective)
+        rng = fs.get("range_um") or {}
+        lo, hi = float(rng.get("min")), float(rng.get("max"))
+        if not (lo < hi and limits["min"] <= lo and hi <= limits["max"]):
+            raise InterlockError(f"range_um {lo} to {hi} is not a range inside the person's "
+                                 f"focus_z_{objective} limits {limits['min']} to {limits['max']}")
+        if not any(c.get("target") == "position_readback_error"
+                   or c.get("metric") == "position_readback_error"
+                   for c in plan.get("stop_criteria") or []):
+            raise InterlockError("the plan has no stop criterion on position_readback_error, so "
+                                 "\"read back within tolerance\" would mean nothing")
+        try:
+            tolerance = float(_operator().readback_tolerance(plan)["value"])
+        except Exception as exc:                                # noqa: BLE001 - a refusal either way
+            raise InterlockError(f"no read-back tolerance: {exc}") from exc
+        module = self.module_for(FOCUS_EXEMPT_CHANNEL)
+        if PFS_NOT_ENGAGED is None:
+            raise InterlockError(
+                "which PFS reading means not engaged is recorded nowhere, so PFS cannot be "
+                "confirmed off and the search refuses. PFS is refused to software; a person "
+                "switches it off and states the reading that shows it")
+        device, prop, off = PFS_NOT_ENGAGED
+        reading = module.read_property(device, prop)
+        self.record(event="focus_search_pfs_read", device=device, property=prop,
+                    read=reading, required=off)
+        if reading is None or str(reading) != off:
+            raise InterlockError(f"PFS reads {device}.{prop} = {reading!r}, not {off!r}: it may "
+                                 "be engaged, and a held focus fights a sweep. The person "
+                                 "switches PFS off")
+
+        step = float(fs["step_um"])
+        max_moves = int(fs["max_moves"])
+        branches = list(fs.get("branches") or [])
+
+        # -- the retract: the search never starts from wherever Z was left -- #
+        last = self._focus_move(plan, fs, objective, load_safety, tolerance,
+                                target=lo, from_field="focus_search.range_um.min",
+                                branch="retract")
+        self._completed.add(FOCUS_EXEMPT_ELEMENT)
+        moves = 0
+        while True:
+            decision = decide(last)
+            if not isinstance(decision, dict):
+                raise InterlockError(f"the decider returned {decision!r}, not a decision")
+            extra = sorted(set(decision) - FOCUS_DECISION_KEYS)
+            branch = decision.get("branch")
+            self.record(event="focus_search_decision", branch=branch,
+                        confidence=decision.get("confidence"), last_read_um=last,
+                        abstention=branch == "unsure", extra_keys=extra)
+            if extra:
+                raise InterlockError(f"the decision carries {extra}; the decider names a branch "
+                                     "and never a number, and the target is derived here")
+            if branch not in branches:
+                raise InterlockError(f"branch {branch!r} is not in this plan's branches {branches}")
+            if branch in FOCUS_NO_MOVE:
+                outcome = {"in_focus": "found", "no_sample_here": "no_sample_here",
+                           "unsure": "unsure"}[branch]
+                break
+            if moves >= max_moves:
+                outcome = "not_found"
+                break
+            target = last + FOCUS_STEPS[branch] * step
+            last = self._focus_move(plan, fs, objective, load_safety, tolerance,
+                                    target=target, from_field=f"focus_search.{branch}",
+                                    branch=branch)
+            moves += 1
+        result = {"outcome": outcome, "z_um": last, "moves": moves,
+                  "note": ("z_um is the encoder read after the last move; for found it is the Z "
+                           "found, and never a number the decider gave")}
+        self.record(event="focus_search_end", **result)
+        return result
+
+    def _focus_move(self, plan: dict, fs: dict, objective: str, load_safety, tolerance: float,
+                    target: float, from_field: str, branch: str) -> float:
+        """One derived Z move: every check before it goes out, the encoder read after.
+
+        The order is the card's: the live clearance comparison against the
+        person's focus_z_<objective>_max, re-read now and recorded whether or
+        not it can be made; then range_um and the person's whole range; then
+        the exemption, which compares this exact command against what was
+        derived; then the move; then the read-back against the tolerance.
+        """
+        command = Command(channel=FOCUS_EXEMPT_CHANNEL, element=FOCUS_EXEMPT_ELEMENT,
+                          action="focus_z_move", params={"target_um": target},
+                          from_field=from_field)
+        self.record(event="focus_search_command", branch=branch, target_um=target,
+                    **{"from": from_field})
+        try:
+            limits = focus_limits(load_safety(), objective)
+        except InterlockError:
+            self.record(event="focus_clearance_compared", target=target, limit=None,
+                        compared=False, within=None,
+                        note=f"focus_z_{objective}_max is absent now, so nothing was compared")
+            raise
+        within = target <= limits["max"]
+        self.record(event="focus_clearance_compared", target=target, limit=limits["max"],
+                    compared=True, within=within)
+        if not within:
+            raise InterlockError(f"{from_field}: target {target} um is above "
+                                 f"focus_z_{objective}_max {limits['max']} um, the closest the "
+                                 "person allows this lens to the coverslip")
+        rng = fs["range_um"]
+        if not (float(rng["min"]) <= target <= float(rng["max"])):
+            raise InterlockError(f"{from_field}: target {target} um is outside range_um "
+                                 f"{rng['min']} to {rng['max']}")
+        if not limits["min"] <= target:
+            raise InterlockError(f"{from_field}: target {target} um is below "
+                                 f"focus_z_{objective}_min {limits['min']}")
+        self._focus_expected = command
+        self.check_software_motion_for(plan, [command])
+        returned = self.module_for(FOCUS_EXEMPT_CHANNEL).focus_z_move(target)
+        self._focus_expected = None
+        read = returned.get("read_um") if isinstance(returned, dict) else None
+        ok = read is not None and abs(float(read) - target) <= tolerance
+        self.record(event="focus_search_readback", branch=branch, target_um=target,
+                    read_um=read, tolerance_um=tolerance, within=ok,
+                    verification="readback" if ok else "none", **{"from": from_field})
+        if not ok:
+            self._aborted.set()
+            self.record(event="stop_criterion_violated", criterion="position_readback_error",
+                        plan_field=from_field, target_um=target, read_um=read,
+                        tolerance_um=tolerance)
+            raise InterlockError(f"{from_field}: the encoder reads {read} um after a move to "
+                                 f"{target} um, outside {tolerance} um; the search stops before "
+                                 "the next move")
+        return float(read)
 
     def _trap_gate(self, plan: dict, commands: list[Command],
                    candidates: dict[int, str]) -> dict[int, str]:
