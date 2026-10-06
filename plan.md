@@ -3927,6 +3927,7 @@ Written for whoever picks this up next, person or session, without the conversat
 - On the Office computer, validate with `uv run --offline --no-project --python 3.12 --with jsonschema python contracts/validate.py`. Bare `python` there skips check 1.
 - The commit hooks are not installed on this working copy. Installing them is the person's to watch.
 - **The six copied focus files are mirrored by dino-autofocus.** Whoever changes `microscope_agent/src/focus_{classical,verdict,search}.py` or their three tests sends dino-autofocus's merge-plan session the new commit. dino then takes the body from it and re-points its mirror (`flat_origin --mirror <sha>`). dino's shape test reads this checkout and fails on drift.
+- **dino-autofocus's console is built against the run interface** (11-25). Its tests pin the stop reply and the `run_started` keys. A change to either must be told to its console session first.
 
 **The person's batch A, 2026-10-05**, relayed from dino-autofocus `docs/integration-sma.md` 7.1, not said in this seat's window, so it is recorded as relayed:
 - Once copied, this repository holds the original of the focus core, and dino-autofocus keeps a pinned read-only mirror. A change to those files is made here first.
