@@ -145,13 +145,17 @@ def sequence(n: int, sink, timeout_s: float | None = None) -> dict:
         raise RuntimeError("aborted: this backend refuses commands until it is reset")
     numbers = []
     for i in range(int(n)):
+        if _ABORTED:
+            # An abort ends the sequence at the next frame, as it does on the
+            # instrument: a stop that waited for n frames would not be a stop.
+            break
         if FRAME_DELAY_S:
             _time.sleep(FRAME_DELAY_S)
         meta = {"Camera": "mock", "ImageNumber": str(i)}
         numbers.append(meta["ImageNumber"])
         sink(i, bytes([i % 256]) * FRAME_BYTES, meta)
     return {"wanted": int(n), "received": len(numbers), "image_numbers": numbers,
-            "gaps": [], "overflowed": False}
+            "gaps": [], "overflowed": False, "aborted": _ABORTED}
 
 
 def read() -> dict:

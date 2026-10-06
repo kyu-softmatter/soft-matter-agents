@@ -694,6 +694,12 @@ def sequence(n: int, sink, timeout_s: float | None = None) -> dict:
     got = 0
     try:
         while got < n:
+            if _ABORTED:
+                # AN ABORT ENDS THE SEQUENCE, found by card 061: this loop checked
+                # nothing after it started, so an abort turned the light off and
+                # left the camera streaming until n frames had arrived. The
+                # finally below stops the acquisition on the camera.
+                break
             if core.getRemainingImageCount() > 0:
                 image, md = core.popNextImageAndMD()
                 meta = _metadata(md)
@@ -710,7 +716,8 @@ def sequence(n: int, sink, timeout_s: float | None = None) -> dict:
         if core.isSequenceRunning():
             core.stopSequenceAcquisition()
     return {"wanted": n, "received": got, "image_numbers": numbers,
-            "gaps": image_number_gaps(numbers), "overflowed": bool(core.isBufferOverflowed())}
+            "gaps": image_number_gaps(numbers), "overflowed": bool(core.isBufferOverflowed()),
+            "aborted": _ABORTED}
 
 
 def image_number_gaps(numbers: list) -> list:
