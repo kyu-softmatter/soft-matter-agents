@@ -31,6 +31,34 @@ refusing; its first real move is a later visit.
 - Make one copy of the record forms below for the person, on paper or on
   screen.
 
+## Joined with dino-autofocus's forms — so nothing is measured twice
+
+The `dino-autofocus` bench session has written its own half of this visit: a
+checklist (`docs/runbooks/bench-visit-1.md`) and record forms
+(`docs/runs/templates/bench-visit-1.template.{yaml,md}`), on its branch
+`merge-plan/B-01-bench-prep`. The two halves split like this.
+
+| what | recorded once, in | this card |
+|---|---|---|
+| Camera ceiling (step 5) | dino's yaml, `camera_kinetix_red.saturated_frame_max_adu`: one saturated frame, one value | **cites it and does not re-measure** |
+| Spinning-disk shutter's closed value (step 4) | dino's checklist item 8, `light_path_followups.csuw1_shutter_closed`: one reading | **cites it and does not re-read** |
+| Evidence for each focus limit (step 1) | dino's section 10, one record per key in the envelope's own shape (`kind`, `by`, `on`, `how`) | the person writes the safety file from that evidence. **Neither half proposes a value** |
+| Watched refusals (steps 1–2) and the first real abort (step 3) | **only here.** These runs are this repository's plans, approved by the person on the day | dino issues no software motion on the day |
+| Card 018's open items (step 6) | here, unless dino's forms record one; then it is cited, not repeated | |
+
+**For you:** if a reading is already on the other form, it is not taken again.
+
+**For the seat:**
+
+- **The camera value carries its readout mode, or it closes nothing.** The
+  gap is per camera *and* readout mode. If dino's record does not say which
+  readout mode the frame was taken in, ask the person on the day and record
+  the answer beside the value. One value closes one mode. Every other mode
+  stays a gap.
+- **After the visit**, dino sends the record paths and their sha256 to
+  architecture. Your `findings/` file cites them by path and hash. It does not
+  copy their values, because a copy is a second record, and the two drift.
+
 ## The visit, in order of safety
 
 Each step says who does it, what is recorded and where, and **when to stop**.
@@ -116,24 +144,28 @@ spinning-disk shutter means "closed". It only reads; nothing is switched.
 **Stop if:** the reading is ambiguous, for instance two settings that could
 both mean closed. Then it stays unbuilt, and that is fine.
 
-**For the seat:** read `CSUW1-Shutter`'s properties and allowed values
-through the guarded core, which is read-only. Record them in `findings/` with
-where they were read. **Do not build the close path on the day.** Card 056
+**For the seat:** this is read once, on dino's form
+(`light_path_followups.csuw1_shutter_closed`). Cite it in `findings/` by path
+and hash. Read it again only if dino's form leaves it empty; then read
+`CSUW1-Shutter`'s properties and allowed values through the guarded core,
+read-only, and say where. **Do not build the close path on the day.** Card 056
 part 2's spinning-disk half is built afterwards, from the recorded value.
 
 ### 5. Read the camera's highest pixel count, for each readout mode
 
-**For you:** For each readout mode you use, saturate the camera on a blank
-slide with the transmitted lamp, in Micro-Manager **with no agent running**
-(never two connections to the microscope at once). Then read the highest
-pixel value the image shows. That is the camera's ceiling in that mode. The
-camera's own label for its bit depth is not enough: it has been wrong before.
+**For you:** This is taken once, on the dino-autofocus form. Saturate the
+camera on a blank slide with the transmitted lamp, in Micro-Manager **with no
+agent running** (never two connections to the microscope at once). Then read
+the highest pixel value the image shows. That is the camera's ceiling, **in
+the readout mode the camera was in**. Say which mode that was. The camera's
+own label for its bit depth is not enough: it has been wrong before.
 
 **Stop if:** the image does not clearly saturate; record "not reached"
 rather than a number.
 
-**For the seat:** record each mode's value in `findings/` as an observation
-for the store, unit ADU, with how it was read. The store has no such entry
+**For the seat:** cite dino's `camera_kinetix_red.saturated_frame_max_adu`
+in `findings/` by path and hash, with its readout mode, as an observation for
+the store, unit ADU. The store has no such entry
 today, so every focus-search plan carries the gap. A librarian card enters it
 and closes the gap; do not write it into any plan or into code.
 
@@ -165,7 +197,10 @@ it was read, for the librarian. Card 018 has what each one unlocks.
 The person fills these in, on paper or by saying them to the seat. The seat
 transcribes them into `findings/` and, for step 1, the person's own file.
 
-**Form 1 — focus limits (you write these into the safety file yourself)**
+**Form 1 — focus limits (you write these into the safety file yourself).**
+The evidence for each one, meaning how you set it, is recorded once, on
+dino-autofocus's section 10. This form is only the list of what goes into the
+file, so you can tick each lens off as you write it.
 
 | lens | lowest position (µm) | highest = closest allowed (µm) | dry and released? | how you set it |
 |---|---|---|---|---|
@@ -199,9 +234,8 @@ transcribes them into `findings/` and, for step 1, the person's own file.
 
 | what | value | how it was read |
 |---|---|---|
-| spinning-disk shutter: the setting that means closed | | |
-| camera highest pixel count, mode: ______ | | |
-| camera highest pixel count, mode: ______ | | |
+| spinning-disk shutter: the setting that means closed (on dino's form) | | |
+| camera highest pixel count (on dino's form), readout mode: ______ | | |
 
 ## What comes back
 
