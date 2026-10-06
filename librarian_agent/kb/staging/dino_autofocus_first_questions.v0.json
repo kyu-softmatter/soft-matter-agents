@@ -1,0 +1,249 @@
+{
+  "schema_version": "0.1-provisional",
+  "what_this_is": "The answer sheet for the questions dino-autofocus must have answered before its focus core is copied here: the 20 cards of its docs/librarian-handoff.md section 5, plus one this store adds. For each, what this store already holds, what it lacks, and the question the person answers. The person answers after the bench visit, in one sitting. NOTHING HERE IS AN ANSWER, and no number from dino-autofocus is written in this file (plan.md 10.3): a dino value is named by its card and read in dino-autofocus itself. Numbers quoted here are this store's own, each beside its entry id.",
+  "source": {
+    "repository": "kyu-softmatter/dino-autofocus",
+    "commit": "bdd64da",
+    "file": "docs/librarian-handoff.md",
+    "section": "5, the 20 to answer before the copy; each card's row is in the section the card id belongs to"
+  },
+  "prepared_by": "seat:librarian-20261004-1",
+  "prepared_on": "2026-10-05",
+  "asked_by": "the person, directly in this seat's window on 2026-10-05; the same request came from architecture-20261003-1 the same day",
+  "kb_version": "kbv-1bf657715637",
+  "how_to_answer": "One line per card, in one of three forms, as dino-autofocus's own sheet asks. SEND: the value becomes a store entry, and the answer says where it came from (a measurement on this stand and its date, a calibration, a reading off the instrument, or a recollection). DO NOT SEND: it stays in dino-autofocus, with the reason. MEASURE FIRST: when and how. Where `goes_to` says envelope, the answer is a limit and the person writes it into microscope_agent/envelope/safety.json; it does not enter the store at all. Where `goes_to` says plan, the number is a choice rather than knowledge, and it is carried in the approved plan that uses it -- the store holds no tuning threshold, because a number somebody chose has no source and no grade.",
+  "answer_kinds": {
+    "measured": "a measurement on this stand in a recorded run -- the strongest answer, and the only one that lifts a value above what a prior project recorded",
+    "calibration": "a calibration the operator performed on this stand, with what ends it",
+    "operator_read": "read off the instrument or its software by the operator",
+    "operator_recall": "stated from memory -- accepted, and recorded as a recollection",
+    "prior_run": "taken as dino-autofocus recorded it, which caps it at the grade any other project's record gets here",
+    "not_knowledge": "a choice, a limit or a procedure: it goes to a plan or to the envelope, never to the store"
+  },
+  "summary": {
+    "cards": 21,
+    "store_already_answers": 1,
+    "store_holds_part": 5,
+    "store_holds_nothing_and_should": 2,
+    "gaps_named": ["objective_40x_wd_at_170um", "stage_camera_transform_4x", "parfocal_offset_4x_to_100x", "kinetix_red_bit_depth", "kinetix_red_dark_offset", "camera_full_scale_count"],
+    "conflicts_with_no_gap": ["L-031"],
+    "not_for_the_store": 13,
+    "note": "The 13 are dino-autofocus's tuning thresholds and working arguments. The store does not lack them: a threshold somebody chose is not a fact about the instrument. Their questions are still the person's, and their answers go to a plan or to the envelope."
+  },
+  "cards": [
+    {
+      "card": "L-005",
+      "topic": "the 40x water-immersion objective's working distance with the collar at the lab's coverslip setting",
+      "kind": "conflict between the two repositories",
+      "store_holds": [
+        {"entry_id": "objective_mrd77400", "grade": "E3", "what": "the catalogue working distance as a range, 0.16 to 0.2 mm, over the whole collar range"},
+        {"entry_id": "objective_40x_collar_setting", "grade": "E3", "what": "the collar is set to and held at 0.17 mm, which is a coverslip thickness of 170 um"},
+        {"entry_id": "working_distance_is_measured_to_the_coverslip", "grade": "E4", "what": "catalogue working distances are to the coverslip, not to the sample plane (an inference)"}
+      ],
+      "store_lacks": {"gap_id": "objective_40x_wd_at_170um", "kind": "condition_mismatch", "searched": ["kb/entries", "the Nikon objective catalogue as filed", "kb/staging/devices.v0.json, whose wd_mm for this lens is empty"], "nearest": "objective_mrd77400's range"},
+      "question": "dino-autofocus uses one working distance for this lens (its card L-005). Was that measured on this stand, or is it the collar reading, 0.17 mm of coverslip, carried over as a distance? If measured: when, and how.",
+      "answer_shape": {"unit": "mm", "kinds_accepted": ["measured", "operator_recall"], "goes_to": "store if measured; the clearance limit itself is the person's to write in the envelope either way"}
+    },
+    {
+      "card": "L-031",
+      "topic": "which of the per-objective pixel sizes were measured",
+      "kind": "conflict between the two repositories",
+      "store_holds": [
+        {"entry_id": "pixel_size_4x_zoom_1x", "grade": "E2", "what": "one of twelve calibration entries, cal-pixel-size-20260919; all twelve record the operator's confirmation on 2026-09-19 that each is a direct measurement and not one scaled to the others, and the ruling of 2026-09-21 that they stand and will not be repeated"},
+        {"entry_id": "pixel_size_20x_zoom_1x", "grade": "E2", "what": "the 20x value, 0.32373 um"},
+        {"entry_id": "pixel_size_4x_zoom_1x_computed", "grade": "E4", "what": "and its siblings: the same pixel sizes computed from the sensor pitch and the nominal magnification, kept beside the measured ones"}
+      ],
+      "store_lacks": {"gap_id": null, "kind": null, "searched": [], "nearest": null, "note": "Nothing is missing; the two repositories disagree. dino-autofocus's configuration comment says only the 20x is a measurement and the other five are the sensor pitch over the magnification. The store says the operator confirmed all twelve as measured."},
+      "question": "In the pixel-size calibration of 2026-09-19, did you measure all six objectives, or only the 20x? The store recorded your confirmation that all were measured; dino-autofocus's configuration says only the 20x was.",
+      "answer_shape": {"unit": "none -- a yes or no per objective", "kinds_accepted": ["operator_recall"], "goes_to": "store: if only the 20x was measured, the five others are refuted as measurements and the computed entries are what remains"}
+    },
+    {
+      "card": "L-032",
+      "topic": "the stage-to-camera calibration at 4x: scale and rotation",
+      "kind": "number that left a flat file",
+      "store_holds": [
+        {"entry_id": "pixel_size_4x_zoom_1x", "grade": "E2", "what": "the 4x pixel size from the 2026-09-19 calibration -- a scale only, no rotation and no stage axes"}
+      ],
+      "store_lacks": {"gap_id": "stage_camera_transform_4x", "kind": "absent", "searched": ["kb/entries, by stage, camera, rotation and calibration", "kb/staging/devices.v0.json"], "nearest": "pixel_size_4x_zoom_1x"},
+      "question": "dino-autofocus records a stage-to-camera calibration at 4x from 2026-09-30, a scale and a rotation (its card L-032). Did you run it yourself, and should it enter the store as a separate measurement beside the 2026-09-19 pixel size?",
+      "answer_shape": {"unit": "um per pixel and degrees", "kinds_accepted": ["prior_run", "measured"], "goes_to": "store"}
+    },
+    {
+      "card": "L-033",
+      "topic": "the parfocal offset from the 4x to the 100x oil objective",
+      "kind": "number that left a flat file",
+      "store_holds": [],
+      "store_lacks": {"gap_id": "parfocal_offset_4x_to_100x", "kind": "absent", "searched": ["kb/entries, by parfocal and by offset"], "nearest": null},
+      "question": "dino-autofocus gives a parfocal offset from 4x to 100x oil from one sample on 2026-09-30, and a lab note of 2026-09-07 gives a different one (its card L-033). Is its value the difference of the two focus positions found that day? Who wrote the 2026-09-07 note?",
+      "answer_shape": {"unit": "um", "kinds_accepted": ["prior_run", "measured"], "goes_to": "store, as a starting centre for a search and never as a target to move to"}
+    },
+    {
+      "card": "L-052",
+      "topic": "what the fluorescence emission '605 nm' is",
+      "kind": "conflict between the two repositories",
+      "store_holds": [
+        {"entry_id": "red_path_605_is_the_ff01_595_31_filter", "grade": "E5", "what": "605 is this bench's name for the path; the filter is FF01-595/31-32 (your recollection, 2026-09-20)"},
+        {"entry_id": "filter_ff01_595_31_32_passband", "grade": "E3", "what": "that filter's centre and width from its vendor"}
+      ],
+      "store_lacks": {"gap_id": null, "kind": null, "searched": [], "nearest": null, "note": "The store already answers this card: 605 is a path name, not a filter centre."},
+      "question": "dino-autofocus's configuration gives an emission centre and band for this path (its card L-052). Did it take them from the path's name rather than from the filter? If so, they are not sent.",
+      "answer_shape": {"unit": "none -- yes or no", "kinds_accepted": ["operator_recall"], "goes_to": "nothing enters if yes"}
+    },
+    {
+      "card": "L-056",
+      "topic": "the camera's readout mode on 2026-09-30",
+      "kind": "conflict between the two repositories",
+      "store_holds": [
+        {"entry_id": "kinetix_red_adapter_properties_as_reported_20260924", "grade": "E1", "what": "on 2026-09-24 the adapter described the red camera as 16-bit with readout '100MHz 16bit' -- its self-description, not a measurement of bit depth"},
+        {"entry_id": "pixeltype_misreports_bit_depth", "grade": "E3", "what": "a prior project found the PixelType property says 12bit while 16-bit data arrives -- the opposite direction from dino-autofocus's reading"}
+      ],
+      "store_lacks": {"gap_id": "kinetix_red_bit_depth", "kind": "absent", "searched": ["kb/entries", "the 2026-09-24 run logs"], "nearest": "kinetix_red_adapter_properties_as_reported_20260924"},
+      "question": "dino-autofocus says the camera ran in a 12-bit readout on 2026-09-30, because frames saturated at the 12-bit ceiling (its card L-056). Did you change the readout mode or port that day? Should its saturated frame of that day go to the store as evidence for the camera's bit depth?",
+      "answer_shape": {"unit": "bits", "kinds_accepted": ["prior_run", "operator_recall", "measured"], "goes_to": "store"}
+    },
+    {
+      "card": "L-057",
+      "topic": "the camera's dark offset",
+      "kind": "number that left a flat file",
+      "store_holds": [],
+      "store_lacks": {"gap_id": "kinetix_red_dark_offset", "kind": "absent", "searched": ["kb/entries, by dark, offset and bias"], "nearest": null},
+      "question": "dino-autofocus gives a dark offset observed on 2026-09-30 and an Offset property read on 2026-10-02 (its card L-057). Was the observed value taken from a dark frame -- shutter closed, no light -- or from a frame that merely had no signal?",
+      "answer_shape": {"unit": "ADU", "kinds_accepted": ["measured", "operator_read", "prior_run"], "goes_to": "store; the property reading enters as the device's report of itself, the dark-frame value only if it was a dark frame"}
+    },
+    {
+      "card": "L-077",
+      "topic": "the minimum dynamic range below which a sweep reads as no sample",
+      "kind": "tuning threshold",
+      "store_holds": [{"entry_id": "focus_verdict_thresholds_are_all_the_callers", "grade": "E3", "what": "the verdict holds no default for any threshold; the caller supplies each"}],
+      "store_lacks": null,
+      "question": "Do you agree this threshold is not sent until it is set again against a real dark frame?",
+      "answer_shape": {"unit": "ADU", "kinds_accepted": ["not_knowledge"], "goes_to": "plan"}
+    },
+    {
+      "card": "L-078",
+      "topic": "the minimum curve contrast below which a sweep is flat",
+      "kind": "tuning threshold",
+      "store_holds": [{"entry_id": "focus_verdict_thresholds_are_all_the_callers", "grade": "E3", "what": "as for L-077"}],
+      "store_lacks": null,
+      "question": "As for L-077: not sent until set again on the bench?",
+      "answer_shape": {"unit": "dimensionless", "kinds_accepted": ["not_knowledge"], "goes_to": "plan"}
+    },
+    {
+      "card": "L-079",
+      "topic": "the minimum number of readable frames in a sweep",
+      "kind": "tuning threshold",
+      "store_holds": [{"entry_id": "focus_verdict_unsure_is_an_abstention", "grade": "E3", "what": "too few readable frames gives unsure"}],
+      "store_lacks": null,
+      "question": "As for L-077: not sent until set again on the bench?",
+      "answer_shape": {"unit": "count", "kinds_accepted": ["not_knowledge"], "goes_to": "plan"}
+    },
+    {
+      "card": "L-080",
+      "topic": "the in-focus band for a model reading",
+      "kind": "tuning threshold",
+      "store_holds": [],
+      "store_lacks": null,
+      "question": "This belongs to the model-reading verdict, which the store did not take in. Do you agree it waits with the model?",
+      "answer_shape": {"unit": "depths of field", "kinds_accepted": ["not_knowledge"], "goes_to": "nothing until the model may be used"}
+    },
+    {
+      "card": "L-081",
+      "topic": "the spread ceiling for a model reading",
+      "kind": "tuning threshold",
+      "store_holds": [],
+      "store_lacks": null,
+      "question": "As for L-080: it waits with the model?",
+      "answer_shape": {"unit": "depths of field", "kinds_accepted": ["not_knowledge"], "goes_to": "nothing until the model may be used"}
+    },
+    {
+      "card": "L-082",
+      "topic": "the clipped-pixel fraction above which a frame is not readable",
+      "kind": "tuning threshold",
+      "store_holds": [{"entry_id": "focus_frames_over_the_clip_limit_are_not_readable", "grade": "E3", "what": "why clipped frames are dropped; the limit is the caller's"}],
+      "store_lacks": null,
+      "question": "dino-autofocus recommends not sending this. Agree?",
+      "answer_shape": {"unit": "fraction", "kinds_accepted": ["not_knowledge"], "goes_to": "plan"}
+    },
+    {
+      "card": "L-083",
+      "topic": "the light-dropout tolerance",
+      "kind": "tuning threshold",
+      "store_holds": [{"entry_id": "focus_sweep_light_dropouts_are_not_focus_changes", "grade": "E3", "what": "a frame too far from the sweep's median brightness is a dropout; the tolerance is the caller's"}],
+      "store_lacks": null,
+      "question": "dino-autofocus recommends not sending the tolerance; the flicker it was set from is its card L-051, a separate observation that is not on this sheet. Agree?",
+      "answer_shape": {"unit": "fraction", "kinds_accepted": ["not_knowledge"], "goes_to": "plan"}
+    },
+    {
+      "card": "L-084",
+      "topic": "the binning before the peak-brightness metric",
+      "kind": "tuning threshold",
+      "store_holds": [{"entry_id": "focus_metric_peak_brightness_definition", "grade": "E3", "what": "the metric works on a block-binned frame; the bin size was not entered"}],
+      "store_lacks": null,
+      "question": "dino-autofocus recommends not sending this. Agree?",
+      "answer_shape": {"unit": "pixels", "kinds_accepted": ["not_knowledge"], "goes_to": "plan, or the copied file's own structural constant"}
+    },
+    {
+      "card": "L-085",
+      "topic": "the thresholds of the sample-loading check",
+      "kind": "tuning threshold",
+      "store_holds": [],
+      "store_lacks": null,
+      "question": "dino-autofocus recommends not sending these. Agree?",
+      "answer_shape": {"unit": "ADU and dimensionless", "kinds_accepted": ["not_knowledge"], "goes_to": "plan"}
+    },
+    {
+      "card": "L-086",
+      "topic": "the 100x focus search's working arguments: centre, spans, steps, exposure, light level, settle times, extensions",
+      "kind": "working arguments",
+      "store_holds": [
+        {"entry_id": "focus_search_is_coarse_then_fine", "grade": "E3", "what": "the order of the spans"},
+        {"entry_id": "focus_search_top_end_extension_layout", "grade": "E3", "what": "how an extension is laid out; the count was not entered"}
+      ],
+      "store_lacks": null,
+      "question": "Do you agree the procedure goes across as a definition only -- it already has -- and every number is set again in the plan that runs it?",
+      "answer_shape": {"unit": "um, ms, percent, s, count", "kinds_accepted": ["not_knowledge"], "goes_to": "plan; any span must also lie inside the focus limits you write for that objective"}
+    },
+    {
+      "card": "L-087",
+      "topic": "the 4x scan's working arguments",
+      "kind": "working arguments",
+      "store_holds": [],
+      "store_lacks": null,
+      "question": "As for L-086. The 4x scan itself has no place here yet, because the sample map is deferred.",
+      "answer_shape": {"unit": "um, ms, fraction, s", "kinds_accepted": ["not_knowledge"], "goes_to": "nothing until a sample map is designed"}
+    },
+    {
+      "card": "L-088",
+      "topic": "the edge-trace arguments, including a stage speed ceiling",
+      "kind": "working arguments, one of them a limit",
+      "store_holds": [],
+      "store_lacks": null,
+      "question": "Who set dino-autofocus's stage speed ceiling (its card L-088), and on what grounds? A speed ceiling is a limit: if you want one here, you write it in the safety file after checking it on the stage. The other arguments wait with the sample map.",
+      "answer_shape": {"unit": "um per s", "kinds_accepted": ["not_knowledge"], "goes_to": "envelope for the ceiling, written by you; nothing for the rest"}
+    },
+    {
+      "card": "L-089",
+      "topic": "the mosaic binning and candidate-detection threshold",
+      "kind": "tuning threshold",
+      "store_holds": [],
+      "store_lacks": null,
+      "question": "These were fitted to synthetic tiles only. dino-autofocus recommends not sending them until fitted on a real mosaic. Agree?",
+      "answer_shape": {"unit": "pixels and dimensionless", "kinds_accepted": ["not_knowledge"], "goes_to": "nothing until a sample map is designed"}
+    },
+    {
+      "card": "SMA-01",
+      "topic": "the camera's full-scale count in each readout mode -- added by this store, because the focus search needs it to tell a clipped frame and the store cannot say which ceiling applies",
+      "kind": "added by the store",
+      "store_holds": [
+        {"entry_id": "camera_read_noise_speed", "grade": "E3", "what": "the Speed mode is 8-bit, from the datasheet's mode table"},
+        {"entry_id": "camera_read_noise_sensitivity", "grade": "E3", "what": "the Sensitivity mode is 12-bit"},
+        {"entry_id": "camera_read_noise_dynamicrange", "grade": "E3", "what": "the DynamicRange mode is 16-bit"},
+        {"entry_id": "camera_read_noise_subelectron", "grade": "E3", "what": "the SubElectron mode is 16-bit"},
+        {"entry_id": "kinetix_red_adapter_properties_as_reported_20260924", "grade": "E1", "what": "on 2026-09-24 the red camera described itself as readout '100MHz 16bit'"}
+      ],
+      "store_lacks": {"gap_id": "camera_full_scale_count", "kind": "absent", "searched": ["kb/entries, by bit depth, readout, full scale and ceiling", "the four Kinetix mode entries, which name a bit depth in their text and carry no count"], "nearest": "the four mode entries"},
+      "question": "For each camera and each readout mode used for focusing, what is the highest count a saturated pixel reads? The surest answer is a measured one: on the bench, saturate a small area in each mode, read the frame's maximum, and record the mode the software reported at the time. A count computed from the bit depth alone would be a calculation, not a measurement.",
+      "answer_shape": {"unit": "count", "kinds_accepted": ["measured"], "goes_to": "store, one entry per camera and mode, so the focus search reads the ceiling for the mode its plan names"}
+    }
+  ]
+}
