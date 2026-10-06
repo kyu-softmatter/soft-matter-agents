@@ -1,0 +1,80 @@
+{
+  "record": "end_to_end_test",
+  "note": "Card 061's record. Not a findings artifact: contracts/schemas/findings.schema.json describes deliveries to the librarian only (delivered_to librarian_agent, item kinds self_report ... unmeasured), and a test record with a defect and a gap fits none of its kinds. Written without `artifact` so the validator does not read it as one; a shape for test records is the manager's to add. Nothing here is for the store.",
+  "seat": "microscope-20261003-1",
+  "on": "2026-10-06",
+  "for": "manager-microscope-20261003-1",
+  "task": "061",
+  "items": [
+    {
+      "id": "card061_run_and_its_bytes",
+      "fact": "Run run-20261006-e2e061b, on the mock backend, through operator.run with runs_root outside the tree. Its events.jsonl has 11 lines and sha256 7688f2a596310be273539d71967204dc1368323b6c8c24d2bc3a64e1f0491a6f.",
+      "kind": "test_record",
+      "how": "Scratch folder C:\\Users\\KYUHWA~1\\AppData\\Local\\Temp\\claude\\D--codes-github-soft-matter-agents-microscope-agent\\497be4c5-4ed1-4fd2-acb4-0f4765bc26e5\\scratchpad\\e2e061\\runs\\run-20261006-e2e061b, holding events.jsonl, log.json and deviations.json. Not committed: an end-to-end test is not a measurement record. Only devices/mock.py was loaded.",
+      "for_store": false
+    },
+    {
+      "id": "card061_how_the_run_was_built",
+      "fact": "The plan had no actions and one stop criterion. The mock sequence, 6000 frames at FRAME_DELAY_S 0.1 s (600 s by integer count), ran inside the run's monitor observation, through the run's own Orchestrator.acquire_sequence. The envelope was a stub.",
+      "kind": "deviation",
+      "how": "No plan path acquires today: dispatch calls a module's apply() and never sequence(), and any action naming a registry channel is refused by the software-motion check on mock. So the harness held a handle on the run's Orchestrator, and its observe() called acquire_sequence. run_started, the stop channel, the frame tap and events.jsonl are the run's own, and nothing was special-cased for the console. A first attempt, run-20261006-e2e061, used the real envelope and was refused before any frame: its lookup limit objective_clearance_min needs a plan naming nosepiece_position. That run ended failed, which is correct. The retry used {\"targets\": []}, as card 057's tests do.",
+      "for_store": false
+    },
+    {
+      "id": "card061_run_started_as_written",
+      "fact": "{\"event\": \"run_started\", \"run_id\": \"run-20261006-e2e061b\", \"plan_id\": \"plan-test-061-console-e2e\", \"revision\": 1, \"t0_wall\": \"2026-10-06T23:13:34.807+00:00\", \"stop_channel\": {\"host\": \"127.0.0.1\", \"port\": 61728}, \"frame_tap\": {\"host\": \"127.0.0.1\", \"port\": 61729}}",
+      "kind": "test_record",
+      "how": "The first line of events.jsonl, copied as written. Its keys match what the console pins at dino-autofocus e49dc04 (agents/sma_run.py): run_id, plan_id, revision, t0_wall, stop_channel, frame_tap. netstat showed both ports listening on 127.0.0.1 only.",
+      "for_store": false
+    },
+    {
+      "id": "card061_abort_from_outside",
+      "fact": "The stop came from outside: stop_requested (reason 'the dino console: card 061 end-to-end check') at t_mono 60.234, then abort_begin with reason 'stop from outside the process: the dino console: card 061 end-to-end check' in the same millisecond, abort_shutter_coverage, abort_light_sources, abort_end. After the stop came only the abort's own events, one snapshot (a read) and run_ended: no command. The sequence ended at the next frame, aborted, having delivered 600 of 6000 frames (ImageNumber 0 to 599).",
+      "kind": "test_record",
+      "how": "Read from events.jsonl and log.json. That the sequence ended rather than ran its 600 s rests on 8b4b78c, which this card's run found was missing: both sequence() loops ignored an abort after they started.",
+      "for_store": false
+    },
+    {
+      "id": "card061_run_ended_as_written",
+      "fact": "{\"event\": \"run_ended\", \"how\": \"stopped_from_outside\", \"t_mono\": 60.297}",
+      "kind": "test_record",
+      "how": "The last line of events.jsonl, copied as written.",
+      "for_store": false
+    },
+    {
+      "id": "card061_light_and_shutter_rows_on_mock",
+      "fact": "As mock wrote them. Light rows: Aura III and DiaLamp commanded '0', read_back '0', matched true; optical tweezers, Spectra III and the confocal laser lines null, each noting it is not software-controllable and stays on if a person turned it on. Shutter rows: Turret1Shutter and Turret2Shutter commanded '0', read_back '0', closed true; csuw1_shutter not commanded, closed null; laser_shutter commanded {\"enable\": []}, closed null, not confirmed.",
+      "kind": "defect",
+      "how": "Card 061 says mock reports no read-back, so matched should stay null, and any row saying true is a defect because mock cannot have confirmed it. Four rows say true. The cause is that since card 054 (5dfb922), mock.apply and mock.close_for_abort echo the value they were given back as verified/disagreed, and card 054's own test requires the mock DiaLamp and Aura rows to be matched true. So the two cards disagree. On mock, true means only 'the mock remembered what it was told', which is not a confirmation of anything. Not changed here: either answer breaks one card's test, and choosing is the card author's.",
+      "for_store": false
+    },
+    {
+      "id": "card061_stop_reply_and_the_consoles_classification",
+      "fact": "This side's reply is not in any record: the stop channel sends {\"abort\": \"begun\"} after abort() returns, and records no event for the reply it sent. The console session reports that it classified the reply as begun, with reply {\"abort\": \"begun\"}, for one 90-byte stop line.",
+      "kind": "gap",
+      "how": "The classification is the console session's report, in a message to this seat, not a record. The reply this side sends is what orchestrator._stop_request returns, read in the code. That it was sent is shown only by the console. Making the channel record its reply would add an event to the stream, and the console reads that stream, so it is reported up rather than added here.",
+      "for_store": false
+    },
+    {
+      "id": "card061_the_frame",
+      "fact": "The console reports pulling one frame: header shape [64], dtype 'bytes', 64 bytes, t_mono 60.187, metadata keys Camera and ImageNumber. The run's sink received ImageNumber 0 to 599. Which ImageNumber it pulled was not captured by the console side: its check printed the keys and not their values, and the tap closed with the run.",
+      "kind": "test_record",
+      "how": "The console's report, in a message to this seat. The tap holds only frames the run's own sink received, so whatever it served is one of 0 to 599, and t_mono 60.187 falls before the stop at 60.234. This side's harness did not log t_mono per frame, so the frame cannot be matched after the fact. At 0.1 s a frame, 60.187 s is consistent with one of the last frames before the stop, but that is an inference from timing and not a match. A second held-open run, in which the console prints the metadata values, would settle it. The console says its screen would show 'frame unreadable' for this mock frame, because a 'bytes' frame has no 2-D shape. That is the mock's synthetic frame, not a defect in either side.",
+      "for_store": false
+    },
+    {
+      "id": "card061_log_against_events",
+      "fact": "log.json's 9 events equal events.jsonl's lines between run_started and run_ended, in the same order.",
+      "kind": "test_record",
+      "how": "Compared after the run, both read as JSON.",
+      "for_store": false
+    },
+    {
+      "id": "card061_not_tested",
+      "fact": "Check 15's in-flight reading is not tested by this run, because a scratch folder is outside what it reads. The run lasted 61 s and not 600, because the console sent its Abort at 60 s, as the card asks.",
+      "kind": "note",
+      "how": "As card 061 says.",
+      "for_store": false
+    }
+  ]
+}
