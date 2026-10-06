@@ -1721,6 +1721,36 @@ def check_14_command_provenance(b: Bundle) -> list[Finding]:
     return [Finding(14, PENDING, "log provenance not implemented yet")]
 
 
+def _event_stream_state(path: Path) -> str:
+    """`running`, `ended`, or why the file is not a run's events stream (card 057).
+
+    Its first line must be a `run_started` event and its last line, if the run
+    is over, a `run_ended` one. Every line must be one JSON object: the stream
+    is append-only and flushed per line, so a torn LAST line can only be the
+    one being written, and it is read as still running rather than as broken.
+    """
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError) as exc:
+        return f"unreadable ({exc})"
+    if not lines:
+        return "empty, with no run_started line"
+    events = []
+    for i, line in enumerate(lines):
+        try:
+            ev = json.loads(line)
+        except json.JSONDecodeError:
+            if i == len(lines) - 1 and events:
+                break                        # the line being written right now
+            return f"line {i + 1} is not JSON"
+        if not isinstance(ev, dict):
+            return f"line {i + 1} is not an object"
+        events.append(ev)
+    if not events or events[0].get("event") != "run_started":
+        return "its first line is not run_started"
+    return "ended" if events[-1].get("event") == "run_ended" else "running"
+
+
 def check_15_approval_precedes_run(b: Bundle) -> list[Finding]:
     """6.1: a run above Tier 1 stands on a person's approval, and that approval
     exists BEFORE it. A Tier 0-1 run needs none and says so with a null id --
@@ -1746,7 +1776,26 @@ def check_15_approval_precedes_run(b: Bundle) -> list[Finding]:
             # seat's live run on 2026-09-22. PENDING is not a pass, so an
             # abandoned run that never writes one stays visible rather than
             # being forgiven.
-            if (d / "config.json").exists():
+            if (d / "events.jsonl").exists():
+                # Card 057 makes a run's folder exist from its start, holding
+                # events.jsonl, and writes log.json only at the end. So a live
+                # run looks like this and is not a defect -- and before this
+                # branch it FAILed, which made every validator run and every
+                # commit fail while any run was going (found 2026-10-05 by
+                # the dino console session against 857742f). The stream's own
+                # first and last lines say which state it is in; an absent or
+                # unreadable first line is a broken record, and FAILs.
+                state = _event_stream_state(d / "events.jsonl")
+                if state == "running":
+                    out.append(Finding(15, PENDING, "events.jsonl has run_started and no run_ended, and there is "
+                                                    "no log.json yet: a run in flight, or one that died", rel))
+                elif state == "ended":
+                    out.append(Finding(15, PENDING, "events.jsonl ends with run_ended and there is no log.json "
+                                                    "yet: written just after the stream closes, or lost", rel))
+                else:
+                    out.append(Finding(15, FAIL, f"events.jsonl is not a run's stream: {state}, so nothing says "
+                                                 "this folder is a run that started", rel))
+            elif (d / "config.json").exists():
                 out.append(Finding(15, PENDING, "config.json and no log.json yet: a run in flight, or one that "
                                                 "stopped before writing what it stood on", rel))
             elif (d / "commands.json").exists():
