@@ -1,0 +1,17 @@
+{
+  "artifact": "round_hashes",
+  "schema_version": "0.1",
+  "thread": "thr-tracer-diffusivity-001",
+  "round": 3,
+  "ask_card": "r3_ask_experiment.json",
+  "source": {
+    "path": "simulation_agent/questions/sim-20260917-001/v3_plan_simulation_sim-20260917-001.json",
+    "card_id": "plan-sim-20260917-001-r3",
+    "revision": 3,
+    "status": "VALIDATED",
+    "sha256": "sha256:69541b9115696d4875947b534959d61f47edf9410eae72f0f0fc86f40cc2a293"
+  },
+  "payload_sha256": "sha256:bcdd96a2dc3e14dc403705af3f14a4a94671d50005aa9864aa0823571c3d0818",
+  "verified_at": "2026-10-08T07:31:33Z",
+  "note": "Derived here from the card on disk with the validator's own card_sha and canon_sha, at a moment when no revision 4 of this plan was on disk. source.sha256 is card_sha (status left out) and payload_sha256 is canon_sha of the card as carried; two functions with two jobs, as round 2's ledger says."
+}
