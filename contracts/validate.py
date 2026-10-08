@@ -8247,9 +8247,18 @@ def check_88_focus_search(b: Bundle) -> list[Finding]:
                 if not (isinstance(v, int) and not isinstance(v, bool) and v >= 1) and not (
                         isinstance(v, float) and v.is_integer() and v >= 1):
                     bad.append(f"camera ceiling {ceiling['number']!r} is {v!r}, not a whole count of at least 1")
-                if not str(num.get("source", "")).startswith("kb:"):
+                src = str(num.get("source", ""))
+                if not src.startswith("kb:"):
                     bad.append(f"camera ceiling {ceiling['number']!r} has source {num.get('source')!r}: it is a "
                                "fact about the camera and comes from the store, as kb:<entry>, or is a gap")
+                elif not (KB_DIR / "entries" / f"{src[3:]}.json").exists():
+                    # A kb: prefix is a claim, and the store is on disk to
+                    # check it against. Without this a ceiling citing an entry
+                    # nobody entered passed as sourced -- the shape of a
+                    # source with nothing behind it (found 2026-10-07 writing
+                    # card 063, whose mock session needs a test ceiling).
+                    bad.append(f"camera ceiling {ceiling['number']!r} cites {src}, which is not an entry in the "
+                               "store: while the store has no full-scale count, the ceiling is a gap")
         elif "gap" in ceiling:
             gaps = {g.get("gap_id") for g in c.data.get("kb_gaps") or [] if isinstance(g, dict)}
             if ceiling["gap"] not in gaps:
