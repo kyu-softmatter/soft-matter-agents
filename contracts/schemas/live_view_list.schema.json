@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "live_view_list.schema.json",
+  "title": "live_view_list — the command list a person approves for live view (card 062, plan.md 11-25)",
+  "description": "A live view is a preparatory run (plan.md 11-21, check 85) whose approved list is this file, which the PERSON writes in microscope_agent/approvals/ and the live-view host runs only when a console names its sha256, taken over the file's raw bytes. Settled by the person on 2026-10-07. It may switch the transmitted lamp on at the person's intensity and run one camera sequence with the person's exposure and frame ceiling. Fluorescence excitation is not in the default list, because it bleaches: an `excitation` block is allowed only with its own approval reference. Nothing in the motion set may appear anywhere in the file; the closed shape below refuses a device field this schema does not name, and check 85 scans every key and value for a motion-set name as well. An artifact and not a card: it carries no qid or revision, because it answers no question, and it is identified by its bytes.",
+  "type": "object",
+  "properties": {
+    "artifact": {
+      "const": "live_view_list"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "written_by": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the person who wrote this list"
+    },
+    "written_at": {
+      "type": "string",
+      "format": "date",
+      "description": "the day it was written"
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "description": "what this list is for, in the person's words, e.g. finding the sample in transmitted light"
+    },
+    "transmitted_lamp": {
+      "type": "object",
+      "description": "the transmitted lamp, switched on at the person's intensity for the length of the run and off by the run's abort or end",
+      "properties": {
+        "device": {
+          "const": "DiaLamp"
+        },
+        "intensity": {
+          "type": "object",
+          "description": "THE PERSON'S VALUE, like a limit: a decision about what is allowed, with NO source and NO grade (10.3 rule 4). DiaLamp's Intensity property, in the units that property takes. Never a default in code",
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "note": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "device",
+        "intensity"
+      ],
+      "additionalProperties": false
+    },
+    "camera": {
+      "type": "object",
+      "description": "the one camera sequence the run takes. Its frames feed the frame tap and are not written to disk",
+      "properties": {
+        "device": {
+          "enum": [
+            "Kinetix_red"
+          ],
+          "description": "the camera's Micro-Manager label. Only the cameras software may command today; another is an allow-list change, which this schema does not make"
+        },
+        "exposure_ms": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "the exposure, in ms, the person's choice"
+        },
+        "frame_ceiling": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "THE MOST FRAMES A LIVE VIEW MAY TAKE, a whole number and the person's. Reaching it ends the run as completed, with the lamp off. It is the backstop for a live view nobody turns off, because a run keeps going when its viewer drops (plan.md 11-25 (d))"
+        }
+      },
+      "required": [
+        "device",
+        "exposure_ms",
+        "frame_ceiling"
+      ],
+      "additionalProperties": false
+    },
+    "excitation": {
+      "type": "object",
+      "description": "OPTIONAL, and absent from the default list. Fluorescence excitation bleaches the sample, so a list that adds it is a separate approval, and the block carries that approval's reference or it is refused",
+      "properties": {
+        "device": {
+          "const": "Aura"
+        },
+        "settings": {
+          "type": "object",
+          "description": "the Aura's properties and values, as the person writes them",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number"
+            ]
+          }
+        },
+        "approval": {
+          "type": "object",
+          "description": "the separate approval this excitation stands on: its file and the sha256 of its bytes",
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "device",
+        "settings",
+        "approval"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "artifact",
+    "schema_version",
+    "written_by",
+    "written_at",
+    "transmitted_lamp",
+    "camera"
+  ],
+  "additionalProperties": false
+}

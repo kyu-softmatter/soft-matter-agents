@@ -1,0 +1,18 @@
+{
+  "artifact": "live_view_list",
+  "schema_version": "0.1",
+  "written_by": "EXAMPLE, not the person",
+  "written_at": "2026-10-07",
+  "label": "REJECTED FIXTURE. No frame ceiling, so a live view nobody turns off would light the sample for ever. The schema refuses it.",
+  "transmitted_lamp": {
+    "device": "DiaLamp",
+    "intensity": {
+      "value": 100,
+      "note": "EXAMPLE value; the person writes the real one"
+    }
+  },
+  "camera": {
+    "device": "Kinetix_red",
+    "exposure_ms": 20
+  }
+}

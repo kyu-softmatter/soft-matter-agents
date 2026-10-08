@@ -271,6 +271,9 @@ ARTIFACT_SCHEMA = {
     # writer from this date stamps it, and check 83 reads the trajectory field
     # of both, which is what it needs this schema to be able to trust.
     "trajectory_meta": "trajectory_meta.schema.json",
+    # 2026-10-07, card 062: the command list a person approves for live view.
+    # An artifact, not a card: it answers no question and is named by its bytes.
+    "live_view_list": "live_view_list.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]
@@ -7651,8 +7654,40 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
     """
     logs = [c for c in b.of_artifact("run_log")
             if "__unreadable__" not in c.data and c.data.get("plan_id", "") is None]
+    # A LIVE-VIEW LIST NAMES NOTHING IN THE MOTION SET (card 062, 2026-10-07).
+    # It is the approved list of a preparatory run, so condition 3 binds it
+    # before any run does: a list naming a motion device is refused at commit
+    # time, not when someone first runs it. The schema's closed shape already
+    # refuses a device field it does not name. This reads every key and every
+    # value, so a motion-set name cannot ride in through a free-form part
+    # either -- the excitation block's settings are one.
+    lists_out: list[Finding] = []
+    for c in b.of_artifact("live_view_list"):
+        if "__unreadable__" in c.data:
+            continue
+        names: set[str] = set()
+        stack = [c.data]
+        while stack:
+            x = stack.pop()
+            if isinstance(x, dict):
+                names.update(str(k) for k in x)
+                stack.extend(x.values())
+            elif isinstance(x, list):
+                stack.extend(x)
+            elif isinstance(x, str):
+                names.add(x)
+        hit = sorted(names & PREPARATORY_MOTION_SET)
+        if hit:
+            lists_out.append(Finding(85, FAIL, f"live-view list names {hit}, which is the motion set: a live "
+                                               "view is a preparatory run and moves nothing (11-21 condition "
+                                               "3, card 062)", c.rel))
+        else:
+            lists_out.append(Finding(85, PASS, "live-view list names nothing in the motion set"
+                                               + ("; it carries an excitation block, on its own approval"
+                                                  if "excitation" in c.data else ""), c.rel))
+
     if not logs:
-        return [Finding(85, NA, "no preparatory runs: every run log names the plan it carried out")]
+        return lists_out or [Finding(85, NA, "no preparatory runs: every run log names the plan it carried out")]
 
     results_by_run: dict[str, list[str]] = {}
     for c in b.of_kind("result"):
@@ -7794,7 +7829,7 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
                                          + ("; its optical_tweezers commands follow the person's statements "
                                             "that the trapping laser is off and no sample is mounted, so they "
                                             "move nothing trappable" if untrappable else ""), rel))
-    return out
+    return lists_out + out
 
 
 #: The store entry whose presence lifts check 86's restriction on piezo Z. The
