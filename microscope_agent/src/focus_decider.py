@@ -138,6 +138,16 @@ class MetricMaximumDecider:
             note = (f"{len(self.stats)} of the {self.thresholds['min_frames']} frames the verdict "
                     "needs: walking up from the retract, as approach_from says (the decider's own "
                     f"choice, not the core's). The core said: {record['reason']}")
+        elif branch == "in_focus" and record.get("z_um") is not None \
+                and float(record["z_um"]) != float(last_read_um):
+            # THE CORE'S in_focus NAMES A FRAME, not where Z is now (found by
+            # card 063's mock walk, which recorded the Z one step past the
+            # peak as found). The search ends at the encoder read where it
+            # stands, so it steps toward that frame and says in_focus only
+            # once the frame it names is the current one.
+            branch = "step_down" if float(record["z_um"]) < float(last_read_um) else "step_up"
+            note = (f"the core finds focus at its frame at {record['z_um']} um and Z reads "
+                    f"{last_read_um} um, so {branch} toward it. The core said: {record['reason']}")
         self.records.append({"z_um": float(last_read_um), "score": stats.score,
                              "verdict": record, "branch": branch})
         return {"branch": branch, "confidence": None, "note": note}

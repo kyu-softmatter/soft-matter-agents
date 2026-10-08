@@ -133,6 +133,27 @@ class T2ASourcedCeilingLetsTheCorePick(unittest.TestCase):
         self.assertTrue(all(b in plan["focus_search"]["branches"] for b in seen), seen)
         self.assertTrue(decide.records and "verdict" in decide.records[-1])
 
+    def test_in_focus_only_where_the_cores_frame_is(self):
+        # Found by card 063's mock walk: the core said in_focus with its frame
+        # at 105 while Z stood at 110, and the search recorded 110 as found.
+        # The core's in_focus names a frame; the decider steps toward it and
+        # says in_focus only when that frame is where Z is now.
+        plan = copy.deepcopy(PLAN)
+        decide = fd.MetricMaximumDecider(plan, grab=lambda: (None, {}))
+
+        class V:                                        # a verdict that names frame 105
+            def __init__(self, verdict, z):
+                self.r = {"verdict": verdict, "reason": "test", "z_um": z}
+
+            def as_record(self):
+                return self.r
+        decide.classical = type("C", (), {"frame_stats": staticmethod(
+            lambda *a, **k: type("S", (), {"score": 1.0})())})
+        decide.verdict = type("F", (), {"from_sweep": staticmethod(lambda *a, **k: V("in_focus", 105.0))})
+        self.assertEqual(decide(110.0)["branch"], "step_down")
+        self.assertEqual(decide(100.0)["branch"], "step_up")
+        self.assertEqual(decide(105.0)["branch"], "in_focus")
+
     def test_no_thresholds_refuses(self):
         plan = copy.deepcopy(PLAN)
         del plan["focus_search"]["verdict_thresholds"]
