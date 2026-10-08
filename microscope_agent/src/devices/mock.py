@@ -52,7 +52,7 @@ def apply(params: dict) -> dict:
     """
     if _ABORTED:
         raise RuntimeError("aborted: this backend refuses commands until it is reset")
-    out: dict[str, object] = {"applied": dict(params)}
+    out: dict[str, object] = {"applied": dict(params), "backend": "mock"}
     with _LOCK:
         _STATE.update(params)
         settings = params.get("settings") or {}

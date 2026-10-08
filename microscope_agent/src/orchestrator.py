@@ -1883,7 +1883,7 @@ class Orchestrator:
             if element is None:
                 report["shutters"].append({
                     "channel": cid, "element": None, "identified": False,
-                    "commanded": None, "read_back": None, "closed": None,
+                    "commanded": None, "read_back": None, "closed": None, "backend": None,
                     "note": ("no element of this channel was recognised as a fast cut-off, by "
                              f"the test `'shutter' in element_id` over {self.channels[cid].element_ids()}. "
                              "Whether this channel needs one is NOT decided here: nothing in the "
@@ -1962,8 +1962,12 @@ class Orchestrator:
         including through micromanager, where the call wrote nothing.
         A failure is recorded and the abort goes on.
         """
+        # `backend` is the module that answered, read from what it returned and
+        # never assumed (card 065): a `closed: true` from mock is mock repeating
+        # what it was told, and a reader takes true as a confirmation only when
+        # backend is not mock. None means nothing answered.
         row = {"channel": cid, "element": element, "identified": True,
-               "commanded": None, "read_back": None, "closed": None}
+               "commanded": None, "read_back": None, "closed": None, "backend": None}
         if element is None:
             row.update(device=entry["device"], declared=True)
         if entry is None:
@@ -1994,6 +1998,7 @@ class Orchestrator:
             row["error"] = str(exc)
             return row
         returned = returned if isinstance(returned, dict) else {}
+        row["backend"] = returned.get("backend")
         verify = entry["verify"]
         pair = [] if verify is None else [
             r for r in (returned.get("verified") or []) + (returned.get("disagreed") or [])
@@ -2022,7 +2027,7 @@ class Orchestrator:
         rows = []
         for src in LIGHT_SOURCES:
             row = {"source": src["source"], "channel": src["channel"],
-                   "commanded": None, "read_back": None, "matched": None}
+                   "commanded": None, "read_back": None, "matched": None, "backend": None}
             if not src["software_commandable"]:
                 row["note"] = (f"not software-controllable: {src['why']}. This abort writes nothing to "
                                "it, so if a person switched it on by hand it is STILL ON; a "
@@ -2039,6 +2044,7 @@ class Orchestrator:
                 rows.append(row)
                 continue
             returned = returned if isinstance(returned, dict) else {}
+            row["backend"] = returned.get("backend")       # who answered (card 065)
             pair = [r for r in (returned.get("verified") or []) + (returned.get("disagreed") or [])
                     if r.get("device") == device and r.get("property") == prop]
             if not pair:

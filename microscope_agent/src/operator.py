@@ -1172,6 +1172,7 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
             o.begin_run(folder, run_id=run_id, plan_id=plan.get("id"),
                         revision=plan.get("revision"))
         how = "failed"
+        refusal = None
         try:
             if root is not None:
                 o.plan_authoriser = lambda p: authorise(p, approvals_on_disk(agent))
@@ -1183,12 +1184,46 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
                    else "aborted_by_monitor" if monitor_abort
                    else "failed" if failed
                    else "completed")
+            record["ended"] = how
             return record
+        except (Refusal, orch.InterlockError) as exc:
+            # A REFUSAL IS AN OUTCOME AND LEAVES A RECORD (card 065). It is
+            # `refused` only if nothing went out: no dispatch and no Z move of
+            # a focus search. A refusal raised after something was sent -- a
+            # focus step refused above the limit after earlier steps moved Z
+            # -- is a run that did something and stopped, so it stays
+            # `failed`, and check 15 would fail it as a refusal.
+            sent = [e for e in o.log if e.get("event") in _SENT_EVENTS]
+            if not sent:
+                how, refusal = "refused", str(exc)
+            raise
         finally:
             if folder is not None:
                 o.end_run(how)
+                if refusal is not None:
+                    write_run(_refused_record(o, plan, run_id, decision, safety, refusal),
+                              runs_root=folder.parent)
     finally:
         lock.release()
+
+
+#: Events that mean something went out to a device: the dispatch events check
+#: 15 counts, and a focus search's Z read back after a move.
+_SENT_EVENTS = frozenset({"apply", "apply_failed", "dispatch", "focus_search_readback"})
+
+
+def _refused_record(o, plan: dict, run_id: str, decision, safety: dict, refusal: str) -> dict:
+    """The log of a run refused inside operator.run, before anything went out (card 065)."""
+    return {
+        "artifact": "run_log", "schema_version": "0.1", "run_id": run_id,
+        "plan_id": plan.get("id"), "revision": plan.get("revision"),
+        "approval": {"id": decision.approval_id, "kind": decision.kind},
+        "safety_policy_version": safety.get("policy_version"),
+        "stop_criteria": [c.get("id") for c in plan.get("stop_criteria") or []],
+        **o.log_header(), "events": o.log,
+        "finished_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "ended": "refused", "refusal": refusal,
+    }
 
 
 def _run_body(o, plan: dict, run_id: str, backend: str, observe, handover, ask_person,
@@ -1509,6 +1544,7 @@ def run_live_view(list_path: Path, run_id: str, runs_root: Path | None = None,
             "approval": {"id": None, "kind": None}, "stop_criteria": [],
             **o.log_header(), "events": o.log,
             "finished_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "ended": how,
         }
         write_run(record, runs_root=root)
         return record
