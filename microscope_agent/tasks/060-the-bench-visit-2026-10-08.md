@@ -23,7 +23,7 @@ refusing; its first real move is a later visit.
 - Write the plan cards the visit needs, so the person only has to read and
   sign on the day:
   - one focus-search plan per refusal shown in step 2;
-  - one plan that turns the two lamps on and is then stopped, for step 3.
+  - no plan for step 3. It is done through live view (see step 3).
 
   They are ordinary plans, checked by the validator. The person approves
   them on the day, not before.
@@ -88,6 +88,8 @@ are not sure of a lens's closest safe position. Leave that lens unwritten,
 and it stays unsearchable.
 
 **For the seat:** the search runs through card 055's gate on the instrument.
+Its refusal must name the missing limit, not the camera ceiling, so this step
+needs card 066's check order too (see step 2).
 The expected refusal names the missing `focus_z_<objective>` key. Record the
 run under `runs/`, with the Z encoder read before and after; the two must be
 equal. The person writes `envelope/safety.json` themselves. You may not
@@ -97,6 +99,10 @@ person correct it.
 
 ### 2. Watch the other refusals, before any focus move
 
+**Do step 5b first**, and write the focus-hold reading into the safety file.
+Until it is written, every focus search refuses for want of it, and the
+focus-hold refusal below cannot be told apart from that.
+
 **For you:** The seat runs four more searches that must each refuse **without
 the focus motor moving**:
 
@@ -104,25 +110,42 @@ the focus motor moving**:
 - focus hold is still switched on (switch it on first; you switch it off
   again after);
 - the plan has not been approved;
-- the next step would go above your highest value for that lens.
+- the search's range would go above your highest value for that lens. It
+  is refused before the search starts, so the motor never gets near the
+  limit.
 
 You watch the motor display for each. **Stop if:** it moves on any of them.
 That ends the visit's motor work for the day.
 
 **For the seat:** these are card 055's instrument gate. For each one, record
 the refusal reason, the run id, and the encoder before and after. Put a note
-in `findings/` naming each refusal and its run. The fourth one needs a plan
-whose target lies above `focus_z_<objective>_max`. That command must be
-refused before it goes out, so the limit is never approached.
+in `findings/` naming each refusal and its run. The fourth one is a plan
+whose `range_um` goes above `focus_z_<objective>_max`. Preflight refuses it,
+and no command goes out. The per-move clearance check needs a move before it,
+so it is not what this shows.
+
+**Each refusal must show its own reason.** Today the gate checks the camera
+ceiling first. The ceiling is a gap until the count from step 5 is in the
+store, so before card 066 lands, every focus refusal reads as the ceiling's.
+**If card 066 has not landed by Thursday, these refusals do not count as
+shown.** Record what each one said, and they wait for the next visit.
 
 ### 3. The first real abort — lamps off, filter-turret shutters closed, read back
 
+**Done through live view**, because no plan can switch the lamps on today.
+Live view turns the transmitted lamp on from a list you approved, and the
+console's Abort runs the same abort as any run.
+
 **For you:**
 
-1. Open the two filter-turret shutters by hand at the stand. Software may
+1. Save your live-view list into the approvals folder. The draft is in card
+   062, with your own lamp setting from 25 September.
+2. Open the two filter-turret shutters by hand at the stand. Software may
    only close them.
-2. Approve the plan that turns the transmitted lamp and the Aura on.
-3. While they are on, the seat stops the run from outside.
+3. If you want the Aura in this test, switch it on at its own controls.
+   Software does not switch it on, but the abort switches it off.
+4. In the console, turn live view on. The transmitted lamp comes on.
+5. Press Abort in the console.
 
 The abort should then close both shutters and turn both lamps off. The record
 should show each one confirmed by reading it back. Look at the stand and the
@@ -133,7 +156,9 @@ or the record says something closed or turned off that you can see did not.
 Turn it off by hand, write it down, and end this step.
 
 **For the seat:** this is card 056 (both parts) and card 054 on the real
-stand, triggered through card 057's stop channel. Record the run under
+stand, triggered through card 057's stop channel during a card 062 live-view
+run. No abort plan is written: there is no plan step today that switches the
+lamps on or holds a run open. Record the run under
 `runs/`, and in `findings/` record each row's `closed` or `matched` beside
 what the person saw. A row that says `true` where the person saw otherwise is
 the most important thing this visit can find. Report it up the same day.
