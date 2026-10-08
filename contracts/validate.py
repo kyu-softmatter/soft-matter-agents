@@ -6996,6 +6996,23 @@ def check_74_a_card_standing_on_a_round(b: Bundle) -> list[Finding]:
         newer = sorted(r for r in revisions.get(stem, []) if r[0] > (src.get("revision") or 1))
         if newer:
             rev, cid, where = newer[-1]
+            # Once the bridge has written the superseding round and delivered
+            # it here, the move is no longer the bridge's. Saying so was the
+            # first thing a bridge seat asked for after making that move
+            # (thr-tracer-diffusivity-001 r3, 2026-10-08): the old wording
+            # sent the next reader back to a seat with nothing left to do.
+            carried = sorted(r for (t, r), s in pinned.items()
+                             if t == thread and r > rnd
+                             and without_revision_marks(s.get("card_id")) == stem
+                             and (s.get("revision") or 1) >= rev
+                             and (agent, thread, r) in delivered)
+            if carried:
+                out.append(Finding(74, PENDING, f"stands on {ref}, and round {carried[-1]} of {thread} "
+                                                f"already carries {cid} revision {rev} and was delivered to "
+                                                f"{agent}/inbox/. Taking it, with from_round "
+                                                f"{thread}:r{carried[-1]}, is this seat's move (4.4 rule 5)",
+                                   c.rel))
+                continue
             out.append(Finding(74, PENDING, f"stands on {ref}, which carries {src.get('card_id')} revision "
                                             f"{src.get('revision')}, and that card is now at revision {rev} "
                                             f"as {cid} ({where}). The round is superseded, not wrong, and "
