@@ -96,6 +96,21 @@
     "finished_at": {
       "type": "string"
     },
+    "ended": {
+      "enum": [
+        "completed",
+        "aborted_by_monitor",
+        "stopped_from_outside",
+        "failed",
+        "refused"
+      ],
+      "description": "how the run ended, the same word its events.jsonl's run_ended carries (card 057). Optional, because logs written before 2026-10-07 do not carry it. `refused` means the operator refused the run inside operator.run before any command went out: check 15 then asks for no approval, since refusing does nothing, and fails the log if any command was dispatched. Before this field, a run refused inside operator.run left events.jsonl and no log.json, which check 15 could only call pending for ever (card 065)"
+    },
+    "refusal": {
+      "type": "string",
+      "minLength": 1,
+      "description": "why the run was refused, as the operator said it. Required when `ended` is `refused`"
+    },
     "plan_path": {
       "type": "string",
       "description": "The plan file this run actually opened, repo-relative. `plan_id` and `revision` are copied from inside the card and agree with themselves whichever file was opened, so until 3eda760 nothing in a run record could distinguish 'ran revision 1 deliberately' from 'ran revision 1 because operator.py built the filename without a revision and could not see revision 2'. That second case ran the discarded experiment and finished green (tasks/009).\n\nOptional, because three runs predate the field and P1 does not rewrite them; absent means the record cannot make that distinction, which is a fact about the record and not a defect in it. The operator now refuses a mismatch between the filename and the card's own `revision` at the one point where both are in hand, so this field and that refusal are two halves: the refusal stops the pair from lying, this says which file the pair came from."
@@ -397,6 +412,24 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "ended": {
+            "const": "refused"
+          }
+        },
+        "required": [
+          "ended"
+        ]
+      },
+      "then": {
+        "required": [
+          "refusal"
+        ]
+      },
+      "$comment": "A refused run says why (card 065)."
+    },
     {
       "if": {
         "properties": {

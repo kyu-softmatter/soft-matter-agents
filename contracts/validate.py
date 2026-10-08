@@ -1833,6 +1833,21 @@ def check_15_approval_precedes_run(b: Bundle) -> list[Finding]:
             out.append(Finding(15, FAIL, f"unreadable run log: {exc}", rel))
             continue
         checked += 1
+        # A RUN REFUSED INSIDE operator.run (card 065, 2026-10-07). Refusing
+        # sends nothing, so it stands on no approval, and is not judged as a
+        # run that executed without one. What it must NOT have done is send a
+        # command: a "refused" log carrying a dispatch is a run that did
+        # something and is calling it a refusal.
+        if log.get("ended") == "refused":
+            sent = [i for i, ev in enumerate(log.get("events") or [])
+                    if isinstance(ev, dict) and ev.get("event") in _DISPATCH_EVENTS]
+            if sent:
+                out.append(Finding(15, FAIL, f"the log says the run was refused, and events {sent[:5]} "
+                                             "dispatched commands: a refusal sends nothing", rel))
+            else:
+                out.append(Finding(15, PASS, f"refused before any command went out ({str(log.get('refusal'))[:80]}); "
+                                             "refusing needs no approval", rel))
+            continue
         appr = log.get("approval") or {}
         aid, t0 = appr.get("id"), str(log.get("t0_wall") or "")
         plan = plans.get(str(log.get("plan_id") or ""))
