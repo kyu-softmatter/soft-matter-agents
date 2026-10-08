@@ -3918,7 +3918,7 @@ Written for whoever picks this up next, person or session, without the conversat
 3. The spinning-disk shutter's closed value. It is approved but not built, because no closed value is recorded.
 4. Whether live frames show outside a plan (default: no). Whether a run stops when its viewer drops is settled: it does not (batch A, below).
 
-**Waiting on a seat that is not open:** a manager-librarian session, to card the camera's full-scale count per readout mode. The store has none, so every focus search records that gap. Copying `map_*` (sample maps) waits for an XY design; nothing here designs one yet.
+**The camera's full-scale count** is carded: librarian task 043 (`54433d9`, manager-librarian-20261007-1), with `full_scale_count` (ADU) registered as a quantity. It waits on Thursday's bench reading. Until it is entered, every focus search records the gap. Copying `map_*` (sample maps) waits for an XY design; nothing here designs one yet.
 
 **Next, in order:** the person's bench visit (limits, watched refusals, first real abort) → the first focus-search plan, run with the person present → merge `feature/autofocus-ui` to `main`. On the dino side, its merge-plan branches merge into its own `main` **by merge, not rebase**, so the pinned commits stay reachable.
 
