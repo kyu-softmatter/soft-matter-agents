@@ -476,6 +476,13 @@
       "unit": "ADU",
       "kind": "physical",
       "note": "Registered on 2026-10-07 for librarian task 043. The focus search's `camera_ceiling` names one of these per plan, or the gap `camera_full_scale_count` while the store has none, which is every plan today. The value arrives from the person's bench visit of 2026-10-08. Not `bit_depth` and not `saturation`: a bit depth is a property of the digitiser and says what the ceiling could be at most, while this is what a saturated frame actually read. ADU, never `count` or `e`: the three differ by the camera's gain and offset, which is why ADU has its own dimension."
+    },
+    {
+      "id": "depth_of_field",
+      "definition": "The axial distance over which an objective images a plane acceptably sharp, for one objective, immersion medium and emission wavelength. Whether a value is a full width or a half width is part of the value and is stated with it: a tolerance written as a fraction of it changes by a factor of two on that choice alone.",
+      "unit": "um",
+      "kind": "physical",
+      "note": "Registered on 2026-10-07 for librarian task 045. Every focus-search plan scores its hits against it through `focus_search.success.depth_of_field_ref`, which must cite a store entry, and the store held none. The resolution axis computes the wave-optical term n*lambda/NA**2 in code; this name is for the store's formula entry and for what a card computes from it. NOT a focus limit: the limits are the person's, written per objective in the envelope, and nothing moves further because of a depth of field."
     }
   ],
   "not_yet_registered": {

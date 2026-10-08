@@ -231,6 +231,41 @@ are sourced to the device document rather than to the old repository, are never
 taken from prose, and **safety limits do not cross at all** — a person writes
 those after confirming them physically.
 
+`librarian-agent` was opened once, on 2026-09-24, for **one search only**:
+the confocal and illumination power calibration. Nothing else in it may be
+read, and the other two prior repositories stay closed.
+
+### dino-autofocus, a live source and not a prior one (2026-10-03)
+
+It is the person's own focus repository, still developed alongside this one
+(`plan.md` 10.2, 2026-10-03 paragraph). What reaches the store from it:
+
+- **Definitions of the focus method**: what each metric is, what each
+  verdict means, and that `unsure` is an abstention. The 17 of 2026-10-04
+  are the precedent, each ruled in a `kb/sources/src_dino_autofocus_*`
+  record that also lists the discards.
+- **Numbers, only as `prior_run:dino-autofocus@<sha>`, at E3 at most**, and
+  ruled the same way. A dino value is otherwise *named* by its card or file
+  and read there. The staging answer sheet is written that way, and it
+  holds no dino number.
+- **The person's bench answers recorded on dino's forms** are graded by what
+  the record shows. A reading in Micro-Manager with no agent running is
+  `operator_read:`. Only a run of this system is `measured:`. A statement
+  written beforehand and confirmed at the bench is graded by how it was
+  confirmed. Do not let a form's word "measured" lift a grade.
+
+What does not reach the store: the focus core's code (it is copied into
+`microscope_agent/` by a microscope seat), the console, any tuning threshold
+(a plan's method choice, with no source and no grade), and the focus limits,
+which are the person's and live in the envelope. **A working distance or a
+parfocal offset is knowledge; the clearance limit it seems to imply is
+not**, and an entry carrying one says so in its conditions.
+
+What the focus search reads from the store, so a gap here stops a run:
+the camera's full-scale count per readout mode (`camera_ceiling`, task 043)
+and the depth of field its success criterion is scored against
+(`depth_of_field_ref`, task 045).
+
 ## Commands
 
 ```bash
