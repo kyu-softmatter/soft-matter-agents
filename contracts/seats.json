@@ -1525,6 +1525,34 @@
         "librarian_agent"
       ],
       "note": "A librarian session on the Office computer (Windows, hostname Office -- not the microscope computer), already running when registered. The person opened it and said so directly in architecture-20261003-1's window on 2026-10-04 (\"I opened the librarian session, register the seat\"). n is 1, the first librarian seat for that date. Whether earlier librarian sessions are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from librarian-20261001-1."
+    },
+    {
+      "seat": "manager-librarian-20261007-1",
+      "committer_email": "manager-librarian-20261007-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "librarian_agent/CLAUDE.md",
+        "librarian_agent/.claude/",
+        "librarian_agent/tasks/",
+        "librarian_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/seats.json",
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/schemas/kb_entry.schema.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "A manager-librarian session on the Office computer (Windows, hostname Office -- not the microscope computer), already running when registered. The person opened it and said so directly in architecture-20261003-1's window on 2026-10-07 (\"I opened the librarian manager session\"). n is 1, the first manager-librarian seat for that date. Whether earlier sessions of the role are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-librarian-20261001-1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
