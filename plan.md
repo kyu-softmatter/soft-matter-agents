@@ -3888,7 +3888,7 @@ On 2026-09-22 the person looked at **Jev**, TypeSafe AI's "System One Model" (`t
 
 ## 14. Merging dino-autofocus -- the handoff (kept current; last updated 2026-10-05)
 
-Written for whoever picks this up next, person or session, without the conversation that produced it. Every claim below is a commit or a file, so check it rather than trust it. The branch is `feature/autofocus-ui`. It reaches `main` only when the person merges it.
+Written for whoever picks this up next, person or session, without the conversation that produced it. Every claim below is a commit or a file, so check it rather than trust it. The branch is `feature/autofocus-ui`. **On the person's word on 2026-10-07, `main` was fast-forwarded to it at `5b24147`** (82 commits, from `b346c02`). The two are the same commit there, and work continues on the branch. That merge was made before the bench visit on purpose: everything that moves the instrument refuses until the person writes the limits.
 
 **Purpose.** Bring [dino-autofocus](https://github.com/kyu-softmatter/dino-autofocus)'s focus finding into this repository's microscope agent, so focus is found by the same engine that runs every other plan, under the same safety rules. Its operator console (screens, server, launcher) **stays in dino-autofocus** and acts here only by drafting plans the person approves (the person, 2026-10-02). Public target: 2026-10-23.
 
