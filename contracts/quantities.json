@@ -483,6 +483,27 @@
       "unit": "um",
       "kind": "physical",
       "note": "Registered on 2026-10-07 for librarian task 045. Every focus-search plan scores its hits against it through `focus_search.success.depth_of_field_ref`, which must cite a store entry, and the store held none. The resolution axis computes the wave-optical term n*lambda/NA**2 in code; this name is for the store's formula entry and for what a card computes from it. NOT a focus limit: the limits are the person's, written per objective in the envelope, and nothing moves further because of a depth of field."
+    },
+    {
+      "id": "imaging_wavelength",
+      "definition": "The vacuum wavelength of the light that forms the image: for fluorescence, the emission that reaches the detector; for transmitted light, the illumination. A property of the imaging configuration, not of a dye.",
+      "unit": "um",
+      "kind": "physical",
+      "note": "Registered on 2026-10-07 as an input of objective_depth_of_field (librarian task 045), named and defined by librarian-20261004-1 and registered by manager-librarian-20261007-1. The formula's first inputs were unregistered names, so a card computing from it could not find them. NOT emission_peak_wavelength, which is a dye's spectral peak under the vendor's conditions: the light imaged is what passes the emission filter, and the plan names it. In um rather than nm because the source's formula needs depth and wavelength in like units."
+    },
+    {
+      "id": "detector_resolvable_distance",
+      "definition": "The smallest distance the detector can resolve, measured in the image plane. For a pixel camera it is one or two pixel pitches, and whichever is used is stated with the value.",
+      "unit": "um",
+      "kind": "physical",
+      "note": "Registered on 2026-10-07 as an input of objective_depth_of_field (librarian task 045), named and defined by librarian-20261004-1 and registered by manager-librarian-20261007-1. The formula's first inputs were unregistered names, so a card computing from it could not find them. Divided by lateral_magnification it is the sample-plane distance; at one pixel pitch that quotient is exactly pixel_size, and the formula keeps the source's form rather than substitute it, because the substitution assumes one pixel."
+    },
+    {
+      "id": "lateral_magnification",
+      "definition": "The magnification from the sample plane to the detector: the objective's times any intermediate magnification.",
+      "unit": "1",
+      "kind": "physical",
+      "note": "Registered on 2026-10-07 as an input of objective_depth_of_field (librarian task 045), named and defined by librarian-20261004-1 and registered by manager-librarian-20261007-1. The formula's first inputs were unregistered names, so a card computing from it could not find them. A pure number, so unit `1`. Not the objective's nominal magnification alone, which omits the intermediate optics."
     }
   ],
   "not_yet_registered": {
