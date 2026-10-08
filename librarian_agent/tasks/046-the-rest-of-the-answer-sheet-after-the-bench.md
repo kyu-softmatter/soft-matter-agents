@@ -38,8 +38,24 @@ hold it:
   has "Open" and no closed value. Card 060 step 4 reads the shutter's
   allowed values.
 
-Enter each the way 044 entered its self-reports, as settings read back and
-graded by the record. **Neither becomes a limit or a command.** Whether
+**And the immersion oil, added 2026-10-08.** The person said they will check
+it at the bench and report it. This closes the gap
+`immersion_oil_refractive_index`, which keeps the 60x and 100x from having a
+depth of field computed from the store (045). Two separate facts, two
+entries:
+
+- which oil is on the bench: the product as the bottle reads, an instance
+  the way the bead bottles are;
+- its refractive index: the type's specification, at the wavelength and
+  temperature the bottle or the vendor states. One index without its
+  wavelength is not a fact about the oil.
+
+Grade each by how it was obtained. A label read at the bench is
+`operator_read:`. A value the person states from memory is
+`operator_recall:`. The vendor's sheet, if you fetch it, is `spec:`.
+
+Enter each self-report the way 044 entered its self-reports, as settings
+read back and graded by the record. **Neither becomes a limit or a command.** Whether
 software may write the closed label is the person's exemption, not the
 entry's.
 
