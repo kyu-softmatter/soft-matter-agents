@@ -8174,7 +8174,7 @@ def check_87_safety_guides_follow_the_store(b: Bundle) -> list[Finding]:
 
 
 def _focus_fact(c, ref: dict, what: str, bad: list, *, unit_ok, unit_word: str, whole: bool,
-                store_number: str | None) -> str | None:
+                store_number: str | None, computed_symbol: str | None = None) -> str | None:
     """Resolve a focus-search fact that names a numbers[] entry or a kb_gaps entry (check 88).
 
     Returns the gap's id when it is a gap and every rule held, else None. A
@@ -8184,6 +8184,15 @@ def _focus_fact(c, ref: dict, what: str, bad: list, *, unit_ok, unit_word: str, 
     a plan cannot cite a real entry about something else (2026-10-07,
     manager-librarian-20261007-1: kb:camera_read_noise_speed with 65535 ADU
     passed). A named gap must be in the card's kb_gaps.
+
+    `computed_symbol` admits a second honest source: a `computed:` number
+    whose `inputs` name kb:<entry> for a store entry of kind derived_quantity
+    with that symbol. The depth of field is a formula whose inputs are the
+    sample's own (emission wavelength, immersion index), so its value is
+    something the card COMPUTES, and writing kb:<formula> as its source would
+    claim the store held a number it never held and hand the card the
+    formula's grade instead of the computed one (manager-librarian-20261007-1,
+    2026-10-07). Its grade is checks 17, 54 and 62's, not this one's.
     """
     if "number" in ref:
         name = ref["number"]
@@ -8198,6 +8207,23 @@ def _focus_fact(c, ref: dict, what: str, bad: list, *, unit_ok, unit_word: str, 
                           or (isinstance(v, float) and v.is_integer() and v >= 1)):
             bad.append(f"{what} {name!r} is {v!r}, not a whole count of at least 1")
         src = str(num.get("source", ""))
+        if computed_symbol and src.startswith("computed:"):
+            formulas = []
+            for inp in num.get("inputs") or []:
+                if not (isinstance(inp, str) and inp.startswith("kb:")):
+                    continue
+                path = KB_DIR / "entries" / f"{inp[3:]}.json"
+                try:
+                    entry = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+                except (OSError, json.JSONDecodeError):
+                    entry = {}
+                if entry.get("kind") == "derived_quantity" and entry.get("symbol") == computed_symbol:
+                    formulas.append(inp)
+            if not formulas:
+                bad.append(f"{what} {name!r} is computed, but none of its inputs names a store entry of kind "
+                           f"derived_quantity with symbol {computed_symbol}: a computed value names the "
+                           "formula it was computed from")
+            return None
         if not src.startswith("kb:"):
             bad.append(f"{what} {name!r} has source {num.get('source')!r}: it is a fact and comes from the "
                        "store, as kb:<entry>, or is a gap")
@@ -8344,10 +8370,11 @@ def check_88_focus_search(b: Bundle) -> list[Finding]:
         # THE DEPTH OF FIELD IS A FACT ABOUT THE OPTICS, the same shape
         # (2026-10-07, manager-librarian-20261007-1): it was a bare kb: string
         # that nothing resolved, and every fixture cited an entry nobody had
-        # entered. Its entry is a formula, so only its existence is asked.
+        # entered. Measured, it cites a kb: entry the store has; computed, its
+        # inputs name the store's depth_of_field formula.
         dof_gap = _focus_fact(c, (fs.get("success") or {}).get("depth_of_field") or {}, "depth of field", bad,
                               unit_ok=lambda u: dim_of(u) == {"L": 1}, unit_word="a length", whole=False,
-                              store_number=None)
+                              store_number=None, computed_symbol="depth_of_field")
 
         if bad:
             out.append(Finding(88, FAIL, f"{c.data.get('id')}: " + "; ".join(bad) + " (11-24)", c.rel))
