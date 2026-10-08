@@ -59,7 +59,7 @@ for an exception.
      whose sha256 is the one named, which is a live-view list as above. A
      sha256 it does not find there is refused. The console cannot send a list,
      a path, or a value. It can only name a list the person already approved;
-   - starts the run, and replies with that run's id. The console then follows
+   - starts the run, and replies with that run's id (the shapes are below). The console then follows
      it, views it and stops it exactly as card 061 proved.
 4. **One run at a time, across processes.** A live view and a plan run would
    be two Micro-Manager cores, which never happens (11-25 item 3). So there is
@@ -69,13 +69,52 @@ for an exception.
    it, and say which mechanism and why. The host itself holds no core when no
    live view is running.
 
-**Where the console learns the host's address is not settled here.** It must
-never be a file inside this tree, as with the stop channel. Propose one, for
-instance a file in the user's local app-data folder, or an address the person
-reads off the host and gives the console. Send the proposal to the session
-**"AF 화면 · SMA 실행 보기와 멈춤 연결"** before building it. That session pins
-the console's side, and a shape it has not agreed is a shape it does not
-speak.
+## The live-view host's interface — settled 2026-10-07
+
+The console session proposed it, and this card adopts it. The console builds
+to exactly this, and **a change goes to "AF 화면 · SMA 실행 보기와 멈춤 연결"
+first**.
+
+**A standing listener is new here, and it is bounded.** Every socket so far
+lived only inside a run. This one exists while no run does, so:
+
+- **who starts it, and when:** the person, on this side, by starting the
+  host. It is never started by the console, by a run, or at login. It stops
+  when the person stops it. While it is not running, nothing listens;
+- **what it accepts:** only `live_on` naming an approved list's sha256, and
+  nothing else, ever. It is not a second stop channel and not a command
+  channel: it cannot stop, set, read or move anything;
+- **where it binds:** `127.0.0.1` only, on a port the OS chooses.
+
+**Address discovery:** `%LOCALAPPDATA%\soft-matter-agents\live_host.json`.
+
+- It is **outside this tree** and is never committed. It **holds no secret**:
+  exactly `{"host": "127.0.0.1", "port": <int>, "pid": <int>, "started_at":
+  "<ISO-8601 time>"}`, and nothing else.
+- The host writes it **atomically** on start, writing to a temporary name and
+  then renaming, so the console never reads half a file. It deletes the file
+  on stop. A file left behind by a
+  host that died points at a port nobody answers on, and the console treats
+  a refused connection as *no host*.
+
+**The request**, one line of JSON, then the connection closes after the
+reply:
+
+```
+{"live_on": "<sha256 of the approved list file's raw bytes>"}
+```
+
+**The replies**, one line each:
+
+```
+{"live_on": "started", "run_id": "<run id>"}
+{"live_on": "refused", "reason": "<text>"}
+```
+
+A refusal starts nothing and is recorded on this side as well. The `reason`
+is for the person to read, and the console does not branch on its wording.
+After `started`, the console finds the run and its stop channel the usual
+way, from that run's `run_started`.
 
 ## Tests, mock first, each watched failing before the code exists
 
@@ -115,7 +154,8 @@ force, never amend.
 
 ## What the person writes
 
-- **The live-view list**, in `approvals/`: the transmitted lamp's intensity,
+- **The live-view list**, in `approvals/`, in the shape
+  `contracts/schemas/live_view_list.schema.json` gives it: the transmitted lamp's intensity,
   the exposure, and the frame ceiling (the longest a live view may run). The
   seat can draft the list's shape for the person to fill in; the values are
   the person's.
@@ -123,5 +163,5 @@ force, never amend.
 ## What comes back
 
 To this seat, 8 lines at most: the commit; the seven tests' failing and then
-passing output; the lock mechanism; the address proposal and the console
-session's answer; and the validator's `verdict:` and `tree:` lines.
+passing output; the lock mechanism; that the host, the address file and
+both replies match the shapes above; and the validator's `verdict:` and `tree:` lines.
