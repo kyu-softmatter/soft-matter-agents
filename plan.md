@@ -3920,6 +3920,8 @@ Written for whoever picks this up next, person or session, without the conversat
 
 **The camera's full-scale count** is carded: librarian task 043 (`54433d9`, manager-librarian-20261007-1), with `full_scale_count` (ADU) registered as a quantity. It waits on Thursday's bench reading. Until it is entered, every focus search records the gap. Copying `map_*` (sample maps) waits for an XY design; nothing here designs one yet.
 
+**The DINO score, for later** (the person, directly to architecture on 2026-10-07): the microscope computer holds about 6000 synthetic images per magnification, a DINO model was trained on them, and its focus detection was about 97 %. That is the person's statement of a result on synthetic data from another computer. It is a reason to plan 13.1's shadow mode next, and not a measurement here. It enters no card, a model score is E6 (P2), and on real samples the same model must be compared against the person's manual focus before anything leans on it (13.2 item 6). The classical core stays the deterministic baseline it is measured against.
+
 **Next, in order:** the person's bench visit (limits, watched refusals, first real abort) → the first focus-search plan, run with the person present → merge `feature/autofocus-ui` to `main`. On the dino side, its merge-plan branches merge into its own `main` **by merge, not rebase**, so the pinned commits stay reachable.
 
 **How to work here** (the root `CLAUDE.md` has the reasons):
