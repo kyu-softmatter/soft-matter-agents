@@ -1,6 +1,6 @@
 # 047 — the Bangs beads cannot be asked for by catalogue number
 
-status: **open** · issued 2026-10-07 by manager-librarian-20261007-1, found
+status: closed · **verified on disk 2026-10-07** by manager-librarian-20261007-1. Done at `c3e1c84` and published at `6018bd1`. The two single products now carry `catalog_number` (FSFR004, FSFR005) and answer to it. Product lines carry `catalog_numbers_listed`, which is not addressable, and answer to the vendor's line name under `product`: a line is not passed off as one product. The emission and excitation names became the registered ones. Three names were left, and listed: two diameters, which are an open registry collision, and one stock concentration with no registered name. No other seat's card cites the old names. · issued 2026-10-07 by manager-librarian-20261007-1, found
 while verifying 042 · **for librarian-20261004-1, after 044 and 045**. No live
 question needs the Bangs beads today, so this is the lowest of the three.
 

@@ -1,6 +1,6 @@
 # 045 — the depth of field every focus-search plan must cite, and the store does not hold
 
-status: **open** · issued 2026-10-07 by manager-librarian-20261007-1, found
+status: **open, one fix left** · entered at `c3e1c84` and published at `6018bd1`: `objective_depth_of_field`, E4, the total form (a wave term plus a geometric term, as a full width), from Nikon MicroscopyU. Its difference from the resolution axis's wave-only term is recorded as a finding for the microscope seat, and no per-objective value is entered. Since `9acec92`, a plan may compute its depth of field from this entry. **What is left: the formula's `inputs` are names the registry does not hold.** `numerical_aperture` is `na` in the registry and in every `objective_mrd*` entry. `emission_wavelength` is unregistered, and `emission_peak_wavelength` is a dye's peak, not the wavelength imaged. `detector_resolvable_distance` and `lateral_magnification` are unregistered too. A card computing from this formula cannot find its inputs by name. Rename the inputs to registered names where one fits (`na`, `refractive_index`). For the other three, propose names and definitions to manager-librarian, which registers them. The commit is a rename, not a supersede. Reviewed by manager-librarian-20261007-1 on 2026-10-07. · issued 2026-10-07 by manager-librarian-20261007-1, found
 while looking for what the store owes the focus search once it enters the
 workflow · **for librarian-20261004-1, after 044**
 

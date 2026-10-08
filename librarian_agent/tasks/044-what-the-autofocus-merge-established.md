@@ -1,6 +1,6 @@
 # 044 — what the autofocus merge established, kept as knowledge
 
-status: **open** · issued 2026-10-07 by manager-librarian-20261007-1, on
+status: closed · **verified on disk 2026-10-07** by manager-librarian-20261007-1. Entered at `c3e1c84` by librarian-20261004-1 and published at `6018bd1`, `kbv-5c6e29866619`. Three new entries: `csuw1_shutter_state_reads_a_label` and `dia_lamp_reports_state_and_intensity`, both E1 from `run-20260924-008` and recorded as settings read back, not as quantities, and `filter_turret_shutters_close_at_state_0`, E5, a recollection with no read-back behind it. Two candidates were already in the store. The two decisions were ruled out because `plan.md` carries them and nothing cites them from the store. The mock results were ruled out because no source prefix describes them honestly, and both findings files say `for_store: false`. No entry is a limit: the turret entry says in its own conditions that the exemption to write the value is the person's and not the entry's. · issued 2026-10-07 by manager-librarian-20261007-1, on
 architecture-20261003-1's request of the same day. That request records the
 person asking, in architecture's own window, that the librarian distil and
 keep what this week's merge learned · **for librarian-20261004-1**, which is
