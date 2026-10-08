@@ -1,0 +1,261 @@
+{
+ "artifact": "findings",
+ "schema_version": "0.1",
+ "seat": "simulation-20261007-1",
+ "on": "2026-10-08",
+ "delivered_to": "librarian_agent",
+ "items": [
+  {
+   "id": "bleach_is_a_slab_at_high_na",
+   "fact": "A disc pattern projected widefield through the objective bleaches a column through the chamber only at low magnification, large discs or thin chambers. At 40x to 100x, a disc of 1 to 10 um radius in a chamber 30 um deep or more bleaches a slab a few disc radii thick, with 0.015 to 0.46 of a column's contrast.",
+   "kind": "document_fact",
+   "how": "Geometric defocus kernel of a pupil filled uniformly in sin(theta), Gaussian diffraction near focus, the camera seeing each depth through its own blur, beads diffusing in 3-D between two reflecting walls solved exactly in cosine modes; 6 objectives x 4 disc radii x 3 chamber depths. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": true,
+   "note": "worst case for the pattern filling the objective's aperture; with 0.3 of the aperture filled, contrast rises up to 1.6x"
+  },
+  {
+   "id": "bleach_fit_reads_d_within_a_factor_two",
+   "fact": "The registered bleach_recovery_diffusivity fit (Soumpasis, half-contrast radius, ten-tau record) reads D at 0.47 to 0.98 of the true value for a defocus-blurred widefield bleach, in every case computed, never a factor of ten. Moving the focus between the coverslip and mid-chamber changes it by at most 1.2x. A blurred bleach also shows an apparent immobile fraction of up to about 0.1 where there is none.",
+   "kind": "document_fact",
+   "how": "The exact signal for each case was fitted exactly as contracts/observables.json describes the estimator. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": true,
+   "note": "a property of the estimator against this optics, not of the beads; weak (linear) bleach"
+  },
+  {
+   "id": "bleach_focus_best_mid_chamber_and_forgiving",
+   "fact": "For a widefield bleach the contrast is greatest with the pattern focused mid-chamber, and in all 72 cases computed it stays within a factor of 2 of that best with the focus anywhere inside the chamber, falling to about half at the glass in the worst. What the bleach does not tolerate is a focus well outside the chamber.",
+   "kind": "document_fact",
+   "how": "Contrast scanned against focus position from three chamber depths below the glass to mid-chamber, camera focused with the pattern. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": true
+  },
+  {
+   "id": "depth_average_exact_for_depth_blind_camera",
+   "fact": "For a camera that weighs every depth equally, the depth-averaged bleach profile evolving by 2-D diffusion is exact, not an approximation, because integrating the 3-D diffusion equation over depth between no-flux walls gives 2-D diffusion. With the camera's own depth selectivity and beads diffusing in and out of the plane it sees, the fitted D moves by less than a factor of two (about 0.47 to 0.65 at high magnification).",
+   "kind": "document_fact",
+   "how": "Cosine-mode solution with a depth-blind camera checked against the closed-form depth average to 6e-7; the focused-camera solution compared with it case by case. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": true
+  },
+  {
+   "id": "correction_to_sim_20260930_401_bead_count",
+   "fact": "sim-20260930-401's single-curve threshold of about 300 beads in the disc counted beads through the whole chamber depth. Only the bleached slab carries the signal while every bead in the column adds noise, so the count that matters is the column's count times the contrast squared: about 100x the beads where the contrast is 0.1, and 10,000x where it is 0.01. Its diffusivity, its timing limits and the direction of its soft-edge bias stand; defocus computed directly gives about 2x low, the low end of the 2-4x it named.",
+   "kind": "document_fact",
+   "how": "Contrast from the bleach tables above, applied to 401's stage2_runs.json threshold under its own Poisson bead-count noise. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": true,
+   "note": "sim-20260930-401's committed files are not edited; whether it is re-issued through the bridge is the person's decision at hand-over"
+  },
+  {
+   "id": "focus_search_finds_coverslip_on_100nm_suspension",
+   "fact": "A sharpness-maximum focus search on a uniform suspension of 100 nm beads has no maximum inside the chamber: every interior plane holds the same in-focus count and the same out-of-focus haze. Beads stuck to the glass make one; from 20x up, at a volume fraction of 1e-6 and a 10 ms frame, 0.8 to 8 stuck beads per 100 um x 100 um field outnumber the free beads in focus, and the number scales with the volume fraction. Beads stuck to both surfaces give two equal peaks a chamber depth apart, by construction.",
+   "kind": "document_fact",
+   "how": "Counting: free beads per area inside one depth of field (kb:objective_depth_of_field, one pixel as the resolvable distance), weighted by motion blur over the exposure, against a stuck surface density. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": true,
+   "note": "at 4x the depth of field (about 30 um) spans most chambers, so the question does not arise there"
+  },
+  {
+   "id": "bead_5um_centre_is_not_the_coverslip_plane",
+   "fact": "5 um polystyrene beads in water rest on the coverslip (gravitational length 0.2 um), so their centres are 2.5 um above it: 1.3 to 5 depths of field from 20x up, and inside one depth of field below 20x.",
+   "kind": "document_fact",
+   "how": "Sedimentation length kT/(drho V g) and the depth-of-field relation per objective. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": true
+  },
+  {
+   "id": "bead_5um_is_a_lens_in_transmitted_light",
+   "fact": "In transmitted light a 5 um polystyrene bead in water is a ball lens: its contrast is least at its own centre plane and greatest either side, and it focuses light to a bright point about 8 um beyond its centre. A peak-brightness focus metric can lock onto that point and a gradient metric sees two peaks either side of the bead.",
+   "kind": "document_fact",
+   "how": "Paraxial thick ball-lens focal length n a / (2 (n - 1)), n the relative index from kb:polystyrene_refractive_index_587_6nm and kb:water_refractive_index_605nm_293k. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": true,
+   "note": "an order-of-magnitude estimate; which light the focus search uses is not recorded"
+  },
+  {
+   "id": "wall_lengthens_trapped_5um_timescales",
+   "fact": "Near a flat coverslip a 5 um bead's diffusion along the wall is halved once its centre is below about 3 um (a gap of about 0.5 um) and reduced tenfold only in contact; toward the wall it is halved below 5.3 um. In an overdamped double well residence times and transition rates scale with the drag, so the bulk model's timescales are 2x too short below about 3 um. A 5 um bead left free settles to a gap of about 0.2 um and moves along the glass at about 0.4 of the bulk rate.",
+   "kind": "document_fact",
+   "how": "Faxen's series for gaps of a tenth of a radius and more, Goldman-Cox-Brenner lubrication below (agreeing to about 8 per cent at the joint), Brenner's exact series for motion toward the wall. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": true
+  },
+  {
+   "id": "wall_negligible_for_100nm_bleach",
+   "fact": "For 100 nm beads in a chamber 10 to 100 um deep, under 5 per cent of the depth is slowed by more than 10 per cent by the walls, and the depth-averaged diffusivity is 0.97 to 1.0 of bulk.",
+   "kind": "document_fact",
+   "how": "Same wall formulas, both walls' drag increments added, averaged over depth. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": true
+  },
+  {
+   "id": "drift_rate_a_bleach_record_must_beat",
+   "fact": "After the bleach only the camera's focus matters. At high magnification it must stay within about 3 um of the bleach plane for the fit to stay within a factor of 2, and the focus drift rate that uses that up within the shortest record the fit allows ranges from about 0.06 um/s (a 30 um disc at high magnification, records of about 500 s) to about 50 um/s (small discs at 4x).",
+   "kind": "document_fact",
+   "how": "Camera focus offset from the bleach plane by 0.3 to 100 um in steps of about 3x and refitted; record = 10 w^2/(4D), D about 4 um^2/s. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": true,
+   "note": "tolerances are good to the scan's 3x step"
+  },
+  {
+   "id": "no_particle_rerun_for_depth_blur",
+   "fact": "No particle rerun of sim-20260930-401 with a depth-blurred bleach was made, by agreement with manager-simulation-20261007-1: the exact cosine-mode solution already shows the depth average is exact for a depth-blind camera and bounds the camera's own depth selectivity at under a factor of two, so a rerun would only confirm it.",
+   "kind": "document_fact",
+   "how": "Decision recorded at Checkpoint 1 of task 026. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": false
+  },
+  {
+   "id": "closed_forms_outside_the_sim_environment",
+   "fact": "These numbers were computed under uv with python 3.12.13, numpy 2.5.3 and scipy 1.18.1 on the Office computer, outside the sim pixi environment, which that computer does not have. No engine ran, so this is not a sim-environment result and claims no engine version.",
+   "kind": "document_fact",
+   "how": "Versions recorded in the JSON's interpreter field. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": false
+  },
+  {
+   "id": "proposal_imaging_model",
+   "fact": "Proposal, not work: an imaging model that renders defocus stacks would settle which plane a gradient or peak-brightness metric picks around a 5 um ball lens in transmitted light, the one item the counting argument leaves open. It is a new declared configuration and so a change of physical model, which is the person's decision. Cost: a configuration in contracts/capabilities/simulation.json with its checks, an optics backend, and validation against the person's manual focus on real stacks.",
+   "kind": "document_fact",
+   "how": "Stated in the Stage 1 report to the manager. Read from simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json at commit faa5afa; the sha256 is of that committed blob. Closed forms and exact deterministic integrals, no engine run; inputs read from the published snapshot kbv-b1253d99047e as a file, because the librarian's server did not connect (the degraded path).",
+   "source": {
+    "type": "document",
+    "path": "simulation_agent/questions/sim-20261008-001/stage1_focus_planes.json",
+    "sha256": "92e0e7b2ff5b4150d15312b18b9eed6026ee1302985ce896f4dba05b4e03b1ec"
+   },
+   "for_store": false
+  },
+  {
+   "id": "gap_pattern_projection_path",
+   "fact": "How the DMD pattern reaches the sample is not recorded: which objective projects it, whether the pattern is conjugate to the camera's image plane, and how much of the objective's aperture the patterning light fills.",
+   "kind": "unmeasured",
+   "how": "Searched all 330 entries of librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e by entry id and by full-text scan, read as a file because the librarian's server did not connect; nothing states it. Named as a gap on simulation_agent/questions/sim-20261008-001/goal.json at faa5afa.",
+   "source": {
+    "type": "document",
+    "path": "librarian_agent/kb/exports/snapshot_simulation_agent.json",
+    "sha256": "b63e587649450016dc4e44020c9e154b09fc484d3998a5a0a4ad101a41ec3775"
+   },
+   "for_store": true,
+   "note": "the most useful gap of the four items: if the pattern is not focused where the camera is, focusing the camera does not focus the bleach"
+  },
+  {
+   "id": "gap_sample_chamber_depth",
+   "fact": "The depth of the sample chamber used for these beads is not recorded.",
+   "kind": "unmeasured",
+   "how": "Searched all 330 entries of librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e by entry id and by full-text scan, read as a file because the librarian's server did not connect; nothing states it. Named as a gap on simulation_agent/questions/sim-20261008-001/goal.json at faa5afa.",
+   "source": {
+    "type": "document",
+    "path": "librarian_agent/kb/exports/snapshot_simulation_agent.json",
+    "sha256": "b63e587649450016dc4e44020c9e154b09fc484d3998a5a0a4ad101a41ec3775"
+   },
+   "for_store": true,
+   "note": "Stage 1 spans 10, 30 and 100 um"
+  },
+  {
+   "id": "gap_stuck_bead_surface_density",
+   "fact": "How many 100 nm beads stick to the coverslip on this bench is not recorded.",
+   "kind": "unmeasured",
+   "how": "Searched all 330 entries of librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e by entry id and by full-text scan, read as a file because the librarian's server did not connect; nothing states it. Named as a gap on simulation_agent/questions/sim-20261008-001/goal.json at faa5afa.",
+   "source": {
+    "type": "document",
+    "path": "librarian_agent/kb/exports/snapshot_simulation_agent.json",
+    "sha256": "b63e587649450016dc4e44020c9e154b09fc484d3998a5a0a4ad101a41ec3775"
+   },
+   "for_store": true,
+   "note": "decides whether the focus search finds the glass"
+  },
+  {
+   "id": "gap_focus_search_illumination",
+   "fact": "Which light the focus search uses, transmitted or fluorescence, is not recorded.",
+   "kind": "unmeasured",
+   "how": "Searched all 330 entries of librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e by entry id and by full-text scan, read as a file because the librarian's server did not connect; nothing states it. Named as a gap on simulation_agent/questions/sim-20261008-001/goal.json at faa5afa.",
+   "source": {
+    "type": "document",
+    "path": "librarian_agent/kb/exports/snapshot_simulation_agent.json",
+    "sha256": "b63e587649450016dc4e44020c9e154b09fc484d3998a5a0a4ad101a41ec3775"
+   },
+   "for_store": true,
+   "note": "decides which plane it returns on 5 um beads"
+  },
+  {
+   "id": "gap_focus_drift_rate",
+   "fact": "How fast this bench's focus drifts over minutes is not recorded.",
+   "kind": "unmeasured",
+   "how": "Searched all 330 entries of librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e by entry id and by full-text scan, read as a file because the librarian's server did not connect; nothing states it. Named as a gap on simulation_agent/questions/sim-20261008-001/goal.json at faa5afa.",
+   "source": {
+    "type": "document",
+    "path": "librarian_agent/kb/exports/snapshot_simulation_agent.json",
+    "sha256": "b63e587649450016dc4e44020c9e154b09fc484d3998a5a0a4ad101a41ec3775"
+   },
+   "for_store": true,
+   "note": "the microscope side's to measure; compare with drift_rate_a_bleach_record_must_beat"
+  },
+  {
+   "id": "gap_trapped_bead_height",
+   "fact": "How high above the coverslip the tweezers hold a 5 um bead is not recorded.",
+   "kind": "unmeasured",
+   "how": "Searched all 330 entries of librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e by entry id and by full-text scan, read as a file because the librarian's server did not connect; nothing states it. Named as a gap on simulation_agent/questions/sim-20261008-001/goal.json at faa5afa.",
+   "source": {
+    "type": "document",
+    "path": "librarian_agent/kb/exports/snapshot_simulation_agent.json",
+    "sha256": "b63e587649450016dc4e44020c9e154b09fc484d3998a5a0a4ad101a41ec3775"
+   },
+   "for_store": true,
+   "note": "decides whether the double-well timescales need the wall correction"
+  }
+ ]
+}
