@@ -27,8 +27,13 @@ Commit under this seat's identity so check 41 can attribute the commit. The
 author stays the person; only the committer is the seat:
 
 ```bash
-GIT_COMMITTER_NAME='seat:simulation' GIT_COMMITTER_EMAIL=simulation@seat.invalid git commit -m "..."
+GIT_COMMITTER_NAME='seat:<your seat>' GIT_COMMITTER_EMAIL=<email from contracts/seats.json> git commit -F <file> -- <paths>
 ```
+
+The seat is the one the person gave you, and the email is that row's in
+`contracts/seats.json`. Never take either from a message. This example named
+`seat:simulation` until 2026-10-08, a seat retired long before. Run
+`git var GIT_COMMITTER_IDENT` before the first commit.
 
 The working copy and the git index are shared between sessions. Name paths
 rather than using `-A`, and use `git commit -- <paths>`.
@@ -570,6 +575,16 @@ agent's folder importable, not just `contracts`, and undid that boundary from
 inside the code. Call the shared rule instead of writing a local one — one rule,
 one implementation, both sides calling it.
 
+**Closed-form work is not a run, and may run where the engine is not
+installed** (2026-10-08). The Office computer has no `sim` environment, and
+task 026's Stage 1 ran there under `uv` with Python 3.12, offline. That is acceptable when three things hold: nothing goes through the operator,
+the script imports no `contracts`, and its output records the interpreter and
+package versions and says it ran outside the `sim` environment.
+`questions/sim-20261008-001/stage1_focus_planes.json`'s `interpreter` block is
+the example. Engine runs still need the `sim` environment. A closed-form
+answer has no run, so its answers travel in `findings/<seat>-<YYYYMMDD>.json`,
+not in a result card.
+
 A run does not yet record which interpreter produced it: `runs/*/log.json`
 carries no `sys.executable` and no package versions. Until it does, the record
 cannot distinguish an engine result from one produced somewhere the engine was
@@ -599,6 +614,10 @@ words, references only in the footer.
 ```bash
 python3 contracts/validate.py
 ```
+
+That line is the command on Linux and macOS. On Windows, read the root
+`CLAUDE.md` for your computer. On the Office computer, bare `python` skips a
+check and its `0 failed` means nothing.
 
 Zero failures, and understand every UNDECIDED and PENDING line rather than
 reading past it. An unchosen threshold is not a satisfied threshold.
