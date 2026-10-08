@@ -1186,6 +1186,19 @@ def check_08_bridge(b: Bundle) -> list[Finding]:
                 out.append(Finding(8, FAIL, f"{fld} is not empty: the bridge carries, it does not author. The payload's numbers keep their own sources and grades (4.4, 5.3)", c.rel))
         if payload.get("card") not in ("plan", "result"):
             out.append(Finding(8, FAIL, f"payload is a {payload.get('card')!r} card; a plan and a result cross, nothing else does (4.4)", c.rel))
+        # An operation plan verifies a setup -- a piezo step, a trap placed
+        # and confirmed, a focus search with no goal -- and asks nothing of
+        # the other side, so it has no observable to answer and is not a
+        # round's payload whatever opened it. It reaches VALIDATED like any
+        # plan, which reads as "plan completion" to someone counting finished
+        # plans, and with the focus search in the workflow (11-24) every
+        # session the microscope runs will start with one. Without this the
+        # first such crossing would be held as undeclared and handed to a
+        # person who has nothing to decide.
+        elif payload.get("card") == "plan" and is_operation_plan(payload):
+            out.append(Finding(8, FAIL, f"payload {payload.get('id')!r} is an operation plan -- it verifies a "
+                                        f"setup and measures nothing -- so the other side has nothing to "
+                                        f"answer. Only a plan with a goal crosses (4.4, 11-21)", c.rel))
         if payload.get("qid") != c.data.get("qid"):
             out.append(Finding(8, FAIL, f"envelope qid {c.data.get('qid')!r} is not the payload's {payload.get('qid')!r}; the envelope belongs to the question it carries (5.2)", c.rel))
         if c.data.get("direction") != expect_dir:
@@ -1602,7 +1615,7 @@ ALLOWED_PATHS = [
     # person asked for an MIT license at the repository root. These two lists
     # first, then the section 7 item and the seat's paths, then the file.
     r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|LICENSE|\.gitignore|\.gitattributes|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock)$",
-    r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|seats\.json|validate\.py|validation_limits\.json|history_fixtures\.py)$",
+    r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|seats\.json|validate\.py|validation_limits\.json|history_fixtures\.py|bridge_board\.py)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",

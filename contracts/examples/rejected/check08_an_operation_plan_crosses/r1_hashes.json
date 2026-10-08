@@ -1,0 +1,17 @@
+{
+  "artifact": "round_hashes",
+  "schema_version": "0.1",
+  "thread": "thr-operation-crosses",
+  "round": 1,
+  "ask_card": "r1_ask_simulation.json",
+  "source": {
+    "path": null,
+    "card_id": "plan-mic-20261007-951-r1",
+    "revision": 1,
+    "status": "VALIDATED",
+    "sha256": "sha256:2aee2ac5d64bb3f7299c6c859f4afc84ba035ae800e0b0b573e1a9189d175d32"
+  },
+  "payload_sha256": "sha256:88374b9964b909dbd93baaaefad89956fd8ac65c44cea21f60b20a17823c059f",
+  "verified_at": "2026-10-07T21:05:00Z",
+  "note": "Hand-fed: the source has no path, so the recorded hash is the payload's own."
+}

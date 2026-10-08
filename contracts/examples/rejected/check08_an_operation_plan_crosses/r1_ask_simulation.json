@@ -1,0 +1,53 @@
+{
+  "card": "ask_simulation",
+  "schema_version": "0.1",
+  "id": "ask-thr-operation-crosses-r1",
+  "qid": "mic-20261007-951",
+  "thread": "thr-operation-crosses",
+  "round": 1,
+  "revision": 1,
+  "author": "bridge",
+  "created_at": "2026-10-07T21:05:00Z",
+  "status": "VALIDATED",
+  "direction": "experiment_to_simulation",
+  "trigger": "plan_completion",
+  "payload_card": {
+    "card": "plan",
+    "schema_version": "0.1",
+    "id": "plan-mic-20261007-951-r1",
+    "qid": "mic-20261007-951",
+    "thread": "solo-mic-20261007-951",
+    "round": 0,
+    "revision": 1,
+    "author": "microscope_agent",
+    "created_at": "2026-10-07T21:00:00Z",
+    "status": "VALIDATED",
+    "numbers": [],
+    "degraded": [
+      "librarian_agent"
+    ],
+    "purpose": "verify",
+    "focus_search": {
+      "channel": "stand_ti2e",
+      "element": "z_drive"
+    }
+  },
+  "payload_hash": "sha256:88374b9964b909dbd93baaaefad89956fd8ac65c44cea21f60b20a17823c059f",
+  "answerability": {
+    "observable": "tracer_diffusivity",
+    "checked_against": "simulation.json",
+    "producible": "yes",
+    "producing_configs": [
+      "bd_overdamped"
+    ],
+    "substitutes": []
+  },
+  "unit_consistency": {
+    "verdict": "no_counterpart",
+    "compared_against": null
+  },
+  "numbers": [],
+  "degraded": [
+    "librarian_agent"
+  ]
+}

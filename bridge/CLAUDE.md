@@ -14,7 +14,30 @@ bidirectional is the thread.
 exists, and §7 gives the bridge none: this agent is instructions plus
 `contracts/`. What landed early is the envelope, the two thread ledgers and
 check 8, so a round written by hand here is checked exactly as one written at M4
-will be. One example round sits in `contracts/examples/`.
+will be. One example round sits in `contracts/examples/`. The one piece of code
+this seat runs is the board below, and it moves nothing.
+
+## The board — start here
+
+```bash
+python3 contracts/bridge_board.py
+```
+
+It prints every thread with whose turn it is, whether the round was delivered
+and taken, and whether the source card has been revised since it crossed; then
+each side's results and finished plans that have **not** crossed. Run it at
+the start of a session and before telling the person anything about the
+threads. It reads the cards where their authors left them and writes nothing:
+**nothing is gathered into `bridge/` first**, because a copy of a result is a
+second place for one card, and a board saved to a file is the stale-turn drift
+described under *Delivering a round*. It is rebuilt on every run, so it cannot
+go stale.
+
+**The board offers; it never decides.** A result listed as not crossed is
+waiting on a person's hand-over, not on you. Give the person that list when
+they ask what there is to hand over, and wrap a round only when they say which.
+A line saying the source was revised after it crossed is a superseding round
+owed by this seat, under the same hand-over rule as the original.
 
 ## Tier 0 only
 
@@ -102,6 +125,31 @@ The receiving agent's S2 turns the envelope into its own goal and puts
 `from_round` on it. That is how this seat learns the round was taken: the
 bridge already reads both agents' `questions/`, so the loop closes with no
 write across a boundary in the other direction.
+
+## When the microscope finds its own focus
+
+The focus search is now part of the microscope's work. Two
+things change for this seat and nothing else does.
+
+- **An operation plan never crosses.** A focus search with no goal finds a
+  plane and measures nothing about the sample, the same as a trap placed and
+  confirmed or a stage step checked. It reaches VALIDATED like any plan, so it
+  looks like a finished plan, and from now on most finished microscope plans
+  will be one of these. The other side has nothing to answer, so check 8
+  refuses it as a payload whatever opened the round. The board counts them
+  and does not offer them.
+- **A focus number travels as what it is.** A microscope result will carry the
+  plane its search found, as an encoder read and a verdict. A simulation
+  result may carry a prediction about which plane matters. Both are carried
+  without a character changed, like every other number. Neither ever becomes a
+  limit on the instrument: the per-lens focus limits are the person's alone
+  and nothing crosses into them (§10.3, §11-24).
+
+What is **not** yet a gate: whether two values compared in a round were
+measured at corresponding planes. That needs the plane on both sides' cards
+first. The simulation side is working on which plane each prediction depends
+on; until a field exists, say so in the thread's `status.json` note when a comparison rests
+on a plane neither card records, rather than inventing a check here.
 
 ## What it must never do
 

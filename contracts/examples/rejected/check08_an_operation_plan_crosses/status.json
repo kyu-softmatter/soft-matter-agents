@@ -1,0 +1,12 @@
+{
+  "artifact": "thread_status",
+  "schema_version": "0.1",
+  "thread": "thr-operation-crosses",
+  "round": 1,
+  "turn": "simulation_agent",
+  "state": "open",
+  "updated_at": "2026-10-07T21:05:00Z",
+  "blocked_pairs": [],
+  "substitutions": [],
+  "note": "A focus search with no goal, wrapped as though finishing it were a plan completing."
+}
