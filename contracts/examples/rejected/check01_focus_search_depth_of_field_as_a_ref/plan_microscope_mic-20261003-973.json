@@ -1,9 +1,9 @@
 {
   "card": "plan",
   "schema_version": "0.1",
-  "id": "plan-mic-20261003-972-r1",
-  "qid": "mic-20261003-972",
-  "thread": "solo-mic-20261003-972",
+  "id": "plan-mic-20261003-973-r1",
+  "qid": "mic-20261003-973",
+  "thread": "solo-mic-20261003-973",
   "round": 0,
   "revision": 1,
   "author": "microscope_agent",
@@ -55,7 +55,7 @@
     },
     "verdict_thresholds": {
       "min_dynamic_range_adu": 200,
-      "min_contrast": 1.5,
+      "min_contrast": 0.05,
       "min_frames": 5,
       "dropout_tolerance": 0.2,
       "max_saturated": 0.01
@@ -81,16 +81,14 @@
       "baseline": "metric_maximum",
       "fields": 5,
       "tolerance_fraction_of_depth_of_field": 0.5,
-      "depth_of_field": {
-        "gap": "objective_depth_of_field"
-      },
       "counted_apart": [
         "hit",
         "miss",
         "unsure"
-      ]
+      ],
+      "depth_of_field_ref": "kb:objective_depth_of_field"
     },
-    "verifies": "REJECTED FIXTURE. A contrast threshold above 1, which is a fraction. The schema refuses it.",
+    "verifies": "REJECTED FIXTURE. The depth of field as a bare kb: string, the form nothing resolved. The schema refuses it.",
     "falsified_by": "the encoder Z found differs from the person's manual focus on the same field by more than the tolerance"
   },
   "actions": [

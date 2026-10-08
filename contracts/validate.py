@@ -8173,6 +8173,62 @@ def check_87_safety_guides_follow_the_store(b: Bundle) -> list[Finding]:
     return [Finding(87, PASS, f"{len(guides)} safety guides name the store they show: " + "; ".join(parts) + note)]
 
 
+def _focus_fact(c, ref: dict, what: str, bad: list, *, unit_ok, unit_word: str, whole: bool,
+                store_number: str | None) -> str | None:
+    """Resolve a focus-search fact that names a numbers[] entry or a kb_gaps entry (check 88).
+
+    Returns the gap's id when it is a gap and every rule held, else None. A
+    named number must exist, be in the right unit, and cite kb:<entry> for an
+    entry the store has. When `store_number` is given, that entry must also
+    carry a number of that name, in the same unit and with the same value, so
+    a plan cannot cite a real entry about something else (2026-10-07,
+    manager-librarian-20261007-1: kb:camera_read_noise_speed with 65535 ADU
+    passed). A named gap must be in the card's kb_gaps.
+    """
+    if "number" in ref:
+        name = ref["number"]
+        num = c.numbers().get(name)
+        if num is None:
+            bad.append(f"the {what} names number {name!r}, which is not in numbers[]")
+            return None
+        unit, v = num.get("unit"), num.get("value")
+        if not unit_ok(unit):
+            bad.append(f"{what} {name!r} is in {unit!r}, not {unit_word}")
+        if whole and not ((isinstance(v, int) and not isinstance(v, bool) and v >= 1)
+                          or (isinstance(v, float) and v.is_integer() and v >= 1)):
+            bad.append(f"{what} {name!r} is {v!r}, not a whole count of at least 1")
+        src = str(num.get("source", ""))
+        if not src.startswith("kb:"):
+            bad.append(f"{what} {name!r} has source {num.get('source')!r}: it is a fact and comes from the "
+                       "store, as kb:<entry>, or is a gap")
+            return None
+        path = KB_DIR / "entries" / f"{src[3:]}.json"
+        if not path.exists():
+            bad.append(f"{what} {name!r} cites {src}, which is not an entry in the store: while the store has "
+                       "no such entry, it is a gap")
+            return None
+        if store_number:
+            try:
+                entry = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                bad.append(f"{what} {name!r} cites {src}, which cannot be read")
+                return None
+            held = [n for n in entry.get("numbers") or []
+                    if isinstance(n, dict) and n.get("name") == store_number]
+            if not any(n.get("unit") == unit and n.get("value") == v for n in held):
+                bad.append(f"{what} {name!r} cites {src}, which carries no {store_number} of {v} {unit}"
+                           + (f" (it holds {[(n.get('value'), n.get('unit')) for n in held]})" if held else
+                              f" (it holds no {store_number} at all)"))
+        return None
+    if "gap" in ref:
+        gaps = {g.get("gap_id") for g in c.data.get("kb_gaps") or [] if isinstance(g, dict)}
+        if ref["gap"] not in gaps:
+            bad.append(f"the {what} names gap {ref['gap']!r}, which is not in kb_gaps")
+            return None
+        return ref["gap"]
+    return None
+
+
 def check_88_focus_search(b: Bundle) -> list[Finding]:
     """A focus search moves Z only inside the person's limits, from fields the plan declares (11-24).
 
@@ -8282,37 +8338,16 @@ def check_88_focus_search(b: Bundle) -> list[Finding]:
         # here asks one of them. The ceiling names a numbers[] entry or a
         # kb_gaps entry, and the name has to resolve: a ceiling that points at
         # nothing would read as present and be neither a value nor a gap.
-        ceiling = fs.get("camera_ceiling") or {}
-        ceiling_gap = None
-        if "number" in ceiling:
-            num = c.numbers().get(ceiling["number"])
-            if num is None:
-                bad.append(f"camera_ceiling names number {ceiling['number']!r}, which is not in numbers[]")
-            else:
-                if num.get("unit") != "ADU":
-                    bad.append(f"camera ceiling {ceiling['number']!r} is in {num.get('unit')!r}, not ADU")
-                v = num.get("value")
-                if not (isinstance(v, int) and not isinstance(v, bool) and v >= 1) and not (
-                        isinstance(v, float) and v.is_integer() and v >= 1):
-                    bad.append(f"camera ceiling {ceiling['number']!r} is {v!r}, not a whole count of at least 1")
-                src = str(num.get("source", ""))
-                if not src.startswith("kb:"):
-                    bad.append(f"camera ceiling {ceiling['number']!r} has source {num.get('source')!r}: it is a "
-                               "fact about the camera and comes from the store, as kb:<entry>, or is a gap")
-                elif not (KB_DIR / "entries" / f"{src[3:]}.json").exists():
-                    # A kb: prefix is a claim, and the store is on disk to
-                    # check it against. Without this a ceiling citing an entry
-                    # nobody entered passed as sourced -- the shape of a
-                    # source with nothing behind it (found 2026-10-07 writing
-                    # card 063, whose mock session needs a test ceiling).
-                    bad.append(f"camera ceiling {ceiling['number']!r} cites {src}, which is not an entry in the "
-                               "store: while the store has no full-scale count, the ceiling is a gap")
-        elif "gap" in ceiling:
-            gaps = {g.get("gap_id") for g in c.data.get("kb_gaps") or [] if isinstance(g, dict)}
-            if ceiling["gap"] not in gaps:
-                bad.append(f"camera_ceiling names gap {ceiling['gap']!r}, which is not in kb_gaps")
-            else:
-                ceiling_gap = ceiling["gap"]
+        ceiling_gap = _focus_fact(c, fs.get("camera_ceiling") or {}, "camera ceiling", bad,
+                                  unit_ok=lambda u: u == "ADU", unit_word="ADU", whole=True,
+                                  store_number="full_scale_count")
+        # THE DEPTH OF FIELD IS A FACT ABOUT THE OPTICS, the same shape
+        # (2026-10-07, manager-librarian-20261007-1): it was a bare kb: string
+        # that nothing resolved, and every fixture cited an entry nobody had
+        # entered. Its entry is a formula, so only its existence is asked.
+        dof_gap = _focus_fact(c, (fs.get("success") or {}).get("depth_of_field") or {}, "depth of field", bad,
+                              unit_ok=lambda u: dim_of(u) == {"L": 1}, unit_word="a length", whole=False,
+                              store_number=None)
 
         if bad:
             out.append(Finding(88, FAIL, f"{c.data.get('id')}: " + "; ".join(bad) + " (11-24)", c.rel))
@@ -8322,7 +8357,9 @@ def check_88_focus_search(b: Bundle) -> list[Finding]:
                                          f"the person's {lo}..{hi} um; {moves} moves of {step} um reach "
                                          f"{reach} um, reported and not judged"
                                          + (f"; the camera ceiling is the gap {ceiling_gap!r}, so this plan "
-                                            "cannot run until the store holds that count" if ceiling_gap else ""),
+                                            "cannot run until the store holds that count" if ceiling_gap else "")
+                                         + (f"; the depth of field is the gap {dof_gap!r}, so its success "
+                                            "criterion cannot be judged until the store holds it" if dof_gap else ""),
                                c.rel))
     return out
 

@@ -20,6 +20,15 @@
         "FIXTURE: kb/entries read by hand for the Kinetix full-scale count in the readout mode in use"
       ],
       "kb_version": "kbv-70754d3df50b"
+    },
+    {
+      "gap_id": "objective_depth_of_field",
+      "observable": "depth_of_field",
+      "kind": "absent",
+      "searched": [
+        "FIXTURE: kb/entries read by hand for the 60x objective's depth of field"
+      ],
+      "kb_version": "kbv-70754d3df50b"
     }
   ],
   "purpose": "verify",
@@ -72,7 +81,9 @@
       "baseline": "metric_maximum",
       "fields": 5,
       "tolerance_fraction_of_depth_of_field": 0.5,
-      "depth_of_field_ref": "kb:objective_depth_of_field",
+      "depth_of_field": {
+        "gap": "objective_depth_of_field"
+      },
       "counted_apart": [
         "hit",
         "miss",

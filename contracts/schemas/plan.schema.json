@@ -928,10 +928,32 @@
               "exclusiveMinimum": 0,
               "maximum": 1
             },
-            "depth_of_field_ref": {
-              "type": "string",
-              "pattern": "^kb:",
-              "description": "the store entry the depth of field comes from"
+            "depth_of_field": {
+              "type": "object",
+              "description": "the depth of field the tolerance is a fraction of. A FACT ABOUT THE OPTICS, so it names EXACTLY ONE of two things, as camera_ceiling does: `number`, an entry in this card's numbers[] in a length unit whose source is kb: and an entry the store has; or `gap`, the gap_id of an entry in this card's kb_gaps. Until 2026-10-07 this was a bare kb: string, nothing checked that the entry existed, and every fixture cited an entry nobody had entered -- manager-librarian-20261007-1 found it. A gap is never a default: the plan is valid, and its success criterion cannot be judged until the store holds the value",
+              "properties": {
+                "number": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "gap": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                }
+              },
+              "oneOf": [
+                {
+                  "required": [
+                    "number"
+                  ]
+                },
+                {
+                  "required": [
+                    "gap"
+                  ]
+                }
+              ],
+              "additionalProperties": false
             },
             "counted_apart": {
               "const": [
@@ -946,7 +968,7 @@
             "baseline",
             "fields",
             "tolerance_fraction_of_depth_of_field",
-            "depth_of_field_ref",
+            "depth_of_field",
             "counted_apart"
           ],
           "additionalProperties": false
