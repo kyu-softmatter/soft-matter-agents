@@ -1,9 +1,9 @@
 {
   "card": "plan",
   "schema_version": "0.1",
-  "id": "plan-mic-20261003-964-r1",
-  "qid": "mic-20261003-964",
-  "thread": "solo-mic-20261003-964",
+  "id": "plan-mic-20261003-971-r1",
+  "qid": "mic-20261003-971",
+  "thread": "solo-mic-20261003-971",
   "round": 0,
   "revision": 1,
   "author": "microscope_agent",
@@ -47,7 +47,6 @@
     "verdict_thresholds": {
       "min_dynamic_range_adu": 200,
       "min_contrast": 0.05,
-      "min_frames": 5,
       "dropout_tolerance": 0.2,
       "max_saturated": 0.01
     },
@@ -79,7 +78,7 @@
         "unsure"
       ]
     },
-    "verifies": "REJECTED FIXTURE. A focus search with no goal that names an observable, which an operation-style plan may not. The schema refuses it.",
+    "verifies": "REJECTED FIXTURE. A verdict threshold missing, so the verdict could not say when to abstain. The schema refuses it.",
     "falsified_by": "the encoder Z found differs from the person's manual focus on the same field by more than the tolerance"
   },
   "actions": [
@@ -129,8 +128,5 @@
   ],
   "open_risks": [
     "the clearance comparison is the run-time gate's and is not visible here"
-  ],
-  "observable": {
-    "name": "focus_error"
-  }
+  ]
 }

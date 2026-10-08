@@ -415,6 +415,10 @@
           "$ref": "#/$defs/focus_z_ceiling",
           "$comment": "INSTRUMENT. At the 100x objective: the highest encoder Z a focus search may visit, which is the closest the 100x lens may ever come to the coverslip. The person writes it, wide for a released dry lens. Required with its _min; absent refuses every search at 100x, and never means unlimited."
         },
+        "pfs_not_engaged": {
+          "$ref": "#/$defs/pfs_not_engaged",
+          "$comment": "INSTRUMENT. Which reading of the focus-hold device counts as NOT ENGAGED, so a focus search may send Z. Added 2026-10-07: card 055's gate refuses while focus hold reads as engaged, and nothing on disk said which reading means off, so every search refused, on mock too. It is a safety reading and the person writes it, from the bench record of each state (off, on but searching, locked), read with no agent core open. Absent refuses every search. A reading not in `values`, an unreadable one included, refuses."
+        },
         "tweezers_trap_strength_min": {
           "$ref": "#/$defs/trap_strength_floor",
           "$comment": "SAMPLE and DATA. The lowest relative strength software may set on any trap. Required with its _max."
@@ -1266,6 +1270,44 @@
         "value",
         "unit",
         "bounds",
+        "confirmation"
+      ],
+      "additionalProperties": false
+    },
+    "pfs_not_engaged": {
+      "type": "object",
+      "description": "The readings of one property of the focus-hold device that count as not engaged. A list, because the device may report off in more than one way; every reading outside it, and any read that fails, refuses. A constant the person read off the instrument and never a lookup.",
+      "properties": {
+        "device": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the Micro-Manager label read, e.g. PFS"
+        },
+        "property": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the property read"
+        },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "description": "the readings, exactly as the property reports them, that mean not engaged"
+        },
+        "note": {
+          "type": "string"
+        },
+        "confirmation": {
+          "$ref": "#/$defs/focus_z_floor/properties/confirmation"
+        }
+      },
+      "required": [
+        "device",
+        "property",
+        "values",
         "confirmation"
       ],
       "additionalProperties": false
