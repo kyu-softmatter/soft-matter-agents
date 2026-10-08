@@ -1,0 +1,73 @@
+{
+  "record": "end_to_end_test",
+  "note": "Card 063's record. Not a findings artifact, for the reason in card061-e2e-run-20261006-e2e061b.json: findings.schema.json describes deliveries to the librarian only. Nothing here is for the store, and every TEST value is cited with its scratch path.",
+  "seat": "microscope-20261003-1",
+  "on": "2026-10-07",
+  "for": "manager-microscope-20261003-1",
+  "task": "063",
+  "items": [
+    {
+      "id": "card063_scratch_and_test_values",
+      "fact": "Card 063 ran in the scratch root D:/sma-scratch/063, on the mock backend only. Every envelope limit, approval, plan, live-view list and store entry there is a TEST value labelled 'TEST VALUE for card 063 on mock -- not the person's, never copied to envelope/safety.json'. None is a fact about the instrument.",
+      "kind": "test_record",
+      "how": "TEST files: microscope_agent/envelope/safety.json (focus_z for 4x, 10x, 40x, 60x and 100x, none for 20x on purpose), microscope_agent/approvals/live-view-test-063.json (sha256 74871a26350c3c78ff6645fcb7c2ca0f631df2a129be29d660d2b4069770f116) and appr-test063-*.json, microscope_agent/questions/s*.json, and librarian_agent/kb/entries/TEST_mock_camera_full_scale.json (65535 ADU, read off devices/mock.py's astype(np.uint16)). Left in place: deleting it is the person's call.",
+      "for_store": false
+    },
+    {
+      "id": "card063_part_a",
+      "fact": "Part A at b6a4ef7, after 088b900 (live view) and a390c73 (drawable mock frames). Already there before it: the gate and walk (055, fee80a0) and the copied core (059, f2c56dc).",
+      "kind": "test_record",
+      "how": "Built: focus_decider.MetricMaximumDecider, operator.run running a focus_search plan, a camera ceiling that is a gap refusing before any Z, and operator.run(root=...) refused off mock before anything is read. 7 test cases, watched failing at import, and 6 deliberate breaks each caught.",
+      "for_store": false
+    },
+    {
+      "id": "card063_check_88",
+      "fact": "check_88_focus_search, pointed at the scratch envelope and store, PASSES plan-mic-test063-focus40x: a search over 95..110 um at 40x, inside the TEST 90..110 um, with the ceiling citing kb:TEST_mock_camera_full_scale. It also passes the ceiling-gap plan, saying it cannot run until the store holds the count. It FAILS the 20x plan: no focus_z_20x limits.",
+      "kind": "test_record",
+      "how": "envelope_files and KB_DIR were pointed into the scratch root and the plans passed as a stand-in bundle. This measures the plans, and is not a validator run over this repository.",
+      "for_store": false
+    },
+    {
+      "id": "card063_step1_live_view",
+      "fact": "Live view on, then off, from the console: run-20261007-live-215242582, events.jsonl sha256 32b586e2994635b44e6da0cae75bbb9b4f719f8797a3b90c5fad2d00455621c0. Live on was classified started. DiaLamp Intensity 2100 (TEST) and State 1 were applied. Live off was classified begun. The abort ran, both lamps' rows read 0, both turret shutters' rows read closed, and run_ended was stopped_from_outside.",
+      "kind": "test_record",
+      "how": "From D:/sma-scratch/063/microscope_agent/runs/run-20261007-live-215242582. The classifications are the console session's report, in messages to this seat. log.json equals the stream between run_started and run_ended.",
+      "for_store": false
+    },
+    {
+      "id": "card063_step2_search_not_run",
+      "fact": "The walking focus search did not run. run-20261007-063-s2-search (events.jsonl sha256 88c5b8ffbc913bdb06c5e4dee39e202070cd1d1adf8ad888f401dd62b6e974c3) refused at the PFS check with no Z command: 'which PFS reading means not engaged is recorded nowhere'. run_ended was failed.",
+      "kind": "blocked",
+      "how": "Two things are missing upstream, both reported to architecture for manager-microscope. (1) A plan field for focus_verdict.from_sweep's five thresholds; the scratch plans carry them under the PROVISIONAL name verdict_thresholds. (2) A person-written home for which PFS reading means not engaged; orchestrator.PFS_NOT_ENGAGED stays None by design.",
+      "for_store": false
+    },
+    {
+      "id": "card063_step3_refusals",
+      "fact": "Each refused with no Z command (focus_search_command count 0). No limit: run-20261007-063-s3a-nolimit, sha256 5502e5c33db67f02a64647eda96684064588772427ec5446f72c73f293511210, 'envelope/safety.json has no focus_z_20x_min in um'. Wrong lens: run-20261007-063-s3b-wronglens, sha256 c242bb851edaca6658fb4098ccd22f2af4d6047d2a520d81485569c6abdfc466, 'the plan's focus search is for 40x and the person states 60x is in place'. Not approved: run-20261007-063-s3c-notapproved, refused at the gate before its folder existed, 'no plan_approval on disk names (plan-mic-test063-focus40x-r2, revision 2)'. Ceiling gap: run-20261007-063-s3d-ceilinggap, sha256 98b8d4f39ea6d90a92e2a89eb36c9bb97139292973f1c32569d3156d4fb11b40, 'camera_ceiling is the gap camera_full_scale_per_readout'.",
+      "kind": "test_record",
+      "how": "Not run: PFS on, and above the max. Both come after the PFS check, which refuses every search today (see card063_step2_search_not_run). The console listed the four failed runs.",
+      "for_store": false
+    },
+    {
+      "id": "card063_step4_abort_mid_run",
+      "fact": "Abort from the console mid-run: run-20261007-live-223424925, events.jsonl sha256 e81cb8c857c5cc20f45f61472445259636d28236326c712b1c51615be5d8568a. The lamp was on and frames were coming. The stop's reason was 'the dino console: card 063 step 4'. Then abort_begin, abort_end, the lights off (Aura III and DiaLamp commanded 0, read 0), both turret shutters closed, csuw1_shutter not commanded, laser_shutter sent {enable: []} and not confirmed. The sequence stopped at 170 of 6000 frames, aborted, none written to disk. run_ended: stopped_from_outside at t_mono 17.438. No command after the stop.",
+      "kind": "test_record",
+      "how": "Live on was classified started and the Abort begun, both the console session's report. log.json equals the stream between run_started and run_ended.",
+      "for_store": false
+    },
+    {
+      "id": "card063_mock_rows_reading_true",
+      "fact": "On mock, four rows read true in steps 1 and 4: Aura III and DiaLamp matched, and both turret shutters closed. Mock cannot have confirmed them: it echoes the value it was given. The live-view lamp writes are also marked readback for the same reason.",
+      "kind": "defect",
+      "how": "The same disagreement as card 061: card 054's test requires the mock rows to be true, and cards 061 and 063 call a true row on mock a defect. Not changed here; it is the card author's to settle.",
+      "for_store": false
+    },
+    {
+      "id": "card063_refused_run_leaves_no_log",
+      "fact": "A run refused inside operator.run (s2, s3a, s3b, s3d) leaves events.jsonl, ending run_ended failed, and no log.json: run() raises, so the record is never returned to be written. Under check 15's in-flight rule (b829aaa), such a folder in the tree would read as a run in flight, forever.",
+      "kind": "gap",
+      "how": "Seen in all four scratch folders. Not fixed here: whether a refused run writes its log, and in what shape, is a manager's call about check 15 and the run log.",
+      "for_store": false
+    }
+  ]
+}
