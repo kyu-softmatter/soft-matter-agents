@@ -71,14 +71,32 @@ cd "$REPO"
 # and then every gate below ran the placeholder -- which reads as a refusal
 # with an empty failure list, because the alias's complaint contains no FAIL
 # (2026-09-24, plan.md 11-22). Only a zero exit from `-c ''` counts.
+#
+# AND PROBE FOR WHAT THE VALIDATOR NEEDS, not only for a python that runs
+# (2026-10-07). On the Office computer the bare `python` is Anaconda 3.9 with
+# no `referencing`, so check 1 fell back to PENDING and could reject nothing:
+# the first commit through this gate was refused because --expect-fail
+# found the schema fixtures unrejected, and every seat's commit would have
+# been. A python without jsonschema and referencing runs a weaker gate, and
+# a weaker gate passing is worse than no gate. So a candidate counts only if
+# it imports both; failing that, the uv command CLAUDE.md names for this
+# computer; failing that, refuse and say what is missing.
 PY=""
 for _c in python3 python; do
-    if "$_c" -c '' >/dev/null 2>&1; then PY="$_c"; break; fi
+    if "$_c" -c 'import jsonschema, referencing' >/dev/null 2>&1; then PY="$_c"; break; fi
 done
+if [ -z "$PY" ] && command -v uv >/dev/null 2>&1    && uv run --offline --no-project --python 3.12 --with jsonschema python -c 'import jsonschema, referencing' >/dev/null 2>&1; then
+    PY="uv run --offline --no-project --python 3.12 --with jsonschema python"
+fi
 if [ -z "$PY" ]; then
-    echo "pre-push: no runnable python on PATH; cannot run the gate" >&2
+    echo "pre-push: no python on PATH imports jsonschema and referencing, and uv cannot supply them;" >&2
+    echo "pre-push: the gate would run without its schema check, so it does not run. Install them" >&2
+    echo "pre-push: (pyproject.toml declares both) or make uv available." >&2
     exit 1
 fi
+# $PY may be several words (the uv form), so it is called through this
+# function, and never quoted as one word.
+py() { $PY "$@"; }
 # The validator reads text without naming an encoding, and on a cp1252 locale
 # it dies before it checks anything. UTF-8 mode makes the default what every
 # file here is.
@@ -130,7 +148,7 @@ while read -r LOCAL_REF LOCAL_OID REMOTE_REF REMOTE_OID; do
     # own docstring, because diffing the endpoints would aggregate two seats'
     # work into one apparent crossing -- so one invocation covers every commit.
     export SMA_GIT_REPO="$REPO"
-    OUT=$("$PY" "$EXPORT/contracts/validate.py" --commit-range "$RANGE" 2>&1 || true)
+    OUT=$(py "$EXPORT/contracts/validate.py" --commit-range "$RANGE" 2>&1 || true)
 
     BOUNDARY=$(echo "$OUT" | grep -E '^ *check (35|41) +FAIL' || true)
     if [ -n "$BOUNDARY" ]; then

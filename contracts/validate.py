@@ -8550,7 +8550,13 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     roots = args.paths or [REPO]
-    roots = [r if r.is_absolute() else Path.cwd() / r for r in roots]
+    # RESOLVED, as CONTRACTS is. On Windows resolve() expands an 8.3 short
+    # name (KYUHWA~1 -> Kyu Hwan), so a root passed as the short form never
+    # sat "inside" REPO: every card's rel fell back to an absolute path, no
+    # fixture group was recognised, and --expect-fail counted 139 loose cards
+    # and failed 18 of them. That is what refused the first commits through
+    # the hooks on 2026-10-07, because TMPDIR there is the short form.
+    roots = [(r if r.is_absolute() else Path.cwd() / r).resolve() for r in roots]
     include_rejected = args.expect_fail or any(REJECTED in r.parts for r in roots)
     findings = run(roots, include_rejected, args.commit_range, args.staged)
 
