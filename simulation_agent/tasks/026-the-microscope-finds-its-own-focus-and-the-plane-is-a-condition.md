@@ -172,3 +172,18 @@ and the drift rate a bleach record must beat. Each number is graded from its
 source, every assumed input names its gap, and the card says plainly which
 committed result it corrects, if any. A Stage 1 that finds the focus plane
 matters less than a tie everywhere is a result too: say so and stop.
+
+## Corrected 2026-10-08: a findings file, not a result card
+
+"Done when" above asked for a result card, and **that was my error, not the
+seat's**. A result card is the record that a run happened. It requires a plan, a
+plan hash, an approval and a run directory, and Stage 1 is closed forms with no
+run. `simulation-20261007-1` stopped rather than mint a plan and an empty run to
+satisfy the checks, which is the right call. The answers go in
+`findings/simulation-20261007-1-20261008.json` under `findings.schema.json`,
+the route that exists for facts established without a plan. They go to the
+librarian, not the bridge. The readable record for the person is
+`questions/sim-20261008-001/stage1_focus_planes.md`. Everything else in "Done
+when" holds. **Writing a card for closed-form answers is not wrong**, and the
+same gap will come back: if closed-form answers ever need to travel through the
+bridge as cards, that is a contract change and the manager's to design.
