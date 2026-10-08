@@ -36,8 +36,13 @@ go stale.
 **The board offers; it never decides.** A result listed as not crossed is
 waiting on a person's hand-over, not on you. Give the person that list when
 they ask what there is to hand over, and wrap a round only when they say which.
-A line saying the source was revised after it crossed is a superseding round
-owed by this seat, under the same hand-over rule as the original.
+A finished plan listed as not crossed is not owed to anyone either: a plan
+opens a round on its own completion only when its question asks the other
+side for something, which a card's `thread` cannot tell you -- every card is
+born in its own `solo-` thread, including the ones that later crossed. Carry
+one when a card in `tasks/` names it. A line saying the source was revised
+after it crossed is a superseding round owed by this seat, under the same
+rule as the original.
 
 ## Tier 0 only
 

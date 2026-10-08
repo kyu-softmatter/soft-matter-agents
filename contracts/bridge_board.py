@@ -160,8 +160,10 @@ def main() -> int:
                        f"other side, so they never cross.")
         out.append("")
 
-    out += ["A result crosses only when you hand it over. A plan with a goal may cross when it is "
-            "finished.", "", describe_tree()]
+    out += ["A result crosses only when you hand it over. A finished plan with a goal crosses on its "
+            "own only when its question asks the other side for something -- most questions here are "
+            "one side's alone, and the cards do not say which, so a plan listed above is not a plan "
+            "owed to anyone.", "", describe_tree()]
     print("\n".join(out))
     return 0
 
