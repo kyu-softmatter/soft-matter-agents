@@ -27,6 +27,22 @@ sheet says which for every card.
 
 Re-derive the table from the sheet before trusting it.
 
+**Two more reads, added 2026-10-07 from 044's report**. Neither is on the
+answer sheet. Each is a device's report of itself, and the store does not
+hold it:
+
+- **Which PFS reading means "not engaged."** Card 063's mock session refused
+  on it. The bench form's `pfs_release` block records `status_text` and
+  properties before, during and after the hand switch.
+- **The CSUW1 shutter's closed label.** `csuw1_shutter_state_reads_a_label`
+  has "Open" and no closed value. Card 060 step 4 reads the shutter's
+  allowed values.
+
+Enter each the way 044 entered its self-reports, as settings read back and
+graded by the record. **Neither becomes a limit or a command.** Whether
+software may write the closed label is the person's exemption, not the
+entry's.
+
 ## TASK
 
 For each card, read the person's answer: dino-autofocus's filled bench form
