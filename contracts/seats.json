@@ -1478,13 +1478,12 @@
         "docs/",
         ".claude/",
         ".mcp.json",
-        "contracts/seats.json",
         "pyproject.toml",
         "uv.lock",
         "pixi.lock",
         ".gitignore"
       ],
-      "note": "The architecture session on the Office computer (Windows, hostname Office -- not the microscope computer; corrected 2026-10-03, see the commit) seated by the person directly on 2026-10-03, rooted at the repository root. The person answered 'architecture' when asked whether this session is architecture or manager; n is 1, the first architecture seat for that date. It leads this repository's side of a merge the person asked for; plan.md carries the record of that merge, not this note. Whether earlier architecture sessions on this machine are still running is not stated, so this is opened concurrently and closes none of them. owns and paths copied by code from architecture."
+      "note": "The architecture session on the Office computer (Windows, hostname Office -- not the microscope computer; corrected 2026-10-03, see the commit) seated by the person directly on 2026-10-03, rooted at the repository root. The person answered 'architecture' when asked whether this session is architecture or manager; n is 1, the first architecture seat for that date. It leads this repository's side of a merge the person asked for; plan.md carries the record of that merge, not this note. Whether earlier architecture sessions on this machine are still running is not stated, so this is opened concurrently and closes none of them. owns and paths copied by code from architecture. On 2026-10-07 the person moved seat registration to architecture-20261007-1 and told this seat to focus on the merge plan and plan.md; contracts/seats.json left this seat's paths in the same commit, so the boundary is divided rather than shared."
     },
     {
       "seat": "manager-microscope-20261003-1",
@@ -1633,6 +1632,17 @@
       ],
       "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
       "note": "A manager-bridge session on the Office computer (Windows, hostname Office -- not the microscope computer), rooted at the repository root, already running when registered. The person opened it, set its role in its own window, and confirmed both directly in architecture-20261003-1's window on 2026-10-07, answering 'yes, I opened all five' to a question naming it. n is 1, the first manager-bridge seat for that date. It replaces manager-bridge-20261001-1: the person said in the same answer that the earlier simulation and bridge sessions are closed. Every field except seat, committer_email and note copied by code from manager-bridge-20261001-1."
+    },
+    {
+      "seat": "architecture-20261007-1",
+      "committer_email": "architecture-20261007-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "contracts/seats.json"
+      ],
+      "note": "The seat-registration session on the Office computer (Windows, hostname Office), rooted at the repository root: the desktop session titled \"Utility · 세션 그룹·이름 정리\". The person said directly in architecture-20261003-1's window on 2026-10-07 that they themselves made it the session-registration seat, to be registered as today's architecture seat with its writable paths narrowed to contracts/seats.json alone, and that from now on it registers sessions while architecture-20261003-1 keeps the merge plan and plan.md. n is 1, the first architecture seat for that date. owns copied from architecture; paths narrowed by the person's instruction."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
