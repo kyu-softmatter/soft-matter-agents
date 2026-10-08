@@ -1430,8 +1430,30 @@ class Orchestrator:
             kept[n] = plan_field
         return kept
 
-    def run_focus_search(self, plan: dict, decide, load_safety=None) -> dict:
+    def _read_z(self) -> tuple[float | None, str | None]:
+        """The Z encoder through read_z, a read every backend allows: (value, why it failed)."""
+        try:
+            value = self.module_for(FOCUS_EXEMPT_CHANNEL).read_z()
+            return (None if value is None else float(value)), None
+        except Exception as exc:                                # noqa: BLE001 - recorded, never fatal
+            return None, f"{type(exc).__name__}: {exc}"
+
+    def run_focus_search(self, plan: dict, decide=None, load_safety=None,
+                         method_ready=None) -> dict:
         """Walk Z from the retract, one decided branch at a time, refusing at every gate.
+
+        THE GATE'S ORDER IS SAFETY FIRST, METHOD SECOND (card 066), and it stops
+        at the first that refuses: (1) the plan revision's approval, (2) the
+        hand-over lens, (3) the limits and the range, (4) focus hold, (5) only
+        then `method_ready()`, which builds the decider -- the camera ceiling,
+        the thresholds -- and (6) the first Z command. A gap ceiling stays a gap
+        until the bench count is in the store, and checked first it made every
+        refusal read as the ceiling's. A gap depth of field does not refuse:
+        the run records that its success criterion cannot be judged.
+
+        The encoder is read through read_z before the gate and again at a
+        refusal, and both go in the refusal event; a failed read is recorded
+        and the refusal still happens.
 
         `decide(last_read_um)` returns `{"branch", "confidence"}` and nothing
         else; it never supplies a number. Every target is derived here from
@@ -1444,15 +1466,21 @@ class Orchestrator:
         InterlockError after recording it; nothing moves after a refusal.
         """
         load_safety = load_safety or _operator().load_safety
+        z_before, before_failed = self._read_z()
+        self.record(event="focus_search_z_before", z_um=z_before, z_read_failed=before_failed,
+                    **{"from": "read_z, before the gate"})
         try:
-            return self._focus_search(plan, decide, load_safety)
+            return self._focus_search(plan, decide, load_safety, method_ready)
         except InterlockError as exc:
-            self.record(event="focus_search_refused", reason=str(exc))
+            z_at, at_failed = self._read_z()
+            self.record(event="focus_search_refused", reason=str(exc),
+                        z_before_um=z_before, z_at_refusal_um=z_at,
+                        z_read_failed="; ".join(f for f in (before_failed, at_failed) if f) or None)
             raise
         finally:
             self._focus_expected = None
 
-    def _focus_search(self, plan: dict, decide, load_safety) -> dict:
+    def _focus_search(self, plan: dict, decide, load_safety, method_ready=None) -> dict:
         fs = plan.get("focus_search")
         if not isinstance(fs, dict) or fs.get("channel") != FOCUS_EXEMPT_CHANNEL \
                 or fs.get("element") != FOCUS_EXEMPT_ELEMENT:
@@ -1464,7 +1492,15 @@ class Orchestrator:
             raise InterlockError(f"focus_search.action {fs.get('action')!r} is not a reversible "
                                  "action on stand_ti2e in this plan")
 
-        # -- before the first Z command ------------------------------------ #
+        # -- before the first Z command, in the card 066 order -------------- #
+        # (1) the plan revision's approval. The Z exemption asks it again at
+        # every move; asking here first makes "not approved" a refusal of its
+        # own, with the encoder read around it, rather than whatever came next.
+        decision = self._authorise(plan)
+        if not decision.permitted:
+            raise InterlockError("the focus-search plan is not approved for this revision: "
+                                 + "; ".join(decision.reasons))
+        # (2) the hand-over lens
         objective = self.handover.get("objective")
         if not objective:
             raise InterlockError("no objective stated at hand-over; a focus search waits for the "
@@ -1504,6 +1540,20 @@ class Orchestrator:
                                  + (f" ({unreadable})" if unreadable else "")
                                  + f", not one of {offs}: it may be engaged, and a held focus "
                                  "fights a sweep. The person switches PFS off")
+
+        # (5) only now the method's own readiness: the camera ceiling, the
+        # verdict's thresholds, the decider. Every safety check has passed.
+        if method_ready is not None:
+            decide = method_ready()
+        if decide is None:
+            raise InterlockError("no decider: the plan's method is not ready")
+        dof = ((fs.get("success") or {}).get("depth_of_field") or {})
+        if "gap" in dof:
+            # A gap depth of field does not refuse the run (card 066, check 88):
+            # its success criterion cannot be judged, and the run says so.
+            self.record(event="focus_success_not_judgeable", gap=dof["gap"],
+                        note="the depth of field is a gap, so the success tolerance, a fraction "
+                             "of it, cannot be judged; the search itself runs")
 
         step = float(fs["step_um"])
         max_moves = int(fs["max_moves"])

@@ -107,17 +107,33 @@ class T1AGapCeilingRefusesWithNoZWrite(_Base):
     def test_gap(self):
         self.approve()
         self.plan["focus_search"]["camera_ceiling"] = {"gap": "camera_full_scale_per_readout"}
+        # Since card 066 the ceiling is checked only after every safety check
+        # passes, so focus hold is declared and reads off (TEST values).
+        env = self.root / "microscope_agent" / "envelope" / "safety.json"
+        doc = json.loads(env.read_text())
+        doc["targets"][0]["limits"]["pfs_not_engaged"] = {
+            "device": "PFS", "property": "State", "values": ["Off"],
+            "confirmation": {"kind": "carried_over", "from": "TEST", "on": "2026-10-08"}}
+        env.write_text(json.dumps(doc))
+        init = op.orch.Orchestrator.__init__
+
+        def pfs_off(s, *a, **k):
+            init(s, *a, **k)
+            s.module_for("stand_ti2e").apply({"settings": {"PFS": {"State": "Off"}}})
+        op.orch.Orchestrator.__init__ = pfs_off
+        self.addCleanup(setattr, op.orch.Orchestrator, "__init__", init)
         writes = []
         real = op.orch.Orchestrator._focus_move
         op.orch.Orchestrator._focus_move = lambda s, *a, **k: writes.append(a) or real(s, *a, **k)
         self.addCleanup(setattr, op.orch.Orchestrator, "_focus_move", real)
-        with self.assertRaises(op.Refusal) as caught:
+        with self.assertRaises((op.Refusal, op.orch.InterlockError)) as caught:
             self.run_plan()
         self.assertIn("gap", str(caught.exception))
         self.assertEqual(writes, [])
 
     def test_unapproved_focus_plan_refuses_at_the_gate(self):
-        with self.assertRaises(op.Refusal) as caught:
+        # Since card 066, the gate's first check, inside the run.
+        with self.assertRaises((op.Refusal, op.orch.InterlockError)) as caught:
             self.run_plan()
         self.assertIn("not approved", str(caught.exception))
 

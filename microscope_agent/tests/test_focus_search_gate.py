@@ -181,10 +181,18 @@ class T04NoApprovalNoExemption(_Base):
     approved = False
 
     def test_the_allow_list_refuses_zdrive(self):
-        with self.assertRaises(orch.InterlockError):
+        # Since card 066 the approval is the gate's FIRST check, so an
+        # unapproved plan is refused there, before any exemption is asked.
+        with self.assertRaises(orch.InterlockError) as caught:
             self.run_search(_decider())
+        self.assertIn("not approved", str(caught.exception))
         self.assertEqual(self.writes, [])
-        self.assertTrue(self.events("software_motion_exemption_refused"))
+        self.assertFalse(self.events("software_motion_exempt"))
+        # and the allow-list still refuses a ZDrive command on its own
+        bad = orch.Command(channel="stand_ti2e", element="z_drive", action="focus_z_move",
+                           params={"target_um": 100.0}, from_field="focus_search.range_um.min")
+        with self.assertRaises(orch.InterlockError):
+            self.o.check_software_motion_for(self.plan, [bad])
         self.assertTrue(self.events("software_motion_refused"))
 
 

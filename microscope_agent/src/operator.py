@@ -1134,10 +1134,10 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         # Trap motion is motion, whatever tier its actions carry (check 85).
         raise Refusal(f"trap-step plan {plan.get('id')} is not approved: "
                       + "; ".join(decision.reasons))
-    if "focus_search" in plan and not decision.permitted:
-        # Z motion is motion, whatever tier the action carries (card 055).
-        raise Refusal(f"focus-search plan {plan.get('id')} is not approved: "
-                      + "; ".join(decision.reasons))
+    # A focus-search plan's approval is the FIRST check of its gate, inside
+    # the run (card 066), so that "not approved" is refused with the encoder
+    # read around it and leaves a refused log, like every other focus refusal.
+    # Nothing is sent before that check, and the Z exemption asks it again.
     if "operation" in plan and not decision.permitted:
         # Condition 3 of an operation plan: each move approved by the person,
         # whatever tier its actions carry. A Tier 1 move of a stage is still a
@@ -1348,21 +1348,27 @@ def _run_focus_search(o, plan: dict, agent: Path | None) -> dict:
     camera at each Z, which also feeds the frame tap.
     """
     decider_mod = _load("_mic_focus_decider", Path(__file__).resolve().parent / "focus_decider.py")
-    try:
-        decide = decider_mod.MetricMaximumDecider(
-            plan, grab=lambda: o.acquire_snap(LIVE_VIEW_ROUTES["Kinetix_red"]))
-    except decider_mod.DeciderRefused as exc:
-        o.record(event="focus_search_refused", reason=str(exc))
-        raise Refusal(f"focus search not started: {exc}") from None
-    o.record(event="focus_decider_built", ceiling_adu=decide.ceiling,
-             thresholds=decide.thresholds, metric=decide.metric, bin_px=decide.bin_px,
-             blocks_per_side=decide.blocks_per_side,
-             **{"from": "focus_search.camera_ceiling, focus_search.verdict_thresholds"})
+    built = {}
+
+    def method_ready():
+        """Step 5 of the gate, after every safety check (card 066): build the decider."""
+        try:
+            decide = decider_mod.MetricMaximumDecider(
+                plan, grab=lambda: o.acquire_snap(LIVE_VIEW_ROUTES["Kinetix_red"]))
+        except decider_mod.DeciderRefused as exc:
+            raise orch.InterlockError(f"focus search not started: {exc}") from None
+        o.record(event="focus_decider_built", ceiling_adu=decide.ceiling,
+                 thresholds=decide.thresholds, metric=decide.metric, bin_px=decide.bin_px,
+                 blocks_per_side=decide.blocks_per_side,
+                 **{"from": "focus_search.camera_ceiling, focus_search.verdict_thresholds"})
+        built["decide"] = decide
+        return decide
     loader = load_safety if agent is None else (lambda: load_safety(agent))
     try:
-        result = o.run_focus_search(plan, decide, load_safety=loader)
+        result = o.run_focus_search(plan, load_safety=loader, method_ready=method_ready)
     finally:
-        o.record(event="focus_decider_records", records=decide.records)
+        if "decide" in built:
+            o.record(event="focus_decider_records", records=built["decide"].records)
     return result
 
 
