@@ -3922,6 +3922,8 @@ Written for whoever picks this up next, person or session, without the conversat
 
 **The DINO score, for later** (the person, directly to architecture on 2026-10-07): the microscope computer holds about 6000 synthetic images per magnification, a DINO model was trained on them, and its focus detection was about 97 %. That is the person's statement of a result on synthetic data from another computer. It is a reason to plan 13.1's shadow mode next, and not a measurement here. It enters no card, a model score is E6 (P2), and on real samples the same model must be compared against the person's manual focus before anything leans on it (13.2 item 6). The classical core stays the deterministic baseline it is measured against.
 
+**Two gaps a focus plan still carries** (manager-librarian-20261007-1, 2026-10-07): every focus search must cite `depth_of_field_ref: kb:<entry>`, and the store holds no such entry yet (librarian task 045). Check 88 also confirms that a cited ceiling entry exists, but not that it holds a `full_scale_count` matching the plan's value. Both are raised with manager-microscope. The merge's lessons go into the store through librarian task 044 (`144ab62`), and decisions enter there only where something must cite them.
+
 **Next, in order:** the person's bench visit (limits, watched refusals, first real abort) → the first focus-search plan, run with the person present → merge `feature/autofocus-ui` to `main`. On the dino side, its merge-plan branches merge into its own `main` **by merge, not rebase**, so the pinned commits stay reachable.
 
 **How to work here** (the root `CLAUDE.md` has the reasons):
