@@ -75,6 +75,22 @@ def _load(name: str, path: Path):
 
 
 orch = _load("_mic_orchestrator", Path(__file__).resolve().parent / "orchestrator.py")
+run_lock = _load("_mic_run_lock", Path(__file__).resolve().parent / "run_lock.py")
+
+#: Where the one-run-at-a-time lock lives (card 062). None means
+#: run_lock.default_path(), outside this tree. Tests point it elsewhere.
+RUN_LOCK_PATH: Path | None = None
+
+
+def _take_run_lock(holder: dict):
+    """The run lock, held, or a Refusal naming who holds it. Never waits."""
+    lock = run_lock.RunLock(RUN_LOCK_PATH)
+    try:
+        lock.acquire(holder)
+    except run_lock.RunLockHeld as exc:
+        raise Refusal(f"{exc}. One run at a time: two runs would be two Micro-Manager cores "
+                      "on one instrument (plan.md 11-25)") from None
+    return lock
 
 
 def _contracts_validate():
@@ -1110,26 +1126,34 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     monitors = compile_monitors(plan)
     commands = derive_commands(plan)
 
-    o = orch.Orchestrator(backend=backend)
-    folder = None
-    if runs_root is not None:
-        folder = Path(runs_root) / run_id
-        if folder.exists():
-            raise Refusal(f"{folder} already exists. A run id is never reused; raise it (P9)")
-        o.begin_run(folder, run_id=run_id, plan_id=plan.get("id"), revision=plan.get("revision"))
-    how = "failed"
+    # ONE RUN AT A TIME (card 062): taken after the gate, so a refused plan
+    # holds nothing, and before the orchestrator exists, so no run starts
+    # beside another. Released however the run ends.
+    lock = _take_run_lock({"kind": "plan", "plan_id": plan.get("id"), "run_id": run_id})
     try:
-        record = _run_body(o, plan, run_id, backend, observe, handover, ask_person,
-                           tweezers_link, safety, decision, monitors, commands)
-        monitor_abort, failed = record.pop("_monitor_abort"), record.pop("_failed")
-        how = ("stopped_from_outside" if getattr(o, "stopped_from_outside", False)
-               else "aborted_by_monitor" if monitor_abort
-               else "failed" if failed
-               else "completed")
-        return record
+        o = orch.Orchestrator(backend=backend)
+        folder = None
+        if runs_root is not None:
+            folder = Path(runs_root) / run_id
+            if folder.exists():
+                raise Refusal(f"{folder} already exists. A run id is never reused; raise it (P9)")
+            o.begin_run(folder, run_id=run_id, plan_id=plan.get("id"),
+                        revision=plan.get("revision"))
+        how = "failed"
+        try:
+            record = _run_body(o, plan, run_id, backend, observe, handover, ask_person,
+                               tweezers_link, safety, decision, monitors, commands)
+            monitor_abort, failed = record.pop("_monitor_abort"), record.pop("_failed")
+            how = ("stopped_from_outside" if getattr(o, "stopped_from_outside", False)
+                   else "aborted_by_monitor" if monitor_abort
+                   else "failed" if failed
+                   else "completed")
+            return record
+        finally:
+            if folder is not None:
+                o.end_run(how)
     finally:
-        if folder is not None:
-            o.end_run(how)
+        lock.release()
 
 
 def _run_body(o, plan: dict, run_id: str, backend: str, observe, handover, ask_person,
@@ -1298,6 +1322,185 @@ def _run_trap_steps(o, plan: dict, commands: list, ask_person) -> list[dict]:
                 r.setdefault("error", f"{field_} was not accepted in full by the tweezers GUI")
             break
     return outcomes
+
+
+# --------------------------------------------------------------------------- #
+# live view (card 062): a preparatory run the console switches on and off
+# --------------------------------------------------------------------------- #
+
+#: Which channel each device a live-view list may name is driven through.
+#: Declared, not inferred from the label (check 80). The list's schema allows
+#: exactly these two devices; a list naming another is refused before this
+#: table is read.
+LIVE_VIEW_ROUTES = {"DiaLamp": "stand_ti2e", "Kinetix_red": "camera_red"}
+
+LIVE_VIEW_NO_PLAN = (
+    "live view: the person switched the camera on from the console to find the sample "
+    "(card 062, plan.md 11-25). It runs only the live-view list the person approved in "
+    "approvals/, named by its sha256, and nothing else; it measures nothing, and its frames "
+    "feed the frame tap and are not written to disk")
+LIVE_VIEW_NOT_DISPATCHED = (
+    "This run did not come through the plan dispatcher. A live view has no plan, so "
+    "operator.run_live_view sets the transmitted lamp and runs the one camera sequence "
+    "from the approved list's own fields. Each lamp write is asked of the allow-list "
+    "(micromanager.refusal) before it is sent, and read back")
+
+
+def check_live_view_list(doc: dict) -> dict:
+    """The approved list's fields this run uses, or Refusal. Closed: anything unnamed refuses.
+
+    The schema at contracts/schemas/live_view_list.schema.json holds the same
+    shape at commit time. This is the run-time copy, because the file the
+    host runs is the one on disk now, not the one a commit judged.
+    EXCITATION IS REFUSED in this build: the schema lets a list add the Aura
+    with a separate approval's reference, and checking that reference is not
+    built here, so a list carrying it refuses rather than runs half-checked.
+    """
+    def need(cond, why):
+        if not cond:
+            raise Refusal(f"not a runnable live-view list: {why}")
+    need(isinstance(doc, dict), "not a JSON object")
+    need(doc.get("artifact") == "live_view_list", "artifact is not live_view_list")
+    need(doc.get("schema_version") == "0.1", "schema_version is not 0.1")
+    allowed = {"artifact", "schema_version", "written_by", "written_at", "label",
+               "transmitted_lamp", "camera", "excitation"}
+    need(not set(doc) - allowed, f"unknown fields {sorted(set(doc) - allowed)}")
+    need("excitation" not in doc, "it adds excitation, which bleaches and needs its own "
+         "approval; this host does not run excitation lists yet")
+    need(isinstance(doc.get("written_by"), str) and doc["written_by"], "no written_by")
+    need(isinstance(doc.get("written_at"), str) and doc["written_at"], "no written_at")
+    lamp, cam = doc.get("transmitted_lamp"), doc.get("camera")
+    need(isinstance(lamp, dict) and set(lamp) == {"device", "intensity"}
+         and lamp.get("device") == "DiaLamp", "transmitted_lamp is not exactly DiaLamp and intensity")
+    inten = lamp["intensity"]
+    need(isinstance(inten, dict) and set(inten) <= {"value", "note"}
+         and isinstance(inten.get("value"), (int, float)) and not isinstance(inten["value"], bool)
+         and inten["value"] >= 0, "intensity.value is not a number >= 0")
+    need(isinstance(cam, dict) and set(cam) == {"device", "exposure_ms", "frame_ceiling"}
+         and cam.get("device") == "Kinetix_red", "camera is not exactly Kinetix_red, exposure_ms "
+         "and frame_ceiling")
+    need(isinstance(cam["exposure_ms"], (int, float)) and not isinstance(cam["exposure_ms"], bool)
+         and cam["exposure_ms"] > 0, "exposure_ms is not a number > 0")
+    need(isinstance(cam["frame_ceiling"], int) and not isinstance(cam["frame_ceiling"], bool)
+         and cam["frame_ceiling"] >= 1, "frame_ceiling is not a whole number >= 1")
+    return {"intensity": inten["value"], "exposure_ms": cam["exposure_ms"],
+            "frame_ceiling": cam["frame_ceiling"], "lamp": "DiaLamp", "camera": "Kinetix_red"}
+
+
+def run_live_view(list_path: Path, run_id: str, runs_root: Path | None = None,
+                  backend: str = "mock", lock=None, started=None, on_orchestrator=None) -> dict:
+    """One live view: lamp on at the person's intensity, one sequence to the ceiling, lamp off.
+
+    A preparatory run (plan.md 11-21): plan_id null, `no_plan_because`, and
+    `approved_commands` naming the list by path and sha256 of its raw bytes.
+    Frames go to the run's frame tap and nowhere else. "Off" is the run's own
+    stop channel, which runs the usual abort(): lamp off, shutters closed,
+    the sequence ended within a frame. Reaching the ceiling ends it as
+    completed and switches the lamp off, read back.
+
+    `lock` is a held run lock handed over by the live-view host, which took
+    it before starting this run; without one this takes its own. It is
+    released when the run ends, however it ends. `started` is a
+    threading.Event set once `run_started` is written; `on_orchestrator` is a
+    hook tests use to configure the mock.
+    """
+    import hashlib
+    list_path = Path(list_path)
+    data = list_path.read_bytes()
+    sha = hashlib.sha256(data).hexdigest()
+    lock = lock or _take_run_lock({"kind": "live_view", "run_id": run_id})
+    try:
+        values = check_live_view_list(json.loads(data.decode("utf-8-sig")))
+        root = AGENT / "runs" if runs_root is None else Path(runs_root)
+        folder = root / run_id
+        if folder.exists():
+            raise Refusal(f"{folder} already exists. A run id is never reused; raise it (P9)")
+        o = orch.Orchestrator(backend=backend)
+        if on_orchestrator is not None:
+            on_orchestrator(o)
+        o.begin_run(folder, run_id=run_id, plan_id=None, revision=None)
+        if started is not None:
+            started.set()
+        how = "failed"
+        try:
+            _live_view_body(o, values)
+            how = ("stopped_from_outside" if getattr(o, "stopped_from_outside", False)
+                   else "failed" if o._aborted.is_set() else "completed")
+        except Exception as exc:                                # noqa: BLE001 - recorded, then the lamp goes off
+            o.record(event="live_view_failed", error=f"{type(exc).__name__}: {exc}")
+            if not o._aborted.is_set():
+                o.abort(reason=f"live view failed: {exc}")
+        finally:
+            o.end_run(how)
+        try:
+            approved_path = str(list_path.resolve().relative_to(REPO)).replace("\\", "/")
+        except ValueError:
+            approved_path = str(list_path.resolve())
+        record = {
+            "artifact": "run_log", "schema_version": "0.1", "run_id": run_id,
+            "plan_id": None, "revision": None,
+            "no_plan_because": LIVE_VIEW_NO_PLAN, "not_dispatched": LIVE_VIEW_NOT_DISPATCHED,
+            "approved_commands": {"path": approved_path, "sha256": sha},
+            "approval": {"id": None, "kind": None}, "stop_criteria": [],
+            **o.log_header(), "events": o.log,
+            "finished_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        }
+        write_run(record, runs_root=root)
+        return record
+    finally:
+        lock.release()
+
+
+def _live_view_lamp(o, prop: str, value, from_field: str) -> None:
+    """One DiaLamp write: asked of the allow-list, sent as settings, read back, recorded."""
+    mm = o._device_module("micromanager", needed_by="the live view's allow-list check")
+    why = mm.refusal("DiaLamp", prop, "setProperty", value)
+    if why is not None:
+        raise Refusal(f"{from_field}: {why}")
+    channel = LIVE_VIEW_ROUTES["DiaLamp"]
+    params = {"settings": {"DiaLamp": {prop: value}}}
+    returned = o.module_for(channel).apply(params)
+    verification, note = o.verification_of(channel, returned)
+    # Recorded in the run log's named-parameter form, each carrying its `from`
+    # (run_log.schema.json, check 14); the exact settings sent sit beside it.
+    o.record(event="apply", channel=channel, element="dia_lamp", action="set_dia_lamp",
+             params={f"DiaLamp.{prop}": {"value": value, "from": from_field}},
+             settings_sent=params, verification=verification, verification_note=note,
+             **{"from": from_field})
+    if verification != "readback":
+        raise Refusal(f"{from_field}: DiaLamp.{prop} = {value!r} was not confirmed: {note}")
+
+
+def _live_view_body(o, values: dict) -> None:
+    """Lamp on (intensity, then State 1: power up last), exposure, the sequence, lamp off."""
+    _live_view_lamp(o, "Intensity", str(values["intensity"]),
+                    "approved_commands.transmitted_lamp.intensity")
+    if o._aborted.is_set():
+        return
+    _live_view_lamp(o, "State", "1", "approved_commands.transmitted_lamp")
+    camera = o.module_for(LIVE_VIEW_ROUTES["Kinetix_red"])
+    if hasattr(camera, "set_exposure"):
+        got = camera.set_exposure(values["exposure_ms"])
+        o.record(event="apply", channel=LIVE_VIEW_ROUTES["Kinetix_red"], action="set_exposure",
+                 params={"exposure_ms": {"value": values["exposure_ms"], "unit": "ms",
+                                         "from": "approved_commands.camera.exposure_ms"}},
+                 verification="readback" if got.get("verified") else "none",
+                 verification_note=f"read back {got.get('read_ms')!r} ms",
+                 **{"from": "approved_commands.camera.exposure_ms"})
+    else:
+        o.record(event="exposure_not_set", wanted_ms=values["exposure_ms"],
+                 note="this backend has no exposure call; the mock's frames have no exposure")
+    counted = [0]
+
+    def discard(i, image, metadata):
+        counted[0] += 1                         # not written: the tap is the only consumer
+    out = o.acquire_sequence(LIVE_VIEW_ROUTES["Kinetix_red"], values["frame_ceiling"], discard)
+    o.record(event="live_view_frames", wanted=values["frame_ceiling"],
+             received=out.get("received"), aborted=bool(out.get("aborted")),
+             written_to_disk=False, gaps=out.get("gaps"),
+             note="frames fed the frame tap and nothing else", **{"from": "approved_commands.camera"})
+    if not o._aborted.is_set():
+        _live_view_lamp(o, "State", "0", "live_view.end: the lamp off at the frame ceiling")
 
 
 def write_run(record: dict, deviations: list[dict] | None = None,
