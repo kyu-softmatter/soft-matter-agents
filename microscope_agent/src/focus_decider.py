@@ -13,9 +13,9 @@ reads. The verdict is the branch. Every argument comes from the plan:
 - `camera_ceiling`, resolved through `numbers[]`: an entry in ADU whose
   source is `kb:`. A ceiling that names a gap REFUSES -- nothing is
   substituted for the camera's full-scale count;
-- the five thresholds `from_sweep` requires, from `verdict_thresholds`.
-  THAT FIELD NAME IS PROVISIONAL: plan.schema.json has no field for them yet
-  (reported 2026-10-07), so a plan without it refuses here.
+- the five thresholds `from_sweep` requires, from `focus_search.
+  verdict_thresholds` (plan.schema.json at 0e3eff1), method choices with no
+  source and no default. A plan without them refuses here.
 
 Until the walk has `min_frames` frames the verdict is `unsure` by its own
 rule, and an unsure verdict ends a search. So while the walk is shorter
@@ -96,6 +96,22 @@ class MetricMaximumDecider:
                 "the verdict's thresholds are not in the plan: focus_verdict.from_sweep takes "
                 f"{list(THRESHOLD_KEYS)}, each the caller's with no default, and the plan "
                 "schema has no field for them yet")
+        def whole(v, lo):
+            return isinstance(v, int) and not isinstance(v, bool) and v >= lo
+
+        def fraction(v):
+            return isinstance(v, (int, float)) and not isinstance(v, bool) and 0 <= v <= 1
+        # The ranges plan.schema.json gives the committed field (0e3eff1),
+        # held again here because the plan run is the file on disk now.
+        bad = [k for k, ok in (("min_frames", whole(given["min_frames"], 3)),
+                               ("min_dynamic_range_adu", whole(given["min_dynamic_range_adu"], 0)),
+                               ("min_contrast", fraction(given["min_contrast"])),
+                               ("dropout_tolerance", fraction(given["dropout_tolerance"])),
+                               ("max_saturated", fraction(given["max_saturated"]))) if not ok]
+        if bad:
+            raise DeciderRefused(f"verdict_thresholds out of range: {bad} (min_frames a whole "
+                                 "number >= 3, min_dynamic_range_adu a whole number >= 0, the "
+                                 "other three fractions in [0, 1])")
         self.thresholds = dict(given)
         args = fs.get("metric_arguments") or {}
         self.metric = (fs.get("metric") or {}).get("name")

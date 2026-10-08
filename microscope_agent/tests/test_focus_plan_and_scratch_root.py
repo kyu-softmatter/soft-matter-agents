@@ -140,6 +140,17 @@ class T2ASourcedCeilingLetsTheCorePick(unittest.TestCase):
             fd.MetricMaximumDecider(plan, grab=lambda: None)
         self.assertIn("thresholds", str(caught.exception))
 
+    def test_thresholds_out_of_their_ranges_refuse(self):
+        # The committed field (0e3eff1): min_frames a whole number >= 3, the
+        # dynamic range a whole number >= 0, and three fractions in [0, 1].
+        for key, bad in (("min_frames", 2), ("min_frames", 3.5), ("min_contrast", 1.5),
+                         ("dropout_tolerance", -0.1), ("max_saturated", 2),
+                         ("min_dynamic_range_adu", -1), ("min_dynamic_range_adu", 1.5)):
+            plan = copy.deepcopy(PLAN)
+            plan["focus_search"]["verdict_thresholds"][key] = bad
+            with self.assertRaises(fd.DeciderRefused, msg=(key, bad)):
+                fd.MetricMaximumDecider(plan, grab=lambda: None)
+
     def test_a_ceiling_without_a_kb_source_refuses(self):
         plan = copy.deepcopy(PLAN)
         plan["numbers"][0]["source"] = "operator_recall:test"

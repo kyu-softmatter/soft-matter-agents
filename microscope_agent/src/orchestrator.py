@@ -438,15 +438,31 @@ FOCUS_NO_MOVE = ("in_focus", "no_sample_here", "unsure")
 #: the card refuses, so it is refused rather than ignored.
 FOCUS_DECISION_KEYS = frozenset({"branch", "confidence", "note"})
 
-#: Which reading of which device means PFS is NOT engaged, as (device,
-#: property, value). PFS is in NAMED_REFUSALS, so software cannot switch it
-#: off; the search reads it and refuses while it is engaged, and the person
-#: switches it off. **Nothing on disk records the value**: no run has read a
-#: PFS property, and the loaded configuration declares the device and no
-#: values. A reading inferred from the property's name would be a spelling
-#: deciding a safety guard (check 80), so until a person states it this stays
-#: None and EVERY focus search refuses here. That is the correct default.
-PFS_NOT_ENGAGED: tuple[str, str, str] | None = None
+
+
+def pfs_not_engaged(safety: dict) -> dict:
+    """The envelope's `pfs_not_engaged` (0e3eff1): {device, property, values[]}, read fresh.
+
+    PFS is in NAMED_REFUSALS, so software cannot switch it off; the search
+    reads it and refuses while it is engaged, and the person switches it off.
+    WHICH READING MEANS OFF IS THE PERSON'S, written in envelope/safety.json
+    from the bench record of each state. It was a constant here, left None on
+    purpose until it had that home, and every search refused. A reading
+    inferred from a property's name would be a spelling deciding a safety
+    guard (check 80), so nothing here supplies one: an absent key refuses.
+    """
+    found = None
+    for target in safety.get("targets") or []:
+        entry = (target.get("limits") or {}).get("pfs_not_engaged")
+        if entry is not None:
+            found = entry
+    if not isinstance(found, dict) or not isinstance(found.get("device"), str)             or not isinstance(found.get("property"), str)             or not isinstance(found.get("values"), list) or not found["values"]:
+        raise InterlockError(
+            "envelope/safety.json has no pfs_not_engaged: which focus-hold reading means not "
+            "engaged is the person's to write, and without it PFS cannot be confirmed off, so "
+            "the search refuses. PFS is refused to software; a person switches it off")
+    return {"device": found["device"], "property": found["property"],
+            "values": [str(v) for v in found["values"]]}
 
 
 def focus_search_exemptions(plan: dict | None, commands: list["Command"]) -> dict[int, str]:
@@ -1472,19 +1488,22 @@ class Orchestrator:
         except Exception as exc:                                # noqa: BLE001 - a refusal either way
             raise InterlockError(f"no read-back tolerance: {exc}") from exc
         module = self.module_for(FOCUS_EXEMPT_CHANNEL)
-        if PFS_NOT_ENGAGED is None:
-            raise InterlockError(
-                "which PFS reading means not engaged is recorded nowhere, so PFS cannot be "
-                "confirmed off and the search refuses. PFS is refused to software; a person "
-                "switches it off and states the reading that shows it")
-        device, prop, off = PFS_NOT_ENGAGED
-        reading = module.read_property(device, prop)
+        pfs = pfs_not_engaged(load_safety())
+        device, prop, offs = pfs["device"], pfs["property"], pfs["values"]
+        try:
+            reading = module.read_property(device, prop)
+        except Exception as exc:                                # noqa: BLE001 - unreadable refuses
+            reading, unreadable = None, f"{type(exc).__name__}: {exc}"
+        else:
+            unreadable = None
         self.record(event="focus_search_pfs_read", device=device, property=prop,
-                    read=reading, required=off)
-        if reading is None or str(reading) != off:
-            raise InterlockError(f"PFS reads {device}.{prop} = {reading!r}, not {off!r}: it may "
-                                 "be engaged, and a held focus fights a sweep. The person "
-                                 "switches PFS off")
+                    read=reading, not_engaged_values=offs, unreadable=unreadable,
+                    **{"from": "envelope pfs_not_engaged"})
+        if reading is None or str(reading) not in offs:
+            raise InterlockError(f"PFS reads {device}.{prop} = {reading!r}"
+                                 + (f" ({unreadable})" if unreadable else "")
+                                 + f", not one of {offs}: it may be engaged, and a held focus "
+                                 "fights a sweep. The person switches PFS off")
 
         step = float(fs["step_um"])
         max_moves = int(fs["max_moves"])

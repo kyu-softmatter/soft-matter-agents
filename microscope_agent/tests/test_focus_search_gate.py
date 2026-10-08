@@ -32,7 +32,7 @@ def _load(name, path):
 
 orch = _load("_orch_focus_search_under_test", SRC / "orchestrator.py")
 
-PFS_DECLARED = ("PFS", "State", "Off")         # SYNTHETIC: the real reading is not recorded
+PFS_DECLARED = ("PFS", "State", "Off")         # SYNTHETIC: the real reading is the person's
 
 PLAN = {
     "id": "plan-mic-test-focus", "revision": 1,
@@ -50,8 +50,13 @@ PLAN = {
 }
 
 
-def _safety(lo=90.0, hi=110.0, objective="40x"):
+def _safety(lo=90.0, hi=110.0, objective="40x", pfs=PFS_DECLARED):
     limits = {}
+    if pfs:
+        # The envelope's pfs_not_engaged (0e3eff1): SYNTHETIC test values.
+        limits["pfs_not_engaged"] = {"device": pfs[0], "property": pfs[1], "values": [pfs[2]],
+                                     "confirmation": {"kind": "carried_over", "from": "TEST",
+                                                      "on": "2026-10-07"}}
     if lo is not None:
         limits[f"focus_z_{objective}_min"] = {"value": lo, "unit": "um", "bounds": "min"}
     if hi is not None:
@@ -90,10 +95,9 @@ class _Base(unittest.TestCase):
         self.mock.reset()
         self.o.handover["objective"] = "40x"
         op = orch._operator()
-        self._saved = (op.authorise, orch.PFS_NOT_ENGAGED)
+        self._saved = (op.authorise,)
         op.authorise = (lambda plan, approvals=None: _Approved()) if self.approved else \
                        (lambda plan, approvals=None: _NotApproved())
-        orch.PFS_NOT_ENGAGED = self.pfs
         if self.pfs:
             self.mock.apply({"settings": {self.pfs[0]: {self.pfs[1]: self.pfs[2]}}})
         self.plan = copy.deepcopy(PLAN)
@@ -107,10 +111,10 @@ class _Base(unittest.TestCase):
 
     def tearDown(self):
         op = orch._operator()
-        op.authorise, orch.PFS_NOT_ENGAGED = self._saved
+        op.authorise, = self._saved
 
     def run_search(self, decide, safety=None):
-        safety = _safety() if safety is None else safety
+        safety = _safety(pfs=self.pfs) if safety is None else safety
         return self.o.run_focus_search(self.plan, decide, load_safety=lambda: safety)
 
     def events(self, name):
@@ -161,6 +165,14 @@ class T03bPfsReadingUndeclaredRefuses(_Base):
     def test_an_undeclared_pfs_reading_refuses(self):
         with self.assertRaises(orch.InterlockError) as caught:
             self.run_search(_decider())
+        self.assertIn("pfs_not_engaged", str(caught.exception))
+        self.assertEqual(self.writes, [])
+
+    def test_an_unreadable_pfs_reading_refuses(self):
+        # Declared in the envelope, and the mock has never been told any PFS
+        # state, so the read comes back None: unreadable refuses (0e3eff1).
+        with self.assertRaises(orch.InterlockError) as caught:
+            self.run_search(_decider(), safety=_safety(pfs=PFS_DECLARED))
         self.assertIn("PFS", str(caught.exception))
         self.assertEqual(self.writes, [])
 
