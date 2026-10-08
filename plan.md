@@ -2336,6 +2336,7 @@ rebuild/
     CLAUDE.md
     envelope/                       budget.json (resource ceilings -- wall clock, storage, smoke), snapshot.json.
                                     **`safety.json` is not here** -- there is no irreversible physical action in this tree (§2.1)
+    findings/<seat>-<YYYYMMDD>.json as in microscope_agent/: facts established without a run, handed to the librarian (from `12076c6`, 2026-10-08, for task 026's closed-form stage). **The librarian's read exception is the same here**: this folder, and exactly the paths a committed findings item cites, at the commit it names, and nothing else of this tree.
     approvals/                      the only folder a person writes
     inbox/<thread>/                 **the bridge writes and this agent reads.** Only delivered `r<N>_ask_*.{json,md}`.
                                     **No copy of `status.json` is kept** -- the turn is the fact of being in the
