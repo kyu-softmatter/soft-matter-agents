@@ -1,0 +1,33 @@
+{
+  "entry_id": "filter_turret_shutters_close_at_state_0",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The person stated on 2026-10-04 that the two filter-turret shutters, Micro-Manager devices Turret1Shutter and Turret2Shutter, are closed when their State property is \"0\".",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "filter_turret_1"
+    },
+    {
+      "kind": "device",
+      "id": "filter_turret_2"
+    }
+  ],
+  "source": "operator_recall:kyuhwan_20261004",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_operator_recall_20261004_turret_shutters",
+  "validity_conditions": "A recollection, not a reading: no read-back of either shutter in a closed state is recorded on this stand, and the abort that closes them to this value (35c5d6d) has run on mock only. Falsifier: on the stand, a shutter seen closed whose State reads anything but \"0\". KNOWLEDGE, NOT POLICY: which value means closed is a fact about the device; that software may write it, and only on an abort, is the person's exemption of 2026-10-04 in plan.md 4.6.8 and not this entry's to grant.",
+  "date": "2026-10-07",
+  "valid_until": {
+    "event": "A recorded read-back of each shutter's State with the shutter seen closed on the stand; the E1 entry from it supersedes this one."
+  },
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261004-1",
+  "identifiers": {
+    "mm_device": "Turret1Shutter, Turret2Shutter",
+    "property": "State",
+    "closed_value": "0"
+  }
+}

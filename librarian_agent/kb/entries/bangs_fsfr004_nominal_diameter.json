@@ -29,8 +29,8 @@
   ],
   "identifiers": {
     "supplier": "Bangs Laboratories, Inc.",
-    "catalogue_product": "FSFR004",
+    "catalog_number": "FSFR004",
     "product": "Fluorescent Polystyrene Microspheres, Flash Red - 1.00um"
   },
-  "validity_conditions": "The catalogue 'SPEC RANGE' is 0.95 - 1.05 um: the supplier's acceptance window for a lot's mean diameter, not a size distribution and not a lot's certificate. A given lot's measured mean and CV are on its certificate, which has not been read. The nominal value is entered as the number; the window is kept here in words so a caller does not treat 1.00 as tighter than the supplier claims. Type-level fact about the catalogue product as sold. It says nothing about a bottle on this bench until a person reads the catalogue number and lot off it; no such reading is on record yet."
+  "validity_conditions": "The catalogue 'SPEC RANGE' is 0.95 - 1.05 um: the supplier's acceptance window for a lot's mean diameter, not a size distribution and not a lot's certificate. A given lot's measured mean and CV are on its certificate, which has not been read. The nominal value is entered as the number; the window is kept here in words so a caller does not treat 1.00 as tighter than the supplier claims. Type-level fact about the catalogue product as sold. It says nothing about a bottle on this bench until a person reads the catalogue number and lot off it; no such reading is on record yet. RENAMED 2026-10-07 under task 047, same claim, value, source and grade (rule 8: a rename is not a supersede): identifiers.catalogue_product became catalog_number, which is addressable, so the entry answers to its catalogue number. Its quantity name keeps the product, because the subject-free diameter name is an open registry collision (bead_diameter against tracer_diameter) that is not this seat's to settle."
 }

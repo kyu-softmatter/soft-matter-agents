@@ -1,0 +1,12 @@
+{
+  "source_id": "src_operator_recall_20261004_turret_shutters",
+  "kind": "operator_recall",
+  "identifier": "The person's statement in microscope-20261003-1's window on 2026-10-04, \"Turret shutters close at State 0\", recorded in the message of commit 35c5d6d (card 056 part 2). The same commit says the value is in no configuration file in the tree.",
+  "accessed": "2026-10-07",
+  "grade_rule": "E5 operator_recall: stated, with no reading of the stand recorded behind it. The abort that closes the shutters to this value has run on mock only, and mock echoes whatever value it is given, so nothing on disk confirms it.",
+  "what_entered": [
+    "filter_turret_shutters_close_at_state_0"
+  ],
+  "what_would_change_it": "A read-back of Turret1Shutter and Turret2Shutter State on the stand with each shutter seen closed, recorded in a run. That supersedes the entry at E1.",
+  "provenance": "The person's own statement; plan.md 10.2 does not apply."
+}

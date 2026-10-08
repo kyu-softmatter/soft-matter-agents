@@ -13,7 +13,8 @@
   "claim": "Bangs fluorescent microsphere suspensions covered by PDS 731 contain sodium azide.",
   "identifiers": {
     "supplier": "Bangs Laboratories, Inc.",
-    "catalogue_product": "FSFR004, FSFR005 (stated line-wide in PDS 731)"
+    "catalog_numbers_listed": "FSFR004, FSFR005 (stated line-wide in PDS 731)",
+    "product": "Fluorescent Microspheres"
   },
-  "validity_conditions": "The concentration is not given in PDS 731; the Safety Data Sheet would hold it and was not read. The sheet's disposal note: azide can form explosive metal azides with lead or copper plumbing, so flush with a large volume of water. This is knowledge about the product; handling rules are the person's. Azide also matters to any biological sample mixed with these beads. Type-level: about the product as supplied, not about a bottle on this bench until its catalogue and lot numbers are read."
+  "validity_conditions": "The concentration is not given in PDS 731; the Safety Data Sheet would hold it and was not read. The sheet's disposal note: azide can form explosive metal azides with lead or copper plumbing, so flush with a large volume of water. This is knowledge about the product; handling rules are the person's. Azide also matters to any biological sample mixed with these beads. Type-level: about the product as supplied, not about a bottle on this bench until its catalogue and lot numbers are read. RENAMED 2026-10-07 under task 047, same claim, value, source and grade (rule 8: a rename is not a supersede): identifiers.catalogue_product became catalog_numbers_listed, not addressable, because it holds a range or a list and not one catalogue number; the line is addressed instead by product = 'Fluorescent Microspheres', the vendor's own name for it as printed in this entry's source, which is a class handle and not an item."
 }

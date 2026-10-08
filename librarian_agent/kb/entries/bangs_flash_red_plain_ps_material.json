@@ -13,8 +13,8 @@
   "claim": "Bangs Laboratories FSFR004 and FSFR005 are polystyrene microspheres with the Flash Red fluorophore embedded within the bead matrix and a plain (non-functionalised) surface.",
   "identifiers": {
     "supplier": "Bangs Laboratories, Inc.",
-    "catalogue_product": "FSFR004, FSFR005",
-    "product_line": "Fluorescent Plain Polystyrene"
+    "catalog_numbers_listed": "FSFR004, FSFR005",
+    "product": "Fluorescent Plain Polystyrene"
   },
-  "validity_conditions": "From the category page: the line is 'Fluorescent Plain Polystyrene' and the page states the fluorophores are embedded within the bead matrix. Spherical shape is stated by the product name 'Microspheres'. Plain means no carboxyl or amine surface group is sold on these codes -- which differs from the Abvigen carboxyl particles already in this store, and matters for sticking to glass. The suspension medium and any surfactant are not stated on the page read. Type-level fact about the catalogue product as sold. It says nothing about a bottle on this bench until a person reads the catalogue number and lot off it; no such reading is on record yet."
+  "validity_conditions": "From the category page: the line is 'Fluorescent Plain Polystyrene' and the page states the fluorophores are embedded within the bead matrix. Spherical shape is stated by the product name 'Microspheres'. Plain means no carboxyl or amine surface group is sold on these codes -- which differs from the Abvigen carboxyl particles already in this store, and matters for sticking to glass. The suspension medium and any surfactant are not stated on the page read. Type-level fact about the catalogue product as sold. It says nothing about a bottle on this bench until a person reads the catalogue number and lot off it; no such reading is on record yet. RENAMED 2026-10-07 under task 047, same claim, value, source and grade (rule 8: a rename is not a supersede): identifiers.catalogue_product became catalog_numbers_listed, which is not addressable, because it lists two catalogue numbers and a list is not one; and product_line became product, the addressable class handle, so the entry answers to the vendor's line name 'Fluorescent Plain Polystyrene'."
 }

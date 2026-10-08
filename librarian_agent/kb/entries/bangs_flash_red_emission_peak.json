@@ -13,7 +13,7 @@
   "claim": "The Bangs Laboratories Flash Red dye, used in FSFR004 and FSFR005, has its emission maximum at 690 nm as published by the supplier.",
   "numbers": [
     {
-      "name": "bangs_flash_red_emission_wavelength",
+      "name": "emission_peak_wavelength",
       "value": 690,
       "unit": "nm",
       "source": "spec:bangs_flash_red_plain_ps",
@@ -24,13 +24,14 @@
   "subject": [
     {
       "kind": "quantity",
-      "id": "bangs_flash_red_emission_wavelength"
+      "id": "emission_peak_wavelength"
     }
   ],
   "identifiers": {
     "supplier": "Bangs Laboratories, Inc.",
     "dye": "Flash Red",
-    "catalogue_product": "FSFR001-FSFR007 (the Flash Red plain polystyrene line)"
+    "catalog_numbers_listed": "FSFR001-FSFR007 (the Flash Red plain polystyrene line)",
+    "product": "Fluorescent Plain Polystyrene"
   },
-  "validity_conditions": "Read from the heading of the supplier's Flash Red spectrum image, 'Flash Red (660, 690)', whose trace shows both bands peaking between about 650 and 700 nm with little signal below 600 nm. A peak is not a band: the widths are shown only as a curve and are not entered. Diameter-independent in the supplier's presentation. The spectrum's medium (in beads, in water, or free dye) is not stated on the page. Entered separately from the other peak so each can be refuted on its own. Type-level fact about the catalogue product as sold. It says nothing about a bottle on this bench until a person reads the catalogue number and lot off it; no such reading is on record yet."
+  "validity_conditions": "Read from the heading of the supplier's Flash Red spectrum image, 'Flash Red (660, 690)', whose trace shows both bands peaking between about 650 and 700 nm with little signal below 600 nm. A peak is not a band: the widths are shown only as a curve and are not entered. Diameter-independent in the supplier's presentation. The spectrum's medium (in beads, in water, or free dye) is not stated on the page. Entered separately from the other peak so each can be refuted on its own. Type-level fact about the catalogue product as sold. It says nothing about a bottle on this bench until a person reads the catalogue number and lot off it; no such reading is on record yet. RENAMED 2026-10-07 under task 047, same claim, value, source and grade (rule 8: a rename is not a supersede): identifiers.catalogue_product became catalog_numbers_listed, not addressable, because it holds a range or a list and not one catalogue number; the line is addressed instead by product = 'Fluorescent Plain Polystyrene', the vendor's own name for it as printed in this entry's source, which is a class handle and not an item; and numbers[].name and the subject bangs_flash_red_emission_wavelength became the registered emission_peak_wavelength."
 }

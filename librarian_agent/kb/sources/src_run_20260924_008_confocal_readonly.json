@@ -1,0 +1,14 @@
+{
+  "source_id": "src_run_20260924_008_confocal_readonly",
+  "kind": "measured",
+  "identifier": "microscope_agent/runs/run-20260924-008/log.json: a read-only first look at the confocal path on 2026-09-24 (card 036 phase B), by microscope-20260924-3. A preparatory run, plan_id null, not dispatched: src/session_036_readonly.py loaded one derived configuration (dualcam_noDMD_nolaser_nostartup.cfg, sha256 fad5873d...) with its startup preset removed, read properties, and sent no set call.",
+  "read_at": "microscope_agent/runs/run-20260924-008/log.json, read by this seat at 144ab62 (last changed at 9c9f598); body sha256 with CRLF normalised to LF f7a8f673fd630b7252b8ec30f10e71abafe0aea58ae12c85cbb2ed4f2e187818",
+  "accessed": "2026-10-07",
+  "grade_rule": "E1 for a device's report of itself, under plan.md 11-21 condition 4 as narrowed at 20a688b: this system read it in a run with a run_id. Not a value of any registered observable.",
+  "what_entered": [
+    "csuw1_shutter_state_reads_a_label",
+    "dia_lamp_reports_state_and_intensity"
+  ],
+  "why_now": "Task 044. Neither reading was delivered in that day's findings files, so the run log is the record. The other devices read in the same run were not re-examined here.",
+  "provenance": "A run of this system; plan.md 10.2 does not apply."
+}

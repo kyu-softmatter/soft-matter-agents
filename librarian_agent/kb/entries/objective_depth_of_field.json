@@ -1,0 +1,34 @@
+{
+  "entry_id": "objective_depth_of_field",
+  "schema_version": "0.1",
+  "kind": "derived_quantity",
+  "claim": "The total depth of field of a microscope objective imaging onto a detector is the sum of a wave-optical term, the wavelength times the medium's refractive index over the numerical aperture squared, and a geometric term, the refractive index times the detector's smallest resolvable distance over the lateral magnification times the numerical aperture; it is the full axial distance between the nearest and farthest planes in focus.",
+  "symbol": "depth_of_field",
+  "formula": "emission_wavelength*refractive_index/numerical_aperture**2 + refractive_index*detector_resolvable_distance/(lateral_magnification*numerical_aperture)",
+  "inputs": [
+    "emission_wavelength",
+    "refractive_index",
+    "numerical_aperture",
+    "detector_resolvable_distance",
+    "lateral_magnification"
+  ],
+  "unit": "um",
+  "source": "computed:depth_of_field_total",
+  "grade": "E4",
+  "grade_tag": "textbook",
+  "source_ref": "src_nikon_microscopyu_depth_of_field",
+  "validity_conditions": "WHICH FORM AND WHY: the total form, wave plus geometric, because a focus search scores against frames on a pixel camera, and at low magnification the geometric term is not small -- the wave term alone understates the in-focus depth most for the lenses a search starts with. IT DIFFERS FROM THE RESOLUTION AXIS, which uses the wave term alone, n*lambda/NA**2 (microscope_agent/src/axis_a6_resolution.py, inequality depth_of_field). That is a finding for the microscope seat and is not changed here; the two agree when the geometric term is negligible, at high NA and magnification. FULL WIDTH: nearest to farthest plane in focus, not a half width either side of best focus, so a tolerance written as a fraction of this is half as tight as the same fraction of a half width. CONDITIONS: wide-field imaging; for fluorescence the wavelength is the emission's, since the image is formed by emitted light (the source writes illuminating light, for transmitted imaging); n is the medium between coverslip and front lens -- air, water or oil per objective. e AND M ARE NOT DEFINED FOR A PIXEL CAMERA BY THE SOURCE. With e taken as the camera's pixel pitch (camera_sensor_geometry, E3), e/M is the sample-plane pixel size the store holds per objective at E2, which a plan may use instead; whether e is one pixel or two is the plan's stated choice. The source notes that digital detection gives a shallower depth than the equation predicts. Not for confocal imaging, where the pinhole sets the axial extent. NOT A LIMIT: a scoring tolerance only. The focus limits are the person's, per objective, in the envelope; nothing moves further because of this. INPUTS ARE FORMAL PARAMETERS, as for tau_d: per objective, what the store holds and what a plan brings is listed in the source record's inputs_per_objective. No per-objective value is entered here; a computed value belongs to the card that computes it, with its inputs named.",
+  "date": "2026-10-07",
+  "valid_until": {
+    "no_event": "A textbook relation between optical quantities; nothing on this bench ends it. A measured depth of field for one of these lenses would enter as its own entry and sit beside this one."
+  },
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261004-1",
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "depth_of_field"
+    }
+  ]
+}

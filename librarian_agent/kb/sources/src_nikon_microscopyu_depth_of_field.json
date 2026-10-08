@@ -1,0 +1,20 @@
+{
+  "source_id": "src_nikon_microscopyu_depth_of_field",
+  "kind": "literature",
+  "identifier": "Nikon Instruments Inc., MicroscopyU, 'Depth of Field and Depth of Focus' (Microscopy Basics), Formula 1, Total Depth of Field. The vendor's published optics reference; named authors are not in the page as served.",
+  "url": "https://www.microscopyu.com/microscopy-basics/depth-of-field-and-depth-of-focus",
+  "accessed": "2026-10-07",
+  "how_it_was_read": "Fetched by this seat on 2026-10-07 with a plain HTTP client (HTTP 200, about 395 kB, sha256 45aad152db1f649ddeecf2f49c0166344d107ef47c30d0d89358c0305db72dd0) and read as text with markup stripped, not through a summarising reader. Not held here: a vendor web page that changes without notice, so the hash says what was read and not that it still reads that way.",
+  "what_it_states": "d_tot = lambda*n/NA^2 + n*e/(M*NA): the sum of a wave-optical and a geometric depth of field. lambda is the wavelength of the illuminating light; n the index of the medium between coverslip and front lens; NA the objective's numerical aperture; e the smallest distance a detector in the image plane can resolve; M the lateral magnification at that detector. Depth and wavelength in like units. Depth of field is the distance from the nearest to the farthest object plane simultaneously in focus -- a full width. The page also notes that with video and digital detection the observed depth is shallower than the equation predicts.",
+  "not_entered": "(1) The page's example indices for air and oil and its tabulated depths: values belong to entries with their own sources, and the oil index here is a product's, not the bench's. (2) A definition of e for a pixel camera: the page does not give one, so it is left to the plan to state. (3) The page's separate axial-resolution convention, one quarter of the distance between the first axial minima, which is a different quantity.",
+  "grade_rule": "E3 literature for the relation as stated; the formula entry built on it is E4 by the tau_d precedent (a computed: relation whose inputs are formal parameters).",
+  "inputs_per_objective": {
+    "4x (objective_mrd70040, air)": "holds NA (E3), the air index near the red path (air_refractive_index_605nm_288k and two siblings, E3) and the pixel size (pixel_size_4x_zoom_1x, E2); the plan brings the wavelength",
+    "10x (objective_mrd70170, air)": "holds NA, the air index and pixel_size_10x_zoom_1x; the plan brings the wavelength",
+    "20x (objective_mrd70270, air)": "holds NA, the air index and pixel_size_20x_zoom_1x; the plan brings the wavelength",
+    "40x (objective_mrd77400, water)": "holds NA, the water index at three wavelengths near the red path (water_refractive_index_605nm_293k and siblings, E3, at 293 K) and the pixel size; the plan brings the wavelength, and the temperature if it is not near 293 K",
+    "60x (objective_mrd71670, oil)": "holds NA and the pixel size; LACKS the immersion oil's index -- the bottle on this bench is not identified, gap immersion_oil_refractive_index; the plan brings the wavelength",
+    "100x (objective_mrd71970, oil)": "holds NA and the pixel size; LACKS the immersion oil's index, the same gap; the plan brings the wavelength"
+  },
+  "license_note": "The formula is restated; no text reproduced beyond the variable definitions."
+}

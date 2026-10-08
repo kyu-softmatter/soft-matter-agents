@@ -29,7 +29,8 @@
   ],
   "identifiers": {
     "supplier": "Bangs Laboratories, Inc.",
-    "catalogue_product": "FSFR004, FSFR005 (stated line-wide in PDS 731)"
+    "catalog_numbers_listed": "FSFR004, FSFR005 (stated line-wide in PDS 731)",
+    "product": "Fluorescent Microspheres"
   },
-  "validity_conditions": "As supplied, in the bottle; any dilution stands between this and the sample. Stated once for the whole line, not per code. A number density needs the density and diameter as well, and this sheet gives no density. Type-level: about the product as supplied, not about a bottle on this bench until its catalogue and lot numbers are read."
+  "validity_conditions": "As supplied, in the bottle; any dilution stands between this and the sample. Stated once for the whole line, not per code. A number density needs the density and diameter as well, and this sheet gives no density. Type-level: about the product as supplied, not about a bottle on this bench until its catalogue and lot numbers are read. RENAMED 2026-10-07 under task 047, same claim, value, source and grade (rule 8: a rename is not a supersede): identifiers.catalogue_product became catalog_numbers_listed, not addressable, because it holds a range or a list and not one catalogue number; the line is addressed instead by product = 'Fluorescent Microspheres', the vendor's own name for it as printed in this entry's source, which is a class handle and not an item."
 }

@@ -1,0 +1,29 @@
+{
+  "entry_id": "csuw1_shutter_state_reads_a_label",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The confocal unit's shutter, Micro-Manager device CSUW1-Shutter, reports its State property as a label rather than a position: it read \"Open\" on 2026-09-24, and asking the core for its numeric state failed because the device is of the wrong type for that call. No closed value has been recorded.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "csuw1_shutter"
+    }
+  ],
+  "source": "measured:run-20260924-008",
+  "grade": "E1",
+  "grade_tag": "measured_here",
+  "source_ref": "src_run_20260924_008_confocal_readonly",
+  "validity_conditions": "Events 5 and 21 of the run: a property read returning State \"Open\", then the state-device query raising a wrong-type error. That the label read \"Open\" says what the adapter reported, not that light passed; whether the shutter was physically open is not recorded. The label for closed is unknown, which is why the abort may not close this shutter yet even though the person allowed it on 2026-10-04 (35c5d6d). Read back in a preparatory run with no plan, which wrote nothing to any device. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system, E1. Not a value of any registered observable. KNOWLEDGE, NOT POLICY: what the device reports, never a limit and never permission to command it. Checked by this seat against microscope_agent/runs/run-20260924-008/log.json, read by this seat at 144ab62 (last changed at 9c9f598); body sha256 with CRLF normalised to LF f7a8f673fd630b7252b8ec30f10e71abafe0aea58ae12c85cbb2ed4f2e187818.",
+  "date": "2026-10-07",
+  "valid_until": {
+    "event": "A change of the CSUW1 Micro-Manager adapter or of the configuration that loads it; the entry describing the new behaviour supersedes this one."
+  },
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261004-1",
+  "identifiers": {
+    "mm_device": "CSUW1-Shutter",
+    "property": "State",
+    "reported_label": "Open"
+  }
+}
