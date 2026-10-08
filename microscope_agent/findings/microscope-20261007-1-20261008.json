@@ -328,6 +328,145 @@
    "for_store": false,
    "fact": "To be settled before the person signs on Thursday: the lens for the searches (these plans use the 20x, with the 10x named in the wrong-lens plan, so the person states only the lens really in place); range_um inside the person's own limits, as revision 2; 10x limits written if the wrong-lens plan is to be committed; and the order of steps 1, 2, 5 and 5b above.",
    "how": "Every plan's open_risks says the same, in the plan."
+  },
+  {
+   "id": "prep060_rerun_after_066",
+   "kind": "test_record",
+   "for_store": false,
+   "fact": "Re-run on card 066's gate (2e74188, src/ with no uncommitted edit at the time), the same plans, roots and camera ceiling still a gap: all five refused for their own reason, with no Z command and the run ended 'refused'. No limit -> 'no focus_z_20x_min'; wrong lens -> 'for 10x and the person states 20x'; focus hold on -> 'PFS reads TEST_on'; not approved -> 'not approved for this revision', now inside the run, so it too has a stream; above the max -> 'range_um 8950 to 9050 is not inside 0 to 9000'. Every focus_search_refused event carries z_before_um and z_at_refusal_um, both 2050 um, with no z_read_failed. So prep060_pass1_as_written and prep060_no_encoder_record are closed by 066, and prep060_not_approved_leaves_no_stream no longer holds. Plan 006 is dropped on manager-microscope's decision: the abort test goes through live view, and no abort plan is written.",
+   "how": "D:/sma-scratch/060/run.py 060c; results-060c.json holds every row.",
+   "runs": [
+    {
+     "run_id": "run-20261008-060c-p1-001-nolimit",
+     "what": "no limit, plan as written",
+     "plan": "D:\\sma-scratch\\060\\questions\\mic-20261008-001\\plan_microscope_mic-20261008-001.json",
+     "plan_sha256": "643be22ea3767dcc8af0bca8ddcb51ba5d0ed8f114986b22e201af1112cc6e88",
+     "root": "D:\\sma-scratch\\060\\roots\\A_today",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "InterlockError: envelope/safety.json has no focus_z_20x_min in um. A missing focus limit refuses the search for every lens, dry or immersion; the person writes it",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\A_today\\microscope_agent\\runs\\run-20261008-060c-p1-001-nolimit",
+     "events_jsonl_sha256": "df8109cb8a526083e40b0914c03904049325969e4e0ad425d5a19d72a7da05c9",
+     "z_commands_sent": 0,
+     "run_ended": "refused",
+     "encoder_in_refusal_event": [
+      {
+       "z_before_um": 2050.0,
+       "z_at_refusal_um": 2050.0,
+       "z_read_failed": null
+      }
+     ]
+    },
+    {
+     "run_id": "run-20261008-060c-p1-002-wronglens",
+     "what": "wrong lens, plan as written",
+     "plan": "D:\\sma-scratch\\060\\questions\\mic-20261008-002\\plan_microscope_mic-20261008-002.json",
+     "plan_sha256": "14ea45891760f8d83156f5c42d72e26a832487da16c68921ea6b5e0030bd6338",
+     "root": "D:\\sma-scratch\\060\\roots\\B_limits",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "InterlockError: the plan's focus search is for '10x' and the person states '20x' is in place",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\B_limits\\microscope_agent\\runs\\run-20261008-060c-p1-002-wronglens",
+     "events_jsonl_sha256": "23f4883910522bd068f714011f1c958c651243167284200d1210d28eb36687de",
+     "z_commands_sent": 0,
+     "run_ended": "refused",
+     "encoder_in_refusal_event": [
+      {
+       "z_before_um": 2050.0,
+       "z_at_refusal_um": 2050.0,
+       "z_read_failed": null
+      }
+     ]
+    },
+    {
+     "run_id": "run-20261008-060c-p1-003-pfson",
+     "what": "focus hold on, plan as written",
+     "plan": "D:\\sma-scratch\\060\\questions\\mic-20261008-003\\plan_microscope_mic-20261008-003.json",
+     "plan_sha256": "7af064bff4f8a84f05747497d74c954977dbffba2e2a34eb44e9ae1f4cd1f9db",
+     "root": "D:\\sma-scratch\\060\\roots\\C_limits_pfs",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": "TEST_on",
+     "outcome": "refused",
+     "refusal": "InterlockError: PFS reads PFS.State = 'TEST_on', not one of ['TEST_off']: it may be engaged, and a held focus fights a sweep. The person switches PFS off",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\C_limits_pfs\\microscope_agent\\runs\\run-20261008-060c-p1-003-pfson",
+     "events_jsonl_sha256": "0f1e5e3ee1d0c479aedc07927e6e093912261749eadce418876be57c7901be54",
+     "z_commands_sent": 0,
+     "run_ended": "refused",
+     "encoder_in_refusal_event": [
+      {
+       "z_before_um": 2050.0,
+       "z_at_refusal_um": 2050.0,
+       "z_read_failed": null
+      }
+     ]
+    },
+    {
+     "run_id": "run-20261008-060c-p1-004-notapproved",
+     "what": "not approved, plan as written",
+     "plan": "D:\\sma-scratch\\060\\questions\\mic-20261008-004\\plan_microscope_mic-20261008-004.json",
+     "plan_sha256": "0fabeb55b5cc62d212f6ced12c64bbbc8378e79ef2526d28a36f60b0735cca44",
+     "root": "D:\\sma-scratch\\060\\roots\\B_limits",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "InterlockError: the focus-search plan is not approved for this revision: no plan_approval on disk names (plan-mic-20261008-004-r1, revision 1)",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\B_limits\\microscope_agent\\runs\\run-20261008-060c-p1-004-notapproved",
+     "events_jsonl_sha256": "c6e487d7bf3a65a422bb3823b8b1369f21ae070abf64f97d30ba6e8769b17ea7",
+     "z_commands_sent": 0,
+     "run_ended": "refused",
+     "encoder_in_refusal_event": [
+      {
+       "z_before_um": 2050.0,
+       "z_at_refusal_um": 2050.0,
+       "z_read_failed": null
+      }
+     ]
+    },
+    {
+     "run_id": "run-20261008-060c-p1-005-abovemax",
+     "what": "above the max, plan as written",
+     "plan": "D:\\sma-scratch\\060\\questions\\mic-20261008-005\\plan_microscope_mic-20261008-005.json",
+     "plan_sha256": "9267aa3d3c3340c245c5c8e4d48d7ab6d182f1523593534d098f6871e49fcdf0",
+     "root": "D:\\sma-scratch\\060\\roots\\B_limits",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "InterlockError: range_um 8950.0 to 9050.0 is not a range inside the person's focus_z_20x limits 0.0 to 9000.0",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\B_limits\\microscope_agent\\runs\\run-20261008-060c-p1-005-abovemax",
+     "events_jsonl_sha256": "7b116d2490706b04a66a0335ea7e42009e4c43d96c106580b9db9ab185993a60",
+     "z_commands_sent": 0,
+     "run_ended": "refused",
+     "encoder_in_refusal_event": [
+      {
+       "z_before_um": 2050.0,
+       "z_at_refusal_um": 2050.0,
+       "z_read_failed": null
+      }
+     ]
+    }
+   ]
   }
  ]
 }
