@@ -1,6 +1,6 @@
 # 040 — six microscope findings with no decision written down
 
-status: **open** · issued 2026-09-28 by
+status: closed · **verified on disk 2026-10-07** by manager-librarian-20261007-1, from librarian-20261004-1's report of the same day. Ruled at `640b3c4` (four entries, one gap, one excluded) and published at `acaae43`, `kbv-a71963e62302`, both by librarian-kyuhwan-macbook-20260930-1. All four entries are present at `0bcf753`. `1c66f91` (librarian-20261001-1) later withdrew `tweez300_traps_with_the_40x_60x_and_100x` as a duplicate of this task's tweezers entry, and the store was republished at `9594fc1`, `kbv-70754d3df50b`. The status line was left open after the work ended, and nothing else was. · issued 2026-09-28 by
 manager-librarian-kyuhwan-macbook-20260928-3, under the person's standing
 instruction of 2026-09-24 that the day's microscope findings be harvested into
 the store (recorded in 037), and announced to the person in this seat's window

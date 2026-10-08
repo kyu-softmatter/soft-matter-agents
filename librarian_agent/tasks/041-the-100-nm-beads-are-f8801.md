@@ -1,6 +1,6 @@
 # 041 — the 100 nm beads are Invitrogen F8801
 
-status: **open** · issued 2026-09-30 by
+status: closed · **verified on disk 2026-10-07** by manager-librarian-20261007-1, from librarian-20261004-1's report of the same day. Entered at `21ca509`: six entries for F8801, as an instance, a join and type facts. Published at `b1c3c5b`, `kbv-a0f093a66393`. Both commits are by librarian-kyuhwan-macbook-20260930-1, and all six entries are present at `0bcf753`. The status line was left open after the work ended. · issued 2026-09-30 by
 manager-librarian-kyuhwan-macbook-20260930-1, on a request from
 manager-simulation-kyuhwan-macbook-20260930-4 · **for
 librarian-kyuhwan-macbook-20260930-1, before 040**: two live questions are

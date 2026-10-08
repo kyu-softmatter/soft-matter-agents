@@ -1,6 +1,6 @@
 # 042 — the 5 um bottle cannot be asked for by its catalogue number
 
-status: **open** · issued 2026-10-01 by
+status: closed · **verified on disk 2026-10-07** by manager-librarian-20261007-1, from librarian-20261004-1's report of the same day. Done at `75b5753` and published at `d6f892d`, `kbv-1f5ae4042d26`, both by librarian-kyuhwan-macbook-20260930-1. None of the nine entries keeps `catalogue_product`, nine entries carry `catalog_number: AFR-0500-COOH`, and none uses the four product-bearing quantity names this task named. **Two leftovers, neither a miss**: `abvigen_product_particle_density` (`tracer_particle_density`) and `abvigen_product_stock_concentration` (`tracer_stock_concentration`) still carry the product in their quantity names, which this task's contract said to leave until a question asks for them. And eight Bangs entries, a different product outside this task, still keep the product under `identifiers.catalogue_product`, so they cannot be asked for by catalogue number. That second one is the same defect as this task's and has no task yet. · issued 2026-10-01 by
 manager-librarian-kyuhwan-macbook-20260930-1, from what
 librarian-kyuhwan-macbook-20260930-1 found while doing 041 · **for
 librarian-kyuhwan-macbook-20260930-1, after 040**: no live question needs

@@ -469,6 +469,13 @@
       "unit": "K",
       "kind": "physical",
       "note": "Registered on 2026-10-01 for librarian task 041, whose F8801 type entries carry it in numbers[]; two live questions on the 100 nm beads (mic-20260930-001, sim-20260930-401) cite those entries, which is the question that needs the name. The pair to storage_temperature_min, in the same shape as working_distance_min and working_distance_max. NOT AN ENVELOPE VALUE. The 5 um AFR-0500-COOH entries wrote this quantity as abvigen_product_storage_temperature_max until librarian task 042 renamed them (75b5753), so both bead types now answer to this one name."
+    },
+    {
+      "id": "full_scale_count",
+      "definition": "The highest value a camera reports for a saturated pixel, in ONE readout mode of ONE camera body. Read from a frame, not from the camera's own description of its bit depth: a ceiling taken from a bit depth is a calculation, and on this kind of camera the reported bit depth has been wrong before. A value without its readout mode is not a fact about the camera, the same way a read noise without its mode is not.",
+      "unit": "ADU",
+      "kind": "physical",
+      "note": "Registered on 2026-10-07 for librarian task 043. The focus search's `camera_ceiling` names one of these per plan, or the gap `camera_full_scale_count` while the store has none, which is every plan today. The value arrives from the person's bench visit of 2026-10-08. Not `bit_depth` and not `saturation`: a bit depth is a property of the digitiser and says what the ceiling could be at most, while this is what a saturated frame actually read. ADU, never `count` or `e`: the three differ by the camera's gain and offset, which is why ADU has its own dimension."
     }
   ],
   "not_yet_registered": {
