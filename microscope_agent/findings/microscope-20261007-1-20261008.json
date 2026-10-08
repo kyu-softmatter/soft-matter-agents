@@ -1,0 +1,333 @@
+{
+ "record": "bench_preparation_dry_run",
+ "note": "Card 060's 'Before Thursday', as card 064 assigned it. Written without `artifact`, like card 061's record, because findings.schema.json describes deliveries to the librarian and nothing here is for the store. Mock only; nothing touched the instrument, envelope/ or approvals/. Every file:line cited is the COMMITTED src/ at 7c20129 (no src/ commit since d87cc27). Microscope 1 held uncommitted edits to operator.py, orchestrator.py and devices/mock.py while this was written, so the lines may move. The runs loaded src/ from the shared working copy at 00:09-00:10 local on 2026-10-08; those three files were last written at 00:16-00:17, after the runs, and whether an earlier uncommitted edit was present during them cannot be read from disk.",
+ "seat": "microscope-20261007-1",
+ "on": "2026-10-08",
+ "for": "manager-microscope-20261003-1",
+ "task": "064 (card 060, Before Thursday)",
+ "items": [
+  {
+   "id": "prep060_what_was_run",
+   "kind": "test_record",
+   "for_store": false,
+   "fact": "Card 060's preparation, on mock only, through operator.run(backend='mock', root=<scratch root>). Three scratch roots under D:/sma-scratch/060/roots: A_today (a byte copy of today's envelope/safety.json and snapshot.json, which hold no focus limit and no pfs_not_engaged), B_limits (A plus TEST focus_z_10x and focus_z_20x limits, 0 to 9000 um) and C_limits_pfs (B plus a TEST pfs_not_engaged, PFS.State in [TEST_off]). The run lock pointed into scratch, so no run contended with another seat's mock session. Every envelope limit, focus-hold reading, approval and camera ceiling in these runs that is not the person's is a TEST value under D:/sma-scratch/060 and says so in its own note. None is a fact about the instrument, and none left scratch.",
+   "how": "D:/sma-scratch/060/gen.py writes the plans, roots and TEST approvals; run.py runs them; results-060a.json, results-060b-006.json and results-060b-006b.json hold every row. Z before each run was set to a TEST 2050 um on the mock encoder and read back after it."
+  },
+  {
+   "id": "prep060_plans",
+   "kind": "test_record",
+   "for_store": false,
+   "fact": "The six plans, in scratch, none committed: plan-mic-20261008-001-r1 file sha256 643be22ea3767dcc8af0bca8ddcb51ba5d0ed8f114986b22e201af1112cc6e88 (plan_hash sha256:75e4c19d17024b4f130b1e2c4f89a54d089130af4559b59de639c659eae807e9); plan-mic-20261008-002-r1 file sha256 14ea45891760f8d83156f5c42d72e26a832487da16c68921ea6b5e0030bd6338 (plan_hash sha256:ba3f56b09569e442546b5333abdf5bb9705b8a6ff48a3c5356956813d55596f3); plan-mic-20261008-003-r1 file sha256 7af064bff4f8a84f05747497d74c954977dbffba2e2a34eb44e9ae1f4cd1f9db (plan_hash sha256:16df6cbbf9a01140b725d9e4c0e8c72e7bac7468f6d51e297a914389eacda0af); plan-mic-20261008-004-r1 file sha256 0fabeb55b5cc62d212f6ced12c64bbbc8378e79ef2526d28a36f60b0735cca44 (plan_hash sha256:bde24ddc1aa1929090fa57d3f14f46cbcd2843489e41e1e166b31117c8272a8d); plan-mic-20261008-005-r1 file sha256 9267aa3d3c3340c245c5c8e4d48d7ab6d182f1523593534d098f6871e49fcdf0 (plan_hash sha256:72610b770218cbaa175ca421c9f86e8d4c4591e3b25ad632916ea5c90474d3a5); plan-mic-20261008-006-r1 file sha256 9e7ca3e0034d9ef965b4eea694b781562aa455ca19d8a5faa4a0e9d2f10c0a34 (plan_hash sha256:0257d8d0ec8072e89e0aea14650146810883ccafdf60778f728e72254201b7c7)",
+   "how": "All five focus plans pass every check but 88 against this repository (validate.py given their scratch paths), and 88 fails each for the missing focus_z limit, correctly. Against the TEST envelope B, check 88 passes 001-004 and fails 005 by design. 001 (no limit) and 005 (above the max) can never pass check 88, so they are run from scratch, cited here by sha256, and never committed. 002-004 are copied into questions/ on the day, after the person writes the limits, as revision 2 with range_um set inside them. 006 is a dry-run candidate, not a bench plan."
+  },
+  {
+   "id": "prep060_pass1_as_written",
+   "kind": "defect",
+   "for_store": false,
+   "fact": "With the plans as they would go to the bench, the camera ceiling a gap because the store has no full-scale count, 001, 002, 003 and 005 all refused 'focus search not started: camera_ceiling is the gap', and NONE showed the refusal it exists to show. 004 refused as not approved. No Z command went out in any, and Z read 2050 um before and after each.",
+   "how": "operator.py:1315-1321 builds the decider, which refuses on a gap ceiling, BEFORE orchestrator.py:1468-1506 checks the hand-over lens, the limits, the range, the read-back criterion and focus hold. So on Thursday, unless the camera count is entered in the store and the plans revised to cite it before steps 1-2, every focus refusal the person watches is the ceiling's. Either the bench order changes (step 5 first, then a librarian entry, then revised plans) or the decider is built after the gate's pre-move checks; the second is a code change in Microscope 1's files.",
+   "runs": [
+    {
+     "run_id": "run-20261008-060a-p1-001-nolimit",
+     "what": "no limit, plan as written",
+     "plan": "D:\\sma-scratch\\060\\questions\\mic-20261008-001\\plan_microscope_mic-20261008-001.json",
+     "plan_sha256": "643be22ea3767dcc8af0bca8ddcb51ba5d0ed8f114986b22e201af1112cc6e88",
+     "root": "D:\\sma-scratch\\060\\roots\\A_today",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "Refusal: focus search not started: camera_ceiling is the gap 'kinetix_red_full_scale_count': the camera's full-scale count is not known, and the search refuses rather than substitute a value",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\A_today\\microscope_agent\\runs\\run-20261008-060a-p1-001-nolimit",
+     "events_jsonl_sha256": "15fd1708a5fba125140f5c823267d75b0a7a774740d2604845add92b34cbd026",
+     "z_commands_sent": 0,
+     "run_ended": "failed"
+    },
+    {
+     "run_id": "run-20261008-060a-p1-002-wronglens",
+     "what": "wrong lens, plan as written",
+     "plan": "D:\\sma-scratch\\060\\questions\\mic-20261008-002\\plan_microscope_mic-20261008-002.json",
+     "plan_sha256": "14ea45891760f8d83156f5c42d72e26a832487da16c68921ea6b5e0030bd6338",
+     "root": "D:\\sma-scratch\\060\\roots\\B_limits",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "Refusal: focus search not started: camera_ceiling is the gap 'kinetix_red_full_scale_count': the camera's full-scale count is not known, and the search refuses rather than substitute a value",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\B_limits\\microscope_agent\\runs\\run-20261008-060a-p1-002-wronglens",
+     "events_jsonl_sha256": "fe866b88dab810b724efcf19465243469a1784b093769f17246240d68bbc49fb",
+     "z_commands_sent": 0,
+     "run_ended": "failed"
+    },
+    {
+     "run_id": "run-20261008-060a-p1-003-pfson",
+     "what": "focus hold on, plan as written",
+     "plan": "D:\\sma-scratch\\060\\questions\\mic-20261008-003\\plan_microscope_mic-20261008-003.json",
+     "plan_sha256": "7af064bff4f8a84f05747497d74c954977dbffba2e2a34eb44e9ae1f4cd1f9db",
+     "root": "D:\\sma-scratch\\060\\roots\\C_limits_pfs",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": "TEST_on",
+     "outcome": "refused",
+     "refusal": "Refusal: focus search not started: camera_ceiling is the gap 'kinetix_red_full_scale_count': the camera's full-scale count is not known, and the search refuses rather than substitute a value",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\C_limits_pfs\\microscope_agent\\runs\\run-20261008-060a-p1-003-pfson",
+     "events_jsonl_sha256": "00576fb7d24b3eb476272764ea9699c9ca3f19dff15a5ed1e6ee05912048cb84",
+     "z_commands_sent": 0,
+     "run_ended": "failed"
+    },
+    {
+     "run_id": "run-20261008-060a-p1-004-notapproved",
+     "what": "not approved, plan as written",
+     "plan": "D:\\sma-scratch\\060\\questions\\mic-20261008-004\\plan_microscope_mic-20261008-004.json",
+     "plan_sha256": "0fabeb55b5cc62d212f6ced12c64bbbc8378e79ef2526d28a36f60b0735cca44",
+     "root": "D:\\sma-scratch\\060\\roots\\B_limits",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "Refusal: focus-search plan plan-mic-20261008-004-r1 is not approved: no plan_approval on disk names (plan-mic-20261008-004-r1, revision 1)",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "none: refused before the run's folder was made",
+     "events_jsonl_sha256": null,
+     "z_commands_sent": 0,
+     "run_ended": null
+    },
+    {
+     "run_id": "run-20261008-060a-p1-005-abovemax",
+     "what": "above the max, plan as written",
+     "plan": "D:\\sma-scratch\\060\\questions\\mic-20261008-005\\plan_microscope_mic-20261008-005.json",
+     "plan_sha256": "9267aa3d3c3340c245c5c8e4d48d7ab6d182f1523593534d098f6871e49fcdf0",
+     "root": "D:\\sma-scratch\\060\\roots\\B_limits",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "Refusal: focus search not started: camera_ceiling is the gap 'kinetix_red_full_scale_count': the camera's full-scale count is not known, and the search refuses rather than substitute a value",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\B_limits\\microscope_agent\\runs\\run-20261008-060a-p1-005-abovemax",
+     "events_jsonl_sha256": "5a31b0d08248a984cba11ab1df1dcfd7bcf53888b6faa9e98c23fb9cdda5747b",
+     "z_commands_sent": 0,
+     "run_ended": "failed"
+    }
+   ]
+  },
+  {
+   "id": "prep060_pass2_test_ceiling",
+   "kind": "test_record",
+   "for_store": false,
+   "fact": "The same five plans citing a TEST ceiling (kb:TEST_mock_camera_full_scale, 65535 ADU) each refused for its own reason with no Z command, Z 2050 um before and after: no limit -> 'no focus_z_20x_min'; wrong lens -> 'for 10x and the person states 20x'; focus hold on -> 'PFS reads TEST_on, not one of [TEST_off]'; not approved -> 'no plan_approval names (plan-mic-20261008-004-r1, revision 1)'; above the max -> 'range_um 8950 to 9050 is not inside the person's focus_z_20x limits 0 to 9000'.",
+   "how": "variants_test_ceiling/ under scratch; each variant's own sha256 is its run row's plan_sha256.",
+   "runs": [
+    {
+     "run_id": "run-20261008-060a-p2-001-nolimit",
+     "what": "no limit, TEST ceiling",
+     "plan": "D:\\sma-scratch\\060\\variants_test_ceiling\\plan_microscope_mic-20261008-001.json",
+     "plan_sha256": "ee887028f83489c6351a20e749af9df619807ae613ba18646236d846e5bada25",
+     "root": "D:\\sma-scratch\\060\\roots\\A_today",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "InterlockError: envelope/safety.json has no focus_z_20x_min in um. A missing focus limit refuses the search for every lens, dry or immersion; the person writes it",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\A_today\\microscope_agent\\runs\\run-20261008-060a-p2-001-nolimit",
+     "events_jsonl_sha256": "e5d45533c554f744cfc51edeac33922187c7cadceb1afef6823be1f951e2341b",
+     "z_commands_sent": 0,
+     "run_ended": "failed"
+    },
+    {
+     "run_id": "run-20261008-060a-p2-002-wronglens",
+     "what": "wrong lens, TEST ceiling",
+     "plan": "D:\\sma-scratch\\060\\variants_test_ceiling\\plan_microscope_mic-20261008-002.json",
+     "plan_sha256": "7e3955320991d929cd7008105c7318e3f95b1d6baf358f0ed15bfae6282e4d6a",
+     "root": "D:\\sma-scratch\\060\\roots\\B_limits",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "InterlockError: the plan's focus search is for '10x' and the person states '20x' is in place",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\B_limits\\microscope_agent\\runs\\run-20261008-060a-p2-002-wronglens",
+     "events_jsonl_sha256": "1adc17499b01e71678cd6e0aecc7986542a497282ad2a7ec4f7321c7de315bec",
+     "z_commands_sent": 0,
+     "run_ended": "failed"
+    },
+    {
+     "run_id": "run-20261008-060a-p2-003-pfson",
+     "what": "focus hold on, TEST ceiling",
+     "plan": "D:\\sma-scratch\\060\\variants_test_ceiling\\plan_microscope_mic-20261008-003.json",
+     "plan_sha256": "8e57aaa71b2f9e205ac570c7bb112069dbfd5b74d4e69a6a129e1eddec6edad0",
+     "root": "D:\\sma-scratch\\060\\roots\\C_limits_pfs",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": "TEST_on",
+     "outcome": "refused",
+     "refusal": "InterlockError: PFS reads PFS.State = 'TEST_on', not one of ['TEST_off']: it may be engaged, and a held focus fights a sweep. The person switches PFS off",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\C_limits_pfs\\microscope_agent\\runs\\run-20261008-060a-p2-003-pfson",
+     "events_jsonl_sha256": "76f3caf643305b396933e7da442f9386270e4d70cd4214a8a88ff3c417cd20a1",
+     "z_commands_sent": 0,
+     "run_ended": "failed"
+    },
+    {
+     "run_id": "run-20261008-060a-p2-003b-pfsunrecorded",
+     "what": "focus hold on, TEST ceiling, before pfs_not_engaged is written",
+     "plan": "D:\\sma-scratch\\060\\variants_test_ceiling\\plan_microscope_mic-20261008-003.json",
+     "plan_sha256": "8e57aaa71b2f9e205ac570c7bb112069dbfd5b74d4e69a6a129e1eddec6edad0",
+     "root": "D:\\sma-scratch\\060\\roots\\B_limits",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": "TEST_on",
+     "outcome": "refused",
+     "refusal": "InterlockError: envelope/safety.json has no pfs_not_engaged: which focus-hold reading means not engaged is the person's to write, and without it PFS cannot be confirmed off, so the search refuses. PFS is refused to software; a person switches it off",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\B_limits\\microscope_agent\\runs\\run-20261008-060a-p2-003b-pfsunrecorded",
+     "events_jsonl_sha256": "5390a85103069adbf5e68ff9693607d3d19b149539aded47133b852d2821e80b",
+     "z_commands_sent": 0,
+     "run_ended": "failed"
+    },
+    {
+     "run_id": "run-20261008-060a-p2-004-notapproved",
+     "what": "not approved, TEST ceiling",
+     "plan": "D:\\sma-scratch\\060\\variants_test_ceiling\\plan_microscope_mic-20261008-004.json",
+     "plan_sha256": "f6137fcd54e4342bdb909838758dcec7f79316024ec35fc27c66e52d9a5b64f7",
+     "root": "D:\\sma-scratch\\060\\roots\\B_limits",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "Refusal: focus-search plan plan-mic-20261008-004-r1 is not approved: no plan_approval on disk names (plan-mic-20261008-004-r1, revision 1)",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "none: refused before the run's folder was made",
+     "events_jsonl_sha256": null,
+     "z_commands_sent": 0,
+     "run_ended": null
+    },
+    {
+     "run_id": "run-20261008-060a-p2-005-abovemax",
+     "what": "above the max, TEST ceiling",
+     "plan": "D:\\sma-scratch\\060\\variants_test_ceiling\\plan_microscope_mic-20261008-005.json",
+     "plan_sha256": "1972ce5cc4593d27c655bc31a48f55db85b666b702349894a4054458aa0e1a0e",
+     "root": "D:\\sma-scratch\\060\\roots\\B_limits",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "InterlockError: range_um 8950.0 to 9050.0 is not a range inside the person's focus_z_20x limits 0.0 to 9000.0",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\B_limits\\microscope_agent\\runs\\run-20261008-060a-p2-005-abovemax",
+     "events_jsonl_sha256": "6cd0fc230ab8c14a87598247ab59d984ecfef3d2c8031f78ff2eeb6e925e7209",
+     "z_commands_sent": 0,
+     "run_ended": "failed"
+    }
+   ]
+  },
+  {
+   "id": "prep060_focus_hold_order",
+   "kind": "defect",
+   "for_store": false,
+   "fact": "Before pfs_not_engaged is written, the focus-hold plan refuses 'envelope/safety.json has no pfs_not_engaged', whatever focus hold reads (run -p2-003b). Card 060 puts the focus-hold reading (step 5b) AFTER the refusals (step 2), so as ordered the person would watch the missing-entry refusal and not the focus-hold-on one. Step 5b has to come before step 2's focus-hold refusal.",
+   "how": "orchestrator.py:443-463 refuses on the absent entry, before any reading is compared."
+  },
+  {
+   "id": "prep060_above_max_is_the_preflight",
+   "kind": "deviation",
+   "for_store": false,
+   "fact": "The above-the-max refusal with no Z write is the preflight range check (range_um leaves the limit), not the per-move clearance comparison. The per-move one (orchestrator.py:1572-1578) is reached only after the retract move, which this visit forbids; card 063 showed it on mock after four moves.",
+   "how": "orchestrator.py:1478-1480 refuses a range outside the limits before the first Z command."
+  },
+  {
+   "id": "prep060_no_encoder_record",
+   "kind": "gap",
+   "for_store": false,
+   "fact": "A refused run records no Z encoder reading, before or after: read_z exists (devices/micromanager.py:281, devices/mock.py:108) and nothing in src/ calls it, and the gate reads Z only after a move. Card 060 asks for the encoder before and after each refusal. On Thursday that is the person's reading off the focus display (Form 2) unless code adds the read; on mock the harness read it.",
+   "how": "grep for read_z over microscope_agent/src finds only its two definitions."
+  },
+  {
+   "id": "prep060_not_approved_leaves_no_stream",
+   "kind": "deviation",
+   "for_store": false,
+   "fact": "The not-approved refusal happens before the run's folder is made (operator.py:1137-1140), so it has no events.jsonl and no stream sha256. Its record is the refusal text.",
+   "how": "runs -p1-004 and -p2-004: folder none."
+  },
+  {
+   "id": "prep060_abort_plan_cannot_be_written",
+   "kind": "gap",
+   "for_store": false,
+   "fact": "No plan path turns the transmitted lamp and the Aura on today, so the abort-run plan was not committed. Candidate A, naming the registry's dia_lamp and widefield_source_a, was refused whole by the software-motion check (orchestrator.py:1021-1032). Candidate B, naming the Micro-Manager labels DiaLamp and Aura, passed that check and was refused at preflight: 'Aura' is neither a channel nor an element. Past both, nothing would be written: derive_commands (operator.py:999-1023) builds an action's params from numbers[] only, never `settings`, and apply() writes only `settings` (devices/micromanager.py:428-438, devices/mock.py:58). Live view sets DiaLamp and refuses the Aura (operator.py:1433-1434). A plan also has no step that keeps a run open for the outside stop.",
+   "how": "D:/sma-scratch/060/questions/mic-20261008-006/ holds both candidates.",
+   "runs": [
+    {
+     "run_id": "run-20261008-060b-006-abort",
+     "what": "lamps on, abort candidate, with criteria",
+     "plan": "D:\\sma-scratch\\060\\questions\\mic-20261008-006\\plan_microscope_mic-20261008-006.json",
+     "plan_sha256": "9e7ca3e0034d9ef965b4eea694b781562aa455ca19d8a5faa4a0e9d2f10c0a34",
+     "root": "D:\\sma-scratch\\060\\roots\\B_limits",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "InterlockError: refusing the whole plan before any command goes out: 2 refusal(s). actions[dia_lamp_on]: 'dia_lamp' is not a device software may command today. Allowed: ['Aura', 'Core', 'DiaLamp', 'Kinetix_red']. Every other device is refused by name, including ones nobody listed -- a device nobody thought about is refused, not permitted | actions[aura_on]: 'widefield_source_a' is not a device software may command today. Allowed: ['Aura', 'Core', 'DiaLamp', 'Kinetix_red']. Every other device is refused by name, including ones nobody listed -- a device nobody thought about is refused, not permitted",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\B_limits\\microscope_agent\\runs\\run-20261008-060b-006-abort",
+     "events_jsonl_sha256": "a14cbc2033d35b59b321110b1996cbbe33941f55d78c333a353492504d1e8936",
+     "z_commands_sent": 0,
+     "run_ended": "failed"
+    },
+    {
+     "run_id": "run-20261008-060b-006b-abort-mmlabels",
+     "what": "lamps on, MM labels",
+     "plan": "D:\\sma-scratch\\060\\questions\\mic-20261008-006\\candidate_b_mm_labels.json",
+     "plan_sha256": "5482d592820646cffc695277b796efa74a5ef5799a54c27bc489fadc392647e1",
+     "root": "D:\\sma-scratch\\060\\roots\\B_limits",
+     "handover": {
+      "objective": "20x"
+     },
+     "mock_pfs_state": null,
+     "outcome": "refused",
+     "refusal": "GapError: the plan names 'Aura', which is neither a channel nor an element in microscope_agent\\envelope\\snapshot.json",
+     "z_before_um": 2050.0,
+     "z_after_um": 2050.0,
+     "folder": "D:\\sma-scratch\\060\\roots\\B_limits\\microscope_agent\\runs\\run-20261008-060b-006b-abort-mmlabels",
+     "events_jsonl_sha256": "26b7e2951ae8f3ac8f22ffb84a9d89383227393e0ad3aa68f8d831f17868480a",
+     "z_commands_sent": 0,
+     "run_ended": "failed"
+    }
+   ]
+  },
+  {
+   "id": "prep060_for_the_day",
+   "kind": "deviation",
+   "for_store": false,
+   "fact": "To be settled before the person signs on Thursday: the lens for the searches (these plans use the 20x, with the 10x named in the wrong-lens plan, so the person states only the lens really in place); range_um inside the person's own limits, as revision 2; 10x limits written if the wrong-lens plan is to be committed; and the order of steps 1, 2, 5 and 5b above.",
+   "how": "Every plan's open_risks says the same, in the plan."
+  }
+ ]
+}
