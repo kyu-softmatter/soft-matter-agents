@@ -126,6 +126,22 @@ FRAME_DELAY_S = 0.0
 #: for a socket buffer sets it.
 FRAME_BYTES = 64
 
+#: (rows, cols) for frames a viewer can draw, or None for the byte frames
+#: above. With a shape, and numpy importable, each frame is a 2-D uint16
+#: array whose diagonal stripes move with the frame index, so a live view on
+#: mock visibly changes. The values are synthetic: no camera's counts, and
+#: no full-scale count is implied by them.
+FRAME_SHAPE: tuple[int, int] | None = None
+
+
+def _frame(i: int):
+    if FRAME_SHAPE is None:
+        return bytes([i % 256]) * FRAME_BYTES
+    import numpy as np
+    rows, cols = FRAME_SHAPE
+    stripes = (np.add.outer(np.arange(rows), np.arange(cols)) + 4 * i) % 64
+    return (stripes * 1000).astype(np.uint16)
+
 
 def snap():
     """micromanager.snap's shape: one frame and its metadata. The frame is synthetic bytes."""
@@ -153,7 +169,7 @@ def sequence(n: int, sink, timeout_s: float | None = None) -> dict:
             _time.sleep(FRAME_DELAY_S)
         meta = {"Camera": "mock", "ImageNumber": str(i)}
         numbers.append(meta["ImageNumber"])
-        sink(i, bytes([i % 256]) * FRAME_BYTES, meta)
+        sink(i, _frame(i), meta)
     return {"wanted": int(n), "received": len(numbers), "image_numbers": numbers,
             "gaps": [], "overflowed": False, "aborted": _ABORTED}
 

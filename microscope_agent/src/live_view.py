@@ -277,6 +277,14 @@ class LiveHost:
         return {"live_on": "started", "run_id": run_id}
 
 
+def parse_shape(text: str) -> tuple[int, int]:
+    """'ROWSxCOLS' -> (rows, cols), both whole numbers >= 1."""
+    parts = text.lower().split("x")
+    if len(parts) != 2 or not all(p.isdigit() for p in parts) or min(int(p) for p in parts) < 1:
+        raise ValueError(f"{text!r} is not ROWSxCOLS")
+    return int(parts[0]), int(parts[1])
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="the live-view host (card 062)")
     parser.add_argument("--backend", default="mock",
@@ -284,9 +292,34 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--approvals", type=Path, default=AGENT / "approvals")
     parser.add_argument("--runs-root", type=Path, default=AGENT / "runs")
     parser.add_argument("--address-file", type=Path, default=None)
+    # MOCK ONLY: what the mock's frames look like and how fast they come, so a
+    # person can watch a live view on mock. Refused with any other backend.
+    parser.add_argument("--mock-frame-shape", default=None,
+                        help="ROWSxCOLS: 2-D uint16 synthetic frames instead of byte frames")
+    parser.add_argument("--mock-frame-delay", type=float, default=None,
+                        help="seconds between mock frames")
     args = parser.parse_args(argv)
+    mock_flags = args.mock_frame_shape is not None or args.mock_frame_delay is not None
+    if mock_flags and args.backend != "mock":
+        parser.error("--mock-frame-shape and --mock-frame-delay work only with --backend mock: "
+                     "they shape synthetic frames, and no real camera takes them")
+    shape = None
+    if args.mock_frame_shape is not None:
+        try:
+            shape = parse_shape(args.mock_frame_shape)
+        except ValueError as exc:
+            parser.error(str(exc))
+    if args.mock_frame_delay is not None and not args.mock_frame_delay >= 0:
+        parser.error("--mock-frame-delay must be >= 0")
+
+    def configure_mock(o):
+        camera = o.module_for(op.LIVE_VIEW_ROUTES["Kinetix_red"])
+        if shape is not None:
+            camera.FRAME_SHAPE = shape
+        if args.mock_frame_delay is not None:
+            camera.FRAME_DELAY_S = args.mock_frame_delay
     host = LiveHost(args.approvals, args.runs_root, address_file=args.address_file,
-                    backend=args.backend)
+                    backend=args.backend, on_orchestrator=configure_mock if mock_flags else None)
     addr = host.start()
     print(f"live-view host on {addr['host']}:{addr['port']}, address in {host.address_file}. "
           "Ctrl-C stops it.", flush=True)
