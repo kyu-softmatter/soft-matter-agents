@@ -16,6 +16,8 @@ refusing; its first real move is a later visit.
 
 ## Before Thursday — the seat prepares, and nothing runs
 
+**Assigned by card 064 (2026-10-07) to `microscope-20261007-1`**, with the files it may write. The bench seat on the day is still the person's choice.
+
 **For the seat:**
 
 - Write the plan cards the visit needs, so the person only has to read and
