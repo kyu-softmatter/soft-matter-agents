@@ -160,6 +160,42 @@ force, never amend.
   seat can draft the list's shape for the person to fill in; the values are
   the person's.
 
+**A draft, for the person** (2026-10-07). The person asked in
+manager-microscope's window for everything that can be decided away from the
+microscope to be decided now. The values below are taken from the person's
+own record, not chosen:
+- Intensity 2100 is what the person set for the 2026-09-25 trap run
+  (`src/run_trap_plan_20260925.py`, `lamp_at_handover`; also run
+  `-20260924-008`);
+- 100 ms is the exposure of the 2026-09-24 brightfield runs;
+- 6000 frames is about ten minutes at that exposure.
+
+**It is not an approval until the person saves it into `approvals/`**, under
+any name, with `written_by` changed to the person's name. No session may
+write `approvals/`, and the console reads lists only from there.
+
+```json
+{
+  "artifact": "live_view_list",
+  "schema_version": "0.1",
+  "written_by": "<the person's name>",
+  "written_at": "<the day it is saved>",
+  "label": "Finding the sample in transmitted light: the transmitted lamp at the person's earlier setting, one Kinetix_red sequence, at most about ten minutes.",
+  "transmitted_lamp": {
+    "device": "DiaLamp",
+    "intensity": {
+      "value": 2100,
+      "note": "As set for the 2026-09-25 trap run."
+    }
+  },
+  "camera": {
+    "device": "Kinetix_red",
+    "exposure_ms": 100,
+    "frame_ceiling": 6000
+  }
+}
+```
+
 ## What comes back
 
 To this seat, 8 lines at most: the commit; the seven tests' failing and then
