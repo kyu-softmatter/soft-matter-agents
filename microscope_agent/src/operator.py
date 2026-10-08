@@ -121,7 +121,18 @@ class Authorisation:
 # --------------------------------------------------------------------------- #
 
 
-def load_safety() -> dict:
+def agent_root(root: Path | None) -> Path:
+    """This agent's folder, or the scratch copy of it under `root` (card 063).
+
+    `root` mirrors the repository: `<root>/microscope_agent/{envelope,approvals,runs}`.
+    A scratch root is for mock only, and operator.run refuses it with any other
+    backend before reading anything, so a TEST envelope can never reach the
+    instrument.
+    """
+    return AGENT if root is None else Path(root) / "microscope_agent"
+
+
+def load_safety(agent: Path | None = None) -> dict:
     """Policy. A person writes it after confirming the limits physically.
 
     Absent is not permissive. With no safety policy on disk there is nothing to
@@ -130,7 +141,7 @@ def load_safety() -> dict:
     the prior project (10.3 rule 4): a limit that migrated is not a limit
     anybody checked here.
     """
-    path = AGENT / "envelope" / "safety.json"
+    path = (agent or AGENT) / "envelope" / "safety.json"
     if not path.exists():
         raise Refusal(
             "envelope/safety.json does not exist. Nothing executes without a safety policy: "
@@ -142,10 +153,10 @@ def load_safety() -> dict:
     return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
-def approvals_on_disk() -> list[dict]:
+def approvals_on_disk(agent: Path | None = None) -> list[dict]:
     """approvals/ is the one folder a person writes and the agent does not (7.1 rule 5)."""
     out = []
-    folder = AGENT / "approvals"
+    folder = (agent or AGENT) / "approvals"
     if not folder.exists():
         return out
     for path in sorted(folder.glob("*.json")):
@@ -157,7 +168,10 @@ def approvals_on_disk() -> list[dict]:
             card = json.loads(path.read_text(encoding="utf-8-sig"))
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             raise Refusal(f"{path.name} is not readable JSON: {exc}. An unreadable approval is not an approval")
-        card["__path"] = str(path.relative_to(REPO))
+        try:
+            card["__path"] = str(path.relative_to(REPO))
+        except ValueError:                                      # a scratch root, outside the tree
+            card["__path"] = str(path)
         out.append(card)
     return out
 
@@ -249,7 +263,7 @@ def highest_tier(plan: dict) -> int:
 KEYED_BY_NOSEPIECE = "nosepiece_position"
 
 
-def load_snapshot() -> dict:
+def load_snapshot(agent: Path | None = None) -> dict:
     """The KB as this agent copied it, and the only store this file reads.
 
     The librarian owns knowledge and cannot write here (P14, D11), so the copy
@@ -259,7 +273,7 @@ def load_snapshot() -> dict:
     store holds at that moment, and afterwards the run could not say what it
     resolved against.
     """
-    path = AGENT / "envelope" / "snapshot.json"
+    path = (agent or AGENT) / "envelope" / "snapshot.json"
     if not path.exists():
         raise Refusal(
             "envelope/snapshot.json does not exist, so a limit that resolves from the store has "
@@ -410,7 +424,7 @@ def _working_distance(plan: dict, snap: dict) -> dict:
 RESOLVERS = {"working_distance": _working_distance}
 
 
-def resolve_limits(plan: dict, safety: dict) -> list[dict]:
+def resolve_limits(plan: dict, safety: dict, agent: Path | None = None) -> list[dict]:
     """Every limit that is a lookup becomes a number here, or the run does not start.
 
     A limit is EITHER a constant or a `resolved_from` lookup, never both and
@@ -466,7 +480,7 @@ def resolve_limits(plan: dict, safety: dict) -> list[dict]:
                     f"the bound would be absent and absent is not permissive (2.1 rule 2)"
                 )
             if snap is None:
-                snap = load_snapshot()
+                snap = load_snapshot() if agent is None else load_snapshot(agent)
             answer = resolver(plan, snap)
             resolved.append({
                 "kind": "lookup",
@@ -1086,7 +1100,8 @@ def compile_monitors(plan: dict) -> list[Monitor]:
 
 def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         handover: dict | None = None, ask_person=None,
-        tweezers_link: dict | None = None, runs_root: Path | None = None) -> dict:
+        tweezers_link: dict | None = None, runs_root: Path | None = None,
+        root: Path | None = None) -> dict:
     """O1 preflight -> O2 dispatch -> O3 watch -> O4 record.
 
     Returns the run record. Writes nothing until the gate has been passed,
@@ -1100,16 +1115,28 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     run id is never reused -- and `run_ended` closes the file however the
     run ends. Without it, nothing is written, as before.
     """
+    # A SCRATCH ROOT IS MOCK ONLY (card 063), refused before anything is read:
+    # a TEST envelope, approval or list must never reach the instrument.
+    if root is not None and backend != "mock":
+        raise Refusal(f"a scratch root ({root}) is for the mock backend only, and this run asks "
+                      f"for {backend!r}. TEST values never reach the instrument")
+    agent = agent_root(root)
+    if root is not None and runs_root is None:
+        runs_root = agent / "runs"
     plan = json.loads(Path(plan_path).read_text())
     if plan.get("card") != "plan":
         raise Refusal(f"{plan_path} is a {plan.get('card')!r} card, not a plan")
 
-    safety = load_safety()                       # refuses when absent
-    decision = authorise(plan)
+    safety = load_safety() if root is None else load_safety(agent)     # refuses when absent
+    decision = authorise(plan) if root is None else authorise(plan, approvals_on_disk(agent))
     tier = highest_tier(plan)
     if "trap_steps" in plan and not decision.permitted:
         # Trap motion is motion, whatever tier its actions carry (check 85).
         raise Refusal(f"trap-step plan {plan.get('id')} is not approved: "
+                      + "; ".join(decision.reasons))
+    if "focus_search" in plan and not decision.permitted:
+        # Z motion is motion, whatever tier the action carries (card 055).
+        raise Refusal(f"focus-search plan {plan.get('id')} is not approved: "
                       + "; ".join(decision.reasons))
     if "operation" in plan and not decision.permitted:
         # Condition 3 of an operation plan: each move approved by the person,
@@ -1125,6 +1152,11 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
 
     monitors = compile_monitors(plan)
     commands = derive_commands(plan)
+    if "focus_search" in plan:
+        # The search derives its own moves through the gate; its action is not
+        # dispatched as a plain command, which the allow-list would refuse.
+        focus_from = f"actions[{plan['focus_search'].get('action')}]"
+        commands = [c for c in commands if c.from_field != focus_from]
 
     # ONE RUN AT A TIME (card 062): taken after the gate, so a refused plan
     # holds nothing, and before the orchestrator exists, so no run starts
@@ -1141,8 +1173,11 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
                         revision=plan.get("revision"))
         how = "failed"
         try:
+            if root is not None:
+                o.plan_authoriser = lambda p: authorise(p, approvals_on_disk(agent))
             record = _run_body(o, plan, run_id, backend, observe, handover, ask_person,
-                               tweezers_link, safety, decision, monitors, commands)
+                               tweezers_link, safety, decision, monitors, commands,
+                               agent=None if root is None else agent)
             monitor_abort, failed = record.pop("_monitor_abort"), record.pop("_failed")
             how = ("stopped_from_outside" if getattr(o, "stopped_from_outside", False)
                    else "aborted_by_monitor" if monitor_abort
@@ -1157,7 +1192,8 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
 
 
 def _run_body(o, plan: dict, run_id: str, backend: str, observe, handover, ask_person,
-              tweezers_link, safety: dict, decision, monitors, commands) -> dict:
+              tweezers_link, safety: dict, decision, monitors, commands,
+              agent: Path | None = None) -> dict:
     """run()'s body from the hand-over on, so run() can close the stream however it ends."""
     o.handover = dict(handover or {})
     if o.handover:
@@ -1202,7 +1238,7 @@ def _run_body(o, plan: dict, run_id: str, backend: str, observe, handover, ask_p
     # objective keyed it, which quantity, which value and out of which
     # kb_version. A resolved limit nobody can read back later is a limit
     # nobody can audit.
-    resolutions = resolve_limits(plan, safety)
+    resolutions = resolve_limits(plan, safety, agent)
     for resolution in resolutions:
         o.record(event="limit_resolved", **resolution)
 
@@ -1225,6 +1261,8 @@ def _run_body(o, plan: dict, run_id: str, backend: str, observe, handover, ask_p
         dispatched = _run_trap_steps(o, plan, commands, ask_person)
     else:
         dispatched = o.dispatch(commands, plan=plan)
+    if "focus_search" in plan:
+        _run_focus_search(o, plan, agent)
 
     # A COMMAND THAT DID NOT HAPPEN STOPS THE PLAN. dispatch's return value
     # was read by nobody, so a refusal inside it left no mark on the run's
@@ -1264,6 +1302,33 @@ def _run_body(o, plan: dict, run_id: str, backend: str, observe, handover, ask_p
     record["finished_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     record["_monitor_abort"], record["_failed"] = monitor_abort, bool(failed)
     return record
+
+
+def _run_focus_search(o, plan: dict, agent: Path | None) -> dict:
+    """The plan's focus search: the copied core decides each branch, the gate derives each move.
+
+    The decider is built BEFORE the first Z command, so a ceiling that is a
+    gap, thresholds the plan does not carry, or a decider that is not built
+    refuse with nothing moved. Its frames are the run's own: one snap of the
+    camera at each Z, which also feeds the frame tap.
+    """
+    decider_mod = _load("_mic_focus_decider", Path(__file__).resolve().parent / "focus_decider.py")
+    try:
+        decide = decider_mod.MetricMaximumDecider(
+            plan, grab=lambda: o.acquire_snap(LIVE_VIEW_ROUTES["Kinetix_red"]))
+    except decider_mod.DeciderRefused as exc:
+        o.record(event="focus_search_refused", reason=str(exc))
+        raise Refusal(f"focus search not started: {exc}") from None
+    o.record(event="focus_decider_built", ceiling_adu=decide.ceiling,
+             thresholds=decide.thresholds, metric=decide.metric, bin_px=decide.bin_px,
+             blocks_per_side=decide.blocks_per_side,
+             **{"from": "focus_search.camera_ceiling, focus_search.verdict_thresholds"})
+    loader = load_safety if agent is None else (lambda: load_safety(agent))
+    try:
+        result = o.run_focus_search(plan, decide, load_safety=loader)
+    finally:
+        o.record(event="focus_decider_records", records=decide.records)
+    return result
 
 
 def _run_trap_steps(o, plan: dict, commands: list, ask_person) -> list[dict]:

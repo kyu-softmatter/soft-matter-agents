@@ -1376,6 +1376,14 @@ class Orchestrator:
         exempt = {**exempt, **traps, **focus}
         self.check_software_motion([c for n, c in enumerate(commands) if n not in exempt])
 
+    def _authorise(self, plan: dict):
+        """The approval every exemption gate asks for. operator.authorise against this
+        tree's approvals/, unless the run set `plan_authoriser` -- which operator.run does
+        for a scratch root (card 063), on mock only -- so a gate reads the same approvals
+        as the run that called it."""
+        authoriser = getattr(self, "plan_authoriser", None)
+        return authoriser(plan) if authoriser is not None else _operator().authorise(plan)
+
     def _focus_gate(self, plan: dict, commands: list[Command],
                     candidates: dict[int, str]) -> dict[int, str]:
         """The focus-search exemption's conditions, checked in the call that grants it.
@@ -1387,7 +1395,7 @@ class Orchestrator:
         else, or a second command riding the first, is not exempt and meets
         the allow-list, which refuses ZDrive.
         """
-        decision = _operator().authorise(plan)
+        decision = self._authorise(plan)
         if not decision.permitted:
             self.record(event="software_motion_exemption_refused",
                         reason="no approval covers this plan revision: " + "; ".join(decision.reasons))
@@ -1587,7 +1595,7 @@ class Orchestrator:
         objective refusing the whole plan here.
         """
         op = _operator()
-        decision = op.authorise(plan)
+        decision = self._authorise(plan)
         if not decision.permitted:
             self.record(event="software_motion_exemption_refused",
                         reason="no approval covers this plan revision: " + "; ".join(decision.reasons))
@@ -1647,7 +1655,7 @@ class Orchestrator:
         the whole plan, raised here.
         """
         op = _operator()
-        decision = op.authorise(plan)
+        decision = self._authorise(plan)
         if not decision.permitted:
             self.record(event="software_motion_exemption_refused",
                         reason="no approval covers this plan revision: " + "; ".join(decision.reasons))
