@@ -1648,7 +1648,10 @@ ALLOWED_PATHS = [
     r"^microscope_agent/tests/[A-Za-z0-9_.-]+\.py$",
     # An execution seat's findings for the librarian, one file per seat and
     # day (findings.schema.json). This list first, then section 7's item.
-    r"^microscope_agent/findings/[a-z0-9-]+\.json$",
+    # The simulation joined on 2026-10-08: closed-form answers have no run, so
+    # a result card cannot carry them (task 026), and the schema was never
+    # the microscope's alone.
+    r"^(microscope|simulation)_agent/findings/[a-z0-9-]+\.json$",
     r"^librarian_agent/CLAUDE\.md$",
     r"^((microscope|simulation|librarian)_agent|bridge)/failures\.jsonl$",
     # 7.1 rule 9. Beside failures.jsonl and deliberately the same idiom -- a
