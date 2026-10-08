@@ -1,0 +1,604 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-sim-20261008-001-r1",
+  "qid": "sim-20261008-001",
+  "thread": "solo-sim-20261008-001",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-10-08T08:00:00Z",
+  "status": "DRAFT",
+  "purpose": "characterize",
+  "intent": "explore",
+  "observable": {
+    "name": "bleach_recovery_diffusivity"
+  },
+  "targets": [
+    {
+      "metric": "bleach_recovery_diffusivity",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "explore: which plane an observation depends on, how far a wrong plane moves the answer, and which plane a sharpness-maximum focus search finds, in decades (task 026)"
+    }
+  ],
+  "constraint_notes": [
+    "the person asked manager-simulation-20261007-1 on 2026-10-07, in that manager's window, to find what the simulation side can do and improve once dino-autofocus's focus search is in the workflow; the manager turned that into task 026 for this seat",
+    "once the microscope records the focal plane its focus search found, every comparison these predictions enter depends on a plane that is checkable; this question says which plane each observation depends on and how much a wrong one moves it",
+    "two samples: the 100 nm fluorescent beads of sim-20260930-401, and the 5 um beads of the double-well questions",
+    "no number from this question goes toward the instrument as a Z target, a range, a coverslip position or a limit. The per-lens focus limits are the person's and are written, not derived; what this question produces are predictions about the sample and the measurement",
+    "no image is rendered and no declared model changes: closed forms and exact deterministic integrals only. bd_overdamped has neither walls nor optics, and none is added",
+    "the observable named is the bleach recovery's, because item 1 and item 4 are about what the agreed bleach fit reads; items 2 and 3 are conditions of every observable on these samples and are reported beside it",
+    "the result crosses to the microscope only on the person's hand-over"
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "requested_by": "human",
+  "numbers": [
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the room's thermometer reading; nothing reads or actuates the sample"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "pure water near 293 K"
+    },
+    {
+      "name": "water_density",
+      "value": 0.9982,
+      "unit": "g/cm^3",
+      "source": "kb:water_density_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "at 293.15 K, for the density contrast only"
+    },
+    {
+      "name": "water_refractive_index",
+      "value": 1.3325,
+      "unit": "1",
+      "source": "kb:water_refractive_index_605nm_293k",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "at 605 nm, the 100 nm beads' emission; sets every ray angle in the sample"
+    },
+    {
+      "name": "na_4x",
+      "value": 0.2,
+      "unit": "1",
+      "source": "kb:objective_mrd70040",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "dry"
+    },
+    {
+      "name": "na_10x",
+      "value": 0.45,
+      "unit": "1",
+      "source": "kb:objective_mrd70170",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "dry"
+    },
+    {
+      "name": "na_20x",
+      "value": 0.8,
+      "unit": "1",
+      "source": "kb:objective_mrd70270",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "dry"
+    },
+    {
+      "name": "na_40x",
+      "value": 1.25,
+      "unit": "1",
+      "source": "kb:objective_mrd77400",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "water immersion"
+    },
+    {
+      "name": "na_60x",
+      "value": 1.42,
+      "unit": "1",
+      "source": "kb:objective_mrd71670",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "oil; above the water's index the extra aperture does not propagate into the sample"
+    },
+    {
+      "name": "na_100x",
+      "value": 1.45,
+      "unit": "1",
+      "source": "kb:objective_mrd71970",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "oil; as the 60x"
+    },
+    {
+      "name": "bead_diameter_100nm",
+      "value": 0.1,
+      "unit": "um",
+      "source": "kb:f8801_nominal_diameter",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the supplier's nominal size; that the bench's beads are this product is the person's statement (particle_suspension_b_identity, E5)"
+    },
+    {
+      "name": "excitation_wavelength_100nm",
+      "value": 580,
+      "unit": "nm",
+      "source": "kb:f8801_excitation_peak",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "sets the diffraction width of the projected pattern"
+    },
+    {
+      "name": "emission_wavelength_100nm",
+      "value": 605,
+      "unit": "nm",
+      "source": "kb:f8801_emission_peak",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "sets the camera's diffraction width and depth of field"
+    },
+    {
+      "name": "bead_diameter_5um",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the 5 um beads in the bottle in use"
+    },
+    {
+      "name": "emission_wavelength_5um",
+      "value": 680,
+      "unit": "nm",
+      "source": "kb:tracer_emission_peak",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "depth of field for the 5 um beads"
+    },
+    {
+      "name": "bead_material_density",
+      "value": 1.03,
+      "unit": "g/cm^3",
+      "source": "kb:tracer_particle_density",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the 5 um product's polystyrene; applied to the 100 nm beads on the assumption both are polystyrene"
+    },
+    {
+      "name": "polystyrene_refractive_index",
+      "value": 1.592,
+      "unit": "1",
+      "source": "kb:polystyrene_refractive_index_587_6nm",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "bulk polystyrene; the 5 um bead as a lens in transmitted light"
+    },
+    {
+      "name": "diffusivity_100nm",
+      "value": 4,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter_100nm)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter_100nm"
+      ],
+      "note": "the store's relation (kb:tracer_diffusivity_expected); bulk, dilute, no wall. Sets the record lengths of item 4 only -- item 1 is in units of the recovery time"
+    },
+    {
+      "name": "chamber_depth",
+      "value": 30,
+      "unit": "um",
+      "source": "assumed:a_chamber_depth",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "Stage 1 spans 10, 30 and 100 um; the store holds no chamber depth"
+    },
+    {
+      "name": "bleach_disc_radius",
+      "value": 3,
+      "unit": "um",
+      "source": "assumed:a_bleach_disc_radius",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "Stage 1 spans 1 to 30 um; the microscope plan's disc replaces it"
+    },
+    {
+      "name": "pupil_fill",
+      "value": 1,
+      "unit": "1",
+      "source": "assumed:a_pupil_fill",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the fraction of the objective's aperture the patterning light fills; 1 is the worst case for depth blur, and 0.3 is also computed"
+    },
+    {
+      "name": "camera_exposure_time",
+      "value": 10,
+      "unit": "ms",
+      "source": "assumed:a_camera_exposure_time",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "how long a free 100 nm bead blurs during one frame of the focus search; 1 and 100 ms also computed"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_chamber_depth",
+      "statement": "The chamber is between 10 and 100 um deep. Nothing records it, and every item 1 and item 2 answer is given at 10, 30 and 100 um.",
+      "numbers": [
+        "chamber_depth"
+      ],
+      "falsifier": "the chamber the microscope side uses replaces it",
+      "gap_ref": "sample_chamber_depth_absent"
+    },
+    {
+      "rationale_id": "a_bleach_disc_radius",
+      "statement": "A bleach disc of 1 to 30 um radius, the span the earlier bleach result found workable.",
+      "numbers": [
+        "bleach_disc_radius"
+      ],
+      "falsifier": "the disc radius in the microscope plan replaces it",
+      "gap_ref": "bleach_disc_radius_absent"
+    },
+    {
+      "rationale_id": "a_pupil_fill",
+      "statement": "The patterning light fills the objective's aperture and is focused where the camera is. Both are the worst and simplest case; how the pattern reaches the sample is not recorded.",
+      "numbers": [
+        "pupil_fill"
+      ],
+      "falsifier": "the projection path's description -- which lens, whether the pattern is conjugate to the camera, and the illumination aperture -- replaces it",
+      "gap_ref": "pattern_projection_path_absent"
+    },
+    {
+      "rationale_id": "a_camera_exposure_time",
+      "statement": "A focus-search frame of about 10 ms. It sets how much a free bead blurs and so how many stuck beads outweigh it.",
+      "numbers": [
+        "camera_exposure_time"
+      ],
+      "falsifier": "the focus search's exposure replaces it",
+      "gap_ref": "camera_exposure_time_absent"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator; the room's, not the sample's."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second."
+    },
+    {
+      "entry_id": "water_density_293k",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "The density of air-saturated distilled water at 20.0 degC is 0.998201 g/cm^3."
+    },
+    {
+      "entry_id": "water_refractive_index_605nm_293k",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Distilled water at 20 degrees Celsius has a refractive index of 1.3325138 at 605.0 nm."
+    },
+    {
+      "entry_id": "objective_mrd70040",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Nikon CFI Plan Apo Lambda D 4X: dry, NA 0.20."
+    },
+    {
+      "entry_id": "objective_mrd70170",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Nikon CFI Plan Apo Lambda D 10X: dry, NA 0.45."
+    },
+    {
+      "entry_id": "objective_mrd70270",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Nikon CFI Plan Apo Lambda D 20X: dry, NA 0.80."
+    },
+    {
+      "entry_id": "objective_mrd77400",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Nikon CFI Apo Lambda S 40XC WI: water immersion, NA 1.25."
+    },
+    {
+      "entry_id": "objective_mrd71670",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Nikon CFI Plan Apo Lambda D 60X Oil: NA 1.42."
+    },
+    {
+      "entry_id": "objective_mrd71970",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Nikon CFI Plan Apo Lambda D 100X Oil: NA 1.45."
+    },
+    {
+      "entry_id": "nosepiece_objective_assignment",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "The six nosepiece positions hold the 4x, 10x, 20x, 40x water, 60x oil and 100x oil objectives."
+    },
+    {
+      "entry_id": "particle_suspension_b_identity",
+      "grade": "E5",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "The 100 nm fluorescent beads on this bench are Invitrogen FluoSpheres F8801, by the person's statement."
+    },
+    {
+      "entry_id": "f8801_nominal_diameter",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Invitrogen F8801 microspheres are 0.1 um in diameter (nominal)."
+    },
+    {
+      "entry_id": "f8801_excitation_peak",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Invitrogen F8801 microspheres are excited at 580 nm."
+    },
+    {
+      "entry_id": "f8801_emission_peak",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Invitrogen F8801 microspheres emit at 605 nm."
+    },
+    {
+      "entry_id": "f8801_material_and_surface",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Invitrogen F8801 microspheres are polystyrene, carboxylate-modified."
+    },
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "The particles in the bottle in use are 5 um in diameter, measured by the operator."
+    },
+    {
+      "entry_id": "tracer_emission_peak",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "The AFR-0500-COOH product emits at 680 nm."
+    },
+    {
+      "entry_id": "tracer_particle_density",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "The AFR-0500-COOH particle material has a density of 1.03 g/cm3. Cited for the 100 nm beads on the assumption both are polystyrene."
+    },
+    {
+      "entry_id": "polystyrene_refractive_index_587_6nm",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Bulk polystyrene has a refractive index of 1.592 at 587.6 nm."
+    },
+    {
+      "entry_id": "tracer_diffusivity_expected",
+      "grade": "E4",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "The expected translational diffusivity of a sphere in bulk fluid is the Stokes-Einstein value; used as the relation only."
+    },
+    {
+      "entry_id": "objective_depth_of_field",
+      "grade": "E4",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Total depth of field is the wavelength times the medium's index over NA squared, plus the index times the detector's resolvable distance over magnification times NA."
+    },
+    {
+      "entry_id": "pixel_size_4x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "With the 4x objective one pixel spans 1.625 um at the sample."
+    },
+    {
+      "entry_id": "pixel_size_10x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "With the 10x objective one pixel spans 0.65 um at the sample."
+    },
+    {
+      "entry_id": "pixel_size_20x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "With the 20x objective one pixel spans 0.32373 um at the sample."
+    },
+    {
+      "entry_id": "pixel_size_40x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "With the 40x objective one pixel spans 0.1625 um at the sample."
+    },
+    {
+      "entry_id": "pixel_size_60x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "With the 60x objective one pixel spans 0.10833 um at the sample."
+    },
+    {
+      "entry_id": "pixel_size_100x_zoom_1x",
+      "grade": "E2",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "With the 100x objective one pixel spans 0.065 um at the sample."
+    },
+    {
+      "entry_id": "focus_metrics_peak_at_best_focus",
+      "grade": "E5",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "Each of dino-autofocus's classical focus metrics reaches its maximum over a z sweep at the plane of best focus. This question asks which plane that is for a given sample."
+    },
+    {
+      "entry_id": "focus_metric_peak_brightness_definition",
+      "grade": "E3",
+      "kb_version": "kbv-b1253d99047e",
+      "claim": "peak_brightness is the brightest spot of the block-binned frame minus its median, meant for sparse particle fields."
+    }
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "pattern_projection_path_absent",
+      "observable": "pattern_projection_path",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e, all 330 entries, by entry id and by full-text scan, read as a file",
+        "the service was NOT asked: the librarian's MCP server did not connect in this session"
+      ],
+      "nearest": [
+        {
+          "entry_id": "lapp_state_1_brings_the_aura_to_the_sample",
+          "overlap": "partial"
+        }
+      ],
+      "near_names": [
+        "lapp_state_1_brings_the_aura_to_the_sample"
+      ],
+      "kb_version": "kbv-b1253d99047e"
+    },
+    {
+      "gap_id": "sample_chamber_depth_absent",
+      "observable": "sample_chamber_depth",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e, all 330 entries, by entry id and by full-text scan, read as a file",
+        "the service was NOT asked: the librarian's MCP server did not connect in this session"
+      ],
+      "nearest": [
+        {
+          "entry_id": "coverslip_thickness_in_use",
+          "overlap": "partial"
+        }
+      ],
+      "near_names": [
+        "coverslip_thickness_in_use"
+      ],
+      "kb_version": "kbv-b1253d99047e"
+    },
+    {
+      "gap_id": "bleach_disc_radius_absent",
+      "observable": "bleach_disc_radius",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e, all 330 entries, by entry id and by full-text scan, read as a file",
+        "the service was NOT asked: the librarian's MCP server did not connect in this session"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-b1253d99047e"
+    },
+    {
+      "gap_id": "stuck_bead_surface_density_absent",
+      "observable": "stuck_bead_surface_density",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e, all 330 entries, by entry id and by full-text scan, read as a file",
+        "the service was NOT asked: the librarian's MCP server did not connect in this session"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-b1253d99047e"
+    },
+    {
+      "gap_id": "focus_drift_rate_absent",
+      "observable": "focus_drift_rate",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e, all 330 entries, by entry id and by full-text scan, read as a file",
+        "the service was NOT asked: the librarian's MCP server did not connect in this session"
+      ],
+      "nearest": [
+        {
+          "entry_id": "mm_label_zdrive_is_the_focus_axis",
+          "overlap": "partial"
+        }
+      ],
+      "near_names": [
+        "mm_label_zdrive_is_the_focus_axis"
+      ],
+      "kb_version": "kbv-b1253d99047e"
+    },
+    {
+      "gap_id": "trapped_bead_height_absent",
+      "observable": "trapped_bead_height",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e, all 330 entries, by entry id and by full-text scan, read as a file",
+        "the service was NOT asked: the librarian's MCP server did not connect in this session"
+      ],
+      "nearest": [
+        {
+          "entry_id": "trapping_laser_identity",
+          "overlap": "partial"
+        }
+      ],
+      "near_names": [
+        "trapping_laser_identity"
+      ],
+      "kb_version": "kbv-b1253d99047e"
+    },
+    {
+      "gap_id": "focus_search_illumination_absent",
+      "observable": "focus_search_illumination",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e, all 330 entries, by entry id and by full-text scan, read as a file",
+        "the service was NOT asked: the librarian's MCP server did not connect in this session"
+      ],
+      "nearest": [
+        {
+          "entry_id": "focus_search_is_coarse_then_fine",
+          "overlap": "partial"
+        }
+      ],
+      "near_names": [
+        "focus_search_is_coarse_then_fine"
+      ],
+      "kb_version": "kbv-b1253d99047e"
+    },
+    {
+      "gap_id": "camera_exposure_time_absent",
+      "observable": "camera_exposure_time",
+      "kind": "absent",
+      "searched": [
+        "librarian_agent/kb/exports/snapshot_simulation_agent.json at kbv-b1253d99047e, all 330 entries, by entry id and by full-text scan, read as a file",
+        "the service was NOT asked: the librarian's MCP server did not connect in this session"
+      ],
+      "nearest": [],
+      "near_names": [],
+      "kb_version": "kbv-b1253d99047e"
+    }
+  ],
+  "degraded": [
+    "librarian_agent"
+  ]
+}
