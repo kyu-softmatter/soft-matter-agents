@@ -71,7 +71,12 @@ Things each entry must get right, because a plan will read it and run:
 
 - **The mode is the readout mode the software reported at the time**, as
   `Port` and `ReadoutRate` read back, in `identifiers` and in `validity`.
-  These are what a plan names. Map them to the datasheet's mode names only
+  These are what a plan names. **Use exactly the keys `identifiers.port`
+  and `identifiers.readout_rate`**, with each string verbatim as
+  Micro-Manager read it back, so that the commit-time check can match a
+  plan's mode against them. Added 2026-10-07, when manager-microscope
+  offered to add that match once it knew which field an entry uses. Say so
+  if the record makes these keys wrong; do not silently choose others. Map them to the datasheet's mode names only
   if the record supports the mapping. If it does not, write the mapping as
   open rather than guessing which datasheet row `100MHz 16bit` is.
 - **The source prefix follows the evidence and not the answer sheet's
