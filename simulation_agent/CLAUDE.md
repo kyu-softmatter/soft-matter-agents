@@ -462,6 +462,43 @@ beside it as the comparison. Check 21 enforces this; watching it refuse a
 reading moved into `values[]` is how one seat confirmed its passing card was
 not passing by accident.
 
+### The plane an observation was made in (from 2026-10-07)
+
+**The microscope now finds its own focus** (`plan.md` §14, §11-24): a focus
+search walks Z inside the person's per-lens limits and records the plane it
+found as an encoder read, with a verdict. Until then the focal plane was a
+hand setting nobody recorded, and every prediction compared against a
+measurement assumed one without saying so. Once the plane is recorded, an
+unstated assumption about it is a defect, the same as an unstated window.
+
+- **A prediction meant for comparison states its observation geometry**:
+  depth-integrated through the chamber, or a slice at a height above the
+  coverslip, and how thick. And it states that **no declared configuration
+  has a wall** -- the drag is bulk drag. Where that matters is a number, not a
+  caveat: a sedimented or trapped bead near the coverslip moves more slowly
+  than the model's, and the timescales scale with it.
+- **The plane is the experiment's, read from its run.** A comparison takes the
+  focus search's recorded plane and verdict from the microscope's run; it never
+  assumes the plane the prediction wanted. A search ending `unsure` found no
+  plane, and a comparison against that run says so rather than using the Z
+  the search stopped at.
+- **Nothing this agent computes becomes a focus number on the instrument.** Not
+  a Z target, not a search range, not a coverslip position, and never a limit:
+  the person writes the limits, and the upper one is written rather than
+  derived precisely so that no computed position becomes a safety number. What
+  this side produces -- where the sample sits in z, how far a wrong plane moves
+  the answer, which plane a sharpness maximum will find -- are predictions
+  about the sample and the measurement, and they reach a microscope plan only
+  as store entries the librarian makes from a result card.
+- **This agent does not render images.** Synthetic defocus stacks would test
+  the focus core and the decision-model trial against a known best plane, and
+  they would be a new declared model with optics in it. That is a change of
+  physical model, and so the person's to decide.
+
+`tasks/026` is the first card under this. Its Stage 1 asks whether the bleach
+in `sim-20260930-401` is really the column through the chamber that that
+result assumed.
+
 ## Axes
 
 A1 integration stability, A2 statistics, A3 finite size, A4 sampling, A5
