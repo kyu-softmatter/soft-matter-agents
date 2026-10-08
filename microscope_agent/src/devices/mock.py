@@ -143,11 +143,46 @@ def _frame(i: int):
     return (stripes * 1000).astype(np.uint16)
 
 
+#: The Z, in um of the mock encoder, at which mock snapshots are sharpest, or
+#: None for no focus at all. With it and FRAME_SHAPE set, snap() returns a
+#: frame whose structure fades into a fixed noise floor away from it, so a
+#: focus search on mock has something to find. Synthetic: no objective's
+#: depth of field and no sample is implied.
+FOCUS_Z_UM: float | None = None
+#: How far from FOCUS_Z_UM, in um, the structure has faded to 1/e.
+FOCUS_WIDTH_UM = 8.0
+_SNAPS = [0]
+
+
 def snap():
-    """micromanager.snap's shape: one frame and its metadata. The frame is synthetic bytes."""
+    """micromanager.snap's shape: one frame and its metadata.
+
+    Synthetic bytes by default. With FRAME_SHAPE set, a 2-D uint16 frame;
+    with FOCUS_Z_UM set too, its structure depends on the mock encoder's Z.
+    """
     if _ABORTED:
         raise RuntimeError("aborted: this backend refuses commands until it is reset")
-    return bytes(64), {"camera": "mock", "exposure_ms": None, "ImageNumber": "0"}
+    n = _SNAPS[0]
+    _SNAPS[0] += 1
+    meta = {"camera": "mock", "exposure_ms": None, "ImageNumber": str(n)}
+    if FRAME_SHAPE is None:
+        return bytes(64), meta
+    if FOCUS_Z_UM is None:
+        return _frame(n), meta
+    import math
+    import numpy as np
+    with _LOCK:
+        z = _PROPS.get(("ZDrive", "Position"))
+    z = float(z) if z is not None else float("inf")
+    sharp = math.exp(-((z - FOCUS_Z_UM) / FOCUS_WIDTH_UM) ** 2)
+    rows, cols = FRAME_SHAPE
+    rng = np.random.default_rng(1234)                   # the same noise floor in every frame
+    noise = rng.normal(0.0, 1.0, (rows, cols))
+    yy, xx = np.mgrid[0:rows, 0:cols]
+    blobs = np.sin(xx / 3.0) * np.sin(yy / 3.0)          # structure that blur would remove
+    image = 2000 + 300 * noise + 1500 * sharp * blobs
+    meta["z_um_mock"] = z
+    return np.clip(image, 0, 65535).astype(np.uint16), meta
 
 
 def sequence(n: int, sink, timeout_s: float | None = None) -> dict:
@@ -199,4 +234,5 @@ def reset() -> None:
     with _LOCK:
         _STATE.clear()
         _PROPS.clear()
+        _SNAPS[0] = 0
     _ABORTED = False
