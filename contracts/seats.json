@@ -1333,7 +1333,8 @@
       "owns": [
         "simulation_agent"
       ],
-      "note": "A simulation session on the microscope computer, already running when registered. Registered by architecture-20261001-1 on 2026-10-01 on the person's instruction in the architecture session to set the other sessions' seats -- four manager seats and one execution seat per agent, the same pattern as the eight of 2026-09-26. Whether earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from simulation-20260926-1."
+      "note": "A simulation session on the microscope computer, already running when registered. Registered by architecture-20261001-1 on 2026-10-01 on the person's instruction in the architecture session to set the other sessions' seats -- four manager seats and one execution seat per agent, the same pattern as the eight of 2026-09-26. Whether earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from simulation-20260926-1.",
+      "status": "closed 2026-10-07 -- the person, directly to architecture-20261003-1: the earlier simulation and bridge sessions are closed and no longer used. The identity is not reissued."
     },
     {
       "seat": "librarian-20261001-1",
@@ -1349,7 +1350,8 @@
       "owns": [
         "bridge"
       ],
-      "note": "A bridge session on the microscope computer, already running when registered. Registered by architecture-20261001-1 on 2026-10-01 on the person's instruction in the architecture session to set the other sessions' seats -- four manager seats and one execution seat per agent, the same pattern as the eight of 2026-09-26. Whether earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from bridge-20260926-1."
+      "note": "A bridge session on the microscope computer, already running when registered. Registered by architecture-20261001-1 on 2026-10-01 on the person's instruction in the architecture session to set the other sessions' seats -- four manager seats and one execution seat per agent, the same pattern as the eight of 2026-09-26. Whether earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from bridge-20260926-1.",
+      "status": "closed 2026-10-07 -- the person, directly to architecture-20261003-1: the earlier simulation and bridge sessions are closed and no longer used. The identity is not reissued."
     },
     {
       "seat": "manager-microscope-20261001-1",
@@ -1401,7 +1403,8 @@
         "contracts/schemas/thread_status.schema.json",
         "contracts/seats.json"
       ],
-      "note": "A manager-simulation session on the microscope computer, already running when registered. Registered by architecture-20261001-1 on 2026-10-01 on the person's instruction in the architecture session to set the other sessions' seats -- four manager seats and one execution seat per agent, the same pattern as the eight of 2026-09-26. Whether earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-simulation-20260926-1."
+      "note": "A manager-simulation session on the microscope computer, already running when registered. Registered by architecture-20261001-1 on 2026-10-01 on the person's instruction in the architecture session to set the other sessions' seats -- four manager seats and one execution seat per agent, the same pattern as the eight of 2026-09-26. Whether earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-simulation-20260926-1.",
+      "status": "closed 2026-10-07 -- the person, directly to architecture-20261003-1: the earlier simulation and bridge sessions are closed and no longer used. The identity is not reissued."
     },
     {
       "seat": "manager-librarian-20261001-1",
@@ -1457,7 +1460,8 @@
         "contracts/schemas/round_hashes.schema.json"
       ],
       "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
-      "note": "A manager-bridge session on the microscope computer, already running when registered. Registered by architecture-20261001-1 on 2026-10-01 on the person's instruction in the architecture session to set the other sessions' seats -- four manager seats and one execution seat per agent, the same pattern as the eight of 2026-09-26. Whether earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-bridge-20260926-1."
+      "note": "A manager-bridge session on the microscope computer, already running when registered. Registered by architecture-20261001-1 on 2026-10-01 on the person's instruction in the architecture session to set the other sessions' seats -- four manager seats and one execution seat per agent, the same pattern as the eight of 2026-09-26. Whether earlier sessions of the same role are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-bridge-20260926-1.",
+      "status": "closed 2026-10-07 -- the person, directly to architecture-20261003-1: the earlier simulation and bridge sessions are closed and no longer used. The identity is not reissued."
     },
     {
       "seat": "architecture-20261003-1",
@@ -1553,6 +1557,82 @@
       ],
       "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
       "note": "A manager-librarian session on the Office computer (Windows, hostname Office -- not the microscope computer), already running when registered. The person opened it and said so directly in architecture-20261003-1's window on 2026-10-07 (\"I opened the librarian manager session\"). n is 1, the first manager-librarian seat for that date. Whether earlier sessions of the role are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-librarian-20261001-1."
+    },
+    {
+      "seat": "librarian-20261007-1",
+      "committer_email": "librarian-20261007-1@seat.invalid",
+      "owns": [
+        "librarian_agent"
+      ],
+      "note": "A librarian session on the Office computer (Windows, hostname Office -- not the microscope computer), rooted at librarian_agent/, already running when registered. The person opened it, set its role in its own window, and confirmed both directly in architecture-20261003-1's window on 2026-10-07, answering 'yes, I opened all five' to a question naming it. n is 1, the first librarian seat for that date. It runs concurrently with librarian-20261004-1, which the person keeps running. Every field except seat, committer_email and note copied by code from librarian-20261004-1."
+    },
+    {
+      "seat": "simulation-20261007-1",
+      "committer_email": "simulation-20261007-1@seat.invalid",
+      "owns": [
+        "simulation_agent"
+      ],
+      "note": "A simulation session on the Office computer (Windows, hostname Office -- not the microscope computer), rooted at simulation_agent/, already running when registered. The person opened it, set its role in its own window, and confirmed both directly in architecture-20261003-1's window on 2026-10-07, answering 'yes, I opened all five' to a question naming it. n is 1, the first simulation seat for that date. It replaces simulation-20261001-1: the person said in the same answer that the earlier simulation and bridge sessions are closed. Every field except seat, committer_email and note copied by code from simulation-20261001-1."
+    },
+    {
+      "seat": "bridge-20261007-1",
+      "committer_email": "bridge-20261007-1@seat.invalid",
+      "owns": [
+        "bridge"
+      ],
+      "note": "A bridge session on the Office computer (Windows, hostname Office -- not the microscope computer), rooted at bridge/, already running when registered. The person opened it, set its role in its own window, and confirmed both directly in architecture-20261003-1's window on 2026-10-07, answering 'yes, I opened all five' to a question naming it. n is 1, the first bridge seat for that date. It replaces bridge-20261001-1: the person said in the same answer that the earlier simulation and bridge sessions are closed. Every field except seat, committer_email and note copied by code from bridge-20261001-1."
+    },
+    {
+      "seat": "manager-simulation-20261007-1",
+      "committer_email": "manager-simulation-20261007-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "simulation_agent/CLAUDE.md",
+        "simulation_agent/.claude/",
+        "simulation_agent/tasks/",
+        "simulation_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "note": "A manager-simulation session on the Office computer (Windows, hostname Office -- not the microscope computer), rooted at the repository root, already running when registered. The person opened it, set its role in its own window, and confirmed both directly in architecture-20261003-1's window on 2026-10-07, answering 'yes, I opened all five' to a question naming it. n is 1, the first manager-simulation seat for that date. It replaces manager-simulation-20261001-1: the person said in the same answer that the earlier simulation and bridge sessions are closed. Every field except seat, committer_email and note copied by code from manager-simulation-20261001-1."
+    },
+    {
+      "seat": "manager-bridge-20261007-1",
+      "committer_email": "manager-bridge-20261007-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "bridge/CLAUDE.md",
+        "bridge/.claude/",
+        "bridge/tasks/",
+        "bridge/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/seats.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/schemas/round_hashes.schema.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "A manager-bridge session on the Office computer (Windows, hostname Office -- not the microscope computer), rooted at the repository root, already running when registered. The person opened it, set its role in its own window, and confirmed both directly in architecture-20261003-1's window on 2026-10-07, answering 'yes, I opened all five' to a question naming it. n is 1, the first manager-bridge seat for that date. It replaces manager-bridge-20261001-1: the person said in the same answer that the earlier simulation and bridge sessions are closed. Every field except seat, committer_email and note copied by code from manager-bridge-20261001-1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
