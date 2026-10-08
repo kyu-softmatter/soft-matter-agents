@@ -169,6 +169,25 @@ the store, unit ADU. The store has no such entry
 today, so every focus-search plan carries the gap. A librarian card enters it
 and closes the gap; do not write it into any plan or into code.
 
+### 5b. Read what focus hold reports in each of its states
+
+**For you:** With Micro-Manager open and **no agent running**, read the
+focus-hold device's state property three times: with focus hold **off**, **on
+but still searching**, and **locked**. Write down exactly what it says each
+time. You then write into the safety file which of those readings mean "not
+engaged". Only those let a focus search move the motor; any other reading
+stops it.
+
+**Stop if:** two different states give the same reading, or the reading does
+not change when you switch focus hold. Then the software cannot tell them
+apart, so no reading goes in the file and focus searches stay refused.
+
+**For the seat:** this fills `pfs_not_engaged` in
+`envelope_safety.schema.json`: `{device, property, values[], confirmation}`.
+The person writes it; you do not. Card 055's gate reads it, and until it
+exists every focus search refuses at the focus-hold check, on mock too.
+Record the three readings in `findings/` with how they were read.
+
 ### 6. The focus measurements still open from earlier
 
 **For you, if time allows, and on a test slide, never the real sample.** All
@@ -236,6 +255,9 @@ file, so you can tick each lens off as you write it.
 |---|---|---|
 | spinning-disk shutter: the setting that means closed (on dino's form) | | |
 | camera highest pixel count (on dino's form), readout mode: ______ | | |
+| focus hold off: the device, property and reading | | |
+| focus hold on, still searching: the reading | | |
+| focus hold locked: the reading | | |
 
 ## What comes back
 
