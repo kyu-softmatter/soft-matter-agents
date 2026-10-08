@@ -22,7 +22,7 @@
     },
     {
       "id": "card063_check_88",
-      "fact": "check_88_focus_search, pointed at the scratch envelope and store, PASSES plan-mic-test063-focus40x: a search over 95..110 um at 40x, inside the TEST 90..110 um, with the ceiling citing kb:TEST_mock_camera_full_scale. It also passes the ceiling-gap plan, saying it cannot run until the store holds the count. It FAILS the 20x plan: no focus_z_20x limits.",
+      "fact": "check_88_focus_search, pointed at the scratch envelope and store, PASSES plan-mic-test063-focus40x: a search over 95..110 um at 40x, inside the TEST 90..110 um, with the ceiling citing kb:TEST_mock_camera_full_scale. It also passes the ceiling-gap plan, saying it cannot run until the store holds the count. It FAILS the 20x plan: no focus_z_20x limits. Re-run after ce65cc1, with the TEST store entry carrying full_scale_count 65535 ADU and depth of field recorded as the gap depth_of_field_mock: PASS for the 40x plan and for the gap plan.",
       "kind": "test_record",
       "how": "envelope_files and KB_DIR were pointed into the scratch root and the plans passed as a stand-in bundle. This measures the plans, and is not a validator run over this repository.",
       "for_store": false
@@ -35,17 +35,31 @@
       "for_store": false
     },
     {
-      "id": "card063_step2_search_not_run",
-      "fact": "The walking focus search did not run. run-20261007-063-s2-search (events.jsonl sha256 88c5b8ffbc913bdb06c5e4dee39e202070cd1d1adf8ad888f401dd62b6e974c3) refused at the PFS check with no Z command: 'which PFS reading means not engaged is recorded nowhere'. run_ended was failed.",
+      "id": "card063_step2_blocked_then_settled",
+      "fact": "The first walk, run-20261007-063-s2-search (sha256 88c5b8ffbc913bdb06c5e4dee39e202070cd1d1adf8ad888f401dd62b6e974c3), refused at the PFS check with no Z command. Nothing then recorded which PFS reading means not engaged, and the plan schema had no field for the verdict's thresholds.",
       "kind": "blocked",
-      "how": "Two things are missing upstream, both reported to architecture for manager-microscope. (1) A plan field for focus_verdict.from_sweep's five thresholds; the scratch plans carry them under the PROVISIONAL name verdict_thresholds. (2) A person-written home for which PFS reading means not engaged; orchestrator.PFS_NOT_ENGAGED stays None by design.",
+      "how": "manager-microscope settled both at 0e3eff1: focus_search.verdict_thresholds, and the envelope's pfs_not_engaged. This seat followed at a06ed2f. The scratch envelope then carried a TEST pfs_not_engaged {PFS, State, [Off]}, and the mock's PFS was set by the harness.",
+      "for_store": false
+    },
+    {
+      "id": "card063_step2_walk",
+      "fact": "The focus search on mock: run-20261007-063-s2c-search, events.jsonl sha256 25ec3c97efa52625e7401371b671b931cecf8926e9d920b2ee1f62749e00cf45. Each decision, by the copied core over the walk's own frames:\n- 95 um (retract, read 95): score 0.123, core unsure (too few frames), decider step_up\n- 100 (read 100): 0.349, unsure, step_up\n- 105 (read 105): 0.398, core step_up\n- 110 (read 110): 0.349, core in_focus at its frame at 105, decider step_down\n- 105 (read 105): 0.398, in_focus\nIt ended found at 105.0 um, the encoder read. Every target was compared live against the TEST focus_z_40x_max 110 and was within it. run_ended: completed.",
+      "kind": "test_record",
+      "how": "TEST values: mock frames 64 x 64 whose structure peaks at the mock's FOCUS_Z_UM = 105 (53d9a44); the TEST envelope and ceiling under D:/sma-scratch/063. The decider's step_up while frames are fewer than min_frames is its own choice, recorded on each decision.",
+      "for_store": false
+    },
+    {
+      "id": "card063_step2_defect_found_and_fixed",
+      "fact": "The walk's first run with both fields, run-20261007-063-s2b-search (sha256 c363a2f0fc5b84e5e0cfb21f507f2de65df8463457a7b2f211777335b160a056), ended found at 110 um, one step past the mock's focus at 105. At 110 the core said in_focus naming its frame at 105, and the decider passed in_focus through.",
+      "kind": "defect",
+      "how": "Fixed at 0d4a835: in_focus only once the core's frame is the current read; otherwise a step toward it. run-20261007-063-s2c-search is the walk after the fix.",
       "for_store": false
     },
     {
       "id": "card063_step3_refusals",
       "fact": "Each refused with no Z command (focus_search_command count 0). No limit: run-20261007-063-s3a-nolimit, sha256 5502e5c33db67f02a64647eda96684064588772427ec5446f72c73f293511210, 'envelope/safety.json has no focus_z_20x_min in um'. Wrong lens: run-20261007-063-s3b-wronglens, sha256 c242bb851edaca6658fb4098ccd22f2af4d6047d2a520d81485569c6abdfc466, 'the plan's focus search is for 40x and the person states 60x is in place'. Not approved: run-20261007-063-s3c-notapproved, refused at the gate before its folder existed, 'no plan_approval on disk names (plan-mic-test063-focus40x-r2, revision 2)'. Ceiling gap: run-20261007-063-s3d-ceilinggap, sha256 98b8d4f39ea6d90a92e2a89eb36c9bb97139292973f1c32569d3156d4fb11b40, 'camera_ceiling is the gap camera_full_scale_per_readout'.",
       "kind": "test_record",
-      "how": "Not run: PFS on, and above the max. Both come after the PFS check, which refuses every search today (see card063_step2_search_not_run). The console listed the four failed runs.",
+      "how": "PFS on: run-20261007-063-s3e-pfson, sha256 15f2d61ad04e7e8ce334b3a5f3b6fed61c5f1287d057d97607e8b7c9325a3334, 'PFS reads PFS.State = On, not one of [Off]', no Z command. Above the max: run-20261007-063-s3g-abovemax, sha256 a56a5874c9f20d1f9982a3fedb2d8539533267ebc363f8e9ef62e40147792029, mock focus at 112. The walk rose 95, 100, 105, 110 (each read back), the core said step_up at 110, and the derived target 115 was compared against focus_z_40x_max 110 (compared true, within false) and refused before it went out: 'target 115.0 um is above focus_z_40x_max 110.0 um'. The last encoder read stayed 110, and no readback exists for 115. An earlier attempt with focus at 130 (run-20261007-063-s3f-abovemax, f813b6561f63409bcfafbf4d50c4c392fa9c443cc3a49a347dfb2c68a5b5d8c3) never reached the limit: the curve was flat, the core said unsure at 105, and the search ended unsure. The console listed the failed runs.",
       "for_store": false
     },
     {
