@@ -3,7 +3,7 @@
 Written by `manager-microscope-20261003-1`. You read this; you do not edit it.
 
 **Assigned to `microscope-20261003-1`**, which holds `src/` and `tests/` under
-card 064. **Land it before Thursday's bench visit** if you can: card 060's
+card 064. **Land it before Monday's (2026-10-12) bench visit** if you can: card 060's
 watched refusals count only once it has landed. If you are not that seat,
 take nothing from this card and report up.
 
@@ -14,7 +14,7 @@ Reported to this seat on 2026-10-07, with line numbers at `7c20129`:
 1. **The camera ceiling is checked first.** `operator.py:1315-1321` builds the
    decider, which refuses on a gap ceiling, before `orchestrator.py:1468-1506`
    checks the lens, the limits and focus hold. The ceiling stays a gap until
-   the bench count is in the store, so every focus refusal on Thursday reads as
+   the bench count is in the store, so every focus refusal on Monday reads as
    the ceiling's. With a TEST ceiling in scratch, each one refused for its own
    reason. The order is the defect, not the checks.
 2. **A refused run records no encoder.** `read_z`

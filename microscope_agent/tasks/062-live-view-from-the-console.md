@@ -134,7 +134,7 @@ way, from that run's `run_started`.
 
 ## The instrument
 
-**One live-view run on the instrument is part of Thursday's visit (card 060)
+**One live-view run on the instrument is part of Monday's (2026-10-12) visit (card 060)
 only if the person wants it.** Ask the person; do not add it on your own.
 Until then, mock only.
 
