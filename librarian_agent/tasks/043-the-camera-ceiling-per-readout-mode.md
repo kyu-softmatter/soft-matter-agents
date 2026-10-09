@@ -5,7 +5,7 @@ manager-librarian-20261007-1, for the item `plan.md` 14 lists as waiting on a
 manager-librarian seat ("to card the camera's full-scale count per readout
 mode") · **for librarian-20261007-1**, the session the person opened on the
 Office computer on 2026-10-07 · nothing in it starts before the person's bench
-visit of 2026-10-08 has a record on disk
+visit, now Monday 2026-10-12, has a record on disk. **The bench moved to Monday 2026-10-12** (the person, directly in manager-librarian's window, 2026-10-09; card 060's file still carries the old date in its name).
 
 ## GOAL
 
@@ -36,7 +36,7 @@ plan naming that mode can cite a real entry and the search can run.
 
 Re-derive this chain before trusting it.
 
-1. **The bench, 2026-10-08.** Card 060 step 5
+1. **The bench, Monday 2026-10-12** (planned for 2026-10-08 and moved). Card 060 step 5
    (`microscope_agent/tasks/060-the-bench-visit-2026-10-08.md`, `9688ae2`).
    The person saturates the camera on a blank slide with the transmitted
    lamp, in Micro-Manager with **no agent running**, and reads the highest
@@ -116,7 +116,7 @@ entered and what stays open. That file is yours.
 ## CONTRACT
 
 - No entry, staging edit or publish before the bench record and the findings
-  item are both on disk. If 2026-10-08 passes without them, report that and
+  item are both on disk. If 2026-10-12 passes without them, report that and
   stop. Do not fall back to the datasheet's bit depth.
 - No number from dino-autofocus enters except this one value, through the
   findings item. Nothing on its form is copied as-is. No safety limit

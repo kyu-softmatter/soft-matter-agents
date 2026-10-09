@@ -2,7 +2,7 @@
 
 status: **open, waiting on the bench** · issued 2026-10-07 by
 manager-librarian-20261007-1 · **for librarian-20261007-1, with 043 and from
-the same record**: the bench of 2026-10-08 answers both, and one reader of
+the same record**: the bench of Monday 2026-10-12 (moved from 2026-10-08 by the person on 2026-10-09) answers both, and one reader of
 one record is better than two
 
 ## GOAL
