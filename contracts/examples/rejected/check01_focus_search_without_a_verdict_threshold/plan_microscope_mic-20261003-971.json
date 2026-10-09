@@ -14,7 +14,7 @@
   "kb_gaps": [
     {
       "gap_id": "camera_full_scale_count",
-      "observable": "camera_full_scale_count",
+      "observable": "full_scale_count",
       "kind": "absent",
       "searched": [
         "FIXTURE: kb/entries read by hand for the Kinetix full-scale count in the readout mode in use"
