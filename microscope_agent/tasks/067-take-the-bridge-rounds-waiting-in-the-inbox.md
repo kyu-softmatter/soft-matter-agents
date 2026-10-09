@@ -2,7 +2,7 @@
 
 Written by `manager-microscope-20261003-1`. You read this; you do not edit it.
 
-**Assigned to `microscope-20261007-1`, after card 060's preparation.** Thursday
+**Assigned to `microscope-20261007-1`, after card 060's preparation.** Monday
 comes first. If you are not that seat, take nothing from this card and report
 up.
 

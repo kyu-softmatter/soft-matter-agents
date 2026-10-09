@@ -1,4 +1,8 @@
-# 060 — the bench visit, Thursday 2026-10-08
+# 060 — the bench visit, Monday 2026-10-12
+
+**Moved from Monday 2026-10-08 to Monday 2026-10-12**, by the person, confirmed in
+manager-microscope's window on 2026-10-09. The file keeps its old name,
+because other cards and records point at this path.
 
 Written by `manager-microscope-20261003-1` on the person's approval, given to
 architecture on 2026-10-05. You read this; you do not edit it.
@@ -6,7 +10,7 @@ architecture on 2026-10-05. You read this; you do not edit it.
 **Two readers.** The lines marked **For you** are for the person and use
 plain words. The lines marked **For the seat** are for the microscope seat
 the person seats for the bench that day, and keep their references. If you are
-a seat and the person has not seated you for 2026-10-08, take nothing from
+a seat and the person has not seated you for 2026-10-12, take nothing from
 this card.
 
 **This card commands nothing and writes no safety value.** Everything on
@@ -14,7 +18,7 @@ the instrument happens on the day, with the person at the microscope. **No
 software focus move happens on this visit.** The search is only shown
 refusing; its first real move is a later visit.
 
-## Before Thursday — the seat prepares, and nothing runs
+## Before Monday — the seat prepares, and nothing runs
 
 **Assigned by card 064 (2026-10-07) to `microscope-20261007-1`**, with the files it may write. The bench seat on the day is still the person's choice.
 
@@ -127,7 +131,7 @@ so it is not what this shows.
 **Each refusal must show its own reason.** Today the gate checks the camera
 ceiling first. The ceiling is a gap until the count from step 5 is in the
 store, so before card 066 lands, every focus refusal reads as the ceiling's.
-**If card 066 has not landed by Thursday, these refusals do not count as
+**If card 066 has not landed by Monday, these refusals do not count as
 shown.** Record what each one said, and they wait for the next visit.
 
 ### 3. The first real abort — lamps off, filter-turret shutters closed, read back
