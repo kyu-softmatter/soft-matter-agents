@@ -1483,7 +1483,8 @@
         "pixi.lock",
         ".gitignore"
       ],
-      "note": "The architecture session on the Office computer (Windows, hostname Office -- not the microscope computer; corrected 2026-10-03, see the commit) seated by the person directly on 2026-10-03, rooted at the repository root. The person answered 'architecture' when asked whether this session is architecture or manager; n is 1, the first architecture seat for that date. It leads this repository's side of a merge the person asked for; plan.md carries the record of that merge, not this note. Whether earlier architecture sessions on this machine are still running is not stated, so this is opened concurrently and closes none of them. owns and paths copied by code from architecture. On 2026-10-07 the person moved seat registration to architecture-20261007-1 and told this seat to focus on the merge plan and plan.md; contracts/seats.json left this seat's paths in the same commit, so the boundary is divided rather than shared."
+      "note": "The architecture session on the Office computer (Windows, hostname Office -- not the microscope computer; corrected 2026-10-03, see the commit) seated by the person directly on 2026-10-03, rooted at the repository root. The person answered 'architecture' when asked whether this session is architecture or manager; n is 1, the first architecture seat for that date. It leads this repository's side of a merge the person asked for; plan.md carries the record of that merge, not this note. Whether earlier architecture sessions on this machine are still running is not stated, so this is opened concurrently and closes none of them. owns and paths copied by code from architecture. On 2026-10-07 the person moved seat registration to architecture-20261007-1 and told this seat to focus on the merge plan and plan.md; contracts/seats.json left this seat's paths in the same commit, so the boundary is divided rather than shared.",
+      "status": "closed 2026-10-12 -- the person, directly to architecture-20261007-1 in its window: \"기존 아키텍처 세션은 닫았다. 네가 아키텍처 자리를 이어받아라\" (the earlier architecture session is closed; architecture-20261007-1 takes over the architecture seat). Its last activity was 2026-10-09. The identity is not reissued."
     },
     {
       "seat": "manager-microscope-20261003-1",
@@ -1640,9 +1641,21 @@
         "design"
       ],
       "paths": [
+        "plan.md",
+        "CLAUDE.md",
+        "ARCHITECT.md",
+        "README.md",
+        "LICENSE",
+        "docs/",
+        ".claude/",
+        ".mcp.json",
+        "pyproject.toml",
+        "uv.lock",
+        "pixi.lock",
+        ".gitignore",
         "contracts/seats.json"
       ],
-      "note": "The seat-registration session on the Office computer (Windows, hostname Office), rooted at the repository root: the desktop session titled \"Utility · 세션 그룹·이름 정리\". The person said directly in architecture-20261003-1's window on 2026-10-07 that they themselves made it the session-registration seat, to be registered as today's architecture seat with its writable paths narrowed to contracts/seats.json alone, and that from now on it registers sessions while architecture-20261003-1 keeps the merge plan and plan.md. n is 1, the first architecture seat for that date. owns copied from architecture; paths narrowed by the person's instruction."
+      "note": "The seat-registration session on the Office computer (Windows, hostname Office), rooted at the repository root: the desktop session titled \"Utility · 세션 그룹·이름 정리\". The person said directly in architecture-20261003-1's window on 2026-10-07 that they themselves made it the session-registration seat, to be registered as today's architecture seat with its writable paths narrowed to contracts/seats.json alone, and that from now on it registers sessions while architecture-20261003-1 keeps the merge plan and plan.md. n is 1, the first architecture seat for that date. owns copied from architecture; paths narrowed by the person's instruction. WIDENED 2026-10-12, on the person's statement in this seat's window that architecture-20261003-1 is closed and this seat takes over the architecture seat: paths are now architecture-20261003-1's paths at 94e9235 plus contracts/seats.json, copied by code, so the design boundary is held whole by one live architecture seat again. Nothing is shared with a live seat: architecture-20261003-1 is closed in the same commit."
     },
     {
       "seat": "microscope-20261007-1",
