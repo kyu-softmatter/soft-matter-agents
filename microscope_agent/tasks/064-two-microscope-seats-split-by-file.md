@@ -63,6 +63,21 @@ Card 063 is yours as before. Its findings file is yours alone,
 `findings/card063-mock-session-20261007.json`. Microscope 2's findings go to
 its own file, so the two are never one file.
 
+## The envelope snapshot (added 2026-10-12)
+
+**Microscope 2 may commit `envelope/snapshot.json`, and only that file in
+`envelope/`, and only after the person has copied it by hand.** It never
+writes or edits the file: the deny rules forbid that, and the copy is the
+person's. Before committing, check that:
+
+- the file is byte-identical to the committed
+  `librarian_agent/kb/exports/snapshot_microscope_agent.json`;
+- check 26 and check 61 pass.
+
+The commit message names the export commit it was copied from. On
+2026-10-12 the person copied `kbv-b1253d99047e`, from `f458f86`.
+`envelope/safety.json` stays the person's, and neither seat commits it.
+
 ## Both
 
 - **Name your own paths when committing**: `git diff HEAD -- <paths>`, then
