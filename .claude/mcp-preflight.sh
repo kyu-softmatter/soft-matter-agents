@@ -64,12 +64,29 @@ fi
 # code, so reading for it stays on this side of 6.2 rule 3 -- and on the
 # microscope computer it is the cause that outlived the interpreter fix:
 # the launcher resolves, python runs, and the server still cannot serve.
-if ! "$PYBIN" -c 'import mcp' >/dev/null 2>&1; then
+# Mirror .mcp.json's own choice: the first of python3, python, py that imports
+# all three, else uv offline. This used to test only the first runnable python,
+# so on the Office computer, where that is an Anaconda without mcp and uv
+# supplies it, it said THIS SESSION WILL HAVE NO TOOLS to sessions that had
+# them (2026-10-12). A warning that is false when things work is how the true
+# one stops being read.
+SERVES=""
+for c in python3 python py; do
+  command -v "$c" >/dev/null 2>&1 || continue
+  if "$c" -c 'import mcp, jsonschema, referencing' >/dev/null 2>&1; then
+    SERVES="$(command -v "$c")"
+    break
+  fi
+done
+if [ -z "$SERVES" ] && command -v uv >/dev/null 2>&1 &&    uv run --offline --no-project --python 3.12 --with "mcp>=2.0" --with jsonschema      python -c 'import mcp, jsonschema, referencing' >/dev/null 2>&1; then
+  SERVES="uv (offline, python 3.12)"
+fi
+if [ -z "$SERVES" ]; then
   printf '
   librarian MCP: THIS SESSION WILL HAVE NO TOOLS
 '
-  printf '    - %s cannot import mcp, so the server exits instead of serving
-' "$(command -v "$PYBIN")"
+  printf '    - no python on PATH imports mcp, jsonschema and referencing, and uv cannot supply them offline
+'
   printf '    - the configuration below may be perfectly correct and it will not help
 
 '
