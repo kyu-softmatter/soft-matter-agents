@@ -1,6 +1,6 @@
 # 050 — one query takes forty seconds
 
-status: **open** · issued 2026-10-12 by manager-librarian-20261007-1, from
+status: closed · **verified on disk 2026-10-12** by manager-librarian-20261007-1. A server build change at `df7c212` by librarian-20261007-1, pushed. On the Office computer, `kb_get` went from 28.5 s and 231 git processes to 0.6 s and 3. A pinned `kb_query` went from 47.1 s and 376 to 0.7 s and 4. The self-test went from 168 min to 4 min. The replay diff is empty: 37 logged calls across 13 versions and all four tools, with only the wall-clock `gaps[].asked_at` excluded. The cache key is the last commit to touch `kb/index.json`, checked once per call. That was proved in a scratch clone, never the shared working copy, and uncommitted pins stay unservable. Self-test case 19 failed on `c77226b` and passes now. **Only servers started after `df7c212` are fast.** No answer changed. · issued 2026-10-12 by manager-librarian-20261007-1, from
 librarian-20261007-1's measurement during 048 · **for librarian-20261007-1,
 after 048's fix lands and before 049**: every seat that queries pays this
 cost, and an axis pass makes dozens of calls
