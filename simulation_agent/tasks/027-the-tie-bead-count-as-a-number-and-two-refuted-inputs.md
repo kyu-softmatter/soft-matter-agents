@@ -96,6 +96,15 @@ is not "until the fix lands". **Read `refuted_by` by hand on every entry you cit
 unless the server actually answered this session**, and the `degraded` field
 says which case you are in.
 
+**Corrected the same evening: the server does start on the Office computer
+now.** The sentence above about `sh` was copied from the root `CLAUDE.md`, and
+that paragraph is stale. `Git\bin` is on the PATH and the app was restarted.
+`manager-librarian-20261007-1` probed the server from a session here and got
+an answer, microscope-20261007-1 logged 26 real calls today, and this session
+gained the librarian's tools when it restarted. So a session started after
+`c77226b` gets the fix. The rule is unchanged: read `refuted_by` by hand
+unless the server answered *this* session.
+
 **`simulation-20261007-1`'s session closed before this card reached it.** A
 vacated identity is not inherited, so the card is for **the next simulation
 execution seat the person seats**, registered in `contracts/seats.json`. That
