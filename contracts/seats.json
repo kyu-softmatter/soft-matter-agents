@@ -1664,6 +1664,137 @@
         "microscope_agent"
       ],
       "note": "A second microscope execution session on the Office computer (Windows, hostname Office -- not the microscope computer), rooted at microscope_agent/: the desktop session titled \"Microscope 2 · 실행 세션 (카드 배정 대기)\". The person said directly in architecture-20261007-1's window on 2026-10-07 that they made it (\"실행세션 2 현미경 만들었음\" -- \"I made microscope execution session 2\"), answering that seat's recommendation to open one more microscope execution session because every microscope card was assigned to microscope-20261003-1; the session separately reports the person set its role in its own window. Opened CONCURRENTLY with microscope-20261003-1, which keeps running and closes nothing. n is 1, the first microscope seat for that date. Every field except seat, committer_email and note copied by code from microscope-20261003-1. Which cards it takes is manager-microscope-20261003-1's split, by file."
+    },
+    {
+      "seat": "architecture-20261013-1",
+      "committer_email": "architecture-20261013-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "plan.md",
+        "CLAUDE.md",
+        "ARCHITECT.md",
+        "README.md",
+        "LICENSE",
+        "docs/",
+        ".claude/",
+        ".mcp.json",
+        "pyproject.toml",
+        "uv.lock",
+        "pixi.lock",
+        ".gitignore",
+        "contracts/seats.json"
+      ],
+      "note": "The architecture session on the microscope computer (Windows, hostname Takatori_lab), rooted at the repository root. The person seated it directly in its own window on 2026-10-13, answering \"Architecture\" when asked whether it was the architecture seat or another manager. n is 1, the first architecture seat for that date. Whether architecture-20261007-1 is still running is not stated, so this is opened concurrently and closes nothing. Every field except seat, committer_email and note copied by code from architecture-20261007-1."
+    },
+    {
+      "seat": "manager-microscope-20261013-1",
+      "committer_email": "manager-microscope-20261013-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "microscope_agent/CLAUDE.md",
+        "microscope_agent/.claude/",
+        "microscope_agent/tasks/",
+        "microscope_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/capabilities/microscope.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "A manager-microscope session, rooted at the repository root. The person seated it directly in its own window on the microscope computer (Windows, hostname Takatori_lab) on 2026-10-13, and in architecture-20261013-1's window the same day told architecture to register the four manager seats. n is 1, the first manager-microscope seat for that date. Whether earlier manager-microscope sessions are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-microscope-20261003-1."
+    },
+    {
+      "seat": "manager-simulation-20261013-1",
+      "committer_email": "manager-simulation-20261013-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "simulation_agent/CLAUDE.md",
+        "simulation_agent/.claude/",
+        "simulation_agent/tasks/",
+        "simulation_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "note": "A manager-simulation session, rooted at the repository root. The person seated it directly in its own window on the microscope computer (Windows, hostname Takatori_lab) on 2026-10-13, and in architecture-20261013-1's window the same day told architecture to register the four manager seats. n is 1, the first manager-simulation seat for that date. Whether earlier manager-simulation sessions are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-simulation-20261007-1."
+    },
+    {
+      "seat": "manager-librarian-20261013-1",
+      "committer_email": "manager-librarian-20261013-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "librarian_agent/CLAUDE.md",
+        "librarian_agent/.claude/",
+        "librarian_agent/tasks/",
+        "librarian_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/seats.json",
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/schemas/kb_entry.schema.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "A manager-librarian session, rooted at the repository root. The person seated it directly in its own window on the microscope computer (Windows, hostname Takatori_lab) on 2026-10-13, and in architecture-20261013-1's window the same day told architecture to register the four manager seats. n is 1, the first manager-librarian seat for that date. Whether earlier manager-librarian sessions are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-librarian-20261007-1."
+    },
+    {
+      "seat": "manager-bridge-20261013-1",
+      "committer_email": "manager-bridge-20261013-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "bridge/CLAUDE.md",
+        "bridge/.claude/",
+        "bridge/tasks/",
+        "bridge/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/seats.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/schemas/round_hashes.schema.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "A manager-bridge session, rooted at the repository root. The person seated it directly in its own window on the microscope computer (Windows, hostname Takatori_lab) on 2026-10-13, and in architecture-20261013-1's window the same day told architecture to register the four manager seats. n is 1, the first manager-bridge seat for that date. Whether earlier manager-bridge sessions are still running is not stated, so this is opened concurrently and closes none of them. Its own window was typed only \"manager4\"; that it is the bridge manager was inferred by architecture as the one agent left without a manager, told to the person, and the person then asked for all four to be registered. Corrected if the person says otherwise. Every field except seat, committer_email and note copied by code from manager-bridge-20261007-1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
