@@ -30,15 +30,16 @@ so neither reaches an axis today.
 
 ## Build
 
-1. **Read the round's design choices from the goal**, where
-   `questions/mic-20260930-001/v4_goal.json` records them as the round's, with
-   its revision. Use the field that goal actually uses; do not invent one. If
-   the goal has no machine-readable place for them, write `v5_goal.json` with
-   one (card 067's folders are yours), and never edit `v4`.
+1. **The goal's field exists now: `design_inputs`** (`831ad5c`). Each item is
+   `{name, statement, from_round, round_revision}`, with no value and no unit.
+   `v4_goal.json` holds the choice only in prose, so write `v5_goal.json` with
+   the round's choice in `design_inputs`; its `from_round` must equal the
+   goal's own. Never edit `v4`.
 2. **The fit method shapes the axis that fits:** the one that turns recovery
-   curves into a diffusivity. It records a `design_inputs` entry naming the
-   method, `from_round`, and the round's revision, with **no `source` and no
-   `grade`**.
+   curves into a diffusivity. That axis copies the goal's item **exactly**,
+   into the axis's own `design_inputs`. Check 74 refuses an axis design input
+   that is in no goal of the question, item for item. There is **no `source`
+   and no `grade`**.
 3. **The bead-count floor:** query the librarian for it, as for any input.
    With no entry, the axis that bounds bead number (A2) **abstains on it**.
    Its reason names the remedy: *the simulation's result card for this round,
