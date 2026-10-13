@@ -330,6 +330,37 @@ class Store:
         """Does this entry answer to `name`? Case-insensitively, see _fold."""
         return _fold(name) in {_fold(n) for n in self.subjects(e)}
 
+    # -- whether an entry still stands -------------------------------------- #
+
+    def standing(self, entry_id: str) -> dict:
+        """`current`, `superseded` or `refuted`, and what replaced it (048).
+
+        Rules 7 and 8 keep a withdrawn entry, so this is the whole of what
+        stops it being taken at face value -- and the entry alone cannot say
+        it. `supersedes` is written on the NEW entry only, so the old one has
+        no field naming its successor, and a refutation may be written on
+        either side. Both directions are read here, from this Store's own
+        entries, so a pinned version answers from that version and the same
+        (query, kb_version) keeps one answer. Refuted outranks superseded: a
+        superseded claim may still have been true, a refuted one was not.
+        """
+        if not hasattr(self, "_withdrawn"):
+            sup: dict[str, set[str]] = {}
+            ref: dict[str, set[str]] = {}
+            for eid, e in self.entries.items():
+                if e.get("supersedes"):
+                    sup.setdefault(e["supersedes"], set()).add(eid)
+                for r in e.get("refuted_by") or []:
+                    ref.setdefault(eid, set()).add(r)
+                for t in e.get("refutes") or []:
+                    ref.setdefault(t, set()).add(eid)
+            self._withdrawn = (sup, ref)
+        sup, ref = self._withdrawn
+        refuted_by = sorted(ref.get(entry_id, ()))
+        superseded_by = sorted(sup.get(entry_id, ()))
+        status = "refuted" if refuted_by else "superseded" if superseded_by else "current"
+        return {"status": status, "refuted_by": refuted_by, "superseded_by": superseded_by}
+
     # -- ordering ---------------------------------------------------------- #
 
     def sort_key(self, entry_id: str) -> tuple:
@@ -886,7 +917,17 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
         except Refused as exc:
             unusable.append({"entry_id": eid, "reason": str(exc)})
             continue
-        row = {"entry_id": eid, "grade": e["grade"], "grade_tag": e.get("grade_tag"),
+        st = store.standing(eid)
+        row = {"entry_id": eid,
+               # BESIDE THE GRADE, BECAUSE THE GRADE IS WHAT GETS COPIED (048).
+               # A goal of 2026-09-30 cited pixel_size_10x_zoom_1x at E2 a
+               # week after the store refuted it. `refuted_by` was on the row,
+               # one key among twenty, and the row sorted above its E4
+               # refuter, so the grade check passed on a claim the store had
+               # withdrawn. `status` is never absent, so a caller that reads
+               # one more key than the grade cannot miss it.
+               "status": st["status"],
+               "grade": e["grade"], "grade_tag": e.get("grade_tag"),
                # WHAT KIND OF THING THIS IS, AND THE HANDLE TO FETCH IT WITH.
                # A `derived_quantity` or a `dimensionless_group` carries a
                # RELATION and no numbers, so until 2026-09-20 it came back as
@@ -953,9 +994,16 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
                # own note asks for these in the projection beside grade and
                # claim, for the reason 21c5325 established: a mark nobody sees
                # is not a mark. Same stakes, higher.
-               "refuted_by": e.get("refuted_by") or [],
+               #
+               # Read from both sides since 048: an entry naming this one in
+               # its own `refutes` refutes it whether or not this one says so.
+               "refuted_by": st["refuted_by"],
                "refutes": e.get("refutes") or [],
                "supersedes": e.get("supersedes"),
+               # The successor, which the old entry has no field for --
+               # `supersedes` is written on the new one only, so until 048 a
+               # caller holding the old entry had no pointer to the new one.
+               "superseded_by": st["superseded_by"],
                # AN EXPIRY NOBODY CAN SEE IS NOT AN EXPIRY (031, and the
                # fourth instance of 21c5325's shape). kb_get carried this
                # verbatim and kb_query had no such key at all, so the tool a
@@ -1146,6 +1194,21 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
               # store.sort_key, so the same (query, kb_version) yields the
               # same list (4.3.1 rule 2).
               "unusable": unusable,
+              # EVERY RETURNED ROW THE STORE HAS WITHDRAWN, AT ANSWER LEVEL
+              # (048), present and empty on a clean answer for `unusable`'s
+              # reason. Withdrawn rows are KEPT, not dropped: a caller asking
+              # for a refuted entry by its own id would otherwise get `absent`,
+              # which says no claim exists and hides the pointer to the one
+              # that replaced it. And they are NOT REORDERED, though an E2
+              # refuted claim sorts above its E4 refuter: check 70 compares
+              # `returned` in order per question and version, so moving them
+              # would make every pin asked across this build answer two ways
+              # in an append-only log. The flag carries the warning; the sort
+              # stays as 4.3.1 fixes it.
+              "withdrawn": [{"entry_id": r["entry_id"], "status": r["status"],
+                             "refuted_by": r["refuted_by"],
+                             "superseded_by": r["superseded_by"]}
+                            for r in returned if r["status"] != "current"],
               "grade_summary": grade_summary(store, [r["entry_id"] for r in returned]),
               "kb_version": store.kb_version,
               "answered_from": _provenance(store)}
@@ -1166,6 +1229,10 @@ def kb_query(store: Store, caller_id: str, kb_version: str, observable: str,
          # different there. A log line is counted, and `unusable: null` on
          # every clean line would make the count read as a field every call
          # carries rather than an event that happened.
+         # `withdrawn` is NOT logged (048): the record shape is fixed by
+         # query_log.check, and the list adds nothing a count needs -- it
+         # is a pure function of `returned` and the pinned kb_version, both
+         # already on the line, so it can be recomputed for any past call.
          **({"unusable": [u["entry_id"] for u in unusable]} if unusable else {}))
     return answer
 
@@ -1181,7 +1248,14 @@ def kb_get(store: Store, caller_id: str, kb_version: str, entry_id: str,
          gaps=[] if e else ["absent"], coverage={})
     if e is None:
         raise Refused(f"no entry {entry_id!r} at {store.kb_version}")
-    return {"entry": e, "sha256": (store.index.get("entries") or {}).get(entry_id, {}).get("sha256"),
+    # THE ENTRY STAYS VERBATIM AND THE VERDICT SITS BESIDE IT (048). This is
+    # the call that served pixel_size_10x_zoom_1x at E2 to a goal a week after
+    # the store refuted it: `refuted_by` was inside `entry`, and the successor
+    # was nowhere, since only the new entry names the old. The three keys are
+    # always present so their absence never reads as "current".
+    return {"status": (st := store.standing(entry_id))["status"],
+            "refuted_by": st["refuted_by"], "superseded_by": st["superseded_by"],
+            "entry": e, "sha256": (store.index.get("entries") or {}).get(entry_id, {}).get("sha256"),
             "kb_version": store.kb_version, "answered_from": _provenance(store)}
 
 
@@ -2082,6 +2156,61 @@ def _self_test() -> int:                                    # noqa: C901
             bad("kind and symbol must be on every row, not only on relations")
         elif plain_rows[0]["symbol"] is not None:
             bad(f"a claim entry reported symbol={plain_rows[0]['symbol']!r}")
+
+        # 18. A REFUTED OR SUPERSEDED ENTRY SAYS SO WHERE A CALLER LOOKS (048).
+        #
+        # 8b proves the marks are carried. They were, and a goal of
+        # 2026-09-30 still cited pixel_size_10x_zoom_1x at E2 a week after the
+        # store refuted it: kb_get returned the entry verbatim with
+        # `refuted_by` one level down inside `entry`, kb_query put it on the
+        # row as one key among twenty, and the sort -- grade, rank, id -- puts
+        # the E2 claim ABOVE its E4 refuter. Carried is not seen. So: a status
+        # on every row, the withdrawn list at answer level, the same three
+        # facts at kb_get's top level, and the refuter named on the refuted
+        # entry even though the entry itself only says `supersedes` one way.
+        #
+        # AND THE ORDER MUST NOT MOVE. Check 70 compares `returned` in order
+        # per (tool, version, question), so reordering withdrawn rows last
+        # would make every pin asked before and after this build answer two
+        # ways, permanently, in an append-only log. The flag is the fix; the
+        # sort stays.
+        wd_log = Path(d) / "withdrawn" / "log.jsonl"
+        wd_log.parent.mkdir(parents=True, exist_ok=True)
+        superseded_ids = {e["supersedes"] for e in store.entries.values() if e.get("supersedes")}
+        withdrawn_ids = sorted(eid for eid, e in store.entries.items()
+                               if e.get("refuted_by") or eid in superseded_ids)
+        if not withdrawn_ids:
+            bad("no entry is refuted or superseded, so case 18 tests nothing")
+        for eid in withdrawn_ids:
+            e = store.entries[eid]
+            want = "refuted" if e.get("refuted_by") else "superseded"
+            r = kb_query(Store(log=wd_log), cid, v, eid)
+            row = next((x for x in r["entries"] if x["entry_id"] == eid), None)
+            if row is None:
+                bad(f"{eid} does not answer to its own id")
+                continue
+            if row.get("status") != want:
+                bad(f"kb_query row for {eid} has status={row.get('status')!r}, not {want!r}")
+            listed = {w["entry_id"]: w for w in r.get("withdrawn") or []}
+            if eid not in listed:
+                bad(f"kb_query's answer-level `withdrawn` does not name {eid}")
+            elif not (listed[eid].get("refuted_by") or listed[eid].get("superseded_by")):
+                bad(f"`withdrawn` names {eid} and not what replaced it")
+            if [x["entry_id"] for x in r["entries"]] != sorted(
+                    (x["entry_id"] for x in r["entries"]), key=store.sort_key):
+                bad(f"kb_query for {eid} reordered its rows; check 70 compares the order")
+            g = kb_get(Store(log=wd_log), cid, v, eid)
+            if g.get("status") != want:
+                bad(f"kb_get({eid}) has top-level status={g.get('status')!r}, not {want!r}")
+            if eid in superseded_ids and not g.get("superseded_by"):
+                bad(f"kb_get({eid}) does not name the entry that supersedes it")
+            if g.get("entry") != e:
+                bad(f"kb_get({eid}) no longer returns the entry verbatim")
+        clean = kb_query(Store(log=wd_log), cid, v, "viscosity")
+        if "withdrawn" not in clean or clean["withdrawn"]:
+            bad(f"`withdrawn` must be present and empty on a clean answer, got {clean.get('withdrawn')!r}")
+        elif any(x.get("status") != "current" for x in clean["entries"]):
+            bad("a current entry must say status 'current'")
 
         # Look for THIS process's session id rather than comparing bytes.
         # Four other sessions call the live server, so the shared log changes
