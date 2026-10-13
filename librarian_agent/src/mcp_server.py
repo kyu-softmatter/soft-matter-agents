@@ -171,6 +171,45 @@ def _git(*args: str) -> str:
                           capture_output=True, text=True, encoding="utf-8", check=True).stdout
 
 
+_INDEX = "librarian_agent/kb/index.json"
+
+
+def _cat_blobs(specs: list[str]) -> dict[str, str | None]:
+    """`<rev>:<path>` -> text, for many blobs in ONE git process (050).
+
+    One `git show` per blob cost 0.26 s apiece on the Office computer, and
+    version_history ran 76 of them per call, twice per answer. `cat-file
+    --batch` reads them all through one pipe. A spec git cannot resolve maps
+    to None, the way a failed `git show` was skipped. Raises if the process
+    itself fails, so the caller can fall back to the old one-at-a-time path.
+    """
+    if not specs:
+        return {}
+    raw = subprocess.run(["git", "-C", str(REPO), "cat-file", "--batch"],
+                         input=("\n".join(specs) + "\n").encode("utf-8"),
+                         capture_output=True, check=True).stdout
+    out: dict[str, str | None] = {}
+    pos = 0
+    for spec in specs:
+        nl = raw.index(b"\n", pos)
+        header = raw[pos:nl].split()
+        pos = nl + 1
+        if len(header) < 3 or header[1] != b"blob":
+            out[spec] = None                       # "<spec> missing", or not a blob
+            continue
+        size = int(header[2])
+        out[spec] = raw[pos:pos + size].decode("utf-8")
+        pos += size + 1                            # the blob, then its trailing newline
+    return out
+
+
+# Per process, keyed by the commit that last touched kb/index.json. Commits
+# never change once made, so a sha's version is read once and kept; what can
+# change is WHICH commits exist, and that is exactly what the key watches.
+_HISTORY: dict = {"head": None, "by_sha": {}, "map": {}}
+_UNREADABLE = object()
+
+
 def version_history() -> dict[str, str]:
     """Every committed kb_version, mapped to the commit that carried it.
 
@@ -179,19 +218,59 @@ def version_history() -> dict[str, str]:
     not depend on who called, or on what was asked before, so it is the
     content-addressed cache 4.3.1 rule 2 explicitly permits rather than state
     that could carry anything between callers.
+
+    CACHED SINCE 050, AND THE KEY IS THE INDEX'S HEAD COMMIT, NOT A CLOCK.
+    Every call asks git for the last commit to touch kb/index.json -- one
+    process -- and reuses the map while that is unchanged. A server up since
+    morning therefore sees a version published at noon on its next call, which
+    a timer could not promise. When the head moves, one `git log` lists the
+    commits and only the ones never read before are fetched, in one batch.
+    Nothing here can make an uncommitted version look committed: the map holds
+    only what a commit's own index.json says, exactly as before. The result is
+    built in the same order with the same `setdefault`, so the mapping is the
+    one the uncached walk produced, and callers get a copy, never the cache.
     """
-    out: dict[str, str] = {}
     try:
-        shas = _git("log", "--format=%H", "--", "librarian_agent/kb/index.json").split()
+        head = _git("log", "-1", "--format=%H", "--", _INDEX).strip()
     except (OSError, subprocess.CalledProcessError):
-        return out
-    for sha in shas:
+        return {}
+    if head and head == _HISTORY["head"]:
+        return dict(_HISTORY["map"])
+    try:
+        shas = _git("log", "--format=%H", "--", _INDEX).split()
+    except (OSError, subprocess.CalledProcessError):
+        return {}
+    by_sha = _HISTORY["by_sha"]
+    missing = [sha for sha in shas if sha not in by_sha]
+    try:
+        texts = _cat_blobs([f"{sha}:{_INDEX}" for sha in missing])
+    except (OSError, subprocess.CalledProcessError, ValueError):
+        texts = {}
+        for sha in missing:                        # the pre-050 path, one blob at a time
+            try:
+                texts[f"{sha}:{_INDEX}"] = _git("show", f"{sha}:{_INDEX}")
+            except subprocess.CalledProcessError:
+                texts[f"{sha}:{_INDEX}"] = None
+    for sha in missing:
+        text = texts.get(f"{sha}:{_INDEX}")
         try:
-            v = json.loads(_git("show", f"{sha}:librarian_agent/kb/index.json")).get("kb_version")
-        except (subprocess.CalledProcessError, json.JSONDecodeError):
+            by_sha[sha] = _UNREADABLE if text is None else json.loads(text).get("kb_version")
+        except json.JSONDecodeError:
+            by_sha[sha] = _UNREADABLE
+    out: dict[str, str] = {}
+    for sha in shas:
+        v = by_sha[sha]
+        if v is _UNREADABLE:
             continue
         out.setdefault(v, sha)          # the first commit to carry it
-    return out
+    _HISTORY["head"], _HISTORY["map"] = (shas[0] if shas else head), out
+    return dict(out)
+
+
+# Store.at, per (commit, kb, log). A commit's entries never change, and
+# reading one pinned version spawned one `git show` per entry -- 330 at
+# 2026-10-12 -- on EVERY call pinned to anything but the working tree (050).
+_AT: dict[tuple[str, str, str], "Store"] = {}
 
 
 class Store:
@@ -259,14 +338,26 @@ class Store:
                 "tree nobody else can reproduce, and answering from HEAD instead would answer a "
                 "different question under the pinned name."
             )
-        index = json.loads(_git("show", f"{sha}:librarian_agent/kb/index.json"))
+        key = (sha, str(self.kb), str(self.log))
+        if key in _AT:
+            return _AT[key]
+        index = json.loads(_git("show", f"{sha}:{_INDEX}"))
+        names = [line for line in
+                 _git("ls-tree", "--name-only", sha, "librarian_agent/kb/entries/").splitlines()
+                 if line.endswith(".json")]
+        try:
+            texts = _cat_blobs([f"{sha}:{line}" for line in names])
+        except (OSError, subprocess.CalledProcessError, ValueError):
+            texts = {f"{sha}:{line}": _git("show", f"{sha}:{line}") for line in names}
         entries = {}
-        for line in _git("ls-tree", "--name-only", sha, "librarian_agent/kb/entries/").splitlines():
-            if not line.endswith(".json"):
-                continue
-            e = json.loads(_git("show", f"{sha}:{line}"))
+        for line in names:                      # ls-tree order, as before
+            text = texts.get(f"{sha}:{line}")
+            if text is None:                    # `git show` would have raised here
+                text = _git("show", f"{sha}:{line}")
+            e = json.loads(text)
             entries[e["entry_id"]] = e
-        return Store(kb=self.kb, log=self.log, _index=index, _entries=entries, _commit=sha)
+        _AT[key] = Store(kb=self.kb, log=self.log, _index=index, _entries=entries, _commit=sha)
+        return _AT[key]
 
     @property
     def reproducible(self) -> bool:
@@ -2211,6 +2302,60 @@ def _self_test() -> int:                                    # noqa: C901
             bad(f"`withdrawn` must be present and empty on a clean answer, got {clean.get('withdrawn')!r}")
         elif any(x.get("status") != "current" for x in clean["entries"]):
             bad("a current entry must say status 'current'")
+
+        # 19. THE VERSION HISTORY IS READ ONCE PER HEAD, AND A NEW HEAD IS SEEN (050).
+        #
+        # One answer spawned 231 git processes at the working tree's version
+        # and 376 at an older pin, 27 s and 45 s on the Office computer,
+        # because version_history re-read every commit of kb/index.json on
+        # every call and Store.at re-read every entry of a pinned commit on
+        # every call. Both read immutable commits, so both may be kept -- as
+        # long as the key is what can change: which commit is the index's
+        # head. Counted by wrapping subprocess.run, not by timing, so the
+        # assertion does not depend on how slow this machine is today.
+        _real_run = subprocess.run
+        spawned = {"git": 0}
+
+        def _counting(args, *a, **kw):
+            if args and str(args[0]).endswith("git"):
+                spawned["git"] += 1
+            return _real_run(args, *a, **kw)
+        subprocess.run = _counting
+        try:
+            first = version_history()
+            spawned["git"] = 0
+            again = version_history()
+            if again != first:
+                bad("version_history answered differently on an unchanged head")
+            if spawned["git"] != 1:
+                bad(f"an unchanged head cost {spawned['git']} git processes; it should cost one, "
+                    "the head check")
+            again["kbv-000000000000"] = "not-a-commit"
+            if "kbv-000000000000" in version_history():
+                bad("a caller mutating the returned map changed the cache")
+            _HISTORY["head"] = "a-head-that-has-moved"      # what a new commit looks like
+            spawned["git"] = 0
+            moved = version_history()
+            if spawned["git"] < 2:
+                bad("a moved head did not re-list the history, so a version published "
+                    "after startup would never be seen")
+            if moved != first:
+                bad("re-listing after a moved head changed the mapping")
+            if not store.reproducible and store.kb_version in moved:
+                bad(f"{store.kb_version} is uncommitted and the history claims it")
+            pinned = next((ver for ver in first if ver != store.kb_version), None)
+            if pinned is None:
+                bad("only one committed version, so Store.at's cache is untested")
+            else:
+                a1 = store.at(pinned)
+                spawned["git"] = 0
+                a2 = store.at(pinned)
+                if a2 is not a1:
+                    bad("Store.at re-read a commit it had already read")
+                if spawned["git"] > 1:
+                    bad(f"a second Store.at({pinned}) cost {spawned['git']} git processes")
+        finally:
+            subprocess.run = _real_run
 
         # Look for THIS process's session id rather than comparing bytes.
         # Four other sessions call the live server, so the shared log changes
