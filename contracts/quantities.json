@@ -504,6 +504,13 @@
       "unit": "1",
       "kind": "physical",
       "note": "Registered on 2026-10-07 as an input of objective_depth_of_field (librarian task 045), named and defined by librarian-20261004-1 and registered by manager-librarian-20261007-1. The formula's first inputs were unregistered names, so a card computing from it could not find them. A pure number, so unit `1`. Not the objective's nominal magnification alone, which omits the intermediate optics."
+    },
+    {
+      "id": "recovery_curve_tie_particle_count",
+      "definition": "The effective number of fluorescent particles in the bleached region at which the diffusivity read from ONE bleach-recovery curve scatters by exactly the tie factor: the ratio of the 95th to the 5th percentile of single-curve diffusivities equals that factor. Effective means the particles through the whole optical column times the square of the bleach's contrast. Only the bleached part carries the signal, while every particle the camera sees adds counting noise. For a sharp column bleached through the whole depth the contrast is 1 and the effective count is the plain column count.",
+      "unit": "count",
+      "kind": "physical",
+      "note": "Registered on 2026-10-12 by manager-simulation-20261007-1, for librarian task 049 (39058bd) and plan.md 11-26. The microscope's statistics axis needs the bead count one bleach requires as a store entry, and today that number exists only in prose in sim-20260930-401's result card and in that question's stage2_runs.json (`beads_where_spread_is_a_tie`, about 300). DEFINED AS THE EFFECTIVE COUNT ON PURPOSE. 401 counted beads through the whole chamber at full contrast, because its model bleaches a sharp column. The 2026-10-08 finding `correction_to_sim_20260930_401_bead_count` (fde42cd) showed that at 40x to 100x a widefield bleach is a slab with 0.015 to 0.46 of a column's contrast. So the plain count a design needs is this value divided by the contrast squared: about 100x more beads at contrast 0.1. A name that meant the plain count would carry 401's number into a high-NA design two decades short. A value carries the tie factor it was read against, the spread criterion and the configuration it holds at. It is window-dependent through the recovery record and the frame and bleach fractions, so it is not one number across configurations."
     }
   ],
   "not_yet_registered": {
