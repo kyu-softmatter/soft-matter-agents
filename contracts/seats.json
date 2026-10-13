@@ -1795,6 +1795,14 @@
       ],
       "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
       "note": "A manager-bridge session, rooted at the repository root. The person seated it directly in its own window on the microscope computer (Windows, hostname Takatori_lab) on 2026-10-13, and in architecture-20261013-1's window the same day told architecture to register the four manager seats. n is 1, the first manager-bridge seat for that date. Whether earlier manager-bridge sessions are still running is not stated, so this is opened concurrently and closes none of them. Its own window was typed only \"manager4\"; that it is the bridge manager was inferred by architecture as the one agent left without a manager, told to the person, and the person then asked for all four to be registered. Corrected if the person says otherwise. Every field except seat, committer_email and note copied by code from manager-bridge-20261007-1."
+    },
+    {
+      "seat": "microscope-20261013-1",
+      "committer_email": "microscope-20261013-1@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "note": "The bench microscope execution session on the microscope computer (Windows, hostname Takatori_lab), rooted at microscope_agent/, opened for the 2026-10-13 bench visit under a colleague's Claude account -- which changes nothing about the seat. The person said directly in architecture-20261013-1's window on 2026-10-13: \"벤치용 현미경 세션 열었다, 등록해 줘\" (\"I opened the bench microscope session, register it\"). n is 1, the first microscope seat for that date. Opened CONCURRENTLY with microscope-20261003-1 and microscope-20261007-1, closing nothing. What it writes is the bench kickoff's list -- runs/, its own findings file, and questions/mic-20261013-*/ -- held by the split, not by paths here: execution seats carry no paths, and a narrowing invented to look tidy refuses correct work. Every field except seat, committer_email and note copied by code from microscope-20261007-1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
