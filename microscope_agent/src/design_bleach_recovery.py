@@ -95,7 +95,8 @@ def build_responses(caller_id: str, pin: str, commit: str) -> dict:
             eid = got["entry_id"] if isinstance(got, dict) else got
             body = json.loads(subprocess.check_output(
                 ["git", "show", f"{commit}:librarian_agent/kb/entries/{eid}.json"], cwd=REPO))
-            entries[eid] = {"grade": body["grade"], "claim": body["claim"], "answered_from": answered}
+            entries[eid] = {"grade": body["grade"], "claim": body["claim"], "answered_from": answered,
+                            "numbers": body.get("numbers") or []}
         for kind in rec.get("gaps") or []:
             if any(g["observable"] == rec["observable"] for g in gaps):
                 continue
@@ -290,9 +291,38 @@ AXIS_BOUNDS: dict[str, tuple[ac.Inequality, ...]] = {
 }
 
 
+#: Bounds a goal owns only when it stands on a bridge round (card 068, plan.md
+#: 11-26 at 8c57691). A ROUND'S NUMBER ENTERS ONLY THROUGH THE STORE: round 1
+#: of thr-bleach-recovery-diffusivity-001 found how many beads one bleach needs
+#: before its D lands inside the tie, and that reaches A2 as a kb: entry the
+#: librarian enters from the simulation's result card, or not at all. Declared
+#: only for a goal on a round, so a goal without one keeps today's list exactly.
+ROUND_BOUNDS: dict[str, tuple[ac.Inequality, ...]] = {
+    "a2": (
+        ineq("beads_in_disc_reach_tie", "bead_count_in_bleached_column",
+             "effective beads in the disc >= the count at which one curve's D scatters within the tie",
+             ("recovery_curve_tie_particle_count",), "the scatter of one curve"),
+    ),
+}
+
+#: The registered quantity the floor is entered under (contracts/quantities.json).
+TIE_COUNT = "recovery_curve_tie_particle_count"
+
+
+def kb_number(responses: dict, name: str) -> tuple[str, dict] | None:
+    """The served entry carrying a number of this name, as (entry_id, number), or None."""
+    for eid, entry in responses["entries"].items():
+        for n in entry.get("numbers") or []:
+            if n.get("name") == name:
+                return eid, n
+    return None
+
+
 def run_axis(axis: str, goal: dict, caller_id: str, pin: str, responses: dict) -> ac.AxisRun:
+    on_round = bool(goal.get("from_round"))
+    owned = AXIS_BOUNDS[axis] + (ROUND_BOUNDS.get(axis, ()) if on_round else ())
     run = ac.AxisRun(axis=axis, caller_id=caller_id, config="widefield_inline",
-                     kb_version=pin, owned=AXIS_BOUNDS[axis])
+                     kb_version=pin, owned=owned)
     if goal["observable"]["name"] != OBSERVABLE:
         raise ac.AxisError(f"this module owns the bounds of {OBSERVABLE}, and the goal asks for "
                            f"{goal['observable']['name']!r}")
@@ -359,6 +389,30 @@ def run_axis(axis: str, goal: dict, caller_id: str, pin: str, responses: dict) -
                             "one curve scatters at the planned bead count, which the simulation is "
                             "computing; awaited, not guessed. Each repeat is a fresh field, so repeats "
                             "cost time and not sample"))
+        if on_round:
+            floor = kb_number(responses, TIE_COUNT)
+            if floor is not None:
+                eid, _ = floor
+                out.append(O("beads_in_disc_reach_tie", "bead_count_in_bleached_column", "returned",
+                             precondition={"parameter": "bead_count_in_bleached_column",
+                                           "basis": [f"kb:{eid}"],
+                                           "requires": f"hold at least the effective bead count kb:{eid} "
+                                           "states in the bleached disc, at the configuration that entry "
+                                           "holds for. Effective is the plain count times the square of the "
+                                           "bleach contrast, so a shallow bleach needs many more beads: "
+                                           "divide by the contrast squared to get the beads to load, and "
+                                           "the contrast comes from the bare-bead pre-measurement"}))
+            else:
+                out.append(O("beads_in_disc_reach_tie", "bead_count_in_bleached_column", "abstained",
+                             kind="no_input", missing=[TIE_COUNT],
+                             reason=f"{goal['from_round']} found a bead count one bleach needs before its D "
+                                    "lands inside the tie, and a round's number enters a design only "
+                                    "through the store. The store does not hold it yet. Remedy: the "
+                                    "librarian enters it from the simulation's result card (librarian "
+                                    "task 049, waiting on that card carrying the number in numbers[]). "
+                                    "Nothing is taken from the payload meanwhile. When it lands it is an "
+                                    "effective count, so the beads to load are it over the bleach "
+                                    "contrast squared, and the contrast is unmeasured"))
         run.notes.append("The expected diffusivity is computed for scale from the nominal size and is "
                          "E5; every bound here is written as a rule in tau so that the simulation's "
                          "predicted recovery times, when they arrive, move the numbers and not the rules.")
