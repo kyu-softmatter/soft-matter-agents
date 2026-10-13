@@ -8,6 +8,42 @@
     }
   ],
   "properties": {
+    "design_inputs": {
+      "type": "array",
+      "description": "The design choices from the goal this axis uses (plan.md 11-26), copied exactly: each must appear, item for item, in a revision of this question's goal (check 74). No source, no grade, no value. Added 2026-10-12 for card 068.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "a short name for the choice, e.g. average_then_fit"
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 10,
+            "description": "the choice, in words, as the round states it"
+          },
+          "from_round": {
+            "type": "string",
+            "pattern": "^thr-[a-z0-9-]+:r[1-9][0-9]*$",
+            "description": "the round it came from"
+          },
+          "round_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "the revision of the sending side's card that round carried"
+          }
+        },
+        "required": [
+          "name",
+          "statement",
+          "from_round",
+          "round_revision"
+        ],
+        "additionalProperties": false
+      }
+    },
     "card": {
       "const": "axis"
     },

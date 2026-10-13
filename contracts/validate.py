@@ -6946,9 +6946,40 @@ def check_74_a_card_standing_on_a_round(b: Bundle) -> list[Finding]:
     the file the ledger names -- that file still says revision 1, honestly,
     forever.
     """
+    # A ROUND'S DESIGN CHOICES (plan.md 11-26, 2026-10-12, card 068). A goal
+    # takes a round's method or window directly, as `design_inputs`, cited to
+    # the round; an axis that uses one copies it from its goal. The schema
+    # gives them no value and no unit, so a number cannot ride in. This holds
+    # the two links the schema cannot: a goal's design input names the
+    # goal's own round, and an axis's names an item a goal of its question
+    # carries, so neither can cite a round nothing took.
+    design_out: list[Finding] = []
+    goal_inputs: dict[str, set] = {}
+    for g in b.of_kind("goal"):
+        items = [d for d in g.data.get("design_inputs") or [] if isinstance(d, dict)]
+        if not items:
+            continue
+        own = g.data.get("from_round")
+        wrong = [d.get("name") for d in items if d.get("from_round") != own]
+        if wrong:
+            design_out.append(Finding(74, FAIL, f"design inputs {wrong} cite a round other than this goal's own "
+                                                f"from_round {own!r}: a goal takes the choices of the round it "
+                                                f"was written from", g.rel))
+        goal_inputs.setdefault(str(g.data.get("qid")), set()).update(
+            (d.get("name"), d.get("statement"), d.get("from_round"), d.get("round_revision")) for d in items)
+    for ax in b.of_kind("axis"):
+        items = [d for d in ax.data.get("design_inputs") or [] if isinstance(d, dict)]
+        known = goal_inputs.get(str(ax.data.get("qid")), set())
+        stray = [d.get("name") for d in items
+                 if (d.get("name"), d.get("statement"), d.get("from_round"), d.get("round_revision")) not in known]
+        if stray:
+            design_out.append(Finding(74, FAIL, f"design inputs {stray} are in no goal of {ax.data.get('qid')}, "
+                                                "item for item: an axis copies a design choice from its goal "
+                                                "and takes none of its own", ax.rel))
+
     standing = [c for c in b.cards if c.data.get("from_round")]
     if not standing:
-        return [Finding(74, NA, "no card stands on a round yet")]
+        return design_out or [Finding(74, NA, "no card stands on a round yet")]
 
     asks = {}
     for c in b.of_kind("ask_simulation", "ask_experiment"):
@@ -7021,6 +7052,7 @@ def check_74_a_card_standing_on_a_round(b: Bundle) -> list[Finding]:
                                             f"as {cid} ({where}). The round is superseded, not wrong, and "
                                             f"replacing it is the bridge's move rather than this seat's "
                                             f"(4.4 rule 5)", c.rel))
+    out = design_out + out
     if any(f.status == FAIL for f in out):
         return out
     return out + [Finding(74, PASS, f"{checked} cards stand on a round that exists and was delivered to them")]

@@ -8,6 +8,42 @@
     }
   ],
   "properties": {
+    "design_inputs": {
+      "type": "array",
+      "description": "A DESIGN CHOICE a delivered round carries -- a method, a window, how to analyse -- taken directly, cited as the round's with its revision (plan.md 11-26, settled 2026-10-12). NOT a number about the world: such a number enters only through the store, as kb:<entry>, and this shape has no field for a value or a unit, so one cannot ride in here. No source and no grade, like a person's tie-break: it constrains the design and justifies nothing inside it. Each item's from_round must equal this goal's own from_round (check 74). Added 2026-10-12 for card 068, when a round's 'average the curves, then fit' had nowhere to go but prose.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "a short name for the choice, e.g. average_then_fit"
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 10,
+            "description": "the choice, in words, as the round states it"
+          },
+          "from_round": {
+            "type": "string",
+            "pattern": "^thr-[a-z0-9-]+:r[1-9][0-9]*$",
+            "description": "the round it came from"
+          },
+          "round_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "the revision of the sending side's card that round carried"
+          }
+        },
+        "required": [
+          "name",
+          "statement",
+          "from_round",
+          "round_revision"
+        ],
+        "additionalProperties": false
+      }
+    },
     "card": {
       "const": "goal"
     },
