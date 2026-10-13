@@ -73,6 +73,8 @@ NEAR_NAMES_SERVED = {
     "light_engine_channel_sets": [], "light_engine_output_power": [], "drift": [],
     "illumination_numerical_aperture": [], "dmd_pixel_size_at_sample": ["pixel_size"],
     "lot_number": [],
+    # served 2026-10-13 under mic-20260930-001:v5:widefield_inline:a2 at kbv-b1253d99047e (card 068)
+    "recovery_curve_tie_particle_count": [],
 }
 
 # The goal card this fan-out reads. Revision 1 is goal.json; a re-run at a new
