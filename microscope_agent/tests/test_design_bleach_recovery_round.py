@@ -112,5 +112,38 @@ class BeadCountFloorThroughTheStore(unittest.TestCase):
             self.assertIsNone(outcome(run, "beads_in_disc_reach_tie"))
 
 
+AVERAGE_THEN_FIT = {"name": "average_then_fit",
+                    "statement": "TEST: average the curves first, then fit the mean curve once",
+                    "from_round": ROUND, "round_revision": 2}
+
+
+class TheRoundsFitMethodIsADesignInput(unittest.TestCase):
+    """Card 068 steps 1-2: the method enters directly, copied exactly, with no source or grade."""
+
+    def goal_with_method(self):
+        g = goal(True)
+        g["design_inputs"] = [copy.deepcopy(AVERAGE_THEN_FIT)]
+        return g
+
+    def card(self, g, axis="a2"):
+        run = dbr.run_axis(axis, g, CID.replace("a2", axis), PIN, responses(floor_entry=False))
+        return dbr.card_for(run, g, "mic-TEST068", "2026-10-12T00:00:00Z", 5)
+
+    def test_the_fitting_axis_copies_the_item_exactly(self):
+        self.assertEqual(self.card(self.goal_with_method())["design_inputs"], [AVERAGE_THEN_FIT])
+
+    def test_the_item_carries_no_source_grade_or_value(self):
+        item = self.card(self.goal_with_method())["design_inputs"][0]
+        self.assertEqual(set(item), {"name", "statement", "from_round", "round_revision"})
+
+    def test_a_goal_without_design_inputs_gives_an_axis_without_them(self):
+        self.assertNotIn("design_inputs", self.card(goal(True)))
+        self.assertNotIn("design_inputs", self.card(goal(False)))
+
+    def test_axes_that_do_not_fit_take_nothing(self):
+        for axis in ("a3", "a5"):
+            self.assertNotIn("design_inputs", self.card(self.goal_with_method(), axis))
+
+
 if __name__ == "__main__":
     unittest.main()

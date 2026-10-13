@@ -41,6 +41,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.curdir) != _HERE]
 
 import argparse                                                  # noqa: E402
+import copy                                                      # noqa: E402
 import importlib.util                                            # noqa: E402
 import json                                                      # noqa: E402
 import math                                                      # noqa: E402
@@ -308,6 +309,9 @@ ROUND_BOUNDS: dict[str, tuple[ac.Inequality, ...]] = {
 #: The registered quantity the floor is entered under (contracts/quantities.json).
 TIE_COUNT = "recovery_curve_tie_particle_count"
 
+#: The goal's design_inputs item the fitting axis takes (card 068).
+AVERAGE_THEN_FIT = "average_then_fit"
+
 
 def kb_number(responses: dict, name: str) -> tuple[str, dict] | None:
     """The served entry carrying a number of this name, as (entry_id, number), or None."""
@@ -389,6 +393,18 @@ def run_axis(axis: str, goal: dict, caller_id: str, pin: str, responses: dict) -
                             "one curve scatters at the planned bead count, which the simulation is "
                             "computing; awaited, not guessed. Each repeat is a fresh field, so repeats "
                             "cost time and not sample"))
+        # THE ROUND'S METHOD ENTERS DIRECTLY (card 068, plan.md 11-26): this is
+        # the axis that turns recovery curves into a spread of D, so it is the
+        # one that takes how they are combined. Copied exactly from the goal --
+        # check 74 matches it item for item -- and it carries no value, no
+        # source and no grade: it shapes the repeats and justifies no number.
+        fit = [copy.deepcopy(d) for d in goal.get("design_inputs") or []
+               if d.get("name") == AVERAGE_THEN_FIT]
+        if fit:
+            run.design_inputs = fit
+            run.notes.append("The repeats are combined as the round chose (design input average_then_fit): "
+                             "the curves are averaged and the mean curve is fitted once, so repeat_count "
+                             "counts curves that enter one fit, not diffusivities to average.")
         if on_round:
             floor = kb_number(responses, TIE_COUNT)
             if floor is not None:
@@ -612,6 +628,18 @@ def run_axis(axis: str, goal: dict, caller_id: str, pin: str, responses: dict) -
     return run
 
 
+def card_for(run: ac.AxisRun, goal: dict, qid: str, created_at: str, revision: int) -> dict:
+    """The axis card, with the fields this module adds beyond axis_common's."""
+    card = ac.to_card(run, goal, qid, created_at, revision)
+    # axis_common's card has no assumptions field; an axis carrying the goal's
+    # assumed diameter must explain it beside the number (check 4).
+    if getattr(run, "assumptions", None):
+        card["assumptions"] = run.assumptions
+    if getattr(run, "design_inputs", None):
+        card["design_inputs"] = run.design_inputs
+    return card
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("goal", type=Path)
@@ -643,14 +671,10 @@ def main(argv: list[str] | None = None) -> int:
     if not a.write:
         return 0
     try:
-        card = ac.to_card(run, goal, qid, a.created_at, revision)
+        card = card_for(run, goal, qid, a.created_at, revision)
     except ac.AxisError as exc:
         print(f"no card written: {exc}", file=sys.stderr)
         return 3
-    # axis_common's card has no assumptions field; an axis carrying the goal's
-    # assumed diameter must explain it beside the number (check 4).
-    if getattr(run, "assumptions", None):
-        card["assumptions"] = run.assumptions
     # A re-run lands BESIDE the set it replaces (4.5.5): v<N>_axis_*, never on top.
     out = AGENT / "questions" / qid / f"{prefix}axis_{run.config}_{run.axis}.json"
     out.write_text(json.dumps(card, ensure_ascii=False, indent=2) + "\n")
