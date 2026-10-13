@@ -83,6 +83,24 @@ every entry you cite** until I tell you the fix has landed.
   (`findings/simulation-20261007-1-20261012.json`). Say which earlier item it
   supersedes and why, and leave the earlier file as it is.
 
+## Added 2026-10-12, evening: the server fix, and who takes this card
+
+**The server fix landed at `c77226b`** (2026-10-12 18:21 -0700). Refuted
+and superseded entries now say so on every row (`status`, `refuted_by`,
+`superseded_by`), and an answer lists its `withdrawn` rows. It reaches only a
+session **whose server started after that time**. **And on the degraded path
+it reaches nothing at all**: a snapshot read as a file carries
+`refuted_by` and nothing flags it. On the Office computer the server
+cannot start until `sh` is on the Windows PATH (root `CLAUDE.md`). So the rule
+is not "until the fix lands". **Read `refuted_by` by hand on every entry you cite
+unless the server actually answered this session**, and the `degraded` field
+says which case you are in.
+
+**`simulation-20261007-1`'s session closed before this card reached it.** A
+vacated identity is not inherited, so the card is for **the next simulation
+execution seat the person seats**, registered in `contracts/seats.json`. That
+seat reads this card as its own, and I tell it so by message.
+
 ## What crosses, and how
 
 Unchanged from 026: nothing to the bridge, no push. The person hands results
