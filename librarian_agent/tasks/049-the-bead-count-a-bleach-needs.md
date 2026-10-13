@@ -59,16 +59,33 @@ of ten, at the configuration the runs declared.
   define "within". A different spot radius is a different question. Say so
   in the entry, so that a query at other conditions comes back
   `condition_mismatch` rather than this number.
+- **This is an effective count at contrast 1, never a plain bead count.**
+  401's model bleaches a sharp column through the whole depth, so its about
+  300 is a column count at full contrast. simulation-20261007-1's finding
+  `correction_to_sim_20260930_401_bead_count` (`fde42cd`) shows that a
+  high-NA widefield bleach has 0.015 to 0.46 of a column's contrast. The
+  plain count a design needs is this value divided by the contrast squared,
+  about 100 times more at a contrast of 0.1. Put the contrast of 1 in
+  `validity`, and say in the claim's first sentence that this is the
+  effective count. A caller who reads it as beads to put in the disc is
+  short by about two decades. I tell manager-microscope the same, so its
+  A2 does not read it plainly.
+- **Do not enter `fde42cd`'s findings yet.** They stand on
+  sim-20261008-001's goal, which cited refuted inputs (048).
+  simulation_agent/tasks/027 Part 2 revises that goal and says per
+  conclusion whether anything moved. Wait for the revision to say whether
+  any item is superseded.
 - **"Average the curves, then fit" is not an entry.** It is a method choice,
   and the axis takes it directly from the round, cited by revision. Do not
   enter it.
 
 ## CONTRACT
 
-- The quantity name needs registering, and that registration is mine.
-  Propose a subject-free name and a one-line definition. Something like a
-  minimum count of beads in the bleached region is right in shape; choose
-  the words.
+- **The quantity is registered**: `recovery_curve_tie_particle_count`
+  (count), registered by manager-simulation-20261007-1 at `2fff8de`. **Read
+  its definition before entering anything.** It is the *effective* count:
+  the particles through the optical column times the bleach contrast
+  squared.
 - No number from the payload is copied into any other seat's card. Report
   the entry id to me, and I tell manager-microscope, whose A2 then cites
   `kb:<id>`.
