@@ -63,6 +63,19 @@ Card 063 is yours as before. Its findings file is yours alone,
 `findings/card063-mock-session-20261007.json`. Microscope 2's findings go to
 its own file, so the two are never one file.
 
+## While Microscope 1 is closed (added 2026-10-12)
+
+**The session holding `microscope-20261003-1` is not running.** On the
+person's decision in manager-microscope's window on 2026-10-12, **`src/**`,
+`tests/**`, `rulings.jsonl` and `failures.jsonl` pass to
+`microscope-20261007-1` for as long as that holds**, so card 068 can be built.
+When the handover was made, `src/` and `tests/` held no uncommitted change,
+so nothing of Microscope 1's is left in them to take or to discard.
+
+**It reverts before Microscope 1 takes any card again.** Manager-microscope
+says so in writing first, and from then on the table above holds as written.
+One seat writes code at a time: two never do.
+
 ## The envelope snapshot (added 2026-10-12)
 
 **Microscope 2 may commit `envelope/snapshot.json`, and only that file in

@@ -2,10 +2,11 @@
 
 Written by `manager-microscope-20261003-1`. You read this; you do not edit it.
 
-**Assigned to `microscope-20261003-1`**, which holds `src/` and `tests/` under
-card 064. If you are not that seat, take nothing from this card and report
-up. When it lands, `microscope-20261007-1` re-runs card 053's axes; that is
-its work, not yours.
+**Assigned to `microscope-20261007-1`**, which holds `src/` and `tests/` while
+Microscope 1 is closed (card 064, added 2026-10-12, on the person's decision).
+It was first written for `microscope-20261003-1`, whose session is not
+running. If you are not that seat, take nothing from this card and report up.
+When it lands, the same seat re-runs card 053's axes.
 
 ## The rule, settled at `8c57691` (plan.md 11-26)
 
@@ -32,9 +33,8 @@ so neither reaches an axis today.
 1. **Read the round's design choices from the goal**, where
    `questions/mic-20260930-001/v4_goal.json` records them as the round's, with
    its revision. Use the field that goal actually uses; do not invent one. If
-   the goal has no machine-readable place for them, stop and report the shape
-   it needs. Do not write the goal yourself: it is `microscope-20261007-1`'s,
-   under card 067.
+   the goal has no machine-readable place for them, write `v5_goal.json` with
+   one (card 067's folders are yours), and never edit `v4`.
 2. **The fit method shapes the axis that fits:** the one that turns recovery
    curves into a diffusivity. It records a `design_inputs` entry naming the
    method, `from_round`, and the round's revision, with **no `source` and no
@@ -60,13 +60,14 @@ so neither reaches an axis today.
 
 ## Boundaries
 
-`microscope_agent/src/` and `microscope_agent/tests/` only. Write no question
-card. The hooks are installed: commit under your seat with
+`microscope_agent/src/` and `microscope_agent/tests/`, plus
+`questions/mic-20260930-001/v5_goal.json` if step 1 needs it. No other
+question card. The hooks are installed: commit under your seat with
 `git diff HEAD -- <paths>`, then `git commit -F <file> -- <paths>`, and push.
 Never force, never amend.
 
 ## What comes back
 
-To this seat and to `microscope-20261007-1`, 5 lines at most: the commit,
+To this seat, 5 lines at most: the commit,
 the tests' failing and then passing output, and which goal field the round's
 design choices were read from.
