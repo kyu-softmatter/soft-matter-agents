@@ -73,6 +73,34 @@ the no-limits refusal, the person has to approve plan 001 before writing any
 limits. **Don't reorder the checks for this.** Say it in the report, so card
 060's next visit asks the person in that order.
 
+## Added after the visit (2026-10-13)
+
+From the bench seat's report at the end of the visit; manager-microscope
+checked it against `runs/run-20261013-001` to `-006`.
+
+**Live view is in scope as much as the operator.** The person skipped the
+first real abort through live view: with no configuration loaded, a
+`live_on` could not switch the lamp on and the abort could not read lamp or
+shutter rows. So the `--mm-config` option, the approved-hash check, the
+derived file and the load event all apply to `live_view.py --backend
+hardware` too. **Test the abort path explicitly**: after a load, an abort
+reads every lamp and shutter row back. Before a load, it refuses as today.
+
+**The operator's command line cannot state the hand-over lens.**
+`run-20261013-002` refused with `no objective stated at hand-over`, because
+`main()` passes no `handover` to `run()`. The bench seat worked around it
+with a scratch driver (`D:/sma-scratch/060/bench_run.py`) that calls
+`operator.run(..., handover={"objective": "20x"})` with the lens the person
+stated. It sent no command and changed nothing in `src/`, but **a hardware
+run should go through the operator's own command line**, so the record shows
+the entry point that was reviewed. Add an option, e.g. `--handover-objective
+<lens>`, that passes exactly what the person states and nothing it infers.
+It never defaults: absent on hardware means the refusal stays. Log it as the
+person's statement.
+
+**Still not shown, for the next visit:** the focus-hold-on refusal, and Z
+equal before and after any refusal. Both wait on this card.
+
 ## Tests
 
 On mock, under `tests/`:
@@ -83,7 +111,11 @@ On mock, under `tests/`:
   preset's lines are absent from it;
 - AutoShutter not verified → stop before the gate;
 - the load event is in `events.jsonl` before `focus_search_z_before`, and Z
-  is read on both sides of a refusal.
+  is read on both sides of a refusal;
+- `live_view.py` on hardware: no config → refused; with an approved config,
+  an abort reads every lamp and shutter row back;
+- no `--handover-objective` on hardware → refused, unchanged; with it, the
+  stated lens reaches the gate and a mismatch with the plan's lens is refused.
 
 Watch each new test fail before the code that passes it exists.
 
