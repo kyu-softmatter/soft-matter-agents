@@ -1,0 +1,99 @@
+{
+  "record": "bench_visit_2026_10_13",
+  "note": "Card 060's bench visit as the person ran it on 2026-10-13, recorded by the bench seat. Written without `artifact`, like the dry-run record of 2026-10-08, because nothing here is for the store yet. Readings in phase A were taken by the person in the Micro-Manager Device Property Browser and dictated to this seat in chat, with screenshots of the browser for the PFS and the shutter/turret pages; the seat did not read the instrument itself. The configuration loaded in the GUI was the dual-camera file DMD_dualcam_LUNF.cfg, NOT the single-camera file this seat first suggested. Nothing in this file was written to any device, to envelope/ or to approvals/. File name follows the existing seat-date pattern; the kickoff's 'microscope-<seat>' would have doubled the word.",
+  "seat": "microscope-20261013-1",
+  "on": "2026-10-13",
+  "for": "the person at the bench",
+  "task": "tasks/060-the-bench-visit-2026-10-08.md",
+  "items": [
+    {
+      "id": "A_pfs_readings",
+      "kind": "observation",
+      "for_store": false,
+      "fact": "Focus-hold (device PFS, Micro-Manager NikonTi2) readings, three properties each time. OFF, never switched on since the configuration loaded: FocusMaintenance Off, PFS Status 0000000000000000, PFS in Range 'Out of Range'. ON and LOCKED (stand showed locked; Refresh several times left the value unchanged): FocusMaintenance On, PFS Status 0000001100001010, PFS in Range 'In Range'. OFF again after having been on (stand showed 'in range, not locked'; Refresh did not change it): FocusMaintenance Off, PFS Status 0000000100000000, PFS in Range 'In Range'. ON BUT STILL SEARCHING was not caught: the stand locks faster than the person could press Refresh, after several tries. PFS LEDIntensity went from 27 to 10 when focus hold was switched on; the person did not change it.",
+      "how": "Person read each value in the Device Property Browser with 'Show read-only' ticked, pressed Refresh after each change of state, and confirmed the 16 digits of PFS Status for the first two states and the third by saying so. The switch was the stand's own. The 'locked' state was confirmed on the stand by the person, not inferred from the property.",
+      "for_the_person_to_decide": "Which readings go into envelope/safety.json as pfs_not_engaged is the person's. What the readings show: FocusMaintenance read Off in both off states and On in the locked state; PFS Status read two different strings in the two off states, so it does not by itself tell off from not-yet-reached. The searching state has no reading, so nothing says whether FocusMaintenance reads On while searching."
+    },
+    {
+      "id": "A_camera_saturation",
+      "kind": "observation",
+      "for_store": false,
+      "fact": "Both Kinetix cameras (Kinetix_red, Kinetix_blue, both loaded by the dual-camera file) read Port 'Dynamic Range' and ReadoutRate '100MHz 16bit'. The person saturated the image with the transmitted lamp and read a maximum of 65535 ADU from the Micro-Manager histogram, with many pixels saturated. The person first said the readout was '100MHz 12bit' and then corrected it to '100MHz 16bit' on a second look.",
+      "how": "Read from the histogram, not from the image-information Max. Binning and exposure time at the reading were not given. It was not stated whether the maximum was read on one camera or both; the person said the two cameras read the same. The value belongs to this readout mode only (Dynamic Range, 100MHz 16bit); every other Port and ReadoutRate stays a gap. dino-autofocus's record forms are not on this computer, so this reading is recorded here and not cited to them; if dino's form already holds a value, the two should be compared, not merged.",
+      "binning_and_exposure": "Said by the person afterwards: binning 1x1, exposure 30 ms to 100 ms (a range, not one value; which exposure gave the 65535 was not stated).",
+      "gaps": [
+        "which exposure in the 30 to 100 ms range gave the 65535",
+        "which camera the 65535 was read on",
+        "image-information Max, as opposed to the histogram"
+      ]
+    },
+    {
+      "id": "A_csuw1_shutter",
+      "kind": "observation",
+      "for_store": false,
+      "fact": "CSUW1-Shutter State reads the label 'Open'. The label that means closed was NOT read: the Device Property Browser did not show the list of allowed values, and the person was not asked to open the drop-down because choosing a value would command the shutter. No closed value is recorded today, which matches the store's existing entry csuw1_shutter_state_reads_a_label.",
+      "how": "Read from the Device Property Browser with 'shutters' ticked. The same screen read Turret1Shutter State 0, Turret2Shutter State 0, DiaLamp State 1 (lamp on, Intensity 2100), Aura State 0, LightEngine State 0. Reading the allowed values would take a read-only connection after Micro-Manager is closed; not done yet."
+    },
+    {
+      "id": "A_objective_changed_by_hand",
+      "kind": "observation",
+      "for_store": false,
+      "fact": "After Micro-Manager was closed the person changed the objective from the 60x oil lens to the 20x lens, by hand at the stand. The person said so in chat; nothing read it back from the instrument, and this seat has not seen the nosepiece state since. Whether Z was lowered first, and the focus-motor position now, were not stated.",
+      "how": "Said by the person in chat, 2026-10-13, after the Micro-Manager GUI was closed. Unverified by any read-back."
+    },
+    {
+      "id": "B1_no_limit_refusal",
+      "kind": "test_record",
+      "for_store": false,
+      "fact": "Step 1, plan mic-20261008-001 revision 1 (20x focus search, range 2000 to 2100 um), run from scratch on --backend hardware with --write, three runs, all REFUSED, no command sent to any device in any of them (commands 0, no apply event). run-20261013-001 (operator.py command line): refused because no plan_approval on disk named the plan, which was before the gate reached the limits; the kickoff did not list that approval. run-20261013-002 (operator.py command line, approval now saved): refused 'no objective stated at hand-over' because the command line passes no hand-over statement. run-20261013-003 (D:/sma-scratch/060/bench_run.py, which calls the same operator.run with handover {objective: 20x}, the person's statement, and nothing else): refused 'envelope/safety.json has no focus_z_20x_min in um', the reason the step was written to show. Z NOT READ: in all three runs focus_search_z_before and focus_search_refused carry z_um/z_before_um/z_at_refusal_um null with z_read_failed 'no Micro-Manager configuration is loaded'. The encoder-equal-before-and-after check was NOT shown and is not claimed; it moves to the next visit (card 069 for the configuration-loading fix). Whether the focus display moved was watched by the person.",
+      "how": "events.jsonl sha256: run-20261013-001 0218b37cec3da572eb22d87ffd4ac1694f6af7a59dd0ed7677ede4edbe957cbb; run-20261013-002 8ee0c9a24838214b17f60eea9ca4be2ae5e10aa3bf629e7e6484b8e106a36a0b; run-20261013-003 e4757434299c69cffb3a60511716953954835c28305e9b8c4260d7644cc710f7. Plan file sha256 643be22ea3767dcc8af0bca8ddcb51ba5d0ed8f114986b22e201af1112cc6e88 (plan_hash sha256:75e4c19d17024b4f130b1e2c4f89a54d089130af4559b59de639c659eae807e9). The plan runs from scratch and is cited by hash, never committed. The approval card appr-mic-20261008-001-r1.json (the person's) sits in microscope_agent/approvals/ and run 003 reached the limit check, so the operator found it there; Microscope manager's message said it was in a doubled microscope_agent/microscope_agent/approvals/ folder, which does not exist. bench_run.py is a scratch driver and changes nothing in src/; the same hand-over gap is the second thing card 069 should carry: operator.py's command line cannot state the objective in place.",
+      "gaps": [
+        "focus-motor encoder before and after: not read, no configuration loaded",
+        "whether the focus display moved: the person's observation, to be added"
+      ],
+      "z_line": "Z not read: no configuration loaded"
+    },
+    {
+      "id": "B3_other_refusals",
+      "kind": "test_record",
+      "for_store": false,
+      "fact": "After the person wrote envelope/safety.json (focus_z_<lens>_min 0 um and _max 3300 um for all six lenses; pfs_not_engaged: device PFS, property 'PFS Status', values 0000000000000000 and 0000000100000000), three more refusals on --backend hardware through D:/sma-scratch/060/bench_run.py with the person's statement that the 20x is in place. All three REFUSED, each for its own reason, none sent a command to any device (no apply or command event in any of them): run-20261013-004, plan mic-20261008-004 revision 1, no approval card: 'the focus-search plan is not approved for this revision: no plan_approval on disk names (plan-mic-20261008-004-r1, revision 1)'. run-20261013-005, plan mic-20261008-002 revision 1 (names 10x, person-signed approval present): 'the plan's focus search is for 10x and the person states 20x is in place'. run-20261013-006, plan mic-20261008-005 revision 1 (range 8950 to 9050 um, person-signed approval present): 'range_um 8950.0 to 9050.0 is not a range inside the person's focus_z_20x limits 0.0 to 3300.0'. Z NOT READ in any of them (z_read_failed: no Micro-Manager configuration is loaded); the equal-encoder check was not shown and is not claimed. The 'focus hold on' refusal (plan mic-20261008-003) was NOT run and is NOT shown: reading the focus-hold property needs a loaded configuration, so on hardware today it could only refuse because the read failed, which is not the reason that plan exists to show; plan 003 is otherwise an ordinary 20x search, so it was left unrun on purpose. It waits for the configuration-loading fix (card 069).",
+      "how": "events.jsonl sha256: run-20261013-004 41e56b66e62271bc18327e98fd28fca0bf68f4f92d359380675fd40cc05ee4d8; run-20261013-005 1bd484cc7a37323f66173b352c8f0996dc960df4d72f5cd484e9d5bf1c30d1ab; run-20261013-006 eaa1120801b1603e1f5e6a9d1bb5bcabe62b87e35a1267d1f7af9d5e9f44b00a. Plan file sha256 (scratch, never committed): 004 0fabeb55b5cc62d212f6ced12c64bbbc8378e79ef2526d28a36f60b0735cca44; 002 14ea45891760f8d83156f5c42d72e26a832487da16c68921ea6b5e0030bd6338; 005 9267aa3d3c3340c245c5c8e4d48d7ab6d182f1523593534d098f6871e49fcdf0. Revision-2 copies of plans 002-004 in questions/mic-20261013-<n>/ were NOT made: they need the plan-revision tool and a decision on what to commit, so today's runs used the scratch plans (limits 0 to 3300 um contain the plans' 2000 to 2100 um). Plan 001's approval was withdrawn by the person before the limits were written; the approvals for 002 and 005 were saved by the person for these runs and are to be withdrawn after them. The person watched the focus display; their observation is added when given.",
+      "stands_out": "The person's _max 3300 um is written as the contact position itself with no margin below it, for all six lenses (the how text says so). That is the person's value and decision; the seat flagged it in chat. Whether it should sit below contact is for the person before any real search.",
+      "person_observation": "The person watched the focus-motor display during runs 004, 005 and 006 and said the motor did not move. Said in chat after the runs; it is the person's observation, not a reading.",
+      "gaps": [
+        "focus-motor encoder before and after: not read",
+        "focus hold on: not shown"
+      ],
+      "z_line": "Z not read: no configuration loaded"
+    },
+    {
+      "id": "B4_abort_through_live_view_not_done",
+      "kind": "test_record",
+      "for_store": false,
+      "fact": "Step 3 of card 060, the first real abort through live view, was NOT done on 2026-10-13, by the person's decision after the seat reported the cause. live_view.py, like operator.py, never loads a Micro-Manager configuration on --backend hardware, so the transmitted lamp could not be switched on through it and the abort could not read lamp or shutter rows back. This is the same gap as the refusals' missing Z read, and it is read from the code (live_view.py has no load_configuration call; devices/micromanager.py _core() raises when no device but Core is loaded), not measured by a run. The person's list approvals/live_view_transmitted_lamp.json was saved and not used (sha256 82c7b36c2622a9ef13bf88dda05c39de296ed533203178216e5f1d44ae975e7a as architecture verified it after the person saved it). No lamp or shutter was switched by software today. The person switched the transmitted lamp on and off by hand in the Micro-Manager GUI during phase A.",
+      "how": "Choice put to the person in chat: (a) skip and carry to the next visit, or (b) a scratch wrapper loading a derived configuration under a person-approved sha256. The person chose (a). For card 069: it should cover live_view.py as well as operator.py, and the objective-in-place hand-over statement that operator.py's command line cannot carry (runs 001 and 002 refused for want of it)."
+    },
+    {
+      "id": "C_not_done",
+      "kind": "test_record",
+      "for_store": false,
+      "fact": "Card 060 step 6 and dino-autofocus's hand measurements (focus curve through a bare-particle slide, focus offsets, focus-hold offset direction, first-lens focus miss, 40x water working distance) were not done. The spinning-disk shutter's closed label was not read (only 'Open' was seen). The 'focus hold on' refusal was not shown. The encoder-equal-before-and-after check was not shown. The camera ceiling is recorded with its gaps in A_camera_saturation and is not entered in any store.",
+      "how": "Time and the loading gap above; not a stop condition."
+    },
+    {
+      "id": "report",
+      "kind": "report",
+      "for_store": false,
+      "fact": "For manager-microscope, 8 lines. (1) Runs: run-20261013-001 to -006, all refused, none sent a command; hashes in B1 and B3. (2) Refusals shown, each for its own reason: no focus limit (003), not approved (001, 004), wrong lens (005), range above max (006); (003 reason shown only after the person's approval card was saved; 001 and 002 refused earlier for approval and for no hand-over lens). (3) Z was never read: no configuration is loaded on hardware, so the encoder-equal check and the focus-hold-on refusal are NOT shown; card 069 should also cover live_view.py and the hand-over statement. (4) The abort through live view was not done (cause above); no software lamp or shutter command happened today. (5) Phase A, read by the person in the GUI on DMD_dualcam_LUNF.cfg: focus-hold readings in three states (searching not caught), camera maximum 65535 at Dynamic Range / 100MHz 16bit, 1x1, 30 to 100 ms, histogram; CSUW1-Shutter reads 'Open', closed label unread. (6) The person wrote the twelve focus limits (0 to 3300 um, all lenses) and pfs_not_engaged on PFS Status with two off readings; the _max is written as the contact position with no margin, flagged to the person, theirs to decide before any real search. (7) Card 060 step 6 and dino's hand measurements were not done. (8) Instrument work for this visit is done as of this item; the src/ and tests/ freeze may end.",
+      "how": "Written at the end of the visit, 2026-10-13 evening local, by the seat that ran it."
+    },
+    {
+      "id": "A_state_at_the_stand",
+      "kind": "observation",
+      "for_store": false,
+      "fact": "Device state when the dual-camera file had loaded: Nosepiece state 4, label '5-Plan Apo LmbdD0.15 60x Oil' (the objective in place); CondenserTurret state 2; FilterTurret1 and FilterTurret2 both 'Empty' (state 0); LightPath state 3, label '4-L100'; LappMainBranch1 state 1, 'mirror_in'; CSUW1 Filter_Red state 4 label '647'; Filter_Blue state 2 label '488'; Dichroic state 0 'on'; Port state 1 'blue_red'; LUNF-Blanking State 0. The transmitted lamp was left on after the saturation reading and switched off, with focus hold, before Micro-Manager was closed.",
+      "how": "Screenshots of the Device Property Browser, wheels/turrets and shutters pages, read by the seat and not by the person at the instrument."
+    }
+  ]
+}
