@@ -91,6 +91,42 @@ The commit message names the export commit it was copied from. On
 2026-10-12 the person copied `kbv-b1253d99047e`, from `f458f86`.
 `envelope/safety.json` stays the person's, and neither seat commits it.
 
+## The bench seat, Tuesday 2026-10-13 (added 2026-10-13)
+
+Added by `manager-microscope-20261013-1` on the person's yes in this seat's
+window on 2026-10-13. **On Tuesday the person seated `microscope-20261013-1`
+for the bench** (sidebar "Microscope for bench"), as a third session. It
+closes neither seat above, and the rows above stand.
+
+| | `microscope-20261013-1` (bench) |
+|---|---|
+| cards | **060's visit, on the day** |
+| writes | `runs/<run_id>/` through `operator.py --write` and live view; `findings/microscope-20261013-1-20261013.json`; `questions/mic-20261013-<n>/`, new folders it creates, holding the revision-2 copies of plans 002, 003 and 004 from `D:/sma-scratch/060` |
+| never writes | `src/**`, `tests/**`, `tasks/`, `CLAUDE.md`, `rulings.jsonl`, `failures.jsonl`, `envelope/`, `approvals/`, `inbox/`, and any `questions/` folder or `findings/` file it did not create |
+
+**Code stays with `microscope-20261007-1`**, under "While Microscope 1 is
+closed" above. A code problem the bench finds goes up with the file and line,
+the same way: the bench seat reports and does not edit. The first one is
+card 069.
+
+**`src/` is frozen while the bench is on the instrument.** Every seat runs
+`src/` from the one shared working copy, so an uncommitted edit by
+`microscope-20261007-1` would be the code that drives the instrument. From
+the bench seat's first hardware run until it says in its findings file that
+the visit's instrument work is done, `microscope-20261007-1` makes **no edit
+under `src/` or `tests/` in the working copy**. Work in a scratch copy is
+allowed; nothing from it enters the tree until the freeze ends. Card 068's
+code and card 069 wait behind this.
+
+**Today's refusals are watched, not read** (the person's choice,
+2026-10-13). No Micro-Manager configuration is loaded on any hardware path
+(card 069), so Z cannot be read around a refusal. Each refusal the bench
+shows is recorded with the person watching the focus display, and its
+findings line says **"Z not read: no configuration loaded"**. The
+encoder-equal check moves to the next visit. **A refusal recorded this way
+does not count as shown with Z equal**, and the findings file must not say
+it does.
+
 ## Both
 
 - **Name your own paths when committing**: `git diff HEAD -- <paths>`, then
