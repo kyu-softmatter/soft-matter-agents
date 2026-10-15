@@ -1,0 +1,5 @@
+# Root attributes. Architecture's file (plan.md 10.2, 2026-10-15).
+# The Micro-Manager configurations that arrive with dino-autofocus must stay
+# byte-exact against the microscope computer's originals: no end-of-line
+# conversion on checkout or commit. Landed before the import commit.
+microscope_agent/autofocus/configs/micromanager/*.cfg -text
