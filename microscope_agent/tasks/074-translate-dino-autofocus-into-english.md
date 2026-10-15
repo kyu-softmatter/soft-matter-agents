@@ -50,9 +50,11 @@ one file at once.
 
 When `git grep -I` for Hangul over `microscope_agent/autofocus/` finds only
 the person's quoted words, each glossed, the card closes. **Tell
-architecture**: the exception bullet in `CLAUDE.md` comes out in a commit
-that is architecture's, since `CLAUDE.md` is architecture's file. Report the
-final grep count.
+`architecture-20261007-1`**, which holds the root `CLAUDE.md` under the
+person's division of 2026-10-15: the exception bullet there comes out in its
+commit. **Send a copy to `architecture-20261003-1`**, which holds plan.md
+sections 6 to 9, so section 7's line on the temporary exception closes in
+the same pass. Report the final grep count to both.
 
 ## Boundaries
 
