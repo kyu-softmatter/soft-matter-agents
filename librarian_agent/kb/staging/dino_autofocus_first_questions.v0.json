@@ -239,6 +239,7 @@
     },
     {
       "card": "SMA-01",
+      "status_2026_10_15": {"state": "answered for one readout mode; every other mode stays a gap", "entered": "kinetix22_saturates_at_65535_adu_dynamic_range_100mhz_16bit (65535 ADU, operator_read, E3: the person read the Micro-Manager histogram at the 2026-10-13 bench with no agent running, on a body the record does not name) and kinetix22_both_bodies_saturate_alike_per_the_person (the same value for camera_red and camera_blue, operator_recall, E5, on the person's statement that the two read the same). Mode as read back: Port 'Dynamic Range', ReadoutRate '100MHz 16bit', binning 1x1.", "why_not_measured": "this card accepts only 'measured', meaning taken on this stand; in the store measured: needs a recorded run of this system and there was none, so the reading is operator_read and the grade was not lifted to match the card.", "still_open": "every other Port and ReadoutRate on each body; which body the 65535 was read on; which exposure in 30 to 100 ms gave it; the image-information Max as opposed to the histogram. Recorded in microscope_agent/findings/microscope-office-20261015-2-20261015.json at aa7f000, offering microscope-20261013-1-20261013.json at 1104cc6, item A_camera_saturation."},
       "topic": "the camera's full-scale count in each readout mode -- added by this store, because the focus search needs it to tell a clipped frame and the store cannot say which ceiling applies",
       "kind": "added by the store",
       "store_holds": [

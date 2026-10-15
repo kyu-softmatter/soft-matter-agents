@@ -1,0 +1,10 @@
+{
+  "source_id": "src_person_statement_20261015_pfs_off_codes",
+  "kind": "operator_recall",
+  "identifier": "The person's explanation on 2026-10-15, directly in manager-librarian-20261007-1's window, of why the two off readings of PFS Status differ: both are off, and the codes differ because one reading was taken in range and the other out of range. Recorded in librarian_agent/tasks/046-the-rest-of-the-answer-sheet-after-the-bench.md at 2853b6e.",
+  "accessed": "2026-10-15",
+  "grade_rule": "E5, grade_tag operator_recall: the person's statement of what the readings mean, made two days after the bench and not itself a reading. Kept apart from the readings so that the readings stay what was read and the reading of them stays the person's.",
+  "agrees_with_the_record": "The original item's own `PFS in Range` column shows the same split: 'Out of Range' with Status 0000000000000000, 'In Range' with 0000000100000000.",
+  "does_not_say": "which bit of PFS Status means engaged, or what the searching state reads -- it was not caught at the bench.",
+  "provenance": "Not from any prior repository, so 10.2 and 10.2.1 do not apply."
+}

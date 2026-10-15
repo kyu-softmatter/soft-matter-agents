@@ -1,0 +1,50 @@
+{
+  "entry_id": "kinetix22_both_bodies_saturate_alike_per_the_person",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The person stated at the bench on 2026-10-13 that the two Kinetix 22 cameras, red and blue, read the same saturated maximum, 65535 ADU, in Port 'Dynamic Range' and ReadoutRate '100MHz 16bit', binning 1x1.",
+  "numbers": [
+    {
+      "name": "full_scale_count",
+      "value": 65535,
+      "unit": "ADU",
+      "source": "operator_recall:kyuhwan_20261013_cameras_read_the_same",
+      "grade": "E5",
+      "precision": "significant_figures",
+      "note": "for each of the two bodies, on the person's statement that they read the same; the reading itself, on an unnamed body, is kinetix22_saturates_at_65535_adu_dynamic_range_100mhz_16bit at E3"
+    }
+  ],
+  "subject": [
+    {
+      "kind": "device",
+      "id": "camera_red"
+    },
+    {
+      "kind": "device",
+      "id": "camera_blue"
+    },
+    {
+      "kind": "quantity",
+      "id": "full_scale_count"
+    }
+  ],
+  "identifiers": {
+    "model": "Kinetix 22",
+    "port": "Dynamic Range",
+    "readout_rate": "100MHz 16bit",
+    "binning": "1x1"
+  },
+  "source": "operator_recall:kyuhwan_20261013_cameras_read_the_same",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_operator_read_20261013_bench_readings",
+  "valid_until": {
+    "date": "2036-10-13",
+    "event": "a camera body is replaced, or the readout modes are changed by camera firmware or by the PVCAM adapter. A swap between arms is not that event (camera_bodies_are_told_apart_by_serial), and here it could not be: the reading names no body. The date is only an outer bound."
+  },
+  "validity_conditions": "THE PER-BODY ROUTE, AND WHY IT IS GRADED AS A STATEMENT (task 043: if the entry is about both bodies, the claim that the second camera reads the same rests on the person's statement and is graded as one, not as the reading). The record says it was not stated whether the 65535 was read on one camera or both, and that the person said the two read the same. That sentence is what attaches the value to each named body, so this entry carries it at E5 and names both cameras as its subject. A plan applying the ceiling to camera_red or camera_blue cites this entry, alongside the reading. It is the same value as the reading, so there are not two ceilings, only two grades for two claims: the value was read (E3, no body named), and it holds for each body (E5, the person's word). Both bodies read back the same mode, Port 'Dynamic Range', ReadoutRate '100MHz 16bit'. Every other mode stays a gap for each body. What would raise it: a saturated reading taken on each body separately, with its label and serial noted. NOT A LIMIT.",
+  "date": "2026-10-15",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261007-1"
+}

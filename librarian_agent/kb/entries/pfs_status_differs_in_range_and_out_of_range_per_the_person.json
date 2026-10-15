@@ -1,0 +1,29 @@
+{
+  "entry_id": "pfs_status_differs_in_range_and_out_of_range_per_the_person",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The person stated on 2026-10-15 that both off readings of PFS Status taken on 2026-10-13, 0000000000000000 and 0000000100000000, are focus hold off, and that the codes differ because one was taken out of range and the other in range.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "pfs"
+    }
+  ],
+  "identifiers": {
+    "mm_device": "PFS",
+    "property": "PFS Status"
+  },
+  "source": "operator_recall:kyuhwan_20261015_pfs_off_codes",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_person_statement_20261015_pfs_off_codes",
+  "valid_until": {
+    "date": "2036-10-15",
+    "event": "the stand's firmware or the Micro-Manager NikonTi2 adapter changes, which can change what these properties report. The readings themselves are bounded to 2026-10-13 in their text."
+  },
+  "validity_conditions": "THE PERSON'S READING OF THE READINGS, kept separate from pfs_reports_focus_maintenance_status_and_range_in_three_states so that what was read and what it means are not one claim. It agrees with the record's own PFS in Range column: 'Out of Range' with Status 0000000000000000 and 'In Range' with 0000000100000000. What it says: whether the stand is in range shows in the Status code apart from engagement. What it does NOT say: which bit of Status means engaged, or what the searching state reads, which was not caught. E5 because it is a statement made two days after the bench, not a reading. Which reading the envelope uses as not engaged is the person's and is written in envelope/safety.json; this entry does not judge it, and is not a command or a limit.",
+  "date": "2026-10-15",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261007-1"
+}

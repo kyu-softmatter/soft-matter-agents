@@ -1,0 +1,30 @@
+{
+  "entry_id": "pfs_reports_focus_maintenance_status_and_range_in_three_states",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The focus hold, Micro-Manager device PFS on the NikonTi2 adapter, read three properties in three states on 2026-10-13: off and never switched on since load -- FocusMaintenance Off, PFS Status 0000000000000000, PFS in Range 'Out of Range'; on and locked -- FocusMaintenance On, PFS Status 0000001100001010, PFS in Range 'In Range'; off again after being on -- FocusMaintenance Off, PFS Status 0000000100000000, PFS in Range 'In Range'.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "pfs"
+    }
+  ],
+  "identifiers": {
+    "mm_device": "PFS",
+    "mm_adapter": "NikonTi2",
+    "properties": "FocusMaintenance, PFS Status, PFS in Range, PFS LEDIntensity"
+  },
+  "source": "operator_read:kyuhwan_20261013_bench_readings",
+  "grade": "E3",
+  "grade_tag": "operator_read",
+  "source_ref": "src_operator_read_20261013_bench_readings",
+  "valid_until": {
+    "date": "2036-10-13",
+    "event": "the stand's firmware or the Micro-Manager NikonTi2 adapter changes, which can change what these properties report. The readings themselves are bounded to 2026-10-13 in their text."
+  },
+  "validity_conditions": "SETTINGS READ BACK, entered the way 044 entered the stand's self-reports, as strings and not quantities. The person read each value in the Device Property Browser with 'Show read-only' ticked, pressed Refresh after each change of state, and confirmed the 16 digits of PFS Status for the first two states and the third by saying so; the switch was the stand's own, and 'locked' was confirmed on the stand by the person, not inferred from the property. operator_read and not measured: no run of this system recorded it. ALSO READ: PFS LEDIntensity went from 27 to 10 when focus hold was switched on; the person did not change it. NOT READ: the state 'on but still searching' -- the stand locks faster than the person could press Refresh, after several tries -- so nothing here says what any property reads while searching, including whether FocusMaintenance reads On then. NO SINGLE Status STRING MEANS 'NOT ENGAGED': PFS Status read two different strings in the two off states, 0000000000000000 and 0000000100000000, so Status alone does not tell off from not-yet-reached; FocusMaintenance read Off in both off states and On in the locked one. The person's explanation of the two off codes is a separate entry, pfs_status_differs_in_range_and_out_of_range_per_the_person, kept apart so these readings stay what was read. WHICH READING THE ENVELOPE USES IS THE PERSON'S: envelope/safety.json's pfs_not_engaged is written by the person and is not this entry's to judge, and nothing here may be read as a command or a limit.",
+  "date": "2026-10-15",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261007-1"
+}

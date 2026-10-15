@@ -1,0 +1,43 @@
+{
+  "entry_id": "kinetix22_saturates_at_65535_adu_dynamic_range_100mhz_16bit",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "On this bench a Kinetix 22 camera in Port 'Dynamic Range' and ReadoutRate '100MHz 16bit', binning 1x1, saturated by the transmitted lamp, read a maximum of 65535 ADU on the Micro-Manager histogram, as the person read it on 2026-10-13. Which of the two bodies it was read on is not recorded.",
+  "numbers": [
+    {
+      "name": "full_scale_count",
+      "value": 65535,
+      "unit": "ADU",
+      "source": "operator_read:kyuhwan_20261013_bench_readings",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the highest value on the Micro-Manager histogram with many pixels saturated, read by the person; not the image-information Max, which was not read. A whole count, entered as read."
+    }
+  ],
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "full_scale_count"
+    }
+  ],
+  "identifiers": {
+    "model": "Kinetix 22",
+    "port": "Dynamic Range",
+    "readout_rate": "100MHz 16bit",
+    "binning": "1x1",
+    "mm_configuration": "DMD_dualcam_LUNF.cfg"
+  },
+  "source": "operator_read:kyuhwan_20261013_bench_readings",
+  "grade": "E3",
+  "grade_tag": "operator_read",
+  "source_ref": "src_operator_read_20261013_bench_readings",
+  "valid_until": {
+    "date": "2036-10-13",
+    "event": "a camera body is replaced, or the readout modes are changed by camera firmware or by the PVCAM adapter. A swap between arms is not that event (camera_bodies_are_told_apart_by_serial), and here it could not be: the reading names no body. The date is only an outer bound."
+  },
+  "validity_conditions": "THE READOUT MODE IS THE ONE THE SOFTWARE READ BACK, verbatim, in identifiers.port and identifiers.readout_rate, which is what a plan's mode is matched against. The store's validity holds numeric ranges only, so the mode and the 1x1 binning cannot be carried there and live in identifiers and in this text. The person first gave the readout as '100MHz 12bit' and corrected it to '100MHz 16bit' on a second look; the record keeps both and the correction is what is entered. EVERY OTHER Port AND ReadoutRate IS A GAP, for each body: nothing here holds for another mode. WHICH BODY IS NOT KNOWN: both cameras, Kinetix_red and Kinetix_blue, were loaded and both read this mode, and the record says it was not stated whether the maximum was read on one camera or both. So this entry is about the reading, not about a body, and names neither camera as its subject. That the other body reads the same is the person's statement and is graded as one in kinetix22_both_bodies_saturate_alike_per_the_person; a plan that applies the ceiling to a named camera cites that entry and takes its grade. In this dual-camera configuration the label-to-body mapping was not read either: kinetix_red_label_opens_serial_a24m723015 established it for the single-camera file only. WHAT WAS READ: the histogram, not the image-information Max. Exposure was somewhere in 30 to 100 ms and which exposure gave the 65535 is not recorded; a saturation ceiling does not move with exposure, but the gap is named. No frame file is on disk, so nothing here was read by this seat from pixels; the value is the person's reading of the display. WHY operator_read AND NOT measured: no agent was running and no run of this system recorded it (task 043). THE ANSWER SHEET'S CARD SMA-01 asks for a 'measured' answer and means 'taken on this stand'; that word does not lift the grade here. COMPARED, AND IT AGREES: 65535 is 2^16 - 1, the ceiling of a 16-bit readout. The adapter described Kinetix_red as BitDepth 16 with ReadoutRate '100MHz 16bit' on 2026-09-24 (kinetix_red_adapter_properties_as_reported_20260924), and the datasheet's DynamicRange mode is 16-bit (camera_read_noise_dynamicrange). Both agree. That Port 'Dynamic Range' IS the datasheet's DynamicRange mode is consistent -- the names differ by a space and both say 16 bit -- but the record does not state the mapping, so it stays open and no datasheet value is attached to this mode through it. pixeltype_misreports_bit_depth (a prior project: PixelType said 12bit while 16-bit data arrived) is not contradicted: PixelType was not read here, and a 16-bit maximum is what that entry says the data really is. No conflict_with. THE PERSON'S RECOLLECTION S4 on dino-autofocus's form (cards L-055, L-056) was not compared: dino's forms were not on the microscope computer that day and are not on disk here, and its number is not entered. NOT A LIMIT: a fact about the camera, read off its display; no envelope value derives from it.",
+  "date": "2026-10-15",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261007-1"
+}
