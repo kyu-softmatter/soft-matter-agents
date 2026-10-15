@@ -1,0 +1,19 @@
+{
+  "artifact": "live_view_list",
+  "schema_version": "0.1",
+  "written_by": "kyuhwan",
+  "written_at": "2026-10-12",
+  "label": "Finding the sample in transmitted light: the transmitted lamp at the person's earlier setting, one Kinetix_red sequence, at most about ten minutes.",
+  "transmitted_lamp": {
+    "device": "DiaLamp",
+    "intensity": {
+      "value": 2100,
+      "note": "As set for the 2026-09-25 trap run (lamp_at_handover: DiaLamp State 1, Intensity 2100)."
+    }
+  },
+  "camera": {
+    "device": "Kinetix_red",
+    "exposure_ms": 100,
+    "frame_ceiling": 6000
+  }
+}

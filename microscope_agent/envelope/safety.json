@@ -1,10 +1,10 @@
 {
   "artifact": "envelope_safety",
   "schema_version": "0.1",
-  "policy_version": "8",
+  "policy_version": "9",
   "agent": "microscope",
   "written_by": "kyuhwan",
-  "written_at": "2026-09-25",
+  "written_at": "2026-10-13",
   "targets": [
     {
       "target": "bench",
@@ -254,8 +254,153 @@
             "on": "2026-09-25",
             "note": "Not yet exercised."
           }
+        },
+        "focus_z_4x_min": {
+          "value": 0,
+          "unit": "um",
+          "bounds": "min",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-10-13",
+            "how": "Drove the Z focus drive down to the lowest position the objective could physically reach, and read 0 um at that end of travel."
+          }
+        },
+        "focus_z_4x_max": {
+          "value": 3300,
+          "unit": "um",
+          "bounds": "max",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-10-13",
+            "how": "Raised the objective with the Z focus drive until it physically touched, and read 3300 um at the point of contact. This is the contact position itself, with no safety margin below it."
+          }
+        },
+        "focus_z_10x_min": {
+          "value": 0,
+          "unit": "um",
+          "bounds": "min",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-10-13",
+            "how": "Drove the Z focus drive down to the lowest position the objective could physically reach, and read 0 um at that end of travel."
+          }
+        },
+        "focus_z_10x_max": {
+          "value": 3300,
+          "unit": "um",
+          "bounds": "max",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-10-13",
+            "how": "Raised the objective with the Z focus drive until it physically touched, and read 3300 um at the point of contact. This is the contact position itself, with no safety margin below it."
+          }
+        },
+        "focus_z_20x_min": {
+          "value": 0,
+          "unit": "um",
+          "bounds": "min",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-10-13",
+            "how": "Drove the Z focus drive down to the lowest position the objective could physically reach, and read 0 um at that end of travel."
+          }
+        },
+        "focus_z_20x_max": {
+          "value": 3300,
+          "unit": "um",
+          "bounds": "max",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-10-13",
+            "how": "Raised the objective with the Z focus drive until it physically touched, and read 3300 um at the point of contact. This is the contact position itself, with no safety margin below it."
+          }
+        },
+        "focus_z_40x_min": {
+          "value": 0,
+          "unit": "um",
+          "bounds": "min",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-10-13",
+            "how": "Drove the Z focus drive down to the lowest position the objective could physically reach, and read 0 um at that end of travel."
+          }
+        },
+        "focus_z_40x_max": {
+          "value": 3300,
+          "unit": "um",
+          "bounds": "max",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-10-13",
+            "how": "Raised the objective with the Z focus drive until it physically touched, and read 3300 um at the point of contact. This is the contact position itself, with no safety margin below it."
+          }
+        },
+        "focus_z_60x_min": {
+          "value": 0,
+          "unit": "um",
+          "bounds": "min",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-10-13",
+            "how": "Drove the Z focus drive down to the lowest position the objective could physically reach, and read 0 um at that end of travel."
+          }
+        },
+        "focus_z_60x_max": {
+          "value": 3300,
+          "unit": "um",
+          "bounds": "max",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-10-13",
+            "how": "Raised the objective with the Z focus drive until it physically touched, and read 3300 um at the point of contact. This is the contact position itself, with no safety margin below it."
+          }
+        },
+        "focus_z_100x_min": {
+          "value": 0,
+          "unit": "um",
+          "bounds": "min",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-10-13",
+            "how": "Drove the Z focus drive down to the lowest position the objective could physically reach, and read 0 um at that end of travel."
+          }
+        },
+        "focus_z_100x_max": {
+          "value": 3300,
+          "unit": "um",
+          "bounds": "max",
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-10-13",
+            "how": "Raised the objective with the Z focus drive until it physically touched, and read 3300 um at the point of contact. This is the contact position itself, with no safety margin below it."
+          }
+        },
+        "pfs_not_engaged": {
+          "device": "PFS",
+          "property": "PFS Status",
+          "values": [
+            "0000000000000000",
+            "0000000100000000"
+          ],
+          "confirmation": {
+            "kind": "physical",
+            "by": "kyuhwan",
+            "on": "2026-10-13",
+            "how": "Read the PFS Status values in Micro-Manager. The two listed strings are the readings with PFS off: at startup, and after turning PFS on and back off. Locked read 0000001100001010. The searching state was not read."
+          }
         }
-        
       }
     }
   ]
