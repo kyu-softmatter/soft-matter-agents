@@ -564,7 +564,9 @@ point at the record -- a held thread's `open_question` has to name
   recomputed header, and two architecture seats could not hold it at once.
 - **One temporary exception, dated 2026-10-15, with its end written in:**
   `microscope_agent/autofocus/`, the tree `dino-autofocus` arrives in by
-  subtree (§10.2), carries Korean in 49 files at the freeze point. The
+  subtree (§10.2), carries Korean in 48 text files at the freeze point
+  (3,808 lines, by `git grep -I` for Hangul at `95eee95`; this bullet said
+  49 for an hour, off prose). The
   person's word, directly to architecture: translate it after the move
   ("번역해서 들여옴"). So that tree may hold Korean **from the import commit
   until the translation card closes**, and no longer; new text written in
