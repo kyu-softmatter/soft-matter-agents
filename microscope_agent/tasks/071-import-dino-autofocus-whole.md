@@ -60,7 +60,22 @@ safety values**:
    `microscope_agent/autofocus/configs/micromanager/`, its sha256 must equal
    the sha256 of the same path in `dino-autofocus` at `95eee95`. Report the
    count and any that differ.
-4. Push with `git -c credential.helper=manager push origin feature/autofocus-ui`.
+4. **Write the import's ruling line.** The import commit is the ruling record
+   for the code (plan.md 10.2, `d53214e`), and `microscope_agent/rulings.jsonl`
+   gets **one line** for it, in the shape the file already uses:
+   - `ruling`: `transfer`;
+   - `item`: all of `dino-autofocus`, by `git subtree`, into
+     `microscope_agent/autofocus/`;
+   - `slot`: the microscope agent's autofocus;
+   - `rule`: plan.md 10.2, numbers and safety values only;
+   - `by`, `at` and `recorded_from`, naming the freeze commit `95eee95` and
+     your import merge's sha.
+
+   Commit it in its own commit after the merge, because it needs the merge's
+   sha. **This one line is the only thing you write in `rulings.jsonl`**:
+   card 064 gives that file to the other microscope seat, and this card
+   grants one line, no more.
+5. Push with `git -c credential.helper=manager push origin feature/autofocus-ui`.
    The push hook judges the pushed range. Never force.
 
 **Change nothing inside the imported tree in this card.** The translation,
@@ -68,12 +83,12 @@ the tests and the mirror are cards 072 to 074, after this one lands.
 
 ## Boundaries
 
-This card writes `microscope_agent/autofocus/` through the subtree merge, and
-nothing else. Never `envelope/`, `approvals/` or `inbox/`. No change to
+This card writes `microscope_agent/autofocus/` through the subtree merge,
+and the one ruling line in `microscope_agent/rulings.jsonl`, nothing else. Never `envelope/`, `approvals/` or `inbox/`. No change to
 `SOFTWARE_MAY_COMMAND` or `NAMED_REFUSALS`. **Run nothing from the imported
 tree**: the console and its server start nothing here until a card says so.
 
 ## What comes back
 
-To this seat, 5 lines at most: the merge commit, the gate's verdict and tree
-lines, the config byte check, and the push.
+To this seat, 5 lines at most: the merge commit, the ruling line's commit,
+the gate's verdict and tree lines, the config byte check, and the push.

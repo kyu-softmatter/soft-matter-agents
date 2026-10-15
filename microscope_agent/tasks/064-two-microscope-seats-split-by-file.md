@@ -76,6 +76,14 @@ so nothing of Microscope 1's is left in them to take or to discard.
 says so in writing first, and from then on the table above holds as written.
 One seat writes code at a time: two never do.
 
+## The dino-autofocus seats (added 2026-10-15)
+
+`microscope-office-20261015-1` and `microscope-office-20261015-2` write
+`microscope_agent/autofocus/` under cards 071 to 074, which divide that tree
+between them. Neither writes `src/`, `tests/` or `questions/`. The one
+exception is card 071's single ruling line in `rulings.jsonl`, which that
+card grants and no other.
+
 ## The envelope snapshot (added 2026-10-12)
 
 **Microscope 2 may commit `envelope/snapshot.json`, and only that file in
