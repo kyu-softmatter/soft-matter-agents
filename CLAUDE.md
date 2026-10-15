@@ -484,10 +484,29 @@ are open is a separate question from whether the repository is — read the
 table, not this paragraph.
 
 **`dino-autofocus` was accepted as a source on 2026-10-03**, by the person,
-directly to architecture. It is the person's live focus repository, not a
-prior one. Only its pure focus core may cross, by copy, and only once its
-place exists (§11-24); nothing has crossed yet. The 2026-09-17 condition,
-§10.2.1 and §10.3 apply unchanged, and no safety limit crosses. See §10.2.
+directly to architecture, as the person's live focus repository. **On
+2026-10-15 the person decided that all of it moves into this repository,
+with its history, and that `dino-autofocus` is frozen as a read-only
+record** -- said in architecture-20261003-1's window and again in
+microscope-office-20261015-1's, recorded in §10.2 with the words. The whole
+repository crosses by `git subtree` into `microscope_agent/autofocus/` at
+the freeze point `dino-autofocus` `main` `95eee95`; after that commit
+`dino-autofocus` takes no further commits and is read as a record. For this
+move the 2026-09-17 condition applies to **numbers and safety values only**:
+code moves whole with the import commit as its ruling record, every figure
+in the tree that would act here still enters only through the librarian
+under §10.3, and **no safety limit crosses** -- a guard table inside the
+imported tree binds nothing; `envelope/safety.json` binds. The console moves
+with the rest and keeps §11-25's four rules where it sits: it drafts plans
+the person approves and commands nothing itself. The operator's focus
+search in `microscope_agent/src/` stays the original (§11-24). **Nothing has
+moved yet**: the order is the design (§10.2, §7, §14), then
+manager-microscope's import card, then the import by
+microscope-office-20261015-1 -- and the import lands only when a root
+`.gitattributes` line keeps the Micro-Manager `.cfg` files byte-exact and
+the validator no longer reads the imported tree as this repository's own
+cards (802 failures in the scratch trial). Read §10.2 and §14 for where it
+stands; this paragraph will lag them.
 
 Until 2026-09-16 a SessionStart hook injected `~/.claude/knowledge/`, a
 read-only mirror of the first two, into every session on this machine, and its
@@ -543,6 +562,15 @@ point at the record -- a held thread's `open_question` has to name
   What the two-file arrangement cost is why it ended: a hash bound the pair,
   no generator existed, so every edit to the record was two hand-edits plus a
   recomputed header, and two architecture seats could not hold it at once.
+- **One temporary exception, dated 2026-10-15, with its end written in:**
+  `microscope_agent/autofocus/`, the tree `dino-autofocus` arrives in by
+  subtree (§10.2), carries Korean in 49 files at the freeze point. The
+  person's word, directly to architecture: translate it after the move
+  ("번역해서 들여옴"). So that tree may hold Korean **from the import commit
+  until the translation card closes**, and no longer; new text written in
+  it is English from the first line, and nothing outside it is covered. The
+  translation card is manager-microscope's to write and a microscope seat's
+  to execute. When it closes, this bullet is removed in the same commit.
 
 ## Where to look in plan.md
 
