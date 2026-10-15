@@ -93,14 +93,20 @@ not done. Per card, as the record stands:
   person's. It says that in range or out of range shows in the Status code
   apart from engagement. It does not say which bit means engaged, and the
   searching state is still unread.
-- **The immersion oil: named by the person on 2026-10-15**, directly in
-  manager-librarian's window, as the oil in use: **Nikon Type F
-  Non-Fluorescing Immersion Oil, 30 ml, PCB-free**, by pointing at the
+- **The immersion oil: Nikon Type F Non-Fluorescing Immersion Oil, 30 ml,
+  PCB-free.** The person read the bottle's label at the bench and reported it on
+  2026-10-15, directly in manager-librarian's window, giving as reference the
   reseller's page `https://www.edmundoptics.com/p/Nikon-Type-F-Non-Fluorescing-30ml-PCB-Free-Immersion-Oil/57189`
   (Edmund Optics stock number 57189; the link's tracking parameters were
   dropped). Two entries, as above:
-  - **which oil is on the bench**: the person's statement, graded as one.
-    It was not a label read at the bench. A label read later lifts it.
+  - **which oil is on the bench**: **a label the person read at the bench**
+    (the person's correction, 2026-10-15). So it is `operator_read:`, a
+    reading of the bottle, not a recollection. The bench visit was
+    2026-10-13. The microscope findings file does not record the reading,
+    so cite the person's statement in manager-librarian's window as where
+    it is written. **The link is reference material for the oil's data, not
+    the evidence of which oil is used.** This line said otherwise for one
+    commit (`560a92a`), and that was wrong.
   - **its refractive index**: a type fact. Take it from the manufacturer's
     own published sheet for Type F if you can reach one, and otherwise from
     the reseller's page. Prefer the manufacturer, and say which you used. It
