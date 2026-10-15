@@ -161,6 +161,22 @@ where card 060 asks for one. Then rule it.
 
 Update every card's status in the answer sheet.
 
+## PENDING EDIT, FOR THE 043/046 PUBLISH (added 2026-10-15)
+
+The oil's three index entries stay in conflict, and **nothing is refuted**.
+manager-librarian ruled that on 2026-10-15. A refutation here stands on an
+observation, and three specifications that disagree are a conflict that is
+kept. What would refute a reseller value is the oil's index measured here,
+or Nikon's own datasheet giving a Type F figure.
+
+One sentence is missing, as librarian-20261007-1 checked. Add it to
+`immersion_oil_in_use_label_index_sodium_d_23c`'s `validity_conditions` **in
+the 043/046 publish commit, not in a commit of its own**:
+
+> A plan about this bench cites this entry ahead of the two reseller entries,
+> because it is about the bottle in use and they are about the type as
+> resold; the conflict stays recorded and is not a reason to average.
+
 ## CONTRACT
 
 - No safety limit, from any card. The envelope is the person's.
