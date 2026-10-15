@@ -93,8 +93,20 @@ not done. Per card, as the record stands:
   person's. It says that in range or out of range shows in the Status code
   apart from engagement. It does not say which bit means engaged, and the
   searching state is still unread.
-- **The immersion oil: not recorded.** The person has been asked again. Until
-  they answer, `immersion_oil_refractive_index` stays a gap.
+- **The immersion oil: named by the person on 2026-10-15**, directly in
+  manager-librarian's window, as the oil in use: **Nikon Type F
+  Non-Fluorescing Immersion Oil, 30 ml, PCB-free**, by pointing at the
+  reseller's page `https://www.edmundoptics.com/p/Nikon-Type-F-Non-Fluorescing-30ml-PCB-Free-Immersion-Oil/57189`
+  (Edmund Optics stock number 57189; the link's tracking parameters were
+  dropped). Two entries, as above:
+  - **which oil is on the bench**: the person's statement, graded as one.
+    It was not a label read at the bench. A label read later lifts it.
+  - **its refractive index**: a type fact. Take it from the manufacturer's
+    own published sheet for Type F if you can reach one, and otherwise from
+    the reseller's page. Prefer the manufacturer, and say which you used. It
+    is `spec:`, with the wavelength and temperature the sheet states, and
+    the dispersion values too if the sheet gives them. **Never from memory.**
+    A remembered index is a made-up number and does not enter.
 - **L-052: still awaiting the person's confirmation.**
 
 **Every item in that file says `for_store: false`.** Enter nothing from it
