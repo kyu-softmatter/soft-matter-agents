@@ -86,8 +86,10 @@ card grants and no other.
 
 ## The envelope snapshot (added 2026-10-12)
 
-**Microscope 2 may commit `envelope/snapshot.json`, and only that file in
-`envelope/`, and only after the person has copied it by hand.** It never
+**Microscope 2, or whichever registered Office microscope seat is running
+when the person copies it (widened 2026-10-15), may commit
+`envelope/snapshot.json`, and only that file in `envelope/`, and only after
+the person has copied it by hand.** It never
 writes or edits the file: the deny rules forbid that, and the copy is the
 person's. Before committing, check that:
 
