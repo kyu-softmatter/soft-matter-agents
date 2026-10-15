@@ -61,6 +61,13 @@ trusting it.
   **do not enter from this item until the microscope side offers it**.
   manager-librarian has asked manager-microscope to have the item marked for
   the store, or to say why not. Start when that lands.
+- **Answered 2026-10-15: the person decided in manager-microscope's window
+  that both A_camera_saturation and A_pfs_readings go to the store.** The
+  original record stays untouched. microscope-20261007-1 offers both, with
+  `for_store: true`, **in its own findings file**, citing the original by
+  path and commit. **Enter from that offering item**, and check that its
+  values match the original's. If they differ, enter nothing and report.
+  Start when it is in HEAD; manager-librarian tells you.
 
 How the record bears on the entry:
 

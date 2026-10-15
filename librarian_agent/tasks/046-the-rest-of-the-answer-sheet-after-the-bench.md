@@ -116,8 +116,12 @@ not done. Per card, as the record stands:
 - **L-052: still awaiting the person's confirmation.**
 
 **Every item in that file says `for_store: false`.** Enter nothing from it
-until the microscope side offers the items you need. manager-librarian has
-asked for that.
+until the microscope side offers the items you need. **On 2026-10-15 the
+person decided that A_pfs_readings goes to the store** (in manager-microscope's
+window). microscope-20261007-1 offers it with `for_store: true` in its own
+findings file, citing the original. Enter the PFS readings from that
+offering, once it is in HEAD. The oil and the person's explanation of the PFS
+codes do not wait on it.
 
 ## TASK
 
