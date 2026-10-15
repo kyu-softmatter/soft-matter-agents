@@ -1,90 +1,90 @@
-# 2026-10-15 (목) 벤치 할 일 — 5 µm 시료, 손으로만 재는 날
+# 2026-10-15 (Thu) bench to-do — 5 µm sample, a day of measuring by hand only
 
-> **소프트웨어는 아무것도 움직이지 않는다. 손 동작만 한다.**
-> Z, 재물대, 대물렌즈 터릿, PFS, 빛, 레이저는 사람이 Ti2 패널·초점 손잡이·조이스틱·벤더 GUI 에서 손으로만 다룬다.
-> Micro-Manager GUI 에서는 **속성 읽기(Device Property Browser)와 카메라 Snap/Live 만** 한다.
-> MM 의 Multi-D Acquisition(Z 스택)·스테이지 이동 버튼, dino 앱, `scripts/*`, SMA operator / orchestrator / live_view 는 쓰지 않는다.
+> **Software moves nothing. Only hand actions.**
+> Z, the stage, the objective turret, PFS, light and the laser are handled by the person, by hand only, at the Ti2 panel, focus knob, joystick and vendor GUI.
+> In the Micro-Manager GUI, do **only property reading (Device Property Browser) and camera Snap/Live**.
+> Do not use MM's Multi-D Acquisition (Z stack) or stage-move buttons, the dino app, `scripts/*`, or SMA operator / orchestrator / live_view.
 
-- 이 문서만 들고 가도 되도록 썼다. 자세한 원본 점검표는 dino-autofocus `docs/runbooks/bench-visit-1.md` (main 4d38e72), 절 번호를 괄호에 적었다.
-- 모든 칸은 **값 / 방법 / 누가 / 언제** 를 적거나, 재지 않았으면 **미측정 □** 에 표시한다. 짐작으로 채우지 않는다.
-  "누가" 는 사람 id. 이메일·PC 사용자 이름은 적지 않는다.
-- "방법" 에는 출처를 적는다: 손으로 잼 / 장치 읽기 / 카탈로그 / 사람이 정함.
+- Written so that this document alone can be taken to the bench. The detailed original checklist is dino-autofocus `docs/runbooks/bench-visit-1.md` (main 4d38e72); its section numbers are in brackets.
+- Every box gets **value / method / who / when**, or, if not measured, a mark at **not measured □**. Do not fill in a guess.
+  "Who" is the person id. Do not write emails or PC user names.
+- Under "Method", write the source: measured by hand / read from the device / catalogue / decided by the person.
 
-## 0. 지난 방문(2026-10-13)에서 이미 된 것과 안 된 것
+## 0. What was and was not done on the last visit (2026-10-13)
 
-SMA 기록 `microscope_agent/findings/microscope-20261013-1-20261013.json` (SMA 1104cc6) 에서 옮김.
+Taken from the SMA record `microscope_agent/findings/microscope-20261013-1-20261013.json` (SMA 1104cc6).
 
-| 된 것 | 내용 |
+| Done | Details |
 |---|---|
-| PFS 세 상태 읽기 | 꺼짐 / 켜짐·잠김 읽음 (찾는 중 상태는 너무 빨라 못 잡음) |
-| 카메라 최댓값 | 65535 ADU, Port `Dynamic Range`, ReadoutRate `100MHz 16bit`, 히스토그램에서 읽음. **노출·어느 카메라였는지 안 적힘** |
-| CSUW1 셔터 | `Open` 만 읽음. **닫힘 이름은 안 읽음** |
-| SMA 한계 | 사람이 `envelope/safety.json` 에 렌즈 여섯 개 모두 `focus_z_<렌즈>_min` 0 µm, `_max` 3300 µm 를 적음. **3300 은 렌즈가 닿는 위치 그대로이고 여유가 없다** |
-| SMA 실행 6번 | 모두 거부, 기기에 명령 0. Z 는 한 번도 못 읽음 |
+| PFS three states read | Off / on and locked read (the searching state was too quick to catch) |
+| Camera maximum | 65535 ADU, Port `Dynamic Range`, ReadoutRate `100MHz 16bit`, read from the histogram. **Exposure and which camera were not written down** |
+| CSUW1 shutter | Only `Open` read. **The closed name was not read** |
+| SMA limits | The person wrote `focus_z_<lens>_min` 0 µm and `_max` 3300 µm for all six objectives in `envelope/safety.json`. **3300 is exactly the position where the objective touches, with no margin** |
+| 6 SMA runs | All refused, 0 commands to the instrument. Z was never read |
 
-| 안 된 것 (오늘 할 것) |
+| Not done (to do today) |
 |---|
-| dino 손 측정 전부: 시료 초점 곡선, 렌즈별 초점 차이, PFS 오프셋 방향, 렌즈 바꾼 뒤 첫 초점 빗나감, 40x 물 렌즈 작동 거리 |
-| SMA 카드 060 6단계, CSUW1 닫힘 이름, 카메라 최댓값의 빈칸 |
+| All of dino's hand measurements: sample focus curve, focus difference per objective, PFS offset direction, first-focus miss after an objective change, 40x water objective working distance |
+| SMA card 060 step 6, the CSUW1 closed name, the blanks in the camera maximum |
 
-**오늘도 하지 않는 것**: 거부 앞뒤 Z 읽기, PFS 켜진 상태의 거부 시험, live view 로 실제 중단, 초점 탐색.
-이것들은 SMA 카드 069(승인된 설정 파일을 하드웨어 실행이 불러오는 것)가 만들어진 뒤 다음 방문에서 한다.
-잠금 `BENCH_MOTION = "LOCKED"`, `BENCH_APPROACH = "MEASURED"` 는 그대로다.
+**Still not done today**: Z readings before and after a refusal, a refusal test with PFS on, a real abort through live view, a focus search.
+These are done on the next visit, after SMA card 069 (the hardware run loading the approved configuration file) has been built.
+The locks `BENCH_MOTION = "LOCKED"`, `BENCH_APPROACH = "MEASURED"` stay as they are.
 
-## 1. 멈추는 법 (언제든)
+## 1. How to stop (at any time)
 
-| 무엇 | 어디 |
+| What | Where |
 |---|---|
-| 하드웨어 정지 | 스탠드의 Ti2 컨트롤러 / 조이스틱 |
-| 손 떼기 | 손으로 하는 이동은 손을 떼면 멈춘다 |
-| 빛 끄기 | 광원 패널 / Ti2 패널 셔터 |
-| 레이저 끄기 | Tweez300 벤더 GUI / 레이저 키 (사람만) |
+| Hardware stop | Ti2 controller / joystick at the stand |
+| Let go | A hand-driven move stops when you let go |
+| Light off | Light-source panel / Ti2 panel shutter |
+| Laser off | Tweez300 vendor GUI / laser key (the person only) |
 
-이상한 소리, 오일·물 막 끊김, 렌즈가 커버슬립에 닿는 느낌 → 그 자리에서 멈추고 Z 를 손으로 내린다.
+An odd sound, the oil or water film breaking, a feeling that the objective touches the coverslip → stop on the spot and lower Z by hand.
 
-## 2. 시작 전 (아무것도 움직이지 않는다)
+## 2. Before starting (nothing moves)
 
-| # | 확인 | 결과 |
+| # | Check | Result |
 |---|---|---|
-| 2.1 | SMA operator / orchestrator / live_view 가 돌고 있지 않다 (작업 관리자, SMA 터미널) | 예 / 아니오(→ 멈춤) |
-| 2.2 | MM GUI 는 하나만. dino 앱 서버·Jupyter·스크립트 꺼짐 (한 MM 에 core 둘은 알려진 실패) | 예 / 아니오(→ 멈춤) |
-| 2.3 | **대물렌즈가 지금 무엇인지 읽는다.** 10-13 끝에 60x Oil → **20x 로 손으로 바꿔 둠** (그 뒤 아무도 확인 안 함) | Nosepiece State ___ Label ___ |
-| 2.4 | 5 µm 시료: 슬라이드 종류, 입자 종류(형광 여부, 색), 커버슬립 두께, 입자가 유리에 붙었는지 떠 있는지 | |
+| 2.1 | SMA operator / orchestrator / live_view is not running (Task Manager, SMA terminals) | yes / no (→ stop) |
+| 2.2 | Only one MM GUI. dino app server, Jupyter and scripts are off (two cores on one MM is a known failure) | yes / no (→ stop) |
+| 2.3 | **Read which objective is in place now.** At the end of 10-13 it was **changed by hand from 60x Oil → 20x** (nobody has checked since) | Nosepiece State ___ Label ___ |
+| 2.4 | 5 µm sample: slide type, particle type (fluorescent or not, colour), coverslip thickness, whether the particles are stuck to the glass or floating | |
 
-## 3. 시작 상태 읽기 (읽기만) (§3)
+## 3. Reading the starting state (read only) (§3)
 
-| 항목 | 값 |
+| Item | Value |
 |---|---|
-| 대물렌즈 (Nosepiece State, Label) | |
+| Objective (Nosepiece State, Label) | |
 | ZDrive µm | |
 | XY µm | |
 | PFS (FocusMaintenance, PFS Status, PFS in Range) | |
-| 광원 (Aura, LightEngine, DiaLamp) | |
-| 피에조 z µm (NanoBench 표시) | |
-| 시각 | |
+| Light sources (Aura, LightEngine, DiaLamp) | |
+| Piezo z µm (NanoBench display) | |
+| Time | |
 
-이 값은 4.4 표류의 시작점이다. 끝날 때 12절에서 한 번 더 읽는다.
+These values are the starting point of the 4.4 drift. At the end, read them once more in §12.
 
 ---
 
-## 오늘 할 일 (권하는 순서)
+## Today's tasks (in the recommended order)
 
-### ① ZDrive 값이 커지는 방향 (§4.1) — 5분
+### ① The direction in which the ZDrive value increases (§4.1) — 5 minutes
 
-초점 손잡이를 **렌즈가 커버슬립에 가까워지는 쪽**으로 조금 돌릴 때 ZDrive 값이 늘어나는가 줄어드는가.
-(SMA `_max` 가 "가장 가까운 Z" 라는 뜻이라, 이 부호가 반대면 3300 의 뜻을 사람이 다시 본다.)
+When the focus knob is turned a little **in the direction in which the objective approaches the coverslip**, does the ZDrive value increase or decrease.
+(Because SMA's `_max` means "the closest Z", if this sign is reversed the person re-examines what 3300 means.)
 
-| 늘어남 / 줄어듦 | 렌즈 | 방법 | 누가 | 언제 | 미측정 □ |
+| increases / decreases | Objective | Method | Who | When | Not measured □ |
 |---|---|---|---|---|---|
 | | | | | | |
 
-### ② 렌즈별 유리 계면 Z 와 렌즈 간 초점 차이 (§5.4) — 5 µm 입자로 계면 찾기
+### ② Glass-interface Z per objective and the focus difference between objectives (§5.4) — find the interface with the 5 µm particles
 
-같은 XY 에서 렌즈마다 입자(= 커버슬립 계면)에 초점이 맞는 ZDrive 값. 차이 = 각 렌즈 Z − 4x Z.
-**렌즈 돌리기 전에는 언제나 Z 를 내리고 PFS 를 끈다.** 침지 렌즈는 오일·물을 사람 판단으로.
-이 값이 `focus_z_<렌즈>_max` 여유(⑩)의 근거가 된다. 계면 Z 는 3300 보다 아래여야 한다 — 3300 에 가까워지면 멈춘다.
+At the same XY, the ZDrive value at which each objective focuses on the particles (= the coverslip interface). Difference = each objective's Z − the 4x Z.
+**Before rotating an objective, always lower Z and switch PFS off.** For immersion objectives, oil/water on the person's judgement.
+These values become the grounds for the margin on `focus_z_<lens>_max` (⑩). The interface Z must be below 3300 — stop if it comes close to 3300.
 
-| 렌즈 | 계면 Z µm | 4x 대비 차이 µm | 빛 | XY | 렌즈 바꾼 뒤 첫 초점이 얼마나 빗나갔나 µm | 누가 | 언제 | 미측정 □ |
+| Objective | Interface Z µm | Difference vs 4x µm | Light | XY | How far the first focus missed after the objective change µm | Who | When | Not measured □ |
 |---|---|---|---|---|---|---|---|---|
 | 4x | | 0 | | | | | | |
 | 10x | | | | | | | | |
@@ -93,104 +93,104 @@ SMA 기록 `microscope_agent/findings/microscope-20261013-1-20261013.json` (SMA 
 | 60x Oil | | | | | | | | |
 | 100x Oil | | | | | | | | |
 
-참고: 2026-09-30 의 4x→100x 는 약 −60 µm (한 번), 실험실 메모는 약 −100 µm. 맞추려 하지 않는다.
+For reference: on 2026-09-30, 4x→100x was about −60 µm (once); the lab note says about −100 µm. Do not try to match them.
 
-### ③ 40x 물 렌즈 작동 거리, 보정 링 0.17 (§5.3)
+### ③ 40x water objective working distance, correction collar 0.17 (§5.3)
 
-먼저 보정 링 눈금이 0.17 인지 본다. 사람의 진술은 170 µm (10-05). dino 안에는 160 과 170 이 같이 있다 — **잰 값을 그대로 적고 고르지 않는다.**
-방법 예: (a) 렌즈 몸통·사양서 값 (카탈로그 값); (b) 계면 초점 Z_f → 사람이 안전하다고 볼 때만 아주 천천히 렌즈 앞면이 닿기 직전(물 막 모양이 바뀌는 곳) Z_c. **닿게 하지 않는다. 불안하면 (b) 는 하지 않는다.**
+First check that the correction collar reads 0.17. The person's statement is 170 µm (10-05). Inside dino both 160 and 170 exist — **write the measured value as it is, and do not choose.**
+Example methods: (a) the value on the objective barrel or spec sheet (a catalogue value); (b) interface focus Z_f → only if the person judges it safe, very slowly to just before the objective front face touches (where the shape of the water film changes), Z_c. **Do not let it touch. If unsure, do not do (b).**
 
-| 보정 링 | Z_f µm | Z_c µm | 작동 거리 µm | 방법 | 누가 | 언제 | 미측정 □ |
+| Correction collar | Z_f µm | Z_c µm | Working distance µm | Method | Who | When | Not measured □ |
 |---|---|---|---|---|---|---|---|
 | | | | | | | | |
 
-### ④ Q13 — 100x Oil 접근 걸음 (§5.1) — 아직 답 없음
+### ④ Q13 — 100x Oil approach step (§5.1) — no answer yet
 
-Z 0 → 손으로 100x Oil → 오일 → 손잡이로 계면 근처까지 → 그 위는 fine 손잡이로 조금씩.
-지금 코드의 임시값 10 µm 을 맞다고 하지 말고, 오늘 본 것과 사람이 허락할 걸음을 적는다.
+Z 0 → 100x Oil by hand → oil → knob up to near the interface → above that, little by little with the fine knob.
+Do not call the current code's provisional value of 10 µm right; write what was seen today and the step the person will allow.
 
-| 항목 | 값 | 방법 | 누가 | 언제 | 미측정 □ |
+| Item | Value | Method | Who | When | Not measured □ |
 |---|---|---|---|---|---|
-| 손잡이 한 칸 µm (fine / coarse) | | | | | |
-| 계면 근처에서 쓴 걸음 µm | | | | | |
-| 걸음 사이 기다림 s | | | | | |
-| 사람이 소프트웨어에 허락할 최대 걸음 µm | | | | | |
-| 오일이 이어진 Z µm (보였다면) | | | | | |
+| One knob click µm (fine / coarse) | | | | | |
+| Step µm used near the interface | | | | | |
+| Wait between steps s | | | | | |
+| Maximum step the person will allow the software µm | | | | | |
+| Z µm at which the oil joined (if seen) | | | | | |
 
-### ⑤ 방식별 초점 곡선 (§5.5) — 10-13 기록의 "시료 초점 곡선"
+### ⑤ Focus curve per mode (§5.5) — the "sample focus curve" in the 10-13 record
 
-입자 근처에서 Z 를 **손잡이로** 한 걸음씩 옮기며 MM GUI Snap 한 장씩 저장. 방식(명시야 / 형광 / 반사)마다 한 줄.
-곡선 계산은 방문 뒤 데스크톱에서. ⑥과 프레임을 같이 써도 되면 그렇게 적는다.
+Near the particles, move Z one step at a time **with the knob** and save one MM GUI Snap at a time. One row per mode (brightfield / fluorescence / reflection).
+The curve is computed on the desktop after the visit. If the frames can be shared with ⑥, write so.
 
-| 렌즈 | 방식·빛 | Z 범위 µm | 걸음 µm | 장 수 | 노출 ms | 판독 모드 (Port + ReadoutRate) | 저장 폴더 | 미측정 □ |
+| Objective | Mode, light | Z range µm | Step µm | Frames | Exposure ms | Readout mode (Port + ReadoutRate) | Save folder | Not measured □ |
 |---|---|---|---|---|---|---|---|---|
 | | | | | | | | | |
 
-### ⑥ 그림자 모드 평가 프레임 (§5.7, `docs/sma-shadow-mode.md` 7절)
+### ⑥ Shadow-mode evaluation frames (§5.7, `docs/sma-shadow-mode.md` §7)
 
-고전 지표와 DINO 가 사람의 손 초점과 얼마나 맞는지 처음 기록하기 위한 프레임. **점수는 벤치에서 계산하지 않는다.**
-조명은 형광(사람의 답, 10-07). 렌즈·시야 수·평면 간격과 개수·허용 오차는 **오늘 실제 시야를 보고 사람이 정한다** (제안값 없음).
+Frames for a first record of how well the classical metrics and DINO agree with the person's hand focus. **Scores are not computed at the bench.**
+Illumination is fluorescence (the person's answer, 10-07). Objectives, number of fields, plane spacing and count, and tolerance are **decided by the person today after seeing the actual fields** (no proposed values).
 
-순서: (1) 렌즈·조명 정함 → (2) 시야 하나에서 손 초점, z0(ZDrive)·XY 읽기 → (3) 손잡이로 z0 둘레 평면을 지나며 평면마다 ZDrive 읽고 Snap 한 장 → (4) 다른 시야에서 반복 → (5) (선택) 입자 없는 시야 하나.
+Order: (1) choose objective and illumination → (2) in one field, focus by hand and read z0 (ZDrive) and XY → (3) with the knob, pass through the planes around z0, reading ZDrive and taking one Snap at each plane → (4) repeat in another field → (5) (optional) one field with no particles.
 
-| 허용 오차 (DoF) µm | 렌즈 | 정한 이유 | 누가 | 언제 | 미정 □ |
+| Tolerance (DoF) µm | Objective | Reason for the choice | Who | When | Undecided □ |
 |---|---|---|---|---|---|
 | | | | | | |
 
-| 렌즈 | 조명 (광원·라인·세기) | 노출 ms | 판독 모드 | 시야 수 | 평면 간격·개수 | 미측정 □ |
+| Objective | Illumination (light source, line, intensity) | Exposure ms | Readout mode | Number of fields | Plane spacing and count | Not measured □ |
 |---|---|---|---|---|---|---|
 | | | | | | | |
 
-| 렌즈 | 시야 # | 손 초점 z0 µm | XY µm | 입자 있음 / 없음 | 누가 | 언제 |
+| Objective | Field # | Hand focus z0 µm | XY µm | Particles present / absent | Who | When |
 |---|---|---|---|---|---|---|
 | | | | | | | |
 
-| 렌즈 | 시야 # | 평면 # | ZDrive µm | 프레임 파일 이름 |
+| Objective | Field # | Plane # | ZDrive µm | Frame file name |
 |---|---|---|---|---|
 | | | | | |
 
-### ⑦ PFS 오프셋 방향 (§7) — 켜고 끄는 것은 Ti2 패널에서 손으로만
+### ⑦ PFS offset direction (§7) — switching on and off by hand only, at the Ti2 panel
 
-10-13 에 세 상태는 읽었다. 오늘은 **방향**만.
-계면에 초점 → 패널에서 PFS 켬 → 잠김 확인 → PFSOffset 을 패널 손잡이로 조금 돌림 → 초점면이 어느 쪽으로 갔나, PFSOffset 값이 늘었나 줄었나 → 패널에서 끔 → Z 를 손으로 조금 돌려 PFS 가 따라오지 않는지.
+The three states were read on 10-13. Today, only the **direction**.
+Focus on the interface → switch PFS on at the panel → confirm locked → turn PFSOffset a little with the panel knob → which way did the focal plane go, did the PFSOffset value increase or decrease → switch off at the panel → turn Z a little by hand and see that PFS does not follow.
 
-| 항목 | 값 | 방법 | 누가 | 미측정 □ |
+| Item | Value | Method | Who | Not measured □ |
 |---|---|---|---|---|
-| PFSOffset 이 늘 때 초점면 방향 (시료 쪽 / 반대) | | | | |
-| PFS 켠 상태에서 초점 Z 와 끈 뒤 Z 의 차이 µm | | | | |
-| 끈 뒤 Z 를 손으로 돌려도 따라오지 않음 | 예 / 아니오 | | | |
-| 서보가 멈췄음을 믿고 읽을 속성 하나 (있다면) | | | | |
+| Focal-plane direction as PFSOffset increases (toward the sample / away) | | | | |
+| Difference between the focus Z with PFS on and the Z after switching off µm | | | | |
+| After switching off, turning Z by hand is not followed | yes / no | | | |
+| One property to trust as saying the servo has stopped (if any) | | | | |
 
-### ⑧ 카메라 최댓값의 빈칸 (§6) — SMA 와 같은 값
+### ⑧ The blanks in the camera maximum (§6) — the same value as SMA's
 
-10-13 값 65535 ADU (`Dynamic Range` / `100MHz 16bit`) 에 빠진 것을 채운다. 이론값(4095, 2^16−1)을 적지 않는다. **본 최댓값만.**
-명시야 DiaLamp 를 손으로 켜고 노출을 늘려 포화 → Snap 저장 → **이미지 정보의 Max**(히스토그램 말고) 읽기.
+Fill in what is missing from the 10-13 value of 65535 ADU (`Dynamic Range` / `100MHz 16bit`). Do not write theoretical values (4095, 2^16−1). **Only the maximum seen.**
+Switch the brightfield DiaLamp on by hand and raise the exposure to saturation → save a Snap → read **the Max in the image information** (not the histogram).
 
-| 항목 | Kinetix_red | Kinetix_blue |
+| Item | Kinetix_red | Kinetix_blue |
 |---|---|---|
-| 포화 프레임 최댓값 ADU (이미지 정보 Max) | | |
-| Port / ReadoutRate (반드시 같이) | | |
+| Saturated-frame maximum ADU (image information Max) | | |
+| Port / ReadoutRate (always together) | | |
 | BitDepth / PixelType / Gain | | |
-| 노출 ms, 빛 | | |
-| 저장한 파일 경로 | | |
-| (선택) 빛 꺼진 프레임 평균 ADU | | |
-| (선택) 다른 Port 에서의 최댓값 | | |
+| Exposure ms, light | | |
+| Saved file path | | |
+| (Optional) mean ADU of a frame with the light off | | |
+| (Optional) maximum on another Port | | |
 
-### ⑨ CSUW1 셔터 닫힘 이름 (§8) — 고르지 말고 읽기만
+### ⑨ CSUW1 shutter closed name (§8) — read only, do not select
 
-드롭다운에서 값을 고르면 셔터가 움직인다. **고르지 않는다.** 대신:
-- Micro-Manager 설정 파일(.cfg)을 메모장으로 열어 `CSUW1-Shutter` 의 `State` 허용 값 줄을 읽는다, 또는
-- 사람이 CSU-W1 패널에서 손으로 셔터를 닫은 뒤 Device Property Browser 에서 `State` 를 읽는다.
+Selecting a value in the dropdown moves the shutter. **Do not select.** Instead:
+- open the Micro-Manager configuration file (.cfg) in Notepad and read the line of allowed `State` values for `CSUW1-Shutter`, or
+- have the person close the shutter by hand on the CSU-W1 panel, then read `State` in the Device Property Browser.
 
-| 닫힘 이름 | 열림 이름 | 읽은 곳 (cfg 줄 / 패널로 닫고 읽음) | 누가 | 미측정 □ |
+| Closed name | Open name | Where read (cfg line / closed at the panel and read) | Who | Not measured □ |
 |---|---|---|---|---|
 | | `Open` (10-13) | | | |
 
-### ⑩ `focus_z_<렌즈>_max` 여유의 근거 (§10) — 오늘 적지 않는다
+### ⑩ Grounds for the margin on `focus_z_<lens>_max` (§10) — not written today
 
-지금 `_max` 3300 µm 는 닿는 위치 그대로다. 여유를 얼마로 할지, 그리고 safety.json 을 고치는 것은 **사람의 몫**이다. 이 표는 근거만 모은다.
+The current `_max` of 3300 µm is exactly the touching position. How much margin to leave, and changing safety.json, are **the person's to do**. This table only collects the grounds.
 
-| 렌즈 | ② 계면 Z µm | 3300 − 계면 Z µm | 사람이 원하는 여유 µm (정했다면) | 이유 | 누가 |
+| Objective | ② interface Z µm | 3300 − interface Z µm | Margin the person wants µm (if decided) | Reason | Who |
 |---|---|---|---|---|---|
 | 4x | | | | | |
 | 10x | | | | | |
@@ -199,39 +199,39 @@ Z 0 → 손으로 100x Oil → 오일 → 손잡이로 계면 근처까지 → �
 | 60x Oil | | | | | |
 | 100x Oil | | | | | |
 
-### ⑪ (선택) 5 µm 입자 겉보기 크기로 픽셀 크기 확인 (§5.6)
+### ⑪ (Optional) Checking the pixel size from the apparent size of the 5 µm particles (§5.6)
 
-렌즈마다 입자 몇 개의 지름을 픽셀로 잰다. 입자 지름 허용 범위(제조사 표기)도 같이 적는다. 정확한 보정은 눈금자 슬라이드가 맞다 — 이것은 대략 확인.
+For each objective, measure the diameter of a few particles in pixels. Also write the particle diameter tolerance (manufacturer's label). A ruler slide is the right tool for an exact calibration — this is a rough check.
 
-| 렌즈 | 입자 지름 px (여러 개) | 제조사 지름·허용 범위 | µm/px (계산은 나중에) | 미측정 □ |
+| Objective | Particle diameter px (several) | Manufacturer diameter and tolerance | µm/px (computed later) | Not measured □ |
 |---|---|---|---|---|
 | | | | | |
 
-### ⑫ (시간 나면) 남은 짧은 것들
+### ⑫ (If there is time) the short items left
 
-| 항목 | 원본 절 | 값 | 미측정 □ |
+| Item | Original section | Value | Not measured □ |
 |---|---|---|---|
-| 손대지 않은 10 분 동안 ZDrive·XY 변화 (시작·끝 시각·값) | §4.4 | | |
-| 렌즈마다 사람이 원하는 Z 후퇴 높이와 이유 | §4.5 | | |
-| Q20 — 초점 높이 그대로 XY 를 옮길 때 오일·물 막이 끌리기 시작하는 거리 (100x / 60x / 40x WI) | §5.2 | | |
-| 재물대 끝 값 X+ / X− / Y+ / Y− (사람 진술 ±2 cm 확인) | §4.3 | | |
-| 압전 z 가 커질 때 초점면 방향 (NanoBench 손으로) | §4.2 | | |
+| Change in ZDrive and XY over 10 untouched minutes (start and end times and values) | §4.4 | | |
+| The Z retract height the person wants for each objective, and why | §4.5 | | |
+| Q20 — the distance at which the oil/water film starts to drag when XY is moved at focus height (100x / 60x / 40x WI) | §5.2 | | |
+| Stage end values X+ / X− / Y+ / Y− (to check the person's statement of ±2 cm) | §4.3 | | |
+| Focal-plane direction as piezo z increases (NanoBench, by hand) | §4.2 | | |
 
 ---
 
-## 12. 끝
+## 12. End
 
-- 빛 모두 손으로 끔 (Aura, LightEngine, DiaLamp, 레이저).
-- Z 를 손으로 후퇴(0 근처). 오일 렌즈 닦기. PFS 꺼짐. **대물렌즈를 무엇에 두고 나왔는지 적는다.**
-- 3절 표를 한 번 더 읽어 끝 상태로 적는다 (⑫ 표류의 끝).
+- Switch all light off by hand (Aura, LightEngine, DiaLamp, laser).
+- Retract Z by hand (near 0). Wipe the oil objective. PFS off. **Write down which objective was left in place.**
+- Read the §3 table once more and write it down as the end state (the end of the ⑫ drift).
 
-| 끝 상태 | 값 |
+| End state | Value |
 |---|---|
-| 대물렌즈 | |
+| Objective | |
 | ZDrive µm | |
 | XY µm | |
 | PFS | |
-| 시각 | |
+| Time | |
 
-- 한 항목 / 안 한 항목, 이상했던 읽기, 쓴 정지, 저장한 파일 경로를 적는다.
-- 채운 이 파일(또는 사진)을 Office 컴퓨터로 가져온다. 기록은 사람이 직접 준 값과 파일만 옮긴다.
+- Write down the items done / not done, odd readings, stops used, and saved file paths.
+- Bring this filled-in file (or photos) to the Office computer. The record carries over only the values and files the person gave directly.

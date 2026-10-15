@@ -1,75 +1,75 @@
-# 기록 양식 — 벤치 방문 1 (B-01), 손으로만
+# Record form — bench visit 1 (B-01), by hand only
 
-> **양식이다. 기록이 아니다.** 값이 오면 벤치 세션이 `docs/runs/<방문일>_bench-visit-1.md` 로 복사해 채운다.
-> 같은 이름의 파일이 이미 있으면 덮어쓰지 않고 멈춘다 (6.2 #5).
-> 기계용 짝: `<방문일>_bench-visit-1.yaml` (양식 `bench-visit-1.template.yaml`, 같은 사실). 점검표: `docs/runbooks/bench-visit-1.md`.
+> **This is a form, not a record.** When values arrive, the bench session copies it to `docs/runs/<visit date>_bench-visit-1.md` and fills it in.
+> If a file of the same name already exists, do not overwrite it; stop (6.2 #5).
+> Machine twin: `<visit date>_bench-visit-1.yaml` (form `bench-visit-1.template.yaml`, the same facts). Checklist: `docs/runbooks/bench-visit-1.md`.
 
-- 날짜·시각: ____ (예정 2026-10-12; 처음 2026-10-08 에서 미룸)
-- 운영자: `<person-id>` (OD-6 손잡이). 이메일·PC 사용자 이름은 적지 않는다.
-- 기록: Claude Code 벤치 세션 (기록만; 장비 명령 없음). dino main: `____`
-- 소프트웨어 이동: **없음**. 모든 이동은 손으로 했다 (작업계획 6.2 중단 기준 8).
-- 잠금 (그날 `git show origin/main:` 로 확인): `BENCH_MOTION = "LOCKED"`, `BENCH_APPROACH = "MEASURED"`.
-- 값의 출처는 둘뿐이다: 벤치 세션 창에서 사람이 직접 쓴 말 (`user statement in the bench window, <date>`),
-  또는 사람이 그 창에서 경로를 알려 준 파일 (`file <path> sha256 <hex>`).
-- 충돌 값 (40x WI 작동 거리 160/170, Kinetix 12/16 비트) 은 읽은 대로 적는다. 합치거나 고르지 않는다 (6.2 #7).
+- Date and time: ____ (planned 2026-10-12; moved from the first date 2026-10-08)
+- Operator: `<person-id>` (OD-6 handle). Do not write emails or PC user names.
+- Recorder: Claude Code bench session (records only; no hardware command). dino main: `____`
+- Software motion: **none**. Every motion was done by hand (workplan 6.2 stop criterion 8).
+- Locks (confirmed on the day with `git show origin/main:`): `BENCH_MOTION = "LOCKED"`, `BENCH_APPROACH = "MEASURED"`.
+- A value has only two possible sources: words the person wrote directly in the bench session window (`user statement in the bench window, <date>`),
+  or a file whose path the person gave in that window (`file <path> sha256 <hex>`).
+- Conflicting values (40x WI working distance 160/170, Kinetix 12/16-bit) are written as read. Do not merge them or choose between them (6.2 #7).
 
-상태 표기: `미측정` / `잼` (손으로 잼) / `장치 읽기` / `카탈로그` / `사람이 정함` / `사람 진술`.
+Status labels: `unmeasured` / `measured` (measured by hand) / `read_from_device` / `catalog` / `person_decision` / `person_statement`.
 
-## 1. 한 표 요약
+## 1. One-table summary
 
-| 점검표 절 | 항목 | 값 | 상태 | 방법 | 누가 | 언제 | 출처 | 카드 |
+| Checklist section | Item | Value | Status | Method | Who | When | Source | Card |
 |---|---|---|---|---|---|---|---|---|
-| 2 | 설정 파일 검사 | | | | | | | L-075 |
-| 4.1 | ZDrive 엔코더 부호 | | | | | | | L-013 |
-| 4.2 | 압전 Z 방향 | | | | | | | L-073 |
-| 4.3 | 재물대 X+ / X− / Y+ / Y− | | | | | | | L-023, L-024 |
-| 4.4 | 명령 없는 Z·XY 표류 | | | | | | | L-067 |
-| 4.5 | 원하는 Z 후퇴 높이 | | | | | | | L-015 |
-| 5.1 | Q13 100x 접근 걸음 | | | | | | | L-018 |
-| 5.2 | Q20 후퇴가 필요한 XY 거리 (100x / 60x / 40x WI) | | | | | | | L-019 |
-| 5.3 | 40x WI 작동 거리 (링 0.17) | | | | | | | L-005 |
-| 5.4 | 렌즈별 유리 계면 Z, 동초점 잔차 | | | | | | | L-033 |
-| 5.5 | through-focus 곡선 (폴더) | | | | | | | — |
-| 5.6 | 1x1 픽셀 크기 | | | | | | | L-031 |
-| 5.7 | 그림자 모드 평가 프레임 (렌즈·시야·평면, 폴더) | | | | | | | — (S-01) |
-| 6 | Kinetix_red 포화 프레임 최댓값, 속성 | | | | | | | L-055, L-056 |
-| 7 | PFS 해제 경로, PFSOffset 부호 | | | | | | | L-062–L-065 |
-| 8 | Core.Focus, CSUW1-Port, CSUW1 닫힘, Lapp 50/50, Aura 깜빡임, 읽기 지연 | | | | | | | L-029, L-043, L-044, L-051 |
-| 9 | Tweez300 카메라 바디, 트랩 x·y 부호, 트랩 Z | | | | | | | L-090, L-091 |
-| 11 | G-05b SMA 사본 | | | | | | | — |
+| 2 | Configuration-file checks | | | | | | | L-075 |
+| 4.1 | ZDrive encoder sign | | | | | | | L-013 |
+| 4.2 | Piezo Z direction | | | | | | | L-073 |
+| 4.3 | Stage X+ / X− / Y+ / Y− | | | | | | | L-023, L-024 |
+| 4.4 | Z and XY drift without commands | | | | | | | L-067 |
+| 4.5 | Wanted Z retract height | | | | | | | L-015 |
+| 5.1 | Q13 100x approach step | | | | | | | L-018 |
+| 5.2 | Q20 XY distance that needs a retract (100x / 60x / 40x WI) | | | | | | | L-019 |
+| 5.3 | 40x WI working distance (collar 0.17) | | | | | | | L-005 |
+| 5.4 | Glass-interface Z per objective, parfocal residual | | | | | | | L-033 |
+| 5.5 | Through-focus curve (folder) | | | | | | | — |
+| 5.6 | 1x1 pixel size | | | | | | | L-031 |
+| 5.7 | Shadow-mode evaluation frames (objectives, fields, planes, folder) | | | | | | | — (S-01) |
+| 6 | Kinetix_red saturated-frame maximum, properties | | | | | | | L-055, L-056 |
+| 7 | PFS release path, PFSOffset sign | | | | | | | L-062–L-065 |
+| 8 | Core.Focus, CSUW1-Port, CSUW1 closed, Lapp 50/50, Aura flicker, readout delay | | | | | | | L-029, L-043, L-044, L-051 |
+| 9 | Tweez300 camera body, trap x and y sign, trap Z | | | | | | | L-090, L-091 |
+| 11 | G-05b SMA copy | | | | | | | — |
 
-## 2. 미리 받은 진술의 확인 (2026-10-05 전달분)
+## 2. Confirming the statements received in advance (relayed 2026-10-05)
 
-| # | 진술 | 방문일 결과 (같음 / 다름: 값 / 미확인) | 출처 |
+| # | Statement | Visit-day result (same / different: value / not confirmed) | Source |
 |---|---|---|---|
-| S1 | 40x WI WD 0.17 링 = 170 µm | | |
-| S2 | 긴 XY 이동 전 Z 100 µm 내림 (Q20); Q13 은 미답 | | |
-| S3 | 압전 0–6000 µm, 재물대 ±2 cm (압전 확인 필요) | | |
-| S4 | Kinetix 포화 "2^16" (말 그대로; 값은 포화 프레임에서 본 최댓값만 적는다, 2^16 − 1 가정 금지) | | |
-| S5 | PFS 는 MM 으로 제어; 끄는 속성은 열림 | | |
-| S6 | Tweez300 은 카메라를 놓아줌; y 가 줄면 영상에서 아래로 | | |
+| S1 | 40x WI WD at collar 0.17 = 170 µm | | |
+| S2 | Lower Z by 100 µm before a long XY move (Q20); Q13 not answered | | |
+| S3 | Piezo 0–6000 µm, stage ±2 cm (piezo needs confirming) | | |
+| S4 | Kinetix saturation "2^16" (as worded; write as the value only the maximum seen in a saturated frame, do not assume 2^16 − 1) | | |
+| S5 | PFS is controlled through MM; the property that switches it off is open | | |
+| S6 | Tweez300 releases the camera; as y decreases, the trap moves down in the image | | |
 
-## 3. 절별 세부
+## 3. Details by section
 
-점검표의 표를 그대로 옮긴다 (4.1 … 11). 표마다 마지막 열에 출처를 단다.
+Copy the checklist's tables as they are (4.1 … 11). Add the source in the last column of each table.
 
-## 4. U-03 근거 (봉투 값 아님)
+## 4. U-03 grounds (not envelope values)
 
-`focus_z_<렌즈>_{min,max}` 12 개의 근거만 적는다. 값은 사람이 U-03 에서 SMA `safety.json` 에 쓴다.
+Write only the grounds for the 12 keys `focus_z_<lens>_{min,max}`. The values are written by the person into SMA `safety.json` at U-03.
 
-| 키 | 근거 | kind (physical / carried_over) | how | by | on |
+| Key | Grounds | kind (physical / carried_over) | how | by | on |
 |---|---|---|---|---|---|
-| focus_z_4x_min … focus_z_100x_max (12 줄) | | | | | |
+| focus_z_4x_min … focus_z_100x_max (12 rows) | | | | | |
 
-## 5. 방문 끝
+## 5. End of the visit
 
-- 한 항목 / 안 한 항목:
-- 이상했던 읽기:
-- 쓴 정지:
-- 저장한 파일 (경로, sha256):
-- 끝 상태 (렌즈, Z, XY, PFS, 빛):
+- Items done / not done:
+- Odd readings:
+- Stops used:
+- Saved files (path, sha256):
+- End state (objective, Z, XY, PFS, light):
 
-## 6. 넘김
+## 6. Handover
 
-- SMA `findings/<seat>-<date>.json` 은 SMA 좌석이 쓴다 (선행 G-01 + G-05). 벤치 세션은 이 파일과 yaml 의 경로·sha256 만 넘긴다.
-- 이 기록은 SMA `runs/` 에 넣지 않는다 (OD-7).
+- SMA `findings/<seat>-<date>.json` is written by an SMA seat (prerequisites G-01 + G-05). The bench session passes on only the paths and sha256 of this file and the yaml.
+- This record does not go into SMA `runs/` (OD-7).

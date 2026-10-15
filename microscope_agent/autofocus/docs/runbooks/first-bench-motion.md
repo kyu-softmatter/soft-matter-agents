@@ -40,7 +40,7 @@ event with `target_um`, `read_um` and the tolerance.
 
 Who: the user, before any motion. Nothing moves in this step.
 
-1. Run the two read-only checks in `docs/microscope-pc-checklist.md`, section "실제 장비 백엔드 (T-033)":
+1. Run the two read-only checks in `docs/microscope-pc-checklist.md`, section "Real-instrument backend (T-033)":
    - the `Select-String` line for `System/Startup` and `System/Shutdown`;
    - the `check_load_settings` line.
 
@@ -67,7 +67,7 @@ Write down:
 - whether a `ConfigGroup,System,Shutdown` line exists, and what it sets;
 - whether Micro-Manager applies it when the backend closes. The record does not say. To see it, give
   Shutdown a harmless visible value (a light path) and watch it change on close (checklist row
-  "설정의 종료 프리셋").
+  "Does the configuration's shutdown preset leave the moving devices alone?").
 
 Enforced by: T-036b (Startup / post-init lines), T-036c (Shutdown), T-036d (device and role labels).
 Code: `mm_real.check_load_settings`, run in `open()` before anything is loaded.
@@ -79,7 +79,7 @@ Who: the user, watching the stand, with the Abort button and the hardware stop w
 Only after the unlock commit. The Z retract (2a or 2b) is safe on any lens. The XY moves (2c) need the 4x
 (`1-Plan Apo LmbdD20 4x`, nosepiece State 0) in place.
 
-Before you start, read where the stand is. The hardware screen "지금 상태 (Step 0)" or a `status` read
+Before you start, read where the stand is. The hardware screen "Current state (Step 0)" or a `status` read
 shows the lens, Z and PFS, and the status bar shows the position.
 - PFS must read off. Software never enables it.
 
@@ -226,7 +226,7 @@ Enforced by:
 Who: the user. This is a rule to keep, not a move.
 
 Do not run an objective change with the F5 step-out (`escape`) on the stand until:
-- the stage X and Y travel limits are measured or read (checklist row "재물대 이동 한계", Q12);
+- the stage X and Y travel limits are measured or read (checklist row "Stage travel limits", Q12);
 - the +Y 15 mm step-out (`ESCAPE_DY_UM = +15000`, *provisional*) is checked against them at the stand.
 
 What the screen shows: the objective change is refused in preflight with "the backend reports no stage

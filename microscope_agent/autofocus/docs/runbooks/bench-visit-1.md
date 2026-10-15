@@ -1,324 +1,324 @@
-# 벤치 방문 1 (B-01) 점검표 — 손으로만 재는 날
+# Bench visit 1 (B-01) checklist — a day of measuring by hand only
 
-> **소프트웨어는 아무것도 움직이지 않는다. 손 동작만 한다 (작업계획 6.2 중단 기준 8).**
-> Z, 재물대, 대물렌즈 터릿, PFS, 레이저는 사람이 Ti2 컨트롤러·조이스틱·Ti2 패널·벤더 GUI 에서 손으로만 다룬다.
-> dino 앱, `scripts/*`, SMA operator/orchestrator, Micro-Manager 의 Multi-D Acquisition(Z 스택)·스테이지 이동 버튼은 쓰지 않는다.
-> Micro-Manager GUI 에서는 **읽기(속성 보기)와 카메라 Snap/Live 만** 한다. 빛은 사람이 손으로 켜고 끈다.
+> **Software moves nothing. Only hand actions (workplan 6.2 stop criterion 8).**
+> Z, the stage, the objective turret, PFS and the laser are handled by the person, by hand only, at the Ti2 controller, joystick, Ti2 panel and vendor GUI.
+> Do not use the dino app, `scripts/*`, SMA operator/orchestrator, or Micro-Manager's Multi-D Acquisition (Z stack) and stage-move buttons.
+> In the Micro-Manager GUI, do **only reading (viewing properties) and camera Snap/Live**. Light is switched on and off by the person, by hand.
 
-- 대상: 작업계획 `docs/integration-sma-workplan.md` 의 B-01 (dino 쪽 절반). SMA 쪽 절반(한계, 거부 관찰, 첫 실제 중단,
-  CSUW1 닫힘 값, 카메라 최대 카운트)은 SMA 의 manager-microscope 좌석이 따로 준비한다. 두 절반은 같은 날의 같은 값을
-  두 번 재지 않도록 이 문서의 "SMA 와 겹치는 칸" 표시로 맞춘다.
-- 날짜: **2026-10-12 (월)**, 반나절. 처음 날짜 2026-10-08 (목) 에서 미룸 (2026-10-09 사람이 벤치 세션 창에서 "yes" 로 확인). 작성 2026-10-05, dino main `6802613` 기준.
-- 기록: 값은 이 점검표 칸에 손으로 적거나 사진을 찍고, 방문 뒤 벤치 세션 창에 그대로 알려 준다.
-  벤치 세션이 `docs/runs/2026-10-12_bench-visit-1.md` 와 `.yaml` 을 양식(`docs/runs/templates/`)에서 만들어 채운다.
-  질문 카드 답은 `docs/librarian-handoff.md` 7절에 적는다.
-- 모든 칸은 **값 / 방법 / 누가 / 언제** 를 적거나, 재지 않았으면 **"미측정"** 에 표시한다. 재지 않은 값을 짐작으로 채우지 않는다.
-  "누가" 는 사람 id 로 적는다(OD-6: 승인 이름과 같은 손잡이). 이메일·PC 사용자 이름은 적지 않는다.
+- Scope: B-01 in the workplan `docs/integration-sma-workplan.md` (the dino half). The SMA half (limits, refusal observation, first real abort,
+  CSUW1 closed value, camera maximum count) is prepared separately by SMA's manager-microscope seat. The two halves avoid measuring the same value
+  twice on the same day by the "box shared with SMA" marks in this document.
+- Date: **2026-10-12 (Mon)**, half a day. Moved from the first date 2026-10-08 (Thu) (confirmed by the person with "yes" in the bench session window on 2026-10-09). Written 2026-10-05, against dino main `6802613`.
+- Record: write values by hand in this checklist's boxes or photograph them, and after the visit pass them as they are to the bench session window.
+  The bench session creates and fills `docs/runs/2026-10-12_bench-visit-1.md` and `.yaml` from the forms (`docs/runs/templates/`).
+  Answers to the question cards go in `docs/librarian-handoff.md` §7.
+- Every box gets **value / method / who / when**, or, if not measured, a mark at **"not measured"**. Do not fill an unmeasured value with a guess.
+  "Who" is written as the person id (OD-6: the same handle as the approval name). Do not write emails or PC user names.
 
-## 0. 잠금은 그대로다
+## 0. The locks stay as they are
 
 - `mm_real.BENCH_MOTION = "LOCKED"` (`src/dino_autofocus/engine/backends/mm_real.py:89`, main 6802613).
-- `guards.BENCH_APPROACH = "MEASURED"` (`src/dino_autofocus/engine/guards.py:95`; 2026-10-02 부분 해제, 40x WI·60x·100x 는 2800 µm 까지).
-- 오늘 Q13·Q20·재물대 범위를 재도 잠금은 저절로 풀리지 않는다. 잠금을 바꾸는 것은 사람만 하고, 오늘 하지 않는다.
+- `guards.BENCH_APPROACH = "MEASURED"` (`src/dino_autofocus/engine/guards.py:95`; partly lifted 2026-10-02, 40x WI, 60x and 100x up to 2800 µm).
+- Measuring Q13, Q20 and the stage range today does not lift the locks by itself. Only the person changes a lock, and not today.
 
-## 0.1 미리 받은 진술 (2026-10-05; 방문일에 확인)
+## 0.1 Statements received in advance (2026-10-05; confirm on the visit day)
 
-2026-10-05 사람이 병합 계획 세션 창에서 말한 것을 그 세션이 이 세션에 전달했다. 이 창에서 사람이 직접 확인하기 전까지는
-**전달받은 진술**이고, 잰 값이 아니다. 코드·가드·봉투에 넣지 않는다. 방문일에 해당 절에서 확인하거나 고친다.
-2026-10-06 사람이 벤치 세션 창에서 S1–S6 과 방문일 2026-10-08 에 "yes" 로 답했다. 진술이 사람의 것임은 확인됐지만, 여전히 **잰 값이 아니며** 아래 "확인 결과" 칸은 방문일 측정으로 채운다. 방문일은 그 뒤 2026-10-12 로 바뀌었다 (위 날짜 줄).
+On 2026-10-05 the person said these in the merge-plan session window, and that session relayed them to this session. Until the person confirms them directly in this window they are
+**relayed statements**, not measured values. Do not put them into code, guards or the envelope. On the visit day, confirm or correct them in the matching section.
+On 2026-10-06 the person answered "yes" in the bench session window to S1–S6 and to the visit day 2026-10-08. That the statements are the person's is confirmed, but they are still **not measured values**, and the "Confirmation result" column below is filled from the visit-day measurements. The visit day was later changed to 2026-10-12 (the date line above).
 
-| # | 진술 (번역) | 카드 | 방문일에 확인할 절 | 확인 결과 |
+| # | Statement (translated) | Card | Section to confirm on the visit day | Confirmation result |
 |---|---|---|---|---|
-| S1 | 40x WI 작동 거리, 보정 링 0.17: 170 µm | L-005 | 5.3 | |
-| S2 | 긴 XY 이동 전 후퇴: Z 를 100 µm 내린다 (Q20). Q13 접근 걸음은 따로 답하지 않음 | L-019 / L-018 | 5.2 / 5.1 | |
-| S3 | 이동 범위: 압전 0–6000 µm, 전동 재물대 ±2 cm. **압전은 확인 필요**: dino 임시값 `PIEZO_RANGE_UM` 은 ±100 µm, KB 의 컨트롤러는 NPC-6330 이라 0–6000 은 다른 단위·축일 수 있다 | L-023 / L-024 / L-094 | 4.3 / 4.2 | |
-| S4 | Kinetix 포화: "2^16 이 포화 값" (16비트 판독; 사람의 말 그대로). 9/30 은 12비트로 읽혔다. **이 진술에서 숫자를 끌어내지 않는다**: 포화 프레임에서 실제로 본 최댓값만 적고, 2^16 − 1 이라고 가정하지 않는다 (카메라는 그보다 낮게 포화할 수 있다) | L-055 / L-056 | 6 | |
-| S5 | PFS 는 Micro-Manager 로 제어한다. 어느 속성이 끄는지는 아직 열림. **방문일에는 그래도 Ti2 패널에서 손으로 켜고 끄고, MM GUI 로는 읽기만** (B-01 은 손 동작만) | L-062 / L-063 / OD-9 | 7 | |
-| S6 | Tweez300 은 카메라를 놓아준다 (KB `tweez300_camera_is_released_so_it_shows_no_image` E5 와 같음). 트랩 y 가 줄면 카메라 영상에서 트랩이 아래로 간다 | L-090 / L-091 | 9 | |
+| S1 | 40x WI working distance, correction collar 0.17: 170 µm | L-005 | 5.3 | |
+| S2 | Retract before a long XY move: lower Z by 100 µm (Q20). The Q13 approach step was not answered separately | L-019 / L-018 | 5.2 / 5.1 | |
+| S3 | Travel range: piezo 0–6000 µm, motorised stage ±2 cm. **The piezo needs confirming**: dino's provisional `PIEZO_RANGE_UM` is ±100 µm, and the KB's controller is NPC-6330, so 0–6000 may be a different unit or axis | L-023 / L-024 / L-094 | 4.3 / 4.2 | |
+| S4 | Kinetix saturation: "2^16 이 포화 값" (2^16 is the saturation value) (16-bit readout; the person's exact words). On 9/30 it read as 12-bit. **Draw no number from this statement**: write only the maximum actually seen in a saturated frame, and do not assume 2^16 − 1 (the camera can saturate lower than that) | L-055 / L-056 | 6 | |
+| S5 | PFS is controlled through Micro-Manager. Which property switches it off is still open. **On the visit day, still switch it on and off by hand at the Ti2 panel, and only read through the MM GUI** (B-01 is hand actions only) | L-062 / L-063 / OD-9 | 7 | |
+| S6 | Tweez300 releases the camera (same as KB `tweez300_camera_is_released_so_it_shows_no_image` E5). As trap y decreases, the trap moves down in the camera image | L-090 / L-091 | 9 | |
 
-## 1. 멈추는 법 (언제든)
+## 1. How to stop (at any time)
 
-| 무엇 | 어디 | 효과 |
+| What | Where | Effect |
 |---|---|---|
-| 하드웨어 정지 | 스탠드의 Ti2 컨트롤러 / 조이스틱 | 언제나 쓸 수 있다. 화면이 반응하지 않으면 이것 |
-| 손 떼기 | 조이스틱·초점 손잡이 | 손으로 하는 이동은 손을 떼면 멈춘다 |
-| 빛 끄기 | 광원 패널 / Ti2 패널의 셔터 | 빛만 끈다 |
-| 레이저 끄기 | Tweez300 벤더 GUI / 레이저 키 | 사람만 다룬다 |
+| Hardware stop | Ti2 controller / joystick at the stand | Always available. Use this if the screen does not respond |
+| Let go | Joystick, focus knob | A hand-driven move stops when you let go |
+| Light off | Light-source panel / shutter on the Ti2 panel | Turns off the light only |
+| Laser off | Tweez300 vendor GUI / laser key | Handled by the person only |
 
-이상한 소리, 오일·물 막이 끊기는 모습, 렌즈가 커버슬립에 닿는 느낌이 있으면 그 자리에서 멈추고 Z 를 손으로 내린다(0 쪽).
+If there is an odd sound, the oil or water film breaking, or a feeling that the objective touches the coverslip, stop on the spot and lower Z by hand (toward 0).
 
-## 2. 시작 전 확인 (아무것도 움직이지 않는다)
+## 2. Checks before starting (nothing moves)
 
-| # | 확인 | 결과 칸 |
+| # | Check | Result box |
 |---|---|---|
-| 2.1 | SMA operator / orchestrator 가 현미경 PC 에서 돌고 있지 않다 (작업 관리자에서 `python` 창, SMA 터미널 확인) | 예 / 아니오(→ 멈춤) |
-| 2.2 | 두 번째 Micro-Manager core 가 없다: MM GUI 는 하나만, dino 앱 서버·Jupyter·스크립트 꺼짐 (한 MM 에 core 둘은 알려진 실패, OD-13) | 예 / 아니오(→ 멈춤) |
-| 2.3 | 설정 파일 읽기 검사 두 줄 (`docs/microscope-pc-checklist.md` "실제 장비 백엔드 (T-033)" 의 `Select-String` 줄과 `check_load_settings` 줄). 둘 다 파일만 읽는다 | `OK` / `UnsafeConfig: ____` |
-| 2.4 | (선택) runbook `first-bench-motion.md` Step 1 의 열고 닫기 한 번. 잠금 상태라 움직이지 못한다. 나온 `notes["bench_motion"]` | `LOCKED` / 기타 ____ |
-| 2.5 | 설정 파일 sha256 이 `8184073e…3120` 과 같은가 | 같음 / 다름 ____ |
+| 2.1 | SMA operator / orchestrator is not running on the microscope PC (check Task Manager for `python` windows, and SMA terminals) | yes / no (→ stop) |
+| 2.2 | No second Micro-Manager core: only one MM GUI; dino app server, Jupyter and scripts are off (two cores on one MM is a known failure, OD-13) | yes / no (→ stop) |
+| 2.3 | The two configuration-file read checks (the `Select-String` line and the `check_load_settings` line in `docs/microscope-pc-checklist.md` "Real-instrument backend (T-033)"). Both only read the file | `OK` / `UnsafeConfig: ____` |
+| 2.4 | (Optional) One open-and-close from runbook `first-bench-motion.md` Step 1. With the lock on, it cannot move anything. The resulting `notes["bench_motion"]` | `LOCKED` / other ____ |
+| 2.5 | Does the configuration file's sha256 match `8184073e…3120` | same / different ____ |
 
-**`UnsafeConfig` 가 나오면 멈춘다.** 그 설정으로 MM GUI 를 열지 말고, 결과를 벤치 세션에 알린다(벤치 세션이 총괄 세션에 넘긴다).
-검사 코드를 고쳐서 지나가지 않는다.
+**If `UnsafeConfig` appears, stop.** Do not open the MM GUI with that configuration; report the result to the bench session (the bench session passes it to the lead session).
+Do not edit the check code to get past it.
 
-## 3. 시작 상태 읽기 (MM GUI 의 Device Property Browser, 읽기만)
+## 3. Reading the starting state (Device Property Browser in the MM GUI, read only)
 
-| 항목 | 값 | 읽은 곳 |
+| Item | Value | Where read |
 |---|---|---|
-| 대물렌즈 (Nosepiece State, 라벨) | | Nosepiece `State`, `Label` |
-| ZDrive 위치 µm | | ZDrive `Position` 또는 Ti2 패널 |
+| Objective (Nosepiece State, label) | | Nosepiece `State`, `Label` |
+| ZDrive position µm | | ZDrive `Position` or Ti2 panel |
 | XY µm | | XYStage |
-| PFS (켜짐/꺼짐, `Out of Range`/`Within Range`/`Locked`) | | PFS 속성 |
-| 광원 상태 (Aura State, LightEngine State, DiaLamp) | | 각 장치 |
-| 피에조 z µm (NanoBench, 읽기만) | | 벤더 표시 |
-| 시각 | | 시계 |
+| PFS (on/off, `Out of Range`/`Within Range`/`Locked`) | | PFS properties |
+| Light-source state (Aura State, LightEngine State, DiaLamp) | | each device |
+| Piezo z µm (NanoBench, read only) | | vendor display |
+| Time | | clock |
 
-이 읽기는 **3.Z 표류**의 시작점이기도 하다. 끝날 때 9절에서 한 번 더 읽는다.
+This reading is also the starting point of **3.Z drift**. At the end, read it once more in §9.
 
-## 4. Z 와 재물대
+## 4. Z and the stage
 
-### 4.1 ZDrive 엔코더 부호 (check 86 의 z_drive 오름차순 규칙에 필요)
+### 4.1 ZDrive encoder sign (needed for check 86's z_drive ascending rule)
 
-- 무엇: 초점 손잡이를 **샘플 쪽(렌즈가 커버슬립에 가까워지는 쪽)** 으로 돌릴 때 ZDrive 값이 늘어나는가 줄어드는가.
-- 순서: 4x, 샘플 없이 또는 Z 가 낮은 곳에서. 손잡이를 샘플 쪽으로 조금 돌리고 Ti2 패널/MM GUI 의 ZDrive 값을 본다.
-- 관련: L-013 (2026-09-05 prior 측정 "커질수록 시료 쪽"), SMA `PIEZO_Z_DIRECTION_ENTRY` 와 같은 모양의 KB 항목.
+- What: when the focus knob is turned **toward the sample (the direction in which the objective approaches the coverslip)**, does the ZDrive value increase or decrease.
+- Order: on 4x, with no sample or with Z low. Turn the knob a little toward the sample and watch the ZDrive value on the Ti2 panel / MM GUI.
+- Related: L-013 (2026-09-05 prior measurement "larger is toward the sample"), a KB entry of the same shape as SMA's `PIEZO_Z_DIRECTION_ENTRY`.
 
-| 값 | 늘어남 / 줄어듦 | 방법 | 누가 | 언제 | 미측정 □ |
+| Value | increases / decreases | Method | Who | When | Not measured □ |
 |---|---|---|---|---|---|
 
-### 4.2 압전 Z 방향
+### 4.2 Piezo Z direction
 
-- 무엇: 압전 z 값이 커질 때 초점면이 샘플 쪽으로 가는가. 사람이 NanoBench 벤더 프로그램/손잡이로 조금 바꾸고 영상이 어느 쪽으로 흐려지는지 본다.
-  dino/SMA 소프트웨어는 압전에 명령하지 않는다.
-- 관련: L-073, L-094.
+- What: as the piezo z value increases, does the focal plane move toward the sample. The person changes it a little with the NanoBench vendor program / knob and watches which way the image blurs.
+  dino/SMA software does not command the piezo.
+- Related: L-073, L-094.
 
-| 값 (z+ = 샘플 쪽 / 반대) | 바꾼 양 µm | 방법 | 누가 | 언제 | 미측정 □ |
+| Value (z+ = toward the sample / away) | Amount changed µm | Method | Who | When | Not measured □ |
 |---|---|---|---|---|---|
 
-### 4.3 재물대 이동 범위 (T-029d, Q12, L-023, L-024)
+### 4.3 Stage travel range (T-029d, Q12, L-023, L-024)
 
-- 먼저: **Z 를 손으로 0 근처까지 내리고, 4x 를 손으로 제자리에 둔다** (runbook 2b). 오일 렌즈가 올라와 있으면 닦는다.
-- 순서: 조이스틱으로 천천히 +X 끝, −X 끝, +Y 끝, −Y 끝까지. 끝에 닿기 전 속도를 줄인다. 각 끝에서 XYStage 값을 읽는다.
-  끝까지 가는 것이 불안하면 "적어도 여기까지" 값만 적는다(2026-10-02 의 Y ≥ 20498.8 처럼).
-- F5 이탈(+Y 15 mm) 이 범위 안인지는 이 값으로 나중에 사람이 본다. 오늘 앱의 F5 는 쓰지 않는다.
+- First: **lower Z by hand to near 0, and put the 4x in place by hand** (runbook 2b). If an oil objective is up, wipe it.
+- Order: with the joystick, slowly to the +X end, the −X end, the +Y end, the −Y end. Slow down before reaching an end. Read the XYStage value at each end.
+  If going all the way to an end feels unsafe, write only an "at least this far" value (like Y ≥ 20498.8 on 2026-10-02).
+- Whether the F5 step-out (+Y 15 mm) is within range is checked later by the person against these values. Today the app's F5 is not used.
 
-| 축·끝 | 읽은 µm | 끝까지 감 / 적어도 | 방법 | 누가 | 언제 | 미측정 □ |
+| Axis and end | Read µm | Reached the end / at least | Method | Who | When | Not measured □ |
 |---|---|---|---|---|---|---|
 | X + | | | | | | |
 | X − | | | | | | |
 | Y + | | | | | | |
 | Y − | | | | | | |
-| 가장 먼 두 점 사이 걸린 시간 s (선택, 30 s 대기 값 확인) | | | | | | |
+| Time taken between the two farthest points s (optional, to check the 30 s wait value) | | | | | | |
 
-### 4.4 명령 없는 Z 표류 (L-067)
+### 4.4 Z drift without commands (L-067)
 
-- 무엇: 아무도 손대지 않을 때 ZDrive 와 XY 가 얼마나 바뀌는가. 3절 읽기와 9절 읽기 사이에 손댄 시간은 빼고 적는다.
-  가능하면 손대지 않는 10 분 구간을 하나 둔다(시작·끝 값).
+- What: how much ZDrive and XY change when nobody touches anything. Between the §3 reading and the §9 reading, leave out the time when things were touched.
+  If possible, set aside one 10-minute stretch with nothing touched (start and end values).
 
-| 구간 시작 시각·Z·XY | 끝 시각·Z·XY | 그 사이 손댔나 | 누가 | 미측정 □ |
+| Stretch start time, Z, XY | End time, Z, XY | Touched in between? | Who | Not measured □ |
 |---|---|---|---|---|
 
-### 4.5 사람이 원하는 Z 후퇴 높이 (L-015, `z_safe`)
+### 4.5 The Z retract height the person wants (L-015, `z_safe`)
 
-- 무엇: 렌즈를 돌리거나 길게 XY 를 옮기기 전에 Z 를 어디까지 내리고 싶은가. 렌즈마다 다르면 렌즈마다.
-  재는 값이 아니라 사람이 정하는 값이다. 정한 이유를 한 줄 적는다.
+- What: how far down the person wants Z before rotating an objective or making a long XY move. Per objective, if it differs by objective.
+  This is not a measured value but a value the person decides. Write one line on why.
 
-| 렌즈 | 후퇴 Z µm | 이유 | 누가 | 미정 □ |
+| Objective | Retract Z µm | Reason | Who | Undecided □ |
 |---|---|---|---|---|
 
-## 5. 렌즈별 접근 (손으로; 오일·물 렌즈는 사람 판단으로만)
+## 5. Approach per objective (by hand; oil and water objectives only on the person's judgement)
 
-### 5.1 Q13 — 100x Oil 접근 걸음
+### 5.1 Q13 — 100x Oil approach step
 
-- 무엇: 100x Oil 에서 Z 를 0 → 2800 µm 로 한 번에 올리고, 그 위는 몇 µm 걸음으로 올라가야 안전한가. 걸음 사이 기다림은?
-- 순서: 4x 에서 Z 0 → 손으로 100x Oil 로 돌림 → 오일 → 손잡이로 2800 까지 → 그 위는 fine 손잡이로 조금씩, 초점(유리 계면)이 보일 때까지.
-  손잡이 한 칸이 몇 µm 인지(Ti2 패널의 coarse/fine 설정)를 함께 적는다.
-- 지금 코드의 임시값은 10 µm (`approach_step_um`, L-018). 그 값을 맞다고 하지 말고, 오늘 본 것과 사람이 허락할 걸음을 적는다.
+- What: on 100x Oil, raise Z from 0 → 2800 µm in one go; above that, in steps of how many µm is it safe to go up? How long to wait between steps?
+- Order: at 4x, Z 0 → rotate to 100x Oil by hand → oil → knob up to 2800 → above that, little by little with the fine knob, until focus (the glass interface) is seen.
+  Also write how many µm one knob click is (the coarse/fine setting on the Ti2 panel).
+- The current code's provisional value is 10 µm (`approach_step_um`, L-018). Do not call that value right; write what was seen today and the step the person will allow.
 
-| 항목 | 값 | 방법 | 누가 | 언제 | 미측정 □ |
+| Item | Value | Method | Who | When | Not measured □ |
 |---|---|---|---|---|---|
-| 손잡이 한 칸 µm (fine / coarse) | | | | | |
-| 2800 위에서 쓴 걸음 µm | | | | | |
-| 걸음 사이 기다림 s | | | | | |
-| 사람이 소프트웨어에 허락할 최대 걸음 µm (OD-14, U-02 에서 결정) | | | | | |
-| 오일이 렌즈와 커버슬립 사이에 이어진 Z µm (보였다면) | | | | | |
+| One knob click µm (fine / coarse) | | | | | |
+| Step µm used above 2800 | | | | | |
+| Wait between steps s | | | | | |
+| Maximum step the person will allow the software µm (OD-14, decided at U-02) | | | | | |
+| Z µm at which the oil joined the objective and the coverslip (if seen) | | | | | |
 
-### 5.2 Q20 — XY 이동 전에 Z 를 내려야 하는 거리 (침지 렌즈)
+### 5.2 Q20 — how far Z must be lowered before an XY move (immersion objectives)
 
-- 무엇: 100x Oil (그리고 쓸 수 있으면 60x Oil, 40x WI) 에서 초점 높이 그대로 조이스틱으로 XY 를 옮길 때, 몇 µm 부터
-  오일·물 막이 끌리거나 끊기거나 거품이 생기는가. 그 거리보다 길면 먼저 Z 를 내려야 한다.
-- 순서: 초점 높이에서 조이스틱으로 +X 로 100 µm, 300 µm, 1 mm … 조금씩 늘린다. 문제가 보이면 멈추고 Z 를 내린다.
-  문제가 없으면 "적어도 ___ µm 까지 문제 없음" 으로 적는다.
-- 지금 코드의 임시값: 100x 156, 60x 260, 40x WI 390 µm (L-019). 맞추려 하지 않는다.
+- What: on 100x Oil (and 60x Oil, 40x WI if they can be used), moving XY with the joystick at focus height, from how many µm
+  does the oil/water film drag, break, or form bubbles. For moves longer than that distance, Z must be lowered first.
+- Order: at focus height, with the joystick, +X by 100 µm, 300 µm, 1 mm … increasing little by little. If a problem appears, stop and lower Z.
+  If there is no problem, write "no problem up to at least ___ µm".
+- The current code's provisional values: 100x 156, 60x 260, 40x WI 390 µm (L-019). Do not try to match them.
 
-| 렌즈 | 문제가 보인 거리 µm / 적어도 문제 없음 µm | 무엇이 보였나 | 방법 | 누가 | 언제 | 미측정 □ |
+| Objective | Distance where a problem appeared µm / no problem up to at least µm | What was seen | Method | Who | When | Not measured □ |
 |---|---|---|---|---|---|---|
 | 100x Oil | | | | | | |
 | 60x Oil | | | | | | |
 | 40x WI | | | | | | |
 
-### 5.3 40x WI 작동 거리, 보정 링 0.17 (D-08, L-005, OD-21)
+### 5.3 40x WI working distance, correction collar 0.17 (D-08, L-005, OD-21)
 
-- 무엇: 보정 링이 0.17 mm 에 있을 때 40x WI 의 작동 거리(렌즈 앞면 ~ 커버슬립 렌즈 쪽 면).
-  dino 안에 160 (`configs/ti2_40x.yaml:23`, `mock_world:133`) 과 170 (guards) 이 같이 있다. **오늘 잰 값을 그대로 적고, 고르지 않는다.**
-- 먼저 보정 링 눈금이 0.17 인지 다시 본다.
-- 방법은 사람이 고른다. 고른 방법을 그대로 적는다. 예:
-  - (a) 렌즈 몸통·사양서 값 읽기 (잰 값이 아니라 카탈로그 값; 카탈로그는 0.16–0.20 범위만 준다);
-  - (b) 물을 올리고 커버슬립 샘플 쪽 면(유리 계면)에 초점 → Z_f 읽기, 그 다음 사람이 안전하다고 판단할 때만 아주 천천히
-    렌즈 앞면이 커버슬립에 닿기 직전(물 막 모양이 바뀌는 곳)까지 → Z_c 읽기. 차이와 그 뜻을 적는다.
-    닿게 하는 것은 권하지 않는다. 불안하면 (b) 는 하지 않는다.
-- 이 값이 없으면 40x WI 는 OD-21 대로 발행 불가로 남는다. 미측정도 답이다.
+- What: the working distance of the 40x WI with the correction collar at 0.17 mm (objective front face to the objective-side face of the coverslip).
+  Inside dino both 160 (`configs/ti2_40x.yaml:23`, `mock_world:133`) and 170 (guards) exist. **Write today's measured value as it is, and do not choose.**
+- First, check again that the correction collar reads 0.17.
+- The person chooses the method. Write the chosen method as it is. Examples:
+  - (a) read the value on the objective barrel or spec sheet (a catalogue value, not a measured one; the catalogue gives only the range 0.16–0.20);
+  - (b) put water on and focus on the sample-side face of the coverslip (the glass interface) → read Z_f; then, only if the person judges it safe, very slowly
+    bring the objective front face to just before it touches the coverslip (where the shape of the water film changes) → read Z_c. Write the difference and what it means.
+    Touching is not recommended. If unsure, do not do (b).
+- Without this value the 40x WI stays not issuable, as OD-21 says. Not measured is also an answer.
 
-| 보정 링 눈금 | Z_f µm | Z_c µm (했다면) | 작동 거리 µm | 방법 (a/b/기타) | 누가 | 언제 | 미측정 □ |
+| Correction collar reading | Z_f µm | Z_c µm (if done) | Working distance µm | Method (a/b/other) | Who | When | Not measured □ |
 |---|---|---|---|---|---|---|---|
 
-### 5.4 렌즈별 유리 계면 Z 와 동초점 잔차 (L-033, 026 1단계 입력)
+### 5.4 Glass-interface Z per objective and parfocal residual (L-033, input to 026 stage 1)
 
-- 무엇: 같은 샘플·같은 XY 에서 렌즈마다 커버슬립 유리 계면에 초점이 맞는 ZDrive 값. 4x 는 명시야로.
-  동초점 잔차 = 각 렌즈의 계면 Z − 4x 의 계면 Z.
-- 순서: 4x 명시야(DiaLamp 손으로)로 계면 → Z 읽기. Z 를 내리고 렌즈를 손으로 돌리고(침지 렌즈는 오일·물), 다시 올려 계면 → Z 읽기.
-  렌즈 회전 전에는 언제나 Z 후퇴와 PFS 꺼짐 (L-066).
-- 2026-09-30 의 4x→100x 는 약 −60 µm (한 번), 실험실 메모는 약 −100 µm.
+- What: on the same sample at the same XY, the ZDrive value at which each objective focuses on the coverslip glass interface. 4x in brightfield.
+  Parfocal residual = each objective's interface Z − the 4x interface Z.
+- Order: interface at 4x brightfield (DiaLamp by hand) → read Z. Lower Z, rotate the objective by hand (oil/water for immersion objectives), raise again to the interface → read Z.
+  Before rotating an objective, always retract Z and switch PFS off (L-066).
+- On 2026-09-30, 4x→100x was about −60 µm (once); the lab note says about −100 µm.
 
-| 렌즈 | 계면 Z µm | 4x 대비 잔차 µm | 빛 | XY | 누가 | 언제 | 미측정 □ |
+| Objective | Interface Z µm | Residual vs 4x µm | Light | XY | Who | When | Not measured □ |
 |---|---|---|---|---|---|---|---|
-| 4x | | 0 | 명시야 | | | | |
+| 4x | | 0 | brightfield | | | | |
 | 10x | | | | | | | |
 | 20x | | | | | | | |
 | 40x WI | | | | | | | |
 | 60x Oil | | | | | | | |
 | 100x Oil | | | | | | | |
 
-### 5.5 방식별 through-focus 곡선 (OD-14 입력)
+### 5.5 Through-focus curve per mode (input to OD-14)
 
-- 무엇: 계면 근처에서 Z 를 **손잡이로** 한 걸음씩 옮기며 MM GUI 에서 Snap 으로 한 장씩 저장. 방식(명시야 / 형광 / 반사 등)마다 한 줄.
-  MM 의 Z 스택(Multi-D)은 소프트웨어 Z 이동이므로 쓰지 않는다.
-- 저장 폴더와 장 수, 걸음 µm, Z 범위를 적는다. 곡선 계산은 방문 뒤 데스크톱에서 한다.
+- What: near the interface, move Z one step at a time **with the knob** and save one frame at a time with Snap in the MM GUI. One row per mode (brightfield / fluorescence / reflection etc.).
+  MM's Z stack (Multi-D) is a software Z move, so do not use it.
+- Write the save folder and the number of frames, the step µm, and the Z range. The curve is computed on the desktop after the visit.
 
-| 렌즈 | 방식·빛 | Z 범위 µm | 걸음 µm | 장 수 | 노출 ms | 저장 폴더 | 미측정 □ |
+| Objective | Mode, light | Z range µm | Step µm | Frames | Exposure ms | Save folder | Not measured □ |
 |---|---|---|---|---|---|---|---|
 
-### 5.6 1x1 픽셀 크기 (선택; L-031 이 E2 12 항목으로 닫히지 않았을 때만)
+### 5.6 1x1 pixel size (optional; only if L-031 was not closed by the 12 E2 items)
 
-| 렌즈 | µm/px | 방법 (눈금자 슬라이드 / 재물대 이동과 영상 이동 비교) | 누가 | 언제 | 미측정 □ |
+| Objective | µm/px | Method (ruler slide / compare stage move with image move) | Who | When | Not measured □ |
 |---|---|---|---|---|---|
 
-### 5.7 그림자 모드 평가 — 손 초점과 점수 비교용 프레임 (S-01, `docs/sma-shadow-mode.md` 7절)
+### 5.7 Shadow-mode evaluation — frames for comparing scores with hand focus (S-01, `docs/sma-shadow-mode.md` §7)
 
-- 무엇: 고전 지표와 DINO 가 사람의 손 초점과 얼마나 맞는지 처음 기록하기 위한 프레임. **점수는 벤치에서 계산하지 않는다.**
-  방문 뒤 데스크톱에서 저장된 프레임으로 계산한다.
-- 장비는 사람만 다룬다. 빛은 손으로 켜고, Z 는 초점 손잡이로만 옮기며, 프레임은 MM GUI 의 Snap 으로 한 장씩 저장한다.
-  MM 의 Z 스택(Multi-D)은 쓰지 않는다. 5.5 와 프레임을 같이 써도 되면 그렇게 적는다.
-- **사람이 정할 칸 (제안값 없음):** 렌즈 목록, 시야 수, z0 둘레 평면의 간격과 개수는 **10-12 (월)** 에 사람이 정한다
-  (2026-10-07 사람의 말, 병합 계획 세션 전달). 같은 날 방문에서 이 평가를 할지도 사람이 정한다. 이 점검표는 숫자를 정하지 않는다.
-- **허용 오차 (초점 심도, DoF):** 실제 시야를 본 뒤 **벤치에서 사람이 정한다** (2026-10-07 사람의 말, 병합 계획 세션 전달).
+- What: frames for a first record of how well the classical metrics and DINO agree with the person's hand focus. **Scores are not computed at the bench.**
+  They are computed on the desktop after the visit, from the saved frames.
+- Only the person handles the equipment. Light is switched on by hand, Z moves only with the focus knob, and frames are saved one at a time with Snap in the MM GUI.
+  MM's Z stack (Multi-D) is not used. If the frames can be shared with 5.5, write so.
+- **Boxes the person decides (no proposed values):** the list of objectives, the number of fields, and the spacing and number of planes around z0 are decided by the person on **10-12 (Mon)**
+  (the person's words on 2026-10-07, relayed by the merge-plan session). Whether to do this evaluation on that visit is also the person's call. This checklist sets no numbers.
+- **Tolerance (depth of field, DoF):** **decided by the person at the bench** after seeing the actual fields (the person's words on 2026-10-07, relayed by the merge-plan session).
 
-| 허용 오차 (DoF) µm — 벤치에서 사람이 정함 | 렌즈 | 정한 이유 | 누가 | 언제 | 미정 □ |
+| Tolerance (DoF) µm — decided by the person at the bench | Objective | Reason for the choice | Who | When | Undecided □ |
 |---|---|---|---|---|---|
-- 순서: (1) 렌즈와 조명을 정한다 → (2) 시야 하나에서 손으로 초점을 맞추고 그때의 ZDrive(z0)와 XY 를 읽는다 →
-  (3) 손잡이로 z0 둘레 평면을 차례로 지나며 평면마다 ZDrive 를 읽고 Snap 한 장을 저장한다 → (4) 다른 시야에서 (2)–(3) 반복 →
-  (5) (선택) 시료가 없는 시야 하나.
+- Order: (1) choose the objective and illumination → (2) in one field, focus by hand and read that ZDrive (z0) and XY →
+  (3) with the knob, pass through the planes around z0 in turn, reading ZDrive and saving one Snap at each plane → (4) repeat (2)–(3) in another field →
+  (5) (optional) one field with no sample.
 
-렌즈마다:
+Per objective:
 
-| 렌즈 | 조명 설정 (광원·라인·세기) | 노출 ms | 판독 모드 (Port + ReadoutRate) | 시야 수 (사람이 정함) | 평면 간격·개수 (사람이 정함) | 미측정 □ |
+| Objective | Illumination setting (light source, line, intensity) | Exposure ms | Readout mode (Port + ReadoutRate) | Number of fields (decided by the person) | Plane spacing and count (decided by the person) | Not measured □ |
 |---|---|---|---|---|---|---|
 
-시야마다:
+Per field:
 
-| 렌즈 | 시야 # | 손 초점 z0 (ZDrive µm) | XY µm | 시료 있음 / 없음 | 누가 | 언제 |
+| Objective | Field # | Hand focus z0 (ZDrive µm) | XY µm | Sample present / absent | Who | When |
 |---|---|---|---|---|---|---|
 
-평면마다:
+Per plane:
 
-| 렌즈 | 시야 # | 평면 # | ZDrive µm | 프레임 파일 이름 |
+| Objective | Field # | Plane # | ZDrive µm | Frame file name |
 |---|---|---|---|---|
 
-## 6. 카메라 — Kinetix_red 비트 깊이 (D-08, L-055, L-056, L-052 충돌 카드 4절 2)
+## 6. Camera — Kinetix_red bit depth (D-08, L-055, L-056, L-052 conflict card §4 item 2)
 
-- 무엇: 포화 프레임 하나의 최댓값. 12비트(`engine/backend.py` 주석·9/30)와 16비트(10/02 속성 읽기)가 충돌한다. 기록하는 값은 **실제로 본 최댓값**뿐이다. 4095 나 2^16 − 1 같은 이론값을 가정하거나 적지 않는다.
-- 순서: MM GUI 에서 Kinetix_red 를 Live/Snap. 빛을 손으로 켜고(명시야 DiaLamp 가 쉽다) 노출을 늘려 히스토그램이 오른쪽 끝에 붙을 때까지.
-  Snap 한 장을 저장하고, 그 프레임의 **최댓값**과 카메라 속성 `Port`, `ReadoutRate`, `BitDepth`, `PixelType`, `Gain`, 노출을 읽는다.
-  가능하면 `Port` 를 바꿔(Dynamic Range / Sensitivity / Speed / Sub-Electron) 각각에서 `ReadoutRate` 허용 값을 읽는다(9/30 의 `100MHz 12bit` 가 어느 Port 에서 나오는지).
-- **SMA 와 겹치는 칸**: SMA 의 "camera full-scale count" 가 이 최댓값이다. 한 번 재고 두 쪽에 같은 값을 쓴다.
-- 함께 (선택): 어두운 프레임(빛 꺼짐) 평균 — 어두운 오프셋 L-057 (9/30 약 102 ADU, 속성 `Offset = 100`).
+- What: the maximum value of one saturated frame. 12-bit (`engine/backend.py` comment, 9/30) and 16-bit (10/02 property read) conflict. The only value recorded is **the maximum actually seen**. Do not assume or write theoretical values such as 4095 or 2^16 − 1.
+- Order: Live/Snap Kinetix_red in the MM GUI. Switch the light on by hand (brightfield DiaLamp is easiest) and raise the exposure until the histogram sits against the right-hand end.
+  Save one Snap, and read that frame's **maximum** and the camera properties `Port`, `ReadoutRate`, `BitDepth`, `PixelType`, `Gain`, and the exposure.
+  If possible, change `Port` (Dynamic Range / Sensitivity / Speed / Sub-Electron) and read the allowed `ReadoutRate` values for each (which Port gives 9/30's `100MHz 12bit`).
+- **Box shared with SMA**: SMA's "camera full-scale count" is this maximum. Measure once and use the same value on both sides.
+- Also (optional): the mean of a dark frame (light off) — dark offset L-057 (9/30 about 102 ADU, property `Offset = 100`).
 
-| 항목 | 값 | 방법 | 누가 | 언제 | 미측정 □ |
+| Item | Value | Method | Who | When | Not measured □ |
 |---|---|---|---|---|---|
-| 포화 프레임 최댓값 ADU | | | | | |
-| **그 프레임의 판독 모드 (Port + ReadoutRate)** — 최댓값과 반드시 같이 적는다 (SMA 의 빈칸이 판독 모드마다 따로다) | | | | | |
+| Saturated-frame maximum ADU | | | | | |
+| **That frame's readout mode (Port + ReadoutRate)** — always write it together with the maximum (SMA's blanks are separate per readout mode) | | | | | |
 | Port / ReadoutRate / BitDepth / PixelType / Gain | | | | | |
-| (선택) 다른 Port 에서도 포화시켰다면 Port 마다 최댓값 | | | | | |
-| 노출 ms, 빛 | | | | | |
-| Port 별 ReadoutRate 허용 값 | | | | | |
-| 저장한 파일 경로 | | | | | |
-| 어두운 프레임 평균 ADU (선택) | | | | | |
+| (Optional) if also saturated on another Port, the maximum per Port | | | | | |
+| Exposure ms, light | | | | | |
+| Allowed ReadoutRate values per Port | | | | | |
+| Saved file path | | | | | |
+| Dark-frame mean ADU (optional) | | | | | |
 
-## 7. PFS 해제 경로 (OD-9, L-062, L-063, L-064, L-065)
+## 7. PFS release path (OD-9, L-062, L-063, L-064, L-065)
 
-- 무엇: 켜진 PFS 를 껐을 때 어느 속성이 서보가 멈췄음을 말해 주는가. **켜고 끄는 것은 Ti2 패널(또는 PFS 버튼)에서 손으로만.**
-  소프트웨어(`enableContinuousFocus`)로는 켜지도 끄지도 않는다. 사람은 전후로 속성과 문구만 읽는다.
-- 순서:
-  1. 꺼진 상태에서 PFS 속성 전부 읽기 (아래 "전").
-  2. 계면에 초점 → Ti2 패널에서 PFS 켬 → 잠김(Locked/Within Range)을 확인 → 속성 전부 읽기 ("켜짐").
-  3. PFSOffset 을 패널 손잡이로 조금 돌리고, 초점면이 샘플 쪽으로 갔는지 반대로 갔는지, PFSOffset 값이 늘었는지 줄었는지 ("부호").
-  4. Ti2 패널에서 PFS 끔 → 속성 전부 읽기 ("후"). Z 를 조금 손으로 돌려 PFS 가 따라오지 않는지 본다.
-- 읽을 속성: `MM GUI 의 PFS 장치 전체` — 특히 상태 문구(`Out of Range` 등), `FocusMaintenance`, `DichroicMirrorInserted`, `LEDIntensity`,
-  `PFSOffset`, Core 의 `isContinuousFocusEnabled` / `isContinuousFocusLocked` 표시(MM GUI 의 Autofocus 창).
+- What: when an engaged PFS is switched off, which property tells you the servo has stopped. **Switching it on and off is by hand only, at the Ti2 panel (or the PFS button).**
+  Software (`enableContinuousFocus`) neither switches it on nor off. The person only reads the properties and status text before and after.
+- Order:
+  1. With it off, read all PFS properties ("before" below).
+  2. Focus on the interface → switch PFS on at the Ti2 panel → confirm it is locked (Locked/Within Range) → read all properties ("on").
+  3. Turn PFSOffset a little with the panel knob, and note whether the focal plane moved toward the sample or away, and whether the PFSOffset value increased or decreased ("sign").
+  4. Switch PFS off at the Ti2 panel → read all properties ("after"). Turn Z a little by hand and see that PFS does not follow.
+- Properties to read: `the whole PFS device in the MM GUI` — in particular the status text (`Out of Range` etc.), `FocusMaintenance`, `DichroicMirrorInserted`, `LEDIntensity`,
+  `PFSOffset`, and Core's `isContinuousFocusEnabled` / `isContinuousFocusLocked` indicators (the Autofocus window in the MM GUI).
 
-| 시점 | 상태 문구 | FocusMaintenance | ContinuousFocus enabled / locked | PFSOffset | 기타 | 시각 |
+| Point | Status text | FocusMaintenance | ContinuousFocus enabled / locked | PFSOffset | Other | Time |
 |---|---|---|---|---|---|---|
-| 전 | | | | | | |
-| 켜짐 | | | | | | |
-| 후 | | | | | | |
+| before | | | | | | |
+| on | | | | | | |
+| after | | | | | | |
 
-| 항목 | 값 | 방법 | 누가 | 미측정 □ |
+| Item | Value | Method | Who | Not measured □ |
 |---|---|---|---|---|
-| 서보가 멈췄음을 믿고 읽을 속성 하나 (있다면) | | | | |
-| PFSOffset + 일 때 초점면 방향 | | | | |
-| 끈 뒤 Z 를 손으로 돌려도 따라오지 않음 | 예 / 아니오 | | | |
+| One property to trust as saying the servo has stopped (if any) | | | | |
+| Focal-plane direction for PFSOffset + | | | | |
+| After switching off, turning Z by hand is not followed | yes / no | | | |
 
-## 8. 광경로·광원 후속 (2026-10-02 후속 세 가지)
+## 8. Light path and light-source follow-ups (the three follow-ups from 2026-10-02)
 
-| 항목 | 무엇을 보나 | 값 | 미측정 □ |
+| Item | What to look at | Value | Not measured □ |
 |---|---|---|---|
-| `Core.Focus` 비어 있음 (L-029) | MM GUI Configuration → Core `Focus` 가 빈 값인지 | | |
-| CSUW1-Port 상태 번호 (L-044) | CSU-W1 패널에서 0 / 1 / 2 로 두고 각각 blue/red 카메라에 빛이 가는지: 0 blue_only, 1 blue_red, 2 red_only 메모와 같은가 | | |
-| CSUW1 셔터 닫힘 값 (**SMA 와 겹치는 칸**) | CSU-W1 셔터를 닫았을 때 장치가 보여 주는 값 | | |
-| LappMainBranch1 State 1 = 50/50 거울 (L-043) | 패널/장치 표시 | | |
-| Aura 깜빡임 (L-051, −23% 프레임) | Aura 한 라인을 손으로 켜고 Live 에서 Snap 20 장쯤 저장, 평균 밝기가 낮은 장의 비율 | | |
-| 스텝당 읽기 지연 (T-029d) | 손으로 돌린 뒤 패널과 MM GUI 의 ZDrive 값이 멈출 때까지 걸린 시간(대략). 소프트웨어 이동이 필요하면 미측정 | | |
+| `Core.Focus` is empty (L-029) | MM GUI Configuration → whether Core `Focus` is an empty value | | |
+| CSUW1-Port state number (L-044) | Set it to 0 / 1 / 2 on the CSU-W1 panel and see whether light reaches the blue/red camera in each: does it match the note 0 blue_only, 1 blue_red, 2 red_only | | |
+| CSUW1 shutter closed value (**box shared with SMA**) | The value the device shows when the CSU-W1 shutter is closed | | |
+| LappMainBranch1 State 1 = 50/50 mirror (L-043) | Panel / device display | | |
+| Aura flicker (L-051, −23% frames) | Switch one Aura line on by hand, save about 20 Snaps from Live, and give the fraction of frames with low mean brightness | | |
+| Readout delay per step (T-029d) | Time (roughly) after a hand turn until the ZDrive value on the panel and in the MM GUI stops. If a software move would be needed, not measured | | |
 
-## 9. Tweez300 — 카메라 바디와 트랩 y 부호 (OD-11, L-090, L-091, L-095, L-096)
+## 9. Tweez300 — camera body and trap y sign (OD-11, L-090, L-091, L-095, L-096)
 
-- **레이저와 출력은 사람만 다룬다. 이 점검표는 출력값을 정하지 않는다.** dino/SMA 소프트웨어는 레이저를 켜지 않는다.
-- 순서:
-  1. Tweez300 GUI 를 열 때 어느 카메라가 MM 에서 쓸 수 없게 되는가, GUI 의 카메라 설정에 나오는 일련번호
-     (A24M723015 = Kinetix_red, A23H723003 = Kinetix_blue). 트랩 면을 찍는 카메라의 MM 라벨.
-  2. 사람이 고른 출력으로 트랩 하나를 벤더 GUI 에서 (0,0) → +x → +y 로 옮기며 두 카메라 화면에서 트랩이 어디로 가는지 본다.
-  3. GUI 에 트랩 Z 제어가 있는가(있으면 이름만; 옮기지 않아도 된다).
+- **The laser and its power are handled by the person only. This checklist does not set a power value.** dino/SMA software does not switch the laser on.
+- Order:
+  1. When the Tweez300 GUI is opened, which camera becomes unusable in MM, and the serial number shown in the GUI's camera settings
+     (A24M723015 = Kinetix_red, A23H723003 = Kinetix_blue). The MM label of the camera imaging the trap plane.
+  2. At a power the person chose, move one trap in the vendor GUI (0,0) → +x → +y and see where the trap goes on both camera screens.
+  3. Does the GUI have trap Z control (if so, the name only; it need not be moved).
 
-| 항목 | 값 | 방법 | 누가 | 언제 | 미측정 □ |
+| Item | Value | Method | Who | When | Not measured □ |
 |---|---|---|---|---|---|
-| Tweez300 이 쥔 카메라 일련번호 / MM 라벨 | | | | | |
-| 트랩 면을 찍는 카메라 MM 라벨 | | | | | |
-| (0,0) 이 화면 중심인가 | | | | | |
-| +x 는 화면 오른쪽인가 (red / blue 카메라 각각) | | | | | |
-| **+y 는 화면 위인가 아래인가** (red / blue 각각) | | | | | |
-| 트랩 Z 제어 있음 / 없음, 이름 | | | | | |
-| 쓴 렌즈 | | | | | |
+| Camera serial number / MM label held by Tweez300 | | | | | |
+| MM label of the camera imaging the trap plane | | | | | |
+| Is (0,0) the centre of the screen | | | | | |
+| Is +x to the right of the screen (red / blue camera each) | | | | | |
+| **Is +y up or down on the screen** (red / blue each) | | | | | |
+| Trap Z control present / absent, name | | | | | |
+| Objective used | | | | | |
 
-## 10. U-03 준비 — SMA 봉투 `focus_z_<렌즈>_{min,max}` 12 개 (오늘은 적지 않는다)
+## 10. U-03 preparation — the 12 SMA envelope keys `focus_z_<lens>_{min,max}` (not written today)
 
-- 이 12 개는 사람이 나중에(U-03, 2주차) SMA `microscope_agent/envelope/safety.json` 에 직접 쓴다. 오늘 이 표는 그때 쓸 근거를 모으는 칸이다.
-  벤치 세션은 값을 제안하지 않고, dino 의 2800–3200 / 0 / 10 / 0.25 를 이 칸에 옮기지 않는다.
-- 뜻 (SMA `contracts/schemas/envelope_safety.schema.json:370-415`): `_min` 은 초점 탐색이 갈 수 있는 가장 낮은 엔코더 Z,
-  `_max` 는 **그 렌즈가 커버슬립에 가장 가까이 갈 수 있는 엔코더 Z**. 둘 다 사람이 쓰는 고정 숫자이고, 측정값 + 작동 거리로 계산하지 않는다.
-  키가 없으면 그 렌즈의 탐색은 모두 거부된다. 건식 렌즈를 풀어 주려면 **넓은 값을 쓴다**(없는 키가 아니다).
-- 한계마다 확인 기록 `{kind, by, on, how}` 가 따로 필요하다: `kind` 는 `physical`(오늘처럼 손으로 확인) 또는 `carried_over`(다른 문서에서 옮김).
-  `how` 는 "confirmed" 가 아니라 실제로 한 일(10 자 이상).
-- 4.1 의 엔코더 부호가 반대로 나오면 `_max` 와 "가까이" 의 관계를 사람이 다시 본다.
+- These 12 are written later by the person directly (U-03, week 2) into SMA `microscope_agent/envelope/safety.json`. Today this table is the place to collect the grounds for writing them then.
+  The bench session proposes no values, and does not carry dino's 2800–3200 / 0 / 10 / 0.25 into these boxes.
+- Meaning (SMA `contracts/schemas/envelope_safety.schema.json:370-415`): `_min` is the lowest encoder Z the focus search may go to;
+  `_max` is **the encoder Z at which that objective may come closest to the coverslip**. Both are fixed numbers the person writes, not computed from a measured value + working distance.
+  Without a key, every search on that objective is refused. To free a dry objective, **write a wide value** (not a missing key).
+- Each limit needs its own confirmation record `{kind, by, on, how}`: `kind` is `physical` (confirmed by hand, as today) or `carried_over` (carried over from another document).
+  `how` is what was actually done (10 characters or more), not "confirmed".
+- If the encoder sign from 4.1 comes out reversed, the person re-examines the relation between `_max` and "closest".
 
-| 키 | 오늘의 근거 (5.4 계면 Z, 5.3 작동 거리, 4.5 후퇴 등) | kind | how (무엇을 했나) | by | on |
+| Key | Today's grounds (5.4 interface Z, 5.3 working distance, 4.5 retract, etc.) | kind | how (what was done) | by | on |
 |---|---|---|---|---|---|
 | focus_z_4x_min | | | | | |
 | focus_z_4x_max | | | | | |
@@ -333,37 +333,37 @@
 | focus_z_100x_min | | | | | |
 | focus_z_100x_max | | | | | |
 
-## 11. G-05b — 현미경 PC 의 SMA 사본 `D:\soft-matter-agents` (읽기만)
+## 11. G-05b — the SMA copy on the microscope PC, `D:\soft-matter-agents` (read only)
 
-사람(또는 그 PC 의 manager 좌석)이 PowerShell 에서 읽는다. **오늘 아무도 이 사본에서 커밋·푸시하지 않는다 (6.2 #3).**
+The person (or the manager seat on that PC) reads these in PowerShell. **Today nobody commits or pushes from this copy (6.2 #3).**
 
-| 명령 | 결과 |
+| Command | Result |
 |---|---|
 | `git -C D:\soft-matter-agents rev-parse HEAD` | |
-| `git -C D:\soft-matter-agents status -sb` (뒤처짐/앞섬) | |
-| `git -C D:\soft-matter-agents fetch --dry-run` (선택) | |
-| `git -C D:\soft-matter-agents config core.hooksPath` | 비어 있으면 → 그 사본에서 SMA 커밋 금지로 기록 |
-| `Get-Command sh` (PATH 에 sh) | |
+| `git -C D:\soft-matter-agents status -sb` (behind/ahead) | |
+| `git -C D:\soft-matter-agents fetch --dry-run` (optional) | |
+| `git -C D:\soft-matter-agents config core.hooksPath` | If empty → record that SMA commits from that copy are forbidden |
+| `Get-Command sh` (sh on PATH) | |
 | `python --version` / `Get-Command python` | |
-| (선택) `git -C D:\soft-matter-agents var GIT_COMMITTER_IDENT` — 이름 부분만, 이메일은 적지 않는다 | 좌석이 아니면 → 커밋 금지로 기록 |
+| (Optional) `git -C D:\soft-matter-agents var GIT_COMMITTER_IDENT` — the name part only; do not write the email | If it is not a seat → record that commits are forbidden |
 
-푸시 방법은 텍스트로만 적어 둔다: `git -c credential.helper=manager push`. 오늘 실행하지 않는다.
+Write the push method down as text only: `git -c credential.helper=manager push`. Do not run it today.
 
-## 12. 방문 끝
+## 12. End of the visit
 
-- 빛: 모두 손으로 끈다. Aura State 0, LightEngine 꺼짐, DiaLamp 꺼짐, 레이저 꺼짐.
-- Z 를 손으로 후퇴(0 근처). 오일 렌즈를 닦는다. PFS 꺼짐.
-- 3절 표를 한 번 더 읽어 끝 상태로 적는다(4.4 표류의 끝).
-- 적을 것 (runbook "After the session"): 한 항목과 안 한 항목, 이상했던 읽기, 쓴 정지, 저장한 파일 경로.
-- 벤치 세션 창에 값을 알려 준다: 이 표의 사진 경로나 글. 벤치 세션은 **이 창에서 사람이 직접 준 값과 파일만** 기록한다.
+- Light: switch everything off by hand. Aura State 0, LightEngine off, DiaLamp off, laser off.
+- Retract Z by hand (near 0). Wipe the oil objective. PFS off.
+- Read the §3 table once more and write it down as the end state (the end of the 4.4 drift).
+- To write down (runbook "After the session"): items done and not done, odd readings, stops used, saved file paths.
+- Pass the values to the bench session window: a photo path of these tables, or text. The bench session records **only values and files the person gave directly in this window**.
 
-## 13. 결정 묶음 B 와의 연결 (U-02, 방문 뒤 약 45 분)
+## 13. Link to decision bundle B (U-02, about 45 minutes after the visit)
 
-| OD | 이 점검표의 절 |
+| OD | Section of this checklist |
 |---|---|
-| OD-9 PFS 해제 경로 | 7 |
-| OD-11 트랩 Z, 카메라 바디 | 9 |
-| OD-14 문턱과 스윕 범위, 걸음 상한 | 5.1, 5.5, 5.7 |
-| OD-17 등급 대신 출처 | 모든 칸의 "방법" (손으로 잼 / 장치 읽기 / 카탈로그 / 사람이 정함) |
-| OD-21 첫 초점 렌즈와 렌즈별 Z 한계 | 5.3, 5.4, 4.5, 10 |
-| OD-22 복사 전 20 장 + 네 충돌 | 5.3 (L-005), 5.6 (L-031), 6 (L-056), 8 (L-052 은 필터 이름 확인으로 대신) — 답 줄은 `docs/librarian-handoff.md` 7절 |
+| OD-9 PFS release path | 7 |
+| OD-11 trap Z, camera body | 9 |
+| OD-14 threshold and sweep range, step cap | 5.1, 5.5, 5.7 |
+| OD-17 source instead of grade | "Method" in every box (measured by hand / read from the device / catalogue / decided by the person) |
+| OD-21 first focus objective and per-objective Z limits | 5.3, 5.4, 4.5, 10 |
+| OD-22 20 items before copying + four conflicts | 5.3 (L-005), 5.6 (L-031), 6 (L-056), 8 (L-052 replaced by checking the filter name) — answer rows in `docs/librarian-handoff.md` §7 |
