@@ -1,0 +1,56 @@
+{
+  "entry_id": "immersion_oil_in_use_label_index_sodium_d_23c",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The label of the immersion oil bottle on this bench, Nikon Type F Non-Fluorescing Immersion Oil, prints a refractive index nD of 1.5150 at 23 degrees Celsius, as the person read it off the label and reported on 2026-10-15.",
+  "numbers": [
+    {
+      "name": "refractive_index",
+      "value": 1.515,
+      "unit": "1",
+      "source": "operator_read:kyuhwan_20261015_immersion_oil_label_index",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "printed '1.5150', five significant figures; the trailing zero is the label's and is significant. nD is the sodium D line, 589.3 nm, by notation."
+    }
+  ],
+  "validity": {
+    "wavelength": {
+      "min": 589.3,
+      "max": 589.3,
+      "unit": "nm"
+    },
+    "temperature": {
+      "min": 296.15,
+      "max": 296.15,
+      "unit": "K"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "refractive_index"
+    }
+  ],
+  "identifiers": {
+    "product": "Nikon Type F Non-Fluorescing Immersion Oil",
+    "immersion": "oil",
+    "what_it_joins": "the bottle identified by immersion_oil_in_use_is_nikon_type_f"
+  },
+  "source": "operator_read:kyuhwan_20261015_immersion_oil_label_index",
+  "grade": "E3",
+  "grade_tag": "operator_read",
+  "source_ref": "src_operator_read_20261015_immersion_oil_label_index",
+  "valid_until": {
+    "date": "2036-10-15",
+    "event": "the oil in use changes to another product, the event that ends immersion_oil_in_use_is_nikon_type_f. The figure is the manufacturer's for the product, so a new bottle of the same product keeps it; it is filed as a reading of this bench's bottle because that is how it was obtained."
+  },
+  "validity_conditions": "WHAT THE BOTTLE ON THIS BENCH SAYS, read off its label by the person and reported on 2026-10-15 in librarian-20261007-1's window, in answer to the question task 046 left open: does the bottle print an index? It does. This is the manufacturer's figure as printed on the product in use, which no page reachable on 2026-10-15 gave -- Nikon's own web pages and its Type F safety data sheet state none (src_edmund_57189_nikon_type_f_page). It is not a measurement of the oil's index here. THE WAVELENGTH IS NOTATION: nD with a capital D is the sodium D line, 589.3 nm, and validity pins it there; if the label prints a lowercase d, the helium line 587.6 nm is meant, a 1.7 nm difference that changes nothing a plan here can resolve. Point validity, so a query at the imaging wavelength, near 605 nm, comes back no_overlap; carrying the index there is the caller's assumption to state in its plan, and nothing here interpolates it. IN CONFLICT, rule 7, with both reseller entries, which are kept: nikon_type_f_oil_refractive_index_nd_23c gives 1.518 at nearly this wavelength (587.6 nm), a direct disagreement of 0.003; nikon_type_f_oil_refractive_index_ne_23c gives 1.515 at 546.1 nm, the same figure as the label at a shorter wavelength, where an oil of normal dispersion reads higher, so it agrees in number and not as labelled. The pattern is what one would see if each reseller had attached its figure to the other's subscript, but that is a reading of the pages, not something either page says, and nothing here rules either reseller refuted -- that is a ruling for manager-librarian. What this entry adds is that the bench's own bottle sides with 1.515 at the D line. NOT A LIMIT: an optical property, and no envelope value derives from it.",
+  "date": "2026-10-15",
+  "supersedes": null,
+  "conflict_with": [
+    "nikon_type_f_oil_refractive_index_nd_23c",
+    "nikon_type_f_oil_refractive_index_ne_23c"
+  ],
+  "curated_by": "seat:librarian-20261007-1"
+}

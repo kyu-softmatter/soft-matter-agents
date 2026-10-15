@@ -83,7 +83,7 @@
     },
     {
       "card": "L-052",
-      "status_2026_10_15": {"state": "open: awaiting the person's confirmation", "bench_2026_10_13": "not answered at the 2026-10-13 bench; microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6 holds no answer to this card. Nothing enters if the person confirms"},
+      "status_2026_10_15": {"state": "answered: nothing enters", "answer": "the person confirmed on 2026-10-15, in manager-librarian's window, that '605' is a path name and not a wavelength; recorded in librarian_agent/tasks/046-the-rest-of-the-answer-sheet-after-the-bench.md at 87da61b. The store already holds it as red_path_605_is_the_ff01_595_31_filter, so nothing is sent and no entry changes", "bench_2026_10_13": "not answered at the bench; answered away from it"},
       "topic": "what the fluorescence emission '605 nm' is",
       "kind": "conflict between the two repositories",
       "store_holds": [

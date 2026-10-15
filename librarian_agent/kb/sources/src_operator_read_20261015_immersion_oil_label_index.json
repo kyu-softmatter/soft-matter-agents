@@ -1,0 +1,11 @@
+{
+  "source_id": "src_operator_read_20261015_immersion_oil_label_index",
+  "kind": "operator_read",
+  "identifier": "The person's answer of 2026-10-15 in librarian-20261007-1's window: 'nD = 1.5150', and, asked where it came from and whether a temperature is printed beside it, the two answers 'Read off the bottle label' and '23 degC'. The bottle is the one immersion_oil_in_use_is_nikon_type_f identifies: Nikon Type F Non-Fluorescing Immersion Oil, 30 ml, PCB-free.",
+  "accessed": "2026-10-15",
+  "grade_rule": "E3, grade_tag operator_read: the person read the figure off the physical label. What the label prints is the manufacturer's statement about the oil; that it says so on THIS bottle is the person's reading. Not a measurement of the oil's index on this bench.",
+  "what_was_read": "the index as 'nD = 1.5150' and the temperature 23 degC. Not on record: whether the label prints a dispersion value, a wavelength in figures, a lot or a date.",
+  "wavelength_is_read_from_the_subscript": "nD with a capital D names the sodium D line, 589.3 nm, by the standard optical convention, and that is what the entry's validity carries -- a reading of notation, not a figure on the label. If the label actually prints a lowercase d (the helium line, 587.6 nm), the entry's wavelength moves by 1.7 nm and nothing else changes; it was written as the person typed it.",
+  "url": null,
+  "provenance": "Not from any prior repository, so 10.2 and 10.2.1 do not apply."
+}
