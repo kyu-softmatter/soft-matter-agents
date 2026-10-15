@@ -135,6 +135,52 @@ def fixture_41_seat_writes_outside_its_own(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def fixture_35_a_root_commit_in_the_range_is_judged(repo: Path) -> str:
+    """A range whose first commit is the repository's root, and writes into two agents.
+
+    A root commit has no ~1, and check 35 built `<root>~1..<root>` for it and
+    crashed ("cannot read commit range") rather than judging it.
+    architecture-20261007-1 found that on the trial dino-autofocus import on
+    2026-10-15. The root is now diffed against the empty tree, so it is judged
+    like any other commit -- and this root writes into two agents, so the
+    finding is the two-boundary refusal, which the crash never reached.
+    """
+    run(repo, "init", "-q", "-b", "main")
+    write(repo, "microscope_agent/questions/q/goal.json", {"card": "goal"})
+    write(repo, "simulation_agent/questions/q/goal.json", {"card": "goal"})
+    commit(repo, "a root commit writing into two agents",
+           "microscope_agent", "simulation_agent", seat="microscope-1")
+    shutil.copytree(CONTRACTS, repo / "contracts")
+    write(repo, "README.md", "# fixture\n")
+    commit(repo, "the registry, after the root", "contracts", "README.md", seat="architecture")
+    return "HEAD"
+
+
+def fixture_41_an_imported_history_is_not_attributed(repo: Path) -> str:
+    """A subtree import: the merge is judged, the imported project's own commits are not.
+
+    `git subtree add` brings the imported repository's whole history in on the
+    merge's second parent, by committers who were never seats here and with
+    paths relative to that repository's root. Checks 35 and 41 walked them as
+    this repository's commits until 2026-10-15 (the dino-autofocus import).
+    Now both read only the first-parent line: the one commit judged is the
+    merge, made by a registered seat, whose paths fall in its own boundary.
+    The imported repository here has two commits by an unregistered
+    committer, so the old walk counted three commits and reported the stranger.
+    """
+    start = base(repo)
+    src = repo.parent / "imported"
+    src.mkdir()
+    run(src, "init", "-q", "-b", "main")
+    write(src, "src/pkg/core.py", "VALUE = 1\n")
+    commit(src, "the imported project's first commit", "src", seat="not-a-seat-here")
+    write(src, "docs/notes.md", "# notes\n")
+    commit(src, "the imported project's second commit", "docs", seat="not-a-seat-here")
+    run(repo, "subtree", "add", "-q", "--prefix=microscope_agent/autofocus", str(src), "main",
+        seat="microscope-1")
+    return f"{start}..HEAD"
+
+
 def fixture_41_unregistered_committer(repo: Path) -> str:
     """A commit by an identity seats.json does not list.
 
@@ -806,6 +852,8 @@ FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
     (41, "PENDING", "not a seat in", fixture_41_unregistered_committer),
+    (35, "FAIL", "a session writes inside one agent", fixture_35_a_root_commit_in_the_range_is_judged),
+    (41, "PASS", "1 commits stay inside the seat that made them", fixture_41_an_imported_history_is_not_attributed),
     (26, "FAIL", "does not match the committed bytes", fixture_26_snapshot_is_a_copy_of_another_commit),
     (46, "FAIL", "obs-000000000000", fixture_46_vocabulary_pin_that_never_stood),
     (76, "PASS", "disabledMcpjsonServers", fixture_76_a_local_settings_file_is_named),

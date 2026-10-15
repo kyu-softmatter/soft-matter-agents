@@ -465,6 +465,26 @@ def card_env(card: Card) -> tuple[dict[str, tuple[float, dict]], list[str]]:
 # never in .gitignore at all. `.agent` is a usage tracker's, writing
 # .agent/usage/* at the root: three check-13 failures on every bare run on
 # 2026-10-03, and gitignoring it without this entry is a check-79 failure.
+#: Repositories imported whole, history and all, by `git subtree add`
+#: (2026-10-15: dino-autofocus, on the person's decision, into
+#: microscope_agent/autofocus/). Their files are the imported project's own,
+#: not this repository's cards, prose or agent source: a JSON there is not a
+#: card, a .py there is not agent code under P14's rules, and its own tests,
+#: lock and manifest live inside it. So the path check allows the whole
+#: subtree by one declaration, and the card, Markdown and source checks never
+#: read it. A file ONE directory outside the subtree is judged as before:
+#: the match is on the full prefix with its trailing slash.
+IMPORTED_SUBTREES = ("microscope_agent/autofocus/",)
+
+
+def is_imported(rel: str) -> bool:
+    """True for a repository-relative POSIX path inside an imported subtree."""
+    return any(rel.startswith(prefix) for prefix in IMPORTED_SUBTREES)
+
+
+#: git's empty tree, the base a root commit is diffed against (check 35).
+EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+
 SKIP_DIRS = {".git", "__pycache__", ".venv", ".pixi", "node_modules", ".agent"}
 
 #: Entries outside SKIP_DIRS that could not even be stat'ed. Check 79 reports
@@ -551,6 +571,11 @@ def collect(roots: Iterable[Path], include_rejected: bool = False) -> Bundle:
             if not include_rejected and REJECTED in p.parts:
                 continue
             b.all_files.append(p)
+            try:
+                if is_imported(p.relative_to(REPO).as_posix()):
+                    continue
+            except ValueError:
+                pass
             if p.suffix == ".md":
                 b.md_files.append(p)
             if p.suffix != ".json":
@@ -1622,6 +1647,9 @@ ALLOWED_PATHS = [
     r"^contracts/examples/(rejected/)?[A-Za-z0-9_.-]+\.(json|md|jsonl)$",
     r"^contracts/examples/rejected/check[0-9]{2}_[a-z0-9_]+/[A-Za-z0-9_.-]+\.(json|md|jsonl)$",
     r"^microscope_agent/tasks/[A-Za-z0-9_.-]+$",
+    # An imported subtree, whole (IMPORTED_SUBTREES, 2026-10-15). Its layout is
+    # the imported project's, so it is declared once, not file by file.
+    r"^microscope_agent/autofocus/.+$",
     r"^simulation_agent/tasks/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/CLAUDE\.md$",
     # Declared names per agent, not any filename. This read
@@ -1706,6 +1734,10 @@ def check_13_paths(b: Bundle) -> list[Finding]:
                                 "watched the check keep failing (7.1 rule 7)", rel))
             continue
         parts = rel.split("/")
+        # The depth limit is this repository's layout rule, and an imported
+        # subtree keeps the layout of the project it came from (2026-10-15).
+        if is_imported(rel):
+            continue
         if parts[0].endswith("_agent") or parts[0] == "bridge":
             if "raw" not in parts and len(parts) > 4:
                 out.append(Finding(13, FAIL, f"depth {len(parts) - 1} exceeds the limit of 3 inside an agent (7.1 rule 6)", rel))
@@ -3059,10 +3091,34 @@ def check_35_session_boundary(b: Bundle, commit_range: str | None = None, staged
         # forever -- which surfaced as `check raised RecursionError` and
         # refused every merge (6.2.1). What a merge contributes of its own is
         # check 41's, through --cc.
-        try:
-            shas = [x for x in git("rev-list", "--reverse", "--no-merges", commit_range or "").splitlines() if x.strip()]
-        except (OSError, subprocess.CalledProcessError) as exc:
-            return [Finding(35, FAIL, f"cannot read commit range {commit_range!r}: {exc}")]
+        # --first-parent (2026-10-15, for the dino-autofocus import). A
+        # subtree merge brings the imported repository's whole history in as
+        # its second parent: 869 commits by people who were never seats here,
+        # with paths relative to THAT repository's root (src/, docs/). They are
+        # not commits made in this repository, and judging them by its
+        # boundaries is a category error. The first-parent line is this
+        # repository's own history; what the merge itself contributes is
+        # check 41's, through --cc, as before.
+        #
+        # A ROOT COMMIT HAS NO ~1, and `<root>~1..<root>` crashed this check
+        # rather than judging it ("cannot read commit range"), found by
+        # architecture-20261007-1 on the trial import. Its span is diffed
+        # against the empty tree instead.
+        if commit_range and commit_range.startswith(EMPTY_TREE + ".."):
+            shas = [commit_range.split("..", 1)[1]]
+        else:
+            try:
+                shas = [x for x in git("rev-list", "--reverse", "--no-merges", "--first-parent",
+                                       commit_range or "").splitlines() if x.strip()]
+            except (OSError, subprocess.CalledProcessError) as exc:
+                return [Finding(35, FAIL, f"cannot read commit range {commit_range!r}: {exc}")]
+
+        def span(sha: str) -> str:
+            try:
+                git("rev-parse", "--verify", "--quiet", f"{sha}^1")
+                return f"{sha}~1..{sha}"
+            except (OSError, subprocess.CalledProcessError):
+                return f"{EMPTY_TREE}..{sha}"
         if not shas:
             return [Finding(35, NA, f"{commit_range} holds only merges; what a merge itself contributes is check 41's (6.2.1)")]
         if len(shas) == 1:
@@ -3071,12 +3127,12 @@ def check_35_session_boundary(b: Bundle, commit_range: str | None = None, staged
             # Falling through rather than recursing: the inner call would see
             # one commit again and land right back here.
             lax = before_enforcement(shas[0])
-            commit_range = f"{shas[0]}~1..{shas[0]}"
+            commit_range = span(shas[0])
         if len(shas) > 1:
             out: list[Finding] = []
             for sha in shas:
                 lax = before_enforcement(sha)
-                for f in check_35_session_boundary(b, f"{sha}~1..{sha}"):
+                for f in check_35_session_boundary(b, span(sha)):
                     if f.status == FAIL:
                         out.append(Finding(35, PENDING if lax else FAIL,
                                            f"{sha[:7]}: {f.message}"
@@ -4486,7 +4542,13 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
     # Per commit, for the same reason check 35 is: a range holds several seats'
     # commits, and aggregating them would fail a history that is well behaved.
     try:
-        rows = [x for x in git("log", "--reverse", "--format=%H%x00%ce%x00%P", commit_range or "").splitlines() if x.strip()]
+        # --first-parent, as check 35 (2026-10-15): an imported subtree's own
+        # history, on a merge's second parent, is not this repository's to
+        # attribute. The merge itself stays on the first-parent line and is
+        # judged as before, so what it brought in is still attributed to the
+        # seat that made it.
+        rows = [x for x in git("log", "--reverse", "--first-parent", "--format=%H%x00%ce%x00%P",
+                               commit_range or "").splitlines() if x.strip()]
     except (OSError, subprocess.CalledProcessError) as exc:
         return [Finding(41, FAIL, f"cannot read commit range {commit_range!r}: {exc}")]
     if not rows:
@@ -7217,8 +7279,11 @@ def check_78_history_paths_classify(b: Bundle) -> list[Finding]:
                                 "by that seat and this check's premise no longer holds")]
 
     try:
-        out = subprocess.run(["git", "-C", str(GIT_REPO), "log", "--no-merges", "--name-only",
-                              "--format=", f"{line}..HEAD"],
+        # --first-parent: an imported subtree's history comes in on a merge's
+        # second parent, with paths relative to the imported repository's
+        # root, and is not this repository's to classify (2026-10-15).
+        out = subprocess.run(["git", "-C", str(GIT_REPO), "log", "--no-merges", "--first-parent",
+                              "--name-only", "--format=", f"{line}..HEAD"],
                              capture_output=True, text=True, check=True).stdout
     except (OSError, subprocess.CalledProcessError) as exc:
         return [Finding(78, PENDING, f"cannot read history since the enforcement line {line[:7]}: {exc}")]
@@ -7337,7 +7402,7 @@ def check_81_relative_imports_resolve(b: Bundle) -> list[Finding]:
             rel = f.relative_to(REPO).as_posix()
         except ValueError:
             continue
-        if any(part in SKIP_DIRS for part in f.parts) or not AGENT_SRC.match(rel):
+        if any(part in SKIP_DIRS for part in f.parts) or not AGENT_SRC.match(rel) or is_imported(rel):
             continue
         pkg = f.parent
         try:
@@ -7444,6 +7509,7 @@ def check_82_imports_are_declared(b: Bundle) -> list[Finding]:
 
     files = [f for f in walk_files(REPO, ".py")
              if AGENT_SRC.match(f.relative_to(REPO).as_posix())
+             and not is_imported(f.relative_to(REPO).as_posix())
              and not any(part in SKIP_DIRS for part in f.parts)]
     if not files:
         return [Finding(82, PENDING, "no agent source in this tree, which M1 produces")]
