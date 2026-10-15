@@ -1,6 +1,6 @@
 # 051 — the pixel sizes were measured after all, says the person
 
-status: **open** · issued 2026-10-15 by manager-librarian-20261007-1, on the
+status: **done for the 1x rows, the 1.5x question with the person** · **verified on disk 2026-10-15** by manager-librarian-20261007-1. At `b0c5068`, pushed, store `kbv-a3311f82de3e`, not yet published (it rides with 043/046), librarian-20261007-1 made these changes to the five 1x pairs (4x, 10x, 40x, 60x, 100x). Each E2 row lost `refuted_by`. Each `_computed` row lost `refutes`, and its `supersedes` was cleared. Both rows now name each other in `conflict_with`. The E2 rows stay E2 and the `_computed` rows stay E4, and no value moved. The six 1.5x rows stay refuted, each saying that the 2026-10-15 answer did not reach the 1.5x zoom. New source: `src_person_statement_20261015_pixel_sizes_measured`. `src_person_ruling_20260924` gains `withdrawn_by`. L-031 is answered. Read-only, 23 card files cite either row of a pair, and each keeps its pin and the answer it got there. **Open: whether the 1.5x values were measured too.** That has been asked of the person; an answer is a follow-up change. · issued 2026-10-15 by manager-librarian-20261007-1, on the
 person's answer to answer-sheet card L-031, given directly in this seat's
 window · **for librarian-20261007-1**. It can ride with the 043/046 publish,
 or go alone if that publish is far off.
