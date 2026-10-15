@@ -113,7 +113,11 @@ not done. Per card, as the record stands:
     is `spec:`, with the wavelength and temperature the sheet states, and
     the dispersion values too if the sheet gives them. **Never from memory.**
     A remembered index is a made-up number and does not enter.
-- **L-052: still awaiting the person's confirmation.**
+- **L-052: confirmed by the person on 2026-10-15**, directly in
+  manager-librarian's window: "605" is a path name, not a wavelength. As the
+  answer sheet says, nothing enters, because the store already holds it
+  (`red_path_605_is_the_ff01_595_31_filter`). Set the card's status to
+  answered and cite this line.
 
 **Every item in that file says `for_store: false`.** Enter nothing from it
 until the microscope side offers the items you need. **On 2026-10-15 the
