@@ -8368,18 +8368,42 @@ def check_88_focus_search(b: Bundle) -> list[Finding]:
     if not plans:
         return [Finding(88, NA, "no plans with a focus search")]
 
+    def read_limits(paths) -> dict[str, dict]:
+        found: dict[str, dict] = {}
+        for env in paths:
+            try:
+                doc = json.loads(Path(env).read_text(encoding="utf-8-sig"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            for tgt in doc.get("targets", []) or []:
+                for name, l in (tgt.get("limits") or {}).items():
+                    if isinstance(l, dict):
+                        found[name] = l
+        return found
+
+    live = read_limits(env for env in envelope_files()
+                       if env.name == "safety.json" and env.parent.parent.name.startswith("microscope"))
+
+    # A REJECTED FIXTURE NEVER READS THE LIVE ENVELOPE (2026-10-15). Until
+    # then every plan here read microscope_agent/envelope/safety.json, so
+    # check88_focus_search_objective_with_no_range failed only because the
+    # person had written no focus_z limits yet. When the person wrote them
+    # (9375328), the fixture found its range, stopped failing, and the commit
+    # gate refused every seat's commit: a fixture whose verdict turns on live
+    # data is a check that can break without anyone touching it. A plan
+    # inside a fixture group reads only that group's own safety.json, and
+    # with none it sees no limits at all.
+    group_limits: dict[str, dict] = {}
+
+    def limits_for(card) -> dict[str, dict]:
+        g = fixture_group(card.rel)
+        if g is None:
+            return live
+        if g[0] not in group_limits:
+            group_limits[g[0]] = read_limits(sorted((REPO / g[0]).rglob("safety.json")))
+        return group_limits[g[0]]
+
     limits: dict[str, dict] = {}
-    for env in envelope_files():
-        if env.name != "safety.json" or not env.parent.parent.name.startswith("microscope"):
-            continue
-        try:
-            doc = json.loads(env.read_text())
-        except (OSError, json.JSONDecodeError):
-            continue
-        for tgt in doc.get("targets", []) or []:
-            for name, lim in (tgt.get("limits") or {}).items():
-                if isinstance(lim, dict):
-                    limits[name] = lim
 
     def lim(name):
         v = limits.get(name)
@@ -8387,6 +8411,7 @@ def check_88_focus_search(b: Bundle) -> list[Finding]:
 
     out: list[Finding] = []
     for c in plans:
+        limits = limits_for(c)
         fs = c.data.get("focus_search") or {}
         obj = fs.get("objective")
         rng = fs.get("range_um") or {}
