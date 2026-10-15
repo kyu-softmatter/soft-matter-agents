@@ -145,6 +145,27 @@ lists separately whatever differs from what is going in, because nothing checks
 that. `--no-verify` bypasses it and leaves no trace, so say so in the
 message.
 
+**A private index does not escape the moving HEAD either (2026-10-15).** A
+seat whose shared file carries another seat's uncommitted hunk can commit only
+its own by building a private index -- `GIT_INDEX_FILE=<tmp> git read-tree
+HEAD`, add the one hunk, commit from it -- and architecture-20261003-1 did, for
+`plan.md`. But that pins the **whole tree** at `read-tree` time, so if HEAD
+moves while the commit waits on `.git/index.lock`, the commit's tree reverts
+everything that landed in between: the index was built at the then-HEAD,
+`17c2185` went in during the wait, and the frozen tree would have undone that
+commit's two librarian task cards, 84 lines added and 29 removed, under the
+architecture seat's name. The gate refused it, and an index rebuilt from the
+new HEAD went through clean. So **rebuild the private index at the moment of
+committing, inside the lock wait, not before it** -- the same exposure as
+`--amend`'s, by the same route, HEAD moving between a read and a write. **And
+such a commit leaves the shared `.git/index` where it was**: HEAD moves and
+the index does not, so afterwards `git diff --cached -- <path>` shows the
+inverse of the hunk just committed and a plain `git commit` from anyone would
+carry that reversal. When `git diff HEAD -- <path>` is empty, the index entry
+can only be stale and `git reset -q -- <path>` puts it back to HEAD without
+touching the disk; architecture-20261007-1 did that for `plan.md` the same
+morning.
+
 **The working copy and the git index are shared between sessions.** Name paths
 rather than using `-A`, and use `git commit -- <paths>` — but **naming a path
 is not naming a change**. That form builds its index from the *worktree*
