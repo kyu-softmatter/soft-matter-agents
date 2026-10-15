@@ -41,26 +41,62 @@ safety values**:
 
 ## What to do
 
-1. **Run the import** from this working copy's root, under your seat identity
-   from `contracts/seats.json`:
+**Revised on 2026-10-15 from what microscope-office-20261015-1 found on a
+scratch clone before touching anything shared.** Running `git subtree add`
+in the shared working copy fails three ways:
+
+- a remote cannot be fetched by a short sha;
+- `git subtree add` builds its merge with `read-tree` and `commit-tree` and
+  never calls `git commit`, so **the pre-commit gate does not run**, which
+  is `--no-verify` in effect, leaving no trace;
+- it refuses while any other seat has an uncommitted edit, which is the
+  normal state here. And its closing `git reset` moves the branch to a
+  commit built on the HEAD read at the start, so **a commit another seat
+  lands in those seconds would be dropped**.
+
+So the merge is built and judged outside, then brought in with
+`--ff-only`.
+
+1. **Build the merge in a scratch clone** of this working copy, at its
+   then-current HEAD. Use a **short path**, such as `D:\sma-scratch9`,
+   because a long one fakes missing-file failures under Windows' path limit.
+   Ask the person for that directory if it does not exist. Run, with your
+   seat's committer identity from `contracts/seats.json`:
 
    ```
-   git subtree add --prefix=microscope_agent/autofocus https://github.com/kyu-softmatter/dino-autofocus 95eee95
+   git subtree add --prefix=microscope_agent/autofocus https://github.com/kyu-softmatter/dino-autofocus 95eee9582a820ebf09896cf53db2e28cd3ed5397
    ```
 
-   It makes one merge commit, which is yours. Name the source and the freeze
-   sha in its message, say it carries the whole of `dino-autofocus` with its
-   history, and say that the ruling condition covers numbers and safety
-   values only, as above.
-2. **The gate judges it.** The merge's paths all fall inside the microscope
-   boundary, and the first-parent rule keeps dino's own commits out of the
-   check. **If the gate refuses, stop and report the output.** Do not use
-   `--no-verify`.
-3. **Check the configs survived byte-exact.** For every file in
+   Use the **full** freeze sha, and write the message with `-F <file>`. The
+   message says:
+   - the source and the freeze sha;
+   - that it carries the whole of `dino-autofocus` with its history;
+   - that the ruling condition covers numbers and safety values only;
+   - **that the pre-commit hook did not run, because `git subtree` made the
+     commit with `commit-tree`, and that step 2 and the pre-push hook are
+     what judged it.**
+2. **Judge it there, before it touches anything shared:**
+   - `validate.py --commit-range HEAD^1..HEAD`, and a full run, both under
+     the interpreter `CLAUDE.md` names for this computer;
+   - **0 failed** on both, and every path of the merge under
+     `microscope_agent/autofocus/`.
+
+   If either refuses, stop and report the output.
+3. **Bring it into the shared copy without moving anyone's work:**
+   `git fetch <scratch> <sha>`, then `git merge --ff-only <sha>`.
+   - `--ff-only` refuses if HEAD has moved since step 1, so no seat's commit
+     can be dropped. Then start again from step 1 at the new HEAD.
+   - The merge touches only `microscope_agent/autofocus/`, so other seats'
+     edits stay where they are. If git refuses because a local change would
+     be overwritten, stop and report: never stash, reset or check out
+     another seat's work.
+4. **Re-run the validator in the shared copy** and quote its `verdict:` and
+   `tree:` lines.
+5. **Check the configs survived byte-exact.** For every file in
    `microscope_agent/autofocus/configs/micromanager/`, its sha256 must equal
    the sha256 of the same path in `dino-autofocus` at `95eee95`. Report the
    count and any that differ.
-4. **Write the import's ruling line.** The import commit is the ruling record
+6. **Write the import's ruling line.** The import commit is the ruling record
    for the code (plan.md 10.2, `d53214e`), and `microscope_agent/rulings.jsonl`
    gets **one line** for it, in the shape the file already uses:
    - `ruling`: `transfer`;
@@ -75,7 +111,7 @@ safety values**:
    sha. **This one line is the only thing you write in `rulings.jsonl`**:
    card 064 gives that file to the other microscope seat, and this card
    grants one line, no more.
-5. Push with `git -c credential.helper=manager push origin feature/autofocus-ui`.
+7. Push with `git -c credential.helper=manager push origin feature/autofocus-ui`.
    The push hook judges the pushed range. Never force.
 
 **Change nothing inside the imported tree in this card.** The translation,
