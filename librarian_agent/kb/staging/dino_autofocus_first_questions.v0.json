@@ -33,6 +33,7 @@
   "cards": [
     {
       "card": "L-005",
+      "status_2026_10_15": {"state": "gap kept", "bench_2026_10_13": "asked at the 2026-10-13 bench, not done: microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6, item C_not_done, names the 40x water working distance among dino-autofocus's hand measurements that were not done"},
       "topic": "the 40x water-immersion objective's working distance with the collar at the lab's coverslip setting",
       "kind": "conflict between the two repositories",
       "store_holds": [
@@ -40,12 +41,13 @@
         {"entry_id": "objective_40x_collar_setting", "grade": "E3", "what": "the collar is set to and held at 0.17 mm, which is a coverslip thickness of 170 um"},
         {"entry_id": "working_distance_is_measured_to_the_coverslip", "grade": "E4", "what": "catalogue working distances are to the coverslip, not to the sample plane (an inference)"}
       ],
-      "store_lacks": {"gap_id": "objective_40x_wd_at_170um", "kind": "condition_mismatch", "searched": ["kb/entries", "the Nikon objective catalogue as filed", "kb/staging/devices.v0.json, whose wd_mm for this lens is empty"], "nearest": "objective_mrd77400's range"},
+      "store_lacks": {"gap_id": "objective_40x_wd_at_170um", "kind": "condition_mismatch", "searched": ["kb/entries", "the Nikon objective catalogue as filed", "kb/staging/devices.v0.json, whose wd_mm for this lens is empty", "the 2026-10-13 bench: asked, not done (microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6, C_not_done)"], "nearest": "objective_mrd77400's range"},
       "question": "dino-autofocus uses one working distance for this lens (its card L-005). Was that measured on this stand, or is it the collar reading, 0.17 mm of coverslip, carried over as a distance? If measured: when, and how.",
       "answer_shape": {"unit": "mm", "kinds_accepted": ["measured", "operator_recall"], "goes_to": "store if measured; the clearance limit itself is the person's to write in the envelope either way"}
     },
     {
       "card": "L-031",
+      "status_2026_10_15": {"state": "open: unanswered", "bench_2026_10_13": "not answered at the 2026-10-13 bench: microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6 holds no answer to this card. It is a question to the person about the 2026-09-19 calibration, not a bench measurement, so it can be answered away from the bench"},
       "topic": "which of the per-objective pixel sizes were measured",
       "kind": "conflict between the two repositories",
       "store_holds": [
@@ -59,26 +61,29 @@
     },
     {
       "card": "L-032",
+      "status_2026_10_15": {"state": "gap kept", "bench_2026_10_13": "asked at the 2026-10-13 bench, not done: microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6, item C_not_done, says dino-autofocus's hand measurements were not done, and the record holds no stage-to-camera calibration"},
       "topic": "the stage-to-camera calibration at 4x: scale and rotation",
       "kind": "number that left a flat file",
       "store_holds": [
         {"entry_id": "pixel_size_4x_zoom_1x", "grade": "E2", "what": "the 4x pixel size from the 2026-09-19 calibration -- a scale only, no rotation and no stage axes"}
       ],
-      "store_lacks": {"gap_id": "stage_camera_transform_4x", "kind": "absent", "searched": ["kb/entries, by stage, camera, rotation and calibration", "kb/staging/devices.v0.json"], "nearest": "pixel_size_4x_zoom_1x"},
+      "store_lacks": {"gap_id": "stage_camera_transform_4x", "kind": "absent", "searched": ["kb/entries, by stage, camera, rotation and calibration", "kb/staging/devices.v0.json", "the 2026-10-13 bench: asked, not done (microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6, C_not_done)"], "nearest": "pixel_size_4x_zoom_1x"},
       "question": "dino-autofocus records a stage-to-camera calibration at 4x from 2026-09-30, a scale and a rotation (its card L-032). Did you run it yourself, and should it enter the store as a separate measurement beside the 2026-09-19 pixel size?",
       "answer_shape": {"unit": "um per pixel and degrees", "kinds_accepted": ["prior_run", "measured"], "goes_to": "store"}
     },
     {
       "card": "L-033",
+      "status_2026_10_15": {"state": "gap kept", "bench_2026_10_13": "asked at the 2026-10-13 bench, not done: microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6, item C_not_done, names the focus offsets among dino-autofocus's hand measurements that were not done"},
       "topic": "the parfocal offset from the 4x to the 100x oil objective",
       "kind": "number that left a flat file",
       "store_holds": [],
-      "store_lacks": {"gap_id": "parfocal_offset_4x_to_100x", "kind": "absent", "searched": ["kb/entries, by parfocal and by offset"], "nearest": null},
+      "store_lacks": {"gap_id": "parfocal_offset_4x_to_100x", "kind": "absent", "searched": ["kb/entries, by parfocal and by offset", "the 2026-10-13 bench: asked, not done (microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6, C_not_done)"], "nearest": null},
       "question": "dino-autofocus gives a parfocal offset from 4x to 100x oil from one sample on 2026-09-30, and a lab note of 2026-09-07 gives a different one (its card L-033). Is its value the difference of the two focus positions found that day? Who wrote the 2026-09-07 note?",
       "answer_shape": {"unit": "um", "kinds_accepted": ["prior_run", "measured"], "goes_to": "store, as a starting centre for a search and never as a target to move to"}
     },
     {
       "card": "L-052",
+      "status_2026_10_15": {"state": "open: awaiting the person's confirmation", "bench_2026_10_13": "not answered at the 2026-10-13 bench; microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6 holds no answer to this card. Nothing enters if the person confirms"},
       "topic": "what the fluorescence emission '605 nm' is",
       "kind": "conflict between the two repositories",
       "store_holds": [
@@ -91,22 +96,24 @@
     },
     {
       "card": "L-056",
+      "status_2026_10_15": {"state": "gap kept", "bench_2026_10_13": "not answered at the 2026-10-13 bench. microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6, item A_camera_saturation, reads the readout mode AS IT WAS ON 2026-10-13 (Port 'Dynamic Range', ReadoutRate '100MHz 16bit', which the person first gave as 12bit and corrected on a second look), not the mode on 2026-09-30 that this card asks about; and the item is not offered for the store yet"},
       "topic": "the camera's readout mode on 2026-09-30",
       "kind": "conflict between the two repositories",
       "store_holds": [
         {"entry_id": "kinetix_red_adapter_properties_as_reported_20260924", "grade": "E1", "what": "on 2026-09-24 the adapter described the red camera as 16-bit with readout '100MHz 16bit' -- its self-description, not a measurement of bit depth"},
         {"entry_id": "pixeltype_misreports_bit_depth", "grade": "E3", "what": "a prior project found the PixelType property says 12bit while 16-bit data arrives -- the opposite direction from dino-autofocus's reading"}
       ],
-      "store_lacks": {"gap_id": "kinetix_red_bit_depth", "kind": "absent", "searched": ["kb/entries", "the 2026-09-24 run logs"], "nearest": "kinetix_red_adapter_properties_as_reported_20260924"},
+      "store_lacks": {"gap_id": "kinetix_red_bit_depth", "kind": "absent", "searched": ["kb/entries", "the 2026-09-24 run logs", "the 2026-10-13 bench: not answered; the mode read that day is 2026-10-13's, not 2026-09-30's (microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6, A_camera_saturation)"], "nearest": "kinetix_red_adapter_properties_as_reported_20260924"},
       "question": "dino-autofocus says the camera ran in a 12-bit readout on 2026-09-30, because frames saturated at the 12-bit ceiling (its card L-056). Did you change the readout mode or port that day? Should its saturated frame of that day go to the store as evidence for the camera's bit depth?",
       "answer_shape": {"unit": "bits", "kinds_accepted": ["prior_run", "operator_recall", "measured"], "goes_to": "store"}
     },
     {
       "card": "L-057",
+      "status_2026_10_15": {"state": "gap kept", "bench_2026_10_13": "not answered at the 2026-10-13 bench: microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6 holds no dark frame and no Offset property reading"},
       "topic": "the camera's dark offset",
       "kind": "number that left a flat file",
       "store_holds": [],
-      "store_lacks": {"gap_id": "kinetix_red_dark_offset", "kind": "absent", "searched": ["kb/entries, by dark, offset and bias"], "nearest": null},
+      "store_lacks": {"gap_id": "kinetix_red_dark_offset", "kind": "absent", "searched": ["kb/entries, by dark, offset and bias", "the 2026-10-13 bench: not answered (microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6)"], "nearest": null},
       "question": "dino-autofocus gives a dark offset observed on 2026-09-30 and an Offset property read on 2026-10-02 (its card L-057). Was the observed value taken from a dark frame -- shutter closed, no light -- or from a frame that merely had no signal?",
       "answer_shape": {"unit": "ADU", "kinds_accepted": ["measured", "operator_read", "prior_run"], "goes_to": "store; the property reading enters as the device's report of itself, the dark-frame value only if it was a dark frame"}
     },
