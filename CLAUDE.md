@@ -499,14 +499,15 @@ under §10.3, and **no safety limit crosses** -- a guard table inside the
 imported tree binds nothing; `envelope/safety.json` binds. The console moves
 with the rest and keeps §11-25's four rules where it sits: it drafts plans
 the person approves and commands nothing itself. The operator's focus
-search in `microscope_agent/src/` stays the original (§11-24). **Nothing has
-moved yet**: the order is the design (§10.2, §7, §14), then
-manager-microscope's import card, then the import by
-microscope-office-20261015-1 -- and the import lands only when a root
-`.gitattributes` line keeps the Micro-Manager `.cfg` files byte-exact and
-the validator no longer reads the imported tree as this repository's own
-cards (802 failures in the scratch trial). Read §10.2 and §14 for where it
-stands; this paragraph will lag them.
+search in `microscope_agent/src/` stays the original (§11-24). **The import
+landed on 2026-10-15**: merge `8f94789` by microscope-office-20261015-1,
+all 531 paths under `microscope_agent/autofocus/`, the `.cfg` files
+byte-equal to the freeze point under the root `.gitattributes` line, the
+validator `0 failed` at that HEAD because §8 now judges an imported subtree
+as an import and not as this repository's cards; the one ruling line is
+`a8efb12`. The translation card, 074, is open; the Language exception
+below ends when it closes. Read §10.2 and §14 for where it stands; this
+paragraph will lag them.
 
 Until 2026-09-16 a SessionStart hook injected `~/.claude/knowledge/`, a
 read-only mirror of the first two, into every session on this machine, and its
