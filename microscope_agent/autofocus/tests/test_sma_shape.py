@@ -7,13 +7,12 @@ after the copy, where ``scripts/`` and ``docs/`` would mean that repository's fo
 
 D-03 also gives every flat file an origin header (``dino_autofocus.flat_origin``): the commit
 that holds this body, as a public URL, and the body's SHA-256. The tests at the end check the
-header against the body, the named commit against the body (via git), and -- when a
-soft-matter-agents checkout is beside this repository or at ``DINO_AF_SMA_ROOT`` -- that the
-pin is in its history, that the checks the mirror follows still exist, and that no file that
-exists on both sides has drifted."""
+header against the body, the named commit against the body (via git), and, in the
+soft-matter-agents tree this one was imported into at ``microscope_agent/autofocus/``, that
+the pin is in its history, that the checks these files follow still exist, and that the focus
+core and its tests exist only there (the mirror was retired by soft-matter-agents card 073)."""
 
 import ast
-import os
 import re
 import shutil
 import subprocess
@@ -88,13 +87,10 @@ def test_imports_are_stdlib_or_numpy_and_never_relative():
 # keeps in dino until a soft-matter-agents place exists (they are tuning, not bench facts).
 ALWAYS_OK = {0, 1, -1, 2, 0.5, 100, 255}
 ALLOWED_LITERALS: dict[str, set[float]] = {
-    # bit-depth range of a uint16 frame, block minimum size, 99.9th percentile, epsilons;
-    # no clip level, bin size or block grid since D-03c
-    "focus_classical.py": {16, 3, 99.9, 1e-06, 1e-12, 1e-30},
+    # focus_classical, focus_verdict and focus_search are soft-matter-agents' originals now,
+    # outside this tree (card 073), and its validator judges them there
     "focus_run_log.py": set(),
-    "focus_search.py": {4, 1e-06, 1e-09},  # rounding digits, epsilons (no count since D-03f)
     "focus_step_rules.py": {1e-06},  # one float epsilon; every limit is an argument
-    "focus_verdict.py": {1e-12},
     "focus_verdict_model.py": set(),  # the model-reading verdict, out of the first copy
     "map_edge.py": {8.0, 150, 3, 1.4826, 5, 36, 30, 6, 256, 1e-12, 1e-06, 1e-09, 0.001, 4,
                     0.03, 1000},
@@ -180,7 +176,7 @@ def test_the_named_commit_holds_this_body():
     for p in flat_origin.flat_files(REPO):
         header, body = flat_origin.split(p.read_text(encoding="utf-8"))
         if header is None or header.origin != flat_origin.ORIGIN:
-            continue  # no header: reported above; a mirror: checked against SMA below
+            continue  # no header: reported above
         shown = _git("show", f"{header.commit}:{header.path}", cwd=REPO)
         if shown.returncode:
             problems.append(f"{header.path}: commit {header.commit[:12]} is not in this"
@@ -193,22 +189,24 @@ def test_the_named_commit_holds_this_body():
     assert not problems, problems
 
 
-def _sma_root() -> Path | None:
-    env = os.environ.get("DINO_AF_SMA_ROOT")
-    candidates = ([Path(env)] if env else
-                  [REPO.parent / "soft-matter-agents", REPO.parents[1] / "soft-matter-agents"])
-    return next((c for c in candidates if (c / "contracts" / "validate.py").is_file()), None)
+def _sma_root() -> Path:
+    """The soft-matter-agents checkout this tree was imported into, at
+    `microscope_agent/autofocus/` (soft-matter-agents card 073): two levels up, by that fixed
+    in-repo path, and no sibling checkout or environment variable."""
+    return REPO.parents[1]
 
 
 SMA_CHECKS_FOLLOWED = ("check_13_paths", "check_16_dependency_direction",
                        "check_82_imports_are_declared")
 
 
-def test_soft_matter_agents_checkout_has_the_pin_and_no_drift():
-    """Read-only look at the soft-matter-agents checkout, when there is one."""
+def test_soft_matter_agents_holds_the_pin_the_checks_and_the_only_copy_of_the_core():
+    """Read-only look at the soft-matter-agents tree around this one. The focus core and its
+    tests live only there; this tree's flat files are dino's own, and none shares a name with
+    a file there, so no two copies of one file exist to drift."""
     sma = _sma_root()
-    if sma is None:
-        pytest.skip("no soft-matter-agents checkout beside this repository (DINO_AF_SMA_ROOT)")
+    assert REPO.parent.name == "microscope_agent" and REPO.name == "autofocus", REPO
+    assert (sma / "contracts" / "validate.py").is_file(), sma
     problems = []
     anc = _git("merge-base", "--is-ancestor", SMA_SHAPE_COMMIT, "HEAD", cwd=sma)
     if anc is not None and anc.returncode:
@@ -219,25 +217,12 @@ def test_soft_matter_agents_checkout_has_the_pin_and_no_drift():
                  if f"def {name}(" not in validate]
     for p in flat_origin.flat_files(REPO):
         rel = p.relative_to(REPO)
-        theirs = sma / rel
-        if not theirs.is_file():
-            continue  # not copied yet (or held back): nothing to compare
-        _, ours = flat_origin.split(p.read_text(encoding="utf-8"))
-        _, there = flat_origin.split(theirs.read_text(encoding="utf-8"))
-        if flat_origin.body_sha256(ours) != flat_origin.body_sha256(there):
-            problems.append(f"{rel.as_posix()}: body differs from the soft-matter-agents copy"
-                            f" (drift: mirror the change back or forward, by card)")
-    # D-06: every mirrored file's body is the one at SMA_MIRROR_COMMIT in soft-matter-agents
+        if (sma / rel).exists():
+            problems.append(f"{rel.as_posix()}: a file of that name is also in"
+                            f" soft-matter-agents; one of the two copies must go, by card")
     for rel in sorted(flat_origin.MIRRORED):
-        shown = _git("show", f"{flat_origin.SMA_MIRROR_COMMIT}:{rel}", cwd=sma)
-        if shown is None:
-            break
-        if shown.returncode:
-            problems.append(f"{rel}: SMA_MIRROR_COMMIT has no such file in the checkout")
-            continue
-        _, there = flat_origin.split(shown.stdout.decode("utf-8"))
-        _, ours = flat_origin.split((REPO / rel).read_text(encoding="utf-8"))
-        if flat_origin.body_sha256(ours) != flat_origin.body_sha256(there):
-            problems.append(f"{rel}: the mirror differs from soft-matter-agents at "
-                            f"{flat_origin.SMA_MIRROR_COMMIT[:12]}")
+        if (REPO / rel).exists():
+            problems.append(f"{rel}: the mirror is retired; the original is soft-matter-agents'")
+        if not (sma / rel).is_file():
+            problems.append(f"{rel}: the original is missing from soft-matter-agents")
     assert not problems, problems

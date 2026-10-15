@@ -50,7 +50,9 @@ SMA_NOTE = "the original since 2026-10-05; dino-autofocus mirrors it"
 SMA_BLOB_URL = "https://github.com/kyu-softmatter/soft-matter-agents/blob/{commit}/{path}"
 #: The soft-matter-agents commit the mirrored files follow (card 059's copy, G-06).
 SMA_MIRROR_COMMIT = "f2c56dcfc018b23ff784dc2ac06e150db499f556"
-#: Files soft-matter-agents holds the original of; dino's copies are a read-only mirror.
+#: Files soft-matter-agents holds the original of. dino's read-only mirror of them was
+#: retired by soft-matter-agents card 073: none is in this tree, and `_flat.path_of`
+#: reads the core from the originals. Kept as the list of what the mirror was.
 MIRRORED = frozenset({
     "microscope_agent/src/focus_classical.py",
     "microscope_agent/src/focus_verdict.py",
