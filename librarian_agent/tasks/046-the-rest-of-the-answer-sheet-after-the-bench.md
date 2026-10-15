@@ -83,6 +83,16 @@ not done. Per card, as the record stands:
   in the entry that no single Status string means "not engaged". **Which
   reading the envelope uses is the person's**, and the person has written
   one; that is not the entry's to judge.
+  **The person explained the two off codes on 2026-10-15**, directly in
+  manager-librarian's window: both are off, and the codes differ because one
+  reading was taken in range and the other out of range. That matches the
+  item's own `PFS in Range` column ("Out of Range" with Status
+  `0000000000000000`; "In Range" with `0000000100000000`). Enter it as the
+  person's statement, graded as one. Keep it separate from the readings, so
+  the readings stay what was read and the reading of them stays the
+  person's. It says that in range or out of range shows in the Status code
+  apart from engagement. It does not say which bit means engaged, and the
+  searching state is still unread.
 - **The immersion oil: not recorded.** The person has been asked again. Until
   they answer, `immersion_oil_refractive_index` stays a gap.
 - **L-052: still awaiting the person's confirmation.**
