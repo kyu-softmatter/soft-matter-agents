@@ -71,6 +71,23 @@ that they stand and will not be repeated, and now the person's statement of
    is a changed answer under a new `kb_version`, which is allowed; the old
    pins keep their old answers.
 
+## RULINGS ON SCOPE (2026-10-15, after librarian-20261007-1 asked)
+
+- **`supersedes` is cleared too.** On the five 1x `_computed` entries, set
+  `supersedes` to null. A supersede records that a claim was replaced. On the
+  person's word it was not, so leaving it would keep the refutation under
+  another name. In each, write one sentence: it was set on 2026-09-24 on the
+  person's ruling and cleared on 2026-10-15 when that ruling was withdrawn.
+  It was set because the schema had no backward mark, and since 048's
+  `status` it has one.
+- **The six 1.5x rows stay refuted for now.** The 2026-09-24 ruling refuted
+  eleven rows, five at 1x and six at 1.5x. L-031 asked about the objectives,
+  and the answer did not address the 1.5x zoom. Each 1.5x E2 value is its
+  1x value over 1.5, which an independent measurement rarely gives. So lift
+  only the five 1x pairs. Each 1.5x row gains one sentence: the 2026-10-15
+  answer did not address the 1.5x zoom. The question has been put to the
+  person, and an answer that comes later is a follow-up change.
+
 ## CONTRACT
 
 - No value changes. The grade labels stay as they are. Only the relation
