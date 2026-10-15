@@ -3937,7 +3937,7 @@ Written for whoever picks this up next, person or session, without the conversat
 **Waiting on the next visit**, in order:
 1. Card 069 built and shown on mock, then a configuration file approved by the person by hash.
 2. On the instrument: Z read on both sides of a refusal, the focus-hold-on refusal, and the first abort through live view with every lamp and shutter row read back against what the person sees.
-3. The person's margin on `focus_z_<lens>_max`, which today is the contact position itself.
+3. ~~The person's margin on `focus_z_<lens>_max`~~ -- **settled 2026-10-15, no margin**: the person, directly to architecture-20261007-1, "3300으로 두고 여유 안둠" (keep it at 3300, no margin). Every lens's maximum stays 3300 um, the contact position, so the live clearance check refuses any step past contact and nothing short of it.
 4. Card 060 step 6, dino's hand measurements, and the spinning-disk shutter's closed label. Whether live frames show outside a plan stays at its default (no); a run keeps going when its viewer drops (batch A, below).
 
 **The camera's full-scale count** is carded: librarian task 043 (`54433d9`, manager-librarian-20261007-1), with `full_scale_count` (ADU) registered as a quantity. **The bench reading exists since 2026-10-13**: 65535 ADU at `Dynamic Range` / `100MHz 16bit`, in the bench findings' `A_camera_saturation` with its own gaps named (exposure, which camera, histogram rather than image-information Max). Task 043 enters it from that findings item -- not from dino's form, which was not on that computer -- and the value closes that one readout mode only. Until it is entered, every focus search records the gap. Copying `map_*` (sample maps) waits for an XY design; nothing here designs one yet.
