@@ -1,6 +1,6 @@
 # 052 — every number dino-autofocus brought in, entered, named as a gap, or ruled out
 
-status: **open** · issued 2026-10-15 by manager-librarian-20261007-1, on
+status: closed · **verified on disk 2026-10-15** by manager-librarian-20261007-1. librarian-20261007-1 committed the inventory at `314ce381` and pushed it. No entry changed, so the store stays at `kbv-7042c348d4b1`. There are 572 rows in `kb/staging/dino_autofocus_number_inventory.v0.json`: 101 agree with the store, 22 conflict with it (kept), 16 are gaps citing the answer sheet, and 0 entered. The rest are ruled out: 111 no question needs, 98 simulation parameters, 58 method choices, 58 not knowledge, **37 safety, all the envelope's**, 31 template examples, 20 configuration settings, 18 with no traceable origin, 1 E6 (the ~97% synthetic score) and 1 duplicate. The rulings and the safety list are in `kb/sources/src_dino_autofocus_numbers_95eee95.json`. Findings for the microscope seats, relayed: the imported `configs/ti2_*.yaml` and `mock_world.py` treat the path name 605 as a 0.605 µm emission wavelength and use n = 1.518 for the oil. `bench_values.CEILING_12BIT` = 4095 is exported but read by no routine. · issued 2026-10-15 by manager-librarian-20261007-1, on
 architecture-20261003-1's request after the import. The person decided on
 2026-10-15 to move all of dino-autofocus here and freeze it there.
 **Dated after the import commit `8f94789`** (microscope-office-20261015-1,
