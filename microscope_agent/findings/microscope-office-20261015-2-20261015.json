@@ -1,0 +1,33 @@
+{
+  "artifact": "findings",
+  "schema_version": "0.1",
+  "seat": "microscope-office-20261015-2",
+  "on": "2026-10-15",
+  "delivered_to": "librarian_agent",
+  "items": [
+    {
+      "id": "a_camera_saturation",
+      "fact": "Both Kinetix cameras (Kinetix_red, Kinetix_blue, both loaded by the dual-camera file) read Port 'Dynamic Range' and ReadoutRate '100MHz 16bit'. The person saturated the image with the transmitted lamp and read a maximum of 65535 ADU from the Micro-Manager histogram, with many pixels saturated. The person first said the readout was '100MHz 12bit' and then corrected it to '100MHz 16bit' on a second look.",
+      "kind": "person_statement",
+      "how": "Read by the person at the bench on 2026-10-13 and dictated to microscope-20261013-1, which recorded it. Its own words, copied exactly from microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6, item A_camera_saturation: Read from the histogram, not from the image-information Max. Binning and exposure time at the reading were not given. It was not stated whether the maximum was read on one camera or both; the person said the two cameras read the same. The value belongs to this readout mode only (Dynamic Range, 100MHz 16bit); every other Port and ReadoutRate stays a gap. dino-autofocus's record forms are not on this computer, so this reading is recorded here and not cited to them; if dino's form already holds a value, the two should be compared, not merged.",
+      "source": {
+        "type": "person",
+        "recorded_at": "microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6, item A_camera_saturation (fields fact and how)"
+      },
+      "for_store": true,
+      "note": "The person decided on 2026-10-15, in manager-microscope's window, that this item goes to the store: recorded in microscope_agent/tasks/070-offer-two-bench-readings-to-the-store.md at 9da5f3d. The original item is unchanged and still says for_store false; this file is the offer. The id here is the original's lowercased, because the findings schema allows lowercase only. Copied exactly from the original's binning_and_exposure field: Said by the person afterwards: binning 1x1, exposure 30 ms to 100 ms (a range, not one value; which exposure gave the 65535 was not stated). Copied exactly from the original's gaps list: which exposure in the 30 to 100 ms range gave the 65535; which camera the 65535 was read on; image-information Max, as opposed to the histogram."
+    },
+    {
+      "id": "a_pfs_readings",
+      "fact": "Focus-hold (device PFS, Micro-Manager NikonTi2) readings, three properties each time. OFF, never switched on since the configuration loaded: FocusMaintenance Off, PFS Status 0000000000000000, PFS in Range 'Out of Range'. ON and LOCKED (stand showed locked; Refresh several times left the value unchanged): FocusMaintenance On, PFS Status 0000001100001010, PFS in Range 'In Range'. OFF again after having been on (stand showed 'in range, not locked'; Refresh did not change it): FocusMaintenance Off, PFS Status 0000000100000000, PFS in Range 'In Range'. ON BUT STILL SEARCHING was not caught: the stand locks faster than the person could press Refresh, after several tries. PFS LEDIntensity went from 27 to 10 when focus hold was switched on; the person did not change it.",
+      "kind": "person_statement",
+      "how": "Read by the person at the bench on 2026-10-13 and dictated to microscope-20261013-1, which recorded it. Its own words, copied exactly from microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6, item A_pfs_readings: Person read each value in the Device Property Browser with 'Show read-only' ticked, pressed Refresh after each change of state, and confirmed the 16 digits of PFS Status for the first two states and the third by saying so. The switch was the stand's own. The 'locked' state was confirmed on the stand by the person, not inferred from the property.",
+      "source": {
+        "type": "person",
+        "recorded_at": "microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6, item A_pfs_readings (fields fact and how)"
+      },
+      "for_store": true,
+      "note": "The person decided on 2026-10-15, in manager-microscope's window, that this item goes to the store: recorded in microscope_agent/tasks/070-offer-two-bench-readings-to-the-store.md at 9da5f3d. The original item is unchanged and still says for_store false; this file is the offer. The id here is the original's lowercased, because the findings schema allows lowercase only. Which reading envelope/safety.json uses as not engaged stays the person's to write; this offer decides nothing about it. Copied exactly from the original's for_the_person_to_decide field: Which readings go into envelope/safety.json as pfs_not_engaged is the person's. What the readings show: FocusMaintenance read Off in both off states and On in the locked state; PFS Status read two different strings in the two off states, so it does not by itself tell off from not-yet-reached. The searching state has no reading, so nothing says whether FocusMaintenance reads On while searching."
+    }
+  ]
+}
