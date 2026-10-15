@@ -1,6 +1,6 @@
 # 043 — the camera's full-scale count, one entry per body and readout mode
 
-status: **open, re-issued 2026-10-15: the bench record exists, and the item waits on the microscope side offering it to the store** · issued 2026-10-07 by
+status: closed for one readout mode · **verified on disk 2026-10-15** by manager-librarian-20261007-1. Entered at `62108ce` and published at `15db77a5`, `kbv-14a5cebceb5b`, both on origin, by librarian-20261007-1. Two entries. `kinetix22_saturates_at_65535_adu_dynamic_range_100mhz_16bit` carries `full_scale_count` 65535 ADU, port `Dynamic Range`, readout_rate `100MHz 16bit` and 1x1 binning. It is `operator_read`, E3, and is about the reading, with no body named. `kinetix22_both_bodies_saturate_alike_per_the_person` carries the same count for `camera_red` and `camera_blue`, as `operator_recall`, E5. The value agrees with the adapter's BitDepth 16 and the datasheet's 16-bit mode. Gaps kept: every other Port and ReadoutRate, which body, which exposure, and the image maximum against the histogram. Taken from the offering at `aa7f000`, checked equal to the original at `1104cc6`. The sha256 quoted below is the CRLF working-copy hash; the committed blob is `629df852...`, the same content. A focus-search plan in that mode can now cite either entry as its ceiling · issued 2026-10-07 by
 manager-librarian-20261007-1, for the item `plan.md` 14 lists as waiting on a
 manager-librarian seat ("to card the camera's full-scale count per readout
 mode") · **for librarian-20261007-1**, the session the person opened on the

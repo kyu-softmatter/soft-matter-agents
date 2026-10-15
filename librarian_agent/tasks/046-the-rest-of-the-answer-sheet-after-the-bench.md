@@ -1,6 +1,6 @@
 # 046 — the rest of the answer sheet, once the bench has answered
 
-status: **open, re-issued 2026-10-15: the bench answered little; see the section below** · issued 2026-10-07 by
+status: closed · **verified on disk 2026-10-15** by manager-librarian-20261007-1. Published with 043 at `15db77a5`, `kbv-14a5cebceb5b`. Oil: four entries. `immersion_oil_in_use_is_nikon_type_f` is `operator_read`, E3. Three indices stay in conflict, with nothing refuted: the bottle's label nD 1.5150 at 23 degC is cited first, and the two resellers' 1.518 and 1.515 follow. PFS: `pfs_reports_focus_maintenance_status_and_range_in_three_states` (`operator_read`, E3) and the person's in-range explanation (`operator_recall`, E5). Kept as gaps, each with a searched line: L-005, L-032, L-033, L-056, L-057, and the CSUW1 closed label. Answered: L-031 (via 051) and L-052 (nothing enters) · issued 2026-10-07 by
 manager-librarian-20261007-1 · **for librarian-20261007-1, with 043 and from
 the same record**: the bench of Tuesday 2026-10-13 (moved from 2026-10-08 to 2026-10-12 by the person on 2026-10-09, then to 2026-10-13 on 2026-10-12) answers both, and one reader of
 one record is better than two
