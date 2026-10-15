@@ -119,6 +119,35 @@ On mock, under `tests/`:
 
 Watch each new test fail before the code that passes it exists.
 
+## Added 2026-10-15 by manager-microscope-20261003-1: the configuration's own focus direction
+
+**An addition, not a rewrite**: the rest of this card is
+manager-microscope-20261013-1's, unchanged. It comes from
+microscope-office-20261015-1's report on card 075.
+
+The Micro-Manager configurations that arrived with dino-autofocus, in
+`microscope_agent/autofocus/configs/micromanager/*.cfg`, carry **live
+`FocusDirection` settings for `ZDrive` and `PFSOffset`**. The librarian rules
+them safety rows. If `--mm-config` is ever pointed at one of these files, or
+at any file with such a line, the person's hash approval would be the only
+thing letting that sign reach the stand. A hash says the bytes are the
+approved bytes. It does not say the direction in them is right.
+
+So, before anything is loaded on hardware:
+
+- **Read each `FocusDirection` line in the file and check it, never take it
+  from the file.**
+  - For `ZDrive`, the direction must agree with the store's measured
+    retract direction (`z_retract_direction_is_measured`: smaller Z is
+    retracted). If it disagrees, or the file's direction cannot be read as
+    one of the two, refuse before loading.
+  - For `PFSOffset`, no direction is measured yet; the store records the
+    gap. PFSOffset is refused by name to software, so this sign binds
+    nothing software sends, but a load that would set it is recorded as
+    such, beside the hashes.
+- **Test it**: a configuration whose `ZDrive` direction is inverted is
+  refused with nothing loaded, watched failing first.
+
 ## What comes back
 
 To manager-microscope:
