@@ -32,6 +32,11 @@ DOUBLE_PEAK_PROMINENCE = 0.2
 
 # -- camera and grid structure (D-03c: these left focus_classical too) ---------------------
 #: Camera clip levels: 12-bit readout (the Kinetix_red on 2026-09-30) and 16-bit (2026-10-02).
+#: CEILING_12BIT is NOT the camera's ceiling here (soft-matter-agents card 075): no routine
+#: reads it, only tests/focus/test_focus_classical.py, so it stays as the record has it. The
+#: store holds 65535 ADU for Port Dynamic Range at ReadoutRate 100MHz 16bit
+#: (kinetix22_saturates_at_65535_adu_dynamic_range_100mhz_16bit); a focus plan takes its
+#: ceiling from the store, never from this constant.
 CEILING_12BIT = 4095
 CEILING_16BIT = 65535
 #: Peak metric: bin x bin binning first, so one hot pixel cannot win (the 100x script).

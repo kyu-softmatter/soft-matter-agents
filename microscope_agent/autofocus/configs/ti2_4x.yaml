@@ -48,7 +48,11 @@ system:
     t_immersion_design: 20000.0
 
   illumination:
-    wavelength: 0.605         # emission centre, um
+    # MOCK VALUE, not a measurement (soft-matter-agents card 075): "605" is the red path's
+    # NAME, not a wavelength. The filter on that path is FF01-595/31; the store holds it as
+    # red_path_605_is_the_ff01_595_31_filter and filter_ff01_595_31_32_passband. Only the
+    # synthetic-image generator reads this; nothing that drives the instrument does.
+    wavelength: 0.605         # emission centre, um -- see the note above
     bandwidth: 0.040
     n_spectral: 1
     exposure: 0.02            # 100x Aura GREEN 1 % on 2026-09-30 used 20 ms

@@ -14,7 +14,7 @@ system:
   objective:
     na: 1.45
     magnification: 100.0
-    n_immersion: 1.518
+    n_immersion: 1.518  # MOCK VALUE, a reseller figure (card 075); the bottle on the bench reads nD 1.5150 at 23 C (store: immersion_oil_in_use_label_index_sodium_d_23c)
     tube_length: 200000.0     # Nikon
 
   camera:
@@ -34,9 +34,9 @@ system:
   stack:
     n_sample: 1.33            # beads in water: index mismatch with the oil gives the
                               # depth-induced spherical aberration that carries sign
-    n_immersion: 1.518
+    n_immersion: 1.518  # MOCK VALUE, a reseller figure (card 075); the bottle on the bench reads nD 1.5150 at 23 C (store: immersion_oil_in_use_label_index_sodium_d_23c)
     n_glass: 1.515
-    n_immersion_design: 1.518
+    n_immersion_design: 1.518  # MOCK VALUE (card 075); the bottle on the bench reads nD 1.5150 at 23 C (store: immersion_oil_in_use_label_index_sodium_d_23c)
     n_glass_design: 1.515
     t_glass: 170.0
     t_glass_design: 170.0

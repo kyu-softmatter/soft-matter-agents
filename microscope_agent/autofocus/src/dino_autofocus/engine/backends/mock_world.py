@@ -59,6 +59,11 @@ __all__ = [
     "objective_at",
 ]
 
+#: MOCK VALUE, not a measurement (soft-matter-agents card 075). "605" is the red path's
+#: NAME, not a 0.605 um wavelength: the filter on that path is FF01-595/31, held in the
+#: store as red_path_605_is_the_ff01_595_31_filter and filter_ff01_595_31_32_passband.
+#: The mock's depth of field and resolution are computed from it, so they are mock
+#: values too. Only the mock backend reads this; nothing that drives the instrument does.
 EMISSION_UM = 0.605  # configs/ti2_*.yaml illumination.wavelength
 CAMERA_PITCH_UM = 6.5  # Kinetix22
 
@@ -125,6 +130,8 @@ def _objective(pos, key, label, mag, na, n, wd, measured=()) -> Objective:
 
 #: Nosepiece positions 0-5. Labels of positions 0 and 5 are the ones read on 2026-09-30;
 #: the others follow the same pattern but were not read off the stand.
+#: The oil index 1.518 below is a MOCK VALUE, a reseller figure (card 075): the bottle on
+#: the bench reads nD 1.5150 at 23 C (store: immersion_oil_in_use_label_index_sodium_d_23c).
 OBJECTIVES: tuple[Objective, ...] = (
     _objective(0, "4x", "1-Plan Apo LmbdD20 4x", 4, 0.2, 1.0, 20000.0,
                ("label", "parfocal_um")),
