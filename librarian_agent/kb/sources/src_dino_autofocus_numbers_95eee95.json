@@ -1,0 +1,143 @@
+{
+  "source_id": "src_dino_autofocus_numbers_95eee95",
+  "kind": "prior_run",
+  "identifier": "Every number dino-autofocus carries in its code constants, configuration files and run records, as imported whole into microscope_agent/autofocus/ by the subtree merge 8f947892a34ec1e8aa114431d95c3881b14b136a (card 071) at dino main 95eee9582a820ebf09896cf53db2e28cd3ed5397, ruled one by one for task 052. The row-level table is kb/staging/dino_autofocus_number_inventory.v0.json.",
+  "commit": "95eee9582a820ebf09896cf53db2e28cd3ed5397",
+  "imported_at": "8f947892a34ec1e8aa114431d95c3881b14b136a",
+  "accessed": "2026-10-15",
+  "grade_rule": "Anything dino recorded would enter as prior_run:dino-autofocus@95eee95 at E3 at most (10.3 rule 1), even when taken on this stand: a run recorded in another repository is not a run of this system. A vendor or literature figure quoted in dino enters only from the document itself, never as dino's.",
+  "how_it_was_reached": "The person decided on 2026-10-15 to move all of dino-autofocus here and freeze it there; the code crossed whole, and the ruling condition applies to numbers and safety values only (task 052). Read only, from the imported tree in this working copy.",
+  "transferred": [],
+  "transferred_note": "No number entered. Every measurement dino recorded that the store lacks is one of dino's first 20 question cards, whose rulings stand in kb/staging/dino_autofocus_first_questions.v0.json and are cited, not re-ruled: the 4x stage-to-camera calibration (L-032), the 4x-to-100x parfocal offset (L-033), the 2026-09-30 12-bit readout (L-056) and the dark offset (L-057) all wait on the person, so they stay gaps.",
+  "agreed_with_the_store": "101 rows: the objectives' NA and working distances, the sensor pitch, the read noise, the QE at 600 nm, the pixel-size presets, the coverslip thickness, the camera serials, the 16-bit ceiling and the focus-hold readings, each citing its entry",
+  "in_conflict_with_the_store": [
+    {
+      "what": "illumination.bandwidth",
+      "entries": "filter_ff01_595_31_32_passband"
+    },
+    {
+      "what": "illumination.wavelength",
+      "entries": [
+        "red_path_605_is_the_ff01_595_31_filter",
+        "filter_ff01_595_31_32_passband"
+      ]
+    },
+    {
+      "what": "objective.n_immersion",
+      "entries": [
+        "nikon_type_f_oil_refractive_index_nd_23c",
+        "immersion_oil_in_use_label_index_sodium_d_23c",
+        "nikon_type_f_oil_refractive_index_ne_23c"
+      ]
+    },
+    {
+      "what": "only 20x measured (comment)",
+      "entries": [
+        "src_person_statement_20261015_pixel_sizes_measured",
+        "pixel_size_10x_zoom_1x"
+      ]
+    },
+    {
+      "what": "stack.n_immersion",
+      "entries": [
+        "nikon_type_f_oil_refractive_index_nd_23c",
+        "immersion_oil_in_use_label_index_sodium_d_23c",
+        "nikon_type_f_oil_refractive_index_ne_23c"
+      ]
+    },
+    {
+      "what": "stack.n_immersion_design",
+      "entries": [
+        "nikon_type_f_oil_refractive_index_nd_23c",
+        "immersion_oil_in_use_label_index_sodium_d_23c",
+        "nikon_type_f_oil_refractive_index_ne_23c"
+      ]
+    }
+  ],
+  "conflict_note": "Kept, not merged (rule 7). Two kinds: (1) the configs' immersion index 1.518, which matches one reseller and not the bench bottle's printed nD 1.5150; (2) the configs' 'illumination.wavelength 0.605' and 40 nm band, which read this bench's path NAME '605' as a wavelength -- the filter is 595/31 (L-052, answered 2026-10-15). Plus one configuration comment that only the 20x pixel size is measured, which the person contradicted on 2026-10-15 (051).",
+  "gaps": [
+    "kinetix_red_bit_depth (L-056)",
+    "kinetix_red_dark_offset (L-057)",
+    "parfocal_offset_4x_to_100x (L-033)",
+    "stage_camera_transform_4x (L-032)"
+  ],
+  "discarded": [
+    {
+      "item": "tuning thresholds and working arguments (bench_values.py, the run records' spans and exposures, engine constants)",
+      "why": "a method choice, not knowledge; the answer sheet already ruled L-077..L-089 so"
+    },
+    {
+      "item": "every limit, clearance, approach margin, tolerance, stage range, Z window, retract and return Z, stage speed, the laser blanking's closed position, and FocusDirection",
+      "why": "safety: the envelope's. Never crosses. 37 rows, listed in safety_rows"
+    },
+    {
+      "item": "the synthetic-image generator's parameters in configs/*.yaml (gain, offset, PRNU, hot pixels, dark current, photons, background, sample and glass indices)",
+      "why": "no measurement or document behind them"
+    },
+    {
+      "item": "configs/lab_template.yaml",
+      "why": "an example for another lab's 60x silicone-oil setup"
+    },
+    {
+      "item": "the Micro-Manager configurations' wiring and port settings",
+      "why": "a configuration's own setting, not a measurement"
+    },
+    {
+      "item": "stage positions, timestamps, and the focus planes, hole and particle of one sample",
+      "why": "a moment of one run, not a fact about the instrument"
+    },
+    {
+      "item": "the 2026-10-02 device-property dump, beyond the few rows that touch a stored fact or a gap",
+      "why": "no question here asks for it; it would enter as prior_run at E3 when one does"
+    },
+    {
+      "item": "the full well 80000 e- 'from the Kinetix22 datasheet', the tube length, a QE 'near 690 nm', a back-derived 20.0785x magnification",
+      "why": "no document reached: trail ends, unqualified_source"
+    },
+    {
+      "item": "the DINO model's ~97 % recognition on synthetic data (docs/sma-shadow-mode.md)",
+      "why": "a model score: E6. Never enters, and is listed so nobody quotes it as a measurement"
+    }
+  ],
+  "safety_rows": [
+    "src/dino_ FOCUS_DEFAULT_CENTRE_UM",
+    "configs/micromanager/DMD_dualcam_LUNF.cfg:127 FocusDirection ZDrive",
+    "configs/micromanager/DMD_dualcam_LUNF.cfg:128 FocusDirection PFSOffset",
+    "configs/micromanager/single_cam_red_noDMD_nocom10.cfg:166 FocusDirection ZDrive",
+    "configs/micromanager/single_cam_red_noDMD_nocom10.cfg:167 FocusDirection PFSOffset",
+    "configs/micromanager/DMD_dualcam_LUNF.cfg:105 ZDrive = 8288.740",
+    "configs/micromanager/DMD_dualcam_LUNF.cfg:107 ~5.3 mm PAST the sample plane",
+    "configs/micromanager/DMD_dualcam_LUNF.cfg:109 coverslip 0.13 mm away",
+    "configs/micromanager/single_cam_red_noDMD_nocom10.cfg:144 ZDrive = 8288.740",
+    "configs/micromanager/single_cam_red_noDMD_nocom10.cfg:146 ~5.3 mm PAST the sample plane",
+    "configs/micromanager/single_cam_red_noDMD_nocom10.cfg:148 coverslip 0.13 mm away",
+    "docs/runs/2026-09-30_substrate-scan.yaml:21 instrument.z_window_um",
+    "docs/runs/2026-09-30_substrate-scan.yaml:67 steps.1.tracker.speed_um_s",
+    "docs/runs/2026-09-30_substrate-scan.yaml:109 steps.3.sequence ZDrive -> 2800",
+    "docs/runs/2026-10-02_bench-properties.json:42 ZDrive.Speed",
+    "docs/runs/2026-10-02_bench-properties.json:60 ZDrive.Tolerance",
+    "docs/runs/2026-10-02_bench-properties.json:111 XYStage.Speed",
+    "docs/runs/2026-10-02_bench-properties.json:129 XYStage.Tolerance",
+    "docs/runs/2026-10-02_bench-properties.json:2070 LUNF-Blanking.ClosedPosition",
+    "docs/runs/2026-10-15_bench-todo.md:22 focus_z limit (quoted)",
+    "docs/runs/2026-10-15_bench-todo.md:22 focus_z limit (quoted)",
+    "src/dino_ SAMPLE_Z_WINDOW_UM",
+    "src/dino_ RETRACT_Z_UM, RETURN_Z_UM",
+    "src/dino_ WD_FRACTION",
+    "src/dino_ FREE_WD_UM",
+    "src/dino_ XY_BOX_MARGIN_UM",
+    "src/dino_ Z_SAFE_UM",
+    "src/dino_ RETRACTED_MAX_Z_UM",
+    "src/dino_ ESCAPE_DY_UM",
+    "src/dino_ Z_TOL_UM",
+    "src/dino_ XY_TOL_UM",
+    "src/dino_ TRAP_TOL_UM",
+    "src/dino_ PIEZO_TOL_UM",
+    "src/dino_ PIEZO_RANGE_UM",
+    "src/dino_ TRAP_RANGE_UM",
+    "src/dino_ MAX_TRAPS",
+    "src/dino_ MAX_DURATION_S"
+  ],
+  "license_note": "MIT. No code reproduced; values are cited by path and line.",
+  "provenance": "plan.md 10.2's 2026-10-03 paragraph on dino-autofocus; ruled under 10.2.1 and 10.3 for task 052."
+}
