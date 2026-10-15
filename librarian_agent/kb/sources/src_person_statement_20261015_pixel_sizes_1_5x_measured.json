@@ -1,0 +1,11 @@
+{
+  "source_id": "src_person_statement_20261015_pixel_sizes_1_5x_measured",
+  "kind": "person_ruling",
+  "identifier": "The person's answer on 2026-10-15, directly in librarian-20261007-1's window, to the question manager-librarian put after task 051 lifted the five 1x refutations: were the six objectives at the 1.5x intermediate magnification also measured at the 2026-09-19 calibration? Verbatim, in Korean: '1.5배도 전부 측정한 거야' -- 'the 1.5x were all measured too'.",
+  "accessed": "2026-10-15",
+  "grade_rule": "About provenance, not a value, so it grades nothing itself. It withdraws src_person_ruling_20260924 for the six 1.5x rows, as src_person_statement_20261015_pixel_sizes_measured did for the 1x rows; the six return to a two-way conflict_with with their _computed siblings, grades unmoved.",
+  "withdraws": "src_person_ruling_20260924 for the six rows at 1.5x. With src_person_statement_20261015_pixel_sizes_measured, the whole of that ruling's eleven refutations is withdrawn by the same person.",
+  "what_still_points_the_other_way": "every 1.5x value is its 1x value divided by exactly 1.5, to the digits given, which is what a calculation produces; an independent measurement at 1.5x agreeing to every printed digit would be unusual. The 20x at 1.5x is 0.21582, its 1x value 0.32373 over 1.5, the same exactness. The evidence listed for the 1x rows in src_person_statement_20261015_pixel_sizes_measured applies here too.",
+  "what_would_settle_it": "a fresh measurement at 1.5x of one objective on this bench, done the way the 20x at 1x was: a value off its 1x/1.5 by more than that method's precision would show the 1.5x was measured independently; an exact agreement would not settle it either way. The person's to schedule.",
+  "license_note": "Identifier only."
+}
