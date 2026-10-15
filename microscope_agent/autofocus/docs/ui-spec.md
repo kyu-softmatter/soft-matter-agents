@@ -1,900 +1,900 @@
-# UI 화면·동작 명세 (T-004)
+# UI screens and behaviour specification (T-004)
 
-작성: AF 실행5 (2026-10-01). 근거 코드는 `main` 6ba1bc1 의 `scripts/launcher.py`,
+Author: AF executor 5 (2026-10-01). The code it is based on is, at `main` 6ba1bc1, `scripts/launcher.py`,
 `scripts/live_focus.py`, `scripts/edge_track.py`, `scripts/focus_servo.py`, `scripts/scan_4x.py`,
-`scripts/mm_grab.py` (R-05 에서 삭제; 이력에 있음). 운영 규칙은 `docs/runs/2026-09-30_substrate-scan.md` 2절, 설계 규칙과
-기능 요구사항은 `docs/PLAN.md` (1–4절은 v0.2, 3·5·6·7절은 v0.9 기준) 2·5·6·8절. 작업별 세부는
-`docs/operations-spec.md` (T-006, main 에 병합됨).
+`scripts/mm_grab.py` (deleted in R-05; in the history). Operating rules are in `docs/runs/2026-09-30_substrate-scan.md` §2; design rules and
+functional requirements are in `docs/PLAN.md` (§1–4 at v0.2, §3·5·6·7 at v0.9) §2·5·6·8. Per-operation details are in
+`docs/operations-spec.md` (T-006, merged into main).
 
-이 문서는 두 가지 용도로 쓴다.
+This document serves two purposes.
 
-- D1 결정 뒤 UI 구현 (WP-D 와 F1–F5 화면) 의 명세.
-- T-002 (실행1) `engine/events.py` 설계의 입력. 4절이 그 입력이다.
+- The specification of the UI implementation after decision D1 (WP-D and the F1–F5 screens).
+- An input to the design of `engine/events.py` in T-002 (executor 1). §4 is that input.
 
-D1 은 로컬 웹 앱 (FastAPI 서버 + React 브라우저 화면) 으로 확정됐다 (매니저 전달, PLAN v0.3 예정).
-화면 배치는 툴킷과 무관하게 적고, 엔진 대응표 (4절) 에는 전송 방식 (REST / WebSocket) 을 붙인다.
-화면 영역 이름은 v0.3 의 `console`, `hardware`, `sample`, `map`, `objective`, `live` 를 쓴다 (1.0).
-작업(operation)별 plan / preflight / run / abort 의 세부는 실행4 의 `docs/operations-spec.md` (T-006)
-를 따르고, 여기서는 화면이 그 작업을 어떻게 부르고 무엇을 보여 주는지만 적는다.
+D1 was settled as a local web app (FastAPI server + React browser screens) (relayed by the manager, due in PLAN v0.3).
+Screen layout is written independently of the toolkit, and the engine mapping table (§4) adds the transport (REST / WebSocket).
+Screen area names are v0.3's `console`, `hardware`, `sample`, `map`, `objective`, `live` (1.0).
+Details of plan / preflight / run / abort for each operation follow executor 4's `docs/operations-spec.md` (T-006),
+and this document records only how a screen calls that operation and what it shows.
 
-표기:
+Notation:
 
-- 코드 이름과 UI 문구는 영어 그대로 인용한다. 예: `"Start live view"`.
-- 좌표 `sum` = Ti2 XYStage/ZDrive + 피에조, µm (`live_focus.py::sample_xyz`). 피에조 축 부호는
-  아직 검증되지 않았다.
-- **(제안)** 은 T-002 과제 파일 목록에 없는 명령/이벤트를 이 문서가 새로 제안하는 것이다.
+- Code names and UI strings are quoted in English as they are. Example: `"Start live view"`.
+- Coordinate `sum` = Ti2 XYStage/ZDrive + piezo, µm (`live_focus.py::sample_xyz`). The sign of the piezo axes
+  has not been verified yet.
+- **(proposed)** marks a command/event that is not in the T-002 task file's list and that this document proposes as new.
 
 ---
 
-## 1. 화면 목록
+## 1. Screen list
 
-### 1.0 화면 영역 (v0.3) 과 현재 화면의 대응
+### 1.0 Screen areas (v0.3) and how the current screens map onto them
 
-각 영역은 `server/api/<영역>.py` 와 `web/src/features/<영역>/` 으로 구현된다 (매니저 전달).
-모든 화면에 공통 상태 줄 (조명, 실행 중 작업, 연결 상태, 원격 여부) 이 붙는다.
+Each area is implemented as `server/api/<area>.py` and `web/src/features/<area>/` (relayed by the manager).
+Every screen carries a common status bar (lighting, running operation, connection state, whether remote).
 
-| 영역 | 담는 것 | 현재 화면에서 오는 것 | 새 기능 |
+| Area | What it holds | What comes from the current screens | New features |
 |---|---|---|---|
-| `live` | 라이브 영상, ROI, 초점 판정, 지표 트레이스, 상태 줄, 프레임 저장 | 1.2 (a) (b) (c) (f), 1.3 스캔 미리보기, 1.4 | — |
-| `map` | XY 지도, 경계점과 원 피팅, 엣지 추적, 4x 스캔과 결과 | 1.2 (d) (e) 의 지도·hole 줄, 런처 Step 1 의 추적 설정, Step 2 | F4 모자이크, 입자 후보, flag, 클릭 이동 |
-| `sample` | 샘플 선택·새로 만들기·폴더, 샘플 기록 요약 | 런처 Sample, 1.2 (e) 의 샘플 줄, `n` | F3 지오메트리, 로딩 확인 |
-| `hardware` | 장치 상태 읽기, 조명 켜고 끄기 | 런처 Step 0, `"Lights off"`, Step 1 의 조명 선택 | F2 탐지, 구성 파일, 게이트 |
-| `objective` | 렌즈 교체와 100x 초점 | `change_objective.py`, `focus_100x.py` (런처에 없음, 수동 실행) | F5 7단계, 액침액 로딩 |
-| `console` | 에이전트 질문과 기록 열람 | 없음 | F1 |
+| `live` | live image, ROI, focus verdict, metric traces, status bar, frame save | 1.2 (a) (b) (c) (f), 1.3 scan preview, 1.4 | — |
+| `map` | XY map, boundary points and circle fit, edge tracking, 4x scan and its results | the map and hole lines of 1.2 (d) (e), the tracking settings of launcher Step 1, Step 2 | F4 mosaic, particle candidates, flags, click-to-move |
+| `sample` | choosing a sample · creating a new one · its folder, sample record summary | launcher Sample, the sample line of 1.2 (e), `n` | F3 geometry, loading check |
+| `hardware` | reading device state, turning lights on and off | launcher Step 0, `"Lights off"`, Step 1's light selection | F2 detection, configuration file, gates |
+| `objective` | objective change and 100x focus | `change_objective.py`, `focus_100x.py` (not in the launcher, run by hand) | F5 7 steps, immersion liquid loading |
+| `console` | agent questions and record browsing | none | F1 |
 
-원격 규칙 (매니저 전달): 서버는 127.0.0.1 에만 바인딩한다. 원격 접속은 읽기 전용이고, 움직이거나
-기록을 쓰는 명령은 현미경 PC 의 브라우저에서만 받는다. 영역별로 원격일 때 비활성인 항목은 7절에 적는다.
-판정은 서버가 요청 출처로 하고, 화면의 비활성 표시는 추가 안내일 뿐이다 (PLAN 6절 2항과 같은 원칙).
+Remote rule (relayed by the manager): the server binds only to 127.0.0.1. Remote access is read-only, and commands that move anything or
+write records are accepted only from the browser on the microscope PC. The items disabled when remote, per area, are listed in §7.
+The server decides by the request's origin; the disabled look on screen is only extra guidance (the same principle as PLAN §6 item 2).
 
-### 1.1–1.4 현재 화면
+### 1.1–1.4 Current screens
 
-현재 화면은 네 개의 tkinter 창이다. 런처, 라이브 뷰, 4x 스캔 미리보기, 그리고 거의 쓰지 않는
-`mm_grab.py` 의 ROI 라이브 창이다. 라이브 뷰는 한 창 안에 여섯 영역을 둔다.
-PLAN v0.2 의 새 화면 (F1–F5) 은 1.5 에 목록만 두고 7절에서 명세한다.
+The current screens are four tkinter windows: the launcher, the live view, the 4x scan preview, and the rarely used
+ROI live window of `mm_grab.py`. The live view holds six areas in one window.
+PLAN v0.2's new screens (F1–F5) are only listed in 1.5 and are specified in §7.
 
-### 1.1 런처 (`scripts/launcher.py` (R-05 에서 삭제; 이력에 있음), 창 제목 `"DINO Autofocus"`)
+### 1.1 Launcher (`scripts/launcher.py` (deleted in R-05; in the history), window title `"DINO Autofocus"`)
 
-위에서 아래로 따라가는 단계형 창이다. 하드웨어 로직은 없다. 각 작업은 새 콘솔 창에서
-`run_logged.py` 로 감싸 실행되고, 출력은 로그 파일에 복사된다.
+A step-by-step window followed from top to bottom. It holds no hardware logic. Each operation runs in a new console window,
+wrapped by `run_logged.py`, and its output is copied to a log file.
 
-| 영역 | 보여 주는 것 | 입력 | 갱신 |
+| Area | What it shows | Input | Update |
 |---|---|---|---|
-| 머리 | `"DINO Autofocus"`, `"Find the sample, then autofocus-scan it. Work top to bottom."` | — | 고정 |
-| Sample | 샘플 ID 콤보박스. `SAMPLES_ROOT` (`D:\AutoFocus\samples`) 의 하위 폴더 이름, 최신순 | 콤보 선택·직접 입력, `"Open folder"`, `"New"` (빈 값 = 라이브 뷰가 시계로 이름을 지음) | 목록은 콤보를 펼칠 때마다 다시 읽음 |
+| Header | `"DINO Autofocus"`, `"Find the sample, then autofocus-scan it. Work top to bottom."` | — | fixed |
+| Sample | Sample ID combobox. Names of the subfolders of `SAMPLES_ROOT` (`D:\AutoFocus\samples`), newest first | combo selection · typed entry, `"Open folder"`, `"New"` (empty value = the live view names it from the clock) | the list is re-read each time the combo is opened |
 | Step 0 `"Check the microscope"` | `"Read only. The 4x scan needs the 4x objective in place."` | `"Show objective / Z / PFS"` | — |
-| Step 1 `"Find the sample: live view + edge trace"` | 조명 라디오, Aura 라인/퍼센트, Exposure, Hole diameter, Trace speed, 키 안내 문구 | 라디오 `"Brightfield (DiaLamp): to find the hole edge"` / `"Aura line"`, 라인 콤보 (`GREEN` 만), `%` (기본 1), Exposure (기본 12 ms), Hole diameter (기본 6 mm), Trace speed (기본 100 µm/s), `"Start live view"` | 조명을 바꾸면 노출 기본값이 12 ms ↔ 500 ms 로 바뀜 (`light_changed`) |
-| Step 2 `"Autofocus scan at 4x (Aura GREEN 1 %)"` | Exposure (빈 값 = auto), 안내 문구 | Exposure, 체크 `"Dry run: only print the tile plan"`, `"Start 4x scan"`, `"Show scan result (mosaic + z map)"` | — |
-| 기타 | — | `"Lights off (Aura + DiaLamp)"`, `"Try the demo (no hardware)"` | — |
-| 상태 줄 | `"Idle."`, `"Checking that the microscope is free ..."`, `"Started <label> (log: <file>)"`, `"Running: <labels>"`, `"Not started."` | — | 1 s 폴링 (`poll`) |
+| Step 1 `"Find the sample: live view + edge trace"` | light radio buttons, Aura line/percent, Exposure, Hole diameter, Trace speed, key hint text | radio `"Brightfield (DiaLamp): to find the hole edge"` / `"Aura line"`, line combo (`GREEN` only), `%` (default 1), Exposure (default 12 ms), Hole diameter (default 6 mm), Trace speed (default 100 µm/s), `"Start live view"` | changing the light switches the default exposure 12 ms ↔ 500 ms (`light_changed`) |
+| Step 2 `"Autofocus scan at 4x (Aura GREEN 1 %)"` | Exposure (empty value = auto), hint text | Exposure, checkbox `"Dry run: only print the tile plan"`, `"Start 4x scan"`, `"Show scan result (mosaic + z map)"` | — |
+| Other | — | `"Lights off (Aura + DiaLamp)"`, `"Try the demo (no hardware)"` | — |
+| Status bar | `"Idle."`, `"Checking that the microscope is free ..."`, `"Started <label> (log: <file>)"`, `"Running: <labels>"`, `"Not started."` | — | 1 s polling (`poll`) |
 
-작업 실행 규칙 (`Launcher.run`):
+Rules for running an operation (`Launcher.run`):
 
-- 하드웨어 작업은 런처가 띄운 다른 하드웨어 작업이 살아 있으면 거부한다.
-- 그다음 `hardware_users()` 가 PowerShell 로 프로세스 명령줄을 읽어 현미경 프로그램
-  (`HW_MARKERS`: live_focus, scan_4x, Micro-Manager, NIS-Elements 등) 을 찾는다. 찾으면 계속할지 묻는다.
-- 로그는 샘플 폴더가 있으면 그 안에, 없으면 `outputs/launcher_logs/` 에
-  `launcher_<label>_<stamp>.log` 로 쓴다.
-- 중지는 각 콘솔의 Ctrl+C 다. 스크립트 자신의 `finally` 가 소등한다.
+- A hardware operation is refused while another hardware operation launched by the launcher is still alive.
+- Then `hardware_users()` reads process command lines through PowerShell to find microscope programs
+  (`HW_MARKERS`: live_focus, scan_4x, Micro-Manager, NIS-Elements, etc.). If it finds one, it asks whether to continue.
+- The log is written inside the sample folder if there is one, otherwise in `outputs/launcher_logs/`,
+  as `launcher_<label>_<stamp>.log`.
+- Stopping is Ctrl+C in each console. The script's own `finally` turns the lights off.
 
-### 1.2 라이브 뷰 (`scripts/live_focus.py` (R-05 에서 삭제; 이력에 있음), 창 제목 `"Kinetix_red full sensor -- focus score"`)
+### 1.2 Live view (`scripts/live_focus.py` (deleted in R-05; in the history), window title `"Kinetix_red full sensor -- focus score"`)
 
-가로 세 칸과 아래 상태 줄로 된 한 창이다.
+One window made of three columns across and a status bar below.
 
 ```
 +----------------------+------------------------------+----------------------+
-| (a) 이미지            | (b) 게이지 | (c) 트레이스 2개 | (d) XY 지도           |
-|  전체 프레임 + ROI     |            |                 | (e) 위치·샘플 텍스트   |
+| (a) image            | (b) gauge  | (c) 2 traces    | (d) XY map           |
+|  full frame + ROI    |            |                 | (e) position, sample |
 +----------------------+------------------------------+----------------------+
-| (f) 상태 줄                                                                |
+| (f) status bar                                                             |
 +----------------------------------------------------------------------------+
 ```
 
-| 영역 | 보여 주는 것 | 갱신 |
+| Area | What it shows | Update |
 |---|---|---|
-| (a) 이미지 | 2400 × 2400 전체 프레임을 `--display` (800 px) 이하로 평균 비닝하고 0.5–99.8 백분위로 8-bit 늘림 (`bin_for_display`). 가운데 `--score-roi` (518 px) 주황 사각형 = 지표를 읽는 ROI. 헤드가 있으면 DINO 타일 (224 px) 테두리: 유효 (`p_valid ≥ 0.5`) 는 파란 실선과 `+1.3` 같은 dz 숫자, 무효는 회색 점선과 `?` | 보관되는 프레임마다 (`--fps`, 기본 10 fps) |
-| (b) 초점 게이지 (`Gauge`) | `"Focus score"`, `"depths of field"`. −10..+10 DoF 세로 눈금, ±1 DoF 초록 띠, 마커와 sigma 막대, 숫자 (`+1.2`), 메모 (`"box: 3/4 tiles, sign unsure, offset +0.5"`, `"no head loaded (--head)"`, `"no readable sample in view"`, 데모에서 `"demo value, not a measurement"`). 값은 최근 5개 읽기의 중앙값 | 점수 스레드의 읽기가 도착할 때 (비동기, 수십 ms) |
-| (c) 트레이스 1 (`Trace`) | `"Sharpness, centre 518 px"`: 주황 ROI 의 Brenner. 자동 스케일, 최소/최대/현재값 글자 | 보관되는 프레임마다. 길이 `--history` (30 s) × fps 점 |
-| (c) 트레이스 2 | `"z_sum = ZDrive + piezo z (um)"` | 같음 |
-| (d) XY 지도 (`XYMap`) | 제목 `"Sample map (stage um)    b: mark edge   u: undo"`. 방문 필드 사각형 (점수로 색: \|s\| ≤ 1 초록, ≤ 3 파랑, 그 밖 회색), 경계점 (빨간 점), 경계점 3개 이상이면 원 피팅 (8개 이상은 이상치 제거, `robust_circle`) 과 중심 ×, 2개면 선, 현재 시야 (주황 사각형 + 십자), 축척 `"<span> um across   +stage x ←  +y ↓"`. 기본으로 x, y 모두 뒤집어 그림 (조이스틱 방향) | 0.5 s |
-| (e) 위치·샘플 텍스트 | Ti2 / piezo / sum 의 x, y, z 표. 샘플 ID와 `"(n: new sample)"`, 대물렌즈 라벨, 시야 µm, 지도 필드 수, 경계 범위, hole 중심·지름·rms·점 수, 현재 위치가 중심에서 몇 µm, 가장자리 안쪽 몇 µm, `"(piezo not read)"`. 키 안내와 진행 상태: `"edge track: <status>"`, 헤드가 있으면 tare offset, `"piezo: <status>"` (서보), `"piezo focus: <status>"` (스윕), 읽기 영역 | 0.5 s |
-| (f) 상태 줄 | `" shown 9.8 fps (camera 33.1)   mean 812  max 4095  sat 0.02%   x … y … z … um   REC"` | 보관되는 프레임마다 |
-| 콘솔 (stdout) | 키 거부 사유, 시작/중지, 경계점 좌표, tare 결과, 추적기 이벤트 JSON 등 25곳의 `print` | 발생 시 |
+| (a) Image | The 2400 × 2400 full frame, mean-binned to at most `--display` (800 px) and stretched to 8-bit at the 0.5–99.8 percentiles (`bin_for_display`). The `--score-roi` (518 px) orange square in the middle = the ROI the metric is read from. With a head loaded, DINO tile (224 px) outlines: valid (`p_valid ≥ 0.5`) as solid blue with a dz number such as `+1.3`, invalid as dashed grey with `?` | on every kept frame (`--fps`, default 10 fps) |
+| (b) Focus gauge (`Gauge`) | `"Focus score"`, `"depths of field"`. A −10..+10 DoF vertical scale, a ±1 DoF green band, a marker and sigma bar, a number (`+1.2`), a note (`"box: 3/4 tiles, sign unsure, offset +0.5"`, `"no head loaded (--head)"`, `"no readable sample in view"`, in the demo `"demo value, not a measurement"`). The value is the median of the last 5 readings | when a reading from the score thread arrives (asynchronous, tens of ms) |
+| (c) Trace 1 (`Trace`) | `"Sharpness, centre 518 px"`: Brenner of the orange ROI. Auto-scaled, min/max/current value as text | on every kept frame. Length `--history` (30 s) × fps points |
+| (c) Trace 2 | `"z_sum = ZDrive + piezo z (um)"` | same |
+| (d) XY map (`XYMap`) | Title `"Sample map (stage um)    b: mark edge   u: undo"`. Visited-field squares (coloured by score: \|s\| ≤ 1 green, ≤ 3 blue, otherwise grey), boundary points (red dots), with 3 or more boundary points a circle fit (outlier removal at 8 or more, `robust_circle`) and its centre ×, with 2 a line, the current field of view (orange square + cross), scale `"<span> um across   +stage x ←  +y ↓"`. By default both x and y are drawn flipped (joystick direction) | 0.5 s |
+| (e) Position·sample text | A table of x, y, z for Ti2 / piezo / sum. Sample ID and `"(n: new sample)"`, objective label, field of view in µm, number of map fields, boundary extent, hole centre · diameter · rms · point count, how many µm the current position is from the centre and how many µm inside the edge, `"(piezo not read)"`. Key hints and progress state: `"edge track: <status>"`, the tare offset if a head is loaded, `"piezo: <status>"` (servo), `"piezo focus: <status>"` (sweep), the read region | 0.5 s |
+| (f) Status bar | `" shown 9.8 fps (camera 33.1)   mean 812  max 4095  sat 0.02%   x … y … z … um   REC"` | on every kept frame |
+| Console (stdout) | key refusal reasons, start/stop, boundary point coordinates, tare results, tracker event JSON and more, from 25 `print` calls | when they happen |
 
-진행 상태 문자열은 각 루틴의 `.status` 다. 예: 엣지 추적 `"calibrating"`, `"tracking 400 um/s  path 3.20 mm  …"`,
-`"coasting on fitted circle (1/3)"`, `"stopped: <why>"`. 서보 `"probing +0.5 um"`,
-`"step 3: score +1.20 -> moving -0.240 um"`. 자동 초점 `"fine scan around 9.94 um"`,
+Progress strings are each routine's `.status`. Examples: edge tracking `"calibrating"`, `"tracking 400 um/s  path 3.20 mm  …"`,
+`"coasting on fitted circle (1/3)"`, `"stopped: <why>"`. Servo `"probing +0.5 um"`,
+`"step 3: score +1.20 -> moving -0.240 um"`. Autofocus `"fine scan around 9.94 um"`,
 `"peak beyond the scan: extending"`, `"Vollath flat: probing with DINO at -2 / +2 um"`.
 
-화면 밖에서 라이브 뷰가 쓰는 기록 (화면 항목은 아니지만 4절 이벤트의 근거):
+Records the live view writes outside the screen (not screen items, but the basis for the events in §4):
 
-| 기록 | 내용 | 주기 |
+| Record | Content | Interval |
 |---|---|---|
-| `track_<stamp>.jsonl` | 머리 (`header`, `sample`), 이후 프레임마다 위치, `sample_um`, score, score_raw, score_offset, sharpness, mean, max, sat_pct. 추적기·서보·스윕 이벤트도 같은 파일 | 보관되는 프레임마다 + 이벤트 |
-| `map.json` | `visits` (최근 20000), `boundary` | 경계점 변경 시, 그리고 `sample.json` 저장 때 |
-| `sample.json` | hole 피팅, 경계 범위, 방문 필드 수, 사용한 대물렌즈, 스테이지-카메라 보정, 렌즈별 tare offset, config, camera | 10 s, 그리고 tare 와 창 닫기 때 |
-| `--record` | `video_<stamp>_uint16_<h>x<w>.raw` (11.5 MB/프레임) + `_meta.jsonl` | 보관되는 프레임마다 |
-| `autofocus_*.json`, `zsweep_*.json` | 피에조 자동 초점·스윕 결과 | 루틴이 끝날 때 |
+| `track_<stamp>.jsonl` | A header (`header`, `sample`), then per frame the position, `sample_um`, score, score_raw, score_offset, sharpness, mean, max, sat_pct. Tracker, servo and sweep events go in the same file | every kept frame + events |
+| `map.json` | `visits` (latest 20000), `boundary` | when boundary points change, and when `sample.json` is saved |
+| `sample.json` | hole fit, boundary extent, number of visited fields, objectives used, stage-camera calibration, per-objective tare offset, config, camera | 10 s, and on tare and on window close |
+| `--record` | `video_<stamp>_uint16_<h>x<w>.raw` (11.5 MB/frame) + `_meta.jsonl` | every kept frame |
+| `autofocus_*.json`, `zsweep_*.json` | piezo autofocus and sweep results | when the routine ends |
 
-### 1.3 4x 스캔 미리보기 (`scripts/scan_4x.py::Preview` (R-05 에서 삭제; 이력에 있음), 창 제목 `"scan_4x preview"`)
+### 1.3 4x scan preview (`scripts/scan_4x.py::Preview` (deleted in R-05; in the history), window title `"scan_4x preview"`)
 
-스캔 루프가 직접 갱신하는 창이다. `--no-preview` 로 끈다. 창을 닫으면 미리보기만 사라지고
-스캔은 계속된다.
+A window the scan loop updates directly. `--no-preview` turns it off. Closing the window removes only the preview;
+the scan continues.
 
-| 영역 | 보여 주는 것 | 갱신 |
+| Area | What it shows | Update |
 |---|---|---|
-| 이미지 | 잡은 프레임, 700 px 이하 비닝 + 백분위 늘림 | 스냅마다 |
-| 곡선 | `"<tile>: Vollath F4 vs ZDrive (um)"`: 현재 타일의 선명도 대 ZDrive 산점도 | 스냅마다 |
-| 글자 줄 | `"<tile>  (k/n)   ZDrive 3048.70 um   Vollath 0.1234   max 2043/4095   exp 994 ms"` | 스냅마다 |
+| Image | the grabbed frame, binned to at most 700 px + percentile stretch | every snap |
+| Curve | `"<tile>: Vollath F4 vs ZDrive (um)"`: scatter plot of the current tile's sharpness against ZDrive | every snap |
+| Text line | `"<tile>  (k/n)   ZDrive 3048.70 um   Vollath 0.1234   max 2043/4095   exp 994 ms"` | every snap |
 
-### 1.4 ROI 라이브 창 (`scripts/mm_grab.py::live` (R-05 에서 삭제; 이력에 있음), 창 제목 `"Kinetix_red centre ROI -- 's' saves a frame"`)
+### 1.4 ROI live window (`scripts/mm_grab.py::live` (deleted in R-05; in the history), window title `"Kinetix_red centre ROI -- 's' saves a frame"`)
 
-518 px 중앙 ROI 와 글자 줄 하나. `s` 가 현재 프레임을 `.npy` 와 위치 `.json` 으로 저장한다.
-런처에는 연결되어 있지 않다. 새 UI 에서는 라이브 뷰의 프레임 저장 명령 (2.1, 4.2) 으로 흡수한다.
+The 518 px centre ROI and one line of text. `s` saves the current frame as `.npy` and its position as `.json`.
+It is not connected to the launcher. In the new UI it is absorbed into the live view's frame-save command (2.1, 4.2).
 
-### 1.5 PLAN v0.2 의 새 화면 (현재 코드 없음)
+### 1.5 PLAN v0.2's new screens (no code yet)
 
-7절에서 명세한다. UI 셸 (WP-D) 은 이 자리를 내비게이션에 둔다.
+Specified in §7. The UI shell (WP-D) puts these places in the navigation.
 
-| 화면 | 기능 | 작업 묶음 |
+| Screen | Function | Work package |
 |---|---|---|
-| 에이전트 콘솔 | 질문 입력, 이전 질문, 시뮬레이션·실험 현황/계획/결과 (F1) | WP-F |
-| 하드웨어 | 탐지 결과, `hardware_profile.json`, 게이트별 켜짐/꺼짐과 꺼진 이유 (F2) | WP-G |
-| 샘플 로딩 | 지오메트리 입력, 로딩 확인 (F3) | WP-H |
-| 샘플 맵 | 투과광 모자이크, 입자 후보, flag, 클릭 이동 (F4). 1.2 (d) 의 확장 | WP-I |
-| 배율 전환 | XY 이탈, 렌즈 회전, 액침액 로딩, 복귀 (F5) | WP-J |
+| Agent console | question entry, past questions, simulation·experiment status/plans/results (F1) | WP-F |
+| Hardware | detection results, `hardware_profile.json`, on/off per gate and the reason when off (F2) | WP-G |
+| Sample loading | geometry entry, loading check (F3) | WP-H |
+| Sample map | transmitted-light mosaic, particle candidates, flags, click-to-move (F4). An extension of 1.2 (d) | WP-I |
+| Magnification change | XY escape, objective rotation, immersion liquid loading, return (F5) | WP-J |
 
-### 1.6 갱신 주기 요약
+### 1.6 Update interval summary
 
-| 주기 | 무엇 | 근거 |
+| Interval | What | Basis |
 |---|---|---|
-| 10 ms | 카메라 버퍼 비우기 (`tick`) | `root.after(10, tick)` |
-| 1 / `--fps` (100 ms) | 프레임 보관, 이미지, 트레이스, 상태 줄, track 기록 | 카메라 타임스탬프 `ElapsedTime-ms` 기준. 한 주기 넘게 밀리면 몰아서 내지 않고 다시 맞춤 |
-| 비동기 | DINO 읽기와 게이지 | 점수 스레드. 최신 프레임만 넘기고 줄을 세우지 않음 |
-| 0.5 s | 위치 읽기, 대물렌즈 라벨과 픽셀 크기 다시 읽기, 지도와 텍스트 다시 그리기 | `pos_t`, `map_t` |
-| 1 s | 런처 상태 줄 | `poll` |
-| 10 s | `sample.json` 저장 | `save_t` |
+| 10 ms | emptying the camera buffer (`tick`) | `root.after(10, tick)` |
+| 1 / `--fps` (100 ms) | frame keeping, image, traces, status bar, track record | based on the camera timestamp `ElapsedTime-ms`. If it falls more than one interval behind, it re-aligns rather than emitting the backlog |
+| asynchronous | DINO reading and gauge | score thread. Hands over only the latest frame and does not queue |
+| 0.5 s | position reading, re-reading the objective label and pixel size, redrawing the map and text | `pos_t`, `map_t` |
+| 1 s | launcher status bar | `poll` |
+| 10 s | saving `sample.json` | `save_t` |
 
-새 UI 는 이 주기를 엔진 이벤트 주기로 그대로 옮긴다 (4.1). 화면은 이벤트를 받아 그리기만 한다.
+The new UI carries these intervals over unchanged as engine event intervals (4.1). The screen only receives events and draws them.
 
 ---
 
-## 2. 입력 목록
+## 2. Input list
 
-### 2.1 라이브 뷰 키 바인딩 (`live_focus.py`)
+### 2.1 Live view key bindings (`live_focus.py`)
 
-창 전체 (`root.bind`) 에 걸린 키 전부다. 대소문자를 구분한다.
+Every key bound on the whole window (`root.bind`). Case-sensitive.
 
-| 키 | 동작 | 조건과 거부 문구 | 하드웨어 | 엔진 명령 (4.2) |
+| Key | Action | Conditions and refusal text | Hardware | Engine command (4.2) |
 |---|---|---|---|---|
-| `b` | 현재 `sum` 위치를 경계점으로 추가하고 `map.json` 저장. 콘솔 `"boundary point N: x … y … um"` | x, y 가 유한할 때만 | 없음 (읽기만) | `start("boundary_mark")` |
-| `u` | 마지막 경계점 삭제, 저장 | 경계점이 있을 때 | 없음 | `start("boundary_undo")` |
-| `n` | 현재 샘플을 닫고 (`sample.json` 저장) 시계로 새 샘플 ID 를 만듦 | 추적 중이면 거부: `"stop edge tracking before starting a new sample"` | 없음 | `start("sample_new")` |
-| `t` | 엣지 추적 시작. 실행 중이면 중지 (`"stopped by key"`) | 데모에서 거부: `"edge tracking needs the real stage"` | **XY 상대 이동** (`setRelativeXYPosition`) | `start("edge_trace", …)` / `abort` |
-| `+`, `=`, 숫자패드 `+` | 추적 속도 2배 (상한 1000 µm/s) | — | 실행 중이면 다음 걸음부터 | `update(op_id, {"speed_um_s": v})` (T-011) |
-| `-`, 숫자패드 `-` | 추적 속도 ½ (하한 10 µm/s) | — | 같음 | 같음 |
-| `Esc` | 엣지 추적, 서보, 스윕을 모두 중지 (`"stopped by Esc"`) | — | 스윕과 자동 초점은 시작 z 로 되돌아감 | `abort` (실행 중인 작업 전부, 4.4 의 2) |
-| `f` | 피에조 초점 서보 시작/중지 | 피에조와 헤드가 필요: `"focus servo needs the piezo (COM4) and a focus head (--head)"`. 추적 중이면 `"stop edge tracking first"` | **피에조 Z 이동** | `start("piezo_servo")` / `abort` |
-| `w` | 피에조 자동 초점 (Vollath 피크, 멀면 DINO 로 방향) 시작/중지 | 피에조와 헤드가 필요: `"piezo focus needs the piezo (COM4) and a focus head (--head)"`. 추적이나 서보 중이면 `"stop edge tracking / focus servo first"`. 생성 실패는 `"<kind> not started: <exc>"` | **피에조 Z 이동** | `start("piezo_autofocus")` / `abort` |
-| `W` | 진단 z 스윕: 현재 위치를 가운데 두고 10 µm, 0.25 µm 간격 | `w` 와 같음 | **피에조 Z 이동** | `start("piezo_zsweep")` / `abort` |
-| `z` | tare: 지금이 초점이라고 보고 최근 2 s 의 원 점수 중앙값을 현재 렌즈의 offset 으로 저장 | 읽기가 3개 미만이면 `"tare: fewer than 3 readings in the last 2 s; nothing changed"` | 없음 | `start("score_tare")` |
-| `Z` | 현재 렌즈의 tare 삭제 | — | 없음 | `start("score_tare_clear")` |
-| `o` | DINO 읽기 영역 전환: 주황 박스 먼저 ↔ 전체 프레임 | — | 없음 | `update(live_op_id, {"read_region": "box_first" or "frame"})` (T-011) |
+| `b` | adds the current `sum` position as a boundary point and saves `map.json`. Console `"boundary point N: x … y … um"` | only when x, y are finite | none (read only) | `start("boundary_mark")` |
+| `u` | deletes the last boundary point, saves | when there are boundary points | none | `start("boundary_undo")` |
+| `n` | closes the current sample (saves `sample.json`) and makes a new sample ID from the clock | refused while tracking: `"stop edge tracking before starting a new sample"` | none | `start("sample_new")` |
+| `t` | starts edge tracking. If it is running, stops it (`"stopped by key"`) | refused in the demo: `"edge tracking needs the real stage"` | **XY relative move** (`setRelativeXYPosition`) | `start("edge_trace", …)` / `abort` |
+| `+`, `=`, numpad `+` | tracking speed × 2 (upper limit 1000 µm/s) | — | if running, from the next step | `update(op_id, {"speed_um_s": v})` (T-011) |
+| `-`, numpad `-` | tracking speed × ½ (lower limit 10 µm/s) | — | same | same |
+| `Esc` | stops edge tracking, servo and sweep, all of them (`"stopped by Esc"`) | — | sweep and autofocus return to the start z | `abort` (every running operation, 4.4 item 2) |
+| `f` | starts/stops the piezo focus servo | needs the piezo and a head: `"focus servo needs the piezo (COM4) and a focus head (--head)"`. While tracking, `"stop edge tracking first"` | **piezo Z move** | `start("piezo_servo")` / `abort` |
+| `w` | starts/stops piezo autofocus (Vollath peak, direction from DINO when far off) | needs the piezo and a head: `"piezo focus needs the piezo (COM4) and a focus head (--head)"`. While tracking or servoing, `"stop edge tracking / focus servo first"`. A creation failure gives `"<kind> not started: <exc>"` | **piezo Z move** | `start("piezo_autofocus")` / `abort` |
+| `W` | diagnostic z sweep: 10 µm centred on the current position, at 0.25 µm spacing | same as `w` | **piezo Z move** | `start("piezo_zsweep")` / `abort` |
+| `z` | tare: takes now as in focus and stores the median of the raw scores over the last 2 s as the current objective's offset | with fewer than 3 readings, `"tare: fewer than 3 readings in the last 2 s; nothing changed"` | none | `start("score_tare")` |
+| `Z` | deletes the current objective's tare | — | none | `start("score_tare_clear")` |
+| `o` | switches the DINO read region: orange box first ↔ full frame | — | none | `update(live_op_id, {"read_region": "box_first" or "frame"})` (T-011) |
 
-`w`, `W` 실행 중에는 매 프레임 위치를 확인한다. ZDrive 가 0.3 µm, XY 가 2 µm 넘게 움직이면
-`"ZDrive moved by hand (+0.42 um) during the run"` 으로 중지한다. 이 검사는 엔진 가드로 옮긴다 (4.3).
+While `w`, `W` run, the position is checked every frame. If ZDrive moves more than 0.3 µm or XY more than 2 µm, the run
+stops with `"ZDrive moved by hand (+0.42 um) during the run"`. This check moves into an engine guard (4.3).
 
-라이브 뷰에는 프레임 저장 키가 없다. 저장은 `--record` (연속 녹화) 와 `mm_grab.py` 의 `s` 뿐이다.
-새 UI 에는 `"Save frame"` 을 라이브 뷰 명령으로 둔다: `start("frame_save")` **(제안)**.
+The live view has no frame-save key. Saving is only `--record` (continuous recording) and `mm_grab.py`'s `s`.
+The new UI has `"Save frame"` as a live view command: `start("frame_save")` **(proposed)**.
 
-창 닫기 (`finally` 순서): 엣지 추적 중지 → 서보·스윕 중지 → 연속 획득 중지 → 점수 스레드 중지
-→ `--aura` 를 썼고 `--leave-light-on` 이 아니면 Aura off → 샘플 닫기 → 피에조 닫기 → 녹화 파일 닫기.
-**DiaLamp 는 끄지 않는다** (운영 기록 4절 4항). 웹 UI 에서는 탭 닫기가 엔진을 멈추지 않으므로,
-소등은 작업별 `finally` 와 서버 종료 경로가 맡는다 (4.2 끝, 5절).
+Window close (`finally` order): stop edge tracking → stop servo and sweep → stop continuous acquisition → stop the score thread
+→ Aura off if `--aura` was used and not `--leave-light-on` → close the sample → close the piezo → close the recording files.
+**DiaLamp is not turned off** (operations record §4 item 4). In the web UI closing a tab does not stop the engine, so
+turning the lights off falls to each operation's `finally` and to the server shutdown path (end of 4.2, §5).
 
-### 2.2 마우스
+### 2.2 Mouse
 
-| 화면 | 현재 | 새 UI |
+| Screen | Now | New UI |
 |---|---|---|
-| 런처 | 버튼, 콤보박스, 라디오, 입력칸, 체크박스 (1.1 표) | 같은 항목을 폼으로 |
-| 라이브 뷰 | **마우스 바인딩 없음** (`<Button…>` 바인딩이 코드에 없다). 모든 조작은 키 | 2.1 의 각 키에 버튼을 같이 둔다. 키는 단축키로 유지 |
-| 4x 스캔 미리보기 | 창 닫기 = 미리보기만 숨김 (`WM_DELETE_WINDOW`) | 스캔 화면 안의 패널로 |
-| XY 지도 | 클릭 없음 | 클릭 이동 (F4.3) 과 flag (F4.4) 는 새 기능 (7절) |
+| Launcher | buttons, comboboxes, radio buttons, entry fields, checkboxes (table in 1.1) | the same items as a form |
+| Live view | **no mouse bindings** (there are no `<Button…>` bindings in the code). Everything is done with keys | a button next to each key in 2.1. The keys stay as shortcuts |
+| 4x scan preview | window close = hides only the preview (`WM_DELETE_WINDOW`) | a panel inside the scan screen |
+| XY map | no clicks | click-to-move (F4.3) and flags (F4.4) are new features (§7) |
 
-### 2.3 라이브 뷰 명령행 인자 (`live_focus.py`)
+### 2.3 Live view command-line arguments (`live_focus.py`)
 
-"새 UI 에서" 열의 `live.x` 는 `start("live", args)` 의 인자 이름 제안이다. 화면 쪽 표시 설정은 "UI" 로 적었다.
+`live.x` in the "In the new UI" column is a proposed argument name for `start("live", args)`. Screen-side display settings are written as "UI".
 
-| 인자 | 기본값 | 하는 일 | 새 UI 에서 |
+| Argument | Default | What it does | In the new UI |
 |---|---|---|---|
-| `--exposure` | 30 ms | 카메라 노출 | `live.exposure_ms` |
-| `--fps` | 10 | 표시·기록 보관 주기 | `live.fps` |
-| `--display` | 800 px | 표시 비닝 크기 | UI (화면 크기에 맞춤) |
-| `--score-roi` | 518 px | 가운데 지표 ROI 와 주황 박스 | `live.roi_px` |
-| `--history` | 30 s | 트레이스 길이 | UI |
-| `--record` | 꺼짐 | 보관 프레임을 raw + meta 로 녹화 | `live.record` |
-| `--out` | `D:\AutoFocus\frames` | 녹화 폴더 | `live.record_dir` (기본: 샘플 폴더 아래) |
-| `--demo` | 꺼짐 | Micro-Manager 데모 장치 | 엔진 백엔드 선택 (`mock` / `mm-demo` / `mm-real`). 작업 인자가 아님 |
-| `--screenshot` | 없음 | 3 s 뒤 창을 PNG 로 저장하고 종료 (배치 확인용) | UI 테스트 도구 (`tests/ui/`) |
-| `--config` | `single_cam_red_noDMD_nocom10.cfg` | Micro-Manager config | 엔진 백엔드 설정 |
-| `--set DEVICE PROPERTY VALUE` | 없음, 반복 가능 | 조명 전에 속성 쓰고 읽기 확인. 런처는 조명 선택에 씀 | **UI 에서 없앤다.** 조명은 `light_set` 의미 명령 (4.3). 임의 속성 쓰기는 노출하지 않음 |
-| `--aura LINE PERCENT` | 없음 | Aura 라인 켜기 (퍼밀 = 퍼센트 × 10), 닫을 때 끔 | `start("light_set", {"mode": "aura", "line", "percent"})` |
-| `--leave-light-on` | 꺼짐 | 닫을 때 Aura 를 끄지 않음 | **없앤다.** 모든 종료 경로에서 소등 (PLAN 6절 5항) |
-| `--piezo` | `COM4` | 피에조 읽기 주소 (`''` = 열지 않음) | 엔진 백엔드 설정 |
-| `--sample` | 새 ID | 이어서 쓸 샘플 | `start("sample_open", {"sample_id"})` |
-| `--samples-root` | `D:\AutoFocus\samples` | 샘플 루트 | 엔진 설정 (`sample.py` 의 루트 인자) |
-| `--head` | 없음 | DINO 헤드 경로 (torch, uv 환경) | 엔진 초점 설정 (WP-E). 없으면 판정 패널이 `"no head loaded"` |
-| `--tiles` | 4 | 프레임당 DINO 타일 수 | 엔진 초점 설정 |
-| `--score-offset` | 없음 | tare 를 덮어쓰는 DoF offset | **없앤다.** tare 는 `score_tare` 명령과 샘플 기록으로만 |
-| `--hole-diameter` | 없음 | 예상 구멍 지름 mm (짧은 호에서 원을 안정시킴) | `edge_trace.hole_diameter_mm` (operations-spec 8절). 기본값은 샘플 지오메트리 (F3) 에서 |
-| `--track-speed` | 100 µm/s | 추적 시작 속도 (최대 1000) | `edge_trace.speed_um_s` |
+| `--exposure` | 30 ms | camera exposure | `live.exposure_ms` |
+| `--fps` | 10 | display and record keeping interval | `live.fps` |
+| `--display` | 800 px | display binning size | UI (fitted to the screen size) |
+| `--score-roi` | 518 px | centre metric ROI and the orange box | `live.roi_px` |
+| `--history` | 30 s | trace length | UI |
+| `--record` | off | records the kept frames as raw + meta | `live.record` |
+| `--out` | `D:\AutoFocus\frames` | recording folder | `live.record_dir` (default: under the sample folder) |
+| `--demo` | off | Micro-Manager demo devices | engine backend selection (`mock` / `mm-demo` / `mm-real`). Not an operation argument |
+| `--screenshot` | none | saves the window as PNG after 3 s and exits (for checking the layout) | UI test tool (`tests/ui/`) |
+| `--config` | `single_cam_red_noDMD_nocom10.cfg` | Micro-Manager config | engine backend setting |
+| `--set DEVICE PROPERTY VALUE` | none, repeatable | writes a property and confirms it by reading back, before the lights come on. The launcher uses it for the light selection | **Removed from the UI.** Lighting is the `light_set` semantic command (4.3). Arbitrary property writes are not exposed |
+| `--aura LINE PERCENT` | none | turns an Aura line on (permille = percent × 10), turns it off on close | `start("light_set", {"mode": "aura", "line", "percent"})` |
+| `--leave-light-on` | off | does not turn Aura off on close | **Removed.** Lights go off on every exit path (PLAN §6 item 5) |
+| `--piezo` | `COM4` | piezo read address (`''` = do not open) | engine backend setting |
+| `--sample` | new ID | the sample to continue in | `start("sample_open", {"sample_id"})` |
+| `--samples-root` | `D:\AutoFocus\samples` | sample root | engine setting (`sample.py`'s root argument) |
+| `--head` | none | DINO head path (torch, uv environment) | engine focus setting (WP-E). Without it the verdict panel shows `"no head loaded"` |
+| `--tiles` | 4 | DINO tiles per frame | engine focus setting |
+| `--score-offset` | none | a DoF offset that overrides the tare | **Removed.** Tare only through the `score_tare` command and the sample record |
+| `--hole-diameter` | none | expected hole diameter in mm (stabilises the circle on a short arc) | `edge_trace.hole_diameter_mm` (operations-spec §8). The default comes from the sample geometry (F3) |
+| `--track-speed` | 100 µm/s | tracking start speed (max 1000) | `edge_trace.speed_um_s` |
 
-런처 인자는 `--screenshot` (1.5 s 뒤 저장하고 종료) 하나뿐이다.
+The launcher has only one argument, `--screenshot` (saves after 1.5 s and exits).
 
-### 2.4 런처 버튼이 만드는 명령
+### 2.4 Commands the launcher buttons produce
 
-| 버튼 | 지금 실행하는 명령 | 검증 | 엔진 명령 |
+| Button | Command it runs now | Validation | Engine command |
 |---|---|---|---|
-| `"Open folder"` | `explorer <샘플 폴더 또는 루트>` | — | UI 로컬 동작 (엔진 없음) |
-| `"New"` | 샘플 칸 비우기 | — | `start("sample_new")` |
-| `"Show objective / Z / PFS"` | `change_objective.py --status` | 하드웨어 점유 검사 | `start("status")` |
-| `"Start live view"` (명시야) | `live_focus.py --exposure E --hole-diameter D --track-speed S [--sample ID] --set Aura State 0 --set DiaLamp State 1` | 숫자 검사 | `start("light_set", {"mode": "brightfield"})` 다음 `start("live", {"exposure_ms": E})` |
-| `"Start live view"` (Aura) | 같은 앞부분 + `--set DiaLamp State 0 --aura LINE PCT` | 숫자 검사 | `start("light_set", {"mode": "aura", "line": LINE, "percent": PCT})` 다음 `start("live", …)` |
-| `"Start 4x scan"` | `scan_4x.py --sample ID [--exposure E] [--dry-run]` | `sample.json` 필수, 숫자 검사, dry run 이 아니면 확인 대화상자 | `start("scan_4x", {"sample_id", "exposure_ms": E 또는 null, "dry_run"})` |
-| `"Show scan result (mosaic + z map)"` | uv 환경으로 `plot_scan.py <최신 scan4x_*>` | `sample.json` 필수, 끝난 스캔 필요 | 엔진 명령 아님. UI 가 기록을 읽어 그림 (4.1) |
-| `"Lights off (Aura + DiaLamp)"` | `lights_off.py` | 하드웨어 점유 검사 | `lights_off` 명령 (events.py 의 명령 종류, `start` 가 아님) |
-| `"Try the demo (no hardware)"` | `live_focus.py --demo` | — | 백엔드 `mock` 으로 엔진을 열고 `start("live")` |
+| `"Open folder"` | `explorer <sample folder or root>` | — | UI-local action (no engine) |
+| `"New"` | clears the sample field | — | `start("sample_new")` |
+| `"Show objective / Z / PFS"` | `change_objective.py --status` | hardware occupancy check | `start("status")` |
+| `"Start live view"` (brightfield) | `live_focus.py --exposure E --hole-diameter D --track-speed S [--sample ID] --set Aura State 0 --set DiaLamp State 1` | number check | `start("light_set", {"mode": "brightfield"})` then `start("live", {"exposure_ms": E})` |
+| `"Start live view"` (Aura) | the same front part + `--set DiaLamp State 0 --aura LINE PCT` | number check | `start("light_set", {"mode": "aura", "line": LINE, "percent": PCT})` then `start("live", …)` |
+| `"Start 4x scan"` | `scan_4x.py --sample ID [--exposure E] [--dry-run]` | `sample.json` required, number check, a confirmation dialog unless it is a dry run | `start("scan_4x", {"sample_id", "exposure_ms": E or null, "dry_run"})` |
+| `"Show scan result (mosaic + z map)"` | `plot_scan.py <latest scan4x_*>` in the uv environment | `sample.json` required, a finished scan required | not an engine command. The UI reads the record and draws it (4.1) |
+| `"Lights off (Aura + DiaLamp)"` | `lights_off.py` | hardware occupancy check | the `lights_off` command (a command kind in events.py, not a `start`) |
+| `"Try the demo (no hardware)"` | `live_focus.py --demo` | — | opens the engine with backend `mock` and runs `start("live")` |
 
-런처의 오류·확인 문구 (3절에서 대화상자 지점으로 정리한다):
+The launcher's error and confirmation strings (gathered into dialog points in §3):
 
 - `"Sample '<id>' has no sample.json yet.\nTrace the hole edge in brightfield live view first (Step 1)."`
 - `"<name>: '<value>' is not a number."`
 - `"<label> is still running; close it first."`
 - `"Another program seems to be using the microscope: … Start anyway?"`
-- `"Start 4x scan"` 확인: 4x 렌즈인지, 이번 세션에 명시야로 구멍을 다시 추적했는지
+- `"Start 4x scan"` confirmation: whether the 4x objective is in place, and whether the hole was re-traced in brightfield this session
 - `"No finished 4x scan in <id> yet."`
 
 ---
 
-## 3. 확인 대화상자 지점
+## 3. Confirmation dialog points
 
-### 3.0 원칙
+### 3.0 Principles
 
-- **언제 묻는지는 엔진이 정한다.** 하드웨어에 닿는 확인은 모두 엔진의 `confirm_required` 이벤트로
-  시작하고, 화면은 그것을 그린 뒤 `confirm(op_id, key, answer)` 를 보낸다. 화면이 스스로 하드웨어
-  확인을 만들지 않는다. 화면만의 확인 (3.2) 은 하드웨어에 닿지 않는 것만이다.
-- **대화상자는 추가 확인이다.** "yes" 를 받아도 엔진의 가드와 게이트는 그대로 돈다 (PLAN 5절).
-  거꾸로, 대화상자를 건너뛰는 설정은 두지 않는다.
-- **시간 제한이 없다** (T-011). 기다리는 동안 대화상자 안에 `"Abort"` 를 항상 둔다.
-- **다시 접속해도 남는다.** 대기 중인 확인은 `/api/state` 에 있으므로, 탭을 새로 열거나 다시
-  연결하면 같은 대화상자가 다시 뜬다.
-- **원격 화면과 권한 없는 사용자는 보기만 한다.** 대화상자 대신 `"Waiting for the operator at the
-  microscope PC: <prompt>"` 띠를 보여 준다. 응답 버튼은 없다.
-- **문구는 엔진 이벤트의 `prompt` 를 그대로 쓴다.** 아래 문구는 `docs/operations-spec.md` 의 7항을
-  옮겨 적은 것이고, 정본은 그 문서와 엔진이다. 화면은 `context` 의 값 (plan, 현재값) 을 표로 덧붙인다.
-- **응답은 기록된다.** 누가, 언제, 무엇을 골랐는지가 작업 기록과 감사 로그에 남는다 (PLAN 6절 12항).
+- **The engine decides when to ask.** Every confirmation that touches hardware starts as an engine `confirm_required` event,
+  and the screen draws it and then sends `confirm(op_id, key, answer)`. The screen does not make up hardware
+  confirmations of its own. Screen-only confirmations (3.2) are only the ones that touch no hardware.
+- **A dialog is an extra confirmation.** Even after a "yes", the engine's guards and gates still run (PLAN §5).
+  Conversely, there is no setting that skips a dialog.
+- **There is no time limit** (T-011). While it waits, the dialog always holds an `"Abort"`.
+- **It survives reconnection.** Pending confirmations are in `/api/state`, so opening a new tab or
+  reconnecting brings the same dialog up again.
+- **Remote screens and users without permission only watch.** Instead of a dialog they show a `"Waiting for the operator at the
+  microscope PC: <prompt>"` band. There are no answer buttons.
+- **The wording is the engine event's `prompt`, unchanged.** The strings below are copied from item 7 of `docs/operations-spec.md`,
+  and the authoritative versions are that document and the engine. The screen adds the values in `context` (plan, current values) as a table.
+- **Answers are recorded.** Who chose what, and when, is kept in the operation record and the audit log (PLAN §6 item 12).
 
-### 3.1 엔진이 묻는 지점
+### 3.1 Points where the engine asks
 
-| # | 작업 | 언제 | 문구 (operations-spec) | 선택지 | 화면 | 지금 |
+| # | Operation | When | Wording (operations-spec) | Options | Screen | Now |
 |---|---|---|---|---|---|---|
-| C1 | `scan_4x`, `sample_map` | 시작 전 | `"start scan_4x"` + plan | `"Start"` / `"Cancel"` | 모달. 격자 (n × m 타일), 박스, 움직이는 축 (XY, ZDrive), 켜는 조명, 예상 시간 | 런처 `askokcancel` (2.4) |
-| C2 | `scan_4x`, `sample_map` | hole 피팅이 이번 세션 것이 아님 | `"hole fit is from <time>; re-trace?"` | `"Re-trace now"` / `"Cancel"`. 엔진이 `"Use anyway"` 를 선택지로 주면 그때만 셋째 버튼 | 모달. 피팅 시각, 이전 중심과 지름. `"Re-trace now"` 는 `map` 영역의 엣지 추적으로 이동 | 런처 문구의 질문뿐 |
-| C3 | `scan_4x`, `sample_map` | 첫 이동이 Z 창 밖에서 들어옴 | `"ZDrive <z> -> <z_guess>"` | `"Move"` / `"Cancel"` | 모달. 현재 Z (엔코더), 목표 Z, 차이 µm | 없음 (9/30 은 62.9 µm 에서 시작) |
-| C4 | `edge_trace` | 이전 경계가 있음 | `"replace the hole fit from <fitted_at>? (backed up)"` | `"Replace"` / `"Cancel"` | 모달. 백업 파일 이름 | 없음 (9/30 은 손으로 백업) |
-| C5 | `edge_trace` | 시작 | `"trace the edge: XY moves only, within 7 mm of here"` | `"Start"` / `"Cancel"` | 모달. 시작 XY, 속도, 예상 지름 | 없음 (`t` 키가 바로 시작) |
-| C6 | `objective_change` | 시작 전 | `"rotate <label_now> -> <label_target>: retract Z, move Y <dy>, rotate"` + plan | `"Rotate"` / `"Cancel"` | 모달. 7단계 계획 (7.5) | 9/30 은 채팅으로 명시 승인 |
-| C7 | `objective_change` | 5단계 | `manual_step: load_immersion` | `"Loading done"` | **모달이 아니다.** `objective` 영역의 단계 카드에 큰 버튼. 액침 종류 (oil / water), 누가 언제 눌렀는지 기록. 이 응답이 6·7단계의 승인이다 | 사람이 오일 후 `--return-only` 실행 |
-| C8 | `objective_change` | 건조 렌즈로 바꿀 때 (`escape=False`) | `"objective rotated; continue to approach Z?"` | `"Approach"` / `"Stop here"` | 단계 카드 | 없음 |
-| C9 | `focus_100x` | 피크가 스윕 위 끝 | `"peak at the top end of <lo>-<hi>; extend upward to <new_hi>?"` | `"Extend upward"` / `"Stop"` | 모달. 스윕 곡선, 새 범위, 천장. 새 범위는 천장을 넘지 않는다 | 스크립트가 멈추고 사람이 다시 실행 (`no_climb_without_ok`) |
-| C10 | `focus_100x` | 이번 세션에 액침 로딩 기록 없음 | `"no immersion loading recorded this session; oil applied?"` | `"Oil applied"` / `"Cancel"` | 모달 | 없음 |
-| C11 | `focus_100x` | 중심이 4x 초점보다 위 | `"centre <c> is above the 4x focus <z4>; 100x focus is usually 60-100 um below"` | `"Use this centre"` / `"Change centre"` | 모달. 4x 초점, 입력한 중심, 천장 | 스크립트 머리말 경고 |
-| C12 | `goto_xy` | Z 후퇴가 필요한 이동 | `"retract Z <z> -> <z_safe>, then move to (x, y)"` | `"Retract and move"` / `"Cancel"` | 모달. 지도 위에 목표 표시 (7.4) | 없음 (새 기능) |
-| C13 | 엔진 시작 | 다른 프로그램이 현미경을 쓰는 것 같음 | (제안) `"Another program seems to be using the microscope: <list>"` | `"Continue read-only"` / `"Retry"` | 전체 화면 안내. 이 확인은 작업이 아니라 엔진 단위다 (operations-spec 0.3) | 런처 `askyesno` (`"Start anyway?"`) |
+| C1 | `scan_4x`, `sample_map` | before start | `"start scan_4x"` + plan | `"Start"` / `"Cancel"` | modal. Grid (n × m tiles), box, moving axes (XY, ZDrive), lights turned on, expected time | launcher `askokcancel` (2.4) |
+| C2 | `scan_4x`, `sample_map` | the hole fit is not from this session | `"hole fit is from <time>; re-trace?"` | `"Re-trace now"` / `"Cancel"`. A third button only when the engine offers `"Use anyway"` as an option | modal. Fit time, previous centre and diameter. `"Re-trace now"` goes to edge tracking in the `map` area | only the question in the launcher's wording |
+| C3 | `scan_4x`, `sample_map` | the first move comes in from outside the Z window | `"ZDrive <z> -> <z_guess>"` | `"Move"` / `"Cancel"` | modal. Current Z (encoder), target Z, difference in µm | none (on 9/30 it started at 62.9 µm) |
+| C4 | `edge_trace` | a previous boundary exists | `"replace the hole fit from <fitted_at>? (backed up)"` | `"Replace"` / `"Cancel"` | modal. Backup file name | none (on 9/30 backed up by hand) |
+| C5 | `edge_trace` | start | `"trace the edge: XY moves only, within 7 mm of here"` | `"Start"` / `"Cancel"` | modal. Start XY, speed, expected diameter | none (the `t` key starts at once) |
+| C6 | `objective_change` | before start | `"rotate <label_now> -> <label_target>: retract Z, move Y <dy>, rotate"` + plan | `"Rotate"` / `"Cancel"` | modal. The 7-step plan (7.5) | on 9/30, explicit approval in chat |
+| C7 | `objective_change` | step 5 | `manual_step: load_immersion` | `"Loading done"` | **Not a modal.** A large button on the step card in the `objective` area. The immersion type (oil / water) and who pressed it when are recorded. This answer is the approval for steps 6 and 7 | a person runs `--return-only` after the oil |
+| C8 | `objective_change` | when changing to a dry objective (`escape=False`) | `"objective rotated; continue to approach Z?"` | `"Approach"` / `"Stop here"` | step card | none |
+| C9 | `focus_100x` | the peak is at the top end of the sweep | `"peak at the top end of <lo>-<hi>; extend upward to <new_hi>?"` | `"Extend upward"` / `"Stop"` | modal. Sweep curve, new range, ceiling. The new range does not exceed the ceiling | the script stops and a person re-runs it (`no_climb_without_ok`) |
+| C10 | `focus_100x` | no immersion loading recorded this session | `"no immersion loading recorded this session; oil applied?"` | `"Oil applied"` / `"Cancel"` | modal | none |
+| C11 | `focus_100x` | the centre is above the 4x focus | `"centre <c> is above the 4x focus <z4>; 100x focus is usually 60-100 um below"` | `"Use this centre"` / `"Change centre"` | modal. 4x focus, the entered centre, the ceiling | warning in the script's header |
+| C12 | `goto_xy` | a move that needs a Z retract | `"retract Z <z> -> <z_safe>, then move to (x, y)"` | `"Retract and move"` / `"Cancel"` | modal. Target shown on the map (7.4) | none (new feature) |
+| C13 | engine start | another program seems to be using the microscope | (proposed) `"Another program seems to be using the microscope: <list>"` | `"Continue read-only"` / `"Retry"` | full-screen notice. This confirmation is per engine, not per operation (operations-spec 0.3) | launcher `askyesno` (`"Start anyway?"`) |
 
-C2 의 기본 선택지에 "그대로 쓰기" 를 넣지 않은 이유: 운영 규칙이 "오래된 hole 피팅을 재추적 없이
-다시 쓰지 않는다" 이다 (9/30 에 1.5 mm 이동). 엔진이 예외를 허용하기로 하면 그 선택지는 이벤트의
-`options` 로 온다.
+Why C2's default options do not include "use it as is": the operating rule is "an old hole fit is not reused without
+re-tracing" (on 9/30 it moved 1.5 mm). If the engine decides to allow an exception, that option arrives in the event's
+`options`.
 
-### 3.2 화면만의 확인 (하드웨어 없음)
+### 3.2 Screen-only confirmations (no hardware)
 
-| # | 지점 | 문구 | 선택지 | 비고 |
+| # | Point | Wording | Options | Notes |
 |---|---|---|---|---|
-| U1 | 샘플 전환 (`sample_open`, `sample_new`) | `"Close sample <id> and open <new_id>?"` | `"Switch"` / `"Cancel"` | 엔진 쪽 거부가 먼저다. 엣지 추적 중이거나 `awaiting_return` 이면 `preflight_failed` 로 오고, 대화상자는 뜨지 않는다 |
-| U2 | 경계점 되돌리기를 여러 번 (`u`) | 없음 | — | 한 번에 하나만 지운다. 확인 없이 바로. `boundary_reset` (전체) 은 C4 를 거친다 |
-| U3 | flag 삭제 | `"Retire flag <name>? It stays in the record."` | `"Retire"` / `"Cancel"` | 지우지 않고 `retired_at` 을 붙인다 (operations-spec 6.2) |
-| U4 | 지오메트리를 로딩 확인 뒤에 바꿈 | `"Geometry changed after loading was confirmed. Confirm loading again?"` | `"Change and re-check"` / `"Cancel"` | 커버슬립 두께와 방향은 이후 안전 한계에 들어간다 (PLAN F3). 엔진이 다시 확인 상태를 정한다 |
-| U5 | 입력 중인 양식이 있는 화면에서 떠남 | `"Discard unsaved changes?"` | `"Discard"` / `"Stay"` | 지오메트리, 하드웨어 사람 확인 항목 |
-| U6 | 질문 보내기 (F1.1) | `"Send this question to <agent> (mock store)?"` | `"Send"` / `"Cancel"` | mock 저장소만. 실제 저장소는 읽기 전용이라 버튼이 꺼져 있다 (7.1) |
+| U1 | switching samples (`sample_open`, `sample_new`) | `"Close sample <id> and open <new_id>?"` | `"Switch"` / `"Cancel"` | The engine's refusal comes first. During edge tracking or `awaiting_return` it arrives as `preflight_failed`, and no dialog appears |
+| U2 | undoing boundary points several times (`u`) | none | — | It removes one at a time, directly, without confirmation. `boundary_reset` (all of them) goes through C4 |
+| U3 | deleting a flag | `"Retire flag <name>? It stays in the record."` | `"Retire"` / `"Cancel"` | Not deleted; `retired_at` is attached (operations-spec 6.2) |
+| U4 | changing the geometry after the loading check | `"Geometry changed after loading was confirmed. Confirm loading again?"` | `"Change and re-check"` / `"Cancel"` | Coverslip thickness and orientation feed later safety limits (PLAN F3). The engine decides the re-confirmation state |
+| U5 | leaving a screen with a form being filled in | `"Discard unsaved changes?"` | `"Discard"` / `"Stay"` | geometry, hardware human-confirmed items |
+| U6 | sending a question (F1.1) | `"Send this question to <agent> (mock store)?"` | `"Send"` / `"Cancel"` | mock store only. The real store is read-only, so the button is off (7.1) |
 
-로그인, 계정 승인, 장비 제어권 넘기기, Claude 제안 카드의 확인은 이 문서 범위 밖이다
-(T-018, T-013, T-014). 이 문서의 화면은 그 결과 (역할, 제어권) 를 비활성 이유로만 쓴다 (7.0).
+Login, account approval, handing over control of the equipment, and confirming Claude proposal cards are outside this document's scope
+(T-018, T-013, T-014). The screens in this document use their results (role, control) only as disabled reasons (7.0).
 
 ---
 
-## 4. 엔진 대응표
+## 4. Engine mapping table
 
-### 4.0 규약
+### 4.0 Conventions
 
-T-002 과제 파일의 명령/이벤트 목록을 그대로 쓰고, 화면에 필요한데 없는 것만 **(제안)** 으로 더한다.
-모든 명령과 이벤트는 JSON 직렬화 가능한 dataclass 다 (PLAN 6절 7항). 공통 필드
-`kind`, `t`, `op_id` 는 표에서 생략한다.
+The command/event list in the T-002 task file is used as it is, and only what the screen needs and the list lacks is added as **(proposed)**.
+Every command and event is a JSON-serialisable dataclass (PLAN §6 item 7). The common fields
+`kind`, `t`, `op_id` are omitted from the tables.
 
-**전송** (웹 앱 기준). 공통 경로는 T-009 (서버 골격) 가 정한 이름이다. 영역별 `GET` 경로는 제안이다.
+**Transport** (for the web app). The common paths are the names T-009 (server skeleton) set. The per-area `GET` paths are proposals.
 
-| 종류 | 전송 | 경로 | 원격 |
+| Kind | Transport | Path | Remote |
 |---|---|---|---|
-| 명령 `start` / `abort` / `confirm` / `lights_off` / `update` | REST `POST`, 응답은 접수 결과 (`op_id` 또는 거부 사유). 결과는 이벤트로 온다 | `POST /api/commands` (T-009) | **거부** (403). 예외 (D13): 이 PC (loopback) 에서는 `abort` 와 `lights_off` 를 로그인 없이 받는다. 원격에서는 로그인한 사용자의 `abort` 만 받고, 원격 `lights_off` 를 포함한 나머지는 거부 (PLAN 6절 12항) |
-| 이벤트 (아래 표 전부) | WebSocket, JSON 한 줄씩 | `/ws/events` (T-009) | 허용 (구독만) |
-| 라이브 영상 | WebSocket, 바이너리 JPEG (약 800 px, 서버에서 비닝, 카메라마다 목표 10 fps) + 그 프레임의 `frame_id` 와 `camera`. 듀얼캠이면 두 카메라가 같은 소켓으로 오고 화면은 나란히·합쳐서(blue 녹색, red 마젠타)·하나씩 보여 준다 | `/ws/frames` (T-009) | 허용 |
-| 현재 상태 한 번에 읽기 (접속 직후, 재접속 후) | REST `GET`, 엔진 `snapshot()` | `/api/state` (T-009) | 허용 |
-| 기록 읽기 (샘플 목록, `sample.json`, 스캔 결과, 원본 프레임 한 장) | REST `GET` | `/api/<영역>/...` (제안, `server/api/<영역>.py`) | 허용 |
+| Commands `start` / `abort` / `confirm` / `lights_off` / `update` | REST `POST`; the response is the acceptance result (`op_id` or a refusal reason). Results arrive as events | `POST /api/commands` (T-009) | **Refused** (403). Exception (D13): on this PC (loopback) `abort` and `lights_off` are accepted without login. From remote only a logged-in user's `abort` is accepted, and everything else, including a remote `lights_off`, is refused (PLAN §6 item 12) |
+| Events (everything in the table below) | WebSocket, one JSON line each | `/ws/events` (T-009) | allowed (subscribe only) |
+| Live video | WebSocket, binary JPEG (about 800 px, binned on the server, target 10 fps per camera) + that frame's `frame_id` and `camera`. With dual cameras both arrive on the same socket, and the screen shows them side by side, merged (blue as green, red as magenta), or one at a time | `/ws/frames` (T-009) | allowed |
+| Reading the current state in one go (right after connecting, after reconnecting) | REST `GET`, engine `snapshot()` | `/api/state` (T-009) | allowed |
+| Reading records (sample list, `sample.json`, scan results, one raw frame) | REST `GET` | `/api/<area>/...` (proposed, `server/api/<area>.py`) | allowed |
 
-`/api/state` 는 이벤트를 놓친 화면이 다시 맞추는 자리다. 위치, 렌즈, 조명, 실행 중 작업과 그 마지막
-`progress`, 열린 샘플, 대기 중인 `confirm_required` 를 담는다.
+`/api/state` is where a screen that missed events re-syncs. It holds the position, objective, lighting, the running operation and its last
+`progress`, the open sample, and any pending `confirm_required`.
 
-**명령**
+**Commands**
 
-모든 명령은 `origin` (`"human"` / `"assistant"`) 을 가진다 (T-011 v0.4 조정). 이 문서의 입력은 전부
-사람의 입력이므로 `origin="human"` 이고 바로 `confirmed` 로 들어간다. Claude 제안 카드 (`proposed` →
-사람 확인) 는 T-013 / T-014 의 화면이다.
+Every command carries `origin` (`"human"` / `"assistant"`) (T-011 v0.4 adjustment). Every input in this document is
+a human's input, so it is `origin="human"` and goes straight in as `confirmed`. Claude proposal cards (`proposed` →
+human confirmation) are T-013 / T-014's screens.
 
-| 명령 | 인자 | 쓰임 |
+| Command | Arguments | Use |
 |---|---|---|
-| `start` | `op` (작업 이름), `args` (dict) | 모든 작업 시작. 하드웨어를 움직이지 않는 기록 작업 (경계점, tare, 샘플 열기) 도 같은 경로로 보내 기록을 남긴다 (PLAN 6절 4항). 소등은 `start` 가 아니라 별도 명령 종류 `lights_off` 다 (아래 행) |
-| `abort` | `op_id` (없으면 실행 중인 전부), `why` | `Esc`, 중지 버튼 |
-| `confirm` | `op_id`, `key`, `answer` (`"yes"` / `"no"` 또는 선택값) | `confirm_required` 에 대한 사용자 응답. 종류 `manual_step` (F5 `"Loading done"`) 은 수동 단계 기록으로 남는다 (T-011) |
-| `lights_off` | 없음 | **선점**: 실행 중 작업을 abort 하고 전체 소등을 readback 으로 확인한다 (T-002 부록 3, `engine/events.py` 의 `COMMAND_KINDS`). 이 PC 에서는 로그인 없이도 받는다. 원격에서는 거부 (D13, PLAN 6절 12항) |
-| `update` (T-011) | `op_id`, `args` (바꿀 인자 dict) | 실행 중 작업의 선언된 인자를 바꿈. 지금 쓰는 곳: 추적 속도 (`+`/`-`), 라이브 읽기 영역 (`o`), 라이브 노출. 선언 밖은 거부 이벤트 |
+| `start` | `op` (operation name), `args` (dict) | starts every operation. Record operations that do not move hardware (boundary points, tare, opening a sample) go the same way too, so that they leave a record (PLAN §6 item 4). Turning the lights off is not a `start` but a separate command kind, `lights_off` (row below) |
+| `abort` | `op_id` (if absent, everything running), `why` | `Esc`, stop button |
+| `confirm` | `op_id`, `key`, `answer` (`"yes"` / `"no"` or a chosen value) | the user's answer to `confirm_required`. The kind `manual_step` (F5 `"Loading done"`) is kept as a manual step record (T-011) |
+| `lights_off` | none | **Pre-emptive**: aborts the running operation and confirms by readback that every light is off (T-002 Appendix 3, `COMMAND_KINDS` in `engine/events.py`). On this PC it is accepted even without login. From remote it is refused (D13, PLAN §6 item 12) |
+| `update` (T-011) | `op_id`, `args` (dict of the arguments to change) | changes a running operation's declared arguments. Used now for: tracking speed (`+`/`-`), live read region (`o`), live exposure. Anything outside the declaration gets a refusal event |
 
-`update` 가 필요한 이유: 추적 속도는 작업을 멈추지 않고 바꾼다. `abort` + `start` 로 흉내 내면
-보정 (`cal_result`) 을 다시 해야 한다.
+Why `update` is needed: the tracking speed is changed without stopping the operation. Imitating it with `abort` + `start`
+would mean redoing the calibration (`cal_result`).
 
-**작업 이름** (`start.op`)
+**Operation names** (`start.op`)
 
-| 작업 | 하드웨어 | 출처 | 세부 |
+| Operation | Hardware | Source | Details |
 |---|---|---|---|
-| `status` | 읽기 | `change_objective.py --status` | operations-spec |
-| `live` | 카메라 연속 획득, 위치 읽기 | `live_focus.py` 의 획득 루프 | 이 문서 4.1, 4.4 |
-| `light_set` **(제안)** | 조명 (의미 단위: 명시야 / Aura 라인 / 끔) | 런처의 `--set`, `--aura` | 4.3 |
-| (`lights_off`) | 조명 끔 + readback | `lights_off.py` | operations-spec. 작업 이름이 아니라 명령 종류다 (위 명령 표) |
-| `edge_trace` | XY 상대 이동 | `edge_track.py::EdgeTracker` | operations-spec |
-| `scan_4x` | XY, Z, 조명 | `scan_4x.py` | operations-spec |
-| `objective_change` | Z 후퇴, 렌즈 회전, (F5) XY 이탈/복귀 | `change_objective.py` | operations-spec, 7절 F5 |
-| `focus_100x` | Z 스윕, 조명 | `focus_100x.py` | operations-spec |
-| `piezo_servo`, `piezo_autofocus`, `piezo_zsweep` **(제안)** | 피에조 Z | `focus_servo.py` (`f`, `w`, `W`) | operations-spec 의 `focus_servo` 판단 (M1–M3 범위 밖일 수 있음) |
-| `sample_open`, `sample_new` **(제안)** | 없음 | `--sample`, `n`, 런처 Sample | 4.2 |
-| `boundary_mark`, `boundary_undo`, `boundary_reset` **(제안)** | 없음 (위치 읽기) | `b`, `u`, 재추적 전 경계 백업 | 4.2, 5절 |
-| `score_tare`, `score_tare_clear` **(제안)** | 없음 | `z`, `Z` | 4.2 |
-| `frame_save` **(제안)** | 없음 (최신 프레임) | `mm_grab.py` 의 `s` | 4.2 |
+| `status` | read | `change_objective.py --status` | operations-spec |
+| `live` | continuous camera acquisition, position reading | the acquisition loop of `live_focus.py` | this document 4.1, 4.4 |
+| `light_set` **(proposed)** | lighting (semantic units: brightfield / Aura line / off) | the launcher's `--set`, `--aura` | 4.3 |
+| (`lights_off`) | lights off + readback | `lights_off.py` | operations-spec. Not an operation name but a command kind (command table above) |
+| `edge_trace` | XY relative move | `edge_track.py::EdgeTracker` | operations-spec |
+| `scan_4x` | XY, Z, lighting | `scan_4x.py` | operations-spec |
+| `objective_change` | Z retract, objective rotation, (F5) XY escape/return | `change_objective.py` | operations-spec, §7 F5 |
+| `focus_100x` | Z sweep, lighting | `focus_100x.py` | operations-spec |
+| `piezo_servo`, `piezo_autofocus`, `piezo_zsweep` **(proposed)** | piezo Z | `focus_servo.py` (`f`, `w`, `W`) | the `focus_servo` judgement in operations-spec (may be outside the M1–M3 scope) |
+| `sample_open`, `sample_new` **(proposed)** | none | `--sample`, `n`, launcher Sample | 4.2 |
+| `boundary_mark`, `boundary_undo`, `boundary_reset` **(proposed)** | none (position read) | `b`, `u`, the boundary backup before re-tracing | 4.2, §5 |
+| `score_tare`, `score_tare_clear` **(proposed)** | none | `z`, `Z` | 4.2 |
+| `frame_save` **(proposed)** | none (latest frame) | `s` of `mm_grab.py` | 4.2 |
 
-**이벤트** (T-002 목록 + 제안). 필드는 화면이 쓰는 것 기준의 최소 집합이다.
+**Events** (T-002 list + proposals). The fields are the minimum set, by what the screen uses.
 
-| 이벤트 | 필드 | 화면에서 쓰는 곳 |
+| Event | Fields | Where the screen uses it |
 |---|---|---|
-| `planned` | `op`, `plan` (dict: 타일 격자, 스윕 범위, 천장 등), `dry_run` | 스캔·초점 화면의 계획 미리보기, dry run 결과 |
-| `preflight_ok` / `preflight_failed` | `op`, `checks`: `[{name, ok, want, read, why}]` | 시작 버튼 옆 확인 목록. 실패 항목과 이유를 그대로 표시 |
-| `started` | `op`, `args`, `start_state` (위치, 렌즈, 조명 readback) | 상태 줄 `"Running: …"`, 진행 패널 |
-| `progress` | `op`, `status` (사람용 문자열), `step`, `n_steps` (선택), `data` (작업별 dict) | 진행 문자열 (1.2 의 `.status`), 스캔 타일 k/n, 추적 경로 길이 |
-| `frame_ready` | `frame_id`, `shape`, `t_camera_ms`, `t_host`, `exposure_ms`, `pos` (x/y/z, 피에조), `stats` (`mean`, `max`, `sat_pct`, `bit_depth`), `source_op` | 이미지 (a), 상태 줄 (f), 스캔 미리보기. **픽셀은 이벤트에 넣지 않는다** (4.4 의 1) |
-| `reading` | `source` (`"classical"` / `"model"`), `metric`, `value`, `grade` (모델이면 `"model"`), `verdict` (5개 어휘), `region` (`"box"` / `"frame"` / `"frame (box empty)"`), `frame_id`, `z_encoder_um`, `tiles` (`[{y0, x0, size, valid, verdict}]`) | 게이지 (b), 트레이스 (c), 타일 테두리 (a). 표시 규칙은 5절 |
-| `position` (엔진 주기 이벤트, 기록 폴더 없음, T-002 부록 3) | `x_um`, `y_um`, `z_um`, `piezo_x_um`, `piezo_y_um`, `piezo_z_um`, `sum_um` ([x, y, z]), 읽기 실패 필드 (`xy_error`, `z_error`, `piezo_error`) | 위치 표 (e), 지도 현재 시야 (d), 상태 줄 (f), z 트레이스 |
-| `light_changed` | `dialamp` (`"on"` / `"off"` / `"unknown"`), `aura` (`state`, `line`, `intensity_permille`), `verified`, `records` (readback 기록 목록) | 상태 줄의 조명 표시 (5절), 런처 조명 선택의 현재값 |
-| `property_set` | `device`, `property`, `wanted`, `read`, `verified` | 로그 패널. `verified=false` 는 경고 배너 |
-| `confirm_required` | `key`, `prompt` (영어 문구), `options`, `context` (dict) | 대화상자 (3절) |
-| `finished` | `op`, `summary` (dict), `end_state` (조명 readback 필수), `record_dir` | 결과 표시, 상태 줄 `"Idle."` |
-| `aborted` | `op`, `why`, `end_state` (F5 를 이탈·회전 뒤 멈추면 `awaiting_return`, T-011) | 진행 패널 `"stopped: <why>"`. `awaiting_return` 이면 공통 상태 줄에 복귀 대기 경고 (7절 F5) |
-| `error` | `op`, `message`, `where` | 오류 배너, 로그 |
-| `log` | `level`, `text` | 로그 패널 (지금 콘솔 `print` 25곳) |
-| `objective` **(제안)** | `label`, `nosepiece_state`, `pixel_um`, `fov_um` | 위치 텍스트 (e), 지도 시야 크기. 렌즈가 손으로 바뀌어도 0.5 s 안에 보이게 |
-| `sample_opened` **(제안)** | `sample_id`, `dir`, `created`, `hole` (`fitted_at` 포함, T-002 부록 3), `calibration`, `objectives_used`, `score_offset` (grade `"model"`) | Sample 칸, 위치 텍스트의 샘플 줄, hole 피팅 나이 (5절) |
-| `map_changed` **(제안)** | `boundary` (점 목록), `circle` (`cx`, `cy`, `r`, `rms`, `n`, `arc_deg`) 또는 null, `limits`, `visits_added` (새 방문 필드들), `n_visits` | 지도 (d), 위치 텍스트의 hole 줄 |
-| `calibration` **(제안)** | `um_per_px`, `angle_deg`, `M_px_per_um`, `objective` | 위치 텍스트, 샘플 기록. 지금은 추적기의 `cal_result` 이벤트 |
-| `live_stats` **(제안)** | `shown_fps`, `camera_fps`, `kept`, `seen`, `recording` | 상태 줄 (f). `progress(live).data` 로 넣어도 된다 |
+| `planned` | `op`, `plan` (dict: tile grid, sweep range, ceiling, etc.), `dry_run` | plan preview on the scan and focus screens, dry-run results |
+| `preflight_ok` / `preflight_failed` | `op`, `checks`: `[{name, ok, want, read, why}]` | the check list next to the start button. Failed items and their reasons shown as they are |
+| `started` | `op`, `args`, `start_state` (position, objective, lighting readback) | status bar `"Running: …"`, progress panel |
+| `progress` | `op`, `status` (string for people), `step`, `n_steps` (optional), `data` (per-operation dict) | progress string (the `.status` of 1.2), scan tile k/n, tracking path length |
+| `frame_ready` | `frame_id`, `shape`, `t_camera_ms`, `t_host`, `exposure_ms`, `pos` (x/y/z, piezo), `stats` (`mean`, `max`, `sat_pct`, `bit_depth`), `source_op` | image (a), status bar (f), scan preview. **Pixels are not put in the event** (4.4 item 1) |
+| `reading` | `source` (`"classical"` / `"model"`), `metric`, `value`, `grade` (`"model"` if from the model), `verdict` (5-word vocabulary), `region` (`"box"` / `"frame"` / `"frame (box empty)"`), `frame_id`, `z_encoder_um`, `tiles` (`[{y0, x0, size, valid, verdict}]`) | gauge (b), trace (c), tile outlines (a). Display rules in §5 |
+| `position` (engine periodic event, no record folder, T-002 Appendix 3) | `x_um`, `y_um`, `z_um`, `piezo_x_um`, `piezo_y_um`, `piezo_z_um`, `sum_um` ([x, y, z]), read-failure fields (`xy_error`, `z_error`, `piezo_error`) | position table (e), current field of view on the map (d), status bar (f), z trace |
+| `light_changed` | `dialamp` (`"on"` / `"off"` / `"unknown"`), `aura` (`state`, `line`, `intensity_permille`), `verified`, `records` (list of readback records) | the lighting indicator on the status bar (§5), the current value of the launcher's light selection |
+| `property_set` | `device`, `property`, `wanted`, `read`, `verified` | log panel. `verified=false` is a warning banner |
+| `confirm_required` | `key`, `prompt` (English text), `options`, `context` (dict) | dialog (§3) |
+| `finished` | `op`, `summary` (dict), `end_state` (lighting readback required), `record_dir` | result display, status bar `"Idle."` |
+| `aborted` | `op`, `why`, `end_state` (`awaiting_return` if F5 stops after the escape and rotation, T-011) | progress panel `"stopped: <why>"`. If `awaiting_return`, a waiting-for-return warning on the common status bar (§7 F5) |
+| `error` | `op`, `message`, `where` | error banner, log |
+| `log` | `level`, `text` | log panel (today the 25 console `print` calls) |
+| `objective` **(proposed)** | `label`, `nosepiece_state`, `pixel_um`, `fov_um` | position text (e), map field-of-view size. So that an objective changed by hand shows within 0.5 s |
+| `sample_opened` **(proposed)** | `sample_id`, `dir`, `created`, `hole` (including `fitted_at`, T-002 Appendix 3), `calibration`, `objectives_used`, `score_offset` (grade `"model"`) | Sample field, the sample line of the position text, the age of the hole fit (§5) |
+| `map_changed` **(proposed)** | `boundary` (list of points), `circle` (`cx`, `cy`, `r`, `rms`, `n`, `arc_deg`) or null, `limits`, `visits_added` (the new visited fields), `n_visits` | map (d), the hole line of the position text |
+| `calibration` **(proposed)** | `um_per_px`, `angle_deg`, `M_px_per_um`, `objective` | position text, sample record. Today the tracker's `cal_result` event |
+| `live_stats` **(proposed)** | `shown_fps`, `camera_fps`, `kept`, `seen`, `recording` | status bar (f). May also go into `progress(live).data` |
 
-### 4.1 화면 항목 → 이벤트
+### 4.1 Screen item → event
 
-| 화면 항목 | 받는 이벤트 | 주기 (1.6) | 비고 |
+| Screen item | Event received | Interval (1.6) | Notes |
 |---|---|---|---|
-| (a) 이미지 | `frame_ready` + 미리보기 채널 (4.4 의 1) | fps | 비닝과 늘림은 엔진 쪽 미리보기 생성기에서 한다 (웹이면 JPEG) |
-| (a) 주황 ROI | `started(live).args.roi_px` | 시작 시 | — |
-| (a) 타일 테두리 | `reading(source="model").tiles` | 비동기 | 숫자 대신 판정 표시 (5절) |
-| (b) 게이지 | `reading` | 비동기 | 중앙값 5개는 엔진 (WP-E) 이 계산해 한 `reading` 으로 낸다. UI 는 평균을 내지 않는다 |
-| (c) 선명도 트레이스 | `reading(source="classical", metric="brenner")` | fps | 지금은 UI 가 Brenner 를 계산한다. 엔진으로 옮김 |
-| (c) z 트레이스 | `position.sum_um[2]` | 0.5 s (지금은 프레임마다 같은 값을 다시 찍음) | 엔코더 값 |
-| (d) 지도 | `map_changed`, `position`, `objective` | 변경 시, 0.5 s | 방문 필드 추가는 엔진이 0.5 s 마다 한다 (`XYMap.add` 규칙: 같은 렌즈, 시야 ¼ 안이면 갱신) |
-| (e) 위치 표 | `position` | 0.5 s | — |
-| (e) 샘플·렌즈·hole 줄 | `sample_opened`, `objective`, `map_changed` | 변경 시 | "중심에서 몇 µm", "가장자리 안쪽 몇 µm" 는 UI 가 `position` 과 `circle` 로 계산해도 된다 (표시 계산이지 안전 판단이 아님) |
-| (e) 진행 상태 줄 | `progress(op).status` | 변경 시 | 작업별 한 줄 |
-| (f) 상태 줄 | `frame_ready.stats`, `live_stats`, `position`, `light_changed` | fps | 조명 상태를 더한다 (5절) |
-| 스캔 미리보기 | `frame_ready(source_op="scan_4x")`, `progress(scan_4x).data` (`tile`, `k`, `n`, `z_um`, `vollath`) | 스냅마다 | 곡선 점은 `progress.data` 에서 |
-| 스캔 결과 (모자이크 + z 지도) | `finished(scan_4x).record_dir` → UI 가 `scan.json` 과 타일 `.npy` 를 읽음 | 끝날 때 | `plot_scan.py` 를 대신한다. 읽기 전용 |
-| 런처 상태 줄 | `started`, `finished`, `aborted`, `error` | 변경 시 | 1 s 폴링이 필요 없어진다 |
-| 로그 패널 (새) | `log`, `property_set`, `error` | 발생 시 | 지금의 콘솔 창들 |
+| (a) image | `frame_ready` + preview channel (4.4 item 1) | fps | binning and stretching are done by the engine-side preview generator (JPEG for the web) |
+| (a) orange ROI | `started(live).args.roi_px` | at start | — |
+| (a) tile outlines | `reading(source="model").tiles` | asynchronous | a verdict mark instead of a number (§5) |
+| (b) gauge | `reading` | asynchronous | the median of 5 is computed by the engine (WP-E) and emitted as one `reading`. The UI does not average |
+| (c) sharpness trace | `reading(source="classical", metric="brenner")` | fps | today the UI computes Brenner. Moved into the engine |
+| (c) z trace | `position.sum_um[2]` | 0.5 s (today the same value is re-plotted every frame) | encoder value |
+| (d) map | `map_changed`, `position`, `objective` | on change, 0.5 s | visited fields are added by the engine every 0.5 s (`XYMap.add` rule: same objective and within ¼ of the field of view means update) |
+| (e) position table | `position` | 0.5 s | — |
+| (e) sample·objective·hole lines | `sample_opened`, `objective`, `map_changed` | on change | "how many µm from the centre" and "how many µm inside the edge" may be computed by the UI from `position` and `circle` (a display calculation, not a safety judgement) |
+| (e) progress line | `progress(op).status` | on change | one line per operation |
+| (f) status bar | `frame_ready.stats`, `live_stats`, `position`, `light_changed` | fps | adds the lighting state (§5) |
+| scan preview | `frame_ready(source_op="scan_4x")`, `progress(scan_4x).data` (`tile`, `k`, `n`, `z_um`, `vollath`) | every snap | the curve points come from `progress.data` |
+| scan result (mosaic + z map) | `finished(scan_4x).record_dir` → the UI reads `scan.json` and the tile `.npy` files | at the end | replaces `plot_scan.py`. Read-only |
+| launcher status bar | `started`, `finished`, `aborted`, `error` | on change | the 1 s polling is no longer needed |
+| log panel (new) | `log`, `property_set`, `error` | when they happen | today's console windows |
 
-### 4.2 입력 → 명령
+### 4.2 Input → command
 
-모든 행은 REST `POST /api/commands` 이고 원격에서는 거부된다 (4.0 전송 표).
-결과는 `/ws/events` 로 온다.
+Every row is REST `POST /api/commands` and is refused from remote (the transport table in 4.0).
+Results arrive on `/ws/events`.
 
-| 입력 | 영역 | 명령 | 인자 | 기대 이벤트 |
+| Input | Area | Command | Arguments | Expected events |
 |---|---|---|---|---|
-| 런처 샘플 선택 / `--sample` | `sample` | `start("sample_open")` | `sample_id` | `sample_opened`, `map_changed` |
-| `"New"` / `n` | `sample` | `start("sample_new")` | — | 현재 샘플 `finished`, 새 `sample_opened`. 추적 중이면 `preflight_failed` (`"stop edge tracking before starting a new sample"`) |
-| `b` | `map` | `start("boundary_mark")` | 없음 (엔진이 지금 위치를 읽음) | `map_changed`. 위치가 유한하지 않으면 `preflight_failed` |
+| launcher sample selection / `--sample` | `sample` | `start("sample_open")` | `sample_id` | `sample_opened`, `map_changed` |
+| `"New"` / `n` | `sample` | `start("sample_new")` | — | `finished` for the current sample, a new `sample_opened`. While tracking, `preflight_failed` (`"stop edge tracking before starting a new sample"`) |
+| `b` | `map` | `start("boundary_mark")` | none (the engine reads the current position) | `map_changed`. `preflight_failed` if the position is not finite |
 | `u` | `map` | `start("boundary_undo")` | — | `map_changed` |
-| 재추적 (새, 5절) | `map` | `start("boundary_reset")` | — | `map.json`·`sample.json` 백업 (`*_before_rescan_<stamp>.json`) 후 경계만 비움, `map_changed` |
+| re-trace (new, §5) | `map` | `start("boundary_reset")` | — | backs up `map.json`·`sample.json` (`*_before_rescan_<stamp>.json`), then clears only the boundary, `map_changed` |
 | `"Start live view"` | `hardware` → `live` | `start("light_set")` → `start("live")` | 4.0, 2.3 | `light_changed`, `started`, `frame_ready` … |
-| `t` | `map` | `start("edge_trace")` / `abort` | `speed_um_s`, `hole_diameter_mm` (2.3) | `started`, `calibration`, `progress`, `map_changed` (가장자리 점마다), `finished` / `aborted` |
-| `+` / `-` | `map` | `update(edge_trace, {"speed_um_s": v})` | 엔진이 10..1000 으로 자른다. 걸음은 속도 × 0.5 s, 20..200 µm | `progress` (속도·걸음 표시) |
-| `Esc` | 어느 영역이든 | `abort` | `op_id` 없음 = 실행 중 전부 (라이브 획득은 제외: 4.4 의 2) | `aborted` 들 |
+| `t` | `map` | `start("edge_trace")` / `abort` | `speed_um_s`, `hole_diameter_mm` (2.3) | `started`, `calibration`, `progress`, `map_changed` (per edge point), `finished` / `aborted` |
+| `+` / `-` | `map` | `update(edge_trace, {"speed_um_s": v})` | the engine clamps to 10..1000. A step is speed × 0.5 s, 20..200 µm | `progress` (speed and step shown) |
+| `Esc` | any area | `abort` | no `op_id` = everything running (except live acquisition: 4.4 item 2) | `aborted` events |
 | `f` / `w` / `W` | `live` | `start("piezo_servo" / "piezo_autofocus" / "piezo_zsweep")` / `abort` | 4.0 | `progress`, `reading`, `finished` / `aborted` |
-| `z` / `Z` | `live` | `start("score_tare")` / `start("score_tare_clear")` | 엔진이 최근 2 s 의 모델 읽기를 쓴다 | `sample_opened` 갱신과 `log`. 3개 미만이면 `preflight_failed` |
-| `o` | `live` | `update(live, {"read_region": …})` | `"box_first"` / `"frame"` | 이후 `reading.region` 이 바뀜 |
-| `"Save frame"` (새) | `live` | `start("frame_save")` | — | `finished.summary.path` |
-| `"Show objective / Z / PFS"` | `hardware` | `start("status")` | — | `finished.summary` (렌즈, Z, PFS) |
-| `"Start 4x scan"` | `map` | `start("scan_4x")` | 2.4 | `planned`, `preflight_*`, `confirm_required` (3절), `progress`, `frame_ready`, `finished` |
-| `"Lights off"` | `hardware` (공통 상태 줄에도) | `lights_off` 명령 (events.py 의 명령 종류, `start` 가 아님) | — | `light_changed`, `finished.end_state` |
-| 브라우저 탭 닫기 / 서버 종료 | — | 탭 닫기는 명령을 보내지 않는다. 서버 종료가 `abort` (전부) → `lights_off` → 백엔드 닫기 | — | `aborted` …, `light_changed`, 닫기 결과 (5절) |
+| `z` / `Z` | `live` | `start("score_tare")` / `start("score_tare_clear")` | the engine uses the model readings of the last 2 s | an updated `sample_opened` and a `log`. `preflight_failed` if there are fewer than 3 |
+| `o` | `live` | `update(live, {"read_region": …})` | `"box_first"` / `"frame"` | `reading.region` changes from then on |
+| `"Save frame"` (new) | `live` | `start("frame_save")` | — | `finished.summary.path` |
+| `"Show objective / Z / PFS"` | `hardware` | `start("status")` | — | `finished.summary` (objective, Z, PFS) |
+| `"Start 4x scan"` | `map` | `start("scan_4x")` | 2.4 | `planned`, `preflight_*`, `confirm_required` (§3), `progress`, `frame_ready`, `finished` |
+| `"Lights off"` | `hardware` (also on the common status bar) | the `lights_off` command (a command kind in events.py, not a `start`) | — | `light_changed`, `finished.end_state` |
+| closing the browser tab / server shutdown | — | Closing a tab sends no command. Server shutdown does `abort` (everything) → `lights_off` → close the backend | — | `aborted` …, `light_changed`, the close result (§5) |
 
-웹에서는 "창 닫기" 가 엔진 종료가 아니다. 탭을 닫아도 서버의 작업은 계속된다. 그래서 소등을 탭 닫기에
-걸지 않고, 서버 종료 경로와 작업별 `finally` 에 건다 (5절). 현미경 PC 의 마지막 로컬 탭이 끊긴 채
-움직이는 작업이 돌 때의 처리는 4.4 의 6.
+On the web, "closing the window" is not engine shutdown. The server's operations continue after a tab is closed. So turning the lights off is not hooked
+to closing a tab but to the server shutdown path and each operation's `finally` (§5). What happens when a moving operation runs while the microscope PC's last local tab
+is disconnected is 4.4 item 6.
 
-### 4.3 UI 안의 직접 하드웨어 호출 → 엔진으로
+### 4.3 Direct hardware calls inside the UI → into the engine
 
-현재 UI 프로세스가 직접 부르는 하드웨어 호출 전부다. 새 UI 는 이 중 어느 것도 직접 부르지 않는다
-(PLAN 6절 1항).
+Every hardware call the current UI process makes directly. The new UI makes none of them directly
+(PLAN §6 item 1).
 
-| 지금 (파일: 위치) | 하는 일 | 옮길 곳 |
+| Now (file: location) | What it does | Where it moves |
 |---|---|---|
-| `live_focus.py`: `open_core(...)` (`mm_grab.open_core`) | config 로드, AutoShutter off, 노출, ROI | 엔진 열기 (백엔드 `open`). 노출은 `live.exposure_ms` |
-| `live_focus.py`: `set_and_read` × `--set` (런처가 `Aura State 0`, `DiaLamp State 1/0` 을 넣음) | 조명을 속성 쓰기로 바꿈 | `start("light_set", {"mode": "brightfield" / "aura" / "off", …})`. 백엔드의 의미 단위 메서드 (`lamp_on/off`, `aura_line_on`, `aura_off`, T-002 부록 2) 를 쓰고 readback 은 `light_changed.records` 로. 임의 `--set` 은 UI 에서 없앤다 |
-| `live_focus.py`: `aura_on(core, line, pct)`, 종료 시 `aura_off(core)` | Aura 켜기/끄기 | `light_set` / `lights_off`. 종료 소등은 엔진 가드의 `finally` (T-002 guards) |
-| `live_focus.py`: `setCircularBufferMemoryFootprint`, `startContinuousSequenceAcquisition`, `getRemainingImageCount`, `popNextImageAndMD`, `stopSequenceAcquisition` | 연속 획득과 프레임 꺼내기, fps 솎기 | `live` 작업. 솎기 규칙 (카메라 타임스탬프 기준, 밀리면 다시 맞춤) 도 엔진으로 |
-| `live_focus.py`: `positions(core, piezo)` 0.5 s | XY, Z, 피에조 읽기 | 엔진이 `position` 이벤트로 낸다 |
-| `live_focus.py`: `getProperty("Nosepiece", "Label")`, `getPixelSizeUm()` 0.5 s | 렌즈와 시야 크기 | `objective` 이벤트 **(제안)** |
-| `live_focus.py`: `getImageBitDepth()` | 포화 천장 (12-bit = 4095) | `frame_ready.stats.bit_depth`. `sat_pct` 는 엔진이 계산 |
-| `live_focus.py`: `PiezoReader(...)` 열기·읽기·닫기 | 피에조 읽기 | 백엔드 |
-| `edge_track.py`: `EdgeTracker` 의 `setRelativeXYPosition`, `getXYPosition`, `waitForDevice` (`t` 키) | 보정 이동 (축마다 200 µm) 과 추적 이동 (걸음 ≤ 200 µm) | `edge_trace` 작업. `feed(frame)` 은 엔진 안에서 `live` 프레임을 받는다. `on_point` → `map_changed`, `cal_result` → `calibration`, `set_speed` → `update`. 멈춤 조건 (가장자리 3프레임 소실, 시작점에서 7 mm, 한 바퀴, 경로 25 mm, 360 s) 은 작업 안에 그대로 둔다 |
-| `focus_servo.py`: `FocusServo` / `AutoFocusZ` / `ZSweep` 의 `piezo.move_z(target, window)` (`f`, `w`, `W`) | 피에조 Z 이동 (시작점 ±5 µm, 0..600 µm) | `piezo_*` 작업. 창 제한은 가드로. 손으로 움직였는지 검사 (ZDrive 0.3 µm, XY 2 µm) 도 가드로 |
-| `live_focus.py`: `FocusScorer` 스레드 (`dino_autofocus.live`) | DINO 읽기 | 엔진 초점 계층 (WP-E `focus/dino.py`) 이 `reading(source="model")` 을 낸다. torch 는 사용 지점에서만 |
-| `live_focus.py`: `brenner(box)`, `vollath4(box)` | 고전 지표 | 엔진 초점 계층 (WP-E `focus/classical.py`) 이 `reading(source="classical")` 을 낸다 |
-| `live_focus.py`: `raw.write`, `meta.write` (`--record`) | 녹화 | `live.record` 인자. 엔진 기록 |
-| `live_focus.py`: `Sample`, `XYMap.add/mark_boundary/save`, `track.write` | 샘플·지도·track 기록 | 엔진 `sample.py` (T-002) 와 위 기록 작업들. 그리기 (`XYMap.draw`) 만 UI 에 남는다 |
-| `launcher.py`: `hardware_users()` (PowerShell 프로세스 검사) | 다른 프로그램의 현미경 사용 탐지 | 엔진 preflight (코어 단일 소유 가드 + 외부 프로그램 검사). 결과는 `preflight_failed` 또는 `confirm_required` (3절) |
-| `launcher.py`: `subprocess.Popen(CREATE_NEW_CONSOLE)` + Ctrl+C | 작업마다 별도 프로세스, 중지 | 엔진 작업은 같은 프로세스 (D3). 중지는 `abort`. 로그 파일은 엔진 기록 |
-| `scan_4x.py`: `Preview` 의 `axis.position_um()`, `core.getExposure()` | 미리보기 글자 | `progress.data`, `frame_ready` |
+| `live_focus.py`: `open_core(...)` (`mm_grab.open_core`) | config load, AutoShutter off, exposure, ROI | engine open (backend `open`). Exposure is `live.exposure_ms` |
+| `live_focus.py`: `set_and_read` × `--set` (the launcher puts in `Aura State 0`, `DiaLamp State 1/0`) | switches lighting by writing properties | `start("light_set", {"mode": "brightfield" / "aura" / "off", …})`. Uses the backend's semantic methods (`lamp_on/off`, `aura_line_on`, `aura_off`, T-002 Appendix 2), with the readback in `light_changed.records`. Arbitrary `--set` is removed from the UI |
+| `live_focus.py`: `aura_on(core, line, pct)`, on exit `aura_off(core)` | Aura on/off | `light_set` / `lights_off`. Lights-off on exit is the engine guard's `finally` (T-002 guards) |
+| `live_focus.py`: `setCircularBufferMemoryFootprint`, `startContinuousSequenceAcquisition`, `getRemainingImageCount`, `popNextImageAndMD`, `stopSequenceAcquisition` | continuous acquisition and popping frames, fps thinning | the `live` operation. The thinning rule (by camera timestamp, re-align when behind) moves into the engine too |
+| `live_focus.py`: `positions(core, piezo)` 0.5 s | XY, Z, piezo read | the engine emits it as the `position` event |
+| `live_focus.py`: `getProperty("Nosepiece", "Label")`, `getPixelSizeUm()` 0.5 s | objective and field-of-view size | the `objective` event **(proposed)** |
+| `live_focus.py`: `getImageBitDepth()` | saturation ceiling (12-bit = 4095) | `frame_ready.stats.bit_depth`. `sat_pct` is computed by the engine |
+| `live_focus.py`: `PiezoReader(...)` open, read, close | piezo read | backend |
+| `edge_track.py`: `EdgeTracker`'s `setRelativeXYPosition`, `getXYPosition`, `waitForDevice` (`t` key) | calibration moves (200 µm per axis) and tracking moves (step ≤ 200 µm) | the `edge_trace` operation. `feed(frame)` receives `live` frames inside the engine. `on_point` → `map_changed`, `cal_result` → `calibration`, `set_speed` → `update`. The stop conditions (edge lost for 3 frames, 7 mm from the start point, one full lap, path 25 mm, 360 s) stay inside the operation as they are |
+| `focus_servo.py`: `piezo.move_z(target, window)` of `FocusServo` / `AutoFocusZ` / `ZSweep` (`f`, `w`, `W`) | piezo Z move (start point ±5 µm, 0..600 µm) | the `piezo_*` operations. The window limit becomes a guard. The check for movement by hand (ZDrive 0.3 µm, XY 2 µm) becomes a guard too |
+| `live_focus.py`: the `FocusScorer` thread (`dino_autofocus.live`) | DINO reading | the engine focus layer (WP-E `focus/dino.py`) emits `reading(source="model")`. torch only at the point of use |
+| `live_focus.py`: `brenner(box)`, `vollath4(box)` | classical metrics | the engine focus layer (WP-E `focus/classical.py`) emits `reading(source="classical")` |
+| `live_focus.py`: `raw.write`, `meta.write` (`--record`) | recording | the `live.record` argument. An engine record |
+| `live_focus.py`: `Sample`, `XYMap.add/mark_boundary/save`, `track.write` | sample, map and track records | the engine's `sample.py` (T-002) and the record operations above. Only drawing (`XYMap.draw`) stays in the UI |
+| `launcher.py`: `hardware_users()` (PowerShell process check) | detecting microscope use by other programs | engine preflight (single core-owner guard + external program check). The result is `preflight_failed` or `confirm_required` (§3) |
+| `launcher.py`: `subprocess.Popen(CREATE_NEW_CONSOLE)` + Ctrl+C | a separate process per operation, stopping | engine operations run in the same process (D3). Stopping is `abort`. Log files are engine records |
+| `scan_4x.py`: `axis.position_um()`, `core.getExposure()` in `Preview` | preview text | `progress.data`, `frame_ready` |
 
-### 4.4 T-002 / T-011 에 넘긴 질문과 처리 결과
+### 4.4 Questions passed to T-002 / T-011 and how they were resolved
 
-매니저 처리 (2026-10-01, main 2742069 의 T-011 과제 파일):
+Resolved by the manager (2026-10-01, the T-011 task file at main 2742069):
 
-| # | 질문 | 처리 |
+| # | Question | Resolution |
 |---|---|---|
-| 1 | 프레임 픽셀의 경로 | T-009 의 `/ws/frames` 가 맡는다 (서버 비닝 JPEG, 최신만) |
-| 2 | 라이브와 "작업 하나" 규칙 | **채택**: 연속 획득은 엔진 소유 획득 스트림이고 단일 소유에 세지 않는다. `scan_4x`, `focus_100x` 는 시작 때 스트림을 멈추고 끝나면 되돌린다 |
-| 3 | 기록 작업 | **채택**: 하드웨어를 움직이지 않는 기록 작업 (`b`, `u`, `z`, 샘플 열기) 은 단일 소유에서 뺀다 |
-| 4 | 실행 중 인자 변경 | T-011 의 `update` 명령 |
-| 5 | 원격 `abort` | **결정 (D13)**: 원격은 `abort` 만 보낼 수 있다. 그 밖의 원격 명령은 거부 |
-| 6 | 로컬 탭이 모두 끊긴 채 도는 작업 | **결정 (D14)**: 연결이 모두 끊기면 10 s 뒤 자동 정지 (PLAN 7절) |
+| 1 | the path for frame pixels | T-009's `/ws/frames` handles it (server-binned JPEG, latest only) |
+| 2 | live and the "one operation" rule | **Adopted**: continuous acquisition is an engine-owned acquisition stream and does not count toward single ownership. `scan_4x`, `focus_100x` stop the stream when they start and restore it when they finish |
+| 3 | record operations | **Adopted**: record operations that do not move hardware (`b`, `u`, `z`, opening a sample) are excluded from single ownership |
+| 4 | changing arguments while running | T-011's `update` command |
+| 5 | remote `abort` | **Decided (D13)**: remote can send only `abort`. Every other remote command is refused |
+| 6 | operations running with every local tab disconnected | **Decided (D14)**: when every connection drops, automatic stop after 10 s (PLAN §7) |
 
-아래는 초안에 쓴 질문 원문이다.
+Below is the original text of the questions as written in the draft.
 
-1. **프레임 픽셀의 경로.** 2400 × 2400 uint16 은 11.5 MB 다. `frame_ready` 이벤트는 메타만 담고
-   픽셀은 별도 채널로 보낸다. 엔진은 최신 프레임 하나만 들고, 서버의 `/ws/frames` 가 그것을 비닝·늘림
-   (`bin_for_display` 와 같은 식) 해 JPEG 로 보낸다. 최신만 남기고 줄을 세우지 않는다 (지금의 점수
-   스레드 방식). 느린 브라우저는 프레임을 건너뛴다. 원본이 필요하면 `GET` 으로 한 장 받는다.
-   엔진 쪽 계약은 `latest_frame() -> (frame_id, ndarray)` 하나면 된다.
-2. **`live` 와 "한 번에 작업 하나" 규칙의 충돌 (T-011).** T-011 은 실행 중 새 작업 명령을 거부한다.
-   그런데 지금의 라이브 뷰는 연속 획득을 켠 채로 엣지 추적 (`t`), 서보 (`f`), 스윕 (`w`/`W`),
-   경계점 (`b`), tare (`z`) 를 받는다. 추적과 서보는 라이브 프레임을 먹으며 돈다. 그대로 옮기면
-   라이브 뷰를 켠 동안 `t` 가 거부된다. 권고: 연속 획득을 작업이 아니라 엔진이 소유한 **획득
-   스트림**으로 둔다. 스트림은 단일 소유 규칙에 세지 않고, 작업은 스트림 프레임을 구독한다.
-   `scan_4x`, `focus_100x` 처럼 스냅을 직접 하는 작업은 시작할 때 스트림을 멈추고 끝나면 되돌린다.
-   `Esc` 와 `abort(op_id 없음)` 은 스트림을 멈추지 않는다. 다른 방법은 `live` 를 바탕 작업으로
-   두고 함께 돌 수 있는 작업 표를 엔진이 갖는 것이다. 어느 쪽이든 T-011 에서 정해야 한다.
-3. **기록 작업도 `start` 로 보낼지.** 이 문서는 경계점·tare·샘플 열기를 `start` 로 보내 기록을
-   남기는 쪽을 제안했다. 다만 2 의 규칙대로면 추적 중 `b`, `z` 가 거부된다. 하드웨어를 움직이지 않는
-   기록 작업은 단일 소유 규칙에서 빼거나, 별도 `sample` 명령 하나로 묶기를 권한다.
-4. **`update` 의 인자 선언.** 추적 속도 (`speed_um_s`), 라이브 읽기 영역 (`read_region`), 라이브
-   노출 (`exposure_ms`) 이 이 문서가 쓰는 이름이다. T-006 의 `edge_trace` 와 이름을 맞춘다.
-5. **원격의 `abort`.** 원격은 읽기 전용이다. 다만 원격 화면에서 문제를 본 사람이 멈출 수 있게
-   `abort` 만 허용할지 정해야 한다. 멈춤은 움직임을 줄이는 방향이라 허용을 권하지만, 사용자 결정이다.
-6. **로컬 화면이 사라진 채 도는 작업.** 탭을 닫아도 작업은 계속된다. 확인이 필요한 작업
-   (`confirm_required` 대기) 은 응답이 올 때까지 멈춰 있으면 된다. 엣지 추적처럼 사람이 보며
-   쓰는 작업은 로컬 WebSocket 이 모두 끊기면 일정 시간 뒤 스스로 `abort` 할지 정한다. 권고는 "끊긴 뒤
-   10 s 에 abort", 시간은 엔진 설정.
+1. **The path for frame pixels.** 2400 × 2400 uint16 is 11.5 MB. The `frame_ready` event carries only metadata and
+   the pixels go on a separate channel. The engine holds only the latest frame, and the server's `/ws/frames` bins and stretches it
+   (the same way as `bin_for_display`) and sends it as JPEG. Only the latest is kept and nothing is queued (today's score
+   thread approach). A slow browser skips frames. If the raw frame is needed, one is fetched with `GET`.
+   The engine-side contract needs only `latest_frame() -> (frame_id, ndarray)`.
+2. **Conflict between `live` and the "one operation at a time" rule (T-011).** T-011 refuses a new operation command while one is running.
+   But today's live view accepts edge tracking (`t`), servo (`f`), sweep (`w`/`W`),
+   boundary points (`b`) and tare (`z`) with continuous acquisition on. Tracking and servo run on live frames. Carried over as is,
+   `t` would be refused while the live view is on. Recommendation: make continuous acquisition not an operation but an engine-owned **acquisition
+   stream**. The stream does not count toward the single-ownership rule, and operations subscribe to the stream's frames.
+   Operations that take their own snaps, like `scan_4x`, `focus_100x`, stop the stream when they start and restore it when they finish.
+   `Esc` and `abort(no op_id)` do not stop the stream. The alternative is to keep `live` as a background operation
+   and have the engine hold a table of operations that may run alongside it. Either way, it has to be decided in T-011.
+3. **Whether record operations also go through `start`.** This document proposed sending boundary points, tare and opening a sample through `start`, to leave
+   a record. But under the rule in point 2, `b` and `z` would be refused during tracking. For record operations that do not move hardware,
+   the recommendation is to exclude them from the single-ownership rule or to bundle them into one separate `sample` command.
+4. **Argument declarations for `update`.** Tracking speed (`speed_um_s`), live read region (`read_region`) and live
+   exposure (`exposure_ms`) are the names this document uses. Match the names to T-006's `edge_trace`.
+5. **`abort` from remote.** Remote is read-only. But it has to be decided whether to allow `abort` alone, so that someone who sees a problem on a remote screen
+   can stop it. Stopping is in the direction of less motion, so allowing it is recommended, but it is the user's decision.
+6. **Operations running with the local screen gone.** Operations continue after a tab is closed. An operation that needs confirmation
+   (waiting on `confirm_required`) can simply stay stopped until an answer comes. For operations a person uses while watching, like edge tracking,
+   decide whether they `abort` themselves some time after every local WebSocket drops. The recommendation is "abort 10 s after
+   the disconnect", with the time an engine setting.
 
 ---
 
-## 5. 운영 규칙의 화면 강제
+## 5. Enforcing the operating rules on screen
 
-규칙을 지키는 것은 엔진이다. 화면은 (1) 규칙이 막은 것을 이유와 함께 보여 주고, (2) 지켜야 할 순서를
-눈에 보이게 하고, (3) 규칙을 깨는 입력을 애초에 내지 않는다. 화면이 막는 것은 안내이고, 같은 요청이
-API 로 직접 와도 엔진이 막아야 한다.
+Keeping the rules is the engine's job. The screen (1) shows what a rule blocked, with the reason, (2) makes the required order
+visible, and (3) never sends rule-breaking input in the first place. What the screen blocks is guidance; if the same request
+comes directly through the API, the engine must block it.
 
-### 5.1 2026-09-30 운영 규칙
+### 5.1 Operating rules of 2026-09-30
 
-| 규칙 | 근거 | 엔진이 막는 곳 | 화면이 하는 것 |
+| Rule | Basis | Where the engine blocks | What the screen does |
 |---|---|---|---|
-| **명시야로 가장자리 추적, 그다음 입자 조명** | 운영 기록 2절 머리 (`brightfield_edge_then_particle_light`) | `edge_trace` 는 run 1번에서 Aura off, DiaLamp on. `scan_4x` 는 자기 조명 (Aura GREEN 1 %) 을 켜고 끝에 끈다 | `map` 영역에 순서를 단계로 보여 준다: `"1  Trace the hole edge (brightfield)"` → `"2  Scan (particle light)"`. 2단계 버튼은 이번 세션 hole 피팅이 있을 때만 켜진다. 꺼져 있으면 `"Trace the hole edge in brightfield first"`. 라이브 뷰가 Aura 로 켜져 있을 때 `t` 를 누르면, 추적이 조명을 명시야로 바꾼다는 것을 C5 대화상자에 적는다 |
-| **세션마다 재추적, 오래된 hole 피팅 재사용 금지** | 9/30 에 18:49 → 19:57 사이 구멍이 1.5 mm 이동 | `scan_4x`, `sample_map` preflight 가 `hole.fitted_at` 을 본다 (T-002 부록 3). 이번 세션 전이면 C2 | hole 요약에 피팅 시각과 상태를 늘 붙인다: `"Hole fit 19:57 (this session)"` (보통) 또는 `"Hole fit 18:49, previous session: re-trace before scanning"` (경고색). "이번 세션" 의 기준은 열린 실험 세션의 시작 시각 (F7, T-019) 이고, 세션이 없으면 엔진 시작 시각이다 **(제안: T-019 와 맞출 것)**. 재추적 버튼은 C4 의 백업 안내를 먼저 보여 준다 |
-| **100x 스윕을 4x 초점에 중심 두지 않기** | 운영 기록 Step 4. 100x 초점은 4x 초점보다 약 60–100 µm 아래 | `focus_100x` preflight: 중심이 4x 초점보다 위면 C11. 천장 `min(3200, centre + 0.4 × 130)` | `objective` 영역의 100x 초점 양식은 중심 칸을 **빈 칸이 아니라 계산값으로** 채운다: 같은 XY 의 4x 초점 평면 값 − 60 µm (값 옆에 `"lab offset, to be re-measured"`). 4x 초점과 천장을 같은 표에 나란히 보여 준다. 스윕 계획 그림에 천장 선을 그린다 |
-| **100x 에서 위로 연장은 사람이 승인** | `no_climb_without_ok` | 피크가 위 끝이면 작업이 멈추고 C9 | 위로 연장하는 버튼은 C9 대화상자 안에만 있다. 양식에서 범위를 직접 올리는 것은 새 실행이고, 그때도 천장과 C11 을 지난다 |
-| **렌즈 회전 뒤 액침액 로딩 대기** | `confirm_oil` | `objective_change` 5단계가 `manual_step` 으로 멈추고 Z, XY, Nosepiece 명령을 보내지 않는다 | C7 단계 카드. 대기 중에는 공통 상태 줄에 `"Waiting: load immersion oil"` 을 띄워 다른 영역에서도 보이게 한다 |
-| **종료 시 소등, 그리고 그 상태를 보여 주기** | 9/30 알려진 문제 4 (DiaLamp 미소등) | 모든 작업의 종료 컨텍스트가 `all_off()` + readback. `lights_off` 는 선점 | 5.2 |
-| **모델 판정은 5개 어휘로만, Z 는 엔코더 값만** | PLAN 6절 3항 | 모델 값은 안전 판단에 들어가지 않는다. 예외: Live 의 Z score 게이지는 DoF 숫자를 보인다 (사용자 결정 2026-10-02, 표시만) | 5.3 |
+| **Trace the edge in brightfield, then particle light** | head of §2 of the operations record (`brightfield_edge_then_particle_light`) | `edge_trace` turns Aura off and DiaLamp on at run step 1. `scan_4x` turns on its own light (Aura GREEN 1 %) and turns it off at the end | The `map` area shows the order as steps: `"1  Trace the hole edge (brightfield)"` → `"2  Scan (particle light)"`. The step 2 button is enabled only when there is a hole fit from this session. When it is disabled, `"Trace the hole edge in brightfield first"`. If `t` is pressed while the live view is on with Aura, the C5 dialog states that tracking will switch the light to brightfield |
+| **Re-trace every session; no reuse of an old hole fit** | on 9/30 the hole moved 1.5 mm between 18:49 → 19:57 | the `scan_4x`, `sample_map` preflight looks at `hole.fitted_at` (T-002 Appendix 3). C2 if it is from before this session | The hole summary always carries the fit time and state: `"Hole fit 19:57 (this session)"` (normal) or `"Hole fit 18:49, previous session: re-trace before scanning"` (warning colour). "This session" is measured from the start time of the open experiment session (F7, T-019), or the engine start time if there is no session **(proposed: align with T-019)**. The re-trace button shows C4's backup notice first |
+| **Do not centre the 100x sweep on the 4x focus** | operations record Step 4. The 100x focus is about 60–100 µm below the 4x focus | `focus_100x` preflight: C11 if the centre is above the 4x focus. Ceiling `min(3200, centre + 0.4 × 130)` | The 100x focus form in the `objective` area fills the centre field **with a computed value, not left empty**: the 4x focal-plane value at the same XY − 60 µm (with `"lab offset, to be re-measured"` beside the value). The 4x focus and the ceiling are shown side by side in the same table. The ceiling line is drawn on the sweep plan plot |
+| **Extending upward at 100x needs human approval** | `no_climb_without_ok` | if the peak is at the top end, the operation stops with C9 | The button that extends upward exists only inside the C9 dialog. Raising the range directly in the form is a new run, and it too passes the ceiling and C11 |
+| **Wait for immersion liquid loading after objective rotation** | `confirm_oil` | step 5 of `objective_change` stops as a `manual_step` and sends no Z, XY or Nosepiece commands | the C7 step card. While waiting, the common status bar shows `"Waiting: load immersion oil"` so that it is visible from other areas too |
+| **Lights off at exit, and show that state** | 9/30 known issue 4 (DiaLamp not turned off) | every operation's exit context does `all_off()` + readback. `lights_off` is pre-emptive | 5.2 |
+| **Model verdicts only in the 5-word vocabulary, Z only as encoder values** | PLAN §6 item 3 | Model values do not enter safety judgements. Exception: Live's Z score gauge shows the DoF number (user decision 2026-10-02, display only) | 5.3 |
 
-### 5.2 조명 상태 표시
+### 5.2 Lighting state display
 
-- **공통 상태 줄에 늘 보인다.** `"DiaLamp OFF · Aura OFF"` 와 마지막 readback 시각. 값은
-  `light_changed` 이벤트에서만 온다. 화면이 조명 상태를 추측하지 않는다.
-- 상태는 셋이다: 꺼짐 (readback 확인), 켜짐 (라인과 퍼센트, 예: `"Aura GREEN 1 %"`), 모름
-  (`"unknown"` 또는 `verified=false`). 모름은 경고색이고 `"Lights not confirmed: DiaLamp read 1, wanted 0"`
-  처럼 readback 원문을 보여 준다.
-- **`"Lights off"` 버튼은 모든 화면의 상태 줄에 있다.** `lights_off` 는 선점이라 실행 중인 작업이 있어도
-  누를 수 있다. 누르면 그 작업이 멈춘다는 것을 버튼 옆 한 줄로 적는다 (`"stops <op>"`). 로컬에서는 viewer 를 포함해 로그인한 누구나 누를 수 있고,
-  원격에서는 꺼진다 (D13: 원격은 정지만, 7.0).
-- **작업이 끝날 때마다** 결과 패널에 `end_state` 의 조명 readback 을 한 줄로 붙인다.
-- **서버 종료.** 웹 탭을 닫는 것은 종료가 아니다 (4.2 끝). 데스크톱 런처 (T-016) 가 서버를 끌 때 마지막
-  소등 readback 을 런처 창과 앱 로그에 남긴다. 다음에 서버가 뜨면 첫 화면에 `"Last shutdown: lights off
-  confirmed at <t>"` 또는 확인 실패를 보여 준다 **(제안)**.
+- **Always visible on the common status bar.** `"DiaLamp OFF · Aura OFF"` and the time of the last readback. The values
+  come only from `light_changed` events. The screen does not guess the lighting state.
+- There are three states: off (readback confirmed), on (line and percent, e.g. `"Aura GREEN 1 %"`), unknown
+  (`"unknown"` or `verified=false`). Unknown is in a warning colour and shows the raw readback text, as in
+  `"Lights not confirmed: DiaLamp read 1, wanted 0"`.
+- **The `"Lights off"` button is on every screen's status bar.** `lights_off` is pre-emptive, so it can be pressed even while an operation
+  is running. One line beside the button says that pressing it stops that operation (`"stops <op>"`). Locally anyone logged in, including a viewer, can press it,
+  and from remote it is disabled (D13: remote can only stop, 7.0).
+- **Each time an operation ends**, the result panel adds one line with the lighting readback from `end_state`.
+- **Server shutdown.** Closing a web tab is not shutdown (end of 4.2). When the desktop launcher (T-016) stops the server, it leaves the last
+  lights-off readback in the launcher window and the app log. The next time the server starts, the first screen shows `"Last shutdown: lights off
+  confirmed at <t>"` or the confirmation failure **(proposed)**.
 
-### 5.3 모델 출력과 Z 의 표시
+### 5.3 How model output and Z are shown
 
-| 지금 (live_focus.py) | 새 화면 |
+| Now (live_focus.py) | New screen |
 |---|---|
-| 게이지에 DoF 숫자 (`+1.2`), sigma 막대, −10..+10 눈금 | **사용자 결정 (2026-10-02)으로 9/30 게이지를 그대로 둔다**: Live 영역 Focus 패널의 `"Z score"` (`web/src/app/live/FocusGauge.tsx`). −10..+10 DoF 세로 막대, 0 = 초점, +10 위 (`above`), −10 아래 (`below`), ±1 DoF 초록 띠, 마커, sigma 막대, 숫자 (`+1.2`), 메모. 출처 표시는 늘 붙는다: `"mock truth"` (목 세계의 실제 z, 측정 아님) 또는 `"model"` (`--head` 로 읽은 DINO 헤드, 최근 5개 중앙값). 헤드가 없으면 `"No DINO head loaded (--head)"`. 화면 표시일 뿐 어떤 판단에도 들어가지 않는다. 판정 배지 (`in_focus` … `unsure`) 는 작업 결과와 지도에 그대로 쓴다 |
-| 메모 `"box: 3/4 tiles, sign unsure, offset +0.5"` | 게이지 메모는 9/30 형식 (`"box: 3/4 tiles, sign unsure"`). tare offset 은 아직 게이지에 적용하지 않는다. 기록에는 `grade: "model"` 로 남는다 |
-| 타일 테두리 위 `+1.3` | 타일마다 판정 배지의 작은 표시 (아이콘 또는 약어). 읽을 수 없는 타일은 회색 점선 그대로 |
-| tare 결과 `"offset +0.52 DoF"` | `"Tared at this focus (objective <label>)"`. 숫자는 기록에만 |
-| 지도의 방문 필드 색 (\|s\| ≤ 1 초록, ≤ 3 파랑) | 판정으로 색: `in_focus` 초록, 나머지는 한 가지 중립색. "얼마나 먼지" 를 색으로 나타내지 않는다 |
-| z 트레이스 `z_sum` | 그대로. `position` 의 엔코더 값 |
-| 스윕 곡선의 x 축 | 각 점의 `z_readback_um` (명령값이 아님). 고른 초점은 가장 가까운 실제 프레임의 엔코더 z (T-003) |
+| DoF number on the gauge (`+1.2`), sigma bar, −10..+10 scale | **By the user's decision (2026-10-02) the 9/30 gauge stays as it is**: `"Z score"` in the Live area's Focus panel (`web/src/app/live/FocusGauge.tsx`). A −10..+10 DoF vertical bar, 0 = in focus, +10 above (`above`), −10 below (`below`), ±1 DoF green band, marker, sigma bar, number (`+1.2`), note. A source label is always attached: `"mock truth"` (the true z of the mock world, not a measurement) or `"model"` (the DINO head read with `--head`, median of the last 5). Without a head, `"No DINO head loaded (--head)"`. It is a screen display only and enters no judgement. The verdict badges (`in_focus` … `unsure`) are used unchanged in operation results and on the map |
+| note `"box: 3/4 tiles, sign unsure, offset +0.5"` | The gauge note uses the 9/30 format (`"box: 3/4 tiles, sign unsure"`). The tare offset is not applied to the gauge yet. It is kept in the record as `grade: "model"` |
+| `+1.3` on the tile outlines | a small mark of the verdict badge on each tile (icon or abbreviation). Unreadable tiles stay dashed grey |
+| tare result `"offset +0.52 DoF"` | `"Tared at this focus (objective <label>)"`. The number goes only into the record |
+| colours of the visited fields on the map (\|s\| ≤ 1 green, ≤ 3 blue) | colour by verdict: `in_focus` green, everything else one neutral colour. "How far off" is not shown by colour |
+| z trace `z_sum` | unchanged. The encoder value from `position` |
+| x axis of the sweep curve | each point's `z_readback_um` (not the commanded value). The chosen focus is the encoder z of the nearest actual frame (T-003) |
 
-- **화면 어디에도 "예측된 Z" 나 "목표 Z" 를 모델 값으로 보여 주지 않는다.** Z 숫자는 엔코더 readback,
-  사람이 입력한 값, 계획 (스윕 범위, 천장) 셋뿐이고, 각각 이름을 붙인다 (`"read"`, `"entered"`, `"plan"`).
-- 고전 지표 (Vollath, Brenner, peak) 의 값은 측정이므로 숫자로 보여도 된다. 트레이스와 스윕 곡선이 그렇다.
-- Claude 가 답변에 낸 숫자는 `"model"` 로 표시한다 (PLAN 5절 Claude 연동). 프롬프트 칸 (T-014) 의 몫이다.
-- 에이전트 카드의 숫자는 카드가 가진 등급 (E1–E5) 을 그대로 배지로 붙인다 (7.1). E6 은 카드에 들어올 수 없다.
+- **Nowhere on screen is a "predicted Z" or "target Z" shown as a model value.** Z numbers are only the encoder readback,
+  values a person entered, and the plan (sweep range, ceiling), and each one is labelled (`"read"`, `"entered"`, `"plan"`).
+- Classical metric values (Vollath, Brenner, peak) are measurements, so they may be shown as numbers. The traces and sweep curves are such.
+- Numbers Claude gives in an answer are marked `"model"` (PLAN §5 Claude integration). That belongs to the prompt pane (T-014).
+- Numbers on agent cards carry the grade the card holds (E1–E5) as a badge, unchanged (7.1). E6 cannot enter a card.
 
-### 5.4 그 밖에 9월 30일에서 온 화면 표시
+### 5.4 Other on-screen indications that came from 30 September
 
-| 사례 | 화면 |
+| Case | Screen |
 |---|---|
-| Aura 깜박임 (−23 % 프레임) | 스캔 진행과 결과에 버린 프레임 수와 z (`dropout_z_um`) 를 적는다 |
-| 사람이 재물대를 움직임 (readback 3037 / 3036) | 가드 중단은 `error` 배너로, 원인을 그대로: `"ZDrive read 3036.0, commanded 3037.0: stopped"`. `"moved by hand?"` 같은 추측은 붙이지 않는다 |
-| 이중 피크 (오일 부족) | `focus_100x` 결과에 `"check immersion oil"` 경고 (고전 판정). 재로딩 변형 (operations-spec 4.2) 으로 가는 버튼 |
-| 포화 | 상태 줄의 `sat %` 를 0 보다 크면 경고색으로. 스윕 결과에 `"reduce exposure"` |
-| 30 ms 에서 암전 수준만 읽음 | 판정 `no_sample_here` 와 함께 `"signal at dark level"` (고전) |
+| Aura flicker (−23 % frames) | the scan progress and results state the number of dropped frames and their z (`dropout_z_um`) |
+| A person moved the stage (readback 3037 / 3036) | a guard stop as an `error` banner, stating the cause as it is: `"ZDrive read 3036.0, commanded 3037.0: stopped"`. No guess such as `"moved by hand?"` is added |
+| Double peak (not enough oil) | a `"check immersion oil"` warning in the `focus_100x` result (classical verdict). A button to the reload variant (operations-spec 4.2) |
+| Saturation | `sat %` on the status bar in a warning colour when it is above 0. `"reduce exposure"` in the sweep result |
+| Only the dark level read at 30 ms | `"signal at dark level"` (classical) together with the verdict `no_sample_here` |
 
 ---
 
-## 6. 마일스톤 표시
+## 6. Milestone display
 
-마일스톤의 정의는 PLAN 8절을 따른다 (여기서 다시 적지 않는다). M1 은 전 기능 mock 이므로 이 문서의 모든 항목은
-M1 에서 mock 백엔드와 mock 저장소로 끝까지 돈다. 표의 "실제" 열은 같은 항목이 실제 데이터 (M2), 현미경 PC 읽기
-전용 (M3), 동작 (M4), 초점 판정 (M5) 중 어디에서 처음 실제로 도는지를 적는다.
+Milestone definitions follow PLAN §8 (not restated here). M1 is every feature on mock, so every item in this document
+runs end to end at M1 on the mock backend and the mock store. The table's "Real" column records where the same item first runs for real: on real data (M2), microscope PC read-only
+(M3), motion (M4), or focus verdict (M5).
 
-| 영역 | 항목 | M1 | 실제 | 비고 |
+| Area | Item | M1 | Real | Notes |
 |---|---|---|---|---|
-| 공통 | 내비게이션, 공통 상태 줄, 비활성 이유 (7.0) | M1 | M3 | 상태 줄의 위치·조명은 M3 에서 실제 readback |
-| 공통 | `"Lights off"` (선점) | M1 | M3 **(제안)** | 조명은 모션이 아니다. M3 에서 라이브 영상을 보려면 조명을 켜고 꺼야 하므로 `light_set` 과 함께 M3 에 둔다. 총괄 확인 필요 |
-| 공통 | 확인 대화상자 틀 (3.0) | M1 | 각 작업과 같이 | |
-| `console` | 질문·카드·버전·숫자 등급·실행·수신함 읽기 | M1 | M2 | soft-matter-agents 파일 읽기 |
-| `console` | 질문 넣기 | M1 (mock 저장소) | 미정 | 실제 경로는 통합 단계 (PLAN 10절) |
-| `console` | 실행 상세에서 F6 로 가는 링크 | M1 | M2 | F6 자체는 T-012 |
-| `hardware` | 탐지, 구성 파일, 게이트 표 | M1 | M3 | |
-| `hardware` | 사람 확인 항목 입력 | M1 | M3 | |
-| `hardware` | 상태 (Step 0, `status`) | M1 | M3 | |
-| `hardware` | 조명 켜기 (`light_set`) | M1 | M3 **(제안)** | 위 `"Lights off"` 와 같은 이유 |
-| `sample` | 샘플 목록, 열기, 새로 만들기 | M1 | M2 | 실제 샘플 폴더 읽기 (사용자가 사본을 주기로 함, T-005) |
-| `sample` | 지오메트리 양식 | M1 | M3 | 필드 목록은 사용자 확인 필요 (PLAN 10절) |
-| `sample` | 로딩 확인 (사람 + 이미지) | M1 | M3 | 이미지 확인은 조명과 카메라만 쓴다 |
-| `map` | 지도 그리기, 방문 필드, 경계, hole 요약 | M1 | M2 | 실제 `map.json`, `sample.json` 읽기 |
-| `map` | 경계점 `b` / `u` | M1 | M3 | 위치 읽기만 |
-| `map` | 엣지 추적 | M1 | M4 | XY 이동 |
-| `map` | 4x 스캔, 샘플 맵 (모자이크, 후보) | M1 | M4 | 스캔 결과 보기는 M2 (저장된 `scan4x_*`) |
-| `map` | flag, 후보 확인 | M1 | M2 | 기록 작업. 실제 샘플 위에서 |
-| `map` | 클릭 이동 | M1 | M4 | |
-| `objective` | 렌즈 전환 7단계, `"Loading done"`, 복귀, 재로딩 | M1 | M4 | 이탈 거리와 부호가 미정 (PLAN 5절 방향 기준, 10절) 이라 그 전에는 `escape=False` 만 |
-| `objective` | 100x 초점 (고전 판정) | M1 | M4 | |
-| `live` | 라이브 영상, 상태 줄, 트레이스 | M1 | M3 | 실제 카메라는 M3 (읽기 전용 + 조명) |
-| `live` | 고전 판정 배지 | M1 | M3 | |
-| `live` | DINO 판정 배지, tare | M1 (가짜 판정) | M5 | 현미경 PC 학습 헤드 |
-| `live` | 피에조 `f` / `w` / `W` | 꺼 둠 | M5 이후 | operations-spec 9.2: 다시 설계해야 함 |
-| `live` | `"Save frame"`, 녹화 | M1 | M3 | |
-| `live` | replay 백엔드로 저장된 스택 보기 | M1 (`data/smoke`) | M2 | T-005 |
+| Common | navigation, common status bar, disabled reasons (7.0) | M1 | M3 | the position and lighting on the status bar are real readback at M3 |
+| Common | `"Lights off"` (pre-emptive) | M1 | M3 **(proposed)** | Lighting is not motion. Seeing live video at M3 means turning lights on and off, so it goes in M3 together with `light_set`. Needs the lead session's confirmation |
+| Common | confirmation dialog frame (3.0) | M1 | with each operation | |
+| `console` | reading questions, cards, versions, number grades, runs, inbox | M1 | M2 | reading soft-matter-agents files |
+| `console` | submitting questions | M1 (mock store) | undecided | the real path belongs to the integration stage (PLAN §10) |
+| `console` | link from run details to F6 | M1 | M2 | F6 itself is T-012 |
+| `hardware` | detection, configuration file, gate table | M1 | M3 | |
+| `hardware` | entering human-confirmed items | M1 | M3 | |
+| `hardware` | state (Step 0, `status`) | M1 | M3 | |
+| `hardware` | turning lights on (`light_set`) | M1 | M3 **(proposed)** | the same reason as `"Lights off"` above |
+| `sample` | sample list, opening, creating new | M1 | M2 | reading the real sample folders (the user agreed to provide a copy, T-005) |
+| `sample` | geometry form | M1 | M3 | the field list needs the user's confirmation (PLAN §10) |
+| `sample` | loading check (person + image) | M1 | M3 | the image check uses only the lighting and the camera |
+| `map` | drawing the map, visited fields, boundary, hole summary | M1 | M2 | reading the real `map.json`, `sample.json` |
+| `map` | boundary points `b` / `u` | M1 | M3 | position read only |
+| `map` | edge tracking | M1 | M4 | XY motion |
+| `map` | 4x scan, sample map (mosaic, candidates) | M1 | M4 | viewing scan results is M2 (saved `scan4x_*`) |
+| `map` | flags, candidate confirmation | M1 | M2 | record operations. On a real sample |
+| `map` | click-to-move | M1 | M4 | |
+| `objective` | 7-step objective change, `"Loading done"`, return, reload | M1 | M4 | the escape distance and sign are undecided (PLAN §5 direction convention, §10), so until then only `escape=False` |
+| `objective` | 100x focus (classical verdict) | M1 | M4 | |
+| `live` | live video, status bar, traces | M1 | M3 | the real camera is M3 (read-only + lighting) |
+| `live` | classical verdict badge | M1 | M3 | |
+| `live` | DINO verdict badge, tare | M1 (fake verdicts) | M5 | a head trained on the microscope PC |
+| `live` | piezo `f` / `w` / `W` | kept off | after M5 | operations-spec 9.2: needs to be redesigned |
+| `live` | `"Save frame"`, recording | M1 | M3 | |
+| `live` | viewing saved stacks with the replay backend | M1 (`data/smoke`) | M2 | T-005 |
 
-PLAN 8절의 M1 확인 방법 가운데 이 문서가 다루는 F1–F5 부분의 "끝까지" 는 아래 순서다. 로그인, 로그, F6, F7 은
-각 과제 (T-018, T-012, T-019) 의 몫이고, 이 순서는 로그인하고 실험 세션을 연 뒤에 시작한다:
-console 에서 질문 하나를 mock 저장소에 넣고 → hardware 에서 mock 탐지와 게이트 확인 → sample 에서 새 샘플과
-지오메트리, 로딩 확인 → map 에서 명시야 추적, 스캔, flag, 클릭 이동 → objective 에서 4x → 100x 전환 (Loading done 포함)
-과 100x 초점 → live 에서 판정 배지 확인 → `"Lights off"` 와 조명 readback 확인이다.
+Of PLAN §8's M1 check method, the "end to end" for the F1–F5 part this document covers is the order below. Login, logs, F6 and F7 belong
+to their own tasks (T-018, T-012, T-019), and this order starts after logging in and opening an experiment session:
+in console, put one question into the mock store → in hardware, check mock detection and the gates → in sample, a new sample with
+its geometry and loading check → in map, brightfield tracing, scan, flag, click-to-move → in objective, the 4x → 100x change (including Loading done)
+and the 100x focus → in live, check the verdict badges → `"Lights off"` and a check of the lighting readback.
 
 ---
 
-## 7. F1–F5 화면
+## 7. F1–F5 screens
 
-범위 조정: 내부 노트의 `tasks/T-004-ui-spec.md` 의 "v0.2 조정" 절. F6 (시뮬레이션 현황 상세) 은 T-012,
-F7 (실험 세션) 은 T-019, 로그인은 T-018, 프롬프트 칸은 T-014 가 명세한다. 여기서는 그 결과를 쓰는
-자리만 적는다. 작업의 세부 순서는 `docs/operations-spec.md` 를 참조하고 옮겨 쓰지 않는다.
+Scope adjustment: the "v0.2 adjustment" section of the internal note `tasks/T-004-ui-spec.md`. F6 (simulation status details) is specified by T-012,
+F7 (experiment sessions) by T-019, login by T-018, and the prompt pane by T-014. Here only the places that use their results
+are recorded. For the detailed order of each operation see `docs/operations-spec.md`; it is not copied here.
 
-### 7.0 모든 영역에 공통
+### 7.0 Common to all areas
 
-**배치**
+**Layout**
 
 ```
 +--------------------------------------------------------------------------------+
-| 내비게이션: console  hardware  sample  map  objective  live  (simulation, sessions) |
+| Navigation: console  hardware  sample  map  objective  live  (simulation, sessions) |
 +--------------------------------------------------------------------------------+
-| 영역 화면                                                    | 프롬프트 칸 (X1)  |
+| Area screen                                                  | Prompt pane (X1)  |
 |                                                              | T-014             |
 +--------------------------------------------------------------------------------+
-| 공통 상태 줄: 사용자 · 실험 세션 · 조명 · 실행 중 작업 · 대기 확인 · 위치 · [Abort] [Lights off] |
+| Common status bar: user · experiment session · lighting · running operation · pending confirmation · position · [Abort] [Lights off] |
 +--------------------------------------------------------------------------------+
 ```
 
-- 공통 상태 줄의 값은 `/ws/events` 의 `position`, `light_changed`, `started` / `progress` / `finished`,
-  `confirm_required` 와 `/api/state` 에서 온다 (T-010).
-- 프롬프트 칸은 영역마다 자기 문맥을 붙여 보낸다 (PLAN 공통 요구). 각 영역 절의 "프롬프트 문맥" 이 그 내용이다.
-  D7 에 따라 이미지와 프레임은 문맥에 넣지 않는다.
+- The common status bar's values come from `position`, `light_changed`, `started` / `progress` / `finished` and
+  `confirm_required` on `/ws/events`, and from `/api/state` (T-010).
+- The prompt pane sends each area's own context along with it (PLAN "Common requirements"). The "Prompt context" of each area's section is that content.
+  Per D7, images and frames are not put into the context.
 
-**비활성 이유** (F2.2 "꺼진 기능은 숨기지 않고 이유와 함께"). 버튼과 양식은 숨기지 않고 끄며, 이유를 바로 옆에
-한 줄로 보여 준다. 판정은 서버와 엔진이 하고 화면은 그 결과를 그린다. 여러 이유가 겹치면 위에서부터 첫 번째를 보여 준다.
+**Disabled reasons** (F2.2 "does not hide a disabled function; it shows it inactive, together with the reason it is off"). Buttons and forms are not hidden but disabled, with the reason shown right beside them
+on one line. The server and the engine decide; the screen draws the result. When several reasons apply at once, the first one from the top is shown.
 
-| 이유 | 문구 | 판정하는 곳 | 영향 |
+| Reason | Wording | Decided by | Affects |
 |---|---|---|---|
-| 원격 접속 | `"Read-only: remote view"` | 서버 (요청 출처, 명령 403) | `abort` 를 뺀 모든 명령 (D13) |
-| 역할 | `"Needs the operator role"` | 서버 (T-018) | viewer 는 `abort`, `lights_off` 를 뺀 모든 명령. admin/operator 만 장비 명령 |
-| 장비 제어권 | `"<name> has control of the microscope"` | 서버 (PLAN "장비 제어권") | 다른 사람이 제어 중이면 장비 명령 |
-| 실험 세션 | `"Open an experiment session first"` | 엔진 (PLAN 6절 12항) | 장비를 움직이는 명령 |
-| 게이트 | `"<feature> is off: <reason>"` (예: `"no XYStage readback"`) | 엔진 게이트 (F2.2) | 그 기능 전체 |
-| 실행 중 작업 | `"<op> is running"` | 엔진 (단일 소유) | 다른 모션 작업. 기록 작업과 `lights_off` 는 제외 (4.4) |
-| 복귀 대기 | `"Return to the sample position first"` | 엔진 (`awaiting_return`) | 복귀를 뺀 모든 모션 작업 |
-| preflight | `preflight_failed` 의 `why` 원문 | 엔진 | 그 작업 |
+| Remote access | `"Read-only: remote view"` | server (request origin, command 403) | every command except `abort` (D13) |
+| Role | `"Needs the operator role"` | server (T-018) | for a viewer, every command except `abort`, `lights_off`. Equipment commands only for admin/operator |
+| Device control | `"<name> has control of the microscope"` | server (PLAN "Device control") | equipment commands, while someone else has control |
+| Experiment session | `"Open an experiment session first"` | engine (PLAN §6 item 12) | commands that move equipment |
+| Gate | `"<feature> is off: <reason>"` (e.g. `"no XYStage readback"`) | engine gate (F2.2) | the whole feature |
+| Running operation | `"<op> is running"` | engine (single ownership) | other motion operations. Record operations and `lights_off` are excepted (4.4) |
+| Waiting for return | `"Return to the sample position first"` | engine (`awaiting_return`) | every motion operation except the return |
+| preflight | the `why` text of `preflight_failed`, as it is | engine | that operation |
 
-**정지**: 공통 상태 줄의 `"Abort"` 는 잠김 상태, viewer, 제어권 없는 사용자에게도 켜져 있다 (PLAN "정지는 누구나").
-원격에서도 켜져 있다 (D13). 소등 버튼은 로컬에서 누구나 누를 수 있고 원격에서는 꺼진다.
+**Stopping**: the `"Abort"` on the common status bar is enabled even in the locked state, for a viewer, and for a user without control (PLAN "anyone can press stop (abort)").
+It is enabled from remote too (D13). The lights-off button can be pressed by anyone locally and is disabled from remote.
 
-**원격 화면 요약** (영역별 세부는 각 절)
+**Remote screen summary** (per-area details in each section)
 
-| 영역 | 원격에서 되는 것 | 원격에서 꺼지는 것 |
+| Area | Works from remote | Disabled from remote |
 |---|---|---|
-| `console` | 질문·카드·실행 기록 읽기, 버전 비교 | 질문 보내기 |
-| `hardware` | 탐지 결과, 구성 파일, 게이트 상태 읽기 | 탐지 실행, 사람 확인 항목 저장, 조명 켜기/끄기 |
-| `sample` | 샘플 목록과 기록, 지오메트리 읽기 | 샘플 열기·새로 만들기, 지오메트리 저장, 로딩 확인, `"Open folder"` |
-| `map` | 지도, 모자이크, flag, 후보, 진행 보기 | 추적, 스캔, flag 쓰기, 후보 확인, 클릭 이동, 경계점 |
-| `objective` | 현재 렌즈, 진행 단계 보기 | 렌즈 전환, `"Loading done"`, 100x 초점 |
-| `live` | 영상, 판정, 트레이스, 위치 보기 | 라이브 시작/멈춤, 노출, 키 명령 전부, 프레임 저장 |
+| `console` | reading questions, cards and run records, comparing versions | sending questions |
+| `hardware` | reading detection results, the configuration file, gate state | running detection, saving human-confirmed items, turning lights on/off |
+| `sample` | reading the sample list and records, the geometry | opening or creating a sample, saving the geometry, loading check, `"Open folder"` |
+| `map` | viewing the map, mosaic, flags, candidates, progress | tracking, scanning, writing flags, confirming candidates, click-to-move, boundary points |
+| `objective` | viewing the current objective and the progress step | objective change, `"Loading done"`, 100x focus |
+| `live` | viewing video, verdicts, traces, position | live start/stop, exposure, every key command, frame save |
 
-### 7.1 `console` — 에이전트 콘솔 (F1)
+### 7.1 `console` — agent console (F1)
 
-데이터는 AgentStore (T-008) 를 거친다: `list_questions(agent)`, `get_question(qid)`, `list_runs(agent)`,
-`get_run(agent, run_id)`, `list_inbox()`, `submit_question(...)`. 실제 soft-matter-agents 저장소는 읽기 전용이다.
-UI 는 카드를 고치지 않는다 (PLAN 6절 9항). 아래 필드 이름은 soft-matter-agents `baf6f1e` 의 파일을 읽어 확인했다.
+The data goes through AgentStore (T-008): `list_questions(agent)`, `get_question(qid)`, `list_runs(agent)`,
+`get_run(agent, run_id)`, `list_inbox()`, `submit_question(...)`. The real soft-matter-agents store is read-only.
+The UI does not edit cards (PLAN §6 item 9). The field names below were confirmed by reading the files at soft-matter-agents `baf6f1e`.
 
-**화면**
+**Screen**
 
-| 패널 | 보여 주는 것 | 출처 |
+| Panel | What it shows | Source |
 |---|---|---|
-| 질문 목록 | 두 에이전트의 질문. 열: `qid`, 에이전트, `status` (`DRAFT`, `VALIDATED`, `REFUSED` 등), `purpose`, `intent`, `observable.name`, `created_at`, 최신 버전 (접두 없음 = 1판, 그다음 `v2_`, `v3_`, … 있는 만큼). 거르기: 에이전트, 상태, 날짜 | `*/questions/<qid>/` 의 `goal.json` (최신 버전) |
-| 질문 상세 | 카드 탭: `goal`, `axis` (축마다 하나, 예: `bd_pairwise` 의 `a1`…`a7`, `verdict`), `synthesis` (`chosen_config`, `operating_point`, `rejected`), `plan` (`sweep`, `conditions`, `envelope_check`, `cost`, `stop_criteria`, `success_criteria`, `open_risks`), `refusal` (`stage`, `reason_code`, `alternatives`), 그리고 microscope 쪽 `analysis_method_declared` 같은 기타 카드 | 같은 폴더의 `*.json`. JSON 이 정본이다 (soft-matter-agents P3). `.md` 는 "generated" 표시와 함께 보조로만 |
-| 버전 | 버전 고르개. 목록은 고정하지 않고 폴더에 있는 `vN_` 접두를 모두 모은다 (baf6f1e 기준 `v6_` 까지 있다). 기본은 가장 큰 N. 두 버전의 필드 차이 보기 | 파일 접두 (T-008 의 버전 규칙) |
-| 숫자 표 | 카드의 `numbers`: `name`, `value`, `unit`, `source`, **등급 배지** (`E1`–`E5`), `precision`. 등급은 카드의 값을 그대로 쓰고 화면이 다시 매기지 않는다 | `numbers[]` |
-| 가정과 빈칸 | `assumptions` (`statement`, `authorised_by`), `kb_refs`, `kb_gaps`, `degraded`. `degraded` 가 비어 있지 않으면 경고 띠 | 같은 카드 |
-| 실행 목록 | 에이전트별 `run_id`, `qid`, `plan_id`, `backend`, 시작 (`t0_wall`), 끝 (`finished_at`), 승인 (`approval.kind`) | `*/runs/<run_id>/log.json`, `config.json` |
-| 실행 상세: simulation | `config.json` 의 `parameters_si`, `envelope_check`, `seed`. `log.json` 의 이벤트 (`preflight`, `dispatch`, `progress`, `complete`). `observables.json` 의 `fit` (예: `diffusivity`, `standard_error`), `uncertainty`, `msd_curve` 그래프. 진행률·궤적·내려받기는 F6 (T-012) 화면으로 이어지는 링크 | `simulation_agent/runs/<run_id>/` |
-| 실행 상세: microscope | `log.json` 의 이벤트 시간순 (`gate_open`, `apply`, `failed`, `shutdown_failed` 등), `approved_commands`, `no_plan_because`, `not_dispatched` 같은 설명 필드. `commands.json` | `microscope_agent/runs/<run_id>/` |
-| 수신함 | 스레드 목록 (`thr-…`), 라운드 (`r1_`, `r2_`), `direction`, `trigger`, `answerability`, `unit_consistency.verdict`, `value_comparison.verdict`, `supersedes` | `microscope_agent/inbox/<thread>/` |
-| 이 저장소의 실험 | 샘플 기록과 실험 세션 목록. 샘플을 고르면 `sample` 영역으로 | `D:\AutoFocus\samples`, F7 기록 저장소 |
-| 질문 넣기 (F1.1) | 본문, 대상 에이전트 (`microscope` / `simulation`), 보내기 | `submit_question`. mock 저장소에만 쓴다 (`"origin": "dino-autofocus mock"`). 실제 저장소면 버튼이 꺼지고 `"Submitting to soft-matter-agents is not connected yet (read-only)"` |
+| Question list | questions of both agents. Columns: `qid`, agent, `status` (`DRAFT`, `VALIDATED`, `REFUSED`, etc.), `purpose`, `intent`, `observable.name`, `created_at`, latest version (no prefix = version 1, then `v2_`, `v3_`, … as many as exist). Filters: agent, status, date | `goal.json` in `*/questions/<qid>/` (latest version) |
+| Question details | card tabs: `goal`, `axis` (one per axis, e.g. `a1`…`a7` of `bd_pairwise`, `verdict`), `synthesis` (`chosen_config`, `operating_point`, `rejected`), `plan` (`sweep`, `conditions`, `envelope_check`, `cost`, `stop_criteria`, `success_criteria`, `open_risks`), `refusal` (`stage`, `reason_code`, `alternatives`), and other cards such as `analysis_method_declared` on the microscope side | the `*.json` in the same folder. The JSON is authoritative (soft-matter-agents P3). `.md` only as an aid, marked "generated" |
+| Version | a version picker. The list is not fixed; it collects every `vN_` prefix in the folder (as of baf6f1e they go up to `v6_`). The default is the largest N. A view of the field differences between two versions | file prefix (T-008's version rule) |
+| Number table | the card's `numbers`: `name`, `value`, `unit`, `source`, **grade badge** (`E1`–`E5`), `precision`. The grade is the card's value, used as it is; the screen does not re-grade | `numbers[]` |
+| Assumptions and gaps | `assumptions` (`statement`, `authorised_by`), `kb_refs`, `kb_gaps`, `degraded`. A warning band if `degraded` is not empty | same card |
+| Run list | per agent: `run_id`, `qid`, `plan_id`, `backend`, start (`t0_wall`), end (`finished_at`), approval (`approval.kind`) | `*/runs/<run_id>/log.json`, `config.json` |
+| Run details: simulation | `parameters_si`, `envelope_check`, `seed` from `config.json`. The events from `log.json` (`preflight`, `dispatch`, `progress`, `complete`). From `observables.json`, `fit` (e.g. `diffusivity`, `standard_error`), `uncertainty`, and a `msd_curve` plot. Progress, trajectories and downloads are a link through to the F6 (T-012) screen | `simulation_agent/runs/<run_id>/` |
+| Run details: microscope | the events of `log.json` in time order (`gate_open`, `apply`, `failed`, `shutdown_failed`, etc.), `approved_commands`, and explanation fields such as `no_plan_because`, `not_dispatched`. `commands.json` | `microscope_agent/runs/<run_id>/` |
+| Inbox | thread list (`thr-…`), rounds (`r1_`, `r2_`), `direction`, `trigger`, `answerability`, `unit_consistency.verdict`, `value_comparison.verdict`, `supersedes` | `microscope_agent/inbox/<thread>/` |
+| Experiments in this repository | sample records and the list of experiment sessions. Choosing a sample goes to the `sample` area | `D:\AutoFocus\samples`, the F7 record store |
+| Submit a question (F1.1) | body, target agent (`microscope` / `simulation`), send | `submit_question`. Writes only to the mock store (`"origin": "dino-autofocus mock"`). For the real store the button is disabled with `"Submitting to soft-matter-agents is not connected yet (read-only)"` |
 
-**전송과 갱신**
+**Transport and updates**
 
-| 요청 | 전송 | 갱신 |
+| Request | Transport | Update |
 |---|---|---|
-| 목록, 상세, 실행, 수신함 | REST `GET /api/console/...` (제안: `questions?agent=`, `questions/{qid}?version=`, `runs?agent=`, `runs/{agent}/{run_id}`, `inbox`) | 영역을 열 때와 `"Refresh"` 버튼. 파일 감시는 하지 않는다 **(제안: 주기 폴링이 필요하면 30 s)** |
-| 질문 넣기 | REST `POST /api/console/questions` (mock 만) | 응답 뒤 목록 다시 읽기 |
+| lists, details, runs, inbox | REST `GET /api/console/...` (proposed: `questions?agent=`, `questions/{qid}?version=`, `runs?agent=`, `runs/{agent}/{run_id}`, `inbox`) | when the area is opened, and on the `"Refresh"` button. No file watching **(proposed: 30 s if periodic polling turns out to be needed)** |
+| submitting a question | REST `POST /api/console/questions` (mock only) | re-read the list after the response |
 
-**원격과 역할**: 읽기는 원격과 viewer 모두 된다. 질문 넣기는 로컬 operator/admin 만 **(제안: 하드웨어가 아니므로 viewer
-에게도 열지 T-018 에서 정할 것)**.
+**Remote and roles**: reading works from remote and for a viewer. Submitting a question is local operator/admin only **(proposed: since it is not hardware, decide in T-018 whether to open it
+to a viewer too)**.
 
-**프롬프트 문맥**: 고른 `qid`, 버전, 고른 카드 종류, 고른 `run_id`.
+**Prompt context**: the chosen `qid`, version, chosen card kind, chosen `run_id`.
 
-### 7.2 `hardware` — 하드웨어 파악과 상태 (F2, 런처 Step 0)
+### 7.2 `hardware` — hardware discovery and state (F2, launcher Step 0)
 
-작업: `hardware_scan` (operations-spec 5절), `status`, `light_set`, `lights_off`.
+Operations: `hardware_scan` (operations-spec §5), `status`, `light_set`, `lights_off`.
 
-**화면**
+**Screen**
 
-| 패널 | 보여 주는 것 | 출처 / 이벤트 |
+| Panel | What it shows | Source / event |
 |---|---|---|
-| 탐지 요약 | 마지막 탐지 시각, 백엔드 (`mock` / `mm-demo` / `mm-real`), config 경로, 구성 파일 이름과 해시, 이전 구성 파일과 다른 점 | `hardware_profile.json` (`GET`) |
-| 장치 표 | 장치마다: 이름, 종류, 로드됨, 속성 읽기, readback 확인 가능, 메모. 문제 있는 행은 위로 | 같음 |
-| 대물렌즈 표 | Nosepiece 위치와 라벨, NA, 배율, 액침, 작동 거리 (없으면 `"not set"`), 픽셀 크기 | 같음 + 렌즈 표 |
-| 카메라·피에조 | 비트 깊이 (Kinetix 12-bit, 천장 4095), 센서 크기, 피에조 연결 여부 | 같음 |
-| 사람 확인 항목 | 탐지가 아니라 입력: DiaLamp 세기 (스탠드에서 읽은 값, 9/30 은 608/2100), CondenserTurret, 40x WI 보정 링 등. 누가 언제 넣었는지 | `human_confirmed{}` (operations-spec 5절) |
-| 게이트 표 | 기능마다: 켜짐/꺼짐, 꺼진 이유 목록 (빠진 장치, readback 불가, 사람 확인 없음, 값 미측정 예: `"escape distance not set"`), 필요한 장치 | 엔진 게이트 판정 (`GET`) |
-| 지금 상태 (Step 0) | 렌즈, Z, PFS (`enabled`, `locked`, `in_range`). `"Show objective / Z / PFS"` 로 `status` 를 돌린 결과와, 주기 `position` | `finished(status).summary`, `position` |
-| 조명 | 명시야 켜기, Aura 라인과 퍼센트로 켜기, 끄기. 현재 상태는 5.2 | `light_changed` |
+| Detection summary | time of the last detection, backend (`mock` / `mm-demo` / `mm-real`), config path, configuration file name and hash, differences from the previous configuration file | `hardware_profile.json` (`GET`) |
+| Device table | per device: name, type, loaded, property read, readback verifiable, note. Rows with problems go to the top | same |
+| Objective table | Nosepiece position and label, NA, magnification, immersion, working distance (`"not set"` if absent), pixel size | same + objective table |
+| Camera · piezo | bit depth (Kinetix 12-bit, ceiling 4095), sensor size, whether the piezo is connected | same |
+| Human-confirmed items | entered, not detected: DiaLamp intensity (the value read at the stand, 608/2100 on 9/30), CondenserTurret, the 40x WI correction collar, etc. Who entered each and when | `human_confirmed{}` (operations-spec §5) |
+| Gate table | per feature: on/off, the list of reasons it is off (missing device, readback impossible, no human confirmation, value not measured, e.g. `"escape distance not set"`), required devices | the engine's gate decision (`GET`) |
+| Current state (Step 0) | objective, Z, PFS (`enabled`, `locked`, `in_range`). The result of running `status` with `"Show objective / Z / PFS"`, and the periodic `position` | `finished(status).summary`, `position` |
+| Lighting | brightfield on, Aura on by line and percent, off. Current state as in 5.2 | `light_changed` |
 
-**입력**
+**Input**
 
-| 입력 | 명령 | 비고 |
+| Input | Command | Notes |
 |---|---|---|
-| `"Scan hardware"` | `start("hardware_scan")` | 읽기만 한다 |
-| 사람 확인 항목 저장 | `start("hardware_confirm", {...})` **(제안, WP-G)** | 구성 파일에 기록. 게이트가 다시 판정된다 |
+| `"Scan hardware"` | `start("hardware_scan")` | read only |
+| saving human-confirmed items | `start("hardware_confirm", {...})` **(proposed, WP-G)** | recorded in the configuration file. The gates are decided again |
 | `"Show objective / Z / PFS"` | `start("status")` | |
 | `"Brightfield on"` / `"Aura <line> <pct> % on"` | `start("light_set", {...})` | 4.0 |
-| `"Lights off"` | `lights_off` 명령 (events.py 의 명령 종류, `start` 가 아님) | 선점 |
+| `"Lights off"` | the `lights_off` command (a command kind in events.py, not a `start`) | pre-emptive |
 
-**원격과 역할**: 원격과 viewer 는 읽기만. 조명 켜기는 장비 명령이므로 operator 와 제어권이 필요하다. 소등 (`lights_off`) 만은 로컬에서 로그인한 누구나 보낼 수 있다.
+**Remote and roles**: remote and viewer read only. Turning lights on is an equipment command, so it needs the operator role and control. Lights-off (`lights_off`) alone can be sent locally by anyone logged in.
 
-**프롬프트 문맥**: 고른 장치 이름, 고른 게이트 이름과 그 이유 목록.
+**Prompt context**: the chosen device name, the chosen gate name and its list of reasons.
 
-### 7.3 `sample` — 샘플과 로딩 확인 (F3, 런처 Sample)
+### 7.3 `sample` — sample and loading check (F3, launcher Sample)
 
-작업: `sample_open`, `sample_new` (4.0), 지오메트리 저장과 로딩 확인 (WP-H, 이름은 제안).
+Operations: `sample_open`, `sample_new` (4.0), geometry save and loading check (WP-H, names proposed).
 
-**화면**
+**Screen**
 
-| 패널 | 보여 주는 것 | 출처 |
+| Panel | What it shows | Source |
 |---|---|---|
-| 샘플 목록 | 샘플 ID (`YYYYMMDD_HHMM_n`), 만든 시각, hole 피팅 시각 (`fitted_at`), 사용한 렌즈, 마지막 실험 세션, `awaiting_return` 표시 | `GET /api/sample/list` (제안). 샘플 루트 |
-| 열린 샘플 | ID, 폴더, hole 요약, 보정 (`um_per_px`, 렌즈), 스캔·지도·flag 수 | `sample_opened`, `map_changed` |
-| 지오메트리 양식 (F3.1) | 샘플 크기 (기본 24 × 50 mm), 챔버 형태와 구멍 지름 (9/30 시료 약 6 mm), 커버슬립 두께 (기본 170 µm), 샘플 두께, 방향 (정상 / 뒤집힘). 칸마다 값의 출처 (`"entered by <user> <t>"`, `"default"`, `"not set"`). **안전 한계에 들어가는 칸** (커버슬립 두께, 샘플 두께, 방향) 에는 표시를 붙인다 | 샘플 기록 (`GET`) |
-| 로딩 확인 | 3단계: (1) 지오메트리 입력 (2) 사람이 `"Sample is on the stage"` 확인 (3) 이미지 확인: 4x 명시야 한 장에서 구멍 가장자리가 보이는지 판정 (grade `"computed"`: 측정값에서 계산, 모델 아님). 셋이 다 되면 `"Loading confirmed (person + image)"`. PLAN F3: 선택값 읽기는 상태 확인이 아니다 | 엔진 기록 (제안) |
+| Sample list | sample ID (`YYYYMMDD_HHMM_n`), creation time, hole fit time (`fitted_at`), objectives used, last experiment session, an `awaiting_return` mark | `GET /api/sample/list` (proposed). Sample root |
+| Open sample | ID, folder, hole summary, calibration (`um_per_px`, objective), number of scans, maps and flags | `sample_opened`, `map_changed` |
+| Geometry form (F3.1) | sample size (default 24 × 50 mm), chamber shape and hole diameter (the 9/30 sample about 6 mm), coverslip thickness (default 170 µm), sample thickness, orientation (normal / flipped). For each field, the source of its value (`"entered by <user> <t>"`, `"default"`, `"not set"`). **Fields that feed safety limits** (coverslip thickness, sample thickness, orientation) carry a mark | sample record (`GET`) |
+| Loading check | 3 steps: (1) geometry entered (2) a person confirms `"Sample is on the stage"` (3) image check: judging from one 4x brightfield image whether the hole edge is visible (grade `"computed"`: computed from measurements, not a model). When all three are done, `"Loading confirmed (person + image)"`. PLAN F3: reading a selector value is not a state check | engine record (proposed) |
 
-**입력**
+**Input**
 
-| 입력 | 명령 | 비고 |
+| Input | Command | Notes |
 |---|---|---|
-| 목록에서 고르기 | `start("sample_open", {"sample_id"})` | U1 |
-| `"New sample"` | `start("sample_new")` | U1. 지오메트리 양식이 열린다 |
-| `"Open folder"` | 서버 PC 에서 탐색기 열기 | 로컬 화면에서만. 원격이면 버튼이 없고 경로만 보여 준다 |
-| 지오메트리 저장 | `start("sample_geometry_set", {...})` **(제안, WP-H)** | U4. 기록 작업이라 단일 소유에서 빠진다 |
-| `"Sample is on the stage"` | `start("loading_confirm_person")` **(제안)** | 수동 단계 기록 |
-| `"Check with an image"` | `start("loading_check_image")` **(제안)** | 명시야를 켜고 한 장 찍고 끈다. 장비 명령이다 (게이트: 카메라, DiaLamp, 4x). 결과의 grade 는 `"computed"` (T-027) |
+| choosing from the list | `start("sample_open", {"sample_id"})` | U1 |
+| `"New sample"` | `start("sample_new")` | U1. The geometry form opens |
+| `"Open folder"` | opens Explorer on the server PC | on the local screen only. From remote there is no button, and only the path is shown |
+| saving the geometry | `start("sample_geometry_set", {...})` **(proposed, WP-H)** | U4. A record operation, so it is excluded from single ownership |
+| `"Sample is on the stage"` | `start("loading_confirm_person")` **(proposed)** | manual step record |
+| `"Check with an image"` | `start("loading_check_image")` **(proposed)** | turns brightfield on, takes one image and turns it off. It is an equipment command (gates: camera, DiaLamp, 4x). The result's grade is `"computed"` (T-027) |
 
-**원격과 역할**: 원격과 viewer 는 읽기만. 이미지 확인은 장비 명령이므로 operator, 제어권, 실험 세션이 필요하다.
+**Remote and roles**: remote and viewer read only. The image check is an equipment command, so it needs the operator role, control and an experiment session.
 
-**프롬프트 문맥**: 샘플 ID, 지오메트리 값과 그 출처, 로딩 확인 상태.
+**Prompt context**: sample ID, the geometry values and their sources, the loading check state.
 
-### 7.4 `map` — 샘플 맵 (F4, 라이브 뷰의 지도, 런처 Step 1·2)
+### 7.4 `map` — sample map (F4, the live view's map, launcher Step 1·2)
 
-작업: `edge_trace`, `scan_4x`, `sample_map`, `map_flag`, `goto_xy` (operations-spec 3·6·8절), `boundary_mark`,
-`boundary_undo`, `boundary_reset` (4.0). 입자 후보 확인은 이름이 없어 제안한다.
+Operations: `edge_trace`, `scan_4x`, `sample_map`, `map_flag`, `goto_xy` (operations-spec §3·6·8), `boundary_mark`,
+`boundary_undo`, `boundary_reset` (4.0). Particle candidate confirmation has no name, so one is proposed.
 
-**지도 층** (아래에서 위로, 각 층을 켜고 끌 수 있다)
+**Map layers** (bottom to top; each layer can be turned on and off)
 
-| 층 | 그리는 것 | 출처 |
+| Layer | What it draws | Source |
 |---|---|---|
-| 모자이크 | 투과광 4x 모자이크 (명시야 권장). 스캔이 여럿이면 고르개 | `sample_map_<stamp>/mosaic.npy` + `mosaic.json` (`x0, x1, y0, y1, um_per_px, bin`) 을 서버가 이미지로 (`GET`, 제안). 좌우 반전은 보정 `M` 의 부호로 서버가 맞춘다 (operations-spec 6.1). 영상은 재물대와 거울상이고, 픽셀 p 의 재물대 좌표는 `stage + inv(M) @ (centre − p)` 다 (PLAN 5절 방향 기준, v1.2) |
-| 스캔 박스 | 마지막 `scan_4x` / `sample_map` 의 박스와 + 1 mm 여유 (클릭 이동 허용 범위) | 스캔 기록 |
-| 방문 필드 | 1.2 (d) 와 같음. 색은 판정 (5.3) | `map_changed` |
-| 경계와 hole | 경계점, 원 피팅, 중심. 피팅 시각과 세션 상태 (5.1) | `map_changed`, `sample_opened` |
-| 입자 후보 | **두 가지를 모양으로 구분**: 고전 처리 후보 (`source: "classical_candidate"`) 는 속이 빈 원, 사람이 확인한 것 (`source: "person_confirmed"`) 은 속이 찬 원. 거부한 후보는 기본으로 숨기고 켜면 회색 × | `features.json` 또는 `map.json` (operations-spec 6.1) |
-| flag | 깃발과 이름. 은퇴한 flag 는 기본으로 숨김 | `flags.json` |
-| 현재 시야 | 주황 사각형과 십자 (1.2 (d)) | `position`, `objective` |
-| 클릭 목표 | 마우스 위치의 stage 좌표, 현재 위치에서 거리, 허용 범위 안/밖 | 화면 계산 (표시만). 모자이크 픽셀에서 stage 좌표로는 PLAN 5절 방향 기준의 식을 쓰고, 화면이 따로 부호를 정하지 않는다. 식과 `M` 은 서버가 `mosaic.json` 과 함께 내려 준다 **(제안)** |
+| Mosaic | transmitted-light 4x mosaic (brightfield recommended). A picker if there are several scans | the server turns `sample_map_<stamp>/mosaic.npy` + `mosaic.json` (`x0, x1, y0, y1, um_per_px, bin`) into an image (`GET`, proposed). The left-right flip is set by the server from the sign of the calibration `M` (operations-spec 6.1). The image is a mirror image of the stage, and the stage coordinate of pixel p is `stage + inv(M) @ (centre − p)` (PLAN §5 direction convention, v1.2) |
+| Scan box | the box of the last `scan_4x` / `sample_map` plus a 1 mm margin (the allowed range for click-to-move) | scan record |
+| Visited fields | as in 1.2 (d). Coloured by verdict (5.3) | `map_changed` |
+| Boundary and hole | boundary points, circle fit, centre. Fit time and session state (5.1) | `map_changed`, `sample_opened` |
+| Particle candidates | **the two kinds are told apart by shape**: classical-processing candidates (`source: "classical_candidate"`) as hollow circles, ones a person confirmed (`source: "person_confirmed"`) as filled circles. Rejected candidates are hidden by default and, when turned on, are a grey × | `features.json` or `map.json` (operations-spec 6.1) |
+| Flags | a flag with its name. Retired flags are hidden by default | `flags.json` |
+| Current field of view | orange square and cross (1.2 (d)) | `position`, `objective` |
+| Click target | the stage coordinate under the mouse, the distance from the current position, inside/outside the allowed range | a screen calculation (display only). From mosaic pixel to stage coordinate, the formula of PLAN §5's direction convention is used, and the screen does not pick a sign of its own. The server sends the formula and `M` down together with `mosaic.json` **(proposed)** |
 
-축 방향은 1.2 (d) 처럼 스탠드의 조이스틱 방향으로 뒤집어 그리고, 축척 글자에 방향을 적는다.
+The axes are drawn flipped to the stand's joystick direction, as in 1.2 (d), and the scale text states the direction.
 
-**옆 패널**
+**Side panels**
 
-| 패널 | 보여 주는 것 / 입력 |
+| Panel | What it shows / input |
 |---|---|
-| 순서 | 5.1 의 두 단계 (명시야 추적 → 입자 조명 스캔) 와 각 단계의 상태 |
-| hole 요약 | 중심, 지름, rms, 점 수, 호 각도, `fitted_at`. 예상 지름과 20 % 넘게 다르면 경고 (operations-spec 8절) |
-| 엣지 추적 | 속도 (기본 100 µm/s, 10..1000), 예상 지름 (기본: 샘플 지오메트리), `"Start tracing"` / `"Stop"`, `+` / `-`. 진행: 상태 문자열, 경로 길이, 점 수 |
-| 스캔 | 종류 (`"4x scan, particle light"` = `scan_4x`, `"Sample map, brightfield"` = `sample_map`), 노출 (빈 칸 = auto), dry run, 초점 방식 (`per_tile` / `plane`). 진행: 타일 k/n, 현재 타일의 곡선 (1.3), 버린 프레임 |
-| 결과 | `scan4x_*`, `sample_map_*` 목록. 고르면 모자이크 층과 z 지도 (타일별 초점, 6 × 6 블록 z) |
-| flag | 목록: 이름, 메모, 시각, 렌즈, x, y, z (엔코더). 추가, 메모 고치기는 새 항목으로, 은퇴 (U3) |
-| 후보 | 목록과 지도에서 고르기: `"Confirm"` / `"Reject"`. 확인과 거부는 덮어쓰지 않고 새 항목을 더한다 |
+| Order | the two steps of 5.1 (brightfield tracing → particle-light scan) and the state of each step |
+| Hole summary | centre, diameter, rms, point count, arc angle, `fitted_at`. A warning if it differs from the expected diameter by more than 20 % (operations-spec §8) |
+| Edge tracking | speed (default 100 µm/s, 10..1000), expected diameter (default: the sample geometry), `"Start tracing"` / `"Stop"`, `+` / `-`. Progress: status string, path length, point count |
+| Scan | kind (`"4x scan, particle light"` = `scan_4x`, `"Sample map, brightfield"` = `sample_map`), exposure (empty = auto), dry run, focus mode (`per_tile` / `plane`). Progress: tile k/n, the current tile's curve (1.3), dropped frames |
+| Results | list of `scan4x_*`, `sample_map_*`. Choosing one shows the mosaic layer and the z map (per-tile focus, z in 6 × 6 blocks) |
+| Flags | list: name, note, time, objective, x, y, z (encoder). Add; note edits as a new entry; retire (U3) |
+| Candidates | choose from the list or on the map: `"Confirm"` / `"Reject"`. Confirmations and rejections do not overwrite; they add a new entry |
 
-**클릭 이동 (F4.3)** — 화면에서 보이는 순서
+**Click-to-move (F4.3)** — the order as seen on screen
 
-| 단계 | 화면 | 엔진 |
+| Step | Screen | Engine |
 |---|---|---|
-| 1 마우스를 올림 | 목표 좌표, 거리, 허용 범위 밖이면 커서 옆에 `"outside the scanned area"` | 없음 (표시 계산) |
-| 2 클릭 | 목표에 핀. `start("goto_xy", {"x_um", "y_um", "sample_id"})` | `planned` (거리, 큰 이동 여부, 후퇴 필요 여부, `z_safe`) |
-| 3a 범위 밖 | 핀이 빨간 ×로 바뀌고 `preflight_failed` 의 이유: `"outside the scan box + 1 mm"`. 움직이지 않음 | preflight 거부 |
-| 3b 다른 이유로 거부 | 같은 자리에 이유 (`"<op> is running"`, `"Return to the sample position first"`) | preflight 거부 |
-| 3c 후퇴가 필요 | C12 대화상자: `"retract Z <z> -> <z_safe>, then move to (x, y)"` | `confirm_required` |
-| 4 후퇴 | 진행 줄 `"Retracting Z 3048.7 -> <z_safe>"`. 위치 표의 Z 가 엔코더 값으로 내려가는 것이 보인다 | `progress`, `position` |
-| 5 XY 이동 | `"Moving to (x, y)"`. 현재 시야 사각형이 움직인다 | `progress`, `position` |
-| 6 끝 | `"Arrived (x, y read back). Z left retracted at <z>: refocus with a scan tile or focus_100x"` 띠 | `finished` (착지 readback) |
+| 1 hover | the target coordinate and distance, and `"outside the scanned area"` beside the cursor if outside the allowed range | none (display calculation) |
+| 2 click | a pin at the target. `start("goto_xy", {"x_um", "y_um", "sample_id"})` | `planned` (distance, whether it is a large move, whether a retract is needed, `z_safe`) |
+| 3a out of range | the pin turns into a red × with the reason from `preflight_failed`: `"outside the scan box + 1 mm"`. No movement | preflight refusal |
+| 3b refused for another reason | the reason in the same place (`"<op> is running"`, `"Return to the sample position first"`) | preflight refusal |
+| 3c retract needed | the C12 dialog: `"retract Z <z> -> <z_safe>, then move to (x, y)"` | `confirm_required` |
+| 4 retract | progress line `"Retracting Z 3048.7 -> <z_safe>"`. The Z in the position table is seen going down as an encoder value | `progress`, `position` |
+| 5 XY move | `"Moving to (x, y)"`. The current field-of-view square moves | `progress`, `position` |
+| 6 end | a `"Arrived (x, y read back). Z left retracted at <z>: refocus with a scan tile or focus_100x"` band | `finished` (landing readback) |
 
-Z 는 다시 올리지 않는다 (operations-spec 6.3 의 4번). 화면은 다음 초점 작업으로 가는 버튼만 보여 준다.
+Z is not raised again (operations-spec 6.3, point 4). The screen only shows a button to the next focus operation.
 
-**입력 → 명령**
+**Input → command**
 
-| 입력 | 명령 |
+| Input | Command |
 |---|---|
 | `"Start tracing"` / `t` | `start("edge_trace", {"speed_um_s", "hole_diameter_mm"})` (C4, C5) |
 | `+` / `-` | `update(op_id, {"speed_um_s": v})` |
 | `b` / `u` | `start("boundary_mark")` / `start("boundary_undo")` |
-| `"Re-trace"` | `start("edge_trace")` 의 C4 (백업 후 비움). 따로 비우는 버튼은 `start("boundary_reset")` |
-| `"Start scan"` | `start("scan_4x", …)` 또는 `start("sample_map", …)` (C1–C3) |
-| flag 추가 | `start("map_flag", {"sample_id", "x_um", "y_um", "name", "note"})` |
-| flag 은퇴 | `start("map_flag_retire", {"flag_id"})` **(제안)** (U3) |
-| 후보 확인 / 거부 | `start("candidate_confirm" / "candidate_reject", {"candidate_id"})` **(제안)** |
-| 지도 클릭 | `start("goto_xy", …)` (C12) |
+| `"Re-trace"` | C4 of `start("edge_trace")` (back up, then clear). The separate clear button is `start("boundary_reset")` |
+| `"Start scan"` | `start("scan_4x", …)` or `start("sample_map", …)` (C1–C3) |
+| adding a flag | `start("map_flag", {"sample_id", "x_um", "y_um", "name", "note"})` |
+| retiring a flag | `start("map_flag_retire", {"flag_id"})` **(proposed)** (U3) |
+| confirming / rejecting a candidate | `start("candidate_confirm" / "candidate_reject", {"candidate_id"})` **(proposed)** |
+| clicking the map | `start("goto_xy", …)` (C12) |
 
-**원격과 역할**: 원격과 viewer 는 지도와 진행 보기만. flag 와 후보 확인은 하드웨어가 아니지만 샘플 기록을 쓰므로
-로컬 operator 만 **(제안)**.
+**Remote and roles**: remote and viewer only view the map and progress. Flags and candidate confirmation are not hardware, but they write the sample record, so
+local operator only **(proposed)**.
 
-**프롬프트 문맥**: 샘플 ID, 클릭한 좌표 또는 고른 영역, 고른 flag 와 후보, hole 요약. 모자이크 그림은 넣지 않는다 (D7).
+**Prompt context**: sample ID, the clicked coordinate or the chosen region, the chosen flags and candidates, the hole summary. The mosaic image is not included (D7).
 
-### 7.5 `objective` — 배율 전환과 액침액 로딩, 100x 초점 (F5)
+### 7.5 `objective` — magnification change, immersion liquid loading, 100x focus (F5)
 
-작업: `objective_change` (operations-spec 4.2), `focus_100x` (7절).
+Operations: `objective_change` (operations-spec 4.2), `focus_100x` (§7).
 
-**렌즈 전환 화면**
+**Objective change screen**
 
-| 패널 | 보여 주는 것 / 입력 |
+| Panel | What it shows / input |
 |---|---|
-| 현재 | 렌즈 라벨, 픽셀 크기, Z (엔코더), PFS |
-| 고르기 | 렌즈 표의 렌즈. 같은 렌즈, 렌즈 표에 없는 렌즈, 작동 거리가 없는 렌즈 (40x WI) 는 꺼짐과 이유 (`"already on that objective"`, `"no working distance value"`) |
-| 선택 | Y 이탈 (`escape`) 켬/끔과 거리. 이탈의 **거리와 부호 (+Y / −Y) 둘 다** 아직 사용자 확인 전이다 (PLAN 5절 방향 기준 v1.2, 10절). 정해지기 전에는 켬이 꺼져 있고 이유는 엔진 문구 그대로 `"escape distance not set"` 이다 (operations-spec 4.2, 3.0 의 원칙). 문구가 거리만 말하지만 부호도 미정이며, 화면은 부호를 기본값으로 고르지 않는다. 건조 렌즈끼리면 끔이 기본 |
-| 계획 | 7단계와 각 단계의 목표값 (`planned`) |
-| 시작 | `"Rotate"` → C6 |
+| Current | objective label, pixel size, Z (encoder), PFS |
+| Choose | the objectives in the objective table. The same objective, an objective not in the table, and an objective with no working distance (40x WI) are disabled, with reasons (`"already on that objective"`, `"no working distance value"`) |
+| Options | Y escape (`escape`) on/off and its distance. **Both the distance and the sign (+Y / −Y)** of the escape are not yet confirmed by the user (PLAN §5 direction convention v1.2, §10). Until they are decided, on is disabled, and the reason is the engine's wording as it is, `"escape distance not set"` (operations-spec 4.2, the principle in 3.0). The wording mentions only the distance, but the sign is undecided too, and the screen does not pick a sign as a default. Between dry objectives, off is the default |
+| Plan | the 7 steps and the target values of each step (`planned`) |
+| Start | `"Rotate"` → C6 |
 
-**7단계 진행 표시** — 단계마다 한 줄: 상태 (대기, 진행, 완료, 실패), 읽은 값, 시각.
+**7-step progress display** — one line per step: state (waiting, in progress, done, failed), the value read, the time.
 
-| 단계 | 줄의 내용 | 이벤트 |
+| Step | What the line holds | Event |
 |---|---|---|
-| 1 기록 | 시작 XY, Z, 렌즈 (`return_xy`, `z_before`, `objective_before`) | `started.start_state` |
-| (1b) 소등 | 조명 readback | `light_changed` |
-| 2 Z 후퇴 | `"PFS off · Z 3048.7 -> 0.0 (read 0.0) · PFS Out of Range"` | `progress(step=2)`, `position` |
-| 3 Y 이탈 | `"Y 571.6 -> <y + dy> (read …)"`. Z 후퇴 확인이 이동 직전에 다시 읽혔다는 표시 | `progress(step=3)` |
-| 4 회전 | `"Nosepiece <now> -> <target> (read <label>)"` | `progress(step=4)`, `objective` |
-| 5 로딩 | **큰 카드**: `"Load <oil / water> on <label>, then press Loading done"`. 버튼 `"Loading done"` (C7). 누가 언제 눌렀는지 | `confirm_required(kind="manual_step")` |
-| 6 복귀 | `"XY -> (x, y) (read …)"`. Z 는 여전히 후퇴 | `progress(step=6)` |
-| 7 Z 접근 | 진행 막대: 현재 Z (엔코더), 목표 (`approach_target_um`, 기본 2800), 걸음 수, 렌즈 상한. 목표로 점프하지 않고 걸음마다 한 칸 | `progress(step=7, data={z_um, target_um, step, n_steps})` |
-| 끝 | 새 렌즈, 픽셀 크기, Z, 조명 꺼짐 | `finished` |
+| 1 record | start XY, Z, objective (`return_xy`, `z_before`, `objective_before`) | `started.start_state` |
+| (1b) lights off | lighting readback | `light_changed` |
+| 2 Z retract | `"PFS off · Z 3048.7 -> 0.0 (read 0.0) · PFS Out of Range"` | `progress(step=2)`, `position` |
+| 3 Y escape | `"Y 571.6 -> <y + dy> (read …)"`. A mark that the Z retract check was read again just before the move | `progress(step=3)` |
+| 4 rotate | `"Nosepiece <now> -> <target> (read <label>)"` | `progress(step=4)`, `objective` |
+| 5 loading | **Large card**: `"Load <oil / water> on <label>, then press Loading done"`. Button `"Loading done"` (C7). Who pressed it and when | `confirm_required(kind="manual_step")` |
+| 6 return | `"XY -> (x, y) (read …)"`. Z is still retracted | `progress(step=6)` |
+| 7 Z approach | progress bar: current Z (encoder), target (`approach_target_um`, default 2800), number of steps, the objective's upper limit. It does not jump to the target; it moves one notch per step | `progress(step=7, data={z_um, target_um, step, n_steps})` |
+| end | new objective, pixel size, Z, lights off | `finished` |
 
-- 중단 위치에 따라 남는 상태가 다르다 (operations-spec 4.2 의 5항 표). 3–6단계에서 멈추면 `awaiting_return` 이고, 공통 상태 줄에
-  `"Objective change interrupted: return to the sample position"` 과 `"Return to sample position"` 버튼이 모든 영역에 보인다.
-  이 버튼은 6·7단계만 돌리는 복귀 작업이다 **(이름 제안: `start("objective_change", {"resume": true})`, T-011 과 맞출 것)**.
-- 재로딩 변형 (같은 렌즈에서 2·3·5·6·7단계만, operations-spec 4.2 의 8항 제안) 은 `"Re-load immersion"` 버튼으로 둔다.
-  `focus_100x` 의 이중 피크 경고에서 이 버튼으로 바로 온다.
+- The state left behind depends on where it stops (the table in operations-spec 4.2 item 5). Stopping in steps 3–6 leaves `awaiting_return`, and the common status bar
+  shows `"Objective change interrupted: return to the sample position"` and a `"Return to sample position"` button in every area.
+  This button is a return operation that runs only steps 6 and 7 **(name proposed: `start("objective_change", {"resume": true})`, align with T-011)**.
+- The reload variant (only steps 2·3·5·6·7 on the same objective, the operations-spec 4.2 item 8 proposal) is a `"Re-load immersion"` button.
+  The double-peak warning of `focus_100x` leads straight to this button.
 
-**100x 초점 화면**
+**100x focus screen**
 
-| 패널 | 보여 주는 것 / 입력 |
+| Panel | What it shows / input |
 |---|---|
-| 양식 | 중심 (계산값으로 채움, 5.1), 반폭 (기본 40), 걸음 (2), 고운 반폭 (3), 고운 걸음 (0.2), 노출 (9/30 값 20 ms 를 후보로), 지표 (`peak` 기본, `vollath`) |
-| 참고값 | 같은 XY 의 4x 초점 평면 값, 천장 `min(3200, centre + 0.4 × 130)`, 이번 세션의 액침 로딩 기록 유무 (없으면 C10) |
-| 곡선 | 지표 대 Z. x 는 `z_readback_um`. 천장 선, 피크 표시, 포화 점 표시 |
-| 결과 | 판정 배지 (고전), 고른 프레임의 엔코더 Z, 경고 (`"check immersion oil"`, `"reduce exposure"`, `"signal at dark level"`) |
+| Form | centre (filled with the computed value, 5.1), half width (default 40), step (2), fine half width (3), fine step (0.2), exposure (the 9/30 value of 20 ms as a candidate), metric (`peak` by default, `vollath`) |
+| Reference values | the 4x focal-plane value at the same XY, the ceiling `min(3200, centre + 0.4 × 130)`, whether there is an immersion loading record this session (C10 if not) |
+| Curve | metric against Z. x is `z_readback_um`. The ceiling line, the peak mark, saturated points marked |
+| Result | verdict badge (classical), the encoder Z of the chosen frame, warnings (`"check immersion oil"`, `"reduce exposure"`, `"signal at dark level"`) |
 
-**입력 → 명령**
+**Input → command**
 
-| 입력 | 명령 |
+| Input | Command |
 |---|---|
 | `"Rotate"` | `start("objective_change", {"target_state", "escape", "escape_dy_um", "approach_target_um", "approach_step_um"})` (C6) |
 | `"Loading done"` | `confirm(op_id, "load_immersion", "done")` (C7) |
-| `"Return to sample position"` | 위의 복귀 작업 (제안) |
-| `"Re-load immersion"` | `start("objective_change", {"target_state": <현재>, …})` (operations-spec 제안 변형) |
+| `"Return to sample position"` | the return operation above (proposed) |
+| `"Re-load immersion"` | `start("objective_change", {"target_state": <current>, …})` (the variant operations-spec proposes) |
 | `"Find 100x focus"` | `start("focus_100x", {"centre_um", "half_um", "step_um", "fine_half_um", "fine_step_um", "exposure_ms", "metric"})` (C9–C11) |
 
-**원격과 역할**: 원격과 viewer 는 진행 보기만. `"Loading done"` 은 현미경 앞에 있는 사람이 누르는 것이므로 원격에서는
-설정과 무관하게 항상 꺼진다.
+**Remote and roles**: remote and viewer only view progress. `"Loading done"` is pressed by the person at the microscope, so from remote it is
+always disabled, whatever the settings.
 
-**프롬프트 문맥**: 현재 렌즈, 목표 렌즈, 진행 단계, 마지막 100x 결과의 판정과 엔코더 Z.
+**Prompt context**: the current objective, the target objective, the progress step, the verdict and encoder Z of the last 100x result.
 
-### 7.6 `live` — 라이브 뷰
+### 7.6 `live` — live view
 
-1·2절의 라이브 뷰 그대로이고, 표시 규칙은 5.3 을 따른다. 바뀌는 점만:
+It is the live view of §1·2 as it is, and the display rules follow 5.3. Only what changes:
 
-- 게이지는 9/30 모양 그대로 (5.3, 사용자 결정 2026-10-02). 트레이스 둘은 그대로.
-- 키 바인딩 (2.1) 은 그대로 단축키로 두고, 같은 동작의 버튼을 둔다. 판정과 무관한 키 (`b`, `u`, `t`, `+`, `-`) 는 `map` 영역과 같은 명령이다.
-- 피에조 키 (`f`, `w`, `W`) 는 operations-spec 9.2 에 따라 M5 전까지 **꺼 두고** 이유 `"piezo focus is out of scope until M5"` 를 보여 준다.
-- `"Save frame"` (새).
-- 원격: 영상, 판정, 트레이스, 위치는 보이고 키와 버튼은 모두 꺼진다.
-- **프롬프트 문맥**: 실행 중 작업, 최신 판정 (어휘), 위치 (엔코더), 렌즈, 조명. 프레임은 넣지 않는다 (D7).
-- **카메라가 둘이면 고정 자막** (P-01): 나란히 보기와 합성 보기는 프레임을 호스트 도착 시각으로 짝지은
-  것이지 동시 촬영이 아니다 (`WsFrame.time_base: "software"`). 표시 전용이며 타이밍·상관·공존 분석에
-  쓰지 않는다. 동시 촬영은 하드웨어 트리거가 있는 soft-matter-agents plan 의 일이다 (그쪽 plan.md 4.6.9).
+- The gauge keeps its 9/30 shape (5.3, user decision 2026-10-02). The two traces stay as they are.
+- The key bindings (2.1) stay as shortcuts, with buttons for the same actions. The keys unrelated to the verdict (`b`, `u`, `t`, `+`, `-`) are the same commands as in the `map` area.
+- The piezo keys (`f`, `w`, `W`) are **kept off** until M5 per operations-spec 9.2, showing the reason `"piezo focus is out of scope until M5"`.
+- `"Save frame"` (new).
+- Remote: the video, verdicts, traces and position are visible, and every key and button is disabled.
+- **Prompt context**: the running operation, the latest verdict (vocabulary), position (encoder), objective, lighting. Frames are not included (D7).
+- **A fixed caption when there are two cameras** (P-01): the side-by-side and merged views pair frames by host arrival time;
+  they are not simultaneous captures (`WsFrame.time_base: "software"`). Display only; not used for timing, correlation or co-occurrence
+  analysis. Simultaneous capture is the job of a soft-matter-agents plan with a hardware trigger (plan.md 4.6.9 on that side).

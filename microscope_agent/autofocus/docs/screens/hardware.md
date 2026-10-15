@@ -1,9 +1,9 @@
 # `hardware` screen contract (T-101 stage A)
 
-Area `hardware` (PLAN.md 2절 F2, 9절 WP-G). This file gives the endpoints, commands and events the
+Area `hardware` (PLAN.md §2 F2, §9 WP-G). This file gives the endpoints, commands and events the
 screen uses, and the engine piece behind each panel. Layout and wording: `docs/ui-spec.md` 7.0, 7.2 and
 5.2 (branch `exec5/T-004-ui-spec` 6fcd8a8). `hardware_scan` steps and profile fields:
-`docs/operations-spec.md` 5절. Neither is restated here.
+`docs/operations-spec.md` §5. Neither is restated here.
 
 Names checked against: main b164e97 `engine/events.py`, T-002 stage 2 `engine/gates.py`
 (`exec1/T-002-stage2-fix`), T-009 `server/app.py` and `server/api/__init__.py`
@@ -40,7 +40,7 @@ Fields the engine does not report stay null, and the screen shows `"not reported
 
 `GateRow` = `{op, enabled, reasons: list[str], requires: {devices, objectives, confirmed, checks, arg}}`,
 copied from T-028 `gates.gate_rows`. `op` is the gate key, and anything but `enabled: true` is off. The router
-never evaluates a gate itself (F2.2, PLAN 6절 2항). The screen takes the permission per op (`light_set`) and
+never evaluates a gate itself (F2.2, PLAN §6 item 2). The screen takes the permission per op (`light_set`) and
 the gate per key (`light_set:brightfield` for "Brightfield on", `light_set:aura` for the Aura button).
 
 Light state has no endpoint of its own. It comes from `/api/state` when the screen connects and from
@@ -105,7 +105,7 @@ role, control, session or remote rules itself.
 | Current state (Step 0) | objective label, Z, PFS triple | `status` op + `position` | `status` op not yet written (WP-C) |
 | Lights | the one light shape (server/schemas/state.py `Lights`): DiaLamp `{state, intensity}`, Aura `{state, lines: {LINE: percent}}`, `verified`, `records`, `error`, last readback time | `light_set`, `lights_off`, `light_changed` | Backend has `lamp_on/off`, `aura_line_on/off`, `all_off`; `light_set` op does not exist (G2) |
 
-## 5. Gaps (requests to AF 업무분배보조, to forward to the manager)
+## 5. Gaps (requests to the AF work-assignment assistant, to forward to the manager)
 
 Where each gap went (manager, main 176b4c3):
 
@@ -140,7 +140,7 @@ Where each gap went (manager, main 176b4c3):
   `light_set` → `Action.OPERATE` + control + open session (D15); `lights_off` → `Action.STOP`.
   Who maps op → (action, control, session): T-011 runner or a T-009 follow-up? Stage B tests depend on
   it.
-- **G8** ui-spec 5.2 and 7.0 disable `"Lights off"` for viewers. PLAN 5절, T-018 `Action.STOP` and D15 allow
+- **G8** ui-spec 5.2 and 7.0 disable `"Lights off"` for viewers. PLAN §5, T-018 `Action.STOP` and D15 allow
   every user to send it. This contract follows PLAN. For a remote client, `lights_off` follows the same
   setting as remote `abort` (checklist U3, default allowed). But T-009 currently refuses every remote
   POST, so remote `lights_off` and `abort` need a T-009 exception.
@@ -148,7 +148,7 @@ Where each gap went (manager, main 176b4c3):
   `hardware_scan_<stamp>/summary.json` (ops-spec 5) and have the engine report the previous profile's
   sha256 and changed keys. Until then the panel shows `"no previous profile"`.
 - **G10** ops-spec 5 defaults `piezo_port` to `COM4`, and whether opening the port alone changes the
-  controller is still unconfirmed (Q19). Answer (업무분배보조): the scan form and the tests default to
+  controller is still unconfirmed (Q19). Answer (work-assignment assistant): the scan form and the tests default to
   `piezo_port: ""` (skip the piezo), and tests never touch COM ports.
 ## 6. Stage B plan (after T-009 and T-010 skeletons merge)
 

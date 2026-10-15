@@ -1,7 +1,7 @@
 # Screen contract: `sessions` (F7 experiment sessions)
 
-- Task: T-106 stage A. Owner: AF 실행2. Status: draft, 2026-10-01.
-- Plan: PLAN.md 2절 F7, 5절 "실험 세션과 기록 저장소", 6절 rule 12, 7절 D10, D11, D13.
+- Task: T-106 stage A. Owner: AF execution 2. Status: draft, 2026-10-01.
+- Plan: PLAN.md §2 F7, §5 "Experiment sessions and the record store", §6 rule 12, §7 D10, D11, D13.
 - Backed by `dino_autofocus.records` (T-019, branch `exec2/T-019-experiment-sessions`, in review).
   Router mechanism: T-009 (`server/api/<area>.py` with a module-level `router`, mounted at `/api/<area>`).
   Shell: T-010. Common disabled reasons: `docs/ui-spec.md` 7.0.
@@ -75,7 +75,7 @@ Refusals use the ui-spec 7.0 strings:
 - **Status bar, experiment session cell**: `<session_id> · <sample_id>` from `GET /current`, or
   `"No experiment session"`. It refreshes on the session event (gap G2) and on navigation.
 - **Disabled reason**: when no session is open, instrument commands show
-  `"Open an experiment session first"`. The engine decides this (PLAN 6절 rule 12), not the screen.
+  `"Open an experiment session first"`. The engine decides this (PLAN §6 rule 12), not the screen.
 
 ## 4. The `sessions` area (`web/src/features/sessions/`, stage B)
 
@@ -92,7 +92,7 @@ disabled with `"Checking permissions…"` (same text on every screen). An op mis
 
 UI text is in English. Remote viewers and viewers can read everything and change nothing.
 
-## 5. Gaps (requests via AF 업무분배보조 to the manager)
+## 5. Gaps (requests via the AF work-assignment assistant to the manager)
 
 | # | Gap | Proposal | Owner |
 |---|---|---|---|
@@ -101,7 +101,7 @@ UI text is in English. Remote viewers and viewers can read everything and change
 | G3 | T-019 does not stop a second open session | The router refuses with 409. A store-level check is optional | T-106 (router) |
 | G4 | `ExperimentSession.open` reads the code version with two git calls on every open (about 1 s on a loaded PC) | Accept `code=` so the server reads it once at start-up | T-106 stage B, change to `records/` listed in its review |
 | G5 | Listing record files and their line counts has no T-019 function | A small `ExperimentSession.record_files()` helper | T-106 stage B, change to `records/` listed in its review |
-| G6 | `reflected` comes from the mock librarian's `librarian/reflected.jsonl`. The real librarian's ledger format is decided at integration | Show `reflected` as true, false or unknown (null when no ledger exists) | integration (PLAN 10절) |
+| G6 | `reflected` comes from the mock librarian's `librarian/reflected.jsonl`. The real librarian's ledger format is decided at integration | Show `reflected` as true, false or unknown (null when no ledger exists) | integration (PLAN §10) |
 | G7 | Which `hardware_profile.json` to hash at open (F2.1 file path) | `profile_path` from T-011's `snapshot()["hardware"]` block | T-011 (answered) |
 | G8 | The logged-in user id and name | Use T-105's auth dependency. Until it merges, tests use a fake user | T-105 (answered) |
 | G9 | Where the server reads the current sample | `snapshot()["sample"] = {sample_id, reserved, session_id}` (set by `sample_open` / `sample_new`, T-027). Sample state shown on screens comes from `engine/sample.py`'s named view over the generic `records.events.fold()`, read through the server; `records/` gets no sample-specific fields | T-011 / T-027 (answered) |

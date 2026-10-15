@@ -1,6 +1,6 @@
 # Login screen and auth API: contract (T-105 stage A)
 
-Design: PLAN.md 5절 "사용자와 로그인", 7절 D9, D12, D13, D16, design rule 12. Core logic:
+Design: PLAN.md §5 "Users and login", §7 D9, D12, D13, D16, design rule 12. Core logic:
 `src/dino_autofocus/auth/` (T-018). This file fixes the HTTP surface and the screen so that
 stage B (`server/api/auth.py`, `web/src/app/login/`) and the shell (T-010) can be built against it.
 
@@ -97,7 +97,7 @@ UI text in English. No email is prefilled, remembered or shown before login.
 
 ## 5. What the shell (T-010) and server (T-009) must provide
 
-Requests to AF 업무분배보조, who forwards them to the manager:
+Requests to the AF work-assignment assistant, who forwards them to the manager:
 
 1. **T-009: login over remote view.** `writes_from_this_pc_only` refuses every non-GET from a
    remote PC, so a remote viewer cannot `POST /api/auth/login`, `/logout`, `/lock`, `/unlock`,

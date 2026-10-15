@@ -1,9 +1,9 @@
 # `map` screen contract (T-102 stage A)
 
-Sample map screen (PLAN.md 2절 F4). This file is the contract between the screen
+Sample map screen (PLAN.md §2 F4). This file is the contract between the screen
 (`web/src/features/map/`), its router (`server/api/map.py`, mounted at `/api/map` by T-009) and the
 engine operations. Behaviour and wording come from `docs/ui-spec.md` 5.1, 5.3, 7.0 and 7.4 (branch
-`exec5/T-004-ui-spec`) and `docs/operations-spec.md` 3, 6 and 8절; they are cited here, not restated.
+`exec5/T-004-ui-spec`) and `docs/operations-spec.md` §3, §6 and §8; they are cited here, not restated.
 Gap numbers (G1-G9) refer to section 7.
 
 ## 1. Rules this screen follows
@@ -15,7 +15,7 @@ Gap numbers (G1-G9) refer to section 7.
 - The screen and the router decide nothing about safety. The box check, the retract decision, the
   stale-fit check and all refusals come from the engine (`preflight_failed`, `confirm_required`). The
   hover hint "outside the scanned area" is display only (ui-spec 7.4, click-move step 1).
-- Directions (PLAN.md 5절, v1.2): ZDrive up = toward the sample, 0 µm = retract, so a retract shows
+- Directions (PLAN.md §5, v1.2): ZDrive up = toward the sample, 0 µm = retract, so a retract shows
   as Z decreasing. The camera image is mirrored against the stage; the stage position of pixel `p` is
   `stage + inv(M) @ (centre − p)`, with the 2026-09-30 4x `M` as the initial calibration. 4x tiles are
   serpentine.
@@ -36,7 +36,7 @@ among others), and `map.py`'s single reader function calls that view. `sample.js
 legacy root `D:\AutoFocus\samples\<sample_id>\`, which also holds the large files the result
 endpoints read (`scan4x_*/`, `sample_map_*/`, tiles, `mosaic.npy`). A storage change is then a
 one-place change.
-Response bodies are pydantic models; the TypeScript types are generated from OpenAPI (PLAN.md 5절).
+Response bodies are pydantic models; the TypeScript types are generated from OpenAPI (PLAN.md §5).
 
 | Route | Returns |
 |---|---|
@@ -66,7 +66,7 @@ objective and lights come from `/api/state` and `/ws/events` (T-009, T-010), not
 | `+` / `-` while tracing | `update {op_id, args: {speed_um_s}}` (T-011 adds `update`) |
 | `b` / `u` | `start boundary_mark {sample_id}` / `start boundary_undo {sample_id}` |
 | `"Re-trace"` | `start edge_trace` (the engine backs up and asks, C4); `"Clear boundary"` = `start boundary_reset {sample_id}` |
-| `"Start scan"` | `start scan_4x {...}` or `start sample_map {...}` with the args of operations-spec 3절 1항 / 6.1 1항 |
+| `"Start scan"` | `start scan_4x {...}` or `start sample_map {...}` with the args of operations-spec §3 item 1 / 6.1 item 1 |
 | map click | `start goto_xy {sample_id, x_um, y_um}` |
 | dialog answers | `confirm {op_id, args: {key, ok}}`; `abort {op_id}` |
 
@@ -158,7 +158,7 @@ shows the reason. Field names in this table are assumed (G6).
 | G4 | `mosaic.json` lacks `orientation: "stage"`, `M_px_per_um`, `objective`, `n_tiles`; `scan_4x` writes no mosaic | Future engine card. Until then the server refuses (409) a mosaic without `orientation` |
 | G5 | `map_changed`, `sample_opened`, objective event, `update` command | In T-011 (owner of `events.py`) |
 | G6 | `goto_xy` payload fields (section 6); `scan_box_um` / `allowed_box_um` in `summary.json` | Future engine card. Field names in sections 2 and 6 are the request |
-| G7 | Edge-trace diameter arg name | **Decided**: `hole_diameter_mm` (operations-spec 8절); ui-spec is fixed by its author |
+| G7 | Edge-trace diameter arg name | **Decided**: `hole_diameter_mm` (operations-spec §8); ui-spec is fixed by its author |
 | G8 | Engine-assigned `flag_id` / `candidate_id`; decisions reference them (`decides`, `replaces`); reject = new entry with `source: "person_rejected"` | Future engine card |
 | G9 | Op names `map_flag_retire`, `candidate_confirm`, `candidate_reject` | **Fixed in T-011** as written here |
 | G10 | Retired flags and decided candidates in the fold | **Closed by T-027c** (b602da5): `flag_remove` keeps the flag with `retired: True`; every flag and particle has a `history` of `{kind, by, at, status}`. `map.py` lists what is in play with `SampleView.active_flags()` / `open_candidates()` and returns the rest on `include_retired` / `include_rejected`, with `retired_by` / `retired_at` and the decision's `by` / `decided_at` taken from history. The screen shows retired flags on the toggle and rejected candidates as a grey × |

@@ -1,6 +1,6 @@
 # `sample` screen contract (T-103 stage A)
 
-Sample and loading-check screen (PLAN.md 2절 F3, 9절 WP-H). This file is the contract between the screen
+Sample and loading-check screen (PLAN.md §2 F3, §9 WP-H). This file is the contract between the screen
 (`web/src/features/sample/`), its router (`server/api/sample.py`, mounted at `/api/sample` by T-009) and the
 engine operations. Layout and wording come from `docs/ui-spec.md` 7.0 and 7.3 (main); they are cited here,
 not restated. Section 7 lists the manager's answers (G1–G9); the one item still open is marked **open**.
@@ -16,7 +16,7 @@ b9fb6cc), T-018 `auth/roles.py` (`exec13/T-018-auth-core`).
 - `"Loading confirmed (person + image)"` is shown only when the engine's loading state says all three steps
   are recorded. The screen does not combine the steps itself, and a value selected in a form is not a state
   check (PLAN F3, ui-spec 7.3).
-- Sample state is append-only (decision D1 from AF 업무분배보조, PLAN 5절 v0.9): geometry entries and loading
+- Sample state is append-only (decision D1 from the AF work-assignment assistant, PLAN §5 v0.9): geometry entries and loading
   steps are entries in the open experiment session's `records/sample_events.jsonl`. T-019
   `records.events.fold()` is the only fold; `engine/sample.py` (T-027) projects it into one named sample view
   (geometry, loading, boundary, flags, candidates, `awaiting_return`, last session). `sample.json` and
@@ -24,10 +24,10 @@ b9fb6cc), T-018 `auth/roles.py` (`exec13/T-018-auth-core`).
 - Images never go into the prompt context (D7). Prompt context: sample id, geometry values with their
   sources, loading-check state (ui-spec 7.3).
 
-## 2. Geometry fields (provisional, PLAN 10절: F3.1 is not confirmed by the user)
+## 2. Geometry fields (provisional, PLAN §10: F3.1 is not confirmed by the user)
 
 The field list lives in **one place on each side**, so a change is one edit per side:
-- engine: one tuple `GEOMETRY_FIELDS` in `engine/sample.py` (T-027, AF 실행1);
+- engine: one tuple `GEOMETRY_FIELDS` in `engine/sample.py` (T-027, AF execution 1);
 - server: `GET /api/sample/geometry-fields` serves that tuple as `GeometryField[]`; the response models
   carry values as `{key: GeometryValue}`, so no field name is hard-coded in `sample.py`;
 - web: the form renders from the `geometry-fields` response, labels included; no field name appears in the
@@ -116,17 +116,17 @@ wrote them, and the screen re-reads the matching GET.
 
 `LoadingState.confirmed` true → `"Loading confirmed (person + image)"`; otherwise the missing steps are listed.
 
-## 7. Decisions (manager, via AF 업무분배보조) and open items
+## 7. Decisions (manager, via the AF work-assignment assistant) and open items
 
 | # | Question | Answer |
 |---|---|---|
 | G1 | Where geometry and loading entries live | The open session's `records/sample_events.jsonl` is the truth. `geometry_set` and `loading_step` are sample-event kinds written through T-019 `session.sample_event()` (T-027). `sample_new` only reserves the id and the folder and writes no event (T-027 option (b)); when the first session for that sample opens, the engine writes `sample_created` as the first event of that session's `sample_events.jsonl`. Until then the sample is `reserved` in the list. `D:\AutoFocus\samples\<id>\` keeps the derived views (`sample.json`, `map.json`) and large files outside git. T-019 `records.events.fold()` is the only fold; `engine/sample.py` (T-027) projects it into one named sample view, the only thing `sample.py` reads |
 | G2 | `sample_opened`, `map_changed` not in `EVENT_KINDS` | Added by T-011 |
-| G3 | The five op names | T-027 (AF 실행1) uses them as written here |
+| G3 | The five op names | T-027 (AF execution 1) uses them as written here |
 | G4 | Who may send the five ops | All five use the existing `OPERATE` action (local operator with control). One sample per experiment session (manager, main 9052f48): `sample_open` / `sample_new` need no session and are refused when a session is open for another sample; `sample_geometry_set`, `loading_confirm_person`, `loading_check_image` need that sample's open session. This replaces the earlier "all five need an open session" |
-| G5 | `not_set` safety fields; F3.1 field list | Dependent ops refuse while thickness or orientation is `not_set`. **Open**: the field list, units and choices stay provisional until the user confirms F3.1 (PLAN 10절) |
+| G5 | `not_set` safety fields; F3.1 field list | Dependent ops refuse while thickness or orientation is `not_set`. **Open**: the field list, units and choices stay provisional until the user confirms F3.1 (PLAN §10) |
 | G6 | Scope of the loading state | Per experiment session and sample; a new session or `sample_open` starts unconfirmed; changing a safety field after confirmation clears steps 2–3 |
-| G7 | `loading_check_image` gate and result | Gate in T-028 (AF 실행17): camera, DiaLamp, 4x; not 4x → `preflight_failed`, no objective change. `finished.data.summary` = `{ok, metric, value, grade: "computed", why, frame_ref}`, `end_state` light readback off (field names assumed until T-027) |
+| G7 | `loading_check_image` gate and result | Gate in T-028 (AF execution 17): camera, DiaLamp, 4x; not 4x → `preflight_failed`, no objective change. `finished.data.summary` = `{ok, metric, value, grade: "computed", why, frame_ref}`, `end_state` light readback off (field names assumed until T-027) |
 | G8 | Source of `awaiting_return` and last session | The T-027 sample view |
 | G9 | Role for `"Open folder"` | Any logged-in local user, never remote. A route in `sample.py`, not an engine op |
 

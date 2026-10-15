@@ -1,6 +1,6 @@
 # Objective screen contract (T-104, stage A)
 
-Area `objective`: objective change with immersion loading (PLAN 2절 F5) and the 100x focus sweep.
+Area `objective`: objective change with immersion loading (PLAN §2 F5) and the 100x focus sweep.
 Server: `src/dino_autofocus/server/api/objective.py`. Web: `web/src/features/objective/`.
 
 This is the contract between the two, and with the engine. Behaviour is specified elsewhere and is
@@ -10,7 +10,7 @@ cited, not restated:
   reasons), 7.5 (this area), 3.1 C6–C11 (confirm points).
 - Operations: `docs/operations-spec.md` 4.2 (`objective_change`, seven steps, abort table) and 7
   (`focus_100x`).
-- Directions: PLAN 5절 direction basis (v1.2). ZDrive up = toward the sample, 0 µm = retracted.
+- Directions: PLAN §5 direction basis (v1.2). ZDrive up = toward the sample, 0 µm = retracted.
 - Commands and events: `src/dino_autofocus/engine/events.py` (`COMMAND_KINDS`, `EVENT_KINDS`).
 
 Names not yet in engine code are listed under Gaps with their owner task.

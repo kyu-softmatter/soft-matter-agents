@@ -1,212 +1,212 @@
-# 현미경 PC 에서 확인할 것 (2026-10-01 기준)
+# What to check on the microscope PC (as of 2026-10-01)
 
-> **경고 (2026-10-01): 실제 장비에서는 아직 아무것도 움직이지 않는다.** 실제 장비 백엔드(mm-real)는
-> main 에 있지만, 벤치에서 Z 접근 때 간격을 확인하는 장치(T-027 가드, T-011 벤치 검사)가 아직 main 에 없다.
-> 둘 다 병합될 때까지 현미경 PC 에서는 **읽기 전용**으로만 쓴다. 상태 보기, 카메라 프레임, 광원 켜기/끄기(D15)
-> 까지만 하고, 재물대·Z·대물렌즈를 움직이는 작업은 돌리지 않는다. 새 앱의 실제 장비 백엔드는 코드로도 잠겨 있다
-> (T-036, main 2c61b7b: `BENCH_MOTION = "LOCKED"`). **잠금 밖에서 장비를 움직이던 옛 스크립트
-> (scan_4x, focus_100x, change_objective 등) 는 R-05 에서 지웠다 (이력에 있음).** 장비는 앱으로, 또는 손으로 움직인다.
-> 잠금은 T-027, T-011b, T-015b (장비 백엔드를 기본으로 "벤치" 로 보는 안전 기본값), T-027b (작동 거리를 모르는 렌즈는 2800 µm 위로 접근 거부), 그리고 가드와 실행기가 같은 벤치 판정(is_bench)을 쓰게 하는 후속 두 개, T-036d (시작 프리셋 검사가 설정 파일에서 쓰는 장치 이름도 본다), T-015c (벤치 판정이 오류 대신 "벤치" 를 돌려준다), T-029c (Y 이탈을 움직이기 전에 기록한다), T-029d (Q13·Q20 을 재기 전까지 실제 장비에서 렌즈 교체와 100x 접근을 거부. 2026-10-02 사용자가 부분 해제: 40x WI, 60x, 100x 는 2800 µm 까지만) 가 모두 병합되고 매니저와 총괄이 확인한 뒤 풀고, 그때 총괄 세션이 이 경고를 지운다.
+> **Warning (2026-10-01): nothing moves on the real instrument yet.** The real-instrument backend (mm-real) is
+> on main, but the things that check the clearance during a Z approach at the bench (the T-027 guard, the T-011 bench check) are not on main yet.
+> Until both are merged, the microscope PC is used **read-only**. Status view, camera frames, and switching light sources on/off (D15)
+> only; do not run any work that moves the stage, Z or the objectives. The new app's real-instrument backend is also locked in code
+> (T-036, main 2c61b7b: `BENCH_MOTION = "LOCKED"`). **The old scripts that moved the instrument outside the lock
+> (scan_4x, focus_100x, change_objective, etc.) were deleted in R-05 (they remain in history).** The instrument is moved through the app, or by hand.
+> The lock is lifted once T-027, T-011b, T-015b (a safe default that treats the instrument backend as "bench" by default), T-027b (refuses approach above 2800 µm for an objective whose working distance is unknown), and the two follow-ups that make the guard and the executor use the same bench verdict (is_bench), T-036d (the startup preset check also looks at the device names the configuration file uses), T-015c (the bench verdict returns "bench" instead of an error), T-029c (records the Y escape before moving), and T-029d (refuses objective changes and the 100x approach on the real instrument until Q13 and Q20 are measured; partly lifted by the user on 2026-10-02: 40x WI, 60x and 100x only up to 2800 µm) are all merged and the manager and the lead have confirmed it, and at that point the lead session removes this warning.
 
-작성: 총괄 세션. 개발 데스크톱에서는 답할 수 없고, 현미경 PC 에서 읽거나 한 번 돌려 봐야 답이 나오는
-항목을 한곳에 모았다. 답이 나오면 이 파일에 적고 총괄 세션에 알린다. 그때까지 코드는 아래의
-임시 값으로 돌고, 코드와 기록에 `unmeasured provisional` 로 표시된다.
+Written by: the lead session. This gathers in one place the items that cannot be answered on the development desktop, and that get an
+answer only by reading something on the microscope PC or running it there once. When an answer comes, write it in this file and tell the lead session. Until then the code runs on the
+provisional values below, which are marked `unmeasured provisional` in the code and in the records.
 
-## 1. 사용자가 정할 것
+## 1. What the user decides
 
-| # | 질문 | 지금 상태 |
+| # | Question | Current state |
 |---|---|---|
-| U1 | Python 환경 (PLAN D2): 이 저장소의 uv 환경 하나로 Windows 쪽을 모두 돌릴지 | 권고: uv 하나로 통일 |
-| U2 | WSL 시뮬레이션이 실행 기록을 `D:\AutoFocus\records\simulation\` 에 직접 쓸지, 지금 위치에 두고 읽을지 | **통합할 때 정한다** (사용자). mock 은 영향 없음 |
-| U3 | 원격 접속 화면에서 정지(abort) 만은 허용할지 | **결정: 허용** (PLAN D13) |
-| U4 | 사람이 보면서 쓰는 작업(엣지 추적 등) 중 현미경 PC 의 브라우저가 모두 끊기면 자동 정지할지 | **결정: 10 s 뒤 자동 정지** (PLAN D14) |
+| U1 | Python environment (PLAN D2): whether to run the whole Windows side from this repository's single uv environment | Recommendation: unify on uv |
+| U2 | Whether the WSL simulation writes its run records directly to `D:\AutoFocus\records\simulation\`, or leaves them where they are now and they are read there | **Decided at integration** (the user). No effect on mock |
+| U3 | Whether abort alone is allowed from the remote access screen | **Decided: allowed** (PLAN D13) |
+| U4 | Whether work a person does while watching (edge tracing, etc.) stops automatically if every browser on the microscope PC disconnects | **Decided: automatic stop after 10 s** (PLAN D14) |
 
-## 2. 현미경 PC 에서 읽거나 재 볼 것
+## 2. What to read or measure on the microscope PC
 
-### 시뮬레이션 (WSL)
+### Simulation (WSL)
 
-- 실행 중인 시뮬레이션이 진행 상태(현재 step, 전체 step)를 파일로 남기는가. 남긴다면 어디에.
-- 궤적(GSD)과 로그 파일의 실제 경로. 서버는 `\\wsl$\<배포판>\...` 로 읽기만 한다.
+- Does a running simulation leave its progress (current step, total steps) in a file? If so, where?
+- The actual paths of the trajectory (GSD) and log files. The server only reads them, through `\\wsl$\<distribution>\...`.
 
-### 방향 기준
+### Direction reference
 
-방향은 2026-09-30 실행 기록을 기준으로 한다 (PLAN 5절 Guards). F5 Y 이탈은 +Y 로 먼저 설정했다 (Q12 에서 확인).
+Directions follow the 2026-09-30 run records (PLAN §5 Guards). The F5 Y escape was set to +Y first (to be checked under Q12).
 
-### 작업 명세의 질문 Q1–Q21
+### The operations spec's questions Q1–Q21
 
-질문 원문과 이유는 [operations-spec.md 10절](operations-spec.md) 에 있다. 대부분
-`C:\agentic_microscope\hardware\focus.py` (FocusAxis) 를 읽으면 답이 나온다.
+The questions in full and their reasons are in [operations-spec.md §10](operations-spec.md). Most are
+answered by reading `C:\agentic_microscope\hardware\focus.py` (FocusAxis).
 
-| 묶음 | 질문 | 어떻게 확인 |
+| Group | Questions | How to check |
 |---|---|---|
-| Z 이동과 스윕 | Q1 스윕 시작점 접근 방향, Q2 readback 허용 오차, Q3 `park_at` 반환값, Q4 `best_z_um` 규칙, Q6 `dry_run` 동작, Q7 이동 중 Ctrl+C, Q15 100x 천장 계산 위치, Q21 단계 접근 함수 유무 | FocusAxis 코드 읽기 |
-| 렌즈와 PFS | Q5 `require_pfs_quiet`, Q8 렌즈별 상한·작동 거리의 위치, Q13 100x 를 0→2800 µm 로 올리는 안전한 걸음, Q14 `waitForDevice("Nosepiece")` 의미 | 코드 읽기 + 벤치 한 번 |
-| 광원과 설정 | Q9 Startup 프리셋의 눈에 보이는 변화, Q10 Aura State 0 이 모든 라인을 끄는지 | 벤치에서 눈으로 |
-| XY 와 재물대 | Q11 XYStage readback 오차, Q12 F5 이탈 방향·거리·Y 한계·24 mm 변 방향, Q20 100x 오일에서 Z 후퇴가 필요한 XY 거리 | 벤치 측정 |
-| 샘플 맵 | Q16 명시야 4x 타일 Vollath 초점, Q17 명시야 자동 노출 목표, Q18 약 6.7 µm 입자가 4x 모자이크에 보이는지, 그리고 입자 후보 검출 문턱값 (T-032, 지금은 합성 타일로만 맞춤) | 벤치 한 번. 실제 모자이크 하나를 저장해 두면 문턱값은 데스크톱에서 다시 맞출 수 있다 |
-| 피에조 | Q19 `PiezoReader` 를 여는 것만으로 바뀌는 것, NanoBench 프로그램과 포트가 겹칠 때 | 벤치 한 번 |
+| Z moves and sweeps | Q1 approach direction to the sweep start, Q2 readback tolerance, Q3 return value of `park_at`, Q4 the `best_z_um` rule, Q6 `dry_run` behaviour, Q7 Ctrl+C during a move, Q15 where the 100x ceiling is computed, Q21 whether a stepped-approach function exists | Read the FocusAxis code |
+| Objectives and PFS | Q5 `require_pfs_quiet`, Q8 where the per-objective upper limits and working distances are kept, Q13 safe steps for raising the 100x from 0→2800 µm, Q14 what `waitForDevice("Nosepiece")` means | Read the code + one bench visit |
+| Light sources and configuration | Q9 the visible change from the Startup preset, Q10 whether Aura State 0 turns off every line | By eye at the bench |
+| XY and stage | Q11 XYStage readback error, Q12 F5 escape direction, distance, Y limit and the direction of the 24 mm side, Q20 the XY distance beyond which 100x oil needs a Z retract | Bench measurement |
+| Sample map | Q16 Vollath focus on brightfield 4x tiles, Q17 the brightfield auto-exposure target, Q18 whether particles of about 6.7 µm show in the 4x mosaic, and the particle-candidate detection threshold (T-032, tuned only on synthetic tiles so far) | One bench visit. If one real mosaic is saved, the threshold can be re-tuned on the desktop |
+| Piezo | Q19 what changes merely by opening `PiezoReader`, and what happens when its port overlaps with the NanoBench program | One bench visit |
 
-### 초점 판정 임시 상수 (`src/dino_autofocus/focus/verdict.py`)
+### Provisional focus-verdict constants (`src/dino_autofocus/focus/verdict.py`)
 
-| 상수 | 임시 값 | 뜻 |
+| Constant | Provisional value | Meaning |
 |---|---|---|
-| `MIN_DYNAMIC_RANGE_ADU` | 20 | 이보다 밝기 범위가 작으면 읽을 것이 없다고 본다 |
-| `MIN_CURVE_CONTRAST` | 0.05 | 초점 곡선의 최소 대비 |
-| `IN_FOCUS_DOF` | 1.0 | 이 안이면 `in_focus` |
-| `MAX_SIGMA_DOF` | 3.0 | 불확실성이 이보다 크면 `unsure` |
+| `MIN_DYNAMIC_RANGE_ADU` | 20 | a brightness range smaller than this is taken to mean there is nothing to read |
+| `MIN_CURVE_CONTRAST` | 0.05 | minimum contrast of the focus curve |
+| `IN_FOCUS_DOF` | 1.0 | within this, `in_focus` |
+| `MAX_SIGMA_DOF` | 3.0 | an uncertainty larger than this gives `unsure` |
 
-### 매니저가 정한 임시 가드 값
+### Provisional guard values set by the manager
 
-| 값 | 임시 | 측정할 것 |
+| Value | Provisional | What to measure |
 |---|---|---|
-| 큰 XY 이동 문턱 | 대물렌즈별 표 (가드 안). 4x 는 타일 이동 허용, 100x Oil 은 min(시야, 1 mm), 모르는 렌즈는 가장 엄격 | Q20, 렌즈별 표의 값 전부 |
-| `z_safe` | 0 µm (완전 후퇴) | Q20 |
-| 렌즈별 자유 작동 거리 `FREE_WD_UM` (가드 안, T-027b) | 4x 20 mm, 100x Oil 130 µm 만 있다. 값이 없는 렌즈는 2800 µm 위로 접근하지 못하고, 대물렌즈 교체(F5)의 목표로도 거부된다. 10x, 20x, 40x WI, 60x 가 여기에 걸린다 | 10x, 20x, 40x WI (0.17 mm 보정 링 위치), 60x 의 자유 작동 거리. 렌즈 사양서나 렌즈 몸통의 표기로 읽고, 벤치에서 한 번 확인 |
-| `approach_step_um` (F5 단계 접근 걸음) | 렌즈별 표에 둔다. 100x Oil 10 µm (작동 거리 130 µm 의 약 1/13), 다른 렌즈도 우선 10 µm. 접근은 기존 절차대로 0 → 2800 µm 를 한 번에 간 뒤 2800 부터 걸음으로 올라간다 | Q13. M4 의 실제 벤치 사용 전에 확인 |
-| F5 이탈 방향과 거리 | **+Y, 15 mm** (사용자가 +Y 로 먼저 설정, 거리는 15–20 mm 중 짧은 쪽). 재물대 Y 한계를 넘으면 거부 | Q12. M4 전에 확인 |
+| Large-XY-move threshold | a per-objective table (in the guard). 4x allows tile moves, 100x Oil is min(field of view, 1 mm), an unknown objective gets the strictest | Q20, every value in the per-objective table |
+| `z_safe` | 0 µm (fully retracted) | Q20 |
+| Per-objective free working distance `FREE_WD_UM` (in the guard, T-027b) | Only 4x 20 mm and 100x Oil 130 µm are there. An objective without a value cannot approach above 2800 µm, and is also refused as the target of an objective change (F5). 10x, 20x, 40x WI and 60x are caught by this | The free working distances of 10x, 20x, 40x WI (at the 0.17 mm correction collar position) and 60x. Read them from the objective spec sheet or the marking on the objective barrel, and confirm once at the bench |
+| `approach_step_um` (the step of the F5 stepped approach) | Kept in the per-objective table. 100x Oil 10 µm (about 1/13 of its 130 µm working distance), and 10 µm for the other objectives too for now. As in the existing procedure, the approach goes 0 → 2800 µm in one move and then steps up from 2800 | Q13. Confirm before M4's real bench use |
+| F5 escape direction and distance | **+Y, 15 mm** (the user set +Y first; the distance is the shorter end of 15–20 mm). Refused if it would cross the stage's Y limit | Q12. Confirm before M4 |
 
-### 장치 속성 이름 (T-015)
+### Device property names (T-015)
 
-| 질문 | 지금 상태 | 확인 방법 |
+| Question | Current state | How to check |
 |---|---|---|
-| Kinetix_red 의 판독 모드 속성 이름과 값 목록 | 카메라 쓰기 허용 목록에 아직 없다. 9월 30일 기록에는 `ReadoutRate = 100MHz 12bit` 로 적혀 있어 이름은 `ReadoutRate` 로 보이지만 확인 전이다 | Micro-Manager 에서 Kinetix_red 속성 목록과 허용 값 읽기 |
-| Aura 의 GREEN 외 라인 이름 (VIOLET, CYAN, RED 등) 과 `<LINE>_Intensity` 속성 | GREEN 만 9월 30일에 썼다. 나머지는 `unmeasured provisional` | Aura 장치 속성 목록 읽기 |
+| Kinetix_red's readout-mode property name and value list | Not in the camera write allowlist yet. The September 30 record has `ReadoutRate = 100MHz 12bit`, so the name looks like `ReadoutRate`, but it is not confirmed | Read Kinetix_red's property list and allowed values in Micro-Manager |
+| The Aura's line names other than GREEN (VIOLET, CYAN, RED, etc.) and the `<LINE>_Intensity` properties | Only GREEN was used on September 30. The rest are `unmeasured provisional` | Read the Aura device property list |
 
-### 실제 장비 백엔드 (T-033)
+### Real-instrument backend (T-033)
 
-| 질문 | 지금 상태 | 확인 방법 |
+| Question | Current state | How to check |
 |---|---|---|
-| **설정 파일을 불러올 때 움직이는 장치를 건드리지 않는가** (T-036b) | 설정을 불러오면 Micro-Manager 가 `System` 그룹의 `Startup` 프리셋과 `Property,Core,Initialize,1` 뒤의 `Property` 줄을 스스로 적용한다. 그 안에 ZDrive, XYStage, Nosepiece, PFS 값이 있으면 **열기만 해도 장비가 움직인다.** 9월 30일 기록에는 `LappMainBranch1 State 1` (광경로) 만 적혀 있고 전체는 확인 전이다. Micro-Manager 의 기본 데모 설정은 Startup 에서 대물렌즈를 돌려서 새 검사에 걸린다. 새 앱은 열기 전에 검사해 거부한다 (같은 파일을 검사 없이 열던 옛 `scripts/*` 는 R-05 에서 삭제; 이력에 있음) | 아래 두 명령. ZDrive, XYStage, Nosepiece, PFS 뿐 아니라 이 설정에서 Z·재물대·대물렌즈·PFS 를 맡은 장치 이름(예: TIZDrive, `Property,Core,Focus,...` 줄에 적힌 이름)이 하나라도 나오면 그 설정으로 아무것도 열지 말고 총괄 세션에 알린다 |
-| **설정의 종료 프리셋이 움직이는 장치를 건드리지 않는가** (T-036b) | 장치를 내릴 때 Core 가 `System/Shutdown` 프리셋을 적용하는지 확인 전이다. 적용한다면 그 안의 Z·재물대·대물렌즈 값은 끌 때 장비를 움직인다. 새 앱은 Shutdown 프리셋도 같은 규칙으로 거부한다 | 아래 명령의 Shutdown 줄을 본다. 끌 때 적용되는지는 벤치에서 Shutdown 프리셋에 눈에 보이는 무해한 값(광경로 등)이 있다면 끄면서 바뀌는지 본다 |
-| 벤치 설정 파일 경로와 Micro-Manager 설치 폴더 | 앱의 mm-real 백엔드(`engine/backends/mm_real.py` `BENCH_CONFIG`)는 `C:\agentic_microscope\config\micromanager\single_cam_red_noDMD_nocom10.cfg` 를 쓴다. 설치 폴더는 pymmcore-plus 가 찾는다 | 파일이 있는지, `uv run python -c "from pymmcore_plus import find_micromanager; print(find_micromanager())"` |
-| Core 의 AutoFocus 장치가 PFS 인가 | 확인 전 | 설정을 불러온 뒤 Core 의 AutoFocus 역할 읽기 |
-| `enableContinuousFocus(False)` 뒤에 꺼짐으로 읽히는가 | 확인 전 | 끄고 `isContinuousFocusEnabled()` 읽기 |
-| XY 이동 대기 시간 30 s 가 가장 긴 이동에 충분한가 | `DEFAULT_XY_TIMEOUT_S = 30` 임시값 | 가장 먼 두 점 사이 이동 시간 재기 |
-| 재물대 이동 한계 (X, Y) | 실제 장비 백엔드는 지금 "모름" 을 돌려준다. 그래서 **실제 장비에서는 F5 Y 이탈이 거부된다** | 재물대 한계 값 읽기 또는 측정 (Q12 와 함께) |
+| **Does loading the configuration file leave the moving devices alone?** (T-036b) | When a configuration is loaded, Micro-Manager itself applies the `Startup` preset of the `System` group and the `Property` lines after `Property,Core,Initialize,1`. If ZDrive, XYStage, Nosepiece or PFS values are in there, **merely opening it moves the instrument.** The September 30 record lists only `LappMainBranch1 State 1` (light path), and the rest has not been checked. Micro-Manager's default demo configuration rotates the objective at Startup and is caught by the new check. The new app checks before opening and refuses (the old `scripts/*` that opened the same file without a check were deleted in R-05; they remain in history) | The two commands below. If any name comes up -- not only ZDrive, XYStage, Nosepiece and PFS but the name of any device that handles Z, the stage, the objectives or PFS in this configuration (for example TIZDrive, or the name written in the `Property,Core,Focus,...` line) -- open nothing with that configuration and tell the lead session |
+| **Does the configuration's shutdown preset leave the moving devices alone?** (T-036b) | Not confirmed whether Core applies the `System/Shutdown` preset when it unloads the devices. If it does, Z, stage or objective values in it move the instrument at shutdown. The new app refuses the Shutdown preset under the same rule | Look at the Shutdown line in the command below. Whether it is applied at shutdown: if the Shutdown preset holds a visible, harmless value (light path, etc.), see at the bench whether it changes when shutting down |
+| Bench configuration file path and Micro-Manager install folder | The app's mm-real backend (`engine/backends/mm_real.py` `BENCH_CONFIG`) uses `C:\agentic_microscope\config\micromanager\single_cam_red_noDMD_nocom10.cfg`. pymmcore-plus finds the install folder | Whether the file exists; `uv run python -c "from pymmcore_plus import find_micromanager; print(find_micromanager())"` |
+| Is Core's AutoFocus device the PFS? | Not confirmed | After loading the configuration, read Core's AutoFocus role |
+| Does it read as off after `enableContinuousFocus(False)`? | Not confirmed | Turn it off and read `isContinuousFocusEnabled()` |
+| Is the 30 s XY move wait long enough for the longest move? | `DEFAULT_XY_TIMEOUT_S = 30`, provisional | Time a move between the two farthest points |
+| Stage travel limits (X, Y) | The real-instrument backend currently returns "unknown". So **the F5 Y escape is refused on the real instrument** | Read or measure the stage limit values (together with Q12) |
 
-설정 파일 확인 명령 (현미경 PC 의 PowerShell, 둘 다 읽기만 한다. 장비를 열지 않는다):
+Commands to check the configuration file (PowerShell on the microscope PC; both only read and do not open the instrument):
 
 ```powershell
 Select-String -Path "C:\agentic_microscope\config\micromanager\single_cam_red_noDMD_nocom10.cfg" -Pattern "^ConfigGroup,System,(Startup|Shutdown)"
 ```
 
-새 앱이 장비를 열 때 하는 검사를 그대로 돌린다 (T-036b, T-036d: 설정 파일의 역할 줄과 앱이 쓰는 장치 이름이 다른 경우도 거부) (Micro-Manager 를 불러오지 않는다). 불러올 때 설정되는 것을 모두 보여 주고, 문제가 없으면 마지막에 `OK` 를 찍는다. 움직이는 장치가 있으면 `UnsafeConfig` 로 그 이름을 보여 준다:
+This runs the same check the new app runs when it opens the instrument (T-036b, T-036d: it also refuses when the configuration file's role lines and the device names the app uses differ) (it does not load Micro-Manager). It shows everything that is set at load and prints `OK` at the end if nothing is wrong. If a moving device is there, it shows its name as `UnsafeConfig`:
 
 ```powershell
 uv run python -c "from pathlib import Path; from dino_autofocus.engine.backends.mm_real import load_time_settings, check_load_settings, BENCH_DEVICES; p = Path(r'C:\agentic_microscope\config\micromanager\single_cam_red_noDMD_nocom10.cfg'); s = load_time_settings(p.read_text(encoding='utf-8')); [print(x.text()) for x in s]; check_load_settings(s, p.name, BENCH_DEVICES); print('OK')"
 ```
 
-### 설치 상태 (T-020)
+### Installation state (T-020)
 
-| 질문 | 왜 필요한가 | 확인 명령 |
+| Question | Why it is needed | Check command |
 |---|---|---|
-| git 이 설치되어 있는가 | DINO 백본은 dinov2 클론의 커밋을 `git rev-parse` 로 확인하고, 없으면 실행을 거부한다. 기록 저장소(PLAN D10)도 로컬 git 이다 | `git --version` |
-| torch 가중치 폴더는 어디인가 | 그 폴더 아래 `checkpoints` 에 가중치 파일을 둔다 (오프라인 복사) | `uv run python -c "import torch; print(torch.hub.get_dir())"` |
-| 원격 보기를 켤 때 Windows 방화벽 창 (T-009) | `--remote-view` 로 서버를 켜면 모든 주소(0.0.0.0)에 바인딩해서, 처음 한 번 방화벽이 허용 여부를 묻는다. **원격 보기가 필요할 때만, "개인 네트워크"만 허용한다.** 공용 네트워크는 허용하지 않는다. 원격 보기를 쓰지 않으면 이 창은 나오지 않는다 | 서버를 `--remote-view` 로 처음 켤 때 |
+| Is git installed? | The DINO backbone checks the dinov2 clone's commit with `git rev-parse` and refuses to run without it. The record store (PLAN D10) is also local git | `git --version` |
+| Where is the torch weights folder? | The weights files go in `checkpoints` under that folder (offline copy) | `uv run python -c "import torch; print(torch.hub.get_dir())"` |
+| The Windows Firewall window when remote view is turned on (T-009) | Starting the server with `--remote-view` binds to every address (0.0.0.0), so the firewall asks once, the first time, whether to allow it. **Allow it only when remote view is needed, and only for "Private networks".** Do not allow public networks. If remote view is not used, this window does not appear | The first time the server is started with `--remote-view` |
 
-### 그 밖에 측정할 것 (9월 30일 기록에서)
+### Other things to measure (from the September 30 record)
 
-- 4x→100x 동초점 오프셋. 9월 30일에는 약 −60 µm 였고 기준 시료로 다시 잰다.
-- A4000 에서 DINO 지연 시간과 fp16 헤드의 실측 성능.
-- 40x WI 대물렌즈의 0.17 mm 보정 링 위치에서의 작동 거리. 이 값이 없으면 40x WI 경로는 막혀 있다.
+- The 4x→100x parfocal offset. On September 30 it was about −60 µm; measure it again on a reference sample.
+- DINO latency on the A4000, and the measured performance of the fp16 head.
+- The working distance of the 40x WI objective at the 0.17 mm correction collar position. Without this value the 40x WI path is blocked.
 
-## 2026-10-02 현미경 PC 결과
+## 2026-10-02 microscope PC results
 
-> 접근 잠금(`BENCH_APPROACH`)은 2026-10-02 사용자가 **부분 해제**했다 (Q13, Q20 측정 전). 실제 장비에서 4x, 10x, 20x 는
-> 3200 µm 까지, 40x WI, 60x, 100x 는 2800 µm 까지 올라간다. 동작 잠금(`BENCH_MOTION`)은 그대로다.
+> The approach lock (`BENCH_APPROACH`) was **partly lifted** by the user on 2026-10-02 (before Q13 and Q20 are measured). On the real instrument, 4x, 10x and 20x
+> go up to 3200 µm, and 40x WI, 60x and 100x up to 2800 µm. The motion lock (`BENCH_MOTION`) stays as it is.
 
-> 이 결과에 따른 코드 수정 중 Aura 라인 이름, 카메라 `Port`·`ReadoutRate`, 렌즈 작동 거리 네 개는 반영했다
-> (사용자 승인, 2026-10-02). 나머지는 내부 노트 (공개 저장소 밖, `dino-autofocus-internal/tasks/BACKLOG.md`) 인계 절의 "2026-10-02 bench results" 항목에 있다.
+> Of the code changes these results call for, the Aura line names, the camera's `Port` and `ReadoutRate`, and four objective working distances have been applied
+> (user approval, 2026-10-02). The rest are in the "2026-10-02 bench results" item of the handoff section of the internal notes (outside the public repository, `dino-autofocus-internal/tasks/BACKLOG.md`).
 
-현미경 PC 에서 확인했다. 저장소는 `dbfd023`. 장치 속성 전체는
-[runs/2026-10-02_bench-properties.json](runs/2026-10-02_bench-properties.json), 설정 파일 사본은
-`configs/micromanager/single_cam_red_noDMD_nocom10.cfg` (원본과 SHA-256 같음, `8184073E…3120`).
+Checked on the microscope PC. The repository was at `dbfd023`. The full device properties are in
+[runs/2026-10-02_bench-properties.json](runs/2026-10-02_bench-properties.json), and a copy of the configuration file is at
+`configs/micromanager/single_cam_red_noDMD_nocom10.cfg` (same SHA-256 as the original, `8184073E…3120`).
 
-### 설정 파일 (T-036b)
+### Configuration file (T-036b)
 
-- `check_load_settings` 는 `OK`. 불러올 때 설정되는 것은 `Core.Camera=Kinetix_red`, `Core.Shutter=LightEngine`,
-  `Core.AutoShutter=1`, `System/Startup: LappMainBranch1.State=1` 뿐이다.
-- `System/Shutdown` 프리셋은 없다.
-- `Core.Focus` 는 설정되어 있지 않다 (`getFocusDevice()` 가 빈 값). 새 백엔드는 `ZDrive` 를 이름으로 쓰므로 괜찮지만,
-  기본 초점 장치를 쓰는 코드는 실패한다.
+- `check_load_settings` gives `OK`. The only things set at load are `Core.Camera=Kinetix_red`, `Core.Shutter=LightEngine`,
+  `Core.AutoShutter=1` and `System/Startup: LappMainBranch1.State=1`.
+- There is no `System/Shutdown` preset.
+- `Core.Focus` is not set (`getFocusDevice()` returns empty). The new backend uses `ZDrive` by name, so this is fine, but
+  code that uses the default focus device fails.
 
-### 설치 상태 (T-020)
+### Installation state (T-020)
 
 - git `2.49.0.windows.1`
-- torch hub: `%USERPROFILE%\.cache\torch\hub` (가중치는 그 아래 `checkpoints`)
+- torch hub: `%USERPROFILE%\.cache\torch\hub` (the weights go in `checkpoints` under it)
 - Micro-Manager: `%USERPROFILE%\AppData\Local\pymmcore-plus\pymmcore-plus\mm\Micro-Manager_2.0.3_20260806`
 
-### 장치 속성 (T-015, T-033)
+### Device properties (T-015, T-033)
 
-| 항목 | 결과 |
+| Item | Result |
 |---|---|
-| Kinetix_red 판독 모드 | 이름은 `ReadoutRate` 가 맞다. 다만 지금 허용 값은 `100MHz 16bit` 하나뿐이고, 그때 `Port = Dynamic Range` 다 (`Port` 허용 값: `Dynamic Range`, `Sensitivity`, `Speed`, `Sub-Electron`). 9월 30일의 `100MHz 12bit` 는 다른 Port 에서 나온 것으로 보인다 (확인 전). 허용 목록에는 `Port` 와 `ReadoutRate` 를 함께 넣어야 한다. `Gain` 은 `1-Standard` 하나 |
-| Aura 라인 | Aura III 5-NII-WA (COM7). 라인은 **UV, CYAN, GREEN, RED, NIR**, 각각 on/off (0–1) 와 `<LINE>_Intensity` (0–1000). **VIOLET 은 Aura 에 없다.** 코드의 `AURA_LINES = ("VIOLET", "CYAN", "GREEN", "RED")` (`engine/backend.py`) 는 고쳐야 한다 |
-| LightEngine | Aura 와 다른 Spectra III 8-NII-XS (COM3). Core 셔터가 이것이고 설정은 AutoShutter 를 켠다. 라인은 VIOLET, BLUE, CYAN, TEAL, GREEN, YELLOW, RED, NIR |
-| Core AutoFocus 장치 | `PFS` |
-| PFS 끈 뒤 읽기 | 처음부터 꺼져 있었고 (`Out of Range`), `enableContinuousFocus(False)` 뒤에도 꺼짐. 켜진 상태에서 끄는 것은 아직 확인 전 |
-| 재물대 한계 (X, Y) | 속성으로는 읽을 수 없다. XYStage·ZDrive 에는 Speed, Tolerance, Invert/Transpose 만 있다. librarian 저장소에도 값이 없다 |
+| Kinetix_red readout mode | The name is indeed `ReadoutRate`. But right now its only allowed value is `100MHz 16bit`, and with it `Port = Dynamic Range` (allowed `Port` values: `Dynamic Range`, `Sensitivity`, `Speed`, `Sub-Electron`). The September 30 `100MHz 12bit` seems to have come from a different Port (not confirmed). The allowlist has to hold `Port` and `ReadoutRate` together. `Gain` has one value, `1-Standard` |
+| Aura lines | Aura III 5-NII-WA (COM7). The lines are **UV, CYAN, GREEN, RED, NIR**, each with on/off (0–1) and `<LINE>_Intensity` (0–1000). **The Aura has no VIOLET.** The code's `AURA_LINES = ("VIOLET", "CYAN", "GREEN", "RED")` (`engine/backend.py`) has to be fixed |
+| LightEngine | A Spectra III 8-NII-XS (COM3), separate from the Aura. It is the Core shutter, and the configuration turns AutoShutter on. Its lines are VIOLET, BLUE, CYAN, TEAL, GREEN, YELLOW, RED, NIR |
+| Core AutoFocus device | `PFS` |
+| Reading after turning PFS off | It was off from the start (`Out of Range`), and still off after `enableContinuousFocus(False)`. Turning it off from the on state is not confirmed yet |
+| Stage limits (X, Y) | Cannot be read from properties. XYStage and ZDrive have only Speed, Tolerance and Invert/Transpose. The librarian's store has no value either |
 
-### 렌즈 자유 작동 거리 (T-027b)
+### Objective free working distances (T-027b)
 
-librarian 저장소 `kb/entries/objective_*.json` 의 카탈로그 값 (E3). 서비스(`kb_query`)를 거치지 않고 파일을 직접 읽었다
-(발급된 `caller_id` 가 없었다). 그래서 쿼리 로그에 남지 않았다.
+Catalogue values (E3) from the librarian store's `kb/entries/objective_*.json`. The files were read directly, not through the service (`kb_query`)
+(there was no issued `caller_id`), so this is not in the query log.
 
-| 렌즈 | 부품 번호 | 작동 거리 |
+| Objective | Part number | Working distance |
 |---|---|---|
-| 4x | MRD70040 | 20 mm (코드 값과 같음) |
+| 4x | MRD70040 | 20 mm (same as the code value) |
 | 10x | MRD70170 | 4 mm |
 | 20x | MRD70270 | 0.8 mm |
-| 40x WI | MRD77400 | 0.16–0.20 mm (보정 링 전체 범위). 0.17 위치의 값은 카탈로그에 없고 저장소의 열린 gap (`objective_40x_wd_at_170um`). 코드 값은 **0.17 mm** (사용자, 2026-10-02) |
+| 40x WI | MRD77400 | 0.16–0.20 mm (the full correction collar range). The value at the 0.17 position is not in the catalogue and is an open gap in the store (`objective_40x_wd_at_170um`). The code value is **0.17 mm** (the user, 2026-10-02) |
 | 60x Oil | MRD71670 | 0.15 mm |
-| 100x Oil | MRD71970 | 0.13 mm (코드 값과 같음) |
+| 100x Oil | MRD71970 | 0.13 mm (same as the code value) |
 
-저장소는 이 작동 거리가 커버슬립의 렌즈 쪽 면까지 잰 값이라고 추론한다 (E4, `working_distance_is_measured_to_the_coverslip`).
+The store infers that these working distances are measured to the objective-side surface of the coverslip (E4, `working_distance_is_measured_to_the_coverslip`).
 
-### F5 Y 이탈 한 번 (Q12 일부)
+### One F5 Y escape (part of Q12)
 
-사용자 요청으로 오일 로딩을 위해 한 번 움직였다. 앱의 잠금(`BENCH_MOTION`)은 그대로 두고, 일회용 스크립트가 core 를 직접 불렀다.
-순서는 operations-spec F5 대로: 4x·PFS 꺼짐·광원 꺼짐 확인 → Z 0 → Z 다시 읽기 → +Y 15 mm → readback.
+Moved once at the user's request, for oil loading. The app's lock (`BENCH_MOTION`) was left in place, and a one-off script called core directly.
+The order followed operations-spec F5: confirm 4x, PFS off and light sources off → Z 0 → read Z again → +Y 15 mm → readback.
 
 | | X (µm) | Y (µm) | Z (µm) |
 |---|---|---|---|
-| 이전 (복귀 위치) | −5134.4 | 5498.9 | 483.62 |
-| 이후 | −5134.6 | 20498.8 | −0.08 |
+| Before (return position) | −5134.4 | 5498.9 | 483.62 |
+| After | −5134.6 | 20498.8 | −0.08 |
 
-- XY readback 은 5 µm 안. Y 한계는 적어도 20498.8 µm 이다.
-- 이동은 30 s 안에 끝났다 (속도 25 mm/s).
-- 사용자가 오일을 로딩했다. 대물렌즈는 4x 그대로이고, 렌즈 회전과 복귀는 하지 않았다.
-- 첫 속성 읽기와 이동 사이에 소프트웨어 명령 없이 Z 가 485.16 → 483.62 µm, Y 가 약 0.7 µm 바뀌었다. 손으로 건드렸는지 확인 전.
+- XY readback within 5 µm. The Y limit is at least 20498.8 µm.
+- The move finished within 30 s (speed 25 mm/s).
+- The user loaded the oil. The objective stayed at 4x; no objective rotation and no return were done.
+- Between the first property read and the move, with no software command, Z changed from 485.16 → 483.62 µm and Y by about 0.7 µm. Whether it was touched by hand is not confirmed.
 
-### 40x WI 보정 링
+### 40x WI correction collar
 
-- 2026-10-02 사용자가 확인: 보정 링은 0.17 mm (커버슬립 두께 170 µm) 에 그대로 있다. librarian 의 `objective_40x_collar_setting` (2026-09-22 읽기) 과 같다.
-  작동 거리 값 (`objective_40x_wd_at_170um`) 은 여전히 열려 있다.
+- Confirmed by the user on 2026-10-02: the correction collar is still at 0.17 mm (coverslip thickness 170 µm). This agrees with the librarian's `objective_40x_collar_setting` (read 2026-09-22).
+  The working distance value (`objective_40x_wd_at_170um`) is still open.
 
 ### Q10 Aura State 0
 
-- 2026-10-02 사용자 답: Aura `State 0` 이면 모든 라인이 꺼진다.
-- librarian 과 같다: `aura_master_state_0_keeps_green_dark` (E1, 2026-09-24, GREEN 1000 에서 프레임이 어둡다),
-  `light_engine_master_state_gates_every_line` (E3, 두 Lumencor 모두).
-- librarian 의 `aura_reports_five_named_lines` (E1) 도 오늘 읽은 다섯 라인 (UV, CYAN, GREEN, RED, NIR) 과 같다.
+- The user's answer, 2026-10-02: at Aura `State 0`, every line is off.
+- Agrees with the librarian: `aura_master_state_0_keeps_green_dark` (E1, 2026-09-24, the frame is dark at GREEN 1000),
+  `light_engine_master_state_gates_every_line` (E3, both Lumencors).
+- The librarian's `aura_reports_five_named_lines` (E1) also agrees with the five lines read today (UV, CYAN, GREEN, RED, NIR).
 
-### Q9 Startup 프리셋의 광경로
+### Q9 Light path of the Startup preset
 
-2026-10-02 사용자 메모.
+The user's note, 2026-10-02.
 
-| 장치·값 | 뜻 |
+| Device and value | Meaning |
 |---|---|
-| `LappMainBranch1` State 1 | Aura 경로가 켜진다. 50/50 거울이 들어간다 |
-| `CSUW1-Port` State 0 | blue 만 (100/0 거울) |
-| `CSUW1-Port` State 1 | blue 와 red 둘 다. 561 nm dichroic 이 파장으로 나눈다 (세기로 나누지 않음) |
-| `CSUW1-Port` State 2 | red 만 (거울 없음) |
+| `LappMainBranch1` State 1 | The Aura path is on. The 50/50 mirror goes in |
+| `CSUW1-Port` State 0 | blue only (100/0 mirror) |
+| `CSUW1-Port` State 1 | both blue and red. The 561 nm dichroic splits them by wavelength (not by intensity) |
+| `CSUW1-Port` State 2 | red only (no mirror) |
 
-- librarian 의 `csuw1_port_slots` (E3, 2026-09-17) 는 세 슬롯 (빈 칸, 561 nm dichroic, 100/0 거울) 을 적고
-  "어느 슬롯이 어느 State 번호인지는 모른다" 고 했다. 이 메모가 그 번호를 준다. librarian 세션에 알릴 것.
-- librarian 의 `lapp_state_1_brings_the_aura_to_the_sample` (E3) 와 `single_cam_red_config_startup_puts_the_lapp_mirror_in` (E1) 과 같다.
-  50/50 거울이라는 것은 이 메모에서 새로 나왔다.
-- `DMD_dualcam_LUNF.cfg` 의 Startup 은 `LappMainBranch1` 1 과 `CSUW1-Port` 1 (blue 와 red 둘 다) 이다.
-  사본은 `configs/micromanager/DMD_dualcam_LUNF.cfg` (참고용). 이 설치에서는 `MightexPolygon1000` (장치 API v71) 때문에
-  불러오지 못한다. 그 파일의 `Label,CSUW1-Port` 줄도 `2 red_only`, `1 blue_red`, `0 blue_only` 로 이 메모와 같다.
-- `single_cam_red_noDMD_nocom10.cfg` 에는 CSU-W1 장치가 없어서 `LappMainBranch1` 1 만 적용된다. 포트는 이전 세션의 값으로 남으므로,
-  State 0 (blue 만) 에 남아 있으면 Kinetix_red 에는 빛이 가지 않는다.
+- The librarian's `csuw1_port_slots` (E3, 2026-09-17) records three slots (empty, 561 nm dichroic, 100/0 mirror) and
+  says "which slot is which State number is not known". This note gives those numbers. Tell the librarian session.
+- Agrees with the librarian's `lapp_state_1_brings_the_aura_to_the_sample` (E3) and `single_cam_red_config_startup_puts_the_lapp_mirror_in` (E1).
+  That it is a 50/50 mirror is new in this note.
+- The Startup of `DMD_dualcam_LUNF.cfg` is `LappMainBranch1` 1 and `CSUW1-Port` 1 (both blue and red).
+  A copy is at `configs/micromanager/DMD_dualcam_LUNF.cfg` (for reference). This installation cannot load it, because of `MightexPolygon1000` (device API v71).
+  The `Label,CSUW1-Port` lines in that file, `2 red_only`, `1 blue_red`, `0 blue_only`, also agree with this note.
+- `single_cam_red_noDMD_nocom10.cfg` has no CSU-W1 device, so only `LappMainBranch1` 1 is applied. The port keeps the previous session's value,
+  so if it was left at State 0 (blue only), no light reaches Kinetix_red.

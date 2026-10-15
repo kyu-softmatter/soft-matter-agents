@@ -1,47 +1,47 @@
-# DINO 그림자 모드 설계 (soft-matter-agents 13.1·13.2 용) — 2026-10-07
+# DINO shadow mode design (for soft-matter-agents 13.1·13.2) — 2026-10-07
 
-SMA 주도 세션의 요청(2026-10-07)에 따른 dino 쪽 설계안이다. **설계안일 뿐이고 아무것도 정하지 않는다.** 정하는 것은
-사람과 SMA 좌석이다: 사람은 문턱과 성공 기준을 정하고, SMA architecture 는 pixi 를 바꾸고, microscope 좌석이 구현한다
-(SMA plan.md 13.3). 이 문서는 SMA 트리에 아무것도 쓰지 않는다.
+This is the dino side's design proposal, made at the request of the SMA lead session (2026-10-07). **It is only a proposal and decides nothing.** The deciders are
+the person and the SMA seats: the person sets the thresholds and the success criteria, SMA architecture changes pixi, and a microscope seat implements it
+(SMA plan.md 13.3). This document writes nothing in the SMA tree.
 
-## 0. 한 줄 요약
+## 0. One-line summary
 
-DINO 점수는 고전 판정 **옆에서 기록만** 한다. 무엇도 고르지 않고, 움직이지 않고, 멈추지 않는다. 기록은 run log 의 별도
-이벤트(`focus_shadow`)이고, 모델 숫자는 등급 없는 `signals` 로만 들어간다. 사람은 실제 시야에서 손으로 맞춘 초점과
-비교한 기록을 보고 나중에 문턱을 고른다(13.1 3항). 그 전까지 시료를 움직이는 것은 고전 판정과 plan 뿐이다.
+DINO scores are **only recorded, beside** the classical verdict. They choose nothing, move nothing and stop nothing. The record is a separate run log
+event (`focus_shadow`), and model numbers enter it only as ungraded `signals`. The person looks at the records compared against focus set by hand on
+real fields of view and picks the thresholds later (13.1 item 3). Until then, only the classical verdict and the plan move the sample.
 
-## 1. 근거
+## 1. Grounds
 
-- **SMA plan.md 13.1 (그림자 모드 먼저):** 신호만 낸다(abort·허가 없음). 출력은 `log.json` 의 append-only 이벤트이고 선택과
-  확신은 신호로 실린다. 어떤 카드의 `numbers[]` 에도 들어가지 않는다(E6). 실제 run 에서 기록만 하고, 사람이 그 기록으로
-  문턱을 고른다. run 은 watcher 가 켜져 있었는지를 말해야 한다.
-- **SMA plan.md 13.2 (초점 찾기):** 모델은 가지만 고르고 명령은 코드가 plan 필드에서 만든다. 찾은 위치는 장치 읽기다.
-  성공 기준은 시작 전에 선언한다: 기준은 같은 시야에서 사람이 손으로 맞춘 초점, 그 옆에 결정론적 지표 최댓값 기준선,
-  허용 오차는 KB 의 피사계 심도 비율, 시야 N 개, 맞음·틀림·`unsure` 를 따로 센다(`unsure` 는 기권이지 틀림이 아니다).
-- **합성 결과 — 두 출처가 서로 다르다. 둘 다 적는다.**
-  - 사용자 진술(2026-10-07, SMA 주도 세션 경유): 현미경 PC 에 배율마다 약 6000 장의 합성 영상이 있고, DINO 를 그것으로
-    학습했으며, 초점 검출이 약 97 % 였다. 이 저장소에는 그 학습 기록이 없다. 무엇을 "초점 검출" 로 셌는지(초점 안/밖 분류?
-    부호? 평면 고르기?) 와 기록 위치를 사람에게 묻는다(7절).
-  - 이 저장소의 기록(`docs/synthetic-results.md`, 2026-09-30, 160 장면 GTX 1650): 한 프레임으로 부호 맞히기 0.57–0.59(상수보다
-    낫지 않음), 거리(|dz|) 추정은 DINO 가 낫다(1.27–1.29 DoF 대 고전 1.85), **17 평면 스캔의 마지막 초점은 고전이 낫다**
-    (tenengrad 중앙값 0.088 DoF, 86 % 가 0.25 DoF 안; DINO 는 2–3 배 나쁨). `models/heads/head_k100x_dinov2_vits14_L1.json`
-    (k100x 합성): 부호 정확도 0.86(|dz| ≥ 1), 1 DoF 안 0.36, 읽을 수 있는 프레임 판별 0.92.
-  - 어느 쪽이든 **합성 결과이지 측정이 아니고, SMA 에서는 모델 숫자가 E6** 이다. 97 % 는 합성 기준선으로만 적는다.
-  - 이 저장소의 결론과 같은 방향: 고전 지표 최댓값을 마지막 단계이자 대비 기준으로 남긴다(SMA 13.2 마지막 단락, 과제 026).
+- **SMA plan.md 13.1 (shadow mode first):** emits signals only (no abort, no permission). The output is append-only events in `log.json`, and the choice and
+  the confidence are carried as signals. It enters no card's `numbers[]` (E6). It only records, in real runs, and the person picks the
+  thresholds from those records. A run must say whether the watcher was on.
+- **SMA plan.md 13.2 (finding focus):** the model only picks a branch, and code builds the commands from plan fields. The position found is a device reading.
+  The success criteria are declared before starting: the reference is the focus a person sets by hand on the same field of view, beside it a baseline of the deterministic metric's maximum,
+  the tolerance is a fraction of the depth of field from the KB, N fields of view, and right, wrong and `unsure` counted separately (`unsure` is an abstention, not a wrong answer).
+- **Synthetic results — the two sources disagree. Both are written down.**
+  - The user's statement (2026-10-07, relayed by the SMA lead session): the microscope PC holds about 6000 synthetic images per magnification, DINO was trained
+    on them, and focus detection was about 97 %. This repository has no record of that training. Ask the person what was counted as "focus detection" (in-focus/out-of-focus classification?
+    sign? choosing a plane?) and where the records are (§7).
+  - This repository's records (`docs/synthetic-results.md`, 2026-09-30, 160 scenes, GTX 1650): getting the sign from one frame 0.57–0.59 (no better than
+    a constant); distance (|dz|) estimation is better with DINO (1.27–1.29 DoF against classical 1.85); **for the final focus of a 17-plane scan the classical one is better**
+    (tenengrad median 0.088 DoF, 86 % within 0.25 DoF; DINO 2–3 times worse). `models/heads/head_k100x_dinov2_vits14_L1.json`
+    (k100x synthetic): sign accuracy 0.86 (|dz| ≥ 1), 0.36 within 1 DoF, readable-frame discrimination 0.92.
+  - Either way, **these are synthetic results, not measurements, and in SMA a model number is E6**. The 97 % is written down only as a synthetic baseline.
+  - The same direction as this repository's conclusion: keep the classical metric's maximum as the final step and as the comparison baseline (the last paragraph of SMA 13.2, task 026).
 
-## 2. 그림자 모드가 하는 일과 하지 않는 일
+## 2. What shadow mode does and does not do
 
-| 한다 | 하지 않는다 |
+| Does | Does not |
 |---|---|
-| 고전 스윕이나 라이브 프레임마다 DINO 읽기(dz, sigma, 읽을 수 있는 타일 수)를 계산 | 가지(`in_focus` 등)를 골라 operator 에 넘기기 |
-| 같은 프레임의 고전 판정과 나란히 run log 에 기록 | Z·XY·조명·셔터 어떤 명령도 |
-| run 이 "그림자 모드 켜짐/꺼짐" 을 기록 | abort, `stop_criterion_violated`, scope 승인 파기 |
-| 기록을 모아 사람이 문턱을 고를 근거를 만든다 | 문턱을 스스로 정하기, 카드 `numbers[]` 에 숫자 넣기 |
+| Computes the DINO reading (dz, sigma, number of readable tiles) for every classical sweep or live frame | Pick a branch (`in_focus` etc.) and hand it to the operator |
+| Records it in the run log next to the classical verdict for the same frame | Issue any command to Z, XY, illumination or shutters |
+| The run records "shadow mode on/off" | Abort, `stop_criterion_violated`, void a scope approval |
+| Collects the records into grounds for the person to pick thresholds from | Set thresholds itself, or put numbers into a card's `numbers[]` |
 
-## 3. 이벤트 모양 (run log)
+## 3. Event shape (run log)
 
-SMA `contracts/schemas/run_log.schema.json` 의 `$defs/event` 는 `t_mono`·`time_base` 만 필수이고 다른 키를 허용한다. dino
-`focus_run_log.py` 의 계약(D-07: 판정 이벤트에는 명령 키가 없다)과 같은 방식으로 아래 모양을 제안한다.
+In SMA's `contracts/schemas/run_log.schema.json`, `$defs/event` requires only `t_mono` and `time_base` and allows other keys. The shape below is proposed
+in the same way as the contract of dino's `focus_run_log.py` (D-07: verdict events carry no command keys).
 
 ```json
 {
@@ -62,88 +62,88 @@ SMA `contracts/schemas/run_log.schema.json` 의 `$defs/event` 는 `t_mono`·`tim
 }
 ```
 
-- `event` 는 `focus_shadow`: 고전 판정(`focus_verdict`)과 다른 종류여서, 시끄러운 신호가 정지 기준처럼 읽히지 않는다
-  (13.1 1항의 `watcher_flag` 와 같은 이유).
-- 모델 숫자는 모두 `signals` 아래, **등급 없이**. 모델이 고른 가지도 신호(`model_branch`)이지 선택이 아니다.
-- `z` 는 그 프레임의 엔코더 읽기(E1)이고 모델 값이 아니다.
-- 명령 키(`params`, `channel`, `action`, `from`, `verification`, `deletion`)는 없다. 그림자 이벤트는 명령이 아니다.
-- `model` 은 무엇이 점수를 냈는지 다시 만들 수 있게 한다: 백본 이름, dinov2 클론 커밋, 헤드 파일의 sha256.
-- run 시작 이벤트에 `shadow: {on: true|false, model: {...}}` 를 둔다(13.1 4항: run 이 watcher 가 켜졌는지 말한다).
+- `event` is `focus_shadow`: it is a different kind from the classical verdict (`focus_verdict`), so a noisy signal is not read as a stop criterion
+  (the same reason as the `watcher_flag` in 13.1 item 1).
+- Every model number goes under `signals`, **without a grade**. The branch the model picked is also a signal (`model_branch`), not a choice.
+- `z` is the encoder reading for that frame (E1), not a model value.
+- There are no command keys (`params`, `channel`, `action`, `from`, `verification`, `deletion`). A shadow event is not a command.
+- `model` lets what produced the score be reconstructed: the backbone name, the dinov2 clone commit, and the sha256 of the head file.
+- The run start event carries `shadow: {on: true|false, model: {...}}` (13.1 item 4: a run says whether the watcher was on).
 
-## 4. 파일 위치 — torch 쪽과 numpy 쪽을 나눈다
+## 4. File locations — split the torch side from the numpy side
 
-지금 dino 의 DINO 경로는 셋으로 나뉜다.
+dino's DINO path is currently split into three.
 
-| 부분 | dino 의 지금 위치 | 의존 | SMA 에서의 자리 제안 |
+| Part | Where it is in dino now | Depends on | Proposed place in SMA |
 |---|---|---|---|
-| 프레임 → 타일 고르기 | `live.select_tiles` | numpy | 평탄 파일(stdlib + numpy) |
-| 타일 → DINO 특징 | `backbone.DinoExtractor` | **torch** + dinov2 클론 | `devices/` 아닌 별도 특징 추출기(torch 를 쓰는 유일한 곳) |
-| 특징 → dz·sigma·p_valid | `focus/head.py` `NpzHead`(배열만, pickle 없음) | numpy | 평탄 파일 |
-| 읽기 → 판정 신호 | `microscope_agent/src/focus_verdict_model.py` | stdlib | 평탄 파일(이미 dino 에 있음, 13.1 전까지 복사 밖) |
-| 신호 → run log 이벤트 | (새로) `focus_shadow` 이벤트 만들기 | stdlib | 평탄 파일 |
+| frame → tile selection | `live.select_tiles` | numpy | a flat file (stdlib + numpy) |
+| tile → DINO features | `backbone.DinoExtractor` | **torch** + the dinov2 clone | a separate feature extractor, not in `devices/` (the only place that uses torch) |
+| features → dz·sigma·p_valid | `focus/head.py` `NpzHead` (arrays only, no pickle) | numpy | a flat file |
+| reading → verdict signal | `microscope_agent/src/focus_verdict_model.py` | stdlib | a flat file (already in dino, outside the copy until 13.1) |
+| signal → run log event | (new) building the `focus_shadow` event | stdlib | a flat file |
 
-- torch 가 필요한 곳은 **특징 추출 하나뿐**이다. 나머지는 numpy 라서 SMA 의 `mic` 환경과 check 82(import 선언)를 지금 그대로
-  통과한다. 그래서 복사는 둘로 나눌 수 있다: 먼저 numpy 쪽(타일·헤드·판정 신호·이벤트), torch 는 pixi 결정 뒤.
-- `focus_verdict_model.py` 는 13.1 이 열릴 때까지 SMA 로 넘어가지 않는다(D-03c). 넘길 때는 dino 의 출처 헤더와 본문
-  sha256 을 그대로 쓴다(D-03).
-- 헤드 파일(`.npz`)은 코드가 아니라 산출물이다. 숫자가 다른 저장소에서 건너가는 일이므로 SMA 10.3 대로 다룬다(헤드는
-  학습 기록 run_id 와 함께, 등급은 그쪽이 정함).
+- The only place that needs torch is **feature extraction**. The rest is numpy, so it passes SMA's `mic` environment and check 82 (import declarations) as they
+  stand today. So the copy can be split in two: the numpy side first (tiles, head, verdict signal, event), and torch after the pixi decision.
+- `focus_verdict_model.py` does not cross into SMA until 13.1 opens (D-03c). When it crosses, it carries dino's provenance header and body
+  sha256 unchanged (D-03).
+- The head file (`.npz`) is an artifact, not code. It is a number crossing over from another repository, so it is handled under SMA 10.3 (the head goes
+  with its training record's run_id, and the grade is that side's to set).
 
-## 5. torch 가 SMA `mic` 환경에 들어가는 방법 (architecture 의 pixi 명세를 위한 입력)
+## 5. How torch enters SMA's `mic` environment (input for architecture's pixi spec)
 
-- 패키지: `torch>=2.6`(dino `pyproject.toml` 의 `ml` 추가 의존성). torchvision 은 특징 추출에 쓰지 않는다(`backbone.py` 는
-  torch 만 import) — SMA 에는 torch 만 요청하는 것을 권한다.
-- 빌드: 현미경 PC(RTX A4000)는 CUDA 휠(dino 는 `pytorch-cu126` 색인), 개발 데스크톱은 CPU 로도 돈다. pixi 환경 하나에 두 경우를
-  어떻게 둘지는 architecture 가 정한다. 크기는 수 GB 다.
-- 모델 코드: dinov2 를 **고정 커밋 `7764ea0` 의 지역 클론**에서 `torch.hub.load(<클론>, "dinov2_vits14", source="local")` 로
-  불러온다. 인터넷에서 main 을 받지 않는다(`backbone.py` 머리말, `docs/runbooks/train-focus-head.md`).
-- 가중치: `dinov2_vits14_pretrain.pth` 를 `<TORCH_HOME>\hub\checkpoints\` 에 미리 둔다(오프라인). sha256 을 기록한다.
-- 정밀도: 헤드가 fp16 특징으로 학습되었다. A4000 에서는 fp16, 텐서 코어가 없는 카드에서는 fp32(그 카드에서 fp16 이 4 배 느렸다).
-- SMA check 82: torch import 는 pixi 에 선언된 뒤에만 통과한다. 그 전까지 torch 를 쓰는 파일은 SMA 에 들어가지 않는다.
+- Package: `torch>=2.6` (the `ml` optional dependency in dino's `pyproject.toml`). torchvision is not used for feature extraction (`backbone.py`
+  imports only torch) — the recommendation is to ask SMA for torch only.
+- Build: the microscope PC (RTX A4000) takes the CUDA wheel (dino uses the `pytorch-cu126` index); the development desktop also runs on CPU. How to hold both cases
+  in one pixi environment is architecture's decision. The size is several GB.
+- Model code: dinov2 is loaded from **a local clone at the pinned commit `7764ea0`** with `torch.hub.load(<clone>, "dinov2_vits14", source="local")`.
+  It does not fetch main from the internet (the `backbone.py` header, `docs/runbooks/train-focus-head.md`).
+- Weights: put `dinov2_vits14_pretrain.pth` in `<TORCH_HOME>\hub\checkpoints\` in advance (offline). Record its sha256.
+- Precision: the head was trained on fp16 features. fp16 on the A4000, fp32 on cards without tensor cores (fp16 was 4 times slower on that card).
+- SMA check 82: a torch import passes only after torch is declared in pixi. Until then, no file that uses torch enters SMA.
 
-## 6. 성공 시험 (SMA 13.2 6항, 시작 전 선언)
+## 6. Success test (SMA 13.2 item 6, declared before starting)
 
-- **기준:** 같은 시야에서 사람이 손으로 맞춘 초점의 엔코더 z.
-- **비교 대상 셋:** 고전 지표 최댓값(+ 포물선), DINO 그림자 신호(`model_branch`, |dz| 가 가장 작은 평면), 사람.
-- **허용 오차:** 피사계 심도의 비율. 값은 KB 의 출처 있는 피사계 심도로, 비율은 사람이 정한다(이 문서는 정하지 않는다).
-- **시야 수 N, 렌즈:** 사람이 정한다. 첫 목표는 100x oil(OD-21 권고).
-- **세는 법:** 맞음·틀림·`unsure`(기권)를 따로 센다. 기권은 틀림이 아니다.
-- **합성 기준선:** 사용자 진술 "약 97 %" 와 이 저장소의 `synthetic-results.md` 숫자를 나란히 적는다. 실제 시야 기록이 그것을
-  대신한다. 그림자 모드 동안 이 시험은 결과를 **기록만** 하고 아무것도 바꾸지 않는다. 문턱은 그 기록을 본 사람이 고른다.
+- **Reference:** the encoder z of the focus a person set by hand on the same field of view.
+- **The three compared:** the classical metric's maximum (+ parabola), the DINO shadow signal (`model_branch`, the plane with the smallest |dz|), and the person.
+- **Tolerance:** a fraction of the depth of field. The value is the sourced depth of field in the KB; the fraction is the person's to set (this document does not set it).
+- **Number of fields of view N, objectives:** the person sets them. The first target is 100x oil (the OD-21 recommendation).
+- **How to count:** right, wrong and `unsure` (abstention) are counted separately. An abstention is not a wrong answer.
+- **Synthetic baseline:** the user's statement "약 97 %" (about 97 %) and the numbers in this repository's `synthetic-results.md` are written side by side. The records from real fields of view
+  take their place. During shadow mode this test **only records** its results and changes nothing. The thresholds are picked by the person who has looked at those records.
 
-## 7. 목요일(10-08) 벤치 평가 절차 — SMA 모션 없이
+## 7. Thursday (10-08) bench evaluation procedure — with no SMA motion
 
-목적: 실제 시야에서 고전 지표와 DINO 가 사람의 손 초점과 얼마나 맞는지 **처음** 기록한다. 장비는 사람만 다룬다. 소프트웨어는
-카메라 프레임을 읽기만 하고 아무것도 움직이지 않는다(dino `mm_real` 의 `BENCH_MOTION` 은 LOCKED 그대로). 점수는 벤치에서
-계산하지 않고 **나중에** 개발 데스크톱에서 저장된 프레임으로 계산한다(벤치의 위험과 시간을 줄인다).
+Purpose: to record, for the **first** time, how well the classical metric and DINO agree with a person's hand focus on real fields of view. Only the person handles the instrument. The software
+only reads camera frames and moves nothing (dino `mm_real`'s `BENCH_MOTION` stays LOCKED). Scores are not computed at the
+bench but **later**, on the development desktop, from the saved frames (this cuts the risk and the time at the bench).
 
-| 순서 | 사람이 하는 일 | 기록하는 것 |
+| Step | What the person does | What is recorded |
 |---|---|---|
-| 1 | 렌즈 고르기(100x oil 먼저), 조명은 사람이 손으로 정한다(B-01 은 plan 없이 하는 방문) | 렌즈, 조명 설정, 노출, 판독 모드 |
-| 2 | 시야 하나를 골라 손으로 초점을 맞춘다 | 그때의 ZDrive 읽기(z0), 시야 XY 읽기 |
-| 3 | 초점 손잡이로 z0 둘레 몇 평면을 차례로 지나며 프레임을 찍는다 | 평면마다 ZDrive 읽기와 프레임 파일 |
-| 4 | 2–3 을 다른 시야에서 반복 | 시야마다 같은 칸 |
-| 5 | (선택) 시료가 없는 시야 하나 | `no_sample_here` 를 위한 프레임 |
+| 1 | Choose an objective (100x oil first); the person sets the illumination by hand (B-01 is a visit without a plan) | objective, illumination settings, exposure, readout mode |
+| 2 | Pick one field of view and focus it by hand | the ZDrive reading at that moment (z0), the field of view's XY reading |
+| 3 | Pass through several planes around z0 in turn with the focus knob, taking a frame at each | the ZDrive reading and the frame file for each plane |
+| 4 | Repeat 2–3 on other fields of view | the same entries for each field of view |
+| 5 | (optional) one field of view with no sample in it | frames for `no_sample_here` |
 
-- **사람이 정할 칸(제안값 없음):** 시야 수 N, z0 둘레 평면들의 간격과 개수, 렌즈 목록. 이 문서는 숫자를 제안하지 않는다
-  — 벤치 숫자는 사람이 정한다(D-02 원칙).
-- 기록 양식은 dino 벤치 세션("AF 벤치 · B-01 기록 대기(10-08)")의 `docs/runs/templates/bench-visit-1.template.*` 에 이 칸들을
-  더하는 것으로 한다(그 세션이 양식의 주인이다).
-- 나중 분석: 저장된 프레임마다 `focus_classical` 지표, `focus_verdict.from_sweep`, DINO 읽기(`live.FocusScorer`)를 계산해 6절
-  표로 센다. 결과 파일은 dino `docs/runs/` 에, SMA 로는 비식별화된 기록만(R-03 규칙).
+- **Entries the person sets (no proposed values):** the number of fields of view N, the spacing and number of planes around z0, the list of objectives. This document proposes no numbers
+  — bench numbers are set by the person (the D-02 principle).
+- The record form is made by adding these entries to `docs/runs/templates/bench-visit-1.template.*` of the dino bench session ("AF bench · B-01 awaiting record (10-08)")
+  (that session owns the form).
+- Later analysis: for each saved frame, compute the `focus_classical` metrics, `focus_verdict.from_sweep` and the DINO reading (`live.FocusScorer`), and count them into the §6
+  table. The result files go in dino `docs/runs/`, and only de-identified records go to SMA (the R-03 rule).
 
-## 8. 사람에게 묻는 것
+## 8. What to ask the person
 
-**사람의 답 (2026-10-07, dino 합병 계획 세션 창):** 1 — "인식률이 97 %" (무엇을 맞힌 것으로 셌는지는 아직 적히지 않음);
-2 — "헤드" 라는 말의 설명을 요청함(헤드 = DINO 특징을 초점 거리 dz·불확실도 sigma·읽을 수 있음 p_valid 로 바꾸는 작은 모델;
-배율마다 따로 학습했는지 다시 물었고, 사람의 답: "배율마다 따로 만들었을 것" — 기억에 기댄 답이라 현미경 PC 에서 헤드 파일들과
-그 위치를 확인해야 한다. 이 저장소에는 100x 헤드 하나뿐); 3 — **형광**; 4 — 시야 수·평면 간격·렌즈는 **다음 주 월요일(10-12)에 정한다**;
-5 — "0.1 DoF?" (제안이면서 질문; 6절 참고: 이 저장소의 합성 기록에서 고전 지표의 중앙 오차가 약 0.09 DoF 라서 0.1 DoF 면
-고전도 절반쯤 빗나간다. 0.25 DoF 에서 고전이 86 % 였다. 두 허용 오차로 함께 세는 방법을 권한다 — 정하는 것은 사람). 이어서 사람의 답: **피사계 심도(허용 오차)는 현장에서 정한다** — 벤치에서 실제 시야를 보고 결정.
+**The person's answers (2026-10-07, in the dino merge-planning session's window):** 1 — "인식률이 97 %" (the recognition rate is 97 %) (what was counted as a hit is not written down yet);
+2 — asked for an explanation of the word "헤드" (head) (the head = the small model that turns DINO features into the focus distance dz, the uncertainty sigma and readability p_valid;
+asked in turn whether one was trained separately for each magnification, and the person's answer: "배율마다 따로 만들었을 것" (I would have made one per magnification) — an answer from memory, so the head files and
+their location must be checked on the microscope PC. This repository has only the 100x head); 3 — **fluorescence**; 4 — the number of fields of view, plane spacing and objectives **will be decided next Monday (10-12)**;
+5 — "0.1 DoF?" (a proposal and a question at once; see §6: in this repository's synthetic records the classical metric's median error is about 0.09 DoF, so at 0.1 DoF
+the classical one also misses about half the time. At 0.25 DoF the classical one was at 86 %. The recommendation is to count with both tolerances together — the person decides). Then the person's further answer: **the depth of field (tolerance) is decided on site** — at the bench, by looking at real fields of view.
 
 
-1. "초점 검출 약 97 %" 는 무엇을 센 숫자인가(초점 안/밖 분류, 부호, 평면 고르기), 그 학습·평가 기록은 어디 있나(현미경 PC 경로).
-2. 배율마다 헤드가 따로 있나. 이 저장소에는 `head_k100x_dinov2_vits14_L1` 하나뿐이다.
-3. 합성 영상은 형광인가 명시야인가. 이 저장소의 합성은 형광이고, SMA 첫 초점 목표(유리/물 경계, 명시야)는 흉내 내지 않았다.
-4. 목요일 평가의 시야 수, 평면 간격·개수, 렌즈 목록.
-5. 성공 시험의 허용 오차 비율(피사계 심도의 몇 배).
+1. What does "focus detection about 97 %" count (in-focus/out-of-focus classification, sign, choosing a plane), and where are its training and evaluation records (the path on the microscope PC)?
+2. Is there a separate head for each magnification? This repository has only `head_k100x_dinov2_vits14_L1`.
+3. Are the synthetic images fluorescence or brightfield? This repository's synthesis is fluorescence, and it did not imitate SMA's first focus target (a glass/water interface, brightfield).
+4. For Thursday's evaluation: the number of fields of view, the plane spacing and count, and the list of objectives.
+5. The tolerance fraction for the success test (how many times the depth of field).
