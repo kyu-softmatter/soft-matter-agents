@@ -47,7 +47,7 @@
     },
     {
       "card": "L-031",
-      "status_2026_10_15": {"state": "open: unanswered", "bench_2026_10_13": "not answered at the 2026-10-13 bench: microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6 holds no answer to this card. It is a question to the person about the 2026-09-19 calibration, not a bench measurement, so it can be answered away from the bench"},
+      "status_2026_10_15": {"state": "answered: re-grades nothing; the refutation is lifted to a conflict", "answer": "the person answered on 2026-10-15, in manager-librarian's window, that all six objectives at 1x were measured on 2026-09-19 ('2, becuase that is that'), withdrawing their ruling of 2026-09-24. Task 051 (librarian_agent/tasks/051-the-pixel-sizes-were-measured-after-all.md at 34e96af) lifted the five 1x E2 rows from refuted_by to a two-way conflict_with with their _computed siblings; no value or grade moved. The 1.5x rows were not addressed and stay refuted", "bench_2026_10_13": "not answered at the bench; answered away from it"},
       "topic": "which of the per-objective pixel sizes were measured",
       "kind": "conflict between the two repositories",
       "store_holds": [

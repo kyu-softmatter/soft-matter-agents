@@ -7,5 +7,6 @@
   "what_was_asked_and_what_came_back": "Asked, after a prior-project configuration comment contradicted the operator's confirmation of 2026-09-19 that all twelve were direct measurements: which is right? Answer: only 20x at 1x was measured.",
   "what_it_changed": "Eleven new entries `pixel_size_<objective>_zoom_<zoom>_computed` at E4, each superseding and refuting its E2 row; the E2 rows stay, grade unmoved, marked refuted_by. pixel_size_20x_zoom_1x is untouched and remains the only measurement. Values unchanged to every digit.",
   "why_refuted_and_not_only_superseded": "`supersedes` is written on the new entry only, and kb_query's sort puts E2 ahead of E4, so a plain supersede would have served the false E2 row first with nothing on it to say so. `refuted_by` is carried in the projection a caller reads. It is not a perfect fit -- the schema's text says refuted means nothing replaced it -- but the value here is right and the claim `measured by the operator` is what is false, and the mark that reaches the caller is the one that matters. Raised to manager-librarian: the schema has no backward mark for a supersede.",
-  "license_note": "Identifier only."
+  "license_note": "Identifier only.",
+  "withdrawn_by": "src_person_statement_20261015_pixel_sizes_measured: on 2026-10-15 the person said all six objectives at 1x were measured on 2026-09-19, which withdraws this ruling for those six; task 051 lifted the five 1x refutations to conflicts. Not addressed for the 1.5x rows, which stay refuted on this ruling for now."
 }

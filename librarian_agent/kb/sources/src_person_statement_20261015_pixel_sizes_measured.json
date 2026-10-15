@@ -1,0 +1,12 @@
+{
+  "source_id": "src_person_statement_20261015_pixel_sizes_measured",
+  "kind": "person_ruling",
+  "identifier": "The person's answer on 2026-10-15, directly in manager-librarian-20261007-1's window, to answer-sheet card L-031 (kb/staging/dino_autofocus_first_questions.v0.json): asked whether all six objectives were measured at the 2026-09-19 pixel-size calibration, or only the 20x, and why five of them equal the sensor pitch over the nominal magnification exactly, the person chose the answer that all six were measured and said, verbatim, '2, becuase that is that'. Recorded in librarian_agent/tasks/051-the-pixel-sizes-were-measured-after-all.md at 34e96af.",
+  "accessed": "2026-10-15",
+  "grade_rule": "About provenance, not a value, so it grades nothing itself. It withdraws src_person_ruling_20260924, which was the only basis for refuting five E2 rows, so those rows return to a two-way conflict_with with their _computed siblings, both grades unmoved (task 051).",
+  "withdraws": "src_person_ruling_20260924 ('only 20x at 1x was measured'), for the six objectives at 1x. Both statements stay on record; this, the later one, is the person's current word.",
+  "does_not_address": "the 1.5x intermediate magnification. The question named six objectives and said nothing about zoom, so the six 1.5x rows stay refuted on the 2026-09-24 ruling until the person says otherwise; manager-librarian put that question to the person on 2026-10-15.",
+  "what_still_points_the_other_way": "(1) five of the six 1x values equal 6.5 um over the nominal magnification exactly, where the 20x, which everyone agrees was measured, reads 0.32373 against a nominal 0.325; (2) a prior-project Micro-Manager configuration and dino-autofocus's own configuration comment both say only the 20x is a measurement; (3) the person's own ruling of 2026-09-24. For the measurement claim: the calibration record of 2026-09-19 (src_operator_calibration_20260919), the ruling of 2026-09-21 that the rows stand (src_person_ruling_20260921), and this statement.",
+  "what_would_settle_it": "a fresh measurement of one of the five on this bench -- the 10x is the cheapest -- done the way the 20x was. If it reads 0.650 um within that method's precision, the measurement claim gains an observation; if it reads off nominal by a few tenths of a per cent, as the 20x does, the exact equality was a calculation. The person's to schedule.",
+  "license_note": "Identifier only."
+}
