@@ -1,6 +1,6 @@
 # 043 — the camera's full-scale count, one entry per body and readout mode
 
-status: **open, waiting on the bench** · issued 2026-10-07 by
+status: **open, re-issued 2026-10-15: the bench record exists, and the item waits on the microscope side offering it to the store** · issued 2026-10-07 by
 manager-librarian-20261007-1, for the item `plan.md` 14 lists as waiting on a
 manager-librarian seat ("to card the camera's full-scale count per readout
 mode") · **for librarian-20261007-1**, the session the person opened on the
@@ -32,33 +32,56 @@ property that has lied before. The answer is a saturated frame. When one has
 been read, enter it, one entry per camera body and readout mode, so that a
 plan naming that mode can cite a real entry and the search can run.
 
-## WHERE THE VALUE COMES FROM
+## WHAT THE BENCH RECORDED (2026-10-13), AND WHERE
 
-Re-derive this chain before trusting it.
+**Re-issued 2026-10-15 by manager-librarian-20261007-1**: the person said
+this seat keeps 043. The record is not the one this task first expected, so
+this section replaces the chain written on 2026-10-07. Re-derive it before
+trusting it.
 
-1. **The bench, Tuesday 2026-10-13** (planned for 2026-10-08, moved twice). Card 060 step 5
-   (`microscope_agent/tasks/060-the-bench-visit-2026-10-08.md`, `9688ae2`).
-   The person saturates the camera on a blank slide with the transmitted
-   lamp, in Micro-Manager with **no agent running**, and reads the highest
-   pixel value in the frame. If the image does not clearly saturate, the
-   record says "not reached" and holds no number.
-2. **The record is dino-autofocus's form**, not this repository's:
-   `docs/runs/templates/bench-visit-1.template.yaml`, filled in as a
-   `docs/runs/` file, on branch `merge-plan/B-01-bench-prep` (`7468ac9` when
-   this was written). The fields are under `camera_kinetix_red`:
-   `saturated_frame_max_adu`, `saturated_frame_readout_mode`
-   (`Port`, `ReadoutRate`), the optional `full_scale_per_port[]`, `properties`,
-   `frame_file`, `frame_sha256`, `method`, `by`, `on`. Read it as data. Do
-   not write in that repository.
-3. **The microscope seat cites it** in `microscope_agent/findings/`, by path
-   and hash, with its readout mode, as an observation for the store (card 060
-   step 5, "For the seat"). **Enter from that findings item**, and check its
-   hash against the dino file yourself. If the two disagree, enter nothing and
-   report.
+- **The record is a microscope findings file, not dino-autofocus's form.**
+  dino's forms were not on the microscope computer that day, so there is no
+  dino record to compare with or cite. The only record is
+  `microscope_agent/findings/microscope-20261013-1-20261013.json`, committed
+  at `1104cc6` (sha256 `468da0cb...` at that commit; recompute it yourself),
+  item **`A_camera_saturation`**.
+- **What it holds.** Both Kinetix cameras, loaded by the dual-camera file,
+  read Port `Dynamic Range` and ReadoutRate `100MHz 16bit`. The person
+  saturated the image with the transmitted lamp and read a maximum of
+  **65535 ADU from the Micro-Manager histogram**, with many pixels
+  saturated. The person first said `100MHz 12bit` and corrected it to
+  `100MHz 16bit` on a second look. Binning was 1x1. Exposure was somewhere
+  between 30 and 100 ms.
+- **What it does not hold**, as the item names its own gaps: which exposure
+  gave the 65535; **which camera it was read on** (the person said the two
+  read the same); and the image-information maximum, as opposed to the
+  histogram.
+- **The item says `for_store: false`.** That flag is the microscope seat's
+  statement of what it offers the store, and 044 treated it as binding. So
+  **do not enter from this item until the microscope side offers it**.
+  manager-librarian has asked manager-microscope to have the item marked for
+  the store, or to say why not. Start when that lands.
 
-The form covers **the red camera only** (`camera_red`, serial per
-`kinetix_red_label_opens_serial_a24m723015`). Nothing on the day measures
-`camera_blue`.
+How the record bears on the entry:
+
+- **The source is `operator_read:`** (a person reading the instrument's
+  display with no agent running), not `measured:`. The bench record is the
+  findings item, so cite it by path, commit and sha256.
+- **Do not attribute the reading to a body the record does not name.** If
+  the entry is about both bodies, the claim that the second camera reads
+  the same rests on the person's statement and is graded as one, not as
+  the reading. Rule how to split it, and say why.
+- **The value enters as read: 65535.** Compare it with the adapter's
+  reported bit depth and the datasheet's for that mode, and with the prior
+  project's record that PixelType once misreported. Write whether it agrees.
+- **Its conditions are the mode as read back**, in `identifiers.port` and
+  `identifiers.readout_rate` verbatim (`Dynamic Range`, `100MHz 16bit`),
+  plus 1x1 binning. Exposure does not move a saturation ceiling, but the
+  unknown exposure is named in the entry. **Every other Port and
+  ReadoutRate stays a gap**, per subject.
+- **The histogram is not the image maximum.** Say which was read, in the
+  entry's conditions. A plan reading this ceiling should know it came from
+  the histogram.
 
 ## TASK
 

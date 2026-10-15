@@ -1,6 +1,6 @@
 # 046 — the rest of the answer sheet, once the bench has answered
 
-status: **open, waiting on the bench** · issued 2026-10-07 by
+status: **open, re-issued 2026-10-15: the bench answered little; see the section below** · issued 2026-10-07 by
 manager-librarian-20261007-1 · **for librarian-20261007-1, with 043 and from
 the same record**: the bench of Tuesday 2026-10-13 (moved from 2026-10-08 to 2026-10-12 by the person on 2026-10-09, then to 2026-10-13 on 2026-10-12) answers both, and one reader of
 one record is better than two
@@ -58,6 +58,38 @@ Enter each self-report the way 044 entered its self-reports, as settings
 read back and graded by the record. **Neither becomes a limit or a command.** Whether
 software may write the closed label is the person's exemption, not the
 entry's.
+
+## WHAT THE 2026-10-13 BENCH ANSWERED (added 2026-10-15)
+
+The record is `microscope_agent/findings/microscope-20261013-1-20261013.json`
+at `1104cc6`. dino's forms were not on the computer that day, so there is
+no dino record. Its item `C_not_done` says that the hand measurements, the
+40x water working distance and the spinning-disk shutter's closed label were
+not done. Per card, as the record stands:
+
+- **L-005, L-031, L-032, L-033, L-056, L-057: not answered.** Each keeps its
+  gap. Add a `searched` line: asked at the 2026-10-13 bench, not done (cite
+  `C_not_done`).
+- **The CSUW1 closed label: not read** (`A_csuw1_shutter` saw only "Open").
+  The gap stays. The same item read Turret1Shutter and Turret2Shutter at
+  State 0. That is a reading at state 0, not a sighting of a closed
+  shutter, so it does not lift `filter_turret_shutters_close_at_state_0`
+  above a recollection.
+- **The PFS readings were answered** (`A_pfs_readings`): three properties
+  read in three states (off before ever switched on, on and locked, off
+  again), and "on but still searching" was not caught. These are device
+  self-reports, to enter as settings read back. The item shows that PFS
+  Status reads two different strings in the two off states. So say plainly
+  in the entry that no single Status string means "not engaged". **Which
+  reading the envelope uses is the person's**, and the person has written
+  one; that is not the entry's to judge.
+- **The immersion oil: not recorded.** The person has been asked again. Until
+  they answer, `immersion_oil_refractive_index` stays a gap.
+- **L-052: still awaiting the person's confirmation.**
+
+**Every item in that file says `for_store: false`.** Enter nothing from it
+until the microscope side offers the items you need. manager-librarian has
+asked for that.
 
 ## TASK
 
