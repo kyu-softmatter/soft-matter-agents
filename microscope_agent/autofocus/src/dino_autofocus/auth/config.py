@@ -1,7 +1,7 @@
 """Where the auth files live, and where the first admin's email comes from.
 
 Account files, the audit log and the app log live in a **settings folder outside the
-repository** (docs/PLAN.md 5절 "사용자와 로그인"): ``%LOCALAPPDATA%\\dino-autofocus`` on Windows,
+repository** (docs/PLAN.md §5 "Users and login"): ``%LOCALAPPDATA%\\dino-autofocus`` on Windows,
 ``$XDG_DATA_HOME/dino-autofocus`` (default ``~/.local/share``) elsewhere. ``DINO_AF_CONFIG_DIR``
 or an explicit argument overrides it.
 

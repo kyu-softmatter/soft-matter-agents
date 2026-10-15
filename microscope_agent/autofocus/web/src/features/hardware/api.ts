@@ -58,7 +58,7 @@ export interface StatusSummary {
 /** The commands this screen sends; `lights_off` is a command kind, the rest are `start` ops. */
 export const SCREEN_OPS = ["hardware_scan", "hardware_confirm", "status", "light_set", "lights_off"] as const;
 
-/** Shared texts for every screen (screen rules from AF 업무분배보조). */
+/** Shared texts for every screen (screen rules from the AF work-assignment assistant). */
 export const CHECKING_PERMISSIONS = "Checking permissions…";
 export const PERMISSION_CHECK_UNAVAILABLE = "Permission check unavailable";
 export const READ_ONLY_REMOTE = "Read-only: remote view";

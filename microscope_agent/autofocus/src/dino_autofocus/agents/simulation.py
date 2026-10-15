@@ -9,7 +9,7 @@ Reads a soft-matter-agents `simulation_agent/runs/<run_id>/` folder, or one writ
     trajectory_meta.json   frame count, stop outcome, and where the trajectory file is
 
 Progress comes from one function, `read_progress`. Whether a running simulation writes its
-log before it ends is still to be checked on the microscope PC (PLAN.md 10절); when nothing
+log before it ends is still to be checked on the microscope PC (PLAN.md §10); when nothing
 says how far a run is, the state is "unknown".
 
 Graph values are the numbers in the files. `read_series` reshapes them into columns and

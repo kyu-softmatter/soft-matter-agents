@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 /**
- * Small SVG charts for the run's log columns and observables (PLAN 2절 F6.4). The numbers drawn
+ * Small SVG charts for the run's log columns and observables (PLAN §2 F6.4). The numbers drawn
  * are the numbers in the records; only their position on the page is computed.
  */
 

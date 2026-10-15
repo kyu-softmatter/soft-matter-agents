@@ -7,7 +7,7 @@ Two kinds, told apart by `ToolSpec.kind`:
   (T-012). A source that is not wired in yet answers from a placeholder marked
   `"source": "fake"`, and its spec has `stub=True`.
 - **action** tools never touch the engine. Their handler only drafts an engine command; the
-  runner turns the draft into a `Proposal` that waits for a person (PLAN.md 6절 11항). The
+  runner turns the draft into a `Proposal` that waits for a person (PLAN.md §6 item 11). The
   card shows a description written here from the arguments, the model's stated reason
   labelled as such, and the gate verdict the engine's own gate code expects. The engine checks
   gates and guards again when the confirmed command arrives.
@@ -30,7 +30,7 @@ from dataclasses import dataclass, field
 from typing import Any, Literal
 
 DATA_POLICIES = ("prompt_only", "text", "images")
-# D7 (PLAN.md 7절): text only. Turning images on needs the user's separate permission and a
+# D7 (PLAN.md §7): text only. Turning images on needs the user's separate permission and a
 # task that changes this constant; no tool sends frames or map pictures before that.
 IMAGES_PERMITTED = False
 

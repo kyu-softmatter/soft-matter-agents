@@ -8,7 +8,7 @@ for tools:
                                         action tool -> Proposal, return "waiting for a person"
                   -> all tool results in one user message -> next provider turn
 
-This loop is the per-turn hook PLAN.md 5절 puts on the Tool Runner: it sees every tool call
+This loop is the per-turn hook PLAN.md §5 puts on the Tool Runner: it sees every tool call
 before anything runs, and no action tool has a path to the engine except
 `Assistant.confirm`. The loop is ours rather than the SDK's beta Tool Runner so that the fake
 provider in the tests drives the very code the real provider runs.

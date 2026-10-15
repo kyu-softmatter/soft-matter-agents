@@ -379,7 +379,7 @@ def test_import_loads_neither_anthropic_nor_torch():
 
 
 # --------------------------------------------------------------------------- loop conditions
-# (PLAN.md 5절 D6: the conditions under which the loop is ours rather than the Tool Runner)
+# (PLAN.md §5 D6: the conditions under which the loop is ours rather than the Tool Runner)
 
 
 def test_refusal_runs_no_tools():

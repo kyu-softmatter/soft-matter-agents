@@ -44,7 +44,7 @@ export const PURPOSES = ["screen", "characterize", "compare", "verify", "trouble
 /** The permission op for asking a question (D16: operator on the microscope PC). */
 export const SUBMIT_OP = "submit_question";
 
-/** Shared texts for every screen (screen rules from AF 업무분배보조). */
+/** Shared texts for every screen (screen rules from the AF work-assignment assistant). */
 export const CHECKING_PERMISSIONS = "Checking permissions…";
 export const PERMISSION_CHECK_UNAVAILABLE = "Permission check unavailable";
 export const READ_ONLY_REMOTE = "Read-only: remote view";

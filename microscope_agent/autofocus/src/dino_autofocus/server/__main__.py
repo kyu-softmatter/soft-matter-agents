@@ -272,7 +272,7 @@ def record_roots(records_root: Path | None, bench: bool) -> tuple[Path, Path, Pa
 
 def _refuse_real_roots(chosen: tuple[Path, ...], real: tuple[Path, ...]) -> None:
     """A simulated backend writes nowhere in the real tree: no chosen folder may be a real
-    folder, lie inside one, or hold one (director, T-009i; review 검토보조4)."""
+    folder, lie inside one, or hold one (director, T-009i; review assistant 4)."""
     names = ("records", "data", "samples")
     for what, path in zip(names, chosen, strict=True):
         for real_name, real_root in zip(names, real, strict=True):

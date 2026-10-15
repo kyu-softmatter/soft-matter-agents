@@ -1,4 +1,4 @@
-"""Claude in the app (PLAN.md 5절 "Claude 연동", X2).
+"""Claude in the app (PLAN.md §5 "Claude integration", X2).
 
 `runner.Assistant` holds the conversations, `tools` the read and proposal tools, `providers`
 the fake (default) and Anthropic model providers, `records` the assistant's record file.

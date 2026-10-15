@@ -13,7 +13,7 @@ import "./simulation.css";
 export const LIST_MS = 5000;
 
 /**
- * Simulation status (PLAN 2절 F6): progress, download, trajectory viewer, graphs.
+ * Simulation status (PLAN §2 F6): progress, download, trajectory viewer, graphs.
  * Routes: see simRoute.ts (`#/simulation/runs/<run_id>` opens a run).
  *
  * Data comes from server/api/simulation.py through the app's shared client; progress of a

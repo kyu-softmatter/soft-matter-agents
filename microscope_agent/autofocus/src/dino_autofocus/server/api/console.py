@@ -14,7 +14,7 @@ The router reads only. Whether someone may submit is not decided here: the acces
 already refuses a remote or logged-out write, and the route asks `server_action_why` for the
 T-018 permission `SUBMIT_QUESTION` (operator on the microscope PC, D16). The console's own rule
 is the read-only store (409). Records pass through as the store has them: card contents,
-grades and `numbers` are not touched (PLAN.md 6절 3항).
+grades and `numbers` are not touched (PLAN.md §6 item 3).
 """
 
 from __future__ import annotations

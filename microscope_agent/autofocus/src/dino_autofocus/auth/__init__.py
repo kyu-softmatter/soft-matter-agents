@@ -1,4 +1,4 @@
-"""Login, roles, device control and logs (X3, X4; docs/PLAN.md 5절 "사용자와 로그인").
+"""Login, roles, device control and logs (X3, X4; docs/PLAN.md §5 "Users and login").
 
 Imports nothing beyond the standard library, so the engine, the server and tests can use it
 without a UI or web framework. The server routes (``server/api/auth.py``) and the login screen

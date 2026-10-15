@@ -93,7 +93,7 @@ export function holeFitStatus(state: MapState | null): FitStatus {
   return h.fitted_at >= state.session_started_at ? "this_session" : "previous_session";
 }
 
-/** operations-spec 8절 7항: warn if the fitted diameter is more than 20 % off the expected one. */
+/** operations-spec §8 item 7: warn if the fitted diameter is over 20 % off the expected one. */
 export function diameterOff(h: HoleFit | null, expectedMm: number | null): boolean {
   if (!h || !expectedMm) return false;
   return Math.abs(h.diameter_mm - expectedMm) / expectedMm > 0.2;

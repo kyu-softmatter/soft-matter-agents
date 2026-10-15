@@ -1,6 +1,6 @@
 """Roles, account states and what each role may do.
 
-Roles (docs/PLAN.md 5절): ``admin`` manages users, ``operator`` moves the hardware, ``viewer``
+Roles (docs/PLAN.md §5): ``admin`` manages users, ``operator`` moves the hardware, ``viewer``
 only looks. Each role includes the one below it, so an admin may also operate.
 
 Some actions are **local only**: the request must come from the microscope PC itself

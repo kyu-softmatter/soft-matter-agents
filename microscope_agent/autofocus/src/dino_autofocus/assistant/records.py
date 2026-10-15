@@ -2,7 +2,7 @@
 
 One JSON object per line in `assistant.jsonl`, appended and never rewritten. Each line has
 `t`, `kind`, `conversation_id`, and the logged-in `user_id` and experiment `session_id` when the
-server knows them (PLAN.md 6절 12항). Anything Claude wrote (answer text, proposed arguments)
+server knows them (PLAN.md §6 item 12). Anything Claude wrote (answer text, proposed arguments)
 is marked `"grade": "model"`, the same word `engine.records` uses, so it is never read back as
 a measurement. Token usage is written with every model turn and summed for every answer.
 

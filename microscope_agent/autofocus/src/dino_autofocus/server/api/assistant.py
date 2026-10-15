@@ -1,4 +1,4 @@
-"""The assistant's routes (T-013; PLAN.md 5 "Claude 연동", D6-D8, D16). Mounted at
+"""The assistant's routes (T-013; PLAN.md §5 "Claude integration", D6-D8, D16). Mounted at
 `/api/assistant` by the area registration in `server/api/__init__.py`.
 
 - `GET  /status`: exactly `{provider, connected, data_stage}` (the web shell reads these).

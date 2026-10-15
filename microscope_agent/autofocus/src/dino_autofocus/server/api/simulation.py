@@ -1,4 +1,4 @@
-"""Simulation status (PLAN.md 2절 F6): runs, progress, series, trajectory frames, zip.
+"""Simulation status (PLAN.md §2 F6): runs, progress, series, trajectory frames, zip.
 
 Every route is a GET, so a remote viewer can follow a run too (the shared access rules in
 `server/api/__init__.py` still ask for a login). The data layer is `agents.simulation`; this

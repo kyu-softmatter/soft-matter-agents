@@ -11,7 +11,7 @@ export interface Viewer2DProps {
   size?: number;
 }
 
-/** The 2D trajectory viewer (PLAN 2절 F6.3): one frame on a Canvas, colored by particle type. */
+/** The 2D trajectory viewer (PLAN §2 F6.3): one frame on a Canvas, colored by particle type. */
 export function Viewer2D({ frame, plane = "xy", wrap = true, size = 480 }: Viewer2DProps) {
   const ref = useRef<HTMLCanvasElement>(null);
 

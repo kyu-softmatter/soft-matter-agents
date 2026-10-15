@@ -1,7 +1,7 @@
 import { type FormEvent, type ReactNode, useState } from "react";
 
 /**
- * Shown over the app while the login is locked. Running work and guards keep going (PLAN 5절),
+ * Shown over the app while the login is locked. Running work and guards keep going (PLAN §5),
  * so the app stays mounted underneath and the stop control passed in `abort` stays live here.
  */
 export function LockScreen({

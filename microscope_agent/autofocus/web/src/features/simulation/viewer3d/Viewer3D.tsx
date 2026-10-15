@@ -33,7 +33,7 @@ interface Parts {
 }
 
 /**
- * The 3D trajectory viewer (PLAN 2절 F6.3). Draws one frame at a time with GPU instancing,
+ * The 3D trajectory viewer (PLAN §2 F6.3). Draws one frame at a time with GPU instancing,
  * the box edges, and a camera to rotate (drag), zoom (wheel) and pan (right drag). It renders
  * only when the frame, the camera or the size changes.
  */

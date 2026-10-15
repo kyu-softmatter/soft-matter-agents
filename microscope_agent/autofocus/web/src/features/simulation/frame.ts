@@ -1,5 +1,5 @@
 /**
- * The trajectory frame both viewers draw (PLAN 2절 F6.3): the 2D Canvas viewer here and the 3D
+ * The trajectory frame both viewers draw (PLAN §2 F6.3): the 2D Canvas viewer here and the 3D
  * Three.js viewer in `viewer3d/` (T-022). The server sends `FrameJson`, which is Python
  * `agents.simulation.Frame.to_dict()` field for field; `frameFromJson` turns it into typed arrays.
  */

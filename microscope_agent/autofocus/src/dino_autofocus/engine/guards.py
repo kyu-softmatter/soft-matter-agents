@@ -87,7 +87,8 @@ RETRACTED_MAX_Z_UM = Z_SAFE_UM + 1.0  # "Z retracted" for nosepiece turns and lo
 ESCAPE_DY_UM: float = +15000.0
 
 # SAFETY (T-029d): anything but the exact value "MEASURED" locks Z approach on the real
-# stand. Unlocked by the user on 2026-10-02 ("2800 제한 해제") before Q13/Q20 and the stage
+# stand. Unlocked by the user on 2026-10-02 ("2800 제한 해제" -- lift the 2800
+# limit) before Q13/Q20 and the stage
 # limits were measured. Partial unlock: on the bench every upward move (sweeps included)
 # stays under approach_ceiling_um, so only the 4x, 10x and 20x go above 2800 um
 # (bench_ascent_refusal). mm-real's bench motion lock is separate. Read only by

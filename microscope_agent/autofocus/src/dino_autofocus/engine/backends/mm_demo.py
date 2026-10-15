@@ -1,7 +1,7 @@
 """mm-demo backend: the engine's Backend protocol on Micro-Manager's demo devices (T-023).
 
 Built on `mm_demo_core.DemoDevices`, which owns the core and the bench <-> demo Z offset.
-Everything here is in bench coordinates (PLAN.md 5절). Demo-only rules, each stated in
+Everything here is in bench coordinates (PLAN.md §5). Demo-only rules, each stated in
 `info().notes`:
 
 * **Below-range zone.** The demo Z reaches bench 2700-3300 only (offset 3000), but the bench

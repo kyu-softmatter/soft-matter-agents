@@ -142,7 +142,7 @@ export interface Permission {
 }
 export type Permissions = Record<SampleOp, Permission>;
 
-/** Shared texts for every screen (screen rules from AF 업무분배보조). */
+/** Shared texts for every screen (screen rules from the AF work-assignment assistant). */
 export const CHECKING_PERMISSIONS = "Checking permissions…";
 export const PERMISSION_CHECK_UNAVAILABLE = "Permission check unavailable";
 export const READ_ONLY_REMOTE = "Read-only: remote view";
@@ -166,7 +166,7 @@ export async function readPermissions(client: Client, ops: readonly SampleOp[] =
 // ---------------------------------------------------------------- Field list
 
 /**
- * The provisional F3.1 field list (PLAN 10절; docs/screens/sample.md 2), as the server serves it at
+ * The provisional F3.1 field list (PLAN §10; docs/screens/sample.md 2), as the server serves it at
  * `GET /api/sample/geometry-fields`. The screen renders whatever that route returns; this copy is
  * for the tests' fake server and work before T-009.
  */

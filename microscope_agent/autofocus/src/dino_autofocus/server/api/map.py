@@ -349,7 +349,7 @@ def _result_record(d: Path) -> dict[str, Any]:
 
 def _boxes(rec: dict[str, Any]) -> tuple[Box | None, Box | None]:
     """The record's own boxes when it has them; else from the hole and margin the scan used
-    (operations-spec 3절 2항: half = diameter_mm * 500 + margin_um, guard box + 1 mm)."""
+    (operations-spec §3 item 2: half = diameter_mm * 500 + margin_um, guard box + 1 mm)."""
     scan, allowed = _box(rec.get("scan_box_um")), _box(rec.get("allowed_box_um"))
     if scan is not None and allowed is not None:
         return scan, allowed
