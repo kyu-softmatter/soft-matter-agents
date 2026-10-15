@@ -1,0 +1,26 @@
+{
+  "entry_id": "immersion_oil_in_use_is_nikon_type_f",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The immersion oil on this bench is Nikon Type F Non-Fluorescing Immersion Oil, 30 ml, PCB-free, as the person read it off the bottle's label at the bench on 2026-10-13.",
+  "identifiers": {
+    "product": "Nikon Type F Non-Fluorescing Immersion Oil",
+    "immersion": "oil",
+    "volume_on_label": "30 ml",
+    "label_also_reads": "PCB-free",
+    "what_it_joins": "this bench's oil to the type facts nikon_type_f_oil_refractive_index_nd_23c and nikon_type_f_oil_refractive_index_ne_23c, which are about the product and say nothing about a bottle"
+  },
+  "source": "operator_read:kyuhwan_20261013_immersion_oil",
+  "grade": "E3",
+  "grade_tag": "operator_read",
+  "source_ref": "src_operator_read_20261013_immersion_oil",
+  "valid_until": {
+    "date": "2036-10-15",
+    "event": "the oil used on the 60x and 100x oil objectives changes: this bottle is replaced by another product, or another bottle is put in use. The date is only an outer bound. Emptying and refilling from a bottle of the same product does not end it, because what is claimed is the product, not the container."
+  },
+  "validity_conditions": "THE JOINING CLAIM, filed the way particle_suspension_b_identity was, and graded higher than it for the reason that entry names as what would raise it: here the person READ THE LABEL, at the bench on 2026-10-13, so this is operator_read (E3) and not a statement of which product they have. The reading was reported two days later, on 2026-10-15, in manager-librarian's window, and task 046 at 17368e3 records it with the person's correction that it was a reading and not a recollection. WHAT WAS READ: the product name, 30 ml and PCB-free. Nothing else from the label is on record -- no catalogue number, no lot, no date, and no index printed on the bottle -- so the catalogue number MXA22168 that a reseller and Nikon's safety sheet give for Type F 30 ml is NOT an identifier here: it was not read. The reseller page the person gave as reference is where the type data was read, not evidence of which oil is used. A caller computing a depth of field for the 60x or 100x applies an index to this bench through this entry, so it cites this entry as well as one of the two index entries, and those two disagree (see them). NOT A LIMIT AND NOT A COMMAND: which oil goes on the lens is the person's practice; nothing here may be read as permission or instruction to apply oil.",
+  "date": "2026-10-15",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261007-1"
+}

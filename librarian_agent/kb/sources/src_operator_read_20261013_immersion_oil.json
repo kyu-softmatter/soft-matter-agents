@@ -1,0 +1,11 @@
+{
+  "source_id": "src_operator_read_20261013_immersion_oil",
+  "kind": "operator_read",
+  "identifier": "The person read the label of the immersion oil bottle at the bench on 2026-10-13 and reported it on 2026-10-15, directly in manager-librarian-20261007-1's window: Nikon Type F Non-Fluorescing Immersion Oil, 30 ml, PCB-free. Written down at librarian_agent/tasks/046-the-rest-of-the-answer-sheet-after-the-bench.md, section 'WHAT THE 2026-10-13 BENCH ANSWERED', at 17368e3, which records the person's correction that this was a reading of the bottle and not a recollection.",
+  "accessed": "2026-10-15",
+  "grade_rule": "E3, grade_tag operator_read: the person read the physical label. The bench visit was 2026-10-13; the report came two days later, so what was read is on record only as the person's statement of what the label says, which is the same standing every operator_read: in this store has. The microscope seat's findings file for that visit (microscope_agent/findings/microscope-20261013-1-20261013.json at 1104cc6) does not record the reading.",
+  "what_was_read": "the product name, the 30 ml volume, and 'PCB-free'. Nothing else on the label is on record: no catalogue number, no lot, no date, and no index or wavelength printed on the bottle.",
+  "not_a_source_for_the_identity": "The person also gave, as reference, the reseller's page https://www.edmundoptics.com/p/Nikon-Type-F-Non-Fluorescing-30ml-PCB-Free-Immersion-Oil/57189 (tracking parameters dropped). That page is where the oil's type data was read (src_edmund_57189_nikon_type_f_page); it is not evidence of which oil is on the bench. task 046 said otherwise for one commit (560a92a) and was corrected at 17368e3.",
+  "url": null,
+  "provenance": "Not from any prior repository, so 10.2 and 10.2.1 do not apply."
+}

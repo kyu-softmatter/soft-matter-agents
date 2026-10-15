@@ -1,0 +1,52 @@
+{
+  "entry_id": "nikon_type_f_oil_refractive_index_nd_23c",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "Nikon Type F Non-Fluorescing Immersion Oil has a refractive index nd of 1.518 at 23 degrees Celsius, as published by the reseller Edmund Optics.",
+  "numbers": [
+    {
+      "name": "refractive_index",
+      "value": 1.518,
+      "unit": "1",
+      "source": "spec:edmund_57189_nikon_type_f",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "printed as 'Index of Refraction (nd): 1.518', beside 'Operating Temperature (degC): 23'. The page prints no wavelength in figures; nd is the helium d line, 587.6 nm, by notation."
+    }
+  ],
+  "validity": {
+    "wavelength": {
+      "min": 587.6,
+      "max": 587.6,
+      "unit": "nm"
+    },
+    "temperature": {
+      "min": 296.15,
+      "max": 296.15,
+      "unit": "K"
+    }
+  },
+  "subject": [
+    {
+      "kind": "quantity",
+      "id": "refractive_index"
+    }
+  ],
+  "identifiers": {
+    "product": "Nikon Type F Non-Fluorescing Immersion Oil",
+    "immersion": "oil",
+    "supplier": "Edmund Optics (reseller); manufacturer Nikon",
+    "supplier_stock_number": "57189, served as 75-384"
+  },
+  "source": "spec:edmund_57189_nikon_type_f",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_edmund_57189_nikon_type_f_page",
+  "validity_conditions": "A TYPE FACT ABOUT THE PRODUCT, published by a reseller and not by Nikon. Nikon's own pages and its Type F safety data sheet were searched first and none states the index (src_edmund_57189_nikon_type_f_page lists what was read). It reaches this bench only through immersion_oil_in_use_is_nikon_type_f, which a caller cites with it. THE WAVELENGTH IS NOTATION: the page prints 'nd' and no figure, and validity pins 587.6 nm because that is what the subscript d means. THE TEMPERATURE is the page's 'Operating Temperature: 23 degC', pinned at 296.15 K; the page does not say how the index varies with temperature, and nothing here extrapolates it. Validity is a point in both: a query at the imaging wavelength comes back no_overlap, which is the correct answer -- the store does not interpolate, and carrying the index to another wavelength is the caller's judgement to record in its plan. DISPERSION: the page also prints an Abbe number vd = 41, kept verbatim in the source record and not entered as a number, because no dispersion quantity is registered. IN CONFLICT WITH nikon_type_f_oil_refractive_index_ne_23c (rule 7, both kept): another reseller gives ne(23 degC) = 1.515 for the same product. The two are at different wavelengths, so they are not two readings of one number; they conflict because ne, at the shorter 546.1 nm, cannot be lower than nd, at 587.6 nm, for an oil of normal dispersion, and 1.515 is below 1.518. At least one of the two pages has the subscript or the value wrong, and nothing reachable here settles which. Nikon's own figure, or a reading of the bottle if it prints one, would. The difference is 0.2 per cent, a tie at the decade resolution plans here use, but a plan that needs the third decimal must not take either as settled. NOT A LIMIT: an optical property of the oil, and no envelope value derives from it.",
+  "date": "2026-10-15",
+  "supersedes": null,
+  "conflict_with": [
+    "nikon_type_f_oil_refractive_index_ne_23c"
+  ],
+  "curated_by": "seat:librarian-20261007-1"
+}

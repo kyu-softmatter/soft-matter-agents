@@ -1,0 +1,14 @@
+{
+  "source_id": "src_morrell_mxa22168_nikon_type_f_page",
+  "kind": "vendor_spec",
+  "identifier": "Morrell Instrument Company product page 'MXA22168 Nikon Immersion Oil (Type F) 30cc PFS', which also calls it 'Non-Fluorescing' and says 'Formally MXA22126, MXA22024'. Its lines: Index ne(23 degrees C)=1.515; Dispersion ve(23 degrees C)=40.8; Viscosity 450cst.",
+  "url": "https://www.morrellonline.com/store/p448/MXA22168_Nikon_Immersion_Oil_TypeF_30cc.html",
+  "accessed": "2026-10-15",
+  "how_it_was_read": "Fetched by this seat on 2026-10-15 with a plain HTTP client (HTTP 200, 110525 bytes, sha256 0fe1cf17844d4b055d08acd8466c49407ac2977bbf3512f6179b9c9377c544d2) and read as text with markup stripped, not through a summarising reader. It was found by a web search for Nikon's own Type F sheet, after none was found (see src_edmund_57189_nikon_type_f_page). Not held here: a commercial page that changes without notice.",
+  "grade_rule": "E3, grade_tag vendor_spec: a reseller's published specification for the product type. A RESELLER, NOT THE MANUFACTURER, and the page does not say where its figures come from.",
+  "wavelength_is_read_from_the_subscript": "The page prints 'ne' and 've' and no wavelength in figures. The subscript e names the mercury e line, 546.1 nm, by the standard optical convention, and that is what the entry's validity carries. A reading of notation, not a printed number.",
+  "not_entered": "(1) The dispersion ve = 40.8: no dispersion quantity is registered, so it cannot be a numbers[] item; kept here verbatim. (2) The viscosity 450 cSt: kinematic viscosity of the oil is not a quantity any question has asked for, and Nikon's own table calls Type F's viscosity 'Medium' without a figure. (3) The superseded part numbers MXA22126 and MXA22024: they say the product was renumbered, and nothing on the bench names a part number to join them to.",
+  "conflicts_with": "src_edmund_57189_nikon_type_f_page, which gives nd = 1.518 and vd = 41 for the same product at 23 degC.",
+  "license_note": "Numeric specifications and identifiers only.",
+  "provenance": "Not from any prior repository, so 10.2 and 10.2.1 do not apply."
+}
