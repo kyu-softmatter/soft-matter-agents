@@ -1,0 +1,101 @@
+[project]
+name = "dino-autofocus"
+version = "0.0.1"
+description = "Frozen DINOv2 features for microscope autofocus (focus score / signed z-error)"
+requires-python = ">=3.12,<3.13"
+license = "MIT"
+license-files = ["LICENSE"]
+# Core = what the engine, focus verdicts, records and the agent-file reader import. Kept small
+# so soft-matter-agents can declare it (its validator check 82, pixi `mic` feature); see
+# docs/integration-sma.md P1. Everything heavy is an extra, imported at the use site.
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+# DINO backbone, head scoring (live.py: joblib comes with scikit-learn) and head training
+ml = [
+    "torch>=2.6",
+    "torchvision>=0.21",
+    "scikit-learn>=1.4",
+]
+# mm-demo and mm-real backends; same pins as soft-matter-agents' pixi `mic` feature
+hw = [
+    "pymmcore-plus==0.18.1",
+    "pymmcore==12.5.0.75.0",
+]
+# synthetic z-stacks (vendored psf-autofocus: optics configs, edge features)
+synth = [
+    "scikit-image>=0.20",
+    "pyyaml>=6.0",
+]
+# scripts/plot_*.py and other figure scripts
+plot = [
+    "matplotlib>=3.6",
+]
+all = ["dino-autofocus[ml,hw,synth,plot]"]
+
+[dependency-groups]
+# httpx2: the HTTP client starlette.testclient wants since starlette 1.x
+# dino-autofocus[all]: the dev env keeps every extra, so `uv sync` installs what it did before
+dev = ["pytest>=8", "ruff>=0.6", "httpx2>=2.13", "dino-autofocus[all]"]
+# local web app back end (FastAPI); pillow encodes the live-view JPEGs; anthropic is the
+# assistant's Claude provider (T-013), imported only when that provider is switched on
+# gsd reads HOOMD GSD trajectories for the simulation screen (T-012)
+server = [
+    "pydantic>=2.7",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pillow>=10",
+    "anthropic>=1.11.0",
+    "gsd>=5.0",
+]
+web = [
+    "nodejs-wheel>=22,<23",
+]
+
+[tool.uv]
+# `uv sync` installs the server and Node (web group) too, so the React build needs no system Node.
+default-groups = ["dev", "server", "web"]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
+torchvision = { index = "pytorch-cu126" }
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dino_autofocus"]
+
+# the flat soft-matter-agents-shaped files (docs/integration-sma.md section 9); read by
+# dino_autofocus/_flat.py from here in a wheel, from the repository otherwise (an editable
+# install also gets this copy in site-packages; _flat.py never reads it there)
+[tool.hatch.build.targets.wheel.force-include]
+"microscope_agent/src" = "dino_autofocus/_microscope_agent_src"
+
+[tool.ruff]
+line-length = 100
+# vendored from psf-autofocus; kept in its upstream style so the two stay diffable
+extend-exclude = [
+    "src/dino_autofocus/synth",
+    "tests/synth",
+    "scripts/make_dataset.py",
+    "scripts/show_system.py",
+    "scripts/preview_dataset.py",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+# dino_autofocus.focus.{classical,verdict,sma_event} are registered at import (S1), not files,
+# so ruff cannot find them on disk; name the package so isort sorts them as first-party
+[tool.ruff.lint.isort]
+known-first-party = ["dino_autofocus"]

@@ -1,0 +1,56 @@
+# Template for a specific microscope. Copy, fill in, and pass with
+#   python3 scripts/make_dataset.py --out data/mylab --system-config configs/mylab.yaml
+#
+# `base` inherits a preset (10x_air, 20x_air, 40x_water, 60x_oil, 100x_oil) and
+# every section below overrides it field by field, so only state what differs.
+# Check the result before generating anything:
+#   python3 scripts/show_system.py configs/mylab.yaml
+system:
+  name: "our 60x silicone-oil setup"
+  base: 60x_oil
+
+  objective:
+    na: 1.30                  # from the objective barrel
+    magnification: 60.0
+    n_immersion: 1.406        # silicone oil; 1.518 for immersion oil, 1.333 water, 1.0 air
+    tube_length: 200000.0     # um. Nikon 200, Olympus 180, Zeiss 165, Leica 200
+
+  camera:
+    pixel_size: 6.5           # um, physical pitch (before binning)
+    binning: 1
+    qe: 0.82                  # at the emission wavelength, not the peak
+    read_noise: 1.5           # e- rms, from the datasheet or a dark series
+    dark_current: 0.3         # e-/px/s
+    full_well: 30000.0        # e-
+    bit_depth: 16
+    gain: 0.48                # e- per ADU. Measure it: the photon-transfer
+                              # slope of variance against mean is 1/gain
+    offset: 100.0             # ADU baseline
+    prnu: 0.005               # fractional response non-uniformity
+    hot_pixel_rate: 2.0e-5
+    em_gain: 1.0              # > 1 selects an EMCCD-style stochastic register
+
+  stack:
+    n_sample: 1.38            # mounting medium. THIS MATTERS: together with
+                              # n_immersion it sets the depth-dependent focal
+                              # shift and the aberration that carries the sign
+                              # of defocus
+    n_immersion: 1.406        # keep equal to objective.n_immersion unless the
+                              # actual immersion differs from the design
+    n_glass: 1.515
+    n_immersion_design: 1.406 # what the objective is corrected for
+    n_glass_design: 1.515
+    t_glass: 170.0            # actual coverglass thickness, um. A #1.5 slip is
+                              # nominally 170 but varies by +-10, and that alone
+                              # shifts best focus by micrometres
+    t_glass_design: 170.0
+    t_immersion: 100.0
+    t_immersion_design: 100.0
+
+  illumination:
+    wavelength: 0.525         # um, centre of the emission band at the camera
+    bandwidth: 0.045          # um FWHM of the emission filter
+    n_spectral: 1             # > 1 averages the PSF over the band (slower)
+    exposure: 0.05            # s, nominal; the generator still auto-exposes
+    photons_per_emitter: 8000.0   # detected photons/s per fluorophore
+    background: 40.0          # photons/s/px of autofluorescence and stray light

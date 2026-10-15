@@ -1,0 +1,77 @@
+.viewer3d {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  overflow: hidden;
+  background: #101418;
+  color: #e6eaee;
+  font-size: 12px;
+}
+
+.viewer3d-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.viewer3d-message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 1em;
+  text-align: center;
+}
+
+.viewer3d-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.viewer3d-info {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+}
+
+.viewer3d-legend {
+  position: absolute;
+  top: 28px;
+  left: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.viewer3d-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.6;
+}
+
+.viewer3d-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.viewer3d-reset {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  pointer-events: auto;
+}
+
+.viewer3d-hint {
+  position: absolute;
+  bottom: 6px;
+  right: 10px;
+  opacity: 0.6;
+}

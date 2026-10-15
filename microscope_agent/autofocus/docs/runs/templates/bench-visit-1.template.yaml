@@ -1,0 +1,233 @@
+# TEMPLATE, not a record. Copy to docs/runs/<visit date>_bench-visit-1.yaml when values arrive; never overwrite an existing record.
+# Human twin: bench-visit-1.template.md. Checklist: docs/runbooks/bench-visit-1.md (section numbers in `checklist:`).
+# Units: um unless the key says otherwise. Stage coordinates = Ti2 XYStage / ZDrive readback.
+#
+# Every measured item has the same fields:
+#   value:  the number or text as read, or null
+#   status: unmeasured | measured | read_from_device | catalog | person_decision | person_statement
+#   method: what was actually done, in words (never just "confirmed")
+#   by:     person id (OD-6 handle), never an email or a PC user name
+#   "on":   date, YYYY-MM-DD. Keep the key quoted: YAML 1.1 readers (PyYAML) read a bare `on` key as the boolean true.
+#   source: "user statement in the bench window, <date>" or "file <path> sha256 <hex>"
+# Software moved nothing on this visit: every motion was by hand (workplan 6.2 stop criterion 8).
+# Conflicting values (40x WI WD 160/170, Kinetix 12/16 bit) are recorded as read; nothing is merged or chosen here.
+
+run:
+  date: null                 # planned 2026-10-12 (moved from 2026-10-08; the person said "yes" in the bench window on 2026-10-09)
+  local_time: null
+  kind: bench_visit_1_hand_only
+  operator: null             # person id
+  agent: claude-code bench session (records only; no hardware command)
+  dino_commit: null          # origin/main hash on the day
+  software_motion: none
+  locks_on_the_day:
+    mm_real.BENCH_MOTION: LOCKED
+    guards.BENCH_APPROACH: MEASURED
+
+prior_statements:            # relayed 2026-10-05 by the merge-plan session; the person answered "yes" to S1-S6 and the visit date 2026-10-08
+                             # in the bench window on 2026-10-06 (user statement in the bench window, 2026-10-06). Still statements: confirm at the bench, do not treat as measured
+  - {id: S1, card: L-005, text: "40x WI working distance at collar 0.17 = 170 um", by: person, "on": "2026-10-05", how: "stated in the merge-plan session window; not yet confirmed at the bench", confirmed_at_bench: null}
+  - {id: S2, card: L-019, text: "retract before a long XY move: lower Z by 100 um (Q20); Q13 step not answered", by: person, "on": "2026-10-05", how: "stated in the merge-plan session window; not yet confirmed at the bench", confirmed_at_bench: null}
+  - {id: S3, card: L-023/L-024/L-094, text: "piezo 0-6000 um; motorized stage +-2 cm (piezo to confirm: dino PIEZO_RANGE_UM +-100 um, KB controller NPC-6330)", by: person, "on": "2026-10-05", how: "stated in the merge-plan session window; not yet confirmed at the bench", confirmed_at_bench: null}
+  - {id: S4, card: L-055/L-056, text: "2^16 is the saturation value (16-bit readout), as worded by the person. Record the observed maximum of a saturated frame; do not assume 2^16 - 1", by: person, "on": "2026-10-05", how: "stated in the merge-plan session window; not yet confirmed at the bench", confirmed_at_bench: null}
+  - {id: S5, card: L-062/L-063, text: "PFS is controlled through Micro-Manager; which property switches it off is open", by: person, "on": "2026-10-05", how: "stated in the merge-plan session window; not yet confirmed at the bench", confirmed_at_bench: null}
+  - {id: S6, card: L-090/L-091, text: "Tweez300 releases the camera; as trap y decreases the trap appears lower in the camera image", by: person, "on": "2026-10-05", how: "stated in the merge-plan session window; not yet confirmed at the bench", confirmed_at_bench: null}
+
+preflight:                   # checklist 2
+  sma_operator_not_running: null
+  single_mm_core: null
+  select_string_startup_shutdown: null
+  check_load_settings: null          # OK | UnsafeConfig: <text>  (UnsafeConfig -> stop)
+  open_close_notes_bench_motion: null
+  cfg_sha256_matches_8184073e: null
+
+state_start:                     # checklist 3
+  time: null
+  nosepiece: {state: null, label: null}
+  zdrive_um: null
+  xy_um: [null, null]
+  pfs: {enabled: null, status_text: null}
+  lights: {aura_state: null, lightengine_state: null, dialamp: null}
+  piezo_z_um: null
+state_end:                       # checklist 12
+  time: null
+  nosepiece: {state: null, label: null}
+  zdrive_um: null
+  xy_um: [null, null]
+  pfs: {enabled: null, status_text: null}
+  lights: {aura_state: null, lightengine_state: null, dialamp: null}
+  piezo_z_um: null
+
+z_and_stage:
+  zdrive_encoder_sign:           # 4.1  value: increases | decreases (when turned toward the sample)
+    {checklist: "4.1", card: L-013, value: null, status: unmeasured, method: null, by: null, "on": null, source: null}
+  piezo_z_direction:             # 4.2  value: z+ toward sample | away
+    {checklist: "4.2", card: L-073, value: null, change_um: null, status: unmeasured, method: null, by: null, "on": null, source: null}
+  stage_travel:                  # 4.3  reached_end: true = hit the end, false = "at least"
+    checklist: "4.3"
+    cards: [L-023, L-024]
+    x_plus:  {value_um: null, reached_end: null, status: unmeasured, method: null, by: null, "on": null, source: null}
+    x_minus: {value_um: null, reached_end: null, status: unmeasured, method: null, by: null, "on": null, source: null}
+    y_plus:  {value_um: null, reached_end: null, status: unmeasured, method: null, by: null, "on": null, source: null}
+    y_minus: {value_um: null, reached_end: null, status: unmeasured, method: null, by: null, "on": null, source: null}
+    longest_move_s: {value: null, status: unmeasured, method: null, by: null, "on": null, source: null}
+  uncommanded_drift:             # 4.4
+    {checklist: "4.4", card: L-067, start: {time: null, z_um: null, xy_um: [null, null]}, end: {time: null, z_um: null, xy_um: [null, null]}, touched_between: null, status: unmeasured, by: null, source: null}
+  retract_height_wanted:         # 4.5  a person decision, not a measurement
+    checklist: "4.5"
+    card: L-015
+    per_lens: {"4x": null, "10x": null, "20x": null, "40x": null, "60x": null, "100x": null}
+    reason: null
+    status: unmeasured
+    by: null
+    "on": null
+
+approach:
+  q13_100x_step:                 # 5.1
+    checklist: "5.1"
+    card: L-018
+    knob_click_um: {fine: null, coarse: null}
+    step_used_above_2800_um: null
+    wait_between_steps_s: null
+    max_step_person_allows_um: null    # decided in U-02 (OD-14), may stay null today
+    oil_bridge_z_um: null
+    status: unmeasured
+    method: null
+    by: null
+    "on": null
+    source: null
+  q20_xy_before_retract:         # 5.2  value_um = distance where trouble showed; at_least_um = no trouble up to
+    checklist: "5.2"
+    card: L-019
+    "100x": {value_um: null, at_least_um: null, seen: null, status: unmeasured, method: null, by: null, "on": null, source: null}
+    "60x":  {value_um: null, at_least_um: null, seen: null, status: unmeasured, method: null, by: null, "on": null, source: null}
+    "40x":  {value_um: null, at_least_um: null, seen: null, status: unmeasured, method: null, by: null, "on": null, source: null}
+  wd_40x_wi_collar_017:          # 5.3  D-08 / L-005 conflict 160 vs 170: record as read, do not choose
+    {checklist: "5.3", card: L-005, collar_reading: null, z_focus_um: null, z_near_contact_um: null, value_um: null, method_kind: null, status: unmeasured, method: null, by: null, "on": null, source: null}
+  glass_interface_z:             # 5.4  residual = lens interface Z - 4x interface Z
+    checklist: "5.4"
+    card: L-033
+    xy_um: [null, null]
+    "4x":   {z_um: null, residual_um: 0,    light: brightfield, status: unmeasured, by: null, "on": null, source: null}
+    "10x":  {z_um: null, residual_um: null, light: null, status: unmeasured, by: null, "on": null, source: null}
+    "20x":  {z_um: null, residual_um: null, light: null, status: unmeasured, by: null, "on": null, source: null}
+    "40x":  {z_um: null, residual_um: null, light: null, status: unmeasured, by: null, "on": null, source: null}
+    "60x":  {z_um: null, residual_um: null, light: null, status: unmeasured, by: null, "on": null, source: null}
+    "100x": {z_um: null, residual_um: null, light: null, status: unmeasured, by: null, "on": null, source: null}
+  through_focus:                 # 5.5  one entry per lens x modality; frames snapped by hand, Z by knob
+    checklist: "5.5"
+    entries: []                  # {lens, modality, z_range_um: [lo, hi], step_um, frames, exposure_ms, folder, sha256_list_file}
+  pixel_size_1x1:                # 5.6  only if L-031 is not closed by the E2 entries
+    {checklist: "5.6", card: L-031, per_lens: {}, status: unmeasured, method: null, by: null, "on": null, source: null}
+  shadow_mode_eval:              # 5.7  docs/sma-shadow-mode.md section 7; frames by hand (knob + Snap), scores computed later on the desktop
+    checklist: "5.7"
+    design: docs/sma-shadow-mode.md section 7 (S-01)
+    person_decides: {lenses: null, fields_per_lens: null, plane_spacing_um: null, planes_per_field: null}   # no proposed numbers; the person sets these on 2026-10-12
+    tolerance_dof:               # decided on site by the person after seeing real fields; no proposed number
+      {value_um: null, per_lens: {}, reason: null, status: unmeasured, by: null, "on": null, source: null}
+    lenses: []                   # {lens, illumination, exposure_ms, readout_mode: {Port, ReadoutRate}, fields: [...]}
+                                 #   field: {field: n, z0_um: hand-focus ZDrive, xy_um: [x, y], sample_present: true|false,
+                                 #           planes: [{plane: n, zdrive_um, frame_file}], by, on}
+    no_sample_field: null        # optional; same shape as a field, sample_present: false
+    frames_shared_with_5_5: null
+    status: unmeasured
+    by: null
+    "on": null
+    source: null
+
+camera_kinetix_red:              # 6  D-08 / L-056 conflict 12 vs 16 bit: record as read
+  checklist: "6"
+  cards: [L-055, L-056, L-057]
+  saturated_frame_max_adu: null  # same number SMA calls the camera full-scale count (SMA card 060 cites it)
+  saturated_frame_readout_mode: {Port: null, ReadoutRate: null}   # required beside the ADU value: the store's gap is per readout mode
+  full_scale_per_port: []        # optional: {Port, ReadoutRate, max_adu, frame_file} if the person saturates in more than one mode
+  properties: {Port: null, ReadoutRate: null, BitDepth: null, PixelType: null, Gain: null}
+  exposure_ms: null
+  light: null
+  readout_rates_per_port: {}
+  frame_file: null
+  frame_sha256: null
+  dark_frame_mean_adu: null
+  status: unmeasured
+  method: null
+  by: null
+  "on": null
+  source: null
+
+pfs_release:                     # 7  switched by hand at the Ti2 panel; software only read
+  checklist: "7"
+  cards: [L-062, L-063, L-064, L-065]
+  od: OD-9
+  before:  {status_text: null, FocusMaintenance: null, cf_enabled: null, cf_locked: null, PFSOffset: null, other: null, time: null}
+  engaged: {status_text: null, FocusMaintenance: null, cf_enabled: null, cf_locked: null, PFSOffset: null, other: null, time: null}
+  after:   {status_text: null, FocusMaintenance: null, cf_enabled: null, cf_locked: null, PFSOffset: null, other: null, time: null}
+  servo_stopped_property: null   # the one property that says the servo stopped, if any
+  pfsoffset_plus_moves_focus: null   # toward sample | away
+  no_follow_after_off: null
+  status: unmeasured
+  by: null
+  "on": null
+  source: null
+
+light_path_followups:            # 8
+  checklist: "8"
+  core_focus_empty:        {card: L-029, value: null, status: unmeasured, by: null, source: null}
+  csuw1_port_states:       {card: L-044, value: null, status: unmeasured, by: null, source: null}   # 0 blue_only / 1 blue_red / 2 red_only?
+  csuw1_shutter_closed:    {value: null, status: unmeasured, by: null, source: null}               # shared with the SMA half
+  lapp_branch1_50_50:      {card: L-043, value: null, status: unmeasured, by: null, source: null}
+  aura_flicker:            {card: L-051, frames: null, dim_fraction: null, folder: null, status: unmeasured, by: null, source: null}
+  readback_lag_per_step_s: {value: null, status: unmeasured, by: null, source: null}
+
+tweez300:                        # 9  laser and power by the person only; no power value is set here
+  checklist: "9"
+  cards: [L-090, L-091, L-095, L-096]
+  od: OD-11
+  camera_held_serial: null       # A24M723015 = Kinetix_red, A23H723003 = Kinetix_blue
+  camera_held_mm_label: null
+  trap_plane_camera_mm_label: null
+  origin_is_image_centre: null
+  plus_x_on_screen: {red: null, blue: null}
+  plus_y_on_screen: {red: null, blue: null}
+  trap_z_control: null
+  lens: null
+  status: unmeasured
+  by: null
+  "on": null
+  source: null
+
+u03_focus_z_evidence:            # 10  evidence only; the person writes safety.json in U-03. No value is proposed here.
+  checklist: "10"
+  schema: soft-matter-agents contracts/schemas/envelope_safety.schema.json focus_z_floor / focus_z_ceiling
+  keys:
+    focus_z_4x_min:   {evidence: null, kind: null, how: null, by: null, "on": null}
+    focus_z_4x_max:   {evidence: null, kind: null, how: null, by: null, "on": null}
+    focus_z_10x_min:  {evidence: null, kind: null, how: null, by: null, "on": null}
+    focus_z_10x_max:  {evidence: null, kind: null, how: null, by: null, "on": null}
+    focus_z_20x_min:  {evidence: null, kind: null, how: null, by: null, "on": null}
+    focus_z_20x_max:  {evidence: null, kind: null, how: null, by: null, "on": null}
+    focus_z_40x_min:  {evidence: null, kind: null, how: null, by: null, "on": null}
+    focus_z_40x_max:  {evidence: null, kind: null, how: null, by: null, "on": null}
+    focus_z_60x_min:  {evidence: null, kind: null, how: null, by: null, "on": null}
+    focus_z_60x_max:  {evidence: null, kind: null, how: null, by: null, "on": null}
+    focus_z_100x_min: {evidence: null, kind: null, how: null, by: null, "on": null}
+    focus_z_100x_max: {evidence: null, kind: null, how: null, by: null, "on": null}
+
+g05b_sma_checkout:               # 11  read only; nobody commits or pushes there on this visit
+  checklist: "11"
+  head: null
+  status_sb: null
+  fetch_dry_run: null
+  core_hooks_path: null          # empty -> record "no SMA commit from this checkout" (6.2 #3)
+  sh_on_path: null
+  python: null
+  committer_ident_name_only: null
+  push_method_text_only: "git -c credential.helper=manager push"
+  by: null
+  "on": null
+
+after_session:                   # 12
+  items_done: []
+  items_skipped: []
+  readbacks_off: []
+  stops_used: []
+  files_saved: []                # {path, sha256}

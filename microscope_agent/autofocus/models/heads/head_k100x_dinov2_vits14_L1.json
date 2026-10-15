@@ -1,0 +1,30 @@
+{
+  "data": "..\\psf-autofocus\\data\\k100x",
+  "backbone": "dinov2_vits14_L1",
+  "variants": {
+    "dino": {
+      "mae_dof": 2.668428367657195,
+      "median_ae_dof": 1.4896903038024902,
+      "within_1dof": 0.3630241537218281,
+      "sign_acc_|dz|>=1": 0.863704894964318,
+      "near_focus_mae_dof": 0.9395777794123922
+    },
+    "dino+signal": {
+      "mae_dof": 2.6443657881890137,
+      "median_ae_dof": 1.472947597503662,
+      "within_1dof": 0.3755050731794918,
+      "sign_acc_|dz|>=1": 0.8696351392099708,
+      "near_focus_mae_dof": 0.9260805710598446
+    }
+  },
+  "chosen": "dino",
+  "sigma_scale": 1.7065050248041245,
+  "sigma": {
+    "coverage_1sigma": 0.6799856334740055,
+    "corr_log_err": 0.4945375739574842
+  },
+  "valid_head": {
+    "accuracy": 0.9223039215686275,
+    "base_rate": 0.5459313725490196
+  }
+}

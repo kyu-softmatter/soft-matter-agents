@@ -1,0 +1,2396 @@
+{
+ "config_record": {
+  "path": "C:\\agentic_microscope\\config\\micromanager\\single_cam_red_noDMD_nocom10.cfg",
+  "sha256": "8184073e31e1a7a63731932a20a622131d4dba04cf839bc9e651bf9abcd53120",
+  "changed_during_load": false,
+  "autoshutter": {
+   "device": "Core",
+   "prop": "AutoShutter",
+   "wanted": "0",
+   "read": "0",
+   "verified": true,
+   "t": 1790959778.3545728,
+   "notes": {}
+  },
+  "startup_preset": "System/Startup",
+  "t_loaded": 1790959778.3545728,
+  "notes": {
+   "mm_dir": "%USERPROFILE%\\AppData\\Local\\pymmcore-plus\\pymmcore-plus\\mm\\Micro-Manager_2.0.3_20260806",
+   "loaded": "a private copy of the checked bytes (T-036b)",
+   "load_settings": "post-init Property: Core.Camera=Kinetix_red; post-init Property: Core.Shutter=LightEngine; post-init Property: Core.AutoShutter=1; ConfigGroup System/Startup: LappMainBranch1.State=1"
+  }
+ },
+ "devices": [
+  {
+   "label": "Ti2-E__0",
+   "type": "HubDevice",
+   "library": "NikonTi2",
+   "description": "Nikon Ti2 microscope",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {}
+  },
+  {
+   "label": "ZDrive",
+   "type": "StageDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "Speed": {
+     "value": "2.50mm/sec",
+     "read_only": false,
+     "allowed": [
+      "0.50mm/sec",
+      "0.75mm/sec",
+      "1.00mm/sec",
+      "1.25mm/sec",
+      "1.50mm/sec",
+      "1.70mm/sec",
+      "2.00mm/sec",
+      "2.25mm/sec",
+      "2.50mm/sec"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Tolerance": {
+     "value": "0.000um",
+     "read_only": false,
+     "allowed": [
+      "0.000um",
+      "0.020um",
+      "0.040um",
+      "0.060um",
+      "0.080um",
+      "0.100um",
+      "0.120um",
+      "0.140um",
+      "0.160um",
+      "Open"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "XYStage",
+   "type": "XYStageDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "Invert-X": {
+     "value": "No",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Invert-Y": {
+     "value": "No",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Speed": {
+     "value": "25.00mm/sec",
+     "read_only": false,
+     "allowed": [
+      "0.25mm/sec",
+      "0.50mm/sec",
+      "1.00mm/sec",
+      "12.00mm/sec",
+      "17.00mm/sec",
+      "2.50mm/sec",
+      "22.00mm/sec",
+      "25.00mm/sec",
+      "51.00mm/sec"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Tolerance": {
+     "value": "0.000um",
+     "read_only": false,
+     "allowed": [
+      "0.000um",
+      "0.10um",
+      "0.20um",
+      "0.30um",
+      "0.40um",
+      "0.50um",
+      "0.60um",
+      "0.70um",
+      "0.80um",
+      "Open"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "TransposeMirrorX": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "TransposeMirrorY": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "Nosepiece",
+   "type": "StateDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "Label": {
+     "value": "1-Plan Apo LmbdD20 4x",
+     "read_only": false,
+     "allowed": [
+      "1-Plan Apo LmbdD20 4x",
+      "2-Plan Apo LmbdD4 10x",
+      "3-Plan Apo LmbdD0.8 20x",
+      "4-Apo LmbdS 40x WI",
+      "5-Plan Apo LmbdD0.15 60x Oil",
+      "6-Plan Apo LmbdD0.13 100x Oil"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "State": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "CondenserTurret",
+   "type": "StateDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "Label": {
+     "value": "1-ND",
+     "read_only": false,
+     "allowed": [
+      "1-ND",
+      "2-Shutter",
+      "3-",
+      "4-",
+      "5-",
+      "6-",
+      "7-"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "State": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "FilterTurret1",
+   "type": "StateDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "Label": {
+     "value": "1-MXR00724 -Empty",
+     "read_only": false,
+     "allowed": [
+      "1-MXR00724 -Empty",
+      "2-Empty",
+      "3-Empty",
+      "4-Empty",
+      "5-Empty",
+      "6-Empty"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "State": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "Turret1Shutter",
+   "type": "ShutterDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "State": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "FilterTurret2",
+   "type": "StateDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "Label": {
+     "value": "1-Empty",
+     "read_only": false,
+     "allowed": [
+      "1-Empty",
+      "2-Empty",
+      "3-Empty",
+      "4-Empty",
+      "5-Empty",
+      "6-Empty"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "State": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "Turret2Shutter",
+   "type": "ShutterDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "State": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "LightPath",
+   "type": "StateDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "Label": {
+     "value": "4-L100",
+     "read_only": false,
+     "allowed": [
+      "1-EYE",
+      "2-R100",
+      "3-AUX",
+      "4-L100"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "State": {
+     "value": "3",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1",
+      "2",
+      "3"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "PFS",
+   "type": "AutoFocusDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "DichroicMirrorInserted": {
+     "value": "Yes",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "FocusMaintenance": {
+     "value": "Off",
+     "read_only": false,
+     "allowed": [
+      "Off",
+      "On"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "LEDIntensity": {
+     "value": "27",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      4095.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "PFS Status": {
+     "value": "0000000000000000",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PFS in Range": {
+     "value": "Out of Range",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "PFSOffset",
+   "type": "StageDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {}
+  },
+  {
+   "label": "IntermediateMagnification",
+   "type": "MagnifierDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "Magnification": {
+     "value": "1.0x",
+     "read_only": true,
+     "allowed": [
+      "1.0x",
+      "1.5x"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "LappMainBranch1",
+   "type": "StateDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "Label": {
+     "value": "mirror_in",
+     "read_only": false,
+     "allowed": [
+      "mirror_in",
+      "mirror_out"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "State": {
+     "value": "1",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "DiaLamp",
+   "type": "ShutterDevice",
+   "library": "NikonTi2",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "Intensity": {
+     "value": "608",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      2100.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "State": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "LightEngine",
+   "type": "ShutterDevice",
+   "library": "Lumencor",
+   "description": "Lumencor Light Engine",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "BLUE": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "BLUE_Intensity": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1000.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "CYAN": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "CYAN_Intensity": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1000.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "Connection": {
+     "value": "COM3",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Description": {
+     "value": "Lumencor Light Engine",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "FirmwareVersion": {
+     "value": "3.5.4",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "GREEN": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "GREEN_Intensity": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1000.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "LEModel": {
+     "value": "Spectra III 8-NII-XS",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Model": {
+     "value": "GEN3",
+     "read_only": false,
+     "allowed": [
+      "AURA2",
+      "GEN3",
+      "LIDA",
+      "LUMA",
+      "MIRA",
+      "RETRA",
+      "SOLA",
+      "SOLA3",
+      "SOLASE",
+      "SPECTRA7",
+      "SPECTRAX"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "NIR": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "NIR_Intensity": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1000.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "Name": {
+     "value": "LightEngine",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "RED": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "RED_Intensity": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1000.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "SerialNumber": {
+     "value": "28145",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "State": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "TEAL": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "TEAL_Intensity": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1000.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "VIOLET": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "VIOLET_Intensity": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1000.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "YELLOW": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "YELLOW_Intensity": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1000.0
+     ],
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "Kinetix_red",
+   "type": "CameraDevice",
+   "library": "PVCAM",
+   "description": "Universal PVCAM interface - camera slot 2",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "ActualInterval-ms": {
+     "value": "0.0000",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Binning": {
+     "value": "1x1",
+     "read_only": false,
+     "allowed": [
+      "1x1",
+      "1x2",
+      "1x4",
+      "2x1",
+      "2x2",
+      "2x4",
+      "4x1",
+      "4x2",
+      "4x4"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "BitDepth": {
+     "value": "16",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "CCDTemperature": {
+     "value": "0.0000",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "CCDTemperatureSetPoint": {
+     "value": "0.0000",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      -15.0,
+      15.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "ChipName": {
+     "value": "TMP-Kinetix",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "CircularBufferAutoSize": {
+     "value": "ON",
+     "read_only": false,
+     "allowed": [
+      "OFF",
+      "ON"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "CircularBufferEnabled": {
+     "value": "ON",
+     "read_only": false,
+     "allowed": [
+      "OFF",
+      "ON"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "CircularBufferFrameCount": {
+     "value": "20",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "CircularBufferFrameRecovery": {
+     "value": "OFF",
+     "read_only": false,
+     "allowed": [
+      "OFF",
+      "ON"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ClearCycles": {
+     "value": "2",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      16.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "ClearMode": {
+     "value": "Auto",
+     "read_only": false,
+     "allowed": [
+      "Auto"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Color": {
+     "value": "OFF",
+     "read_only": true,
+     "allowed": [
+      "OFF",
+      "ON"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Description": {
+     "value": "PVCAM API device adapter",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "DiskStreamingCoreSkipRatio": {
+     "value": "1:100",
+     "read_only": false,
+     "allowed": [
+      "1:1",
+      "1:10",
+      "1:100",
+      "1:1000",
+      "1:10000"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "DiskStreamingEnabled": {
+     "value": "No",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "DiskStreamingPath": {
+     "value": "",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ExposeOutMode": {
+     "value": "First Row",
+     "read_only": false,
+     "allowed": [
+      "All Rows",
+      "Any Row",
+      "First Row",
+      "Line Output",
+      "Rolling Shutter"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Exposure": {
+     "value": "10.0000",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "FTCapable": {
+     "value": "No",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "FanSpeedSetpoint": {
+     "value": "High",
+     "read_only": false,
+     "allowed": [
+      "High",
+      "Low",
+      "Medium",
+      "Off(Liquid Cooled)"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "FirmwareVersion": {
+     "value": "30.48",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "FrameSummingCount": {
+     "value": "5",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      1.0,
+      65535.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "FrameSummingEnabled": {
+     "value": "No",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "FrameSummingFormat": {
+     "value": "16-bit",
+     "read_only": false,
+     "allowed": [
+      "16-bit",
+      "32-bit"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "FullWellCapacity": {
+     "value": "15000",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Gain": {
+     "value": "1-Standard",
+     "read_only": false,
+     "allowed": [
+      "1-Standard"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ImageFormat": {
+     "value": "Mono16",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "MetadataEnabled": {
+     "value": "No",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "MetadataResetTimestamp": {
+     "value": "No",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Name": {
+     "value": "PMPCIECam01",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Offset": {
+     "value": "100",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      -32768.0,
+      32767.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "PMode": {
+     "value": "Normal",
+     "read_only": false,
+     "allowed": [
+      "Alternate Normal",
+      "Normal"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PP  0 DESPECKLE BRIGHT LOW": {
+     "value": "DESPECKLE BRIGHT LOW",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PP  1   ENABLED": {
+     "value": "Yes",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PP  1   THRESHOLD": {
+     "value": "120",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      100.0,
+      300.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "PP  1 DESPECKLE BRIGHT HIGH": {
+     "value": "DESPECKLE BRIGHT HIGH",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PP  2   ENABLED": {
+     "value": "Yes",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PP  2   MIN ADU AFFECTED": {
+     "value": "200",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      200.0,
+      2047.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "PP  2   THRESHOLD": {
+     "value": "130",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      100.0,
+      300.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "PP  2 DESPECKLE DARK LOW": {
+     "value": "DESPECKLE DARK LOW",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PP  3   ENABLED": {
+     "value": "Yes",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PP  3   THRESHOLD": {
+     "value": "75",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      100.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "PP  3 DESPECKLE DARK HIGH": {
+     "value": "DESPECKLE DARK HIGH",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PP  4   ENABLED": {
+     "value": "Yes",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PP  4   MIN ADU AFFECTED": {
+     "value": "200",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      200.0,
+      2047.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "PP  4   THRESHOLD": {
+     "value": "70",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      100.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "PP  4 LARGE CLUSTER CORRECTION": {
+     "value": "LARGE CLUSTER CORRECTION",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PP  5   ENABLED": {
+     "value": "Yes",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PP  5 FRAME AVERAGING": {
+     "value": "FRAME AVERAGING",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PP  6   COUNT (POWER OF 2)": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      7.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "PP  6   ENABLED": {
+     "value": "Yes",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PP  7 Reset": {
+     "value": "No",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PVCAM Adapter Version": {
+     "value": "1.4.5",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PVCAM Version": {
+     "value": "3.10.2",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PixelType": {
+     "value": "16bit",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Port": {
+     "value": "Dynamic Range",
+     "read_only": false,
+     "allowed": [
+      "Dynamic Range",
+      "Sensitivity",
+      "Speed",
+      "Sub-Electron"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PreampDelay": {
+     "value": "0",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "PreampOffLimit": {
+     "value": "10000",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      4294967295.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "ReadoutRate": {
+     "value": "100MHz 16bit",
+     "read_only": false,
+     "allowed": [
+      "100MHz 16bit"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ReadoutRateName": {
+     "value": "Standard",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "SMARTStreamingEnabled": {
+     "value": "No",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "SMARTStreamingValues[ms]": {
+     "value": "10.000;20.000;30.000;40.000",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ScanDirection": {
+     "value": "Down",
+     "read_only": false,
+     "allowed": [
+      "Down",
+      "Down/Up Alternate",
+      "Up"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ScanDirectionReset": {
+     "value": "Yes",
+     "read_only": false,
+     "allowed": [
+      "No",
+      "Yes"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ScanLineDelay": {
+     "value": "0",
+     "read_only": true,
+     "allowed": [],
+     "limits": [
+      0.0,
+      65535.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "ScanLineTime": {
+     "value": "3750.0000",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ScanMode": {
+     "value": "Auto",
+     "read_only": false,
+     "allowed": [
+      "Auto",
+      "Line Delay",
+      "Scan Width"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ScanWidth": {
+     "value": "2400",
+     "read_only": true,
+     "allowed": [],
+     "limits": [
+      0.0,
+      2399.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "SerialNumber": {
+     "value": "A24M723015",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ShutterCloseDelay": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      65535.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "ShutterMode": {
+     "value": "Pre-Exposure",
+     "read_only": false,
+     "allowed": [
+      "Do Not Change",
+      "Never",
+      "Pre-Exposure",
+      "Pre-Sequence",
+      "Pre-Trigger"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ShutterOpenDelay": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      65535.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "Timing-ClearingTimeNs": {
+     "value": "0.0000",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Timing-ExposureTimeNs": {
+     "value": "10001000.0000",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Timing-PostTriggerDelayNs": {
+     "value": "3750.0000",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Timing-PreTriggerDelayNs": {
+     "value": "0.0000",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Timing-ReadoutTimeNs": {
+     "value": "9000000.0000",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "TransposeCorrection": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "TransposeMirrorX": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "TransposeMirrorY": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "TransposeXY": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Trigger Timeout (secs)": {
+     "value": "10",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Trigger-Expose Out-Mux": {
+     "value": "1",
+     "read_only": false,
+     "allowed": [
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "TriggerMode": {
+     "value": "Internal Trigger",
+     "read_only": false,
+     "allowed": [
+      "Edge Trigger",
+      "Internal Trigger",
+      "Level Trigger",
+      "Level Trigger Overlap",
+      "Software Trigger Edge",
+      "Software Trigger First",
+      "Trigger First"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "X-dimension": {
+     "value": "2400",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Y-dimension": {
+     "value": "2400",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "Aura",
+   "type": "ShutterDevice",
+   "library": "Lumencor",
+   "description": "Lumencor Light Engine",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "CYAN": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "CYAN_Intensity": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1000.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "Connection": {
+     "value": "COM7",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Description": {
+     "value": "Lumencor Light Engine",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "FirmwareVersion": {
+     "value": "3.14.7",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "GREEN": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "GREEN_Intensity": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1000.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "LEModel": {
+     "value": "Aura III 5-NII-WA",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Model": {
+     "value": "GEN3",
+     "read_only": false,
+     "allowed": [
+      "AURA2",
+      "GEN3",
+      "LIDA",
+      "LUMA",
+      "MIRA",
+      "RETRA",
+      "SOLA",
+      "SOLA3",
+      "SOLASE",
+      "SPECTRA7",
+      "SPECTRAX"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "NIR": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "NIR_Intensity": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1000.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "Name": {
+     "value": "LightEngine",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "RED": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "RED_Intensity": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1000.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "SerialNumber": {
+     "value": "30859",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "State": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "UV": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "UV_Intensity": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1000.0
+     ],
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "NIDAQHub",
+   "type": "HubDevice",
+   "library": "NIDAQ",
+   "description": "NIDAQ analog and digital output",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "AOTriggerInputPort": {
+     "value": "/Dev1/PFI0",
+     "read_only": false,
+     "allowed": [
+      "/Dev1/PFI0",
+      "/Dev1/PFI1",
+      "/Dev1/PFI10",
+      "/Dev1/PFI11",
+      "/Dev1/PFI12",
+      "/Dev1/PFI13",
+      "/Dev1/PFI14",
+      "/Dev1/PFI15",
+      "/Dev1/PFI2",
+      "/Dev1/PFI3",
+      "/Dev1/PFI4",
+      "/Dev1/PFI5",
+      "/Dev1/PFI6",
+      "/Dev1/PFI7",
+      "/Dev1/PFI8",
+      "/Dev1/PFI9"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Device": {
+     "value": "Dev1",
+     "read_only": false,
+     "allowed": [
+      "Dev1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "MaxSequenceLength": {
+     "value": "1024",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Maximum expected measured Voltage": {
+     "value": "5.0000",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Minimum expected measured Voltage": {
+     "value": "-5.0000",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "SampleRateHz": {
+     "value": "10000.0000",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Sequence": {
+     "value": "Off",
+     "read_only": false,
+     "allowed": [
+      "Off",
+      "On"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Total samples taken": {
+     "value": "100",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Trace Running": {
+     "value": "Stopped",
+     "read_only": false,
+     "allowed": [
+      "Running",
+      "Stopped"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Trace folder": {
+     "value": "C:/Program Files/Micro-Manager-2.0/CoreLogs",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Trace sampling frequency": {
+     "value": "100.0000",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "LUNF-Blanking",
+   "type": "StateDevice",
+   "library": "NIDAQ",
+   "description": "",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "Blank on": {
+     "value": "Low",
+     "read_only": false,
+     "allowed": [
+      "High",
+      "Low"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Blanking": {
+     "value": "Off",
+     "read_only": false,
+     "allowed": [
+      "Off",
+      "On"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ClosedPosition": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Input Line": {
+     "value": "31",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      -1.0,
+      31.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "Line # of first slider": {
+     "value": "2",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      31.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "Nr of TTL Sliders": {
+     "value": "7",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      32.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "Sequencing": {
+     "value": "Use hub setting",
+     "read_only": false,
+     "allowed": [
+      "Never",
+      "Use hub setting"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "State": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      2147483647.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "TriggerInputPin": {
+     "value": "Dev1/port0/line31",
+     "read_only": true,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "line2": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "line3": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "line4": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "line5": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "line6": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "line7": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    },
+    "line8": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [],
+     "limits": [
+      0.0,
+      1.0
+     ],
+     "read_ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "label": "Core",
+   "type": "CoreDevice",
+   "library": "",
+   "description": "Core device",
+   "read_back": true,
+   "write_verified": null,
+   "properties": {
+    "AutoFocus": {
+     "value": "PFS",
+     "read_only": false,
+     "allowed": [
+      "",
+      "PFS"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "AutoShutter": {
+     "value": "0",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Camera": {
+     "value": "Kinetix_red",
+     "read_only": false,
+     "allowed": [
+      "",
+      "Kinetix_red"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ChannelGroup": {
+     "value": "",
+     "read_only": false,
+     "allowed": [
+      "",
+      "LaserLine",
+      "System"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Focus": {
+     "value": "",
+     "read_only": false,
+     "allowed": [
+      "",
+      "ZDrive",
+      "PFSOffset"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Galvo": {
+     "value": "",
+     "read_only": false,
+     "allowed": [
+      ""
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "ImageProcessor": {
+     "value": "",
+     "read_only": false,
+     "allowed": [
+      ""
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Initialize": {
+     "value": "1",
+     "read_only": false,
+     "allowed": [
+      "0",
+      "1"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "SLM": {
+     "value": "",
+     "read_only": false,
+     "allowed": [
+      ""
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "Shutter": {
+     "value": "LightEngine",
+     "read_only": false,
+     "allowed": [
+      "",
+      "Turret1Shutter",
+      "Turret2Shutter",
+      "DiaLamp",
+      "LightEngine",
+      "Aura"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "TimeoutMs": {
+     "value": "5000",
+     "read_only": false,
+     "allowed": [],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    },
+    "XYStage": {
+     "value": "XYStage",
+     "read_only": false,
+     "allowed": [
+      "",
+      "XYStage"
+     ],
+     "limits": null,
+     "read_ok": true,
+     "error": null
+    }
+   }
+  }
+ ],
+ "positions_before": {
+  "x_um": -5134.5,
+  "y_um": 5498.200000000001,
+  "z_um": 485.16,
+  "piezo_um": {},
+  "errors": {},
+  "t": 1790959778.5598176
+ },
+ "nosepiece": "1-Plan Apo LmbdD20 4x",
+ "autofocus_device": "PFS",
+ "focus_device": "",
+ "xy_device": "XYStage",
+ "pfs_before": {
+  "enabled": false,
+  "locked": false,
+  "in_range": "Out of Range"
+ },
+ "light_state": {
+  "DiaLamp": "0",
+  "Aura": "0"
+ },
+ "pfs_after_off": {
+  "enabled": false,
+  "locked": false,
+  "in_range": "Out of Range"
+ },
+ "positions_after": {
+  "x_um": -5134.5,
+  "y_um": 5498.200000000001,
+  "z_um": 485.16,
+  "piezo_um": {},
+  "errors": {},
+  "t": 1790959778.569326
+ }
+}

@@ -1,0 +1,59 @@
+{
+  "artifact": "trajectory_meta",
+  "schema_version": 1,
+  "run_id": "run-20260924-001-smoke-g2k2",
+  "trajectory": {
+    "written": true,
+    "format": "txt",
+    "file": "trajectory.txt",
+    "sha256": "7e040ca6a1505135f59c7fb328cb4c6a1d160888e049b39ea9a568452d8a4a7e",
+    "coords_sha256": "a42b9213ea6e77f57a4fcb5b1633ef5ec8fde59cd60152ac8dfb7069c322ee39",
+    "dtype": "float64",
+    "sig_figs": 17,
+    "time_base": "step_index",
+    "save_interval_steps": 20000,
+    "frames": 2,
+    "particles": 900,
+    "engine": "pairwise_backend",
+    "engine_version": "numpy 2.5.3",
+    "seed": 1,
+    "plan_hash": "sha256:feb4c5867404148e330942a87989b7d8818e906d9285edccad0d3430b70e9331",
+    "box": {
+      "length_m": 0.0003,
+      "dimensions": 2,
+      "periodic": true
+    },
+    "units": "SI: metres and radians, converted from the engine's reduced units at the backend boundary",
+    "columns": [
+      {
+        "name": "step",
+        "unit": "1",
+        "meaning": "integer integration-step index of the frame; time is step * integration_timestep, never an accumulated float"
+      },
+      {
+        "name": "particle",
+        "unit": "1",
+        "meaning": "particle index, fixed across frames"
+      },
+      {
+        "name": "x",
+        "unit": "m",
+        "meaning": "UNWRAPPED x position: a particle that crossed the periodic boundary keeps going"
+      },
+      {
+        "name": "y",
+        "unit": "m",
+        "meaning": "UNWRAPPED y position: a particle that crossed the periodic boundary keeps going"
+      }
+    ],
+    "bytes": 97812
+  },
+  "frames_saved": 2,
+  "simulated_time": 100.0,
+  "steps_taken": 20000,
+  "max_single_step_displacement": 1.1100031386846181e-07,
+  "stopped_by": "planned_duration_reached",
+  "stop_outcome": "complete",
+  "stopped_early": false,
+  "completed_planned_duration": true
+}

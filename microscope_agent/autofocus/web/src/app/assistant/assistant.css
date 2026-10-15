@@ -1,0 +1,108 @@
+.pb {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  padding: 12px;
+}
+
+.pb-conn {
+  margin: 0;
+  font-size: 13px;
+}
+
+.pb-badge {
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--warn);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pb-warn {
+  color: var(--warn);
+}
+
+.pb-turns {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.pb-turn {
+  margin-bottom: 12px;
+}
+
+.pb-q {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.pb-a {
+  white-space: pre-wrap;
+}
+
+.pb-grade {
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.pb-tools,
+.pb-args {
+  margin: 4px 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pb-usage {
+  margin: 4px 0 0;
+  font-size: 12px;
+}
+
+.pb-card {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.pb-card p {
+  margin: 4px 0;
+}
+
+.pb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pb-blocked {
+  font-size: 12px;
+}
+
+.pb-form textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font: inherit;
+  resize: vertical;
+}
+
+.pb-link {
+  border: none;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+}

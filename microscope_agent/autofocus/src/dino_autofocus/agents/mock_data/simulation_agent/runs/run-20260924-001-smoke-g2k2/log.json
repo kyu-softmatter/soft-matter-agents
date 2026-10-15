@@ -1,0 +1,268 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20260924-001-smoke-g2k2",
+  "plan_id": "plan-sim-20260923-001-r3",
+  "plan_path": "simulation_agent/questions/sim-20260923-001/v3_plan_simulation_sim-20260923-001.json",
+  "revision": 3,
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "1",
+  "stop_criteria": [
+    "planned_duration_reached",
+    "step_displacement_diverged"
+  ],
+  "t0_wall": "2026-09-24T14:44:03.783919+00:00",
+  "t0_mono": 1479920.653763583,
+  "time_base_note": "Every offset is software: this side has no trigger counter and no device clock. Simulated time is a coordinate of the model, not a clock reading, so it is recorded in trajectory_meta.json rather than as this log's time base (4.6.9).",
+  "backend": "pairwise_backend",
+  "events": [
+    {
+      "t_mono": 2e-05,
+      "time_base": "software",
+      "event": "gate",
+      "tier": 1,
+      "approval": {
+        "id": null,
+        "kind": null
+      },
+      "envelope": {
+        "status": "inside",
+        "target": "local",
+        "budget": "smoke",
+        "compared": [
+          {
+            "cost": "wall_clock_estimate",
+            "limit": "wall_clock_max",
+            "cost_si": 60.0,
+            "limit_si": 300.0
+          },
+          {
+            "cost": "storage_estimate",
+            "limit": "storage_max",
+            "cost_si": 0.0006,
+            "limit_si": 0.5
+          }
+        ],
+        "exceeded": []
+      },
+      "compare_arm": "g2_k2",
+      "arm_cost": null,
+      "smoke": {
+        "record_fraction": 0.01,
+        "from": "smoke.record_fraction -> numbers[smoke_record_fraction]",
+        "parameter": "total_simulated_time",
+        "number": "total_simulated_time_point"
+      }
+    },
+    {
+      "t_mono": 0.000136,
+      "time_base": "software",
+      "event": "preflight",
+      "report": {
+        "backend": "pairwise_backend",
+        "missing_parameters": [],
+        "steps_per_frame": 20000,
+        "frames_expected": 1,
+        "save_interval_divides_step": true,
+        "seed": 1,
+        "dimensions": 2,
+        "box_si": {
+          "lx": 0.0003,
+          "ly": 0.00025980762113533157
+        },
+        "box_length_matches_rows": true,
+        "rows_y_even": true,
+        "n_particles_matches_rows": true,
+        "diffusivity_si": 8.584396548838734e-14,
+        "contact_energy_si": 4.0453015700000003e-19,
+        "kappa_si": 300000.0,
+        "cutoff_si": 4.347755261623519e-05,
+        "cutoff_over_spacing": 4.3477552616235196,
+        "cutoff_capped_by_box": false,
+        "engine_build": {
+          "engine": "pairwise_backend",
+          "version": "numpy 2.5.3"
+        },
+        "note": "SI throughout, no reduced units. Positions unwrapped; psi6 folds them at read time. All pairs evaluated with the minimum image: adequate for a smoke run, not for the sweep"
+      }
+    },
+    {
+      "t_mono": 0.000961,
+      "time_base": "software",
+      "event": "dispatch",
+      "action": "integrate",
+      "from": "actions[integrate]",
+      "handle": "pairwise_backend:1:1024ad550",
+      "state": "submitted",
+      "params": {
+        "integration_timestep": {
+          "value_si": 0.005,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[0].number -> numbers[dt_max_curvature]"
+        },
+        "total_simulated_time": {
+          "value_si": 100.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[1].number -> numbers[total_simulated_time_point] x smoke.record_fraction -> numbers[smoke_record_fraction]"
+        },
+        "save_interval": {
+          "value_si": 100.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[2].number -> numbers[save_interval_max]"
+        },
+        "box_length": {
+          "value_si": 0.0003,
+          "unit_in_plan": "um",
+          "grade": "E5",
+          "from": "conditions[3].number -> numbers[box_length_point]"
+        },
+        "mean_spacing": {
+          "value_si": 9.999999999999999e-06,
+          "unit_in_plan": "um",
+          "grade": "E5",
+          "from": "conditions[4].number -> numbers[mean_spacing]"
+        },
+        "plateau_window_start": {
+          "value_si": 9000.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[5].number -> numbers[plateau_window_start]"
+        },
+        "relaxation_fit_window": {
+          "value_si": 1000.0,
+          "unit_in_plan": "s",
+          "grade": "E5",
+          "from": "conditions[6].number -> numbers[relaxation_fit_window]"
+        },
+        "plateau_fraction": {
+          "value_si": 0.9,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[7].number -> numbers[plateau_fraction]"
+        },
+        "lattice_constant": {
+          "value_si": 9.999999999999999e-06,
+          "unit_in_plan": "um",
+          "grade": "E5",
+          "from": "conditions[8].number -> numbers[lattice_constant]"
+        },
+        "rows_x": {
+          "value_si": 30.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[9].number -> numbers[rows_x]"
+        },
+        "rows_y": {
+          "value_si": 30.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[10].number -> numbers[rows_y]"
+        },
+        "n_particles": {
+          "value_si": 900.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[11].number -> numbers[n_particles_point]"
+        },
+        "n_seeds": {
+          "value_si": 9.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[12].number -> numbers[n_seeds_point]"
+        },
+        "temperature": {
+          "value_si": 293.0,
+          "unit_in_plan": "K",
+          "grade": "E3",
+          "from": "conditions[13].number -> numbers[temperature]"
+        },
+        "viscosity": {
+          "value_si": 0.001,
+          "unit_in_plan": "Pa*s",
+          "grade": "E3",
+          "from": "conditions[14].number -> numbers[viscosity]"
+        },
+        "bead_diameter": {
+          "value_si": 4.9999999999999996e-06,
+          "unit_in_plan": "um",
+          "grade": "E2",
+          "from": "conditions[15].number -> numbers[bead_diameter]"
+        },
+        "gamma": {
+          "value_si": 100.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[16].number -> numbers[gamma_max]"
+        },
+        "kappa_a": {
+          "value_si": 3.0,
+          "unit_in_plan": "1",
+          "grade": "E5",
+          "from": "conditions[17].number -> numbers[kappa_a_max]"
+        }
+      }
+    },
+    {
+      "t_mono": 0.000967,
+      "time_base": "software",
+      "event": "monitors_compiled",
+      "monitors": [
+        "planned_duration_reached",
+        "step_displacement_diverged"
+      ],
+      "from": "stop_criteria"
+    },
+    {
+      "t_mono": 90.454073,
+      "time_base": "software",
+      "event": "complete",
+      "monitor": {
+        "id": "planned_duration_reached",
+        "metric": "simulated_time",
+        "comparator": ">=",
+        "threshold_si": 100.0,
+        "on_met": "complete",
+        "from": "stop_criteria[planned_duration_reached].number -> numbers[total_simulated_time_point]",
+        "met": true,
+        "outcome": "complete"
+      },
+      "state": {
+        "state": "complete",
+        "initialised": true,
+        "handle": "pairwise_backend:1:1024ad550",
+        "steps_taken": 20000,
+        "simulated_time": 100.0,
+        "frames_saved": 2,
+        "max_single_step_displacement": 1.1100031386846181e-07,
+        "max_absolute_coordinate": 0.0010934411374207528,
+        "failure": null,
+        "integration_wall_s": 90.43763454188593,
+        "frame_readout_wall_s": 4.3209176510572433e-05
+      },
+      "note": "the criterion that fired declares on_met complete"
+    },
+    {
+      "t_mono": 90.964336,
+      "time_base": "software",
+      "event": "cost_measured",
+      "steps_taken": 20000,
+      "frames_saved": 2,
+      "n_particles": 900,
+      "integration_wall_s": 90.43763454188593,
+      "frame_readout_wall_s": 4.3209176510572433e-05,
+      "frame_write_wall_s": null,
+      "trajectory_write_after_run_s": 0.0061796249356120825,
+      "particle_step_rate": 199032.18489934466,
+      "particle_frame_cost": 2.400509806142913e-08,
+      "peak_rss_bytes": 89374720,
+      "note": "peak_rss is the operator process's high-water mark, which includes the backend running in it. particle_frame_cost covers readout only; a streaming backend's in-loop write is frame_write_wall_s"
+    }
+  ],
+  "finished_at": "2026-09-24T14:45:34.838747+00:00"
+}

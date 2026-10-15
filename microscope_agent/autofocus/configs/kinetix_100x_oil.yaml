@@ -1,0 +1,52 @@
+# Nikon Ti2-E, CFI Plan Apo Lambda D 100x Oil (MRD71970, NA 1.45), Photometrics
+# Kinetix22 ("Kinetix_red"), aqueous sample on a #1.5 coverslip.
+#
+# Measured on this instrument: pixel size in the sample 0.065 um/px at 100x, zoom 1x
+# (soft-matter-agents pixel_size_100x_zoom_1x). Everything else below is a datasheet
+# or design value and should be replaced as it gets measured -- in particular the
+# camera gain/offset (photon-transfer curve) and the emission band.
+#
+#   python scripts/show_system.py configs/kinetix_100x_oil.yaml
+system:
+  name: "Ti2 100x/1.45 oil, Kinetix22, aqueous"
+  base: 100x_oil
+
+  objective:
+    na: 1.45
+    magnification: 100.0
+    n_immersion: 1.518
+    tube_length: 200000.0     # Nikon
+
+  camera:
+    pixel_size: 6.5           # Kinetix22 pitch -> 0.065 um/px at 100x
+    binning: 1
+    qe: 0.80                  # BSI sCMOS near 690 nm (datasheet curve, not measured)
+    read_noise: 1.6           # e- rms, datasheet order of magnitude; unmeasured here
+    dark_current: 0.5
+    full_well: 80000.0        # 16-bit dynamic-range readout ('100MHz 16bit'); datasheet
+    bit_depth: 16
+    gain: 1.25                # e-/ADU placeholder; measure with a photon-transfer series
+    offset: 100.0
+    prnu: 0.005
+    hot_pixel_rate: 2.0e-5
+    em_gain: 1.0
+
+  stack:
+    n_sample: 1.33            # beads in water: index mismatch with the oil gives the
+                              # depth-induced spherical aberration that carries sign
+    n_immersion: 1.518
+    n_glass: 1.515
+    n_immersion_design: 1.518
+    n_glass_design: 1.515
+    t_glass: 170.0
+    t_glass_design: 170.0
+    t_immersion: 100.0
+    t_immersion_design: 100.0
+
+  illumination:
+    wavelength: 0.690         # Flash Red beads (em ~690 nm) on the red camera; assumed
+    bandwidth: 0.050
+    n_spectral: 1
+    exposure: 0.03            # live view default in soft-matter-agents
+    photons_per_emitter: 8000.0
+    background: 40.0

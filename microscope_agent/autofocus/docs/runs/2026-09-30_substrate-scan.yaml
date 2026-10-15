@@ -1,0 +1,161 @@
+# Machine-readable run record. Human version: 2026-09-30_substrate-scan.md (same facts).
+# Units: um unless the key says otherwise. Stage coordinates = Ti2 XYStage / ZDrive readback.
+# ZDrive: increasing = toward the sample.
+
+run:
+  date: "2026-09-30"
+  local_time: "19:35-20:52"
+  operator: kyuchoi
+  agent: claude-code (repo D:/AutoFocus/dino-autofocus)
+  sample_id: "20260930_1849_1"
+  data_dir: 'D:\AutoFocus\samples\20260930_1849_1'
+
+instrument:
+  stand: Nikon Ti2-E
+  mm_config: 'C:\agentic_microscope\config\micromanager\single_cam_red_noDMD_nocom10.cfg'
+  python_hardware: system Python 3.12, pymmcore-plus 0.18.1
+  python_plots: uv env (matplotlib)
+  camera: {name: Kinetix_red, sensor_px: [2400, 2400], bit_depth: 12, ceiling_adu: 4095,
+           readout: "100MHz 12bit", autoshutter: false, dark_offset_adu: ~102}
+  pixel_um: {"4x": 1.625, "4x_calibrated": 1.6252, "100x": 0.065}
+  z_window_um: [2800, 3200]
+  free_working_distance_um: {"4x": 20000, "100x-Oil": 130}
+  piezo: {controller: NanoBench 6000, port: COM4, use: read-only, z_um: 9.94}
+  pfs: off all session (never enabled by software)
+
+operator_rules:
+  - id: brightfield_edge_then_particle_light
+    rule: >
+      Trace the hole edge in brightfield (DiaLamp) first, then switch to the operator's particle
+      light (today Aura GREEN 1 %) and run the Z scan in that light.
+    why: hole centre moved 1.5 mm between the 18:49 fit and the 19:57 rescan
+  - id: confirm_oil
+    rule: after a software rotation to 100x Oil, park Z at 0 and wait for the operator to oil
+  - id: no_climb_without_ok
+    rule: a 100x peak at the top of a sweep is not climbed past without operator approval
+
+light_settings:
+  brightfield:
+    commands: [{Aura: {State: 0}}, {DiaLamp: {State: 1}}]
+    dialamp_intensity: 608        # of 2100, set at the stand
+    condenser_turret: "3-"
+    light_path: "4-L100"
+    exposure_ms: {"4x": 12}       # 10 ms -> median 2766 ADU; >=30 ms saturates
+  particle_light:
+    order: [DiaLamp State 0, Aura GREEN_Intensity 10, Aura GREEN 1, Aura State 1]
+    aura_line: GREEN
+    aura_percent: 1               # GREEN_Intensity is per-mille -> 10
+    exposure_ms: {"4x": 994, "100x": 20}
+    off: Aura State 0 (in finally / on close)
+
+calibration_4x:
+  um_per_px: 1.62524
+  angle_deg: 0.117
+  M_px_per_um: [[0.61602, 0.00236], [0.00126, -0.61456]]
+  image_to_stage: "stage_of_pixel = stage + inv(M) @ (centre_px - p_px)  # image mirrored vs stage"
+
+steps:
+  - step: 0_state_check
+    command: python scripts/change_objective.py --status
+    result: {nosepiece: "1-Plan Apo LmbdD20 4x", z_um: 62.9, pfs: "off, Out of Range"}
+
+  - step: 1_brightfield_edge_trace
+    command: >
+      python scripts/live_focus.py --exposure 12 --sample 20260930_1849_1 --hole-diameter 6
+      --set Aura State 0 --set DiaLamp State 1   # then key 't' in the window
+    backups: [map_before_rescan_20260930-195719.json, sample_before_rescan_20260930-195719.json]
+    tracker: {start_um: [8833.4, -2354.1], speed_um_s: 400, step_um: 200, stop: full loop}
+    result:
+      hole_centre_um: [8026.0, 571.6]
+      hole_diameter_mm: 6.1438
+      fit_rms_um: 42.5
+      n_points: 49
+      arc_deg: 352
+      previous_fit: {centre_um: [9361.1, 1272.2], diameter_mm: 5.9919}
+      shift_um: [-1335.1, -700.6]
+
+  - step: 2_scan_4x_particle_light
+    commands:
+      - python scripts/scan_4x.py --sample 20260930_1849_1
+      - python scripts/scan_4x.py --sample 20260930_1849_1 --exposure 994
+      - uv run python scripts/plot_scan.py <scan dir>
+    grid: {n: [2, 2], fov_um: 3901, pitch_um: 3315, overlap: 0.15, margin_um: 500}
+    focus: {axis: FocusAxis ZDrive, metric: vollath4,
+            first_tile: {coarse_half_um: 160, coarse_step_um: 10, fine_half_um: 12, fine_step_um: 2},
+            next_tiles: {coarse_half_um: 50, coarse_step_um: 6, fine_half_um: 12, fine_step_um: 2},
+            block_map: 6x6 per tile}
+    exposure_ms: 994
+    runs:
+      - dir: scan4x_20260930-200241
+        tiles: {r0c0: {x: 6368.3, y: -1086.0, z: 3057.93}, r0c1: {x: 9683.7, y: -1086.0, z: 3053.32},
+                r1c1: {x: 9683.6, y: 2229.2, z: 3048.94}, r1c0: {x: 6368.3, y: 2229.5, z: 3042.95}}
+      - dir: scan4x_20260930-200639
+        tiles: {r0c0: {x: 6368.4, y: -1086.1, z: 3054.52}, r0c1: {x: 9683.8, y: -1086.0, z: 3052.94},
+                r1c1: {x: 9683.7, y: 2229.2, z: 3053.99, z_dropout_corrected: 3051.2},
+                r1c0: {x: 6368.2, y: 2229.5, z: 3041.15}}
+    focus_plane_inside_hole:
+      z_at_centre_um: 3048.7
+      tilt_um_per_mm: {x: -1.66, y: -3.62}
+      rms_um: 7.6
+      n_blocks: 73
+    repeatability_um: [0.4, 3.4]
+
+  - step: 3_objective_change_4x_to_100x
+    authorised_by: operator (explicit, in chat)
+    commands:
+      - python scripts/change_objective.py --to 5 --park
+      - "# operator oils the lens"
+      - python scripts/change_objective.py --return-only
+    sequence: [PFS off, ZDrive -> 0, require PFS 'Out of Range', Nosepiece State 5, park, oil, ZDrive -> 2800]
+    xy_before_um: [8025.7, 571.4]
+    result: {nosepiece: "6-Plan Apo LmbdD0.13 100x Oil", z_um: 2800.0}
+
+  - step: 4_focus_100x
+    script: scripts/focus_100x.py
+    metric: peak    # brightest 4x4-binned spot minus median; vollath fails on sparse fields
+    attempts:
+      - {file: focus100x_20260930-201702.json, exposure_ms: 30, metric: vollath, result: invalid (dark offset only)}
+      - {file: focus100x_20260930-202011.json, exposure_ms: 200, span: [2890, 2980], result: peak at top end, not climbed}
+      - {file: focus100x_20260930-202226.json, exposure_ms: 50, span: [2965, 3005], z_um: 2982.0, note: saturated; spurious rise at 3005 (oil)}
+      - {file: focus100x_20260930-202507.json, exposure_ms: 30, span: [2955, 3015], z_um: 2988.45, xy_um: [8164.7, 523.4], note: after more oil, clean peak}
+      - {file: focus100x_20260930-202813.json, exposure_ms: 20, span: [2968, 3008], z_um: 2989.42, xy_um: [7811.0, 1529.0], note: no saturation, max 3435 ADU}
+    bottom_layer_focus_um: 2989.4
+    offset_100x_minus_4x_um: -60
+
+  - step: 5_upper_particle_search
+    script: scripts/find_particle_z.py
+    status: NOT FIT FOR USE (spot test, see open_issues)
+    args: {stack: [2984, 3042], step_um: 1, band: [3004, 3035], exposure_ms: 20, pitch_um: 150}
+    fields_searched: 46
+    hits: 0
+    rejected_in_band_objects: [{xy_um: [7239.9, 710.0], peak_adu: 1934}, {xy_um: [7239.9, 560.0], peak_adu: 2066}]
+    stopped_by: "FocusAxis readback guard: commanded 3037.0, read 3036.0 (stage moved by hand)"
+    operator_found_particle:
+      xy_um: [8579.5, 68.3]
+      z_operator_um: 3012.94
+      z_brightest_um: 3010.0
+      above_bottom_layer_um: 20.6
+      diameter_fwhm_um: 6.7
+      files: [particle_20260930-204954_frame.npy, particle_20260930-204954_stack.npz]
+
+end_state:
+  aura: off (read back)
+  dialamp: off (read back)
+  objective: "6-Plan Apo LmbdD0.13 100x Oil"
+  z_um: 498.0         # retracted by operator
+  xy_um: [6396.0, 177.5]
+  scripts_running: none
+
+open_issues:
+  - "find_particle_z.py spot test - real particles ~6.7 um; with --particle-um 7 it finds the
+    operator's particle but also passes synthetic defocus-ring fragments. Needs another discriminator."
+  - "Aura flicker seen once (-23 % frame); scan_4x.py drops frames >2 % off the sweep median."
+  - "live_focus.py does not turn the DiaLamp off on close."
+  - "Operator moved stage/focus during runs; trust each record's header.position as its start."
+  - "4x->100x parfocal offset measured here ~-60 um; lab note suggested larger. Measure on a fiducial."
+
+files:
+  scripts_new: [change_objective.py, scan_4x.py, plot_scan.py, focus_100x.py, find_particle_z.py]
+  scripts_used: [live_focus.py, edge_track.py, mm_grab.py]
+  data: [sample.json, map.json, scan4x_20260930-200241/, scan4x_20260930-200639/, focus100x_*.json,
+         find_particle_*.json, particle_20260930-204954_*, track_*.jsonl, "*.log"]

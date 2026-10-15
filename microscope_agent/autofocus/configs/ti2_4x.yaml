@@ -1,0 +1,56 @@
+# Nikon Ti2-E nosepiece position 0: CFI Plan Apo Lambda D 4X (MRD70040), NA 0.2, air,
+# Photometrics Kinetix22 ("Kinetix_red") in the 16-bit Dynamic Range mode, aqueous sample
+# on a #1.5 coverslip, widefield fluorescence with green excitation and ~605 nm emission.
+#
+# Sources (soft-matter-agents/librarian_agent/kb/entries):
+#   NA, working distance      objective_mrd70040.json            spec:MRD70040 (catalogue)
+#   pixel in sample 1.625     pixel_size_4x_zoom_1x.json   calibration:cal-pixel-size-20260919
+#   read noise 1.6 e-         camera_read_noise_dynamicrange.json spec:Kinetix22, 16-bit DynamicRange mode
+#   QE 0.96                   camera_qe_at_600nm_from_the_kinetix_graph.json (read off a graph)
+#   full well 80000 e-        Kinetix22 datasheet, 16-bit dynamic-range readout (as in kinetix_100x_oil.yaml)
+# Not measured: gain (placeholder; 1.25 e-/ADU puts the 80000 e- well at ~64000 ADU, inside 16 bits)
+# and offset. Replace both from a photon-transfer series in this mode.
+#
+#   python scripts/show_system.py configs/ti2_4x.yaml
+system:
+  name: "Ti2 4x/0.2 air (MRD70040), Kinetix22 16-bit DR, 605 nm"
+
+  objective:
+    na: 0.2
+    magnification: 4      # 6.5 um / 4 = 1.625 um/px, matches calibration
+    n_immersion: 1.0
+    tube_length: 200000.0     # Nikon
+    working_distance: 20000.0    # um, catalogue 20 mm
+
+  camera:
+    pixel_size: 6.5           # Kinetix22 pitch (camera_sensor_geometry)
+    binning: 1
+    qe: 0.96
+    read_noise: 1.6
+    dark_current: 0.5
+    full_well: 80000.0
+    bit_depth: 16
+    gain: 1.25                # e-/ADU placeholder
+    offset: 100.0             # ADU, placeholder
+    prnu: 0.005
+    hot_pixel_rate: 2.0e-5
+    em_gain: 1.0
+
+  stack:
+    n_sample: 1.33            # aqueous
+    n_immersion: 1.0
+    n_immersion_design: 1.0
+    n_glass: 1.515
+    n_glass_design: 1.515
+    t_glass: 170.0
+    t_glass_design: 170.0
+    t_immersion: 20000.0
+    t_immersion_design: 20000.0
+
+  illumination:
+    wavelength: 0.605         # emission centre, um
+    bandwidth: 0.040
+    n_spectral: 1
+    exposure: 0.02            # 100x Aura GREEN 1 % on 2026-09-30 used 20 ms
+    photons_per_emitter: 8000.0
+    background: 40.0

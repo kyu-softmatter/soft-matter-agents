@@ -1,0 +1,467 @@
+{
+  "card": "refusal",
+  "schema_version": "0.1",
+  "id": "refusal-sim-20260923-001-s4",
+  "qid": "sim-20260923-001",
+  "thread": "solo-sim-20260923-001",
+  "round": 0,
+  "revision": 1,
+  "author": "simulation_agent",
+  "created_at": "2026-09-23T20:30:00Z",
+  "status": "REFUSED",
+  "stage": "S4",
+  "refused_what": "Run the sweep sim-20260923-001 asks for -- Gamma from 10 to 1000 and kappa a from 1 to 10 on bd_pairwise -- inside the local execution target's 2 h wall clock. The intersection of the six axis intervals is not empty; what does not fit is their PRODUCT at the stiff corner.",
+  "reason_code": "budget_exceeded",
+  "counterexample": [
+    {
+      "parameter": "particle_steps_total",
+      "required_number": "particle_steps_required_stiff",
+      "limit_number": "particle_steps_max",
+      "statement": "One sweep point at Gamma 1000, kappa a 10, at A3's smallest box (900 particles) and A2's fewest seeds (9), capped at ten Brownian times, needs of order 1e12 particle-steps; the local wall clock at A5's assumed cost per particle-step allows 7e10. One point is a decade over, before the other points of the sweep are counted. The binding chain is A1's curvature bound: at that corner the step is 1e-4 s against a Brownian time of 1000 s, seven decades of steps per Brownian time."
+    }
+  ],
+  "alternatives": [
+    {
+      "what": "Narrow the sweep to Gamma <= 100 and kappa a <= 3. The step loosens to about 5e-3 s, one point costs of order 2e10 particle-steps, and about four points fit under the ceiling -- more if points away from the corner are cheaper, which they are. Ordering from a random start is still inside this range. This is a revision-2 goal for S3 to re-run with the new corners as its assumptions; S4 does not choose them.",
+      "requires": "the person's ruling, because an over-budget job is Tier 2 (4.2): either accept the narrowed sweep, raise the local wall clock in envelope/budget.json, or name a second execution target"
+    },
+    {
+      "what": "Keep the full sweep and accept that the stiff corner is reported not converged at the cap -- which measures the cap, not the suspension. Recorded as the option it is; not recommended."
+    }
+  ],
+  "numbers": [
+    {
+      "name": "brownian_time",
+      "value": 1000.0,
+      "unit": "s",
+      "source": "computed:brownian_time",
+      "grade": "E5",
+      "origin": "axis_bd_pairwise_a1.json#brownian_time",
+      "precision": "order_of_magnitude",
+      "note": "the time to diffuse one spacing: the natural unit of structural relaxation here, and NOT tau_d, which is the time to diffuse one diameter and belongs to the free-tracer question"
+    },
+    {
+      "name": "dt_max_curvature",
+      "value": 0.0001,
+      "unit": "s",
+      "source": "computed:factor_times_curvature_time",
+      "grade": "E5",
+      "origin": "axis_bd_pairwise_a1.json#dt_max_curvature",
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "gamma_max",
+      "value": 1000,
+      "unit": "1",
+      "source": "assumed:a_sweep_corner",
+      "grade": "E5",
+      "origin": "axis_bd_pairwise_a1.json#gamma_max",
+      "precision": "order_of_magnitude",
+      "note": "the largest U0/kT in the sweep; the stiff corner A1 must survive"
+    },
+    {
+      "name": "kappa_a_max",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_sweep_corner",
+      "grade": "E5",
+      "origin": "axis_bd_pairwise_a1.json#kappa_a_max",
+      "precision": "order_of_magnitude",
+      "note": "the shortest range in the sweep, as kappa times the mean spacing"
+    },
+    {
+      "name": "dt_resolution_factor",
+      "value": 0.01,
+      "unit": "1",
+      "source": "assumed:a_dt_factor",
+      "grade": "E5",
+      "origin": "axis_bd_pairwise_a1.json#dt_resolution_factor",
+      "precision": "order_of_magnitude",
+      "note": "how far below the shortest resolved time the step sits"
+    },
+    {
+      "name": "n_seeds_min",
+      "value": 9,
+      "unit": "1",
+      "source": "computed:seeds_for_target",
+      "grade": "E5",
+      "origin": "axis_bd_pairwise_a2.json#n_seeds_min",
+      "precision": "order_of_magnitude",
+      "note": "independent samples are SEEDS: one run gives one relaxation time, because psi6(t) is already averaged over every particle"
+    },
+    {
+      "name": "n_particles_min",
+      "value": 900,
+      "unit": "1",
+      "source": "computed:spacings_squared",
+      "grade": "E5",
+      "origin": "axis_bd_pairwise_a3.json#n_particles_min",
+      "precision": "order_of_magnitude",
+      "note": "(L/a)**2 at the reference density"
+    },
+    {
+      "name": "particle_steps_max",
+      "value": 70000000000.0,
+      "unit": "1",
+      "source": "computed:wall_clock_over_cost",
+      "grade": "E5",
+      "origin": "axis_bd_pairwise_a5.json#particle_steps_max",
+      "precision": "order_of_magnitude",
+      "note": "the product n_particles * steps * n_seeds * sweep_points must sit under this"
+    },
+    {
+      "name": "run_cap_factor",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_run_cap",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the run is capped at this many Brownian times; a run ending on the cap is reported not converged"
+    },
+    {
+      "name": "run_time_cap",
+      "value": 10000.0,
+      "unit": "s",
+      "source": "computed:cap_times_brownian_time",
+      "grade": "E5",
+      "formula": "run_cap_factor*brownian_time",
+      "inputs": [
+        "run_cap_factor",
+        "brownian_time"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "steps_required_stiff",
+      "value": 100000000.0,
+      "unit": "1",
+      "source": "computed:cap_over_step",
+      "grade": "E5",
+      "formula": "run_time_cap/dt_max_curvature",
+      "inputs": [
+        "run_time_cap",
+        "dt_max_curvature"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "steps for ONE run at the stiff corner of the sweep, Gamma 1000 at kappa a 10"
+    },
+    {
+      "name": "particle_steps_required_stiff",
+      "value": 800000000000.0,
+      "unit": "1",
+      "source": "computed:steps_times_particles_times_seeds",
+      "grade": "E5",
+      "formula": "steps_required_stiff*n_particles_min*n_seeds_min",
+      "inputs": [
+        "steps_required_stiff",
+        "n_particles_min",
+        "n_seeds_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one sweep point at the stiff corner, at A3's smallest box and A2's fewest seeds -- the cheapest honest version of that point"
+    },
+    {
+      "name": "gamma_relaxed",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_relaxed_corner",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the largest coupling of the relaxation option; still above the 2D Yukawa ordering transition for kappa a of order one"
+    },
+    {
+      "name": "kappa_a_relaxed",
+      "value": 3,
+      "unit": "1",
+      "source": "assumed:a_relaxed_corner",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the shortest range of the relaxation option"
+    },
+    {
+      "name": "curvature_factor_relaxed",
+      "value": 2000.0,
+      "unit": "1",
+      "source": "computed:yukawa_curvature_at_spacing",
+      "grade": "E5",
+      "formula": "gamma_relaxed*(kappa_a_relaxed**2 + 2*kappa_a_relaxed + 2)",
+      "inputs": [
+        "gamma_relaxed",
+        "kappa_a_relaxed"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "dt_relaxed",
+      "value": 0.005,
+      "unit": "s",
+      "source": "computed:factor_times_curvature_time",
+      "grade": "E5",
+      "formula": "dt_resolution_factor*brownian_time/curvature_factor_relaxed",
+      "inputs": [
+        "dt_resolution_factor",
+        "brownian_time",
+        "curvature_factor_relaxed"
+      ],
+      "precision": "order_of_magnitude"
+    },
+    {
+      "name": "particle_steps_required_relaxed",
+      "value": 20000000000.0,
+      "unit": "1",
+      "source": "computed:cap_over_step_times_particles_times_seeds",
+      "grade": "E5",
+      "formula": "run_time_cap/dt_relaxed*n_particles_min*n_seeds_min",
+      "inputs": [
+        "run_time_cap",
+        "dt_relaxed",
+        "n_particles_min",
+        "n_seeds_min"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "one sweep point at the relaxed corner"
+    },
+    {
+      "name": "sweep_points_affordable",
+      "value": 4.0,
+      "unit": "1",
+      "source": "computed:budget_over_point_cost",
+      "grade": "E5",
+      "formula": "particle_steps_max/particle_steps_required_relaxed",
+      "inputs": [
+        "particle_steps_max",
+        "particle_steps_required_relaxed"
+      ],
+      "precision": "order_of_magnitude",
+      "note": "how many relaxed-corner points fit under the local wall clock; points away from the corner are cheaper, so this is the floor"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_sweep_corner",
+      "gap_ref": "yukawa_coupling_sweep_range_absent",
+      "statement": "The person left the ranges to S3. Gamma from 10 to 1000 spans the 2D Yukawa fluid, its ordering, and a stiff crystal; kappa a from 1 to 10 spans long-ranged to nearly hard. The stiff corner, Gamma 1000 at kappa a 10, is what the timestep has to survive, and the bound scales as 1/(Gamma (kappa a)**2) away from it.",
+      "numbers": [
+        "gamma_max",
+        "kappa_a_max"
+      ],
+      "falsifier": "a first run showing psi6 already at its plateau at the lowest Gamma, or unreachable inside budget at the highest, moves the corresponding end by a decade"
+    },
+    {
+      "rationale_id": "a_dt_factor",
+      "gap_ref": "integration_timestep_resolution_factor_absent",
+      "statement": "Two decades below the shortest resolved time is the usual margin for an overdamped integrator with a stiff repulsion; a convention, not a derivation, and no timestep scan on this model has been run.",
+      "numbers": [
+        "dt_resolution_factor"
+      ],
+      "falsifier": "a timestep scan showing the relaxation time flat over a wider range of steps replaces the factor with a measured one"
+    },
+    {
+      "rationale_id": "a_run_cap",
+      "gap_ref": "structural_relaxation_time_absent",
+      "statement": "How long psi6 takes to reach its plateau is the observable, so no axis can bound the run length in advance; S4 caps it to cost the run at all. Ten Brownian times is lenient -- ordering from a random start in a stiff Yukawa system is more likely to take a hundred -- and is chosen so that a corner that fails under it fails under any honest cap.",
+      "numbers": [
+        "run_cap_factor"
+      ],
+      "falsifier": "the first run's own psi6(t) replaces the cap with a measured relaxation time and its spread"
+    },
+    {
+      "rationale_id": "a_relaxed_corner",
+      "gap_ref": "yukawa_coupling_sweep_range_absent",
+      "statement": "A proposal for revision 2 and not a decision: pulling the stiff corner in by a decade in coupling and a factor of three in kappa a loosens A1's step by a factor of about fifty, which is what brings one sweep point under the ceiling. The physics of interest -- ordering from a random start -- is still inside this range for kappa a of order one. S3 must re-run with these corners as its assumptions; S4 does not set them.",
+      "numbers": [
+        "gamma_relaxed",
+        "kappa_a_relaxed"
+      ],
+      "falsifier": "a person choosing different corners, or a first run showing psi6 already ordered at Gamma 100"
+    }
+  ],
+  "kb_refs": [],
+  "kb_gaps": [
+    {
+      "gap_id": "cost_per_particle_step_yukawa_2d_absent",
+      "observable": "cost_per_particle_step_yukawa_2d",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a5",
+      "asked_at": "2026-09-23T19:53:37+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "integration_timestep_resolution_factor_absent",
+      "observable": "integration_timestep_resolution_factor",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a1",
+      "asked_at": "2026-09-23T19:53:03+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "mean_spacing_over_diameter_absent",
+      "observable": "mean_spacing_over_diameter",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a1",
+      "asked_at": "2026-09-23T19:52:57+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "noise_step_fraction_of_screening_length_absent",
+      "observable": "noise_step_fraction_of_screening_length",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a1",
+      "asked_at": "2026-09-23T19:53:06+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "pair_potential_absent",
+      "observable": "pair_potential",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='pair_potential', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:s2",
+      "asked_at": "2026-09-23T16:25:53+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "psi6_finite_size_margin_absent",
+      "observable": "psi6_finite_size_margin",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a3",
+      "asked_at": "2026-09-23T19:53:21+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "psi6_plateau_fraction_absent",
+      "observable": "psi6_plateau_fraction",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a4",
+      "asked_at": "2026-09-23T19:53:30+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "relaxation_fit_window_frames_absent",
+      "observable": "relaxation_fit_window_frames",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a4",
+      "asked_at": "2026-09-23T19:53:34+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "relaxation_time_seed_variability_absent",
+      "observable": "relaxation_time_seed_variability",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a2",
+      "asked_at": "2026-09-23T19:53:10+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "save_interval_fraction_of_brownian_time_absent",
+      "observable": "save_interval_fraction_of_brownian_time",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a4",
+      "asked_at": "2026-09-23T19:53:27+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "statistical_target_explore_absent",
+      "observable": "statistical_target_explore",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a2",
+      "asked_at": "2026-09-23T19:53:14+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "structural_relaxation_time_absent",
+      "observable": "structural_relaxation_time",
+      "kind": "absent",
+      "searched": [
+        "kb_query(observable='structural_relaxation_time', purpose='characterize') against the service at kbv-4b981dc870d3, answered_from commit fb99c636",
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:s2",
+      "asked_at": "2026-09-23T16:25:50+00:00",
+      "near_names": []
+    },
+    {
+      "gap_id": "yukawa_coupling_sweep_range_absent",
+      "observable": "yukawa_coupling_sweep_range",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v1:bd_pairwise:a1",
+      "asked_at": "2026-09-23T19:53:01+00:00",
+      "near_names": []
+    }
+  ],
+  "degraded": []
+}
