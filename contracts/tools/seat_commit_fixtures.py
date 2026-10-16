@@ -81,6 +81,22 @@ fi
 exit 0
 """
 
+STUB_PRE_PUSH = r"""#!/bin/sh
+# The fixtures' push hook: on request, another push reaches the remote first,
+# between this push reading the remote and updating it. The file holds
+# `same` (that push carries this push's own commit) or a commit to push.
+if [ -f .git/fixture-push-race ]; then
+    WHAT=$(cat .git/fixture-push-race)
+    rm -f .git/fixture-push-race
+    while read lref lsha rref rsha; do
+        [ "$WHAT" = same ] && WHAT=$lsha
+        git push -q --no-verify "$2" "$WHAT:$rref"
+        echo "pre-push: (fixture) another push published $WHAT first"
+    done
+fi
+exit 0
+"""
+
 
 # --------------------------------------------------------------------------- #
 # building
@@ -171,8 +187,9 @@ def base(repo: Path) -> str:
     write(repo, "bridge/threads/t/status.json", '{"artifact": "thread_status"}\n')
     hooks = repo / ".fixture-hooks"
     hooks.mkdir()
-    (hooks / "pre-commit").write_bytes(STUB_HOOK.encode("utf-8"))
-    os.chmod(hooks / "pre-commit", 0o755)
+    for name, body in (("pre-commit", STUB_HOOK), ("pre-push", STUB_PRE_PUSH)):
+        (hooks / name).write_bytes(body.encode("utf-8"))
+        os.chmod(hooks / name, 0o755)
     git(repo, "config", "core.hooksPath", ".fixture-hooks")
     write(repo, ".gitignore", ".fixture-hooks/\n")
     return commit_as(repo, "architecture", "base", "contracts", "README.md", CARD, "bridge", ".gitignore")
@@ -629,23 +646,78 @@ def naive_stale_index(repo: Path) -> tuple:
 
 def tool_stale_index(repo: Path) -> tuple:
     staged_rel = "microscope_agent/questions/q/staged.json"
+    stale_rel = "microscope_agent/questions/q/stale.json"
     write(repo, staged_rel, '{"v": 1}\n')
-    commit_as(repo, "architecture", "a second card", staged_rel)
+    write(repo, stale_rel, '{"v": 1}\n')
+    commit_as(repo, "architecture", "a second and a third card", staged_rel, stale_rel)
     # Another seat stages its own version of the second card in the shared index.
     write(repo, staged_rel, '{"v": "the other seat staged this"}\n')
     git(repo, "add", "--", staged_rel)
     staged_before = out(repo, "ls-files", "-s", "--", staged_rel)
-    # Mine: both cards, saved as a patch from a different worktree state of the second.
+    # And commits the third from a private index, leaving the shared entry stale.
+    plumbing_commit(repo, OTHER, stale_rel, '{"v": 2}\n', "another seat's commit from a private index")
+    # Mine: all three cards, saved as a patch from a different worktree state of the other two.
     write(repo, CARD, card("MINE"))
     write(repo, staged_rel, '{"v": "mine"}\n')
+    write(repo, stale_rel, '{"v": "mine"}\n')
     patch = repo / ".git" / "fixture-mine.patch"
-    tool(repo, "--save-patch", str(patch), "--", CARD, staged_rel)
+    tool(repo, "--save-patch", str(patch), "--", CARD, staged_rel, stale_rel)
     code, said = tool(repo, "--seat", FIX, "-F", message(repo), "--patch", str(patch))
     clean = CARD not in out(repo, "diff", "--cached", "--name-only")
     kept = out(repo, "ls-files", "-s", "--", staged_rel) == staged_before
-    return (code == 0 and clean and kept,
+    # architecture-20261007-1 asked for this on 2026-10-16: a stale entry is
+    # named as stale, with the command that clears it, and not as staging.
+    named = (f"STALE shared index entry: .git/index holds {stale_rel}" in said
+             and f"{staged_rel} is staged in the shared index with content no commit has" in said
+             and f"STALE shared index entry: .git/index holds {staged_rel}" not in said)
+    return (code == 0 and clean and kept and named,
             f"the committed card's shared entry moved to the new commit; the card another seat had staged "
-            f"was left as staged (exit {code}, clean={clean}, kept={kept})")
+            f"was left as staged and called staging; the stale one was named stale with its fix "
+            f"(exit {code}, clean={clean}, kept={kept}, named={named})")
+
+
+def _race(repo: Path) -> Path:
+    """A remote at the base, and one commit of this seat's to push."""
+    remote = repo.parent / "remote.git"
+    git(repo.parent, "init", "-q", "--bare", "-b", "main", str(remote))
+    git(repo, "remote", "add", "origin", str(remote))
+    git(repo, "push", "-q", "origin", "main")
+    write(repo, CARD, card("MINE"))
+    commit_as(repo, FIX, "my commit", CARD)
+    return remote
+
+
+def naive_push_race(repo: Path) -> tuple:
+    """2026-10-16, the tool's first real push: another seat's push published the
+    same commits a moment first, this push was rejected ("cannot lock ref"), and
+    a rejected push reads as nothing published while the commits are public."""
+    remote = _race(repo)
+    (repo / ".git" / "fixture-push-race").write_bytes(b"same")
+    r = git(repo, "push", "origin", "main", check=False)
+    public = out(remote, "rev-parse", "main") == out(repo, "rev-parse", "HEAD")
+    return (r.returncode != 0 and public,
+            f"the push exited {r.returncode}, and the remote holds its commit anyway")
+
+
+def tool_push_race(repo: Path) -> tuple:
+    remote = _race(repo)
+    (repo / ".git" / "fixture-push-race").write_bytes(b"same")
+    code, said = tool(repo, "--seat", FIX, "--push")
+    rec = last_record(repo)
+    if code != 0 or "already contains" not in said or rec.get("outcome") != "already-published":
+        return False, f"a rejected push already on the remote was not reported as published (exit {code}): {said[-300:]}"
+    # And when the push that got there first carried something else, the
+    # refusal stands: what the remote holds does not contain this commit.
+    write(repo, CARD, card("MINE", "AGAIN"))
+    commit_as(repo, FIX, "my second commit", CARD)
+    there = out(remote, "rev-parse", "main")
+    other = out(repo, "commit-tree", f"{there}^{{tree}}", "-p", there, input=b"another seat's push\n",
+                env=env_for(OTHER))
+    (repo / ".git" / "fixture-push-race").write_bytes(other.encode())
+    code, said = tool(repo, "--seat", FIX, "--push")
+    return (code == 1 and "does not contain" in said and out(remote, "rev-parse", "main") == other,
+            f"a push beaten by its own commits exited 0 as already published; one beaten by another commit "
+            f"was refused, the remote read back (exit {code})")
 
 
 FIXTURES = [
@@ -661,6 +733,7 @@ FIXTURES = [
     ("a push that carries other seats' commits", "others", naive_publishes_others, tool_publishes_others),
     ("HEAD moving while the gate runs", "gate", naive_head_moves_in_gate, tool_head_moves_in_gate),
     ("the shared index left stale by a private-index commit", "index", naive_stale_index, tool_stale_index),
+    ("another push reaching the remote first", "race", naive_push_race, tool_push_race),
 ]
 
 

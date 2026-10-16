@@ -51,7 +51,10 @@ What it does, by the numbers of the specification:
 7. `--push` fetches first, refuses when the branch is behind (a merge is
    needed, and this tool does not merge), and when the push would carry
    other seats' commits it lists them and needs `--push-includes-others`. It
-   pushes the exact commit it listed, not whatever HEAD is a moment later.
+   pushes the exact commit it listed, not whatever HEAD is a moment later,
+   and reads the remote back whatever the push exits with: a push rejected
+   because another push already published the same commits says they are
+   public, and exits 0.
 8. Every use is appended to `.git/sma-seat-commit.jsonl`, outside every tree:
    seat, mode, paths, lock wait, retries, outcome.
 
@@ -612,6 +615,8 @@ def commit(git: Git, args, row: dict, reg: dict, boundary_of, rec: Record) -> st
                           "--confirm, read every hunk again, and confirm the new digest")
         if patch is not None:
             show_patch_summary(git, priv, first)
+        for p in paths:
+            say_shared(git, first, p)
 
         attempt = 0
         while True:
@@ -724,8 +729,8 @@ def reset_shared_entries(git: Git, base: str, new: str, paths: list[str], limit:
             stale.append(p)
         else:
             kept.append(p)
-    if kept:
-        say("seat_commit: left as they are, because someone has staged them: " + ", ".join(kept))
+    for p in kept:
+        say_shared(git, new, p, after=True)
     if not stale:
         return
     for _ in range(3):
@@ -737,6 +742,58 @@ def reset_shared_entries(git: Git, base: str, new: str, paths: list[str], limit:
         time.sleep(0.5)
     say("seat_commit: could not update the shared index for " + ", ".join(stale)
         + f"; `git diff --cached` will show their inverse until `git reset -q -- <path>` is run")
+
+
+def stale_since(git: Git, ref: str, path: str, shared: tuple) -> str | None:
+    """The commit whose version of `path` the shared index still holds, if any.
+
+    A commit made from a private index moves HEAD and not `.git/index`, so
+    the shared entry is left at the version before it -- a version history
+    has. Content history never had is somebody's staging instead. One
+    `git log --raw` over the path's last changes answers which.
+    """
+    raw = git.out("-c", "core.quotepath=false", "log", "-n", "30", "--no-renames", "--raw", "--no-abbrev",
+                  "--format=C %H", ref, "--", path)
+
+    def same(mode: str, sha: str) -> bool:
+        return not shared[1] if set(sha) == {"0"} else (mode, sha) == shared
+
+    commit = None
+    for line in raw.splitlines():
+        if line.startswith("C "):
+            commit = line[2:].strip()
+        elif line.startswith(":") and commit:
+            meta, _, p = line.partition("\t")
+            if p != path:
+                continue
+            src_mode, dst_mode, src, dst = meta[1:].split()[:4]
+            if same(dst_mode, dst):
+                return commit
+            if same(src_mode, src):
+                return f"{commit}^"
+    return None
+
+
+def say_shared(git: Git, ref: str, path: str, after: bool = False) -> None:
+    """Say what the shared index holds for `path` when it is not `ref`'s version.
+
+    This tool never reads the shared index to commit, so neither case changes
+    what it commits. The stale case is said because it is the one that cost a
+    seat an hour on 2026-10-15: `git diff --cached` shows the inverse of a
+    commit already made, and a plain `git commit` from anyone carries it.
+    """
+    shared = git.entry(":index", path)
+    if shared == git.entry(ref, path):
+        return
+    since = stale_since(git, ref, path, shared)
+    if since:
+        say(f"seat_commit: STALE shared index entry: .git/index holds {path} as it was at {since[:10]}, not "
+            f"as {'the new commit' if after else 'HEAD'} has it -- most likely left by a commit made from a "
+            "private index. `git diff --cached` shows its inverse and a plain `git commit` from anyone "
+            f"would carry it. `git reset -q -- {path}` clears it, if nobody meant to stage that")
+    else:
+        say(f"seat_commit: {path} is staged in the shared index with content no commit has: someone's "
+            "staging. This tool does not read the shared index, and leaves it as it is")
 
 
 def show(git: Git, args, row: dict, reg: dict, boundary_of, rec: Record) -> None:
@@ -753,6 +810,8 @@ def show(git: Git, args, row: dict, reg: dict, boundary_of, rec: Record) -> None
         say(f"seat_commit: git diff HEAD -- {' '.join(args.paths)}, as it would be committed on {base[:9]}")
         say(text(git.run("diff", "--cached", "--stat", "--no-renames", base, "--", env=priv.env).stdout).rstrip())
         say(text(priv.diff(base, binary=False)).rstrip())
+        for p in paths:
+            say_shared(git, base, p)
         d = digest_of(priv.diff(base))
         say("")
         say(f"seat_commit: digest {d}. Every hunk above goes in under {row['seat']}. If each one is yours,")
@@ -842,15 +901,40 @@ def push(git: Git, args, row: dict, rec: Record) -> None:
     for line in lines[-GATE_TAIL:]:
         say(line)
     say("--- end of the push ---")
-    if r.returncode:
-        raise Refused("the push was refused; read its lines above. Nothing was published")
-    there = git.out(*cred, "ls-remote", remote, f"refs/heads/{branch}").split()
-    if not there or there[0] != tip:
-        raise Refused(f"the push reported success and {remote} now has {there[:1]} for {branch}, not {tip}")
-    say(f"seat_commit: {remote}/{branch} is {tip[:9]}, read back from the remote")
-    rec.row["outcome"] = (rec.row["outcome"] + "+pushed") if rec.row["outcome"] else "pushed"
     rec.row["pushed"] = {"remote": remote, "branch": branch, "tip": tip, "commits": len(ahead),
                          "others": len(others)}
+    # What the remote holds is read back either way, because the exit code
+    # does not say it. On 2026-10-16 a push was rejected with "cannot lock
+    # ref" because another seat's push had published the same commits a
+    # moment earlier, and this said "nothing was published" of commits that
+    # were public (architecture-20261003-1, the tool's first real push).
+    there = remote_contains(git, cred, remote, branch, tip)
+    if r.returncode:
+        if there:
+            say(f"seat_commit: the push was rejected, and {remote}/{branch} is {there[:9]}, which already "
+                f"contains {tip[:9]}: another push published these commits first. They are public")
+            rec.row["outcome"] = (rec.row["outcome"] + "+already-published") if rec.row["outcome"] \
+                else "already-published"
+            return
+        raise Refused(f"the push was refused, and {remote}/{branch} does not contain {tip[:9]}, read back "
+                      "after the refusal; read the push's lines above")
+    if not there:
+        raise Refused(f"the push reported success and {remote}/{branch} does not contain {tip[:9]}, read back")
+    say(f"seat_commit: {remote}/{branch} is {there[:9]}, which contains {tip[:9]}, read back from the remote")
+    rec.row["outcome"] = (rec.row["outcome"] + "+pushed") if rec.row["outcome"] else "pushed"
+
+
+def remote_contains(git: Git, cred: list, remote: str, branch: str, tip: str) -> str | None:
+    """The remote branch's commit if it contains `tip`, read from the remote; otherwise None."""
+    f = git.run(*cred, "fetch", "-q", remote, branch, check=False, merge=True)
+    if f.returncode:
+        return None
+    theirs = git.rev("FETCH_HEAD")
+    if not theirs:
+        return None
+    if theirs == tip or git.run("merge-base", "--is-ancestor", tip, theirs, check=False).returncode == 0:
+        return theirs
+    return None
 
 
 # --------------------------------------------------------------------------- #
