@@ -1861,6 +1861,7 @@ No new number is chosen — §5.8's existing rule simply had not been applied to
 3. the relevant calibration is renewed or expires
 4. **a `stop_criteria` violation or an over-tolerance deviation occurs even once in an in-range execution** → invalidate immediately and escalate to the person
 5. the envelope changes (the superset of the range moved)
+6. **the person ends it by choice** (added 2026-10-16, `a6ce8c93`): recorded as `voided.reason: ended_by_person`, with `by`, which the schema then requires, and `at`. Unlike 1-5 this is not detected by code; it is the person's own act, written into the person's approval file. A console may draft the void for the person to sign and must never write it by itself. The gap was found by the GUI mockup session (architecture-office-20261016-2), whose "End this permit" button had no reason in the contract that fitted it.
 
 **What a scope cannot cover** — always needing an individual `plan_approval`:
 
