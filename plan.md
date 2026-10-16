@@ -2922,7 +2922,7 @@ is never touched. The revision comes later, with `013`, and then the corrected c
 
 | Number | What | Seat holding it |
 |---|---|---|
-| _(empty)_ | 88 reached declaration on 2026-10-03; **an empty table is the normal state** |  |
+| 89 | the meta-harness's records hold together (8.3, HP-005): line schemas for incidents and ledger entries, cross-file integrity, append-only bytes, rule 1's `person_word` for a landed loosening, and rule 4's ban on landing anything that needs a threshold | `manager-microscope-20261003-1`, proposed by harness-office-20261016-1 |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
 
