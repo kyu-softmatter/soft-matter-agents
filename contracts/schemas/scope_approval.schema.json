@@ -70,8 +70,15 @@
             "runs_exhausted",
             "calibration_changed",
             "deviation",
-            "envelope_changed"
-          ]
+            "envelope_changed",
+            "ended_by_person"
+          ],
+          "description": "the first five are the conditions code detects (6.1); ended_by_person is the person withdrawing the permit by choice, which needs no condition and names who"
+        },
+        "by": {
+          "type": "string",
+          "minLength": 2,
+          "description": "who ended it; required when the reason is ended_by_person"
         },
         "at": {
           "type": "string",
@@ -85,6 +92,21 @@
         "reason",
         "at"
       ],
+      "if": {
+        "properties": {
+          "reason": {
+            "const": "ended_by_person"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "then": {
+        "required": [
+          "by"
+        ]
+      },
       "additionalProperties": false
     },
     "approved_by": {
