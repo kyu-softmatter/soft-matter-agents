@@ -424,7 +424,27 @@ class Private:
         self.env["GIT_INDEX_FILE"] = self.path
 
     def reset_to(self, base: str) -> None:
+        """Exactly `base`'s entries, with the shared index's stat data where it still fits.
+
+        A plain `read-tree` leaves every entry without stat data, so the gate's
+        own `git diff --name-only` re-hashed the whole working copy and, under
+        core.autocrlf, printed a CRLF warning per file: on f7d1c836 those were
+        27 of the gate's last 30 lines. `read-tree --reset` over a copy of the
+        shared index keeps the stat data of each entry whose content equals
+        `base`'s and nothing else of it -- what `git commit -- <paths>` gets by
+        starting from the shared index. The copy is read, never the shared
+        file written. Without a readable shared index it falls back to the
+        plain form, which is slower and as correct.
+        """
         if os.path.exists(self.path):
+            os.remove(self.path)
+        try:
+            shutil.copyfile(str(self.git.path_in_gitdir("index")), self.path)
+        except OSError:
+            pass
+        if os.path.exists(self.path):
+            if self.git.run("read-tree", "--reset", base, env=self.env, check=False).returncode == 0:
+                return
             os.remove(self.path)
         self.git.run("read-tree", base, env=self.env)
 
