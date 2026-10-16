@@ -1,0 +1,112 @@
+{
+  "artifact": "harness_retro",
+  "schema_version": "0.1",
+  "seat": "harness-office-20261016-1",
+  "on": "2026-10-16",
+  "trigger": "daily",
+  "tree": "5df5a6f8 plus 2 uncommitted paths [dirty e7eac94a], which is nobody's commit -- a failure here may belong to another session, and two runs are comparable only when that digest matches",
+  "verdict": "verdict: 222 passed, 0 failed, 11 undecided, 110 pending, 1 lost, 8 not applicable",
+  "observed": [
+    {
+      "source": "the validator, full run",
+      "path": "contracts/validate.py",
+      "window": "the working copy at 5df5a6f8 plus 2 uncommitted paths (docs/drafts/, not this seat's)",
+      "found": "0 failed. The one LOST is check 66's three overwritten plan revisions of mic-20260920-001, standing since September; nothing new."
+    },
+    {
+      "source": "failures.jsonl, every one in the tree",
+      "path": null,
+      "window": "all lines; newest per file read by date",
+      "found": "Six files, 135 lines in all, counted by wc -l. Newest: librarian_agent 2026-10-15 (two abandoned_attempt lines, both vendor documents that would not read; science dead ends, not harness incidents). bridge 2026-10-01, microscope_agent 2026-09-28, simulation_agent 2026-09-25. No harness incident in any of them since 2026-10-12."
+    },
+    {
+      "source": "the librarian's query log",
+      "path": "librarian_agent/queries/log.jsonl",
+      "window": "all 1478 lines, by asked_at day",
+      "found": "No call since 2026-10-13. 16 refusals in all, counted as lines with caller_id null; the newest, 2026-10-13, is a manager's server-up probe, which the root CLAUDE.md allows. Gaps since 2026-10-01 are all absent (68, 12, 13 on 10-01, 10-12, 10-13); no condition_mismatch."
+    },
+    {
+      "source": "commit messages, for gate bypasses",
+      "path": null,
+      "window": "git log --since=2026-10-12, 101 commits",
+      "found": "No --no-verify used. One commit the pre-commit gate never judged: 8f94789, the subtree import, made by commit-tree, which says so and names the range run and pre-push hook that judged it instead. Recorded as INC-20261015-05."
+    },
+    {
+      "source": "commit messages, for incident words",
+      "path": null,
+      "window": "git log --since=2026-10-14, grep -i -E for index.lock, refused, unmade, not made, stale, revert, wrong, race",
+      "found": "The private-index incident is recorded in eae12fbb. The lock race of 2026-10-15 that left a commit unmade is in no commit message and no file but one sentence of plan.md 8.3 (INC-20261015-04)."
+    },
+    {
+      "source": "the commit tool's record",
+      "path": ".git/sma-seat-commit.jsonl (outside every tree)",
+      "window": "all 9 lines, from the tool's landing at f7d1c836 (2026-10-16 14:51 -0700) to 22:08Z; lines are appended at completion and carry their start time, so they are read sorted by ts",
+      "found": "Three commits made through the tool, f7d1c836, f4e4d873 and 7edb52a9, all with outcome committed and the gate passed where it ran. Two of them met HEAD moving during the wait (retries.head_moved 1, lock waits 137.72 s and 59.77 s) and rebuilt on the new HEAD. Two push attempts, both refused, the second saying nothing was published while the commit was already on origin (INC-20261016-01). Of the three commits on the branch after f7d1c836, two went through the tool and one, aa9941d6, did not appear in its log."
+    },
+    {
+      "source": "prose: the root CLAUDE.md, all of it, and plan.md 8.2 and 8.3",
+      "path": null,
+      "window": "HEAD 5df5a6f8",
+      "found": "88 incident narratives extracted by a subagent, one ruled out (INC-20260924-06, a measurement of the simulation engine's GPU build, which is outside the harness), 87 kept with this seat's INC-20261015-05 added. Every commit hash cited resolves (15 distinct, checked by git cat-file). 57 of the 87 have only prose as evidence, counted by script."
+    },
+    {
+      "source": "the root CLAUDE.md",
+      "path": "CLAUDE.md",
+      "window": "5df5a6f8 to HEAD",
+      "found": "591 lines at 5df5a6f8 and 533 at HEAD, by wc -l on git show of each; the drop is aa9941d6, which shrank the commit paragraphs to the rule and the commit tool's name. No committed file cites the root CLAUDE.md by line number (grep), so nothing in the tree was left pointing at moved text; this seat's own draft was, and was pinned (INC-20261016-02)."
+    }
+  ],
+  "new_incidents": [
+    "INC-20261015-04",
+    "INC-20261015-05",
+    "INC-20261016-01",
+    "INC-20261016-02",
+    "INC-20261016-03"
+  ],
+  "measured": [
+    {
+      "class": "head-moves-between-read-and-write",
+      "since": "f7d1c836",
+      "recurrences": 2,
+      "method": "lines of .git/sma-seat-commit.jsonl after f7d1c836 with retries.head_moved > 0: f4e4d873 and 7edb52a9. The hazard recurred twice and did harm neither time: both rebuilt on the new HEAD and committed with the gate passed."
+    },
+    {
+      "class": "commit-left-unmade",
+      "since": "f7d1c836",
+      "recurrences": 0,
+      "method": "lines of .git/sma-seat-commit.jsonl after f7d1c836 in a commit mode whose outcome is not committed: none. This counts only commits made through the tool; aa9941d6 was made outside it and is not counted either way."
+    }
+  ],
+  "proposals": [
+    {
+      "id": "HP-001",
+      "this_pass": "Landed at f7d1c836 by its manager seat, kind reshape; follow-up 7edb52a9 by the same seat. Its prose shrink in the root CLAUDE.md landed at aa9941d6. A push misreport is with its builder (INC-20261016-01). There is no proposals/HP-001.json: 8.3 proposed HP-001 to HP-004 in prose, so the ledger cannot record it until a file exists, and writing those four is outside the person's approval of today."
+    },
+    {
+      "id": "HP-002",
+      "this_pass": "Started, read-only: 87 incidents backfilled into a draft incidents.jsonl off the tree. The prose shrink it calls for waits until the file is committed and each enforced class has a check named."
+    },
+    {
+      "id": "HP-005",
+      "this_pass": "Landed as check 89 at 2fcc3bc5 by manager-microscope-20261003-1, with 20 fixture groups and one history fixture. Revert: git revert 2fcc3bc5."
+    },
+    {
+      "id": "HP-006",
+      "this_pass": "Drafted, not handed: it touches seat_commit.py, which its builder has uncommitted edits in, so it goes to that seat when those land. Its file and ledger line wait for the person's approval to commit them."
+    }
+  ],
+  "landed_today": [
+    {
+      "proposal": "HP-005",
+      "kind": "tighten",
+      "commit": "2fcc3bc5",
+      "revert_command": "git revert 2fcc3bc5"
+    }
+  ],
+  "next": [
+    "Ask the person whether to write proposals/HP-001.json to HP-004.json from plan.md 8.3, so the ledger can record HP-001's landing and its revert command.",
+    "Follow the push misreport: when the commit tool's fix lands, count whether a push still reports nothing published while its commit is on origin.",
+    "Open questions the backfill left for a ruling: INC-20260920-01 and -02 may be one act by manager-bridge counted twice; INC-20260920-07 and the undated 8.2 illustrations name no single event.",
+    "Largest classes by members, as candidates for the next proposals: prose-claim-wrong 7, rule-reaches-less-than-written 7, contract-has-no-slot-for-it 7, platform-assumption-breaks-on-another-machine 7, class-fixed-not-swept 6."
+  ]
+}
