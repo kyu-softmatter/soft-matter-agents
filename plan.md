@@ -2298,6 +2298,12 @@ rebuild/
                            41 are covered, 26 and 46 are not yet
       rejected/            one file = one fixture
         check<NN>_<what>/  a defect that takes two files to express (11-7)
+    harness/               **the meta-harness's records (8.3; designed 2026-10-15, not built).** `incidents.jsonl`
+                           (append-only: what happened, the commit or run that shows it, the seats involved),
+                           `proposals/HP-<nnn>.json` (one proposed change to the harness, with its proof),
+                           `ledger.jsonl` (each proposal's outcome and the commit that landed or refused it),
+                           `retro/<YYYYMMDD>.json` (one retrospective pass). Schemas and checks are a manager's
+                           to build; the decisions in 8.3 are what they enforce
   microscope_agent/                 three top-level folders + CLAUDE.md
     README.md              what this agent is and what it becomes today. **The manager's**
     tasks/                 **the manager writes and the execution seat reads.** The home of downward instructions (§6.2-2).
@@ -3320,6 +3326,41 @@ Bias cannot be removed. The goal is to make it **measurable and reversible.** Si
 4. **Falsification-check history**: a lesson applied K times whose `falsifier` has never once been checked gets a review flag.
 
 **What cannot be done is written down**: **the system cannot correct the bias in the questions a person asks.** The system knows only what it was asked. So the question distribution is kept as an indicator and shown to a person, without trying to correct it.
+
+### 8.3 The meta-harness -- how the system improves itself, and what it may never change
+
+**Asked for by the person on 2026-10-15, directly to architecture-20261003-1** ("시스템이 스스로 발전할 수 있도록 메타하네싱을 추가할 방법을 플랜에 잘 적어줘" -- write into the plan how to add meta-harnessing so that the system can improve itself). Designed here the same day; nothing of it is built yet.
+
+**The harness is everything that shapes how a seat works and is not the science**: this file's principles and rules, the `CLAUDE.md` files, `contracts/` (schemas, the validator, its fixtures, the hooks), `.claude/` (settings, hooks, skills), `contracts/seats.json`, and the form of a task card. **The meta-harness is the loop that watches the harness at work and changes it**, under the same evidence rules as everything else here.
+
+**Why it is needed: the harness has been improved by hand, one incident at a time, and the record shows what that costs.** Lessons live as prose: the root `CLAUDE.md` is about 590 lines, most of them incident narratives, and 8.2 is a long list of the same. A class returns before anyone names it: a configuration fix reaching only sessions started after it arrived three times before it was written down as a kind. Counts written into prose go stale in both directions, and on 2026-10-15 a count of Korean files was given as 49 with no method and matched no run. A fix lands where nobody already running sees it. And on the same day one commit was refused by the gate, and another left unmade by a lock race, because each seat re-performs a fragile commit procedure from prose. None of these needed new judgement. Each needed a loop that turns a repeated incident into an enforced rule and then takes the narrative out of the instructions.
+
+**The loop, in order.**
+1. **Observe**, from disk only: each seat's `failures.jsonl`; the validator's verdicts at each commit and each refusal by the gate; every `--no-verify` and the reason given; the librarian's query log, its refusals and its `absent` and `condition_mismatch` gaps; runs' deviations and refusals; and incidents between sessions, which today live only in commit messages and prose and get `contracts/harness/incidents.jsonl`, append-only.
+2. **Classify**: name the class, not the instance. 8.2's oldest lesson applies here: the commit that names a class is where its other members are missed, so a classification lists the members it found and where it looked.
+3. **Propose**: one `proposals/HP-<nnn>.json` per change. It names the class, the incidents it answers, the paths it changes and the seat that owns them, and its kind: **tighten** (a new check, fixture, refusal or warning), **loosen** (a check removed or weakened, a path widened, a refusal lifted, a limit raised), **reshape** (the same rule, moved or reworded: prose into a check, a procedure into a tool), or **retire**.
+4. **Prove** (rule 3 below).
+5. **Gate**: the commit gate judges the change like any other commit, and the owner seat lands it inside its own boundary. The meta-harness itself owns only `contracts/harness/`.
+6. **Reach**: the proposal says who is already running and how they learn of it (rule 5).
+7. **Measure**: after landing, the class is counted off the record (did it recur, and how often), never off prose.
+8. **Retire**: a rule whose class has stopped recurring and whose check has stopped firing is proposed for retirement, which is a loosening (rule 1).
+
+**The rules that make self-modification safe.**
+1. **The ratchet.** A tightening or a reshaping lands on its owner seat's judgement once it is proven. A loosening, a retirement, and anything that touches the core in rule 2 lands only on the person's word, said in the owner seat's window and quoted in the proposal. The asymmetry is deliberate: the costly mistake of a self-improving system is quietly removing its own guard, and that is exactly the direction this rule takes out of its hands.
+2. **The core the loop may propose about and never land**: P0 and the safety rules of 2.1; `envelope/` and `approvals/`, which are the person's; the named refusals and the operator's allow-list; how a grade is derived, and E6's exclusion; the person's seating of every session; the gate's own existence (its installation, and the rule that `--no-verify` is said in the message); and rules 1 to 5 of this list.
+3. **Proof by the record, not by argument.** A tightening carries (a) a fixture that reproduces the incident, watched failing on the harness before the change and passing after it, which is the completing half the root `CLAUDE.md` asks for; and (b) a history replay: the validator with the change, run over a span of accepted commits the proposal names (at least every commit since the last harness change landed), showing **no new FAIL on work that was accepted**. A gate that refuses correct work gets bypassed rather than fixed, so a tightening that would have refused accepted work is not a tightening; it is a new defect. A reshaping proves it changes nothing: the same fixtures reject the same groups before and after.
+4. **Models draft; code and the person decide.** A model may notice, classify and draft. Acceptance is the fixture and the replay, which are deterministic, plus the owner seat, plus the person where rule 1 asks. No proposal introduces a threshold: a number a check compares against is the person's (11-2), and a proposal that needs one stops at UNDECIDED.
+5. **Reach at the use site.** A configuration fix reaches only what starts after it (the root `CLAUDE.md`). So a landed change names the sessions already running, and where the change is a warning it is placed where the thing is used, a commit hook and not a session-start hook, the way the committer-identity warning was moved.
+6. **A prose budget.** Once a lesson is enforced by a check, its narrative leaves the instruction files for `incidents.jsonl`, and the instruction keeps one sentence and the check's number. A count written into instruction prose carries its method beside it, or it is not written.
+7. **Agent behaviour has a regression suite, not just plumbing.** A change to an agent's instructions or skills is replayed on mock against past questions whose outcomes are known: `mic-20260918-001`'s seven axes with their gaps, card 063's focus walk and its six refusals, a held bridge thread. The verdicts must hold: refusals still refuse, gaps are still named, nothing gains a number it did not have. Differences are reviewed by the owner seat and are never accepted automatically. This is DINO's shadow mode (13.1) applied to the harness itself.
+
+**What it is not.** It is not a model rewriting its own safety, not an auto-merge, and not a fifth agent: it touches no instrument and holds no device, like the two top tiers. It does not move faster than the gate. Every change it makes is a commit a seat makes and the gate judges.
+
+**First proposals, from the record of 2026-10-15.** **HP-001 (reshape)**: one commit tool in `contracts/` doing what seats now do from prose -- wait for and retry `.git/index.lock`, commit from a message file, show `git diff HEAD` per hunk so a seat sees whose hunks it is about to commit, rebuild a private index inside the lock wait, confirm with `git log -1`, and reset a stale index entry afterwards. It answers the amend incident of 2026-09-23 and the private-index and lock-race incidents of 2026-10-15. **HP-002 (reshape)**: backfill `incidents.jsonl` from the narratives in the root `CLAUDE.md` and 8.2, each with its commit, and shrink those files to rules and check numbers under rule 6. **HP-003 (tighten)**: the regression suite of rule 7, on mock. **HP-004 (tighten, warning only)**: flag a number in instruction prose that names files, commits or counts and has no method beside it.
+
+**The console shows it.** The console's self-improvement area (the 2026-10-15 design mockup) lists incidents, proposals by stage, and the ledger, read-only. A proposal that rule 1 sends to the person is signed there by its hash, the same way a plan is.
+
+**Open for the person.** (a) **Which seat runs the loop.** Either a dedicated top-tier seat, `harness-<machine>-<YYYYMMDD>-<n>`, whose paths are `contracts/harness/**` alone, so it can propose everywhere and land nowhere else; or the architecture seat's scheduled check, as the 30-minute check ran this month. Architecture recommends the dedicated seat: the loop then has one owner, and its proposals cross a boundary the way every other seat's work does. (b) **How often**: daily, or after each bench visit, or both. (c) **Whether rule 1's split is right**: tightenings landing without the person, loosenings only with them.
 
 ---
 ## 9. Milestones and concurrent construction
