@@ -99,112 +99,64 @@ reads file contents, so it also moves when only data on disk moved.
 UNDECIDED and PENDING are not passes. UNDECIDED means a threshold nobody has
 chosen (§11-2); PENDING means an artifact a later milestone produces.
 
-The commit gate checks **the tree the commit would create**, not the working
-copy — the index is unpacked to a scratch directory and the validator runs
-there. With `git commit -- <paths>` git builds a temporary index first, so what
-is judged is your paths on top of HEAD and another session's half-finished edit
-neither enters your commit nor refuses it. A plain `git commit` has no such
-index: whatever anyone staged is your commit, and is judged as yours. **`git commit --amend` is
-the same hazard and worse, and this file did not say so until it happened
-(2026-09-23).** An amend with no paths rebuilds the commit from **the index**,
-so another seat's staged files become yours -- and because the probe form
-`git commit -- <paths>` builds a *temporary* index and never updates the real
-one, your own work may not be in that index at all: an amend after it can
-**replace your commit's contents entirely with somebody else's**. That is
-what `28761d4` is. It is worse than a plain commit in the way that matters
-for noticing: a plain commit adds a line to `git log`, an amend changes the
-content under an existing line, so **with the message unchanged nobody looks
-at all**. The only visible trace was that the amended commit's predecessor
-still said `probe`. `manager-microscope` made that point; I had called the
-two the same shape.
+**How a commit is made here (from 2026-10-16): through the commit tool,
+`contracts/tools/seat_commit.py`, and not by hand.** Every step it performs
+used to be re-performed from prose in this file, and the record of what that
+cost is `plan.md` §8.3 (HP-001) and, as the narratives move there,
+`incidents.jsonl`; one sentence per rule stays here. Standard library only,
+so bare `python` runs it on every computer here.
 
-**And the index is not the hazard's root, which I learned by repeating it
-inside the hour.** The second time I checked `git diff --cached` first, found
-it empty, and amended anyway -- and swallowed **26 files of another seat's
-already-committed work**, because **`--amend` targets HEAD and HEAD moves.**
-Another session's commit completed between the check and the amend, so the
-commit I rewrote was not the one I had made. An empty index proves nothing
-about whose commit you are about to replace. **So the rule is not "check the
-index before amending" but simply: do not `--amend` in this working copy.**
-A wrong message is cheap and a rewritten commit is not; correct it by adding
-a commit that says what the badly-named one contains. That second incident
-was undone -- `--amend` with an empty index keeps the tree, so the replaced
-commit and its replacement had identical trees and `git update-ref` back to
-the original restored it with nothing lost -- but it was undoable only
-because nobody had committed on top in the ninety seconds it existed.
+```bash
+python contracts/tools/seat_commit.py --save-patch P -- <paths>                  # right after editing: save YOUR change
+python contracts/tools/seat_commit.py --seat <seat> -F <msgfile> --patch P        # patch mode: commit exactly that patch
+python contracts/tools/seat_commit.py --seat <seat> -- <paths>                    # whole-path mode: every hunk and a digest
+python contracts/tools/seat_commit.py --seat <seat> -F <msgfile> --confirm <digest> -- <paths>
+python contracts/tools/seat_commit.py --seat <seat> --push [--push-includes-others]
+```
 
-**A long commit message passed as `$(cat <<'EOF' ...)` has now failed
-silently twice**, leaving the commit unmade while the command reported
-nothing. Both times the recovery attempt was an amend, which is how one
-failure became two. **Write the message to a file and use `git commit -F`.** **And do not filter
-a commit's output down to FAIL lines**: when another seat holds
-`.git/index.lock` the commit prints `fatal:` and is not made, and a filter for
-FAIL shows nothing at all -- which read as success on 2026-09-23, with the
-message already in a file. Read the last lines and confirm with `git log -1`. The gate
-lists separately whatever differs from what is going in, because nothing checks
-that. `--no-verify` bypasses it and leaves no trace, so say so in the
-message.
+What the tool enforces, each a rule this file used to argue for at length:
+- **Identity from the registry, never from a message or `.git/config.worktree`.**
+  `git var GIT_COMMITTER_IDENT` is its first line; a fullwidth `＠` copied from
+  a message (2026-09-23) and the worktree committer pin (2026-09-22) cannot
+  reach a commit made through it. A seat the registry does not hold, or a
+  closed one, is refused.
+- **Paths judged as check 41 judges them**, so a path outside the seat's
+  boundary is refused before the gate, with its owners named.
+- **The message from a file; no amend, no `--no-verify`, no force** -- asking
+  for one is refused by name (`28761d4`, 2026-09-23: an amend that replaced a
+  commit's contents with another seat's work, because `--amend` targets HEAD
+  and HEAD moves).
+- **Only your hunks.** Patch mode commits exactly the patch you saved, from a
+  private index built *after* the lock wait (`17c2185`, 2026-10-15: one built
+  before the wait would have reverted the commit that landed during it).
+  Whole-path mode shows every hunk first and commits only against the digest
+  you confirmed, because `git commit -- <paths>` carries every uncommitted
+  hunk in a shared file, whoever wrote it, and `git diff` against the index
+  hides exactly those.
+- **The lock is waited for, never removed, and the outcome is read back**:
+  `git log -1`, committer and paths checked, the hook's last lines printed
+  unfiltered so a `fatal:` is seen (2026-09-23: a filter for FAIL read a lock
+  race as success). In patch mode a stale shared-index entry is reset only
+  where nobody staged anything.
+- **`--push` fetches first and refuses when behind**; publishing other seats'
+  commits needs `--push-includes-others`. On Windows it adds
+  `-c credential.helper=manager` when none is configured.
 
-**A private index does not escape the moving HEAD either (2026-10-15).** A
-seat whose shared file carries another seat's uncommitted hunk can commit only
-its own by building a private index -- `GIT_INDEX_FILE=<tmp> git read-tree
-HEAD`, add the one hunk, commit from it -- and architecture-20261003-1 did, for
-`plan.md`. But that pins the **whole tree** at `read-tree` time, so if HEAD
-moves while the commit waits on `.git/index.lock`, the commit's tree reverts
-everything that landed in between: the index was built at the then-HEAD,
-`17c2185` went in during the wait, and the frozen tree would have undone that
-commit's two librarian task cards, 84 lines added and 29 removed, under the
-architecture seat's name. The gate refused it, and an index rebuilt from the
-new HEAD went through clean. So **rebuild the private index at the moment of
-committing, inside the lock wait, not before it** -- the same exposure as
-`--amend`'s, by the same route, HEAD moving between a read and a write. **And
-such a commit leaves the shared `.git/index` where it was**: HEAD moves and
-the index does not, so afterwards `git diff --cached -- <path>` shows the
-inverse of the hunk just committed and a plain `git commit` from anyone would
-carry that reversal. When `git diff HEAD -- <path>` is empty, the index entry
-can only be stale and `git reset -q -- <path>` puts it back to HEAD without
-touching the disk; architecture-20261007-1 did that for `plan.md` the same
-morning.
+Its record is `.git/sma-seat-commit.jsonl`, outside every tree.
 
-**The working copy and the git index are shared between sessions.** Name paths
-rather than using `-A`, and use `git commit -- <paths>` — but **naming a path
-is not naming a change**. That form builds its index from the *worktree*
-state of those paths, so another seat's in-progress edit to the same file
-rides in under your identity, and your own partial staging of it is
-discarded — **and a staged deletion is undone**, so that form cannot untrack
-a file that stays on disk. Run **`git diff HEAD -- <paths>`** first and check
-every hunk is yours -- **not `git diff -- <paths>`, which this file
-prescribed until 2026-09-23 and which compares against the index.**
-`git commit -- <paths>` builds its temporary index from **HEAD** plus the
-worktree state of those paths, so HEAD is the base that matters. With a
-stale index the plain form **invents** hunks that will not land; with
-another seat's work staged it **hides** hunks that will -- and `git add -A`,
-which this same paragraph warns against, is exactly what stages another
-seat's work. **Two warnings sat in one paragraph and neither knew about the
-other**: the command prescribed here is disabled by the command forbidden
-two sentences earlier. `manager-microscope` proved it in a four-line scratch
-repository and I reproduced it -- with a colleague's line staged,
-`git diff --` shows only `+MINE` while the commit carries `+OTHER SEAT` too.
-**The two directions are not symmetric**: a false positive costs one round
-trip, and that seat spent one today stopping a colleague over 74 lines a
-stale index had invented, while a false negative commits another seat's work
-under your identity, which is what `28761d4` is. Checking does not close it either: the window is between the
-check and the commit, and it measured three minutes once. No check catches
-any of this. See §6.2.
-
-**And `git checkout -- <path>` is the same hazard inverted, which this file
-did not say.** The commit form *takes* another seat's uncommitted edits under
-your identity; the checkout form *destroys* them. It restores that path from
-HEAD and discards **every** seat's uncommitted work in it, not just yours, and
-**there is no path-scoped way to undo only your own edits to a shared file** --
-I confirmed both halves in a scratch repository rather than assuming them. The
-trap is that a seat which has absorbed the warning above reaches for checkout
-as the safe way out and does the worse thing; `manager-bridge` did exactly
-that on 2026-09-20 and took 92 uncommitted lines of another seat's check with
-it, having written half of the warning it was obeying. It had the worktree
-diff saved outside the tree and restored inside the minute. **Before reverting
-a shared path, save `git diff -- <path>` somewhere outside the tree** -- it is
-the only copy of the other seat's work that will exist.
+What the tool does not reach, and so stays here as prose:
+- **The gate judges the tree the commit would create**, not the working copy.
+  A `--no-verify` done by hand bypasses it and leaves no trace; the tool has
+  no such option, so a bypass is a hand commit and says so in its message.
+- **`git checkout -- <path>` destroys every seat's uncommitted work in that
+  path, not just yours**, and there is no path-scoped way to undo only your
+  own edits to a shared file (`manager-bridge`, 2026-09-20: 92 lines of another
+  seat's check, restored from a diff saved outside the tree). Before reverting
+  a shared path, save `git diff -- <path>` outside the tree. Patch mode makes
+  the case rare: your own change is in the patch file and the worktree can be
+  left alone.
+- **Two seats in one file still collide in the worktree.** Say so before
+  editing a shared file and commit before the other starts (§6.2).
 
 **A check and its fixtures land in the same commit.** `--expect-fail N/N`
 reports that every fixture *present* still fails and can say nothing about one
@@ -281,31 +233,21 @@ tree. Check 53 reads settings files by globbing `settings.json` exactly, so
 it walks past this one, and its own note about refusals it cannot see names
 user-level and harness ones — not a repository file sitting beside the one it
 read. Three seats recorded the symptom and none could state the cause from
-inside its own boundary. **A commit refused for no stated reason is the same shape, and the file is
-`.git/config.worktree` (2026-09-22).** It can hold `committer.name` and
-`committer.email`, **`committer.*` beats `user.*`**, and this working copy
-currently has it set to `bridge-4`. So a seat committing with
-`git -c user.email=...` is silently overridden and check 41 refuses its paths
-as another seat's -- which is what happened five times in a row to one seat
-before it found the cause. **`GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` as
-environment variables beat both**, which is why the seats using that form were
-unaffected; I confirmed the precedence with `git var` rather than assuming it.
-**`conda` as a bare command is broken in every session here for the same kind
+inside its own boundary. **A commit refused for no stated reason was `.git/config.worktree`
+(2026-09-22)**: it can pin `committer.name` and `committer.email`,
+`committer.*` beats `user.*`, and `GIT_COMMITTER_NAME` /
+`GIT_COMMITTER_EMAIL` beat both -- which is why the commit tool sets those
+from the registry and prints `git var GIT_COMMITTER_IDENT` first, and why a
+seat's email is taken from `contracts/seats.json` and never from a message
+(a message delivered by session id turns `@` into a fullwidth `＠`, U+FF20;
+2026-09-23). The file is in no tree, so the gate cannot see it, and the hook
+exited 1 with no FAIL line; `sh -x` on the hook found it. That silence is
+`contracts/hooks/` and so a manager's. **`conda` as a bare command is broken in every session here for the same kind
 of reason** -- `__conda_exe:6: permission denied`, from a shell function in
 `~/.claude/shell-snapshots/`, which this harness writes per session. The
 absolute binary and `condabin/conda` both work. **Call conda by absolute
 path**; one seat read the failure as a broken machine and lost half a day,
-and its retraction is in §7. **And take a seat's email from `contracts/seats.json`, never from a
-message**: a message delivered by session id -- the desktop's session-messaging
-route -- arrives with `@` turned into a fullwidth `＠` (U+FF20), so an email
-copied out of it matches no registry entry and check 41 refuses the commit.
-microscope-20260923-6 caught it in its seat notice on 2026-09-23, and its reply
-arrived with the same substitution. **Run `git var GIT_COMMITTER_IDENT` before trusting who you are** -- it costs
-nothing and answers exactly, the way calling one tool answers whether the
-tools are there. The file is in no tree, so the gate cannot see it, and the
-hook made it worse by exiting 1 after `pre-commit: contracts` with no FAIL
-line: the symptom did not name the cause and `sh -x` on the hook was what
-found it. That silence is `contracts/hooks/` and so a manager's.
+and its retraction is in §7.
 
 **When the tools are missing, read that file first,
 by hand** — and read it again, because it moves: on 2026-09-20 it went from
