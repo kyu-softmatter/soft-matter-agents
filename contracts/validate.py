@@ -1641,6 +1641,10 @@ ALLOWED_PATHS = [
     # first, then the section 7 item and the seat's paths, then the file.
     r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|LICENSE|\.gitignore|\.gitattributes|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock)$",
     r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|seats\.json|validate\.py|validation_limits\.json|history_fixtures\.py|bridge_board\.py)$",
+    # The commit tool and its built-repository fixtures (8.3 HP-001,
+    # 2026-10-16), landing together in one commit as 8.3 asks. Declared by
+    # name, not as any file in tools/, so the next tool is declared too.
+    r"^contracts/tools/(seat_commit|seat_commit_fixtures)\.py$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",

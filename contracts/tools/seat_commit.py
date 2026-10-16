@@ -1,0 +1,925 @@
+#!/usr/bin/env python3
+"""The commit tool (plan.md 8.3, HP-001).
+
+Seats here commit by re-performing a fragile procedure from prose, and the
+record shows what that costs: an amend that replaced a commit with another
+seat's work (28761d4, 2026-09-23), a private index built before a lock wait
+that would have reverted the commit landing during it (17c2185, 2026-10-15),
+and a commit left unmade by a lock race while the seat read its filtered
+output as success (2026-10-15). This does that procedure in one place and
+records what happened.
+
+    seat_commit.py --save-patch P -- PATH...           save your own change, right after editing
+    seat_commit.py --seat S -F MSG --patch P           patch mode: commit exactly that patch
+    seat_commit.py --seat S -- PATH...                 whole-path mode: show every hunk and a digest
+    seat_commit.py --seat S -F MSG --confirm D -- PATH...   ... and commit, if the digest still matches
+    seat_commit.py --seat S --push [--push-includes-others]
+
+What it does, by the numbers of the specification:
+
+1. The identity comes from `contracts/seats.json` at HEAD -- the registry
+   check 41 judges a commit against -- and never from a message or from
+   `.git/config.worktree`. `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL`
+   beat both, so they are set from the row, and `git var GIT_COMMITTER_IDENT`
+   is the first line printed. A seat the registry does not hold is refused,
+   and so is a closed one unless its row says it was reopened.
+2. Every path is classified with the validator's own `seat_boundary_of`,
+   loaded from HEAD's `contracts/validate.py`, and judged against the seat's
+   `owns`, `excludes` and `paths` the way check 41 judges them, so a path the
+   seat does not own is refused at once with the seats that do own it named.
+3. The message comes from a file. There is no inline message and no option
+   to amend, skip the gate or force; asking for one is refused by name.
+4. Patch mode commits exactly the patch: a private index is built from HEAD
+   *after* the lock wait and the patch applied to it, so another seat's hunk
+   in the same file stays in the worktree. If the patch no longer applies the
+   tool refuses and names the hunk. Whole-path mode prints every hunk with a
+   digest and commits only when run again with `--confirm <digest>`; a
+   worktree that changed in between gives another digest and is refused.
+5. `.git/index.lock` is waited for and never removed. The commit is made with
+   plumbing -- `write-tree`, `commit-tree -p <base>`, then `update-ref HEAD
+   <new> <base>` -- so the ref update is a compare-and-swap on the very base
+   the tree was built from. If HEAD moved while the gate ran, the swap fails,
+   the tree is rebuilt on the new HEAD and judged again; if a ref lock is
+   held (*File exists*), the swap is retried. A tree built on one HEAD is
+   never committed onto another. The gate itself is the repository's own
+   pre-commit hook, run with the private index as `git commit` runs it.
+6. The outcome is read back: the new commit's parent, committer and paths
+   are checked against what was meant, and the gate's last lines are printed
+   unfiltered, so a `fatal:` is seen as well as a FAIL. Afterwards the shared
+   index entry of each committed path is moved to the new commit, but only
+   where it still equals the old HEAD's -- where nobody had staged anything.
+7. `--push` fetches first, refuses when the branch is behind (a merge is
+   needed, and this tool does not merge), and when the push would carry
+   other seats' commits it lists them and needs `--push-includes-others`. It
+   pushes the exact commit it listed, not whatever HEAD is a moment later.
+8. Every use is appended to `.git/sma-seat-commit.jsonl`, outside every tree:
+   seat, mode, paths, lock wait, retries, outcome.
+
+Standard library only, and no syntax newer than 3.9, so it runs under any
+interpreter the three computers have, Anaconda 3.9 included. Its fixtures are
+`contracts/tools/seat_commit_fixtures.py`.
+"""
+
+from __future__ import annotations
+
+import __future__ as _future
+import argparse
+import ast
+import builtins
+import hashlib
+import json
+import os
+import posixpath
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+
+RECORD_NAME = "sma-seat-commit.jsonl"
+# A seat committing with plain `git commit` holds .git/index.lock for the whole
+# of its gate, and one pass of the gate took 3 min 58 s on the Office computer
+# on 2026-10-16, so a wait shorter than that refuses ordinary work.
+DEFAULT_LOCK_WAIT = 600.0
+DEFAULT_RETRIES = 5
+GATE_TAIL = 30
+# What '@' becomes in a message delivered by session id (root CLAUDE.md, 2026-09-23).
+FULLWIDTH_AT = chr(0xFF20)
+
+# Asked for by name and refused by name, rather than left to argparse's
+# "unrecognized arguments": a seat reaching for one of these is reaching for
+# the thing the specification took out, and should be told which rule it is.
+FORBIDDEN = {
+    "--amend": "there is no amend here: --amend rewrites HEAD, and HEAD moves (28761d4). "
+               "Correct a wrong message with a commit that says what the badly named one contains",
+    "--no-verify": "the gate is not skippable from this tool. A bypass the person allows is made by "
+                   "hand with git and said in its message",
+    "-n": "-n is git commit's --no-verify; the gate is not skippable from this tool",
+    "--force": "there is no force option: a push is refused when it is behind, and a merge is the answer",
+    "-f": "there is no force option",
+    "-m": "the message comes from a file (-F), never inline: a long inline message has failed silently twice",
+    "--message": "the message comes from a file (-F), never inline",
+    "--allow-empty": "an empty commit says nothing about any path, and this tool commits paths",
+}
+
+
+class Refused(Exception):
+    """The tool stops, says why, and makes no commit."""
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def say(msg: str = "") -> None:
+    print(msg, flush=True)
+
+
+def text(b: bytes) -> str:
+    return b.decode("utf-8", "replace")
+
+
+# --------------------------------------------------------------------------- #
+# git
+# --------------------------------------------------------------------------- #
+
+class Git:
+    """git in one repository, with one environment.
+
+    `GIT_INDEX_FILE` is removed from the base environment, so that a question
+    about "the index" is about the shared one unless a private index is named
+    on purpose. The committer is set from the registry once it is known.
+    """
+
+    def __init__(self, root: Path, env: dict):
+        self.root = root
+        self.env = env
+
+    def run(self, *args: str, env: dict | None = None, input: bytes | None = None,
+            check: bool = True, merge: bool = False) -> subprocess.CompletedProcess:
+        out = subprocess.run(["git", *args], cwd=str(self.root), env=env or self.env, input=input,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT if merge else subprocess.PIPE)
+        if check and out.returncode:
+            err = text(out.stdout if merge else out.stderr).strip()
+            raise Refused(f"git {' '.join(args[:3])} failed: {err}")
+        return out
+
+    def out(self, *args: str, **kw) -> str:
+        return text(self.run(*args, **kw).stdout).strip()
+
+    def rev(self, ref: str) -> str | None:
+        r = self.run("rev-parse", "--verify", "-q", f"{ref}^{{commit}}", check=False)
+        if r.returncode:
+            return None
+        return text(r.stdout).strip() or None
+
+    def path_in_gitdir(self, name: str) -> Path:
+        p = Path(self.out("rev-parse", "--git-path", name))
+        return p if p.is_absolute() else self.root / p
+
+    def entry(self, ref_or_index: str, path: str, env: dict | None = None) -> tuple:
+        """(mode, sha) of one path in a tree, or in the shared index when given ":index"."""
+        if ref_or_index == ":index":
+            raw = self.run("--literal-pathspecs", "ls-files", "-s", "-z", "--", path, env=env).stdout
+            for row in raw.split(b"\0"):
+                if row:
+                    meta, _, _ = row.partition(b"\t")
+                    mode, sha, _stage = text(meta).split()
+                    return (mode, sha)
+            return ("", "")
+        raw = self.run("--literal-pathspecs", "ls-tree", "-z", ref_or_index, "--", path).stdout
+        for row in raw.split(b"\0"):
+            if row:
+                meta, _, _ = row.partition(b"\t")
+                mode, _kind, sha = text(meta).split()
+                return (mode, sha)
+        return ("", "")
+
+
+def base_env() -> dict:
+    env = dict(os.environ)
+    env.pop("GIT_INDEX_FILE", None)
+    return env
+
+
+def to_top(git: Git, paths: list[str]) -> list[str]:
+    """The caller's paths, relative to the root git commands here run in.
+
+    An agent seat runs from its own directory, so `questions/q/card.json` from
+    microscope_agent/ is `microscope_agent/questions/q/card.json` to git
+    running at the root. A path that leaves the working copy is refused.
+    """
+    prefix = text(subprocess.run(["git", "rev-parse", "--show-prefix"], stdout=subprocess.PIPE,
+                                 env=git.env).stdout).strip()
+    out = []
+    for p in paths:
+        if p.startswith(":"):
+            out.append(p)
+            continue
+        if os.path.isabs(p):
+            p = os.path.relpath(p, os.getcwd())
+        q = posixpath.normpath(posixpath.join(prefix, p.replace("\\", "/")))
+        if q == ".." or q.startswith("../") or posixpath.isabs(q) or re.match(r"^[A-Za-z]:", q):
+            raise Refused(f"{p!r} is outside this working copy")
+        out.append("." if q == "." else q)
+    return out
+
+
+def find_root() -> Path:
+    r = subprocess.run(["git", "rev-parse", "--show-toplevel"], stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE, env=base_env())
+    if r.returncode:
+        raise Refused("not inside a git working copy")
+    return Path(text(r.stdout).strip())
+
+
+# --------------------------------------------------------------------------- #
+# the record (8)
+# --------------------------------------------------------------------------- #
+
+class Record:
+    """One line per use in .git/sma-seat-commit.jsonl, written however it ends."""
+
+    def __init__(self, git: Git | None, argv: list[str]):
+        self.git = git
+        self.row = {"ts": now(), "pid": os.getpid(), "seat": None, "mode": None, "paths": [],
+                    "lock_wait_s": 0.0, "retries": {"head_moved": 0, "ref_locked": 0},
+                    "outcome": None, "reason": None, "base": None, "commit": None, "gate": None,
+                    "argv": argv}
+
+    def write(self) -> None:
+        if self.git is None:
+            return
+        try:
+            common = Path(self.git.out("rev-parse", "--git-common-dir"))
+            common = common if common.is_absolute() else self.git.root / common
+            self.row["lock_wait_s"] = round(self.row["lock_wait_s"], 2)
+            with open(common / RECORD_NAME, "a", encoding="utf-8") as f:
+                f.write(json.dumps(self.row, ensure_ascii=False) + "\n")
+        except (OSError, Refused) as exc:  # the record must never turn an outcome into a crash
+            say(f"seat_commit: could not append to {RECORD_NAME}: {exc}")
+
+
+# --------------------------------------------------------------------------- #
+# the registry (1) and the boundary (2)
+# --------------------------------------------------------------------------- #
+
+MARK = re.compile(r"\b(closed|deferred|reopened)\s+(\d{4}-\d{2}-\d{2})", re.IGNORECASE)
+
+
+def seat_state(row: dict) -> str:
+    """open, closed, deferred -- or unreadable, which stops.
+
+    `status` is free text in the registry, and what it says is dated:
+    `closed 2026-10-12 -- ...`, `deferred 2026-09-18`, and for a seat the
+    person opened again, `... REOPENED 2026-10-15: ...` later in the same
+    string. The latest dated word decides. An undated "closed" in the prose
+    of a reopened row ("had not seen the closed row") is not a marker. A
+    status carrying no dated word at all is not guessed at (P0). A row with
+    no status whose note opens with CLOSED is closed: one registered seat is
+    recorded that way.
+    """
+    status = str(row.get("status") or "")
+    marks = [(m.group(2), m.start(), m.group(1).lower()) for m in MARK.finditer(status)]
+    if marks:
+        latest = max(marks)[2]
+        return "open" if latest == "reopened" else latest
+    if status.strip():
+        return "unreadable"
+    if str(row.get("note") or "").startswith("CLOSED"):
+        return "closed"
+    return "open"
+
+
+def load_registry(git: Git, ref: str = "HEAD") -> dict:
+    """The registry at `ref`: what check 41 reads for the commit about to be made."""
+    r = git.run("show", f"{ref}:contracts/seats.json", check=False)
+    if r.returncode:
+        raise Refused(f"{ref} holds no contracts/seats.json, so no seat has an identity here")
+    try:
+        return json.loads(text(r.stdout))
+    except json.JSONDecodeError as exc:
+        raise Refused(f"contracts/seats.json at {ref} is not JSON: {exc}")
+
+
+def load_boundary_of(git: Git, ref: str = "HEAD"):
+    """`seat_boundary_of` from the validator at `ref`, and only it.
+
+    The validator reads its sibling files at import, so importing a copy of
+    it means exporting contracts/. Instead the function and every top-level
+    name it reaches are lifted out of the source by `ast` and run alone --
+    the validator's own text, not a rewrite of it, so the two cannot drift.
+    HEAD's copy, not the working copy's: another seat may be mid-edit in the
+    shared file (root CLAUDE.md, "--commit-range freezes the data and not
+    the checker"). A name it reaches that is neither top-level nor a builtin
+    stops the tool rather than being guessed at.
+    """
+    r = git.run("show", f"{ref}:contracts/validate.py", check=False)
+    if r.returncode:
+        raise Refused(f"{ref} holds no contracts/validate.py, so no path can be classified")
+    src = text(r.stdout)
+    tree = ast.parse(src)
+    top: dict = {}
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef):
+            top[node.name] = node
+        elif isinstance(node, ast.Assign):
+            for t in node.targets:
+                if isinstance(t, ast.Name):
+                    top[t.id] = node
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            top[node.target.id] = node
+    allowed = {"re"} | set(dir(builtins))
+    want, seen, pick = ["seat_boundary_of"], set(), []
+    while want:
+        name = want.pop()
+        if name in seen:
+            continue
+        seen.add(name)
+        if name not in top:
+            if name in allowed:
+                continue
+            raise Refused(f"the validator's seat_boundary_of reaches {name!r}, which this tool "
+                          "cannot load on its own; classify by hand and tell a manager")
+        node = top[name]
+        local = set()
+        if isinstance(node, ast.FunctionDef):
+            local = {a.arg for a in node.args.args + node.args.kwonlyargs}
+            local |= {n.id for n in ast.walk(node) if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store)}
+        for n in ast.walk(node):
+            if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load) and n.id not in local:
+                want.append(n.id)
+        if node not in pick:
+            pick.append(node)
+    pick.sort(key=lambda n: n.lineno)
+    mod = ast.Module(body=pick, type_ignores=[])
+    ns = {"re": re, "__builtins__": builtins}
+    exec(compile(mod, f"{ref}:contracts/validate.py", "exec",
+                 flags=_future.annotations.compiler_flag, dont_inherit=True), ns)
+    return ns["seat_boundary_of"]
+
+
+def judge(row: dict, path: str, boundary_of) -> str | None:
+    """Why `row` may not commit `path`, or None. Check 41's three gates, in its order."""
+    where = boundary_of(path)
+    owns, narrow = set(row.get("owns") or []), row.get("paths")
+    excludes = row.get("excludes") or []
+    if where not in owns:
+        return f"this path is {where}'s, and {row['seat']} owns {sorted(owns)}"
+    hit = next((x for x in excludes if path.startswith(x)), None)
+    if hit is not None:
+        return f"{row['seat']} is excluded from {hit!r}"
+    if narrow and not any(path.startswith(x) for x in narrow):
+        return f"{row['seat']} is narrowed to paths that do not cover it"
+    return None
+
+
+def owners_of(reg: dict, path: str, boundary_of, cap: int = 5) -> list[str]:
+    """Open seats that could commit `path`, newest registered first."""
+    found = []
+    for row in reversed(reg.get("seats") or []):
+        if seat_state(row) == "open" and judge(row, path, boundary_of) is None:
+            found.append(row["seat"])
+    return found[:cap] + ([f"and {len(found) - cap} more"] if len(found) > cap else [])
+
+
+def resolve_seat(git: Git, name: str) -> tuple:
+    if "@" in name or FULLWIDTH_AT in name:
+        raise Refused(f"--seat takes a seat's name, and {name!r} looks like an email. An email copied "
+                      "out of a message may carry U+FF20 for '@' and match no row; the tool takes the "
+                      "email from the registry and nowhere else")
+    reg = load_registry(git)
+    row = next((s for s in reg.get("seats") or [] if s.get("seat") == name), None)
+    if row is None:
+        raise Refused(f"{name!r} is not a seat in contracts/seats.json at HEAD. The registry is read "
+                      "at the commit's parent, so a seat registers before it commits, and is seated "
+                      "by the person, never by a message")
+    state = seat_state(row)
+    if state != "open":
+        why = row.get("status") or row.get("note") or ""
+        raise Refused(f"seat {name!r} is {state} in contracts/seats.json, and its row does not say it "
+                      f"was reopened: {why[:160]}")
+    if not row.get("committer_email"):
+        raise Refused(f"seat {name!r} has no committer_email in contracts/seats.json")
+    return reg, row
+
+
+def committer_env(env: dict, row: dict) -> dict:
+    env = dict(env)
+    env["GIT_COMMITTER_NAME"] = f"seat:{row['seat']}"
+    env["GIT_COMMITTER_EMAIL"] = row["committer_email"]
+    return env
+
+
+def check_paths(reg: dict, row: dict, paths: list[str], boundary_of) -> None:
+    bad = []
+    for p in paths:
+        why = judge(row, p, boundary_of)
+        if why:
+            who = owners_of(reg, p, boundary_of)
+            bad.append(f"  {p}\n      {why}; "
+                       + (f"seats that may commit it: {', '.join(who)}" if who else "no open seat's boundary covers it"))
+    if bad:
+        raise Refused("these paths are outside seat " + repr(row["seat"]) + ", refused before the gate:\n"
+                      + "\n".join(bad))
+
+
+# --------------------------------------------------------------------------- #
+# private indexes, the lock, the gate
+# --------------------------------------------------------------------------- #
+
+class Private:
+    """A private index file, removed afterwards. The shared one is never written here."""
+
+    def __init__(self, git: Git):
+        self.git = git
+        self.dir = tempfile.mkdtemp(prefix="sma-seat-commit-")
+        self.path = os.path.join(self.dir, "index")
+        self.env = dict(git.env)
+        self.env["GIT_INDEX_FILE"] = self.path
+
+    def reset_to(self, base: str) -> None:
+        if os.path.exists(self.path):
+            os.remove(self.path)
+        self.git.run("read-tree", base, env=self.env)
+
+    def paths(self, base: str) -> list[str]:
+        raw = self.git.run("diff", "--cached", "--name-only", "-z", "--no-renames", base, "--",
+                           env=self.env).stdout
+        return [text(x) for x in raw.split(b"\0") if x]
+
+    def diff(self, base: str, binary: bool = True) -> bytes:
+        args = ["diff", "--cached", "--no-renames", "--no-color", "--no-ext-diff"]
+        args += ["--binary", "--full-index"] if binary else []
+        return self.git.run(*args, base, "--", env=self.env).stdout
+
+    def close(self) -> None:
+        shutil.rmtree(self.dir, ignore_errors=True)
+
+
+def wait_for(path: Path, limit: float, label: str, rec: Record) -> None:
+    """Wait while another git process holds `path`. Never remove it."""
+    t0 = time.monotonic()
+    told = False
+    while path.exists():
+        if not told:
+            say(f"seat_commit: waiting for {label} -- another git process holds it, and this tool "
+                "never removes it")
+            told = True
+        if time.monotonic() - t0 > limit:
+            rec.row["lock_wait_s"] += time.monotonic() - t0
+            raise Refused(f"{label} was still held after {limit:.0f} s, so nothing was committed. It was "
+                          "not removed: a lock is removed by the process that took it, or by a person "
+                          "who has checked that no git process is running")
+        time.sleep(0.2)
+    rec.row["lock_wait_s"] += time.monotonic() - t0
+    if told:
+        say(f"seat_commit: {label} is free after {time.monotonic() - t0:.1f} s")
+
+
+def run_gate(git: Git, priv: Private, msgfile: str, rec: Record) -> None:
+    """The repository's own pre-commit hook, judged on the private index.
+
+    `git commit` points GIT_INDEX_FILE at the index it is committing and runs
+    the hook; this does the same, so the hook judges exactly the tree that
+    will be committed. Its last lines are printed unfiltered. A hook that is
+    not installed is said, not hidden -- `git commit` would also commit
+    without it, and installing it is a manager's call (root CLAUDE.md).
+    """
+    out = git.run("hook", "run", "pre-commit", env=priv.env, check=False, merge=True)
+    body = text(out.stdout)
+    if out.returncode and "cannot find a hook named pre-commit" in body:
+        rec.row["gate"] = "not installed"
+        say("seat_commit: NO pre-commit hook is installed in this working copy, so no gate judged "
+            "this commit. git commit would not have run one either")
+        return
+    lines = body.rstrip("\n").splitlines()
+    # All of a refusal, the tail of a pass: a refusal's first FAIL is the one to read.
+    shown = lines if out.returncode else lines[-GATE_TAIL:]
+    say(f"--- the gate's {'' if out.returncode else 'last '}{len(shown)} lines, unfiltered "
+        f"(exit {out.returncode}) ---")
+    for line in shown:
+        say(line)
+    say("--- end of the gate ---")
+    if out.returncode:
+        rec.row["gate"] = "refused"
+        raise Refused("the gate refused this tree; read its lines above. Nothing was committed")
+    rec.row["gate"] = "passed"
+    cm = git.run("hook", "run", "--ignore-missing", "commit-msg", "--", msgfile, env=priv.env,
+                 check=False, merge=True)
+    if cm.returncode:
+        say(text(cm.stdout))
+        raise Refused("the commit-msg hook refused the message; nothing was committed")
+
+
+def clean_message(git: Git, path: str) -> bytes:
+    """git commit -F's default cleanup ("whitespace") is git stripspace."""
+    try:
+        raw = Path(path).read_bytes()
+    except OSError as exc:
+        raise Refused(f"cannot read the message file {path}: {exc}")
+    if raw.startswith(b"\xef\xbb\xbf"):
+        raw = raw[3:]
+    if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
+        raise Refused(f"{path} is UTF-16 (PowerShell 5.1's redirection writes that); write it as UTF-8")
+    msg = git.run("stripspace", input=raw).stdout
+    if not msg.strip():
+        raise Refused(f"the message in {path} is empty")
+    return msg
+
+
+# --------------------------------------------------------------------------- #
+# building the tree
+# --------------------------------------------------------------------------- #
+
+FAILED_AT = re.compile(r"patch failed: (.+?):(\d+)")
+
+
+def apply_patch(git: Git, priv: Private, base: str, patch: Path, moved_from: str | None) -> None:
+    r = git.run("apply", "--cached", "--recount", "--whitespace=nowarn", "-v", str(patch),
+                env=priv.env, check=False, merge=True)
+    if r.returncode == 0:
+        return
+    err = text(r.stdout)
+    where = FAILED_AT.findall(err)
+    hunks = []
+    body = text(patch.read_bytes())
+    for f, line in where:
+        head = next((h for h in re.findall(r"^@@ -(\d+)(?:,\d+)? \+\d+(?:,\d+)? @@.*$", body, re.M)
+                     if h == line), None)
+        hunks.append(f"{f}, the hunk starting at line {line}" + ("" if head else " (as git reports it)"))
+    moved = (f" HEAD moved since this run began ({moved_from[:9]} -> {base[:9]}), and the patch no longer "
+             "applies to what is there now." if moved_from and moved_from != base else "")
+    raise Refused("the patch does not apply to HEAD " + base[:9] + "." + moved
+                  + (" Failing: " + "; ".join(hunks) + "." if hunks else "")
+                  + " Nothing was committed, and no tree built on an earlier HEAD is used instead."
+                  + "\n" + "\n".join("    " + x for x in err.strip().splitlines()[-12:]))
+
+
+def build(git: Git, priv: Private, base: str, mode: str, patch: Path | None,
+          pathspecs: list[str], moved_from: str | None = None) -> list[str]:
+    priv.reset_to(base)
+    if mode == "patch":
+        apply_patch(git, priv, base, patch, moved_from)
+    else:
+        r = git.run("add", "-A", "--", *pathspecs, env=priv.env, check=False)
+        if r.returncode:
+            raise Refused(f"git add in the private index failed: {text(r.stderr).strip()}")
+    paths = priv.paths(base)
+    if not paths:
+        raise Refused("nothing differs from HEAD " + base[:9] + " in "
+                      + ("the patch" if mode == "patch" else "these paths") + "; nothing to commit")
+    return paths
+
+
+def digest_of(diff: bytes) -> str:
+    return hashlib.sha256(diff).hexdigest()[:16]
+
+
+# --------------------------------------------------------------------------- #
+# committing
+# --------------------------------------------------------------------------- #
+
+def commit(git: Git, args, row: dict, reg: dict, boundary_of, rec: Record) -> str:
+    mode = "patch" if args.patch else "whole-path"
+    rec.row["mode"] = mode
+    patch = Path(args.patch).resolve() if args.patch else None
+    if patch is not None and not patch.is_file():
+        raise Refused(f"no patch file at {args.patch}")
+    msg = clean_message(git, args.message_file)
+    subject = text(msg).splitlines()[0][:200]
+    msgdir = tempfile.mkdtemp(prefix="sma-seat-commit-msg-")
+    msgfile = os.path.join(msgdir, "COMMIT_EDITMSG")
+    Path(msgfile).write_bytes(msg)
+    index_lock = git.path_in_gitdir("index.lock")
+    priv = Private(git)
+    try:
+        # Before the wait: refuse early what would be refused anyway.
+        first = git.rev("HEAD")
+        if not first:
+            raise Refused("HEAD has no commit to build on")
+        paths = build(git, priv, first, mode, patch, args.paths)
+        rec.row["paths"] = paths
+        check_paths(reg, row, paths, boundary_of)
+        if mode == "whole-path" and digest_of(priv.diff(first)) != args.confirm:
+            raise Refused(f"the digest of these paths is now {digest_of(priv.diff(first))}, not "
+                          f"{args.confirm}: the worktree or HEAD changed since you looked. Run without "
+                          "--confirm, read every hunk again, and confirm the new digest")
+        if patch is not None:
+            show_patch_summary(git, priv, first)
+
+        attempt = 0
+        while True:
+            # Inside the wait: the tree is built only after the lock is free,
+            # on the HEAD read at that moment.
+            wait_for(index_lock, args.lock_wait, ".git/index.lock", rec)
+            base = git.rev("HEAD")
+            rec.row["base"] = base
+            paths = build(git, priv, base, mode, patch, args.paths, moved_from=first)
+            rec.row["paths"] = paths
+            check_paths(reg, row, paths, boundary_of)
+            if mode == "whole-path":
+                d = digest_of(priv.diff(base))
+                if d != args.confirm:
+                    raise Refused(f"the digest of these paths is now {d}, not {args.confirm}: something "
+                                  "changed while waiting. Nothing was committed; look again")
+            run_gate(git, priv, msgfile, rec)
+            tree = git.out("write-tree", env=priv.env)
+            sign = ["-S"] if git.out("config", "--bool", "--default", "false", "commit.gpgsign") == "true" else []
+            new = git.out("commit-tree", tree, "-p", base, *sign, "-F", msgfile)
+            moved = False
+            for _ in range(args.retries + 1):
+                wait_for(index_lock, args.lock_wait, ".git/index.lock", rec)
+                r = git.run("update-ref", "-m", f"commit: {subject}", "HEAD", new, base, check=False)
+                if r.returncode == 0:
+                    break
+                if git.rev("HEAD") != base:
+                    moved = True
+                    break
+                rec.row["retries"]["ref_locked"] += 1
+                say(f"seat_commit: the ref is locked by another git process ({text(r.stderr).strip()}); "
+                    "retrying, not reporting it done")
+                time.sleep(0.5)
+            else:
+                raise Refused(f"HEAD could not be updated after {args.retries + 1} tries because another "
+                              f"process kept its ref locked. Nothing was committed; commit {new[:9]} "
+                              "exists unattached and will be collected")
+            if not moved:
+                break
+            attempt += 1
+            rec.row["retries"]["head_moved"] += 1
+            if attempt > args.retries:
+                raise Refused(f"HEAD moved under the gate {attempt} times; nothing was committed")
+            say(f"seat_commit: HEAD moved to {git.rev('HEAD')[:9]} while the gate ran, so the tree built "
+                f"on {base[:9]} is discarded and rebuilt on the new HEAD")
+        rec.row["commit"] = new
+        rec.row["outcome"] = "committed-unverified"
+        verify(git, row, new, base, paths)
+        reset_shared_entries(git, base, new, paths, args.lock_wait, rec)
+        say(git.out("log", "-1", "--stat", "--format=%H%n  committer %cn <%ce>%n  author    %an <%ae>%n%n    %s",
+                    new))
+        rec.row["outcome"] = "committed"
+        return new
+    finally:
+        priv.close()
+        shutil.rmtree(msgdir, ignore_errors=True)
+
+
+def show_patch_summary(git: Git, priv: Private, base: str) -> None:
+    """What the patch holds, so a hunk that is not the seat's can still be seen and cut."""
+    say("seat_commit: the patch holds")
+    say(text(git.run("diff", "--cached", "--stat", "--no-renames", base, "--", env=priv.env).stdout).rstrip())
+    heads = re.findall(rb"^(?:diff --git .*|@@ .*)$", priv.diff(base, binary=False), re.M)
+    for h in heads[:60]:
+        say("    " + text(h))
+    if len(heads) > 60:
+        say(f"    ... and {len(heads) - 60} more")
+
+
+def verify(git: Git, row: dict, new: str, base: str, paths: list[str]) -> None:
+    """Read the commit back; a mismatch is reported, never assumed away."""
+    info = git.out("log", "-1", "--format=%P%x00%cn%x00%ce", new).split("\x00")
+    parents, cn, ce = info[0].split(), info[1], info[2]
+    got = sorted(text(x) for x in git.run("diff-tree", "--no-commit-id", "--name-only", "-r", "-z",
+                                          "--no-renames", new).stdout.split(b"\0") if x)
+    head = git.rev("HEAD")
+    contained = head == new or git.run("merge-base", "--is-ancestor", new, head, check=False).returncode == 0
+    wrong = []
+    if parents != [base]:
+        wrong.append(f"its parent is {parents}, not {base}")
+    if ce != row["committer_email"] or cn != f"seat:{row['seat']}":
+        wrong.append(f"its committer is {cn} <{ce}>, not seat:{row['seat']} <{row['committer_email']}>")
+    if got != sorted(paths):
+        wrong.append(f"it touches {got}, not {sorted(paths)}")
+    if not contained:
+        wrong.append("HEAD does not contain it")
+    if wrong:
+        raise Refused(f"commit {new[:9]} was made and is NOT what was meant: " + "; ".join(wrong)
+                      + ". Do not amend it; tell the person")
+    say(f"seat_commit: read back {new[:9]}: parent {base[:9]}, committer {cn}, {len(paths)} paths, in HEAD")
+
+
+def reset_shared_entries(git: Git, base: str, new: str, paths: list[str], limit: float, rec: Record) -> None:
+    """Move the shared index entries of committed paths to the new commit -- where nobody staged.
+
+    A commit from a private index moves HEAD and leaves `.git/index` where it
+    was, so `git diff --cached` shows the inverse of what was just committed
+    and the next plain `git commit` from anyone carries that reversal
+    (2026-10-15). An entry that still equals the old HEAD's is stale and is
+    moved. One that equals the new commit's needs nothing. Any other entry is
+    somebody's staging, and is left exactly as it is.
+    """
+    stale, kept = [], []
+    for p in paths:
+        shared = git.entry(":index", p)
+        old, now_ = git.entry(base, p), git.entry(new, p)
+        if shared == now_:
+            continue
+        if shared == old:
+            stale.append(p)
+        else:
+            kept.append(p)
+    if kept:
+        say("seat_commit: left as they are, because someone has staged them: " + ", ".join(kept))
+    if not stale:
+        return
+    for _ in range(3):
+        wait_for(git.path_in_gitdir("index.lock"), limit, ".git/index.lock", rec)
+        r = git.run("--literal-pathspecs", "reset", "-q", new, "--", *stale, check=False)
+        if r.returncode == 0:
+            say(f"seat_commit: the shared index now matches {new[:9]} for {len(stale)} committed paths")
+            return
+        time.sleep(0.5)
+    say("seat_commit: could not update the shared index for " + ", ".join(stale)
+        + f"; `git diff --cached` will show their inverse until `git reset -q -- <path>` is run")
+
+
+def show(git: Git, args, row: dict, reg: dict, boundary_of, rec: Record) -> None:
+    """Whole-path mode, first run: every hunk, and the digest that confirms them."""
+    rec.row["mode"] = "whole-path-show"
+    if not args.paths:
+        raise Refused("name the paths after --, or pass --patch")
+    priv = Private(git)
+    try:
+        base = git.rev("HEAD")
+        paths = build(git, priv, base, "whole-path", None, args.paths)
+        rec.row["paths"] = paths
+        check_paths(reg, row, paths, boundary_of)
+        say(f"seat_commit: git diff HEAD -- {' '.join(args.paths)}, as it would be committed on {base[:9]}")
+        say(text(git.run("diff", "--cached", "--stat", "--no-renames", base, "--", env=priv.env).stdout).rstrip())
+        say(text(priv.diff(base, binary=False)).rstrip())
+        d = digest_of(priv.diff(base))
+        say("")
+        say(f"seat_commit: digest {d}. Every hunk above goes in under {row['seat']}. If each one is yours,")
+        msg = args.message_file or "<message file>"
+        say("    " + " ".join(shlex.quote(x) for x in
+                              ["python", "contracts/tools/seat_commit.py", "--seat", row["seat"], "-F", msg,
+                               "--confirm", d, "--", *args.shown_paths]))
+        rec.row["outcome"] = "shown"
+        rec.row["reason"] = d
+    finally:
+        priv.close()
+
+
+def save_patch(git: Git, args, rec: Record) -> None:
+    """Your own change, saved right after editing, as patch mode reads it.
+
+    `git diff HEAD` leaves out new files and, redirected by PowerShell 5.1,
+    is written as UTF-16 that git apply cannot read. This builds the diff in
+    a private index -- HEAD plus the worktree state of these paths, new files
+    included -- and writes its bytes as they are.
+    """
+    rec.row["mode"] = "save-patch"
+    if not args.paths:
+        raise Refused("name the paths after --")
+    priv = Private(git)
+    try:
+        base = git.rev("HEAD")
+        paths = build(git, priv, base, "whole-path", None, args.paths)
+        rec.row["paths"] = paths
+        Path(args.save_patch).write_bytes(priv.diff(base))
+        say(f"seat_commit: saved the diff of {len(paths)} paths against {base[:9]} to {args.save_patch}")
+        say(text(git.run("diff", "--cached", "--stat", "--no-renames", base, "--", env=priv.env).stdout).rstrip())
+        say("seat_commit: every hunk in it is committed as yours. If one is another seat's, cut it from the file")
+        rec.row["outcome"] = "saved"
+    finally:
+        priv.close()
+
+
+# --------------------------------------------------------------------------- #
+# pushing (7)
+# --------------------------------------------------------------------------- #
+
+def push(git: Git, args, row: dict, rec: Record) -> None:
+    rec.row["mode"] = (rec.row["mode"] + "+push") if rec.row["mode"] else "push"
+    branch = git.run("symbolic-ref", "-q", "--short", "HEAD", check=False)
+    branch = text(branch.stdout).strip()
+    if not branch:
+        raise Refused("HEAD is detached; there is no branch to push")
+    remote = args.remote or git.out("config", "--default", "origin", f"branch.{branch}.remote")
+    cred = []
+    if os.name == "nt" and not git.run("config", "--get", "credential.helper", check=False).stdout.strip():
+        cred = ["-c", "credential.helper=manager"]  # the microscope computer's git has none (root CLAUDE.md)
+    f = git.run(*cred, "fetch", "-q", remote, branch, check=False, merge=True)
+    if f.returncode:
+        body = text(f.stdout)
+        if "couldn't find remote ref" not in body:
+            raise Refused(f"could not fetch {remote} {branch} first, so what a push would publish is "
+                          f"unknown: {body.strip()}")
+        theirs = None
+    else:
+        theirs = git.rev("FETCH_HEAD")
+    tip = git.rev("HEAD")
+    if theirs:
+        behind = git.out("rev-list", "--count", f"{tip}..{theirs}")
+        if behind != "0":
+            raise Refused(f"{branch} is {behind} commits behind {remote}/{branch}. A merge is needed first, "
+                          "and this tool does not merge; nothing was pushed")
+        ahead_spec = [f"{theirs}..{tip}"]
+    else:
+        ahead_spec = [tip, "--not", f"--remotes={remote}"]
+    rows = git.out("log", "--reverse", "--format=%H%x00%ce%x00%cn%x00%s", *ahead_spec)
+    ahead = [r.split("\x00") for r in rows.splitlines() if r.strip()]
+    if not ahead:
+        say(f"seat_commit: {branch} has nothing {remote} lacks; nothing to push")
+        rec.row["outcome"] = (rec.row["outcome"] + "+nothing-to-push") if rec.row["outcome"] else "nothing-to-push"
+        return
+    others = [a for a in ahead if a[1] != row["committer_email"]]
+    say(f"seat_commit: a push of {branch} to {remote} publishes {len(ahead)} commits:")
+    for sha, ce, cn, subj in ahead:
+        say(f"    {sha[:9]}  {cn:<36} {subj[:70]}")
+    if others and not args.push_includes_others:
+        raise Refused(f"{len(others)} of them are not {row['seat']}'s, and on a shared branch a push publishes "
+                      "everyone's work. Pass --push-includes-others once you have read the list above")
+    r = git.run(*cred, "push", remote, f"{tip}:refs/heads/{branch}", check=False, merge=True)
+    lines = text(r.stdout).rstrip("\n").splitlines()
+    say(f"--- the push's last {min(len(lines), GATE_TAIL)} lines, unfiltered (exit {r.returncode}) ---")
+    for line in lines[-GATE_TAIL:]:
+        say(line)
+    say("--- end of the push ---")
+    if r.returncode:
+        raise Refused("the push was refused; read its lines above. Nothing was published")
+    there = git.out(*cred, "ls-remote", remote, f"refs/heads/{branch}").split()
+    if not there or there[0] != tip:
+        raise Refused(f"the push reported success and {remote} now has {there[:1]} for {branch}, not {tip}")
+    say(f"seat_commit: {remote}/{branch} is {tip[:9]}, read back from the remote")
+    rec.row["outcome"] = (rec.row["outcome"] + "+pushed") if rec.row["outcome"] else "pushed"
+    rec.row["pushed"] = {"remote": remote, "branch": branch, "tip": tip, "commits": len(ahead),
+                         "others": len(others)}
+
+
+# --------------------------------------------------------------------------- #
+
+def parse(argv: list[str]):
+    head = argv[: argv.index("--")] if "--" in argv else argv
+    for a in head:
+        key = a.split("=", 1)[0]
+        if key in FORBIDDEN:
+            raise Refused(f"{key}: {FORBIDDEN[key]}")
+    ap = argparse.ArgumentParser(prog="seat_commit.py", allow_abbrev=False,
+                                 description="Commit as a seat (plan.md 8.3, HP-001).")
+    ap.add_argument("--seat", help="the seat's name as contracts/seats.json holds it")
+    ap.add_argument("-F", dest="message_file", help="the commit message, from a file")
+    ap.add_argument("--patch", help="patch mode: commit exactly this patch (saved with --save-patch)")
+    ap.add_argument("--confirm", metavar="DIGEST", help="whole-path mode: commit, if the digest still matches")
+    ap.add_argument("--save-patch", metavar="FILE", help="write your own change under PATH... to FILE")
+    ap.add_argument("--push", action="store_true", help="push the branch after committing, or alone")
+    ap.add_argument("--push-includes-others", action="store_true",
+                    help="allow a push that publishes other seats' commits, once they have been listed")
+    ap.add_argument("--remote", help="the remote to push to (default: the branch's, else origin)")
+    ap.add_argument("--lock-wait", type=float, default=DEFAULT_LOCK_WAIT,
+                    help=f"seconds to wait for .git/index.lock (default {DEFAULT_LOCK_WAIT:.0f})")
+    ap.add_argument("--retries", type=int, default=DEFAULT_RETRIES,
+                    help=f"times to rebuild when HEAD moves, or retry a locked ref (default {DEFAULT_RETRIES})")
+    ap.add_argument("paths", nargs="*", help="whole-path mode and --save-patch: the paths, after --")
+    return ap.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+    argv = list(sys.argv[1:] if argv is None else argv)
+    git = None
+    rec = Record(None, argv)
+    try:
+        root = find_root()
+        git = Git(root, base_env())
+        rec.git = git
+        args = parse(argv)
+        shown_paths = list(args.paths)
+        args.paths = to_top(git, args.paths)
+        args.shown_paths = shown_paths
+        if args.save_patch:
+            rec.row["seat"] = args.seat
+            save_patch(git, args, rec)
+            return 0
+        if not args.seat:
+            raise Refused("--seat is required")
+        rec.row["seat"] = args.seat
+        try:
+            reg, row = resolve_seat(git, args.seat)
+        except Refused:
+            say("committing as: " + git.out("var", "GIT_COMMITTER_IDENT") + "  (git's own choice; refused below)")
+            raise
+        git.env = committer_env(git.env, row)
+        ident = git.out("var", "GIT_COMMITTER_IDENT")
+        say("committing as: " + ident)
+        if not ident.startswith(f"seat:{row['seat']} <{row['committer_email']}>"):
+            raise Refused(f"git would commit as {ident}, which is not the registry's identity for {row['seat']}")
+        if args.patch and args.paths:
+            raise Refused("--patch says which change is yours; paths after -- are for whole-path mode")
+        if args.confirm and args.patch:
+            raise Refused("--confirm is whole-path mode's; patch mode needs no digest")
+        committing = bool(args.patch or args.confirm)
+        if committing and not args.message_file:
+            raise Refused("-F <message file> is required to commit")
+        if not committing and not args.push:
+            show(git, args, row, reg, load_boundary_of(git), rec)
+            return 0
+        if committing:
+            commit(git, args, row, reg, load_boundary_of(git), rec)
+        if args.push:
+            push(git, args, row, rec)
+        return 0
+    except Refused as exc:
+        rec.row["outcome"] = (rec.row["outcome"] + "+refused") if rec.row["outcome"] else "refused"
+        rec.row["reason"] = str(exc)[:2000]
+        say(f"seat_commit: REFUSED. {exc}")
+        return 1
+    except SystemExit as exc:  # argparse
+        rec.row["outcome"] = "usage"
+        return int(exc.code or 0)
+    finally:
+        rec.write()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
