@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness_ledger_entry.schema.json",
+  "title": "contracts/harness/ledger.jsonl, one line -- one outcome of one proposal, with the commit that shows it",
+  "description": "What happened to a proposal, one outcome per line, append-only (plan.md 8.3). A proposal's stage is derived from its last ledger line, never written into the proposal, so no proposal can say it landed when it did not. Landed and reverted name the commit that did it. A landed line also carries the one command that reverts it, because the day's report to the person lists every tightening that landed with that command (the person's settlement of 2026-10-16, item c). A revert is an outcome like any other. This is a line schema; the file is JSONL and is judged line by line.",
+  "type": "object",
+  "properties": {
+    "at": { "type": "string", "format": "date-time" },
+    "proposal": { "type": "string", "pattern": "^HP-[0-9]{3}$" },
+    "outcome": {
+      "enum": ["drafted", "handed", "landed", "refused", "reverted", "withdrawn", "undecided"],
+      "description": "drafted: the proposal file exists. handed: given to the owner seat named in `to`, to build and land. landed: committed by its owner. refused: the owner or the gate declined it, with why in note. reverted: undone after landing. withdrawn: the meta-harness took it back. undecided: it needs a threshold or a word nobody has given."
+    },
+    "by_seat": { "type": "string", "pattern": "^[a-z]+(-[a-z0-9]+)*$", "description": "The seat that wrote this line." },
+    "to": { "type": "string", "description": "For handed: the seat it was handed to." },
+    "commit": { "type": ["string", "null"], "pattern": "^[0-9a-f]{7,40}$" },
+    "revert_command": { "type": "string", "minLength": 5, "description": "For landed: the one command that undoes it, e.g. git revert <commit>." },
+    "person_word": {
+      "type": "object",
+      "properties": {
+        "quote": { "type": "string", "minLength": 2 },
+        "said_in_window_of": { "type": "string" },
+        "on": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" }
+      },
+      "required": ["quote", "said_in_window_of", "on"],
+      "additionalProperties": false
+    },
+    "note": { "type": "string" }
+  },
+  "required": ["at", "proposal", "outcome", "by_seat"],
+  "additionalProperties": false,
+  "allOf": [
+    { "if": { "properties": { "outcome": { "enum": ["landed", "reverted"] } } }, "then": { "required": ["commit"], "properties": { "commit": { "type": "string" } } } },
+    { "if": { "properties": { "outcome": { "const": "landed" } } }, "then": { "required": ["revert_command"] } },
+    { "if": { "properties": { "outcome": { "const": "handed" } } }, "then": { "required": ["to"] } },
+    { "if": { "properties": { "outcome": { "enum": ["refused", "withdrawn", "undecided"] } } }, "then": { "required": ["note"] } }
+  ]
+}

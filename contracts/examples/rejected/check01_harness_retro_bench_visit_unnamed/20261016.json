@@ -1,0 +1,24 @@
+{
+  "artifact": "harness_retro",
+  "schema_version": "0.1",
+  "seat": "harness-office-20261016-1",
+  "on": "2026-10-16",
+  "trigger": "bench_visit",
+  "tree": "5df5a6f8, which is the tree this fixture names",
+  "verdict": "verdict: fixture",
+  "observed": [
+    {
+      "source": "fixture",
+      "path": null,
+      "window": "-",
+      "found": "nothing"
+    }
+  ],
+  "new_incidents": [
+    "INC-20261015-01"
+  ],
+  "measured": [],
+  "proposals": [],
+  "landed_today": [],
+  "next": []
+}

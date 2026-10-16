@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness_proposal.schema.json",
+  "title": "contracts/harness/proposals/HP-<nnn>.json -- one proposed change to the harness, with its proof",
+  "description": "One change to the harness, proposed by the meta-harness seat and landed, if at all, by the seat that owns the paths (plan.md 8.3, loop steps 3 to 6). The proposal carries everything a reviewer needs to judge it without the conversation that produced it: the class it answers and the incidents that are its members, where the classification looked, the paths and their owners, its kind, the proof, and who is already running when it lands. Its stage is NOT here. Handed, landed, refused and reverted are outcomes, and outcomes live in ledger.jsonl with the commit that shows each, so a proposal cannot claim to have landed. The ratchet (8.3 rule 1) is in the schema: a loosening, a retirement, or anything touching rule 2's core cannot be written without the person's word quoted, and a proposal that needs a threshold says so and stops there (rule 4, 11-2).",
+  "type": "object",
+  "properties": {
+    "artifact": { "const": "harness_proposal" },
+    "schema_version": { "const": "0.1" },
+    "id": { "type": "string", "pattern": "^HP-[0-9]{3}$", "description": "Matches the file name." },
+    "title": { "type": "string", "minLength": 10 },
+    "drafted_by": { "type": "string", "pattern": "^[a-z]+(-[a-z0-9]+)*$" },
+    "drafted_on": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "kind": {
+      "enum": ["tighten", "loosen", "reshape", "retire"],
+      "description": "8.3 loop step 3. tighten: a new check, fixture, refusal or warning. loosen: a check removed or weakened, a seat's write reach or a boundary widened, a refusal lifted, a limit raised. reshape: the same rule moved or reworded, prose into a check, a procedure into a tool. retire: a rule removed because its class stopped recurring, which is a loosening."
+    },
+    "kind_rulings": {
+      "type": "array",
+      "description": "Rulings on which kind a part of this change is, when a reader could take it either way, each quoted with who gave it and where it is recorded. A message between sessions leaves no trace on disk, so the quote here is that trace.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "part": { "type": "string" },
+          "ruled": { "enum": ["tighten", "loosen", "reshape", "retire"] },
+          "by": { "type": "string" },
+          "on": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+          "quote": { "type": "string", "minLength": 10 },
+          "via": { "type": "string", "description": "How it arrived: a session message, a commit, a file." }
+        },
+        "required": ["part", "ruled", "by", "on", "quote", "via"],
+        "additionalProperties": false
+      }
+    },
+    "class": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "answers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "^INC-([0-9]{8}|undated)-[0-9]{2}$" },
+      "description": "The incidents this change answers, by id in incidents.jsonl. A change that answers no recorded incident has nothing the replay or the measuring step can count it against."
+    },
+    "classification": {
+      "type": "object",
+      "description": "8.3 loop step 2: the commit that names a class is where its other members are missed, so the members found and where they were looked for are both written down.",
+      "properties": {
+        "members_found": { "type": "array", "items": { "type": "string", "pattern": "^INC-([0-9]{8}|undated)-[0-9]{2}$" } },
+        "looked_in": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+      },
+      "required": ["members_found", "looked_in"],
+      "additionalProperties": false
+    },
+    "changes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "owner": { "type": "string", "description": "The seat whose paths hold this path, read off contracts/seats.json and the validator's boundary table at drafting time. The owner lands it; the meta-harness lands nothing outside contracts/harness/." },
+          "change": { "type": "string", "minLength": 10 }
+        },
+        "required": ["path", "owner", "change"],
+        "additionalProperties": false
+      }
+    },
+    "touches_core": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "p0_and_safety_rules",
+          "envelope_or_approvals",
+          "named_refusals_or_operator_allow_list",
+          "grade_derivation_or_e6_exclusion",
+          "seating_of_sessions",
+          "gate_existence_or_no_verify_rule",
+          "harness_rules_1_to_5"
+        ]
+      },
+      "description": "8.3 rule 2's core, item by item. Empty when the change touches none of it. The loop may propose about the core and never land it."
+    },
+    "person_word": {
+      "type": "object",
+      "description": "The person's own word for this change, said in the owner seat's window and quoted (8.3 rule 1). Required for a loosening, a retirement, and anything touching the core.",
+      "properties": {
+        "quote": { "type": "string", "minLength": 2 },
+        "said_in_window_of": { "type": "string" },
+        "on": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "recorded_in": { "type": "string" }
+      },
+      "required": ["quote", "said_in_window_of", "on", "recorded_in"],
+      "additionalProperties": false
+    },
+    "needs_threshold": {
+      "type": "boolean",
+      "description": "True when the change compares against a number nobody has chosen. Such a proposal stops at UNDECIDED: the number is the person's (11-2), and no ledger row may land it until a threshold is recorded somewhere this names."
+    },
+    "threshold_question": { "type": "string" },
+    "proof": {
+      "type": "object",
+      "description": "8.3 rule 3. Filled by the seat that builds the change, as it watches each part; null where not yet watched. Argument is not proof.",
+      "properties": {
+        "fixtures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": { "type": "string" },
+              "reproduces": { "type": "string" },
+              "watched_failing_before": { "type": ["string", "null"], "description": "The tree or commit on which the fixture was watched being accepted with the change absent -- the completing half the root CLAUDE.md asks for." },
+              "watched_passing_after": { "type": ["string", "null"], "description": "The tree or commit on which the fixture was watched being rejected with the change present." }
+            },
+            "required": ["path", "reproduces", "watched_failing_before", "watched_passing_after"],
+            "additionalProperties": false
+          }
+        },
+        "replay": {
+          "type": "object",
+          "properties": {
+            "range": { "type": ["string", "null"], "description": "<from>..<to>, at least every commit since the last harness change landed." },
+            "new_fail_on_accepted": { "type": ["integer", "null"], "minimum": 0 },
+            "run_line": { "type": ["string", "null"], "description": "The validator's tree line for the replay, digest included." }
+          },
+          "required": ["range", "new_fail_on_accepted", "run_line"],
+          "additionalProperties": false
+        },
+        "equivalence": {
+          "type": ["object", "null"],
+          "description": "For a reshape: the same fixtures reject the same groups before and after.",
+          "properties": {
+            "before": { "type": ["string", "null"] },
+            "after": { "type": ["string", "null"] }
+          },
+          "required": ["before", "after"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["fixtures", "replay", "equivalence"],
+      "additionalProperties": false
+    },
+    "reach": {
+      "type": "object",
+      "description": "8.3 rule 5. A configuration fix reaches only what starts after it, so the proposal names who is already running and how they learn of it, and puts a warning where the thing is used.",
+      "properties": {
+        "already_running": { "type": "array", "items": { "type": "string" } },
+        "how_they_learn": { "type": "string", "minLength": 10 },
+        "use_site": { "type": ["string", "null"] }
+      },
+      "required": ["already_running", "how_they_learn", "use_site"],
+      "additionalProperties": false
+    },
+    "revert": {
+      "type": "string",
+      "description": "How the change is undone once landed, in the form the day's report gives the person: one command, with the landing commit filled in by the ledger row that records it."
+    },
+    "notes": { "type": "string" }
+  },
+  "required": ["artifact", "schema_version", "id", "title", "drafted_by", "drafted_on", "kind", "class", "answers", "classification", "changes", "touches_core", "needs_threshold", "proof", "reach", "revert"],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "enum": ["loosen", "retire"] } }, "required": ["kind"] },
+      "then": { "required": ["person_word"] }
+    },
+    {
+      "if": { "properties": { "touches_core": { "minItems": 1 } }, "required": ["touches_core"] },
+      "then": { "required": ["person_word"] }
+    },
+    {
+      "if": { "properties": { "needs_threshold": { "const": true } }, "required": ["needs_threshold"] },
+      "then": { "required": ["threshold_question"] }
+    }
+  ]
+}

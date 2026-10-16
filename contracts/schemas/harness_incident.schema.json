@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness_incident.schema.json",
+  "title": "contracts/harness/incidents.jsonl, one line -- one thing that happened to the harness, with what shows it",
+  "description": "One incident, one line, append-only (plan.md 8.3, loop step 1). Before this file existed, incidents between sessions lived only in commit messages and in prose in the root CLAUDE.md and 8.2. Prose goes stale in both directions, and nothing counts it. One of the 2026-10-15 incidents, a commit left unmade by a lock race, is written down nowhere but one sentence of 8.3. A line names its class and not just the instance, so 8.3's measuring step can count recurrences of a class off this file rather than off prose. It also says what now enforces the class, which is what 8.3 rule 6 needs before a narrative can leave the instruction files. Every line carries at least one piece of evidence. When the only evidence is a sentence of prose, it says so as prose_only rather than borrowing a commit that does not show it. This is a line schema: the file is JSONL and is judged line by line, the way check 29 judges failures.jsonl.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^INC-([0-9]{8}|undated)-[0-9]{2}$",
+      "description": "INC-<YYYYMMDD>-<nn>, the date it happened, nn in order of recording within that date. Unique in the file. 'undated' when the source gives no date, which is itself worth knowing."
+    },
+    "on": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "When it happened. null exactly when the id says undated."
+    },
+    "class": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "The class, not the instance (8.3 loop step 2). Every member of a class carries the same slug, which is what makes a recurrence countable."
+    },
+    "what": {
+      "type": "string",
+      "minLength": 20,
+      "description": "What happened, in a few plain sentences."
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": [
+              "commit",
+              "file",
+              "log",
+              "prose_only"
+            ]
+          },
+          "ref": {
+            "type": "string",
+            "minLength": 1,
+            "description": "commit: an abbreviated hash that resolves in this repository. file: a repository path. log: a path and the line or the field that locates the entry; a log outside every tree, such as .git/sma-seat-commit.jsonl, says so. prose_only: the prose location pinned to the commit it was read at, <file>@<commit>:<line>, saying that nothing else shows it. A bare line number is refused: on 2026-10-16 the root CLAUDE.md lost 58 lines within the hour this file's backfill was read, and every unpinned reference into it would have pointed at other text."
+          }
+        },
+        "required": [
+          "kind",
+          "ref"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "prose_only"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "ref": {
+                  "pattern": "^[A-Za-z0-9_./-]+@[0-9a-f]{7,40}:[0-9]+(-[0-9]+)?( .*)?$"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "seats": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z]+(-[a-z0-9]+)*$"
+      },
+      "description": "The seats the source names as involved, as written. Empty when none is named."
+    },
+    "source": {
+      "type": "string",
+      "description": "Where the narrative is, if one exists: <file>@<commit>:<first>-<last> for prose, pinned like a prose_only ref; a commit's message; a session message, with what it was checked against; or 'observed' for an incident the harness seat recorded directly from the record."
+    },
+    "enforced_by": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "What now refuses or warns about this class, as the source states it: a check number, a hook, a tool. null when nothing does. A line with this set is the precondition for 8.3 rule 6 -- the narrative may leave the instruction files once the check exists."
+    },
+    "recorded_by": {
+      "type": "string",
+      "pattern": "^[a-z]+(-[a-z0-9]+)*$"
+    },
+    "recorded_on": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    }
+  },
+  "required": [
+    "id",
+    "on",
+    "class",
+    "what",
+    "evidence",
+    "seats",
+    "source",
+    "enforced_by",
+    "recorded_by",
+    "recorded_on"
+  ],
+  "additionalProperties": false
+}

@@ -848,6 +848,26 @@ def fixture_87_guides_regenerated_before_the_publish(repo: Path) -> str:
                         "entries and their guides, committed before the publish")
 
 
+def fixture_89_a_harness_log_line_rewritten(repo: Path) -> str:
+    """A committed line of the meta-harness ledger, edited in a later commit.
+
+    The two harness logs are append-only (plan.md 8.3): a correction is a new
+    line. No file fixture can show that, because the defect is a difference
+    between two commits and not anything either tree holds -- each tree's
+    ledger is well-formed on its own.
+    """
+    base(repo)
+    line = {"at": "2026-10-16T20:51:00Z", "proposal": "HP-001", "outcome": "drafted",
+            "by_seat": "harness-office-20261016-1"}
+    write(repo, "contracts/harness/ledger.jsonl", json.dumps(line) + "\n")
+    start = commit(repo, "harness: one ledger line", "contracts/harness", seat="harness-office-20261016-1")
+    line["at"] = "2026-10-16T21:00:00Z"
+    write(repo, "contracts/harness/ledger.jsonl", json.dumps(line) + "\n")
+    commit(repo, "harness: the same line, edited in place", "contracts/harness",
+           seat="harness-office-20261016-1")
+    return f"{start}..HEAD"
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -898,6 +918,8 @@ FIXTURES = [
      fixture_87_guides_at_the_published_version_while_the_store_moved),
     (87, "PASS", "at kbv-cccccccccccc, the store's own version",
      fixture_87_guides_regenerated_before_the_publish),
+    (89, "FAIL", "rewrote lines its parent held; this log is append-only",
+     fixture_89_a_harness_log_line_rewritten),
 ]
 
 

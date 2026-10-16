@@ -274,6 +274,11 @@ ARTIFACT_SCHEMA = {
     # 2026-10-07, card 062: the command list a person approves for live view.
     # An artifact, not a card: it answers no question and is named by its bytes.
     "live_view_list": "live_view_list.schema.json",
+    # 2026-10-16, HP-005: the meta-harness's two JSON records (plan.md 8.3).
+    # Its two JSONL files are line schemas and are judged by check 89, the
+    # way check 29 judges failures.jsonl, because collect() reads no .jsonl.
+    "harness_proposal": "harness_proposal.schema.json",
+    "harness_retro": "harness_retro.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]
@@ -1645,6 +1650,11 @@ ALLOWED_PATHS = [
     # 2026-10-16), landing together in one commit as 8.3 asks. Declared by
     # name, not as any file in tools/, so the next tool is declared too.
     r"^contracts/tools/(seat_commit|seat_commit_fixtures)\.py$",
+    # The meta-harness's four records (8.3 HP-005, 2026-10-16), the names
+    # section 7 already lists. Ruled a reshape, not a widening: declaring a
+    # path the plan designed grants no seat reach it did not have. Check 89
+    # judges what lands here.
+    r"^contracts/harness/(incidents\.jsonl|ledger\.jsonl|proposals/HP-[0-9]{3}\.json|retro/[0-9]{8}(-[0-9]+)?\.json)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",
@@ -8552,6 +8562,250 @@ def check_88_focus_search(b: Bundle) -> list[Finding]:
                                c.rel))
     return out
 
+HARNESS_DIR = "contracts/harness"
+HARNESS_LOGS = ("incidents.jsonl", "ledger.jsonl")
+HARNESS_LINE_SCHEMA = {"incidents.jsonl": "harness_incident.schema.json",
+                       "ledger.jsonl": "harness_ledger_entry.schema.json"}
+
+
+def _harness_home(rel: str) -> str | None:
+    """Which set of harness records a file belongs to, or None.
+
+    The live set is contracts/harness/, with proposals/ and retro/ under it. A
+    rejected fixture is a group folder, which allows no subdirectory, so there
+    the four records sit flat beside each other and the group is the set.
+    Proposals and retros are found by their `artifact`, never by folder, so
+    one rule reads both shapes.
+
+    A path outside the repository comes back from _rel as a native string,
+    which on Windows has backslashes, and fixture_group splits on "/"; so a
+    set handed in from scratch was read as no set at all.
+    """
+    rel = rel.replace("\\", "/")
+    if rel.startswith(HARNESS_DIR + "/"):
+        return HARNESS_DIR
+    g = fixture_group(rel)
+    return g[0] if g else None
+
+
+def check_89_harness_records(b: Bundle, commit_range: str | None = None,
+                             staged: bool = False) -> list[Finding]:
+    """The meta-harness's records hold together (plan.md 8.3, HP-005).
+
+    Check 1 judges a proposal and a retro against their schemas, because they
+    are artifacts. Everything a schema cannot see is here: each line of the
+    two JSONL files against its line schema, and the facts that span files --
+    an incident id is unique, an undated id has no date, every commit named
+    resolves, every incident named exists, every ledger line has a proposal
+    file whose name is its id, and the ratchet: a loosening, a retirement or a
+    change to the core lands only with the person's word, and a proposal that
+    needs a threshold lands not at all (rules 1 and 4). A proposal's stage is
+    its last ledger line, so the ledger is where landing is refused.
+
+    Both JSONL files are append-only. Under --staged and on a plain run, the
+    bytes HEAD holds must be a prefix of the tree's; under --commit-range, the
+    same holds for every first-parent commit against its parent. Line endings
+    are compared as LF, because a Windows checkout may hold CRLF for the same
+    committed bytes.
+
+    No threshold is introduced: every refusal is a structural fact.
+    """
+    import subprocess
+
+    sets: dict[str, dict] = {}
+
+    def home(rel: str) -> dict | None:
+        h = _harness_home(rel)
+        if h is None:
+            return None
+        return sets.setdefault(h, {"logs": {}, "proposals": [], "retros": []})
+
+    for p in b.all_files:
+        if p.name not in HARNESS_LOGS:
+            continue
+        rel = _rel(p)
+        s = home(rel)
+        if s is not None:
+            s["logs"][p.name] = p
+    for a in b.artifacts:
+        kind = a.data.get("artifact")
+        if kind not in ("harness_proposal", "harness_retro"):
+            continue
+        s = home(a.rel)
+        if s is not None:
+            s["proposals" if kind == "harness_proposal" else "retros"].append(a)
+
+    out: list[Finding] = []
+    history = _check_89_append_only(commit_range, staged)
+    out.extend(history)
+    if not sets:
+        return out or [Finding(89, NA, "no meta-harness records in this tree")]
+
+    try:
+        import jsonschema
+        from referencing import Registry, Resource
+        resources = [(f.name, Resource.from_contents(json.loads(f.read_text())))
+                     for f in (CONTRACTS / "schemas").glob("*.json")]
+        registry = Registry().with_resources(resources)
+        line_validators = {
+            name: jsonschema.Draft202012Validator(
+                json.loads((CONTRACTS / "schemas" / schema).read_text()), registry=registry)
+            for name, schema in HARNESS_LINE_SCHEMA.items()}
+    except ImportError as exc:
+        line_validators = None
+        out.append(Finding(89, PENDING, f"{exc.name or exc} not importable under {sys.executable}: "
+                                        "the JSONL lines were not judged against their line schemas"))
+
+    # Every commit any record names, resolved in one call.
+    wanted: dict[str, list[tuple[str, str]]] = {}
+    n_lines = 0
+    for h, s in sorted(sets.items()):
+        parsed: dict[str, list[tuple[int, dict]]] = {}
+        for name, p in sorted(s["logs"].items()):
+            rel = _rel(p)
+            parsed[name] = []
+            for i, line in enumerate(p.read_text(encoding="utf-8-sig").splitlines(), 1):
+                if not line.strip():
+                    continue
+                n_lines += 1
+                try:
+                    rec = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    out.append(Finding(89, FAIL, f"line {i}: {exc}", rel))
+                    continue
+                if not isinstance(rec, dict):
+                    out.append(Finding(89, FAIL, f"line {i}: a line is one JSON object", rel))
+                    continue
+                if line_validators is not None:
+                    for err in sorted(line_validators[name].iter_errors(rec), key=lambda e: list(e.path)):
+                        loc = "/".join(str(x) for x in err.path) or "(root)"
+                        out.append(Finding(89, FAIL, f"line {i}: {loc}: {err.message}", rel))
+                parsed[name].append((i, rec))
+        s["parsed"] = parsed
+
+        inc_rel = f"{h}/incidents.jsonl"
+        incident_ids: set[str] = set()
+        for i, rec in parsed.get("incidents.jsonl", []):
+            iid = rec.get("id")
+            if iid in incident_ids:
+                out.append(Finding(89, FAIL, f"line {i}: incident id {iid} is already used above; an id "
+                                             "names one incident", inc_rel))
+            incident_ids.add(iid)
+            undated = isinstance(iid, str) and iid.startswith("INC-undated-")
+            if undated != (rec.get("on") is None):
+                out.append(Finding(89, FAIL, f"line {i}: {iid} has on={rec.get('on')!r}; an undated id has "
+                                             "on null, and a dated one has its date", inc_rel))
+            elif not undated and isinstance(rec.get("on"), str) and isinstance(iid, str) \
+                    and iid[4:12] != rec["on"].replace("-", ""):
+                out.append(Finding(89, FAIL, f"line {i}: {iid} says one date and on says {rec['on']}",
+                                   inc_rel))
+            for ev in rec.get("evidence") or []:
+                if isinstance(ev, dict) and ev.get("kind") == "commit" and isinstance(ev.get("ref"), str):
+                    wanted.setdefault(ev["ref"], []).append((inc_rel, f"line {i}: {iid}'s evidence"))
+        s["incident_ids"] = incident_ids
+
+        by_id: dict[str, Card] = {}
+        for prop in s["proposals"]:
+            pid = prop.data.get("id")
+            stem = Path(prop.rel).stem
+            if pid != stem:
+                out.append(Finding(89, FAIL, f"the proposal in {Path(prop.rel).name} says it is {pid}; a "
+                                             "proposal's file is named by its id", prop.rel))
+            by_id.setdefault(pid, prop)
+            if "incidents.jsonl" in s["logs"]:
+                named = list(prop.data.get("answers") or []) + \
+                    list((prop.data.get("classification") or {}).get("members_found") or [])
+                for iid in sorted(set(named) - incident_ids):
+                    out.append(Finding(89, FAIL, f"{pid} names incident {iid}, which {inc_rel} does not hold",
+                                       prop.rel))
+        for retro in s["retros"]:
+            if "incidents.jsonl" in s["logs"]:
+                for iid in sorted(set(retro.data.get("new_incidents") or []) - incident_ids):
+                    out.append(Finding(89, FAIL, f"the retro names incident {iid}, which {inc_rel} does not "
+                                                 "hold", retro.rel))
+
+        led_rel = f"{h}/ledger.jsonl"
+        for i, rec in parsed.get("ledger.jsonl", []):
+            pid = rec.get("proposal")
+            prop = by_id.get(pid)
+            if prop is None:
+                out.append(Finding(89, FAIL, f"line {i}: {pid} has no proposal file, so nothing says what "
+                                             "this outcome was an outcome of", led_rel))
+            if isinstance(rec.get("commit"), str):
+                wanted.setdefault(rec["commit"], []).append((led_rel, f"line {i}: {pid} {rec.get('outcome')}"))
+            if rec.get("outcome") != "landed" or prop is None:
+                continue
+            d = prop.data
+            if (d.get("kind") in ("loosen", "retire") or d.get("touches_core")) and not d.get("person_word"):
+                why = f"is a {d.get('kind')}" if d.get("kind") in ("loosen", "retire") else \
+                    f"touches the core ({', '.join(d.get('touches_core'))})"
+                out.append(Finding(89, FAIL, f"line {i}: {pid} landed, and it {why} with no person_word; "
+                                             "that lands only on the person's word (8.3 rule 1)", led_rel))
+            if d.get("needs_threshold") is True:
+                out.append(Finding(89, FAIL, f"line {i}: {pid} landed, and it needs a threshold nobody has "
+                                             "chosen; it stops at undecided (8.3 rule 4)", led_rel))
+
+    if wanted:
+        try:
+            batch = "".join(f"{ref}^{{commit}}\n" for ref in wanted)
+            res = subprocess.run(["git", "-C", str(GIT_REPO), "cat-file", "--batch-check"],
+                                 input=batch, capture_output=True, text=True, check=True).stdout.splitlines()
+            for ref, line in zip(wanted, res):
+                if line.endswith(" missing") or " commit " not in line:
+                    for rel, where in wanted[ref]:
+                        out.append(Finding(89, FAIL, f"{where} names commit {ref}, which does not resolve in "
+                                                     "this repository", rel))
+        except (OSError, subprocess.CalledProcessError) as exc:
+            out.append(Finding(89, PENDING, f"cannot ask git whether {len(wanted)} named commits resolve: {exc}"))
+
+    if not any(f.status == FAIL for f in out):
+        n_p = sum(len(s["proposals"]) for s in sets.values())
+        n_r = sum(len(s["retros"]) for s in sets.values())
+        out.append(Finding(89, PASS, f"{n_lines} lines, {n_p} proposals and {n_r} retros in {len(sets)} sets "
+                                     f"hold together; {len(wanted)} named commits resolve"))
+    return out
+
+
+def _check_89_append_only(commit_range: str | None, staged: bool) -> list[Finding]:
+    """The two harness logs only grow. A line once committed is never edited
+    or removed: a correction is a new line, the way failures.jsonl does it."""
+    import subprocess
+
+    def git(*args: str) -> str | None:
+        r = subprocess.run(["git", "-C", str(GIT_REPO), *args], capture_output=True)
+        return r.stdout.decode("utf-8", "replace") if r.returncode == 0 else None
+
+    def lf(text: str) -> str:
+        return text.replace("\r\n", "\n")
+
+    rels = [f"{HARNESS_DIR}/{n}" for n in HARNESS_LOGS]
+    out: list[Finding] = []
+    if commit_range:
+        listing = git("rev-list", "--reverse", "--first-parent", commit_range, "--", *rels)
+        if listing is None:
+            return [Finding(89, FAIL, f"cannot read commit range {commit_range!r} for the harness logs")]
+        for sha in [x for x in listing.splitlines() if x.strip()]:
+            for rel in rels:
+                old = git("show", f"{sha}^1:{rel}")
+                if old is None:
+                    continue
+                new = git("show", f"{sha}:{rel}")
+                if new is None or not lf(new).startswith(lf(old)):
+                    out.append(Finding(89, FAIL, f"commit {sha[:8]} rewrote lines its parent held; this log is "
+                                                 "append-only, so a correction is a new line", rel))
+        return out
+    for rel in rels:
+        old = git("show", f"HEAD:{rel}")
+        if old is None:
+            continue
+        p = REPO / rel
+        new = p.read_text(encoding="utf-8") if p.exists() else None
+        if new is None or not lf(new).startswith(lf(old)):
+            out.append(Finding(89, FAIL, "the tree rewrites lines HEAD holds; this log is append-only, so a "
+                                         "correction is a new line", rel))
+    return out
+
+
 
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
@@ -8589,6 +8843,7 @@ CHECKS = [
     check_60_observables_are_registered_quantities,
     check_61_envelope_currency,
     check_87_safety_guides_follow_the_store, check_88_focus_search,
+    check_89_harness_records,
     check_67_entry_units_are_declared,
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,
@@ -8609,7 +8864,7 @@ def run(roots: list[Path], include_rejected: bool = False, commit_range: str | N
     findings: list[Finding] = []
     for fn in CHECKS:
         try:
-            if fn in (check_35_session_boundary, check_41_seat_attribution):
+            if fn in (check_35_session_boundary, check_41_seat_attribution, check_89_harness_records):
                 findings.extend(fn(bundle, commit_range, staged))
             else:
                 findings.extend(fn(bundle))
