@@ -1,0 +1,74 @@
+{
+  "artifact": "harness_proposal",
+  "schema_version": "0.1",
+  "id": "HP-008",
+  "title": "Keep every manager seat out of contracts/harness/, in the registry and in the check that keeps the registry sound",
+  "drafted_by": "harness-office-20261016-1",
+  "drafted_on": "2026-10-17",
+  "kind": "tighten",
+  "class": "boundary-narrows-one-side-only",
+  "answers": [
+    "INC-20261017-04"
+  ],
+  "classification": {
+    "members_found": [
+      "INC-20261017-04"
+    ],
+    "looked_in": [
+      "check 41's handling of excludes in contracts/validate.py: an excluded prefix is a FAIL naming it, so excludes are what refuse",
+      "every row of contracts/seats.json at b66df01e: 40 manager-named rows, 40 of them reaching contracts/harness/ through contracts/ in paths",
+      "git log -- contracts/harness/: three commits, all the harness seat's",
+      "check 84, which already requires every manager-named row to exclude contracts/seats.json, for the same reason: a tier must not hold the file that judges it"
+    ]
+  },
+  "changes": [
+    {
+      "path": "contracts/seats.json",
+      "owner": "architecture-20261007-1",
+      "change": "Add contracts/harness/ to the excludes of every manager-named row, open and closed alike, the way contracts/seats.json is in every one now, so a reopened seat does not carry the hole back."
+    },
+    {
+      "path": "contracts/validate.py",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "Check 84 gains the sibling of its seats.json rule: every manager-named entry carries contracts/harness/ in excludes. Without it the first new manager row reopens the hole, which is the class-fixed-not-swept shape the backfill counts six times."
+    },
+    {
+      "path": "contracts/examples/rejected/ or contracts/history_fixtures.py",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "Two fixtures. A history repository in which a manager seat commits one line to contracts/harness/ledger.jsonl, which check 41 must refuse as excluded. And a registry with one manager row lacking the exclude, which check 84 must refuse. Each is watched being accepted before the change."
+    }
+  ],
+  "touches_core": [],
+  "needs_threshold": false,
+  "proof": {
+    "fixtures": [
+      {
+        "path": "a history fixture: a manager commits to contracts/harness/ledger.jsonl",
+        "reproduces": "INC-20261017-04",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      },
+      {
+        "path": "a registry fixture: a manager row without the exclude",
+        "reproduces": "a new manager row reopening the hole",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      }
+    ],
+    "replay": {
+      "range": null,
+      "new_fail_on_accepted": null,
+      "run_line": null
+    },
+    "equivalence": null
+  },
+  "reach": {
+    "already_running": [
+      "every manager seat: the registry and the validator are read on every commit, so the exclude reaches a running manager at its next commit into the folder, which is where it should be refused"
+    ],
+    "how_they_learn": "At the moment it matters, in check 41's refusal naming the excluded prefix. No manager's present work is in the folder, so nobody's ordinary commit changes.",
+    "use_site": "check 41, in the commit gate"
+  },
+  "revert": "git revert <the registry commit> <the check 84 commit>",
+  "notes": "Rows that own design with neither paths nor excludes also reach the folder: design, human. They are not managers and are left out of this proposal; whether a generic or the person's own row should be held out of the ledger is architecture's to say. Replay expectation: no manager commit has ever touched contracts/harness/, so a replay of every commit since the last harness change should show no new FAIL. That is to be run by the building seat, not assumed. This is a tightening, which 8.3 rule 1 lets the owner seats land on their own judgement. architecture-20261007-1 has said it will put the registry half to the person anyway, because it narrows the managers' boundary. That is the owner's choice, and this proposal does not argue against it."
+}
