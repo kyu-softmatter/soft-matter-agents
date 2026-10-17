@@ -9,6 +9,21 @@ If the person seats a different session for this card, card 064 changes
 first. If you are not the seat holding `src/`, take nothing from this card
 and report up.
 
+## When, and the instrument (added 2026-10-17)
+
+The person set the timing on 2026-10-17, directly in
+architecture-office-20261017-1's window: "다음 장비 방문 전에 모의 장비에서만
+만들어 두고, 방문 때는 정지 지연 측정만 해". In English: build it before the
+next instrument visit, on mock only, and at the visit measure only the stop
+delay.
+
+- **Done means done on mock, before the next bench visit**, after card 069.
+- **At that visit, one instrument item only**: on each device, how long a
+  read already in progress delays an abort. The bench step for it goes in
+  the visit's card when that card is written, not in this one.
+- **The watcher runs during no real measurement at that visit.** Running it
+  on the instrument later is the person's separate decision.
+
 ## Why
 
 On 2026-10-17 the person settled the run-time watcher in architecture-office-20261017-1's window, and plan.md 13.4 records it in the person's words:
