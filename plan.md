@@ -2287,6 +2287,12 @@ rebuild/
                              The cost of opening it on another machine has to be zero, the same requirement as `uv.lock`
     assets/                film and images. **Empty is the normal state** -- with no film the page shows a
                              placeholder rather than a broken player (it says what is absent is absent, P1)
+    drafts/<topic>-<YYYYMMDD>.md  **design drafts awaiting a section's holder** (2026-10-16). Written by the two
+                             drafting seats, architecture-office-20261016-1 and -2, whose `paths` are this folder only.
+                             A draft is not the record: its content moves into the plan section it names, by that
+                             section's holder, and the draft is then deleted, so **empty is the normal state** here too.
+                             It is not published by Pages either: `docs/` is the public page, and a draft must not be
+                             linked from `index.html`. `ALLOWED_PATHS` gets the matching entry (a manager's)
   contracts/               ★ the only shared code. All four agents depend on it.
     schemas/               goal/plan/plan_approval/scope_approval/result/refusal/ask
                            + axis/synthesis/common/kb_entry
@@ -3378,6 +3384,8 @@ Bias cannot be removed. The goal is to make it **measurable and reversible.** Si
 5. **Reach at the use site.** A configuration fix reaches only what starts after it (the root `CLAUDE.md`). So a landed change names the sessions already running, and where the change is a warning it is placed where the thing is used, a commit hook and not a session-start hook, the way the committer-identity warning was moved.
 6. **A prose budget.** Once a lesson is enforced by a check, its narrative leaves the instruction files for `incidents.jsonl`, and the instruction keeps one sentence and the check's number. A count written into instruction prose carries its method beside it, or it is not written.
 7. **Agent behaviour has a regression suite, not just plumbing.** A change to an agent's instructions or skills is replayed on mock against past questions whose outcomes are known: `mic-20260918-001`'s seven axes with their gaps, card 063's focus walk and its six refusals, a held bridge thread. The verdicts must hold: refusals still refuse, gaps are still named, nothing gains a number it did not have. Differences are reviewed by the owner seat and are never accepted automatically. This is DINO's shadow mode (13.1) applied to the harness itself.
+
+**A committed example went red by the clock alone (2026-10-17T00:00:00Z), and nothing had warned of it.** `contracts/examples/scope_approval.json` was written on 2026-09-17 with `valid_until` 2026-10-17T00:00:00Z. At that instant check 19 refused every commit in the working copy, because the example's permit had expired and was not marked voided. No commit had changed anything. It is the same shape as the check 88 fixture that leaned on the live safety file, except that the clock moved it rather than another seat's commit: a fixture or example whose verdict depends on something outside its own files. **So the meta-harness watches for that kind of dependence**: a date in an example that a check compares with today, a fixture that reads the live envelope or store, or an answer that depends on the machine. Its daily pass lists every date a check compares with today, nearest first. That needs no horizon. A warning that fires *within* some horizon would need a number, and by rule 4 that number is the person's: architecture first wrote "within a week" here, and harness-office-20261016-1 caught it before it was committed. So the gate-side warning is HP-007, held at UNDECIDED until the person chooses its horizon. Its threshold-free alternative, judging examples by an instant they declare rather than by the wall clock, would lift check 19's expiry refusal for examples. That is a loosening, so it also needs the person's word. The fix for any one case belongs to the example's owner, and is never a bypass of the gate.
 
 **What it is not.** It is not a model rewriting its own safety, not an auto-merge, and not a fifth agent: it touches no instrument and holds no device, like the two top tiers. It does not move faster than the gate. Every change it makes is a commit a seat makes and the gate judges.
 
