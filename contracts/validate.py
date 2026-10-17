@@ -1724,6 +1724,11 @@ ALLOWED_PATHS = [
     # door, a sibling of README.md, and it classifies as `design` below.
     r"^docs/[A-Za-z0-9_.-]+\.(html|css|js|svg|png|jpg|jpeg|webp|mp4|md)$",
     r"^docs/assets/[A-Za-z0-9_.-]+$",
+    # Design drafts (2026-10-17): the two architecture-office-20261016 seats
+    # are narrowed to docs/drafts/, and check 13 refused the first draft there.
+    # Flat files with the front door's own extensions. This list first; the
+    # section 7 line is architecture's, and check 55 reads only that way.
+    r"^docs/drafts/[A-Za-z0-9_.-]+\.(html|css|js|svg|png|jpg|jpeg|webp|mp4|md)$",
 ]
 
 
