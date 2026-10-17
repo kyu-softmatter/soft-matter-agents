@@ -1,0 +1,73 @@
+{
+  "artifact": "harness_retro",
+  "schema_version": "0.1",
+  "seat": "harness-office-20261016-1",
+  "on": "2026-10-17",
+  "trigger": "daily",
+  "tree": "58883ed5 plus 6 uncommitted paths [dirty 47f8e74f], which is nobody's commit -- the run with this pass's records in place, before this field and the next were filled",
+  "verdict": "verdict: 223 passed, 0 failed, 11 undecided, 110 pending, 1 lost, 8 not applicable",
+  "observed": [
+    {
+      "source": "dates a check compares with today",
+      "path": "contracts/examples",
+      "window": "the tree at this pass",
+      "found": "Check 19 is the only check that compares a date with today (grep of contracts/validate.py for now, utcnow, time and today). The scope_approval cards under contracts/examples it compares, the voided ones left out: 1, contracts/examples/rejected/bad_scope_expired_not_voided.json valid_until 2026-09-18T00:00:00Z. Dates still ahead, nearest first: none. The one card listed is a rejected fixture whose date is already past, so it cannot move."
+    },
+    {
+      "source": "the commit tool's record",
+      "path": ".git/sma-seat-commit.jsonl (outside every tree)",
+      "window": "git log --first-parent f7d1c836^..HEAD at this pass",
+      "found": "15 commits since the tool landed, 13 through it and 2 around it (aa9941d6, 2fcc3bc5); every commit after 2fcc3bc5 went through the tool. The gate refused every commit from 2026-10-17T00:00:00Z until b97d2c7c, first seen as the tool's refused line at 01:05:40Z."
+    },
+    {
+      "source": "session messages, checked against commits",
+      "path": null,
+      "window": "2026-10-16 23:34Z to 2026-10-17 02:20Z",
+      "found": "Three landings, each verified in git: b97d2c7c (the expired example voided, a fixture for the expiry), 8157dbb7 (8.3: the daily pass lists every compared date with no horizon), 58883ed5 (HP-006). Two inferences caught before they did harm: this seat's about --save-patch (INC-20261016-04), and architecture's 'within a week' (INC-20261017-02)."
+    }
+  ],
+  "new_incidents": [
+    "INC-20261016-04",
+    "INC-20261016-05",
+    "INC-20261015-06",
+    "INC-20261017-01",
+    "INC-20261017-02"
+  ],
+  "measured": [
+    {
+      "class": "commit-around-the-tool",
+      "since": "58883ed5",
+      "recurrences": 0,
+      "method": "commits after 58883ed5 absent from the tool's log; the warning landed at the end of this pass, so this is a baseline and not yet a measurement"
+    },
+    {
+      "class": "fixture-verdict-turns-on-live-state",
+      "since": "b97d2c7c",
+      "recurrences": 0,
+      "method": "check 19 lines in the validator's output, and dated scope_approval cards ahead of now under contracts/examples (the list above)"
+    }
+  ],
+  "proposals": [
+    {
+      "id": "HP-006",
+      "this_pass": "Landed at 58883ed5, a tightening. Revert: git revert 58883ed5."
+    },
+    {
+      "id": "HP-007",
+      "this_pass": "The person chose judging examples by an instant they declare. It is a loosening, handed to manager-microscope-office-20261016-1, which holds to rule 1 and waits for the person's word in its own window. A relayed word, even at the person's instruction, was declined."
+    }
+  ],
+  "landed_today": [
+    {
+      "proposal": "HP-006",
+      "kind": "tighten",
+      "commit": "58883ed5",
+      "revert_command": "git revert 58883ed5"
+    }
+  ],
+  "next": [
+    "Count commits around the tool after 58883ed5 to see whether the warning changes anything.",
+    "When HP-007 lands, record it with the person's word as said in the owner seat's window.",
+    "Sweep for other live inputs a fixture's verdict can read: the store version, the seat registry, the machine."
+  ]
+}

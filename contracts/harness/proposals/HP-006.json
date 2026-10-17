@@ -1,0 +1,63 @@
+{
+  "artifact": "harness_proposal",
+  "schema_version": "0.1",
+  "id": "HP-006",
+  "title": "The pre-commit hook says so when a seat commits without the commit tool",
+  "drafted_by": "harness-office-20261016-1",
+  "drafted_on": "2026-10-16",
+  "kind": "tighten",
+  "class": "commit-around-the-tool",
+  "answers": [
+    "INC-20261016-03",
+    "INC-20261016-05"
+  ],
+  "classification": {
+    "members_found": [
+      "INC-20261016-03",
+      "INC-20261016-05"
+    ],
+    "looked_in": [
+      "git log --first-parent f7d1c836^..ca51a4a1 against the committed hashes in .git/sma-seat-commit.jsonl, at 2026-10-16 23:34Z: 9 commits, 7 through the tool, 2 around it (aa9941d6, 2fcc3bc5)",
+      "the root CLAUDE.md at HEAD, lines 102-107, which says a commit here is made through the tool and not by hand"
+    ]
+  },
+  "changes": [
+    {
+      "path": "contracts/tools/seat_commit.py",
+      "owner": "manager-microscope-office-20261016-1, its builder (shared surface under contracts/)",
+      "change": "Set one marker variable, for example SMA_SEAT_COMMIT=1 (the building seat names it), in the environment of every git commit the tool runs, so the hook can tell a commit made through the tool from one made by hand."
+    },
+    {
+      "path": "contracts/hooks/pre-commit",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "Beside the existing 'committing as' line: when the committer identity starts with seat: and the marker is absent, print one line saying the commit is not being made through contracts/tools/seat_commit.py, which the root CLAUDE.md asks of every seat. Reported, never refused: the exit status is unchanged. A committer that is not a seat, such as the person committing by hand, gets no line, so the warning fires only where the written rule applies and does not teach anyone to skip these lines."
+    }
+  ],
+  "touches_core": [],
+  "needs_threshold": false,
+  "proof": {
+    "fixtures": [
+      {
+        "path": "contracts/tools/seat_commit_fixtures.py, fixture 13, a seat committing around the tool",
+        "reproduces": "INC-20261016-03",
+        "watched_failing_before": "failed before the change with 'contracts/hooks/pre-commit carries no seat-commit-tool notice block'; three mutations each turned it red (no marker, no line, a line for every committer) (reported by manager-microscope-office-20261016-1)",
+        "watched_passing_after": "passed at 58883ed5 (reported by manager-microscope-office-20261016-1)"
+      }
+    ],
+    "replay": {
+      "range": null,
+      "new_fail_on_accepted": null,
+      "run_line": null
+    },
+    "equivalence": null
+  },
+  "reach": {
+    "already_running": [
+      "every seat on the Office computer: the hooks are read from contracts/hooks/ on each commit, through core.hooksPath, so the line reaches a seat that has been up since morning at its next commit, with no restart"
+    ],
+    "how_they_learn": "At the moment of committing, in the hook's output, which is the use site rule 5 asks for. The commit tool already prints the hook's last lines unfiltered.",
+    "use_site": "contracts/hooks/pre-commit"
+  },
+  "revert": "git revert <landing commit>",
+  "notes": "Three limits, stated so the count is not over-read. (1) The sample is small: 2 commits of 9 since the tool landed went around it. The proposal rests on the class, a commit procedure performed from prose, whose earlier members are the commit incidents of 2026-09-23 and 2026-10-15, and not on that rate. (2) A commit made by commit-tree, as git subtree add makes one (8f94789, INC-20261015-05), runs no pre-commit hook, so this line can never reach it. The daily pass keeps counting from git log against the tool's log, which sees every commit. (3) On the microscope computer the hooks were not installed as of 2026-10-13 (1104cc67), so the line reaches nothing there until a manager installs them, which is not this proposal's call. Fixture to watch: as a seat with no marker, the line appears and the exit status is unchanged; with the marker, no line; as a non-seat committer, no line. Before the change none of the three prints it, which is the failing half. Landed at 58883ed5 by manager-microscope-office-20261016-1. Its fixture lives in seat_commit_fixtures.py rather than history_fixtures.py, and runs the hook's own marked block. No history replay was run. The building seat's reason is that the change refuses nothing, so it cannot have refused accepted work. That holds by construction, and it is recorded here as the reason and not as a replay."
+}

@@ -1,0 +1,86 @@
+{
+  "artifact": "harness_proposal",
+  "schema_version": "0.1",
+  "id": "HP-007",
+  "title": "Judge a committed example's validity window by the instant it declares, not by the wall clock",
+  "drafted_by": "harness-office-20261016-1",
+  "drafted_on": "2026-10-17",
+  "kind": "loosen",
+  "class": "fixture-verdict-turns-on-live-state",
+  "answers": [
+    "INC-20261017-01"
+  ],
+  "classification": {
+    "members_found": [
+      "INC-20261015-06",
+      "INC-20261017-01"
+    ],
+    "looked_in": [
+      "every dated string in contracts/examples/**/*.json and *.jsonl at 2026-10-17T01:15Z: three valid_until fields, all 2026-10-17T00:00:00Z (scope_approval.json and two rejected fixtures, both voided), and no other validity date later than now",
+      "every scope_approval card in the tree outside the imported autofocus subtree: the same three, none in an agent's approvals/",
+      "contracts/validate.py for datetime.now, utcnow, time.time and date.today: one use, check 19",
+      "the 2026-10-15 check 88 fixture fix, f2897ea5, the same class driven by a commit instead of the clock"
+    ]
+  },
+  "changes": [
+    {
+      "path": "contracts/validate.py",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "Check 19, for cards under contracts/examples/ only, including the rejected fixtures: compare valid_until with the instant the card itself declares as its 'now'. The building seat names the field; approved_at is the fallback when it is absent, so every existing example is judged at the moment it describes. Everywhere else, which today means a real scope_approval in an agent's approvals/, check 19 keeps the wall clock exactly as now."
+    },
+    {
+      "path": "contracts/schemas/scope_approval.schema.json",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "If a new field carries the declared instant, it is optional, documented as meaningful only under contracts/examples/, and a real card carrying it is refused, so a live permit cannot use it to stop its own clock."
+    },
+    {
+      "path": "contracts/examples/scope_approval.json",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "Once the check change is in, the void added on 2026-10-17 can be taken back, so the one valid example is again a live permit and check 19's 'live and within caps' path is exercised by a committed card. Whether to do that is the building seat's call."
+    },
+    {
+      "path": "contracts/examples/rejected/",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "An expired-not-voided fixture declares an instant after its valid_until, so it stays rejected forever whatever the date. Plus one fixture, rejected, for a real-path card that carries the declared-instant field."
+    }
+  ],
+  "touches_core": [],
+  "needs_threshold": false,
+  "proof": {
+    "fixtures": [
+      {
+        "path": "contracts/examples/scope_approval.json, un-voided",
+        "reproduces": "INC-20261017-01",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      },
+      {
+        "path": "the expired-not-voided fixture with a declared instant after its valid_until",
+        "reproduces": "the expiry refusal kept for an example that is expired at its own instant",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      }
+    ],
+    "replay": {
+      "range": null,
+      "new_fail_on_accepted": null,
+      "run_line": null
+    },
+    "equivalence": null
+  },
+  "reach": {
+    "already_running": [
+      "every seat: the validator is read on every run, so the change reaches each seat's next commit without a restart"
+    ],
+    "how_they_learn": "Nothing to learn for a seat writing real permits: their clock is unchanged. A seat writing an example learns from the schema's description of the field and from check 19's message.",
+    "use_site": "check 19"
+  },
+  "revert": "git revert <landing commit>; if the example's void was taken back in the same commit, the revert restores it too",
+  "notes": "The person chose this over a warning with a horizon, in this seat's window on 2026-10-17 (UTC), after both were put to them in plain words. It is a loosening under 8.3 rule 1: check 19's expiry refusal is lifted for examples judged at an instant they declare. Rule 1 asks that the person's word be said in the owner seat's window. This one was said in the harness seat's window, so the person has been asked to say it again in the window of the seat that lands this. That seat should not land it on this quote alone. What it removes is the class's time half, for examples: no committed example can go red on its own. It does not touch real permits, whose clock is the point of check 19. It does not touch the commit-driven half either, which f2897ea5 closed for envelopes. A sweep for other live inputs a fixture's verdict can read, such as the store version or the seat registry, is still open. The void the building seat added today is the right fix for today, because it opens the gate at once, and this proposal does not compete with it. On 2026-10-17, told that the word must be said in the owner seat's window, the person said in this seat's window: \"너가 직접 전달해\" (you deliver it directly). This seat relayed both quotes to manager-microscope-office-20261016-1 and left to that seat whether a relayed word, given at the person's own instruction, meets rule 1.",
+  "person_word": {
+    "quote": "예시 파일은 실제 시계 대신 파일에 적힌 기준 시각으로 판정하는 방식을 허락한다.",
+    "said_in_window_of": "harness-office-20261016-1",
+    "on": "2026-10-17",
+    "recorded_in": "this proposal; the harness seat's session, where the person was offered this option and a horizon-based warning, and chose this one"
+  }
+}
