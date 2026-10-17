@@ -638,7 +638,24 @@ def commit(git: Git, args, row: dict, reg: dict, boundary_of, rec: Record) -> st
                 if d != args.confirm:
                     raise Refused(f"the digest of these paths is now {d}, not {args.confirm}: something "
                                   "changed while waiting. Nothing was committed; look again")
-            run_gate(git, priv, msgfile, rec)
+            try:
+                run_gate(git, priv, msgfile, rec)
+            except Refused:
+                # The gate compares this tree with HEAD as it is when it
+                # runs, so a commit that landed meanwhile shows up as this
+                # seat removing that commit's work -- check 41 refused
+                # plan.md twice on 2026-10-17 that way. That verdict is on the
+                # wrong pair of trees, so it is a moved HEAD, not a refusal.
+                if git.rev("HEAD") == base:
+                    raise
+                attempt += 1
+                rec.row["retries"]["head_moved"] += 1
+                if attempt > args.retries:
+                    raise Refused(f"HEAD moved under the gate {attempt} times; nothing was committed")
+                say(f"seat_commit: the gate refused, and HEAD moved to {git.rev('HEAD')[:9]} while it ran, so "
+                    f"it judged a tree built on {base[:9]} against a newer HEAD. Not a verdict: rebuilt on the "
+                    "new HEAD and judged again")
+                continue
             tree = git.out("write-tree", env=priv.env)
             sign = ["-S"] if git.out("config", "--bool", "--default", "false", "commit.gpgsign") == "true" else []
             new = git.out("commit-tree", tree, "-p", base, *sign, "-F", msgfile)

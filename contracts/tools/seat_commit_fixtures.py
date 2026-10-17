@@ -78,6 +78,17 @@ if [ -f .git/fixture-move-head-once ]; then
     rm -f "$I"
     echo "pre-commit: (fixture) another seat moved HEAD to $C"
 fi
+# And judge the way check 41 --staged does, against HEAD as it is NOW: a
+# staged path the commit did not mean is refused. After HEAD moves under the
+# gate, a tree built on the old HEAD shows the other seat's file as removed.
+if [ -f .git/fixture-gate-refuses ]; then
+    echo "  check 13 FAIL      a refusal on its merits, with HEAD where it was"
+    exit 1
+fi
+if [ -f .git/fixture-gate-judges-head ] && git diff --cached --name-only | grep -q other.json; then
+    echo "  check 41 FAIL      this path is another seat's [microscope_agent/questions/q/other.json]"
+    exit 1
+fi
 exit 0
 """
 
@@ -633,6 +644,44 @@ def tool_head_moves_in_gate(repo: Path) -> tuple:
             f"changes are in (exit {code}, rebuilt {rec.get('retries', {}).get('head_moved')} time)")
 
 
+def naive_gate_refuses_a_moved_head(repo: Path) -> tuple:
+    """2026-10-17, twice in a row: a plan.md commit landed while the gate ran,
+    and check 41 -- which compares the tree being committed with HEAD as it
+    is then -- refused plan.md as this seat's. The verdict was on the wrong
+    pair of trees, and it reads as the commit's own fault."""
+    head = out(repo, "rev-parse", "HEAD")
+    write(repo, CARD, card("MINE"))
+    for m in ("fixture-move-head-once", "fixture-gate-judges-head"):
+        (repo / ".git" / m).write_bytes(b"")
+    r = git(repo, "commit", "-F", message(repo), "--", CARD, env=env_for(FIX), check=False)
+    said = r.stdout.decode("utf-8", "replace")
+    mine_in = "MINE" in (blob(repo, "HEAD", CARD) or "")
+    return (r.returncode != 0 and "other.json" in said and not mine_in and out(repo, "rev-parse", "HEAD") != head,
+            "refused for another seat's path that landed while the gate ran, and the commit was not made")
+
+
+def tool_gate_refuses_a_moved_head(repo: Path) -> tuple:
+    write(repo, CARD, card("MINE"))
+    patch = save_diff(repo, CARD)
+    for m in ("fixture-move-head-once", "fixture-gate-judges-head"):
+        (repo / ".git" / m).write_bytes(b"")
+    code, said = tool(repo, "--seat", FIX, "-F", message(repo), "--patch", str(patch))
+    rec = last_record(repo)
+    kept = blob(repo, "HEAD", "microscope_agent/questions/q/other.json") is not None
+    mine = "MINE" in (blob(repo, "HEAD", CARD) or "")
+    if not (code == 0 and kept and mine and rec.get("retries", {}).get("head_moved") == 1):
+        return False, f"exit {code}, rebuilt {rec.get('retries', {}).get('head_moved')} times: {said[-300:]}"
+    # And a refusal on its merits, with HEAD where it was, stays a refusal.
+    (repo / ".git" / "fixture-gate-refuses").write_bytes(b"")
+    write(repo, CARD, card("MINE", "AGAIN"))
+    patch = save_diff(repo, CARD)
+    code, said = tool(repo, "--seat", FIX, "-F", message(repo), "--patch", str(patch))
+    rec = last_record(repo)
+    return (code == 1 and "the gate refused this tree" in said and rec.get("retries", {}).get("head_moved") == 0,
+            f"the refusal of a tree judged against a moved HEAD was not taken as a verdict: rebuilt on the new "
+            f"HEAD, judged again, committed; a refusal with HEAD in place stayed one, with no rebuild (exit {code})")
+
+
 def naive_stale_index(repo: Path) -> tuple:
     """2026-10-15: a commit from a private index moves HEAD and not .git/index,
     so `git diff --cached` shows the inverse of what was just committed, and
@@ -787,6 +836,8 @@ FIXTURES = [
     # Beyond the specification's list, for what the tool also claims.
     ("a push that carries other seats' commits", "others", naive_publishes_others, tool_publishes_others),
     ("HEAD moving while the gate runs", "gate", naive_head_moves_in_gate, tool_head_moves_in_gate),
+    ("a gate refusal caused by HEAD moving under it", "moved", naive_gate_refuses_a_moved_head,
+     tool_gate_refuses_a_moved_head),
     ("the shared index left stale by a private-index commit", "index", naive_stale_index, tool_stale_index),
     ("another push reaching the remote first", "race", naive_push_race, tool_push_race),
     # HP-006 (2026-10-17): not a defect the tool prevents but one the gate reports.
