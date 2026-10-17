@@ -360,6 +360,10 @@
             "triggered_by"
           ],
           "additionalProperties": false
+        },
+        "watcher": {
+          "type": "object",
+          "description": "The run-time watcher's payload (plan.md 13.4, shadow mode; added 2026-10-17 by manager-microscope-20261003-1). Carried only by the five watcher_* events, each with its own shape below. A WATCHER EVENT IS NEVER A COMMAND: none carries channel, action, params or verification, so nothing reads one as a command (check 14). Its probabilities are SIGNALS, ungraded, and never enter numbers[] (13.1 item 2: a model's number is E6). No threshold turns an answer into an action, and there is no would-have-done field, because no threshold is chosen (11-2)."
         }
       },
       "required": [
@@ -407,8 +411,596 @@
               "channel"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "enum": [
+                  "watcher_started",
+                  "watcher_off",
+                  "watcher_state",
+                  "watcher_flag",
+                  "watcher_unanswered"
+                ]
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "required": [
+              "watcher"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "channel"
+                  ]
+                },
+                {
+                  "required": [
+                    "action"
+                  ]
+                },
+                {
+                  "required": [
+                    "params"
+                  ]
+                },
+                {
+                  "required": [
+                    "verification"
+                  ]
+                },
+                {
+                  "required": [
+                    "deletion"
+                  ]
+                }
+              ]
+            }
+          },
+          "$comment": "a watcher event is never a command (plan.md 13.4 item 6)"
+        },
+        {
+          "if": {
+            "required": [
+              "watcher"
+            ]
+          },
+          "then": {
+            "properties": {
+              "event": {
+                "enum": [
+                  "watcher_started",
+                  "watcher_off",
+                  "watcher_state",
+                  "watcher_flag",
+                  "watcher_unanswered"
+                ]
+              }
+            },
+            "required": [
+              "event"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "watcher_started"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "properties": {
+              "watcher": {
+                "$ref": "#/$defs/watcher_started"
+              },
+              "from": {
+                "const": "watcher"
+              }
+            },
+            "required": [
+              "from"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "watcher_off"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "properties": {
+              "watcher": {
+                "$ref": "#/$defs/watcher_off"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "watcher_state"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "properties": {
+              "watcher": {
+                "$ref": "#/$defs/watcher_state"
+              },
+              "from": {
+                "const": "watcher"
+              }
+            },
+            "required": [
+              "from"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "watcher_flag"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "properties": {
+              "watcher": {
+                "$ref": "#/$defs/watcher_flag"
+              },
+              "from": {
+                "const": "watcher"
+              }
+            },
+            "required": [
+              "from"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "watcher_unanswered"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "properties": {
+              "watcher": {
+                "$ref": "#/$defs/watcher_unanswered"
+              },
+              "from": {
+                "const": "watcher"
+              }
+            },
+            "required": [
+              "from"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "snapshot"
+              },
+              "label": {
+                "const": "watcher"
+              }
+            },
+            "required": [
+              "event",
+              "label"
+            ]
+          },
+          "then": {
+            "required": [
+              "states"
+            ]
+          },
+          "$comment": "a watcher-labelled snapshot is read() on every channel this run opened, recorded for every reader; a channel not read at that tick says why inside states, never its last value"
         }
       ]
+    },
+    "watcher_started": {
+      "type": "object",
+      "properties": {
+        "backend": {
+          "type": "object",
+          "description": "who answered. kind none asks nobody; test_double is a deterministic stand-in for mock runs, NOT A MODEL, and says so in every event it produces; model is a chosen model, which does not exist until the person chooses one (plan.md 11-27 (b))",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "kind": {
+              "enum": [
+                "none",
+                "test_double",
+                "model"
+              ]
+            }
+          },
+          "required": [
+            "name",
+            "version",
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        "renderer_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "string"
+          },
+          "description": "the plan's option ids, in the plan's order"
+        },
+        "cadence_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "question_budget_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "backend",
+        "renderer_version",
+        "options",
+        "cadence_s",
+        "question_budget_s"
+      ],
+      "additionalProperties": false
+    },
+    "watcher_off": {
+      "type": "object",
+      "properties": {
+        "why": {
+          "enum": [
+            "plan_declares_no_watcher",
+            "did_not_start"
+          ]
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 3
+        }
+      },
+      "required": [
+        "why"
+      ],
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "why": {
+            "const": "did_not_start"
+          }
+        },
+        "required": [
+          "why"
+        ]
+      },
+      "then": {
+        "required": [
+          "detail"
+        ]
+      }
+    },
+    "watcher_state": {
+      "type": "object",
+      "properties": {
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "frame_index": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "frame_t_mono": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "snapshot_t_mono": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "the t_mono of the watcher-labelled snapshot event this state rendered; null before the first one, and then the hardware side is rendered absent"
+        },
+        "image": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": [
+                  "number",
+                  "integer",
+                  "null"
+                ]
+              },
+              "unit": {
+                "type": "string"
+              },
+              "method": {
+                "type": "string"
+              },
+              "arguments": {
+                "type": "object"
+              },
+              "frame_index": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "absent_because": {
+                "type": "string",
+                "minLength": 3
+              }
+            },
+            "required": [
+              "value",
+              "unit",
+              "method",
+              "arguments",
+              "frame_index"
+            ],
+            "additionalProperties": false,
+            "if": {
+              "properties": {
+                "value": {
+                  "type": "null"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "absent_because"
+              ]
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "absent_because"
+                ]
+              }
+            }
+          },
+          "description": "each image-side value by name, with its unit, method and arguments and the frame it came from; a value with no input is null with absent_because, never zero"
+        },
+        "state_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "state_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the rendered text, kept whole in the run folder, so the bytes replay from the records"
+        },
+        "renderer_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "asked": {
+          "type": "boolean",
+          "description": "whether this state was put to the backend; false when one question was still in flight, or the backend is none"
+        },
+        "skipped_so_far": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "seq",
+        "frame_index",
+        "frame_t_mono",
+        "snapshot_t_mono",
+        "image",
+        "state_sha256",
+        "state_path",
+        "renderer_version",
+        "asked",
+        "skipped_so_far"
+      ],
+      "additionalProperties": false
+    },
+    "watcher_flag": {
+      "type": "object",
+      "properties": {
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "state_seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "state_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "asked_t_mono": {
+          "type": "number"
+        },
+        "answered_t_mono": {
+          "type": "number"
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "string"
+          },
+          "description": "the options as put to the backend, in that order"
+        },
+        "signals": {
+          "type": "object",
+          "description": "what the backend returned, ungraded. Not numbers[]: a model's probability is E6 and may enter no card",
+          "properties": {
+            "probabilities": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "choice": {
+              "type": "string"
+            },
+            "confidence": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "probabilities",
+            "choice",
+            "confidence"
+          ],
+          "additionalProperties": false
+        },
+        "backend": {
+          "type": "object",
+          "description": "who answered. kind none asks nobody; test_double is a deterministic stand-in for mock runs, NOT A MODEL, and says so in every event it produces; model is a chosen model, which does not exist until the person chooses one (plan.md 11-27 (b))",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "kind": {
+              "enum": [
+                "none",
+                "test_double",
+                "model"
+              ]
+            }
+          },
+          "required": [
+            "name",
+            "version",
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        "renderer_version": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "seq",
+        "state_seq",
+        "state_sha256",
+        "asked_t_mono",
+        "answered_t_mono",
+        "options",
+        "signals",
+        "backend",
+        "renderer_version"
+      ],
+      "additionalProperties": false
+    },
+    "watcher_unanswered": {
+      "type": "object",
+      "properties": {
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "state_seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "state_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "asked_t_mono": {
+          "type": "number"
+        },
+        "why": {
+          "enum": [
+            "time_budget",
+            "backend_failed",
+            "run_ended"
+          ]
+        },
+        "detail": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "seq",
+        "state_seq",
+        "state_sha256",
+        "asked_t_mono",
+        "why"
+      ],
+      "additionalProperties": false
     }
   },
   "allOf": [

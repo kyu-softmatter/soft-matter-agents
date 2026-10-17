@@ -1202,6 +1202,218 @@
         "steps"
       ],
       "additionalProperties": false
+    },
+    "watcher": {
+      "type": "object",
+      "description": "The RUN-TIME WATCHER, in shadow mode (plan.md 13.4, settled by the person on 2026-10-17; added by manager-microscope-20261003-1). A plan that wants its run watched declares this block, and the person's approval covers it. THE WATCHER RECORDS AND NEVER ACTS: no field here names an action, a threshold or a stop, and no code path runs from an answer to the stop channel or to a prompt for the person until plan.md 13.4 records the person's decision on a threshold. Every number here is a METHOD CHOICE, the plan's own, with no source and no grade, as focus_search's max_moves and metric_arguments carry none; the one fact about the world, the camera ceiling, is named exactly as focus_search names it. NO FIELD HAS A DEFAULT, in this schema or in code: a run whose plan lacks one does not guess it. WHICH BACKEND ANSWERS IS NOT HERE. It is a run argument (--backend), because in shadow mode it changes nothing the approval covers, and the record says which one answered.",
+      "properties": {
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "description": "The answers a backend may give, IN ORDER; the order is recorded with every question. as_planned and unsure are in every list. Every other option names, in `about`, the rendered value it is about, so a flag has a deterministic route to a claim in deviations.json. The first list is plan.md 13.1's: as_planned, particles_lost, drifting, focus_lost, unsure. NO CODE HOLDS A DEFAULT LIST, and a model adds no option: the list grows by plan. Ids are unique.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "about": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "description": "the name of the rendered value this option is about, e.g. particle_count, drift_px, focus_score"
+              }
+            },
+            "required": [
+              "id"
+            ],
+            "additionalProperties": false,
+            "if": {
+              "properties": {
+                "id": {
+                  "enum": [
+                    "as_planned",
+                    "unsure"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "about"
+                ]
+              }
+            },
+            "else": {
+              "required": [
+                "about"
+              ]
+            }
+          },
+          "allOf": [
+            {
+              "contains": {
+                "properties": {
+                  "id": {
+                    "const": "as_planned"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            {
+              "contains": {
+                "properties": {
+                  "id": {
+                    "const": "unsure"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          ]
+        },
+        "cadence_s": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "seconds between two watcher ticks: one hardware snapshot, one rendered state, at most one question. The person approves it with the plan; plan.md names no number and the code holds no default"
+        },
+        "question_budget_s": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "the longest a question may wait for an answer. Past it the question is recorded as watcher_unanswered, why time_budget, and the run never waits on it"
+        },
+        "image": {
+          "type": "object",
+          "description": "the image side of the state, with every argument the renderer needs and none it may assume",
+          "properties": {
+            "frame_stats": {
+              "type": "object",
+              "description": "the arguments of the copied focus_classical.frame_stats; every statistic it returns is rendered",
+              "properties": {
+                "metric": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "bin_px": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "camera_ceiling": {
+                  "type": "object",
+                  "description": "the camera's full-scale count for the readout mode the run uses, in ADU, which frame_stats needs for the saturated fraction. Named exactly as focus_search names it: `number`, an entry in this card's numbers[] whose source is kb:, or `gap`, the gap_id of an entry in kb_gaps. A gap is never a default: with a gap the saturated fraction is rendered absent, never computed against an assumed count",
+                  "properties": {
+                    "number": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "gap": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    }
+                  },
+                  "oneOf": [
+                    {
+                      "required": [
+                        "number"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "gap"
+                      ]
+                    }
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "metric",
+                "bin_px",
+                "camera_ceiling"
+              ],
+              "additionalProperties": false
+            },
+            "intensity": {
+              "type": "object",
+              "description": "WHOLE-FRAME intensity, normalised to the SETTLED level: never read through a mask fixed at frame 0, and never normalised to frame 0 (the 2026-09-24 photostability lesson in microscope_agent/CLAUDE.md: a source sits about 3.5% low for its first seconds)",
+              "properties": {
+                "settle_after_s": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "seconds after the run's last light-source command whose read-back matched; the whole-frame total from then on is the level, and before it normalised intensity is rendered absent, labelled settling"
+                }
+              },
+              "required": [
+                "settle_after_s"
+              ],
+              "additionalProperties": false
+            },
+            "drift": {
+              "type": "object",
+              "description": "drift as a whole-frame shift against a reference frame",
+              "properties": {
+                "reference_frame": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "the frame index the shift is measured against"
+                },
+                "method": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "arguments": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "reference_frame",
+                "method",
+                "arguments"
+              ],
+              "additionalProperties": false
+            },
+            "particles": {
+              "type": "object",
+              "description": "the particle count, from a deterministic detector whose every argument is here",
+              "properties": {
+                "detector": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "arguments": {
+                  "type": "object",
+                  "minProperties": 1
+                }
+              },
+              "required": [
+                "detector",
+                "arguments"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "frame_stats",
+            "intensity",
+            "drift",
+            "particles"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "options",
+        "cadence_s",
+        "question_budget_s",
+        "image"
+      ],
+      "additionalProperties": false
     }
   },
   "unevaluatedProperties": false,
