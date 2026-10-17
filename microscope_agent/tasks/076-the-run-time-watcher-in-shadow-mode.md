@@ -9,6 +9,16 @@ If the person seats a different session for this card, card 064 changes
 first. If you are not the seat holding `src/`, take nothing from this card
 and report up.
 
+## Hold: wait for plan.md section 15 (added 2026-10-17)
+
+**Start nothing under this card until plan.md section 15 lands and this card
+is revised to match it.** On 2026-10-17 the person decided, in
+architecture-office-20261017-1's window, to split the microscope execution
+layer and the watcher into a new top-level `microscope_runtime/`, and
+architecture-20261003-1 relayed that section 15 specifies the move. The paths
+this card names under `microscope_agent/src/` and `tests/` are likely to
+change. Nothing in this card has started, so nothing is to be undone.
+
 ## When, and the instrument (added 2026-10-17)
 
 The person set the timing on 2026-10-17, directly in
