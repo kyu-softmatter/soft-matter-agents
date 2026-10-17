@@ -1,0 +1,58 @@
+{
+  "artifact": "harness_retro",
+  "schema_version": "0.1",
+  "seat": "harness-office-20261016-1",
+  "on": "2026-10-17",
+  "trigger": "daily",
+  "tree": "a56c49df plus 5 uncommitted paths [dirty 106da661], which is nobody's commit -- the run with this pass's records in place, before this field and the next were filled",
+  "verdict": "verdict: 223 passed, 0 failed, 11 undecided, 110 pending, 1 lost, 8 not applicable",
+  "observed": [
+    {
+      "source": "the commit tool's record",
+      "path": ".git/sma-seat-commit.jsonl (outside every tree)",
+      "window": "2026-10-17T17:00Z to 19:05Z",
+      "found": "Ten commits through the tool in the window. Two patch commits were refused by the gate while HEAD moved under it (18:09:31Z, 18:21:41Z), and the tool now rebuilds in that case (275cabd4, INC-20261017-03). Two later commits rebuilt on a moved HEAD and landed (5ba4e889, a8dd63a7). One push found its commit already on origin and reported 'already-published' (18:14:31Z): the misreport of 2026-10-16 did not recur."
+    },
+    {
+      "source": "commits that change what a seat may do",
+      "path": "microscope_agent/.claude/settings.json",
+      "window": "5ba4e889",
+      "found": "A loosening outside the harness folder, landed on the person's word by manager-microscope-office-20261016-1: the plan.md deny lines now name only the repository's plan.md, so the imported autofocus/docs/PLAN.md can be translated. Listed here so that the day's report carries every loosening, not just the harness's own."
+    }
+  ],
+  "new_incidents": [
+    "INC-20261017-03"
+  ],
+  "measured": [
+    {
+      "class": "outcome-reported-not-read-back",
+      "since": "55c17fee",
+      "recurrences": 0,
+      "method": "push lines in the tool's log after 55c17fee whose commit was already on origin: one, outcome already-published, reported correctly"
+    },
+    {
+      "class": "head-moves-between-read-and-write",
+      "since": "275cabd4",
+      "recurrences": 0,
+      "method": "patch or whole-path lines in the tool's log after 275cabd4 with outcome refused while HEAD moved: none yet; the fix is the last commit in the window, so this is a baseline"
+    }
+  ],
+  "proposals": [
+    {
+      "id": "HP-007",
+      "this_pass": "Landed at a56c49df, a loosening, on the person's word in the owner seat's window. Revert: git revert a56c49df."
+    }
+  ],
+  "landed_today": [
+    {
+      "proposal": "HP-007",
+      "kind": "loosen",
+      "commit": "a56c49df",
+      "revert_command": "git revert a56c49df"
+    }
+  ],
+  "next": [
+    "Write proposals/HP-001.json to HP-004.json from plan.md 8.3, so HP-001's landing at f7d1c836 can be entered in the ledger.",
+    "Count commits around the tool after 58883ed5."
+  ]
+}

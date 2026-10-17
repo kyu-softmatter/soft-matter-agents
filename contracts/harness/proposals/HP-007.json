@@ -49,22 +49,28 @@
   "proof": {
     "fixtures": [
       {
-        "path": "contracts/examples/scope_approval.json, un-voided",
+        "path": "contracts/examples/scope_approval.json, un-voided, declaring its approved_at",
         "reproduces": "INC-20261017-01",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "refused by check 19 by the wall clock before the change (reported by manager-microscope-office-20261016-1)",
+        "watched_passing_after": "accepted at a56c49df, judged at the instant it declares (reported by manager-microscope-office-20261016-1)"
       },
       {
-        "path": "the expired-not-voided fixture with a declared instant after its valid_until",
-        "reproduces": "the expiry refusal kept for an example that is expired at its own instant",
+        "path": "contracts/examples/rejected/bad_scope_expired_not_voided.json, declaring 2026-09-19",
+        "reproduces": "the expiry refusal kept for an example expired at its own instant",
         "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_passing_after": "rejected at a56c49df (reported by manager-microscope-office-20261016-1)"
+      },
+      {
+        "path": "contracts/history_fixtures.py, two rows for the real-permit side",
+        "reproduces": "a real permit still judged by the wall clock, and the field refused outside contracts/examples/",
+        "watched_failing_before": "four mutations each turned the set red (reported by manager-microscope-office-20261016-1)",
+        "watched_passing_after": "a56c49df"
       }
     ],
     "replay": {
-      "range": null,
-      "new_fail_on_accepted": null,
-      "run_line": null
+      "range": "every scope_approval blob in history, 5 of them",
+      "new_fail_on_accepted": 0,
+      "run_line": "reported by manager-microscope-office-20261016-1; no real permit has ever existed in an approvals/ folder"
     },
     "equivalence": null
   },
@@ -76,11 +82,11 @@
     "use_site": "check 19"
   },
   "revert": "git revert <landing commit>; if the example's void was taken back in the same commit, the revert restores it too",
-  "notes": "The person chose this over a warning with a horizon, in this seat's window on 2026-10-17 (UTC), after both were put to them in plain words. It is a loosening under 8.3 rule 1: check 19's expiry refusal is lifted for examples judged at an instant they declare. Rule 1 asks that the person's word be said in the owner seat's window. This one was said in the harness seat's window, so the person has been asked to say it again in the window of the seat that lands this. That seat should not land it on this quote alone. What it removes is the class's time half, for examples: no committed example can go red on its own. It does not touch real permits, whose clock is the point of check 19. It does not touch the commit-driven half either, which f2897ea5 closed for envelopes. A sweep for other live inputs a fixture's verdict can read, such as the store version or the seat registry, is still open. The void the building seat added today is the right fix for today, because it opens the gate at once, and this proposal does not compete with it. On 2026-10-17, told that the word must be said in the owner seat's window, the person said in this seat's window: \"너가 직접 전달해\" (you deliver it directly). This seat relayed both quotes to manager-microscope-office-20261016-1 and left to that seat whether a relayed word, given at the person's own instruction, meets rule 1.",
+  "notes": "The person chose this over a warning with a horizon, in this seat's window on 2026-10-17 (UTC), after both were put to them in plain words. It is a loosening under 8.3 rule 1: check 19's expiry refusal is lifted for examples judged at an instant they declare. Rule 1 asks that the person's word be said in the owner seat's window. This one was said in the harness seat's window, so the person has been asked to say it again in the window of the seat that lands this. That seat should not land it on this quote alone. What it removes is the class's time half, for examples: no committed example can go red on its own. It does not touch real permits, whose clock is the point of check 19. It does not touch the commit-driven half either, which f2897ea5 closed for envelopes. A sweep for other live inputs a fixture's verdict can read, such as the store version or the seat registry, is still open. The void the building seat added today is the right fix for today, because it opens the gate at once, and this proposal does not compete with it. On 2026-10-17, told that the word must be said in the owner seat's window, the person said in this seat's window: \"너가 직접 전달해\" (you deliver it directly). This seat relayed both quotes to manager-microscope-office-20261016-1 and left to that seat whether a relayed word, given at the person's own instruction, meets rule 1. Landed at a56c49df on the person's word said in the owner seat's window, quoted above. The field is example_judged_at; without it an example is judged at its approved_at.",
   "person_word": {
-    "quote": "예시 파일은 실제 시계 대신 파일에 적힌 기준 시각으로 판정하는 방식을 허락한다.",
-    "said_in_window_of": "harness-office-20261016-1",
+    "quote": "예시 파일은 실제 시계 대신 파일에 적힌 기준 시각으로 판정하는 방식을 허락한다. 실제 허가는 지금처럼 실제 시계로 판정한다.",
+    "said_in_window_of": "manager-microscope-office-20261016-1",
     "on": "2026-10-17",
-    "recorded_in": "this proposal; the harness seat's session, where the person was offered this option and a horizon-based warning, and chose this one"
+    "recorded_in": "a56c49df's commit message, verbatim; the first sentence was said earlier in harness-office-20261016-1's window and relayed at the person's request, and that relay was not acted on"
   }
 }
