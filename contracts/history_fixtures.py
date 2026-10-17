@@ -868,6 +868,51 @@ def fixture_89_a_harness_log_line_rewritten(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def _real_permit(repo: Path, extra: dict, message: str) -> str:
+    """A scope approval in an agent's approvals/, where real permits live.
+
+    Here because a rejected card cannot be one: every file under
+    contracts/examples/ is an example to check 19 now, so a fixture for how a
+    REAL permit is judged has to be a tree with one outside that folder.
+    """
+    start = base(repo)
+    card = {"card": "scope_approval", "schema_version": "0.1", "id": "scope-fixture-real-permit",
+            "qid": "mic-20260917-001", "thread": "solo-mic-20260917-001", "round": 0, "revision": 1,
+            "author": "human", "created_at": "2026-09-17T09:05:00Z", "status": "APPROVED",
+            "agent": "microscope_agent", "config": "brightfield",
+            "range": [{"parameter": "exposure_time", "unit": "s", "max": 0.05, "basis": ["exposure_time_max"]}],
+            "devices": ["camera1"], "max_runs": 20, "runs_used": 1, "max_grade": "E3", "voided": None,
+            "approved_by": "kyuhwan", "approved_at": "2026-09-17T09:05:00Z",
+            "numbers": [{"name": "exposure_time_max", "value": 0.05, "unit": "s", "source": "assumed:a_exp",
+                         "grade": "E5", "precision": "order_of_magnitude"}],
+            "assumptions": [{"rationale_id": "a_exp", "statement": "fixture", "numbers": ["exposure_time_max"],
+                             "falsifier": "fixture"}],
+            "kb_refs": [], "degraded": ["librarian_agent"]}
+    card.update(extra)
+    write(repo, "microscope_agent/approvals/scope-fixture-real-permit.json", card)
+    commit(repo, message, "microscope_agent", seat="microscope-1")
+    return f"{start}..HEAD"
+
+
+def fixture_19_a_real_permit_declaring_an_example_instant(repo: Path) -> str:
+    """HP-007 (2026-10-17) lets an example under contracts/examples/ choose the
+    instant it is judged at. A real permit that could do the same would have
+    no clock at all, so the field on one is refused -- with a window that is
+    still open by the wall clock, so nothing but the field can fail it."""
+    return _real_permit(repo, {"valid_until": "2099-01-01T00:00:00Z",
+                               "example_judged_at": "2026-09-17T09:05:00Z"},
+                        "a real permit that declares the instant it is judged at")
+
+
+def fixture_19_a_real_permit_is_judged_by_the_wall_clock(repo: Path) -> str:
+    """The other side of HP-007: a real permit whose window has closed is still
+    refused, although its approved_at -- an example's fallback instant -- lies
+    inside the window. A check that judged every card the example's way would
+    pass this one."""
+    return _real_permit(repo, {"valid_until": "2026-09-18T00:00:00Z"},
+                        "a real permit whose window closed by the clock")
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -920,6 +965,13 @@ FIXTURES = [
      fixture_87_guides_regenerated_before_the_publish),
     (89, "FAIL", "rewrote lines its parent held; this log is append-only",
      fixture_89_a_harness_log_line_rewritten),
+    # HP-007: an example is judged at its own instant, a real permit by the
+    # clock. Matched on the path as well, so the example files every built
+    # repository carries cannot satisfy either row.
+    (19, "FAIL", "is for committed examples under contracts/examples/ only; a real permit is judged by the wall "
+                 "clock [microscope_agent/approvals/", fixture_19_a_real_permit_declaring_an_example_instant),
+    (19, "FAIL", "(the wall clock), but is not marked voided [microscope_agent/approvals/",
+     fixture_19_a_real_permit_is_judged_by_the_wall_clock),
 ]
 
 

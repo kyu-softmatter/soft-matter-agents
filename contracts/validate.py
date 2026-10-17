@@ -2190,18 +2190,47 @@ def check_19_scope_validity(b: Bundle) -> list[Finding]:
         return [Finding(19, NA, "no scope_approval cards")]
     out: list[Finding] = []
     now = datetime.now(timezone.utc)
+
+    def instant(value) -> datetime:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+
     for c in scopes:
+        # A committed example is judged at the instant it declares, and a real
+        # permit by the wall clock (HP-007, the person's word on 2026-10-17).
+        # The clock is the point of this check for a permit and no point at
+        # all for an example: at 2026-10-17T00:00:00Z the example's window
+        # closed and every commit in the working copy was refused until a
+        # manager voided it. So `example_judged_at`, or failing that the
+        # example's own approved_at, stands in for now under contracts/examples/
+        # -- the rejected fixtures included -- and nowhere else. The field on a
+        # real permit is refused before anything else, voided or not: a permit
+        # that could choose its own clock would have none.
+        example = c.rel.startswith("contracts/examples/")
+        declared = c.data.get("example_judged_at")
+        if declared is not None and not example:
+            out.append(Finding(19, FAIL, "example_judged_at is for committed examples under contracts/examples/ "
+                                         "only; a real permit is judged by the wall clock", c.rel))
+            continue
         voided = c.data.get("voided")
         if voided:
             out.append(Finding(19, PASS, f"voided on {voided.get('reason')}; may not be used again", c.rel))
             continue
         try:
-            until = datetime.fromisoformat(str(c.data["valid_until"]).replace("Z", "+00:00"))
+            until = instant(c.data["valid_until"])
         except (KeyError, ValueError):
             out.append(Finding(19, FAIL, "valid_until is not a parsable timestamp", c.rel))
             continue
-        if until < now:
-            out.append(Finding(19, FAIL, f"expired at {until.isoformat()} but is not marked voided", c.rel))
+        at, said = now, "the wall clock"
+        if example and (declared or c.data.get("approved_at")):
+            try:
+                at = instant(declared or c.data.get("approved_at"))
+            except ValueError:
+                out.append(Finding(19, FAIL, "example_judged_at or approved_at is not a parsable timestamp", c.rel))
+                continue
+            said = "the instant this example declares" if declared else "this example's approved_at"
+        if until < at:
+            out.append(Finding(19, FAIL, f"expired at {until.isoformat()}, judged at {at.isoformat()} "
+                                         f"({said}), but is not marked voided", c.rel))
         if c.data.get("runs_used", 0) > c.data.get("max_runs", 0):
             out.append(Finding(19, FAIL, "runs_used exceeds max_runs but is not marked voided", c.rel))
     return out or [Finding(19, PASS, f"{len(scopes)} scope approvals are live and within their caps")]

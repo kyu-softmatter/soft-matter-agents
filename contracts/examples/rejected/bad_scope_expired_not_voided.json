@@ -21,9 +21,10 @@
   "calibration_refs": ["dia_lamp_20260910"],
   "max_grade": "E3",
   "voided": null,
+  "example_judged_at": "2026-09-19T00:00:00Z",
   "approved_by": "kyuhwan",
   "approved_at": "2026-09-17T09:05:00Z",
-  "note": "Rejected fixture: a licence whose window has passed and that is not marked voided must fail check 19. Its date is in the past for good, so this fixture cannot stop failing by the clock -- the opposite of contracts/examples/scope_approval.json, which went red by the clock at 2026-10-17T00:00:00Z and refused every commit until it was voided.",
+  "note": "Rejected fixture: a licence judged after its window closed and not marked voided must fail check 19. An example is judged at the instant it declares (example_judged_at, a day after valid_until here), not by the wall clock, so this fixture is rejected at every moment -- and contracts/examples/scope_approval.json, judged at its own approval, is live at every moment instead of going red by the clock as it did at 2026-10-17T00:00:00Z.",
   "numbers": [
     { "name": "exposure_time_min", "value": 0.001, "unit": "s", "source": "assumed:a_exp_min", "grade": "E5", "precision": "order_of_magnitude" },
     { "name": "exposure_time_max", "value": 0.05, "unit": "s", "source": "assumed:a_exp_max", "grade": "E5", "precision": "order_of_magnitude" }

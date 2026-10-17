@@ -38,6 +38,11 @@
       "format": "date-time",
       "description": "mandatory: no open-ended licence"
     },
+    "example_judged_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "For a committed example under contracts/examples/ only: the instant check 19 judges valid_until against, in place of the wall clock, so an example cannot expire by the clock and refuse every commit, as one did at 2026-10-17T00:00:00Z. Without it an example is judged at its approved_at. A real permit is always judged by the wall clock, and one carrying this field is refused. The person allowed this on 2026-10-17 (HP-007)."
+    },
     "max_runs": {
       "type": "integer",
       "minimum": 1,
