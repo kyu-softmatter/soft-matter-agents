@@ -447,8 +447,8 @@ all 531 paths under `microscope_agent/autofocus/`, the `.cfg` files
 byte-equal to the freeze point under the root `.gitattributes` line, the
 validator `0 failed` at that HEAD because §8 now judges an imported subtree
 as an import and not as this repository's cards; the one ruling line is
-`a8efb12`. The translation card, 074, is open; the Language exception
-below ends when it closes. Read §10.2 and §14 for where it stands; this
+`a8efb12`. The translation card, 074, closed at `4c62924d`;
+the Language exception it held open has ended. Read §10.2 and §14 for where it stands; this
 paragraph will lag them.
 
 Until 2026-09-16 a SessionStart hook injected `~/.claude/knowledge/`, a
@@ -505,17 +505,11 @@ point at the record -- a held thread's `open_question` has to name
   What the two-file arrangement cost is why it ended: a hash bound the pair,
   no generator existed, so every edit to the record was two hand-edits plus a
   recomputed header, and two architecture seats could not hold it at once.
-- **One temporary exception, dated 2026-10-15, with its end written in:**
-  `microscope_agent/autofocus/`, the tree `dino-autofocus` arrives in by
-  subtree (§10.2), carries Korean in 48 text files at the freeze point
-  (3,808 lines, by `git grep -I` for Hangul at `95eee95`; this bullet said
-  49 for an hour, off prose). The
-  person's word, directly to architecture: translate it after the move
-  ("번역해서 들여옴"). So that tree may hold Korean **from the import commit
-  until the translation card closes**, and no longer; new text written in
-  it is English from the first line, and nothing outside it is covered. The
-  translation card is manager-microscope's to write and a microscope seat's
-  to execute. When it closes, this bullet is removed in the same commit.
+- **The one temporary exception has ended (2026-10-17).** `microscope_agent/autofocus/`,
+  imported from `dino-autofocus` with Korean in 48 text files, was translated
+  under card 074, which closed at `4c62924d`. What Korean remains there is the
+  person's own words quoted as said, each glossed in English beside it, the
+  way `plan.md` quotes the person. Everything new is English.
 
 ## Where to look in plan.md
 
