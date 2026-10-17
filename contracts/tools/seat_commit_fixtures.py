@@ -676,6 +676,61 @@ def tool_stale_index(repo: Path) -> tuple:
             f"(exit {code}, clean={clean}, kept={kept}, named={named})")
 
 
+AROUND = "not made through contracts/tools/seat_commit.py"
+
+
+def _hook_with_notice(repo: Path, with_block: bool) -> bool:
+    """The stub gate, plus the real hook's own notice for a seat committing by hand.
+
+    The notice is lifted out of contracts/hooks/pre-commit between its two
+    marker lines, with the hook's own IDENT line, so this runs the hook's
+    text and not a copy of it. `with_block=False` is the hook as it was
+    before HP-006. Returns whether the real hook carries the block at all.
+    """
+    real = (CONTRACTS / "hooks" / "pre-commit").read_text(encoding="utf-8")
+    ident = next((x for x in real.splitlines() if x.startswith("IDENT=$(git var GIT_COMMITTER_IDENT")), "")
+    start, end = "# >>> seat-commit-tool notice", "# <<< seat-commit-tool notice"
+    found = start in real and end in real
+    block = real.split(start, 1)[1].split(end, 1)[0] if found else ""
+    body = STUB_HOOK.rstrip("\n")
+    assert body.endswith("exit 0"), "the stub gate's last line is its exit"
+    body = body[: -len("exit 0")].rstrip("\n")
+    extra = (ident + "\n" + block) if (with_block and found and ident) else ""
+    hook = repo / ".fixture-hooks" / "pre-commit"
+    hook.write_bytes((body + "\n" + extra + "\nexit 0\n").encode("utf-8"))
+    os.chmod(hook, 0o755)
+    return found and bool(ident)
+
+
+def naive_around_the_tool(repo: Path) -> tuple:
+    """INC-20261016-03 and -05: after the tool landed, 2 of the next 9 commits
+    (aa9941d6, 2fcc3bc5) were made by hand, and the gate said nothing about it."""
+    _hook_with_notice(repo, with_block=False)
+    head = out(repo, "rev-parse", "HEAD")
+    write(repo, CARD, card("MINE"))
+    r = git(repo, "commit", "-F", message(repo), "--", CARD, env=env_for(FIX), check=False)
+    said = r.stdout.decode("utf-8", "replace")
+    made = out(repo, "rev-parse", "HEAD") != head
+    return (made and AROUND not in said, "a seat's commit by hand went through, and the gate's output said nothing of it")
+
+
+def tool_around_the_tool(repo: Path) -> tuple:
+    if not _hook_with_notice(repo, with_block=True):
+        return False, "contracts/hooks/pre-commit carries no seat-commit-tool notice block"
+    write(repo, CARD, card("MINE"))
+    r = git(repo, "commit", "-F", message(repo), "--", CARD, env=env_for(FIX), check=False)
+    by_hand = r.stdout.decode("utf-8", "replace")
+    write(repo, CARD, card("MINE", "AGAIN"))
+    patch = save_diff(repo, CARD)
+    code, through = tool(repo, "--seat", FIX, "-F", message(repo), "--patch", str(patch))
+    write(repo, CARD, card("MINE", "AGAIN", "THE PERSON"))
+    r = git(repo, "commit", "-F", message(repo), "--", CARD, check=False)
+    person = r.stdout.decode("utf-8", "replace")
+    ok = AROUND in by_hand and code == 0 and AROUND not in through and AROUND not in person
+    return (ok, f"the hook named the seat's commit by hand, and said nothing for the tool's commit or for the "
+                f"person's (by hand={AROUND in by_hand}, tool={AROUND in through}, person={AROUND in person})")
+
+
 def _race(repo: Path) -> Path:
     """A remote at the base, and one commit of this seat's to push."""
     remote = repo.parent / "remote.git"
@@ -734,6 +789,8 @@ FIXTURES = [
     ("HEAD moving while the gate runs", "gate", naive_head_moves_in_gate, tool_head_moves_in_gate),
     ("the shared index left stale by a private-index commit", "index", naive_stale_index, tool_stale_index),
     ("another push reaching the remote first", "race", naive_push_race, tool_push_race),
+    # HP-006 (2026-10-17): not a defect the tool prevents but one the gate reports.
+    ("a seat committing around the tool", "around", naive_around_the_tool, tool_around_the_tool),
 ]
 
 

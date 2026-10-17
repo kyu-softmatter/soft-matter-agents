@@ -114,6 +114,29 @@ if [ -n "$WT" ] && [ -f "$WT" ]; then
     fi
 fi
 
+# A seat committing by hand, around contracts/tools/seat_commit.py (plan.md
+# 8.3, HP-006, 2026-10-17). The root CLAUDE.md says a commit here is made
+# through the tool, and 2 of the first 9 commits after it landed were not
+# (aa9941d6, 2fcc3bc5) -- counted by the harness seat against the tool's own
+# record, .git/sma-seat-commit.jsonl. The tool sets SMA_SEAT_COMMIT in the
+# environment of the gate it runs, and a commit by hand does not. Reported,
+# never refused, and silent for a committer that is not a seat: the person
+# committing by hand is not who the rule is for. A commit made by
+# commit-tree, as `git subtree add` makes one, runs no hook and is not seen
+# here; the harness seat's count from the record still sees it.
+# The lines between the two markers are what contracts/tools/
+# seat_commit_fixtures.py runs, with the IDENT line above, so keep them
+# self-contained.
+# >>> seat-commit-tool notice
+case "$IDENT" in
+    seat:*)
+        if [ -z "${SMA_SEAT_COMMIT:-}" ]; then
+            echo "            not made through contracts/tools/seat_commit.py, as the root CLAUDE.md asks; reported, not refused"
+        fi
+        ;;
+esac
+# <<< seat-commit-tool notice
+
 # Show what is going in. The hook cannot tell whose work a staged file is --
 # `git add -A` in one session sweeps up another's uncommitted edits, and that is
 # how one commit came to carry three sessions' work under a message describing

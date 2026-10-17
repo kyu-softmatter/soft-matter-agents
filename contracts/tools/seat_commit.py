@@ -92,6 +92,9 @@ DEFAULT_RETRIES = 5
 GATE_TAIL = 30
 # What '@' becomes in a message delivered by session id (root CLAUDE.md, 2026-09-23).
 FULLWIDTH_AT = chr(0xFF20)
+# Set in the gate's environment, so the hook can tell a commit made through
+# this tool from one made by hand and say so of the second (8.3, HP-006).
+MARKER = "SMA_SEAT_COMMIT"
 
 # Asked for by name and refused by name, rather than left to argparse's
 # "unrecognized arguments": a seat reaching for one of these is reaching for
@@ -494,7 +497,9 @@ def run_gate(git: Git, priv: Private, msgfile: str, rec: Record) -> None:
     not installed is said, not hidden -- `git commit` would also commit
     without it, and installing it is a manager's call (root CLAUDE.md).
     """
-    out = git.run("hook", "run", "pre-commit", env=priv.env, check=False, merge=True)
+    env = dict(priv.env)
+    env[MARKER] = "1"
+    out = git.run("hook", "run", "pre-commit", env=env, check=False, merge=True)
     body = text(out.stdout)
     if out.returncode and "cannot find a hook named pre-commit" in body:
         rec.row["gate"] = "not installed"
@@ -513,7 +518,7 @@ def run_gate(git: Git, priv: Private, msgfile: str, rec: Record) -> None:
         rec.row["gate"] = "refused"
         raise Refused("the gate refused this tree; read its lines above. Nothing was committed")
     rec.row["gate"] = "passed"
-    cm = git.run("hook", "run", "--ignore-missing", "commit-msg", "--", msgfile, env=priv.env,
+    cm = git.run("hook", "run", "--ignore-missing", "commit-msg", "--", msgfile, env=env,
                  check=False, merge=True)
     if cm.returncode:
         say(text(cm.stdout))
