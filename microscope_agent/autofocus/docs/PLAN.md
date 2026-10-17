@@ -1,439 +1,439 @@
-# dino-autofocus 개발 계획서 (초안 v0.2, 2026-10-01)
+# dino-autofocus development plan (draft v0.2, 2026-10-01)
 
-작성: 총괄 세션 (사용자와의 대화로 방향 결정). 이 파일은 총괄 세션만 수정한다.
-코드, 주석, 로그, UI 문구는 영어로 쓰고, 계획 문서는 한국어로 쓴다.
+Author: the lead session (direction set in conversation with the user). Only the lead session edits this file.
+Code, comments, logs and UI text are written in English; plan documents are written in Korean.
 
-변경 이력
-- v0.1: 목표, 구조, 설계 규칙, 결정 D1–D5, 작업 묶음 WP-A–E.
-- v0.2: 사용자 요구사항 F1–F5 추가 (2026-10-01). **모든 기능을 mock 으로 먼저 구축**.
-  Python 환경 방침 추가. 작업 묶음 WP-F–J 추가. D1 권고 갱신. D5 결정 (통합 시 공개).
-- v0.3: **D1 결정: 로컬 웹 앱 (FastAPI + React)**. D3 확정. 서버/웹 구조, API 규칙, 작업 묶음 WP-D 분할. Node 는 uv 그룹 `web`.
-- v0.4: F6 시뮬레이션 현황 상세, 공통 요구 X1 (모든 화면에 프롬프트 칸), X2 (Claude 연동).
-  Claude 연동 설계 (5절), 결정 D6–D8, 작업 묶음 WP-K, WP-L.
-- v0.5: F6.3 궤적 뷰어를 2D 와 3D 둘 다 구현하기로 결정.
-- v0.6: D7 (Claude 에는 텍스트만, 이미지 없음), D8 (비용 우선 제한 없음) 결정. D6 은 권고안으로 진행.
-- v0.7: X3 로그인, X4 로그, F7 실험 세션 (세션마다 폴더 + 브랜치/워크트리, 라이브러리언이 주기적으로 병합).
-  설계 (5절), 규칙 12, 결정 D9–D11, 작업 묶음 WP-M, WP-N.
-- v0.8: D9 결정 (이메일 로그인, 관리자 이메일은 로컬 설정에만), D10 결정 (현미경 PC 로컬 git).
-- v0.9: D11 기록 구조 변경 (세션별 브랜치 대신 각자의 폴더, 라이브러리언이 반영), D12 계정 생성 (이름·이메일·비밀번호, 관리자 승인).
-- v1.0: D13 원격 정지 허용, D14 연결이 모두 끊기면 10 s 뒤 자동 정지.
-- v1.1: D15 M3 에서 광원 허용, D16 보기 전용 사용자는 질문·flag 불가.
-- v1.2: 방향 기준을 2026-09-30 실행 기록으로 고정 (Z 부호, 상향 스윕, 영상-재물대 거울상, serpentine).
-- v1.3: F5 Y 이탈을 +Y, 15 mm 로 임시 설정 (사용자).
-- v1.4: 3절 현재 상태 갱신 (2026-10-02). 새 작업 배정 중단, 진행 중인 것만 마무리. 이후 토큰을 덜 쓰는 개발 방식으로 옮긴다.
+Change history
+- v0.1: goals, structure, design rules, decisions D1–D5, work packages WP-A–E.
+- v0.2: user requirements F1–F5 added (2026-10-01). **Every feature is built in mock first**.
+  Python environment policy added. Work packages WP-F–J added. D1 recommendation updated. D5 decided (public at integration).
+- v0.3: **D1 decided: local web app (FastAPI + React)**. D3 confirmed. Server/web structure, API rules, work package WP-D split. Node is the uv group `web`.
+- v0.4: F6 simulation status in detail, common requirements X1 (a prompt box on every screen), X2 (Claude integration).
+  Claude integration design (§5), decisions D6–D8, work packages WP-K, WP-L.
+- v0.5: decided to implement the F6.3 trajectory viewer in both 2D and 3D.
+- v0.6: D7 (only text to Claude, no images) and D8 (no cost limit for now) decided. D6 goes ahead as the recommendation.
+- v0.7: X3 login, X4 logs, F7 experiment sessions (a folder + branch/worktree per session, the librarian merges periodically).
+  Design (§5), rule 12, decisions D9–D11, work packages WP-M, WP-N.
+- v0.8: D9 decided (email login, the administrator email only in local settings), D10 decided (local git on the microscope PC).
+- v0.9: D11 record structure changed (each party's own folder instead of per-session branches, the librarian reflects them), D12 account creation (name, email, password, administrator approval).
+- v1.0: D13 remote stop allowed, D14 automatic stop 10 s after every connection drops.
+- v1.1: D15 light sources allowed in M3, D16 view-only users cannot ask questions or flag.
+- v1.2: direction basis fixed to the 2026-09-30 run record (Z sign, upward sweep, image mirrored against the stage, serpentine).
+- v1.3: F5 Y step-out provisionally set to +Y, 15 mm (the user).
+- v1.4: §3 current state updated (2026-10-02). New task assignment stopped; only work in progress is finished. Development then moves to a way of working that uses fewer tokens.
 
-## 1. 목적과 범위
+## 1. Purpose and scope
 
-- **최종 목표**: 이 저장소의 측정 기능을 soft-matter-agents 의 하드웨어 엔진
-  (`microscope_agent/src/orchestrator.py` + `devices/*`)에 붙여 실험 측정을 자동화한다.
-  저장소 이름은 autofocus 지만 범위는 초점에 한정되지 않는다.
-- **현재 단계의 목표**: 사람이 쓰는 **유저 인터페이스**를 만든다. 범위는 두 가지다.
-  - 에이전트 콘솔: 질문을 넣고, 이전 질문과 시뮬레이션·실험의 현황/계획/결과를 본다.
-  - 현미경 조작: 하드웨어 파악, 샘플 로딩 확인, 샘플 맵, 배율 전환과 액침액 로딩.
-- **mock 우선**: 모든 기능을 mock 하드웨어와 mock 에이전트 저장소로 먼저 끝까지 만든다.
-  실제 하드웨어 연결은 mock 에서 동작이 확인된 뒤 현미경 PC 에서 한다.
-- 통합 자체는 이번 단계에 하지 않지만, 통합을 막는 설계는 지금 피한다 (6절).
+- **Final goal**: attach this repository's measurement functions to soft-matter-agents' hardware engine
+  (`microscope_agent/src/orchestrator.py` + `devices/*`) to automate experimental measurement.
+  The repository is named autofocus, but its scope is not limited to focus.
+- **Goal of the current stage**: build a **user interface** for people. It has two parts.
+  - Agent console: enter questions, and see the status/plans/results of earlier questions and of simulations and experiments.
+  - Microscope operation: understanding the hardware, sample loading check, sample map, objective change and immersion liquid loading.
+- **mock first**: every feature is first built end to end with mock hardware and a mock agent store.
+  The real hardware is connected on the microscope PC after the behaviour is confirmed in mock.
+- Integration itself is not done in this stage, but designs that would block integration are avoided now (§6).
 
-## 2. 기능 요구사항 (사용자, 2026-10-01)
+## 2. Functional requirements (the user, 2026-10-01)
 
-번호는 우선순위가 아니다. 생각난 순서다. 비어 있는 항목은 추후 채운다.
+The numbers are not priorities; they are the order things came to mind. Empty items are filled in later.
 
-### F1. 유저 인터페이스
+### F1. User interface
 
-기술: **로컬 웹 앱, FastAPI 백엔드 + React 프런트** (D1, 사용자 결정 2026-10-01). 구조는 5절.
+Technology: **local web app, FastAPI backend + React front end** (D1, the user's decision 2026-10-01). Structure in §5.
 
-| | 기능 | 데이터 출처 |
+| | Function | Data source |
 |---|---|---|
-| F1.1 | 질문을 할 수 있는 곳 | 에이전트 저장소에 질문을 넣는다. mock 에서는 로컬 저장소 |
-| F1.2 | 이전 질문 확인 | `*/questions/<qid>/` 의 goal, axis, plan 카드 |
-| F1.3 | 시뮬레이션 현황 / 계획 / 결과 | `simulation_agent/questions/`, `simulation_agent/runs/` |
-| F1.4 | 실험 현황 / 계획 / 결과 | `microscope_agent/questions/`, `microscope_agent/runs/`, 이 저장소의 샘플 기록 |
+| F1.1 | A place to ask questions | Puts the question into the agent store. In mock, a local store |
+| F1.2 | View earlier questions | goal, axis and plan cards in `*/questions/<qid>/` |
+| F1.3 | Simulation status / plans / results | `simulation_agent/questions/`, `simulation_agent/runs/` |
+| F1.4 | Experiment status / plans / results | `microscope_agent/questions/`, `microscope_agent/runs/`, this repository's sample records |
 
-- 에이전트 저장소는 **읽기 전용**으로 연다. soft-matter-agents 원칙상 파일이 진실이고,
-  카드는 정해진 세션과 게이트만 쓴다. UI 가 카드를 직접 고치지 않는다.
-- 질문 넣기(F1.1)가 실제로 어디에 무엇을 쓰는지는 soft-matter-agents 의 설계 범위다.
-  지금은 어댑터 인터페이스 뒤에 mock 저장소로 구현하고, 실제 경로는 통합 단계에서
-  그쪽 architecture 세션과 정한다 (10절 미해결).
-- 시뮬레이션은 WSL 에서 돈다. UI 는 시뮬레이션 코드를 import 하지 않고 파일만 읽는다.
+- The agent store is opened **read-only**. By soft-matter-agents' principles the files are the truth, and
+  cards are written only by the designated sessions and gates. The UI never edits a card directly.
+- What submitting a question (F1.1) actually writes, and where, is within soft-matter-agents' design scope.
+  For now it is implemented behind an adapter interface with a mock store, and the real path is settled at the integration stage
+  with the architecture session there (§10, open).
+- Simulations run in WSL. The UI does not import simulation code; it only reads files.
 
-### F2. 연결된 하드웨어 파악과 상태
+### F2. Detecting connected hardware and its state
 
-| | 기능 |
+| | Function |
 |---|---|
-| F2.1 | 연결된 하드웨어를 탐지해 **하드웨어 구성 파일**을 만든다 |
-| F2.2 | 구성 파일을 바탕으로 **활성화할 게이트**가 정해진다 |
+| F2.1 | Detect the connected hardware and write a **hardware profile file** |
+| F2.2 | The profile file determines **which gates are enabled** |
 
-- 탐지: Micro-Manager 에 로드된 장치, 각 장치의 속성, 읽기 확인 가능 여부, 대물렌즈 목록,
-  카메라 비트 깊이, 피에조 연결 여부. mock 에서는 mock 장치 목록에서 같은 형식을 만든다.
-- 구성 파일: `hardware_profile.json` (가칭). 탐지 시각, 장치별 상태, 사람이 확인한 항목을 담는다.
-- 게이트: 기능마다 필요한 장치와 조건을 선언한다. 예를 들어 F4 샘플 맵은 XYStage, ZDrive,
-  DiaLamp, 4x 대물렌즈, 카메라가 있고 읽기 확인이 될 때만 켜진다.
-  UI 는 꺼진 기능을 숨기지 않고 **꺼진 이유**와 함께 비활성으로 보여 준다.
-- 게이트는 코드가 판정한다. 모델이나 UI 대화상자가 게이트를 열지 않는다.
+- Detection: the devices loaded in Micro-Manager, each device's properties, whether it can be read back, the objective list,
+  camera bit depth, whether the piezo is connected. In mock, the same format is built from the mock device list.
+- Profile file: `hardware_profile.json` (working name). It holds the detection time, each device's state and the items a person confirmed.
+- Gates: each function declares the devices and conditions it needs. For example the F4 sample map is enabled only when XYStage, ZDrive,
+  DiaLamp, a 4x objective and a camera are present and can be read back.
+  The UI does not hide a disabled function; it shows it inactive, together with **the reason it is off**.
+- Gates are decided by code. Neither a model nor a UI dialog opens a gate.
 
-### F3. 샘플 로딩 확인
+### F3. Sample loading check
 
-| | 기능 |
+| | Function |
 |---|---|
-| F3.1 | 샘플 지오메트리 선택 창: 샘플 두께, 커버슬립 두께, 샘플 형태 (뒤집힘 여부 등) |
-| F3.2 | (추후 작성) |
+| F3.1 | Sample geometry selection window: sample thickness, coverslip thickness, sample form (flipped or not, etc.) |
+| F3.2 | (to be written) |
 
-- 지오메트리는 이후 단계의 안전 한계에 들어간다. 커버슬립 두께는 대물렌즈 작동 거리와
-  보정 링 조건, 뒤집힘은 초점 탐색 범위를 바꾼다.
-- 후보 필드 (사용자 확인 필요): 샘플 크기 (보통 24 mm × 50 mm), 챔버 형태와 구멍 지름
-  (9월 30일 시료는 약 6 mm), 커버슬립 두께 (기본 170 µm), 샘플 두께, 방향 (정상 / 뒤집힘).
-- 로딩 확인은 사람의 확인과 이미지 확인을 함께 쓴다. 선택값 읽기는 상태 확인이 아니다.
+- The geometry feeds the safety limits of later stages. Coverslip thickness changes the objective's working distance and
+  correction collar condition; flipping changes the focus search range.
+- Candidate fields (to be confirmed by the user): sample size (usually 24 mm × 50 mm), chamber shape and hole diameter
+  (about 6 mm for the 30 September sample), coverslip thickness (default 170 µm), sample thickness, orientation (upright / flipped).
+- The loading check uses a person's confirmation and an image check together. Reading a selected value is not a state check.
 
-### F4. 샘플 맵핑 (투과광 권장)
+### F4. Sample mapping (transmitted light recommended)
 
-| | 기능 |
+| | Function |
 |---|---|
-| F4.1 | 입자가 있던 대략적인 위치를 기록 |
-| F4.2 | 쓰던 입자를 잃어버렸을 때 찾기, 좋은 샘플 영역 추천에 활용 |
-| F4.3 | 맵에서 원하는 지역을 클릭하면 그 위치로 이동 |
-| F4.4 | 주요 지역을 flag 하는 기능 |
+| F4.1 | Record roughly where particles were |
+| F4.2 | Use it to find a particle in use when it is lost, and to recommend good sample regions |
+| F4.3 | Click a region on the map to move there |
+| F4.4 | Flag important regions |
 
-- 투과광(DiaLamp) 4x 타일 스캔으로 모자이크를 만든다. 9월 30일 엣지 추적과 4x 스캔을 재사용한다.
-- 입자 위치는 고전 이미지 처리로 찾은 **후보**로 기록하고, 사람이 확인한 것과 구분한다.
-- 클릭 이동은 이동 게이트를 거친다. 스캔 박스 밖이면 거부하고, Z 가 안전 높이가 아니면 먼저 후퇴한다.
-- flag 는 이름, 메모, 시각, 대물렌즈, 좌표를 샘플 기록에 남긴다.
+- A mosaic is built from a transmitted-light (DiaLamp) 4x tile scan. The 30 September edge tracing and 4x scan are reused.
+- Particle positions are recorded as **candidates** found by classical image processing, kept apart from those a person confirmed.
+- Click-to-move goes through the motion gate. Outside the scan box it is refused; if Z is not at a safe height it retracts first.
+- A flag records name, note, time, objective and coordinates in the sample record.
 
-### F5. 배율 전환과 액침액(오일/물) 로딩
+### F5. Objective change and immersion liquid (oil/water) loading
 
-| | 기능 |
+| | Function |
 |---|---|
-| F5.1 | 재물대 특성상 샘플이 올라간 뒤에는 배율 전환 시 액체를 로딩하기 어렵다 |
-| F5.2 | 배율 전환과 함께 y 방향으로 약 15–20 mm 벗어나 용액을 로딩하기 좋게 한다. 방향은 추후 결정 |
-| F5.3 | 로딩 후 사용자가 클릭하면 원래 위치로 돌아온다 |
+| F5.1 | Because of how the stage is built, loading liquid at an objective change is hard once the sample is on |
+| F5.2 | With the objective change, move about 15–20 mm away in y so the liquid is easy to load. Direction to be decided later |
+| F5.3 | After loading, the user clicks and the stage returns to the original position |
 
-순서 (기존 `change_objective.py` 절차에 XY 이탈과 복귀를 더함):
+Sequence (the existing `change_objective.py` procedure plus the XY step-out and return):
 
 ```
-1. 현재 XY, Z, 대물렌즈를 기록
-2. PFS off -> Z 후퇴 (0 µm) -> PFS Out of Range 확인
-3. Y 를 이탈 위치로 이동 (Z 가 후퇴 상태일 때만 허용)
-4. 대물렌즈 회전, 읽기 확인
-5. 사용자: 오일/물 로딩 -> "로딩 완료" 클릭      <- 수동 단계, 기록에 남김
-6. XY 를 1 의 위치로 복귀 (Z 는 여전히 후퇴)
-7. Z 는 목표값으로 점프하지 않고 후퇴 위치에서 단계적으로 접근
+1. Record the current XY, Z and objective
+2. PFS off -> Z retract (0 µm) -> confirm PFS Out of Range
+3. Move Y to the step-out position (allowed only while Z is retracted)
+4. Rotate the objective, read it back
+5. User: load oil/water -> click "Loading done"      <- manual step, recorded
+6. Return XY to the position from 1 (Z still retracted)
+7. Z does not jump to the target value; it approaches step by step from the retract position
 ```
 
-- 이탈 방향과 거리는 재물대 한계와 24 mm 쪽 방향을 측정한 뒤 정한다 (10절).
-- 3번과 6번의 XY 이동은 Z 후퇴 상태가 확인될 때만 가드가 허용한다.
-- 7번은 soft-matter-agents 과제 026 의 "넘겨받은 Z 는 목적지가 아니라 목표" 규칙과 같다.
+- The step-out direction and distance are set after measuring the stage limits and which way the 24 mm side faces (§10).
+- The guard allows the XY moves of steps 3 and 6 only when the Z retract is confirmed.
+- Step 7 is the same as soft-matter-agents task 026's rule "the handed-over Z is a target, not a destination".
 
-### F6. 시뮬레이션 현황 상세 (F1.3 확장)
+### F6. Simulation status in detail (extends F1.3)
 
-| | 기능 |
+| | Function |
 |---|---|
-| F6.1 | 진행 중인 시뮬레이션의 진행률 (현재 step / 전체 step, 경과 시간, 예상 종료) |
-| F6.2 | 데이터를 쉽게 내려받는 버튼 (실행 폴더 단위 묶음) |
-| F6.3 | 시뮬레이션 시각화: 입자 궤적 재생. **2D (Canvas) 와 3D (Three.js) 뷰어를 둘 다 구현** (사용자, 2026-10-01) |
-| F6.4 | 주요 결과를 그래프로 보기: 로그 값 (에너지, 온도, 압력 등)과 관측량 |
+| F6.1 | Progress of a running simulation (current step / total steps, elapsed time, expected end) |
+| F6.2 | A button to download the data easily (bundled per run folder) |
+| F6.3 | Simulation visualisation: particle trajectory playback. **Implement both a 2D (Canvas) and a 3D (Three.js) viewer** (the user, 2026-10-01) |
+| F6.4 | View key results as graphs: log values (energy, temperature, pressure, etc.) and observables |
 
-- 참고: [kyu-softmatter/HOOMD_GUI](https://github.com/kyu-softmatter/HOOMD_GUI). 같은 구조를 쓴다.
-  FastAPI 로컬 러너, 루프백만 바인딩, Host 헤더 허용 목록, 같은 출처에서 웹과 API 제공.
-  뷰어는 두 가지를 같이 만든다. 2D 는 Canvas 로 슬라이스나 투영, 3D 는 Three.js GPU 인스턴싱.
-  두 뷰어는 같은 궤적 프레임 형식과 재생 컨트롤(재생, 정지, 프레임 이동, 속도)을 공유하고,
-  화면에서 2D/3D 를 전환한다. 프레임은 서버가 GSD 에서 읽어 필요한 필드만 보낸다.
-  진행률은 WebSocket 또는 server-sent events 로 받는다. 궤적은 GSD, 로그는 HDF5/CSV.
-- 데이터 출처: soft-matter-agents `simulation_agent/runs/<run_id>/` 의 `config.json`,
-  `log.json`, `observables.json`, `trajectory_meta.json`. 궤적 파일 자체는 저장소에 없고 WSL 쪽에 있다.
-  서버는 `\\wsl$\<배포판>\...` 경로로 읽기만 한다. 실제 경로는 현미경 PC 에서 확인한다.
-- 진행률 출처: 실행 중인 시뮬레이션이 진행 상태를 파일로 남겨야 한다. 지금 남기는지 확인이
-  필요하다 (10절). mock 에서는 시간에 따라 진행하는 가짜 실행을 쓴다.
-- 내려받기: 서버가 실행 폴더를 zip 으로 묶어 스트리밍한다. 큰 궤적은 선택해서 포함한다.
-- 그래프의 숫자는 기록 파일에서 읽은 값 그대로 그린다. 화면에서 다시 계산하지 않는다.
+- Reference: [kyu-softmatter/HOOMD_GUI](https://github.com/kyu-softmatter/HOOMD_GUI). The same structure is used:
+  a FastAPI local runner, loopback binding only, a Host header allow list, web and API served from the same origin.
+  Both viewers are built together. 2D is a slice or projection on Canvas; 3D is Three.js GPU instancing.
+  The two viewers share one trajectory frame format and the playback controls (play, stop, frame step, speed),
+  and the screen switches between 2D and 3D. The server reads frames from GSD and sends only the fields needed.
+  Progress comes over WebSocket or server-sent events. Trajectories are GSD, logs HDF5/CSV.
+- Data source: in soft-matter-agents `simulation_agent/runs/<run_id>/`, the files `config.json`,
+  `log.json`, `observables.json` and `trajectory_meta.json`. The trajectory files themselves are not in the repository; they are on the WSL side.
+  The server only reads them through a `\\wsl$\<distribution>\...` path. The real path is checked on the microscope PC.
+- Progress source: a running simulation has to leave its progress in a file. Whether it does so now needs
+  checking (§10). In mock, a fake run that advances over time is used.
+- Download: the server zips the run folder and streams it. Large trajectories are included by choice.
+- Numbers in the graphs are drawn exactly as read from the record files. The screen does not recompute them.
 
-### 공통 요구사항
+### Common requirements
 
-| | 기능 |
+| | Function |
 |---|---|
-| X1 | **모든 화면에 프롬프트로 요청할 수 있는 칸**을 둔다 |
-| X2 | **모든 프롬프트와 기능을 Claude 와 연동**한다 (설계는 5절 "Claude 연동") |
-| X3 | **실행파일을 켜면 사용자가 누구인지 정하고 로그인**한다 |
-| X4 | **로그 파일을 남긴다**: 누가 언제 무엇을 했는지 |
+| X1 | **A box on every screen where a request can be made by prompt** |
+| X2 | **Every prompt and function is integrated with Claude** (design in §5 "Claude integration") |
+| X3 | **When the executable starts, decide who the user is and log in** |
+| X4 | **Keep a log file**: who did what, and when |
 
-- 프롬프트 칸은 공통 컴포넌트 하나로 만들고, 화면은 자기 문맥을 붙여 보낸다.
-  예: 샘플 맵 화면은 선택된 샘플 id 와 클릭한 영역, 시뮬레이션 화면은 선택된 run id.
-- 답변과 제안은 그 화면 안에 보여 주고, 같은 대화 기록을 모든 화면에서 이어 볼 수 있다.
+- The prompt box is one shared component, and each screen sends it with its own context attached.
+  E.g. the sample map screen sends the selected sample id and the clicked region; the simulation screen, the selected run id.
+- Answers and proposals are shown inside that screen, and the same conversation history can be followed from every screen.
 
-### F7. 실험 세션 관리
+### F7. Experiment session management
 
-| | 기능 |
+| | Function |
 |---|---|
-| F7.1 | 실험 하나를 **실험 세션**으로 연다. 로그인한 사용자, 샘플, 시작 시각이 붙는다 |
-| F7.2 | 실험 세션마다 **별도의 폴더**로 관리한다. 데이터를 만든 쪽이 자기 폴더에만 쓴다 (v0.9, 브랜치 대신) |
-| F7.3 | 끝난 세션은 **라이브러리언 에이전트가 주기적으로 읽어 지식 저장소에 반영**한다 |
-| F7.4 | 이전 세션을 열어 보고, 같은 샘플로 새 세션을 이어 시작한다 |
+| F7.1 | One experiment is opened as an **experiment session**. It carries the logged-in user, the sample and the start time |
+| F7.2 | Each experiment session is kept in a **separate folder**. The party that made the data writes only to its own folder (v0.9, instead of branches) |
+| F7.3 | Finished sessions are **read periodically by the librarian agent and reflected into the knowledge store** |
+| F7.4 | Open an earlier session to view it, and start a new session continuing with the same sample |
 
-- "실험 세션" 은 현미경 측정 한 번을 말한다. Claude 개발 세션과는 다른 것이다.
+- An "experiment session" means one microscope measurement. It is not the same thing as a Claude development session.
 
-## 3. 현재 상태 (2026-10-02, main 3cbe466)
+## 3. Current state (2026-10-02, main 3cbe466)
 
-### 진행 방식
+### How work proceeds
 
-- **동결 해제** (사용자, 2026-10-02, 현미경 PC 결과 반영 뒤). 새 작업을 다시 배정할 수 있다.
-- (해제 전) **새 작업 배정은 멈췄다** (사용자, 2026-10-02). 이미 커밋했거나 검토 중인 작업만 검토, 병합, 푸시까지
-  마무리한다. 새로 찾은 일은 내부 노트 (공개 저장소 밖, `dino-autofocus-internal/tasks/BACKLOG.md`) 에 항목으로만 적는다.
-- 이후 개발은 **토큰을 덜 쓰는 방식(플랫폼)으로 옮긴다** (사용자). 넘겨줄 목록은 BACKLOG 의 인계 절,
-  확인할 것은 [microscope-pc-checklist.md](microscope-pc-checklist.md), 세션 규칙은 내부 노트의 `sessions.md`.
-- 과제 카드 (`T-NNN`), BACKLOG, 세션 규칙은 2026-10-02 에 공개 트리 밖의 비공개 저장소 `dino-autofocus-internal` 로 옮겼다
-  (사용자, 공개 전 점검 D1). 이 문서와 코드의 `T-NNN` 표기는 그 카드를 가리킨다.
-- 실행 세션과 검토보조, 업무분배보조는 모두 보관했다. 남은 세션은 총괄, 매니저, 검토다.
+- **Freeze lifted** (the user, 2026-10-02, after the microscope PC results were taken in). New work can be assigned again.
+- (Before it was lifted) **New task assignment stopped** (the user, 2026-10-02). Only work already committed or under review is taken through review, merge and push
+  to completion. Newly found work is only written down as an item in the internal notes (outside the public repository, `dino-autofocus-internal/tasks/BACKLOG.md`).
+- Further development **moves to a way of working (a platform) that uses fewer tokens** (the user). The list to hand over is the handover section of BACKLOG,
+  what to check is [microscope-pc-checklist.md](microscope-pc-checklist.md), and the session rules are `sessions.md` in the internal notes.
+- Task cards (`T-NNN`), BACKLOG and the session rules were moved on 2026-10-02 out of the public tree into the private repository `dino-autofocus-internal`
+  (the user, pre-publication check D1). `T-NNN` in this document and in the code points at those cards.
+- The execution sessions, the review assistants and the work-assignment assistant have all been archived. The sessions left are the lead, the manager and review.
 
-### 마일스톤 진행
+### Milestone progress
 
-| | 상태 |
+| | Status |
 |---|---|
-| M1 전 기능 mock | 거의 끝. 아래 "검토 중" 이 병합되면 사용자가 개발 데스크톱에서 로그인부터 F1–F7 까지 확인한다 |
-| M2 실제 데이터 읽기 | soft-matter-agents 파일 읽기와 replay 는 main 에 있다. 시뮬레이션 `trajectory.txt` 샘플과 WSL 경로가 사용자에게서 와야 형식을 확인한다 |
-| M3 현미경 PC 읽기 전용 | 실제 장비 백엔드(mm-real)와 설정 파일 검사는 main 에 있다. 현미경 PC 확인(확인 목록 1–3 단계)을 기다린다 |
-| M4 동작 | 코드로 두 겹 잠겨 있다 (아래). 첫 동작 절차는 [first-bench-motion.md](runbooks/first-bench-motion.md) |
-| M5 초점 판정 | 고전 지표와 DINO 래퍼, 학습 절차서는 main 에 있다. 학습과 지연 측정은 현미경 PC 에서 |
-| M6 통합 준비 | 시작 전. 라이브러리언이 모의 세션을 건너뛰는 규칙 등은 BACKLOG 의 M6 항목 |
+| M1 all features in mock | Nearly done. Once "under review" below is merged, the user checks everything from login through F1–F7 on the development desktop |
+| M2 real data reading | soft-matter-agents file reading and replay are on main. The format is checked once a simulation `trajectory.txt` sample and the WSL path come from the user |
+| M3 microscope PC read-only | The real-instrument backend (mm-real) and the configuration file check are on main. Waiting for the microscope PC check (steps 1–3 of the checklist) |
+| M4 motion | Locked twice in code (below). The first-motion procedure is [first-bench-motion.md](runbooks/first-bench-motion.md) |
+| M5 focus verdict | Classical metrics, the DINO wrapper and the training procedure are on main. Training and latency measurement happen on the microscope PC |
+| M6 integration preparation | Not started. Rules such as the librarian skipping mock sessions are in the BACKLOG M6 items |
 
-### main 에 있는 것
+### What is on main
 
-- **엔진**: 백엔드 계약, 이벤트, 기록, 가드, 게이트, 실행기. 백엔드는 mock, replay, mm-demo, mm-real.
-  작업은 status, light_set, hardware_scan, scan_4x, focus_100x, edge_trace, objective_change, sample_ops, z_retract.
-- **서버**: FastAPI, WebSocket 이벤트와 프레임, 로그인 쿠키와 잠금, 자기 주소에서 온 요청만 받는 검사(T-009c),
-  재시작 때 열린 세션을 "중단됨" 으로 닫기(T-009e), 정상 종료(T-026).
-- **화면**: 콘솔(F1), 하드웨어(F2), 샘플(F3), 샘플 맵(F4), 배율 전환(F5), 시뮬레이션과 2D·3D 궤적 뷰어(F6),
-  라이브 뷰, 모든 화면의 프롬프트 칸. Claude 연동 라우터(T-013b, 가짜 공급자로 시험).
-- **기록**: 세션 폴더, 경로 지정 자동 커밋, manifest, 가짜 라이브러리언.
-- **런처**: 새 exe 빌드 스크립트(`tools/launcher/build.ps1`). 바탕화면의 exe 는 아직 예전 tkinter 판이다.
+- **Engine**: backend contract, events, records, guards, gates, runner. Backends are mock, replay, mm-demo, mm-real.
+  Operations are status, light_set, hardware_scan, scan_4x, focus_100x, edge_trace, objective_change, sample_ops, z_retract.
+- **Server**: FastAPI, WebSocket events and frames, login cookie and lock, a check that accepts only requests from its own address (T-009c),
+  closing open sessions as "interrupted" on restart (T-009e), clean shutdown (T-026).
+- **Screens**: console (F1), hardware (F2), sample (F3), sample map (F4), objective change (F5), simulation and the 2D/3D trajectory viewer (F6),
+  live view, the prompt box on every screen. The Claude integration router (T-013b, tested with a fake provider).
+- **Records**: session folders, path-scoped auto-commit, manifest, fake librarian.
+- **Launcher**: build script for the new exe (`tools/launcher/build.ps1`). The exe on the desktop is still the old tkinter version.
 
-### 진행 중이던 작업
+### Work that was in progress
 
-동결 때 진행 중이던 작업은 모두 병합되고 push 되었다 (3cbe466). 마지막 전체 테스트: pytest 1488 통과, 11 건너뜀;
-vitest 322 통과; 웹 빌드 통과. 병합되지 않은 브랜치는 없다. 로그인 화면(T-105), 세션 화면(T-106), 샘플 맵 2단계와
-goto_xy(T-032), 서버가 실제 실행기와 mock 백엔드로 시작(T-009i, 모의 기록은 실제 기록 폴더 밖)이 들어왔다.
-카드만 있고 시작하지 않은 것은 BACKLOG 의 HANDOVER 절에 있다.
+All work in progress at the freeze has been merged and pushed (3cbe466). Last full test run: pytest 1488 passed, 11 skipped;
+vitest 322 passed; web build passed. No branch is left unmerged. In came the login screen (T-105), the sessions screen (T-106), sample map stage 2 and
+goto_xy (T-032), and the server starting with the real runner and the mock backend (T-009i, mock records outside the real records folder).
+Cards that exist but were never started are in the HANDOVER section of BACKLOG.
 
-### 실제 장비 잠금
+### Real-instrument locks
 
-| 잠금 | 값 | 풀리는 조건 |
+| Lock | Value | Condition for release |
 |---|---|---|
-| 동작 잠금 T-036 | `BENCH_MOTION = "LOCKED"` | 선행 안전 작업 11개는 main 에 있다. 잠금을 푸는 한 줄은 **사용자가 승인**해야 한다 (실행12 의 권한 검사가 거부). 사용자가 현미경 PC 에서 첫 시험을 할 준비가 됐을 때 푼다 |
-| 접근 잠금 T-029d | `BENCH_APPROACH = "MEASURED"` (**해제**, 사용자, 2026-10-02) | **부분 해제**. Q13, Q20, 재물대 한계는 아직 재지 않았다. 실제 장비에서 Z 를 올리는 모든 이동(접근, 스윕, move_to)은 렌즈별 상한까지: 4x, 10x, 20x 는 3200 µm, 40x WI, 60x, 100x 는 2800 µm. 그래서 100x 초점 찾기는 계속 거부된다 |
+| Motion lock T-036 | `BENCH_MOTION = "LOCKED"` | The 11 prerequisite safety tasks are on main. The one line that lifts the lock must be **approved by the user** (execution 12's permission check refuses it). It is lifted when the user is ready for the first test on the microscope PC |
+| Approach lock T-029d | `BENCH_APPROACH = "MEASURED"` (**lifted**, the user, 2026-10-02) | **Partly lifted**. Q13, Q20 and the stage limits have not been measured yet. On the real instrument every move that raises Z (approach, sweep, move_to) goes only up to the per-objective ceiling: 3200 µm for 4x, 10x, 20x and 2800 µm for 40x WI, 60x, 100x. So 100x focus finding is still refused |
 
-동작 잠금이 풀려도 실제 장비에서 되는 것은 Z 후퇴와 내려가는 이동뿐이다. XY 이동은 T-032 2단계 뒤,
-Z 를 올리는 이동은 접근 잠금이 풀린 뒤다 (2026-10-02 해제, 동작 잠금은 그대로). 잠금 밖에서 장비를 움직이던 옛 벤치 스크립트는 R-05 에서 지웠다 (이력에 있음).
+Even with the motion lock lifted, all that works on the real instrument is Z retract and downward moves. XY moves come after T-032 stage 2,
+and moves that raise Z after the approach lock is lifted (lifted 2026-10-02; the motion lock stays). The old bench scripts that moved the instrument outside the locks were deleted in R-05 (they are in the history).
 
-### 실제 로그인·원격 보기 전에 고칠 것 (보안, 미배정)
+### To fix before real login and remote viewing (security, unassigned)
 
-- 가입 요청이 이미 있는 이메일에 `409 account_exists` 로 답해, 원격에서 가입 여부를 알 수 있다. 중립적인 답으로 바꾼다.
-- 로그인과 잠금 해제에 시도 횟수 제한이 없다. 계정별·접속처별 제한과 일시 잠금을 넣는다.
+- A sign-up request for an email that already exists is answered with `409 account_exists`, so whether an account exists can be learned remotely. Change it to a neutral answer.
+- Login and unlock have no attempt limit. Add per-account and per-client limits and a temporary lockout.
 
-### 사용자가 할 것
+### What the user has to do
 
-1. 현미경 PC: 설정 파일 확인 (확인 목록의 명령), 장치 속성, 렌즈 작동 거리, 측정 (Q12, Q13, Q20).
-2. 시뮬레이션 `trajectory.txt` 샘플 세 개와 WSL 경로.
-3. 동작 잠금 해제 승인 (현미경 PC 에서 첫 시험할 때).
-4. ~~9월 30일 기록의 `Operator: kyuchoi`~~ **결정: 그대로 둔다** (사용자, 2026-10-02).
-5. 개발 데스크톱의 커밋 메모리: 끝난 세션 보관, 또는 페이지 파일 늘리기.
+1. Microscope PC: check the configuration file (the checklist's commands), device properties, objective working distances, measurements (Q12, Q13, Q20).
+2. Three simulation `trajectory.txt` samples and the WSL path.
+3. Approve lifting the motion lock (at the first test on the microscope PC).
+4. ~~`Operator: kyuchoi` in the 30 September record~~ **Decision: leave it as is** (the user, 2026-10-02).
+5. Commit memory on the development desktop: archive finished sessions, or enlarge the page file.
 
-### 출발점 (2026-10-01)
+### Starting point (2026-10-01)
 
-| 구성 | 위치 | 상태 |
+| Component | Location | State |
 |---|---|---|
-| 런처 | `scripts/launcher.py` (tkinter) (R-05 에서 삭제; 이력에 있음) + `tools/launcher` exe | 스크립트를 콘솔 창으로 띄우기만 함 |
-| 라이브 뷰 | `scripts/live_focus.py` (912줄, tkinter 단일 파일) (R-05 에서 삭제; 이력에 있음) | 화면, 맵, 엣지 추적, 서보, 기록이 한 파일에 섞여 있음 |
-| 하드웨어 접근 | `scripts/mm_grab.py` (R-05 에서 삭제; 이력에 있음) | 스크립트마다 직접 import |
-| 모션 가드 | `C:\agentic_microscope` 의 `FocusAxis` | 현미경 PC 에만 있음 |
-| 작업 스크립트 | `scan_4x`, `focus_100x`, `change_objective`, `find_particle_z`, `lights_off` | 9월 30일 벤치에서 사용. `find_particle_z` 는 사용 불가 판정. 모두 (R-05 에서 삭제; 이력에 있음) |
-| 초점 점수 | `src/dino_autofocus/live.py`, `backbone.py` | DINO 헤드는 합성 100x 데이터로만 학습 |
-| 기록 | `D:\AutoFocus\samples\<sample_id>\` | sample.json, map.json, scan, log |
+| Launcher | `scripts/launcher.py` (tkinter) (deleted in R-05; in the history) + `tools/launcher` exe | Only opens scripts in a console window |
+| Live view | `scripts/live_focus.py` (912 lines, one tkinter file) (deleted in R-05; in the history) | Display, map, edge tracing, servo and records mixed in one file |
+| Hardware access | `scripts/mm_grab.py` (deleted in R-05; in the history) | Imported directly by each script |
+| Motion guard | `FocusAxis` in `C:\agentic_microscope` | Exists only on the microscope PC |
+| Task scripts | `scan_4x`, `focus_100x`, `change_objective`, `find_particle_z`, `lights_off` | Used at the 30 September bench. `find_particle_z` judged unusable. All (deleted in R-05; in the history) |
+| Focus score | `src/dino_autofocus/live.py`, `backbone.py` | DINO head trained only on synthetic 100x data |
+| Records | `D:\AutoFocus\samples\<sample_id>\` | sample.json, map.json, scan, log |
 
-## 4. 컴퓨터와 Python 환경
+## 4. Computers and Python environments
 
-| 컴퓨터 / 환경 | 하는 일 | 하지 않는 일 |
+| Computer / environment | Does | Does not |
 |---|---|---|
-| 현미경 PC, Windows (RTX A4000) | 하드웨어 제어, UI, **이미지 합성, DINO 학습**, 실시간 점수 | — |
-| 현미경 PC, WSL | 시뮬레이션 (이미 동작 중) | 하드웨어 제어 |
-| 개발 데스크톱 (GTX 1650 SUPER) | mock 으로 UI/엔진 개발과 테스트 | 하드웨어 실행, 데이터셋 생성, 헤드 학습 |
+| Microscope PC, Windows (RTX A4000) | Hardware control, UI, **image synthesis, DINO training**, real-time scoring | — |
+| Microscope PC, WSL | Simulation (already running) | Hardware control |
+| Development desktop (GTX 1650 SUPER) | UI/engine development and tests in mock | Hardware runs, dataset generation, head training |
 
-Python 환경 방침 (권고, **최종 결정은 현미경 PC 에서**):
-- Windows 쪽은 **이 저장소의 uv 환경 하나**로 제어, UI, DINO 를 모두 돌린다.
-  새 uv 환경을 하나 더 만들기보다, 지금의 시스템 Python 사용을 없애는 쪽이다.
-- 무거운 부분은 선택 의존성으로 나눈다. 예: `ui`, `hw` (pymmcore-plus), `ml` (torch).
-  개발 데스크톱은 `ml` 없이도 UI 와 mock 테스트가 돈다.
-- WSL 시뮬레이션은 지금 환경 그대로 둔다. Windows 와 WSL 은 파일로만 주고받고 서로 import 하지 않는다.
-- 통합 단계에서는 제어 코드가 soft-matter-agents 의 pixi `mic` 환경에서 돌게 된다.
-  그래서 엔진 의존성을 작게 유지한다.
+Python environment policy (recommendation, **final decision on the microscope PC**):
+- On the Windows side, **one uv environment of this repository** runs control, UI and DINO.
+  Rather than making one more uv environment, the aim is to remove today's use of the system Python.
+- Heavy parts are split into optional dependencies. E.g. `ui`, `hw` (pymmcore-plus), `ml` (torch).
+  The development desktop runs the UI and mock tests without `ml`.
+- The WSL simulation keeps its current environment. Windows and WSL exchange only files and do not import from each other.
+- At the integration stage the control code will run in soft-matter-agents' pixi `mic` environment.
+  So the engine's dependencies are kept small.
 
-## 5. 아키텍처
+## 5. Architecture
 
 ```
-  Web (React + TypeScript, 브라우저)                   <- 하드웨어 로직 없음, API 만 부른다
+  Web (React + TypeScript, browser)                     <- no hardware logic, calls the API only
      | REST: commands, queries       ^ WebSocket: events, live frames
      v                               |
-  Server (FastAPI, 하나의 Python 프로세스)               <- 엔진을 소유, 요청을 엔진 명령으로 옮김
+  Server (FastAPI, one Python process)                  <- owns the engine, turns requests into engine commands
      |
-  Engine  (operations + guards + gates + records)       <- 웹/서버 없이 import 가능, 통합 대상
+  Engine  (operations + guards + gates + records)       <- importable without web/server, the integration target
      |                     |
   Backend                  AgentStore
-  mock | mm-demo | mm-real   mock | soft-matter-agents 파일 (읽기 전용)
+  mock | mm-demo | mm-real   mock | soft-matter-agents files (read-only)
 ```
 
-- **Backend**: 카메라 프레임, 위치 읽기, 광원, 가드된 Z/XY 이동, 대물렌즈.
-  - `mock`: 가상 샘플(구멍, 입자 위치), 대물렌즈 세트, 광원, 재물대 한계를 가진 시뮬레이터.
-    프레임은 |dz| 에 따라 흐려지는 합성 영상. **M1 의 기본 백엔드**.
-  - `replay`: 저장된 z-스택 재생. 개발 PC 의 `data/smoke`, 나중에 실제 샘플 폴더.
-  - `mm-demo`: Micro-Manager 데모 장치. `mm-real`: 현미경 PC.
-- **AgentStore**: 질문, 카드, 실행 기록을 읽고 질문을 넣는 어댑터. mock 은 고정 예제 카드.
-- **Engine**: 작업(operation) 단위. 각 작업은 `plan → preflight → run → abort` 를 가지며
-  진행 이벤트를 내보내고 기록 파일을 쓴다.
-- **Gates**: 하드웨어 구성 파일과 작업별 요구 조건을 비교해 작업을 켜고 끈다 (F2.2).
-- **Guards**: Z 창, 상향 스윕만, 읽기 확인, XY 박스, Z 후퇴 상태에서만 큰 XY 이동,
-  종료 시 소등, 코어 단일 소유. UI 대화상자는 추가 확인일 뿐 가드를 대신하지 않는다.
-- **큰 XY 이동 문턱은 가드 안의 대물렌즈별 표 하나에서 정한다** (2026-10-01, 총괄).
-  각 작업이 자기 문턱을 넘기는 방식(caller override)은 두지 않는다. 표의 값은 자유 작동 거리에서 나온다:
-  예를 들어 4x (WD 20 mm) 는 시료 Z 에서 타일 이동을 허용해 9월 30일 스캔 절차를 지키고,
-  100x Oil (WD 130 µm) 은 min(시야, 1 mm) 을 넘으면 Z 를 먼저 후퇴한다.
-  대물렌즈는 읽기 확인으로 정하고, 읽을 수 없거나 표에 없으면 가장 엄격한 값을 쓴다.
-  모든 값은 `unmeasured provisional` 이며, 통합 때 사람이 소유하는 한계 파일 (soft-matter-agents 의 `envelope/`) 로 옮긴다.
-- **방향 기준은 2026-09-30 실행 기록을 따른다** (사용자, 2026-10-01). 근거는 `docs/runs/2026-09-30_substrate-scan.md`.
-  - ZDrive: 값이 커지면 시료 쪽, 작아지면 후퇴. 후퇴 위치는 0 µm.
-  - Z 스윕은 언제나 위로(값이 커지는 쪽으로) 올라가며 잰다.
-  - 카메라 영상은 재물대와 거울상이다. 재물대 +x 이동에서 영상의 특징이 +열 방향으로 움직인다.
-    픽셀 p 의 재물대 좌표는 `stage + inv(M) @ (centre − p)` 이고, 4x 보정 M 은 그 기록의 값을 초기값으로 쓴다.
-    샘플 맵 클릭 이동(F4)과 엣지 추적이 이 변환을 쓴다.
-  - 4x 타일 스캔은 serpentine 순서.
-  - F5 의 Y 이탈은 **+Y 로 먼저 설정한다** (사용자, 2026-10-01). 거리는 사용자가 말한 15–20 mm 중 짧은 쪽인
-    15 mm 로 시작한다. 둘 다 `unmeasured provisional` 이고, 이동 전에 재물대 Y 한계를 읽어 넘으면 거부한다.
-    실제 벤치에서는 M4 전에 방향과 거리를 확인한다 (Q12).
-- **Focus**: 고전 지표가 기본이고 최종 판정자다. DINO 점수는 보조이며 torch 는 쓸 때만 import 한다.
-- 옛 벤치 스크립트는 이식이 끝난 뒤 R-05 에서 지웠다 (이력에 있음). `scripts/` 에는 모델 제작·평가·그림 스크립트만 남는다.
+- **Backend**: camera frames, position reads, light sources, guarded Z/XY moves, objectives.
+  - `mock`: a simulator with a virtual sample (hole, particle positions), an objective set, light sources and stage limits.
+    Frames are synthetic images that blur with |dz|. **The default backend for M1**.
+  - `replay`: plays back saved z-stacks. `data/smoke` on the development PC, later real sample folders.
+  - `mm-demo`: Micro-Manager demo devices. `mm-real`: the microscope PC.
+- **AgentStore**: an adapter that reads questions, cards and run records and submits questions. The mock has fixed example cards.
+- **Engine**: built of operations. Each operation has `plan → preflight → run → abort`,
+  emits progress events and writes record files.
+- **Gates**: compare the hardware profile file with each operation's requirements to turn operations on and off (F2.2).
+- **Guards**: Z window, upward sweeps only, read-back, XY box, large XY moves only with Z retracted,
+  lights off at the end, single owner of the core. A UI dialog is only an extra confirmation and never replaces a guard.
+- **The large-XY-move threshold is set by one per-objective table inside the guards** (2026-10-01, the lead).
+  There is no way for an operation to pass its own threshold (caller override). The table's values come from the free working distance:
+  for example 4x (WD 20 mm) allows tile moves at sample Z, which keeps the 30 September scan procedure,
+  and 100x Oil (WD 130 µm) retracts Z first when a move exceeds min(field of view, 1 mm).
+  The objective is determined by read-back; if it cannot be read or is not in the table, the strictest value is used.
+  Every value is `unmeasured provisional`, and at integration they move to the limits file a person owns (soft-matter-agents' `envelope/`).
+- **The direction basis follows the 2026-09-30 run record** (the user, 2026-10-01). Evidence: `docs/runs/2026-09-30_substrate-scan.md`.
+  - ZDrive: a larger value is toward the sample, a smaller one is retract. The retract position is 0 µm.
+  - Z sweeps always measure going up (toward larger values).
+  - The camera image is mirrored against the stage. With a stage move in +x, image features move in the +column direction.
+    The stage coordinate of pixel p is `stage + inv(M) @ (centre − p)`, and the 4x calibration M starts from that record's value.
+    Sample map click-to-move (F4) and edge tracing use this transform.
+  - 4x tile scans run in serpentine order.
+  - The F5 Y step-out is **set to +Y for now** (the user, 2026-10-01). The distance starts at 15 mm, the shorter end of the
+    15–20 mm the user gave. Both are `unmeasured provisional`, and before moving, the stage Y limit is read and a move past it is refused.
+    On the real bench the direction and distance are checked before M4 (Q12).
+- **Focus**: classical metrics are the default and the final judge. The DINO score is an aid, and torch is imported only when used.
+- The old bench scripts were deleted in R-05 after porting finished (they are in the history). Only model building, evaluation and figure scripts remain in `scripts/`.
 
-웹 앱 규칙:
-- **Server** 는 엔진의 유일한 소유자다. 프로세스 하나, 코어 하나. 서버는 판단하지 않고
-  요청을 엔진 명령으로 옮기고, 엔진 이벤트를 WebSocket 으로 내보낸다.
-- **API 계약은 한 곳에서 정한다.** 명령, 이벤트, 응답은 Python 쪽 pydantic 모델로 정의하고,
-  FastAPI 가 만드는 OpenAPI 에서 TypeScript 타입을 생성한다. 손으로 쓴 사본을 두지 않는다.
-- **라이브 영상**: 서버가 비닝해 약 800 px JPEG 로 WebSocket 에 보낸다. 목표 10 fps.
-  원본 프레임은 디스크 기록에만 남는다.
-- **접속 범위**: 기본은 `127.0.0.1` 에만 바인딩한다. 다른 PC 에서 보기는 설정으로 켠다.
-  원격 접속에서는 읽기만 허용하고, 움직이는 명령은 현미경 PC 의 브라우저에서만 받는다.
-- **배포**: React 는 빌드 결과(`web/dist`)를 FastAPI 가 정적 파일로 제공한다.
-  실행에는 Node 가 필요 없고 빌드에만 필요하다. `web/dist` 는 git 에 넣지 않는다.
-- **런처**: 데스크톱 exe 는 서버를 띄우고 브라우저를 연다. 기존 tkinter 런처는 이식 후 정리한다.
-- 툴체인: Node 22 LTS, Vite, React, TypeScript, npm. **Node 는 시스템에 설치하지 않고 uv 의존성 그룹
-  `web` (nodejs-wheel) 으로 넣는다.** `uv sync` 만으로 현미경 PC 와 개발 PC 에 같은 버전이 깔린다.
-  실행은 `uv run npm ...`, `uv run node ...`.
+Web app rules:
+- The **Server** is the engine's sole owner. One process, one core. The server makes no judgements;
+  it turns requests into engine commands and sends engine events out over WebSocket.
+- **The API contract is defined in one place.** Commands, events and responses are defined as pydantic models on the Python side,
+  and TypeScript types are generated from the OpenAPI that FastAPI produces. No hand-written copies are kept.
+- **Live video**: the server bins frames and sends roughly 800 px JPEGs over WebSocket. Target 10 fps.
+  Original frames are kept only in the disk records.
+- **Access scope**: by default it binds to `127.0.0.1` only. Viewing from another PC is turned on by a setting.
+  Remote connections may only read; commands that move anything are accepted only from the browser on the microscope PC.
+- **Deployment**: FastAPI serves the React build output (`web/dist`) as static files.
+  Node is needed only to build, not to run. `web/dist` is not put in git.
+- **Launcher**: the desktop exe starts the server and opens the browser. The existing tkinter launcher is cleaned up after porting.
+- Toolchain: Node 22 LTS, Vite, React, TypeScript, npm. **Node is not installed system-wide; it comes in through the uv dependency group
+  `web` (nodejs-wheel).** `uv sync` alone installs the same version on the microscope PC and the development PC.
+  Run with `uv run npm ...`, `uv run node ...`.
 
-### 사용자와 로그인 (X3, X4)
-
-```
-  exe 실행 -> 서버 기동 -> 브라우저가 로그인 화면으로 열림
-  로그인 -> 사용자 선택/인증 -> 실험 세션 열기 또는 이전 세션 보기
-```
-
-- **계정**: 이 PC 의 로컬 사용자 목록. 저장소 밖 설정 폴더에 두고 git 에 넣지 않는다.
-  **계정 id 는 계정을 만들 때 쓴 이메일**이다 (D9). 로그인은 이메일 + 비밀번호.
-  이메일은 대소문자를 구분하지 않고 비교하며, 한 이메일에 계정 하나다.
-- **계정 생성 (v0.9 결정)**: 사용자가 **이름, 이메일, 비밀번호**만 넣어 직접 가입한다.
-  새 계정은 `viewer` 로 시작하고 **관리자가 화면에서 승인하고 역할을 정한다**. 역할은 본인이 고르지 않는다.
-  생성 시각과 승인한 관리자는 감사 로그에 남는다. 소속 같은 항목은 지금 받지 않는다.
-- **관리자 계정**: 관리자 이메일은 사용자가 정했다. **이 값은 코드와 git 에 넣지 않는다**
-  (저장소는 통합 때 공개된다). 첫 실행 설정 화면이나 로컬 설정 파일/환경 변수에서 읽어
-  관리자 계정을 만든다. 테스트는 `example.test` 같은 가짜 주소만 쓴다.
-  비밀번호는 표준 라이브러리 `hashlib.scrypt` 로 해시해 저장하고 원문은 어디에도 남기지 않는다.
-- **역할**: `admin` (사용자 관리), `operator` (장비를 움직일 수 있음), `viewer` (보기만).
-  처음 실행하면 위 관리자 이메일로 admin 을 만든다. 원격 보기 접속도 로그인해야 한다.
-  이메일 인증 메일이나 Google 로그인은 지금 만들지 않는다. 메일 서버나 외부 인증이 필요하기 때문이다.
-- **장비 제어권**: 장비를 움직이는 사용자는 한 번에 한 명이다. 다른 사람은 보기만 한다.
-- **인증 쿠키**: HttpOnly, SameSite=Strict. 일정 시간 입력이 없으면 잠긴다. 잠겨도 진행 중인 작업과
-  가드는 멈추지 않고, 정지(abort)는 누구나 누를 수 있다.
-- **로그 세 가지**
-  - 앱 로그: 서버 동작, 오류. 날짜별 파일, 오래된 것은 자동 정리.
-  - 감사 로그 (`audit.jsonl`): 로그인/로그아웃, 모든 명령의 제안·확인·실행·거부, Claude 대화.
-    모든 줄에 사용자 id 와 실험 세션 id 가 붙는다. 덧붙이기만 하고 고치지 않는다.
-  - 실험 세션 로그: 그 세션 폴더 안에 남고, 기록 저장소에 커밋된다.
-- **mock**: 개발과 테스트는 저장소의 테스트용 시드 파일에 있는 가짜 사용자로 한다.
-  실제 계정 정보는 저장소에 넣지 않는다.
-
-### 실험 세션과 기록 저장소 (F7)
-
-v0.9 결정: **에이전트 아키텍처는 그대로 두고, 데이터를 만든 쪽이 각자의 폴더에 저장한다.**
-세션마다 브랜치를 만들지 않는다. 폴더가 격리 역할을 하므로 충돌이 없다.
+### Users and login (X3, X4)
 
 ```
-  D:\AutoFocus\records\                  기록 저장소: 현미경 PC 로컬 git, 브랜치는 main 하나 (D10)
-    microscope\sessions\<session_id>\    이 앱 (현미경 쪽) 만 쓴다
-      session.json    사용자, 샘플, 시작/종료, 상태, 코드 커밋 해시, 하드웨어 구성 파일 해시
-      log\            실험 세션 로그
-      records\        작업별 기록 (jsonl), sample_events.jsonl, flag, 수동 단계
-      manifest.json   큰 파일 목록: 경로, 크기, sha256
-    simulation\runs\<run_id>\            시뮬레이션 쪽만 쓴다 (실제 위치는 통합할 때 정한다)
-    librarian\                           라이브러리언만 쓴다: 무엇을 언제 반영했는지
-  D:\AutoFocus\data\<session_id>\        큰 데이터, git 밖: frames, stacks, 모자이크 원본
+  run exe -> server starts -> browser opens on the login screen
+  login -> choose/authenticate user -> open an experiment session or view earlier sessions
 ```
 
-- **쓰는 쪽은 자기 폴더만 쓴다.** 현미경 앱은 `microscope\`, 시뮬레이션은 `simulation\`,
-  라이브러리언은 `librarian\` 만 쓴다. 남의 폴더는 읽기만 한다. soft-matter-agents 의
-  "에이전트 폴더는 자기 완결적", "파일이 진실", "지식은 라이브러리언만 소유" 원칙과 같다.
-- **soft-matter-agents 저장소에는 직접 쓰지 않는다.** 그 저장소는 공개다. 폴더 배치만 따르고,
-  실험 기록은 공개되지 않는 이 로컬 git 에 둔다.
-- **샘플 상태는 덧붙이기 이벤트로 쓴다.** 맵 변경, flag, 입자 위치를 `records\sample_events.jsonl` 에
-  덧붙이고, 샘플의 현재 상태는 이벤트를 모아 만든다. 여러 세션이 같은 샘플을 다뤄도 충돌하지 않는다.
-- **자동 커밋**: 작업이 끝날 때마다, 그리고 세션을 닫을 때 **자기 세션 폴더 경로만 지정해** 커밋한다.
-  작성자는 로그인한 사용자다. git 작업은 별도 작업자에서 돌려 장비 루프를 막지 않는다.
-  커밋이 실패해도 측정은 계속되고 실패는 로그에 남는다.
-- **큰 파일은 git 에 넣지 않는다.** 크기 상한을 넘는 파일은 manifest 에 경로와 해시만 남긴다.
-- **코드 버전 기록**: 세션을 열 때 이 코드 저장소의 커밋 해시와 미커밋 변경 여부를 `session.json` 에 남긴다.
-- **상태**: `open` → `closed`. 닫힌 세션 폴더는 읽기 전용이다. 브랜치가 하던 "아직 반영 안 됨 / 반영됨" 구분은
-  `session.json` 의 상태와 라이브러리언의 반영 기록이 대신한다. 세션별 이력은 경로별 git 로그로 본다.
-- **반영은 라이브러리언 에이전트가 한다.** 주기적으로 `closed` 세션을 읽어 지식 저장소에 반영하고,
-  무엇을 반영했는지는 `librarian\` 에만 남긴다. 이 앱은 반영하지 않는다.
-- **mock**: 통합 전에는 가짜 라이브러리언 반영 스크립트로 같은 흐름을 검증한다.
-- **soft-matter-agents 와의 관계**: 실험 세션은 그쪽의 `runs/<run_id>/` 에 대응한다. 통합 단계에서
-  세션 id 와 run id 를 잇는 방법을 정한다.
+- **Accounts**: a local user list on this PC. Kept in a settings folder outside the repository and not put in git.
+  **The account id is the email used when the account was made** (D9). Login is email + password.
+  Emails are compared case-insensitively, and there is one account per email.
+- **Account creation (v0.9 decision)**: users sign up themselves with only **name, email and password**.
+  A new account starts as `viewer`, and **an administrator approves it on screen and sets its role**. Users do not pick their own role.
+  The creation time and the approving administrator go to the audit log. Items such as affiliation are not collected for now.
+- **Administrator account**: the administrator email was chosen by the user. **This value is not put in code or git**
+  (the repository becomes public at integration). It is read from a first-run setup screen or a local settings file / environment variable to
+  create the administrator account. Tests use only fake addresses such as `example.test`.
+  Passwords are hashed with the standard library's `hashlib.scrypt`, and the plain text is kept nowhere.
+- **Roles**: `admin` (manages users), `operator` (can move the instrument), `viewer` (view only).
+  On first run, admin is created with the administrator email above. Remote viewing connections also have to log in.
+  Email verification mail and Google login are not built now, because they need a mail server or external authentication.
+- **Device control**: only one user at a time moves the instrument. Everyone else only watches.
+- **Auth cookie**: HttpOnly, SameSite=Strict. It locks after a period with no input. Even when locked, running operations and
+  guards do not stop, and anyone can press stop (abort).
+- **The three logs**
+  - App log: server activity, errors. One file per day; old ones are cleaned up automatically.
+  - Audit log (`audit.jsonl`): login/logout, every command's proposal, confirmation, execution and refusal, Claude conversations.
+    Every line carries the user id and the experiment session id. Append only, never edited.
+  - Experiment session log: kept in that session's folder and committed to the record store.
+- **mock**: development and tests use fake users from the repository's test seed file.
+  Real account information is not put in the repository.
 
-### Claude 연동 (X2)
+### Experiment sessions and the record store (F7)
 
-권고 구조: **서버 안에서 Claude API 를 부르고, 앱 기능을 Claude 의 도구로 노출한다.**
+v0.9 decision: **the agent architecture stays as it is, and the party that made the data stores it in its own folder.**
+No branch is made per session. The folder does the isolating, so there are no conflicts.
 
 ```
-  화면의 프롬프트 칸 --(질문 + 화면 문맥)--> Server /api/assistant
-      Server: Anthropic Python SDK, 직접 짠 스트리밍 루프, 모델 claude-opus-5-5
-      도구 = 엔진과 저장소 API 를 감싼 함수 (화면이 쓰는 API 와 같은 것)
-  <--(스트리밍 답변, 도구 호출 표시, 실행 제안 카드)--
+  D:\AutoFocus\records\                  record store: local git on the microscope PC, one branch, main (D10)
+    microscope\sessions\<session_id>\    written only by this app (the microscope side)
+      session.json    user, sample, start/end, status, code commit hash, hardware profile file hash
+      log\            experiment session log
+      records\        per-operation records (jsonl), sample_events.jsonl, flags, manual steps
+      manifest.json   list of large files: path, size, sha256
+    simulation\runs\<run_id>\            written only by the simulation side (the actual location is decided at integration)
+    librarian\                           written only by the librarian: what was reflected, and when
+  D:\AutoFocus\data\<session_id>\        large data, outside git: frames, stacks, mosaic originals
 ```
 
-- **구현면 (2026-10-01 갱신)**: Anthropic Python SDK 의 Messages API 를 **직접 짠 스트리밍 루프**로 부른다.
-  Tool Runner 대신 직접 루프를 쓰는 이유는 승인 게이트를 우리 코드 안에 두고, 가짜 공급자 테스트가
-  실제 게이트를 그대로 지나게 하기 위해서다 (T-013). 루프가 지킬 것:
-  - 응답마다 `stop_reason` 을 먼저 본다. `refusal`, `max_tokens` 이면 도구를 실행하지 않는다.
-  - 한 응답의 도구 호출이 여럿이면 모두 실행하고, 결과는 **한 user 메시지**에 모아 돌려준다. 실패한 도구는 `is_error` 로 돌려준다.
-  - 대화 기록은 덧붙이기만 한다. 응답의 content 블록(생각 블록 포함)을 고치지 않고 그대로 다시 보낸다.
-  - 강제 도구 선택(`tool_choice` any/tool)은 쓰지 않는다. `claude-opus-5-5` 에서 400 이다. `auto` + 프롬프트 지시 + `strict: true`.
-  - `effort` 를 명시한다 (이 모델의 기본은 medium). thinking 은 끌 수 없으니 설정하지 않는다.
-  - 서버 측 거부 대체(`fallbacks`)를 기본으로 켠다.
-  - 도구 입력은 스키마로 검증한 뒤 실행한다.
-- **도구는 두 종류다.**
-  - 읽기 도구: 하드웨어 상태, 샘플 기록, 맵, 질문과 카드, 시뮬레이션 진행률과 결과. 바로 실행한다.
-  - 동작 도구: 이동, 광원, 렌즈 전환, 스캔 시작 등. **실행하지 않고 제안 카드만 만든다.**
-    사람이 화면에서 확인을 눌러야 엔진으로 간다. 엔진의 게이트와 가드는 그대로 적용된다.
-- **같은 도구를 나중에 MCP 서버로도 연다.** 그러면 soft-matter-agents 의 Claude Code 세션도
-  같은 기능을 쓴다. 통합 단계의 일이다.
-- **다른 선택지와 비교**
-  - Claude Agent SDK: Claude Code 의 하네스 전체 (파일, bash 포함). 실험 장비 UI 에는 권한이
-    너무 넓다. 개발용 에이전트에 맞는다.
-  - Managed Agents: Anthropic 이 루프와 샌드박스를 돌린다. 장비 도구는 어차피 이 PC 에서
-    실행해야 하므로 얻는 것이 적다.
-- **캐싱**: 시스템 프롬프트와 도구 목록은 고정해 캐시하고, 화면 문맥과 질문은 그 뒤에 붙인다.
-  시스템 프롬프트에 시각이나 매번 바뀌는 값을 넣지 않는다.
-- **자격 증명**: API 키는 서버에만 둔다 (환경 변수 또는 `ant auth login` 프로필).
-  브라우저로 보내지 않는다. 키가 없으면 프롬프트 칸은 "연결 안 됨" 으로 보이고 나머지 기능은 돈다.
-- **mock 우선**: 테스트와 개발은 가짜 LLM 공급자로 한다. 네트워크와 비용 없이 도구 호출 흐름을
-  검증한다. 실제 호출은 사용자가 켤 때만 한다.
-- **기록**: 모든 대화, 도구 호출, 제안, 사람의 확인/거부를 기록 파일에 남긴다.
-  Claude 가 낸 숫자는 "model" 로 표시하고 측정값과 섞지 않는다.
-- **비용 표시**: 답변마다 사용 토큰을 보여 준다.
+- **Each writer writes only its own folder.** The microscope app writes only `microscope\`, the simulation only `simulation\`,
+  the librarian only `librarian\`. Other parties' folders are only read. This matches soft-matter-agents' principles
+  "an agent folder is self-contained", "the files are the truth" and "only the librarian owns knowledge".
+- **Nothing is written directly to the soft-matter-agents repository.** That repository is public. Only its folder layout is followed,
+  and experiment records are kept in this local git, which is not published.
+- **Sample state is written as appended events.** Map changes, flags and particle positions are appended to `records\sample_events.jsonl`,
+  and the sample's current state is built from the events. Several sessions can handle the same sample without conflict.
+- **Auto-commit**: at the end of each operation, and when a session closes, a commit is made **naming only the session's own folder path**.
+  The author is the logged-in user. Git work runs in a separate worker so it does not block the instrument loop.
+  If a commit fails, measurement continues and the failure is logged.
+- **Large files are not put in git.** A file over the size cap leaves only its path and hash in the manifest.
+- **Code version record**: when a session opens, this code repository's commit hash and whether there are uncommitted changes go into `session.json`.
+- **Status**: `open` → `closed`. A closed session folder is read-only. The "not yet reflected / reflected" distinction a branch used to make
+  is made instead by the status in `session.json` and the librarian's reflection record. A session's history is seen through the per-path git log.
+- **Reflecting is the librarian agent's job.** It periodically reads `closed` sessions and reflects them into the knowledge store,
+  and records what it reflected only in `librarian\`. This app does not reflect.
+- **mock**: before integration, a fake librarian reflection script verifies the same flow.
+- **Relation to soft-matter-agents**: an experiment session corresponds to that side's `runs/<run_id>/`. At the integration stage
+  the way to link session id and run id is decided.
 
-디렉터리:
+### Claude integration (X2)
+
+Recommended structure: **call the Claude API inside the server, and expose the app's functions as Claude's tools.**
+
+```
+  screen's prompt box --(question + screen context)--> Server /api/assistant
+      Server: Anthropic Python SDK, a hand-written streaming loop, model claude-opus-5-5
+      tools = functions wrapping the engine and store APIs (the same APIs the screens use)
+  <--(streamed answer, tool-call display, action proposal cards)--
+```
+
+- **Implementation (updated 2026-10-01)**: the Anthropic Python SDK's Messages API is called through **a hand-written streaming loop**.
+  The loop is written by hand instead of using Tool Runner so that the approval gate sits inside our code, and so that fake-provider tests
+  pass through the real gate unchanged (T-013). What the loop must keep to:
+  - Check `stop_reason` first on every response. On `refusal` or `max_tokens`, run no tools.
+  - When one response has several tool calls, run them all and return the results gathered in **one user message**. A failed tool is returned with `is_error`.
+  - The conversation history is append only. The response's content blocks (thinking blocks included) are sent back unchanged.
+  - Forced tool choice (`tool_choice` any/tool) is not used. On `claude-opus-5-5` it is a 400. `auto` + prompt instructions + `strict: true`.
+  - Set `effort` explicitly (this model's default is medium). Thinking cannot be turned off, so it is not configured.
+  - Server-side refusal fallback (`fallbacks`) is on by default.
+  - Tool input is validated against the schema before it runs.
+- **There are two kinds of tools.**
+  - Read tools: hardware state, sample records, map, questions and cards, simulation progress and results. They run immediately.
+  - Action tools: moves, light sources, objective change, starting a scan, etc. **They do not run; they only make a proposal card.**
+    They reach the engine only when a person presses confirm on screen. The engine's gates and guards apply unchanged.
+- **The same tools are later also opened as an MCP server.** Then soft-matter-agents' Claude Code sessions
+  can use the same functions too. That is work for the integration stage.
+- **Compared with the other options**
+  - Claude Agent SDK: the whole Claude Code harness (files and bash included). Its permissions are too broad
+    for an instrument UI. It suits a development agent.
+  - Managed Agents: Anthropic runs the loop and the sandbox. The instrument tools have to run on this PC
+    anyway, so there is little to gain.
+- **Caching**: the system prompt and the tool list are fixed and cached; the screen context and the question are attached after them.
+  No time or other value that changes each call goes into the system prompt.
+- **Credentials**: the API key stays on the server only (an environment variable or an `ant auth login` profile).
+  It is not sent to the browser. Without a key the prompt box shows "not connected" and the other functions keep working.
+- **mock first**: tests and development use a fake LLM provider. The tool-call flow is verified
+  with no network and no cost. Real calls happen only when the user turns them on.
+- **Records**: every conversation, tool call, proposal and human confirmation/refusal is kept in record files.
+  Numbers Claude produces are marked "model" and never mixed with measured values.
+- **Cost display**: the tokens used are shown with every answer.
+
+Directory layout:
 
 ```
 src/dino_autofocus/engine/              backend.py events.py records.py guards.py gates.py sample.py
@@ -442,147 +442,147 @@ src/dino_autofocus/engine/operations/   status.py hardware_scan.py edge_trace.py
                                         sample_map.py objective_change.py focus_100x.py lights_off.py
 src/dino_autofocus/agents/              store.py mock_store.py sma_files.py
 src/dino_autofocus/focus/               classical.py dino.py verdict.py
-src/dino_autofocus/server/              app.py api/ (영역별 라우터) ws.py schemas/ static.py
-src/dino_autofocus/assistant/           tools.py (읽기/제안 도구) runner.py providers/ (anthropic, fake) records.py
-src/dino_autofocus/auth/                users.py (계정, scrypt) sessions.py (로그인 쿠키) audit.py (감사 로그)
-src/dino_autofocus/records/             session.py (실험 세션) gitstore.py (경로 지정 자동 커밋) manifest.py mock_librarian.py (가짜 반영)
+src/dino_autofocus/server/              app.py api/ (one router per area) ws.py schemas/ static.py
+src/dino_autofocus/assistant/           tools.py (read/proposal tools) runner.py providers/ (anthropic, fake) records.py
+src/dino_autofocus/auth/                users.py (accounts, scrypt) sessions.py (login cookie) audit.py (audit log)
+src/dino_autofocus/records/             session.py (experiment session) gitstore.py (path-scoped auto-commit) manifest.py mock_librarian.py (fake reflection)
 web/                                    package.json vite.config.ts
-web/src/app/                            셸: 레이아웃, 내비게이션, 상태 표시줄, API 클라이언트
-web/src/api/                            OpenAPI 에서 생성한 타입 (생성물, 손으로 고치지 않음)
-web/src/features/<영역>/                console hardware sample map objective live simulation
-web/src/app/assistant/                  모든 화면 공통 프롬프트 칸 컴포넌트
-web/src/app/login/                      로그인 화면, 사용자 표시, 잠금
-web/src/features/sessions/              실험 세션 열기/닫기/목록/이전 세션 보기
-tests/engine/  tests/agents/  tests/focus/  tests/server/   web/ 의 테스트는 vitest
+web/src/app/                            shell: layout, navigation, status bar, API client
+web/src/api/                            types generated from OpenAPI (generated, never edited by hand)
+web/src/features/<area>/                console hardware sample map objective live simulation
+web/src/app/assistant/                  the prompt box component shared by every screen
+web/src/app/login/                      login screen, user display, lock
+web/src/features/sessions/              open/close/list experiment sessions, view earlier sessions
+tests/engine/  tests/agents/  tests/focus/  tests/server/   tests in web/ use vitest
 ```
 
-## 6. 설계 규칙 (통합 대비)
+## 6. Design rules (preparing for integration)
 
-1. **UI 는 하드웨어를 직접 부르지 않는다.** 모든 호출은 엔진을 거친다.
-2. **안전은 코드가 정한다.** 가드와 게이트는 엔진에 있고, 모델은 안전 판단에 들어가지 않는다.
-3. **모델 출력은 판정이지 Z 가 아니다.** 표시 어휘: `in_focus | step_up | step_down | no_sample_here | unsure`.
-   Z 는 선택된 프레임의 엔코더 읽기에서 온다. 모델 숫자는 기록에서 "model" 로 표시한다.
-4. **모든 작업은 기록을 남긴다.** 시작 상태, 보낸 명령, 읽은 값, 종료 상태, 수동 단계.
-5. **조명은 끝날 때 반드시 정해진 상태로 둔다.** 작업이 정상으로 끝나면 작업 전 조명 상태로 되돌린다
-   (조작자가 켜 둔 조명은 켜 둔다). 정지, 오류, 서버 종료, `lights_off` 는 모두 끈다 (2026-10-01, T-011).
-   어느 경우든 기록에 최종 조명 상태를 남긴다.
-6. **엔진은 하드웨어 없이 돈다.** 모든 기능은 mock 에서 먼저 끝까지 동작해야 한다.
-7. **명령과 이벤트는 직렬화 가능한 데이터다.** 나중에 UI 와 엔진을 다른 프로세스로 나눌 수 있다.
-8. **엔진은 UI 툴킷과 torch 를 import 하지 않는다.** 무거운 import 는 사용 지점에서.
-9. **에이전트 저장소는 읽기 전용이다.** 카드는 UI 가 쓰지 않는다.
-10. **9월 30일 운영 규칙을 코드로 넣는다.** 명시야로 가장자리 추적 후 입자 조명으로 전환,
-    세션마다 재추적, 액침액 로딩 확인 대기, 100x 상향 연장은 사용자 승인 후.
-11. **Claude 는 제안만 한다.** 동작 도구는 사람이 확인해야 실행되고, 확인 뒤에도 엔진의 게이트와
-    가드를 그대로 지난다. Claude 는 안전 판단과 모션 한계에 들어가지 않는다.
-12. **모든 명령과 기록에는 사용자 id 와 실험 세션 id 가 붙는다.** 로그인한 operator 와 열린 실험 세션이
-    없으면 장비를 움직이는 명령은 거부된다. 이 PC (loopback) 에서는 정지(abort) 와 소등(lights_off) 만 로그인 없이도
-    받는다. 둘 다 장비를 멈추거나 끄는 쪽이라서다. 원격에서는 로그인한 사용자의 정지만 받는다 (D13).
+1. **The UI never calls hardware directly.** Every call goes through the engine.
+2. **Safety is decided by code.** Guards and gates are in the engine, and a model takes no part in safety judgements.
+3. **Model output is a verdict, not a Z.** Display vocabulary: `in_focus | step_up | step_down | no_sample_here | unsure`.
+   Z comes from the encoder reading of the chosen frame. Model numbers are marked "model" in the records.
+4. **Every operation leaves a record.** Start state, commands sent, values read, end state, manual steps.
+5. **Lighting is always left in a defined state at the end.** When an operation ends normally, the lighting goes back to its state before the operation
+   (lights the operator turned on stay on). Abort, error, server shutdown and `lights_off` all turn it off (2026-10-01, T-011).
+   In every case the final lighting state is recorded.
+6. **The engine runs without hardware.** Every function must first work end to end in mock.
+7. **Commands and events are serialisable data.** The UI and the engine can later be split into separate processes.
+8. **The engine does not import a UI toolkit or torch.** Heavy imports happen at the point of use.
+9. **The agent store is read-only.** The UI writes no cards.
+10. **The 30 September operating rules go into code.** Edge tracing in brightfield, then switching to particle illumination,
+    re-tracing each session, waiting for the immersion loading confirmation, extending 100x upward only after the user approves.
+11. **Claude only proposes.** Action tools run only after a person confirms, and even after confirmation they pass the engine's gates and
+    guards unchanged. Claude takes no part in safety judgements or motion limits.
+12. **Every command and record carries the user id and the experiment session id.** Without a logged-in operator and an open experiment session,
+    commands that move the instrument are refused. On this PC (loopback) only stop (abort) and lights off (lights_off) are accepted even without a login,
+    because both stop or switch off the instrument. Remotely, only a logged-in user's stop is accepted (D13).
 
-soft-matter-agents 와의 대응 (통합 단계에서 다룸):
+Correspondence with soft-matter-agents (handled at the integration stage):
 
-| 이 저장소 | soft-matter-agents |
+| This repository | soft-matter-agents |
 |---|---|
-| Backend | `devices/*.py` 의 preflight / apply / read / abort |
-| Engine operation | 승인된 plan 의 단계, `operator.py` 가 실행 |
-| Gates, 하드웨어 구성 파일 | 장치 레지스트리와 `envelope/` |
-| Guards | `GuardedCore` 허용 목록 + orchestrator 인터록. **현재 ZDrive, XYStage, Nosepiece 는 거부됨** |
-| 기록 | `runs/<run_id>/log.json`, 등급 표시 |
+| Backend | preflight / apply / read / abort in `devices/*.py` |
+| Engine operation | a step of an approved plan, executed by `operator.py` |
+| Gates, hardware profile file | the device registry and `envelope/` |
+| Guards | `GuardedCore` allow list + orchestrator interlocks. **ZDrive, XYStage and Nosepiece are currently refused** |
+| Records | `runs/<run_id>/log.json`, grade marks |
 | AgentStore | `*/questions/`, `*/runs/`, `inbox/` |
 
-## 7. 결정이 필요한 사항
+## 7. Items needing a decision
 
-| # | 질문 | 상태 / 권고 |
+| # | Question | Status / recommendation |
 |---|---|---|
-| D1 | UI 기술 | **결정: 로컬 웹 앱, FastAPI + React** (사용자, 2026-10-01). 이유는 아래 |
-| D2 | Python 환경 | 4절 방침. **현미경 PC 에서 최종 결정** (사용자, 2026-10-01) |
-| D3 | 엔진 프로세스 | **결정: 엔진은 FastAPI 서버 프로세스 안에서 돈다** (D1 에 따름). 엔진은 서버 없이도 import 된다 |
-| D4 | 첫 범위 | **결정: 모든 기능을 mock 으로 먼저** (사용자, 2026-10-01) |
-| D5 | 공개/비공개 | **결정: 통합할 때 이 저장소를 공개한다** (사용자, 2026-10-01). 그때까지 비공개 |
-| D6 | Claude 연동 방식 | **권고안으로 진행**: 서버의 Messages API, 직접 짠 스트리밍 루프 (T-013, 2026-10-01 총괄 승인), 동작은 제안 카드. MCP 노출은 통합 단계 |
-| D7 | Claude 에 보낼 수 있는 데이터 | **결정: 텍스트만, 이미지는 보내지 않는다** (사용자, 2026-10-01). 아래 정책 |
-| D8 | 비용 한도 | **결정: 우선 제한 없음** (사용자, 2026-10-01). 사용량은 계속 표시·기록한다. 모델 `claude-opus-5-5` |
-| D9 | 로그인 방식 | **결정: 계정 생성 때 쓴 이메일로 로그인** (사용자, 2026-10-01). 이메일 + 비밀번호로 구현. 관리자 계정 이메일은 사용자가 지정했고 로컬 설정에만 둔다 |
-| D10 | 기록 저장소 위치 | **결정: 현미경 PC 의 로컬 git 저장소** (사용자, 2026-10-01). 원격 push 는 만들지 않는다 |
-| D11 | 기록 구조와 반영 | **결정: 각자의 폴더에 저장, 세션별 브랜치 없음, 라이브러리언이 주기적으로 반영** (사용자, 2026-10-01). 주기는 통합 단계에서 정한다 |
-| D12 | 계정 생성 | **결정: 이름, 이메일, 비밀번호로 직접 가입 → 관리자 승인과 역할 지정** (사용자, 2026-10-01) |
-| D13 | 원격 접속에서 정지 | **결정: 원격 화면도 정지(abort) 만은 누를 수 있다** (사용자, 2026-10-01). 정지에도 로그인이 필요하다 (T-009b). 원격 소등을 포함해 그 밖의 원격 명령은 계속 거부 |
-| D14 | 브라우저가 모두 끊길 때 | **결정: 사람이 보면서 쓰는 작업 중 현미경 PC 의 브라우저 연결이 모두 끊기면 10 s 뒤 자동 정지** (사용자, 2026-10-01). 로그인이 잠긴 이 PC 의 화면도 연결된 것으로 센다. 잠긴 채 새로고침해도 마찬가지이고, 잠긴 화면에는 잠금 상태만 보내고 데이터는 보내지 않는다 (사용자, 2026-10-02, X3 과 맞춤). 원격 화면은 세지 않는다 |
-| D15 | M3 에서 광원 | **결정: M3 (현미경 PC 읽기 전용) 에서 광원 켜기/끄기를 허용한다** (사용자, 2026-10-01). 움직임은 없고, 모든 종료 경로에서 소등한다. Aura 와 DiaLamp 만 |
-| D16 | 보기 전용 사용자의 쓰기 | **결정: 허용하지 않는다** (사용자, 2026-10-01). 질문 넣기와 맵 flag 는 현미경 PC 의 operator 만 |
+| D1 | UI technology | **Decided: local web app, FastAPI + React** (the user, 2026-10-01). Reasons below |
+| D2 | Python environment | Policy in §4. **Final decision on the microscope PC** (the user, 2026-10-01) |
+| D3 | Engine process | **Decided: the engine runs inside the FastAPI server process** (follows D1). The engine can be imported without the server |
+| D4 | First scope | **Decided: every feature in mock first** (the user, 2026-10-01) |
+| D5 | Public/private | **Decided: this repository is made public at integration** (the user, 2026-10-01). Private until then |
+| D6 | How Claude is integrated | **Going ahead with the recommendation**: the Messages API on the server, a hand-written streaming loop (T-013, approved by the lead 2026-10-01), actions as proposal cards. MCP exposure at the integration stage |
+| D7 | Data that may be sent to Claude | **Decided: text only, no images are sent** (the user, 2026-10-01). Policy below |
+| D8 | Cost cap | **Decided: no limit for now** (the user, 2026-10-01). Usage is still shown and recorded. Model `claude-opus-5-5` |
+| D9 | Login method | **Decided: log in with the email used at account creation** (the user, 2026-10-01). Implemented as email + password. The administrator account email was chosen by the user and is kept only in local settings |
+| D10 | Record store location | **Decided: a local git repository on the microscope PC** (the user, 2026-10-01). No remote push is built |
+| D11 | Record structure and reflection | **Decided: each party stores in its own folder, no per-session branches, the librarian reflects periodically** (the user, 2026-10-01). The period is decided at the integration stage |
+| D12 | Account creation | **Decided: self sign-up with name, email and password → administrator approval and role assignment** (the user, 2026-10-01) |
+| D13 | Stop from a remote connection | **Decided: a remote screen too can press stop (abort), and only that** (the user, 2026-10-01). Stop also needs a login (T-009b). Every other remote command, remote lights off included, stays refused |
+| D14 | When every browser disconnects | **Decided: during an operation a person runs while watching, if every browser connection on the microscope PC drops, it stops automatically after 10 s** (the user, 2026-10-01). A screen on this PC whose login is locked also counts as connected. So does one refreshed while locked, and a locked screen is sent only the lock state, no data (the user, 2026-10-02, aligned with X3). Remote screens do not count |
+| D15 | Light sources in M3 | **Decided: turning light sources on/off is allowed in M3 (microscope PC read-only)** (the user, 2026-10-01). Nothing moves, and every exit path turns the lights off. Aura and DiaLamp only |
+| D16 | Writes by view-only users | **Decided: not allowed** (the user, 2026-10-01). Submitting questions and map flags are for an operator on the microscope PC only |
 
-D7 데이터 정책 (서버 설정 하나로 강제하고, 기본값은 `text`):
+D7 data policy (enforced by one server setting; the default is `text`):
 
-| 단계 | Claude 에 가는 것 |
+| Level | What goes to Claude |
 |---|---|
-| `prompt_only` | 사용자가 쓴 프롬프트와 화면 문맥 (id, 이름 같은 짧은 텍스트) 만. 읽기 도구를 쓰지 않는다 |
-| `text` (기본) | 위 + 읽기 도구가 돌려주는 텍스트 (상태, 기록, 카드, 수치). 이미지, 프레임, 맵 그림은 보내지 않는다 |
-| `images` | 위 + 이미지. **사용자가 따로 허락하기 전에는 켜지 않는다** |
+| `prompt_only` | Only the prompt the user wrote and the screen context (short text such as ids and names). Read tools are not used |
+| `text` (default) | The above + the text read tools return (state, records, cards, numbers). No images, frames or map pictures are sent |
+| `images` | The above + images. **Not turned on until the user separately allows it** |
 
-- 도구 결과에 이미지가 섞이면 서버가 빼고, 뺐다는 사실을 기록한다.
-- 단계는 화면 상단에 표시해 사용자가 지금 무엇이 나가는지 알 수 있게 한다.
+- If images are mixed into a tool result, the server strips them and records that it did.
+- The level is shown at the top of the screen so the user knows what is going out right now.
 
-D1 을 웹으로 정한 이유: v0.1 에서는 현미경 화면만 범위여서 PySide6 를 권했다. F1 로 범위가
-에이전트 콘솔까지 넓어졌다. 질문 입력, 카드와 실행 기록 열람, 샘플 맵 클릭, 상태 대시보드는
-웹이 만들기 쉽다. 같은 화면을 WSL 이나 다른 PC 의 브라우저에서도 열 수 있다. 엔진이 HTTP API
-뒤에 있으면 나중에 에이전트가 같은 API 를 쓰기도 쉽다. 대가는 두 언어(Python, TypeScript)와
-라이브 영상 스트리밍이다. 라이브 영상은 서버에서 비닝해 약 800 px JPEG 로 보내면 10 fps 가 가능하다.
+Why D1 was set to web: in v0.1 the scope was only the microscope screen, so PySide6 was recommended. F1 widened the scope
+to the agent console. Question entry, browsing cards and run records, sample map clicks and a status dashboard
+are easy to build on the web. The same screens can also be opened in a browser in WSL or on another PC. With the engine behind an HTTP API,
+it is also easy for agents to use the same API later. The cost is two languages (Python, TypeScript) and
+live video streaming. Live video can reach 10 fps if the server bins it and sends roughly 800 px JPEGs.
 
-## 8. 마일스톤
+## 8. Milestones
 
-| | 내용 | 확인 방법 |
+| | Content | How it is checked |
 |---|---|---|
-| M1 | **전 기능 mock**: 엔진 계약, mock 백엔드, mock 에이전트 저장소, F1–F7 화면, 로그인과 로그, 모든 화면의 프롬프트 칸 (가짜 LLM) | 개발 데스크톱에서 하드웨어 없이 로그인부터 F1–F7 까지 끝까지 실행. `uv run pytest` |
-| M2 | 실제 데이터 읽기: soft-matter-agents 파일 읽기, replay 로 실제 샘플 스택 | 사용자 확인 |
-| M3 | 현미경 PC 읽기 전용: 하드웨어 탐지, 구성 파일, 게이트, 상태 표시. 예외로 광원 켜기/끄기는 허용 (D15) | 사용자가 현미경 PC 에서 실행 |
-| M4 | 동작: 샘플 맵, 클릭 이동, 배율 전환과 액침액 로딩, 100x 초점 | 벤치 기록이 9월 30일 결과와 일치 |
-| M5 | 초점 판정: 고전 지표 + DINO, 현미경 PC 학습 헤드 | 현미경 PC 학습/지연 측정 기록 |
-| M6 | 통합 준비: soft-matter-agents 어댑터 설계 | 총괄 검토 |
+| M1 | **All features in mock**: engine contract, mock backend, mock agent store, F1–F7 screens, login and logs, the prompt box on every screen (fake LLM) | Run end to end from login through F1–F7 on the development desktop with no hardware. `uv run pytest` |
+| M2 | Real data reading: reading soft-matter-agents files, real sample stacks through replay | The user checks |
+| M3 | Microscope PC read-only: hardware detection, profile file, gates, status display. As an exception, turning light sources on/off is allowed (D15) | The user runs it on the microscope PC |
+| M4 | Motion: sample map, click-to-move, objective change and immersion liquid loading, 100x focus | Bench records match the 30 September results |
+| M5 | Focus verdict: classical metrics + DINO, head trained on the microscope PC | Microscope PC training/latency measurement records |
+| M6 | Integration preparation: soft-matter-agents adapter design | Review by the lead |
 
-## 9. 작업 묶음과 파일 소유 (매니저가 배정)
+## 9. Work packages and file ownership (assigned by the manager)
 
-| 묶음 | 내용 | 소유 경로 | 선행 |
+| Package | Content | Owned paths | Prerequisites |
 |---|---|---|---|
-| WP-A 엔진 계약 | Backend 프로토콜, 이벤트, 기록, 가드/게이트 골격 | `engine/{backend,events,records,guards,gates,sample}.py` | 없음. 가장 먼저 |
-| WP-B 백엔드 | **mock 시뮬레이터 우선**, replay, mm-demo, mm-real | `engine/backends/` | WP-A |
-| WP-C 기존 작업 이식 | status, lights_off, edge_trace, scan_4x, focus_100x | `engine/operations/` 의 해당 파일 | WP-A, WP-B mock |
-| WP-D1 서버 골격 | FastAPI 앱, 라우터 구조, WebSocket 이벤트/프레임 브리지, 정적 파일 제공, 접속 범위 설정 | `server/{app,ws,static}.py`, `server/schemas/` 공통, `tests/server/` | WP-A 이벤트 형식 |
-| WP-D2 웹 셸 | Vite + React + TS 프로젝트, 레이아웃, 내비게이션, 상태 표시줄, 생성 타입 클라이언트, 라이브 뷰 | `web/` 전체 중 `web/src/features/` 제외 | Node 설치, WP-D1 OpenAPI |
-| WP-E 초점 + 학습 런북 | 고전 지표, DINO 래퍼, 판정 매핑, 현미경 PC 학습 절차 | `focus/`, `docs/runbooks/` | 없음 |
-| WP-F 에이전트 콘솔 (F1) | AgentStore 어댑터, mock 저장소, 질문/이전 질문/시뮬레이션/실험 화면 | `agents/`, `server/api/console.py`, `web/src/features/console/` | 어댑터는 없음, 화면은 WP-D1·D2 |
-| WP-G 하드웨어 파악 (F2) | 탐지, 구성 파일 형식, 게이트 판정 | `engine/operations/hardware_scan.py`, `engine/gates.py` 의 규칙, `server/api/hardware.py`, `web/src/features/hardware/` | WP-A |
-| WP-H 샘플 로딩 (F3) | 지오메트리 데이터 모델, 입력 창, 로딩 확인 | `engine/sample.py` 의 지오메트리 부분, `server/api/sample.py`, `web/src/features/sample/` | WP-A |
-| WP-I 샘플 맵 (F4) | 투과광 모자이크, 입자 후보, flag, 클릭 이동 | `engine/operations/sample_map.py`, `server/api/map.py`, `web/src/features/map/` | WP-B mock, WP-C scan_4x |
-| WP-J 배율 전환 (F5) | 2절 F5 순서, XY 이탈/복귀, 수동 단계 | `engine/operations/objective_change.py`, `server/api/objective.py`, `web/src/features/objective/` | WP-A, WP-B mock |
-| WP-K 시뮬레이션 현황 (F6) | 진행률, 내려받기, 궤적 뷰어 2D(Canvas)·3D(Three.js), 결과 그래프. mock 실행 생성기 | `server/api/simulation.py`, `web/src/features/simulation/`, AgentStore 의 시뮬레이션 읽기 부분 | WP-F 어댑터, WP-D1·D2 |
-| WP-L Claude 연동 (X1, X2) | 도구 정의, 스트리밍 도구 루프, 가짜 공급자, 제안 카드 흐름, D7 데이터 정책, 사용량 표시, 기록, 공통 프롬프트 칸 | `assistant/`, `server/api/assistant.py`, `web/src/app/assistant/` | WP-A, WP-D1·D2. 실제 호출은 사용자가 API 키를 넣고 켤 때 |
-| WP-M 로그인과 로그 (X3, X4) | 계정, 역할, 로그인 쿠키, 잠금, 감사 로그, 앱 로그, 로그인 화면, exe 가 브라우저를 로그인 화면으로 열기 | `auth/`, `server/api/auth.py`, `web/src/app/login/`, `tools/launcher/` | WP-D1·D2 |
-| WP-N 실험 세션 (F7) | 세션 수명주기, 세션 폴더 레이아웃, 경로 지정 자동 커밋, manifest, 코드 버전 기록, 가짜 라이브러리언 반영, 세션 화면 | `records/`, `server/api/sessions.py`, `web/src/features/sessions/` | WP-A 기록 형식, WP-M 사용자 id |
+| WP-A engine contract | Backend protocol, events, records, guard/gate skeleton | `engine/{backend,events,records,guards,gates,sample}.py` | None. First of all |
+| WP-B backends | **mock simulator first**, replay, mm-demo, mm-real | `engine/backends/` | WP-A |
+| WP-C porting existing operations | status, lights_off, edge_trace, scan_4x, focus_100x | the matching files in `engine/operations/` | WP-A, WP-B mock |
+| WP-D1 server skeleton | FastAPI app, router structure, WebSocket event/frame bridge, static file serving, access scope setting | `server/{app,ws,static}.py`, the shared part of `server/schemas/`, `tests/server/` | WP-A event format |
+| WP-D2 web shell | Vite + React + TS project, layout, navigation, status bar, generated-types client, live view | all of `web/` except `web/src/features/` | Node install, WP-D1 OpenAPI |
+| WP-E focus + training runbook | classical metrics, DINO wrapper, verdict mapping, microscope PC training procedure | `focus/`, `docs/runbooks/` | None |
+| WP-F agent console (F1) | AgentStore adapter, mock store, question/earlier-question/simulation/experiment screens | `agents/`, `server/api/console.py`, `web/src/features/console/` | None for the adapter; the screens need WP-D1·D2 |
+| WP-G hardware detection (F2) | detection, profile file format, gate verdicts | `engine/operations/hardware_scan.py`, the rules in `engine/gates.py`, `server/api/hardware.py`, `web/src/features/hardware/` | WP-A |
+| WP-H sample loading (F3) | geometry data model, input window, loading check | the geometry part of `engine/sample.py`, `server/api/sample.py`, `web/src/features/sample/` | WP-A |
+| WP-I sample map (F4) | transmitted-light mosaic, particle candidates, flags, click-to-move | `engine/operations/sample_map.py`, `server/api/map.py`, `web/src/features/map/` | WP-B mock, WP-C scan_4x |
+| WP-J objective change (F5) | the F5 sequence of §2, XY step-out/return, manual step | `engine/operations/objective_change.py`, `server/api/objective.py`, `web/src/features/objective/` | WP-A, WP-B mock |
+| WP-K simulation status (F6) | progress, download, trajectory viewer 2D (Canvas)·3D (Three.js), result graphs. mock run generator | `server/api/simulation.py`, `web/src/features/simulation/`, the simulation-reading part of AgentStore | WP-F adapter, WP-D1·D2 |
+| WP-L Claude integration (X1, X2) | tool definitions, streaming tool loop, fake provider, proposal card flow, D7 data policy, usage display, records, shared prompt box | `assistant/`, `server/api/assistant.py`, `web/src/app/assistant/` | WP-A, WP-D1·D2. Real calls when the user enters an API key and turns them on |
+| WP-M login and logs (X3, X4) | accounts, roles, login cookie, lock, audit log, app log, login screen, the exe opening the browser on the login screen | `auth/`, `server/api/auth.py`, `web/src/app/login/`, `tools/launcher/` | WP-D1·D2 |
+| WP-N experiment sessions (F7) | session lifecycle, session folder layout, path-scoped auto-commit, manifest, code version record, fake librarian reflection, sessions screen | `records/`, `server/api/sessions.py`, `web/src/features/sessions/` | WP-A record format, WP-M user id |
 
-- 기능별 화면은 `server/api/<영역>.py` 와 `web/src/features/<영역>/` 를 한 묶음이 함께 소유한다.
-  셸(WP-D2)은 각 영역을 내비게이션에 붙이는 등록 지점 하나만 열어 두고, 영역 묶음은 그 파일을 고치지 않는다.
-- `web/package.json`, `web/package-lock.json` 은 `pyproject.toml` 과 같은 규칙이다. 매니저를 통해 한 세션만 고친다.
-- `engine/gates.py` 와 `engine/sample.py` 는 WP-A 가 골격을 만들고, 이후 내용은 G 와 H 가
-  나눠 맡는다. 동시에 같은 파일을 배정하지 않는다.
-- 공유 파일: `pyproject.toml`, `uv.lock` 은 매니저를 통해 한 세션만 고친다.
-  `docs/PLAN.md` 는 총괄만 쓴다. 세션 규칙과 과제 카드는 내부 노트 (`dino-autofocus-internal`) 에 있다.
-  `scripts/*` 는 과제에 명시된 경우만 고친다.
+- Each function's screen, `server/api/<area>.py` together with `web/src/features/<area>/`, is owned by one package.
+  The shell (WP-D2) keeps open only one registration point that attaches each area to the navigation, and the area packages do not edit that file.
+- `web/package.json` and `web/package-lock.json` follow the same rule as `pyproject.toml`: only one session edits them, through the manager.
+- `engine/gates.py` and `engine/sample.py` get their skeleton from WP-A; after that, G and H
+  split the contents. The same file is never assigned to both at once.
+- Shared files: `pyproject.toml` and `uv.lock` are edited by only one session, through the manager.
+  `docs/PLAN.md` is written only by the lead. Session rules and task cards are in the internal notes (`dino-autofocus-internal`).
+  `scripts/*` is edited only when a task says so explicitly.
 
-## 10. 미해결 사항
+## 10. Open items
 
-추후 결정:
-- F1.1 질문을 실제로 어디에 쓰는지. soft-matter-agents 와 정해야 한다.
-- F3.2 내용, F3.1 필드 목록 확정.
-- F5 이탈 방향과 거리. 재물대 Y 한계와 샘플의 24 mm 변 방향을 측정한 뒤 정한다.
-- F5 에서 물 대물렌즈(40x WI)는 작동 거리 값이 없어 보류 (soft-matter-agents 과제 026 5절).
-- F7 시뮬레이션 데이터 위치: WSL 의 시뮬레이션이 `records\simulation\` 에 직접 쓸지, 지금 위치에 두고
-  라이브러리언과 화면이 그 경로를 읽을지. **통합할 때 정한다** (사용자, 2026-10-01). mock 은 영향 없음.
-- F6 진행률: WSL 의 시뮬레이션이 진행 상태를 파일로 남기는지, 궤적과 로그가 어디에 있는지 현미경 PC 에서 확인.
-- X2 와 soft-matter-agents 규칙: 그쪽 과제 026 은 외부 서비스 호출을 "사람의 결정, 미승인" 으로 둔다.
-  이 저장소의 Claude 연동은 사용자가 요청한 것이고, 통합 시 그쪽 기록에도 남겨야 한다.
+To be decided later:
+- F1.1 where questions are actually written. To be settled with soft-matter-agents.
+- F3.2 contents; confirming the F3.1 field list.
+- F5 step-out direction and distance. Set after measuring the stage Y limit and which way the sample's 24 mm side faces.
+- In F5 the water objective (40x WI) is on hold because it has no working distance value (soft-matter-agents task 026 §5).
+- F7 simulation data location: whether the WSL simulation writes directly to `records\simulation\`, or stays where it is now and
+  the librarian and the screens read that path. **Decided at integration** (the user, 2026-10-01). No effect on mock.
+- F6 progress: whether the WSL simulation leaves its progress in a file, and where the trajectories and logs are; to be checked on the microscope PC.
+- X2 and the soft-matter-agents rules: that side's task 026 treats calling an external service as "the person's decision, not approved".
+  This repository's Claude integration is something the user asked for, and at integration it has to be recorded in that side's records too.
 
-9월 30일 벤치에서 넘어온 것:
-- `find_particle_z.py` 의 입자 판별을 신뢰할 수 없다 (실제 입자 약 6.7 µm).
-- Aura 깜박임으로 밝기 −23 % 프레임이 한 번 나왔다.
-- 4x→100x 동초점 오프셋이 약 −60 µm 로 측정됐고 기준 시료로 재측정이 필요하다.
-- A4000 지연 시간과 fp16 헤드의 실측 성능은 아직 측정하지 않았다.
-- 현재 헤드는 합성 100x 형광 데이터로만 학습됐다. 명시야 유리/물 계면은 시뮬레이션되지 않는다.
+Carried over from the 30 September bench:
+- The particle discrimination in `find_particle_z.py` cannot be trusted (real particles are about 6.7 µm).
+- An Aura flicker produced one frame with brightness −23 %.
+- The 4x→100x parfocal offset was measured at about −60 µm and needs re-measuring with a reference sample.
+- The A4000 latency and the measured performance of the fp16 head have not been measured yet.
+- The current head was trained only on synthetic 100x fluorescence data. A brightfield glass/water interface is not simulated.
