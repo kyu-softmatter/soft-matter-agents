@@ -84,6 +84,29 @@ between them. Neither writes `src/`, `tests/` or `questions/`. The one
 exception is card 071's single ruling line in `rulings.jsonl`, which that
 card grants and no other.
 
+## Card 069, Microscope 3 (added 2026-10-17)
+
+Added by `manager-microscope-office-20261016-1`. Card 069 is assigned to
+`microscope-office-20261015-1` (Microscope 3), on the person's word of
+2026-10-17, quoted in that card. It is a code card, and one seat writes code
+at a time, so **for card 069 alone, `src/**`, `tests/**` and
+`failures.jsonl` pass to `microscope-office-20261015-1`**. This lifts, for
+that card only, the line above that says neither dino seat writes `src/`
+or `tests/`. `rulings.jsonl` stays where it was: card 069 crosses nothing
+from another repository.
+
+**While it holds them, `microscope-20261007-1` makes no edit under `src/` or
+`tests/` in the working copy.** Work in a scratch copy is allowed. At the
+handover, `src/` and `tests/` held no uncommitted change, so nothing of
+Microscope 2's is left in them to take or to discard.
+
+**They come back when card 069 lands**: Microscope 3 reports its commits to
+manager-microscope, and manager-microscope says here, in writing, that the
+code is Microscope 2's again. From then on "While Microscope 1 is closed"
+holds as written. Card 076 waits on card 069, as it says, and its seat is
+whoever holds the code after the return. That is `microscope-20261007-1`
+unless the person says otherwise.
+
 ## The envelope snapshot (added 2026-10-12)
 
 **Microscope 2, or whichever registered Office microscope seat is running

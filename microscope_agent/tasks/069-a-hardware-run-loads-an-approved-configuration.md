@@ -4,10 +4,19 @@ Written by `manager-microscope-20261013-1` on the person's yes in this seat's
 window on 2026-10-13, from the bench seat's report of the same day. You read
 this; you do not edit it.
 
-**Assigned to `microscope-20261007-1`**, which holds `src/` and `tests/`
-under card 064. **Do not start until card 064's freeze ends**: the bench seat
-says in its findings file that the visit's instrument work is done. Before
-then, design and test only in a scratch copy.
+**Assigned to `microscope-office-20261015-1` (Microscope 3)**, from
+2026-10-17. The person said in architecture-20261007-1's window that day,
+verbatim: "Microscope 3에 설정 파일 카드 맡겨" (give the configuration-file
+card to Microscope 3). That was relayed to manager-microscope-office-20261016-1,
+which made the assignment on it. Card 064 passes `src/`, `tests/` and
+`failures.jsonl` to you for this card alone, under "Card 069, Microscope 3",
+and they go back when it lands. It was first assigned to
+`microscope-20261007-1`, which holds the code otherwise. If you are not
+`microscope-office-20261015-1`, take nothing from this card and report up.
+
+**The freeze this card waited on has ended.** The bench seat's findings file
+says, as its item 8 of 2026-10-13: "Instrument work for this visit is done
+as of this item; the src/ and tests/ freeze may end."
 
 ## What was found
 
@@ -147,6 +156,45 @@ So, before anything is loaded on hardware:
     such, beside the hashes.
 - **Test it**: a configuration whose `ZDrive` direction is inverted is
   refused with nothing loaded, watched failing first.
+
+## Added 2026-10-17 by manager-microscope-office-20261016-1: until the store holds the encoding, every ZDrive direction is refused
+
+`microscope-office-20261015-1` asked this after reading the card, through
+architecture-20261007-1. The check above needs two facts. The store has
+the first: `z_retract_direction_is_measured`, smaller Z is retracted, E3.
+It lacks the second: **which `FocusDirection` value in a configuration
+means "increasing Z moves toward the sample"**. That meaning exists here
+only as a comment in the imported files, and this card forbids taking it
+from the file.
+
+A rule that accepts one value, such as the literal `1`, would need that same
+missing fact. It is safe only if `1` means what the store says is the retract
+direction, and nothing on record says it does. Choosing the value from
+memory would put a number no source backs into a safety check, so this card
+does not do it.
+
+So, until the store holds that encoding:
+
+- **A configuration that carries any `FocusDirection` line for `ZDrive` is
+  refused on hardware, whatever its value, with nothing loaded.** The
+  refusal says the meaning of the value is not in the store and names the
+  entry below. That includes the imported configurations, every one of
+  which carries such a line.
+- A configuration with no `FocusDirection` line for `ZDrive` sets no
+  direction, and this rule does not refuse it. Everything else on the card
+  still applies.
+- **Test it**, watched failing first: one configuration per value seen in
+  the imported files, plus one unparseable value, each refused with the
+  missing entry named. A configuration with no such line passes this check.
+
+**What retires it**: a store entry, graded and sourced from Micro-Manager's
+own source code or documentation and not from the imported files, that
+gives the encoding of `FocusDirection` for a Z stage. The id is the
+librarian's to choose; `micromanager_focus_direction_encoding` is the
+working name. When it lands, the blanket refusal is replaced by the
+agreement check above, in a card of its own, with its own test. This card
+includes no hardware run, so the refusal blocks nothing in it. The person's
+first load on the instrument needs the entry to land first.
 
 ## What comes back
 
