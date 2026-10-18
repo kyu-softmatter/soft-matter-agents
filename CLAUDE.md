@@ -213,7 +213,7 @@ write, but its outward path denials are **inert in a session rooted at that
 agent**: a path pattern resolves against the session's root, so
 `Write(bridge/**)` from `microscope_agent/` names a path that cannot exist.
 Tool denials are not inert, and a denial aimed inside the agent's own tree
-resolves normally. See §6.2. Sessions communicate only through file cards and read-only
+resolves normally. **But a command denial names one shell tool** (2026-10-18, INC-20261018-07): on Windows the PowerShell tool is a second route, and a `Bash(...)` deny line does not reach it, so each needs its `PowerShell(...)` twin -- measured in `console/`, where an `echo` the Bash tool refused ran through PowerShell. See §6.2. Sessions communicate only through file cards and read-only
 librarian MCP calls, so every transfer leaves a trace on disk. See §6.2.
 
 **MCP tools can be missing for a reason no seat here can see.** Claude Code
@@ -256,7 +256,10 @@ and its retraction is in §7.
 by hand** — and read it again, because it moves: on 2026-09-20 it went from
 that one key to `{}` to absent inside ten minutes while seats were quoting it
 to each other, and nothing anywhere records that it did. Settings are read at
-session start, so fixing it leaves a running session unchanged.
+session start, so fixing it leaves a running session unchanged -- and,
+observed once (2026-10-17, console-office-20261017-1), again when a running
+session's working directory changes; whether an edit alone reaches a running
+session is unmeasured.
 
 **That sentence is the third instance of one class and it took three to see
 it.** A fix that lands in configuration reaches **only what starts after

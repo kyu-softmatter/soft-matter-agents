@@ -2016,6 +2016,17 @@
         "console"
       ],
       "note": "The console's execution seat on the Office computer (Windows, hostname Office): the desktop session titled \"콘솔 실행석\", opened by the person on 2026-10-17. The person seated it in its own window with the role and no name, first message verbatim: \"콘솔 실행석\" -- read off that session's transcript by architecture-20261007-1. n is 1. owns names the console boundary, which does not exist in the validator yet, so the row grants nothing until manager work adds it with its fixtures; until then this seat commits nothing. It sits at the repository root because console/ does not exist; once console/CLAUDE.md and console/.claude/ land it should be reopened rooted at console/, so that the console's own guards load. Opened concurrently; closes nothing."
+    },
+    {
+      "seat": "microscope-office-20261017-1",
+      "committer_email": "microscope-office-20261017-1@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "paths": [
+        "microscope_runtime/"
+      ],
+      "note": "The microscope runtime's execution seat on the Office computer (Windows, hostname Office), rooted at microscope_runtime/: plan.md 15 step 4. The person opened the session there and seated it in its own window with the role and no name, first message verbatim: \"실행세션\" (execution session), then asked it to send its registration request to architecture-20261007-1 -- read off that session's transcript by architecture-20261007-1. n is 1, the first microscope-office seat for 2026-10-17, the machine's local date. owns the microscope boundary, narrowed to microscope_runtime/ as section 15 divides it; the planning rows were narrowed to microscope_agent/ at df579182 for exactly this. The paths that move in step 5 join this row for that commit only and leave right after it; that widening is a separate registry commit, made when the move card exists. It touches no device until the person hands it the bench in its window. Opened concurrently; closes nothing."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
