@@ -13,12 +13,17 @@ or inside a function, relative imports resolved, plus a literal `importlib.impor
 string. And one edge no static import shows: `server.api.include_area_routers` mounts every
 module in the `server/api/` package, so each module there counts as imported by `server.api`.
 A route that needs the engine cannot sit in that package without the crossing app reaching it.
+
+Card 078 deleted the crossing originals here once their copies were in `console/` (908e55c8),
+so the lists now name what is gone from this tree and present under `console/`; the graph
+checks still hold, and would catch a crossing path coming back.
 """
 
 import ast
 from pathlib import Path
 
 TREE = Path(__file__).resolve().parents[1]  # microscope_agent/autofocus/
+CONSOLE = TREE.parents[1] / "console"  # where the crossing set lives since card 078
 PKG = TREE / "src" / "dino_autofocus"
 TESTS = TREE / "tests"
 
@@ -102,11 +107,17 @@ def _rel(path: Path) -> str:
     return path.relative_to(TREE).as_posix()
 
 
-def test_the_lists_name_real_packages():
+def test_the_lists_name_what_left_for_console():
+    """Card 078: every crossing package and test folder is gone from this tree and present
+    under console/ at the same path, so the cut's lists keep meaning something."""
     for package in CROSSING_PACKAGES:
-        assert package in MODULES, package
+        rel = Path(*package.split("."))
+        assert package not in MODULES and not (PKG.parent / rel).exists(), package
+        assert (CONSOLE / "src" / rel / "__init__.py").is_file(), package
     for folder in CROSSING_TEST_DIRS:
-        assert (TESTS / folder).is_dir(), folder
+        assert not (TESTS / folder).exists(), folder
+        assert (CONSOLE / "tests" / folder).is_dir(), folder
+    assert not (TREE / "web").exists() and (CONSOLE / "web").is_dir()
     assert any(not _crosses(m) for m in MODULES), "nothing stays"
 
 

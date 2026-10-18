@@ -110,7 +110,7 @@ def test_05_f2_hardware_scan_and_gates(day):
 
 # -- F3: the sample goes on -------------------------------------------------------------------
 
-#: the operator's entries on the sample screen (docs/screens/sample.md section 2)
+#: the operator's entries on the sample screen (console/docs/screens/sample.md section 2)
 GEOMETRY = {"sample_size_mm": list(SPEC.size_mm), "chamber_shape": "hole",
             "hole_diameter_mm": SPEC.hole_diameter_mm,
             "coverslip_thickness_um": SPEC.coverslip_um,

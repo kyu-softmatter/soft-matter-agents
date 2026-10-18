@@ -12,7 +12,7 @@ Keys this module does not know are kept and written back, so files from the
 2026-09-30 scripts survive a load/save round trip.
 
 Geometry (F3, WP-H). `GEOMETRY_FIELDS` is the one list of geometry fields on the engine
-side (docs/screens/sample.md section 2); the server serves it and the screen renders from
+side (console/docs/screens/sample.md section 2); the server serves it and the screen renders from
 it. Values are entered through `sample_geometry_set` and stored as `geometry_set` sample
 events (T-019 records); `geometry_view` and `loading_view` project the folded events into
 what the screens show. Sample thickness and orientation have no default on purpose: a
@@ -241,7 +241,7 @@ class SampleView:
         return {k: c for k, c in self.candidates.items() if c.get("status") != "rejected"}
 
     def summary(self) -> dict[str, Any]:
-        """SampleSummary of docs/screens/sample.md section 3."""
+        """SampleSummary of console/docs/screens/sample.md section 3."""
         return {"sample_id": self.sample_id, "created": self.created,
                 "fitted_at": (self.hole or {}).get("fitted_at"),
                 "closed_loop": self.hole_loop["closed"],

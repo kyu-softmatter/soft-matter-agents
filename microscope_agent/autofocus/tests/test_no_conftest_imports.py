@@ -4,7 +4,7 @@ Several test directories have a conftest.py, and pytest puts each directory on s
 importing a conftest by name resolves to whichever one loaded first and breaks when
 directories run in another order (T-015d, T-015e). Shared fakes live in uniquely named
 modules instead (tests/engine/engine_fakes.py, tests/e2e/e2e_helpers.py,
-tests/server/server_fakes.py). Docstrings and comments may mention conftest; only import
+console/tests/server/server_fakes.py). Docstrings and comments may mention conftest; only import
 statements count.
 """
 

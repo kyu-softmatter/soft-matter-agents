@@ -28,7 +28,7 @@ uv run ruff check src tests
 - `tests/engine/test_safety_baseline.py` (D-00) pins the two bench locks, the per-lens approach
   ceilings and the inventory of direct Micro-Manager write calls. It fails on purpose when one of
   those changes; read the docstring before "fixing" it.
-- `web/src/api/schema.ts` is generated: after a change to a pydantic model run
+- `console/web/src/api/schema.ts` is generated: after a change to a pydantic model run
   `uv run npm --prefix web run gen:api` and commit the result; never edit it by hand.
 - Optional extras: tests that need torch, scikit-learn, scikit-image, yaml or gsd call
   `pytest.importorskip(...)` and skip in an environment without that extra (`uv sync` installs
@@ -81,5 +81,5 @@ PYTHONUTF8=1 python -m unittest microscope_agent/tests/test_focus_core.py   # on
    `git archive` of the merge into its scratch folder, never by resetting the shared folder).
 4. If `microscope_agent/` changed: `tests/test_sma_shape.py` passes and the drift check against the
    soft-matter-agents copy, once it exists (item D-03), reports no drift.
-5. No `.venv`, `web/node_modules`, `web/dist`, `data/`, `outputs/`, `.agent/` or `.claude/` path is
+5. No `.venv`, `console/web/node_modules`, `console/web/dist`, `data/`, `outputs/`, `.agent/` or `.claude/` path is
    in the diff.

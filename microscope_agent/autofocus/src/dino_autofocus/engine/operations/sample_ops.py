@@ -1,5 +1,5 @@
 """Sample operations (F3, WP-H): choose a sample, enter its geometry, confirm the loading,
-and mark the hole boundary. Op names follow docs/screens/sample.md section 4.
+and mark the hole boundary. Op names follow console/docs/screens/sample.md section 4.
 
     sample_open{sample_id}          choose the sample for the next session; nothing moves
     sample_new{}                    reserve a new id and its legacy folder; no event

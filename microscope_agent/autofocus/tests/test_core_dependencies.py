@@ -1,6 +1,7 @@
 """The core install stays small: `[project].dependencies` is numpy + scipy, and every package
-soft-matter-agents may take (engine, focus, records, agents, auth, assistant) imports with the
-extras and the server group absent (docs/integration-sma.md P1)."""
+soft-matter-agents may take (engine, focus, records) imports with the extras and the server group
+absent (docs/integration-sma.md P1). agents, auth and assistant were on this list until they
+moved to console/ with the rest of the console (soft-matter-agents card 078)."""
 
 import subprocess
 import sys
@@ -9,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CORE = {"numpy", "scipy"}
-CORE_PACKAGES = ("engine", "focus", "records", "agents", "auth", "assistant")
+CORE_PACKAGES = ("engine", "focus", "records")
 # modules of the ml / hw / synth / plot extras and the server group
 NOT_IN_CORE = ("torch", "torchvision", "sklearn", "joblib", "skimage", "yaml", "matplotlib",
                "pymmcore", "pymmcore_plus", "pydantic", "fastapi", "starlette", "uvicorn",

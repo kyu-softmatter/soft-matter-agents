@@ -1,6 +1,7 @@
 """`objective_change`: rotate the nosepiece with the F5 immersion-loading step-out (T-029).
 
-PLAN 2 F5 seven steps; operations-spec 4.2; screen contract T-104 (docs/screens/objective.md).
+PLAN 2 F5 seven steps; operations-spec 4.2; screen contract T-104
+(console/docs/screens/objective.md).
 Port of `scripts/change_objective.py` (`--to N`, `--park`, `--return-only`), deleted in R-05.
 
 Commands (names fixed by the screen contract):

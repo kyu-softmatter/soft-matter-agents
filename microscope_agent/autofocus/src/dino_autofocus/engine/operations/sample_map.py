@@ -1,4 +1,5 @@
-"""F4 sample map, engine side (ops-spec 6, docs/screens/map.md sections 3 and 6, T-032 stage 2).
+"""F4 sample map, engine side (ops-spec 6, console/docs/screens/map.md sections 3 and 6,
+T-032 stage 2).
 
 Operations (registered with the T-011 runner):
 

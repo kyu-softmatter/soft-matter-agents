@@ -284,7 +284,8 @@ def check(profile: HardwareProfile | None, op: str, args: dict | None = None,
 
 def gate_rows(profile: HardwareProfile | None,
               gates: tuple[Gate, ...] = GATES) -> list[dict]:
-    """The screen's GateRow list (docs/screens/hardware.md 1): disabled rows first, then by key."""
+    """The screen's GateRow list (console/docs/screens/hardware.md 1): disabled rows first,
+    then by key."""
     res = evaluate(profile, gates)
     rows = [{"op": g.key, "enabled": res[g.key].enabled, "reasons": res[g.key].reasons,
              "requires": g.requires()} for g in gates]

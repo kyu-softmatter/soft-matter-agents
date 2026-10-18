@@ -19,7 +19,7 @@ Focus is judged from deterministic image metrics, with frozen DINOv2 features an
 | `microscope_agent/` | Files laid out as they will sit in soft-matter-agents (focus verdict, focus search, map tiles) |
 | `src/dino_autofocus/focus/` | Classical focus metrics, DINO focus head |
 | `src/dino_autofocus/engine/` | Mock-first engine, motion guards, Micro-Manager backend |
-| `src/dino_autofocus/server/`, `web/` | Local web app (FastAPI + React/TypeScript) |
+| `console/src/dino_autofocus/server/`, `console/web/` | Local web app (FastAPI + React/TypeScript) |
 | `src/dino_autofocus/synth/` | Synthetic PSF image simulator for training data |
 | `scripts/` | Bench and training scripts |
 | `docs/` | Design, specs, runbooks and bench run records |
@@ -35,7 +35,8 @@ uv sync
 The core package depends only on numpy and scipy; heavy parts are extras (`ml`, `hw`, `synth`,
 `server`, `plot`). Full setup, the DINOv2 clone and the desktop launcher: [`docs/setup-new-pc.md`](docs/setup-new-pc.md).
 
-Run the web app (binds to `127.0.0.1` only):
+Run the web app (binds to `127.0.0.1` only) from `console/` at the repository root, where
+it lives since soft-matter-agents card 078:
 
 ```
 uv run python -m dino_autofocus.server

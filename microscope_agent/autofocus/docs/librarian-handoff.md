@@ -35,7 +35,7 @@
 - Source abbreviations: `guards` = src/dino_autofocus/engine/guards.py, `backend` = engine/backend.py, `mm_real`/`mm_demo`/`mm_demo_core`/`mock`/`mock_world` = engine/backends/*.py,
   `ops/*` = engine/operations/*.py, `bench_values` = src/dino_autofocus/bench_values.py (where the numbers gathered after D-02),
   `flat/<file>` = microscope_agent/src/<file> (flat files), `patterns` = engine/patterns.py, `tweez300` = engine/backends/tweez300.py,
-  `scr/tweezers`·`scr/patterns` = docs/screens/{tweezers,patterns}.md, `web/tweezers.test` = web/src/features/tweezers/tweezers.test.tsx,
+  `scr/tweezers`·`scr/patterns` = console/docs/screens/{tweezers,patterns}.md, `web/tweezers.test` = console/web/src/features/tweezers/tweezers.test.tsx,
   `chk` = docs/microscope-pc-checklist.md, `run930y` = docs/runs/2026-09-30_substrate-scan.yaml,
   `run930m` = docs/runs/2026-09-30_substrate-scan.md, `bp1002` = docs/runs/2026-10-02_bench-properties.json,
   `cfg1` = configs/micromanager/single_cam_red_noDMD_nocom10.cfg, `cfg2` = configs/micromanager/DMD_dualcam_LUNF.cfg,
