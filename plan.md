@@ -2939,7 +2939,7 @@ is never touched. The revision comes later, with `013`, and then the corrected c
 
 | Number | What | Seat holding it |
 |---|---|---|
-| _(empty)_ | 89 reached declaration on 2026-10-16; **an empty table is the normal state** |  |
+| 90 | an execution folder's settings deny writing the person's files (15): every agent folder that holds, or is allowed to hold, `envelope/safety.json` or `approvals/` (`microscope_runtime/` and `microscope_agent/` today) has a `.claude/settings.json` whose deny list carries Edit and Write for `envelope/safety.json`, `approvals/**`, `tasks/**`, `CLAUDE.md` and `.claude/**`, resolved from that folder; a missing file or a missing line refuses. No check guards inward denials today (53 refuses only read denials), and 15 asks for them with fixtures watched failing | `manager-microscope-20261003-1` |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
 
