@@ -196,6 +196,40 @@ agreement check above, in a card of its own, with its own test. This card
 includes no hardware run, so the refusal blocks nothing in it. The person's
 first load on the instrument needs the entry to land first.
 
+## For the revision after plan.md section 15 -- a record, not yet an instruction (added 2026-10-17)
+
+**Nothing in this section changes what you build.** The card is paused for
+the move to `microscope_runtime/`, and the rule above stands until the
+revision replaces it. This records what the revision starts from, so it is
+not held only in one session's context.
+
+The entry landed: `kb:micromanager_focus_direction_encoding_mmcore_12_5_0`,
+`spec:`, E3. It was entered at 8d75c3e8 and published at e4c37af4 (kbv-37b1958fb73d),
+read from Micro-Manager's own source at the commit matching the installed
+MMCore 12.5.0. As manager-librarian-20261007-1 summarised it:
+
+- Only the sign of a `FocusDirection,<stage>,<n>` value is kept.
+  Positive means increasing position brings objective and sample closer,
+  negative means it moves them apart, and 0 means unknown. So 1 and 2 mean
+  the same.
+- The configuration's value overrides the adapter's own report.
+- A line naming a label that is not a focus stage is ignored silently.
+- A line with other than three tokens fails the load.
+- Gap: what the NikonTi2 adapter reports when no line is present.
+
+The derivation is the check's own to make and cite, not the store's: with
+`z_retract_direction_is_measured` (smaller Z is retracted), increasing Z
+moves toward the sample, so an agreeing `ZDrive` line is positive.
+
+The revision is expected to:
+- accept a positive integer for `ZDrive`, and refuse 0, a negative value,
+  a non-integer token and an unparseable line;
+- refuse a `FocusDirection` line whose label is not the configured focus
+  stage, because Micro-Manager would ignore it without a word;
+- decide what a file with no `ZDrive` line means, given the adapter gap.
+
+The last two points are manager-librarian-20261007-1's suggestions.
+
 ## What comes back
 
 To manager-microscope:
