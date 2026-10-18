@@ -1553,7 +1553,11 @@
         "microscope_agent/CLAUDE.md",
         "microscope_agent/.claude/",
         "microscope_agent/tasks/",
-        "microscope_agent/README.md"
+        "microscope_agent/README.md",
+        "microscope_runtime/CLAUDE.md",
+        "microscope_runtime/.claude/",
+        "microscope_runtime/tasks/",
+        "microscope_runtime/README.md"
       ],
       "excludes": [
         "contracts/capabilities/simulation.json",
@@ -1567,7 +1571,7 @@
         "contracts/capabilities/microscope.json"
       ],
       "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
-      "note": "A manager-microscope session on the Office computer (Windows, hostname Office -- not the microscope computer; corrected 2026-10-03), already running when registered. The person opened it and said so directly in architecture-20261003-1's window on 2026-10-03 (\"I opened the two sessions, register the seats\"), after architecture wrote its first instruction. n is 1, the first manager-microscope seat for that date. Whether earlier manager-microscope sessions are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-microscope-20261001-1."
+      "note": "A manager-microscope session on the Office computer (Windows, hostname Office -- not the microscope computer; corrected 2026-10-03), already running when registered. The person opened it and said so directly in architecture-20261003-1's window on 2026-10-03 (\"I opened the two sessions, register the seats\"), after architecture wrote its first instruction. n is 1, the first manager-microscope seat for that date. Whether earlier manager-microscope sessions are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-microscope-20261001-1. From 2026-10-18 its paths also cover microscope_runtime/'s CLAUDE.md, .claude/, tasks/ and README.md, which the validator classifies as design (df11b44b): plan.md 15, which the person approved, gives manager-microscope both folders, the runtime's instruction files as the agent's."
     },
     {
       "seat": "microscope-20261003-1",
@@ -1904,7 +1908,11 @@
         "microscope_agent/CLAUDE.md",
         "microscope_agent/.claude/",
         "microscope_agent/tasks/",
-        "microscope_agent/README.md"
+        "microscope_agent/README.md",
+        "microscope_runtime/CLAUDE.md",
+        "microscope_runtime/.claude/",
+        "microscope_runtime/tasks/",
+        "microscope_runtime/README.md"
       ],
       "excludes": [
         "contracts/capabilities/simulation.json",
@@ -1918,7 +1926,7 @@
         "contracts/capabilities/microscope.json"
       ],
       "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
-      "note": "A second manager-microscope session on the Office computer (Windows, hostname Office), rooted at the repository root: the desktop session titled \"HP-001 commit tool implementation\", opened by the person on 2026-10-16. The person seated it directly in that session's own window on 2026-10-16, verbatim: \"You are manager-microscope-office-20261016-1, a manager seat at the repository root on the Office computer. First job: build HP-001, contracts/tools/seat_commit.py, exactly as specified in plan.md section 8.3 (\\\"HP-001, the commit tool, specified\\\"), with its fixtures and ALLOWED_PATHS entry in the same commit. Watch each fixture fail on a plain commit before committing.\" -- read off that session's transcript by architecture-20261007-1, after the person said in architecture-20261003-1's window \"두 세션 열었고 자리 정해줬어\" (I opened the two sessions and gave them their seats). Recorded as the person's seating; corrected if they say otherwise. The person gave the name whole, in the 2026-10-15 form; the role field parses as manager-microscope-office. owns, paths, excludes, owns_in_contracts and shared_in_contracts copied by code from manager-microscope-20261003-1, which stays registered beside it: the shared surface under contracts/ is held by all managers and check 41 gives attribution there, not refusal. Opened concurrently; closes nothing."
+      "note": "A second manager-microscope session on the Office computer (Windows, hostname Office), rooted at the repository root: the desktop session titled \"HP-001 commit tool implementation\", opened by the person on 2026-10-16. The person seated it directly in that session's own window on 2026-10-16, verbatim: \"You are manager-microscope-office-20261016-1, a manager seat at the repository root on the Office computer. First job: build HP-001, contracts/tools/seat_commit.py, exactly as specified in plan.md section 8.3 (\\\"HP-001, the commit tool, specified\\\"), with its fixtures and ALLOWED_PATHS entry in the same commit. Watch each fixture fail on a plain commit before committing.\" -- read off that session's transcript by architecture-20261007-1, after the person said in architecture-20261003-1's window \"두 세션 열었고 자리 정해줬어\" (I opened the two sessions and gave them their seats). Recorded as the person's seating; corrected if they say otherwise. The person gave the name whole, in the 2026-10-15 form; the role field parses as manager-microscope-office. owns, paths, excludes, owns_in_contracts and shared_in_contracts copied by code from manager-microscope-20261003-1, which stays registered beside it: the shared surface under contracts/ is held by all managers and check 41 gives attribution there, not refusal. Opened concurrently; closes nothing. From 2026-10-18 its paths also cover microscope_runtime/'s CLAUDE.md, .claude/, tasks/ and README.md, which the validator classifies as design (df11b44b): plan.md 15, which the person approved, gives manager-microscope both folders, the runtime's instruction files as the agent's."
     },
     {
       "seat": "harness-office-20261016-1",
