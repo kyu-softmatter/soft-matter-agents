@@ -58,10 +58,10 @@
         "watched_passing_after": null
       },
       {
-        "path": "console-office-20261017-1's two-command probe, re-run after the console's twins land",
+        "path": "console-office-20261017-1's two-command probe, before and after 950bff0c",
         "reproduces": "INC-20261018-07",
-        "watched_failing_before": "the PowerShell command ran (reported)",
-        "watched_passing_after": null
+        "watched_failing_before": "Bash `echo guard-probe mm-real` denied; PowerShell `Write-Output \"guard-probe mm-real\"` ran (reported)",
+        "watched_passing_after": "after 950bff0c, in the same running session: Bash denied, PowerShell denied (reported). So PowerShell(...) command denials are honoured. Not yet seen from a restarted session."
       }
     ],
     "replay": {
@@ -79,5 +79,5 @@
     "use_site": "the commit gate, for new denials; a restart, for running sessions"
   },
   "revert": "git revert <the check's landing commit>",
-  "notes": "Measured narrower than first reported: two files hold command denials, not all of them. The check is still worth having, because the next file to add one is where the gap would reopen. Settings denials are a second layer: the safety rules are enforced by deterministic code in the operator, which this does not touch. Nothing here is in 8.3 rule 2's core. A settings fix reaches only sessions started after it, which the root CLAUDE.md names as a class of its own. So the reach above asks each owner to say who must restart."
+  "notes": "Measured narrower than first reported: two files hold command denials, not all of them. The check is still worth having, because the next file to add one is where the gap would reopen. Settings denials are a second layer: the safety rules are enforced by deterministic code in the operator, which this does not touch. Nothing here is in 8.3 rule 2's core. A settings fix reaches only sessions started after it, which the root CLAUDE.md names as a class of its own. So the reach above asks each owner to say who must restart. Progress: the console's twins landed at 950bff0c (manager-console-office-20261017-1), and the CLAUDE.md sentence at 36416ebb (architecture-20261007-1). The check, its fixture and the bridge twin are still open."
 }
