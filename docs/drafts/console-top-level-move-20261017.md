@@ -91,7 +91,9 @@ top-level `console/` is this repository's own code and is judged as such (7.2).
 
 (d) **The instrument side is not the console.** The run interface -- events, stop channel, frame
 tap, live view as a preparatory run -- is the orchestrator's and stays in `microscope_agent/`. The
-console only consumes it. Splitting makes that contract explicit: today 14 says a change to the
+console only consumes it. **And dino's server carries an instrument side of its own** -- an engine
+with a real Micro-Manager backend behind `POST /api/commands` (section 4) -- which rule 3 and batch A
+forbid as a second command path here; the split is where that path is cut from the console. Splitting makes that contract explicit: today 14 says a change to the
 `run_started` keys "updates the console and its tests in the same commit", which is a one-boundary
 convenience that a two-boundary layout cannot keep; it becomes a pinned interface in `contracts/`
 (section 4, step 3) and two commits that meet at it.
@@ -129,15 +131,54 @@ the three decisions are made.
 
 **The principle**: what *reads and shows* moves; what *measures, moves or lights* stays. The console
 is the first kind by definition (11-25). The file-by-file list is the moving seat's to make on the
-card, with this principle; the obvious members are:
+card, with this principle; the obvious members are below.
+
+**One correction to the first version, from manager-console-office-20261017-1 the day it was seated,
+verified here in the tree:** dino's `server/` is not a console server only. It is the whole app's
+server, and it carries an **engine command path** that can reach a real instrument:
+`server/__main__.py` builds the engine's backend from `BACKENDS = ("mock", "mm-demo", "replay",
+"mm-real", "placeholder")` and constructs `MmRealBackend(mm_config)` for `mm-real`; `POST /api/commands`
+in `server/api/__init__.py` submits to that engine; the `hardware`, `map`, `objective`, `patterns`,
+`sample` and `sessions` routers and the assistant's `request_submit` all import or submit to it; and
+`engine/` holds the runner, the backends, gates and guards, piezo, tweezers and patterns. Today only
+dino's own locks (`mm_real.BENCH_MOTION = "LOCKED"`, `guards.BENCH_APPROACH`) hold it back, and a lock
+inside an imported tree binds nothing here (10.2). So `server/` does not move whole as "reads and
+shows": **a route that submits to an engine is a command**, and it sits with what measures, moves or
+lights. And under this repository's rules it does not survive as a second command path anywhere:
+every command goes through the orchestrator (11-25 rule 3, 4.6.8's one execution path) and never a
+second Micro-Manager core (batch A), so the engine command path is **retired or re-placed behind the
+orchestrator by cards**, into `microscope_runtime/` if anywhere -- never into `console/`. What the
+console's screens for hardware, map, objective, patterns and tweezers keep is their *display*; what
+they lose is the button that commanded, which becomes a draft of a plan for the person to approve
+(rule 1) or a request on the orchestrator's run interface (stop, live view). The mockup already draws
+them that way. **A display router moves only once its source is the orchestrator's run interface or
+the records, not the engine's snapshot** -- so `hardware.py`, `map.py`, `objective.py`, `patterns.py`,
+`sample.py` and `sessions.py` are "to look, per router", and the first version's table below is
+corrected row by row. **Section 15 draws the same line one notch finer** (`e77ebc9a`, amended at `47fec337` to the measured
+list that follows): what crosses is
+the app with its placeholder engine and this repository's run interface, the way card 063 already
+runs it (`--backend placeholder ... --store sma`) -- and, **measured one notch finer still** by card
+077's import graph (`5830c791`, manager-console-office-20261017-1 against it): `--backend mock` is the
+engine's, `engine/backends/mock.py`, a simulated stage and lights that *execute* commands, so it stays
+with the engine; the console's mock is `PlaceholderEngine` in `server/__main__.py` plus `MockStore` and
+`--store`, and that is what crosses; the `mm-demo`, `replay` and `mm-real`
+backends, `/api/commands` and the engine-backed routes stay with the engine, locked, and **nothing
+under `console/` can open a core**. Whether dino's engine is deleted or kept locked is the cut card's
+to settle, and the cut comes **before** the console's two move commits, by a microscope seat on
+manager-microscope's card. The import lines run both ways -- 12 server modules import dino's engine,
+focus, live or records code, and the real-hardware backend imports the server's auth configuration
+-- measured by the console seat and its manager on 2026-10-17 (`2f0d6f3b`, read only, as 15 cites
+it), which is why the cut is a card and not a `git mv`.
 
 | Moves to `console/` | Stays in `microscope_agent/` |
 |---|---|
 | `web/` whole (shell, areas, features, api client, tests, `package.json`, lockfile, Vite config) | `focus/`, `engine/`, `synth/`, `models/`, `backbone.py`, `bench_values.py`, `live.py` (the live focus score) -- re-placed into `src/` by cards where 14 already says so, else left as the imported remainder |
-| `server/` (app, `api/*`, auth, ws, static, edge, schemas) | `configs/micromanager/*.cfg` (byte-pinned by the root `.gitattributes` line; they do not move) |
+| `server/`, **the console-facing part only**: `app.py`, `api/console.py` (questions, runs, inbox, approvals; stream, frame and stop through `agents/sma_run`), `api/auth.py` with `auth/`, `ws.py` **without its live focus score** (`focus.score` is measuring and stays, so the screen loses the score until the runtime side supplies one by a later card -- one of the losses at the cut), `static.py`, `edge.py`, `schemas/`; the engine-facing routers **to look, per router** -- each moves only when re-sourced from the orchestrator's run interface or the records, with its command half cut | `server/__main__.py`'s backend construction (`BACKENDS`, `MmRealBackend`), `POST /api/commands` (`api/__init__.py`), the command halves of `api/hardware.py`, `map.py`, `objective.py`, `patterns.py`, `sample.py`, `sessions.py`, and **`engine/` whole** (runner, `backends/` with `mm_real`, gates, guards, operations, piezo, tweezers, patterns, mosaic, stream) -- a second command path, retired or re-placed behind the orchestrator by cards, never moved into `console/` |
+| | `configs/micromanager/*.cfg` (byte-pinned by the root `.gitattributes` line; they do not move) |
 | `agents/` (the data layer: `MockStore`, `SmaFiles`, `sma_run`, `sma_live`) | `scripts/` that train or measure |
-| `assistant/` (proposes only; the person confirms) | `tools/launcher/` **to look**: a Windows launcher for the app -- it goes where what it launches goes |
-| `tests/server`, `tests/assistant`, `tests/auth`, `tests/e2e`, `tests/agents` | `records/` **to look**: "experiment sessions and the local records store" on the microscope PC -- a record of the instrument's sessions, not a screen |
+| `assistant/` (proposes only; the person confirms) -- **with its `request_submit` rewired**: today it submits a confirmed action to the engine, which is a command; in `console/` it writes a draft plan card for the person to approve and submits nothing | — |
+| `tools/launcher/` -- it launches the server, so it goes with it (measured, card 077; the first version had it "to look") | — |
+| `tests/server` with its `conftest`, fixtures and `server_fakes` (after the cut), `tests/assistant`, `tests/auth`, `tests/e2e`, `tests/agents` | `records/` **to look**: "experiment sessions and the local records store" on the microscope PC -- a record of the instrument's sessions, not a screen |
 | `docs/screens/`, `docs/ui-spec.md` and the console's runbooks | `docs/integration-sma.md`, `docs/integration-sma-workplan.md` -- dino's own record, frozen; stays where it was imported |
 
 Target:
@@ -184,7 +225,11 @@ manager) -- option A in the bridge's shape, with a dedicated `manager-console`; 
   manager's `paths` widened by one entry (fewer seats; the manager-microscope already holds the
   subtree's cards). **That sub-choice is the person's too.**
 - `console/CLAUDE.md` carries 11-25's four rules as that seat's standing orders, and
-  `console/.claude/settings.json` denies every instrument tool, as `bridge/`'s does.
+  `console/.claude/settings.json` denies every instrument tool, as `bridge/`'s does. **Written: both
+  landed at `d2a7c3ad`** (manager-console-office-20261017-1, "the console's standing orders, before
+  any of its code arrives"; read here), with the server-start rule -- `--backend placeholder` only --
+  and the note that dino's command path is retired, not kept locked. Their text lives there now, not
+  in this draft.
 - For: it is the only option in which the boundary rule (one directory, one session, one gate), the
   dependency direction (a leaf above the agents) and the gate (judged as this repository's code) all
   point the same way. The agents' seats stay out of the console, which is right, because the console
@@ -251,7 +296,14 @@ starts and wrong after; C and D are not recommended.
 4. **The validator and the fixtures**: `AGENT_OF_PATH`, `DESIGN_OWNED`, `ALLOWED_PATHS`, what remains
    in `IMPORTED_SUBTREES` after the split (the remainder, or nothing once 14's re-placements are
    done), fixtures for 35 and 41 that show the new boundary refuses and admits correctly.
-   [manager-microscope]
+   **Done for `console/` at `07b62a86`** (manager-console-office-20261017-1, "console/ is a boundary
+   of its own", 15 step 3's console half; read here): `AGENT_OF_PATH` has `(^console/, "console")`,
+   `DESIGN_OWNED` covers `console/(CLAUDE.md|README.md|.claude/|tasks/)`, `ALLOWED_PATHS` declares
+   the root files, `tasks/`, `.claude/` and `(src|web|tests|docs)/` by folder, the 35/41 history
+   fixtures cover the boundary, and `console/src/<package>/agents/mock_data/` is the one place under
+   `console/` the card checks do not read -- every card-shaped file there is a mock by construction,
+   and the rest of `console/` is this repository's own code, judged as such. `IMPORTED_SUBTREES`
+   keeps `autofocus/`. [manager-console for `console/`; manager-microscope for the rest]
 5. **The move, as two commits.** A `git mv` by path list would be one commit whose deletions are in
    the microscope boundary and whose additions are in the console boundary, and **the gate refuses
    that whoever commits it**: check 35 fails any commit whose paths classify into two boundaries
@@ -272,14 +324,19 @@ starts and wrong after; C and D are not recommended.
    - (c) The import's route: build the move outside the working copy as a merge and fast-forward it in
      -- check 35 skips merges and check 41 judges them via `--cc`. It works and makes a move look like
      a merge, which misleads a later reader.
-   The first commit carries dino's tests at their new paths, green, and nothing else; the second
-   removes the old copies and nothing else. The console's seats are registered in `seats.json` by
-   architecture before the first of the two. [the console seat, then a microscope seat, each on
+   **The cut comes first** (section 4's correction; 15 at `e77ebc9a`): a microscope seat, on
+   manager-microscope's card, severs the console-facing server from the engine so that what moves
+   imports nothing that can open a core. Then the first commit carries the console-facing part and
+   dino's tests at their new paths, green, and nothing else; the second removes the old copies and
+   nothing else. The console's seats are registered in `seats.json` by architecture before the first
+   of the two (done: `b32aa416`). [the console seat, then a microscope seat, each on
    manager-microscope's card]
-6. **After**: `console/CLAUDE.md` and `console/README.md` written (design seat's); the first
-   `console/tasks/` card is the console's connection to this repository's store, which today refuses
-   with 409 "not connected yet" -- the mockup's screens are what that card builds toward. [manager,
-   then the console seat]
+6. **After**: `console/CLAUDE.md` and `console/.claude/settings.json` -- **done at `d2a7c3ad`**;
+   `console/README.md` still to write (design seat's); the first `console/tasks/` card is the
+   console's connection to this repository's store, which today refuses with 409 "not connected yet"
+   -- the mockup's screens are what that card builds toward. The screens' card (the command buttons'
+   replacement, section 7) lands in `console/tasks/` when the cut is close. [manager-console, then the
+   console seat]
 
 ## 7. Open, for the section holders
 
@@ -289,14 +346,25 @@ starts and wrong after; C and D are not recommended.
   card -- the same line the root `CLAUDE.md` draws between measuring and querying ("what may be
   kept"). It needs one sentence in 4.3.1 or 11-25 saying display is neither, and what a shown number
   carries (its entry's grade in words and the version shown from). [4.3.1's holder]
-- **Packaging.** A `console/pyproject.toml` of its own (dino's today) or the root's pixi tables;
-  `web/` keeps npm either way. 7's root-file coupling (ALLOWED_PATHS first, then SHARED_PATHS, then
-  7) applies if it is the root's. [architecture]
+- ~~**Packaging.**~~ **Settled by section 15 at `e77ebc9a`**: `console/` has its own `pyproject.toml`
+  and lock, with the server's, development and web dependencies and none of the hardware, model or
+  synthesis extras -- no `pymmcore`, no `torch` -- so the environment itself cannot open a core, which
+  a guard in a session's settings cannot promise. `web/` keeps npm. [done; architecture-office-20261017-1]
 - **The remainder of `autofocus/`** after the split: an imported subtree still, or re-placed by
   cards and the `IMPORTED_SUBTREES` entry removed. [manager-microscope, 14]
-- **Tool denials** for `console/.claude/settings.json`: the bridge's set is the starting point (no
-  instrument tools, no hardware path); whether the console's server may be *started* from a console
-  session, and what that process may reach, is the one new question. [manager]
+- ~~**The engine command path**~~ **Settled at `bc0f4848`: retired**, not re-placed beside the
+  orchestrator; what is still wanted re-enters only as the orchestrator's, inside `microscope_runtime/`,
+  by cards. What stays open here is only the order against the console's move, since the web areas
+  that commanded it (hardware, map, objective, patterns, tweezers) must have their draft-a-plan or
+  run-interface replacement before their command buttons go, or they go dark. Whose card: the
+  console's manager for the screens, manager-microscope for the engine. **The losses at the cut,
+  known so far, for the card to list**: every command button on the hardware, map, objective,
+  patterns and tweezers areas, and the live focus score in `ws.py` (`focus.score` stays with the
+  measuring side). [manager-console, manager-microscope; section 15 for the destination]
+- ~~**Tool denials**~~ **Settled at `d2a7c3ad`**: `console/.claude/settings.json` denies the instrument
+  tools, and `console/CLAUDE.md` answers the one new question -- the server is started only with
+  `--backend placeholder`, whose minimal engine protocol carries no command kind, until the run
+  interface replaces it by this folder's own card. [done; manager-console-office-20261017-1]
 - **Pages**: `docs/` is public and the console is not published; no link from `index.html`. [architecture]
 - **Name**: `console/` is used in this draft; `operator_console/` is the mockup's own wording.
   Nothing else depends on the choice. [the person]
@@ -365,13 +433,61 @@ fixture first, then the validator tables and the 35/41 history fixtures for both
 **The registry side, the same day (relayed by architecture-20261007-1):** the person has already opened
 and seated both console sessions in their own windows, and the rows are written from those seatings --
 `manager-console-office-20261017-1` (owns `design`; `paths` `README.md` and `contracts/` with excludes)
-and `console-office-20261017-1` (owns `console`) -- with the commit going through the commit tool as
-this was written; cite that commit, not this sentence. The manager's `console/` paths are left out of
+and `console-office-20261017-1` (owns `console`) -- landed at `b32aa416` (architecture-20261007-1,
+`contracts/seats.json`, 30 lines; read here, both rows present). The manager's `console/` paths are left out of
 its row until the validator maps `console/`, because check 48 refuses a `paths` entry the validator
 cannot grant; they join in the commit after the mapping, as does the `boundaries` note. 11-25's
 paragraph, the root `CLAUDE.md` line and the store-display sentence are written after 15 and the
 mapping land, so that none of them describes a folder before it exists. So section 6 step 1 is done
 as far as seating goes, and step 2's registry part is in hand; the draft stays until each piece is in.
+
+**The console's manager, seated the same day, corrected section 4 within the hour** (manager-console-
+office-20261017-1, `b32aa416`): dino's `server/` carries an engine command path to a real backend --
+`BACKENDS` with `mm-real`, `POST /api/commands`, `engine/runner.py` -- held back today only by dino's
+own motion lock. Verified here by reading `server/__main__.py`, `server/api/__init__.py`, the routers'
+imports and `engine/`. Section 4 now splits `server/`: console-facing part moves, command path stays
+and is retired or re-placed behind the orchestrator, display routers move only once re-sourced; the
+assistant's submit is rewired to drafting. That seat sent the full finding to architecture-office-
+20261017-1 for section 15, where the engine path's destination is decided.
+
+**Section 15 landed the same day, by architecture-office-20261017-1** (read here, both commits):
+`a8995280` -- "plan.md 15, D11, 13.4: the microscope runtime gets its own folder, and the console its
+own" -- carries the step and cites this draft at `667f2c71` for the file-by-file list, the ownership
+and the console's standing rules; it quotes the person's words from both windows, says the console
+does not go into `microscope_runtime/` because a whole-system screen inside one agent's runtime would
+repeat the misplacement it is leaving, says the console is not a fifth agent, and puts the console's
+seats before the console's first move commit (its step 4). `e77ebc9a` -- "the console's server crosses
+only in part, after a cut, and the console has its own environment" -- is section 4's correction in
+15's words: only the app with its placeholder and mock backends and this repository's run interface
+crosses, nothing under `console/` can open a core, the console has its own `pyproject.toml` and lock
+without `pymmcore` or `torch`, and the cut precedes the two move commits. **`bc0f4848`** -- "dino's
+engine command path is retired, not re-placed beside the orchestrator" (read here; the summary of its
+exception as that seat gave it): it stays locked where it is until the cut card retires it and moves
+into neither new folder; what it could do that is still wanted re-enters only as the orchestrator's,
+inside `microscope_runtime/`, through plans the person approves, by cards; and the six console areas
+that commanded it are retired at the cut, dark until rebuilt, with the person told first. **`47fec337`**
+-- "only the placeholder engine crosses; dino's mock backend is engine" -- amends `e77ebc9a` to the
+measured list, citing `5830c791`. Section 15's commits are therefore `a8995280`, `e77ebc9a`,
+`bc0f4848` and `47fec337`; section 7's packaging question is closed by `e77ebc9a` and its engine-path
+question by `bc0f4848`. The remaining file-list detail (the live focus score, the launcher, the server
+tests' fixtures) is this draft's and the move card's; 15 does not repeat it.
+
+**The console's manager checked section 4's rows against measurement** (manager-console-office-
+20261017-1, against card 077's import graph at `5830c791`; both commits read here): they agree, with
+three things folded in above -- `--backend mock` stays with the engine (it executes commands; the
+console's mock is `PlaceholderEngine` plus `MockStore`), `ws.py` crosses without its live focus score,
+and `tools/launcher/` and `tests/server`'s `conftest`, fixtures and `server_fakes` cross after the cut.
+**And the validator maps `console/` as of `07b62a86`**, that seat's commit: section 6 step 4 is done
+for `console/`. Section 15's `e77ebc9a` says "placeholder and mock backends" cross; the measured list
+says the mock *backend* does not, and this draft carries the measured list and tells 15's writer -- who
+amended 15 at `47fec337` the same hour: only the placeholder engine crosses, mock listed with the
+backends that stay with the engine, citing `5830c791`.
+
+**First content out of the draft (2026-10-17):** the console's standing rules, the server-start rule
+and the tool denials are in `console/CLAUDE.md` and `console/.claude/settings.json` at `d2a7c3ad`, so
+sections 5 and 7 now only point there. The split line is card 077's and section 15's, not the console
+manager's; the screens' card is not written yet and stays in the draft until it lands in
+`console/tasks/`.
 
 ## 9. What does not change
 
