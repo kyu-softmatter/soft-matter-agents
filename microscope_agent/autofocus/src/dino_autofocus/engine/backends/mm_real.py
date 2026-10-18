@@ -1,5 +1,20 @@
 """mm-real backend: the Backend protocol (T-002 + T-015) on the bench Ti2 / Kinetix / Aura.
 
+**RETIRED as a command path (soft-matter-agents card 077, plan.md 15 at bc0f4848).** Every
+device write -- a light on or off, a motion, the nosepiece, PFS off, a property, a camera
+setting, a stream -- and opening a Micro-Manager core at all raise
+`engine.backend.CommandPathRetired` before anything is sent. The one execution path is
+soft-matter-agents' orchestrator, which holds the one Micro-Manager core (plan.md 14, batch
+A), so a second core and a second command path survive nowhere. The engine's safety-off
+actions here (`lamp_off`, `aura_off`, `all_off`) are retired too, not kept: with every
+lights-on path gone this engine can light nothing, and a light someone switched on is the
+orchestrator's abort to switch off, on the one path; a lights-off-only path here would be a
+second command path into the same devices. What stays is what reads a file or computes:
+`config_path`, the load-time checks (`load_time_settings`, `check_load_settings`, which
+`mm_config_from_scan` uses), the device names and the bench constants. The read methods
+below are kept but unreachable, since nothing opens the core. The rest of this docstring is
+the record of what the backend did before.
+
 Ported from `scripts/mm_grab.py` (`open_core`, `set_and_read`, `aura_on/off`, `positions`,
 `PiezoReader.read`) and `scripts/change_objective.py` (`state`), both deleted in R-05 (in git
 history). pymmcore-plus is imported
@@ -30,14 +45,14 @@ only when the backend opens; the piezo DLL only when the piezo is read.
   measured positions and closes. No position command, no security-level change: piezo moves
   are out of scope (operations-spec 9.2, M5).
 - Failed reads are fields (`Positions.errors`, `PropertyInfo.read_ok`, `PiezoReading.error`).
-- **SAFETY, bench motion is locked (T-036).** `BENCH_MOTION` ships as "LOCKED". While it is
-  anything but "UNLOCKED", every motion method (`move_z`, `move_xy`, `move_xy_rel`,
-  `set_nosepiece`) raises `BenchMotionLocked` before touching the core, so nothing that
-  guards' `move_to` / `park_at` / `approach` / `sweep` or `rotate_nosepiece` reaches can move
-  the stand. Reads, frames, streams, light on/off (D15) and PFS off stay allowed. Only a
-  reviewed commit that edits the constant lifts it: no argument, environment variable,
-  config file or setting is read for it. Lifting waits for T-027 (approach refuses without
-  clearance on bench) and the T-011 bench check, with the manager's and director's sign-off.
+- **SAFETY, bench motion was locked (T-036)** until card 077 retired the motion it guarded.
+  `BENCH_MOTION` still ships as "LOCKED" and is never unlocked. While it was locked, every
+  motion method (`move_z`, `move_xy`, `move_xy_rel`, `set_nosepiece`) raised
+  `BenchMotionLocked` before touching the core, so nothing that guards' `move_to` /
+  `park_at` / `approach` / `sweep` or `rotate_nosepiece` reached could move the stand.
+  Reads, frames, streams, light on/off (D15) and PFS off were allowed then; card 077
+  retired those writes too. Only a reviewed commit that edited the constant could have
+  lifted it, and none will now: there is no motion left behind it.
 
 Nothing here has run on the stand: what only the microscope PC can confirm is listed in
 `USER_CHECKS` (and `info().notes["user_check"]`).
@@ -46,10 +61,8 @@ Nothing here has run on the stand: what only the microscope PC can confirm is li
 from __future__ import annotations
 
 import hashlib
-import math
 import os
 import re
-import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -60,6 +73,7 @@ from ..backend import (
     MOTION_DEVICES,
     PROVISIONAL,
     BackendInfo,
+    CommandPathRetired,
     ConfigRecord,
     DeviceInfo,
     Frame,
@@ -70,13 +84,10 @@ from ..backend import (
     PiezoReading,
     Positions,
     PropertyInfo,
-    PropertyNotAllowed,
     Readback,
     StageLimits,
     StreamActive,
-    check_set_property,
     read_wiring,
-    require_token,
 )
 
 if TYPE_CHECKING:
@@ -88,7 +99,7 @@ __all__ = ["BENCH_CONFIG", "BENCH_DEVICES", "BENCH_MOTION", "DEMO_DEVICES", "USE
 
 #: SAFETY (T-036): ships "LOCKED". Lifted only by a reviewed commit that edits this line,
 #: after T-027 and the T-011 bench check are on main. Nothing else may set or override it.
-BENCH_MOTION = "LOCKED"
+BENCH_MOTION = "LOCKED"  # nothing left to guard: card 077 retired every motion it locked
 MOTION_LOCK_REASON = "bench motion locked until clearance guards land (T-027, T-011)"
 
 #: Off on the stand (user, 2026-10-02): `hardware_scan` does not ask the bench hubs
@@ -131,11 +142,6 @@ class BenchMotionLocked(RuntimeError):
 def _motion_state() -> str:
     """Fail-safe: anything but exactly "UNLOCKED" is locked. The one read of BENCH_MOTION."""
     return "UNLOCKED" if BENCH_MOTION == "UNLOCKED" else f"LOCKED: {MOTION_LOCK_REASON}"
-
-
-def _require_motion_unlocked(what: str) -> None:
-    if _motion_state() != "UNLOCKED":
-        raise BenchMotionLocked(f"{what}: {MOTION_LOCK_REASON}")
 
 
 # ---------------------------------------------------------------- load-time settings (T-036b)
@@ -283,50 +289,8 @@ class MmRealBackend:
 
     # -- life
     def open(self) -> BackendInfo:
-        if self.core is not None:
-            return self.info()
-        if not self.config.is_file():
-            raise MmUnavailable(f"config {self.config} does not exist")
-        # T-036b: check what loading would set before anything loads, then load a private
-        # copy of exactly the checked bytes, so a file changed in between cannot slip past
-        data = self.config.read_bytes()
-        settings = load_time_settings(data.decode("utf-8", errors="replace"))
-        check_load_settings(settings, self.config.name, self.devices)
-        try:
-            from pymmcore_plus import CMMCorePlus, find_micromanager
-        except ImportError as e:
-            raise MmUnavailable(f"pymmcore-plus is not importable: {e}") from e
-        mm_dir = self.mm_dir or find_micromanager()
-        if not mm_dir:
-            raise MmUnavailable("no Micro-Manager install found")
-        checked = hashlib.sha256(data).hexdigest()
-        core = CMMCorePlus()  # its own core: nothing else sees half-loaded devices
-        with tempfile.TemporaryDirectory(prefix="dino_af_cfg_") as tmp:
-            copy = Path(tmp) / self.config.name
-            copy.write_bytes(data)
-            try:
-                core.setDeviceAdapterSearchPaths([str(mm_dir)])
-                core.loadSystemConfiguration(str(copy))
-                core.setAutoShutter(False)  # as loaded, every snap would switch the light on
-                core.waitForSystem()
-            except Exception as e:
-                core.unloadAllDevices()
-                raise MmUnavailable(f"loading {self.config} failed: {e}") from e
-        after = _sha256(self.config)
-        self.core = core
-        startup = "System/Startup" if "System" in core.getAvailableConfigGroups() and \
-            "Startup" in core.getAvailableConfigs("System") else None
-        self._config = ConfigRecord(
-            str(self.config), checked, None if after is None else after != checked,
-            Readback.of("Core", "AutoShutter", 0, int(core.getAutoShutter())), startup,
-            time.time(), {"mm_dir": str(mm_dir),
-                          "loaded": "a private copy of the checked bytes (T-036b)",
-                          "load_settings": "; ".join(s.text() for s in settings) or "none"})
-        core.setExposure(self._exposure_ms)
-        core.clearROI()
-        self._sensor = (int(core.getImageWidth()), int(core.getImageHeight()))
-        self.set_roi(self._roi)
-        return self.info()
+        """Refused: opening a Micro-Manager core is the orchestrator's (card 077)."""
+        raise CommandPathRetired("mm-real open")
 
     def close(self) -> None:
         """Stream off, then unload. Lights are the guards' (`exclusive` switches them off
@@ -395,24 +359,14 @@ class MmRealBackend:
         return self._frame(img)
 
     def set_exposure(self, ms: float) -> float:
-        self._c().setExposure(float(ms))
-        return float(self._c().getExposure())
+        raise CommandPathRetired("mm-real set_exposure")
 
     def set_roi(self, size: int) -> tuple[int, int, int, int]:
-        """Centred square ROI; 0 (or >= the sensor) = full sensor."""
-        core = self._c()
-        core.clearROI()
-        w, h = self._sensor
-        if 0 < size < min(w, h):
-            core.setROI((w - size) // 2, (h - size) // 2, size, size)
-        return tuple(int(v) for v in core.getROI())
+        raise CommandPathRetired("mm-real set_roi")
 
-    # -- stream (engine-owned, T-011)
+    # -- stream: retired with the core (card 077)
     def start_stream(self, interval_ms: float | None = None) -> None:
-        if self._streaming:
-            return
-        self._c().startContinuousSequenceAcquisition(float(interval_ms or 0.0))
-        self._streaming = True
+        raise CommandPathRetired("mm-real start_stream")
 
     def next_frame(self, timeout_s: float = 1.0) -> Frame | None:
         if not self._streaming:
@@ -428,9 +382,7 @@ class MmRealBackend:
         return self._frame(img)
 
     def stop_stream(self) -> None:
-        if self._streaming and self.core is not None:
-            self.core.stopSequenceAcquisition()
-        self._streaming = False
+        raise CommandPathRetired("mm-real stop_stream")
 
     def streaming(self) -> bool:
         return self._streaming
@@ -530,120 +482,43 @@ class MmRealBackend:
         assert self._config is not None  # open() sets it
         return self._config
 
-    # -- writes
-    def _set_and_read(self, device: str, prop: str, value: Any,
-                      notes: dict[str, str] | None = None) -> Readback:
-        core = self._c()
-        core.setProperty(device, prop, value)
-        core.waitForDevice(device)
-        return Readback.of(device, prop, value, core.getProperty(device, prop), notes)
-
+    # -- writes: retired, every one (card 077). The names stay so the Backend protocol the
+    # runner calls answers with the refusal, not an AttributeError; nothing is sent.
     def set_property(self, device: str, prop: str, value: Any, *,
                      token: MotionToken | None = None) -> Readback:
-        check_set_property(device, prop, token, camera=self._c().getCameraDevice())
-        if not self._has(device):
-            raise PropertyNotAllowed(f"{device!r} is not loaded from {self.config.name}")
-        line = prop.removesuffix("_Intensity")
-        notes = {"aura_line": PROVISIONAL} if device == self.devices.aura and \
-            line in AURA_LINES and line not in MEASURED_AURA_LINES else None
-        return self._set_and_read(device, prop, value, notes)
+        raise CommandPathRetired("mm-real set_property")
 
     def lamp_on(self, *, token: MotionToken) -> list[Readback]:
-        """Transmitted lamp: Aura off first, then DiaLamp State 1."""
-        require_token(token)
-        return [*self.aura_off(), self._set_and_read(self.devices.dialamp, "State", 1)]
+        raise CommandPathRetired("mm-real lamp_on")
 
     def lamp_off(self) -> list[Readback]:
-        return [self._set_and_read(self.devices.dialamp, "State", 0)]
+        raise CommandPathRetired("mm-real lamp_off")
 
     def aura_line_on(self, line: str, percent: float, *, token: MotionToken) -> list[Readback]:
-        """mm_grab.aura_on: DiaLamp off, then <LINE>_Intensity (per-mille, 1 % -> 10), the
-        line, and the master State last."""
-        require_token(token)
-        aura = self.devices.aura
-        if aura is None or not self._has(aura):
-            raise PropertyNotAllowed(f"no Aura device on {self.config.name}")
-        ln = line.upper()
-        if ln not in AURA_LINES:
-            raise ValueError(f"Aura line {line!r} not in {AURA_LINES}")
-        if not 0.0 <= float(percent) <= 100.0:
-            raise ValueError(f"Aura percent {percent} is not in 0-100")
-        notes = None if ln in MEASURED_AURA_LINES else {"aura_line": PROVISIONAL}
-        return [*self.lamp_off(),
-                self._set_and_read(aura, f"{ln}_Intensity", int(round(float(percent) * 10)),
-                                   notes),
-                self._set_and_read(aura, ln, 1, notes),
-                self._set_and_read(aura, "State", 1)]
+        raise CommandPathRetired("mm-real aura_line_on")
 
     def aura_off(self) -> list[Readback]:
-        aura = self.devices.aura
-        if aura is None or not self._has(aura):
-            return []
-        return [self._set_and_read(aura, "State", 0)]
+        raise CommandPathRetired("mm-real aura_off")
 
     def all_off(self) -> list[Readback]:
-        return [*self.aura_off(), *self.lamp_off()]
+        raise CommandPathRetired("mm-real all_off")
 
-    # -- motion: engine.guards only, and locked while BENCH_MOTION is (T-036)
     def move_z(self, z_um: float, *, token: MotionToken) -> float:
-        _require_motion_unlocked("move_z")
-        require_token(token)
-        z = float(z_um)
-        if not math.isfinite(z):
-            raise ValueError(f"z {z_um} is not a finite number")
-        core = self._c()
-        core.setPosition(self.devices.z, z)
-        core.waitForDevice(self.devices.z)
-        return float(core.getPosition(self.devices.z))
+        raise CommandPathRetired("mm-real move_z")
 
     def move_xy(self, x_um: float, y_um: float, *, token: MotionToken,
                 timeout_s: float | None = None) -> tuple[float, float]:
-        """Move and wait up to `timeout_s` (default `DEFAULT_XY_TIMEOUT_S`), not the core's
-        fixed wait. On timeout the stage is stopped and TimeoutError raised."""
-        _require_motion_unlocked("move_xy")
-        require_token(token)
-        x, y = float(x_um), float(y_um)
-        if not (math.isfinite(x) and math.isfinite(y)):
-            raise ValueError(f"XY ({x_um}, {y_um}) is not finite")
-        core, dev = self._c(), self.devices.xy
-        core.setXYPosition(dev, x, y)
-        wait = DEFAULT_XY_TIMEOUT_S if timeout_s is None else float(timeout_s)
-        deadline = time.monotonic() + wait
-        while core.deviceBusy(dev):
-            if time.monotonic() > deadline:
-                core.stop(dev)
-                raise TimeoutError(f"XY move to ({x}, {y}) not done in {wait:.1f} s")
-            time.sleep(0.01)
-        rx, ry = core.getXYPosition(dev)
-        return float(rx), float(ry)
+        raise CommandPathRetired("mm-real move_xy")
 
     def move_xy_rel(self, dx_um: float, dy_um: float, *, token: MotionToken,
                     timeout_s: float | None = None) -> tuple[float, float]:
-        _require_motion_unlocked("move_xy_rel")
-        require_token(token)
-        x, y = self._c().getXYPosition(self.devices.xy)  # from the read
-        return self.move_xy(float(x) + float(dx_um), float(y) + float(dy_um), token=token,
-                            timeout_s=timeout_s)
+        raise CommandPathRetired("mm-real move_xy_rel")
 
     def set_nosepiece(self, state: int, *, token: MotionToken) -> Readback:
-        _require_motion_unlocked("set_nosepiece")
-        require_token(token)
-        n = len(self._labels())
-        if not 0 <= int(state) < n:
-            raise ValueError(f"nosepiece state {state} is not in 0..{n - 1}")
-        return self._set_and_read(self.devices.nosepiece, "State", int(state))
+        raise CommandPathRetired("mm-real set_nosepiece")
 
     def pfs_off(self, *, token: MotionToken) -> Readback:
-        """Continuous focus off on the Core's autofocus device (the PFS: user check needed)."""
-        require_token(token)
-        core = self._c()
-        if not self._has(self.devices.pfs):
-            return Readback.of("PFS", "FocusMaintenance", "Off", "Off",
-                               notes={"pfs": f"no PFS on {self.config.name}"})
-        core.enableContinuousFocus(False)
-        core.waitForDevice(self.devices.pfs)
-        return Readback.of(self.devices.pfs, "ContinuousFocus", "Off",
-                           "On" if core.isContinuousFocusEnabled() else "Off")
+        raise CommandPathRetired("mm-real pfs_off")
 
 
 class _PiezoReadOnly:

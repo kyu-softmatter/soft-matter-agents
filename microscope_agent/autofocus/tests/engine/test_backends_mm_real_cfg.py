@@ -8,11 +8,10 @@ and a cleaned copy (opens, records what loading set) skip without the demo adapt
 from __future__ import annotations
 
 import pytest
-from test_backends_mm_real import DEMO_STARTUP_MOTION, open_on_demo
 
+from dino_autofocus.engine.backend import CommandPathRetired
 from dino_autofocus.engine.backends.mm_real import (
     BENCH_DEVICES,
-    DEMO_DEVICES,
     DeviceNames,
     LoadSetting,
     MmRealBackend,
@@ -79,49 +78,6 @@ def test_shutdown_preset_is_checked_too():
             HEAD + "ConfigGroup,System,Shutdown,PFS,FocusMaintenance,On\n"), "x.cfg")
 
 
-def test_open_refuses_before_loading_anything(tmp_path, monkeypatch):
-    import builtins
-
-    real_import = builtins.__import__
-
-    def no_pymmcore(name, *a, **k):
-        if name.startswith("pymmcore"):
-            raise AssertionError("pymmcore imported before the config check")
-        return real_import(name, *a, **k)
-
-    monkeypatch.setattr(builtins, "__import__", no_pymmcore)
-    b = MmRealBackend(write(tmp_path, MOVES))
-    with pytest.raises(UnsafeConfig, match="ZDrive.Position"):
-        b.open()
-    assert b.core is None
-
-
-def test_the_stock_demo_config_is_refused():
-    from dino_autofocus.engine.backends.mm_demo_core import DemoUnavailable, find_demo_config
-
-    try:
-        cfg = find_demo_config()
-    except DemoUnavailable as e:
-        pytest.skip(f"Micro-Manager demo adapters not available: {e}")
-    b = MmRealBackend(cfg, devices=DEMO_DEVICES, mm_dir=str(cfg.parent))
-    with pytest.raises(UnsafeConfig, match=r"Objective.Label in ConfigGroup System/Startup"):
-        b.open()
-    assert b.core is None
-    assert DEMO_STARTUP_MOTION in cfg.read_text(encoding="utf-8")
-
-
-def test_a_clean_copy_opens_and_records_what_loading_set():
-    b = open_on_demo(roi=64)
-    try:
-        notes = b.config_record().notes
-        assert "ConfigGroup System/Startup: Camera.BitDepth=16" in notes["load_settings"]
-        assert "Objective" not in notes["load_settings"]
-        assert "private copy" in notes["loaded"]
-        assert b.config_record().changed_during_load is False
-    finally:
-        b.close()
-
-
 # -- T-036d: motion devices under other labels
 
 RENAMED = """Property,Core,Initialize,0
@@ -165,9 +121,12 @@ def test_a_role_mismatch_alone_is_refused_and_matching_roles_pass():
                             DeviceNames(pfs=None))
 
 
-def test_open_uses_the_backends_device_names(tmp_path):
-    text = RENAMED + "ConfigGroup,System,Startup,TIZDrive,Position,3000\n"
-    b = MmRealBackend(write(tmp_path, text), devices=DeviceNames(z="TIZDrive", xy="TIXYStage"))
-    with pytest.raises(UnsafeConfig, match="TIZDrive.Position"):
+def test_open_is_retired_before_any_check_or_load(tmp_path):
+    """Card 077: mm-real opens no core. The load-time checks stay, for mm_config_from_scan;
+    open refuses before it reads the file at all."""
+    cfg = tmp_path / "x.cfg"
+    cfg.write_text("Property,Core,Initialize,1\n", encoding="utf-8")
+    b = MmRealBackend(cfg)
+    with pytest.raises(CommandPathRetired, match="plan.md 15, bc0f4848"):
         b.open()
     assert b.core is None

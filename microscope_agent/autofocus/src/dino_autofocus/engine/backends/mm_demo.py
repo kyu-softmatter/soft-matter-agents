@@ -1,5 +1,13 @@
 """mm-demo backend: the engine's Backend protocol on Micro-Manager's demo devices (T-023).
 
+**RETIRED as a command path (soft-matter-agents card 077, plan.md 15 at bc0f4848).** Opening
+the demo core, every device write (lights on and off, motion, the nosepiece, PFS off, a
+property), the camera settings and the stream raise `engine.backend.CommandPathRetired`
+before anything is sent: a second Micro-Manager core, even of demo devices, is a second core
+beside the orchestrator's one (plan.md 14, batch A). The read methods below are kept but
+unreachable, since nothing opens the core. The rest of this docstring is the record of what
+the backend did before.
+
 Built on `mm_demo_core.DemoDevices`, which owns the core and the bench <-> demo Z offset.
 Everything here is in bench coordinates (PLAN.md §5). Demo-only rules, each stated in
 `info().notes`:
@@ -28,7 +36,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
 import re
 import time
 from dataclasses import asdict
@@ -39,6 +46,7 @@ from ..backend import (
     AURA_LINES,
     PROVISIONAL,
     BackendInfo,
+    CommandPathRetired,
     ConfigRecord,
     DeviceInfo,
     Frame,
@@ -48,26 +56,17 @@ from ..backend import (
     PiezoReading,
     Positions,
     PropertyInfo,
-    PropertyNotAllowed,
     Readback,
     StageLimits,
     StreamActive,
-    check_set_property,
     read_wiring,
-    require_token,
 )
 from .mm_demo_core import (
-    AURA_LINES as DEMO_AURA_LABELS,
-)
-from .mm_demo_core import (
-    DEMO_LED,
     DEMO_Z,
     DemoDevices,
     DemoReadback,
-    DemoZRangeError,
     ObjectiveRead,
     ZMap,
-    find_demo_config,
 )
 
 __all__ = ["PSEUDO_DEVICE", "MmDemoBackend"]
@@ -113,19 +112,8 @@ class MmDemoBackend:
     # -- life
 
     def open(self) -> BackendInfo:
-        if self.dev is None:
-            cfg = find_demo_config()
-            before = _sha256(cfg)
-            self.dev = DemoDevices.open(exposure_ms=self._exposure_ms, roi=self._roi,
-                                        zmap=self.zmap)
-            after = _sha256(cfg)
-            core = self.dev.core
-            self._config = ConfigRecord(
-                str(cfg), after, None if before is None or after is None else before != after,
-                Readback.of("Core", "AutoShutter", 0, int(core.getAutoShutter())),
-                "System/Startup" if "Startup" in core.getAvailableConfigs("System") else None,
-                time.time(), {"config": "Micro-Manager demo devices, no hardware"})
-        return self.info()
+        """Refused: a second Micro-Manager core is not opened here (card 077)."""
+        raise CommandPathRetired("mm-demo open")
 
     def close(self) -> None:
         if self.dev is not None:
@@ -186,19 +174,15 @@ class MmDemoBackend:
         return self._frame(d.snap(), float(d.core.getExposure()))
 
     def set_exposure(self, ms: float) -> float:
-        return self._d().set_exposure(ms)
+        raise CommandPathRetired("mm-demo set_exposure")
 
     def set_roi(self, size: int) -> tuple[int, int, int, int]:
-        return self._d().set_roi(size)
+        raise CommandPathRetired("mm-demo set_roi")
 
-    # -- stream
+    # -- stream: retired with the core (card 077)
 
     def start_stream(self, interval_ms: float | None = None) -> None:
-        core = self._d().core
-        if self._streaming:
-            return
-        core.startContinuousSequenceAcquisition(float(interval_ms or 0.0))
-        self._streaming = True
+        raise CommandPathRetired("mm-demo start_stream")
 
     def next_frame(self, timeout_s: float = 1.0) -> Frame | None:
         if not self._streaming:
@@ -214,9 +198,7 @@ class MmDemoBackend:
         return self._frame(img, float(core.getExposure()))
 
     def stop_stream(self) -> None:
-        if self._streaming and self.dev is not None:
-            self.dev.core.stopSequenceAcquisition()
-        self._streaming = False
+        raise CommandPathRetired("mm-demo stop_stream")
 
     def streaming(self) -> bool:
         return self._streaming
@@ -290,87 +272,45 @@ class MmDemoBackend:
             raise RuntimeError("mm-demo backend has no config record")
         return self._config
 
-    # -- writes
+    # -- writes: retired, every one (card 077). The names stay so the Backend protocol the
+    # runner calls answers with the refusal, not an AttributeError; nothing is sent.
 
     def set_property(self, device: str, prop: str, value: Any, *,
                      token: object = None) -> Readback:
-        core = self._d().core
-        check_set_property(device, prop, token, camera=core.getCameraDevice())
-        if device not in core.getLoadedDevices():  # e.g. the bench names Aura, DiaLamp
-            raise PropertyNotAllowed(f"{device!r} is not a device on mm-demo; light is written "
-                                     "as White Light Shutter.State or LED.Label/State")
-        return Readback(**asdict(self._d().set_and_read(device, prop, value, token=token)))
+        raise CommandPathRetired("mm-demo set_property")
 
     def lamp_on(self, *, token: object = None) -> list[Readback]:
-        require_token(token)
-        return _readbacks(self._d().lamp_on())
+        raise CommandPathRetired("mm-demo lamp_on")
 
     def lamp_off(self) -> list[Readback]:
-        return _readbacks(self._d().lamp_off())
+        raise CommandPathRetired("mm-demo lamp_off")
 
     def aura_line_on(self, line: str, percent: float, *,
                      token: object = None) -> list[Readback]:
-        require_token(token)
-        line = line.upper()
-        recs = _readbacks(self._d().aura_line_on(line, percent))
-        if line not in MEASURED_AURA_LINES:
-            for r in recs:
-                if r.device == DEMO_LED and r.prop == "Label":
-                    r.notes.update(line=PROVISIONAL, bench_line=line)
-            self.substitutions.append({"kind": "aura_line", "line": line,
-                                       "demo_label": DEMO_AURA_LABELS[line],
-                                       "status": PROVISIONAL, "t": time.time()})
-        return recs
+        raise CommandPathRetired("mm-demo aura_line_on")
 
     def aura_off(self) -> list[Readback]:
-        return _readbacks(self._d().aura_off())
+        raise CommandPathRetired("mm-demo aura_off")
 
     def all_off(self) -> list[Readback]:
-        return _readbacks(self._d().all_off())
-
-    # -- motion: engine.guards only
+        raise CommandPathRetired("mm-demo all_off")
 
     def move_z(self, z_um: float, *, token: object) -> float:
-        require_token(token)
-        d = self._d()
-        z = float(z_um)
-        lo, hi = self.zmap.bench_range_um
-        if not (math.isfinite(z) and BENCH_RETRACT_UM <= z <= hi):
-            raise DemoZRangeError(f"bench z {z_um} um is outside {BENCH_RETRACT_UM:g}-{hi:g} um "
-                                  "on the demo")
-        if z >= lo:
-            self._below_z = None
-            return d.move_z(z)
-        physical = d.move_z(lo)
-        self.substitutions.append({"kind": "demo_retract", "commanded_um": z,
-                                   "physical_bench_um": physical,
-                                   "physical_demo_um": d.core.getPosition(DEMO_Z),
-                                   "t": time.time()})
-        if abs(physical - lo) > 0.01:  # the park itself failed: report what was read
-            self._below_z = None
-            return physical
-        self._below_z = z
-        return z
+        raise CommandPathRetired("mm-demo move_z")
 
     def move_xy(self, x_um: float, y_um: float, *, token: object,
                 timeout_s: float | None = None) -> tuple[float, float]:
-        require_token(token)
-        return self._d().move_xy(x_um, y_um, timeout_s=timeout_s)
+        raise CommandPathRetired("mm-demo move_xy")
 
     def move_xy_rel(self, dx_um: float, dy_um: float, *, token: object,
                     timeout_s: float | None = None) -> tuple[float, float]:
-        require_token(token)
-        x, y = self._d().xy_um()
-        return self._d().move_xy(x + float(dx_um), y + float(dy_um), timeout_s=timeout_s)
+        raise CommandPathRetired("mm-demo move_xy_rel")
 
     def set_nosepiece(self, state: int, *, token: object) -> Readback:
-        require_token(token)
-        return Readback(**asdict(self._d().set_objective(state)))
+        raise CommandPathRetired("mm-demo set_nosepiece")
 
     def pfs_off(self, *, token: object) -> Readback:
-        require_token(token)
-        return Readback.of("PFS", "FocusMaintenance", "Off", "Off",
-                           notes={"pfs": "simulated: the demo has no PFS"})
+        raise CommandPathRetired("mm-demo pfs_off")
 
     # -- helpers
 

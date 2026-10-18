@@ -15,16 +15,13 @@ import numpy as np
 import pytest
 from test_contract_backend_v2 import BackendContract
 
-from dino_autofocus.engine import GuardError
 from dino_autofocus.engine.backend import (
     GUARD_TOKEN,
-    PropertyNotAllowed,
+    CommandPathRetired,
     StreamActive,
-    UnguardedMotion,
 )
-from dino_autofocus.engine.backends.replay import CAMERA, VIRTUAL_SPACING_UM, ReplayBackend
+from dino_autofocus.engine.backends.replay import CAMERA, ReplayBackend
 from dino_autofocus.engine.backends.stacks import ZStack
-from dino_autofocus.engine.guards import FocusAxis
 
 T = GUARD_TOKEN  # tests stand in for engine.guards
 SMOKE = Path(__file__).resolve().parents[2] / "data" / "smoke"
@@ -57,9 +54,73 @@ def replay():
 
 
 class TestReplayContract(BackendContract):
+    """The contract's reads hold on replay. Its write tests are overridden below: card 077
+    retired replay's command path, so each write refuses and nothing changes."""
+
     @pytest.fixture
     def backend(self, replay):
         return replay
+
+    def _refuses(self, call) -> None:
+        before = (self._state(), self._snap_plane())
+        with pytest.raises(CommandPathRetired, match="plan.md 15, bc0f4848"):
+            call()
+        assert (self._state(), self._snap_plane()) == before
+
+    def _state(self):
+        b = self.b
+        return (b.positions().z_um, b.positions().x_um, b.positions().y_um, b.light_state(),
+                b.nosepiece())
+
+    def _snap_plane(self):
+        return int(self.b.snap().image[0, 0])
+
+    @pytest.fixture(autouse=True)
+    def _bind(self, backend):
+        self.b = backend
+
+    def test_info_and_readbacks_carry_json_safe_notes(self, backend):
+        json.dumps(backend.info().to_dict())
+        self._refuses(lambda: backend.lamp_on(token=T))
+
+    def test_light_on_needs_the_token_and_off_never_does(self, backend):
+        for call in (lambda: backend.lamp_on(token=T), backend.lamp_off,
+                     lambda: backend.aura_line_on("GREEN", 5.0, token=T), backend.aura_off,
+                     backend.all_off):
+            self._refuses(call)
+
+    def test_light_property_needs_the_token(self, backend):
+        self._refuses(lambda: backend.set_property("DiaLamp", "State", 1, token=T))
+
+    def test_listed_camera_property_needs_no_token(self, backend):
+        self._refuses(lambda: backend.set_property(CAMERA, "Binning", "1"))
+
+    def test_move_xy_rel_needs_the_token_and_moves_by_the_step(self, backend):
+        for call in (lambda: backend.move_xy_rel(10.0, 0.0, token=T),
+                     lambda: backend.move_xy(10.0, 0.0, token=T),
+                     lambda: backend.move_z(2950.0, token=T),
+                     lambda: backend.set_nosepiece(0, token=T),
+                     lambda: backend.pfs_off(token=T)):
+            self._refuses(call)
+
+    def test_set_property_refuses_motion_devices_even_with_the_token(self, backend):
+        self._refuses(lambda: backend.set_property("ZDrive", "Position", 1.0, token=T))
+
+    def test_unlisted_property_is_refused_with_the_allow_list(self, backend):
+        self._refuses(lambda: backend.set_property("Nope", "Nope", 1, token=T))
+
+
+def test_snap_reads_the_plane_nearest_the_z_it_was_built_with():
+    """Reading a recorded stack stays (card 077): the plane nearest the z given at build time,
+    the lower one on a tie, the edge plane (clamped) outside the stack."""
+    for z, want, clamped in ((2951.0, 110, False), (2952.5, 110, False), (3500.0, 120, True)):
+        b = ReplayBackend([stack(x_um=0.0, y_um=0.0)], z_um=z)
+        b.open()
+        try:
+            assert int(b.snap().image[0, 0]) == want and b.last_hit.clamped is clamped, z
+            assert b.positions().z_um == z
+        finally:
+            b.close()
 
 
 class FakeClock:
@@ -92,49 +153,6 @@ def test_info_is_not_bench_and_says_what_z_is(replay):
     json.dumps(info.to_dict())
 
 
-def test_snap_is_the_plane_nearest_the_virtual_z(replay):
-    with pytest.raises(UnguardedMotion):
-        replay.move_z(2950.0, token=None)
-    assert replay.move_z(2951.0, token=T) == 2951.0 and replay.positions().z_um == 2951.0
-    assert plane(replay) == 110 and replay.last_hit.z_um == 2950.0
-    replay.move_z(2952.5, token=T)  # a tie goes to the lower plane
-    assert plane(replay) == 110
-    replay.move_z(3500.0, token=T)
-    assert plane(replay) == 120 and replay.last_hit.clamped
-
-
-def test_xy_picks_the_nearest_stack(replay):
-    assert plane(replay) == 110  # the first stack's median plane
-    replay.move_xy(4000.0, 0.0, token=T)
-    assert plane(replay) == 510
-    replay.move_xy_rel(-3000.0, 0.0, token=T)
-    assert replay.positions().x_um == 1000.0 and plane(replay) == 110
-
-
-def test_one_stack_stays_and_stacks_without_xy_get_a_virtual_row():
-    one = ReplayBackend(stack())
-    one.move_xy(9000.0, 9000.0, token=T)
-    assert plane(one) == 110
-    two = ReplayBackend([stack(), stack(base=500)])
-    assert two.stack_xy == [(0.0, 0.0), (VIRTUAL_SPACING_UM, 0.0)]
-    assert "virtual" in two.info().notes["xy"]
-
-
-def test_lights_are_virtual_and_leave_the_frames_alone(replay):
-    before = plane(replay)
-    with pytest.raises(UnguardedMotion):
-        replay.aura_line_on("GREEN", 1, token=None)
-    rbs = replay.aura_line_on("green", 1, token=T)
-    assert [(r.device, r.prop, r.read) for r in rbs] == [
-        ("DiaLamp", "State", "0"), ("Aura", "GREEN_Intensity", "10"), ("Aura", "GREEN", "1"),
-        ("Aura", "State", "1")]
-    assert plane(replay) == before and replay.light_state() == {"DiaLamp": "0", "Aura": "1"}
-    assert all(r.verified for r in replay.all_off())
-    assert replay.set_property("DiaLamp", "Intensity", 300, token=T).verified
-    with pytest.raises(PropertyNotAllowed):
-        replay.set_property("White Light Shutter", "State", 0, token=T)
-
-
 def test_roi_crops_the_recorded_frame(replay):
     assert replay.set_roi(16) == (8, 8, 16, 16) and replay.snap().image.shape == (16, 16)
     assert replay.set_roi(0) == (0, 0, 32, 32)
@@ -153,17 +171,6 @@ def test_stream_paces_and_blocks_snap():
     finally:
         b.close()
     assert not b.streaming()
-
-
-def test_a_guarded_sweep_on_replay_finds_the_recorded_focus():
-    b = ReplayBackend(focus_stack(), z_um=2905.0)
-    b.open()
-    axis = FocusAxis(b, b.nosepiece(), allow_motion=True, sleep=lambda s: None)
-    res = axis.sweep(axis.plan(2950, 40, 5), b.snap, score=lambda f: float(f.image.std()))
-    assert res.peak_interior and res.peak_z_um == 2950.0
-    with pytest.raises(GuardError):  # the guards still own the window
-        axis.move_to(3300.0, allow_ascent_um=500)
-    b.close()
 
 
 def test_real_smoke_data():

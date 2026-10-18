@@ -1,5 +1,15 @@
 """Replay backend: saved z-stacks played back through the Backend protocol (T-034).
 
+**Its command path is retired (soft-matter-agents card 077, plan.md 15 at bc0f4848).** No
+device sits behind it, but its writes were dino's engine commanding a stand-in: `move_z`,
+`move_xy`, `move_xy_rel`, `set_nosepiece`, `pfs_off`, `set_property`, `lamp_on`,
+`lamp_off`, `aura_line_on`, `aura_off` and `all_off` raise
+`engine.backend.CommandPathRetired`. Reading recorded stacks stays, because reading a file
+is not commanding a device: `snap()`, the stream, `set_exposure` and `set_roi` (which only
+choose what of a recorded frame is returned), and every read. `snap()` returns the plane
+nearest the z the backend was built with. The rest of this docstring is the record of what
+the backend did before.
+
 The source is anything `stacks.load_stacks` reads (T-005): in-memory `ZStack`s, synth
 shards, or a sample folder's `find_particle_*`, `stack_*.npy` and `scan4x_*` tiles.
 
@@ -34,6 +44,7 @@ import numpy as np
 from ..backend import (
     AURA_LINES,
     BackendInfo,
+    CommandPathRetired,
     ConfigRecord,
     DeviceInfo,
     Frame,
@@ -44,12 +55,9 @@ from ..backend import (
     PiezoReading,
     Positions,
     PropertyInfo,
-    PropertyNotAllowed,
     Readback,
     StageLimits,
     StreamActive,
-    check_set_property,
-    require_token,
 )
 from .stacks import PlaneHit, ZStack, load_stacks
 
@@ -271,80 +279,40 @@ class ReplayBackend:
         return self._config or ConfigRecord("replay", None, None, None,
                                             notes={"state": "not opened"})
 
-    # -- writes
-    def _write(self, device: str, prop: str, value: Any) -> Readback:
-        self.props[(device, prop)] = str(value)
-        return Readback.of(device, prop, value, self.read_property(device, prop))
-
+    # -- writes: retired, every one (card 077). The names stay so the Backend protocol the
+    # runner calls answers with the refusal, not an AttributeError; nothing changes.
     def set_property(self, device: str, prop: str, value: Any, *,
                      token: MotionToken | None = None) -> Readback:
-        check_set_property(device, prop, token, camera=CAMERA)
-        if (device, prop) in self.props:
-            return self._write(device, prop, value)
-        if device == CAMERA:
-            if prop == "Exposure":
-                self.set_exposure(float(value))
-                return Readback.of(device, prop, f"{float(value):.4f}",
-                                   self.read_property(device, prop))
-            self.camera_props[prop] = str(value)
-            return Readback.of(device, prop, value, self.read_property(device, prop))
-        raise PropertyNotAllowed(f"{device!r} is not a device on replay")
+        raise CommandPathRetired("replay set_property")
 
     def lamp_on(self, *, token: MotionToken) -> list[Readback]:
-        require_token(token)
-        return [self._write("Aura", "State", 0), self._write("DiaLamp", "State", 1)]
+        raise CommandPathRetired("replay lamp_on")
 
     def lamp_off(self) -> list[Readback]:
-        return [self._write("DiaLamp", "State", 0)]
+        raise CommandPathRetired("replay lamp_off")
 
     def aura_line_on(self, line: str, percent: float, *, token: MotionToken) -> list[Readback]:
-        require_token(token)
-        ln = line.upper()
-        if ln not in AURA_LINES:
-            raise ValueError(f"Aura line {line!r} not in {AURA_LINES}")
-        if not 0.0 <= float(percent) <= 100.0:
-            raise ValueError(f"Aura percent {percent} is not in 0-100")
-        return [self._write("DiaLamp", "State", 0),
-                self._write("Aura", f"{ln}_Intensity", int(round(float(percent) * 10))),
-                self._write("Aura", ln, 1), self._write("Aura", "State", 1)]
+        raise CommandPathRetired("replay aura_line_on")
 
     def aura_off(self) -> list[Readback]:
-        return [self._write("Aura", "State", 0)]
+        raise CommandPathRetired("replay aura_off")
 
     def all_off(self) -> list[Readback]:
-        return [*self.aura_off(), *self.lamp_off()]
+        raise CommandPathRetired("replay all_off")
 
-    # -- motion: engine.guards only; virtual
     def move_z(self, z_um: float, *, token: MotionToken) -> float:
-        require_token(token)
-        z = float(z_um)
-        if not math.isfinite(z):
-            raise ValueError(f"z {z_um} is not a finite number")
-        self.z = z
-        return self.z
+        raise CommandPathRetired("replay move_z")
 
     def move_xy(self, x_um: float, y_um: float, *, token: MotionToken,
                 timeout_s: float | None = None) -> tuple[float, float]:
-        require_token(token)
-        x, y = float(x_um), float(y_um)
-        if not (math.isfinite(x) and math.isfinite(y)):
-            raise ValueError(f"XY ({x_um}, {y_um}) is not finite")
-        self.x, self.y = x, y
-        return self.x, self.y
+        raise CommandPathRetired("replay move_xy")
 
     def move_xy_rel(self, dx_um: float, dy_um: float, *, token: MotionToken,
                     timeout_s: float | None = None) -> tuple[float, float]:
-        require_token(token)
-        return self.move_xy(self.x + float(dx_um), self.y + float(dy_um), token=token)
+        raise CommandPathRetired("replay move_xy_rel")
 
     def set_nosepiece(self, state: int, *, token: MotionToken) -> Readback:
-        require_token(token)
-        if not 0 <= int(state) < len(self.objectives):
-            raise ValueError(f"nosepiece state {state} is not in 0..{len(self.objectives) - 1}")
-        self.state = int(state)
-        return Readback.of("Nosepiece", "State", int(state), self.state)
+        raise CommandPathRetired("replay set_nosepiece")
 
     def pfs_off(self, *, token: MotionToken) -> Readback:
-        require_token(token)
-        self.pfs_enabled = False
-        return Readback.of("PFS", "FocusMaintenance", "Off", "Off", notes={"pfs": "virtual"})
+        raise CommandPathRetired("replay pfs_off")

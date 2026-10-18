@@ -262,6 +262,21 @@ class UnguardedMotion(RuntimeError):
     pass
 
 
+#: Why a write to a device through this engine refuses (soft-matter-agents card 077).
+COMMAND_PATH_RETIRED = ("dino's engine command path is retired (card 077): every command goes "
+                        "through soft-matter-agents' orchestrator (plan.md 15, bc0f4848)")
+
+
+class CommandPathRetired(RuntimeError):
+    """A device write, a light (on or off), a motion, a camera setting or opening a
+    Micro-Manager core, through dino's engine on a backend that reaches a device or stands
+    in for one (mm-real, mm-demo, replay). Raised before anything is sent. The one execution
+    path is soft-matter-agents' orchestrator, which holds the one Micro-Manager core."""
+
+    def __init__(self, what: str) -> None:
+        super().__init__(f"{what}: {COMMAND_PATH_RETIRED}")
+
+
 class PropertyNotAllowed(ValueError):
     """`set_property` on a device/property outside the allow-list."""
 

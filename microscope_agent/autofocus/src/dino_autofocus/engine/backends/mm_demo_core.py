@@ -1,5 +1,14 @@
 """Micro-Manager demo devices for the mm-demo backend, without the Backend protocol (T-017).
 
+**Its writes are removed (soft-matter-agents card 077, plan.md 15 at bc0f4848).** `open`
+refuses with `engine.backend.CommandPathRetired` (a second Micro-Manager core is not opened
+beside the orchestrator's one), and the core-level write methods are gone: `set_exposure`,
+`set_roi`, `move_z`, `move_xy`, `set_objective`, `lamp_on`, `lamp_off`, `aura_line_on`,
+`aura_off`, `all_off`, `set_and_read`, `_set_and_read` and `_shutter`. `close` no longer
+switches light off: it sends nothing and only unloads. What stays is the coordinate map
+(`ZMap`), the demo names, `find_demo_config` and the reads, unreachable without `open`. The
+rest of this docstring is the record of what the module did before.
+
 `DemoDevices` loads pymmcore-plus's `MMConfig_demo.cfg` (simulated devices, no hardware) and
 gives the mm-demo backend what it needs in bench terms. Measured on this PC (Micro-Manager
 2.0.3 demo adapters, 2026-10-01; T-002 appendix 2):
@@ -39,7 +48,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from ..backend import check_set_property
+from ..backend import CommandPathRetired
 
 if TYPE_CHECKING:
     from pymmcore_plus import CMMCorePlus
@@ -179,39 +188,16 @@ class DemoDevices:
     @classmethod
     def open(cls, *, exposure_ms: float = 10.0, roi: int = 0, zmap: ZMap | None = None,
              xy_velocity: float = DEFAULT_XY_VELOCITY) -> DemoDevices:
-        config = find_demo_config()
-        from pymmcore_plus import CMMCorePlus
-
-        core = CMMCorePlus()
-        try:
-            core.setDeviceAdapterSearchPaths([str(config.parent)])
-            core.loadSystemConfiguration(str(config))
-            core.setAutoShutter(False)  # else every snap would open the lamp shutter
-            core.waitForSystem()
-            cam = core.getCameraDevice()
-            core.setProperty(cam, "OnCameraCCDXSize", SENSOR_PX)
-            core.setProperty(cam, "OnCameraCCDYSize", SENSOR_PX)
-            core.setProperty(cam, "PixelType", "16bit")
-            core.setProperty(cam, "Mode", CAMERA_MODE)
-            core.setProperty(DEMO_XY, "Velocity", xy_velocity)
-        except Exception as e:
-            core.unloadAllDevices()
-            raise DemoUnavailable(f"loading {config} failed: {e}") from e
-        dev = cls(core, config, zmap)
-        dev.set_exposure(exposure_ms)
-        dev.set_roi(roi)
-        dev.opened_with = dev.all_off()
-        return dev
+        """Refused: a second Micro-Manager core is not opened here (card 077)."""
+        raise CommandPathRetired("mm-demo core open")
 
     def close(self) -> list[DemoReadback]:
-        """Light off (read back), then unload. A second call does nothing and returns []."""
+        """Unload; no light write any more (card 077). A second call does nothing."""
         if self._closed:
             return []
         self._closed = True
-        try:
-            return self.all_off()
-        finally:
-            self.core.unloadAllDevices()
+        self.core.unloadAllDevices()
+        return []
 
     def __enter__(self) -> DemoDevices:
         return self
@@ -220,18 +206,6 @@ class DemoDevices:
         self.close()
 
     # -- camera
-
-    def set_exposure(self, ms: float) -> float:
-        self.core.setExposure(ms)
-        return float(self.core.getExposure())
-
-    def set_roi(self, size: int) -> tuple[int, int, int, int]:
-        """Centred square ROI; 0 (or >= the sensor) = full sensor."""
-        self.core.clearROI()
-        w, h = self.core.getImageWidth(), self.core.getImageHeight()
-        if 0 < size < min(w, h):
-            self.core.setROI((w - size) // 2, (h - size) // 2, size, size)
-        return tuple(self.core.getROI())
 
     def snap(self) -> np.ndarray:
         """One mono uint16 frame (H, W)."""
@@ -245,36 +219,11 @@ class DemoDevices:
     def z_um(self) -> float:
         return self.zmap.to_bench(self.core.getPosition(DEMO_Z))
 
-    def move_z(self, bench_um: float) -> float:
-        """Move to bench z; returns the bench z read back. Out of range: refused, not moved."""
-        demo = self.zmap.to_demo(bench_um)
-        self.core.setPosition(DEMO_Z, demo)
-        self.core.waitForDevice(DEMO_Z)
-        return self.z_um()
-
     # -- XY
 
     def xy_um(self) -> tuple[float, float]:
         x, y = self.core.getXYPosition(DEMO_XY)
         return float(x), float(y)
-
-    def move_xy(self, x_um: float, y_um: float, *,
-                timeout_s: float | None = None) -> tuple[float, float]:
-        """Move and wait up to `timeout_s` (default: twice the travel time at the set
-        velocity, plus 2 s), not the core's fixed 5 s. Returns the position read back."""
-        if timeout_s is None:
-            x0, y0 = self.xy_um()
-            mm = math.hypot(x_um - x0, y_um - y0) / 1000.0
-            velocity = float(self.core.getProperty(DEMO_XY, "Velocity"))
-            timeout_s = 2.0 * mm / max(velocity, 1e-6) + 2.0
-        self.core.setXYPosition(DEMO_XY, x_um, y_um)
-        deadline = time.monotonic() + timeout_s
-        while self.core.deviceBusy(DEMO_XY):
-            if time.monotonic() > deadline:
-                self.core.stop(DEMO_XY)
-                raise TimeoutError(f"XY move to ({x_um}, {y_um}) not done in {timeout_s:.1f} s")
-            time.sleep(0.01)
-        return self.xy_um()
 
     # -- objective
 
@@ -288,42 +237,7 @@ class DemoDevices:
         return [ObjectiveRead(i, lab, BENCH_OBJECTIVE_LABELS.get(i)) for i, lab in
                 enumerate(labels)]
 
-    def set_objective(self, state: int) -> DemoReadback:
-        n = len(self.core.getStateLabels(DEMO_NOSEPIECE))
-        if not 0 <= state < n:
-            raise ValueError(f"nosepiece state {state} is not in 0..{n - 1}")
-        return self._set_and_read(DEMO_NOSEPIECE, "State", state)
-
-    # -- light, meaning-level, each step read back
-
-    def lamp_on(self) -> list[DemoReadback]:
-        """Transmitted lamp (bench DiaLamp). Aura off first, as the bench brightfield order."""
-        return [*self.aura_off(), self._shutter(DEMO_LAMP, True)]
-
-    def lamp_off(self) -> list[DemoReadback]:
-        return [self._shutter(DEMO_LAMP, False)]
-
-    def aura_line_on(self, line: str, percent: float) -> list[DemoReadback]:
-        """Lamp off, then the line's intensity (per-mille, 1 % -> 10), the line, and the
-        master shutter last: the order of `scripts/mm_grab.py aura_on`."""
-        line = line.upper()
-        if line not in AURA_LINES:
-            raise ValueError(f"unknown Aura line {line!r}; known: {', '.join(AURA_LINES)}")
-        if not 0.0 <= percent <= 100.0:
-            raise ValueError(f"Aura percent {percent} is not in 0-100")
-        permille = int(round(percent * 10))
-        self._aura_permille[line] = permille
-        return [*self.lamp_off(),
-                DemoReadback.of(DEMO_LED, f"{line}_Intensity (emulated)", permille,
-                                self._aura_permille[line]),
-                self._set_and_read(DEMO_LED, "Label", AURA_LINES[line]),
-                self._shutter(DEMO_LED_SHUTTER, True)]
-
-    def aura_off(self) -> list[DemoReadback]:
-        return [self._shutter(DEMO_LED_SHUTTER, False)]
-
-    def all_off(self) -> list[DemoReadback]:
-        return [*self.aura_off(), *self.lamp_off()]
+    # -- light: reads only (card 077 removed every light write)
 
     def light_state(self) -> dict[str, str]:
         """Bench names: DiaLamp and Aura are "1"/"0"; AuraLine is the bench line selected."""
@@ -332,24 +246,3 @@ class DemoDevices:
         return {"DiaLamp": str(int(self.core.getShutterOpen(DEMO_LAMP))),
                 "Aura": str(int(self.core.getShutterOpen(DEMO_LED_SHUTTER))),
                 "AuraLine": line}
-
-    # -- helpers
-
-    def set_and_read(self, device: str, prop: str, value: Any, *,
-                     token: object = None) -> DemoReadback:
-        """Write one property and read it back, through the engine allow-list
-        (`check_set_property` with this core's camera): motion devices are refused and
-        light properties need the guard token."""
-        check_set_property(device, prop, token, camera=self.core.getCameraDevice())
-        return self._set_and_read(device, prop, value)
-
-    def _set_and_read(self, device: str, prop: str, value: Any) -> DemoReadback:
-        """Unchecked write and readback, for this module's own meaning-level methods."""
-        self.core.setProperty(device, prop, value)
-        self.core.waitForDevice(device)
-        return DemoReadback.of(device, prop, value, self.core.getProperty(device, prop))
-
-    def _shutter(self, device: str, open_: bool) -> DemoReadback:
-        self.core.setShutterOpen(device, open_)
-        self.core.waitForDevice(device)
-        return DemoReadback.of(device, "open", int(open_), int(self.core.getShutterOpen(device)))

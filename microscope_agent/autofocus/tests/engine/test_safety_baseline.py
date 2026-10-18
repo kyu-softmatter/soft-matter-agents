@@ -15,16 +15,16 @@ The behaviour behind each fact is tested beside its code (``test_backends_mm_rea
 ``test_operations_bench_approach.py``, ``test_tweezers.py``, ``test_mock_bench_safety.py``,
 moved from ``e2e/test_e2e_safety.py`` by soft-matter-agents card 077); this
 module asserts the baseline itself and one thing nothing else does: the inventory of direct
-Micro-Manager write calls in the tree, in three buckets.
+Micro-Manager write calls in the tree.
 
-- ``mm_real.py``: the bench. Every site stays behind ``BENCH_MOTION`` (the lock test proves it).
-- ``mm_demo_core.py``: the demo devices only, addressed by the ``DEMO_*`` constants, never a bench
-  device name; ``is_bench`` is False for that backend.
-- ``scripts/*``: none. R-05 deleted the legacy bench scripts that held the last ones (OD-35,
-  user 2026-10-06). A new site here fails.
-
-D-05 (dropping the bench motion path once soft-matter-agents owns it) is the one card that may
-rewrite the bench bucket, and that card rewrites this test to assert absence.
+Since soft-matter-agents card 077 (plan.md 15 at bc0f4848) the inventory is EMPTY, in the
+package and in scripts: dino's engine command path is retired, so no module here moves,
+lights, sets a property or a camera setting, starts a stream or loads a configuration
+through a Micro-Manager core. Card 077 is the D-05 this docstring used to name ("dropping
+the bench motion path once soft-matter-agents owns it"), and it rewrote this test to assert
+absence. Every write method of the mm-real, mm-demo and replay backends, and the open of the
+two that would open a core, is a single raise of ``CommandPathRetired``. ``BENCH_MOTION``
+still ships "LOCKED", with nothing left behind it.
 """
 
 from __future__ import annotations
@@ -48,12 +48,17 @@ SRC = ROOT / "src" / "dino_autofocus"
 SCRIPTS = ROOT / "scripts"
 
 # Every MMCore call that moves something or can (the same family soft-matter-agents refuses by
-# name in its device wrapper), as an attribute call so a word inside a string does not count.
-# MMCore's `home` is left out: `Path.home()` is the same spelling and nothing here homes a stage.
+# name in its device wrapper), and since card 077 every other device write too: a property, a
+# shutter, a camera setting, a sequence, loading a configuration. As an attribute call, so a
+# word inside a string does not count. MMCore's `home` is left out: `Path.home()` is the same
+# spelling and nothing here homes a stage.
 WRITE_CALL = re.compile(
     r"\.(setPosition|setXYPosition|setRelativePosition|setRelativeXYPosition|setOrigin\w*"
     r"|setState|setStateLabel|setConfig|enableContinuousFocus|setAutoFocusOffset"
-    r"|fullFocus|incrementalFocus)\("
+    r"|fullFocus|incrementalFocus"
+    r"|setProperty|setShutterOpen|setAutoShutter|setExposure|setROI|clearROI"
+    r"|startContinuousSequenceAcquisition|startSequenceAcquisition|stopSequenceAcquisition"
+    r"|loadSystemConfiguration|setDeviceAdapterSearchPaths)\("
 )
 
 # -- the two locks --------------------------------------------------------------------------
@@ -169,51 +174,64 @@ def _call_sites(folder: Path) -> dict[str, set[str]]:
     return found
 
 
-BENCH_BUCKET = {"src/dino_autofocus/engine/backends/mm_real.py":
-                {"setPosition", "setXYPosition", "enableContinuousFocus"}}
-DEMO_BUCKET = {"src/dino_autofocus/engine/backends/mm_demo_core.py":
-               {"setPosition", "setXYPosition"}}
 # R-05 deleted the legacy bench scripts (scan_4x, edge_track, find_particle_z and eight more;
 # in git history), so scripts/ holds no direct MMCore write at all; a new one fails here
 # (OD-35, user 2026-10-06).
 SCRIPTS_BUCKET: dict[str, set[str]] = {}
 
+#: the Backend protocol's writes, as card 077 retired them on the three backends
+RETIRED_WRITES = {"set_property", "lamp_on", "lamp_off", "aura_line_on", "aura_off", "all_off",
+                  "move_z", "move_xy", "move_xy_rel", "set_nosepiece", "pfs_off"}
+#: and on the two that would open a Micro-Manager core, the core itself and its camera
+RETIRED_CORE = {"open", "set_exposure", "set_roi", "start_stream", "stop_stream"}
+RETIRED = {"mm_real.py": ("MmRealBackend", RETIRED_WRITES | RETIRED_CORE),
+           "mm_demo.py": ("MmDemoBackend", RETIRED_WRITES | RETIRED_CORE),
+           "replay.py": ("ReplayBackend", RETIRED_WRITES)}
 
-def test_direct_write_calls_in_the_package_are_exactly_the_bench_and_demo_buckets():
-    assert _call_sites(SRC) == {**BENCH_BUCKET, **DEMO_BUCKET}
+
+def test_no_direct_write_call_is_left_in_the_package():
+    assert _call_sites(SRC) == {}
 
 
 def test_direct_write_calls_in_scripts_are_exactly_the_legacy_bucket():
     assert _call_sites(SCRIPTS) == SCRIPTS_BUCKET
 
 
-def test_the_demo_bucket_addresses_demo_devices_only():
-    text = (SRC / "engine" / "backends" / "mm_demo_core.py").read_text(encoding="utf-8")
-    devices = re.findall(r"\.set(?:XY)?Position\((\w+),", text)
-    assert devices and all(d.startswith("DEMO_") for d in devices), devices
-    assert "mm-demo" in SIMULATED_KINDS
-
-
-def test_the_bench_bucket_sits_behind_the_lock():
-    """Each bench motion write sits in a method that asks the lock in its own body (the lock
-    test exercises the refusal; this pins the shape so a new motion method cannot skip it).
-    PFS off is not motion: switching the servo off is the safe direction and stays allowed."""
+def test_every_retired_method_only_raises_the_refusal():
+    """Card 077: each write (and each core open) on the three backends is one statement,
+    `raise CommandPathRetired(...)`, after at most a docstring: nothing is sent first."""
     import ast
 
-    tree = ast.parse((SRC / "engine" / "backends" / "mm_real.py").read_text(encoding="utf-8"))
-    motion_methods: dict[str, set[str]] = {}
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.FunctionDef):
-            continue
-        calls = {n.func.attr for n in ast.walk(node)
-                 if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)}
-        names = {n.func.id for n in ast.walk(node)
-                 if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
-        if calls & {"setPosition", "setXYPosition", "setRelativeXYPosition"}:
-            motion_methods[node.name] = names
-    assert set(motion_methods) == {"move_z", "move_xy"}, motion_methods
-    for name, names in motion_methods.items():
-        assert "_require_motion_unlocked" in names, f"{name} does not ask the lock"
+    for filename, (cls_name, methods) in RETIRED.items():
+        tree = ast.parse((SRC / "engine" / "backends" / filename).read_text(encoding="utf-8"))
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == cls_name)
+        found = {}
+        for node in cls.body:
+            if isinstance(node, ast.FunctionDef) and node.name in methods:
+                body = [s for s in node.body
+                        if not (isinstance(s, ast.Expr) and isinstance(s.value, ast.Constant))]
+                found[node.name] = body
+        assert set(found) == methods, (filename, methods - set(found))
+        for name, body in found.items():
+            ok = (len(body) == 1 and isinstance(body[0], ast.Raise)
+                  and isinstance(body[0].exc, ast.Call)
+                  and getattr(body[0].exc.func, "id", None) == "CommandPathRetired")
+            assert ok, f"{filename} {cls_name}.{name} does more than refuse"
+
+
+def test_the_retired_backends_refuse_when_called():
+    from dino_autofocus.engine.backend import CommandPathRetired
+    from dino_autofocus.engine.backends.mm_demo import MmDemoBackend
+    from dino_autofocus.engine.backends.mm_demo_core import DemoDevices
+
+    for backend in (mm_real.MmRealBackend("absent.cfg"), MmDemoBackend()):
+        for call in (backend.open, backend.all_off, backend.lamp_off,
+                     lambda b=backend: b.move_z(1.0, token=GUARD_TOKEN),
+                     lambda b=backend: b.set_exposure(10.0)):
+            with pytest.raises(CommandPathRetired, match="plan.md 15, bc0f4848"):
+                call()
+    with pytest.raises(CommandPathRetired):
+        DemoDevices.open()
 
 
 # -- the executable spec of the exit rules stays with the engine tests (C-02) ----------------

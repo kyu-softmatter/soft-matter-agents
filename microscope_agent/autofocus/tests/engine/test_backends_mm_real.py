@@ -16,19 +16,15 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from test_contract_backend_v2 import BackendContract
 
 from dino_autofocus.engine.backend import (
     GUARD_TOKEN,
-    PROVISIONAL,
-    PropertyNotAllowed,
-    UnguardedMotion,
+    CommandPathRetired,
 )
 from dino_autofocus.engine.backends import mm_real
 from dino_autofocus.engine.backends.mm_real import (
     BENCH_CONFIG,
     DEMO_DEVICES,
-    BenchMotionLocked,
     MmRealBackend,
     MmUnavailable,
     config_path,
@@ -72,22 +68,6 @@ def real():
         b.close()
 
 
-class TestMmRealOnDemoContract(BackendContract):
-    light_write = ("White Light Shutter", "State", 0)
-    bench = True  # mm-real is the bench even on the demo config
-
-    @pytest.fixture
-    def backend(self, real):
-        return real
-
-    def test_move_xy_rel_needs_the_token_and_moves_by_the_step(self, backend):
-        """T-036: on mm-real the shared relative-move check becomes a refusal while locked."""
-        p0 = backend.positions()
-        with pytest.raises(BenchMotionLocked, match="T-027, T-011"):
-            backend.move_xy_rel(10.0, -5.0, token=GUARD_TOKEN)
-        assert (backend.positions().x_um, backend.positions().y_um) == (p0.x_um, p0.y_um)
-
-
 # -- no hardware needed
 
 
@@ -109,13 +89,6 @@ def test_config_path_argument_env_default_and_no_settings_file(monkeypatch, tmp_
     monkeypatch.setenv(mm_real.CONFIG_ENV, "D:/cfg/env.cfg")
     assert str(config_path()).replace(chr(92), "/") == "D:/cfg/env.cfg"
     assert config_path(tmp_path / "x.cfg") == tmp_path / "x.cfg"
-
-
-def test_missing_config_is_unavailable_not_a_crash(tmp_path):
-    b = MmRealBackend(tmp_path / "nope.cfg")
-    with pytest.raises(MmUnavailable):
-        b.open()
-    b.close()  # never opened: nothing to release
 
 
 def test_piezo_is_read_only_and_a_missing_link_is_a_field(monkeypatch, tmp_path):
@@ -166,36 +139,6 @@ def stub(tmp_path):
     b.core = None
 
 
-def test_bench_aura_follows_the_mm_grab_order(stub):
-    with pytest.raises(UnguardedMotion):
-        stub.aura_line_on("GREEN", 1, token=None)
-    assert not stub.core.writes
-    rbs = stub.aura_line_on("green", 1, token=T)
-    assert stub.core.writes == [("DiaLamp", "State", "0"), ("Aura", "GREEN_Intensity", "10"),
-                                ("Aura", "GREEN", "1"), ("Aura", "State", "1")]
-    assert all(r.verified and not r.notes for r in rbs)
-    cyan = stub.aura_line_on("CYAN", 2, token=T)
-    assert cyan[1].notes == {"aura_line": PROVISIONAL}
-    assert stub.light_state() == {"DiaLamp": "0", "Aura": "1"}
-    assert [(r.device, r.read) for r in stub.all_off()] == [("Aura", "0"), ("DiaLamp", "0")]
-
-
-def test_bench_lamp_and_set_property_allow_list(stub):
-    stub.lamp_on(token=T)
-    assert stub.core.writes[-2:] == [("Aura", "State", "0"), ("DiaLamp", "State", "1")]
-    for dev in ("ZDrive", "XYStage", "Nosepiece", "PFS"):
-        with pytest.raises(UnguardedMotion):
-            stub.set_property(dev, "State", 1, token=T)
-    with pytest.raises(UnguardedMotion):
-        stub.set_property("DiaLamp", "State", 1)
-    with pytest.raises(PropertyNotAllowed):
-        stub.set_property("Kinetix_red", "Gain", "1-Standard")  # not listed
-    with pytest.raises(PropertyNotAllowed):  # camera properties only on the camera
-        stub.set_property("Aura", "ReadoutRate", "100MHz 16bit", token=T)
-    with pytest.raises(PropertyNotAllowed):  # listed, but not on this config
-        stub.set_property("White Light Shutter", "State", 0, token=T)
-
-
 class HubStubCore:
     """A bench hub and one peripheral; records every call so a hub query would show."""
 
@@ -241,40 +184,23 @@ def test_bench_scan_never_asks_a_hub_for_its_peripherals(tmp_path):
 # -- the real code on the demo config
 
 
-def test_info_is_bench_flagged_with_user_checks(real):
-    info = real.info()
-    assert info.bench and info.kind == "mm-real" and info.camera == "Camera"
-    assert "user check needed" in info.notes["stage_limits"]
-    assert "ReadoutRate" in info.notes["user_check"]
-    assert info.notes["aura.CYAN"] == PROVISIONAL
-    json.dumps(info.to_dict())
+#: card 077: every device write, and the core and its camera, refuse on mm-real
+RETIRED_CALLS = [
+    ("open", (), {}), ("set_exposure", (10.0,), {}), ("set_roi", (0,), {}),
+    ("start_stream", (), {}), ("stop_stream", (), {}),
+    ("set_property", ("DiaLamp", "State", 1), {"token": GUARD_TOKEN}),
+    ("lamp_on", (), {"token": GUARD_TOKEN}), ("lamp_off", (), {}),
+    ("aura_line_on", ("GREEN", 5.0), {"token": GUARD_TOKEN}), ("aura_off", (), {}),
+    ("all_off", (), {}), ("move_z", (2950.0,), {"token": GUARD_TOKEN}),
+    ("move_xy", (1.0, 2.0), {"token": GUARD_TOKEN}),
+    ("move_xy_rel", (1.0, 2.0), {"token": GUARD_TOKEN}),
+    ("set_nosepiece", (0,), {"token": GUARD_TOKEN}), ("pfs_off", (), {"token": GUARD_TOKEN}),
+]
 
 
-def test_config_record_shows_autoshutter_off_and_the_startup_preset(real):
-    c = real.config_record()
-    assert c.autoshutter.verified and c.autoshutter.read == "0"
-    assert c.startup_preset == "System/Startup" and c.sha256
-    assert c.changed_during_load is False
-
-
-def test_motion_code_reads_back_on_the_demo_once_unlocked(real, monkeypatch):
-    """The code that runs after a reviewed commit lifts the T-036 lock. Unlocking here is a
-    test-only monkeypatch; the shipped constant stays LOCKED (test_backends_mm_real_lock)."""
-    monkeypatch.setattr(mm_real, "BENCH_MOTION", "UNLOCKED")
-    assert real.move_z(12.5, token=T) == pytest.approx(12.5, abs=0.01)
-    x, y = real.move_xy(100.0, -50.0, token=T, timeout_s=10)
-    assert (x, y) == pytest.approx((100.0, -50.0), abs=0.5)
-    labels = real.nosepiece_labels()
-    rb = real.set_nosepiece(1, token=T)
-    assert rb.verified and real.nosepiece() == labels[1].label
-    with pytest.raises(ValueError):
-        real.set_nosepiece(len(labels), token=T)
-
-
-def test_no_aura_or_pfs_on_the_demo_config(real):
-    assert real.pfs().enabled is None and real.pfs_off(token=T).notes
-    with pytest.raises(PropertyNotAllowed):
-        real.aura_line_on("GREEN", 1, token=T)
-    assert set(real.light_state()) == {"DiaLamp"}
-    assert real.lamp_on(token=T)[-1].read == "1"
-    assert [r.read for r in real.all_off()] == ["0"]
+@pytest.mark.parametrize(("name", "args", "kwargs"), RETIRED_CALLS)
+def test_every_write_and_the_core_refuse_on_mm_real(name, args, kwargs):
+    b = MmRealBackend("absent.cfg")
+    with pytest.raises(CommandPathRetired, match="plan.md 15, bc0f4848"):
+        getattr(b, name)(*args, **kwargs)
+    assert b.core is None  # nothing was opened
