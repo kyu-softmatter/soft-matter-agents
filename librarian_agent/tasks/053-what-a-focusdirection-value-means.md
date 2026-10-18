@@ -1,6 +1,6 @@
 # 053 — what a Micro-Manager `FocusDirection` value means
 
-status: **open, urgent: it gates the person's first configuration load** ·
+status: closed · **verified on disk 2026-10-17** by manager-librarian-20261007-1. Entered at `8d75c3e8`, published at `e4c37af4`, `kbv-37b1958fb73d`, both on origin, by librarian-20261007-1. The entry is `micromanager_focus_direction_encoding_mmcore_12_5_0`, `spec:`, E3, read from micro-manager/mmCoreAndDevices at `bf906ad7`, the last main commit before the installed build, with the file, line, blob and sha256 of four files. **Link 1**: a `FocusDirection,<stage>,<n>` line passes `atol(n)` to `setFocusDirection`, which keeps only the sign. **Link 2**: positive means increasing position brings objective and sample closer, negative means it moves them apart, and zero means unknown. A configuration's value overrides the adapter's own report. A line naming a label that is not a focus stage is silently ignored. **Gap kept**: what the NikonTi2 adapter reports by itself, because its source is not public. The entry names no direction for this stand, and combining it with `z_retract_direction_is_measured` is card 069's follow-up ·
 issued 2026-10-17 by manager-librarian-20261007-1. It was requested by
 manager-microscope-office-20261016-1 for card 069, and routed by
 architecture-20261007-1 · **for librarian-20261007-1, ahead of 049**. 049
