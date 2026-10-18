@@ -1,0 +1,38 @@
+{
+  "$comment": "Session boundary for the microscope runtime (plan.md 15): execution, S6, and the run-time watcher, in one folder with the person's policy and approvals and the code that enforces them. Written by manager-microscope-20261003-1 on 2026-10-18, before any of the guarded paths exists, so the session that will run the instrument starts with its guards. Check 90 refuses a commit that drops or weakens any of the five lines below.",
+  "permissions": {
+    "deny": [
+      "Edit(/envelope/safety.json)",
+      "Edit(/approvals/**)",
+      "Edit(/tasks/**)",
+      "Edit(/CLAUDE.md)",
+      "Edit(/.claude/**)"
+    ],
+    "$comment": "Five inward guards, each anchored with a single leading slash. In project settings Claude Code resolves `/path` against the session's primary working directory, which for a session started here is this folder (code.claude.com/docs/en/permissions, 'Read and Edit', read 2026-10-17). A bare `path` resolves against the current directory, which /cd can move, and a path naming this folder, such as `microscope_runtime/envelope/safety.json`, would resolve to microscope_runtime/microscope_runtime/... and guard nothing. Only Edit(...) rules are consulted for file paths: the documentation says a path rule written for Write is accepted and never consulted, and Edit rules apply to every built-in tool that edits files. So there are no Write lines here. envelope/safety.json and approvals/ are the person's (P0 rule 7, 6.1): a model writing a safety limit or an approval is the worst failure this system has. tasks/, CLAUDE.md and .claude/ are manager-microscope's: a seat that can edit its own orders or its own guards has neither. These guards bind the built-in file tools and the file commands Claude Code recognises in Bash. They do not bind a script that opens files itself, which is why the commit gate, not this file, is the enforcement (6.2), and why the person's files also refuse at commit. No outward lines: from a session rooted here they would name paths that cannot resolve, and microscope_agent/.claude/settings.json shows how such lines get read as protection."
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'for c in python3 python py; do command -v \"$c\" >/dev/null 2>&1 || continue; \"$c\" -c \"\" >/dev/null 2>&1 || continue; exec \"$c\" \"$(git rev-parse --show-toplevel)/contracts/validate.py\" --quiet; done; echo \"validate: no RUNNABLE python on PATH (python3, python, py all failed a -c probe)\" >&2; exit 1'",
+            "$comment": "the validator's exit code is the only truth (plan.md 8), resolved from the worktree root as in microscope_agent's settings."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'for c in python3 python py; do command -v \"$c\" >/dev/null 2>&1 || continue; \"$c\" -c \"\" >/dev/null 2>&1 || continue; exec \"$c\" \"$(git rev-parse --show-toplevel)/.claude/end-of-turn-commit-check.py\"; done; exit 0'",
+            "$comment": "the end-of-turn commit check, as in every agent's settings: it asks and never commits."
+          }
+        ]
+      }
+    ]
+  }
+}
