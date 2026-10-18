@@ -492,14 +492,29 @@ def wait_for(path: Path, limit: float, label: str, rec: Record) -> None:
         say(f"seat_commit: {label} is free after {time.monotonic() - t0:.1f} s")
 
 
-def run_gate(git: Git, priv: Private, msgfile: str, rec: Record) -> None:
+class GateRun:
+    """One run of the gate: its lines and exit code, held until it is known
+    whether this run judged the commit that lands (HP-010)."""
+
+    def __init__(self, lines: list, code: int, installed: bool = True):
+        self.lines, self.code, self.installed = lines, code, installed
+
+    @property
+    def refused(self) -> bool:
+        return self.installed and self.code != 0
+
+
+def run_gate(git: Git, priv: Private, msgfile: str, rec: Record) -> GateRun:
     """The repository's own pre-commit hook, judged on the private index.
 
     `git commit` points GIT_INDEX_FILE at the index it is committing and runs
     the hook; this does the same, so the hook judges exactly the tree that
-    will be committed. Its last lines are printed unfiltered. A hook that is
-    not installed is said, not hidden -- `git commit` would also commit
-    without it, and installing it is a manager's call (root CLAUDE.md).
+    will be committed. Its lines are returned, not printed: whether they are
+    this commit's verdict is known only once HEAD has been read again, and a
+    run judged against a moved HEAD is printed marked as discarded
+    (show_gate). A hook that is not installed is said, not hidden -- `git
+    commit` would also commit without it, and installing it is a manager's
+    call (root CLAUDE.md).
     """
     env = dict(priv.env)
     env[MARKER] = "1"
@@ -509,24 +524,45 @@ def run_gate(git: Git, priv: Private, msgfile: str, rec: Record) -> None:
         rec.row["gate"] = "not installed"
         say("seat_commit: NO pre-commit hook is installed in this working copy, so no gate judged "
             "this commit. git commit would not have run one either")
-        return
-    lines = body.rstrip("\n").splitlines()
-    # All of a refusal, the tail of a pass: a refusal's first FAIL is the one to read.
-    shown = lines if out.returncode else lines[-GATE_TAIL:]
-    say(f"--- the gate's {'' if out.returncode else 'last '}{len(shown)} lines, unfiltered "
-        f"(exit {out.returncode}) ---")
-    for line in shown:
-        say(line)
-    say("--- end of the gate ---")
-    if out.returncode:
-        rec.row["gate"] = "refused"
-        raise Refused("the gate refused this tree; read its lines above. Nothing was committed")
-    rec.row["gate"] = "passed"
+        return GateRun([], 0, installed=False)
+    run = GateRun(body.rstrip("\n").splitlines(), out.returncode)
+    if run.refused:
+        return run
     cm = git.run("hook", "run", "--ignore-missing", "commit-msg", "--", msgfile, env=env,
                  check=False, merge=True)
     if cm.returncode:
         say(text(cm.stdout))
         raise Refused("the commit-msg hook refused the message; nothing was committed")
+    return run
+
+
+def show_gate(run: GateRun, attempt: int, base: str, moved_to: str | None = None) -> None:
+    """Print one gate run: as this commit's verdict, or marked as discarded.
+
+    HP-010 (2026-10-18): a run judged against a HEAD that moved under it
+    printed check 41 FAIL lines charging another seat's file, bare, and the
+    commit then landed on the rebuild. Read filtered for FAIL -- which the
+    root CLAUDE.md warns against and a seat did anyway -- that said the
+    landed commit carried a file it never touched. So every line of a
+    discarded run carries the attempt and its base, and only the run that
+    judged the outcome is printed plain. All of a refusal, the tail of a
+    pass: a refusal's first FAIL is the one to read.
+    """
+    if not run.installed:
+        return
+    shown = run.lines if run.code else run.lines[-GATE_TAIL:]
+    span = f"all {len(shown)}" if len(shown) == len(run.lines) else f"last {len(shown)} of {len(run.lines)}"
+    if moved_to is None:
+        say(f"--- gate attempt {attempt} on {base[:9]}: {span} lines, unfiltered (exit {run.code}) ---")
+        for line in shown:
+            say(line)
+        say("--- end of the gate ---")
+        return
+    say(f"--- gate attempt {attempt} on {base[:9]}: DISCARDED, HEAD moved to {moved_to[:9]} while it ran, "
+        f"so these {span} lines (exit {run.code}) are not this commit's verdict ---")
+    for line in shown:
+        say(f"discarded attempt {attempt} on {base[:9]} | {line}")
+    say(f"--- end of discarded attempt {attempt} ---")
 
 
 def clean_message(git: Git, path: str) -> bytes:
@@ -628,6 +664,7 @@ def commit(git: Git, args, row: dict, reg: dict, boundary_of, rec: Record) -> st
             say_shared(git, first, p)
 
         attempt = 0
+        gate_runs = 0
         while True:
             # Inside the wait: the tree is built only after the lock is free,
             # on the HEAD read at that moment.
@@ -642,16 +679,20 @@ def commit(git: Git, args, row: dict, reg: dict, boundary_of, rec: Record) -> st
                 if d != args.confirm:
                     raise Refused(f"the digest of these paths is now {d}, not {args.confirm}: something "
                                   "changed while waiting. Nothing was committed; look again")
-            try:
-                run_gate(git, priv, msgfile, rec)
-            except Refused:
+            gate_runs += 1
+            gate = run_gate(git, priv, msgfile, rec)
+            if gate.refused:
                 # The gate compares this tree with HEAD as it is when it
                 # runs, so a commit that landed meanwhile shows up as this
                 # seat removing that commit's work -- check 41 refused
                 # plan.md twice on 2026-10-17 that way. That verdict is on the
                 # wrong pair of trees, so it is a moved HEAD, not a refusal.
-                if git.rev("HEAD") == base:
-                    raise
+                head = git.rev("HEAD")
+                if head == base:
+                    show_gate(gate, gate_runs, base)
+                    rec.row["gate"] = "refused"
+                    raise Refused("the gate refused this tree; read its lines above. Nothing was committed")
+                show_gate(gate, gate_runs, base, moved_to=head)
                 attempt += 1
                 rec.row["retries"]["head_moved"] += 1
                 if attempt > args.retries:
@@ -681,7 +722,9 @@ def commit(git: Git, args, row: dict, reg: dict, boundary_of, rec: Record) -> st
                               f"process kept its ref locked. Nothing was committed; commit {new[:9]} "
                               "exists unattached and will be collected")
             if not moved:
+                show_gate(gate, gate_runs, base)
                 break
+            show_gate(gate, gate_runs, base, moved_to=git.rev("HEAD"))
             attempt += 1
             rec.row["retries"]["head_moved"] += 1
             if attempt > args.retries:
@@ -689,11 +732,17 @@ def commit(git: Git, args, row: dict, reg: dict, boundary_of, rec: Record) -> st
             say(f"seat_commit: HEAD moved to {git.rev('HEAD')[:9]} while the gate ran, so the tree built "
                 f"on {base[:9]} is discarded and rebuilt on the new HEAD")
         rec.row["commit"] = new
+        rec.row["gate"] = "passed" if gate.installed else "not installed"
+        rec.row["gate_runs"] = gate_runs
         rec.row["outcome"] = "committed-unverified"
         verify(git, row, new, base, paths)
         reset_shared_entries(git, base, new, paths, args.lock_wait, rec)
         say(git.out("log", "-1", "--stat", "--format=%H%n  committer %cn <%ce>%n  author    %an <%ae>%n%n    %s",
                     new))
+        # The last word is the commit actually made: a run marked discarded
+        # above is history, and this line is what landed (HP-010).
+        say(f"seat_commit: committed {new[:9]} on {base[:9]}, judged by gate attempt {gate_runs}, "
+            f"{len(paths)} paths: {', '.join(paths)}")
         rec.row["outcome"] = "committed"
         return new
     finally:

@@ -731,6 +731,36 @@ def tool_gate_refuses_a_moved_head(repo: Path) -> tuple:
             f"HEAD, judged again, committed; a refusal with HEAD in place stayed one, with no rebuild (exit {code})")
 
 
+def naive_discarded_gate_lines(repo: Path) -> tuple:
+    """HP-010 (2026-10-18), b362056f and 54d26c26: a gate run judged against a
+    moved HEAD printed check 41 FAIL lines charging another seat's file. Read
+    filtered for FAIL, which is how one seat read it, that says the commit
+    carries a file it never touched."""
+    write(repo, CARD, card("MINE"))
+    for m in ("fixture-move-head-once", "fixture-gate-judges-head"):
+        (repo / ".git" / m).write_bytes(b"")
+    r = git(repo, "commit", "-F", message(repo), "--", CARD, env=env_for(FIX), check=False)
+    fails = [x for x in r.stdout.decode("utf-8", "replace").splitlines() if "FAIL" in x]
+    return (any("other.json" in x for x in fails),
+            "read filtered for FAIL, the output charges this seat with another seat's file")
+
+
+def tool_discarded_gate_lines(repo: Path) -> tuple:
+    write(repo, CARD, card("MINE"))
+    patch = save_diff(repo, CARD)
+    for m in ("fixture-move-head-once", "fixture-gate-judges-head"):
+        (repo / ".git" / m).write_bytes(b"")
+    code, said = tool(repo, "--seat", FIX, "-F", message(repo), "--patch", str(patch))
+    lines = [x for x in said.splitlines() if x.strip()]
+    bare = [x for x in lines if "FAIL" in x and "discarded attempt" not in x]
+    last = lines[-1] if lines else ""
+    sha = out(repo, "rev-parse", "HEAD")
+    ends = last.startswith(f"seat_commit: committed {sha[:9]}") and CARD in last
+    return (code == 0 and not bare and ends,
+            f"the discarded run's lines are each marked as discarded, no bare FAIL is left, and the output ends "
+            f"with the commit made and its paths (exit {code}, bare FAIL lines {len(bare)}, ends right {ends})")
+
+
 def naive_stale_index(repo: Path) -> tuple:
     """2026-10-15: a commit from a private index moves HEAD and not .git/index,
     so `git diff --cached` shows the inverse of what was just committed, and
@@ -887,6 +917,8 @@ FIXTURES = [
     ("HEAD moving while the gate runs", "gate", naive_head_moves_in_gate, tool_head_moves_in_gate),
     ("a gate refusal caused by HEAD moving under it", "moved", naive_gate_refuses_a_moved_head,
      tool_gate_refuses_a_moved_head),
+    ("a discarded gate run's lines read as a refusal", "discarded", naive_discarded_gate_lines,
+     tool_discarded_gate_lines),
     ("the shared index left stale by a private-index commit", "index", naive_stale_index, tool_stale_index),
     ("another push reaching the remote first", "race", naive_push_race, tool_push_race),
     # HP-009 (2026-10-18): the yes to publishing others' commits names them.
