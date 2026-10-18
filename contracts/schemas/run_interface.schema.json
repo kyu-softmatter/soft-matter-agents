@@ -1,0 +1,498 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "run_interface.schema.json",
+  "title": "run_interface -- what the microscope runtime writes and answers, and what the console reads and sends (plan.md 15)",
+  "description": "The interface between the run (the orchestrator and the live-view host, in the microscope boundary) and whatever follows a run from outside it (the console, its own boundary from plan.md 15). It is pinned here, in contracts/, because writer and reader now sit in two folders held by two seats, and plan.md 14's rule that a change to the run_started keys updates the console and its tests in the same commit could only be kept by one seat holding both. A change is now two commits that meet here: this file first, then each side's code and tests. BOTH SIDES' TESTS READ THIS FILE. Every $defs entry carries `examples`, which a conforming writer may produce and a conforming reader must accept, and `x_refused`, instances the receiving side must refuse; `x_max_bytes` is the longest message, newline included, the receiver reads. Taken from what the code does at 1957cb6d, not designed anew: microscope_agent/src/orchestrator.py (begin_run, end_run, _StopChannel and _stop_request, _FrameTap) and microscope_agent/src/live_view.py, read against the console's reader, microscope_agent/autofocus/src/dino_autofocus/agents/sma_run.py and sma_live.py. Written by manager-microscope-20261003-1 on 2026-10-17. NOT A WIDENING: every socket is loopback only, the stop channel can only stop, the frame tap only hands over the latest frame the run already acquired, and the live-view host only starts a list the person already approved, named by its sha256. Nothing here sets, moves or reads a device.",
+  "$defs": {
+    "address": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "const": "127.0.0.1"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      },
+      "required": [
+        "host",
+        "port"
+      ],
+      "additionalProperties": false,
+      "description": "a loopback address, as the run announces it; the reader connects to nothing else"
+    },
+    "run_started": {
+      "type": "object",
+      "description": "the FIRST line of runs/<run_id>/events.jsonl, and the only place the two addresses are written. Every event the run recorded before it follows it, in order",
+      "properties": {
+        "event": {
+          "const": "run_started"
+        },
+        "run_id": {
+          "type": "string",
+          "pattern": "^run-[0-9]{8}-[0-9]{3}$"
+        },
+        "plan_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "null for a preparatory run, which has no plan"
+        },
+        "revision": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "t0_wall": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "stop_channel": {
+          "$ref": "#/$defs/address"
+        },
+        "frame_tap": {
+          "$ref": "#/$defs/address"
+        }
+      },
+      "required": [
+        "event",
+        "run_id",
+        "plan_id",
+        "revision",
+        "t0_wall",
+        "stop_channel",
+        "frame_tap"
+      ],
+      "additionalProperties": false,
+      "examples": [
+        {
+          "event": "run_started",
+          "run_id": "run-20261017-901",
+          "plan_id": "plan-mic-20261017-901-r1",
+          "revision": 1,
+          "t0_wall": "2026-10-17T12:00:00+00:00",
+          "stop_channel": {
+            "host": "127.0.0.1",
+            "port": 50211
+          },
+          "frame_tap": {
+            "host": "127.0.0.1",
+            "port": 50212
+          }
+        },
+        {
+          "event": "run_started",
+          "run_id": "run-20261017-902",
+          "plan_id": null,
+          "revision": null,
+          "t0_wall": "2026-10-17T12:00:00+00:00",
+          "stop_channel": {
+            "host": "127.0.0.1",
+            "port": 50213
+          },
+          "frame_tap": {
+            "host": "127.0.0.1",
+            "port": 50214
+          }
+        }
+      ],
+      "x_refused": [
+        {
+          "event": "run_started",
+          "run_id": "run-20261017-903",
+          "plan_id": null,
+          "revision": null,
+          "t0_wall": "2026-10-17T12:00:00+00:00",
+          "stop_channel": {
+            "host": "0.0.0.0",
+            "port": 50215
+          },
+          "frame_tap": {
+            "host": "127.0.0.1",
+            "port": 50216
+          }
+        },
+        {
+          "event": "run_started",
+          "run_id": "run-20261017-904",
+          "plan_id": null,
+          "revision": null,
+          "t0_wall": "2026-10-17T12:00:00+00:00",
+          "stop_channel": {
+            "host": "127.0.0.1",
+            "port": 50217
+          }
+        }
+      ]
+    },
+    "run_ended": {
+      "type": "object",
+      "description": "the LAST line of events.jsonl, written after the stop channel and the frame tap are closed, so nothing can be stopped once the run says it has ended. Detail keys may follow",
+      "properties": {
+        "event": {
+          "const": "run_ended"
+        },
+        "how": {
+          "enum": [
+            "completed",
+            "aborted_by_monitor",
+            "stopped_from_outside",
+            "failed",
+            "refused"
+          ],
+          "description": "refused: the run was refused before any command was sent (card 065); the six bench runs of 2026-10-13 all end this way. The console reader at 1957cb6d (sma_run.py RUN_ENDED_HOW) lists only the first four, and must learn this one"
+        },
+        "t_mono": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "event",
+        "how",
+        "t_mono"
+      ],
+      "examples": [
+        {
+          "event": "run_ended",
+          "how": "stopped_from_outside",
+          "t_mono": 12.5
+        },
+        {
+          "event": "run_ended",
+          "how": "completed",
+          "t_mono": 60.0
+        },
+        {
+          "event": "run_ended",
+          "how": "refused",
+          "t_mono": 0.4
+        }
+      ],
+      "x_refused": [
+        {
+          "event": "run_ended",
+          "how": "paused",
+          "t_mono": 1.0
+        }
+      ]
+    },
+    "stop_request": {
+      "type": "object",
+      "description": "the ONE message the stop channel accepts: one line of JSON, exactly these two keys, naming this run. No status, no pause, nothing that sets a value or names a file: a stop can only stop. Anything else is recorded as stop_refused and closed unanswered",
+      "properties": {
+        "stop": {
+          "type": "string",
+          "pattern": "^run-[0-9]{8}-[0-9]{3}$"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stop",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "x_max_bytes": 1024,
+      "examples": [
+        {
+          "stop": "run-20261017-901",
+          "reason": "the dino console: the person pressed Abort"
+        }
+      ],
+      "x_refused": [
+        {
+          "stop": "run-20261017-901"
+        },
+        {
+          "stop": "run-20261017-901",
+          "reason": "x",
+          "pause": true
+        },
+        {
+          "stop": "run-20261017-901",
+          "reason": 7
+        }
+      ]
+    },
+    "stop_reply": {
+      "type": "object",
+      "description": "sent only for a valid stop, after the run's abort() was called; a refusal gets no reply at all. The abort runs first (lights and shutters), so the reader waits long for it",
+      "properties": {
+        "abort": {
+          "const": "begun"
+        }
+      },
+      "required": [
+        "abort"
+      ],
+      "additionalProperties": false,
+      "examples": [
+        {
+          "abort": "begun"
+        }
+      ],
+      "x_refused": [
+        {
+          "abort": "done"
+        },
+        {
+          "abort": "begun",
+          "status": "ok"
+        }
+      ]
+    },
+    "frame_tap_request": {
+      "description": "the ONE request the frame tap answers, as one line. The tap never acquires: it hands over a copy of the latest frame the run's own acquisition produced",
+      "const": {
+        "get": "latest_frame"
+      },
+      "x_max_bytes": 256,
+      "examples": [
+        {
+          "get": "latest_frame"
+        }
+      ],
+      "x_refused": [
+        {
+          "get": "snap"
+        },
+        {
+          "get": "latest_frame",
+          "exposure_ms": 10
+        }
+      ]
+    },
+    "frame_tap_header": {
+      "description": "the frame tap's reply: one JSON header line, then, when frame is true, exactly `bytes` bytes of the frame in C order with the given shape and dtype",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "frame": {
+              "const": false
+            },
+            "note": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "frame",
+            "note"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "frame": {
+              "const": true
+            },
+            "metadata": {
+              "type": "object"
+            },
+            "t_mono": {
+              "type": "number"
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "shape": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "dtype": {
+              "enum": [
+                "uint8",
+                "uint16",
+                "uint32",
+                "int8",
+                "int16",
+                "int32",
+                "float32",
+                "float64",
+                "bytes"
+              ]
+            }
+          },
+          "required": [
+            "frame",
+            "metadata",
+            "t_mono",
+            "bytes",
+            "shape",
+            "dtype"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "examples": [
+        {
+          "frame": false,
+          "note": "no frame yet: nothing has been acquired in this run, and the tap never acquires"
+        },
+        {
+          "frame": true,
+          "metadata": {
+            "exposure_ms": 10
+          },
+          "t_mono": 3.2,
+          "bytes": 8388608,
+          "shape": [
+            2048,
+            2048
+          ],
+          "dtype": "uint16"
+        }
+      ],
+      "x_refused": [
+        {
+          "frame": true,
+          "t_mono": 3.2,
+          "bytes": 8,
+          "shape": [
+            2,
+            2
+          ],
+          "dtype": "uint16"
+        }
+      ]
+    },
+    "live_host_address": {
+      "type": "object",
+      "description": "the live-view host's address file, %LOCALAPPDATA%/soft-matter-agents/live_host.json, outside the tree, written atomically on start and deleted on stop (card 062)",
+      "properties": {
+        "host": {
+          "const": "127.0.0.1"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "pid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "host",
+        "port",
+        "pid",
+        "started_at"
+      ],
+      "additionalProperties": false,
+      "examples": [
+        {
+          "host": "127.0.0.1",
+          "port": 50300,
+          "pid": 4242,
+          "started_at": "2026-10-17T12:00:00+00:00"
+        }
+      ],
+      "x_refused": [
+        {
+          "host": "127.0.0.1",
+          "port": 50300
+        }
+      ]
+    },
+    "live_on_request": {
+      "type": "object",
+      "description": "the ONE message the live-view host accepts: the sha256 of an approved list file's raw bytes. The console cannot send a list, a path or a value, only name a list the person already approved. Live off is the started run's own stop channel",
+      "properties": {
+        "live_on": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "live_on"
+      ],
+      "additionalProperties": false,
+      "examples": [
+        {
+          "live_on": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ],
+      "x_refused": [
+        {
+          "live_on": "approvals/live_view_list.json"
+        },
+        {
+          "live_on": "0000000000000000000000000000000000000000000000000000000000000000",
+          "exposure_ms": 10
+        },
+        {
+          "live_off": true
+        }
+      ]
+    },
+    "live_on_reply": {
+      "description": "started is sent once that run's run_started is written; refused says why",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "live_on": {
+              "const": "started"
+            },
+            "run_id": {
+              "type": "string",
+              "pattern": "^run-[0-9]{8}-[0-9]{3}$"
+            }
+          },
+          "required": [
+            "live_on",
+            "run_id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "live_on": {
+              "const": "refused"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "live_on",
+            "reason"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "examples": [
+        {
+          "live_on": "started",
+          "run_id": "run-20261017-905"
+        },
+        {
+          "live_on": "refused",
+          "reason": "no approved list has that sha256"
+        }
+      ],
+      "x_refused": [
+        {
+          "live_on": "refused"
+        }
+      ]
+    }
+  }
+}
