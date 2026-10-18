@@ -32,6 +32,16 @@ The console is launched by its own session:
 uv run --directory D:/codes/github/dino-autofocus-wt/console python -m dino_autofocus.server --backend placeholder --port 8792 --store sma --sma-root D:/sma-scratch/063
 ```
 
+**Historical (note added 2026-10-18).** This card ran on 2026-10-07 with the
+line above, and its findings stand at `52032db`. That folder and that module
+no longer exist: the console moved to this repository's `console/` (plan.md
+15, `908e55c8`, `8e9d8d9`), and its package was renamed `sma_console`
+(`9267874d`). To run the console the same way today, from `console/`:
+
+```
+uv run python -m sma_console.server --backend placeholder --store sma --sma-root <scratch copy>
+```
+
 The person watches at `http://127.0.0.1:8792`.
 
 **Every value in the scratch envelope, approvals and store is a TEST value,
