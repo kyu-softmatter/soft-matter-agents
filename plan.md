@@ -2412,7 +2412,9 @@ rebuild/
   console/                          **the operator console, a boundary of its own (2026-10-17, 15; `07b62a86`).** A leaf above the
                                     four agents: it imports `contracts/` and nothing imports it. It reads the agents' cards and the run
                                     interface and commands nothing itself (11-25); a screen that would act drafts a plan for the person.
-                                    dino's engine command path does not come here; it is retired (15). **Empty until 15 step 5**
+                                    dino's engine command path does not come here; it is retired (15), and **nothing under `console/` can open a
+                                    Micro-Manager core**. Its mock is the placeholder engine and the mock store, not dino's `mock` backend,
+                                    which executes commands and stays with the engine. **Empty until 15 step 5**
     CLAUDE.md, README.md, .claude/, tasks/  manager-console's
     pyproject.toml, uv.lock, .python-version  its own environment, with no hardware, model or synthesis extras: no pymmcore,
                                     no torch
