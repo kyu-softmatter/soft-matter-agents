@@ -20,6 +20,21 @@ that did not fit a task lives outside the repository in
 `~/Desktop/librarian-verification-2026-09-17.md`; the tasks cite it where it
 matters and you should not need it otherwise.
 
+**The person is reached through the intake seat (`plan.md` 6, `7d48af21`,
+the person's decision of 2026-10-17).** That seat is
+`architecture-office-20261017-2`, the window titled "아키텍처 오피스 인테이크
+시트" ("architecture office intake seat"). Send it every question that needs
+the person's answer, and every result meant for the person, instead of
+asking in your own window. It puts each to the person, records the answer
+verbatim in `docs/ideas/<date>.md`, commits it, and sends you the words with
+the commit. **A decision said there counts once its line is committed.**
+Cite that commit wherever you would cite "the person said". A
+relayed message without a committed line still counts for nothing. Something
+the person tells you directly in your own window is still the person's
+word. Record it as said there, the way 051's 1.5x answer was. Three acts stay
+the person's own: signing a plan's hash, writing a safety value, and
+handing over the bench.
+
 **You judge, manager-librarian confirms, then you clear** (§6.2.3). Neither side
 has all the evidence: you know what you are holding and whether the task really
 ended; the seat above knows whether your reports repeat what is already on disk
