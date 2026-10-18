@@ -1,0 +1,29 @@
+{
+  "entry_id": "micromanager_focus_direction_encoding_mmcore_12_5_0",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "In Micro-Manager with MMCore 12.5.0, a configuration file line 'FocusDirection,<stage>,<n>' sets that stage's focus direction from the integer n by its sign: any positive n means increasing position brings the objective closer to the sample, any negative n means increasing position moves the objective away from the sample, and n = 0 means the direction is unknown. A value set this way replaces whatever the device adapter reports.",
+  "identifiers": {
+    "product": "Micro-Manager",
+    "mmcore_version": "12.5.0",
+    "device_interface_version": "75",
+    "config_command": "FocusDirection",
+    "positive_n": "toward sample: increasing position brings objective and sample closer (MM::FocusDirectionTowardSample, +1)",
+    "negative_n": "away from sample: increasing position moves the objective away (MM::FocusDirectionAwayFromSample, -1)",
+    "zero_n": "unknown (MM::FocusDirectionUnknown, 0)",
+    "source_commit": "micro-manager/mmCoreAndDevices@bf906ad7c853f6cadf0f75740972e654083947c1"
+  },
+  "source": "spec:micromanager_mmcore_12_5_0",
+  "grade": "E3",
+  "grade_tag": "vendor_spec",
+  "source_ref": "src_micromanager_mmcore_focus_direction_12_5_0",
+  "valid_until": {
+    "date": "2036-10-17",
+    "event": "a Micro-Manager build whose core or device interface changes the FocusDirection enum, setFocusDirection's mapping, or the configuration loader's FocusDirection branch. Identical from MMCore 12.5.0's first commit through 12.5.1 and main of 2026-10-14; a version outside that span has to be re-read."
+  },
+  "validity_conditions": "TWO LINKS, BOTH FROM MICRO-MANAGER'S OWN SOURCE, NAMED BY FILE AND LINE AT mmCoreAndDevices bf906ad7 (src_micromanager_mmcore_focus_direction_12_5_0). Link 1, file to core: the loader takes a FocusDirection line of exactly three tokens and calls setFocusDirection(label, atol(third token)); setFocusDirection keeps only the SIGN -- positive is TowardSample, negative is AwayFromSample, zero is Unknown (MMCore.cpp 7760-7768, 2261-2268). So 1 and 2 both mean toward sample, and -1 and -2 both mean away; there is no separate ordinal encoding. Link 2, value to meaning: +1 is 'increasing position brings objective closer to sample', -1 is 'increasing position moves objective away from sample', 0 is unknown (MMCore.cpp 2225-2229; MMDeviceConstants.h 291-295; MMDevice.h 612-624). This claim is about integer tokens; what atol makes of a token that is not an integer is outside it. A line with other than three tokens fails the configuration load. A line naming a label that is not a focus stage is silently ignored -- the code says so, 'for legacy reasons' -- so a misspelt stage label sets nothing and raises nothing. PRECEDENCE: the configuration's value wins. The stage returns the adapter's own report only while nothing has been set, and a FocusDirection line sets it (StageInstance.cpp 40-61). WHAT IS NOT KNOWN, A GAP: what the Nikon Ti2 adapter (library NikonTi2) reports by itself, which is what the core returns when a configuration carries NO FocusDirection line for ZDrive. Its source is not in Micro-Manager's public repository, and nothing here infers it. WHAT THE CORE DOES WITH IT: within MMCore the value is stored, returned by getFocusDirection and written back when a configuration is saved; no other use was found under MMCore/, so the core does not change how it moves because of it. What applications above the core do with it was not searched. THIS ENTRY NAMES NO PHYSICAL DIRECTION FOR THIS STAND -- that is z_retract_direction_is_measured -- and does not say which value this stand's configuration ought to carry; combining the two is the microscope side's check. VERSION: the instrument runs Micro-Manager 2.0.3 20260806 with MMCore 12.5.0 and device interface 75 (pymmcore_plus_micromanager_copy_loads_single_cam_red_config). The exact commit that build came from was not identified; the pin is the last main commit before 2026-08-06, and the logic is byte-identical across the whole 12.5.0 span, so the answer does not depend on which. A FACT USED BY A SAFETY CHECK, NOT A SAFETY LIMIT: nothing here is an envelope value, and it grants no motion. Not taken from the imported .cfg comments, the prior project's notes, any web summary, or memory.",
+  "date": "2026-10-17",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261007-1"
+}
