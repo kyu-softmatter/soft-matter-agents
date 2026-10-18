@@ -1729,6 +1729,11 @@ ALLOWED_PATHS = [
     # Flat files with the front door's own extensions. This list first; the
     # section 7 line is architecture's, and check 55 reads only that way.
     r"^docs/drafts/[A-Za-z0-9_.-]+\.(html|css|js|svg|png|jpg|jpeg|webp|mp4|md)$",
+    # The intake seat's record (2026-10-17, plan.md 6 at 7d48af21): one file
+    # per day, docs/ideas/<YYYYMMDD>.md, as section 7 declares it. Narrower
+    # than the drafts line on purpose: a committed line there can carry the
+    # person's word, so nothing but the dated record may sit beside it.
+    r"^docs/ideas/[0-9]{8}\.md$",
 ]
 
 
