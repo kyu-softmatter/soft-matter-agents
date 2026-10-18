@@ -256,10 +256,12 @@ and its retraction is in §7.
 by hand** — and read it again, because it moves: on 2026-09-20 it went from
 that one key to `{}` to absent inside ten minutes while seats were quoting it
 to each other, and nothing anywhere records that it did. Settings are read at
-session start, so fixing it leaves a running session unchanged -- and,
-observed once (2026-10-17, console-office-20261017-1), again when a running
-session's working directory changes; whether an edit alone reaches a running
-session is unmeasured.
+session start, so fixing it leaves a running session unchanged -- **except
+that permission deny rules were seen to reach a running session** (once,
+2026-10-17, console-office-20261017-1: a `PowerShell(...)` deny added at
+`950bff0c` refused a line the same unrestarted session had run minutes
+before; that session had earlier changed working directory). Hooks and MCP
+settings were not probed, so treat the rest of this paragraph as standing.
 
 **That sentence is the third instance of one class and it took three to see
 it.** A fix that lands in configuration reaches **only what starts after
